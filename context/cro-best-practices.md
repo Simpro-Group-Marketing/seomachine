@@ -2,6 +2,52 @@
 
 Conversion Rate Optimization guidelines for landing pages.
 
+> **Source note**: The Simpro Marketing Portal does not have a dedicated CRO playbook for the marketing site. Growth Marketing (Tim Lamb) owns a `2025 Completed Experiments` deck and `Process for Web Intake and Planning` doc, but neither is a guidelines doc. The rules below are framework-generic best practices. **Apply them through Simpro's brand voice** (see `brand-voice.md`) — every headline should be specific, every CTA should match the funnel stage, every trust signal should be a named customer or named number from `features.md`.
+
+---
+
+## Simpro-Specific CRO Principles
+
+These overlay the generic CRO rules below — when in conflict, the Simpro-specific rule wins.
+
+### Lead with named outcomes, not feature claims
+The Simpro evidence library is exceptional and underused in CRO copy. Every above-the-fold hero should be in arm's reach of at least one of these:
+- **60% increase in profit margin** (Shaffer Beacon Mechanical)
+- **10x faster job estimates** (BDE Digital)
+- **$750K+ admin cost savings over 5 years** (McCarthy Plumbing Group)
+- **50% faster payments** (TEAMWired)
+- **80% less time on POs** (James Frew)
+- **10x revenue growth in 6 years, 6x EBITDA exit** (Foster Plumbing)
+
+A generic "Grow your business with Simpro" hero will lose to "How Foster Plumbing grew 10x in 6 years with Simpro" — every time.
+
+### Match the CTA to the funnel stage
+- **Top-of-funnel** (blog readers, broad SEO): "See the [trade] case studies" / "Read the customer story" / "Watch the 5-minute demo video"
+- **Mid-funnel** (comparison pages, alternatives, /vs/ pages): "Compare Simpro to [competitor]" / "Calculate your ROI" / "See Simpro in action with someone who knows your trade"
+- **Bottom-of-funnel** (pricing, product pages, return visitors): "Book a personalized demo" / "Talk to a Simpro customer in your trade"
+
+### Trust signals: scale + named customers
+Above-the-fold trust signals that work for Simpro:
+- 250,000+ users / 8,500+ customers / 20+ years (scale)
+- Named customer logos in the relevant trade (relevance)
+- A specific outcome quote from a similar-trade customer (proof)
+- "Trusted in [US / AU / NZ / UK]" — geographic credibility
+
+### Headline patterns that fit Simpro voice
+- **Outcome + customer**: "How [Customer] [Outcome] with Simpro"
+- **Pillar + promise**: "Double Your Profits, Not Your Hours"
+- **Pillar + concrete claim**: "Real-time job costing. Real-time profitability."
+- **Question that opens to a strong answer**: "Outgrowing Housecall Pro? Here's what comes next."
+
+### Anti-patterns to avoid (Simpro-specific)
+- "World-class," "innovative," "cutting-edge" — every category vendor uses these
+- "Streamline your operations" — every CRM/FSM uses this
+- Generic stock photos of trades workers — use real customer photos, real software screenshots
+- Multi-step lead forms above the fold when a single email field plus "Book a demo" works better
+- Carousel heroes — pick the strongest hero and stand behind it
+
+<!-- GAP: A Simpro-specific CRO playbook does not exist in the Marketing Portal as of 2026-05-12. If one exists in a private Growth Marketing space or web team doc, request access and replace this section with authoritative rules. The Growth Marketing `2025 Completed Experiments` deck (1f4E7yay4s-SsVUFcg-EZ06aB31d2MADJ3oNfQrEGnXo) is the closest existing resource and should be reviewed for tested patterns. -->
+
 ---
 
 ## Above-the-Fold Rules

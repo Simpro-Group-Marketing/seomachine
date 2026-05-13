@@ -1,6 +1,6 @@
-# SEO Guidelines for Castos Content
+# SEO Guidelines for Simpro Content
 
-This document outlines SEO best practices and requirements for all Castos blog content to maximize organic search visibility and rankings.
+This document outlines SEO best practices and requirements for all Simpro blog content to maximize organic search visibility and rankings.
 
 ## Content Length Requirements
 
@@ -58,16 +58,16 @@ Primary keyword MUST appear in:
 ### Keyword Integration Best Practices
 - **Natural language first**: Write for humans, optimize for search engines
 - **Use variations**: Don't repeat exact phrase robotically
-  - Example: "podcast hosting" → "hosting your podcast" → "podcast host"
+  - Example: "field service management software" → "field service platform" → "FSM software"
 - **Question formats**: Include conversational variations
-  - "How to start a podcast" vs "starting a podcast"
+  - "How to schedule field technicians" vs "scheduling field technicians"
 - **Semantic keywords**: Use related terms to support topical authority
-  - For "podcast editing": include "audio editing", "post-production", "editing workflow"
+  - For "job scheduling": include "dispatch", "field operations", "technician assignment"
 
 ### Keyword Stuffing (Avoid)
-❌ "Podcast hosting is important. Podcast hosting helps podcasters. Our podcast hosting platform offers podcast hosting services for podcast hosting needs."
+❌ "Field service software is important. Field service software helps contractors. Our field service software offers field service software features for field service software needs."
 
-✅ "Podcast hosting is important for creators who want to distribute their show to major platforms. A reliable host ensures your episodes are accessible wherever listeners discover new content."
+✅ "Field service management software gives trades contractors real-time visibility over every job — from initial quote through final invoice. A reliable platform ensures your technicians, materials, and billing stay on track without spreadsheets."
 
 ## Content Structure Requirements
 
@@ -93,7 +93,7 @@ Primary keyword MUST appear in:
 - Include keywords where natural
 - More specific than H2s
 
-### Article Structure Template
+### Blog Post Structure
 
 ```markdown
 # [H1: Compelling Title with Primary Keyword]
@@ -136,23 +136,23 @@ Primary keyword MUST appear in:
 
 ### Meta Title
 **Requirements**:
-- **Length**: 50-60 characters (including "| Castos" if used)
+- **Length**: 50-60 characters (including "| Simpro" if used)
 - **Primary keyword**: Must be included
 - **Compelling**: Should encourage clicks from SERP
-- **Unique**: Different from all other Castos page titles
+- **Unique**: Different from all other Simpro page titles
 - **Accurate**: Must match page content
 
 **Format Options**:
 - `[Primary Keyword]: [Benefit/Promise]`
 - `How to [Goal] | [Qualifier]`
 - `[Number] Ways to [Achieve Benefit]`
-- `[Topic] Guide for [Audience] | Castos`
+- `[Topic] Guide for [Audience] | Simpro`
 
 **Examples**:
-- ✅ "How to Start a Podcast in 2025: Complete Guide"
-- ✅ "12 Proven Podcast Growth Strategies | Castos"
-- ❌ "Podcast Tips and Tricks" (too vague, no keyword)
-- ❌ "The Ultimate Comprehensive Guide to Everything About Starting Your First Podcast Successfully" (too long)
+- ✅ "HVAC Service Software: Streamline Jobs & Profit | Simpro"
+- ✅ "12 Best FSM Software for Trades Contractors | Simpro"
+- ❌ "Field Service Tips and Tricks" (too vague, no keyword)
+- ❌ "The Ultimate Comprehensive Guide to Everything About Starting Your Field Service Management Software Journey" (too long)
 
 ### Meta Description
 **Requirements**:
@@ -169,9 +169,9 @@ Primary keyword MUST appear in:
 ```
 
 **Examples**:
-- ✅ "Learn how to start a podcast with our step-by-step guide. Everything from equipment to launch strategy. Perfect for beginners. Start your show today." (159 chars)
-- ✅ "Discover 12 proven podcast growth strategies that top creators use. Increase downloads, engagement, and audience loyalty. Actionable tips inside." (155 chars)
-- ❌ "This is a blog post about podcasting where we discuss many podcast-related topics." (vague, no value prop, no CTA)
+- ✅ "Discover how Simpro's field service management software helps trades contractors schedule jobs, manage inventory and get paid faster. Get a demo." (155 chars)
+- ✅ "Compare the 12 best FSM software platforms for HVAC, electrical and plumbing contractors. Features, pricing, and pros/cons. Updated 2026." (148 chars)
+- ❌ "This is a blog post about field service software where we discuss many software-related topics." (vague, no value prop, no CTA)
 
 ### URL Slug
 **Requirements**:
@@ -181,13 +181,17 @@ Primary keyword MUST appear in:
 - Short and descriptive (3-5 words ideal)
 - No stop words unless necessary (a, the, and, of, etc.)
 
-**Format**: `/blog/[primary-keyword-phrase]`
+**Simpro URL structure by page type**:
+- Blog posts: `/blog/[slug]` — e.g., `/blog/hvac-scheduling-software`
+- Feature pages: `/features/[slug]` — e.g., `/features/job-management`
+- Industry pages: `/industries/[vertical]-software` — e.g., `/industries/hvac-software`
+  - Exception: security vertical uses `/industries/security` (not `/industries/security-software`)
 
 **Examples**:
-- ✅ `/blog/start-podcast-guide`
-- ✅ `/blog/podcast-growth-strategies`
-- ✅ `/blog/podcast-editing-software`
-- ❌ `/blog/how-to-start-a-podcast-in-2025-the-complete-guide` (too long)
+- ✅ `/blog/field-service-management-software`
+- ✅ `/blog/hvac-scheduling-software`
+- ✅ `/features/job-costing`
+- ❌ `/blog/how-to-manage-field-service-jobs-in-2026-the-complete-guide` (too long)
 - ❌ `/blog/post-12345` (no keywords)
 
 ## Internal Linking Strategy
@@ -211,7 +215,7 @@ Primary keyword MUST appear in:
 
 #### 3. Product/Feature Pages (0-1 link)
 - Only when contextually relevant
-- Natural mention of how Castos solves problem
+- Natural mention of how Simpro solves the problem
 - Never forced or overly promotional
 
 #### 4. Resource Pages (0-1 link)
@@ -222,8 +226,8 @@ Primary keyword MUST appear in:
 ### Internal Linking Best Practices
 
 **Anchor Text**:
-- ✅ Descriptive and keyword-rich: "our complete guide to podcast analytics"
-- ✅ Natural in sentence flow: "Learn more about podcast SEO strategies"
+- ✅ Descriptive and keyword-rich: "our complete guide to job costing for trades"
+- ✅ Natural in sentence flow: "Learn more about HVAC scheduling software"
 - ❌ Generic: "click here" or "read more"
 - ❌ Exact match repeatedly: Always using same anchor text for same page
 
@@ -253,7 +257,7 @@ Primary keyword MUST appear in:
 
 ### External Link Quality Standards
 - **Authority**: Link to credible, well-known sources
-  - ✅ Industry publications (Podcast Host, Podnews, etc.)
+  - ✅ Trades industry publications (ACHR News, Electrical Contractor Magazine, Plumbing & Mechanical, Security Technology Executive, HPAC Engineering, Electrical Times, Fire Protection Contractor, Field Technologies Online)
   - ✅ Research institutions and studies
   - ✅ Established media outlets
   - ❌ Random blogs with no authority
@@ -304,19 +308,20 @@ Use transition words to improve flow (target: one per paragraph):
 
 ## Content Quality Standards
 
-### Expertise, Authoritativeness, Trustworthiness (E-A-T)
+### Expertise, Authoritativeness, Trustworthiness (E-E-A-T)
 
 #### Expertise
-- Provide accurate, detailed information on podcasting topics
+- Provide accurate, detailed information on job costing, scheduling, quoting, invoicing, and trades operations
 - Back claims with data and examples
-- Demonstrate deep understanding of podcast creator needs
+- Demonstrate deep understanding of trades contractor needs
 - Include actionable, practical advice
 
 #### Authoritativeness
 - Cite credible sources
 - Reference industry data and trends
 - Include expert quotes when relevant
-- Leverage Castos's position as hosting platform
+- Leverage Simpro's position as leading FSM software for trades contractors
+- Use named customer proof: Nikki Schembri (Tequa), Jacqui Sheriff (O'Brien Electrical), Lorene Maher (RCR Infrastructure), Todd Rankin (AlarmQuest)
 
 #### Trustworthiness
 - Be transparent and honest
@@ -335,8 +340,8 @@ Use transition words to improve flow (target: one per paragraph):
 ### Factual Accuracy
 - **Verify statistics**: Check all numbers and data points
 - **Current information**: Ensure practices/processes are up-to-date
-- **Technical accuracy**: Podcasting terminology and processes must be correct
-- **Castos features**: Ensure product references are accurate
+- **Technical accuracy**: Field service management terminology and processes must be correct
+- **Simpro features**: Ensure product references are accurate
 
 ## Image Optimization
 
@@ -349,14 +354,14 @@ Use transition words to improve flow (target: one per paragraph):
 ### Image SEO
 **File Names**:
 - Descriptive and keyword-rich
-- ✅ `podcast-editing-software-interface.jpg`
+- ✅ `field-service-management-scheduling-dashboard.jpg`
 - ❌ `IMG_12345.jpg`
 
 **Alt Text**:
 - Describe what image shows (accessibility + SEO)
 - Include keywords naturally where relevant
 - 125 characters or less
-- ✅ "Podcast editing software interface showing waveform and timeline"
+- ✅ "Field service management scheduling dashboard showing technician availability and job assignments"
 - ❌ "Image"
 
 **Placement**:
@@ -375,9 +380,9 @@ Featured snippets appear at position 0 in Google search results. Optimize for th
 
 **Example**:
 ```markdown
-## What is Podcast Hosting?
+## What is Field Service Management Software?
 
-Podcast hosting is a service that stores your audio files and generates an RSS feed that distributes your episodes to podcast platforms like Apple Podcasts, Spotify, and Google Podcasts. Without a host, listeners can't discover or access your show on their favorite apps.
+Field service management (FSM) software is a platform that helps trades contractors schedule jobs, dispatch technicians, manage inventory, and invoice customers — all from one system. For electrical, HVAC, plumbing, and fire protection businesses, FSM software replaces spreadsheets and paper-based workflows with real-time job visibility.
 ```
 
 ### List-Based Snippets
@@ -395,6 +400,136 @@ Podcast hosting is a service that stores your audio files and generates an RSS f
 - 40-60 word clear, concise definition
 - Expand with additional detail after
 
+## Capsule Method (Direct-Answer Paragraphs)
+
+The Capsule Method is the primary structural pattern for Simpro industry and feature pages, and strongly recommended for blog posts. It pairs every H1 and major H2 with a 50–60 word direct-answer paragraph that can be lifted verbatim as a featured snippet, PAA answer, or AI citation.
+
+**Rules**:
+- Write a 50–60 word direct-answer paragraph immediately under the H1 and each major H2
+- Target 60%+ heading coverage (most H2s should have a capsule, not just some)
+- The capsule answers the implicit question the heading poses — no preamble, no "In this section..."
+- Detailed content, lists, and examples follow the capsule
+
+**Template**:
+```markdown
+## [H2 Heading That Poses a Question or Problem]
+
+[50–60 word direct answer that could stand alone as a snippet. Names the concept, states the key benefit, and references Simpro or the trades context. Complete sentences. No fluff.]
+
+[Detailed supporting content, lists, examples below...]
+```
+
+**Example**:
+```markdown
+## How Does HVAC Scheduling Software Work?
+
+HVAC scheduling software gives dispatchers a real-time view of technician availability, location, and workload. Managers assign jobs from a drag-and-drop calendar, field techs receive job details on mobile, and customers get automatic SMS updates. Simpro's scheduler handles bulk assignments and eliminates double-bookings without spreadsheets.
+
+[Detailed section with feature breakdown, screenshots, etc.]
+```
+
+## Page Type Templates
+
+### Feature Page Structure
+Feature pages live at `/features/[slug]`. Use this section order:
+
+1. **Hero** — H1 with primary keyword + Capsule (50–60 words)
+2. **Proof bar** — 3–4 customer logos or a key stat
+3. **Definition / what it is** — Capsule required
+4. **Key challenges it solves** — 3–4 pain points, each with a Capsule
+5. **How Simpro helps** — feature-by-feature with Capsules
+6. **Workflow walkthrough** — step-by-step or numbered process
+7. **Feature-to-problem table** — three columns: Feature | What it solves | Outcome
+8. **Customer proof** — named quote + measurable outcome
+9. **Outcomes table** — Before Simpro / After Simpro comparison
+10. **Related links** — 3–5 internal links to related features/industries
+11. **CTA** — primary: Get Demo; secondary: Pricing
+12. **FAQ** — up to 6 questions, each Capsule-style (direct answer first)
+
+**Title format**: `[Primary Keyword] [Benefit Modifier] | Simpro` (50–60 chars)
+**Meta format**: 140–160 chars, primary keyword front-loaded
+
+### Industry Page Structure
+Industry pages live at `/industries/[vertical]-software` (exception: security = `/industries/security`). Same section order as feature pages, with a compliance/regulation section added between customer proof and outcomes table:
+
+- **Compliance/regulation** — relevant standards or requirements for the trade (electrical licensing, fire compliance, refrigerant handling, etc.)
+
+### Blog Post Structure
+See the Blog Post Structure template in the Content Structure Requirements section above.
+
+## Industry Vertical Keyword Clusters
+
+Use these as primary keyword targets and semantic clusters for vertical-specific content.
+
+### HVAC (`/industries/hvac-software`)
+- **Primary**: `hvac service software`, `hvac field service management`, `hvac job management software`
+- **Secondary**: `hvac scheduling software`, `hvac dispatch software`, `hvac estimating software`, `hvac maintenance software`
+- **Pain points**: paper-shuffling, long admin hours, double handling, schedule conflicts, recurring maintenance tracking
+- **Customer proof**: Lorene Maher, RCR Infrastructure — customer portal, real-time job visibility
+
+### Electrical (`/industries/electrical-software`)
+- **Primary**: `electrical job management software`, `electrical contractor software`, `electrical field service software`
+- **Secondary**: `electrician scheduling software`, `electrical estimating software`, `electrical project management software`
+- **Pain points**: paper scheduling, no real-time staff visibility, manual quoting, materials tracking
+- **Customer proof**: Jacqui Sheriff, O'Brien Electrical Granville — field staff see their day before leaving home
+
+### Plumbing (`/industries/plumbing-software`)
+- **Primary**: `plumbing service software`, `plumbing job management`, `plumbing business software`
+- **Secondary**: `plumbing scheduling software`, `plumbing estimating software`, `plumbing inventory management`
+- **Pain points**: missed/unbilled work, manual estimates, slow invoicing, inventory leakage
+- **Customer proof**: Nikki Schembri, Tequa — "Written off debt is now less than 0.01%"
+
+### Security (`/industries/security`)
+- **Primary**: `security management software`, `security company software`, `security job management`
+- **Secondary**: `security contractor software`, `security scheduling software`, `security compliance software`
+- **Pain points**: compliance documentation burden, job costing accuracy, competing with larger firms on documentation quality
+- **Customer proof**: Darren Thorne, DT Fire Systems — compete with bigger companies through better documentation
+
+### Fire Protection (`/industries/fire-protection-software`)
+- **Primary**: `fire protection software`, `fire protection service management`, `fire protection compliance software`
+- **Secondary**: `fire protection field service software`, `fire protection scheduling`, `fire protection asset management`
+- **Pain points**: compliance tracking (AS 1851 and equivalents), recurring maintenance scheduling, asset testing time
+- **Customer proof**: Todd Rankin, AlarmQuest — "more positive feedback from Simpro than any other software we've used"
+
+### Additional Verticals (no dedicated industry pages — blog content opportunities)
+Solar, Elevator Service, Pest Control, Pool Service, Commercial Kitchen Equipment. Target `[vertical] field service software` as primary keyword pattern.
+
+## Schema Markup Requirements
+
+Implement structured data per page type. These are required, not optional.
+
+### Blog Posts
+- `WebPage` (or `Article` / `BlogPosting`)
+- `BreadcrumbList`
+- `Organization` (publisher)
+- `FAQPage` — if FAQ section is present
+- `VideoObject` — if YouTube video is embedded
+- `Author` (named Person entity — not generic "Simpro Team")
+
+### Feature Pages
+- `SoftwareApplication` or `Product`
+- `BreadcrumbList`
+- `Organization`
+- `FAQPage` — required (feature pages must have FAQ)
+
+### Industry Pages
+- `SoftwareApplication`
+- `BreadcrumbList`
+- `FAQPage` — required
+- `Review` / `AggregateRating` — if customer testimonials with measurable outcomes are present
+
+### hreflang
+Simpro operates in AU/NZ, UK, and US/Canada/IE markets. All pages require hreflang tags:
+
+```html
+<link rel="alternate" hreflang="en-AU" href="https://simprogroup.com/[path]/" />
+<link rel="alternate" hreflang="en-NZ" href="https://simprogroup.com/[path]/" />
+<link rel="alternate" hreflang="en-GB" href="https://simprogroup.com/[path]/" />
+<link rel="alternate" hreflang="en-US" href="https://simprogroup.com/[path]/" />
+<link rel="alternate" hreflang="en-IE" href="https://simprogroup.com/[path]/" />
+<link rel="alternate" hreflang="x-default" href="https://simprogroup.com/[path]/" />
+```
+
 ## Mobile Optimization
 
 ### Mobile-First Considerations
@@ -410,7 +545,7 @@ AI search engines (ChatGPT, Perplexity, Gemini, Claude) are now a significant tr
 
 ### Direct-Answer-First Principle
 
-AI scrapers prioritize content near the top of the page. When a user asks ChatGPT "best project management tool" or "how to start a podcast," the AI scans articles and pulls from the earliest clear answer it finds.
+AI scrapers prioritize content near the top of the page. When a user asks ChatGPT "best field service management software" or "how to schedule field technicians," the AI scans articles and pulls from the earliest clear answer it finds.
 
 **Rules:**
 - **Answer the query directly in the first 1-2 sentences** of the article, before the narrative hook or story
@@ -420,10 +555,10 @@ AI scrapers prioritize content near the top of the page. When a user asks ChatGP
 - The narrative hook and APP formula still apply, but they come AFTER the direct answer sentence
 
 **Example — Before (traditional SEO):**
-> Most businesses struggle with choosing the right platform. In today's crowded market... [200 words later] ...the best option is X because...
+> Most trades businesses struggle with choosing the right platform. In today's crowded market... [200 words later] ...the best option is Simpro because...
 
 **Example — After (AI-optimized):**
-> The best project management tools in 2026 are Asana, Monday, and ClickUp — each optimized for different team sizes and workflows. Here's what separates them. [Then hook, story, depth]
+> The best field service management software for trades contractors in 2026 is Simpro — it covers job costing, scheduling, quoting, and invoicing across electrical, HVAC, plumbing, and fire protection. Here's how it compares to ServiceTitan, Jobber, and Housecall Pro.
 
 ### TL;DR / Key Takeaways Block
 
@@ -453,7 +588,7 @@ AI models weight authoritativeness signals when choosing which sources to cite. 
 - **Reviewer/editor credit**: "Reviewed by [name], [title]" where possible
 - **Last updated date**: Visible on the page, not just in metadata
 - **Expert verification badge**: Where applicable, note content has been expert-reviewed
-- **Year in titles**: Include current year for time-sensitive topics ("Best X Tools 2026")
+- **Year in titles**: Include current year for time-sensitive topics ("Best FSM Software 2026")
 
 These signals should be in the article's frontmatter for the WordPress publisher to render.
 
@@ -472,7 +607,7 @@ AI models (especially Perplexity and Gemini) reference YouTube videos alongside 
 - Increases time on page (Google signal)
 - Adds a content format AI can independently verify
 
-**Rule:** Embed at least one relevant YouTube video per article where it adds context. Prefer your own videos, then authoritative third-party videos.
+**Rule:** Embed at least one relevant YouTube video per article where it adds context. Prefer Simpro's own videos, then authoritative third-party videos.
 
 ### FAQ Sections as Prompt Targets
 
@@ -531,6 +666,13 @@ Before publishing, verify:
 - [ ] Proper H1>H2>H3 hierarchy
 - [ ] Keyword in first 100 words
 - [ ] Keyword in conclusion
+
+### Page Structure
+- [ ] Capsule Method: 50–60 word direct-answer paragraph under H1 and major H2s
+- [ ] 60%+ heading coverage with capsules
+- [ ] Schema markup implemented (correct type for page)
+- [ ] hreflang tags present for AU/NZ/UK/US/IE
+- [ ] URL matches correct pattern for page type (blog / features / industries)
 
 ### Meta Elements
 - [ ] Meta title 50-60 characters with keyword
