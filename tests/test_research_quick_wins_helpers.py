@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 
-MODULE_PATH = Path(__file__).resolve().parents[1] / "research_quick_wins.py"
+MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "research_quick_wins.py"
 
 
 def load_research_quick_wins_module():

@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Add data_sources to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'data_sources'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'data_sources'))
 
 from modules.google_search_console import GoogleSearchConsole
 from modules.dataforseo import DataForSEO
@@ -375,7 +375,7 @@ def write_roadmap_report(roadmap: Dict[str, Any], results: Dict[str, str]):
                 else:
                     f.write(f"**Note:** Competitor gap analysis was skipped. Run manually:\n")
                     f.write(f"```bash\n")
-                    f.write(f"python3 research_competitor_gaps.py\n")
+                    f.write(f"python3 scripts/research_competitor_gaps.py\n")
                     f.write(f"```\n")
 
             elif item['source'] == 'Performance Matrix':

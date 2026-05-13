@@ -554,21 +554,21 @@ Run from repo root:
 
 ```bash
 # Content research
-python3 research_quick_wins.py
-python3 research_competitor_gaps.py
-python3 research_performance_matrix.py
-python3 research_priorities_comprehensive.py
-python3 research_serp_analysis.py
-python3 research_topic_clusters.py
-python3 research_trending.py
+python3 scripts/research_quick_wins.py
+python3 scripts/research_competitor_gaps.py
+python3 scripts/research_performance_matrix.py
+python3 scripts/research_priorities_comprehensive.py
+python3 scripts/research_serp_analysis.py
+python3 scripts/research_topic_clusters.py
+python3 scripts/research_trending.py
 
 # SEO analysis (config-driven - set up config/competitors.json first)
-python3 seo_baseline_analysis.py
-python3 seo_bofu_rankings.py
-python3 seo_competitor_analysis.py
+python3 scripts/seo_baseline_analysis.py
+python3 scripts/seo_bofu_rankings.py
+python3 scripts/seo_competitor_analysis.py
 
 # Test API connectivity
-python3 test_dataforseo.py
+python3 tests/test_dataforseo.py
 ```
 
 **Note**: SEO analysis scripts load competitor lists and keywords from `config/competitors.json`. Copy `config/competitors.example.json` and customize for your business.

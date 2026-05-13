@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Add data_sources to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'data_sources'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'data_sources'))
 
 from modules.dataforseo import DataForSEO
 from modules.search_intent_analyzer import SearchIntentAnalyzer
@@ -30,8 +30,8 @@ from modules.content_length_comparator import ContentLengthComparator
 def main():
     """Main entry point for SERP analysis"""
     if len(sys.argv) < 2:
-        print("Usage: python research_serp_analysis.py \"keyword phrase\"")
-        print("\nExample: python research_serp_analysis.py \"your target keyword\"")
+        print("Usage: python scripts/research_serp_analysis.py \"keyword phrase\"")
+        print("\nExample: python scripts/research_serp_analysis.py \"your target keyword\"")
         return
 
     keyword = sys.argv[1]

@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 load_dotenv()
 load_dotenv('data_sources/config/.env')
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'data_sources', 'modules'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'data_sources', 'modules'))
 
 from dataforseo import DataForSEO
 from google_search_console import GoogleSearchConsole
