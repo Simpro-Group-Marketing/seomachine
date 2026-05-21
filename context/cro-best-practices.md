@@ -4,13 +4,34 @@ Conversion Rate Optimization guidelines for landing pages.
 
 > **Internal CRO review update**: Treat these notes as more specific than generic rules where they conflict: two-word CTA labels have historically outperformed CTA labels of three or more words; Sales-required form fields vary by brand; CTA font choices are brand-directed; PPC pages should avoid exit points; lower-volume tests may need directional signals or leading indicators instead of fixed conversion minimums; seasonality can affect conversion results.
 
-> **Source note**: The Simpro Marketing Portal does not have a dedicated CRO playbook for the marketing site. Growth Marketing (Tim Lamb) owns a `2025 Completed Experiments` deck and `Process for Web Intake and Planning` doc, but neither is a guidelines doc. Product Marketing's Customer Quote Matrix, Customer Stories deck, and Customer Advocacy overview are proof-source assets, not tested CRO guidance. The rules below combine framework-generic best practices with the internal CRO review notes above. **Apply them through Simpro's brand voice** (see `brand-voice.md`) — every headline should be specific, every CTA should match the funnel stage, every trust signal should be a named customer or named number from `features.md`.
+> **Source note**: Simpro does not maintain one fixed CRO playbook because the working model is experimentation-led. Treat the `[2023-2026] Experiments Summary & Overview` Google Sheet (`1wVrZ-R53tQRtUKuoKNp5NQYx05yO3uT-di-aOew_Ukw`) as the structured source of truth for completed experiments, and use the CRO consultant skill for page- or element-specific recommendations because it bridges historical experiment data into practical guidance. Use the `[2025] Experiments Summary & Overview` deck (`1f4E7yay4s-SsVUFcg-EZ06aB31d2MADJ3oNfQrEGnXo`) and `[2026] Experiments Summary & Overview` deck (`1KqRRORZQS0OzDy4NJoqMjAtZqERDstVwnMfeiYTW3kg`) as annual narrative summaries and links to full reports. Use the `Web Strategy: Team KPIs` Google Sheet (`1wC_8aSSoOAzQ6i8TtJq_kTIoUsjCEjWKSKbh9tS203M`) for baseline conversion-rate context through March 2026. Product Marketing's Customer Quote Matrix, Customer Stories deck, and Customer Advocacy overview are proof-source assets, not tested CRO guidance. The rules below combine framework-generic best practices with the internal CRO review notes above. **Apply them through Simpro's brand voice** (see `brand-voice.md`) — every headline should be specific, every CTA should match the funnel stage, every trust signal should be a named customer or named number from `features.md`.
 
 ---
 
 ## Simpro-Specific CRO Principles
 
 These overlay the generic CRO rules below — when in conflict, the Simpro-specific rule wins.
+
+### Use the experiment system as the playbook
+There is no single static Simpro CRO playbook. Use the experimentation system in this order:
+
+1. Check the `[2023-2026] Experiments Summary & Overview` workbook for completed experiments. Visible tabs include `2026_Experiments_Raw`, `2026_KPI_Summary`, `2025_Experiments_Raw`, `2025_KPI_Summary`, `2024_Experiments_Raw`, `2024_KPI_Summary`, `2023_Experiments_Raw`, `2023_KPI_Summary`, and `Data_Dictionary`.
+2. Use the 2025 and 2026 summary decks for executive summaries, strategic takeaways, and links to full reports. The decks explicitly warn that a successful experiment on one page does not guarantee success on other pages or brands.
+3. Query the CRO consultant skill for the specific page, template, CTA, form, proof block, or page element being evaluated.
+4. Use the KPI workbook for baseline conversion-rate context by brand and month. Visible brand monthly tabs include `Simpro - Monthly`, `Clockshark - Monthly`, `BigChange - Monthly`, and `Aroflo - Monthly`.
+5. Pull form completion rates from HubSpot, not the KPI sheet. Primary demo signups across brand pages generally use the same universal forms in each brand's HubSpot instance, so form analysis should identify the brand, form ID/name, page URL, traffic source, and time period.
+6. Use generic CRO heuristics below only after the experiment sheet, annual summary decks, KPI baseline, HubSpot form data, and CRO consultant skill output have been checked.
+
+### Annual deck takeaways
+The annual decks are useful for directional patterns and full-report navigation. They should not be treated as one-size-fits-all rules.
+
+- The 2025 deck identifies Mutiny as the experimentation platform and notes that ended experiments include buttons to detailed reports, preview links, and Asana tasks.
+- The 2026 deck notes the February 2026 migration from Mutiny to VWO and uses Mutiny or VWO depending on experiment timing.
+- Both decks include a conversion-depreciation warning: audience adaptation, seasonality, technical changes, competition, and interactions between multiple shipped experiments can change results after launch.
+- The 2025 deck's Q1 summary highlights that many Simpro experiments had no significant MQL change but still created additive value through data quality, engagement, and content surfacing.
+- A 2025 Simpro pricing-page add-ons widget increased pageviews per session by 58% and session length by 20%.
+- A 2025 AroFlo demo-form reduction and above-the-fold fit test increased demo request form submission conversion rates by 30.82%.
+- A 2026 product-tour header and footer removal test increased `/demo` page view rates by 16%, demo request form submission rates by 4%, and MQL conversion rates by 31%.
 
 ### Lead with named outcomes, not feature claims
 The Simpro evidence library is exceptional and underused in CRO copy. Every above-the-fold hero should be in arm's reach of at least one of these:
@@ -71,7 +92,7 @@ Above-the-fold trust signals that work for Simpro:
 - Unvalidated form complexity that works against the required sales-qualification flow
 - Carousel heroes — pick the strongest hero and stand behind it
 
-<!-- GAP: A Simpro-specific CRO playbook does not exist in the Marketing Portal as of 2026-05-12. If one exists in a private Growth Marketing space or web team doc, request access and replace this section with authoritative rules. The Growth Marketing `2025 Completed Experiments` deck (1f4E7yay4s-SsVUFcg-EZ06aB31d2MADJ3oNfQrEGnXo) is the closest existing resource and should be reviewed for tested patterns. -->
+Source boundary: do not convert one winning experiment into a universal rule without checking page type, traffic source, brand, audience, seasonality, sample size, and downstream lead quality.
 
 ---
 
@@ -270,6 +291,9 @@ Always place risk reversal **directly below or beside the CTA button**.
 
 ## Form Optimization
 
+### Form measurement source
+Form completion rates should be pulled from HubSpot. Most primary demo signups across Simpro Group brand pages use the same universal forms in each brand's HubSpot instance, so form-performance analysis should compare the same form across page type, source, campaign, and brand before attributing a change to page copy or layout.
+
 ### Field Reduction
 Every additional field can reduce completion, but field reduction does not override Sales-required lead qualification fields. Optimize the order, grouping, labels, and step structure before removing fields that Sales needs.
 
@@ -377,7 +401,13 @@ Some regions also require marketing email opt-in options. Confirm regional opt-i
 
 ## Conversion Goal Benchmarks
 
+Use the `Web Strategy: Team KPIs` workbook as the internal baseline source. It has brand monthly tabs and was identified as current through March 2026. Use these internal baselines before generic industry averages, and segment by brand, traffic source, page type, campaign, and form where possible.
+
+For form-level conversion or completion rates, use HubSpot because the primary demo forms are managed there. The KPI workbook can contextualize site and team performance, but it should not replace HubSpot form analytics for field-level or form-level decisions.
+
 ### Industry Averages
+Use these only as fallback context when an internal KPI baseline is unavailable or when explaining general CRO ranges to a non-Simpro stakeholder.
+
 | Goal | Average | Good | Excellent |
 |------|---------|------|-----------|
 | Free Trial | 3-5% | 7-10% | 15%+ |

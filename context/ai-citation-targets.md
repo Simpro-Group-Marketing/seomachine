@@ -30,6 +30,154 @@ When AI tools (ChatGPT, Perplexity, Gemini, Claude) recommend FSM products, they
 - ServiceTitan alternatives for commercial contractors
 - Simpro vs ServiceTitan
 
+### PEEC AI Visibility Insight - Simpro
+
+**Run source**: PEEC AI MCP, authenticated Simpro project, queried 2026-05-21.
+**Project**: `or_a1efbfcd-d5aa-428a-ad3b-dbfd867e037b` / Simpro / status `CUSTOMER`.
+**Observed report window**: 2025-04-14 to 2026-05-21. Broad MCP request used 2020-01-01 to 2026-05-21, but PEEC returned observed Simpro daily report rows beginning 2025-04-14.
+**Scale**: 154,613 chats in the requested window; Simpro brand report visibility total: 149,930; daily report rows: 351.
+**Active PEEC channels**: ChatGPT UI, Google AI Overview, Perplexity UI. Gemini, Claude, Copilot, Grok, OpenAI API/Search API, Perplexity API, and other API/UI channels are inactive in the current Simpro PEEC project.
+
+#### Current AI Visibility Scorecard
+
+| Metric | Simpro Result | Readout |
+|---|---:|---|
+| Visibility | 34% | Visible in 51,298 of 149,930 observed opportunities. |
+| Mention Count | 181,091 | High absolute mention volume; PEEC counts all observed mentions, not just one mention per answer. |
+| Share of Voice | 11% | Rounded PEEC value; tied with Jobber by rounded SoV, but raw visibility trails Jobber, ServiceTitan, QuickBooks, and Housecall Pro. |
+| Sentiment | 66/100 | Below several high-visibility competitors; ChatGPT UI is the weakest active channel for Simpro sentiment. |
+| Average Position | 4.3 | Mid-pack placement when mentioned. |
+
+#### Competitive AI Visibility Leaderboard
+
+| Brand | Visibility | Share of Voice | Mention Count | Sentiment | Avg Position |
+|---|---:|---:|---:|---:|---:|
+| Jobber | 50% | 11% | 177,719 | 70 | 3.0 |
+| ServiceTitan | 43% | 10% | 166,489 | 69 | 3.3 |
+| QuickBooks | 39% | 9% | 158,902 | 67 | 4.5 |
+| Housecall Pro | 38% | 7% | 124,343 | 71 | 4.3 |
+| Simpro | 34% | 11% | 181,091 | 66 | 4.3 |
+| ServiceM8 | 20% | 4% | 69,508 | 71 | 4.3 |
+| FieldPulse | 19% | 3% | 58,434 | 72 | 4.7 |
+| Tradify | 18% | 5% | 76,730 | 70 | 3.8 |
+| FieldEdge | 18% | 3% | Not returned in leaderboard excerpt | Not returned in leaderboard excerpt | Not returned in leaderboard excerpt |
+
+Readout:
+- Simpro is meaningfully visible, but not top-tier visible. Jobber, ServiceTitan, QuickBooks, and Housecall Pro are ahead on visibility.
+- Simpro's rounded share of voice is strong because mention count is high, but position and sentiment are weaker than the strongest competitors.
+- The practical gap is not awareness alone. It is improving prompt coverage where Simpro is absent, lifting position, and improving sentiment/framing.
+
+#### Country And Model Channel Split
+
+| Dimension | Visibility | Share of Voice | Mention Count | Sentiment | Avg Position |
+|---|---:|---:|---:|---:|---:|
+| AU | 46% | 34% | 62,448 | 67 | 4.2 |
+| GB | 36% | 28% | 50,987 | 67 | 4.3 |
+| US | 26% | 34% | 61,776 | 65 | 4.4 |
+| ChatGPT UI | 38% | 41% | 73,883 | 64 | 4.8 |
+| Google AI Overview | 37% | 29% | 52,432 | 69 | 4.1 |
+| Perplexity UI | 28% | 30% | 54,776 | 69 | 3.6 |
+
+Readout:
+- US is the weakest country on visibility at 26%, even though share of voice is high when Simpro is mentioned.
+- ChatGPT UI has the highest channel visibility but the weakest sentiment and worst average position.
+- Perplexity has lower visibility, but better average position when Simpro appears.
+
+#### Trend Snapshot
+
+| Date | Visibility | Visibility Count / Total | Mention Count | Sentiment | Avg Position |
+|---|---:|---:|---:|---:|---:|
+| 2025-04-14 | 15% | 8 / 55 | 17 | 67 | 5.3 |
+| 2026-05-21 | 37% | 56 / 151 | 185 | 63 | 3.4 |
+
+PEEC daily visibility improved materially from the earliest observed row, but recent daily denominators are small enough to be volatile. Use trend directionally, not as a single-day performance claim.
+
+#### Prompt And Topic Inventory
+
+| Item | PEEC MCP Result |
+|---|---:|
+| Active prompts | 50 |
+| Simpro prompt-dimension rows in brand report | 70 |
+| Topics | Simpro vs Joblogic; RepCap Articles |
+| Tags | 28 tags covering quoting, BigChange, plumbing, AU, job management, non-brand, brand, estimating, pricing, CRM, asset maintenance, GPS, accounting, FSM, invoicing, HVAC, UK, maintenance, mobile, payments, electrical, work orders, scheduling, drainage, dispatching, security, US, competitors |
+| Tracked competitors | 59 |
+
+Top Simpro prompt wins:
+
+| Prompt | Visibility | Mention Count | Sentiment | Avg Position |
+|---|---:|---:|---:|---:|
+| Is Tradify or Simpro better? | 100% | 21,942 | 64 | 1.8 |
+| Is Joblogic or Simpro better? | 100% | 22,580 | 65 | 1.8 |
+| Is ServiceTitan or Simpro better? | 100% | 21,388 | 65 | 1.9 |
+| How do BuildOps and Simpro compare? Which one is better and who are they suited to? | 100% | 26,337 | 65 | 1.9 |
+| What are the best alternatives to ServiceM8? | 86% | 6,231 | 70 | 5.6 |
+| What are the best alternatives to Joblogic? | 79% | 5,501 | 68 | 5.7 |
+
+Lowest Simpro prompt coverage from PEEC:
+
+| Prompt | Visibility | Mention Count | Sentiment | Avg Position |
+|---|---:|---:|---:|---:|
+| How can I start a security installation business? | 0% | 14 | 59 | 1.8 |
+| What's the best GPS software to track field workers? | 0% | 20 | 66 | 6.7 |
+| What's the best GPS software to track field workers? | 0% | 8 | 62 | 12.2 |
+| What's the best GPS software to track field workers? | 0% | 8 | 73 | 7.0 |
+
+#### PEEC Source Domain And URL Insights
+
+Top source domains by citation count:
+
+| Domain | Type | Citation Count | Retrieval Count | Retrieved % | Citation Rate |
+|---|---|---:|---:|---:|---:|
+| buildops.com | Competitor | 75,794 | 51,304 | 24% | 2.14 |
+| simprogroup.com | Owned | 69,019 | 32,825 | 18% | 2.51 |
+| connecteam.com | Competitor | 35,088 | 29,418 | 16% | 1.44 |
+| servicetitan.com | Competitor | 33,697 | 26,217 | 15% | 1.54 |
+| salesforce.com | Competitor | 33,323 | 18,408 | 9% | 2.40 |
+| workever.com | Competitor | 32,435 | 21,629 | 12% | 1.78 |
+| youtube.com | UGC | 32,246 | 35,436 | 14% | 1.49 |
+| fieldpulse.com | Competitor | 30,720 | 19,467 | 11% | 1.91 |
+| getjobber.com | Competitor | 30,178 | 16,549 | 10% | 2.01 |
+| joblogic.com | Competitor | 27,644 | 19,797 | 11% | 1.74 |
+
+Owned source-domain readout:
+- `simprogroup.com` is the #2 cited domain in PEEC's aggregate source-domain report.
+- Simpro-owned content has 69,019 citations, 32,825 retrievals, 18% retrieved percentage, 22% retrieval rate, and 2.51 citation rate.
+- Owned pages are already part of the AI answer supply chain; the task is to strengthen the pages AI systems retrieve for weak prompt families.
+
+Top URLs mentioning Simpro in PEEC:
+
+| URL | Classification | Citation Count | Retrieval Count | Citation Rate |
+|---|---|---:|---:|---:|
+| https://simprogroup.com/blog/best-field-service-management-software | Listicle | 11,715 | 7,489 | 1.56 |
+| https://simprogroup.com/comparisons/simpro-vs-buildops | Comparison | 8,924 | 2,251 | 3.96 |
+| https://simprogroup.com/comparisons/simpro-vs-joblogic | Comparison | 8,219 | 2,195 | 3.74 |
+| https://simprogroup.com/comparisons/simpro-vs-tradify | Comparison | 8,124 | 2,243 | 3.62 |
+| https://fieldpulse.com/resources/blog/field-service-management-software-small-business | Listicle | 7,872 | 3,830 | 2.06 |
+| https://buildops.com/resources/electrical-maintenance-software | Listicle | 7,424 | 3,921 | 1.89 |
+| https://softwareconnect.com/roundups/best-field-service-management-software | Listicle | 7,230 | 2,505 | 2.89 |
+| https://fieldservicesoftware.io/simpro-vs-tradify | Comparison | 7,206 | 1,573 | 4.58 |
+| https://zendesk.co.uk/service/ticketing-system/field-service-software | Listicle | 6,695 | 4,001 | 1.67 |
+| https://simprogroup.com/comparisons/simpro-vs-servicetitan | Comparison | 6,541 | 2,060 | 3.18 |
+
+High-citation gap URLs where Simpro is absent and at least two competitors are present:
+
+| URL | Classification | Citation Count | Retrieval Count | Citation Rate | Action |
+|---|---|---:|---:|---:|---|
+| https://hubstaff.com/blog/gps-tracker-app-options | Listicle | 11,887 | 4,970 | 2.39 | GPS/tracking angle gap; decide whether Simpro should compete here or route to partner/integration positioning. |
+| https://blog.hubspot.com/marketing/best-crm-for-plumbers | Listicle | 9,699 | 3,613 | 2.68 | Plumbing CRM gap; pitch or build stronger CRM-for-plumbing page if strategically relevant. |
+| https://workever.com/blog/job-management-software | Listicle | 8,982 | 3,361 | 2.67 | Job-management competitor-controlled gap; build counter-content and monitor claims. |
+| https://buildops.com/resources/field-service-software-pricing | Comparison | 8,444 | 4,383 | 1.93 | Pricing guide gap; create stronger pricing/ROI comparison content. |
+| https://insidea.com/blog/hubspot/crms-for-plumbers | Listicle | 8,392 | 3,201 | 2.62 | Plumbing CRM gap; outreach if editorially feasible. |
+| https://fieldproxy.com/blog/field-service-software-pricing-guide | Comparison | 8,327 | 2,795 | 2.98 | Pricing comparison gap; target inclusion or outrank with owned pricing guide. |
+
+#### PEEC Data Limits
+
+- PEEC MCP reports are aggregate columnar data, not a full manual review of every answer.
+- Full chat-level inspection would require paginating and calling `get_chat` across many chats; this pass did not inspect all 154,613 chats.
+- `list_prompts` returned 50 current prompts, while the Simpro prompt-dimension brand report returned 70 prompt IDs, so some historical or deleted prompts were not text-resolved.
+- The current Simpro PEEC project has only three active model channels: ChatGPT UI, Google AI Overview, and Perplexity UI.
+- Share-of-voice values are rounded in PEEC output.
+
 ---
 
 ## 2. Directory Verification Register

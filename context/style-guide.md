@@ -262,6 +262,14 @@ The audience descriptor is always *trades*, *trade and field service business ow
 
 ### Capitalization
 
+**Title Case Rule**: In title-case contexts, capitalize every word except articles and prepositions. Articles are *a*, *an*, and *the*. Common prepositions include *at*, *by*, *for*, *from*, *in*, *into*, *of*, *on*, *to*, *with*, and *without*. Keep proper nouns, acronyms, and approved product names in their canonical capitalization.
+
+Examples:
+- **Field Service Management Software for the Trades**
+- **AI Mobile Work Notes**
+- **How to Improve Profitability with Real-Time Job Costing**
+- **The Future of Field Service Management**
+
 **Headlines & H1 Page Titles**: Title Case for hero/page-level headlines (e.g., "Field Service Management Software for the Trades"). Sentence case for blog post titles is also acceptable — match the template the section is being written for.
 
 **H2 / H3 Subheadings**: Sentence case ("How real-time job costing changes margin visibility"). Consistent across an article — don't mix.
@@ -273,11 +281,31 @@ The audience descriptor is always *trades*, *trade and field service business ow
 - **Simpro Payments**, **Simpro API**, **Multi-Company** — capitalized as feature names
 - **Digital Forms**, **Data Feed**, **Maintenance Planner**, **Takeoffs**, **Delight** — capitalized as product/add-on names
 
+**Simpro vs. Simpro Group**: Use **Simpro** for product, feature, industry, comparison, blog, and CTA copy unless the sentence is explicitly about the parent company or brand family. Use **Simpro Group** for parent-company, investor/corporate, press/about boilerplate, brand-family, or multi-brand references, especially when naming BigChange, AroFlo, and ClockShark alongside Simpro.
+
+Examples:
+- Product page: "Simpro helps trade businesses run more profitable field service operations."
+- Brand-family boilerplate: "Simpro is part of Simpro Group, alongside BigChange, AroFlo, and ClockShark."
+- About/press copy: "Simpro Group builds the AI operating platform for the trades."
+
+Do not force **Simpro Group** into every marketing asset. If a piece needs one parent-company reference, make the first reference explicit, then return to **Simpro** for product-led copy unless the paragraph stays focused on the parent company or brand family.
+
+**AI Feature Names**: Use Title Case with the rule above. Example: **AI Mobile Work Notes**. Do not sentence-case feature names after first mention.
+
 **Industry Terms**:
 - *trades*, *trade businesses*, *trades and field service businesses* — lowercase
 - *field service management* — lowercase; abbreviation **FSM** introduced on first acronym use
 - *job management* — lowercase
 - *job costing*, *quoting*, *invoicing*, *dispatch* — lowercase nouns/verbs
+
+**Vertical Names**: Capitalize the first letter when a trade or vertical name is used as a label, filter, card title, table value, or navigation item. Do not title-case every word unless the vertical appears inside a title-case heading.
+
+Examples:
+- **Low voltage**
+- **Fire and life safety**
+- **Security**
+- **Fire protection**
+- **HVAC**
 
 ### Numbers
 
@@ -623,10 +651,10 @@ Before publishing any content:
 - [ ] Oxford comma used consistently
 - [ ] Em dashes (—) not hyphens with spaces
 - [ ] Numbers formatted consistently (250K vs. 250,000 — pick one per section)
-- [ ] Product names capitalized correctly (Simpro, Multi-Company, AI Mobile Work Notes)
+- [ ] Product and AI feature names capitalized correctly (Simpro, Multi-Company, AI Mobile Work Notes)
 
 **Style**:
-- [ ] Title Case for H1 hero; sentence case for H2/H3 subheads (or consistent alternative)
+- [ ] Title Case for H1 hero using the title-case rule: capitalize every word except articles and prepositions
 - [ ] Preferred terminology used (trades / techs / job costing / quote)
 - [ ] No banned filler words (very, really, actually, robust, seamless)
 - [ ] Active voice predominates
@@ -668,7 +696,4 @@ This style guide is a living document. Update when:
 - The Voice Style Guide doc is revised in Google Docs
 - Style questions arise in editing — document the decision here for the next person
 
-**Open style questions** (not in Aug 2024 doc — resolve with Product Marketing):
-- Whether "Simpro Group" parent references should appear in every piece of marketing content or only specific contexts
-- Whether AI feature names are always title-cased ("AI Mobile Work Notes") or can be sentence-cased after first mention
-- Whether trade names like "low voltage" / "fire and life safety" have brand-specific capitalization conventions
+**Open style questions**: None active as of 2026-05-21.

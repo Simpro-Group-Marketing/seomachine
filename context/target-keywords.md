@@ -2,9 +2,9 @@
 
 This document organizes Simpro's target keyword hypotheses by topic cluster for strategic content planning and SEO optimization.
 
-**Source**: Product Marketing portal source map, `https://www.simprogroup.com/sitemap.xml` accessed through Playwright MCP on 2026-05-21, GSC `sc-domain:simprogroup.com`, GA4 property `properties/309907809`, `simpro-seo-dashboard.html` reviewed on 2026-05-21, and Ahrefs Free Keyword Generator US results queried through Playwright on 2026-05-21.
+**Source**: Product Marketing portal source map, `https://www.simprogroup.com/sitemap.xml` accessed through Playwright MCP on 2026-05-21, GSC `sc-domain:simprogroup.com`, GA4 property `properties/309907809`, `simpro-seo-dashboard.html` reviewed on 2026-05-21, Ahrefs Free Keyword Generator US results queried through Playwright on 2026-05-21, and Semrush MCP `phrase_these` US keyword metrics queried on 2026-05-21.
 
-**Evidence boundary**: GSC and GA4 metrics below are first-party US-only performance signals for 2026-02-20 through 2026-05-20. Ahrefs Free Keyword Generator values below are external US estimates shown as volume buckets and categorical difficulty, not exact market demand numbers. Semrush Keyword Overview was tested through Playwright on 2026-05-21 but required account registration, so no Semrush metrics are used. The reviewed dashboard uses DataForSEO estimates and is treated as strategy context, not as first-party performance data.
+**Evidence boundary**: GSC and GA4 metrics below are first-party US-only performance signals for 2026-02-20 through 2026-05-20. Ahrefs Free Keyword Generator values below are external US estimates shown as volume buckets and categorical difficulty. Semrush MCP values below provide exact US keyword-volume, CPC, paid-competition, result-count, keyword-difficulty-index, trend-array, and SERP-feature-code signals for the 15 priority terms checked on 2026-05-21. The reviewed dashboard uses DataForSEO estimates and is treated as strategy context, not as first-party performance data. This pass still does not include manual live-SERP format review or community/reddit research.
 
 ## How to Use This File
 
@@ -74,11 +74,33 @@ This document organizes Simpro's target keyword hypotheses by topic cluster for 
 |---|---:|---|---|---|
 | field service management software | >1000 | Hard | Yes | Largest validated external-demand bucket and hard category competition. Keep as the canonical P1 category term. |
 | AI field service software | <100 | N/A | Yes | Emerging but still low-volume in the free Ahrefs bucket. Treat as positioning support, not the main category anchor. |
-| field service job costing | Related rows <100 | N/A | No exact row | Ahrefs did not return the exact seed row; only vendor-specific related phrases appeared under `<100`. Keep as proof/support unless paid data says otherwise. |
+| field service job costing | Related rows <100 | N/A | No exact row | Ahrefs did not return the exact seed row; Semrush later returned 0 US volume for the exact phrase. Keep as proof/support unless future research finds broader phrasing demand. |
 | HVAC software | >1000 | Medium | Yes | Strong external-demand bucket with more approachable KD than core FSM. P1 vertical opportunity. |
 | electrical contractor software | >100 | Easy | Yes | Lower volume than HVAC, but easier KD and clear commercial intent. P1 vertical opportunity. |
 | plumbing software | >100 | Medium | Yes | Medium KD and meaningful vertical demand. P1 vertical opportunity. |
 | ServiceTitan alternative | <100 | Easy | Yes | Low volume but BOFU competitor intent. Prioritize as sales-support/competitive capture, not traffic scale. |
+
+### Semrush MCP Exact US Keyword Metrics
+
+**Source boundary**: Queried through authenticated Semrush MCP on 2026-05-21 using `phrase_these` with `database=us`. `Competition` is Semrush paid competition on a 0-1 scale. SERP feature IDs are Semrush feature codes; use them as structured presence signals, not human-readable SERP labels until mapped in a separate SERP review.
+
+| Keyword | Semrush US Volume | KD Index | CPC | Competition | Results | SERP Feature Codes | Readout |
+|---|---:|---:|---:|---:|---:|---|---|
+| field service management software | 6,600 | 47 | $34.06 | 0.05 | 442,000,000 | 6, 9, 21, 36, 43, 45, 52 | Core category term has real scale and mid-range difficulty. |
+| field service software | 6,600 | 51 | $34.06 | 0.05 | 638,000,000 | 6, 9, 20, 36, 45, 52 | Same volume as the full FSM term with slightly higher KD. |
+| best field service management software | 1,600 | 40 | $44.95 | 0.33 | 406,000,000 | 6, 9, 20, 36, 45, 52 | High-value comparison/list intent with meaningful demand. |
+| AI field service software | 30 | 40 | $466.84 | 0.57 | 424,000,000 | 6, 9, 20, 36, 45, 52 | Low current volume, but unusually high CPC and paid competition. Treat as strategic positioning support. |
+| AI for field service | 70 | 18 | $0.00 | 0.27 | 148 | 9, 20, 36, 52 | Easier informational AI entry point than the software phrase. |
+| HVAC software | 2,900 | 37 | $116.32 | 0.51 | 95,100,000 | 6, 9, 20, 21, 36, 45, 52 | Strong vertical demand and high CPC; P1 commercial opportunity. |
+| best HVAC software | 590 | 26 | $152.29 | 0.49 | 65,200,000 | 6, 9, 15, 20, 21, 36, 45, 52 | Lower KD list intent with strong commercial value. |
+| electrical contractor software | 1,300 | 12 | $84.92 | 0.34 | 224 | 6, 9, 20, 36, 52 | High-opportunity vertical term: real demand, low KD, strong CPC. |
+| plumbing software | 1,600 | 44 | $131.06 | 0.52 | 139,000,000 | 6, 9, 15, 20, 36, 52 | Meaningful demand and competitive commercial value. |
+| ServiceTitan alternative | 70 | 2 | $34.74 | 0.67 | 77,300 | 6, 9, 15, 20, 36, 45, 51, 52 | Low volume but very low KD and strong BOFU competitor intent. |
+| Jobber alternative | 140 | 5 | $25.49 | 0.76 | 2,660,000 | 6, 9, 20, 36, 45, 51, 52 | Stronger alternative volume than ServiceTitan with low KD. |
+| contractor management software | 2,400 | 38 | $57.23 | 0.27 | 168,000,000 | 6, 9, 15, 36, 45, 52 | Useful adjacent category term for contractor-management positioning. |
+| field service management software pricing | 20 | 0 | $0.00 | 0.01 | 0 | None returned | Very small exact volume; use as pricing FAQ support, not a standalone pillar. |
+| field service job costing | 0 | 0 | $0.00 | 0.00 | 0 | None returned | No Semrush demand signal for exact phrase. Keep as product-proof support. |
+| job costing formula | 50 | 15 | $0.00 | 0.10 | 265,000,000 | 5, 6, 9, 20, 21, 36, 52 | Informational adjacent term has modest demand and easy KD. |
 
 ### Dashboard Cross-Check
 
@@ -88,8 +110,8 @@ The reviewed HTML dashboard is useful for strategy but not as a first-party metr
 
 ### Pillar Keyword
 - **Keyword**: field service management software
-- **Search Volume**: Ahrefs Free US bucket `>1000`
-- **Difficulty**: Ahrefs Free KD `Hard`
+- **Search Volume**: Semrush US volume 6,600; Ahrefs Free US bucket `>1000`
+- **Difficulty**: Semrush KD index 47; Ahrefs Free KD `Hard`
 - **Intent**: Commercial / informational
 - **Current Ranking**: US GSC exact query avg position 19.7; 8 clicks and 6,862 impressions
 - **Pillar Content URL**: https://www.simprogroup.com/solutions/field-service-management-software
@@ -130,8 +152,8 @@ The reviewed HTML dashboard is useful for strategy but not as a first-party metr
 
 ### Pillar Keyword
 - **Keyword**: AI for field service
-- **Search Volume**: Pillar exact term not Ahrefs-verified; adjacent `AI field service software` Ahrefs Free US bucket is `<100`
-- **Difficulty**: Pillar exact term not Ahrefs-verified; adjacent `AI field service software` Ahrefs Free KD is `N/A`
+- **Search Volume**: Semrush US volume 70 for `AI for field service`; adjacent `AI field service software` volume 30 and Ahrefs Free bucket `<100`
+- **Difficulty**: Semrush KD index 18 for `AI for field service`; adjacent `AI field service software` KD index 40
 - **Intent**: Informational / commercial
 - **Current Ranking**: US GSC exact query avg position 12.0; 0 clicks and 281 impressions. AI field service semantic variants total 4 clicks and 6,940 impressions at avg position 13.5.
 - **Pillar Content URL**: https://www.simprogroup.com/blog/ai-operating-platforms-for-trades-businesses
@@ -171,8 +193,8 @@ The reviewed HTML dashboard is useful for strategy but not as a first-party metr
 
 ### Pillar Keyword
 - **Keyword**: field service job costing
-- **Search Volume**: Ahrefs Free did not return an exact seed row; related vendor-specific phrases were `<100`
-- **Difficulty**: Ahrefs Free exact seed not returned; related rows were `N/A`
+- **Search Volume**: Semrush US volume 0 for exact phrase; adjacent `job costing formula` volume 50
+- **Difficulty**: Semrush KD index 0 for exact phrase; adjacent `job costing formula` KD index 15
 - **Intent**: Informational / commercial
 - **Current Ranking**: US GSC close-variant signal is minimal: 0 clicks and 2 impressions for `field service job costing`; adjacent `job costing formula` has 1 click and 507 impressions at avg position 11.7.
 - **Pillar Content URL**: https://www.simprogroup.com/resources/ebooks/job-costing
@@ -214,8 +236,8 @@ The reviewed HTML dashboard is useful for strategy but not as a first-party metr
 
 ### Pillar Keyword
 - **Keyword**: HVAC software
-- **Search Volume**: Ahrefs Free US bucket `>1000`
-- **Difficulty**: Ahrefs Free KD `Medium`
+- **Search Volume**: Semrush US volume 2,900; Ahrefs Free US bucket `>1000`
+- **Difficulty**: Semrush KD index 37; Ahrefs Free KD `Medium`
 - **Intent**: Commercial
 - **Current Ranking**: US GSC exact query avg position 29.3; 0 clicks and 907 impressions. HVAC cluster total is 41 clicks and 305,164 impressions but includes many non-commercial startup/marketing queries.
 - **Pillar Content URL**: https://www.simprogroup.com/industries/hvac-software
@@ -257,8 +279,8 @@ The reviewed HTML dashboard is useful for strategy but not as a first-party metr
 
 ### Pillar Keyword
 - **Keyword**: electrical contractor software
-- **Search Volume**: Ahrefs Free US bucket `>100`
-- **Difficulty**: Ahrefs Free KD `Easy`
+- **Search Volume**: Semrush US volume 1,300; Ahrefs Free US bucket `>100`
+- **Difficulty**: Semrush KD index 12; Ahrefs Free KD `Easy`
 - **Intent**: Commercial
 - **Current Ranking**: US GSC exact query avg position 28.5; 0 clicks and 1,068 impressions.
 - **Pillar Content URL**: https://www.simprogroup.com/industries/electrical-software
@@ -300,8 +322,8 @@ The reviewed HTML dashboard is useful for strategy but not as a first-party metr
 
 ### Pillar Keyword
 - **Keyword**: plumbing software
-- **Search Volume**: Ahrefs Free US bucket `>100`
-- **Difficulty**: Ahrefs Free KD `Medium`
+- **Search Volume**: Semrush US volume 1,600; Ahrefs Free US bucket `>100`
+- **Difficulty**: Semrush KD index 44; Ahrefs Free KD `Medium`
 - **Intent**: Commercial
 - **Current Ranking**: US GSC exact query avg position 31.8; 0 clicks and 1,718 impressions.
 - **Pillar Content URL**: https://www.simprogroup.com/industries/plumbing-software
@@ -385,10 +407,10 @@ The reviewed HTML dashboard is useful for strategy but not as a first-party metr
 
 ### Pillar Keyword
 - **Keyword**: field service software comparison
-- **Search Volume**: Not verified
-- **Difficulty**: Not verified
+- **Search Volume**: Comparison head term not verified; Semrush US volume 70 for `ServiceTitan alternative` and 140 for `Jobber alternative`
+- **Difficulty**: Comparison head term not verified; Semrush KD index 2 for `ServiceTitan alternative` and 5 for `Jobber alternative`
 - **Intent**: Commercial / BOFU
-- **Current Ranking**: Not verified
+- **Current Ranking**: `ServiceTitan alternative` US GSC exact query avg position 62.2; 0 clicks and 68 impressions. `Jobber alternative` exact-query ranking not verified in this pass.
 - **Pillar Content URL**: Use the relevant comparison page by competitor.
 
 ### Cluster Keywords
@@ -422,56 +444,63 @@ These topics are strategically important based on Product Marketing context and 
 
 1. **field service management software**
    - First-party signal: 8 clicks / 6,862 exact-query impressions / avg position 19.7; close variants 43,578 impressions / avg position 17.0.
-   - Volume: Ahrefs Free US bucket `>1000`
-   - Difficulty: Ahrefs Free KD `Hard`
+   - Volume: Semrush US volume 6,600; Ahrefs Free US bucket `>1000`
+   - Difficulty: Semrush KD index 47; Ahrefs Free KD `Hard`
+   - Commercial signal: Semrush CPC $34.06; paid competition 0.05.
    - Intent: Commercial
    - Why Priority: Core category term tied to the primary solution page. GSC shows the blog is capturing more category impressions than the solution page.
    - Action: Strengthen the solution page as the canonical category page, then pass internal authority from the best-FSM blog.
 
 2. **AI field service software**
    - First-party signal: 0 clicks / 146 exact-query impressions / avg position 16.1; broader AI field-service variants total 4 clicks / 6,940 impressions / avg position 13.5.
-   - Volume: Ahrefs Free US bucket `<100`
-   - Difficulty: Ahrefs Free KD `N/A`
+   - Volume: Semrush US volume 30; adjacent `AI for field service` volume 70; Ahrefs Free US bucket `<100`
+   - Difficulty: Semrush KD index 40; adjacent `AI for field service` KD index 18
+   - Commercial signal: Semrush CPC $466.84; paid competition 0.57.
    - Intent: Commercial / informational
    - Why Priority: Matches FY26 AI-first positioning.
    - Action: Use AI language as workflow-specific differentiation attached to FSM, scheduling, dispatch, mobile notes, payments, and customer marketing pages. Do not let AI replace the category term.
 
 3. **field service job costing**
    - First-party signal: `field service job costing` has 0 clicks / 2 close-variant impressions; adjacent `job costing formula` has 1 click / 507 exact-query impressions / avg position 11.7.
-   - Volume: Ahrefs Free did not return an exact seed row; related vendor-specific phrases were `<100`
-   - Difficulty: Ahrefs Free exact seed not returned; related rows were `N/A`
+   - Volume: Semrush US volume 0 for exact phrase; adjacent `job costing formula` volume 50.
+   - Difficulty: Semrush KD index 0 for exact phrase; adjacent `job costing formula` KD index 15.
+   - Commercial signal: Semrush CPC $0.00 for both checked phrases.
    - Intent: Informational / commercial
    - Why Priority: Directly maps to Simpro's profitability and margin differentiation.
    - Action: Keep as a proof/support cluster, not a primary SEO growth cluster unless external volume data shows demand.
 
 4. **HVAC software**
    - First-party signal: 0 clicks / 907 exact-query impressions / avg position 29.3; HVAC cluster has 305,164 impressions but is diluted by informational startup/marketing queries.
-   - Volume: Ahrefs Free US bucket `>1000`
-   - Difficulty: Ahrefs Free KD `Medium`
+   - Volume: Semrush US volume 2,900; `best HVAC software` volume 590; Ahrefs Free US bucket `>1000`
+   - Difficulty: Semrush KD index 37; `best HVAC software` KD index 26; Ahrefs Free KD `Medium`
+   - Commercial signal: Semrush CPC $116.32; paid competition 0.51.
    - Intent: Commercial
    - Why Priority: Major trade vertical with dedicated industry and blog assets.
    - Action: Strengthen the HVAC industry page for commercial software intent and link high-impression HVAC blog assets toward it.
 
 5. **electrical contractor software**
    - First-party signal: 0 clicks / 1,068 exact-query impressions / avg position 28.5.
-   - Volume: Ahrefs Free US bucket `>100`
-   - Difficulty: Ahrefs Free KD `Easy`
+   - Volume: Semrush US volume 1,300; Ahrefs Free US bucket `>100`
+   - Difficulty: Semrush KD index 12; Ahrefs Free KD `Easy`
+   - Commercial signal: Semrush CPC $84.92; paid competition 0.34.
    - Intent: Commercial
    - Why Priority: Major trade vertical with dedicated industry and proof assets.
    - Action: Expand exact-match electrical-contractor language and link electrical estimating/KPI/proof assets into the industry page.
 
 6. **plumbing software**
    - First-party signal: 0 clicks / 1,718 exact-query impressions / avg position 31.8; close variants 6,392 impressions / avg position 28.7.
-   - Volume: Ahrefs Free US bucket `>100`
-   - Difficulty: Ahrefs Free KD `Medium`
+   - Volume: Semrush US volume 1,600; Ahrefs Free US bucket `>100`
+   - Difficulty: Semrush KD index 44; Ahrefs Free KD `Medium`
+   - Commercial signal: Semrush CPC $131.06; paid competition 0.52.
    - Intent: Commercial
    - Why Priority: Major trade vertical with dedicated industry and customer proof.
    - Action: Strengthen the plumbing industry page and use Foster Plumbing plus plumbing margin/KPI posts as support links.
 
 7. **ServiceTitan alternative**
    - First-party signal: 0 clicks / 68 exact-query impressions / avg position 62.2; close variants 185 impressions / avg position 58.3.
-   - Volume: Ahrefs Free US bucket `<100`
-   - Difficulty: Ahrefs Free KD `Easy`
+   - Volume: Semrush US volume 70; adjacent `Jobber alternative` volume 140; Ahrefs Free US bucket `<100`
+   - Difficulty: Semrush KD index 2; adjacent `Jobber alternative` KD index 5; Ahrefs Free KD `Easy`
+   - Commercial signal: Semrush CPC $34.74; paid competition 0.67.
    - Intent: BOFU
    - Why Priority: ServiceTitan is a confirmed named competitor in `competitor-analysis.md`.
    - Action: Build or strengthen alternative/comparison intent only after the FSM and major vertical pages are moving, unless sales needs a dedicated BOFU asset sooner.
@@ -549,7 +578,7 @@ These topics are strategically important based on Product Marketing context and 
 
 **Required Next Data Pulls**:
 - Refresh GSC query/page export and GA4 landing-page engagement/key-event data quarterly, or after major page changes.
-- Exact paid DataForSEO/Ahrefs/Semrush volume and difficulty only if bucketed Ahrefs Free validation is not precise enough.
+- Refresh Semrush MCP `phrase_these` quarterly for the priority set, and expand it if new keyword clusters are added.
 - Live SERP review for every High Priority to Validate topic.
 - Cannibalization review for topic clusters with several existing pages.
 - If `simpro.ai` becomes the public content domain, add its GSC property and GA4 traffic separately rather than merging it into this historical `simprogroup.com` baseline.

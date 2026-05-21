@@ -2,9 +2,38 @@
 
 This document tracks key competitors in the field service management (FSM) software space, analyzing their positioning to identify Simpro's content and SEO opportunities.
 
-Source: Simpro Battlecards (Direct Competitors) — `Simpro Battlecards (Direct Competitors)` Google Sheet (Sales Tools, January 2026). Pulled tabs: BuildOps, Housecall Pro, ServiceTrade. Additional battlecards exist for FieldEdge, FieldPulse, Salesforce Field Service, Service Fusion, ServiceMax, Workiz, Zuper, Workwave, and a separate ERP/Upmarket file covering enterprise platforms.
+Sources:
+- Simpro Battlecards (Direct Competitors) — `Simpro Battlecards (Direct Competitors)` Google Sheet (Sales Tools, January 2026). Pulled tabs: BuildOps, Housecall Pro, ServiceTrade, and all later direct/indirect/ERP battlecards listed below.
+- `simpro-seo-dashboard.html` from `C:\Users\patrick.grueschow\Desktop\seo-command-centerV3-main` — DataForSEO Labs and SERP API estimate dashboard for Simpro SEO visibility. Dashboard report date: 2026-03-18. Integrated 2026-05-21.
+- Ahrefs Free Website Authority Checker — queried through Playwright 2026-05-21 for Simpro and the core dashboard SERP competitor set.
+- Semrush Backlink Analytics — authenticated Semrush app session queried through Playwright 2026-05-21 for Simpro, ServiceTitan, FieldPulse, Jobber, Housecall Pro, Workiz, BuildOps, and ServiceFusion. Six domains were pulled through structured Semrush overview endpoints; BuildOps and ServiceFusion were completed from rendered Semrush UI after login.
+- Semrush MCP `domain_rank` — authenticated Semrush MCP queried 2026-05-21 for US organic and paid domain-rank metrics across the same eight-domain competitor set.
 
-Last updated: 2026-05-12
+Last updated: 2026-05-21
+
+---
+
+## SEO Data Source Boundary
+
+The SEO competitor data below comes from the local HTML dashboard `simpro-seo-dashboard.html`. The dashboard's own report note says all traffic metrics are **estimated** from DataForSEO Labs data and that no GSC or GA4 data was used. Treat these as directional competitive-market signals, not first-party performance truth.
+
+Dashboard methodology included:
+- DataForSEO Labs domain rank overview for US, UK, and AU
+- DataForSEO Labs historical US ranking overview
+- DataForSEO Labs relevant pages for Simpro
+- DataForSEO Labs competitors domain data
+- DataForSEO Labs SERP competitors for core clusters
+- DataForSEO Labs keyword overview for 40+ target keywords
+- DataForSEO Labs related keywords for the FSM cluster
+- DataForSEO SERP API live organic results for `field service management software`, `hvac software`, `plumbing software`, `best field service management software`, and `simpro vs servicetitan`
+
+Dashboard, Ahrefs, and Semrush limitations:
+- DataForSEO Backlinks API was unavailable because the subscription did not include access.
+- Ahrefs Free supplied Domain Rating, backlink count, and linking-website count for individual domains, but not full link-gap exports, anchor text distribution, referring-domain quality, or page-level link intersect data.
+- Semrush Backlink Analytics supplied domain-level Authority Score, backlink/referring-domain counts, link attributes, top anchors, top linked pages, and organic traffic estimates for all eight checked domains. Six domains came from structured overview endpoints; BuildOps and ServiceFusion were completed from the rendered Semrush UI. This pass still does not include export-level referring URL lists, link intersect, or toxic/audit campaign outputs.
+- Semrush MCP `domain_rank` supplied structured US organic and paid domain metrics for all eight checked domains. It does not include referring URL exports, link intersect, page-level backlink targets, or toxic/audit scoring.
+- OnPage API could not crawl Simpro pages directly because of Cloudflare 403, so page recommendations are based on SERP snippets and competitor page patterns.
+- AI Overview captures can vary by session.
 
 ---
 
@@ -374,12 +403,9 @@ Last updated: 2026-05-12
 
 As of the May 2026 battlecard extraction, ServiceTitan has a full Tier 1 battlecard in the Direct Competitors sheet. See the "## Full Battlecard Data" section below for the complete verbatim content. Earlier versions of this file noted ServiceTitan's absence — that is no longer accurate.
 
-This is notable because ServiceTitan is the most-funded, most-named competitor in residential/commercial trades FSM (especially HVAC, plumbing, electrical). Two possible interpretations:
+This matters because ServiceTitan is the most-funded, most-named competitor in residential/commercial trades FSM, especially HVAC, plumbing, and electrical. It is no longer valid to treat ServiceTitan as an untracked or uncertain competitor in this file.
 
-1. **Deliberate strategic choice**: Simpro Marketing has decided ServiceTitan is not a head-to-head competitor in Simpro's primary ICP (low voltage, multi-trade, commercial-leaning). ServiceTitan's mid-market HVAC/plumbing/electrical focus may be considered an adjacent fight, not a Simpro one.
-2. **Coverage gap**: Sales does encounter ServiceTitan but the battlecard hasn't been built yet.
-
-**Action**: Confirm with Sales / Product Marketing (Natasha Morgan owns Product Marketing per the portal) whether ServiceTitan should be a tracked competitor. If yes, build a battlecard and add to this doc. If no, decide whether to invest in **/vs/servicetitan** and **alternatives-to-servicetitan** SEO content anyway — the search demand is real even if Simpro doesn't sell against them directly. Many "ServiceTitan alternatives" searchers are Simpro's ICP (mid-market trades operators) who got priced out or feel mismatched.
+**Action**: Treat ServiceTitan as a tracked SEO and sales competitor. The dashboard marks `servicetitan.com` as a **critical** SERP threat with 1,074 keyword intersections, 9,628 estimated visits on shared keywords, and #1 rankings for `plumbing software`, `hvac software`, and `electrical contractor software`. Simpro already ranks #1 for `simpro vs servicetitan`; the open opportunity is to build or strengthen a non-branded **/servicetitan-alternative/** page because `servicetitan alternative` has 170 estimated monthly searches and the dashboard flags +56% YoY trend.
 
 ---
 
@@ -413,13 +439,46 @@ AroFlo, BigChange, BuildOps, Commusoft, Fergus, Jobber, Joblogic, ServiceM8, Ser
 
 ## Secondary Competitors / Content Publishers
 
-<!-- GAP: This list should include content-only competitors (publications and blogs that rank for FSM-category terms even though they don't sell the software). Examples to research: SoftwareConnect, Capterra, G2, GetApp listicles, ServiceTitan blog (high DR, even though they're a product competitor too), trade-industry publications (CONTRACTOR Magazine, ContractingBusiness, Electrical Contractor, etc). Build this from a separate SEO audit, not from the Marketing Portal. -->
+The HTML dashboard provides SERP-overlap competitors for Simpro's US target keyword set. It does **not** provide a complete content-only publisher list, so directories/publications such as Capterra, G2, GetApp, SoftwareConnect, trade publications, and independent FSM listicles still need a separate publisher audit if that layer is required.
+
+### Dashboard SERP Competitors - US Target Keyword Set
+
+| Domain | Threat Level | Keyword Intersections | Avg Position on Simpro-Shared Keywords | Estimated Traffic on Shared Keywords | Top Rankings / Visibility Notes | Strategy Pattern |
+|---|---:|---:|---:|---:|---|---|
+| servicetitan.com | Critical | 1,074 | 20.1 | 9,628 | `plumbing software` #1; `hvac software` #1; `electrical contractor software` #1 | Dedicated industry pages per vertical, heavy AI Overview presence, and a large blog footprint. |
+| fieldpulse.com | Critical | Not provided | 8.9 | 823 | `field service management software` #5; `field service crm` #3; `best field service management software` #3 | Category-first title tags, AI Overview presence, and aggressive paid visibility. |
+| getjobber.com | High | 1,226 | 26.1 | 11,333 | `plumbing software` #7; `field service crm` #12; `hvac software` #24 | Heavy content investment, dedicated industry pages, review-site presence, and Jobber Academy. |
+| housecallpro.com | High | 983 | 27.1 | 4,609 | `hvac software` #1; `plumbing software` #3; `electrical contractor software` #4 | Strong vertical pages, residential focus, and heavy paid plus organic mix. |
+| workiz.com | High | 620 | 32.9 | 7,189 | `plumbing software` #1; `job management software` #2; `electrical contractor software` #3 | Vertical landing pages, strong CTA flow, and fast-moving content program. |
+| buildops.com | Medium | 623 | 33.2 | 987 | `hvac software` #6; `field service management software` #11; `electrical contractor software` #10 | Commercial contractor focus, extensive resource blog, and comparison content. |
+| servicefusion.com | Medium | Not provided | 6.0 | 1,585 | `field service management software` #3; `plumbing software` #2; `hvac software` #9 | Category-first pages, rich feature descriptions, and structured data. |
+
+Readout:
+- ServiceTitan and FieldPulse are the highest-priority SERP threats because they combine high-visibility category pages with AI Overview presence.
+- Jobber has the largest keyword overlap in the dashboard and the highest estimated traffic on shared keywords.
+- Housecall Pro and Workiz are the vertical-page threats for HVAC, plumbing, and electrical.
+- BuildOps is a meaningful commercial-contractor competitor even though its shared-keyword traffic is lower.
+- ServiceFusion's average shared-keyword position is strong, but the dashboard did not provide keyword-intersection count.
 
 ---
 
 ## Competitive Keyword Analysis
 
-<!-- GAP: This section requires DataForSEO / GSC / Ahrefs data, not portal content. Deferred to the SEO-tactical track. The competitor positioning data above is what should inform which keywords to chase — e.g., "Housecall Pro alternatives," "BuildOps vs Simpro," "ServiceTrade alternatives," "FSM with deep QuickBooks integration," "multi-trade FSM software." -->
+The dashboard supplies DataForSEO-estimated US volume, KD, Simpro rank, and page-match notes for core competitive clusters. These values are directional. Use `target-keywords.md` for the blended first-party GSC/GA4 plus Ahrefs Free view.
+
+| Cluster | Dashboard Demand | Avg KD | Simpro Position / Ownership | Page Match | Priority | Competitive Readout |
+|---|---:|---:|---|---|---:|---|
+| FSM Category Core | 31,910 | 40 | Not top 30 for `field service management software`; `best field service management software` rank #31 | Weak: current asset is `/blog/best-field-service-management-software`, a listicle rather than a category solution page | P1 | Create a dedicated `/field-service-management-software/` page. FieldPulse, ServiceFusion, Workiz, and ServiceTitan are winning category-first SERPs. |
+| Contractor Management | 5,850 | 38 | No dedicated page; `contractor management software` has 4,400 SV and KD 12 | Gap | P1 | Largest volume/difficulty mismatch in the dashboard. Build `/solutions/contractor-management-software/` before competitors harden this SERP. |
+| HVAC Vertical | 1,950 | 23 | `hvac software` rank #17; `best hvac software` not owned | Needs expansion | P1 | Housecall Pro, ServiceTitan, Workiz, FieldEdge, and BuildOps use stronger exact-match vertical software positioning. |
+| Plumbing Vertical | 1,130 | 18 | `plumbing software` rank #35; `best plumbing software` not owned | Needs expansion | P1 | Workiz, ServiceTitan, Housecall Pro, and ServiceFusion own the visible plumbing software SERP. |
+| Electrical Vertical | 490 | 23 | `electrical contractor software` rank #33 | Needs expansion | P2 | ServiceTitan, Housecall Pro, Workiz, and BuildOps outrank Simpro on electrical contractor intent. |
+| Job & Maintenance Management | 2,300 | 41 | `job management software` rank #6; maintenance and asset terms not owned | Partial | P2 | Protect `job management software` while expanding maintenance and asset-management coverage. |
+| Scheduling & Dispatch | 1,120 | 23 | Core scheduling/dispatch queries not owned | Partial | P2 | `service dispatch software` shows low KD 6 in the dashboard, making it a tactical feature-page opportunity. |
+| Field Service CRM | 590 | 45 | `field service crm` rank #25 | Gap | P2 | Create or strengthen CRM positioning only if sales sees CRM replacement intent. |
+| Comparison Intent | 510 | Not provided | `simpro vs servicetitan` rank #1; `servicetitan alternative` and `jobber alternative` not owned | Partial | P2 | Maintain vs-ServiceTitan, then add `/servicetitan-alternative/` and `/jobber-alternative/`. |
+| Pricing & ROI Intent | 140 | Not provided | `field service management software pricing` not owned | Weak | P2 | Add pricing FAQ and comparison pricing sections to `/pricing`. Dashboard flags +860% quarterly trend. |
+| Pool & Other Verticals | 960 | 39 | Pool, fire protection, and security-service terms not owned | Gap | P3 | Dashboard deprioritizes pool/fire for US until core FSM, HVAC, plumbing, electrical, and contractor pages are fixed. |
 
 ---
 
@@ -447,13 +506,99 @@ AroFlo, BigChange, BuildOps, Commusoft, Fergus, Jobber, Joblogic, ServiceM8, Ser
 
 ## Content Quality Benchmarks
 
-<!-- GAP: Word counts, content-depth tiers, and update-frequency benchmarks for each competitor blog were not in the portal. Pull from a competitor content audit using Ahrefs/Semrush or manual sampling of the top 20 ranking pages per competitor. -->
+The dashboard does not provide word counts, update cadence, or blog-depth tiers. It does provide repeated page-pattern benchmarks from ranking competitors:
+
+1. **Category-first title/H1 alignment**: FieldPulse and ServiceFusion win category SERPs with direct `field service management software` framing. ServiceTitan uses functional category language, not AI-first framing, on its category pages.
+2. **Exact-match vertical page architecture**: Housecall Pro, ServiceTitan, Workiz, FieldEdge, and BuildOps use vertical software pages that match buyer language such as `hvac software`, `plumbing software`, and `electrical contractor software`.
+3. **Structured feature sections**: Ranking pages make scheduling, dispatch, invoicing, mobile app, reporting, and integrations easy for search engines and AI Overviews to parse.
+4. **Review and comparison modules**: The dashboard repeatedly recommends review schema, comparison tables, FAQ schema, and pricing/comparison blocks for industry and comparison pages.
+5. **Alternative/comparison landing pages**: The current `/comparisons/` footprint works for `simpro vs servicetitan`, but not for non-branded alternative intent such as `servicetitan alternative` and `jobber alternative`.
+
+Remaining benchmark gap: exact competitor word counts, publishing frequency, content freshness, and article-depth tiers still require a manual content audit or Ahrefs/Semrush-style content export.
 
 ---
 
 ## Link Building & Authority
 
-<!-- GAP: Domain Rating comparison and backlink strategy details require Ahrefs/Semrush data. Not in scope for portal extraction. -->
+The dashboard did not include Domain Rating because DataForSEO Backlinks API access was unavailable in the current subscription. Ahrefs Free Website Authority Checker was used to fill the core domain-level DR benchmark for Simpro and dashboard SERP competitors.
+
+### Ahrefs Free Domain Authority Benchmark
+
+Source: Ahrefs Free Website Authority Checker, queried through Playwright on 2026-05-21. These are domain-level figures only.
+
+| Domain | Ahrefs DR | Backlinks | Backlinks Dofollow | Linking Websites | Linking Websites Dofollow | Readout |
+|---|---:|---:|---:|---:|---:|---|
+| getjobber.com | 90 | 978K | 93% | 25K | 92% | Strongest authority profile in the checked competitor set. |
+| housecallpro.com | 89 | 656K | 93% | 19K | 92% | Nearly Jobber-level link authority; supports its residential SMB search footprint. |
+| servicetitan.com | 80 | 224K | 81% | 12K | 87% | Clear authority advantage over Simpro plus category-leading SERP positions. |
+| workiz.com | 76 | 180K | 94% | 2.9K | 83% | Higher DR than Simpro with fewer linking sites than larger incumbents. |
+| fieldpulse.com | 73 | 22K | 74% | 1.9K | 70% | Slight DR edge over Simpro; visibility likely helped by category-first page structure, not just authority. |
+| simprogroup.com | 72 | 61K | 79% | 1.9K | 67% | Authority is competitive with FieldPulse and ServiceFusion but below Jobber, Housecall Pro, ServiceTitan, and Workiz. |
+| servicefusion.com | 72 | 28K | 85% | 1.5K | 76% | Same DR as Simpro despite fewer links; strong category-page relevance matters. |
+| buildops.com | 67 | 15K | 70% | 3.5K | 82% | Lower DR than Simpro but still outranks Simpro on several commercial contractor/vertical terms. |
+
+Authority readout:
+- Simpro does **not** have a universal DR problem. It is level with ServiceFusion and close to FieldPulse.
+- Simpro does have a clear authority gap against Jobber, Housecall Pro, ServiceTitan, and Workiz.
+- BuildOps outranking Simpro on several commercial terms despite lower DR reinforces the dashboard finding: page structure, exact-match category language, and intent-fit matter as much as domain authority.
+- For FieldPulse and ServiceFusion, Simpro's issue is likely less domain authority and more category-page clarity, structured content, and AI Overview eligibility.
+
+### Semrush MCP Domain Rank Snapshot
+
+Source: authenticated Semrush MCP `domain_rank`, queried on 2026-05-21 with `database=us`. These are domain-level organic and paid search estimates, separate from the backlink overview pull below.
+
+| Domain | US Rank | Organic Keywords | Organic Traffic | Organic Cost | Paid Keywords | Paid Traffic | Paid Cost | Readout |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| getjobber.com | 5,859 | 76,701 | 402,822 | $5,500,707 | 2,302 | 97,672 | $908,877 | Strongest Semrush organic and paid footprint in the checked set. |
+| servicetitan.com | 7,570 | 75,397 | 306,961 | $3,695,457 | 415 | 9,599 | $228,513 | Category leader with major organic traffic advantage over Simpro. |
+| housecallpro.com | 8,402 | 92,202 | 275,802 | $2,948,545 | 3,086 | 74,730 | $1,014,404 | Largest keyword footprint and heaviest paid keyword count. |
+| workiz.com | 51,194 | 17,297 | 39,798 | $584,934 | 12 | 450 | $4,905 | Smaller paid footprint but meaningfully stronger organic traffic than Simpro. |
+| fieldpulse.com | 52,008 | 13,797 | 39,092 | $540,410 | 364 | 2,930 | $139,872 | Stronger organic traffic than Simpro despite lower backlink volume. |
+| servicefusion.com | 65,645 | 8,209 | 30,368 | $368,982 | 20 | 818 | $10,362 | Similar authority class to Simpro, but stronger organic traffic estimate. |
+| buildops.com | 105,685 | 17,189 | 18,008 | $284,971 | 155 | 7,079 | $93,763 | More organic keywords than Simpro but lower traffic; paid activity supports commercial terms. |
+| simprogroup.com | 309,677 | 6,113 | 5,238 | $70,153 | 56 | 901 | $7,510 | Clear traffic gap versus every checked FSM competitor in the Semrush US rank pull. |
+
+Semrush domain-rank readout:
+- Simpro's organic traffic estimate trails the closest checked competitor, BuildOps, by roughly 3.4x and trails Jobber by roughly 77x.
+- Simpro's organic keyword count is the smallest in the checked set, which supports the keyword-expansion and category-page-priority recommendations in `target-keywords.md`.
+- Housecall Pro and Jobber combine organic scale with substantial paid traffic, so paid SERP pressure should be expected on core category and vertical software terms.
+- BuildOps and FieldPulse prove the gap is not only domain authority: both have smaller backlink footprints than the largest incumbents, yet stronger organic keyword and traffic coverage than Simpro.
+
+### Semrush Backlink Analytics Benchmark
+
+Source: authenticated Semrush Backlink Analytics session, queried through Playwright on 2026-05-21. Six rows came from structured Semrush overview endpoint data; BuildOps and ServiceFusion came from rendered UI after login. This is a domain-level overview pull, not a referring-URL export or link-intersect report.
+
+| Domain | Semrush Authority Score | Referring Domains | Backlinks | Live Links | Follow Links | Nofollow Links | New Links | Lost Links | Monthly Visits | Organic Traffic | Readout |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| getjobber.com | 54 | 30,042 | 681,879 | 371,176 | 585,651 | 95,659 | 4,266 | 9,900 | 6,586,905 | 497,641 | Largest referring-domain footprint and strongest organic traffic in the Semrush pull. |
+| servicetitan.com | 49 | 10,656 | 387,863 | 238,397 | 218,618 | 169,723 | 1,123 | 1,810 | 3,603,316 | 345,876 | Strong authority and traffic advantage over Simpro, with enough link depth to support vertical SERP dominance. |
+| housecallpro.com | 48 | 19,961 | 964,516 | 713,367 | 823,210 | 142,291 | 3,196 | 4,324 | 4,159,728 | 298,742 | More backlinks than Jobber in Semrush, but lower Authority Score and organic traffic. |
+| simprogroup.com | 40 | 2,776 | 157,906 | 110,777 | 141,391 | 16,613 | 223 | 457 | 78,499 | 25,075 | Competitive with FieldPulse on Authority Score but far behind Jobber, Housecall Pro, and ServiceTitan on referring-domain depth and organic traffic. |
+| fieldpulse.com | 40 | 2,522 | 33,683 | 17,257 | 22,093 | 11,652 | 223 | 385 | 213,948 | 42,038 | Similar Authority Score to Simpro with fewer backlinks; stronger search visibility points back to page intent and category clarity. |
+| workiz.com | 39 | 4,065 | 190,115 | 141,916 | 168,482 | 22,080 | 436 | 945 | 866,035 | 45,612 | Slightly lower Semrush Authority Score than Simpro but more referring domains, more traffic, and stronger vertical-page visibility. |
+| buildops.com | 36 | 4.1K | 38.1K | Not shown in UI | 20.7K | 17.4K | 88 today | Not shown in UI | 165K | 22.4K | Lower Semrush Authority Score than Simpro but stronger page-level intent assets; top linked non-homepage URLs include commercial construction, HVAC software, and construction CRM pages. |
+| servicefusion.com | 40 | 2.2K | 30.4K | Not shown in UI | 19.5K | 11K | 20 today | Not shown in UI | 583K | 33.3K | Same Semrush Authority Score as Simpro with fewer links, but strong category-page visibility and a top linked FSM software URL. |
+
+For BuildOps and ServiceFusion, "New Links" reflects the UI's "backlinks found today" value; lost links were not displayed in the rendered overview.
+
+Semrush link-profile readout:
+- Simpro's top anchor set contains a high-volume empty-anchor bucket and several odd single-domain anchors (`pr000041`, `nse4`, `1k0-001`, `jn0-633`) that each account for roughly 11K backlinks. A backlink audit campaign should inspect whether these are harmless legacy/widget artifacts or low-value noise.
+- Simpro's highest-linked assets are concentrated on the homepage/root variants: `https://www.simprogroup.com/` has 1,258 referring domains and 6,623 backlinks; `https://simprogroup.com/` has 620 referring domains and 3,067 backlinks. The top five do not show category, vertical, comparison, or original-data content assets.
+- ServiceTitan's link profile has deeper commercial assets: homepage at 3,188 referring domains, marketplace at 397 referring domains, and a partner-announcement blog URL at 247 referring domains.
+- Jobber's profile is powered by both brand/content and embedded workflow links: root domain variants, Jobber Academy URLs, `client login`, `client portal`, `book now`, and `powered by jobber-logo` anchors.
+- Housecall Pro and Workiz show heavy booking/scheduling widget footprints. Housecall Pro's `schedule online!` anchor accounts for 316,129 backlinks from 12 referring domains; Workiz has 122,669 frame links.
+- FieldPulse is the clearest proof that Simpro's organic gap is not only authority: FieldPulse has a similar Semrush Authority Score and fewer total backlinks, yet stronger Semrush organic traffic and higher category SERP visibility.
+- BuildOps has strong non-homepage linked assets: `/commercial-construction/` (247 referring domains), `/industry/hvac-software/` (230 referring domains), and `/product/construction-crm-2/` (157 referring domains), matching its commercial contractor positioning.
+- ServiceFusion's `/field-service-management-software` page has 156 referring domains, reinforcing the earlier dashboard finding that category-first pages are a live competitor advantage.
+
+Original dashboard page-level backlink readout:
+- Domain-level authority assessment was omitted from the dashboard and filled later with Ahrefs Free and Semrush overview data.
+- Competitor page-authority data from keyword overview shows top FSM pages average **250-438 referring pages** on primary category and industry URLs.
+- Simpro priority pages should target **100+ referring domains** to compete for top-5 positions on core FSM queries.
+
+Practical implication: build linkable commercial assets, not only sales pages. The highest-value link targets are the new category page, contractor-management page, HVAC/plumbing/electrical vertical pages, pricing FAQ, and ServiceTitan/Jobber alternative pages.
+
+Remaining backlink gap: actual referring-URL exports, link-intersect opportunities, toxic/audit scoring, and deeper page-level link target mapping. The current Semrush passes cover domain-rank metrics, backlink overview metrics, top anchors, and top linked pages for all eight checked domains, but not export-level source URLs.
 
 ### Backlink Strategies Competitors Use (qualitative, from positioning)
 - **BuildOps**: Funding-stage PR, veteran-owned brand narrative, premium-customer logos
@@ -465,13 +610,30 @@ AroFlo, BigChange, BuildOps, Commusoft, Fergus, Jobber, Joblogic, ServiceM8, Ser
 
 ## User Experience & Engagement
 
-<!-- GAP: Site UX/CRO observations should come from manual competitor site audits, not portal content. -->
+The dashboard gives SERP-derived page-architecture observations, not a full manual UX/CRO audit.
+
+Competitive UX/page-architecture patterns to mirror where appropriate:
+- **Homepage**: Lead with category clarity. The dashboard recommends changing the homepage H1/title emphasis from AI-first narrative to `Field Service Management Software for the Trades`, with AI moved into feature proof.
+- **Category page**: Build a dedicated `/field-service-management-software/` URL with definition block, feature grid, industry tabs, customer proof, competitor comparison, ROI block, and review schema.
+- **HVAC page**: Use exact vertical language, scheduling/dispatch workflow, QuickBooks/integration proof, FAQ schema, review schema, and a comparison table against FieldEdge and ServiceTitan.
+- **Plumbing page**: Use plumbing-specific job workflow, on-site quoting/invoicing, maintenance contracts, review schema, and a `best plumbing software` FAQ block.
+- **Comparison pages**: Add comparison-table schema and non-branded alternative pages, especially `/servicetitan-alternative/` and `/jobber-alternative/`.
+- **Pricing page**: Add `field service management software pricing` FAQ content, pricing comparison context, and links from comparison pages.
 
 ---
 
 ## Competitive SERP Features
 
-<!-- GAP: SERP feature ownership (snippets, PAA, video results) requires SEO tooling. Not in scope for portal extraction. The Growth Marketing tab does have a `2025 Completed Experiments` deck and SEO Monthly Reports that may have related insight. -->
+The dashboard includes AI Overview checks, but not a complete snippets/PAA/video feature inventory.
+
+AI Overview findings from the dashboard:
+- Checked queries: `field service management software`, `best field service management software`, `hvac software`
+- Simpro mentioned: **No**
+- Competitors cited: ServiceTitan, FieldPulse, Jobber, SAP, Salesforce, ServiceFusion, FieldEdge, Workiz, BuildOps, Housecall Pro, Microsoft Dynamics 365
+- Dashboard finding: AI Overview citations for FSM software draw from pages with clear category definitions, schema markup, and structured feature lists.
+- Recommendation: Add FAQ schema, structured feature comparison tables, clear definition blocks, and branded authority signals to solution pages.
+
+Remaining SERP-feature gap: exact featured snippets, People Also Ask, video packs, review-rich-result presence, and image/video SERP ownership still need a live SERP-feature pass.
 
 ---
 
@@ -506,20 +668,24 @@ AroFlo, BigChange, BuildOps, Commusoft, Fergus, Jobber, Joblogic, ServiceM8, Ser
 ## Content Opportunity Matrix
 
 ### High Opportunity (Low competition, high value)
-1. **"Housecall Pro alternatives"** / **"alternatives to Housecall Pro for growing trades"** — High commercial intent, HCP customers actively outgrow the tool.
-2. **"BuildOps vs Simpro" / "BuildOps alternatives"** — Pricing transparency + service/PM differentiation = strong page.
-3. **"Multi-Company FSM"** — Open territory; underserved by all competitors. Tie to PE roll-up trend.
-4. **"AI in field service for the trades"** — Simpro can own this with in-product proof points while competitors are still vague.
-5. **"FSM with deep QuickBooks integration"** — Direct competitor pain point; Simpro wins consistently here.
+1. **"Contractor management software"** — Dashboard: 4,400 monthly searches, KD 12, no dedicated Simpro page. This is the best volume/difficulty opportunity in the dashboard.
+2. **"Field service management software"** category page — Dashboard: 14,800 monthly searches for the exact head term, KD 47, Simpro not top 30. This needs a solution page, not only a blog listicle.
+3. **"HVAC software" / "best HVAC software"** — Dashboard: Simpro rank #17 for `hvac software`; `best hvac software` KD 8 is the easiest vertical win in the dashboard.
+4. **"Plumbing software" / "best plumbing software"** — Dashboard: Simpro rank #35 for `plumbing software`; `best plumbing software` KD 4 is the fastest possible vertical FAQ win.
+5. **"ServiceTitan alternative" and "Jobber alternative"** — Dashboard: `servicetitan alternative` 170 searches/month and +56% YoY; `jobber alternative` 320 searches/month; neither is owned.
+6. **"BuildOps vs Simpro" / "BuildOps alternatives"** — Pricing transparency + service/PM differentiation = strong page.
+7. **"Multi-Company FSM"** — Open territory; underserved by all competitors. Tie to PE roll-up trend.
+8. **"FSM with deep QuickBooks integration"** — Direct competitor pain point; Simpro wins consistently here.
 
 ### Medium Opportunity
 - **"ServiceTrade alternatives"** — Smaller addressable market but high intent for multi-trade operators dissatisfied with vertical lock.
 - **"Best FSM for low voltage / security / fire / A/V"** — Simpro ICP sweet spot.
 - **"Job costing software for trades"** — Tie to margin / profitability content cluster.
+- **"Field service management software pricing"** — Dashboard: 140 searches/month, +860% quarterly trend, not currently owned.
 
 ### Long-term Play
-- **"Field service management software"** head term — Competitive but ownable with sustained pillar investment + AI angle.
-- **"ServiceTitan alternatives"** — Once ServiceTitan battlecard is extracted, build this as a deliberate moat.
+- **AI in field service for the trades** — Simpro can own this with in-product proof points, but the dashboard says AI-specific search demand is not yet meaningful enough to lead the SEO roadmap.
+- **Security / fire protection software** — Important to Simpro's ICP, but the dashboard's US demand map deprioritizes it behind core FSM, contractor management, HVAC, plumbing, electrical, comparison, and pricing intent.
 
 ---
 
@@ -556,7 +722,9 @@ AroFlo, BigChange, BuildOps, Commusoft, Fergus, Jobber, Joblogic, ServiceM8, Ser
 - [ ] G2 / Capterra review trend lines for top 5 competitors
 
 ### Tools for Monitoring
-<!-- GAP: Specific tools (Ahrefs, Semrush, BuiltWith alerts, G2 alerts) should be confirmed with the Growth Marketing team. Tim Lamb owns Growth Marketing per the portal. -->
+- **Currently confirmed by dashboard**: DataForSEO Labs and DataForSEO SERP API.
+- **Currently used in this pass**: Ahrefs Free Website Authority Checker, Semrush Backlink Analytics through an authenticated web session, and Semrush MCP `domain_rank`.
+- **Still useful to confirm with Growth Marketing**: SEO-platform export access for backlink source URLs and link-intersect exports, BuiltWith alerts, G2/Capterra alerts, review-monitoring workflow, and any automated competitor-page change tracking.
 
 ---
 
