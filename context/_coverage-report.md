@@ -1,9 +1,9 @@
 # Context Files — Coverage Report
 
-**Generated**: 2026-05-12 | **Last updated**: 2026-05-21 (Voice Style Guide integrated; Product Marketing portal links followed; sitemap-backed internal links retained; GA4/GSC metrics added)
+**Generated**: 2026-05-12 | **Last updated**: 2026-05-21 (Voice Style Guide integrated; Product Marketing portal links followed; sitemap-backed internal links retained; GA4/GSC metrics added; PEEC AI cited URL export, prompt rows, directory verification, dominant domains, and outreach statuses added)
 **Source**: Simpro Marketing Portal (`sites.google.com/simpro.us/simpromarketingportal`) — Product Marketing, Creative Resources, Growth Marketing tabs
 **Auth context**: `patrick.grueschow@simprogroup.com` (signed-in via Playwright MCP and gws CLI)
-**Scope this pass**: Brand/product context files, Product Marketing portal linked-source extraction, sitemap-backed internal-link discovery, first-party US GA4/GSC metrics, and HTML dashboard review.
+**Scope this pass**: Brand/product context files, Product Marketing portal linked-source extraction, sitemap-backed internal-link discovery, first-party US GA4/GSC metrics, HTML dashboard review, PEEC aggregate AI citation-source export, ChatGPT/Perplexity prompt audit rows, directory verification, dominant source-domain counts, and outreach status mapping.
 
 ---
 
@@ -11,9 +11,9 @@
 
 **Does the Simpro Marketing Portal contain all the data needed to fill the `context/` folder?**
 
-**Partially.** The portal is a rich source for brand voice, product features/value props, competitive positioning, customer proof points, and source discovery. It is **not** a complete source for: (a) search-volume and keyword-difficulty validation, (b) CRO playbooks (the portal has experiment/resource links but no standalone CRO rules doc), (c) AI citation targets, or (d) Reddit/community strategy. GSC and GA4 now cover first-party US traffic/ranking signals, but market demand and SERP-format validation still require DataForSEO, Ahrefs/Semrush, live SERP work, or manual community research.
+**Partially.** The portal is a rich source for brand voice, product features/value props, competitive positioning, customer proof points, and source discovery. It is **not** a complete source for: (a) exact paid search-volume and keyword-difficulty validation, (b) CRO playbooks (the portal has experiment/resource links but no standalone CRO rules doc), or (c) Reddit/community strategy. GSC and GA4 now cover first-party US traffic/ranking signals; Ahrefs Free now covers bucketed US volume/KD for the high-priority keyword set; PEEC covers aggregate AI-cited URL discovery for Simpro; and the current ChatGPT/Perplexity prompt rows, directory verification, dominant source domains, and outreach statuses are now populated in `ai-citation-targets.md`. Exact market demand and SERP-format validation still require DataForSEO, paid Ahrefs/Semrush, live SERP work, or manual community research.
 
-**Bottom line**: The portal and linked sources now cover the brand/product files plus a sitemap-backed internal-link map. GSC and GA4 now add first-party US performance metrics to `target-keywords.md` and `internal-links-map.md`. Search volume, keyword difficulty, live SERP format, AI-citation, Reddit/community, and tested-CRO guidance still need non-portal sources.
+**Bottom line**: The portal and linked sources now cover the brand/product files plus a sitemap-backed internal-link map. GSC and GA4 now add first-party US performance metrics to `target-keywords.md` and `internal-links-map.md`; `target-keywords.md` now includes Ahrefs Free bucketed volume/KD for the high-priority keyword set; `internal-links-map.md` is complete for US first-party internal-link prioritization and only needs quarterly refresh or a major URL/performance refresh. `ai-citation-targets.md` is complete as a 2026-05-21 point-in-time AI citation register. Exact paid volume/KD, live SERP format, Reddit/community, and tested-CRO guidance still need non-portal sources.
 
 ---
 
@@ -27,9 +27,9 @@
 | `style-guide.md` | ✅ **FILLED** (canonical + FY26 overlay; table-level spot check complete 2026-05-21) | Simpro Voice Style Guide Google Doc (`1Hl78trTAMAnZcSBfsdM0Qn0Xa1f-DW51s-8LbeU_Knk`, Aug 2024) + FY26 Message House | Residual open questions: Simpro Group mention frequency, AI feature title-case after first mention, vertical name capitalization. |
 | `cro-best-practices.md` | 🟡 **PARTIAL** (Simpro overlay + proof-source workflow added) | Generic CRO best practices (was already in repo) + Simpro-specific overlay derived from Message House, battlecards, Customer Quote Matrix, Customer Stories deck, and Customer Advocacy overview | No dedicated Simpro CRO playbook exists in the portal. Growth Marketing's `2025 Completed Experiments` deck (1f4E7yay4s-SsVUFcg-EZ06aB31d2MADJ3oNfQrEGnXo) is the closest existing resource — review for tested patterns. |
 | `writing-examples.md` | ✅ **FILLED** (4 full articles, 2026-05-12) | simprogroup.com/blog — Exit Ready (Apr 2026), Stop Chasing Invoices / Agentic AI (Apr 2026), 12 Best FSM Software (Sep 2025), What Is FSM (Apr 2025) | All customer quotes, named outcomes, and statistics preserved verbatim. `/write` and `/rewrite` commands now have real voice examples. |
-| `target-keywords.md` | ✅ **PERFORMANCE-INFORMED** (US first-party metrics added 2026-05-21) | Sitemap topic clusters + GSC `sc-domain:simprogroup.com` + GA4 `properties/309907809` + dashboard strategy review | Search volume and keyword difficulty still require DataForSEO/Ahrefs/Semrush. |
-| `internal-links-map.md` | ✅ **PERFORMANCE-INFORMED** (US page-priority metrics added 2026-05-21) | Sitemap URLs + GSC page metrics + GA4 landing-page sessions/key events | Non-US page priority and post-change refresh still need future pulls. |
-| `ai-citation-targets.md` | 🟡 **PARTIAL** (Simpro AI/FSM baseline added 2026-05-21) | HTML dashboard AI Overview check + GSC AI/FSM query signals | Needs fresh `/research-ai-citations` runs for target prompts and source-by-source citation tracking. |
+| `target-keywords.md` | ✅ **PERFORMANCE-INFORMED + FREE AHREFS VALIDATED** (US first-party metrics and Ahrefs Free high-priority buckets added 2026-05-21) | Sitemap topic clusters + GSC `sc-domain:simprogroup.com` + GA4 `properties/309907809` + dashboard strategy review + Ahrefs Free Keyword Generator US buckets via Playwright | Exact paid volume/KD still require DataForSEO or paid Ahrefs/Semrush. Semrush free Keyword Overview required account registration and was not used. |
+| `internal-links-map.md` | ✅ **US MAP COMPLETE / PERFORMANCE-INFORMED** (US page-priority metrics and maintenance rules added 2026-05-21) | Sitemap URLs + GSC page metrics + GA4 landing-page sessions/key events | No active update gap for US internal linking. Refresh quarterly or after major URL/performance changes. |
+| `ai-citation-targets.md` | ✅ **POINT-IN-TIME FILLED** (AI/FSM baseline, PEEC export, ChatGPT/Perplexity prompt rows, directory verification, dominant domains, outreach statuses added 2026-05-21) | HTML dashboard AI Overview check + GSC AI/FSM query signals + PEEC AI authenticated Simpro `Sources > URLs` export + ChatGPT/Perplexity prompt runs + live directory/search verification | Re-run quarterly or before launch. Gemini can be added as an optional additional model surface if needed; the current 25-row register covers the requested ChatGPT/Perplexity pass. |
 
 ---
 
@@ -40,9 +40,9 @@ The first-party SEO metric pass is now partially complete. Remaining gaps need e
 | File | Recommended Source for Next Pass |
 |---|---|
 | `seo-guidelines.md` | Generic framework rules; can stay as-is. Update if Simpro has a published SEO style standard. |
-| `target-keywords.md` | ✅ Rebuilt 2026-05-21 as a Simpro sitemap-derived topic-cluster map and updated with US GSC/GA4 metrics for AI/FSM, vertical, job-costing, and comparison priorities. Search volume and keyword difficulty still need DataForSEO/Ahrefs/Semrush validation. |
-| `internal-links-map.md` | ✅ Rebuilt 2026-05-21 from `https://www.simprogroup.com/sitemap.xml` via Playwright MCP and updated with US GSC/GA4 page priority metrics. |
-| `ai-citation-targets.md` | Baseline added from dashboard + GSC. Use the existing `/research-ai-citations` command next for fresh prompt-specific citation audits. Pair with Simpro Group's known directory presence (G2, Capterra, TrustRadius). |
+| `target-keywords.md` | ✅ Rebuilt 2026-05-21 as a Simpro sitemap-derived topic-cluster map and updated with US GSC/GA4 metrics plus Ahrefs Free bucketed volume/KD for the high-priority keyword set. Exact paid volume/KD still need DataForSEO or paid Ahrefs/Semrush if precision is required. |
+| `internal-links-map.md` | ✅ Rebuilt 2026-05-21 from `https://www.simprogroup.com/sitemap.xml` via Playwright MCP and updated with US GSC/GA4 page priority metrics. No current context update needed for the US map. |
+| `ai-citation-targets.md` | ✅ Filled 2026-05-21 with PEEC aggregate cited URL export, 25 ChatGPT/Perplexity prompt rows, directory presence verification, dominant-source domain counts, and outreach status updates. Treat as point-in-time evidence and refresh quarterly or before launch. |
 | `reddit-strategy.md` | Manual subreddit identification — likely r/HVAC, r/electricians, r/Plumbing, r/lowvoltage, r/sysadmin (for security/A/V), r/Construction, r/SmallBusiness. |
 
 ---
@@ -59,6 +59,10 @@ The first-party SEO metric pass is now partially complete. Remaining gaps need e
 | GSC `sc-domain:simprogroup.com` | First-party Search Console data, US-only, 2026-02-20 to 2026-05-20 | target-keywords query metrics; internal-links-map page-priority metrics |
 | GA4 `properties/309907809` | First-party analytics data, US-only, 2026-02-20 to 2026-05-20 | internal-links-map sessions/engagement/key-event priority; target-keywords sitewide baseline |
 | `simpro-seo-dashboard.html` | Static DataForSEO-estimated dashboard, reviewed via Playwright MCP/local server 2026-05-21 | Strategy cross-check only; confirmed its own note says no GSC or GA4 data was used |
+| Ahrefs Free Keyword Generator | Free public keyword tool, US location, queried via Playwright 2026-05-21 | target-keywords: bucketed external volume and KD for seven high-priority keyword opportunities |
+| PEEC AI Simpro project, `Sources > URLs` | Authenticated PEEC aggregate citation-source export, queried 2026-05-21 | ai-citation-targets: 40 real cited URLs from last 30 days across active PEEC prompts/models |
+| ChatGPT logged-out web browsing + Perplexity direct search URLs | AI prompt runs, executed 2026-05-21 | ai-citation-targets: 25 row-level prompt records with cited URLs, Simpro presence, position, competitors, and source type |
+| Live public search and directory pages | Web verification, executed 2026-05-21 | ai-citation-targets: directory presence, not-found boundaries, dominant domain actions, and outreach status mapping |
 | `Internal-Only Simpro Cheat Sheet` (Drive file `10aj3LlY9Aps2lBFIf5SwnNzj_7r29Jra`) | PDF, followed via Playwright MCP 2026-05-21 | brand-voice audience/job titles/industries; features capabilities, pricing-boundary notes, discovery questions |
 | `Customer Archetypes — Simpro Group` (Slides target `11H08_uEvMhes9JzDwBRkhWbbwTtjOp7erJtUSmBDur0`) | Google Slides, followed from portal folder via Playwright MCP + Drive export 2026-05-21 | brand-voice maturity model: Empower, Elevate, Excel |
 | `Simpro's Best-Fit Targeting Framework` (Slides target `1aNoLCzw4iuRMMtMc6OzyT1Hrcg9MvbFYwf58SvQyH1s`) | Google Slides, followed from portal folder via Playwright MCP + Drive export 2026-05-21 | brand-voice and features best-fit boundaries by environment, work type, and complexity |
@@ -94,16 +98,16 @@ The first-party SEO metric pass is now partially complete. Remaining gaps need e
    - style-guide.md: Rewritten from canonical Voice Style Guide plus FY26 overlay; residual open questions are explicit.
    - cro-best-practices.md: Simpro overlay and Product Marketing proof-source workflow prepended to existing template; tested-CRO GAP preserved.
    - writing-examples.md: Populated with real Simpro examples.
-   - internal-links-map.md: Rebuilt from sitemap and updated with first-party US GSC/GA4 page-priority metrics.
-   - target-keywords.md: Rebuilt as sitemap-derived Simpro clusters and updated with first-party US GSC/GA4 query, page, and priority signals.
-   - ai-citation-targets.md: Simpro AI/FSM baseline added from dashboard AI Overview checks and GSC AI-query signals.
+   - internal-links-map.md: Rebuilt from sitemap, updated with first-party US GSC/GA4 page-priority metrics, and given explicit refresh rules.
+   - target-keywords.md: Rebuilt as sitemap-derived Simpro clusters and updated with first-party US GSC/GA4 query, page, priority signals, and Ahrefs Free bucketed volume/KD for high-priority terms.
+   - ai-citation-targets.md: Simpro AI/FSM baseline added from dashboard AI Overview checks and GSC AI-query signals; PEEC aggregate cited URL export added as a 40-URL source register; 25 ChatGPT/Perplexity prompt rows, directory verification, dominant domain counts, and outreach statuses populated.
 
 2. **This report matches the actual state of the 9 files**: ✅ (the table above).
 
 3. **Smoke test**: `/research field service software` generated `research/brief-field-service-software-2026-05-21.md` and the brief surfaced Simpro voice markers: AI-first operating platform language, trade/field-service leader audience framing, 24/6 support, no "tradies" in US copy, no "all-in-one," and named proof points.
    - Additional smoke test after GA4/GSC integration: `/research AI field service management software` generated `research/brief-ai-field-service-management-software-2026-05-21.md`. The brief included the updated AI/FSM GSC signals, Simpro voice rules, audience archetypes, best-fit boundaries, and correct pillar/support article relationship.
 
-4. **SEO-tactical boundary**: `internal-links-map.md` is now sitemap-backed and performance-informed with US GSC/GA4 metrics. `target-keywords.md` is now sitemap-derived and performance-informed with first-party US query/page signals. `ai-citation-targets.md` has an initial AI/FSM baseline. Search volume, keyword difficulty, live SERP format, full AI-citation tracking, and Reddit/community validation still need separate research. `seo-guidelines.md` can stay generic unless a Simpro SEO standard is found.
+4. **SEO-tactical boundary**: `internal-links-map.md` is now sitemap-backed and performance-informed with US GSC/GA4 metrics, with explicit refresh rules. `target-keywords.md` is now sitemap-derived and performance-informed with first-party US query/page signals plus Ahrefs Free bucketed volume/KD for high-priority terms. `ai-citation-targets.md` is now populated as a 2026-05-21 point-in-time AI citation register. Exact paid volume/KD, live SERP format, and Reddit/community validation still need separate research. `seo-guidelines.md` can stay generic unless a Simpro SEO standard is found.
 
 ---
 
@@ -126,7 +130,7 @@ The first-party SEO metric pass is now partially complete. Remaining gaps need e
 3. ✅ ~~**Pull pricing detail**~~ — Done 2026-05-12. Confirmed quote-based model, base plan inclusions, and add-on list from simprogroup.com/pricing.
 4. ✅ ~~**Request access** to the Simpro Voice Style Guide doc~~ — Done 2026-05-21.
 5. ✅ ~~**Smoke test**: Run `/research field service software` and verify Simpro voice/proof points come through~~ — Done 2026-05-21. Voice-guide parity spot check completed; product-name rows, off-site/off site, 2x, and video-script sub-rules are captured in `style-guide.md`.
-6. **Run the remaining SEO-tactical validation** using DataForSEO/Ahrefs/Semrush plus live SERP, AI-citation, and manual community research. GSC/GA4 metrics are now populated for `target-keywords.md` and `internal-links-map.md`; next SEO gaps are search volume, keyword difficulty, SERP format, off-site citation targets, and subreddit/community strategy.
+6. **Run the remaining SEO-tactical validation** using paid DataForSEO/Ahrefs/Semrush only if exact volume/KD is required, plus live SERP and manual community research. GSC/GA4 metrics and Ahrefs Free buckets are now populated for `target-keywords.md`; GSC/GA4 metrics are populated for `internal-links-map.md`; `ai-citation-targets.md` now has PEEC aggregate cited URLs, ChatGPT/Perplexity row-level citation rows, directory/listing verification, dominant domains, and outreach statuses. Next SEO gaps are exact paid volume/KD, SERP format, and subreddit/community strategy.
 7. **Quarterly refresh**: Re-pull Message House tabs and battlecards every quarter (or when FY messaging refresh lands). Next due: 2026-08-12.
 
 ---

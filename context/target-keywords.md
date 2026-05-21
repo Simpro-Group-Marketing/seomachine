@@ -2,9 +2,9 @@
 
 This document organizes Simpro's target keyword hypotheses by topic cluster for strategic content planning and SEO optimization.
 
-**Source**: Product Marketing portal source map, `https://www.simprogroup.com/sitemap.xml` accessed through Playwright MCP on 2026-05-21, GSC `sc-domain:simprogroup.com`, GA4 property `properties/309907809`, and `simpro-seo-dashboard.html` reviewed on 2026-05-21.
+**Source**: Product Marketing portal source map, `https://www.simprogroup.com/sitemap.xml` accessed through Playwright MCP on 2026-05-21, GSC `sc-domain:simprogroup.com`, GA4 property `properties/309907809`, `simpro-seo-dashboard.html` reviewed on 2026-05-21, and Ahrefs Free Keyword Generator US results queried through Playwright on 2026-05-21.
 
-**Evidence boundary**: GSC and GA4 metrics below are first-party US-only performance signals for 2026-02-20 through 2026-05-20. They are not search-volume, keyword-difficulty, or total-market-demand metrics. Search volume and difficulty still require DataForSEO, Ahrefs, Semrush, or live SERP validation. The reviewed dashboard uses DataForSEO estimates and is treated as strategy context, not as first-party performance data.
+**Evidence boundary**: GSC and GA4 metrics below are first-party US-only performance signals for 2026-02-20 through 2026-05-20. Ahrefs Free Keyword Generator values below are external US estimates shown as volume buckets and categorical difficulty, not exact market demand numbers. Semrush Keyword Overview was tested through Playwright on 2026-05-21 but required account registration, so no Semrush metrics are used. The reviewed dashboard uses DataForSEO estimates and is treated as strategy context, not as first-party performance data.
 
 ## How to Use This File
 
@@ -66,6 +66,20 @@ This document organizes Simpro's target keyword hypotheses by topic cluster for 
 | job costing formula | 1 click / 507 impressions / avg pos 11.7 | 1 click / 515 impressions / avg pos 11.6 | P3 |
 | ServiceTitan alternative | 0 clicks / 68 impressions / avg pos 62.2 | 0 clicks / 185 impressions / avg pos 58.3 | P2 |
 
+### External Demand Snapshot - Ahrefs Free Keyword Generator
+
+**Source boundary**: Queried through Playwright on 2026-05-21 with location set to United States. Ahrefs Free returns bucketed volume (`<100`, `>100`, `>1000`) and categorical KD (`Easy`, `Medium`, `Hard`, `N/A`) for visible free rows. Use these as relative demand/difficulty signals only.
+
+| Keyword | Ahrefs Free US Volume Bucket | Ahrefs Free KD | Exact Row Returned? | Readout |
+|---|---:|---|---|---|
+| field service management software | >1000 | Hard | Yes | Largest validated external-demand bucket and hard category competition. Keep as the canonical P1 category term. |
+| AI field service software | <100 | N/A | Yes | Emerging but still low-volume in the free Ahrefs bucket. Treat as positioning support, not the main category anchor. |
+| field service job costing | Related rows <100 | N/A | No exact row | Ahrefs did not return the exact seed row; only vendor-specific related phrases appeared under `<100`. Keep as proof/support unless paid data says otherwise. |
+| HVAC software | >1000 | Medium | Yes | Strong external-demand bucket with more approachable KD than core FSM. P1 vertical opportunity. |
+| electrical contractor software | >100 | Easy | Yes | Lower volume than HVAC, but easier KD and clear commercial intent. P1 vertical opportunity. |
+| plumbing software | >100 | Medium | Yes | Medium KD and meaningful vertical demand. P1 vertical opportunity. |
+| ServiceTitan alternative | <100 | Easy | Yes | Low volume but BOFU competitor intent. Prioritize as sales-support/competitive capture, not traffic scale. |
+
 ### Dashboard Cross-Check
 
 The reviewed HTML dashboard is useful for strategy but not as a first-party metric source. Its own analyst note says all traffic metrics are estimated from DataForSEO Labs and that no GSC or GA4 data was used. It supports the same strategic direction as the GSC data: category-first FSM pages, stronger HVAC/plumbing/electrical industry pages, and AI used as a feature/workflow differentiator rather than the only above-fold category signal.
@@ -74,8 +88,8 @@ The reviewed HTML dashboard is useful for strategy but not as a first-party metr
 
 ### Pillar Keyword
 - **Keyword**: field service management software
-- **Search Volume**: Not verified in first-party data
-- **Difficulty**: Not verified in first-party data
+- **Search Volume**: Ahrefs Free US bucket `>1000`
+- **Difficulty**: Ahrefs Free KD `Hard`
 - **Intent**: Commercial / informational
 - **Current Ranking**: US GSC exact query avg position 19.7; 8 clicks and 6,862 impressions
 - **Pillar Content URL**: https://www.simprogroup.com/solutions/field-service-management-software
@@ -116,8 +130,8 @@ The reviewed HTML dashboard is useful for strategy but not as a first-party metr
 
 ### Pillar Keyword
 - **Keyword**: AI for field service
-- **Search Volume**: Not verified in first-party data
-- **Difficulty**: Not verified in first-party data
+- **Search Volume**: Pillar exact term not Ahrefs-verified; adjacent `AI field service software` Ahrefs Free US bucket is `<100`
+- **Difficulty**: Pillar exact term not Ahrefs-verified; adjacent `AI field service software` Ahrefs Free KD is `N/A`
 - **Intent**: Informational / commercial
 - **Current Ranking**: US GSC exact query avg position 12.0; 0 clicks and 281 impressions. AI field service semantic variants total 4 clicks and 6,940 impressions at avg position 13.5.
 - **Pillar Content URL**: https://www.simprogroup.com/blog/ai-operating-platforms-for-trades-businesses
@@ -157,8 +171,8 @@ The reviewed HTML dashboard is useful for strategy but not as a first-party metr
 
 ### Pillar Keyword
 - **Keyword**: field service job costing
-- **Search Volume**: Not verified in first-party data
-- **Difficulty**: Not verified in first-party data
+- **Search Volume**: Ahrefs Free did not return an exact seed row; related vendor-specific phrases were `<100`
+- **Difficulty**: Ahrefs Free exact seed not returned; related rows were `N/A`
 - **Intent**: Informational / commercial
 - **Current Ranking**: US GSC close-variant signal is minimal: 0 clicks and 2 impressions for `field service job costing`; adjacent `job costing formula` has 1 click and 507 impressions at avg position 11.7.
 - **Pillar Content URL**: https://www.simprogroup.com/resources/ebooks/job-costing
@@ -200,8 +214,8 @@ The reviewed HTML dashboard is useful for strategy but not as a first-party metr
 
 ### Pillar Keyword
 - **Keyword**: HVAC software
-- **Search Volume**: Not verified in first-party data
-- **Difficulty**: Not verified in first-party data
+- **Search Volume**: Ahrefs Free US bucket `>1000`
+- **Difficulty**: Ahrefs Free KD `Medium`
 - **Intent**: Commercial
 - **Current Ranking**: US GSC exact query avg position 29.3; 0 clicks and 907 impressions. HVAC cluster total is 41 clicks and 305,164 impressions but includes many non-commercial startup/marketing queries.
 - **Pillar Content URL**: https://www.simprogroup.com/industries/hvac-software
@@ -243,8 +257,8 @@ The reviewed HTML dashboard is useful for strategy but not as a first-party metr
 
 ### Pillar Keyword
 - **Keyword**: electrical contractor software
-- **Search Volume**: Not verified in first-party data
-- **Difficulty**: Not verified in first-party data
+- **Search Volume**: Ahrefs Free US bucket `>100`
+- **Difficulty**: Ahrefs Free KD `Easy`
 - **Intent**: Commercial
 - **Current Ranking**: US GSC exact query avg position 28.5; 0 clicks and 1,068 impressions.
 - **Pillar Content URL**: https://www.simprogroup.com/industries/electrical-software
@@ -286,8 +300,8 @@ The reviewed HTML dashboard is useful for strategy but not as a first-party metr
 
 ### Pillar Keyword
 - **Keyword**: plumbing software
-- **Search Volume**: Not verified in first-party data
-- **Difficulty**: Not verified in first-party data
+- **Search Volume**: Ahrefs Free US bucket `>100`
+- **Difficulty**: Ahrefs Free KD `Medium`
 - **Intent**: Commercial
 - **Current Ranking**: US GSC exact query avg position 31.8; 0 clicks and 1,718 impressions.
 - **Pillar Content URL**: https://www.simprogroup.com/industries/plumbing-software
@@ -408,56 +422,56 @@ These topics are strategically important based on Product Marketing context and 
 
 1. **field service management software**
    - First-party signal: 8 clicks / 6,862 exact-query impressions / avg position 19.7; close variants 43,578 impressions / avg position 17.0.
-   - Volume: Not verified in first-party data
-   - Difficulty: Not verified in first-party data
+   - Volume: Ahrefs Free US bucket `>1000`
+   - Difficulty: Ahrefs Free KD `Hard`
    - Intent: Commercial
    - Why Priority: Core category term tied to the primary solution page. GSC shows the blog is capturing more category impressions than the solution page.
    - Action: Strengthen the solution page as the canonical category page, then pass internal authority from the best-FSM blog.
 
 2. **AI field service software**
    - First-party signal: 0 clicks / 146 exact-query impressions / avg position 16.1; broader AI field-service variants total 4 clicks / 6,940 impressions / avg position 13.5.
-   - Volume: Not verified in first-party data
-   - Difficulty: Not verified in first-party data
+   - Volume: Ahrefs Free US bucket `<100`
+   - Difficulty: Ahrefs Free KD `N/A`
    - Intent: Commercial / informational
    - Why Priority: Matches FY26 AI-first positioning.
    - Action: Use AI language as workflow-specific differentiation attached to FSM, scheduling, dispatch, mobile notes, payments, and customer marketing pages. Do not let AI replace the category term.
 
 3. **field service job costing**
    - First-party signal: `field service job costing` has 0 clicks / 2 close-variant impressions; adjacent `job costing formula` has 1 click / 507 exact-query impressions / avg position 11.7.
-   - Volume: Not verified in first-party data
-   - Difficulty: Not verified in first-party data
+   - Volume: Ahrefs Free did not return an exact seed row; related vendor-specific phrases were `<100`
+   - Difficulty: Ahrefs Free exact seed not returned; related rows were `N/A`
    - Intent: Informational / commercial
    - Why Priority: Directly maps to Simpro's profitability and margin differentiation.
    - Action: Keep as a proof/support cluster, not a primary SEO growth cluster unless external volume data shows demand.
 
 4. **HVAC software**
    - First-party signal: 0 clicks / 907 exact-query impressions / avg position 29.3; HVAC cluster has 305,164 impressions but is diluted by informational startup/marketing queries.
-   - Volume: Not verified in first-party data
-   - Difficulty: Not verified in first-party data
+   - Volume: Ahrefs Free US bucket `>1000`
+   - Difficulty: Ahrefs Free KD `Medium`
    - Intent: Commercial
    - Why Priority: Major trade vertical with dedicated industry and blog assets.
    - Action: Strengthen the HVAC industry page for commercial software intent and link high-impression HVAC blog assets toward it.
 
 5. **electrical contractor software**
    - First-party signal: 0 clicks / 1,068 exact-query impressions / avg position 28.5.
-   - Volume: Not verified in first-party data
-   - Difficulty: Not verified in first-party data
+   - Volume: Ahrefs Free US bucket `>100`
+   - Difficulty: Ahrefs Free KD `Easy`
    - Intent: Commercial
    - Why Priority: Major trade vertical with dedicated industry and proof assets.
    - Action: Expand exact-match electrical-contractor language and link electrical estimating/KPI/proof assets into the industry page.
 
 6. **plumbing software**
    - First-party signal: 0 clicks / 1,718 exact-query impressions / avg position 31.8; close variants 6,392 impressions / avg position 28.7.
-   - Volume: Not verified in first-party data
-   - Difficulty: Not verified in first-party data
+   - Volume: Ahrefs Free US bucket `>100`
+   - Difficulty: Ahrefs Free KD `Medium`
    - Intent: Commercial
    - Why Priority: Major trade vertical with dedicated industry and customer proof.
    - Action: Strengthen the plumbing industry page and use Foster Plumbing plus plumbing margin/KPI posts as support links.
 
 7. **ServiceTitan alternative**
    - First-party signal: 0 clicks / 68 exact-query impressions / avg position 62.2; close variants 185 impressions / avg position 58.3.
-   - Volume: Not verified in first-party data
-   - Difficulty: Not verified in first-party data
+   - Volume: Ahrefs Free US bucket `<100`
+   - Difficulty: Ahrefs Free KD `Easy`
    - Intent: BOFU
    - Why Priority: ServiceTitan is a confirmed named competitor in `competitor-analysis.md`.
    - Action: Build or strengthen alternative/comparison intent only after the FSM and major vertical pages are moving, unless sales needs a dedicated BOFU asset sooner.
@@ -535,7 +549,7 @@ These topics are strategically important based on Product Marketing context and 
 
 **Required Next Data Pulls**:
 - Refresh GSC query/page export and GA4 landing-page engagement/key-event data quarterly, or after major page changes.
-- DataForSEO/Ahrefs/Semrush volume and difficulty.
+- Exact paid DataForSEO/Ahrefs/Semrush volume and difficulty only if bucketed Ahrefs Free validation is not precise enough.
 - Live SERP review for every High Priority to Validate topic.
 - Cannibalization review for topic clusters with several existing pages.
 - If `simpro.ai` becomes the public content domain, add its GSC property and GA4 traffic separately rather than merging it into this historical `simprogroup.com` baseline.

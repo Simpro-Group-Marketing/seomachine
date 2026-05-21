@@ -4,7 +4,7 @@ This document catalogs verified Simpro URLs for strategic internal linking in bl
 
 **Source**: `https://www.simprogroup.com/sitemap.xml`, accessed through Playwright MCP on 2026-05-21. The sitemap contained 855 URLs. The Product Marketing portal confirmed this public site is the active source for product, feature, comparison, customer proof, and resource links. GSC and GA4 first-party metrics were added on 2026-05-21.
 
-**Evidence boundary**: URLs below are sitemap-verified. Link contexts and anchor examples are editorial guidance inferred from page paths, current Simpro context files, and the Product Marketing source map. Performance notes use first-party US-only GSC/GA4 data for 2026-02-20 through 2026-05-20. Search volume, keyword difficulty, and non-US priorities still require separate validation.
+**Evidence boundary**: URLs below are sitemap-verified. Link contexts and anchor examples are editorial guidance inferred from page paths, current Simpro context files, and the Product Marketing source map. Performance notes use first-party US-only GSC/GA4 data for 2026-02-20 through 2026-05-20. This file is complete for US first-party internal-link prioritization as of 2026-05-21. Search volume and keyword difficulty belong in `target-keywords.md`.
 
 ## Internal Linking Rules
 
@@ -461,4 +461,5 @@ These are sitemap-confirmed blog pages relevant to Simpro content production. Us
 
 - Re-check the sitemap quarterly or after major site migrations.
 - Refresh GSC/GA4 performance data quarterly before changing link priority.
+- Rebuild this map only when a new sitemap pull changes the URL inventory or a new GSC/GA4 pull materially changes page priority.
 - If `simpro.ai` becomes the public content domain, rebuild this map from that domain's sitemap and preserve this file as the `simprogroup.com` historical map.

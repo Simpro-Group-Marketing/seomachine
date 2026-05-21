@@ -2,7 +2,9 @@
 
 Conversion Rate Optimization guidelines for landing pages.
 
-> **Source note**: The Simpro Marketing Portal does not have a dedicated CRO playbook for the marketing site. Growth Marketing (Tim Lamb) owns a `2025 Completed Experiments` deck and `Process for Web Intake and Planning` doc, but neither is a guidelines doc. Product Marketing's Customer Quote Matrix, Customer Stories deck, and Customer Advocacy overview are proof-source assets, not tested CRO guidance. The rules below are framework-generic best practices. **Apply them through Simpro's brand voice** (see `brand-voice.md`) — every headline should be specific, every CTA should match the funnel stage, every trust signal should be a named customer or named number from `features.md`.
+> **Internal CRO review update**: Treat these notes as more specific than generic rules where they conflict: two-word CTA labels have historically outperformed CTA labels of three or more words; Sales-required form fields vary by brand; CTA font choices are brand-directed; PPC pages should avoid exit points; lower-volume tests may need directional signals or leading indicators instead of fixed conversion minimums; seasonality can affect conversion results.
+
+> **Source note**: The Simpro Marketing Portal does not have a dedicated CRO playbook for the marketing site. Growth Marketing (Tim Lamb) owns a `2025 Completed Experiments` deck and `Process for Web Intake and Planning` doc, but neither is a guidelines doc. Product Marketing's Customer Quote Matrix, Customer Stories deck, and Customer Advocacy overview are proof-source assets, not tested CRO guidance. The rules below combine framework-generic best practices with the internal CRO review notes above. **Apply them through Simpro's brand voice** (see `brand-voice.md`) — every headline should be specific, every CTA should match the funnel stage, every trust signal should be a named customer or named number from `features.md`.
 
 ---
 
@@ -21,10 +23,27 @@ The Simpro evidence library is exceptional and underused in CRO copy. Every abov
 
 A generic "Grow your business with Simpro" hero will lose to "How Foster Plumbing grew 10x in 6 years with Simpro" — every time.
 
+Product Marketing guidance: landing page copy should be value-based first. Feature claims are strongest when they are tied to a business outcome, customer proof point, or measurable operational improvement.
+
 ### Match the CTA to the funnel stage
-- **Top-of-funnel** (blog readers, broad SEO): "See the [trade] case studies" / "Read the customer story" / "Watch the 5-minute demo video"
-- **Mid-funnel** (comparison pages, alternatives, /vs/ pages): "Compare Simpro to [competitor]" / "Calculate your ROI" / "See Simpro in action with someone who knows your trade"
-- **Bottom-of-funnel** (pricing, product pages, return visitors): "Book a personalized demo" / "Talk to a Simpro customer in your trade"
+- **Top-of-funnel** (blog readers, broad SEO): "View Stories" / "Watch Demo" / "Read Guide"
+- **Mid-funnel** (comparison pages, alternatives, /vs/ pages): "Compare Options" / "Calculate ROI" / "Book Demo"
+- **Bottom-of-funnel** (pricing, product pages, return visitors): "Book Demo" / "Talk Sales"
+
+### Keep primary CTA labels short
+Internal test history favors two-word CTA labels over labels of three or more words. Use the surrounding headline, subcopy, helper text, or risk reversal to carry specificity instead of making the button label do all the work.
+
+Good button-label patterns:
+- "Book Demo"
+- "Start Trial"
+- "View Pricing"
+- "Watch Demo"
+- "Compare Plans"
+
+Avoid using long button labels unless legal, routing, or product requirements make the extra words necessary.
+
+### PPC pages should be closed conversion paths
+PPC landing pages should not include unnecessary exit points. Simpro has seen conversion declines when paid pages included one or two exits, including a clickable logo in the top-left corner and another link elsewhere on the page. Paid traffic pages should keep users focused on the conversion action unless a required compliance, privacy, or consent link is needed.
 
 ### Trust signals: scale + named customers
 Above-the-fold trust signals that work for Simpro:
@@ -49,7 +68,7 @@ Above-the-fold trust signals that work for Simpro:
 - "World-class," "innovative," "cutting-edge" — every category vendor uses these
 - "Streamline your operations" — every CRM/FSM uses this
 - Generic stock photos of trades workers — use real customer photos, real software screenshots
-- Multi-step lead forms above the fold when a single email field plus "Book a demo" works better
+- Unvalidated form complexity that works against the required sales-qualification flow
 - Carousel heroes — pick the strongest hero and stand behind it
 
 <!-- GAP: A Simpro-specific CRO playbook does not exist in the Marketing Portal as of 2026-05-12. If one exists in a private Growth Marketing space or web team doc, request access and replace this section with authoritative rules. The Growth Marketing `2025 Completed Experiments` deck (1f4E7yay4s-SsVUFcg-EZ06aB31d2MADJ3oNfQrEGnXo) is the closest existing resource and should be reviewed for tested patterns. -->
@@ -126,23 +145,25 @@ Visitors should understand these within 5 seconds of landing:
 
 | Goal | Strong CTAs | Avoid |
 |------|-------------|-------|
-| Trial | "Start Your Free Trial" | "Sign Up" |
-| Trial | "Try Free for 14 Days" | "Submit" |
-| Trial | "Get Started Free" | "Register" |
-| Demo | "Book Your Demo" | "Contact Us" |
-| Demo | "Schedule a Call" | "Get in Touch" |
-| Demo | "See It in Action" | "Learn More" |
-| Lead | "Download the Free Guide" | "Submit" |
-| Lead | "Get Instant Access" | "Subscribe" |
-| Lead | "Claim Your Copy" | "Send" |
+| Trial | "Start Trial" | "Sign Up" |
+| Trial | "Try Free" | "Submit" |
+| Trial | "Create Account" | "Register" |
+| Demo | "Book Demo" | "Contact Us" |
+| Demo | "Schedule Call" | "Get in Touch" |
+| Demo | "Watch Demo" | "Learn More" |
+| Lead | "Download Guide" | "Submit" |
+| Lead | "Get Access" | "Subscribe" |
+| Lead | "View Checklist" | "Send" |
 
 ### CTA Button Formula
-**[Action Verb] + [Benefit/Object] + [Urgency (optional)]**
+**[Action Verb] + [Benefit/Object]**
 
 Examples:
-- "Start" + "Your Free Trial" + "→"
-- "Get" + "Instant Access" + "Now"
-- "Book" + "Your Demo" + "Today"
+- "Start" + "Trial"
+- "Get" + "Access"
+- "Book" + "Demo"
+
+Add urgency or detail near the button, not inside the primary button label, unless a longer label is required.
 
 ### CTA Placement Strategy
 1. **Hero CTA** (0-20% of page): Primary, most prominent
@@ -156,6 +177,7 @@ Examples:
 - **Whitespace**: Breathing room around button
 - **Consistency**: Same style throughout page
 - **Mobile**: Full-width on small screens
+- **Font**: Use only brand-approved CTA fonts. Font choice is brand-driven, and Rachel Shannon has directed that CTA fonts stay within the approved brand set.
 
 ---
 
@@ -249,14 +271,20 @@ Always place risk reversal **directly below or beside the CTA button**.
 ## Form Optimization
 
 ### Field Reduction
-Every additional field reduces conversions by ~10%
+Every additional field can reduce completion, but field reduction does not override Sales-required lead qualification fields. Optimize the order, grouping, labels, and step structure before removing fields that Sales needs.
 
-**Recommended Fields by Goal:**
-| Goal | Fields | What to Ask |
-|------|--------|-------------|
-| Trial | 2-3 | Email, Password, (Name) |
-| Demo | 3-4 | Name, Email, Company, (Role) |
-| Lead | 1-2 | Email, (Name) |
+### Why added fields are being tested
+Historically, added form fields have reduced engagement, so field expansion should be treated cautiously and tested rather than assumed to be harmless. Most brands now use a `/quickquestions` post-demo form to collect extra qualification details without blocking the main lead flow. The current push for more fields comes from a pipeline-quality constraint: after org and leadership restructuring removed BDR filtering from the lead path, Sales became more sensitive to both lead volume and lead quality. When Sales requests added fields, the test should measure the tradeoff between lower form engagement and better lead qualification, not form completion alone.
+
+**Sales-Required Fields by Brand:**
+| Brand | Required Fields | Current Notes |
+|-------|-----------------|---------------|
+| ClockShark | First name, last name, work email, password, company name, industry type, work phone number, number of users, country, state/province | Start with first name, last name, work email, and password. Then collect company name, industry type, work phone number, number of users, country, and state/province. Bryce Nill is testing signup-flow structures that break the flow into steps. |
+| Simpro | First name, last name, work email, phone number, company name | Paid pages will likely roll out company size based on the current experiment. An organic experiment should follow to determine whether organic pages use the same field. |
+| BigChange | First name, phone number, company mail, business email address | Keep the required field names aligned with Sales guidance before launch. |
+| AroFlo | Work email, first name, phone number, state/region, company name | Maintain region-specific field naming where required. |
+
+Some regions also require marketing email opt-in options. Confirm regional opt-in requirements before publishing or testing a form.
 
 ### Form Best Practices
 - Single column layout
@@ -265,11 +293,14 @@ Every additional field reduces conversions by ~10%
 - Real-time validation
 - Mobile-friendly input types
 - Progress indicator for multi-step
+- Break longer forms into clear steps when the required field set is too large for one comfortable screen
+- Preserve Sales-required qualification fields unless Sales approves a test that removes or delays them
 
 ### Form Placement
 - Above the fold for PPC
 - After value establishment for SEO
 - Never at the very bottom
+- On PPC pages, keep the page focused on the form or CTA and avoid nonessential exits
 
 ---
 
@@ -284,7 +315,7 @@ Every additional field reduces conversions by ~10%
 - Compress images (WebP format)
 - Minimize JavaScript
 - Use lazy loading for below-fold
-- Optimize fonts (system fonts fastest)
+- Optimize fonts, while keeping CTA fonts within the approved brand set
 - Enable browser caching
 
 ---
@@ -329,16 +360,18 @@ Every additional field reduces conversions by ~10%
 
 ### Low Impact (Test Later)
 11. Button shape
-12. Font choices
+12. Minor font treatment within the approved brand set
 13. Footer content
 14. Image style
 15. Color scheme
 
 ### Testing Rules
 - One variable at a time
-- Minimum 100 conversions per variant
-- Run for at least 2 weeks
-- 95% statistical significance
+- No fixed minimum conversions per variant: some websites and pages will not reach a hard threshold within a reasonable time
+- Use statistically clean test rules where volume allows
+- On lower-volume pages, document directional signals, leading indicators, sample size, and the reason the decision is still useful
+- Run long enough to cover meaningful traffic patterns and account for seasonality
+- Record seasonality, traffic-source mix, offer changes, and major page changes before reading the result
 
 ---
 
@@ -358,6 +391,7 @@ Every additional field reduces conversions by ~10%
 - Competition
 - Offer strength
 - Page experience
+- Seasonality
 
 ---
 
@@ -404,18 +438,31 @@ Every additional field reduces conversions by ~10%
 - [ ] No distracting elements
 
 ### Content
-- [ ] Benefits before features
+- [ ] Value-based copy before feature detail
 - [ ] Scannable format (lists, bold, headers)
 - [ ] Appropriate length for page type
 - [ ] Addresses objections
 - [ ] Clear next step
 
 ### CTAs
+- [ ] Two-word CTA label where possible
 - [ ] Action verb + benefit
 - [ ] High contrast visibility
 - [ ] Distributed throughout page
 - [ ] Goal-aligned messaging
 - [ ] Risk reversal nearby
+- [ ] CTA font uses the approved brand set
+
+### Forms
+- [ ] Brand-specific Sales-required fields are present
+- [ ] Required fields are grouped in the right order
+- [ ] Regional marketing email opt-in requirements are included where needed
+- [ ] Multi-step flow is used where it improves completion without hiding required qualification fields
+
+### PPC
+- [ ] No nonessential exit points
+- [ ] Clickable logo navigation removed unless required
+- [ ] Page action is focused on one conversion goal
 
 ### Trust
 - [ ] Customer testimonials with names
@@ -442,7 +489,10 @@ Every additional field reduces conversions by ~10%
 4. Walls of unformatted text
 5. Multiple competing goals
 6. Slow page load
-7. Forms with too many fields
+7. Forms that ignore Sales-required qualification fields or regional opt-in rules
 8. No risk reversal
 9. Mobile-unfriendly design
 10. Navigation that distracts from goal
+11. Three-word-plus CTA labels when a two-word label would work
+12. PPC page exit points that pull users away from the form or CTA
+13. Reading low-volume tests without directional-signal and seasonality context
