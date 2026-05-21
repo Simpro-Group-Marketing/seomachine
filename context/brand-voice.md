@@ -2,7 +2,7 @@
 
 This document defines the Simpro brand voice, tone, and messaging framework. Reference this when writing all content to ensure consistency.
 
-Source: FY26 Brand Message House (Simpro Group) — current AI-first positioning. Where the FY25/older positioning differs materially, the older guidance is noted inline.
+**Sources**: Simpro Voice Style Guide (Google Doc `1Hl78trTAMAnZcSBfsdM0Qn0Xa1f-DW51s-8LbeU_Knk`, August 2024) + FY26 Brand Message House (AI-first positioning). Editorial rules and channel tone: `style-guide.md`.
 
 ## Brand North Star
 
@@ -23,11 +23,19 @@ Source: FY26 Brand Message House (Simpro Group) — current AI-first positioning
      Vision: "A mindset shift toward growth in the trade industry, inspired by fearless innovation."
      The FY26 Simpro Group tab (gid 497641548) is the current canonical source. -->
 
-## Tone of Voice (FY26)
+## Tone of Voice
+
+### Canonical descriptors (Voice Style Guide, August 2024)
+
+**Confident. Clear. Clever. Trustworthy. Inspirational. Direct.**
+
+Speak like an innovative tech company with proven field service history. Messages are direct, aspirational, and tailored to audience goals and technical level. See `style-guide.md` for the full **voice is / voice is not** table and channel-specific tone shifts (social, email, blogs, video).
+
+### FY26 hero messaging overlay (Message House)
 
 **Authoritative. Bold. Confident. Visionary.**
 
-These four words supersede the older 6-word Group descriptor set. See `style-guide.md` → "Voice Signals from the FY26 Message House" for the working definitions of each.
+Use these four words for **brand/hero/pillar** copy and FY26 campaigns. They sharpen the August 2024 set for AI-first positioning. See `style-guide.md` → "Voice Signals from the FY26 Message House" for definitions. Do not drop the August 2024 "clever," "trustworthy," or "inspirational" signals in long-form or educational content.
 
 ## Brand Voice Pillars
 
@@ -66,13 +74,24 @@ These four words supersede the older 6-word Group descriptor set. See `style-gui
 ### General Tone
 Imagine you're a seasoned trades operator who got the tech right and now helps peers do the same. You know the work — quoting, scheduling, invoicing, getting paid, recurring maintenance, asset compliance. You're confident without being preachy. You respect the reader's intelligence and time. You celebrate the trades as the industry that keeps the world running and refuse to treat them as a back-office afterthought.
 
-**Group-level descriptors** (apply across all four brands): Inspirational, Challenging, Approachable, Confident, Clear & Direct, Clever.
+**Canonical Voice Style Guide**: Confident, clear, clever, trustworthy, inspirational, direct.
 
-**Simpro-specific descriptors**: Authoritative, ambitious, trades-focused, practical, outcomes-driven.
+**FY26 Simpro hero overlay**: Authoritative, bold, confident, visionary.
+
+**Operational writing traits** (from Message House + style guide): Trades-focused, practical, outcomes-driven, growth-minded, empathetic, product-proud (not salesy).
+
+### Tone Variations by Channel (canonical)
+
+| Channel | Tone | Notes |
+|---------|------|-------|
+| **Social** | Conversational, engaging, approachable | Short posts; lead with contention; emojis per platform norms |
+| **Email** | Personalized, professional, concise | Formal varies by email type; action-oriented CTAs |
+| **Blogs** | Authoritative yet approachable | More conversational than website; problem-solving + actionable advice |
+| **Video** | Conversational, personable | Form-specific: explainer, testimonial (keep customer voice), demo, thought leadership |
 
 ### Tone Variations by Content Type
 
-**How-To Guides**: Instructive, step-by-step, encouraging.
+**How-To Guides**: Instructive, step-by-step, encouraging (blog tone).
 - "Here's the fastest path from quote to invoice."
 - "Run this report on Monday — it'll show you which jobs are bleeding margin."
 - "Most teams stall at this step. Here's how to clear it in under 10 minutes."
@@ -138,7 +157,7 @@ Imagine you're a seasoned trades operator who got the tech right and now helps p
   - Templates and automations that cut office busywork
   - Crews understand their impact, not just their tasks
   - Recognition built into completion tracking and reporting
-  - 24/6 support, local presence, 200+ eLearning modules, 250+ partners
+  - **24/6 live support** (canonical — not 24/7), local presence, 200+ eLearning modules, 250+ partners
 - **Headline examples**: "More meaningful work, more business reward." | "The World Runs on Trades. Trades Run on Simpro." | "From Overlooked to Unstoppable."
 - **Usage**: When the conversation turns to people, culture, retention, or the industry's place in the broader economy.
 
@@ -179,7 +198,7 @@ Imagine you're a seasoned trades operator who got the tech right and now helps p
 - **Trades-fluent**: Use the vocabulary the audience uses — job costing, takeoffs, dispatch, PM, recurring maintenance, asset register, compliance log.
 - **Specific over vague**: "$36B in invoices per year" not "huge volumes." "60% margin increase at Shaffer Beacon Mechanical" not "significant profit improvements."
 - **Active verbs**: Quote, schedule, dispatch, invoice, collect, forecast, scale, automate, surface, ladder.
-- **Avoid**: "Solutions" as a generic stand-in for product. "Game-changing." "Robust." "Seamless" (overused). "World-class." "Powerful" without a number behind it.
+- **Avoid**: "Solutions" as a generic stand-in for product. "Game-changing." "Robust." "Seamless" (overused). "World-class." "Powerful" without a number behind it. **All-in-one** (say *centralized* or *end-to-end*). Calling buyers **tradies**. **24/7 live support** (Simpro offers **24/6 live support**).
 
 ### Terminology
 
@@ -192,6 +211,9 @@ Imagine you're a seasoned trades operator who got the tech right and now helps p
 - *job costing* → *expense tracking* (industry has a specific term)
 - *recurring maintenance* / *PM* → *follow-up jobs*
 - *Simpro* → *the Simpro platform* / *the platform* (use the brand name; secondary references can drop "the platform")
+- *license* → *package* / *plan* / *subscription* / *contract*
+- *trade and field service leaders* → *tradies* (except narrow SEO/demand-gen)
+- *centralized* / *end-to-end* → *all-in-one*
 
 ## Content Formatting
 
@@ -249,7 +271,7 @@ Imagine you're a seasoned trades operator who got the tech right and now helps p
 - Owner, operator, or operations leader at a trades business
 - Industries: low voltage (security, fire, A/V), HVAC, plumbing, electrical, mechanical, multi-trade
 - Company size: typically 20–150 employees, $1M–$100M revenue (Simpro's sweet spot per FY26 ICP)
-- Geography: US-first audience for simpro.com / simpro.ai; AU, NZ, UK regional sites also active
+- Geography: **US-first** for simpro.com / simpro.ai (no AU/NZ/UK colloquialisms in US copy); AU, NZ, UK regional sites localize spelling and terms per `style-guide.md` regional table
 - Buys software reluctantly, but values software that pays for itself within months
 - Reads on phone between jobs; rarely reads marketing in a quiet office
 
@@ -308,6 +330,4 @@ Before publishing any content, verify:
 
 ---
 
-**Remember**: We're writing for the trades — the industry that builds and maintains the physical world. Every piece of content should make a trades leader feel respected, equipped, and a little more ambitious about what their business can become.
-
-<!-- GAP: The dedicated "Simpro Voice Style Guide" Google Doc (1Hl78trTAMAnZcSBfsdM0Qn0Xa1f-DW51s-8LbeU_Knk) is permission-restricted from patrick.grueschow@simprogroup.com. Request access from Natasha Morgan (portal contact for Product Marketing) or doc owner to capture additional voice rules, do/don't examples, and tone-by-channel specifics. -->
+**Remember**: We're writing for **trade and field service leaders** — growth-minded operators who manage teams, not frontline tradesperson slang. Every piece of content should make them feel respected, equipped, and ambitious about what their business can become. **Work. Smarter.**

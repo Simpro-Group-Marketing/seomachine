@@ -2,7 +2,138 @@
 
 This guide defines writing conventions, formatting standards, and editorial guidelines for all Simpro content.
 
-> **Source note**: The canonical *Simpro Voice Style Guide* Google Doc (1Hl78trTAMAnZcSBfsdM0Qn0Xa1f-DW51s-8LbeU_Knk, linked from the Marketing Portal → Creative Resources → Messaging) is permission-restricted from `patrick.grueschow@simprogroup.com`. Rules below are derived from the FY26 Brand Message House (`Simpro Group` tab — current Group-level positioning — and `Simpro` brand-specific tab) plus observed Simpro web copy. Request access to the canonical doc to replace inferred rules with authoritative ones. See `_coverage-report.md` for the gap log.
+> **Sources (priority order)**:
+> 1. **Simpro Voice Style Guide** — Google Doc `1Hl78trTAMAnZcSBfsdM0Qn0Xa1f-DW51s-8LbeU_Knk` (*SP-content style guide V1 — August 2024*). Canonical voice, terminology, channel tone, regional rules. Pulled 2026-05-21.
+> 2. **FY26 Brand Message House** — current AI-first positioning, pillars, boilerplate. Use for hero/messaging when it does not conflict with (1).
+>
+> Where Aug 2024 voice descriptors differ from FY26 (e.g., six-word vs. four-word tone), use **FY26 for brand/hero messaging** and **Aug 2024 for editorial mechanics, product names, and channel tone**. See `brand-voice.md` for the full messaging framework.
+
+---
+
+## Canonical Voice Style Guide (August 2024)
+
+### Brand tone summary
+
+Simpro speaks like an innovative tech company with a proven history in field service software. We guide and support **trade and field service leaders** in pursuing business growth through scalable tech and data-driven decision-making.
+
+**Voice descriptors**: Confident, clear, clever, trustworthy, inspirational, and direct. Aim to be thought leaders in the trade and field service industry.
+
+**Messages**: Direct, easily understood, aspirational, tailored to the audience's goals and technical understanding.
+
+**Audience framing**: Field service **leaders** with a growth mindset — not frontline tradesperson voice. Do **not** call the audience "tradies" (except narrow demand-gen/SEO capture). Write to **US audience first**; do **not** use AU/NZ or UK colloquialisms in US-facing copy.
+
+**Pronouns**: Gender-neutral (*they/them*) for singular references.
+
+**Company references**: Use the proper name **Simpro** for the company; use inclusive *we / us / our* for the team and services.
+
+### Voice is / voice is not
+
+| Our voice is… | Our voice is not… |
+|---------------|-------------------|
+| Human | Robotic or "AI-like" |
+| Confident | Condescending |
+| Empathetic / understanding | Assuming |
+| Supportive / empowering | Dismissive / belittling |
+| Direct / straightforward | Evasive / overly technical |
+| How a **trade business leader** speaks | How a tradesperson speaks |
+| Knowledgeable | Ostentatious |
+| Product-proud | "Salesy" / pushy |
+| Trustworthy | Promissory |
+
+### Example headline patterns (on-brand)
+
+- Fueling field service growth / Fuel field services with Simpro
+- Software for growth-minded trade and field service businesses
+- Grow your business your way
+- Lay the groundwork for field service success
+- Great field service begins with Simpro
+- Centralized software powering trade and field service growth
+- Field service software to work smarter, not harder
+- Build a high-performing team with Simpro
+- Simpro: the heartbeat of your tech stack
+- Drive decision-making through actionable business data
+- Transform data into decisive action using Simpro
+
+### Tagline
+
+**Work. Smarter.** — Shows prospects they can improve operations with our tools and captures the outcome: working smarter, not harder. Preserve punctuation: *Work. Smarter.* (period after each word).
+
+### Brand blueprint (August 2024 — align with FY26 where updated)
+
+- **Vision**: Create a mindset shift toward growth in the trade industry, supported by fearless innovation.
+- **Mission**: Deliver software that fuels growth-minded trade and field service businesses.
+- **Values**: We are One Team · We are Customer-centric · We are Growth-minded · We are Accountable
+- **Personality**: Growth-minded, innovative, visionary, globally minded, assertive
+- **Value proposition**: Trade industry-specific field service automation for office and field operations — empower the workforce, elevate operational efficiency, excel through data-driven decision-making.
+
+### Channel-specific tone and format
+
+| Platform | Tone shift | Language shift | Content style |
+|----------|------------|----------------|---------------|
+| **Social media** | Conversational, engaging, approachable | Relaxed; community feel; emojis OK per platform | Short; lead with contention; multimedia over long copy |
+| **Email** | Personalized, professional, concise | More formal (depends on email type) | Succinct; clear purpose; tailored CTAs; scannable promos/features |
+| **Blogs** | Authoritative yet approachable | Accessible, conversational vs. website copy | Value-driven thought leadership; clear H2/H3/bullets; solve problems; actionable advice |
+| **Video scripts** | Conversational, engaging, personable | Straightforward; minimize jargon | Story-driven; form-specific (explainer / testimonial / demo / thought leadership) — no one-size script |
+
+**Video script variants**:
+- **Explainer videos**: Use simple, clear language; break the concept into digestible segments; let visual aids reinforce the explanation.
+- **Customer testimonials**: Shape the story without drowning out the customer's authentic voice.
+- **Product demos**: Use a clear order of events; walk viewers through the product with direct instructions and supporting visuals.
+- **Thought leadership**: Present industry trends with an aspirational, forward-looking point of view; stay authoritative yet approachable.
+
+### Core audience and category terms
+
+- **Industry served**: Trade and Field Service Industry.
+- **Buyer language**: Trade and Field Service Leaders, Trade and Field Service Professionals, or Trade and Field Service Managers.
+- **Product category**: Field Service Management Software. Use Job Management Software only where the regional terminology table calls for it.
+
+### Product and company terminology (canonical)
+
+| Term | Rule |
+|------|------|
+| **Simpro** | Always capitalized. Never SimPro or SIMPRO. |
+| **Simpro software** | Lowercase *software*; denotes the product entity. Not interchangeable with company name "Simpro." |
+| **Simpro field service management software** | Simpro capped; *field service management software* lowercase. |
+| **Simpro job management software** | Use in UK/ANZ per regional table; Simpro capped; *job management software* lowercase. |
+| **Simpro Premium** | *Premium* always capped. Office-staff product only — not for overall Simpro references. |
+| **Simpro Mobile** / **Simpro Mobile app** | *Mobile* capped. Field-staff product only. |
+| **License** | Say *license*. Never *package*, *plan*, *subscription*, or *contract* (for licensing). |
+| **Simpro Add-Ons** | Hyphenated; introduce before shorthand ("There are a range of Simpro Add-Ons…"). Never *Add Ons*. |
+| **Simtrac** | Never *SimTrac*. |
+| **Multi-Company** | Deployment option for multi-franchise/branch/industry — not labeled as an Add-On. |
+| **Maintenance Planner**, **Digital Forms**, **Data Feed** | Title case as shown; no camelCase mashups. |
+| **Private Cloud** | Deployment option for large companies — not labeled as an Add-On. |
+| **SMS Messaging** | Never *Simpro SMS*. |
+| **Takeoffs** | Product name; *take off* is the verb. |
+| **BI Reporting** | Standard in Simpro Premium — not an Add-On. |
+| **Simpro Product Portal** | Never *ideas portal*, *ideas board*, or *product board* without *Simpro*. |
+| **Pre-Builds** | Product term; capitalize both words and keep the hyphen. |
+| **Take Off Templates** | Product term; title case with *Take Off* as two words. |
+| **As Built** | Product term; title case, two words. |
+| **2x** | Use lowercase *x* in scale or speed claims such as *2x faster*. |
+| **Simpro Learning** / **Simpro Learning Toolbox** | Capitalize; toolbox line only in logo, not in body text. |
+| **Help Guide** | Two words, both capped. |
+| **Helpdesk** | One word, cap H. Not *Help Desk*. |
+| **Off-site / off site** | Use *off-site* as an adjective ("an off-site meeting") and *off site* as an adverb ("handled off site"). |
+| **24/6 live support** | **Required** convention — Simpro does **not** offer 24/7 live support. |
+| **Implementation Consultant (IC)** | Cap when prefixed with Simpro; lowercase *implementation consultant* when standalone. |
+
+### Phrases to avoid (canonical)
+
+- **All-in-one** — prefer *centralized* or *end-to-end*
+- **Tradies** as audience address (leaders/managers are the buyer)
+- **Package / plan / subscription / contract** when meaning a Simpro license
+
+### Regional terminology
+
+Honor **spelling only** between US and UK/AU/NZ sites unless a term is listed below. If a phrase does not translate across regions, choose another term.
+
+| Concept | US | UK | AU/NZ |
+|---------|----|----|-------|
+| Field technician | Field Technician | Engineer or Field Technician | Field Crew, Field Technician, Field Tech, Field Team |
+| Product category (small/medium) | Field Service Management Software | Job Management Software | Job Management Software |
+| Product category (large / lighthouse) | Field Service Management Software | Field Service Management Software | Field Service Management Software |
+| Tradesperson | Skilled Tradesperson or by trade (Electrician, Plumber) | Tradesperson or by trade | Tradesperson or by trade; *Tradie* only in informal ANZ contexts that match tone |
 
 ---
 
@@ -148,8 +279,6 @@ The audience descriptor is always *trades*, *trade and field service business ow
 - *job management* — lowercase
 - *job costing*, *quoting*, *invoicing*, *dispatch* — lowercase nouns/verbs
 
-<!-- GAP: The canonical Voice Style Guide may specify additional capitalization rules for AI feature names, role titles, and regional spelling. Confirm when access is granted. -->
-
 ### Numbers
 
 **When to Spell Out**:
@@ -221,6 +350,9 @@ The audience descriptor is always *trades*, *trade and field service business ow
 - *dispatch* → *send out* — keep the industry verb
 - *get paid faster* → *improve cash conversion* — too corporate
 - *Simpro* → *the Simpro platform* / *the Simpro solution* — drop the article in second references and beyond
+- *centralized* / *end-to-end* → *all-in-one* — per Voice Style Guide
+- *license* → *package* / *plan* / *subscription* / *contract* — when referring to Simpro licensing
+- *24/6 live support* → *24/7 support* — Simpro does not offer 24/7 live support
 - *AI Mobile Work Notes* / *Delight* / *Digital Forms* — use proper product names, not paraphrases
 
 ### Words to Avoid
@@ -526,20 +658,17 @@ Before publishing any content:
 
 ## Updates & Maintenance
 
-**Style Guide Version**: 0.1 (derived from Message House — pending Voice Style Guide doc access)
-**Last Updated**: 2026-05-12
-**Next Review**: After canonical Voice Style Guide doc is accessible
+**Style Guide Version**: 1.0 (canonical Voice Style Guide + FY26 Message House overlay)
+**Last Updated**: 2026-05-21
+**Next Review**: 2026-08-21 (quarterly) or when FY27 messaging ships
 
 This style guide is a living document. Update when:
-- The canonical Voice Style Guide doc is accessed (replace inferred rules with authoritative ones)
 - New product / feature names launch (add capitalization rules)
 - Brand messaging evolves materially (sync with the Message House)
+- The Voice Style Guide doc is revised in Google Docs
 - Style questions arise in editing — document the decision here for the next person
 
-**Open style questions to resolve when canonical doc is accessible**:
-- Whether tagline punctuation is "Work. Smarter." or "Work Smarter." (Message House uses the former)
+**Open style questions** (not in Aug 2024 doc — resolve with Product Marketing):
 - Whether "Simpro Group" parent references should appear in every piece of marketing content or only specific contexts
 - Whether AI feature names are always title-cased ("AI Mobile Work Notes") or can be sentence-cased after first mention
 - Whether trade names like "low voltage" / "fire and life safety" have brand-specific capitalization conventions
-
-<!-- GAP: Replace all inferred-style sections with content from the locked Voice Style Guide doc once access is granted. Specifically: do/don't paragraph examples, on-brand vs. off-brand sample copy, channel-specific tone variations (Slack, email, ads, podcasts), and any naming conventions for feature releases. -->

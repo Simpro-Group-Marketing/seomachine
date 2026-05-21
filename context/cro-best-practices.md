@@ -13,7 +13,7 @@ These overlay the generic CRO rules below — when in conflict, the Simpro-speci
 ### Lead with named outcomes, not feature claims
 The Simpro evidence library is exceptional and underused in CRO copy. Every above-the-fold hero should be in arm's reach of at least one of these:
 - **60% increase in profit margin** (Shaffer Beacon Mechanical)
-- **10x faster job estimates** (BDE Digital)
+- **10x faster job estimates** (BGE Digital)
 - **$750K+ admin cost savings over 5 years** (McCarthy Plumbing Group)
 - **50% faster payments** (TEAMWired)
 - **80% less time on POs** (James Frew)

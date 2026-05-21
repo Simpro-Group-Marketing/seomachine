@@ -19,7 +19,7 @@ Source: FY26 Brand Message House (Simpro tab), Sales Battlecards, ICP slides, si
 ### 3. **Faster Quoting & Estimating**
 - **Feature**: Pre-built assemblies, parts catalogs, labor rates, and digital takeoffs let estimators produce complete, accurate quotes in a fraction of the time.
 - **Benefit**: Win more jobs by responding first. Avoid scoping errors that destroy margin.
-- **Conversion Angle**: "10x faster job estimates — BDE Digital's results, available the day you go live."
+- **Conversion Angle**: "10x faster job estimates — BGE Digital's results, available the day you go live."
 
 ### 4. **Integrated Invoicing & Payments**
 - **Feature**: Invoice from the field, accept online/on-site/over-the-phone payments via Simpro Payments, sync to QuickBooks/Xero automatically.
@@ -216,7 +216,7 @@ Simpro maintains published /vs/ pages for: Ascora, BuildOps, Commusoft, Fergus, 
 
 ### Pain Point Solutions
 - **"We don't know which jobs make money."** → "Real-time job costing surfaces margin per job before the invoice is sent. Shaffer Beacon Mechanical lifted profit margin 60%."
-- **"Quoting takes forever and we're losing jobs."** → "Pre-builds, catalogs, and digital takeoffs cut quote time dramatically — BDE Digital is 10x faster on estimates."
+- **"Quoting takes forever and we're losing jobs."** → "Pre-builds, catalogs, and digital takeoffs cut quote time dramatically — BGE Digital is 10x faster on estimates."
 - **"Our field techs hate the software and revert to paper."** → "Offline-first mobile, built for trades workflows. Techs use it because it makes their day easier."
 - **"We're drowning in admin and double-entry."** → "AI Mobile Work Notes and Data Feed automate the admin. James Frew cut PO handling time by 80%."
 - **"We've outgrown our current tool but can't face another migration."** → "Simpro scales SMB to enterprise on one platform. Foster Plumbing grew 10x in six years, built a $10M business, and sold at 6x EBITDA — Simpro was the operational backbone."
@@ -242,7 +242,7 @@ Simpro maintains published /vs/ pages for: Ascora, BuildOps, Commusoft, Fergus, 
 - **Enhanced Electrical**: 2.5x more field technicians with no office staff increase
 - **Proguard Protection Services**: 30% improvement in field technician productivity
 - **McCarthy Plumbing Group**: $750K+ in admin cost savings over five years
-- **BDE Digital**: 10x faster job estimates
+- **BGE Digital**: 10x faster job estimates
 - **Sowga**: 50% improvement in quote-to-sale
 - **Norberg Electric**: 10x quicker to create project blueprint
 - **James Frew**: 80% less time handling POs

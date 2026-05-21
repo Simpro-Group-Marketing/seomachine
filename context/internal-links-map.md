@@ -1,224 +1,427 @@
-# Internal Links Map
+# Simpro Internal Links Map
 
-<!-- INSTRUCTIONS: This document catalogs key pages on your website that should be referenced
-     in blog content for strategic internal linking.
+This document catalogs verified Simpro URLs for strategic internal linking in blog and resource content.
 
-     Fill in all sections with your actual URLs and linking guidelines.
-     This helps Claude create relevant internal links while writing content.
+**Source**: `https://www.simprogroup.com/sitemap.xml`, accessed through Playwright MCP on 2026-05-21. The sitemap contained 855 URLs. The Product Marketing portal confirmed this public site is the active source for product, feature, comparison, customer proof, and resource links.
 
-     Delete these instruction comments when done.
-     See examples/castos/internal-links-map.md for a complete real-world example. -->
+**Evidence boundary**: URLs below are sitemap-verified. Link contexts and anchor examples are editorial guidance inferred from page paths, current Simpro context files, and the Product Marketing source map. This is not a traffic, conversion, or ranking-priority report. Use GSC, GA4, DataForSEO, Ahrefs, or Semrush before calling any page "top-performing."
 
-This document catalogs key [YOUR COMPANY] pages that should be referenced in blog content for strategic internal linking. Use this as your go-to reference when adding internal links to articles.
+## Internal Linking Rules
 
-## Instructions
+1. Link naturally when the destination helps the reader evaluate, compare, or take the next step.
+2. Prefer deep links over the homepage.
+3. Use three to five internal links in a standard blog post unless the article is a long pillar guide.
+4. Use descriptive anchors. Do not use "click here," "read more," or vague anchors.
+5. For BOFU content, include one demo, pricing, comparison, or customer story link.
+6. For TOFU content, use one product/category link only when the product relevance is explicit.
+7. When a customer outcome is mentioned, link to the matching case study if one exists in the sitemap.
 
-Fill in URLs and descriptions for all important pages on your website. Update as new content is created or pages are updated.
-
-For each page, include:
-- **URL**: The full URL to the page
-- **When to Link**: Context or topics where this link is relevant
-- **Anchor Text Examples**: Natural phrases to use when linking
-
----
-
-## Homepage & Core Pages
+## Core Conversion Pages
 
 ### Homepage
-- **URL**: https://[yoursite.com]
-- **When to Link**: [e.g., "Rarely; only when referencing your company broadly"]
-- **Anchor Text Examples**: "[your company name]", "our platform", "[your product]"
+- **URL**: https://www.simprogroup.com/
+- **When to Link**: Rarely. Use when introducing Simpro broadly and no deeper product page fits.
+- **Anchor Text Examples**: Simpro, the Simpro platform, Simpro field service software
 
-### About Page
-- **URL**: https://[yoursite.com/about]
-- **When to Link**: [e.g., "When discussing company mission, values, or team"]
-- **Anchor Text Examples**: "about [company]", "our mission", "our story"
+### Demo
+- **URL**: https://www.simprogroup.com/demo
+- **When to Link**: BOFU posts, product comparisons, pricing/ROI discussions, and articles where the reader is ready to evaluate Simpro.
+- **Anchor Text Examples**: book a Simpro demo, see Simpro in action, schedule a field service software demo
 
-### Contact Page
-- **URL**: https://[yoursite.com/contact]
-- **When to Link**: [e.g., "When inviting readers to reach out"]
-- **Anchor Text Examples**: "contact us", "get in touch", "reach out"
+### Pricing
+- **URL**: https://www.simprogroup.com/pricing
+- **When to Link**: Pricing, software cost, implementation, ROI, and competitor TCO content.
+- **Anchor Text Examples**: Simpro pricing, field service software pricing, request a custom quote
 
-### Pricing Page
-- **URL**: https://[yoursite.com/pricing]
-- **When to Link**: [e.g., "When discussing costs, plans, or pricing"]
-- **Anchor Text Examples**: "[product] pricing", "pricing plans", "see pricing"
+### Contact
+- **URL**: https://www.simprogroup.com/contact-us
+- **When to Link**: Contact and regional sales handoff contexts where demo or pricing is not specific enough.
+- **Anchor Text Examples**: contact Simpro, talk to the Simpro team, get in touch
 
----
+### United States and Canada Contact
+- **URL**: https://www.simprogroup.com/contact-us/simpro-united-states-and-canada
+- **When to Link**: US/Canada-specific commercial content, regional pages, and articles aimed at North American trades businesses.
+- **Anchor Text Examples**: contact Simpro in the US and Canada, talk to the North America team
 
-## Product/Service Pages
+### About Simpro
+- **URL**: https://www.simprogroup.com/company/about-us
+- **When to Link**: Brand, mission, company scale, AI-first positioning, and corporate overview content.
+- **Anchor Text Examples**: about Simpro, Simpro's company story, Simpro Group
 
-<!-- INSTRUCTIONS: Add your main product or service pages -->
+### AI Pledge
+- **URL**: https://www.simprogroup.com/company/ai-pledge
+- **When to Link**: AI trust, responsible AI, AI adoption, and data-governance content.
+- **Anchor Text Examples**: Simpro's AI pledge, responsible AI in the trades, AI trust principles
 
-### [Product/Service Name 1]
-- **URL**: https://[yoursite.com/product-1]
-- **When to Link**: [Topics/contexts where this is relevant]
-- **Anchor Text Examples**: "[descriptive phrase]", "[benefit-focused phrase]", "[feature name]"
+## Product and Solution Pages
 
-### [Product/Service Name 2]
-- **URL**: https://[yoursite.com/product-2]
-- **When to Link**: [Topics/contexts where this is relevant]
-- **Anchor Text Examples**: "[descriptive phrase]", "[benefit-focused phrase]", "[feature name]"
+### Field Service Management Software
+- **URL**: https://www.simprogroup.com/solutions/field-service-management-software
+- **When to Link**: Primary destination for FSM category articles, buyer guides, and "what is field service software" content.
+- **Anchor Text Examples**: field service management software, field service software for trades, FSM software
 
-### [Product/Service Name 3]
-- **URL**: https://[yoursite.com/product-3]
-- **When to Link**: [Topics/contexts where this is relevant]
-- **Anchor Text Examples**: "[descriptive phrase]", "[benefit-focused phrase]", "[feature name]"
+### Job Management Software
+- **URL**: https://www.simprogroup.com/solutions/job-management-software
+- **When to Link**: UK/ANZ job-management content, job lifecycle articles, and operations workflow topics.
+- **Anchor Text Examples**: job management software, job management platform, manage jobs from quote to cash
 
----
+### Simpro Premium
+- **URL**: https://www.simprogroup.com/solutions/simpro-premium
+- **When to Link**: Product overview, office workflow, core platform, and implementation content.
+- **Anchor Text Examples**: Simpro Premium, Simpro's core platform, field service operations platform
+
+### Project Management Software
+- **URL**: https://www.simprogroup.com/solutions/project-management-software
+- **When to Link**: Project-heavy trades, progress billing, phased jobs, estimating, and work-in-progress content.
+- **Anchor Text Examples**: project management software for trades, field service project management, manage complex jobs
+
+### Asset Maintenance
+- **URL**: https://www.simprogroup.com/solutions/asset-maintenance
+- **When to Link**: Asset registers, recurring maintenance, preventative maintenance, compliance, and service agreement topics.
+- **Anchor Text Examples**: asset maintenance software, recurring maintenance management, preventative maintenance workflows
+
+### Commercial
+- **URL**: https://www.simprogroup.com/solutions/commercial
+- **When to Link**: Commercial contractor content, multi-phase jobs, larger teams, and mixed service/project operations.
+- **Anchor Text Examples**: commercial field service software, commercial contractor software, commercial service operations
+
+### Residential
+- **URL**: https://www.simprogroup.com/solutions/residential
+- **When to Link**: Residential trades content, homeowner service workflows, and residential/commercial comparison articles.
+- **Anchor Text Examples**: residential field service software, residential contractor software, residential service workflows
 
 ## Feature Pages
 
-<!-- INSTRUCTIONS: Add pages for specific features or capabilities -->
+### Scheduling Software
+- **URL**: https://www.simprogroup.com/features/scheduling-software
+- **When to Link**: Scheduling, dispatch, technician utilization, route planning, and office-to-field coordination.
+- **Anchor Text Examples**: scheduling software, field service scheduling, schedule and dispatch jobs
 
-### [Feature Name 1]
-- **URL**: https://[yoursite.com/feature-1]
-- **When to Link**: In articles about [relevant topics]
-- **Anchor Text Examples**: "[feature name]", "[what it does]", "[benefit phrase]"
+### Field Service Mobile App
+- **URL**: https://www.simprogroup.com/features/field-service-mobile-app
+- **When to Link**: Mobile workforce, offline field work, technician adoption, forms, photos, signatures, and field invoicing.
+- **Anchor Text Examples**: field service mobile app, mobile app for technicians, offline-capable field app
 
-### [Feature Name 2]
-- **URL**: https://[yoursite.com/feature-2]
-- **When to Link**: In articles about [relevant topics]
-- **Anchor Text Examples**: "[feature name]", "[what it does]", "[benefit phrase]"
+### Estimating Software
+- **URL**: https://www.simprogroup.com/features/estimating-software
+- **When to Link**: Quoting, estimating, bid templates, pre-builds, takeoffs, and faster proposal content.
+- **Anchor Text Examples**: estimating software, quoting and estimating tools, create accurate estimates
 
-### [Feature Name 3]
-- **URL**: https://[yoursite.com/feature-3]
-- **When to Link**: In articles about [relevant topics]
-- **Anchor Text Examples**: "[feature name]", "[what it does]", "[benefit phrase]"
+### Work Order Software
+- **URL**: https://www.simprogroup.com/features/work-order-software
+- **When to Link**: Work orders, job execution, service workflows, and field-to-office handoff topics.
+- **Anchor Text Examples**: work order software, manage work orders, field service work orders
 
----
+### Invoicing Software for Construction
+- **URL**: https://www.simprogroup.com/features/invoicing-software-for-construction
+- **When to Link**: Invoicing, progress billing, payment collection, construction workflows, and cash flow topics.
+- **Anchor Text Examples**: invoicing software for construction, field service invoicing, invoice from the field
 
-## Use Case / Solution Pages
+### Payments
+- **URL**: https://www.simprogroup.com/features/payments
+- **When to Link**: Cash flow, card/online/on-site payments, faster collections, and payment automation content.
+- **Anchor Text Examples**: Simpro Payments, field service payments, get paid faster
 
-<!-- INSTRUCTIONS: Add pages for specific use cases, industries, or customer segments -->
+### Fast Cash
+- **URL**: https://www.simprogroup.com/features/fast-cash
+- **When to Link**: Accounts receivable, payment acceleration, cash collection, and AI-assisted payment workflows.
+- **Anchor Text Examples**: Fast Cash, faster invoice payments, improve cash collection
 
-### [Use Case 1]
-- **URL**: https://[yoursite.com/use-case-1]
-- **When to Link**: In articles targeting [audience segment] or discussing [problem/solution]
-- **Anchor Text Examples**: "[use case description]", "[for whom]", "[solution phrase]"
+### Track Inventory
+- **URL**: https://www.simprogroup.com/features/track-inventory
+- **When to Link**: Inventory management, parts, supplier purchasing, truck stock, and job cost control.
+- **Anchor Text Examples**: inventory tracking, field service inventory, track parts and materials
 
-### [Use Case 2]
-- **URL**: https://[yoursite.com/use-case-2]
-- **When to Link**: In articles targeting [audience segment] or discussing [problem/solution]
-- **Anchor Text Examples**: "[use case description]", "[for whom]", "[solution phrase]"
+### Reporting
+- **URL**: https://www.simprogroup.com/features/reporting
+- **When to Link**: BI, dashboards, margin visibility, KPI reporting, and data-driven operations.
+- **Anchor Text Examples**: field service reporting, reporting dashboards, business intelligence for trades
 
----
+### CRM for Field Service
+- **URL**: https://www.simprogroup.com/features/crm-for-field-service
+- **When to Link**: Customer relationship management, customer history, pipeline, and sales/service coordination.
+- **Anchor Text Examples**: CRM for field service, field service CRM, customer management for trades
 
-## Resource Pages
+### Digital Forms
+- **URL**: https://www.simprogroup.com/features/digital-forms
+- **When to Link**: Compliance forms, field checklists, paperless workflows, audits, and mobile documentation.
+- **Anchor Text Examples**: Digital Forms, digital field forms, paperless compliance forms
 
-<!-- INSTRUCTIONS: Add links to guides, tools, templates, or other resources -->
+### Data Feed
+- **URL**: https://www.simprogroup.com/features/data-feed
+- **When to Link**: Email attachment automation, data extraction, workflow automation, and admin reduction topics.
+- **Anchor Text Examples**: Data Feed, automated data processing, reduce manual data entry
 
-### [Resource Name 1]
-- **URL**: https://[yoursite.com/resources/resource-1]
-- **When to Link**: [When this resource would help the reader]
-- **Anchor Text Examples**: "[resource name]", "[what it provides]", "free [resource type]"
+### Maintenance Planner
+- **URL**: https://www.simprogroup.com/features/maintenance-planner
+- **When to Link**: Preventative maintenance, recurring service, asset testing, compliance, and service intervals.
+- **Anchor Text Examples**: Maintenance Planner, preventative maintenance scheduling, recurring maintenance software
 
-### [Resource Name 2]
-- **URL**: https://[yoursite.com/resources/resource-2]
-- **When to Link**: [When this resource would help the reader]
-- **Anchor Text Examples**: "[resource name]", "[what it provides]", "free [resource type]"
+### Takeoffs
+- **URL**: https://www.simprogroup.com/features/takeoffs
+- **When to Link**: Estimating, plan markup, material calculation, bidding, and project quoting content.
+- **Anchor Text Examples**: Takeoffs, digital takeoffs, material takeoff software
 
----
+### Multi-Company
+- **URL**: https://www.simprogroup.com/features/multi-company
+- **When to Link**: PE-backed roll-ups, multi-location operators, franchises, acquisitions, and consolidated reporting.
+- **Anchor Text Examples**: Multi-Company, multi-company field service software, roll-up reporting
 
-## Top-Performing Blog Posts
+### Delight
+- **URL**: https://www.simprogroup.com/features/delight
+- **When to Link**: Customer retention, repeat revenue, AI customer marketing, recurring work, and lifecycle marketing.
+- **Anchor Text Examples**: Delight, AI customer marketing agent, repeat revenue from existing customers
 
-<!-- INSTRUCTIONS: Add your 10-20 best blog posts that get good traffic and conversions.
-     These are "pillar content" you want to link to frequently. -->
+### Simtrac
+- **URL**: https://www.simprogroup.com/features/simtrac
+- **When to Link**: Fleet tracking, GPS, driver activity, field visibility, and technician location topics.
+- **Anchor Text Examples**: Simtrac, GPS fleet tracking, field fleet visibility
 
-### [Blog Post Title 1]
-- **URL**: https://[yoursite.com/blog/post-1]
-- **Primary Topic**: [Main topic/keyword]
-- **When to Link**: In articles about [related topics]
-- **Anchor Text Examples**: "[topic phrase]", "[how-to phrase]", "[question phrase]"
+### SMS Messaging
+- **URL**: https://www.simprogroup.com/features/sms-messaging
+- **When to Link**: Customer notifications, appointment reminders, field communication, and text-message workflow content.
+- **Anchor Text Examples**: SMS Messaging, customer text updates, field service text messaging
 
-### [Blog Post Title 2]
-- **URL**: https://[yoursite.com/blog/post-2]
-- **Primary Topic**: [Main topic/keyword]
-- **When to Link**: In articles about [related topics]
-- **Anchor Text Examples**: "[topic phrase]", "[how-to phrase]", "[question phrase]"
+### Add-Ons
+- **URL**: https://www.simprogroup.com/features/add-ons
+- **When to Link**: Articles summarizing optional capabilities or comparing core platform versus add-on workflows.
+- **Anchor Text Examples**: Simpro Add-Ons, optional Simpro features, extend Simpro workflows
 
-### [Blog Post Title 3]
-- **URL**: https://[yoursite.com/blog/post-3]
-- **Primary Topic**: [Main topic/keyword]
-- **When to Link**: In articles about [related topics]
-- **Anchor Text Examples**: "[topic phrase]", "[how-to phrase]", "[question phrase]"
+## Industry Pages
 
-### [Blog Post Title 4]
-- **URL**: https://[yoursite.com/blog/post-4]
-- **Primary Topic**: [Main topic/keyword]
-- **When to Link**: In articles about [related topics]
-- **Anchor Text Examples**: "[topic phrase]", "[how-to phrase]", "[question phrase]"
+### HVAC
+- **URL**: https://www.simprogroup.com/industries/hvac-software
+- **When to Link**: HVAC operations, maintenance agreements, dispatch, HVAC estimating, HVAC AI, and HVAC profitability content.
+- **Anchor Text Examples**: HVAC software, field service software for HVAC contractors, HVAC contractor software
 
-### [Blog Post Title 5]
-- **URL**: https://[yoursite.com/blog/post-5]
-- **Primary Topic**: [Main topic/keyword]
-- **When to Link**: In articles about [related topics]
-- **Anchor Text Examples**: "[topic phrase]", "[how-to phrase]", "[question phrase]"
+### Electrical
+- **URL**: https://www.simprogroup.com/industries/electrical-software
+- **When to Link**: Electrical estimating, electrical KPIs, bid templates, electrical AI, and service/project workflows.
+- **Anchor Text Examples**: electrical software, electrical contractor software, field service software for electricians
 
-<!-- Add 5-15 more of your top blog posts following the same format -->
+### Plumbing
+- **URL**: https://www.simprogroup.com/industries/plumbing-software
+- **When to Link**: Plumbing business growth, plumbing invoicing, plumbing estimating, and service agreement content.
+- **Anchor Text Examples**: plumbing software, plumbing contractor software, field service software for plumbers
 
----
+### Fire Protection
+- **URL**: https://www.simprogroup.com/industries/fire-protection-software
+- **When to Link**: Fire protection, compliance, inspections, recurring maintenance, and asset records.
+- **Anchor Text Examples**: fire protection software, fire inspection software, fire protection field service software
+
+### Security
+- **URL**: https://www.simprogroup.com/industries/security
+- **When to Link**: Low voltage, security, A/V, alarms, recurring maintenance, and project work.
+- **Anchor Text Examples**: security business software, low voltage contractor software, software for security contractors
+
+### Solar and Renewable
+- **URL**: https://www.simprogroup.com/industries/solar-renewable-business-software
+- **When to Link**: Solar, renewable energy, install/service workflows, and recurring maintenance.
+- **Anchor Text Examples**: solar business software, renewable business software, software for solar contractors
+
+### Elevator Service
+- **URL**: https://www.simprogroup.com/industries/elevator-service-software
+- **When to Link**: Elevator service, inspections, maintenance schedules, and asset management content.
+- **Anchor Text Examples**: elevator service software, elevator maintenance software
+
+### Commercial Kitchen Equipment Service
+- **URL**: https://www.simprogroup.com/industries/commercial-kitchen-equipment-service-software
+- **When to Link**: Commercial kitchen equipment, service contracts, maintenance, and technician scheduling.
+- **Anchor Text Examples**: commercial kitchen equipment service software, kitchen equipment service management
 
 ## Comparison Pages
 
-<!-- INSTRUCTIONS: If you have comparison or "vs" pages, add them here -->
+Use these pages when mentioning a named competitor, writing alternatives content, or supporting BOFU buyer decisions.
 
-### [Your Product] vs [Competitor 1]
-- **URL**: https://[yoursite.com/vs/competitor-1]
-- **When to Link**: When mentioning [competitor] or discussing alternatives
-- **Anchor Text Examples**: "[your product] vs [competitor]", "comparison with [competitor]"
+| Competitor | URL | Anchor Text Examples |
+|---|---|---|
+| Ascora | https://www.simprogroup.com/comparisons/simpro-vs-ascora | Simpro vs Ascora, Ascora alternative |
+| BuildOps | https://www.simprogroup.com/comparisons/simpro-vs-buildops | Simpro vs BuildOps, BuildOps alternative |
+| Commusoft | https://www.simprogroup.com/comparisons/simpro-vs-commusoft | Simpro vs Commusoft, Commusoft alternative |
+| Fergus | https://www.simprogroup.com/comparisons/simpro-vs-fergus | Simpro vs Fergus, Fergus alternative |
+| FieldEdge | https://www.simprogroup.com/comparisons/simpro-vs-fieldedge | Simpro vs FieldEdge, FieldEdge alternative |
+| FieldPulse | https://www.simprogroup.com/comparisons/simpro-vs-fieldpulse | Simpro vs FieldPulse, FieldPulse alternative |
+| Housecall Pro | https://www.simprogroup.com/comparisons/simpro-vs-housecall-pro | Simpro vs Housecall Pro, Housecall Pro alternative |
+| Jobber | https://www.simprogroup.com/comparisons/simpro-vs-jobber | Simpro vs Jobber, Jobber alternative |
+| Joblogic | https://www.simprogroup.com/comparisons/simpro-vs-joblogic | Simpro vs Joblogic, Joblogic alternative |
+| Microsoft Dynamics 365 Field Service | https://www.simprogroup.com/comparisons/simpro-vs-microsoft-dynamics | Simpro vs Microsoft Dynamics, Dynamics field service alternative |
+| NextMinute | https://www.simprogroup.com/comparisons/simpro-vs-nextminute | Simpro vs NextMinute, NextMinute alternative |
+| Procore | https://www.simprogroup.com/comparisons/simpro-vs-procore | Simpro vs Procore, Procore alternative |
+| Salesforce Field Service | https://www.simprogroup.com/comparisons/simpro-vs-salesforce-field-service | Simpro vs Salesforce Field Service, Salesforce field service alternative |
+| Service Fusion | https://www.simprogroup.com/comparisons/simpro-vs-service-fusion | Simpro vs Service Fusion, Service Fusion alternative |
+| ServiceM8 | https://www.simprogroup.com/comparisons/simpro-vs-servicem8 | Simpro vs ServiceM8, ServiceM8 alternative |
+| ServiceTitan | https://www.simprogroup.com/comparisons/simpro-vs-servicetitan | Simpro vs ServiceTitan, ServiceTitan alternative |
+| Tradify | https://www.simprogroup.com/comparisons/simpro-vs-tradify | Simpro vs Tradify, Tradify alternative |
+| Uptick | https://www.simprogroup.com/comparisons/simpro-vs-uptick | Simpro vs Uptick, Uptick alternative |
 
-### [Your Product] vs [Competitor 2]
-- **URL**: https://[yoursite.com/vs/competitor-2]
-- **When to Link**: When mentioning [competitor] or discussing alternatives
-- **Anchor Text Examples**: "[your product] vs [competitor]", "comparison with [competitor]"
+## Customer Proof Links
 
----
+Use customer stories when a post mentions the customer, the same trade, or a measurable outcome from `features.md`.
 
-## Landing Pages
+| Customer | URL | Link When Writing About |
+|---|---|---|
+| Shaffer Beacon Mechanical | https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical | Job costing, margin improvement, mechanical/HVAC operations |
+| Foster Plumbing | https://www.simprogroup.com/case-studies/foster-plumbing | Business growth, exit readiness, plumbing, real-time job costing |
+| TEAMWired | https://www.simprogroup.com/case-studies/teamwired | Payments, faster collections, security/low voltage |
+| Tequa | https://www.simprogroup.com/case-studies/tequa | Debt reduction, payments, cash collection |
+| O'Brien Electrical Granville | https://www.simprogroup.com/case-studies/obrien-electrical-granville | Electrical operations, field visibility, scheduling |
+| Enhanced Electrical | https://www.simprogroup.com/case-studies/enhanced-electrical | Scaling field technicians without proportional admin |
+| Proguard Protection Services | https://www.simprogroup.com/case-studies/proguard-protection-services | Field technician productivity, security workflows |
+| Proguard Protection Services Delight | https://www.simprogroup.com/case-studies/proguard-protection-services-delight | Delight, customer retention, repeat revenue |
+| McCarthy Plumbing Group | https://www.simprogroup.com/case-studies/mccarthy-plumbing-group | Plumbing admin savings, operational efficiency |
+| BGE Digital | https://www.simprogroup.com/case-studies/bge-digital | Estimating speed, digital jobs, quote workflows |
+| James Frew | https://www.simprogroup.com/case-studies/james-frew | Purchase orders, admin reduction, integration workflows |
+| alarmQuest | https://www.simprogroup.com/case-studies/alarmquest | Faster invoicing, security, field workflows |
+| Infinite Audio Video Solutions | https://www.simprogroup.com/case-studies/infinite-audio-video-solutions | A/V, low voltage, admin reduction, daily jobs per technician |
+| Norberg Electric | https://www.simprogroup.com/case-studies/norberg-electric | Electrical estimating, project blueprints |
+| Orion | https://www.simprogroup.com/case-studies/orion | Revenue growth, security workflows |
 
-<!-- INSTRUCTIONS: Add any campaign-specific or conversion-optimized landing pages -->
+## Resources and Guides
 
-### [Campaign/Offer Name]
-- **URL**: https://[yoursite.com/landing/offer-1]
-- **When to Link**: [Specific contexts for this offer]
-- **Anchor Text Examples**: "[offer description]", "[call to action]", "[benefit phrase]"
+### Voice of the Trades
+- **URL**: https://www.simprogroup.com/resources/ebooks/voice-of-the-trades
+- **When to Link**: Industry outlook, trades sentiment, workforce, and thought leadership.
+- **Anchor Text Examples**: Voice of the Trades, trades industry report, field service industry insights
 
----
+### Trades Outlook Report 2025
+- **URL**: https://www.simprogroup.com/resources/ebooks/trades-outlook-report-2025
+- **When to Link**: Market outlook, industry trends, AI, workforce, and planning content.
+- **Anchor Text Examples**: Trades Outlook Report, trades trends report, field service outlook
 
-## Internal Linking Best Practices
+### Scale Field Service Business Guide
+- **URL**: https://www.simprogroup.com/resources/ebooks/scale-field-service-business-guide
+- **When to Link**: Scaling, business growth, process maturity, and operational discipline.
+- **Anchor Text Examples**: guide to scaling a field service business, field service growth guide
 
-When adding internal links to blog content:
+### Job Costing Ebook
+- **URL**: https://www.simprogroup.com/resources/ebooks/job-costing
+- **When to Link**: Job costing, margin, profitability, and financial control content.
+- **Anchor Text Examples**: job costing guide, field service job costing, improve job profitability
 
-1. **Link Naturally**: Only link when genuinely relevant and helpful to the reader
-2. **Vary Anchor Text**: Use different phrases for the same destination URL
-3. **3-5 Links Per Post**: Aim for 3-5 strategic internal links in each blog post
-4. **Deep Linking**: Link to specific relevant pages, not just the homepage
-5. **Early Links Matter**: Links in the first few paragraphs carry more weight
-6. **Update This Map**: Add new pages as you create them, remove outdated URLs
+### Business Reporting for Trade Contractors
+- **URL**: https://www.simprogroup.com/resources/ebooks/business-reporting-trade-contractors
+- **When to Link**: Reporting, KPIs, dashboards, data-driven operations, and management visibility.
+- **Anchor Text Examples**: business reporting for trade contractors, field service reporting guide
 
----
+### Field Service Management in the Cloud
+- **URL**: https://www.simprogroup.com/resources/ebooks/field-service-management-in-the-cloud
+- **When to Link**: Cloud software, modernization, implementation, and moving off spreadsheets.
+- **Anchor Text Examples**: cloud field service management, field service software in the cloud
+
+### Field Service Management for Security Integrators
+- **URL**: https://www.simprogroup.com/resources/ebooks/field-service-management-for-security-integrators
+- **When to Link**: Security, low voltage, A/V, fire/security, and integrator-specific content.
+- **Anchor Text Examples**: field service management for security integrators, security integrator software guide
+
+### Managing Change in Field Service
+- **URL**: https://www.simprogroup.com/resources/ebooks/managing-change-field-service
+- **When to Link**: Implementation, adoption, change management, and software-switching content.
+- **Anchor Text Examples**: managing change in field service, field service software adoption guide
+
+## Blog and Article Links
+
+These are sitemap-confirmed blog pages relevant to Simpro content production. They are not confirmed as top-performing without analytics.
+
+### Field Service Category
+- **What Is Field Service Management**: https://www.simprogroup.com/blog/what-is-field-service-management
+- **Best Field Service Management Software**: https://www.simprogroup.com/blog/best-field-service-management-software
+- **Field Service and Trades Software Buyer's Guide**: https://www.simprogroup.com/blog/field-service-and-trades-software-buyers-guide
+- **Field Service Automation**: https://www.simprogroup.com/blog/field-service-automation
+- **Field Service Operations**: https://www.simprogroup.com/blog/field-service-operations
+- **Field Service KPIs Every Trade Business Should Track**: https://www.simprogroup.com/blog/field-service-kpis-every-trade-business-should-track
+
+### AI in the Trades
+- **AI Operating Platforms for Trades Businesses**: https://www.simprogroup.com/blog/ai-operating-platforms-for-trades-businesses
+- **AI-First vs AI-Powered in the Trades**: https://www.simprogroup.com/blog/ai-first-vs-ai-powered-in-the-trades
+- **AI for Field Service**: https://www.simprogroup.com/blog/ai-for-field-service
+- **Data Fuel for AI in the Trades**: https://www.simprogroup.com/blog/data-fuel-for-ai-in-the-trades
+
+### Profitability, Margin, and Cash Flow
+- **Hidden Margin Leak in Field Service**: https://www.simprogroup.com/blog/hidden-margin-leak-field-service
+- **Job Costing Formula**: https://www.simprogroup.com/blog/job-costing-formula
+- **Trade Services KPIs That Protect Margin**: https://www.simprogroup.com/blog/trade-services-kpis-that-protect-margin
+- **Payments as a Strategic Growth Lever for Trades**: https://www.simprogroup.com/blog/payments-as-a-strategic-growth-lever-for-trades
+- **Faster Field Service Payments With Simpro**: https://www.simprogroup.com/blog/faster-field-service-payments-with-simpro
+
+### HVAC
+- **HVAC Profit Margins**: https://www.simprogroup.com/blog/hvac-profit-margins
+- **HVAC KPIs That Protect Margin**: https://www.simprogroup.com/blog/hvac-kpis-that-protect-margin
+- **HVAC Estimating**: https://www.simprogroup.com/blog/hvac-estimating
+- **HVAC Invoicing**: https://www.simprogroup.com/blog/hvac-invoicing
+- **HVAC Apps**: https://www.simprogroup.com/blog/hvac-apps
+
+### Plumbing
+- **Plumbing Business Profit Margin Guide**: https://www.simprogroup.com/blog/plumbing-business-profit-margin-guide
+- **Plumbing KPIs That Protect Margin**: https://www.simprogroup.com/blog/plumbing-kpis-that-protect-margin
+- **Plumbing Invoicing**: https://www.simprogroup.com/blog/plumbing-invoicing
+- **Plumbing Estimate Template**: https://www.simprogroup.com/blog/plumbing-estimate-template
+- **Plumbing Maintenance Agreement Template**: https://www.simprogroup.com/blog/plumbing-maintenance-agreement-template
+
+### Electrical
+- **Electrical Business Profit Margin**: https://www.simprogroup.com/blog/electrical-business-profit-margin
+- **Electrical KPIs That Protect Margin**: https://www.simprogroup.com/blog/electrical-kpis-that-protect-margin
+- **Electrical Estimate Template**: https://www.simprogroup.com/blog/electrical-estimate-template
+- **Electrical Bid Template**: https://www.simprogroup.com/blog/electrical-bid-template
+- **Electrical Advertising**: https://www.simprogroup.com/blog/electrical-advertising
 
 ## Quick Reference by Topic
 
-<!-- INSTRUCTIONS: Create a quick topic-to-URL mapping for common themes you write about.
-     This helps Claude quickly find relevant links while writing. -->
+**When writing about field service software**, link to:
+- https://www.simprogroup.com/solutions/field-service-management-software - primary field service management software page
+- https://www.simprogroup.com/blog/what-is-field-service-management - definition and education support
+- https://www.simprogroup.com/blog/best-field-service-management-software - commercial comparison support
+- https://www.simprogroup.com/demo - conversion next step
 
-**When writing about [Topic 1]**, link to:
-- [URL 1] - [Brief description]
-- [URL 2] - [Brief description]
-- [URL 3] - [Brief description]
+**When writing about AI in the trades**, link to:
+- https://www.simprogroup.com/company/ai-pledge - trust and responsible AI
+- https://www.simprogroup.com/blog/ai-operating-platforms-for-trades-businesses - AI operating platform education
+- https://www.simprogroup.com/blog/ai-first-vs-ai-powered-in-the-trades - category distinction
+- https://www.simprogroup.com/features/delight - AI customer marketing agent
 
-**When writing about [Topic 2]**, link to:
-- [URL 1] - [Brief description]
-- [URL 2] - [Brief description]
-- [URL 3] - [Brief description]
+**When writing about profitability or margin**, link to:
+- https://www.simprogroup.com/resources/ebooks/job-costing - job costing guide
+- https://www.simprogroup.com/blog/hidden-margin-leak-field-service - margin leak article
+- https://www.simprogroup.com/blog/job-costing-formula - job costing formula article
+- https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical - customer proof for profit margin improvement
 
-**When writing about [Topic 3]**, link to:
-- [URL 1] - [Brief description]
-- [URL 2] - [Brief description]
-- [URL 3] - [Brief description]
+**When writing about cash flow and payments**, link to:
+- https://www.simprogroup.com/features/payments - Simpro Payments
+- https://www.simprogroup.com/features/fast-cash - cash acceleration
+- https://www.simprogroup.com/blog/payments-as-a-strategic-growth-lever-for-trades - strategic payment content
+- https://www.simprogroup.com/case-studies/teamwired - customer proof for faster payments
 
----
+**When writing about HVAC**, link to:
+- https://www.simprogroup.com/industries/hvac-software - HVAC industry page
+- https://www.simprogroup.com/blog/hvac-profit-margins - HVAC margin article
+- https://www.simprogroup.com/blog/hvac-kpis-that-protect-margin - HVAC KPI article
+- https://www.simprogroup.com/blog/ai-operating-platforms-for-hvac-businesses - HVAC AI article
 
-*Note: Keep this document updated as you publish new content or restructure your site. Accurate internal linking improves SEO and user experience.*
+**When writing about plumbing**, link to:
+- https://www.simprogroup.com/industries/plumbing-software - plumbing industry page
+- https://www.simprogroup.com/blog/plumbing-business-profit-margin-guide - plumbing margin guide
+- https://www.simprogroup.com/blog/plumbing-kpis-that-protect-margin - plumbing KPI article
+- https://www.simprogroup.com/case-studies/foster-plumbing - plumbing growth and exit proof
+
+**When writing about electrical contractors**, link to:
+- https://www.simprogroup.com/industries/electrical-software - electrical industry page
+- https://www.simprogroup.com/blog/electrical-business-profit-margin - electrical margin article
+- https://www.simprogroup.com/blog/electrical-kpis-that-protect-margin - electrical KPI article
+- https://www.simprogroup.com/case-studies/obrien-electrical-granville - electrical customer proof
+
+**When writing about security, low voltage, or fire protection**, link to:
+- https://www.simprogroup.com/industries/security - security industry page
+- https://www.simprogroup.com/industries/fire-protection-software - fire protection industry page
+- https://www.simprogroup.com/resources/ebooks/field-service-management-for-security-integrators - security integrator guide
+- https://www.simprogroup.com/case-studies/infinite-audio-video-solutions - A/V customer proof
+
+**When writing about software switching or competitor comparisons**, link to:
+- The relevant `/comparisons/simpro-vs-[competitor]` page from the comparison table above
+- https://www.simprogroup.com/resources/ebooks/managing-change-field-service - change management guide
+- https://www.simprogroup.com/pricing - pricing and quote-based evaluation
+- https://www.simprogroup.com/demo - demo conversion step
+
+## Maintenance Notes
+
+- Re-check the sitemap quarterly or after major site migrations.
+- Add GSC/GA4 performance data before ranking links by traffic or conversion value.
+- If `simpro.ai` becomes the public content domain, rebuild this map from that domain's sitemap and preserve this file as the `simprogroup.com` historical map.
