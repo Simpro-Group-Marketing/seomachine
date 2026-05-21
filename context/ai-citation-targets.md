@@ -2,6 +2,27 @@
 
 When AI tools (ChatGPT, Perplexity, Gemini, Claude) recommend products or services, they pull from sources across the web. This file tracks the platforms, directories, and content surfaces where your brand needs to be present and well-represented to maximize AI citation frequency.
 
+## Simpro AI/FSM Citation Baseline
+
+**Source boundary**: This section uses `simpro-seo-dashboard.html` as a strategy cross-check and GSC as first-party demand signal. The dashboard states its traffic metrics are DataForSEO-estimated and that no GSC or GA4 data was used. Treat AI Overview findings as March 2026 SERP evidence that should be rechecked before campaign launch.
+
+**Current known signals**:
+- The dashboard reports Simpro was not mentioned in AI Overviews checked for `field service management software`, `best field service management software`, and `hvac software`.
+- US GSC shows AI field-service semantic variants produced 4 clicks and 6,940 impressions from 2026-02-20 to 2026-05-20, with an impression-weighted average position of 13.5.
+- Exact US GSC terms are still early: `AI field service software` had 0 clicks / 146 impressions / avg position 16.1, and `AI for field service` had 0 clicks / 281 impressions / avg position 12.0.
+
+**Priority prompt families to monitor**:
+- best field service management software
+- field service management software for trades
+- AI field service software
+- AI for field service management
+- AI scheduling software for field service
+- AI dispatch software for HVAC, plumbing, and electrical contractors
+- best HVAC software
+- best plumbing software
+- best electrical contractor software
+- ServiceTitan alternatives for commercial contractors
+
 ## How This File Is Used
 
 - **Content writers**: Reference when adding external context or linking strategy

@@ -79,28 +79,40 @@ Source: FY26 Brand Message House (Simpro tab), Sales Battlecards, ICP slides, si
 
 ### AI Capabilities
 - **AI Mobile Work Notes**: Reduce typing/admin in the field
-- **AI-assisted data entry**: Smart form handling, reduce manual rework
-- **Smart scheduling & dispatching**: AI-driven optimization
-- **Predictive insights**: Surface margin/job risks before they become costly
+- **AI-assisted data entry**: Smart form handling, document checking, and structured data capture that reduce manual rework
+- **Smart scheduling & dispatching**: AI-driven optimization for skills, tools, routes, and workloads
+- **Predictive insights**: Surface margin, job, asset lifecycle, and cost risks before they become costly
 - **Automated reporting & alerts**: Trends in job performance flagged proactively
-- **Delight** (AI customer marketing agent): Activates repeat revenue from existing customers using job and asset data
+- **Delight** (AI customer marketing agent): Uses customer, job, and asset data to identify cross-sell, upsell, re-sell, seasonal, quote follow-up, and repeat-work opportunities; includes AI-powered email outreach, automated follow-up, and ROI tracking
+- **Fast Cash** (agentic AI AR assistant): Manages invoice follow-up with dynamic cadence optimization, context-aware messaging, real-time payment-status sync, escalation filtering, and analytics; most effective when paired with Simpro Payments
+- **AI positioning boundary**: Simpro's AI story is practical and purpose-built for field service workflows. Position AI as modular intelligence inside trusted workflows, not a black-box replacement for the whole operating system.
 
 ### Add-Ons (Available a la carte)
-- **Digital Forms**: Electronic field forms, recordkeeping, audits, compliance
-- **Data Feed**: Rules-based automation that collects/processes data from email attachments and forms, updates workflows in Simpro
-- **Maintenance Planner**: Service interval and asset testing management
-- **Takeoffs**: Digital plan markup and material calculation
+- **Digital Forms**: Custom mobile field forms with conditional logic, autofill from Simpro data, signatures, drawings, barcodes, multimedia, version control, compliance records, and two-way synchronization with Simpro
+- **Data Feed**: Rules-based automation that scans and extracts data from email attachments, PDFs, spreadsheets, CSVs, website forms, Simpro Digital Forms, and third-party integrations; can create/update leads, quotes, jobs, tasks, packing slips, purchase orders, and supplier invoices
+- **Maintenance Planner**: Preventative maintenance scheduling, asset testing, service-level frequency, failure points, recommendations, preferred technicians, maintenance quote/job creation, contract activity, costs, income, and labor forecasting
+- **Takeoffs**: Digital plan import, markup, scale management, symbol recognition, material counts/measurements, and drawing association to Simpro jobs or quotes
 - **Multi-Company**: Multiple business units in one instance with consolidated reporting
+- **Simtrac**: GPS fleet visibility, nearest-technician dispatch support, vehicle location monitoring, driver safety/activity reporting, and standalone or Simpro-connected use
+- **SMS Messaging**: Scheduled or on-demand SMS to customers, field technicians, and contractors from Simpro Premium; supports two-way communication and customer/field updates without a separate SMS provider
 
 ## Integrations & Ecosystem
 
 ### Direct Integrations
 - **QuickBooks**: Proven integration, no double-entry, no invoicing delays (a frequent win driver vs. competitors)
 - **Xero**: Accounting sync (especially relevant in AU/NZ/UK)
+- **Sage Intacct**: Billable enhancement for current Simpro customers that syncs field operations with finance for data consistency, job-cost tracking, reconciliation, collaboration between field and finance, and real-time financial visibility
 - **PowerBI**: Advanced reporting and dashboards
 - **Single Sign-On (SSO)**: Identity provider integration for enterprise
 - **Simpro API**: Custom integration to existing tech stack
 - **250+ technology and service partners worldwide**
+
+### Security & Infrastructure
+- **Hosting**: AWS cloud environment with AWS RDS PostgreSQL database services
+- **Availability**: Data center geographies in Australia, the USA, and the UK; each can operate as part of the global network or independently when needed
+- **Scale and reliability proof**: 20+ years of technological evolution, 12+ years cloud-hosted infrastructure, 350+ TB of data stored, >99.99% uptime, and 50,000+ requests served per minute
+- **Access controls**: Role-based access control, least-privilege principles, valid-business-reason access, quarterly production-access reviews
+- **Vendor/security standards**: Production vendors selected for SOC 2 and ISO 27001 compliance
 
 ### Distribution & Partner Ecosystem
 - Simpro Group is the parent: Simpro + BigChange + AroFlo + ClockShark
@@ -159,10 +171,15 @@ Source: FY26 Brand Message House (Simpro tab), Sales Battlecards, ICP slides, si
 - Consolidated reporting across services
 
 ### Commercial / Project-Heavy Contractors
-- Project management with progress billing
+- Project management with progress billing for mid-sized projects
 - Detailed estimating with pre-builds and takeoffs
 - Forecasting for labor and materials
 - Integration with accounting / ERP
+
+### Fit Boundaries by Work Type
+- **Strong fit**: residential, light commercial, and medium commercial trade work involving small jobs, recurring contracts, inspections, testing, maintenance, repairs, installations, and mid-sized projects.
+- **Limited fit**: heavy commercial businesses where much of the work may need to stay outside Simpro.
+- **Poor fit**: industrial workflows, general contractors, and complex projects that dominate the business. If complex projects are the majority of revenue, the Best-Fit Targeting Framework says to disqualify or deprioritize rather than force-fit Simpro.
 
 ### Growing / PE-Backed Roll-Ups
 - Multi-Company architecture for acquired businesses
@@ -197,6 +214,7 @@ Source: FY26 Brand Message House (Simpro tab), Sales Battlecards, ICP slides, si
 
 **Pricing Messaging Guidance:**
 - Never quote a per-user price in content — Simpro's pricing is custom. Use "contact us for a quote" or "priced for your team size."
+- Internal add-on message maps include add-on price tables, but those figures are not public content. Do not surface exact internal per-user/add-on prices in generated briefs or public copy unless the user explicitly approves the source and use case.
 - **TCO positioning vs. competitors**: Lead with total cost of ownership advantage over BuildOps (~$110–$150/user/month + $18K–$52K implementation) and ServiceTitan (known for high onboarding fees, often $5K–$20K+).
 - Emphasize value: "5–8 week implementation" and "hands-on onboarding" are part of the pricing value prop, not hidden extras.
 - For SMB audiences coming from Housecall Pro ($79–$329/mo for very limited users), position Simpro as the natural scale-up with far more depth per dollar.
@@ -254,13 +272,13 @@ Simpro maintains published /vs/ pages for: Ascora, BuildOps, Commusoft, Fergus, 
 ## Common Questions & Objections
 
 ### "How long does implementation take?"
-**Answer**: Typically 5–8 weeks with hands-on onboarding (a key win factor cited by customers vs. competitors like BuildOps, which often takes 60–90 days). We pair you with a dedicated implementation lead and provide structured training, including 200+ eLearning modules for self-paced learning.
+**Answer**: Simpro offers two implementation packages: **Smart Start** for self-paced implementation with online learning, in-app walkthroughs, three live Q&A sessions, a four-part workshop series, and one Form Builder template; and **Premium Implementation** for guided implementation with a dedicated Simpro specialist, structured milestones, guided workflow training, two Form Builder templates, two standard data imports, and two BI reports. The implementation journey uses five milestones: discovery, design, configuration/foundations, workflow training, and enablement/support. Delivery examples in the 2026 implementation datasheet show an accelerated pathway of about 5 weeks and a balanced pathway of about 10 weeks. Keep the simpler external answer as "roughly 5–10 weeks, depending on scope and team availability."
 
 ### "Is Simpro built for residential or commercial work?"
 **Answer**: Both. Simpro is one of the few platforms that runs residential service, commercial service, recurring maintenance, and project work natively — without forcing you to pick a side or stitch together multiple tools.
 
 ### "How does AI actually help my trades business?"
-**Answer**: AI removes admin, not jobs. AI Mobile Work Notes lets techs dictate instead of type. AI-assisted data entry handles forms and emails. Predictive insights flag jobs and margins at risk before they cost you money. Smart scheduling optimizes the field. This is AI built for the trades — practical, in-product, every day.
+**Answer**: AI removes admin, not jobs. AI Mobile Work Notes lets techs dictate instead of type. AI-assisted data entry handles forms, documents, and structured data. Predictive insights flag jobs, margins, asset lifecycles, and costs at risk before they become expensive. Smart scheduling optimizes the field. Delight re-engages existing customers for repeat revenue. Fast Cash automates accounts receivable follow-up. This is practical, purpose-built AI for the trades — in-product, workflow-specific, and measurable.
 
 ### "We use QuickBooks. Will Simpro integrate cleanly?"
 **Answer**: Yes — and this is a frequent reason customers leave competitors for Simpro. Our QuickBooks integration is proven and direct, with no double-entry and no invoicing delays. Customers consistently cite back-office sync as a win driver vs. BuildOps and Housecall Pro.

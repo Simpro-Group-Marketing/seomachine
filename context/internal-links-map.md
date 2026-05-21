@@ -2,9 +2,9 @@
 
 This document catalogs verified Simpro URLs for strategic internal linking in blog and resource content.
 
-**Source**: `https://www.simprogroup.com/sitemap.xml`, accessed through Playwright MCP on 2026-05-21. The sitemap contained 855 URLs. The Product Marketing portal confirmed this public site is the active source for product, feature, comparison, customer proof, and resource links.
+**Source**: `https://www.simprogroup.com/sitemap.xml`, accessed through Playwright MCP on 2026-05-21. The sitemap contained 855 URLs. The Product Marketing portal confirmed this public site is the active source for product, feature, comparison, customer proof, and resource links. GSC and GA4 first-party metrics were added on 2026-05-21.
 
-**Evidence boundary**: URLs below are sitemap-verified. Link contexts and anchor examples are editorial guidance inferred from page paths, current Simpro context files, and the Product Marketing source map. This is not a traffic, conversion, or ranking-priority report. Use GSC, GA4, DataForSEO, Ahrefs, or Semrush before calling any page "top-performing."
+**Evidence boundary**: URLs below are sitemap-verified. Link contexts and anchor examples are editorial guidance inferred from page paths, current Simpro context files, and the Product Marketing source map. Performance notes use first-party US-only GSC/GA4 data for 2026-02-20 through 2026-05-20. Search volume, keyword difficulty, and non-US priorities still require separate validation.
 
 ## Internal Linking Rules
 
@@ -15,6 +15,43 @@ This document catalogs verified Simpro URLs for strategic internal linking in bl
 5. For BOFU content, include one demo, pricing, comparison, or customer story link.
 6. For TOFU content, use one product/category link only when the product relevance is explicit.
 7. When a customer outcome is mentioned, link to the matching case study if one exists in the sitemap.
+
+## Performance-Informed Internal Linking Priorities
+
+**Metric scope**: United States only; GSC `country=usa`; GA4 `country=United States`; GSC page filter contains `https://www.simprogroup.com/`. Date range: 2026-02-20 to 2026-05-20. Source artifact: `research/simpro-first-party-metrics-2026-05-21.json`.
+
+### Priority Link Flows
+
+1. Route FSM category authority from `/blog/best-field-service-management-software` to `/solutions/field-service-management-software`. The blog has 298,684 GSC impressions and captures the main category queries, while the solution page has stronger GA4 conversion signal.
+2. Support `/solutions/field-service-management-software` from definition, buyer-guide, scheduling, dispatch, mobile app, reporting, and industry pages. The solution page has 3,469 GA4 sessions and 83 key events but weak non-brand category rankings.
+3. Use industry blog clusters to reinforce industry pages. HVAC, plumbing, and electrical industry pages each have high impressions but low CTR, which makes them internal-link and snippet-improvement priorities.
+4. Link commercial comparison and pricing content back to the FSM solution and relevant industry pages. Pricing has strong branded intent and 10 GA4 key events, but it should not be the only BOFU destination.
+5. Keep AI education pages linked to concrete FSM and feature pages. AI field-service variants show 6,940 impressions but only 4 clicks; the link path should turn AI interest into category and workflow evaluation.
+
+### Page Performance Signals
+
+| Page | GSC Clicks | GSC Impressions | CTR | Avg Position | GA4 Sessions | GA4 Key Events | Link Use |
+|---|---:|---:|---:|---:|---:|---:|---|
+| `/` | 2,614 | 48,030 | 5.44% | 26.5 | 20,701 | 170 | Use sparingly; strong brand/conversion page but deep links are usually better. |
+| `/solutions/field-service-management-software` | 19 | 21,400 | 0.09% | 23.3 | 3,469 | 83 | Primary FSM destination and conversion page. |
+| `/blog/best-field-service-management-software` | 32 | 298,684 | 0.01% | 12.5 | 437 | 1 | Authority donor for FSM category links. |
+| `/blog/ai-for-field-service` | 11 | 8,281 | 0.13% | 11.2 | 87 | 0 | AI education hub; link to FSM and feature pages. |
+| `/pricing` | 120 | 17,684 | 0.68% | 2.7 | 430 | 10 | BOFU support link, especially from comparison and ROI content. |
+| `/solutions/job-management-software` | 4 | 9,809 | 0.04% | 16.5 | 37 | 1 | Support job lifecycle and quote-to-cash content. |
+| `/solutions/asset-maintenance` | 3 | 2,013 | 0.15% | 33.3 | 262 | 6 | Use for recurring maintenance, compliance, and asset content. |
+
+### Industry Page Performance
+
+| Industry Page | GSC Clicks | GSC Impressions | CTR | Avg Position | GA4 Sessions | GA4 Key Events | Internal-Link Priority |
+|---|---:|---:|---:|---:|---:|---:|---|
+| `/industries/hvac-software` | 2 | 43,957 | 0.005% | 25.9 | 187 | 1 | High. Link from HVAC software, estimating, invoicing, KPI, AI, and margin articles. |
+| `/industries/plumbing-software` | 1 | 66,459 | 0.002% | 26.5 | 269 | 3 | High. Link from plumbing margin/KPI/template articles and Foster Plumbing proof. |
+| `/industries/electrical-software` | 3 | 36,760 | 0.008% | 29.0 | 356 | 0 | High. Link from electrical estimating, bid template, KPI, and customer proof. |
+| `/industries/fire-protection-software` | 2 | 7,867 | 0.025% | 23.6 | 25 | 0 | Medium. Support from security/fire compliance content. |
+| `/industries/security` | 0 | 354 | 0.000% | 10.0 | 485 | 4 | Medium. GA4 signal is stronger than GSC; link from security/low-voltage content and case studies. |
+| `/industries/solar-renewable-business-software` | 0 | 5,911 | 0.000% | 22.5 | 10 | 0 | Low until this vertical becomes a US priority. |
+| `/industries/elevator-service-software` | 0 | 4,815 | 0.000% | 16.9 | 9 | 0 | Low/medium. Monitor because impressions exist but clicks do not. |
+| `/industries/commercial-kitchen-equipment-service-software` | 0 | 819 | 0.000% | 16.2 | 1 | 0 | Low. |
 
 ## Core Conversion Pages
 
@@ -320,7 +357,7 @@ Use customer stories when a post mentions the customer, the same trade, or a mea
 
 ## Blog and Article Links
 
-These are sitemap-confirmed blog pages relevant to Simpro content production. They are not confirmed as top-performing without analytics.
+These are sitemap-confirmed blog pages relevant to Simpro content production. Use the performance section above when choosing priority authority donors; not every listed blog page is confirmed as top-performing.
 
 ### Field Service Category
 - **What Is Field Service Management**: https://www.simprogroup.com/blog/what-is-field-service-management
@@ -423,5 +460,5 @@ These are sitemap-confirmed blog pages relevant to Simpro content production. Th
 ## Maintenance Notes
 
 - Re-check the sitemap quarterly or after major site migrations.
-- Add GSC/GA4 performance data before ranking links by traffic or conversion value.
+- Refresh GSC/GA4 performance data quarterly before changing link priority.
 - If `simpro.ai` becomes the public content domain, rebuild this map from that domain's sitemap and preserve this file as the `simprogroup.com` historical map.

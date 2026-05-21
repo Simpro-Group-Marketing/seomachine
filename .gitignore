@@ -88,6 +88,7 @@ htmlcov/
 # Secrets and sensitive data
 secrets/
 credentials/
+client_secret_*.json
 *.key
 *.pem
 *.p12
@@ -107,6 +108,12 @@ data_sources/cache/*
 venv/
 env/
 .venv/
+
+# Local agent/tool state
+.codex/
+.playwright-mcp/
+.agents/
+.mcp.json
 
 
 # GA4 Credentials (additional explicit entry)

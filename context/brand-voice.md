@@ -269,11 +269,27 @@ Imagine you're a seasoned trades operator who got the tech right and now helps p
 
 **Profile**:
 - Owner, operator, or operations leader at a trades business
-- Industries: low voltage (security, fire, A/V), HVAC, plumbing, electrical, mechanical, multi-trade
+- Industries: low voltage (security, fire, A/V), HVAC, plumbing, electrical/data, mechanical, multi-trade; often-good-fit adjacent areas include solar and refrigeration-only when the work pattern matches Simpro's core strengths
 - Company size: typically 20–150 employees, $1M–$100M revenue (Simpro's sweet spot per FY26 ICP)
 - Geography: **US-first** for simpro.com / simpro.ai (no AU/NZ/UK colloquialisms in US copy); AU, NZ, UK regional sites localize spelling and terms per `style-guide.md` regional table
 - Buys software reluctantly, but values software that pays for itself within months
 - Reads on phone between jobs; rarely reads marketing in a quiet office
+
+### Customer Maturity Archetypes (Product Marketing Portal, February 2025)
+
+Use these archetypes to shape the problem framing and proof, not as visible campaign labels unless a brief explicitly calls for them.
+
+- **Empower — Business Seeking Modernization**: Established, often family-owned businesses moving from paper, spreadsheets, whiteboards, or disconnected basic tools. Lead with reduced admin, fewer data-entry errors, better office/field/customer communication, faster invoicing, and training/support that makes change feel manageable.
+- **Elevate — Growth-Minded Expander**: Businesses that have already grown and need a more scalable field service management platform to expand into new locations, verticals, maintenance offers, or higher-margin work. Lead with scalable workflows, accounting and tech-stack integrations, reporting, profitability visibility, and growth without proportional overhead.
+- **Excel — Mature Data-Driven Optimizer**: Larger or more advanced businesses with multiple divisions, locations, or entities. Lead with centralized operations, standardized workflows, cross-team coordination, compliance/safety consistency, resource allocation, and real-time reporting across jobs, inventory, productivity, profitability, and receivables.
+
+### Best-Fit Targeting Boundaries (Product Marketing Portal, April 2025)
+
+- **Best-fit environments**: residential, light commercial, and medium commercial work where the business manages small jobs, recurring contracts, maintenance, inspections, repairs, installations, and mid-sized projects.
+- **Use caution in North America** when a prospect is mostly residential. Simpro can fit some residential businesses, but ServiceTitan, Jobber, Housecall Pro, FieldEdge, and Service Fusion are often stronger/lower-cost residential alternatives for smaller operators.
+- **Limited fit**: heavy commercial work. Simpro may support some workflows, but businesses dominated by heavy commercial work often need to manage much of that work outside Simpro.
+- **Not a fit / avoid leading with Simpro**: industrial workflows, general contractors, and complex projects that dominate the business. The framework notes industrial complexity can create 2x-4x implementation effort and mismatched expectations.
+- **Qualification lens for content**: when writing for broad trade audiences, qualify the work mix by environment, work type, and complexity before assuming Simpro is the best answer. Strong Simpro-fit copy should emphasize small jobs, recurring contracts, maintenance, inspections, repairs, installations, and mid-sized projects.
 
 ### Secondary Audiences
 

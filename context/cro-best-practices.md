@@ -2,7 +2,7 @@
 
 Conversion Rate Optimization guidelines for landing pages.
 
-> **Source note**: The Simpro Marketing Portal does not have a dedicated CRO playbook for the marketing site. Growth Marketing (Tim Lamb) owns a `2025 Completed Experiments` deck and `Process for Web Intake and Planning` doc, but neither is a guidelines doc. The rules below are framework-generic best practices. **Apply them through Simpro's brand voice** (see `brand-voice.md`) — every headline should be specific, every CTA should match the funnel stage, every trust signal should be a named customer or named number from `features.md`.
+> **Source note**: The Simpro Marketing Portal does not have a dedicated CRO playbook for the marketing site. Growth Marketing (Tim Lamb) owns a `2025 Completed Experiments` deck and `Process for Web Intake and Planning` doc, but neither is a guidelines doc. Product Marketing's Customer Quote Matrix, Customer Stories deck, and Customer Advocacy overview are proof-source assets, not tested CRO guidance. The rules below are framework-generic best practices. **Apply them through Simpro's brand voice** (see `brand-voice.md`) — every headline should be specific, every CTA should match the funnel stage, every trust signal should be a named customer or named number from `features.md`.
 
 ---
 
@@ -32,6 +32,12 @@ Above-the-fold trust signals that work for Simpro:
 - Named customer logos in the relevant trade (relevance)
 - A specific outcome quote from a similar-trade customer (proof)
 - "Trusted in [US / AU / NZ / UK]" — geographic credibility
+
+### Proof-source workflow
+- Use the **Global Customer Quote Matrix** first when a page needs a quote, because it is tagged by country, state, industry, business name, theme, customer archetype, quote, and video availability.
+- Match quote selection to the page's trade, region, buying stage, and archetype. A mature multi-branch operator should not get the same proof as a small residential business moving off paper.
+- Use **Customer Stories** and **References** assets to verify that a quote or metric has a story path before promoting it in hero copy.
+- Keep Customer Advocacy program metrics internal unless the brief is explicitly about advocacy operations. They explain the reference program, not the software value proposition.
 
 ### Headline patterns that fit Simpro voice
 - **Outcome + customer**: "How [Customer] [Outcome] with Simpro"

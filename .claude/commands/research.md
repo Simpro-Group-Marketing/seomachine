@@ -32,18 +32,24 @@ Use this command to conduct comprehensive SEO keyword research and competitive a
 - **Domain Authority**: Note which competitors rank (indie blogs vs. major publications)
 
 ### Context Integration
-- **your company Advantage**: How can your company product features naturally enhance this content?
-- **Brand Alignment**: Check @context/brand-voice.md for messaging fit
-- **Existing Content**: Review @context/internal-links-map.md for related your company articles
-- **Target Keywords**: Cross-reference with @context/target-keywords.md priority list
-- **SEO Guidelines**: Ensure research aligns with @context/seo-guidelines.md requirements
+- **Must-read context before drafting the brief**:
+  - @context/brand-voice.md for Simpro voice, FY26 positioning, audience maturity archetypes, and best-fit targeting boundaries
+  - @context/features.md for Simpro capabilities, add-ons, AI positioning, implementation, integrations, security, proof points, and fit boundaries
+  - @context/style-guide.md for terminology, product-name rules, tone, regional language, and forbidden phrasing
+  - @context/internal-links-map.md for sitemap-backed internal links
+  - @context/target-keywords.md for sitemap-derived topic clusters, first-party GSC/GA4 performance signals, and remaining metric boundaries
+  - @context/competitor-analysis.md for competitive differentiation and objections
+  - @context/cro-best-practices.md for proof-source workflow and CTA/trust-signal guidance
+- **Simpro advantage**: Identify how Simpro's product features, customer proof, and best-fit use cases naturally enhance this topic.
+- **Brand alignment**: Apply Simpro's authoritative, ambitious, trades-focused, practical, outcomes-driven voice.
+- **Evidence boundaries**: Do not present search volume, ranking, conversion priority, or live SERP findings as verified unless checked with GSC, GA4, DataForSEO, Ahrefs/Semrush, or live SERP review in this run.
 
-### Podcast Industry Focus
-- **Podcast Creator Angle**: How does this topic specifically impact target audiences?
-- **Technical Requirements**: Any your industry-specific technical considerations?
-- **Industry Trends**: Current trends in your industry that relate to this topic
-- **Use Cases**: Real podcast scenarios where this topic matters
-- **Pain Points**: Specific challenges target audiences face with this topic
+### Simpro Industry Focus
+- **Trade operator angle**: Explain how this topic affects residential and commercial trade service businesses, especially low voltage, HVAC, plumbing, electrical/data, mechanical, and multi-trade operators.
+- **Best-fit boundaries**: Use the Product Marketing Best-Fit Targeting Framework. Simpro is strongest for residential, light commercial, and medium commercial work involving small jobs, recurring contracts, inspections, maintenance, repairs, installations, and mid-sized projects. Be cautious with mostly residential North America, heavy commercial, industrial, general contractors, and complex-project-dominant businesses.
+- **Customer maturity**: When useful, map pain points to the Empower, Elevate, and Excel archetypes from @context/brand-voice.md.
+- **Product specificity**: Bring in relevant Simpro capabilities from @context/features.md, such as real-time job costing, quote-to-cash workflows, Simpro Payments, Delight, Fast Cash, Data Feed, Digital Forms, Maintenance Planner, Takeoffs, Multi-Company, Simtrac, SMS Messaging, Sage Intacct, implementation packages, and security/infrastructure proof.
+- **Pain points**: Anchor recommendations in margin visibility, cash flow, admin reduction, field adoption, recurring maintenance, asset compliance, quoting speed, inventory, and scaling without chaos.
 
 ### Content Planning
 - **Recommended Structure**: Outline H2 and H3 headings based on research
@@ -99,7 +105,7 @@ Conclusion
 ### 4. Supporting Elements
 - **Statistics to Include**: 5-7 relevant data points with sources
 - **Expert Quotes**: Potential sources or existing quotes
-- **Examples/Case Studies**: Real podcast scenarios to feature
+- **Examples/Case Studies**: Real Simpro customer outcomes or relevant trade-service scenarios to feature
 - **Visual Suggestions**: Screenshots, charts, or graphics needed
 
 ### 5. Internal Linking Strategy
