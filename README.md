@@ -1,17 +1,20 @@
-# SEO Machine
+# SEO Machine (Simpro Group)
 
-A specialized Claude Code workspace for creating long-form, SEO-optimized blog content for any business. This system helps you research, write, analyze, and optimize content that ranks well and serves your target audience.
+Simpro Marketing's Claude Code workspace for **SEO and AEO/GEO** blog content — research, write, optimize, and publish field-service content with Simpro-specific brand context, first-party analytics, and generative-engine optimization built in.
+
+Fork of [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/seomachine), customized on branch `custom/local-context` for [simprogroup.com](https://www.simprogroup.com).
 
 ## Overview
 
 SEO Machine is built on Claude Code and provides:
-- **Custom Commands**: `/research`, `/write`, `/rewrite`, `/analyze-existing`, `/optimize`, `/performance-review`, `/publish-draft`, `/article`, `/priorities`, plus specialized research and landing page commands
+- **Custom Commands**: `/research`, `/write`, `/rewrite`, `/article`, `/analyze-existing`, `/optimize`, `/performance-review`, `/publish-draft`, `/priorities`, `/research-ai-citations`, plus SERP, gap, trending, cluster, and landing-page commands
 - **Specialized Agents**: Content analyzer, SEO optimization, meta element creation, internal linking, keyword mapping, editor, performance analysis, headline generator, CRO analyst, landing page optimizer
-- **Marketing Skills**: 26 marketing skills for copywriting, CRO, A/B testing, email sequences, pricing strategy, and more
+- **Marketing Skills**: 26+ marketing skills for copywriting, CRO, A/B testing, email sequences, pricing strategy, and more
+- **AEO/GEO Workflow**: Capsule Method structure, PAA/FAQ integration, source mapping, E-E-A-T checks, and `aeo_geo_rater` scoring (90+ target) via `context/aeo-geo-blog-strategy.md`
 - **Advanced SEO Analysis**: Search intent detection, keyword density & clustering, content length comparison, readability scoring, SEO quality rating (0-100)
-- **Data Integrations**: Google Analytics 4, Google Search Console, DataForSEO for real-time performance insights
-- **Context-Driven**: Brand voice, style guide, SEO guidelines, and examples guide all content
-- **Workflow Organization**: Structured directories for topics, research, drafts, and published content
+- **Data Integrations**: GA4 and GSC via project MCP servers; DataForSEO, Ahrefs, and Semrush context in keyword/competitor files; PEEC AI citation tracking
+- **Simpro Context Pack**: Pre-filled brand voice, style guide, features, 40+ competitor battlecards, writing examples, internal links, target keywords, AI citation register, Reddit strategy, and scoped Lightning positioning overlay
+- **Workflow Organization**: Structured directories for topics, research, drafts, audits, and published content
 
 ## Getting Started
 
@@ -23,8 +26,9 @@ SEO Machine is built on Claude Code and provides:
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/TheCraigHewitt/seomachine.git
+git clone https://github.com/Simpro-Group-Marketing/seomachine.git
 cd seomachine
+git checkout custom/local-context
 ```
 
 2. Install Python dependencies for analysis modules:
@@ -39,25 +43,40 @@ This installs:
 - Machine learning (scikit-learn)
 - Web scraping tools (beautifulsoup4)
 
-3. Open in Claude Code:
+3. Configure credentials and MCP (Simpro setup):
+
+   - Copy `.env.example` to `.env` and set GA4/GSC/DataForSEO paths (see `CLAUDE.md` for MCP vs Python module credential boundaries)
+   - Copy `.mcp.json.template` to `.mcp.json` and adjust paths for your machine
+   - Copy `.claude/settings.local.template.json` to `.claude/settings.local.json`
+   - Place GA4 ADC at `credentials/adc.json` and GSC OAuth client secret at `credentials/gsc_client_secrets.json` (see `credentials/.gitkeep` — secrets are gitignored)
+   - For the bundled GSC MCP server: `cd mcp-gsc && pip install -r requirements.txt` (see `mcp-gsc/README.md`)
+
+4. Open in Claude Code:
 ```bash
 claude-code .
 ```
 
-4. **Customize Context Files** (Important!):
+5. **Context Files** (pre-filled for Simpro):
 
-   All context files are provided as templates. Fill them out with your company's information:
+   Most `context/` files are already populated from the Simpro Marketing Portal, Voice Style Guide, battlecards, GSC/GA4 US metrics, Semrush/Ahrefs benchmarks, PEEC AI citation exports, and public Reddit research. See `context/_coverage-report.md` for file-by-file status and remaining gaps.
 
-   - `context/brand-voice.md` - Define your brand voice and messaging *(see examples/castos/ for reference)*
-   - `context/writing-examples.md` - Add 3-5 exemplary blog posts from your site
-   - `context/features.md` - List your product/service features and benefits
-   - `context/internal-links-map.md` - Map your key pages for internal linking
-   - `context/style-guide.md` - Fill in your style preferences
-   - `context/target-keywords.md` - Add your keyword research and topic clusters
-   - `context/competitor-analysis.md` - Add competitor analysis and insights
-   - `context/seo-guidelines.md` - Review and adjust SEO requirements
+   | File | Purpose |
+   |------|---------|
+   | `brand-voice.md` | FY26 messaging + Voice Style Guide tone |
+   | `style-guide.md` | Editorial rules, terminology, Lightning naming |
+   | `features.md` | Product/value props and add-ons |
+   | `competitor-analysis.md` | 40+ battlecards + SERP/backlink overlays |
+   | `target-keywords.md` | Topic clusters + GSC/GA4/Semrush metrics |
+   | `internal-links-map.md` | Sitemap URLs + performance-prioritized linking |
+   | `writing-examples.md` | Four simprogroup.com blog exemplars |
+   | `seo-guidelines.md` | Simpro SEO structure requirements |
+   | `aeo-geo-blog-strategy.md` | Capsule Method, PAA, schema, E-E-A-T |
+   | `ai-citation-targets.md` | AI citation evidence register + PEEC insight |
+   | `reddit-strategy.md` | Community targets and engagement rules |
+   | `cro-best-practices.md` | CRO overlay + experiment/KPI source map |
+   | `lightning-positioning.md` | Scoped overlay for Simpro Group Lightning only |
 
-   **Quick Start**: Check out `examples/castos/` to see a complete real-world example of all context files filled out for a podcast hosting SaaS company.
+   **Upstream reference**: `examples/castos/` still shows the original Castos template pattern from the open-source repo.
 
 ## Workflows
 
@@ -87,9 +106,10 @@ claude-code .
 
 **What it does**:
 - Creates 2000-3000+ word SEO-optimized article
-- Maintains your brand voice from `context/brand-voice.md`
-- Integrates keywords naturally
-- Includes internal and external links
+- Applies `context/aeo-geo-blog-strategy.md` (Capsule Method, PAA/FAQ, source mapping, schema notes)
+- Maintains Simpro brand voice from `context/brand-voice.md` (and `lightning-positioning.md` when relevant)
+- Integrates keywords from `context/target-keywords.md`
+- Includes internal and external links per `context/internal-links-map.md`
 - Provides meta elements (title, description, keywords)
 - Automatically triggers optimization agents
 - Saves to `/drafts/` directory
@@ -1004,22 +1024,24 @@ Every article must meet these requirements:
 
 Built with [Claude Code](https://claude.com/claude-code) by Anthropic.
 
-Originally developed for Castos, now available as an open-source tool for any business to streamline long-form SEO content creation.
+Upstream project: [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/seomachine) (originally developed for Castos). This fork is maintained by Simpro Group Marketing for trades and field-service SEO/AEO content.
 
 ## Examples & Community
 
-**See It In Action**: Check out `examples/castos/` for a complete real-world example of how a podcast hosting SaaS company uses SEO Machine.
+**Simpro context**: Start with `context/_coverage-report.md` and the filled files listed in Getting Started.
 
-**Contributions Welcome**: Found a bug? Have a feature request? Want to share your own industry example? Contributions and PRs are welcome!
+**Upstream example**: `examples/castos/` shows the original Castos template pattern from the open-source repo.
+
+**Contributions**: Internal Simpro Marketing changes go to `custom/local-context`. Upstream improvements may be contributed back to TheCraigHewitt/seomachine where appropriate.
 
 ---
 
 **Ready to start creating?**
 
-1. Configure your context files (use the templates as your guide)
-2. Run `/research [your topic]`
-3. Review the brief
-4. Run `/write [your topic]`
-5. Publish amazing content!
+1. Copy `.env.example`, `.mcp.json.template`, and credential files for your machine
+2. Run `/research [your topic]` (or `/research-serp` for SERP-first work)
+3. Review the brief in `research/`
+4. Run `/write [your topic]` or `/article [your topic]` for full PAA collection
+5. Check AEO/GEO score and publish via `/publish-draft` when ready
 
-Happy writing! 📝
+Happy writing!
