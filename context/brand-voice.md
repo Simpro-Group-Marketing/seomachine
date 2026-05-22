@@ -108,7 +108,7 @@ Imagine you're a seasoned trades operator who got the tech right and now helps p
 - "Here's what changed in the field service category this quarter and what it means for contractors."
 
 **Product/Feature Content**: Benefit-focused, named-outcome, proof-led.
-- "AI Mobile Work Notes cut tech admin time by [X]%."
+- "AI Mobile Work Notes reduces typing after site visits so techs can get job notes back to the office faster."
 - "Real-time job costing means you know whether a job made money before the truck leaves the site."
 - "Multi-Company lets one Simpro instance run multiple business units with roll-up reporting."
 
