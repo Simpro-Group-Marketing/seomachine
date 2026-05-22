@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(wait:*)",
+      "Read(./**)",
+      "Write(./research/**)",
+      "Write(./drafts/**)",
+      "Write(./rewrites/**)",
+      "Write(./published/**)",
+      "Write(./audits/**)",
+      "Write(./repurposed/**)",
+      "mcp__gsc__list_properties",
+      "mcp__gsc__get_search_analytics",
+      "mcp__gsc__get_performance_overview",
+      "mcp__analytics-mcp__get_account_summaries",
+      "mcp__analytics-mcp__run_report"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./.mcp.json)",
+      "Read(./client_secret*.json)",
+      "Read(./credentials/**)",
+      "Read(./*credentials*.json)",
+      "Read(./*token*.json)",
+      "Read(./mcp-gsc/token.json)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "gsc",
+    "analytics-mcp"
+  ]
+}

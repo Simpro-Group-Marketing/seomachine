@@ -2,9 +2,9 @@
 
 This document organizes Simpro's target keyword hypotheses by topic cluster for strategic content planning and SEO optimization.
 
-**Source**: Product Marketing portal source map, `https://www.simprogroup.com/sitemap.xml` accessed through Playwright MCP on 2026-05-21, GSC `sc-domain:simprogroup.com`, GA4 property `properties/309907809`, `simpro-seo-dashboard.html` reviewed on 2026-05-21, Ahrefs Free Keyword Generator US results queried through Playwright on 2026-05-21, and Semrush MCP `phrase_these` US keyword metrics queried on 2026-05-21.
+**Source**: Product Marketing portal source map, `https://www.simprogroup.com/sitemap.xml` accessed through Playwright MCP on 2026-05-21, GSC `sc-domain:simprogroup.com`, GA4 property `properties/309907809`, `simpro-seo-dashboard.html` reviewed on 2026-05-21, Ahrefs Free Keyword Generator US results queried through Playwright on 2026-05-21, Semrush MCP `phrase_these` US keyword metrics queried on 2026-05-21, and Semrush MCP expansion reports (`phrase_fullsearch`, `phrase_related`, `phrase_organic`, `domain_domains`) queried on 2026-05-22.
 
-**Evidence boundary**: GSC and GA4 metrics below are first-party US-only performance signals for 2026-02-20 through 2026-05-20. Ahrefs Free Keyword Generator values below are external US estimates shown as volume buckets and categorical difficulty. Semrush MCP values below provide exact US keyword-volume, CPC, paid-competition, result-count, keyword-difficulty-index, trend-array, and SERP-feature-code signals for the 15 priority terms checked on 2026-05-21. The reviewed dashboard uses DataForSEO estimates and is treated as strategy context, not as first-party performance data. This pass still does not include manual live-SERP format review or community/reddit research.
+**Evidence boundary**: GSC and GA4 metrics below are first-party US-only performance signals for 2026-02-20 through 2026-05-20. Ahrefs Free Keyword Generator values below are external US estimates shown as volume buckets and categorical difficulty. Semrush MCP values below provide exact US keyword-volume, CPC, paid-competition, result-count, keyword-difficulty-index, trend-array, SERP-feature-code, keyword-expansion, and competitor-gap signals for the checked terms. The reviewed dashboard uses DataForSEO estimates and is treated as strategy context, not as first-party performance data. This pass still does not include manual UX review or human SERP-feature interpretation beyond Semrush's feature-code output.
 
 ## How to Use This File
 
@@ -101,6 +101,57 @@ This document organizes Simpro's target keyword hypotheses by topic cluster for 
 | field service management software pricing | 20 | 0 | $0.00 | 0.01 | 0 | None returned | Very small exact volume; use as pricing FAQ support, not a standalone pillar. |
 | field service job costing | 0 | 0 | $0.00 | 0.00 | 0 | None returned | No Semrush demand signal for exact phrase. Keep as product-proof support. |
 | job costing formula | 50 | 15 | $0.00 | 0.10 | 265,000,000 | 5, 6, 9, 20, 21, 36, 52 | Informational adjacent term has modest demand and easy KD. |
+
+### Semrush MCP Expansion Pass - 2026-05-22
+
+Source boundary: authenticated Semrush MCP `phrase_fullsearch`, `phrase_related`, `phrase_these`, `phrase_organic`, and `domain_domains` reports queried with `database=us` on 2026-05-22. This pass expands the earlier 15-keyword check and slices competitor-owned terms where Simpro is absent. Values are Semrush estimates; compare with GSC/GA4 before moving production priorities.
+
+#### Expanded Keyword Candidates With Exact Semrush Metrics
+
+| Cluster | Keyword | US Volume | KD Index | CPC | Competition | Readout |
+|---|---|---:|---:|---:|---:|---|
+| FSM category | `field workforce management software` | 3,600 | 16 | $34.06 | 0.05 | Strong adjacent category term with much easier KD than the head FSM term. Add to category-page copy and FAQ, not a separate pillar yet. |
+| FSM category | `field service scheduling software` | 2,400 | 40 | $41.22 | 0.17 | Real workflow demand; should reinforce scheduling/dispatch proof and internal links into the FSM page. |
+| FSM category | `field service management software for small business` | 880 | 24 | $37.99 | 0.39 | Useful comparison/qualification intent. Simpro should qualify fit around growing, complex trade businesses rather than chase micro-SMB positioning. |
+| FSM category | `field service dispatch software` | 720 | 28 | $42.27 | 0.09 | Lower-difficulty workflow term; map to scheduling/dispatch content and feature proof. |
+| FSM category | `mobile field service management software` | 590 | 20 | $33.78 | 0.06 | Strong support for mobile/offline field-app sections. |
+| FSM category | `field service CRM software` | 480 | 42 | $49.59 | 0.18 | Use carefully; Simpro is not a CRM-first platform, but CRM language belongs in feature comparison pages. |
+| HVAC | `hvac business software` | 1,000 | 45 | $150.05 | 0.17 | High CPC validates commercial value; use in HVAC industry-page H2/FAQ support. |
+| HVAC | `hvac estimating software` | 1,000 | 12 | $99.48 | 0.29 | Low KD and high CPC. Strong candidate for a support section or article that links to HVAC software. |
+| HVAC | `hvac scheduling software` | 1,000 | 42 | $150.88 | 0.31 | Workflow-support term for scheduling/dispatch proof. |
+| HVAC | `hvac service software` | 1,000 | 47 | $160.21 | 0.53 | Competitive but highly commercial; include naturally on the HVAC page. |
+| HVAC | `hvac dispatch software` | 720 | 18 | $100.44 | 0.29 | Strong lower-KD dispatch term; good supporting article or FAQ target. |
+| HVAC | `hvac business management software` | 590 | 45 | $215.98 | 0.29 | High CPC, but harder KD. Use as page copy/FAQ before standalone content. |
+| Plumbing | `plumbing estimating software` | 1,300 | 23 | $214.78 | 0.37 | Best plumbing expansion term in this pass; high CPC and manageable KD. |
+| Plumbing | `plumbing business software` | 590 | 48 | $222.19 | 0.36 | High commercial value; use to expand industry-page positioning. |
+| Plumbing | `plumbing scheduling software` | 590 | 33 | $212.58 | 0.28 | Good workflow term for plumbing operations content. |
+| Plumbing | `plumbing contractor software` | 390 | 14 | $228.00 | 0.16 | Lower volume but excellent KD/CPC mix; strong exact-match support for the plumbing page. |
+| Plumbing | `plumbing field service software` | 390 | 42 | $0.00 | 0.10 | Relevant semantic support; lower commercial signal than the terms above. |
+| Plumbing | `best plumbing software` | 320 | 11 | $228.00 | 0.40 | Low KD plus BOFU/list intent. Good candidate for comparison inclusion and owned support content. |
+| Electrical | `software for electrical contractors` | 480 | 25 | $84.92 | 0.34 | Strong variant for the electrical page; should appear in page copy and metadata testing. |
+| Electrical | `electrical contractor scheduling software` | 260 | 25 | $77.08 | 0.15 | Easier workflow-support term; good for scheduling/dispatch sections. |
+| Electrical | `best software for electrical contractors` | 210 | 24 | $183.39 | 0.50 | High CPC and list intent. Useful for third-party inclusion and owned comparison content. |
+| Electrical | `electrical contractor job management software` | 170 | 21 | $131.16 | 0.12 | Good match to Simpro's core job-management story. |
+| Electrical | `electrical contractor management software` | 170 | 25 | $132.43 | 0.34 | Useful semantic variant for electrical page sections. |
+| Alternative intent | `servicetitan alternatives` | 260 | 17 | $34.74 | 0.67 | Better target than singular `ServiceTitan alternative`; build or strengthen a plural alternatives asset if sales needs BOFU coverage. |
+| AI field service | `ai field service management` | 140 | 24 | $14.41 | 0.64 | Stronger AI keyword than `AI field service software` by volume; use as education/support around the existing AI field-service blog. |
+
+#### Semrush Expansion Readout
+
+- The strongest new software expansion terms are `field workforce management software`, `field service scheduling software`, `hvac estimating software`, `plumbing estimating software`, `software for electrical contractors`, and `servicetitan alternatives`.
+- HVAC and plumbing have unusually high CPCs across workflow terms. That supports strengthening vertical pages with estimating, scheduling, dispatch, invoice, and business-management language, not only broad "software" language.
+- Electrical expansion is lower-volume but has favorable KD/CPC on exact contractor variants. The electrical page should use `software for electrical contractors`, `electrical contractor scheduling software`, and `electrical contractor job management software` as semantic support.
+- AI demand remains smaller than the core FSM and vertical software terms. `ai field service management` is the best near-term AI expansion term from this pass; AI should remain a differentiator within FSM workflows rather than the main SEO category anchor.
+- `servicetitan alternatives` has higher volume than the singular phrase and low KD. It is a better BOFU target than `ServiceTitan alternative` if the comparison page is prioritized.
+
+#### Semrush SERP and Competitor-Gap Notes
+
+- `field service management software` returns FieldPulse, Arrivy, Gartner, Reddit, Capterra, Oracle, FieldPoint, G2, Salesforce, Workiz, ServiceFusion, ServiceNow, SAP, IBM, Microsoft, Zendesk, and YouTube in the checked Semrush SERP slice. Owned-page work must be paired with directory/listicle/community inclusion.
+- `best field service management software` is publisher-led: YouTube, Gartner, Reddit, G2, Lark, CiraSync, FreightWaves, Zendesk, SAP, Microsoft, FieldPulse, ServiceTitan, and BigChange appeared in the checked slice.
+- `hvac software` is vendor-heavy but includes community and review publishers: ServiceTitan, ServiceTrade, Housecall Pro, Reddit, Spiceworks, FieldBoss, Podium, YouTube, Workiz, FieldPulse, Workyard, Capterra, FieldEdge, and WEX FSM.
+- `electrical contractor software` adds Knowify, Podium, Deltek, Fieldwire, Jobber, Commusoft, Procore, Raken, ResQ, Capterra, and Reddit as visible competitors/publishers.
+- `plumbing software` adds Workiz, Jobber, FieldPulse, ServiceTitan, Housecall Pro, Knowify, Capterra, FieldEdge, BuildOps, Sera, McCormick Systems, TurboBid, and ECI as visible competitors/publishers.
+- Semrush keyword-gap reports show competitors ranking where Simpro is absent for `field service management software`, `field workforce management software`, `best field service management software`, `field service dispatch software`, `hvac software`, `electrical service software`, and multiple high-volume salary/tool topics. Treat salary/tool topics as top-funnel publisher moats, not immediate conversion priorities.
 
 ### Dashboard Cross-Check
 
@@ -573,12 +624,12 @@ These topics are strategically important based on Product Marketing context and 
 
 ## Maintenance
 
-**Last Updated**: 2026-05-21
+**Last Updated**: 2026-05-22
 **Next Review**: 2026-08-21, or sooner if the public sitemap moves to `simpro.ai`.
 
 **Required Next Data Pulls**:
 - Refresh GSC query/page export and GA4 landing-page engagement/key-event data quarterly, or after major page changes.
-- Refresh Semrush MCP `phrase_these` quarterly for the priority set, and expand it if new keyword clusters are added.
-- Live SERP review for every High Priority to Validate topic.
+- Refresh Semrush MCP `phrase_these` quarterly for the priority set, and expand it again only when new keyword clusters are added.
+- Run a manual live SERP review for every High Priority to Validate topic, including human interpretation of Semrush SERP feature codes and page format.
 - Cannibalization review for topic clusters with several existing pages.
 - If `simpro.ai` becomes the public content domain, add its GSC property and GA4 traffic separately rather than merging it into this historical `simprogroup.com` baseline.

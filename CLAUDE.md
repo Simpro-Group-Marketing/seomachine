@@ -12,7 +12,25 @@ SEO Machine is an open-source Claude Code workspace for creating SEO-optimized b
 pip install -r data_sources/requirements.txt
 ```
 
-API credentials are configured in `data_sources/config/.env` (GA4, GSC, DataForSEO, WordPress). GA4 service account credentials go in `credentials/ga4-credentials.json`.
+API credentials are configured in `.env` for repo-root scripts and `data_sources/config/.env` for legacy data-source scripts.
+
+MCP credentials are repo-local and intentionally separate from the Python module service-account paths:
+- GA4 MCP: `credentials/adc.json`, referenced by `GOOGLE_APPLICATION_CREDENTIALS`
+- GSC MCP: `credentials/gsc_client_secrets.json`, referenced by `GSC_OAUTH_CLIENT_SECRETS_FILE`
+
+Local Python modules still expect service-account paths when used directly:
+- GA4 Python module: `GA4_CREDENTIALS_PATH`
+- GSC Python module: `GSC_CREDENTIALS_PATH`
+
+Do not point `GSC_CREDENTIALS_PATH` at the OAuth client secret. Do not add `ADK_DISABLE_PLUGGABLE_AUTH` for this MCP setup.
+
+## MCP Setup
+
+This repo uses two project-scoped MCP servers:
+- `gsc`
+- `analytics-mcp`
+
+Codex reads `.codex/config.toml`; Claude-compatible clients can read `.mcp.json`. Both should point to `C:\Users\patrick.grueschow\Desktop\seomachine-main`, not to another local repo.
 
 ## Commands
 

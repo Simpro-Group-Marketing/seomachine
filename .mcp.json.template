@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "gsc": {
+      "command": "C:\\Users\\patrick.grueschow\\Desktop\\seomachine-main\\mcp-gsc\\venv\\Scripts\\python.exe",
+      "args": ["C:\\Users\\patrick.grueschow\\Desktop\\seomachine-main\\mcp-gsc\\gsc_server.py"],
+      "env": {
+        "GSC_OAUTH_CLIENT_SECRETS_FILE": "${GSC_OAUTH_CLIENT_SECRETS_FILE}",
+        "GSC_DATA_STATE": "all"
+      }
+    },
+    "analytics-mcp": {
+      "command": "analytics-mcp",
+      "args": [],
+      "env": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "${GOOGLE_APPLICATION_CREDENTIALS}"
+      }
+    }
+  }
+}

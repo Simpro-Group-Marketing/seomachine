@@ -87,7 +87,8 @@ htmlcov/
 
 # Secrets and sensitive data
 secrets/
-credentials/
+credentials/*
+!credentials/.gitkeep
 client_secret_*.json
 *.key
 *.pem
@@ -114,6 +115,9 @@ env/
 .playwright-mcp/
 .agents/
 .mcp.json
+.claude/settings.local.json
+mcp-gsc/venv/
+mcp-gsc/token.json
 
 
 # GA4 Credentials (additional explicit entry)
