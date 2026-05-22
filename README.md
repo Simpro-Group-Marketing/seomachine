@@ -1,6 +1,6 @@
 # SEO Machine (Simpro Group)
 
-Simpro Marketing's Claude Code workspace for **SEO and AEO/GEO** blog content — research, write, optimize, and publish field-service content with Simpro-specific brand context, first-party analytics, and generative-engine optimization built in.
+Simpro Marketing's Claude Code workspace for **SEO and AEO/GEO blog posts** — research, write, optimize, and publish long-form articles for field-service and trades audiences, with Simpro-specific brand context, first-party analytics, and generative-engine optimization built in.
 
 Fork of [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/seomachine), customized on branch `custom/local-context` for [simprogroup.com](https://www.simprogroup.com).
 
