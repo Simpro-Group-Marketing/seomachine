@@ -21,6 +21,7 @@ Use this command to create comprehensive, SEO-optimized long-form blog content.
 - **Style Guide**: Follow formatting rules from @context/style-guide.md
 - **SEO Guidelines**: Apply requirements from @context/seo-guidelines.md
 - **Target Keywords**: Integrate keywords from @context/target-keywords.md naturally
+- **Lightning Overlay**: If the topic or research brief mentions Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, also load @context/lightning-positioning.md and treat it as a scoped overlay.
 
 ### Content Structure
 
@@ -174,6 +175,7 @@ Don't just put one CTA at the end. Embedded CTAs get 121% more conversions than 
 - Use messaging framework from your context files
 - Apply terminology preferences consistently
 - Match tone to content type (how-to, strategy, news, etc.)
+- For Lightning-specific content, apply @context/lightning-positioning.md: use required brand prefixes, keep JustAsk as the interface, Cooper as the brain, exact agent names, field service trades first-reference wording, and verified Lightning proof claims.
 
 ## Output
 Provides a complete, publish-ready article including:

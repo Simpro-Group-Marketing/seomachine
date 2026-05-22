@@ -170,6 +170,7 @@ These are the four words that organize every piece of marketing. Use these exact
 
 **Category line**: *AI-first operating platform for the trades.*
 - This is the category-defining phrase. Use it consistently in meta descriptions, hero subheadings, and AI-citation-bait sentences. Variations like "AI-first field service platform" are acceptable when the SEO target requires it; "AI-first FSM software" is not.
+- **Lightning-specific exception**: Content specifically about Simpro Group Lightning follows `context/lightning-positioning.md`. In that context, the category line is **AI-First Operating Platform for the Field Service Trades**, and first-reference customer descriptors should use **field service trades** rather than generic **trades**.
 
 **Brand Promise**: *We empower trade and field service businesses with AI-first tools that make your work more profitable, your days more predictable, and your business stronger.*
 - Three-part promise rhythm: **more profitable / more predictable / stronger**. The pattern (comparative-adj, comparative-adj, comparative-adj) is reusable for hero copy elsewhere.
@@ -595,6 +596,17 @@ Examples:
 **AI Features**:
 - Refer to specific in-product AI capabilities by name: **AI Mobile Work Notes**, **AI-assisted data entry**, **smart scheduling**, **Delight** (AI customer marketing agent)
 - "AI" alone is acceptable; "Simpro AI" works as a category descriptor; avoid "artificial intelligence" in body copy (use only on technical pages)
+
+### Simpro Group Lightning References
+
+Use these rules only for Lightning-specific content. For the full proof stack, architecture rules, and trigger list, load `context/lightning-positioning.md`.
+
+- Use **Simpro Lightning**, **AroFlo Lightning**, **BigChange Lightning**, or **Simpro Group Lightning** in customer-facing copy. Do not use **Lightning** alone as a customer-facing product reference.
+- **JustAsk** is the conversational interface to the brain. It is not an agent, business analyst, or fifth team member.
+- **Cooper** is the AI brain. Cooper is not the platform, not the product, and not one of the agents.
+- The four launch agents are **FieldReady**, **JobReady**, **JobScribe**, and **JobBrief**. Use these names exactly.
+- Use **Two-Way Messaging** and **GPS Time Tracking** for plain customer/AM content. Use **DirectLine 2-Way Messaging** and **TrueTime GPS Timekeeping** only in product-marketing or Fred-voice contexts, and do not mix both naming registers in one asset.
+- For Lightning-specific first-reference audience language, prefer **field service trades**, **field service trade business**, or **field service trade operator**. Use **the trades** only as second-reference shorthand, cadence language, or customer-quote language after scope is clear.
 
 ### Competitor References
 

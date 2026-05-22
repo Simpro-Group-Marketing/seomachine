@@ -87,6 +87,20 @@ Source: FY26 Brand Message House (Simpro tab), Sales Battlecards, ICP slides, si
 - **Fast Cash** (agentic AI AR assistant): Manages invoice follow-up with dynamic cadence optimization, context-aware messaging, real-time payment-status sync, escalation filtering, and analytics; most effective when paired with Simpro Payments
 - **AI positioning boundary**: Simpro's AI story is practical and purpose-built for field service workflows. Position AI as modular intelligence inside trusted workflows, not a black-box replacement for the whole operating system.
 
+### Simpro Group Lightning Architecture
+
+For content specifically about Simpro Group Lightning, load `context/lightning-positioning.md` before drafting. The Lightning overlay is scoped to this offering and should not replace the broader Simpro FY26 context for general product, SEO, or brand content.
+
+- **Platform architecture**: Simpro Group Lightning is the AI intelligence layer that gives the existing FSM a brain. The FSM stays the heart; Cooper is the brain; together they create the platform upgrade.
+- **Brand architecture**: Use Simpro Lightning, AroFlo Lightning, or BigChange Lightning when the heart brand is known. Use Simpro Group Lightning for cross-brand or generic references. Do not use Lightning alone in customer-facing copy.
+- **JustAsk**: The conversational interface to Cooper and the whole platform. JustAsk is not an agent, fifth team member, or business analyst.
+- **Cooper**: The AI brain that learns the business, answers through JustAsk, and powers the agents. Cooper is not the platform and not an agent.
+- **Launch agents**: FieldReady is the Training & Onboarding Agent, JobReady is the Job Preparation Agent, JobScribe is the Documentation Agent, and JobBrief is the Customer Summary Agent.
+- **Always-on platform features**: Plain customer/AM content should use Two-Way Messaging and GPS Time Tracking. Product-marketing or Fred-voice content may use DirectLine 2-Way Messaging and TrueTime GPS Timekeeping.
+- **Price Lock**: Decision-stage and pricing copy should pair the 15% launch uplift and 25% standard uplift with the 3% plus in-country CPI Price Lock. Verify time-sensitive pricing before public use.
+- **Coming Specialists**: Use the fixed roadmap names FastCash, Delight, Pulse, Foresight, Forge, Swift, Sales Manager, Shield, Spark, and Precision. Do not invent new specialist names.
+- **Proof boundary**: Treat 6% to 24% as a north-star profit trajectory, not an average-customer promise. Treat the $200K capability for about $2K/year as rough-order economics that varies by base subscription.
+
 ### Add-Ons (Available a la carte)
 - **Digital Forms**: Custom mobile field forms with conditional logic, autofill from Simpro data, signatures, drawings, barcodes, multimedia, version control, compliance records, and two-way synchronization with Simpro
 - **Data Feed**: Rules-based automation that scans and extracts data from email attachments, PDFs, spreadsheets, CSVs, website forms, Simpro Digital Forms, and third-party integrations; can create/update leads, quotes, jobs, tasks, packing slips, purchase orders, and supplier invoices

@@ -40,9 +40,11 @@ Use this command to conduct comprehensive SEO keyword research and competitive a
   - @context/target-keywords.md for sitemap-derived topic clusters, first-party GSC/GA4 performance signals, and remaining metric boundaries
   - @context/competitor-analysis.md for competitive differentiation and objections
   - @context/cro-best-practices.md for proof-source workflow and CTA/trust-signal guidance
+- **Lightning overlay**: If the topic mentions Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, also read @context/lightning-positioning.md and apply it as a scoped overlay.
 - **Simpro advantage**: Identify how Simpro's product features, customer proof, and best-fit use cases naturally enhance this topic.
 - **Brand alignment**: Apply Simpro's authoritative, ambitious, trades-focused, practical, outcomes-driven voice.
 - **Evidence boundaries**: Do not present search volume, ranking, conversion priority, or live SERP findings as verified unless checked with GSC, GA4, DataForSEO, Ahrefs/Semrush, or live SERP review in this run.
+- **Lightning evidence boundary**: Do not use time-sensitive Lightning pricing, roadmap, or competitor claims publicly unless they are verified in the current run or explicitly sourced from approved current material.
 
 ### Simpro Industry Focus
 - **Trade operator angle**: Explain how this topic affects residential and commercial trade service businesses, especially low voltage, HVAC, plumbing, electrical/data, mechanical, and multi-trade operators.

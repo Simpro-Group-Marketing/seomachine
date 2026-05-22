@@ -28,12 +28,19 @@ Use this command to create high-converting landing pages optimized for either or
 - **Landing Page Templates**: @context/landing-page-templates.md for structure
 - **CRO Best Practices**: @context/cro-best-practices.md for conversion guidelines
 - **Brand Voice**: @context/brand-voice.md for tone and messaging
+- **Lightning Overlay**: If the page is about Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, also load @context/lightning-positioning.md.
 
 **If Research Brief Available:**
 - Review competitor analysis
 - Use recommended headlines
 - Reference identified pain points
 - Integrate suggested trust signals
+
+**Lightning Landing Pages:**
+- Keep the broad Simpro Message House intact for general Simpro pages; apply @context/lightning-positioning.md only to Lightning-specific claims and copy.
+- Use required brand prefixes in customer-facing copy and do not use Lightning alone as the product name.
+- Include a JustAsk moment and a Price Lock callout when the page is decision-stage, pricing-adjacent, or comparison-oriented.
+- Verify time-sensitive pricing, roadmap, and competitor claims before public publication.
 
 ---
 

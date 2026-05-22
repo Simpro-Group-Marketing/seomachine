@@ -14,6 +14,8 @@ This document defines the Simpro brand voice, tone, and messaging framework. Ref
 
 **Category**: AI-first operating platform for the trades.
 
+**Lightning-specific overlay**: When content is specifically about Simpro Group Lightning, follow `context/lightning-positioning.md` in addition to this file. That overlay is scoped to Lightning messaging and does not globally replace the FY26 Simpro category line.
+
 **Brand Promise**: We empower trade and field service businesses with AI-first tools that make your work more profitable, your days more predictable, and your business stronger.
 
 **Tagline**: *Work. Smarter.* (Carried from FY25; still in active use.)

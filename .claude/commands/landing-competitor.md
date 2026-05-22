@@ -270,6 +270,12 @@ Save competitor analyses to:
 
 ## Analysis Guidelines
 
+### Lightning-Specific Competitor Work
+
+If the competitor page or planned response involves Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, load @context/lightning-positioning.md before writing the analysis.
+
+For external or publishable competitor claims, verify the current competitor state in the same run. Lightning battle-card language may guide the angle, but do not treat older pricing, bundle, AI, or roadmap claims as current without verification.
+
 ### What to Focus On
 
 1. **Patterns That Convert**

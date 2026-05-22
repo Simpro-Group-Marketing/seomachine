@@ -21,6 +21,7 @@ Use this command to update and improve existing blog posts based on analysis fin
 - **Brand Voice**: Verify alignment with current @context/brand-voice.md
 - **SEO Guidelines**: Apply latest requirements from @context/seo-guidelines.md
 - **Competitive Context**: Understand what's changed in SERP since original publication
+- **Lightning Overlay**: If the article, topic, or analysis mentions Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, also load @context/lightning-positioning.md and correct the copy against that scoped overlay.
 
 ### Rewrite Strategy
 
@@ -129,6 +130,7 @@ Follow same structure as `/write` command:
 - Follow formatting from @context/style-guide.md
 - Ensure messaging aligns with current positioning
 - Keep focus on target audience needs
+- For Lightning-specific rewrites, fix unprefixed customer-facing Lightning references, JustAsk-as-agent errors, Cooper role confusion, incorrect agent names, first-reference "the trades" category wording, unsupported proof claims, and stale pricing or competitor claims.
 
 #### Readability
 - Improve sentence structure if needed

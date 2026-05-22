@@ -13,6 +13,9 @@ You are an expert in creating competitor comparison and alternative pages. Your 
 **Check for product marketing context first:**
 If `.claude/product-marketing-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
+**Check for Lightning context when relevant:**
+If the comparison topic mentions Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, DirectLine, TrueTime, Coming Specialists, or a named Lightning specialist, read `context/lightning-positioning.md` before drafting positioning. Treat Lightning battle-card language as internal angle guidance only; verify current competitor claims before using them in external or publishable copy.
+
 Before creating competitor pages, understand:
 
 1. **Your Product**
