@@ -96,7 +96,7 @@ claude-code .
 
 **Example**:
 ```
-/research content marketing strategies for B2B SaaS
+/research field service management software
 ```
 
 #### 2. Write the Article
@@ -116,7 +116,7 @@ claude-code .
 
 **Example**:
 ```
-/write content marketing strategies for B2B SaaS
+/write hvac scheduling software
 ```
 
 **Agent Auto-Execution**:
@@ -140,7 +140,7 @@ After writing, these agents automatically analyze the content:
 
 **Example**:
 ```
-/optimize drafts/content-marketing-strategies-2025-10-29.md
+/optimize drafts/hvac-scheduling-software-2026-05-22.md
 ```
 
 ### Updating Existing Content
@@ -161,8 +161,8 @@ After writing, these agents automatically analyze the content:
 
 **Examples**:
 ```
-/analyze-existing https://yoursite.com/blog/marketing-guide
-/analyze-existing published/marketing-guide-2024-01-15.md
+/analyze-existing https://www.simprogroup.com/blog/what-is-field-service-management/
+/analyze-existing published/what-is-field-service-management-2025-04-15.md
 ```
 
 #### 2. Rewrite/Update Content
@@ -181,7 +181,7 @@ After writing, these agents automatically analyze the content:
 
 **Example**:
 ```
-/rewrite marketing guide
+/rewrite field service management software
 ```
 
 ## Commands Reference
@@ -202,16 +202,17 @@ Comprehensive keyword and competitive research for new content.
 ---
 
 ### `/write [topic]`
-Create long-form SEO-optimized article (2000-3000+ words).
+Create long-form SEO-optimized blog post (2000-3000+ words).
 
 **Output**: Article in `/drafts/[topic]-[date].md`
 
 **Includes**:
 - Complete article with H1/H2/H3 structure
-- SEO-optimized content
-- Internal and external links
+- AEO/GEO structure from `context/aeo-geo-blog-strategy.md` (Capsule Method, PAA/FAQ, schema notes)
+- SEO-optimized content aligned with Simpro voice and `internal-links-map.md`
+- Internal and external links with source mapping
 - Meta elements (title, description, keywords)
-- SEO checklist
+- SEO + AEO/GEO checklists (90+ target on `aeo_geo_rater` when scored)
 
 **Auto-Triggers**:
 - SEO Optimizer agent
@@ -269,7 +270,12 @@ Publish article to WordPress via REST API with Yoast SEO metadata.
 ---
 
 ### `/article [topic]`
-Simplified article creation workflow.
+Full blog workflow with AnswerSocrates PAA collection via Playwright MCP, then research and draft steps.
+
+---
+
+### `/research-ai-citations [topic]`
+AI citation audit: prompt clusters, cited sources, Simpro visibility gaps, and updates to `context/ai-citation-targets.md`.
 
 ---
 
@@ -292,6 +298,7 @@ Remove AI watermarks and patterns from content (em-dashes, filler phrases, robot
 | `/research-trending` | Trending topic opportunities |
 | `/research-performance` | Performance-based content priorities |
 | `/research-topics` | Topic cluster research |
+| `/research-ai-citations` | AI engine citation audit for a topic cluster |
 
 ---
 
@@ -487,27 +494,36 @@ SEO Machine includes 26 marketing skills accessible as slash commands:
 
 ## Data Sources
 
-### Integration with Analytics
+### MCP Servers (Simpro setup — recommended for commands)
 
-SEO Machine integrates with real-time data sources to inform content strategy:
+Project-scoped MCP servers feed live data into research and performance workflows:
 
-**Google Analytics 4**:
-- Traffic and engagement metrics
-- Conversion tracking
-- Trend analysis
-- Traffic sources
+| Server | Purpose | Credentials |
+|--------|---------|-------------|
+| `gsc` | Search Console queries, pages, performance overview | `credentials/gsc_client_secrets.json` + OAuth token (`mcp-gsc/`) |
+| `analytics-mcp` | GA4 reports and account summaries | `credentials/adc.json` via `GOOGLE_APPLICATION_CREDENTIALS` |
 
-**Google Search Console**:
-- Keyword rankings and positions
-- Impressions and clicks
-- CTR analysis
-- Query performance
+Copy `.mcp.json.template` → `.mcp.json` and `.claude/settings.local.template.json` → `.claude/settings.local.json`. See `CLAUDE.md` and `mcp-gsc/README.md`.
+
+### Python module integrations
+
+Legacy and batch scripts use `data_sources/modules/`:
+
+**Google Analytics 4** (Python module + MCP):
+- US property `309907809` referenced in `target-keywords.md` and `internal-links-map.md`
+- Landing-page sessions and key events for internal-link priority
+
+**Google Search Console** (Python module + MCP):
+- `sc-domain:simprogroup.com` US query and page metrics in context files
+- Quick-win and performance commands
 
 **DataForSEO**:
-- Competitive rankings
-- SERP features
-- Keyword metrics
-- Competitor gap analysis
+- SERP and keyword scripts in `scripts/`
+- Dashboard competitor layer documented in `competitor-analysis.md`
+
+**Semrush / Ahrefs / PEEC** (context-enriched, not all wired as Python modules):
+- Semrush MCP and Ahrefs Free metrics embedded in `target-keywords.md` and `competitor-analysis.md`
+- PEEC AI citation exports in `ai-citation-targets.md`
 
 ### Advanced SEO Analysis Modules (NEW!)
 
@@ -561,7 +577,9 @@ Six Python modules for landing page conversion optimization:
 ### Additional Analysis Modules
 
 - `opportunity_scorer.py` - 8-factor opportunity scoring for content prioritization
-- `content_scorer.py` - 5-dimension content quality scoring (humanity, specificity, structure, SEO, readability)
+- `content_scorer.py` - 5-dimension content quality scoring (humanity, specificity, structure, SEO, readability) with AEO/GEO gate
+- `aeo_geo_rater.py` - Capsule Method, PAA, source mapping, and E-E-A-T scoring (90+ publish target)
+- `content_scrubber.py` - Removes AI watermarks and filler phrases before publish
 - `engagement_analyzer.py` - Content engagement pattern analysis
 - `competitor_gap_analyzer.py` - Competitive content gap identification
 - `article_planner.py` - Data-driven article planning
@@ -591,434 +609,301 @@ python3 scripts/seo_competitor_analysis.py
 python3 tests/test_dataforseo.py
 ```
 
-**Note**: SEO analysis scripts load competitor lists and keywords from `config/competitors.json`. Copy `config/competitors.example.json` and customize for your business.
+**Note**: SEO analysis scripts can use `config/competitors.json` (copy from `config/competitors.example.json`). Simpro's primary competitor intel lives in `context/competitor-analysis.md` (40+ battlecards).
 
 ### WordPress Integration
 
-Publishing uses the WordPress REST API with a custom MU-plugin that exposes Yoast SEO fields.
+Publishing uses the WordPress REST API with a custom MU-plugin that exposes Yoast SEO fields for **simprogroup.com** (or your staging site).
 
 **Setup**:
-1. Install `wordpress/seo-machine-yoast-rest.php` as an MU-plugin on your WordPress site
-2. Add `wordpress/functions-snippet.php` to your theme's functions.php
+1. Install `wordpress/seo-machine-yoast-rest.php` as an MU-plugin on the WordPress site
+2. Add `wordpress/functions-snippet.php` to the theme's `functions.php`
 3. Configure WordPress credentials in `.env`:
    ```
-   WP_URL=https://yoursite.com
+   WP_URL=https://www.simprogroup.com
    WP_USERNAME=your_username
    WP_APP_PASSWORD=your_application_password
    ```
 
-See `wordpress/README.md` for detailed setup instructions.
-
-See `data_sources/README.md` for analytics setup instructions.
+See `wordpress/README.md` and `data_sources/README.md` for setup details.
 
 ## Directory Structure
 
 ```
 seomachine/
 ├── .claude/
-│   ├── commands/          # Custom workflow commands
-│   │   ├── analyze-existing.md
-│   │   ├── research.md
-│   │   ├── write.md
-│   │   ├── rewrite.md
-│   │   ├── optimize.md
-│   │   ├── scrub.md
-│   │   ├── performance-review.md
-│   │   ├── publish-draft.md
-│   │   ├── article.md
-│   │   ├── priorities.md
-│   │   ├── research-serp.md
-│   │   ├── research-gaps.md
-│   │   ├── research-trending.md
-│   │   ├── research-performance.md
-│   │   ├── research-topics.md
-│   │   ├── landing-write.md
-│   │   ├── landing-audit.md
-│   │   ├── landing-research.md
-│   │   ├── landing-competitor.md
-│   │   └── landing-publish.md
-│   ├── agents/            # Specialized analysis agents
-│   │   ├── content-analyzer.md
-│   │   ├── seo-optimizer.md
-│   │   ├── meta-creator.md
-│   │   ├── internal-linker.md
-│   │   ├── keyword-mapper.md
-│   │   ├── editor.md
-│   │   ├── performance.md
-│   │   ├── headline-generator.md
-│   │   ├── cro-analyst.md
-│   │   └── landing-page-optimizer.md
-│   └── skills/            # 26 marketing skills
-├── data_sources/          # Analytics integrations
-│   ├── modules/          # Python analysis modules
-│   │   ├── google_analytics.py
-│   │   ├── google_search_console.py
-│   │   ├── dataforseo.py
-│   │   ├── data_aggregator.py
-│   │   ├── search_intent_analyzer.py
-│   │   ├── keyword_analyzer.py
-│   │   ├── seo_quality_rater.py
-│   │   ├── content_length_comparator.py
-│   │   ├── readability_scorer.py
-│   │   ├── opportunity_scorer.py
-│   │   ├── content_scorer.py
-│   │   ├── engagement_analyzer.py
-│   │   ├── social_research_aggregator.py
-│   │   ├── competitor_gap_analyzer.py
-│   │   ├── article_planner.py
-│   │   ├── section_writer.py
-│   │   ├── wordpress_publisher.py
-│   │   ├── above_fold_analyzer.py
-│   │   ├── cro_checker.py
-│   │   ├── cta_analyzer.py
-│   │   ├── landing_page_scorer.py
-│   │   ├── landing_performance.py
-│   │   └── trust_signal_analyzer.py
-│   ├── config/           # API credentials (not in git)
-│   ├── utils/            # Helper functions
-│   ├── cache/            # Cached API responses
-│   └── README.md         # Setup instructions
-├── config/                # Configuration files
-│   └── competitors.example.json  # Competitor config template
-├── context/               # Configuration and guidelines
+│   ├── commands/              # Slash commands (research, write, article, landing, etc.)
+│   ├── agents/                # SEO, meta, internal link, editor, CRO, performance agents
+│   ├── skills/                  # Marketing skills (copywriting, CRO, seo-audit, …)
+│   ├── settings.local.template.json
+│   └── settings.local.json    # Local only (gitignored)
+├── mcp-gsc/                   # Bundled GSC MCP server (venv/ and token.json gitignored)
+├── tools/mcp/                 # analytics-mcp stdio wrapper
+├── credentials/             # adc.json, gsc secrets (gitignored except .gitkeep)
+├── .mcp.json.template         # Copy to .mcp.json (gitignored)
+├── data_sources/
+│   ├── modules/               # GA4, GSC, analyzers, aeo_geo_rater, content_scrubber, …
+│   └── config/.env.example
+├── context/                   # Simpro brand + SEO/AEO context (see _coverage-report.md)
 │   ├── brand-voice.md
-│   ├── writing-examples.md
 │   ├── style-guide.md
-│   ├── seo-guidelines.md
+│   ├── features.md
+│   ├── competitor-analysis.md
 │   ├── target-keywords.md
 │   ├── internal-links-map.md
-│   ├── competitor-analysis.md
-│   └── cro-best-practices.md
-├── wordpress/             # WordPress integration
-│   ├── seo-machine-yoast-rest.php
-│   ├── functions-snippet.php
-│   └── README.md
-├── topics/                # Raw topic ideas
-├── research/              # Research briefs and analysis reports
-├── drafts/                # Work in progress articles
-├── review-required/       # Articles pending review
-├── published/             # Final versions ready to publish
-├── rewrites/              # Updated existing content
-├── landing-pages/         # Landing page content
-├── audits/                # Audit reports
-└── README.md              # This file
+│   ├── writing-examples.md
+│   ├── seo-guidelines.md
+│   ├── aeo-geo-blog-strategy.md
+│   ├── ai-citation-targets.md
+│   ├── reddit-strategy.md
+│   ├── cro-best-practices.md
+│   ├── lightning-positioning.md   # Scoped Lightning overlay only
+│   └── _coverage-report.md
+├── config/competitors.example.json
+├── wordpress/                 # Yoast REST MU-plugin
+├── examples/castos/           # Upstream template reference
+├── topics/                    # Blog topic ideas
+├── research/                  # Briefs and SERP research (gitignored content)
+├── drafts/                    # Blog drafts in progress
+├── rewrites/                  # Updated blog posts
+├── published/                 # Final blog markdown
+├── review-required/
+├── landing-pages/
+├── audits/                    # Landing/page audits (e.g. FSM software page)
+├── repurposed/
+├── tests/                     # Unit tests (aeo_geo_rater, content_scrubber, …)
+├── scripts/                   # Batch research and SEO scripts
+└── README.md
 ```
 
-## Context Files (Important!)
+## Context Files (Simpro)
 
-The quality of your content depends on well-configured context files:
+Blog quality depends on these context files. Most are **pre-filled** for Simpro; see `context/_coverage-report.md` for status, sources, and refresh cadence.
 
-### `context/brand-voice.md`
-Defines your brand voice, tone, and messaging framework.
+| File | Status | Use when |
+|------|--------|----------|
+| `brand-voice.md` | Filled | Every blog — FY26 pillars, Voice Style Guide tone, Lightning pointer |
+| `style-guide.md` | Filled | Editorial rules, product names, 24/6 support, regional terms |
+| `features.md` | Filled | Product copy, add-ons, proof points |
+| `writing-examples.md` | Filled | Voice calibration — four simprogroup.com articles |
+| `seo-guidelines.md` | Filled | On-page SEO structure for Simpro blogs |
+| `aeo-geo-blog-strategy.md` | Filled | AEO/GEO — Capsule Method, PAA, schema, E-E-A-T |
+| `target-keywords.md` | Filled + metrics | Clusters + GSC/GA4/Semrush US data |
+| `internal-links-map.md` | Filled + metrics | Sitemap URLs + performance-prioritized links |
+| `competitor-analysis.md` | Filled | 40+ battlecards + SERP/backlink overlays |
+| `ai-citation-targets.md` | Filled | AI citation register + PEEC insight |
+| `reddit-strategy.md` | Filled | Community targets and engagement rules |
+| `cro-best-practices.md` | Source-aligned | CRO overlay + experiment/KPI/HubSpot map |
+| `lightning-positioning.md` | Scoped overlay | **Only** Lightning/Cooper/JustAsk blog topics |
+| `_coverage-report.md` | Meta | Coverage log and remaining gaps |
 
-**Must include**:
-- Voice pillars
-- Tone guidelines by content type
-- Core brand messages
-- Writing style guidelines
-- Terminology preferences
+**Refreshing context**: Re-pull GSC/GA4 quarterly into keywords and internal links; re-run `/research-ai-citations` before major campaigns; verify Lightning and pricing claims before publish.
 
-**Purpose**: Ensures all content sounds like your brand
+## Blog Quality Standards
 
----
-
-### `context/writing-examples.md`
-Contains 3-5 exemplary blog posts from your site.
-
-**Must include**:
-- Full article content
-- What makes each example great
-- Key takeaways for voice and structure
-
-**Purpose**: Teaches AI your specific writing style through examples
-
----
-
-### `context/style-guide.md`
-Editorial and formatting standards.
-
-**Must include**:
-- Grammar and mechanics rules
-- Capitalization conventions
-- Formatting standards
-- Preferred terminology
-
-**Purpose**: Maintains consistency across all content
-
----
-
-### `context/seo-guidelines.md`
-SEO best practices and requirements.
-
-**Includes**:
-- Content length requirements
-- Keyword optimization rules
-- Meta element standards
-- Link strategy guidelines
-- Readability requirements
-
-**Purpose**: Ensures all content meets SEO standards
-
----
-
-### `context/target-keywords.md`
-Keyword research organized by topic cluster.
-
-**Must include**:
-- Pillar keywords by cluster
-- Cluster keywords (subtopics)
-- Long-tail variations
-- Search intent classification
-- Current rankings
-
-**Purpose**: Guides keyword targeting for new content
-
----
-
-### `context/internal-links-map.md`
-Catalog of key pages from your site for internal linking.
-
-**Must include**:
-- Product pages and features
-- Pillar content URLs
-- Top performing blog articles
-- Topic cluster mapping
-- Recommended anchor text
-
-**Purpose**: Enables strategic internal linking in every article
-
----
-
-### `context/competitor-analysis.md`
-Competitive intelligence and content gaps.
-
-**Must include**:
-- Primary competitors
-- Their content strategies
-- Keyword gaps
-- Differentiation opportunities
-
-**Purpose**: Informs content strategy and competitive positioning
-
-## Content Quality Standards
-
-Every article must meet these requirements:
+Every Simpro blog post should meet these requirements:
 
 ### Content
-- [ ] Minimum 2,000 words (2,500-3,000+ preferred)
-- [ ] Provides unique value vs. competitors
-- [ ] Factually accurate and current
-- [ ] Actionable advice for your target audience
-- [ ] Brand voice maintained
+- [ ] Minimum 2,000 words (2,500-3,000+ preferred for pillar posts)
+- [ ] Unique angle vs. ServiceTitan, Jobber, Housecall Pro, and listicle competitors
+- [ ] Factually accurate — verify stats, customer names, and product claims
+- [ ] Actionable for **trade and field service leaders** (not generic SMB advice)
+- [ ] Simpro voice: authoritative, trades-focused, outcomes-driven (`brand-voice.md`)
 
 ### SEO
-- [ ] Primary keyword density 1-2%
-- [ ] Keyword in H1, first 100 words, 2-3 H2s
-- [ ] 3-5 internal links with descriptive anchor text
-- [ ] 2-3 external authority links
-- [ ] Meta title 50-60 characters
-- [ ] Meta description 150-160 characters
-- [ ] Proper H1>H2>H3 hierarchy
+- [ ] Primary keyword density ~1-2% per `seo-guidelines.md`
+- [ ] Keyword in H1, first 100 words, 2-3 H2s, conclusion, meta, and slug
+- [ ] 3-5 internal links from `internal-links-map.md` (performance-prioritized pages where relevant)
+- [ ] 2-3 credible external sources with natural in-sentence attribution
+- [ ] Meta title 50-60 characters with `| Simpro` when space allows
+- [ ] Meta description 150-160 characters with a clear CTA
+- [ ] Proper H1 → H2 → H3 hierarchy
+
+### AEO / GEO (generative engines)
+- [ ] Capsule Method: 50-60 word direct answer under H1 and on 60%+ major H2s
+- [ ] 3-5 PAA/FAQ questions answered (from research brief or `/article` AnswerSocrates pass)
+- [ ] Named author, last-updated date, and customer or expert proof where applicable
+- [ ] Schema notes: BlogPosting, FAQPage (if FAQ), Author, VideoObject (if embedded)
+- [ ] Target **90+** on `aeo_geo_rater` when run through `content_scorer`
 
 ### Readability
-- [ ] 8th-10th grade reading level
-- [ ] Average sentence length 15-20 words
-- [ ] Paragraphs 2-4 sentences
-- [ ] Subheadings every 300-400 words
-- [ ] Lists and formatting for scannability
+- [ ] 8th-10th grade reading level (trades audience)
+- [ ] Short sentences; active voice; no vendor clichés (`style-guide.md` avoid list)
+- [ ] Subheadings every 300-400 words; scannable lists
 
 ### Structure
-- [ ] Compelling introduction (hook, problem, promise)
-- [ ] Logical section flow
-- [ ] Clear conclusion with CTA
-- [ ] Examples and data included
+- [ ] Hook → problem → promise intro
+- [ ] Demo- or trial-aligned CTA matched to funnel stage
+- [ ] Lightning topics only: also pass `lightning-positioning.md` naming rules
 
 ## Best Practices
 
-### Before Writing
-1. **Research first**: Always run `/research` before `/write`
-2. **Review context**: Read `brand-voice.md` and relevant `writing-examples.md`
-3. **Check keywords**: Verify target keyword in `target-keywords.md`
-4. **Plan internal links**: Review `internal-links-map.md` for linking opportunities
+### Before Writing a Blog Post
+1. **Research first**: `/research` or `/research-serp` — confirm intent and gaps vs. top SERP
+2. **PAA when needed**: Use `/article` or supply a FAQ CSV if the brief lacks People Also Ask questions
+3. **Check context**: `brand-voice.md`, `writing-examples.md`, and `aeo-geo-blog-strategy.md`
+4. **Lightning only if on-topic**: Load `lightning-positioning.md` for Cooper/JustAsk/agent posts
+5. **Keywords and links**: `target-keywords.md` + `internal-links-map.md` for cluster and URL targets
 
 ### During Writing
-1. **Follow the brief**: Use research brief as your outline
-2. **Natural keywords**: Integrate keywords naturally, never force them
-3. **Add value**: Every section should provide actionable insights
-4. **Use examples**: Include real scenarios and use cases from your industry
-5. **Cite sources**: Link to statistics and data sources
+1. **Follow the brief**: Outline from `research/brief-*.md`
+2. **Trades language**: job costing, dispatch, PM, quotes — not generic “solutions” copy
+3. **Named proof**: Customer outcomes from battlecards or `writing-examples.md` patterns
+4. **Source mapping**: At least three external claims with clear attribution
+5. **Competitive framing**: Use `competitor-analysis.md` — differentiate, do not disparage
 
 ### After Writing
-1. **Review agent output**: Read all agent recommendations carefully
-2. **Make improvements**: Address high-priority issues before optimizing
-3. **Run optimize**: Use `/optimize` for final polish
-4. **Self-edit**: Read article as if you're the target reader
-5. **Check quality**: Verify all checklist items met
+1. **Agent passes**: SEO Optimizer, Meta Creator, Internal Linker, Keyword Mapper
+2. **Scrub AI patterns**: `/scrub` or `content_scrubber.py` before human review
+3. **Optimize**: `/optimize` for final SEO polish
+4. **Score**: Run content through scorer + AEO/GEO gate when publishing high-priority posts
+5. **Publish**: `/publish-draft` to WordPress when approved
 
-### For Rewrites
-1. **Analyze first**: Run `/analyze-existing` to understand scope
-2. **Determine strategy**: Light update vs. major rewrite?
-3. **Preserve what works**: Keep effective sections
-4. **Focus on gaps**: Add what's missing from competitive content
-5. **Update everything**: Stats, examples, screenshots, links
+### For Blog Rewrites
+1. **`/analyze-existing`** on the live simprogroup.com URL or `published/` file
+2. **Refresh metrics** in intro/CTA if GSC/GA4 shows new quick-win queries
+3. **Preserve strong sections**; expand thin H2s vs. SERP leaders
+4. **Re-check AI citations** if the post targets “best FSM software” or AI-intent queries
 
 ## Workflow Examples
 
-### Example 1: Creating New Content from Scratch
+### Example 1: New FSM Blog Post
 
 ```
-# Step 1: Add topic idea
-# Create file in topics/ directory with initial thoughts
+# Topic in topics/field-service-management-software.md
 
-# Step 2: Research the topic
-/research content marketing strategies
+/research field service management software
+# → research/brief-field-service-management-software-[date].md
 
-# Step 3: Review research brief
-# Read research/brief-content-marketing-strategies-[date].md
+/write field service management software
+# → drafts/…md (auto agent passes)
 
-# Step 4: Write article
-/write content marketing strategies
-
-# Step 5: Review agent feedback
-# Read all agent reports in drafts/
-
-# Step 6: Make improvements
-# Edit article based on agent recommendations
-
-# Step 7: Final optimization
-/optimize drafts/content-marketing-strategies-[date].md
-
-# Step 8: Publish to WordPress (optional)
-/publish-draft drafts/content-marketing-strategies-[date].md
+/optimize drafts/field-service-management-software-[date].md
+/publish-draft drafts/field-service-management-software-[date].md
 ```
 
-### Example 2: Updating Existing Content
+### Example 2: Article with Full PAA Collection
 
 ```
-# Step 1: Analyze existing post
-/analyze-existing https://yoursite.com/blog/product-comparison
-
-# Step 2: Review analysis
-# Read research/analysis-product-comparison-2025-10-29.md
-# Check content health score and priority level
-
-# Step 3: Rewrite content
-/rewrite product comparison
-
-# Step 4: Review changes
-# Read rewrites/product-comparison-rewrite-2025-10-29.md
-# Review change summary
-
-# Step 5: Optimize
-/optimize rewrites/product-comparison-rewrite-2025-10-29.md
-
-# Step 6: Publish
-# Move to published/ when ready
+/article best hvac software
+# AnswerSocrates PAA → brief → draft with FAQ schema notes
 ```
 
-### Example 3: Quick Content Audit
+### Example 3: Rewrite an Existing Simpro Blog
 
 ```
-# Analyze multiple existing posts to prioritize updates
-/analyze-existing https://yoursite.com/blog/post-1
-/analyze-existing https://yoursite.com/blog/post-2
-/analyze-existing https://yoursite.com/blog/post-3
+/analyze-existing https://www.simprogroup.com/blog/what-is-field-service-management/
+/rewrite field service management
+/optimize rewrites/field-service-management-rewrite-[date].md
+```
 
-# Review content health scores
-# Prioritize rewrites based on:
-# - Lowest scores
-# - Highest traffic potential
-# - Strategic importance
+### Example 4: AI Citation Gap Campaign
+
+```
+/research-ai-citations best field service management software
+# Updates context/ai-citation-targets.md outreach list
+# Then brief + /write listicle or comparison post targeting cited sources
+```
+
+### Example 5: Lightning Launch Blog (scoped)
+
+```
+/research Simpro Lightning job costing
+# Commands auto-load lightning-positioning.md when Lightning entities detected
+/write Simpro Lightning job costing
+# Verify Cooper/JustAsk naming and time-sensitive claims before publish
 ```
 
 ## Tips & Tricks
 
-### Maximizing Content Quality
-- **Study examples**: Read your `writing-examples.md` before each writing session
-- **Use data**: Always include current statistics and cite sources
-- **Be specific**: "40% increase" beats "significant improvement"
-- **Show, don't tell**: Use real examples and scenarios from your industry
-- **Answer questions**: Address "People Also Ask" questions from research
+### Maximizing Blog Quality
+- **Read `writing-examples.md`** before each session — match rhythm and proof density
+- **Lead with outcomes**: margin, time-to-paid, named customers (Shaffer Beacon, Foster Plumbing, etc.)
+- **Capsule answers**: Put the direct answer in the first 50-60 words under each major H2
+- **PAA coverage**: Pull questions from AnswerSocrates, SERP, or `reddit-strategy.md` monitoring queries
 
-### SEO Optimization
-- **Keywords early**: Get primary keyword in first 100 words
-- **Natural integration**: Read content aloud - if keywords sound forced, rewrite
-- **Vary anchor text**: Don't use same anchor text for all internal links
-- **Link strategically**: Link to pillar content and related cluster articles
-- **Update regularly**: Refresh top-performing content every 6-12 months
+### SEO + AEO for simprogroup.com
+- **Internal links**: Prefer URLs flagged high in `internal-links-map.md` (GSC/GA4 priority)
+- **AI-intent posts**: Cross-check `ai-citation-targets.md` before “best FSM software” listicles
+- **Avoid**: *all-in-one*, *tradies* as buyer label, *24/7 live support* (use **24/6**)
+- **Refresh winners**: Re-optimize posts with quick-win GSC positions (11-20) quarterly
 
 ### Workflow Efficiency
-- **Batch research**: Research multiple topics in one session
-- **Follow structure**: Use consistent article structure from `/write` command
-- **Address high-priority first**: Fix critical issues before optimizing details
-- **Use agents wisely**: Let agents handle analysis, you focus on writing
-- **Build templates**: Save commonly used sections for reuse
+- **`/performance-review`** and `/priorities` for what to write or rewrite next
+- **`/scrub`** before editorial handoff to strip AI tells
+- **MCP first** for live GSC/GA4 pulls; Python scripts for batch reports
+- **Reuse battlecard plays** from `competitor-analysis.md` in comparison posts
 
 ### Avoiding Common Mistakes
-- ❌ Skipping research phase
-- ❌ Ignoring brand voice guidelines
-- ❌ Forcing keywords unnaturally
-- ❌ Forgetting internal links
-- ❌ Not citing data sources
-- ❌ Publishing without optimization
-- ❌ Copying competitor content instead of differentiating
+- ❌ Generic SaaS voice instead of trades-leader tone
+- ❌ Using *Lightning* without brand prefix (Simpro Lightning, etc.)
+- ❌ Skipping PAA/FAQ on informational posts
+- ❌ Publishing Lightning pricing or roadmap without verification
+- ❌ Empty competitor differentiation (name + outcome, not trash talk)
 
 ## Maintenance
 
 ### Weekly
-- Add new topic ideas to `/topics/`
-- Update `target-keywords.md` with new keyword opportunities
-- Check for broken links in `internal-links-map.md`
+- Add blog ideas to `topics/`
+- Run `/performance-review` or check GSC MCP for quick wins
+- Monitor priority threads per `reddit-strategy.md` (F5Bot queries)
 
 ### Monthly
-- Review published content performance
-- Update `writing-examples.md` if better examples emerge
-- Add newly published content to `internal-links-map.md`
-- Track competitor activity in `competitor-analysis.md`
+- Refresh top blog posts losing CTR or position in GSC
+- Add new simprogroup.com URLs to `internal-links-map.md`
+- Spot-check `ai-citation-targets.md` outreach statuses
 
 ### Quarterly
-- Full audit of context files
-- Update SEO guidelines based on algorithm changes
-- Comprehensive competitor analysis refresh
-- Review and update topic clusters in `target-keywords.md`
+- Re-pull US GSC/GA4 into `target-keywords.md` and `internal-links-map.md`
+- Review `context/_coverage-report.md` and update stale battlecard/SERP data
+- Re-run `/research-ai-citations` on core FSM prompt families
+- Sync Voice Style Guide / Message House if FY messaging changes
+- Full pass on `competitor-analysis.md` when new battlecards ship
 
 ## Troubleshooting
 
-### "Content doesn't sound like my brand"
-- **Solution**: Update `context/brand-voice.md` with more specific guidance
-- **Solution**: Add more diverse examples to `context/writing-examples.md`
-- **Solution**: Reference specific examples when using `/write` command
+### "Blog doesn't sound like Simpro"
+- Re-read `brand-voice.md` and `writing-examples.md`; compare to a published simprogroup.com post
+- For Lightning posts, confirm `lightning-positioning.md` is loaded and Cooper/JustAsk rules are followed
+- Run `/scrub` then Editor agent for robotic phrasing
 
-### "Keyword density too high/low"
-- **Solution**: Review `seo-guidelines.md` target density (1-2%)
-- **Solution**: Use `/optimize` to get specific keyword placement suggestions
-- **Solution**: Use Keyword Mapper agent for distribution analysis
+### "AEO/GEO score below 90"
+- Add Capsule blocks under missing H2s (`aeo-geo-blog-strategy.md`)
+- Ensure 3-5 PAA questions are answered and FAQ schema is noted
+- Add named proof (customer, date, reviewer) and three source-mapped external links
 
-### "Internal links aren't relevant"
-- **Solution**: Update `context/internal-links-map.md` with current pages
-- **Solution**: Organize by topic cluster for easier agent matching
-- **Solution**: Provide more context about what each page covers
+### "MCP / GSC / GA4 not connecting"
+- Confirm `.mcp.json` paths match your machine (from `.mcp.json.template`)
+- GSC: OAuth via `mcp-gsc/` — do not point `GSC_CREDENTIALS_PATH` at the OAuth client secret
+- GA4: `GOOGLE_APPLICATION_CREDENTIALS` → `credentials/adc.json`
+- See `CLAUDE.md` credential boundaries
 
-### "Articles too similar to competitors"
-- **Solution**: Update `competitor-analysis.md` with differentiation opportunities
-- **Solution**: Add your unique advantages to `brand-voice.md` and `features.md`
-- **Solution**: Reference specific differentiation angles in `/research` command
+### "Internal links are wrong or stale"
+- Refresh sitemap-backed URLs in `internal-links-map.md`
+- Re-pull GSC page metrics for US priority pages
+
+### "Keyword or volume data missing"
+- Priority set: Semrush MCP metrics in `target-keywords.md` (15 terms)
+- Expansion: run `/research-serp` or DataForSEO scripts for new clusters
+
+### "Too similar to ServiceTitan / Jobber listicles"
+- Use battlecard **Quick Competitive Plays** in `competitor-analysis.md`
+- Lead with Simpro outcomes (multi-trade, job costing, recurring maintenance) not feature tables alone
 
 ## Support & Contributions
 
 ### Getting Help
-- Review this README thoroughly
-- Check context files are properly configured
-- Consult [Claude Code documentation](https://docs.claude.com/claude-code)
+- `context/_coverage-report.md` — what is filled vs. still gap
+- `CLAUDE.md` — commands, MCP, and Python paths
+- [Claude Code documentation](https://docs.claude.com/claude-code)
 
-### Contributing
-- Report issues via GitHub Issues
-- Suggest improvements to commands or agents
-- Share successful workflows or tips
+### Contributing (Simpro fork)
+- Internal work: branch `custom/local-context` on [Simpro-Group-Marketing/seomachine](https://github.com/Simpro-Group-Marketing/seomachine)
+- Upstream fixes: consider PRs to [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/seomachine) when generic
 
 ## License
 
-[Add your license information]
+MIT License — see [LICENSE](LICENSE). Original development by Castos; Simpro Group Marketing maintains this fork for trades/FSM blog workflows.
 
 ## Credits
 
