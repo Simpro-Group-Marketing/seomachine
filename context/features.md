@@ -92,6 +92,7 @@ Source: FY26 Brand Message House (Simpro tab), Sales Battlecards, ICP slides, si
 For content specifically about Simpro Group Lightning, load `context/lightning-positioning.md` before drafting. The Lightning overlay is scoped to this offering and should not replace the broader Simpro FY26 context for general product, SEO, or brand content.
 
 - **Platform architecture**: Simpro Group Lightning is the AI intelligence layer that gives the existing FSM a brain. The FSM stays the heart; Cooper is the brain; together they create the platform upgrade.
+- **Draft-source boundary**: Tiiny-hosted message-map language is input only. Normalize all Lightning architecture back to Cooper as the brain before using it in context, briefs, or customer-facing copy.
 - **Brand architecture**: Use Simpro Lightning, AroFlo Lightning, or BigChange Lightning when the heart brand is known. Use Simpro Group Lightning for cross-brand or generic references. Do not use Lightning alone in customer-facing copy.
 - **JustAsk**: The conversational interface to Cooper and the whole platform. JustAsk is not an agent, fifth team member, or business analyst.
 - **Cooper**: The AI brain that learns the business, answers through JustAsk, and powers the agents. Cooper is not the platform and not an agent.
@@ -100,6 +101,20 @@ For content specifically about Simpro Group Lightning, load `context/lightning-p
 - **Price Lock**: Decision-stage and pricing copy should pair the 15% launch uplift and 25% standard uplift with the 3% plus in-country CPI Price Lock. Verify time-sensitive pricing before public use.
 - **Coming Specialists**: Use the fixed roadmap names FastCash, Delight, Pulse, Foresight, Forge, Swift, Sales Manager, Shield, Spark, and Precision. Do not invent new specialist names.
 - **Proof boundary**: Treat 6% to 24% as a north-star profit trajectory, not an average-customer promise. Treat the $200K capability for about $2K/year as rough-order economics that varies by base subscription.
+
+### Simpro Group Platform Taxonomy
+
+Use this taxonomy when a brief asks for broader Simpro Group platform, expansion, or suite context. Treat it as positioning context, not a public SKU list unless the specific page or product source confirms availability.
+
+- **Field Service Management Suite**: Simpro, AroFlo, and BigChange as the operational heart for scheduling, dispatch, job management, projects, mobile field work, quoting, invoicing, and reporting.
+- **Customer Retention & Revenue Growth Suite**: Delight and customer-growth workflows that use operational data to drive re-engagement, repeat work, maintenance reminders, and revenue from existing customers.
+- **Financial Management Suite**: Quote-to-cash workflows, progress billing, payments collection, cash forecasting, job costing, WIP reporting, AR visibility, and accounting sync.
+- **Materials & Inventory Suite**: Purchasing, supplier catalogs, inventory control, truck stock, price files, warehouse visibility, and materials tied back to job margin.
+- **Workforce Management Suite**: ClockShark-led time tracking, GPS time, crew scheduling, skills/certification tracking, payroll prep, and workforce visibility.
+- **Analytics & Benchmarking Suite**: KPI dashboards, BI reporting, margin intelligence, anomaly/opportunity surfacing, and peer benchmarking where verified.
+- **Safety & Compliance Suite**: Digital Forms, certification records, safety forms, RAMS-style workflows, audit-ready documentation, and compliance monitoring.
+- **Advanced AI Layer**: Cooper, JustAsk, FieldReady, JobReady, JobScribe, JobBrief, Two-Way Messaging, GPS Time Tracking, and verified future specialists from `context/lightning-positioning.md`.
+- **Platform Foundation**: One ecosystem, one support motion, connected data, integrations, security, implementation, migration support, training, and customer success.
 
 ### Add-Ons (Available a la carte)
 - **Digital Forms**: Custom mobile field forms with conditional logic, autofill from Simpro data, signatures, drawings, barcodes, multimedia, version control, compliance records, and two-way synchronization with Simpro
@@ -255,8 +270,8 @@ Simpro maintains published /vs/ pages for: Ascora, BuildOps, Commusoft, Fergus, 
 
 ### Social Proof Elements (Simpro-specific)
 - **20+ years** leading trade and field service innovation
-- **8,500+ customers** — 9% have run Simpro for 10+ years
-- **250,000+** office staff and field service users
+- **24,000+ businesses** using the platform across trade and field service operations
+- **450,000+** office staff and field service users
 - **250+** technology and service partners worldwide
 - **21M+** quotes created per year
 - **14M+** jobs created and managed per year

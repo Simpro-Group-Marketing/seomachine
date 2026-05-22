@@ -111,6 +111,7 @@ Rewrites go to `rewrites/`. Landing pages go to `landing-pages/`. Audits go to `
 - `brand-voice.md` - Tone, messaging pillars
 - `style-guide.md` - Grammar, formatting standards
 - `seo-guidelines.md` - Keyword and structure rules
+- `aeo-geo-blog-strategy.md` - Blog-specific AEO/GEO workflow, AnswerSocrates PAA rules, Capsule Method, and 85/90 quality gates
 - `internal-links-map.md` - Key pages for internal linking
 - `features.md` - Product features
 - `competitor-analysis.md` - Competitive intelligence

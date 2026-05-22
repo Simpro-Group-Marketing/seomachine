@@ -20,8 +20,12 @@ Use this command to create comprehensive, SEO-optimized long-form blog content.
 - **Writing Examples**: Study @context/writing-examples.md for style consistency
 - **Style Guide**: Follow formatting rules from @context/style-guide.md
 - **SEO Guidelines**: Apply requirements from @context/seo-guidelines.md
+- **AEO/GEO Strategy**: Apply @context/aeo-geo-blog-strategy.md for Generative Engine Optimization
 - **Target Keywords**: Integrate keywords from @context/target-keywords.md naturally
 - **Lightning Overlay**: If the topic or research brief mentions Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, also load @context/lightning-positioning.md and treat it as a scoped overlay.
+
+### AEO/GEO Variable Resolution
+Resolve `topic`, `audience`, `main_question`, `related_questions`, `tone`, `expertise`, and `length` from the research brief, repo context, target keyword, and existing PAA artifact before writing. `/write` may skip live AnswerSocrates only when the supplied brief already includes PAA questions. If PAA questions are missing, ask for a PAA/FAQ CSV or run `/article` for full AnswerSocrates collection.
 
 ### Content Structure
 
@@ -80,6 +84,15 @@ This gets pulled into AI-generated summaries and helps both AI and human readers
 - Each bullet is a standalone claim with specifics (numbers, names, outcomes)
 - NOT a table of contents — these are the article's actual conclusions
 - Written after the full article is drafted (so the takeaways are accurate)
+
+#### 3A. AEO/GEO Structure Requirements
+
+Apply these requirements from @context/aeo-geo-blog-strategy.md:
+- **Capsule Method**: Add a 50-60 word direct-answer capsule below the H1 and at least 60% of major H2s.
+- **PAA selection**: Use 3-5 PAA or FAQ questions from AnswerSocrates, SERP research, Reddit, YouTube, or a user-provided CSV.
+- **Source mapping**: Integrate at least three credible external sources inside natural sentences; map each source to the claim it supports.
+- **E-E-A-T proof**: Include named author, last-updated date, reviewer if available, named customer proof or expert quote, and honest limitations where relevant.
+- **Schema notes**: Include BlogPosting, FAQPage when FAQ is present, Author, and VideoObject when a video is embedded.
 
 #### 4. Main Body (1800-2500+ words)
 - **Logical Flow**: Organize sections in clear, progressive order
@@ -216,6 +229,7 @@ Word Count: [actual word count]
 - [ ] Readability optimized
 
 ### 4. AI Search Optimization Checklist
+- [ ] **AEO/GEO score**: Draft is expected to score 90/100 or higher
 - [ ] **Direct answer**: First 1-2 sentences directly answer the target query
 - [ ] **Key Takeaways**: TL;DR block with 3-5 specific bullet points after introduction
 - [ ] **Meta description**: Directly answers the query (not just a teaser)
@@ -223,6 +237,10 @@ Word Count: [actual word count]
 - [ ] **FAQ prompts**: Questions written in natural language people would type into ChatGPT
 - [ ] **One idea per section**: Each H2/H3 focuses on a single clear concept
 - [ ] **Author attribution**: Named author in frontmatter
+- [ ] **Capsule Method**: H1 and 60%+ major H2s include 50-60 word direct-answer capsules
+- [ ] **PAA**: 3-5 selected PAA/FAQ questions are answered in the draft
+- [ ] **source mapping**: At least three source-backed claims use natural contextual links
+- [ ] **Schema**: BlogPosting, FAQPage, Author, and VideoObject notes are included when relevant
 
 ### 5. Engagement Checklist
 - [ ] **Hook**: Opens with question, scenario, statistic, or bold statement (NOT generic definition)
@@ -327,7 +345,7 @@ python data_sources/modules/content_scorer.py drafts/[article-file].md
 ```
 
 ### Step 2: Evaluate Score
-The scorer evaluates 5 dimensions (composite score must be ≥70):
+The scorer evaluates 5 content-quality dimensions plus the required AEO/GEO gate:
 
 | Dimension | Weight | Target |
 |-----------|--------|--------|
@@ -338,15 +356,15 @@ The scorer evaluates 5 dimensions (composite score must be ≥70):
 | Readability | 10% | Flesch 60-70, grade 8-10 |
 
 ### Step 3: Auto-Revise if Needed
-If composite score < 70:
+If content quality is below 85/100 or AEO/GEO is below 90/100:
 1. Review the `priority_fixes` from the scorer
 2. Apply the top 3-5 fixes automatically
 3. Re-score the content
 4. Repeat once more if still below threshold
 
 ### Step 4: Route Based on Final Score
-- **Score ≥ 70**: Save to `drafts/` and proceed to optimization agents
-- **Score < 70 after 2 iterations**: Save to `review-required/` with a `_REVIEW_NOTES.md` file containing the scoring details and remaining issues
+- **General content quality score >= 85/100 and AEO/GEO score >= 90/100**: Save to `drafts/` and proceed to optimization agents
+- **General content quality score < 85/100 or AEO/GEO score < 90/100 after 2 iterations**: Save to `review-required/` with a `_REVIEW_NOTES.md` file containing the scoring details, AEO/GEO failed checks, and remaining issues
 
 ### Review-Required Folder
 Articles that fail quality threshold after 2 revision attempts go to `review-required/`:
@@ -386,7 +404,8 @@ Every article must meet these requirements:
 - **Varied sentence rhythm** (mix short punchy + longer flowing)
 
 ### Quality Score
-- **Composite quality score ≥70**
+- **Composite quality score must be 85/100 or higher**
+- **AEO/GEO score must be 90/100 or higher**
 - Publish-ready quality
 
 This ensures every article is comprehensive, optimized, engaging, and ready to rank while providing genuine value to your target audience.

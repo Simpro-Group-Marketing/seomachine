@@ -12,9 +12,10 @@ A unified content creation pipeline that produces comprehensive, SEO-optimized a
 
 ## What This Command Does
 
-Creates high-quality articles by enforcing a 4-step pipeline where **research is mandatory, not optional**:
+Creates high-quality articles by enforcing a 5-step pipeline where **research is mandatory, not optional**:
 
 ```
+STEP 0: AEO/GEO Setup          -> Resolve variables + collect AnswerSocrates PAA
 STEP 1: SERP Analysis           → See what Google rewards TODAY
 STEP 2: Social Research         → Mine Reddit + YouTube for real insights
 STEP 3: Article Planning        → Section-by-section strategy
@@ -32,6 +33,74 @@ This prevents the "AI knows everything" trap that produces generic content match
 | Topics where you need to beat existing content | `/article` |
 | Quick drafts from existing research | `/write` |
 | Simple updates to existing content | `/write` |
+
+---
+
+## STEP 0: AEO/GEO Setup (MANDATORY)
+
+**Every new `/article` run MUST collect AnswerSocrates PAA questions with Playwright MCP before planning.**
+
+### Variable Resolution
+
+Before opening the browser or drafting, resolve these variables from the user prompt, repo context, existing research, and current SERP/PAA evidence:
+
+| Variable | Resolution Rule |
+|----------|-----------------|
+| `topic` | Use the user prompt or topic file; ask if missing. |
+| `audience` | Derive from @context/brand-voice.md and best-fit guidance; ask only if multiple audiences fit. |
+| `main_question` | Infer from target keyword, SERP intent, or user prompt; ask if no primary question is clear. |
+| `related_questions` | Use AnswerSocrates PAA, SERP, Reddit, YouTube, or a user-provided PAA/FAQ CSV. |
+| `tone` | Use @context/brand-voice.md and @context/style-guide.md unless the user requested another tone. |
+| `expertise` | Use @context/features.md, customer proof, expert quotes, and author/reviewer data. |
+| `length` | Use `/research-serp` competitive length; default to the top-SERP benchmark if available. |
+
+If a variable cannot be answered by the repo or research, ask the user for only that missing variable. Do not synthesize PAA questions, expert quotes, customer claims, search volume, or ranking evidence.
+
+### AnswerSocrates PAA Collection
+
+Use Playwright MCP on `https://answersocrates.com`:
+
+1. `browser_navigate` to AnswerSocrates.
+2. `browser_snapshot` to identify the query input and submit control.
+3. Enter `main_question`; if missing, enter `topic`.
+4. Submit using snapshot-derived targets only. Do not hard-code selectors.
+5. Wait for results and extract visible questions with `browser_evaluate`.
+6. Save results to `research/paa-questions-[topic-slug]-[YYYY-MM-DD].md`.
+
+If AnswerSocrates is blocked, unavailable, or requires login/CAPTCHA, record the blocker in the PAA artifact and ask the user for a PAA/FAQ CSV export. Do not invent replacement questions.
+
+### PAA Artifact Format
+
+```markdown
+# PAA Questions: [Topic]
+
+**Date:** [YYYY-MM-DD]
+**Source:** AnswerSocrates via Playwright MCP
+**Query Used:** [main_question or topic]
+**Status:** [collected / blocked / user-export-needed]
+
+## Raw Questions
+- [question]
+
+## Closest Related Questions
+1. [question]
+2. [question]
+3. [question]
+
+## Intent Breakdown
+- [How-to / Understanding / Comparative / Future-Trends / Commercial]: [brief note]
+
+## Insight Summary
+[2-3 sentences explaining what these questions reveal about user intent.]
+
+## Suggested Blog Focus
+[1-2 sentences that should guide the article.]
+
+## Section Assignment
+| Question | Intent | Article Section | Answer Format |
+|----------|--------|-----------------|---------------|
+| [question] | [intent] | [H2/FAQ] | [capsule/list/table/FAQ] |
+```
 
 ---
 
@@ -237,6 +306,7 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
    - SERP analysis (structure that ranks)
    - Competitor gaps (opportunities to beat)
    - Social research (unique insights)
+   - AnswerSocrates PAA questions and intent clusters
    - your brand context (features, brand voice)
 
 2. **Create Google-Validated Structure**
@@ -256,6 +326,9 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
    | **Knowledge Gaps** | Which competitor gaps this fills |
    | **Unique Data** | Social research insights to include |
    | **Internal Links** | Which your brand pages to link |
+   | **AEO/GEO Target** | Capsule / PAA / FAQ / list / table / definition |
+   | **Source Mapping** | External source, claim, anchor text, and target section |
+   | **E-E-A-T Proof** | Author, reviewer, customer proof, expert quote, limitation/caveat |
    | **CTA** | soft / medium / strong (if applicable) |
    | **Mini-Story** | Whether to place a story here |
 
@@ -284,6 +357,21 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - **URL Slug**: /blog/[slug]
 
 ## Section Plan
+
+## AEO/GEO Map
+- **Main Answer Target**: [primary question the article answers]
+- **Capsule Targets**: H1 plus at least 60% of major H2s
+- **Selected PAA Questions**:
+  1. [AnswerSocrates question and assigned section]
+  2. [AnswerSocrates question and assigned section]
+  3. [AnswerSocrates question and assigned section]
+- **Source Map**:
+  | Source | Claim Supported | Anchor Text | Target Section |
+  |--------|-----------------|-------------|----------------|
+  | [URL] | [claim] | [natural contextual phrase] | [section] |
+- **E-E-A-T Proof Points**: [author, reviewer if available, customer proof, expert quote, source-backed claim, limitation/caveat]
+- **Schema Notes**: BlogPosting, FAQPage if FAQ is present, Author, VideoObject if video is embedded
+- **AEO/GEO Score Target**: 90/100 or higher
 
 ### 1. Introduction
 - **Type**: intro
@@ -498,6 +586,10 @@ After all sections are written and edited:
    - [ ] FAQ questions written in natural prompt language
    - [ ] One idea per section (each H2/H3 focuses on single concept)
    - [ ] Author attribution in frontmatter
+   - [ ] AnswerSocrates PAA artifact exists at `research/paa-questions-[topic-slug]-[YYYY-MM-DD].md`
+   - [ ] Capsule Method applied to H1 and 60%+ major H2s
+   - [ ] AEO/GEO Map complete with selected PAA, source mapping, and E-E-A-T proof
+   - [ ] Schema notes included for BlogPosting, FAQPage, Author, and VideoObject when relevant
 
    **Engagement Checklist:**
    - [ ] Hook (not generic opening)
@@ -535,7 +627,10 @@ Removes invisible Unicode watermarks and AI telltale patterns.
 python data_sources/modules/content_scorer.py drafts/[filename].md
 ```
 
-**Score Threshold: 70+**
+**Quality Gates:**
+- General content quality score must be **85/100** or higher.
+- AEO/GEO score must be **90/100** or higher.
+- A draft only passes if both gates pass.
 
 | Dimension | Weight |
 |-----------|--------|
@@ -546,12 +641,13 @@ python data_sources/modules/content_scorer.py drafts/[filename].md
 | Readability | 10% |
 
 ### 3. Auto-Revise if Needed
-If score < 70:
+If either gate fails:
 1. Review `priority_fixes` from scorer
-2. Apply top 3-5 fixes
-3. Re-score
-4. Repeat once more if needed
-5. If still < 70 after 2 iterations → move to `review-required/`
+2. Review AEO/GEO failed checks from `aeo_geo`
+3. Apply top 3-5 fixes
+4. Re-score
+5. Repeat once more if needed
+6. If content quality remains below 85/100 or AEO/GEO remains below 90/100 after 2 iterations -> move to `review-required/`
 
 ### 4. Run Optimization Agents
 After passing quality threshold:
@@ -569,6 +665,7 @@ After passing quality threshold:
 research/
 ├── serp-analysis-[topic]-[date].md         # SERP research
 ├── social-research-[topic]-[date].md       # Reddit/YouTube insights
+├── paa-questions-[topic]-[date].md         # AnswerSocrates PAA research
 └── article-plan-[topic]-[date].md          # Section-by-section plan
 
 drafts/
@@ -588,6 +685,7 @@ Before writing, review these context files:
 - @context/brand-voice.md - your brand tone and messaging
 - @context/style-guide.md - Formatting rules
 - @context/seo-guidelines.md - SEO requirements
+- @context/aeo-geo-blog-strategy.md - AEO/GEO requirements for blog writing
 - @context/internal-links-map.md - Linking targets
 - @context/features.md - your brand product information
 - @context/writing-examples.md - Style reference
@@ -612,7 +710,8 @@ Before writing, review these context files:
 - 2-3 mini-stories with specifics
 - 2-3 contextual CTAs
 - FAQ with real user questions
-- Quality score 70+
+- General content quality score 85/100+
+- AEO/GEO score 90/100+
 
 ### Differentiation Standards
 - Addresses 3+ competitor gaps

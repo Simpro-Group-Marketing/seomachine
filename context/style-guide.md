@@ -299,6 +299,13 @@ Do not force **Simpro Group** into every marketing asset. If a piece needs one p
 - *job management* — lowercase
 - *job costing*, *quoting*, *invoicing*, *dispatch* — lowercase nouns/verbs
 
+**Message Map Guardrails**:
+- Use **control** as the preferred opposite of chaos. Avoid "calm" when the copy is about operational visibility, accountability, or shared decision-making.
+- Use **EV Charging Installer**, not "EV Installer."
+- Use broad construction-business statistics only with clear qualifiers. Simpro focuses on specialty trade contractors and service businesses, not the entire construction sector.
+- Do not lead with general contractors, industrial operators, cleaning, concierge, guards, or other non-trade facility-administration services as default-fit audiences.
+- Facilities management is a fit only when the business performs trade work inside managed facilities, such as installs, inspections, maintenance, and testing.
+
 **Vertical Names**: Capitalize the first letter when a trade or vertical name is used as a label, filter, card title, table value, or navigation item. Do not title-case every word unless the vertical appears inside a title-case heading.
 
 Examples:
@@ -316,13 +323,13 @@ Examples:
 - Exceptions (always numerals):
   - Percentages: 5%, 60%
   - Money: $5, $36B, $100M
-  - Measurements / counts paired with units: 250K users, 8.5K customers, 21M quotes
+  - Measurements / counts paired with units: 450K users, 24K businesses, 21M quotes
   - Lists/stats: always numerals for scannability
 
 **Large Numbers**:
-- Use abbreviated forms in marketing copy: 250K+, 8.5K+, 14M+, $36B+
-- Spell out in formal/legal contexts: 250,000+ users, $36 billion+
-- Be consistent within a section — don't mix "250K" and "250,000" in the same paragraph
+- Use abbreviated forms in marketing copy: 450K+, 24K+, 14M+, $36B+
+- Spell out in formal/legal contexts: 450,000+ users, 24,000+ businesses, $36 billion+
+- Be consistent within a section — don't mix "450K" and "450,000" in the same paragraph
 
 ### Punctuation
 
@@ -480,7 +487,7 @@ Examples:
 1. **Hook** (1–2 sentences): A specific question, statistic, or contrarian statement. Avoid "In today's competitive market..."
 2. **Problem** (2–3 sentences): The challenge a trades operator faces around this topic.
 3. **Promise** (2–3 sentences): What the reader will learn or be able to do.
-4. **Credibility** (optional, 1–2 sentences): Quick proof of authority (e.g., "Drawing on Simpro's work with 250,000+ users across 8,500 trades businesses...")
+4. **Credibility** (optional, 1–2 sentences): Quick proof of authority (e.g., "Drawing on Simpro's work with 450,000+ users across 24,000+ businesses...")
 
 **Keyword Placement**:
 - Primary keyword must appear in the first 100 words
@@ -548,13 +555,13 @@ Examples:
 - Always cite statistics with their source
 - Format: "According to [Source], [statistic]." with link to source on first mention
 - Include year of data: "In 2025, the average trades business..."
-- For Simpro-internal stats, attribute clearly: "Across Simpro's 8,500+ customers..."
+- For Simpro-internal stats, attribute clearly: "Across Simpro's 24,000+ businesses..."
 
 ### Presenting Numbers
 - Round large numbers for scannability: "$36B+ in invoices/year" beats "$36,000,000,000+"
 - Use % symbol: 60% (not "60 percent")
 - Use $ for money: $750K (not "750 thousand dollars")
-- Use commas as thousands separator: 250,000 (not 250000)
+- Use commas as thousands separator: 450,000 (not 450000)
 - Be precise with named-customer outcomes: "Shaffer Beacon Mechanical: 60% increase in profit margin" — don't round the customer-specific number to "approximately 60%"
 
 ---
@@ -604,6 +611,7 @@ Use these rules only for Lightning-specific content. For the full proof stack, a
 - Use **Simpro Lightning**, **AroFlo Lightning**, **BigChange Lightning**, or **Simpro Group Lightning** in customer-facing copy. Do not use **Lightning** alone as a customer-facing product reference.
 - **JustAsk** is the conversational interface to the brain. It is not an agent, business analyst, or fifth team member.
 - **Cooper** is the AI brain. Cooper is not the platform, not the product, and not one of the agents.
+- Rewrite any draft source wording that gives the brain role to Lightning. The canonical customer-facing structure is FSM as heart, Cooper as brain, Simpro Group Lightning as the intelligence layer/platform upgrade.
 - The four launch agents are **FieldReady**, **JobReady**, **JobScribe**, and **JobBrief**. Use these names exactly.
 - Use **Two-Way Messaging** and **GPS Time Tracking** for plain customer/AM content. Use **DirectLine 2-Way Messaging** and **TrueTime GPS Timekeeping** only in product-marketing or Fred-voice contexts, and do not mix both naming registers in one asset.
 - For Lightning-specific first-reference audience language, prefer **field service trades**, **field service trade business**, or **field service trade operator**. Use **the trades** only as second-reference shorthand, cadence language, or customer-quote language after scope is clear.
@@ -662,7 +670,7 @@ Before publishing any content:
 - [ ] Spelling checked (US English for simpro.com / simpro.ai; regional for AU/NZ/UK sites)
 - [ ] Oxford comma used consistently
 - [ ] Em dashes (—) not hyphens with spaces
-- [ ] Numbers formatted consistently (250K vs. 250,000 — pick one per section)
+- [ ] Numbers formatted consistently (450K vs. 450,000 — pick one per section)
 - [ ] Product and AI feature names capitalized correctly (Simpro, Multi-Company, AI Mobile Work Notes)
 
 **Style**:

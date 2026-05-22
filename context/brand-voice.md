@@ -42,7 +42,7 @@ Use these four words for **brand/hero/pillar** copy and FY26 campaigns. They sha
 ## Brand Voice Pillars
 
 ### 1. Authoritative
-- **What it means**: We have earned the right to lead this category. 20+ years in field service, 250,000+ users, $36B+ invoices processed annually. We speak from real operating knowledge — not theory.
+- **What it means**: We have earned the right to lead this category. 20+ years in field service, 24,000+ businesses, 450,000+ users, and $36B+ invoices processed annually. We speak from real operating knowledge — not theory.
 - **How it sounds**: Direct. Definitive. We don't hedge or qualify when we know the answer.
 - **Example**: "Simpro runs service, recurring maintenance, and projects in a single system — with native asset management, PM, and compliance."
 - **Avoid**: "We hope," "we try," "we might be able to." Soft language that signals uncertainty.
@@ -111,6 +111,15 @@ Imagine you're a seasoned trades operator who got the tech right and now helps p
 - "AI Mobile Work Notes reduces typing after site visits so techs can get job notes back to the office faster."
 - "Real-time job costing means you know whether a job made money before the truck leaves the site."
 - "Multi-Company lets one Simpro instance run multiple business units with roll-up reporting."
+
+### Message Map Narrative Models
+
+Use these as narrative inputs for Simpro Group, Simpro, and Lightning-adjacent content when they fit the brief. For Lightning-specific copy, apply `context/lightning-positioning.md` first.
+
+- **Execution capacity**: The gap between average and best-in-class profitability is not effort; it is the operating capacity to do the work the business cannot afford to staff.
+- **The two jobs**: A trade business has the physical job in the field and the business job behind it: quoting, invoicing, payroll, purchasing, compliance, reporting, and customer communication.
+- **Chaos to control**: The opposite of operational chaos is control, not calm. Frame control as shared visibility, connected data, and workflows that keep the business from relying on one person's memory.
+- **Connected data**: AI claims are strongest when tied to operational data that flows across scheduling, field work, materials, quoting, invoicing, payments, and reporting.
 
 ## Messaging Framework
 
@@ -342,9 +351,9 @@ Before publishing any content, verify:
 
 **25 words**: Simpro is the leading AI-first operating platform for the trades, built to eliminate complexity, unlock clarity, and double business profitability worldwide. Learn more at simpro.ai
 
-**50 words**: Simpro is the leading AI-first operating platform for residential and commercial trades. Built for the heroes who keep the world running, Simpro helps the trades eliminate complexity, unlock clarity, and double profitability. More than 250,000 users worldwide rely on Simpro to scale smarter, win more jobs, and get paid what they deserve. Learn more at simpro.ai
+**50 words**: Simpro is the leading AI-first operating platform for residential and commercial trades. Built for the heroes who keep the world running, Simpro helps the trades eliminate complexity, unlock clarity, and double profitability. More than 24,000 businesses and 450,000 users rely on Simpro to scale smarter, win more jobs, and get paid what they deserve. Learn more at simpro.ai
 
-**100 words**: Simpro is the leading AI-first operating platform for residential and commercial trades. Our mission is simple: double trades business profitability. Built for the heroes who keep the world running, Simpro transforms how trades businesses operate — eliminating complexity, unlocking clarity, and turning hard work into lasting success. The platform integrates estimating, scheduling, compliance, safety, invoicing, and cash flow into one clear path to profitability. Today, more than 250,000 users worldwide rely on Simpro to scale with confidence, supported by offices in the U.S., Australia, and the UK. Simpro is part of Simpro Group, alongside BigChange, AroFlo, and ClockShark. Learn more at simpro.ai.
+**100 words**: Simpro is the leading AI-first operating platform for residential and commercial trades. Our mission is simple: double trades business profitability. Built for the heroes who keep the world running, Simpro transforms how trades businesses operate — eliminating complexity, unlocking clarity, and turning hard work into lasting success. The platform integrates estimating, scheduling, compliance, safety, invoicing, and cash flow into one clear path to profitability. Today, more than 24,000 businesses and 450,000 users worldwide rely on Simpro to scale with confidence, supported by offices in the U.S., Australia, and the UK. Simpro is part of Simpro Group, alongside BigChange, AroFlo, and ClockShark. Learn more at simpro.ai.
 
 ---
 

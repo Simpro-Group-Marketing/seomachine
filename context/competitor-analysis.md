@@ -714,7 +714,7 @@ Remaining SERP-feature gap: Semrush feature codes are now captured for the check
 
 ### Simpro's Unique Advantages
 - **20+ years** of trades-specific product investment (most competitors are 5–10 years old)
-- **250,000+ users**, **8,500+ customers**, **$36B+ invoices/year processed** — proof at scale
+- **450,000+ users**, **24,000+ businesses**, **$36B+ invoices/year processed** — proof at scale
 - **Service + projects + recurring maintenance native** — rare in the category
 - **Multi-Company architecture** — PE-backed roll-ups and multi-location ops underserved by competitors
 - **AI-first positioning** with in-product capabilities (AI Mobile Work Notes, Delight, smart scheduling, predictive insights), not just chatbot marketing

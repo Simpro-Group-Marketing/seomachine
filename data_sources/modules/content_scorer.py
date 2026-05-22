@@ -13,7 +13,8 @@ Readability now includes:
 - Sentence rhythm scoring (penalizes monotonous sections)
 - Paragraph length check (flags paragraphs >4 sentences)
 
-Composite score must be >= 70 to pass quality threshold.
+Composite score must be >= 85 to pass the general content quality threshold.
+AEO/GEO score must be >= 90 to pass the generative-answer publishing gate.
 """
 
 import re
@@ -22,10 +23,12 @@ from pathlib import Path
 
 # Import existing modules
 try:
+    from .aeo_geo_rater import rate_aeo_geo
     from .readability_scorer import ReadabilityScorer
     from .seo_quality_rater import SEOQualityRater
 except ImportError:
     # For standalone testing
+    from aeo_geo_rater import rate_aeo_geo
     from readability_scorer import ReadabilityScorer
     from seo_quality_rater import SEOQualityRater
 
@@ -42,8 +45,8 @@ class ContentScorer:
         'readability': 0.10
     }
 
-    # Threshold for passing
-    PASS_THRESHOLD = 70
+    # Threshold for passing the general content quality gate.
+    PASS_THRESHOLD = 85
 
     # AI phrases to detect (reduce humanity score)
     AI_PHRASES = [
@@ -179,8 +182,12 @@ class ContentScorer:
         )
         composite = round(composite, 1)
 
+        aeo_geo = rate_aeo_geo(content, metadata)
+        content_quality_passed = composite >= self.PASS_THRESHOLD
+        aeo_geo_passed = bool(aeo_geo.get('passed', False))
+
         # Determine if passed
-        passed = composite >= self.PASS_THRESHOLD
+        passed = content_quality_passed and aeo_geo_passed
 
         # Collect all issues and prioritize
         all_issues = []
@@ -206,8 +213,22 @@ class ContentScorer:
 
         return {
             'composite_score': composite,
+            'content_quality_score': composite,
             'passed': passed,
             'threshold': self.PASS_THRESHOLD,
+            'aeo_geo': aeo_geo,
+            'quality_gates': {
+                'content_quality': {
+                    'score': composite,
+                    'threshold': self.PASS_THRESHOLD,
+                    'passed': content_quality_passed
+                },
+                'aeo_geo': {
+                    'score': aeo_geo.get('score', 0),
+                    'threshold': aeo_geo.get('threshold', 90),
+                    'passed': aeo_geo_passed
+                }
+            },
             'dimensions': {
                 'humanity': {
                     'score': humanity['score'],
@@ -512,16 +533,28 @@ class ContentScorer:
             match = re.search(r'\*\*Meta Title\*\*:\s*(.+)', content)
             if match:
                 meta_title = match.group(1).strip()
+            else:
+                match = re.search(r'^\s*Meta Title:\s*(.+)', content, re.MULTILINE)
+                if match:
+                    meta_title = match.group(1).strip()
 
         if not meta_description:
             match = re.search(r'\*\*Meta Description\*\*:\s*(.+)', content)
             if match:
                 meta_description = match.group(1).strip()
+            else:
+                match = re.search(r'^\s*Meta Description:\s*(.+)', content, re.MULTILINE)
+                if match:
+                    meta_description = match.group(1).strip()
 
         if not primary_keyword:
             match = re.search(r'\*\*(?:Target|Primary) Keyword\*\*:\s*(.+)', content)
             if match:
                 primary_keyword = match.group(1).strip()
+            else:
+                match = re.search(r'^\s*Primary Keyword:\s*(.+)', content, re.MULTILINE)
+                if match:
+                    primary_keyword = match.group(1).strip()
 
         details['meta_title'] = meta_title
         details['meta_title_length'] = len(meta_title)
@@ -786,7 +819,13 @@ class ContentScorer:
 
         status = "PASSED" if result['passed'] else "BELOW THRESHOLD"
         lines.append(f"Composite Score: {result['composite_score']}/100 ({status})")
-        lines.append(f"Threshold: {result['threshold']}")
+        lines.append(f"Content Quality Threshold: {result['threshold']}")
+        aeo_geo = result.get('aeo_geo', {})
+        if aeo_geo:
+            lines.append(
+                f"AEO/GEO Score: {aeo_geo.get('score', 0)}/100 "
+                f"(threshold: {aeo_geo.get('threshold', 90)})"
+            )
         lines.append("")
 
         lines.append("Dimensions:")

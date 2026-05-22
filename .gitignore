@@ -54,6 +54,8 @@ topics/*
 research/*
 !research/.gitkeep
 
+output/playwright/
+
 drafts/*
 !drafts/.gitkeep
 

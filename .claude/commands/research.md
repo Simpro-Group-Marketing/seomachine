@@ -40,6 +40,7 @@ Use this command to conduct comprehensive SEO keyword research and competitive a
   - @context/target-keywords.md for sitemap-derived topic clusters, first-party GSC/GA4 performance signals, and remaining metric boundaries
   - @context/competitor-analysis.md for competitive differentiation and objections
   - @context/cro-best-practices.md for proof-source workflow and CTA/trust-signal guidance
+  - @context/aeo-geo-blog-strategy.md for AEO/GEO variable resolution, Capsule Method, PAA/FAQ selection, source mapping, and quality gates
 - **Lightning overlay**: If the topic mentions Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, also read @context/lightning-positioning.md and apply it as a scoped overlay.
 - **Simpro advantage**: Identify how Simpro's product features, customer proof, and best-fit use cases naturally enhance this topic.
 - **Brand alignment**: Apply Simpro's authoritative, ambitious, trades-focused, practical, outcomes-driven voice.
@@ -61,6 +62,9 @@ Use this command to conduct comprehensive SEO keyword research and competitive a
 - **Visual Opportunities**: Suggest images, screenshots, or graphics needed
 - **Internal Links**: Map 3-5 key your company pages to link to (from @context/internal-links-map.md)
 - **External Authority**: Identify 2-3 authoritative external sources to link
+- **AEO/GEO Variables**: Resolve `topic`, `audience`, `main_question`, `related_questions`, `tone`, `expertise`, and `length` where possible from repo context and research evidence
+- **Source Mapping**: For each credible external source, document the claim it supports, the natural anchor phrase, and the target section
+- **PAA/FAQ Inputs**: If AnswerSocrates or a PAA/FAQ CSV has been used, identify the 3-5 closest questions, intent labels, and suggested article placement
 
 ### Hook Development
 - **Introduction Angle**: Compelling way to open the article
@@ -76,6 +80,9 @@ Provides a comprehensive research brief with:
 - **Secondary Keywords**: 3-5 related keywords and variations
 - **Target Word Count**: Minimum words needed to compete
 - **Featured Snippet Opportunity**: Yes/No, format (paragraph, list, table)
+- **AEO/GEO Variables**: topic, audience, main_question, related_questions, tone, expertise, length
+- **PAA/FAQ Questions**: 3-5 closest questions with intent labels and article section mapping
+- **Source Map**: source, supported claim, anchor text, target section
 
 ### 2. Competitive Landscape
 - **Top 3 Competitor Articles**: URLs and key takeaways from each

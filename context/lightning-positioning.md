@@ -4,6 +4,12 @@ This file is the local SEO Machine summary of the Lightning positioning pack at 
 
 This overlay does not replace the general Simpro FY26 Message House in `brand-voice.md` or `style-guide.md`. General Simpro content can keep the broader "AI-first operating platform for the trades" wording. Lightning-specific customer copy must follow the stricter rules below.
 
+## Source Reconciliation
+
+The Tiiny-hosted Simpro Group message map reviewed on 2026-05-22 is draft source input only. It does not override this file. Normalize any draft wording that assigns the brain role to Lightning back to the canonical architecture below: the FSM is the heart, Cooper is the brain, and Simpro Group Lightning is the AI intelligence layer/platform upgrade.
+
+Use the highest supported scale proof in general context: `24,000+ businesses` and `450,000+ users`. Do not downgrade scale proof to lower draft figures from the Tiiny page. Keep 6% to 24% as the Lightning north-star profit trajectory unless a newer approved source replaces it.
+
 ## Non-Negotiable Naming Rules
 
 - Never use `Lightning` alone in customer-facing copy. Use `Simpro Lightning`, `AroFlo Lightning`, `BigChange Lightning`, or `Simpro Group Lightning`.
@@ -53,7 +59,7 @@ Use quantified Lightning claims only when they match this approved stack or have
 - Average field service trade business margin: 6%.
 - North-star profit trajectory: 6% to 24%. Treat 24% as aspirational/top-quartile framing, not an industry-average promise.
 - Execution-capacity frame: roughly 27 things to run well, roughly 7 done effectively, roughly 20 missing because the business cannot staff them.
-- Launch data scale: 150 million+ jobs and 23,000+ customers, soon to be 30,000.
+- Scale proof: 24,000+ businesses, 450,000+ users, and 150 million+ jobs. Use lower customer/business/user figures only when quoting a dated approved source with attribution.
 - Promotional launch pricing: 15% platform uplift on existing subscription through May 31.
 - Standard list price after launch: 25% platform uplift.
 - Price Lock Guarantee: annual increases capped at 3% plus in-country CPI.

@@ -611,8 +611,8 @@ These topics are strategically important based on Product Marketing context and 
 
 ### Proof and Differentiation Terms
 - 24/6 live support
-- 250,000+ users
-- 8,500+ customers
+- 450,000+ users
+- 24,000+ businesses
 - $36B+ invoices processed annually
 - 20+ years
 - Multi-Company

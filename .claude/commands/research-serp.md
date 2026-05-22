@@ -11,6 +11,8 @@ Analyzes the top 10 ranking results for a keyword to provide detailed content re
 - Content type patterns (listicle, how-to, guide, etc.)
 - Average word count and recommended length
 - SERP features present (featured snippet, PAA, video, etc.)
+- AEO/GEO variable candidates for blog writing
+- PAA/FAQ questions that should feed the AnswerSocrates artifact or article plan
 - Freshness requirements
 - Competitive difficulty
 - Search intent
@@ -51,6 +53,12 @@ The report includes:
 - Video/image requirements
 - Other SERP features present
 
+### AEO/GEO Inputs
+- Candidate `main_question` for direct-answer-first drafting
+- 3-5 closest PAA questions with intent labels
+- Capsule Method opportunities by H2/definition/comparison section
+- Source mapping needs for credible external claims
+
 ### Content Brief
 - Target specifications (word count, type, tone)
 - Must-have elements
@@ -84,6 +92,7 @@ Check if SERP patterns have changed, update to match current expectations
 
 After running `/research-serp`:
 - Use the content brief to guide writing
+- Feed the PAA questions and `main_question` into `research/paa-questions-[topic-slug]-[YYYY-MM-DD].md` or the `/article` AEO/GEO Map
 - Use `/write [keyword]` with insights from SERP analysis
 - Ensure content matches recommended structure and length
 

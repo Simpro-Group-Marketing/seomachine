@@ -68,7 +68,7 @@ PPC landing pages should not include unnecessary exit points. Simpro has seen co
 
 ### Trust signals: scale + named customers
 Above-the-fold trust signals that work for Simpro:
-- 250,000+ users / 8,500+ customers / 20+ years (scale)
+- 450,000+ users / 24,000+ businesses / 20+ years (scale)
 - Named customer logos in the relevant trade (relevance)
 - A specific outcome quote from a similar-trade customer (proof)
 - "Trusted in [US / AU / NZ / UK]" — geographic credibility
