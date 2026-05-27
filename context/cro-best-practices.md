@@ -207,7 +207,7 @@ Add urgency or detail near the button, not inside the primary button label, unle
 ### Strongest (Use First)
 1. **Specific Results**: "Grew audience by 300%"
 2. **Named Testimonials**: "Sarah M., The Creative Hour"
-3. **Customer Count with Context**: "50,000+ customers"
+3. **Customer Count with Context**: "24,000+ businesses and 450,000+ users"
 
 ### Strong
 4. **Star Ratings**: "4.9/5 on G2"
@@ -434,7 +434,7 @@ Use these only as fallback context when an internal KPI baseline is unavailable 
 - Use sparingly and honestly
 
 ### Social Proof
-- "Join 50,000+ customers"
+- "Join 24,000+ businesses and 450,000+ users"
 - Testimonials with faces
 - Live user counts
 - Recent signup notifications

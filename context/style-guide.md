@@ -203,13 +203,16 @@ The 25/50/100-word boilerplates from the Simpro Group tab share a recurring stru
 3. **Prove the scale**: "...24,000 businesses and 450,000 users worldwide."
 4. **Geo-credibility**: "...with teams across the U.S., Australia, and the U.K."
 5. **Champion close**: "...we champion the people who keep the world running."
-6. **CTA + canonical domain**: "Learn more at simpro.ai."
+6. **CTA + canonical domain**: Use `simpro.ai` for Lightning and AI-for-the-trades topics; use `simprogroup.com` for classic Simpro product, blog, resource, comparison, and customer-story paths.
 
 This six-beat structure is a usable template for hero sections, About pages, and PR boilerplate. Triplet rhythms — *get paid faster, run smarter, and grow stronger* — are signature. Use them.
 
-### Canonical domain: simpro.ai (not simprogroup.com)
+### Canonical Domain Rules
 
-The FY26 boilerplate references **simpro.ai** as the canonical destination. Older content and the FY25 200-word boilerplate referenced simprogroup.com. **Default to simpro.ai for new content** unless a specific page only exists on simprogroup.com.
+- Use **simpro.ai** for Simpro Lightning, Simpro Group Lightning, Cooper, JustAsk, named Lightning agents, and AI-for-the-trades thought leadership or campaign topics.
+- Use **simprogroup.com** for classic Simpro content: product, feature, industry, comparison, pricing, blog, resource, customer-story, and internal-link destinations.
+- Keep legacy blog and internal links on **simprogroup.com** unless a specific asset has moved and the new URL is verified.
+- Do not migrate SEO, GSC, GA4, internal-link, or historical blog assumptions to `simpro.ai` without a separate verified sitemap, analytics property, and redirect review.
 
 ### Signature phrasing — preserve verbatim where used
 

@@ -349,6 +349,8 @@ Before publishing any content, verify:
 
 ## Boilerplate (Reusable)
 
+**Domain note**: Use the `simpro.ai` CTA in these AI-first boilerplates only for Lightning, Cooper, JustAsk, named Lightning agents, and AI-for-the-trades topics. Use `simprogroup.com` for classic Simpro product, blog, resource, comparison, pricing, customer-story, and internal-link destinations.
+
 **25 words**: Simpro is the leading AI-first operating platform for the trades, built to eliminate complexity, unlock clarity, and double business profitability worldwide. Learn more at simpro.ai
 
 **50 words**: Simpro is the leading AI-first operating platform for residential and commercial trades. Built for the heroes who keep the world running, Simpro helps the trades eliminate complexity, unlock clarity, and double profitability. More than 24,000 businesses and 450,000 users rely on Simpro to scale smarter, win more jobs, and get paid what they deserve. Learn more at simpro.ai

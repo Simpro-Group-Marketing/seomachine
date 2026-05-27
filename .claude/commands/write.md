@@ -92,6 +92,7 @@ Apply these requirements from @context/aeo-geo-blog-strategy.md:
 - **PAA selection**: Use 3-5 PAA or FAQ questions from AnswerSocrates, SERP research, Reddit, YouTube, or a user-provided CSV.
 - **Source mapping**: Integrate at least three credible external sources inside natural sentences; map each source to the claim it supports.
 - **E-E-A-T proof**: Include named author, last-updated date, reviewer if available, named customer proof or expert quote, and honest limitations where relevant.
+- **Customer proof routing**: When citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
 - **Schema notes**: Include BlogPosting, FAQPage when FAQ is present, Author, and VideoObject when a video is embedded.
 
 #### 4. Main Body (1800-2500+ words)

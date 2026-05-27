@@ -25,10 +25,12 @@ Use this command to create high-converting landing pages optimized for either or
 ## Pre-Writing Review
 
 **Required Context:**
-- **Landing Page Templates**: @context/landing-page-templates.md for structure
 - **CRO Best Practices**: @context/cro-best-practices.md for conversion guidelines
 - **Brand Voice**: @context/brand-voice.md for tone and messaging
+- **Style Guide**: @context/style-guide.md for terminology, formatting, and claim boundaries
+- **Product and Proof Points**: @context/features.md for Simpro capabilities, scale proof, and named customer metrics
 - **Lightning Overlay**: If the page is about Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, also load @context/lightning-positioning.md.
+- **Customer proof routing**: When citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
 
 **If Research Brief Available:**
 - Review competitor analysis
@@ -65,7 +67,7 @@ Use this command to create high-converting landing pages optimized for either or
 
 [HOOK: 2-3 sentences. Start with pain point, surprising stat, or question]
 
-[Trust signal: "Join 50,000+ customers" or customer results]
+[Trust signal: "Join 24,000+ businesses and 450,000+ users" or named customer results]
 
 **[Primary CTA Button →]**
 
@@ -158,7 +160,7 @@ Use this command to create high-converting landing pages optimized for either or
 
 [One-sentence value proposition matching the ad]
 
-[Trust signal: "Trusted by 50,000+ customers"]
+[Trust signal: "Trusted by 24,000+ businesses and 450,000+ users"]
 
 **[Primary CTA Button - Large and Prominent →]**
 

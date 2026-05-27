@@ -625,11 +625,12 @@ These topics are strategically important based on Product Marketing context and 
 ## Maintenance
 
 **Last Updated**: 2026-05-22
-**Next Review**: 2026-08-21, or sooner if the public sitemap moves to `simpro.ai`.
+**Next Review**: 2026-08-21, or sooner if classic Simpro content migrates away from `simprogroup.com`.
 
 **Required Next Data Pulls**:
 - Refresh GSC query/page export and GA4 landing-page engagement/key-event data quarterly, or after major page changes.
 - Refresh Semrush MCP `phrase_these` quarterly for the priority set, and expand it again only when new keyword clusters are added.
 - Run a manual live SERP review for every High Priority to Validate topic, including human interpretation of Semrush SERP feature codes and page format.
 - Cannibalization review for topic clusters with several existing pages.
-- If `simpro.ai` becomes the public content domain, add its GSC property and GA4 traffic separately rather than merging it into this historical `simprogroup.com` baseline.
+- Canonical destination rule: `simpro.ai` is for Lightning, Cooper, JustAsk, named Lightning agents, and AI-for-the-trades topics. Classic Simpro product, feature, industry, comparison, pricing, blog, resource, customer-story, and SEO baseline URLs remain on `simprogroup.com`.
+- Add `simpro.ai` GSC and GA4 data only for Lightning and AI-for-the-trades analysis, and keep it separate from this historical `simprogroup.com` baseline unless a verified migration changes the classic-domain rule.

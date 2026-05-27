@@ -55,6 +55,7 @@ Before opening the browser or drafting, resolve these variables from the user pr
 | `length` | Use `/research-serp` competitive length; default to the top-SERP benchmark if available. |
 
 If a variable cannot be answered by the repo or research, ask the user for only that missing variable. Do not synthesize PAA questions, expert quotes, customer claims, search volume, or ranking evidence.
+Customer proof routing: when citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
 
 ### AnswerSocrates PAA Collection
 
@@ -686,6 +687,7 @@ Before writing, review these context files:
 - @context/style-guide.md - Formatting rules
 - @context/seo-guidelines.md - SEO requirements
 - @context/aeo-geo-blog-strategy.md - AEO/GEO requirements for blog writing
+- @context/target-keywords.md - keyword targets, clusters, and metric boundaries
 - @context/internal-links-map.md - Linking targets
 - @context/features.md - your brand product information
 - @context/writing-examples.md - Style reference
