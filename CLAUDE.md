@@ -107,9 +107,15 @@ Rewrites go to `rewrites/`. Landing pages go to `landing-pages/`. Audits go to `
 
 Blog rewrites must follow the same AEO/GEO evidence boundaries as new articles: sourced PAA/FAQ provenance, source mapping, E-E-A-T Proof Map inputs, direct-answer structure, schema notes, AI copy lint, `content_scorer.py`, and the 85/100 general quality plus 90/100 AEO/GEO gates before `/optimize`.
 
-Context files are the internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics. Draft bodies may use public sources and context-backed proof, but must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, or internal proof-path instructions.
+Context files are the internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics. Draft bodies may use public sources and context-backed proof, but must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, internal proof-path instructions, or source/proof meta-commentary. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
+
+Blog drafts and rewrites should use only 1 link per paragraph. Move the second link to a separate paragraph or remove it.
 
 E-E-A-T proof must resolve Experience and Expertise before writing. Pull case-study URLs from `context/internal-links-map.md`, approved metrics/proof candidates from `context/features.md`, and review-site VoC or competitor experience themes from `context/competitor-analysis.md` or future review-context files. Context-backed metrics require public-facing source links in the article body.
+
+Every writer and rewriter output must include at least 1 contextual down-funnel internal link to `https://www.simprogroup.com/industries`, `/industries/...`, `/solutions/...`, or `/features/...` from `context/internal-links-map.md`. Prefer a specific industry page when the intent is clear, the industries hub for broad trades topics, a solution page for category/workflow topics, and a feature page for feature/workflow topics. Anchor text must match the destination keyword or an approved anchor example.
+
+Feature and solution links must use function-bearing anchor text that explains the workflow, category, or outcome behind the destination. A feature or solution name alone is not enough; use "accounts receivable follow-up with Fast Cash" instead of "Fast Cash."
 
 ## Context Files
 

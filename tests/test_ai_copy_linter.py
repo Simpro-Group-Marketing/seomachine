@@ -84,6 +84,59 @@ class AiCopyLinterTests(unittest.TestCase):
             finding_ids("Use context/features.md as the source for this customer claim."),
         )
 
+    def test_source_meta_commentary_is_error(self):
+        content = (
+            "That case study is useful for this topic, since it links payment speed "
+            "to operational workflow."
+        )
+
+        findings = lint_content(content)
+        meta = [
+            finding
+            for finding in findings
+            if finding["rule_id"] == "source_meta_commentary"
+        ]
+
+        self.assertEqual(len(meta), 1)
+        self.assertEqual(meta[0]["severity"], "error")
+
+    def test_audience_facing_case_study_language_is_allowed(self):
+        self.assertNotIn(
+            "source_meta_commentary",
+            finding_ids(
+                "The TEAMWired case study shows how faster invoices can shorten "
+                "payment time after field work is complete."
+            ),
+        )
+
+    def test_multiple_links_in_one_paragraph_is_error(self):
+        content = (
+            "The [Federal Reserve](https://www.frbservices.org/news) reported "
+            "payment changes. Teams comparing "
+            "[software for trades businesses](https://www.simprogroup.com/industries) "
+            "need a clear payment workflow."
+        )
+
+        findings = lint_content(content)
+        multiple_links = [
+            finding
+            for finding in findings
+            if finding["rule_id"] == "multiple_links_in_paragraph"
+        ]
+
+        self.assertEqual(len(multiple_links), 1)
+        self.assertEqual(multiple_links[0]["severity"], "error")
+
+    def test_one_link_per_paragraph_is_allowed(self):
+        content = (
+            "The [Federal Reserve](https://www.frbservices.org/news) reported "
+            "payment changes.\n\n"
+            "Teams comparing [software for trades businesses]"
+            "(https://www.simprogroup.com/industries) need clear payment workflows."
+        )
+
+        self.assertNotIn("multiple_links_in_paragraph", finding_ids(content))
+
     def test_rhetorical_setup_question_is_warning(self):
         findings = lint_content("Are you tired of missed job updates? Use 1 job record.")
 

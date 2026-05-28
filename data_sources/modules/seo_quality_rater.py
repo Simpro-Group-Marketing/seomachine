@@ -6,11 +6,68 @@ Provides scoring (0-100) and specific recommendations for improvement.
 """
 
 import argparse
+from functools import lru_cache
 import re
 import sys
 from pathlib import Path
 from urllib.parse import urlparse
 from typing import Dict, List, Optional, Any, Tuple
+
+
+DOWN_FUNNEL_PATH_PREFIXES = (
+    "/features/",
+    "/industries/",
+    "/solutions/",
+)
+DOWN_FUNNEL_EXACT_PATHS = {
+    "/industries",
+}
+GENERIC_LINK_ANCHORS = {
+    "click here",
+    "here",
+    "learn more",
+    "more",
+    "read more",
+    "this page",
+    "this article",
+    "this link",
+    "this resource",
+    "check it out",
+}
+FUNCTIONAL_DESTINATION_TERMS = {
+    "accounts receivable",
+    "asset maintenance",
+    "cash collection",
+    "construction",
+    "crm",
+    "data feed",
+    "digital forms",
+    "dispatch",
+    "estimating",
+    "field service",
+    "inventory",
+    "invoice",
+    "invoicing",
+    "job management",
+    "maintenance",
+    "management",
+    "mobile app",
+    "payment options",
+    "payments",
+    "project management",
+    "reporting",
+    "scheduling",
+    "service management",
+    "sms messaging",
+    "software",
+    "work order",
+}
+OWNED_INTERNAL_DOMAINS = {
+    "simprogroup.com",
+    "www.simprogroup.com",
+    "simpro.ai",
+    "www.simpro.ai",
+}
 
 
 class SEOQualityRater:
@@ -473,6 +530,36 @@ class SEOQualityRater:
             score -= 5
             suggestions.append(f"Could add more internal links ({internal_count}). Optimal is {optimal_internal}.")
 
+        down_funnel = _analyze_down_funnel_links(content)
+        if down_funnel["generic"]:
+            score -= 20
+            anchor, url = down_funnel["generic"][0]
+            critical.append(
+                "A down-funnel internal link uses generic anchor text. "
+                f"Replace '{anchor}' for {url} with destination-matched anchor text."
+            )
+        elif down_funnel["name_only"]:
+            score -= 20
+            anchor, url = down_funnel["name_only"][0]
+            critical.append(
+                "A feature or solution link uses name-only anchor text. "
+                f"Replace '{anchor}' for {url} with functional anchor text that describes "
+                "the workflow, category, or outcome."
+            )
+        elif not down_funnel["valid"]:
+            score -= 20
+            if down_funnel["weak_anchor"]:
+                anchor, url = down_funnel["weak_anchor"][0]
+                critical.append(
+                    "A down-funnel internal link anchor text must match the destination keyword. "
+                    f"Replace '{anchor}' for {url} with a product, solution, feature, or industry keyword."
+                )
+            else:
+                critical.append(
+                    "Missing down-funnel internal link to /industries, /industries/..., "
+                    "/solutions/..., or /features/... with matched anchor text."
+                )
+
         # External links
         min_external = self.guidelines['min_external_links']
         optimal_external = self.guidelines['optimal_external_links']
@@ -600,14 +687,8 @@ def _count_markdown_links(content: str) -> Tuple[int, int]:
     """Count markdown links as internal or external for Simpro content."""
     internal_count = 0
     external_count = 0
-    owned_domains = {
-        "simprogroup.com",
-        "www.simprogroup.com",
-        "simpro.ai",
-        "www.simpro.ai",
-    }
 
-    for url in re.findall(r'\[[^\]]+\]\(([^)]+)\)', content):
+    for _, url in _extract_markdown_links(content):
         url = url.strip()
         if not url:
             continue
@@ -616,7 +697,7 @@ def _count_markdown_links(content: str) -> Tuple[int, int]:
         if parsed.scheme in {"http", "https"}:
             hostname = (parsed.hostname or "").lower()
             if (
-                hostname in owned_domains
+                hostname in OWNED_INTERNAL_DOMAINS
                 or hostname.endswith(".simprogroup.com")
                 or hostname.endswith(".simpro.ai")
             ):
@@ -627,6 +708,195 @@ def _count_markdown_links(content: str) -> Tuple[int, int]:
             internal_count += 1
 
     return internal_count, external_count
+
+
+def _extract_markdown_links(content: str) -> List[Tuple[str, str]]:
+    """Extract non-image markdown links from article body."""
+    body = re.sub(r"\A---\s*\n.*?\n---\s*", "", content, flags=re.DOTALL)
+    return [
+        (anchor.strip(), url.strip())
+        for anchor, url in re.findall(r'(?<!!)\[([^\]]+)\]\(([^)]+)\)', body)
+    ]
+
+
+def _analyze_down_funnel_links(content: str) -> Dict[str, List[Tuple[str, str]]]:
+    analysis = {
+        "valid": [],
+        "generic": [],
+        "name_only": [],
+        "weak_anchor": [],
+    }
+
+    for anchor, url in _extract_markdown_links(content):
+        path = _internal_link_path(url)
+        if not path or not _is_down_funnel_path(path):
+            continue
+
+        if _is_generic_anchor(anchor):
+            analysis["generic"].append((anchor, url))
+        elif _is_name_only_feature_or_solution_anchor(anchor, path):
+            analysis["name_only"].append((anchor, url))
+        elif _anchor_matches_down_funnel_target(anchor, path):
+            analysis["valid"].append((anchor, url))
+        else:
+            analysis["weak_anchor"].append((anchor, url))
+
+    return analysis
+
+
+def _internal_link_path(url: str) -> Optional[str]:
+    parsed = urlparse(url)
+    if parsed.scheme in {"http", "https"}:
+        hostname = (parsed.hostname or "").lower()
+        if not (
+            hostname in OWNED_INTERNAL_DOMAINS
+            or hostname.endswith(".simprogroup.com")
+            or hostname.endswith(".simpro.ai")
+        ):
+            return None
+        return _normalize_path(parsed.path)
+
+    if url.startswith("#") or url.startswith("mailto:") or url.startswith("tel:"):
+        return None
+
+    return _normalize_path(url)
+
+
+def _normalize_path(path: str) -> str:
+    cleaned = path.split("#", 1)[0].split("?", 1)[0].strip()
+    if not cleaned.startswith("/"):
+        cleaned = "/" + cleaned
+    cleaned = re.sub(r"/+", "/", cleaned)
+    return cleaned.rstrip("/") or "/"
+
+
+def _is_down_funnel_path(path: str) -> bool:
+    return path in DOWN_FUNNEL_EXACT_PATHS or any(
+        path.startswith(prefix) for prefix in DOWN_FUNNEL_PATH_PREFIXES
+    )
+
+
+def _is_generic_anchor(anchor: str) -> bool:
+    normalized = _normalize_anchor(anchor)
+    return normalized in GENERIC_LINK_ANCHORS
+
+
+def _is_name_only_feature_or_solution_anchor(anchor: str, path: str) -> bool:
+    if not (path.startswith("/features/") or path.startswith("/solutions/")):
+        return False
+
+    normalized_anchor = _normalize_anchor(anchor)
+    destination_phrase = _normalize_anchor(path.rsplit("/", 1)[-1].replace("-", " "))
+    title = _internal_link_titles().get(path, "")
+
+    name_variants = {destination_phrase}
+    if title:
+        name_variants.add(title)
+
+    for name in list(name_variants):
+        if name and not name.startswith("simpro "):
+            name_variants.add(f"simpro {name}")
+
+    if normalized_anchor not in name_variants:
+        return False
+
+    if normalized_anchor.startswith("simpro "):
+        return True
+
+    if path.startswith("/features/") and len(normalized_anchor.split()) <= 1:
+        return True
+
+    return not _has_functional_anchor_context(normalized_anchor)
+
+
+def _has_functional_anchor_context(normalized_anchor: str) -> bool:
+    return any(term in normalized_anchor for term in FUNCTIONAL_DESTINATION_TERMS)
+
+
+def _anchor_matches_down_funnel_target(anchor: str, path: str) -> bool:
+    normalized_anchor = _normalize_anchor(anchor)
+    approved_examples = _internal_link_anchor_examples().get(path, set())
+    if normalized_anchor in approved_examples:
+        return True
+
+    if path == "/industries":
+        return any(
+            term in normalized_anchor
+            for term in ("industry", "industries", "trade", "trades")
+        )
+
+    destination_phrase = path.rsplit("/", 1)[-1].replace("-", " ")
+    if destination_phrase and destination_phrase in normalized_anchor:
+        return True
+
+    destination_terms = [
+        term
+        for term in destination_phrase.split()
+        if term not in {"software", "for", "and", "the", "simpro"}
+    ]
+    return bool(destination_terms) and any(term in normalized_anchor for term in destination_terms)
+
+
+def _normalize_anchor(anchor: str) -> str:
+    text = re.sub(r"<[^>]+>", " ", anchor)
+    text = re.sub(r"[*_`]", "", text)
+    text = re.sub(r"[^a-z0-9]+", " ", text.lower())
+    return re.sub(r"\s+", " ", text).strip()
+
+
+@lru_cache(maxsize=1)
+def _internal_link_titles() -> Dict[str, str]:
+    link_map_path = Path(__file__).resolve().parents[2] / "context" / "internal-links-map.md"
+    titles: Dict[str, str] = {}
+
+    if not link_map_path.exists():
+        return titles
+
+    current_title = ""
+    for line in link_map_path.read_text(encoding="utf-8").splitlines():
+        title_match = re.match(r"^###\s+(.+)", line)
+        if title_match:
+            current_title = _normalize_anchor(title_match.group(1))
+            continue
+
+        url_match = re.match(r"- \*\*URL\*\*:\s*(\S+)", line)
+        if url_match and current_title:
+            current_path = _internal_link_path(url_match.group(1))
+            if current_path:
+                titles[current_path] = current_title
+
+    return titles
+
+
+@lru_cache(maxsize=1)
+def _internal_link_anchor_examples() -> Dict[str, set]:
+    link_map_path = Path(__file__).resolve().parents[2] / "context" / "internal-links-map.md"
+    examples: Dict[str, set] = {}
+
+    if not link_map_path.exists():
+        return examples
+
+    current_path = None
+    for line in link_map_path.read_text(encoding="utf-8").splitlines():
+        url_match = re.match(r"- \*\*URL\*\*:\s*(\S+)", line)
+        if url_match:
+            current_path = _internal_link_path(url_match.group(1))
+            continue
+
+        if current_path is None:
+            continue
+
+        anchor_match = re.match(r"- \*\*Anchor Text Examples\*\*:\s*(.+)", line)
+        if not anchor_match:
+            continue
+
+        examples[current_path] = {
+            _normalize_anchor(example)
+            for example in anchor_match.group(1).split(",")
+            if example.strip()
+        }
+
+    return examples
 
 
 def _extract_frontmatter(content: str) -> Dict[str, str]:

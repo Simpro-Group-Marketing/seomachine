@@ -43,6 +43,7 @@ Required proof sources:
 - Pull approved metrics and proof candidates from `context/features.md`.
 - Pull review-site VoC and competitor experience themes from `context/competitor-analysis.md` or any future review-context file.
 - Context-backed metrics are valid only when the context pack carries the approved metric and proof path. Public copy must link to the public case study, review site, or source URL, not to internal context files.
+- Do not write source/proof meta-commentary in public copy, such as "that case study is useful for this topic" or "this source is relevant for the article." Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 
 ## Review-Site VoC Routing
 
@@ -113,6 +114,8 @@ When a PAA/FAQ CSV or raw question set is available, select the 3-5 closest ques
 - Include a Key Takeaways block after the introduction with 3-5 standalone conclusions.
 - Use one clear idea per H2/H3 section.
 - Integrate at least three credible external sources naturally inside sentences.
+- Use only 1 link per paragraph. Move the second link to a separate paragraph or remove it.
+- Feature and solution links must use function-bearing anchor text that explains the workflow, category, or outcome behind the destination. A feature or solution name alone is not enough.
 - Context files are an internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics. Use public sources and context-backed proof when available, but do not write phrases like "repo context," "context/features.md," "Source Map," "PAA artifact," "change summary," or internal proof-path notes in the public article body.
 - Use context-backed metrics only with public-facing source links, such as case-study URLs, review-site URLs, or public research sources.
 - Include 3-5 selected PAA/FAQ questions from research.

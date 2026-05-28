@@ -157,12 +157,12 @@ This document catalogs verified Simpro URLs for strategic internal linking in bl
 ### Payments
 - **URL**: https://www.simprogroup.com/features/payments
 - **When to Link**: Cash flow, card/online/on-site payments, faster collections, and payment automation content.
-- **Anchor Text Examples**: Simpro Payments, field service payments, get paid faster
+- **Anchor Text Examples**: field service payments, online payment options with Simpro Payments, get paid faster
 
 ### Fast Cash
 - **URL**: https://www.simprogroup.com/features/fast-cash
 - **When to Link**: Accounts receivable, payment acceleration, cash collection, and AI-assisted payment workflows.
-- **Anchor Text Examples**: Fast Cash, faster invoice payments, improve cash collection
+- **Anchor Text Examples**: accounts receivable follow-up with Fast Cash, faster invoice payments, improve cash collection
 
 ### Track Inventory
 - **URL**: https://www.simprogroup.com/features/track-inventory
@@ -225,6 +225,11 @@ This document catalogs verified Simpro URLs for strategic internal linking in bl
 - **Anchor Text Examples**: Simpro Add-Ons, optional Simpro features, extend Simpro workflows
 
 ## Industry Pages
+
+### All Industries
+- **URL**: https://www.simprogroup.com/industries
+- **When to Link**: Broad trades, general industry, multi-trade, software for trade industries, and posts where no single industry page fits.
+- **Anchor Text Examples**: field service management solutions for your industry, field service software for trade industries, Simpro industries, software for trades businesses
 
 ### HVAC
 - **URL**: https://www.simprogroup.com/industries/hvac-software

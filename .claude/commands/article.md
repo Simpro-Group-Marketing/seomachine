@@ -72,6 +72,14 @@ Before planning or drafting, resolve an E-E-A-T Proof Map:
 - Use numerals for cardinal numbers, including 1-9.
 - Do not write number words such as "one," "two," or "three" in final public copy.
 - Always put a comma before "because".
+- Only 1 link per paragraph. Move the second link to a separate paragraph or remove it.
+- Do not write source/proof meta-commentary such as "that case study is useful for this topic" or "this source is relevant for the article." Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
+
+### Down-Funnel Internal Link Rule
+
+Every article must include at least 1 contextual down-funnel internal link to `/industries`, `/industries/...`, `/solutions/...`, or `/features/...` from @context/internal-links-map.md. Prefer the specific industry page when industry intent is clear, the `https://www.simprogroup.com/industries` hub for broad trades or general industry topics, the relevant solution page for category/workflow topics, and the relevant feature page for feature/workflow topics. Anchor text must match the destination keyword or an approved anchor example from @context/internal-links-map.md.
+
+Feature and solution links must use function-bearing anchor text that explains the workflow, category, or outcome behind the destination. A feature or solution name alone is not enough. Use anchors like "field service payments," "accounts receivable follow-up with Fast Cash," or "field service management software" instead of "Simpro Payments," "Fast Cash," or "Simpro Premium."
 
 ### AnswerSocrates PAA Collection
 

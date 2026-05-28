@@ -342,6 +342,8 @@ Examples:
 
 **Because Comma**: Always put a comma before "because" in Simpro web/blog copy.
 
+**No Source/Proof Meta-Commentary**: Do not explain why a case study, source, statistic, or example is useful for the topic, draft, article, or section. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
+
 **Em Dashes**: Use em dash (—) with no spaces for parenthetical emphasis ("real-time job costing—the difference between knowing and guessing"). Avoid hyphens with spaces (-) as a substitute.
 
 **Quotation Marks**: Use curly/smart quotes in published content ("Work. Smarter."). Straight quotes are acceptable in draft Markdown and convert at publish time.
@@ -463,6 +465,8 @@ Examples:
 - 2–5 words typically
 - ✅ "Learn how Simpro Payments works" / "See real-time job costing in action"
 - ❌ "Click here" / "Read more" / "This page"
+- Only 1 link per paragraph. Move the second link to a separate paragraph or remove it.
+- Feature and solution links must use function-bearing anchor text. A feature or solution name alone is not enough; pair branded names with the workflow, category, or outcome.
 
 **Internal vs. External**:
 - Internal links: open in same tab

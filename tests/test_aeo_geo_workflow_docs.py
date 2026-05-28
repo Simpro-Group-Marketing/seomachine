@@ -162,6 +162,105 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
+    def test_blog_writing_commands_ban_source_meta_commentary(self):
+        command_paths = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+        ]
+        required = [
+            "source/proof meta-commentary",
+            "Translate proof into audience-facing takeaways",
+        ]
+
+        for path in command_paths:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+    def test_blog_writing_commands_require_down_funnel_internal_link(self):
+        command_paths = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+        ]
+        required = [
+            "down-funnel internal link",
+            "/industries",
+            "/solutions/",
+            "/features/",
+            "Anchor text must match the destination keyword",
+        ]
+
+        for path in command_paths:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+    def test_blog_writing_commands_limit_links_per_paragraph(self):
+        command_paths = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+        ]
+        required = [
+            "Only 1 link per paragraph",
+            "Move the second link to a separate paragraph",
+        ]
+
+        for path in command_paths:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+    def test_blog_writing_docs_require_functional_feature_solution_anchors(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "agents" / "internal-linker.md",
+        ]
+        required = [
+            "function-bearing anchor text",
+            "A feature or solution name alone is not enough",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+    def test_internal_links_map_includes_industries_hub(self):
+        link_map = (ROOT / "context" / "internal-links-map.md").read_text(
+            encoding="utf-8"
+        )
+
+        required = [
+            "https://www.simprogroup.com/industries",
+            "field service management solutions for your industry",
+            "field service software for trade industries",
+            "software for trades businesses",
+        ]
+
+        for text in required:
+            self.assertIn(text, link_map)
+
+    def test_readme_claude_and_internal_linker_document_down_funnel_rule(self):
+        docs = [
+            ROOT / "README.md",
+            ROOT / "CLAUDE.md",
+            ROOT / ".claude" / "agents" / "internal-linker.md",
+        ]
+        required = [
+            "down-funnel internal link",
+            "https://www.simprogroup.com/industries",
+            "Anchor text must match the destination keyword",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
     def test_analyze_existing_command_documents_rewrite_strategy_inputs(self):
         analyze = (ROOT / ".claude" / "commands" / "analyze-existing.md").read_text(
             encoding="utf-8"

@@ -161,6 +161,7 @@ class KeywordAnalyzer:
         )
 
         return {
+            'keyword': keyword,
             'exact_matches': exact_count,
             'total_occurrences': total_count,
             'density': round(density, 2),
@@ -561,46 +562,46 @@ class KeywordAnalyzer:
         status = primary_analysis['density_status']
         if status == "too_low":
             recommendations.append(
-                f"⚠️ Primary keyword density is too low ({primary_analysis['density']}%). "
+                f"WARNING: Primary keyword density is too low ({primary_analysis['density']}%). "
                 f"Target is {target_density}%. Add {primary_analysis['keyword']} naturally in more paragraphs."
             )
         elif status == "slightly_low":
             recommendations.append(
-                f"ℹ️ Primary keyword density is slightly low ({primary_analysis['density']}%). "
+                f"INFO: Primary keyword density is slightly low ({primary_analysis['density']}%). "
                 f"Consider adding a few more mentions of '{primary_analysis['keyword']}'."
             )
         elif status == "too_high":
             recommendations.append(
-                f"⚠️ Primary keyword density is too high ({primary_analysis['density']}%). "
+                f"WARNING: Primary keyword density is too high ({primary_analysis['density']}%). "
                 f"This may trigger keyword stuffing penalties. Remove some instances or replace with variations."
             )
         elif status == "slightly_high":
             recommendations.append(
-                f"ℹ️ Primary keyword density is slightly high ({primary_analysis['density']}%). "
+                f"INFO: Primary keyword density is slightly high ({primary_analysis['density']}%). "
                 f"Consider using more keyword variations or synonyms."
             )
 
         # Critical placements
         placements = primary_analysis['critical_placements']
         if not placements['in_first_100_words']:
-            recommendations.append("⚠️ Primary keyword missing from first 100 words - add it to the introduction")
+            recommendations.append("WARNING: Primary keyword missing from first 100 words - add it to the introduction")
 
         if not placements['in_h1']:
-            recommendations.append("⚠️ Primary keyword missing from H1 headline - include it in the title")
+            recommendations.append("WARNING: Primary keyword missing from H1 headline - include it in the title")
 
         if placements['h2_keyword_ratio'] < 0.33:  # Less than 1/3 of H2s
             recommendations.append(
-                f"ℹ️ Primary keyword appears in only {placements['in_h2_headings']} H2 headings. "
+                f"INFO: Primary keyword appears in only {placements['in_h2_headings']} H2 headings. "
                 "Aim for 2-3 H2s with keyword variations."
             )
 
         if not placements['in_conclusion']:
-            recommendations.append("ℹ️ Consider mentioning primary keyword in the conclusion for better optimization")
+            recommendations.append("INFO: Consider mentioning primary keyword in the conclusion for better optimization")
 
         # Keyword stuffing
         if not stuffing_risk['safe']:
             recommendations.append(
-                f"⚠️ KEYWORD STUFFING RISK: {stuffing_risk['risk_level'].upper()} - "
+                f"WARNING: KEYWORD STUFFING RISK: {stuffing_risk['risk_level'].upper()} - "
                 + '; '.join(stuffing_risk['warnings'])
             )
 
@@ -608,7 +609,7 @@ class KeywordAnalyzer:
         for analysis in secondary_analysis:
             if analysis['total_occurrences'] == 0:
                 recommendations.append(
-                    f"ℹ️ Secondary keyword '{analysis['keyword']}' not found in content - consider adding it"
+                    f"INFO: Secondary keyword '{analysis['keyword']}' not found in content - consider adding it"
                 )
 
         return recommendations

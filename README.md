@@ -110,6 +110,8 @@ claude-code .
 - Maintains Simpro brand voice from `context/brand-voice.md` (and `lightning-positioning.md` when relevant)
 - Integrates keywords from `context/target-keywords.md`
 - Includes internal and external links per `context/internal-links-map.md`
+- Uses only 1 link per paragraph, moving any second link to a separate paragraph or removing it
+- Uses function-bearing anchor text for feature and solution links; a feature or solution name alone is not enough
 - Provides meta elements (title, description, keywords)
 - Automatically triggers optimization agents
 - Saves to `/drafts/` directory
@@ -176,6 +178,8 @@ After writing, these agents automatically analyze the content:
 - Refreshes statistics and examples
 - Improves SEO optimization
 - Applies `context/aeo-geo-blog-strategy.md` for sourced PAA/FAQ provenance, source mapping, E-E-A-T proof, direct-answer capsules, schema notes, and 85/90 quality gates
+- Uses only 1 link per paragraph, moving any second link to a separate paragraph or removing it
+- Uses function-bearing anchor text for feature and solution links; a feature or solution name alone is not enough
 - Adds new sections to fill gaps
 - Maintains what works from original
 - Tracks changes made
@@ -719,6 +723,7 @@ Every Simpro blog post should meet these requirements:
 - [ ] Primary keyword density ~1-2% per `seo-guidelines.md`
 - [ ] Keyword in H1, first 100 words, 2-3 H2s, conclusion, meta, and slug
 - [ ] 3-5 internal links from `internal-links-map.md` (performance-prioritized pages where relevant)
+- [ ] At least 1 down-funnel internal link to `https://www.simprogroup.com/industries`, `/industries/...`, `/solutions/...`, or `/features/...`; Anchor text must match the destination keyword
 - [ ] 2-3 credible external sources with natural in-sentence attribution
 - [ ] Meta title 50-60 characters with `| Simpro` when space allows
 - [ ] Meta description 150-160 characters with a clear CTA
@@ -757,8 +762,9 @@ Every Simpro blog post should meet these requirements:
 2. **Trades language**: job costing, dispatch, PM, quotes — not generic "solutions" copy
 3. **Named proof**: Customer outcomes from approved case studies and mapped metrics in `features.md`; use public-facing source links in the article body
 4. **Source mapping**: At least three external claims with clear attribution
-5. **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics. Draft bodies may use public sources and context-backed proof, but must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, or internal proof-path instructions.
-6. **Competitive framing**: Use `competitor-analysis.md` — differentiate, do not disparage
+5. **Down-funnel link**: Add 1 contextual down-funnel internal link to an industry, solution, or feature page. Use `https://www.simprogroup.com/industries` for broad trades topics when no single industry page fits.
+6. **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics. Draft bodies may use public sources and context-backed proof, but must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, internal proof-path instructions, or source/proof meta-commentary. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
+7. **Competitive framing**: Use `competitor-analysis.md` — differentiate, do not disparage
 
 ### After Writing
 1. **Agent passes**: SEO Optimizer, Meta Creator, Internal Linker, Keyword Mapper
@@ -942,4 +948,3 @@ Upstream project: [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/
 5. Check AEO/GEO score and publish via `/publish-draft` when ready
 
 Happy writing!
-

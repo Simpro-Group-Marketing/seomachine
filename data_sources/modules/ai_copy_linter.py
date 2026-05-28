@@ -121,6 +121,24 @@ ERROR_RULES: List[Tuple[str, Pattern[str], str, str]] = [
         "Internal workflow or repo-context language is not allowed in public blog copy.",
         "Use context files only to guide writing. Cite public URLs or remove the internal note.",
     ),
+    (
+        "source_meta_commentary",
+        re.compile(
+            r"\b(?:this|that|the)\s+"
+            r"(?:case study|source|statistic|stat|example|proof point|article|blog|section)\s+"
+            r"(?:is|are|was|were)\s+"
+            r"(?:useful|helpful|relevant|important|good|strong|appropriate)\s+"
+            r"for\s+(?:this|the)\s+"
+            r"(?:topic|article|blog|post|section|rewrite|draft)\b|"
+            r"\b(?:this|that|the)\s+"
+            r"(?:case study|source|statistic|stat|example|proof point|article|blog|section)\s+"
+            r"(?:belongs|fits|works)\s+(?:in|for)\s+(?:this|the)\s+"
+            r"(?:topic|article|blog|post|section|rewrite|draft)\b",
+            re.IGNORECASE,
+        ),
+        "Public blog copy must not explain why a source or proof point is useful for the draft.",
+        "Translate the source into an audience-facing takeaway, outcome, or workflow lesson.",
+    ),
 ]
 
 
@@ -240,6 +258,7 @@ def lint_content(content: str, profile: str = "simpro-web") -> List[Finding]:
         findings.extend(_find_missing_comma_before_because(line_number, original_line, masked_line))
         findings.extend(_find_long_sentences(line_number, original_line, masked_line))
 
+    findings.extend(_find_multiple_links_in_paragraph(content))
     findings.extend(_find_repeated_sentence_starts(content))
     return sorted(findings, key=lambda item: (item["line"], item["column"], item["rule_id"]))
 
@@ -410,6 +429,66 @@ def _find_missing_comma_before_because(
         )
 
     return findings
+
+
+def _find_multiple_links_in_paragraph(content: str) -> List[Finding]:
+    findings: List[Finding] = []
+    paragraph_lines: List[Tuple[int, str]] = []
+    paragraph_start_line = 0
+
+    def flush_paragraph() -> None:
+        nonlocal paragraph_lines, paragraph_start_line
+        if not paragraph_lines:
+            return
+
+        paragraph = " ".join(line for _, line in paragraph_lines)
+        markdown_link_count = len(MARKDOWN_LINK_RE.findall(paragraph))
+        paragraph_without_markdown_links = MARKDOWN_LINK_RE.sub("", paragraph)
+        bare_url_count = len(URL_RE.findall(paragraph_without_markdown_links))
+        link_count = markdown_link_count + bare_url_count
+
+        if link_count > 1:
+            findings.append(
+                _finding(
+                    "multiple_links_in_paragraph",
+                    "error",
+                    paragraph_start_line,
+                    1,
+                    f"{link_count} links in paragraph",
+                    "Only 1 link per paragraph is allowed in Simpro web copy.",
+                    "Move the second link to a separate paragraph or remove it.",
+                )
+            )
+
+        paragraph_lines = []
+        paragraph_start_line = 0
+
+    for line_number, original_line, _ in _iter_active_lines(content):
+        stripped = original_line.strip()
+        if not stripped:
+            flush_paragraph()
+            continue
+
+        if _is_non_prose_block_line(stripped):
+            flush_paragraph()
+            continue
+
+        if not paragraph_lines:
+            paragraph_start_line = line_number
+        paragraph_lines.append((line_number, original_line))
+
+    flush_paragraph()
+    return findings
+
+
+def _is_non_prose_block_line(stripped: str) -> bool:
+    return (
+        stripped.startswith("#")
+        or stripped.startswith(">")
+        or stripped.startswith("|")
+        or stripped.startswith("<!--")
+        or re.match(r"^(?:[-*+]|\d+\.)\s+", stripped) is not None
+    )
 
 
 def _find_repeated_sentence_starts(content: str) -> List[Finding]:
