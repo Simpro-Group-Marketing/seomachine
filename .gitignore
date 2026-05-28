@@ -6,10 +6,12 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+desktop.ini
 
 # Editor directories and files
 .vscode/
 .idea/
+.cursor/
 *.swp
 *.swo
 *~
@@ -26,7 +28,9 @@ yarn-error.log*
 # Environment variables
 .env
 .env.local
-.env.*.local
+.env.*
+!.env.example
+!**/.env.example
 
 # Temporary files
 *.tmp
@@ -43,7 +47,6 @@ tmp/
 # Backup files
 *.bak
 *.backup
-*~
 
 # Keep directory structure but ignore content in working directories
 # Allow .gitkeep files to preserve empty directories
@@ -54,7 +57,8 @@ topics/*
 research/*
 !research/.gitkeep
 
-output/playwright/
+output/*
+!output/.gitkeep
 
 drafts/*
 !drafts/.gitkeep
@@ -64,6 +68,21 @@ published/*
 
 rewrites/*
 !rewrites/.gitkeep
+
+review-required/*
+!review-required/.gitkeep
+
+landing-pages/*
+!landing-pages/.gitkeep
+
+repurposed/*
+!repurposed/.gitkeep
+
+audits/*
+!audits/.gitkeep
+
+# Local config (copy from config/competitors.example.json)
+config/competitors.json
 
 # Don't ignore context files - these should be committed after customization
 # !context/
@@ -109,7 +128,6 @@ data_sources/cache/*
 
 # Python virtual environment
 venv/
-env/
 .venv/
 
 # Local agent/tool state
@@ -120,7 +138,6 @@ env/
 .claude/settings.local.json
 mcp-gsc/venv/
 mcp-gsc/token.json
-
 
 # GA4 Credentials (additional explicit entry)
 ga4-credentials.json

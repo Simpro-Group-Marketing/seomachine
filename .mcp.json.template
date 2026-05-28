@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "gsc": {
-      "command": "C:\\Users\\patrick.grueschow\\Desktop\\seomachine-main\\mcp-gsc\\venv\\Scripts\\python.exe",
-      "args": ["C:\\Users\\patrick.grueschow\\Desktop\\seomachine-main\\mcp-gsc\\gsc_server.py"],
+      "command": "./mcp-gsc/venv/Scripts/python.exe",
+      "args": ["./mcp-gsc/gsc_server.py"],
       "env": {
         "GSC_OAUTH_CLIENT_SECRETS_FILE": "${GSC_OAUTH_CLIENT_SECRETS_FILE}",
         "GSC_DATA_STATE": "all"
