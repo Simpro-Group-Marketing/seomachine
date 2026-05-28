@@ -210,7 +210,7 @@ Add urgency or detail near the button, not inside the primary button label, unle
 3. **Customer Count with Context**: "24,000+ businesses and 450,000+ users"
 
 ### Strong
-4. **Star Ratings**: "4.9/5 on G2"
+4. **Star Ratings**: "4.9/5 on G2" only with current platform, category, and date verification plus approval. Ratings, badges, rankings, and category claims require current verification and approval.
 5. **Media Logos**: "As seen in..."
 6. **Customer Logos**: Enterprise/recognizable brands
 

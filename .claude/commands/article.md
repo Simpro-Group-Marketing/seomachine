@@ -56,6 +56,7 @@ Before opening the browser or drafting, resolve these variables from the user pr
 
 If a variable cannot be answered by the repo or research, ask the user for only that missing variable. Do not synthesize PAA questions, expert quotes, customer claims, search volume, or ranking evidence.
 Customer proof routing: when citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
+Review-site VoC routing: cite public review-site themes with source links. Do not use exact quotes, named reviewers, star ratings, badges, rankings, or category-leadership claims unless they are verified in the current source and approved by the brief.
 
 ### AnswerSocrates PAA Collection
 

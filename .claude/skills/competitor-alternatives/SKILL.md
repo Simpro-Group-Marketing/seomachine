@@ -194,7 +194,7 @@ For each competitor, gather:
 
 1. **Product research**: Sign up, use it, document features/UX/limitations
 2. **Pricing research**: Current pricing, what's included, hidden costs
-3. **Review mining**: G2, Capterra, TrustRadius for common praise/complaint themes
+3. **Review mining**: G2, Capterra, Software Advice, GetApp, TrustRadius, Gartner/Gartner Digital Markets, Trustpilot, app stores, and Google reviews for common praise/complaint themes. Frame competitor-review evidence as sourced themes, not absolute claims.
 4. **Customer feedback**: Talk to customers who switched (both directions)
 5. **Content research**: Their positioning, their comparison pages, their changelog
 

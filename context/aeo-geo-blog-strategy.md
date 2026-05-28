@@ -20,6 +20,14 @@ Before drafting, resolve these variables from the user prompt, research brief, a
 
 Do not synthesize facts, search volume, PAA questions, customer claims, or expert quotes. If the repo and live research do not provide an input, ask for it or mark it as missing.
 
+## Review-Site VoC Routing
+
+Public review sites are approved for sourced VoC and competitor-review themes. Approved surfaces include G2, Capterra, Software Advice, GetApp, TrustRadius, Gartner/Gartner Digital Markets, Trustpilot, app stores, and Google reviews.
+
+Use review sites for sourced VoC themes, objections, switching triggers, implementation or support themes, and competitor-review themes. Default to theme-level citation: cite the theme and link to the relevant review, profile, category, or comparison page.
+
+Exact quotes, named reviewers, star ratings, badges, rankings, and category-leadership claims require current source verification and brief-level approval.
+
 ## AnswerSocrates PAA Workflow
 
 For every new `/article` run, collect People Also Ask style questions from `https://answersocrates.com` with Playwright MCP.
