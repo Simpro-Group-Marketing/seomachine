@@ -39,8 +39,9 @@ def rate_aeo_geo(
         "faq_answer_length": _check_faq_answer_lengths(body),
         "external_sources": _check_external_sources(content),
         "metadata": _check_metadata(merged_metadata),
-        "section_clarity": _check_section_clarity(body),
+        "eeat_proof": _check_eeat_proof(content, body, merged_metadata),
     }
+    section_clarity = _check_section_clarity(body)
 
     weights = {
         "direct_answer": 20,
@@ -49,7 +50,7 @@ def rate_aeo_geo(
         "faq_answer_length": 15,
         "external_sources": 10,
         "metadata": 10,
-        "section_clarity": 10,
+        "eeat_proof": 10,
     }
 
     score = sum(weights[name] if check["passed"] else 0 for name, check in checks.items())
@@ -67,7 +68,7 @@ def rate_aeo_geo(
 
     return {
         "score": score,
-        "passed": score >= PASS_THRESHOLD,
+        "passed": score >= PASS_THRESHOLD and checks["eeat_proof"]["passed"],
         "threshold": PASS_THRESHOLD,
         "checks": checks,
         "issues": issues,
@@ -76,6 +77,11 @@ def rate_aeo_geo(
             "capsule_count": checks["capsule_coverage"]["details"]["capsule_count"],
             "faq_question_count": checks["faq_questions"]["details"]["question_count"],
             "external_link_count": checks["external_sources"]["details"]["external_link_count"],
+            "case_study_links": checks["eeat_proof"]["details"]["case_study_links"],
+            "review_site_links": checks["eeat_proof"]["details"]["review_site_links"],
+            "experience_signals": checks["eeat_proof"]["details"]["experience_signals"],
+            "expertise_signals": checks["eeat_proof"]["details"]["expertise_signals"],
+            "section_clarity": section_clarity,
         },
     }
 
@@ -108,6 +114,13 @@ def _plain_text(markdown: str) -> str:
     text = re.sub(r"[*_`>]", "", text)
     text = re.sub(r"^#+\s*", "", text, flags=re.MULTILINE)
     return text.strip()
+
+
+def _extract_markdown_links(content: str) -> List[Tuple[str, str]]:
+    return [
+        (match.group(1).strip(), match.group(2).strip())
+        for match in re.finditer(r"\[([^\]]+)\]\((https?://[^)]+)\)", content)
+    ]
 
 
 def _word_count(text: str) -> int:
@@ -338,6 +351,140 @@ def _check_metadata(metadata: Dict[str, Any]) -> Dict[str, Any]:
             "has_last_updated": has_last_updated,
         },
     }
+
+
+def _check_eeat_proof(
+    content: str,
+    body: str,
+    metadata: Dict[str, Any],
+) -> Dict[str, Any]:
+    links = _extract_markdown_links(content)
+    normalized = {_normalize_key(str(key)): value for key, value in metadata.items()}
+
+    case_study_links = [
+        url for _, url in links if re.search(r"/case-stud(?:y|ies)/", url.lower())
+    ]
+    review_site_links = [
+        url for _, url in links if _is_review_site_link(url)
+    ]
+    simpro_product_links = [
+        url for _, url in links if _is_simpro_product_or_workflow_link(url)
+    ]
+
+    experience_signals = []
+    if case_study_links:
+        experience_signals.append("case_study_link")
+    if review_site_links:
+        experience_signals.append("review_site_link")
+    if _has_review_site_theme(body):
+        experience_signals.append("review_site_theme")
+
+    expertise_signals = []
+    if normalized.get("author"):
+        expertise_signals.append("author_metadata")
+    if (
+        normalized.get("reviewer")
+        or normalized.get("reviewed_by")
+        or normalized.get("expert_reviewer")
+    ):
+        expertise_signals.append("reviewer_metadata")
+    if simpro_product_links:
+        expertise_signals.append("simpro_product_or_workflow_link")
+    if _has_expert_quote(body):
+        expertise_signals.append("expert_quote")
+
+    has_experience = bool(experience_signals)
+    has_expertise = bool(expertise_signals)
+    passed = has_experience and has_expertise
+
+    return {
+        "passed": passed,
+        "issue": "The draft is missing required E-E-A-T proof for both experience and expertise.",
+        "fix": (
+            "Add at least one customer-experience signal such as a public case "
+            "study or approved review-site theme, and at least one expertise "
+            "signal such as author/reviewer metadata, Simpro product/workflow "
+            "links, expert quote, or source-backed workflow explanation."
+        ),
+        "severity": "high",
+        "details": {
+            "case_study_links": case_study_links,
+            "review_site_links": review_site_links,
+            "simpro_product_links": simpro_product_links,
+            "experience_signals": experience_signals,
+            "expertise_signals": expertise_signals,
+            "has_experience": has_experience,
+            "has_expertise": has_expertise,
+        },
+    }
+
+
+def _is_review_site_link(url: str) -> bool:
+    lower = url.lower()
+    review_domains = (
+        "g2.com",
+        "capterra.com",
+        "softwareadvice.com",
+        "getapp.com",
+        "trustradius.com",
+        "gartner.com",
+        "gartnerdigitalmarkets.com",
+        "trustpilot.com",
+        "apps.apple.com",
+        "play.google.com",
+    )
+    return any(domain in lower for domain in review_domains)
+
+
+def _is_simpro_product_or_workflow_link(url: str) -> bool:
+    lower = url.lower()
+    if "simprogroup.com" not in lower:
+        return False
+
+    product_paths = (
+        "/features/",
+        "/solutions/",
+        "/industries/",
+        "/product/",
+        "/products/",
+    )
+    return any(path in lower for path in product_paths)
+
+
+def _has_review_site_theme(body: str) -> bool:
+    text = _plain_text(body).lower()
+    review_surfaces = (
+        "g2",
+        "capterra",
+        "software advice",
+        "getapp",
+        "trustradius",
+        "gartner",
+        "trustpilot",
+        "app store",
+        "google reviews",
+    )
+    review_terms = (
+        "review",
+        "reviews",
+        "review-site",
+        "review site",
+        "customer feedback",
+        "customer themes",
+        "voc",
+    )
+    return any(surface in text for surface in review_surfaces) and any(
+        term in text for term in review_terms
+    )
+
+
+def _has_expert_quote(body: str) -> bool:
+    quote_pattern = r'"[^"]{20,240}"\s*(?:,?\s*(?:said|says|according to|explained|wrote)\b)'
+    attribution_pattern = r'(?:said|says|according to|explained|wrote)\s+[^.]{3,80}:\s*"[^"]{20,240}"'
+    return bool(
+        re.search(quote_pattern, body, re.IGNORECASE)
+        or re.search(attribution_pattern, body, re.IGNORECASE)
+    )
 
 
 def _check_section_clarity(body: str) -> Dict[str, Any]:

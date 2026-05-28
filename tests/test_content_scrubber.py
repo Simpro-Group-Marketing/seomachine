@@ -37,6 +37,15 @@ class ContentScrubberTests(unittest.TestCase):
 
         self.assertNotIn(";", cleaned)
 
+    def test_scrub_preserves_us_abbreviation(self):
+        cleaned = scrub_content(
+            "U.S. consumers use mobile payments. U.S. businesses track payment speed."
+        )
+
+        self.assertIn("U.S. consumers", cleaned)
+        self.assertIn("U.S. businesses", cleaned)
+        self.assertNotIn("U. S.", cleaned)
+
     def test_scrub_is_idempotent_after_em_dash_replacement(self):
         once = scrub_content("Dispatch is clean" + chr(8212) + "jobs still move.")
         twice = scrub_content(once)

@@ -58,6 +58,21 @@ If a variable cannot be answered by the repo or research, ask the user for only 
 Customer proof routing: when citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
 Review-site VoC routing: cite public review-site themes with source links. Do not use exact quotes, named reviewers, star ratings, badges, rankings, or category-leadership claims unless they are verified in the current source and approved by the brief.
 
+### E-E-A-T Proof Map Inputs
+
+Before planning or drafting, resolve an E-E-A-T Proof Map:
+- **Experience**: Customer case studies, customer outcomes, review-site VoC themes, implementation/support themes, user pain, and field workflow examples.
+- **Expertise**: Product/feature knowledge, source-backed workflow explanations, expert quotes, author/reviewer metadata, and Simpro workflow specificity.
+- **Authority/Trust**: Public research, case-study URLs, review-site/source links, limitations/caveats, and no invented proof.
+- **Context sources**: Pull case-study URLs from @context/internal-links-map.md, approved metrics/proof candidates from @context/features.md, and review-site VoC or competitor experience themes from @context/competitor-analysis.md or future review-context files.
+- **Public-copy rule**: Context-backed metrics are valid only when the article body uses public-facing source links, such as the public case-study URL, review-site URL, or public research source; context-backed proof is never cited as internal context.
+
+### Simpro Web Copy Rules
+
+- Use numerals for cardinal numbers, including 1-9.
+- Do not write number words such as "one," "two," or "three" in final public copy.
+- Always put a comma before "because".
+
 ### AnswerSocrates PAA Collection
 
 Use Playwright MCP on `https://answersocrates.com`:
@@ -330,7 +345,7 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
    | **Internal Links** | Which your brand pages to link |
    | **AEO/GEO Target** | Capsule / PAA / FAQ / list / table / definition |
    | **Source Mapping** | External source, claim, anchor text, and target section |
-   | **E-E-A-T Proof** | Author, reviewer, customer proof, expert quote, limitation/caveat |
+   | **E-E-A-T Proof Map** | Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, claims excluded because proof is missing |
    | **CTA** | soft / medium / strong (if applicable) |
    | **Mini-Story** | Whether to place a story here |
 
@@ -371,7 +386,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
   | Source | Claim Supported | Anchor Text | Target Section |
   |--------|-----------------|-------------|----------------|
   | [URL] | [claim] | [natural contextual phrase] | [section] |
-- **E-E-A-T Proof Points**: [author, reviewer if available, customer proof, expert quote, source-backed claim, limitation/caveat]
+- **E-E-A-T Proof Map**: [Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, public-facing source links, claims excluded because proof is missing]
 - **Schema Notes**: BlogPosting, FAQPage if FAQ is present, Author, VideoObject if video is embedded
 - **AEO/GEO Score Target**: 90/100 or higher
 
@@ -592,6 +607,7 @@ After all sections are written and edited:
    - [ ] Capsule Method applied to H1 and 60%+ major H2s
    - [ ] AEO/GEO Map complete with selected PAA, source mapping, and E-E-A-T proof
    - [ ] Schema notes included for BlogPosting, FAQPage, Author, and VideoObject when relevant
+   - [ ] Public article body does not mention "repo context," context file paths, Source Maps, PAA artifacts, change summaries, or internal proof-path notes
 
    **Engagement Checklist:**
    - [ ] Hook (not generic opening)

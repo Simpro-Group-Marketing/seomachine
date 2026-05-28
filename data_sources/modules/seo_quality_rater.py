@@ -5,7 +5,11 @@ Rates content quality against SEO best practices and guidelines.
 Provides scoring (0-100) and specific recommendations for improvement.
 """
 
+import argparse
 import re
+import sys
+from pathlib import Path
+from urllib.parse import urlparse
 from typing import Dict, List, Optional, Any, Tuple
 
 
@@ -448,10 +452,12 @@ class SEOQualityRater:
 
         # Count links if not provided
         if internal_count is None:
-            internal_count = len(re.findall(r'\[([^\]]+)\]\((?!http)', content))
+            internal_count, inferred_external_count = _count_markdown_links(content)
+            if external_count is None:
+                external_count = inferred_external_count
 
         if external_count is None:
-            external_count = len(re.findall(r'\[([^\]]+)\]\(https?://', content))
+            _, external_count = _count_markdown_links(content)
 
         # Internal links
         min_internal = self.guidelines['min_internal_links']
@@ -590,9 +596,146 @@ def rate_seo_quality(
     )
 
 
-# Example usage
-if __name__ == "__main__":
-    sample_content = """
+def _count_markdown_links(content: str) -> Tuple[int, int]:
+    """Count markdown links as internal or external for Simpro content."""
+    internal_count = 0
+    external_count = 0
+    owned_domains = {
+        "simprogroup.com",
+        "www.simprogroup.com",
+        "simpro.ai",
+        "www.simpro.ai",
+    }
+
+    for url in re.findall(r'\[[^\]]+\]\(([^)]+)\)', content):
+        url = url.strip()
+        if not url:
+            continue
+
+        parsed = urlparse(url)
+        if parsed.scheme in {"http", "https"}:
+            hostname = (parsed.hostname or "").lower()
+            if (
+                hostname in owned_domains
+                or hostname.endswith(".simprogroup.com")
+                or hostname.endswith(".simpro.ai")
+            ):
+                internal_count += 1
+            else:
+                external_count += 1
+        else:
+            internal_count += 1
+
+    return internal_count, external_count
+
+
+def _extract_frontmatter(content: str) -> Dict[str, str]:
+    match = re.match(r"\A---\s*\n(.*?)\n---\s*", content, re.DOTALL)
+    if not match:
+        return {}
+
+    metadata = {}
+    for line in match.group(1).splitlines():
+        if ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        normalized_key = key.strip().lower().replace("-", "_").replace(" ", "_")
+        metadata[normalized_key] = value.strip().strip('"')
+
+    return metadata
+
+
+def _extract_inline_metadata(content: str) -> Dict[str, str]:
+    patterns = {
+        "meta_title": r"^\s*(?:\*\*)?Meta Title(?:\*\*)?:\s*(.+)$",
+        "meta_description": r"^\s*(?:\*\*)?Meta Description(?:\*\*)?:\s*(.+)$",
+        "primary_keyword": r"^\s*(?:\*\*)?(?:Primary|Target) Keyword(?:\*\*)?:\s*(.+)$",
+    }
+    metadata = {}
+
+    for key, pattern in patterns.items():
+        match = re.search(pattern, content, re.MULTILINE | re.IGNORECASE)
+        if match:
+            metadata[key] = match.group(1).strip()
+
+    return metadata
+
+
+def _resolve_metadata(
+    content: str,
+    meta_title: Optional[str],
+    meta_description: Optional[str],
+    primary_keyword: Optional[str],
+) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    frontmatter = _extract_frontmatter(content)
+    inline = _extract_inline_metadata(content)
+
+    resolved_title = (
+        meta_title
+        or inline.get("meta_title")
+        or frontmatter.get("meta_title")
+        or frontmatter.get("title")
+    )
+    resolved_description = (
+        meta_description
+        or inline.get("meta_description")
+        or frontmatter.get("meta_description")
+        or frontmatter.get("description")
+    )
+    resolved_keyword = (
+        primary_keyword
+        or inline.get("primary_keyword")
+        or frontmatter.get("primary_keyword")
+        or frontmatter.get("target_keyword")
+    )
+
+    return resolved_title, resolved_description, resolved_keyword
+
+
+def _format_report(result: Dict[str, Any]) -> str:
+    lines = [
+        "=== SEO Quality Report ===",
+        "",
+        f"Overall Score: {result['overall_score']}/100",
+        f"Grade: {result['grade']}",
+        f"Publishing Ready: {result['publishing_ready']}",
+        "",
+        "Category Scores:",
+    ]
+
+    for category, score in result["category_scores"].items():
+        lines.append(f"  {category}: {score}/100")
+
+    if result["critical_issues"]:
+        lines.append("")
+        lines.append("Critical Issues:")
+        for issue in result["critical_issues"]:
+            lines.append(f"  ERROR: {issue}")
+
+    if result["warnings"]:
+        lines.append("")
+        lines.append("Warnings:")
+        for warning in result["warnings"]:
+            lines.append(f"  WARNING: {warning}")
+
+    if result["suggestions"]:
+        lines.append("")
+        lines.append("Suggestions:")
+        for suggestion in result["suggestions"][:5]:
+            lines.append(f"  SUGGESTION: {suggestion}")
+
+    details = result.get("details", {})
+    if details:
+        lines.append("")
+        lines.append("Details:")
+        for key, value in details.items():
+            lines.append(f"  {key}: {value}")
+
+    return "\n".join(lines)
+
+
+def _sample_content() -> str:
+    return """
 # How to Start a Podcast
 
 Starting a podcast is easier than you think. This complete guide shows you how to start a podcast from scratch.
@@ -616,37 +759,71 @@ Upload to a podcast hosting platform and distribute to directories.
 Ready to start your podcast? Begin today with these simple steps.
     """
 
-    result = rate_seo_quality(
-        content=sample_content,
+
+def _run_sample() -> Dict[str, Any]:
+    return rate_seo_quality(
+        content=_sample_content(),
         meta_title="How to Start a Podcast: Complete Guide for 2024",
         meta_description="Learn how to start a podcast from scratch with this step-by-step guide. Everything you need to know about podcast equipment, recording, and publishing.",
         primary_keyword="start a podcast",
         secondary_keywords=["podcast hosting", "recording software"],
         keyword_density=1.8,
         internal_link_count=4,
-        external_link_count=2
+        external_link_count=2,
     )
 
-    print("=== SEO Quality Report ===")
-    print(f"\nOverall Score: {result['overall_score']}/100")
-    print(f"Grade: {result['grade']}")
-    print(f"Publishing Ready: {result['publishing_ready']}")
 
-    print(f"\nCategory Scores:")
-    for category, score in result['category_scores'].items():
-        print(f"  {category}: {score}/100")
+def main(argv: Optional[List[str]] = None) -> int:
+    parser = argparse.ArgumentParser(description="Rate markdown content against SEO quality rules.")
+    parser.add_argument("path", nargs="?", help="Markdown file to rate. If omitted, runs the built-in sample.")
+    parser.add_argument("--meta-title", help="Override or provide meta title.")
+    parser.add_argument("--meta-description", help="Override or provide meta description.")
+    parser.add_argument("--primary-keyword", help="Override or provide primary keyword.")
+    parser.add_argument("--secondary-keywords", help="Comma-separated secondary keywords.")
+    parser.add_argument("--keyword-density", type=float, help="Pre-calculated primary keyword density percentage.")
 
-    if result['critical_issues']:
-        print(f"\nCritical Issues:")
-        for issue in result['critical_issues']:
-            print(f"  ❌ {issue}")
+    args = parser.parse_args(argv)
 
-    if result['warnings']:
-        print(f"\nWarnings:")
-        for warning in result['warnings']:
-            print(f"  ⚠️  {warning}")
+    if not args.path:
+        result = _run_sample()
+        print(_format_report(result))
+        return 0
 
-    if result['suggestions']:
-        print(f"\nSuggestions:")
-        for suggestion in result['suggestions'][:3]:
-            print(f"  💡 {suggestion}")
+    file_path = Path(args.path)
+    if not file_path.exists():
+        print(f"Error: File not found: {file_path}", file=sys.stderr)
+        return 1
+
+    content = file_path.read_text(encoding="utf-8")
+    meta_title, meta_description, primary_keyword = _resolve_metadata(
+        content,
+        args.meta_title,
+        args.meta_description,
+        args.primary_keyword,
+    )
+    secondary_keywords = None
+    if args.secondary_keywords:
+        secondary_keywords = [
+            keyword.strip()
+            for keyword in args.secondary_keywords.split(",")
+            if keyword.strip()
+        ]
+
+    internal_links, external_links = _count_markdown_links(content)
+    result = rate_seo_quality(
+        content=content,
+        meta_title=meta_title,
+        meta_description=meta_description,
+        primary_keyword=primary_keyword,
+        secondary_keywords=secondary_keywords,
+        keyword_density=args.keyword_density,
+        internal_link_count=internal_links,
+        external_link_count=external_links,
+    )
+
+    print(_format_report(result))
+    return 0 if result["publishing_ready"] else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

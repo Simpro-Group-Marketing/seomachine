@@ -1,4 +1,4 @@
-# SEO Machine (Simpro Group)
+﻿# SEO Machine (Simpro Group)
 
 Simpro Marketing's Claude Code workspace for **SEO and AEO/GEO blog posts** — research, write, optimize, and publish long-form articles for field-service and trades audiences, with Simpro-specific brand context, first-party analytics, and generative-engine optimization built in.
 
@@ -10,7 +10,7 @@ SEO Machine is built on Claude Code and provides:
 - **Custom Commands**: `/research`, `/write`, `/rewrite`, `/article`, `/analyze-existing`, `/optimize`, `/performance-review`, `/publish-draft`, `/priorities`, `/research-ai-citations`, plus SERP, gap, trending, cluster, and landing-page commands
 - **Specialized Agents**: Content analyzer, SEO optimization, meta element creation, internal linking, keyword mapping, editor, performance analysis, headline generator, CRO analyst, landing page optimizer
 - **Marketing Skills**: 26+ marketing skills for copywriting, CRO, A/B testing, email sequences, pricing strategy, and more
-- **AEO/GEO Workflow**: Capsule Method structure, PAA/FAQ integration, source mapping, E-E-A-T checks, and `aeo_geo_rater` scoring (90+ target) via `context/aeo-geo-blog-strategy.md`
+- **AEO/GEO Workflow**: Capsule Method structure, PAA/FAQ integration, source mapping, E-E-A-T Proof Map checks, and `aeo_geo_rater` scoring (90+ target) via `context/aeo-geo-blog-strategy.md`
 - **Advanced SEO Analysis**: Search intent detection, keyword density & clustering, content length comparison, readability scoring, SEO quality rating (0-100)
 - **Data Integrations**: GA4 and GSC via project MCP servers; DataForSEO, Ahrefs, and Semrush context in keyword/competitor files; PEEC AI citation tracking
 - **Simpro Context Pack**: Pre-filled brand voice, style guide, features, 40+ competitor battlecards, writing examples, internal links, target keywords, AI citation register, Reddit strategy, and scoped Lightning positioning overlay
@@ -153,6 +153,7 @@ After writing, these agents automatically analyze the content:
 **What it does**:
 - Fetches and analyzes current content
 - Evaluates SEO performance
+- Audits AEO/GEO readiness for rewrite
 - Identifies outdated information
 - Assesses competitive positioning
 - Provides content health score (0-100)
@@ -174,6 +175,7 @@ After writing, these agents automatically analyze the content:
 - Updates content based on analysis findings
 - Refreshes statistics and examples
 - Improves SEO optimization
+- Applies `context/aeo-geo-blog-strategy.md` for sourced PAA/FAQ provenance, source mapping, E-E-A-T proof, direct-answer capsules, schema notes, and 85/90 quality gates
 - Adds new sections to fill gaps
 - Maintains what works from original
 - Tracks changes made
@@ -232,6 +234,7 @@ Update and improve existing content.
 - Change summary
 - Before/after comparison
 - Updated SEO elements
+- AEO/GEO rewrite inputs: PAA/FAQ provenance, selected questions, source map, E-E-A-T proof, schema notes, and quality-gate notes
 
 ---
 
@@ -246,6 +249,7 @@ Analyze existing blog posts for improvement opportunities.
 - Strategic improvements
 - Rewrite priority and scope
 - Research brief for rewrite
+- AEO/GEO readiness audit with missing strategy inputs and required PAA/source/proof artifacts
 
 ---
 
@@ -723,13 +727,14 @@ Every Simpro blog post should meet these requirements:
 ### AEO / GEO (generative engines)
 - [ ] Capsule Method: 50-60 word direct answer under H1 and on 60%+ major H2s
 - [ ] 3-5 PAA/FAQ questions answered (from research brief or `/article` AnswerSocrates pass)
+- [ ] E-E-A-T Proof Map resolved with Experience proof and Expertise proof
 - [ ] Named author, last-updated date, and customer or expert proof where applicable
 - [ ] Schema notes: BlogPosting, FAQPage (if FAQ), Author, VideoObject (if embedded)
 - [ ] Target **90+** on `aeo_geo_rater` when run through `content_scorer`
 
 ### Readability
 - [ ] 8th-10th grade reading level (trades audience)
-- [ ] Short sentences; active voice; no vendor clichés (`style-guide.md` avoid list)
+- [ ] Short sentences; active voice; no vendor clichÃ©s (`style-guide.md` avoid list)
 - [ ] Subheadings every 300-400 words; scannable lists
 
 ### Structure
@@ -745,13 +750,15 @@ Every Simpro blog post should meet these requirements:
 3. **Check context**: `brand-voice.md`, `writing-examples.md`, and `aeo-geo-blog-strategy.md`
 4. **Lightning only if on-topic**: Load `lightning-positioning.md` for Cooper/JustAsk/agent posts
 5. **Keywords and links**: `target-keywords.md` + `internal-links-map.md` for cluster and URL targets
+6. **E-E-A-T proof**: Build the E-E-A-T Proof Map from `internal-links-map.md`, `features.md`, `competitor-analysis.md`, public research, and public-facing source links before drafting
 
 ### During Writing
 1. **Follow the brief**: Outline from `research/brief-*.md`
-2. **Trades language**: job costing, dispatch, PM, quotes — not generic “solutions” copy
-3. **Named proof**: Customer outcomes from battlecards or `writing-examples.md` patterns
+2. **Trades language**: job costing, dispatch, PM, quotes — not generic "solutions" copy
+3. **Named proof**: Customer outcomes from approved case studies and mapped metrics in `features.md`; use public-facing source links in the article body
 4. **Source mapping**: At least three external claims with clear attribution
-5. **Competitive framing**: Use `competitor-analysis.md` — differentiate, do not disparage
+5. **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics. Draft bodies may use public sources and context-backed proof, but must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, or internal proof-path instructions.
+6. **Competitive framing**: Use `competitor-analysis.md` — differentiate, do not disparage
 
 ### After Writing
 1. **Agent passes**: SEO Optimizer, Meta Creator, Internal Linker, Keyword Mapper
@@ -763,9 +770,11 @@ Every Simpro blog post should meet these requirements:
 
 ### For Blog Rewrites
 1. **`/analyze-existing`** on the live simprogroup.com URL or `published/` file
-2. **Refresh metrics** in intro/CTA if GSC/GA4 shows new quick-win queries
-3. **Preserve strong sections**; expand thin H2s vs. SERP leaders
-4. **Re-check AI citations** if the post targets “best FSM software” or AI-intent queries
+2. **Confirm AEO/GEO inputs**: main answer target, PAA/FAQ provenance, source map, E-E-A-T Proof Map, schema notes, and missing strategy inputs
+3. **Run the quality loop**: `/scrub`, AI copy linter, `content_scorer.py`, then `/optimize`
+4. **Refresh metrics** in intro/CTA if GSC/GA4 shows new quick-win queries
+5. **Preserve strong sections**; expand thin H2s vs. SERP leaders
+6. **Re-check AI citations** if the post targets AI-intent queries
 
 ## Workflow Examples
 
@@ -796,6 +805,7 @@ Every Simpro blog post should meet these requirements:
 ```
 /analyze-existing https://www.simprogroup.com/blog/what-is-field-service-management/
 /rewrite field service management
+# Rewrite keeps the slug and must carry PAA/FAQ provenance, source map, E-E-A-T Proof Map, and 85/90 quality gates
 /optimize rewrites/field-service-management-rewrite-[date].md
 ```
 
@@ -822,11 +832,11 @@ Every Simpro blog post should meet these requirements:
 - **Read `writing-examples.md`** before each session — match rhythm and proof density
 - **Lead with outcomes**: margin, time-to-paid, named customers (Shaffer Beacon, Foster Plumbing, etc.)
 - **Capsule answers**: Put the direct answer in the first 50-60 words under each major H2
-- **PAA coverage**: Pull questions from AnswerSocrates, SERP, or `reddit-strategy.md` monitoring queries
+- **PAA coverage**: Pull questions from AnswerSocrates, SERP, `reddit-strategy.md` monitoring queries, YouTube, or a user CSV; do not invent missing questions
 
 ### SEO + AEO for simprogroup.com
 - **Internal links**: Prefer URLs flagged high in `internal-links-map.md` (GSC/GA4 priority)
-- **AI-intent posts**: Cross-check `ai-citation-targets.md` before “best FSM software” listicles
+- **AI-intent posts**: Cross-check `ai-citation-targets.md` before "best FSM software" listicles
 - **Avoid**: *all-in-one*, *tradies* as buyer label, *24/7 live support* (use **24/6**)
 - **Refresh winners**: Re-optimize posts with quick-win GSC positions (11-20) quarterly
 
@@ -932,3 +942,4 @@ Upstream project: [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/
 5. Check AEO/GEO score and publish via `/publish-draft` when ready
 
 Happy writing!
+

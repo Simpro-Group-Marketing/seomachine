@@ -526,10 +526,11 @@ class ContentScorer:
         """Score content for SEO compliance"""
         issues = []
         details = {}
+        frontmatter = self._extract_frontmatter_metadata(content)
 
-        meta_title = metadata.get('meta_title', '')
-        meta_description = metadata.get('meta_description', '')
-        primary_keyword = metadata.get('primary_keyword', '')
+        meta_title = metadata.get('meta_title', '') or frontmatter.get('meta_title', '') or frontmatter.get('title', '')
+        meta_description = metadata.get('meta_description', '') or frontmatter.get('meta_description', '') or frontmatter.get('description', '')
+        primary_keyword = metadata.get('primary_keyword', '') or frontmatter.get('primary_keyword', '') or frontmatter.get('target_keyword', '')
 
         # Extract from content if not provided
         if not meta_title:
@@ -650,6 +651,21 @@ class ContentScorer:
             'issues': issues,
             'details': details
         }
+
+    def _extract_frontmatter_metadata(self, content: str) -> Dict[str, str]:
+        """Extract simple scalar metadata from YAML-style frontmatter."""
+        match = re.match(r'\A---\s*\n(.*?)\n---\s*', content, re.DOTALL)
+        if not match:
+            return {}
+
+        values: Dict[str, str] = {}
+        for line in match.group(1).splitlines():
+            if ':' not in line:
+                continue
+            key, value = line.split(':', 1)
+            normalized_key = key.strip().lower().replace('-', '_').replace(' ', '_')
+            values[normalized_key] = value.strip().strip('"').strip("'")
+        return values
 
     def _score_readability(self, content: str) -> Dict[str, Any]:
         """Score content for readability, rhythm, and paragraph length"""

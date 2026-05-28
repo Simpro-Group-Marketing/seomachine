@@ -249,7 +249,7 @@ class ContentScrubber:
         # Only add space after sentence-ending punctuation (.!?) when followed by capital letter
         # AND only if preceded by a word character (ensures it's end of sentence, not a domain/file)
         # This avoids breaking URLs, TLDs, and file extensions while fixing sentence spacing
-        content = re.sub(r'(\w)([.!?])([A-Z])', r'\1\2 \3', content)
+        content = re.sub(r'([a-z0-9])([.!?])([A-Z])', r'\1\2 \3', content)
 
         # Clean up line breaks
         content = re.sub(r'\n{3,}', '\n\n', content)  # Max 2 consecutive newlines

@@ -30,17 +30,17 @@ This repo uses two project-scoped MCP servers:
 - `gsc`
 - `analytics-mcp`
 
-Codex reads `.codex/config.toml`; Claude-compatible clients can read `.mcp.json`. Both should point to `C:\Users\patrick.grueschow\Desktop\seomachine-main`, not to another local repo.
+Codex reads `.codex/config.toml`; Claude-compatible clients can read `.mcp.json`. Both should point to `C:\Users\patrick.grueschow\Desktop\Repos\seomachine-main`, not to another local repo.
 
 ## Commands
 
-All commands are defined in `.claude/commands/` and invoked as slash commands:
+All commands are defined in `.claude/commands/` and invoked as slash commands. These command docs are the shared workflow contract for Claude Code and Codex execution:
 
 - `/research [topic]` - Keyword/competitor research, generates brief in `research/`
 - `/write [topic]` - Create full article in `drafts/`, auto-triggers optimization agents
-- `/rewrite [topic]` - Update existing content, saves to `rewrites/`
+- `/rewrite [topic]` - Update existing content with SEO plus AEO/GEO rewrite gates, saves to `rewrites/`
 - `/optimize [file]` - Final SEO polish pass
-- `/analyze-existing [URL or file]` - Content health audit
+- `/analyze-existing [URL or file]` - Content health and AEO/GEO rewrite-readiness audit
 - `/performance-review` - Analytics-driven content priorities
 - `/publish-draft [file]` - Publish to WordPress via REST API
 - `/article [topic]` - Simplified article creation
@@ -105,13 +105,19 @@ python3 tests/test_dataforseo.py
 
 Rewrites go to `rewrites/`. Landing pages go to `landing-pages/`. Audits go to `audits/`. Repurposed content goes to `repurposed/`.
 
+Blog rewrites must follow the same AEO/GEO evidence boundaries as new articles: sourced PAA/FAQ provenance, source mapping, E-E-A-T Proof Map inputs, direct-answer structure, schema notes, AI copy lint, `content_scorer.py`, and the 85/100 general quality plus 90/100 AEO/GEO gates before `/optimize`.
+
+Context files are the internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics. Draft bodies may use public sources and context-backed proof, but must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, or internal proof-path instructions.
+
+E-E-A-T proof must resolve Experience and Expertise before writing. Pull case-study URLs from `context/internal-links-map.md`, approved metrics/proof candidates from `context/features.md`, and review-site VoC or competitor experience themes from `context/competitor-analysis.md` or future review-context files. Context-backed metrics require public-facing source links in the article body.
+
 ## Context Files
 
 `context/` contains brand guidelines that inform all content generation:
 - `brand-voice.md` - Tone, messaging pillars
 - `style-guide.md` - Grammar, formatting standards
 - `seo-guidelines.md` - Keyword and structure rules
-- `aeo-geo-blog-strategy.md` - Blog-specific AEO/GEO workflow, AnswerSocrates PAA rules, Capsule Method, and 85/90 quality gates
+- `aeo-geo-blog-strategy.md` - Blog-specific AEO/GEO workflow for research, articles, analysis, and rewrites: AnswerSocrates PAA rules, Capsule Method, source mapping, E-E-A-T Proof Map, and 85/90 quality gates
 - `internal-links-map.md` - Key pages for internal linking
 - `features.md` - Product features
 - `competitor-analysis.md` - Competitive intelligence

@@ -33,6 +33,17 @@ APPROVED_PROPER_NOUNS = [
 ]
 
 
+NUMBER_WORD_RE = re.compile(
+    r"\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|"
+    r"twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|"
+    r"nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)"
+    r"(?:[-\s](?:one|two|three|four|five|six|seven|eight|nine))?\b",
+    re.IGNORECASE,
+)
+
+BECAUSE_RE = re.compile(r"\bbecause\b", re.IGNORECASE)
+
+
 ERROR_RULES: List[Tuple[str, Pattern[str], str, str]] = [
     (
         "em_dash",
@@ -45,6 +56,12 @@ ERROR_RULES: List[Tuple[str, Pattern[str], str, str]] = [
         re.compile(r";"),
         "Semicolons are not allowed in Simpro web copy.",
         "Split the sentence or use a comma or period.",
+    ),
+    (
+        "spelled_out_number",
+        NUMBER_WORD_RE,
+        "Spelled-out number words are not allowed in Simpro web copy.",
+        "Use numerals instead, such as 2 instead of two.",
     ),
     (
         "hashtag",
@@ -90,6 +107,19 @@ ERROR_RULES: List[Tuple[str, Pattern[str], str, str]] = [
         ),
         "Avoid hype terms unless a brief explicitly approves the claim.",
         "Use a specific outcome, metric, or feature instead.",
+    ),
+    (
+        "internal_process_language",
+        re.compile(
+            r"\b(?:repo context|repository context|approved internal proof path|"
+            r"rewrite can route readers|PAA artifact|change summary|source map|"
+            r"confirmed WordPress author|WordPress author before publish|schema notes)\b|"
+            r"\bcontext/(?:features|internal-links-map|target-keywords|brand-voice|"
+            r"aeo-geo-blog-strategy|writing-examples|style-guide)\.md\b",
+            re.IGNORECASE,
+        ),
+        "Internal workflow or repo-context language is not allowed in public blog copy.",
+        "Use context files only to guide writing. Cite public URLs or remove the internal note.",
     ),
 ]
 
@@ -207,6 +237,7 @@ def lint_content(content: str, profile: str = "simpro-web") -> List[Finding]:
                 )
             )
 
+        findings.extend(_find_missing_comma_before_because(line_number, original_line, masked_line))
         findings.extend(_find_long_sentences(line_number, original_line, masked_line))
 
     findings.extend(_find_repeated_sentence_starts(content))
@@ -352,6 +383,32 @@ def _find_long_sentences(
                     "Split the sentence or remove filler.",
                 )
             )
+    return findings
+
+
+def _find_missing_comma_before_because(
+    line_number: int,
+    original_line: str,
+    masked_line: str,
+) -> List[Finding]:
+    findings: List[Finding] = []
+
+    for match in BECAUSE_RE.finditer(masked_line):
+        prefix = masked_line[: match.start()].rstrip()
+        if prefix.endswith(","):
+            continue
+        findings.append(
+            _finding(
+                "missing_comma_before_because",
+                "error",
+                line_number,
+                match.start() + 1,
+                original_line[match.start():match.end()],
+                "Use a comma before because in Simpro web copy.",
+                "Add a comma before because or rewrite the sentence.",
+            )
+        )
+
     return findings
 
 

@@ -5,12 +5,18 @@ Calculates keyword density, analyzes distribution, and performs semantic cluster
 to identify keyword usage patterns and topic clusters within content.
 """
 
+import argparse
 import re
+import sys
 from typing import Dict, List, Tuple, Optional, Any
 from collections import Counter
-import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.cluster import KMeans
+
+try:
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.cluster import KMeans
+except ImportError:
+    TfidfVectorizer = None
+    KMeans = None
 
 
 class KeywordAnalyzer:
@@ -251,8 +257,9 @@ class KeywordAnalyzer:
 
         # H1 (first heading)
         in_h1 = False
-        if sections and sections[0].get('header'):
-            in_h1 = keyword_lower in sections[0]['header'].lower()
+        h1_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+        if h1_match:
+            in_h1 = keyword_lower in h1_match.group(1).lower()
 
         # H2 headings
         h2_count = 0
@@ -380,6 +387,9 @@ class KeywordAnalyzer:
                     'note': 'Insufficient sections for clustering'
                 }
 
+            if TfidfVectorizer is None or KMeans is None:
+                return self._fallback_clustering(section_texts)
+
             # Use TF-IDF to vectorize
             vectorizer = TfidfVectorizer(
                 max_features=100,
@@ -422,6 +432,35 @@ class KeywordAnalyzer:
                 'clusters_found': 0,
                 'error': str(e)
             }
+
+    def _fallback_clustering(self, section_texts: List[str]) -> Dict[str, Any]:
+        """Return useful topic terms when optional sklearn clustering is unavailable."""
+        all_words = []
+        for text in section_texts:
+            words = re.findall(r'\b[a-z]{4,}\b', text.lower())
+            all_words.extend(
+                word
+                for word in words
+                if word not in self.stop_words
+            )
+
+        top_terms = [
+            word
+            for word, _ in Counter(all_words).most_common(10)
+        ]
+
+        return {
+            'clusters_found': 1,
+            'note': 'scikit-learn unavailable; returned frequency-based topic summary',
+            'clusters': [
+                {
+                    'cluster_id': 0,
+                    'top_terms': top_terms[:5],
+                    'section_count': len(section_texts),
+                    'sections': list(range(len(section_texts))),
+                }
+            ],
+        }
 
     def _create_distribution_heatmap(
         self,
@@ -598,9 +637,8 @@ def analyze_keywords(
     return analyzer.analyze(content, primary_keyword, secondary_keywords, target_density)
 
 
-# Example usage
-if __name__ == "__main__":
-    sample_content = """
+def _sample_content() -> str:
+    return """
 # How to Start a Podcast: Complete Guide
 
 Starting a podcast has never been easier. In this guide, you'll learn how to start a podcast from scratch.
@@ -618,28 +656,97 @@ To start a podcast, you need basic equipment. A good microphone is essential for
 Podcast hosting is crucial. Choose a reliable podcast hosting platform for your show.
     """
 
+
+def _format_report(result: Dict[str, Any]) -> str:
+    lines = [
+        "=== Keyword Analysis ===",
+        "",
+        f"Word Count: {result['word_count']}",
+        "",
+        f"Primary Keyword: {result['primary_keyword']['keyword']}",
+        f"Density: {result['primary_keyword']['density']}%",
+        f"Status: {result['primary_keyword']['density_status']}",
+        "",
+        "Critical Placements:",
+    ]
+
+    for key, value in result['primary_keyword']['critical_placements'].items():
+        lines.append(f"  {key}: {value}")
+
+    lines.append("")
+    lines.append(f"Keyword Stuffing Risk: {result['keyword_stuffing']['risk_level']}")
+    if result['keyword_stuffing']['warnings']:
+        lines.append("Warnings:")
+        for warning in result['keyword_stuffing']['warnings']:
+            lines.append(f"  - {warning}")
+
+    topic_clusters = result.get("topic_clusters", {})
+    if topic_clusters:
+        lines.append("")
+        lines.append(f"Topic Clusters: {topic_clusters.get('clusters_found', 0)}")
+        if topic_clusters.get("note"):
+            lines.append(f"  Note: {topic_clusters['note']}")
+        if topic_clusters.get("error"):
+            lines.append(f"  Error: {topic_clusters['error']}")
+
+    lines.append("")
+    lines.append("Recommendations:")
+    if result['recommendations']:
+        for rec in result['recommendations']:
+            lines.append(f"  {rec}")
+    else:
+        lines.append("  No keyword recommendations.")
+
+    return "\n".join(lines)
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    parser = argparse.ArgumentParser(description="Analyze keyword density and distribution for markdown content.")
+    parser.add_argument("path", nargs="?", help="Markdown file to analyze. If omitted, runs the built-in sample.")
+    parser.add_argument("--primary-keyword", help="Primary keyword to analyze.")
+    parser.add_argument("--secondary-keywords", help="Comma-separated secondary keywords.")
+    parser.add_argument("--target-density", type=float, default=1.5, help="Target primary keyword density percentage.")
+
+    args = parser.parse_args(argv)
+
+    if args.path:
+        try:
+            with open(args.path, "r", encoding="utf-8") as file:
+                content = file.read()
+        except FileNotFoundError:
+            print(f"Error: File not found: {args.path}", file=sys.stderr)
+            return 1
+    else:
+        content = _sample_content()
+
+    primary_keyword = args.primary_keyword
+    if not primary_keyword:
+        primary_keyword = "start a podcast" if not args.path else None
+
+    if not primary_keyword:
+        print("Error: --primary-keyword is required when analyzing a file.", file=sys.stderr)
+        return 1
+
+    secondary_keywords = None
+    if args.secondary_keywords:
+        secondary_keywords = [
+            keyword.strip()
+            for keyword in args.secondary_keywords.split(",")
+            if keyword.strip()
+        ]
+    elif not args.path:
+        secondary_keywords = ["podcast hosting", "podcast equipment", "podcast recording"]
+
     result = analyze_keywords(
-        sample_content,
-        "start a podcast",
-        ["podcast hosting", "podcast equipment", "podcast recording"],
-        target_density=1.5
+        content,
+        primary_keyword,
+        secondary_keywords,
+        target_density=args.target_density,
     )
 
-    print("=== Keyword Analysis ===")
-    print(f"\nWord Count: {result['word_count']}")
-    print(f"\nPrimary Keyword: {result['primary_keyword']['keyword']}")
-    print(f"Density: {result['primary_keyword']['density']}%")
-    print(f"Status: {result['primary_keyword']['density_status']}")
-    print(f"\nCritical Placements:")
-    for key, value in result['primary_keyword']['critical_placements'].items():
-        print(f"  {key}: {value}")
+    print(_format_report(result))
+    return 0
 
-    print(f"\nKeyword Stuffing Risk: {result['keyword_stuffing']['risk_level']}")
-    if result['keyword_stuffing']['warnings']:
-        print("Warnings:")
-        for warning in result['keyword_stuffing']['warnings']:
-            print(f"  - {warning}")
 
-    print(f"\nRecommendations:")
-    for rec in result['recommendations']:
-        print(f"  {rec}")
+if __name__ == "__main__":
+    raise SystemExit(main())

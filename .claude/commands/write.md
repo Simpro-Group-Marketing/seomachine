@@ -27,6 +27,19 @@ Use this command to create comprehensive, SEO-optimized long-form blog content.
 ### AEO/GEO Variable Resolution
 Resolve `topic`, `audience`, `main_question`, `related_questions`, `tone`, `expertise`, and `length` from the research brief, repo context, target keyword, and existing PAA artifact before writing. `/write` may skip live AnswerSocrates only when the supplied brief already includes PAA questions. If PAA questions are missing, ask for a PAA/FAQ CSV or run `/article` for full AnswerSocrates collection.
 
+### E-E-A-T Proof Map Inputs
+Before drafting, resolve an E-E-A-T Proof Map:
+- **Experience**: Customer case studies, customer outcomes, review-site VoC themes, implementation/support themes, user pain, and field workflow examples.
+- **Expertise**: Product/feature knowledge, source-backed workflow explanations, expert quotes, author/reviewer metadata, and Simpro workflow specificity.
+- **Authority/Trust**: Public research, case-study URLs, review-site/source links, limitations/caveats, and no invented proof.
+- **Context sources**: Pull case-study URLs from @context/internal-links-map.md, approved metrics/proof candidates from @context/features.md, and review-site VoC or competitor experience themes from @context/competitor-analysis.md or future review-context files.
+- **Public-copy rule**: Context-backed metrics are valid only when the article body uses public-facing source links, such as the public case-study URL, review-site URL, or public research source.
+
+### Simpro Web Copy Rules
+- Use numerals for cardinal numbers, including 1-9.
+- Do not write number words such as "one," "two," or "three" in final public copy.
+- Always put a comma before "because".
+
 ### Content Structure
 
 #### 1. Headline (H1)
@@ -91,7 +104,8 @@ Apply these requirements from @context/aeo-geo-blog-strategy.md:
 - **Capsule Method**: Add a 50-60 word direct-answer capsule below the H1 and at least 60% of major H2s.
 - **PAA selection**: Use 3-5 PAA or FAQ questions from AnswerSocrates, SERP research, Reddit, YouTube, or a user-provided CSV.
 - **Source mapping**: Integrate at least three credible external sources inside natural sentences; map each source to the claim it supports.
-- **E-E-A-T proof**: Include named author, last-updated date, reviewer if available, named customer proof or expert quote, and honest limitations where relevant.
+- **E-E-A-T Proof Map**: Include named author, last-updated date, reviewer if available, Experience proof, Expertise proof, Authority/Trust proof, named customer proof or expert quote, and honest limitations where relevant.
+- **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, keywords, product framing, internal links, approved claims, proof candidates, and approved metrics. Public copy may use public sources and context-backed proof, but must not mention "repo context," context file paths, Source Maps, PAA artifacts, change summaries, or internal proof-path notes.
 - **Customer proof routing**: When citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
 - **Review-site VoC routing**: Cite public review-site themes with source links. Do not use exact quotes, named reviewers, star ratings, badges, rankings, or category-leadership claims unless they are verified in the current source and approved by the brief.
 - **Schema notes**: Include BlogPosting, FAQPage when FAQ is present, Author, and VideoObject when a video is embedded.

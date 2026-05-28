@@ -19,6 +19,34 @@ class AiCopyLinterTests(unittest.TestCase):
     def test_semicolon_is_error(self):
         self.assertIn("semicolon", finding_ids("Dispatch is late; invoices slip."))
 
+    def test_spelled_out_number_is_error(self):
+        findings = lint_content("Teams need two payment options on every invoice.")
+
+        number_words = [
+            finding for finding in findings if finding["rule_id"] == "spelled_out_number"
+        ]
+
+        self.assertEqual(len(number_words), 1)
+        self.assertEqual(number_words[0]["severity"], "error")
+        self.assertEqual(number_words[0]["match"], "two")
+
+    def test_missing_comma_before_because_is_error(self):
+        findings = lint_content("Invoices slow down because job data stays in the field.")
+
+        because = [
+            finding for finding in findings if finding["rule_id"] == "missing_comma_before_because"
+        ]
+
+        self.assertEqual(len(because), 1)
+        self.assertEqual(because[0]["severity"], "error")
+        self.assertEqual(because[0]["match"], "because")
+
+    def test_comma_before_because_is_allowed(self):
+        self.assertNotIn(
+            "missing_comma_before_because",
+            finding_ids("Invoices move faster, because job data reaches finance."),
+        )
+
     def test_not_just_but_also_pattern_is_error(self):
         self.assertIn(
             "not_just_but_also",
@@ -34,8 +62,30 @@ class AiCopyLinterTests(unittest.TestCase):
     def test_hashtag_is_error(self):
         self.assertIn("hashtag", finding_ids("Track the job before it slips. #fieldservice"))
 
+    def test_internal_repo_context_language_is_error(self):
+        content = (
+            "Repo context maps TEAMWired to a payment proof point, so the rewrite can route "
+            "readers to the approved internal proof path."
+        )
+
+        findings = lint_content(content)
+        internal = [
+            finding
+            for finding in findings
+            if finding["rule_id"] == "internal_process_language"
+        ]
+
+        self.assertTrue(internal)
+        self.assertEqual(internal[0]["severity"], "error")
+
+    def test_context_file_references_are_error_in_public_copy(self):
+        self.assertIn(
+            "internal_process_language",
+            finding_ids("Use context/features.md as the source for this customer claim."),
+        )
+
     def test_rhetorical_setup_question_is_warning(self):
-        findings = lint_content("Are you tired of missed job updates? Use one job record.")
+        findings = lint_content("Are you tired of missed job updates? Use 1 job record.")
 
         rhetorical = [finding for finding in findings if finding["rule_id"] == "rhetorical_question"]
         self.assertEqual(len(rhetorical), 1)
@@ -68,7 +118,7 @@ Visit https://example.com/not-just-but-also;done
 This is not just code, but also a sample #tag;
 ```
 
-Use one dispatch record.
+Use 1 dispatch record.
 """
 
         self.assertEqual(lint_content(content), [])

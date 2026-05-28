@@ -39,6 +39,8 @@ Scheduling affects profit because every missed appointment, double-booking, and 
 
 The profit impact compounds when scheduling is connected to job costing. Research from [McKinsey](https://www.mckinsey.com/) has shown that field productivity depends on better planning, tighter coordination, and faster information flow across operational teams.
 
+[Schaffer Beacon Mechanical](https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical) shows how field service teams use connected workflows to improve operational control.
+
 ## Frequently Asked Questions
 
 ### What is the best way to schedule HVAC technicians?
@@ -60,6 +62,26 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
         scorer = ContentScorer()
 
         self.assertEqual(scorer.PASS_THRESHOLD, 85)
+
+    def test_seo_score_reads_lowercase_frontmatter_metadata(self):
+        scorer = ContentScorer()
+        content = COMPLIANT_ARTICLE.replace(
+            "Meta Title: HVAC Scheduling Software for Contractors | Simpro",
+            "meta_title: HVAC Scheduling Software for Contractors | Simpro",
+        ).replace(
+            "Meta Description: HVAC scheduling software helps contractors assign jobs, avoid double-booking, and keep technicians moving from one real-time calendar.",
+            "meta_description: HVAC scheduling software helps contractors assign jobs, avoid double-booking, and keep technicians moving from one real-time calendar.",
+        ).replace(
+            "Primary Keyword: hvac scheduling software",
+            "primary_keyword: hvac scheduling software",
+        )
+
+        result = scorer._score_seo(content, {})
+
+        self.assertEqual(result["details"]["meta_title"], "HVAC Scheduling Software for Contractors | Simpro")
+        self.assertEqual(result["details"]["primary_keyword"], "hvac scheduling software")
+        self.assertNotIn("Missing meta title", [issue["issue"] for issue in result["issues"]])
+        self.assertNotIn("Missing meta description", [issue["issue"] for issue in result["issues"]])
 
     def test_content_quality_can_pass_while_aeo_geo_gate_fails(self):
         scorer = ContentScorer()

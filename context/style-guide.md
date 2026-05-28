@@ -321,7 +321,9 @@ Examples:
 ### Numbers
 
 **When to Spell Out**:
-- Spell out: one through nine
+- Simpro web/blog copy uses numerals for cardinal numbers, including 1-9.
+- Do not write number words such as "one," "two," or "three" in final public copy.
+- Spell out number words only in direct quotes, formal/legal contexts, or fixed names where the source requires it.
 - Use numerals: 10 and above
 - Exceptions (always numerals):
   - Percentages: 5%, 60%
@@ -337,6 +339,8 @@ Examples:
 ### Punctuation
 
 **Oxford Comma**: **Yes** — use the Oxford comma ("scheduling, dispatch, and inventory tracking"). Consistent with US English convention used in the FY26 Message House.
+
+**Because Comma**: Always put a comma before "because" in Simpro web/blog copy.
 
 **Em Dashes**: Use em dash (—) with no spaces for parenthetical emphasis ("real-time job costing—the difference between knowing and guessing"). Avoid hyphens with spaces (-) as a substitute.
 
@@ -562,6 +566,7 @@ Examples:
 
 ### Presenting Numbers
 - Round large numbers for scannability: "$36B+ in invoices/year" beats "$36,000,000,000+"
+- Use numerals for cardinal numbers, including 1-9. Write "2 payment options," not "two payment options."
 - Use % symbol: 60% (not "60 percent")
 - Use $ for money: $750K (not "750 thousand dollars")
 - Use commas as thousands separator: 450,000 (not 450000)

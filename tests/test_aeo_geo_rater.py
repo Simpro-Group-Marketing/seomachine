@@ -38,6 +38,8 @@ Scheduling affects profit because every missed appointment, double-booking, and 
 
 The profit impact compounds when scheduling is connected to job costing. Research from [McKinsey](https://www.mckinsey.com/) has shown that field productivity depends on better planning, tighter coordination, and faster information flow across operational teams.
 
+[Schaffer Beacon Mechanical](https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical) shows how field service teams use connected workflows to improve operational control.
+
 ## Frequently Asked Questions
 
 ### What is the best way to schedule HVAC technicians?
@@ -66,6 +68,68 @@ class AeoGeoRaterTests(unittest.TestCase):
         self.assertTrue(result["checks"]["direct_answer"]["passed"])
         self.assertTrue(result["checks"]["capsule_coverage"]["passed"])
         self.assertTrue(result["checks"]["faq_questions"]["passed"])
+        self.assertTrue(result["checks"]["eeat_proof"]["passed"])
+
+    def test_eeat_detects_case_study_experience_and_author_expertise(self):
+        result = rate_aeo_geo(
+            COMPLIANT_ARTICLE,
+            {"primary_keyword": "hvac scheduling software"},
+        )
+
+        details = result["checks"]["eeat_proof"]["details"]
+
+        self.assertTrue(result["checks"]["eeat_proof"]["passed"])
+        self.assertTrue(details["case_study_links"])
+        self.assertIn("case_study_link", details["experience_signals"])
+        self.assertIn("author_metadata", details["expertise_signals"])
+
+    def test_eeat_fails_when_external_research_has_no_experience_signal(self):
+        content = COMPLIANT_ARTICLE.replace(
+            "\n[Schaffer Beacon Mechanical](https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical) shows how field service teams use connected workflows to improve operational control.\n",
+            "\nThe article uses public research to explain scheduling workflows.\n",
+        )
+
+        result = rate_aeo_geo(
+            content,
+            {"primary_keyword": "hvac scheduling software"},
+        )
+
+        self.assertFalse(result["checks"]["eeat_proof"]["passed"])
+        self.assertFalse(result["passed"])
+        self.assertIn("eeat_proof", {issue["check"] for issue in result["issues"]})
+
+    def test_eeat_fails_when_case_study_has_no_expertise_signal(self):
+        content = COMPLIANT_ARTICLE.replace("Author: Jordan Lee\n", "")
+        content = content.replace("Last Updated: 2026-05-22\n", "Last Updated: 2026-05-22\n")
+        content = content.replace("Simpro connects", "The platform connects")
+
+        result = rate_aeo_geo(
+            content,
+            {"primary_keyword": "hvac scheduling software"},
+        )
+
+        details = result["checks"]["eeat_proof"]["details"]
+
+        self.assertTrue(details["case_study_links"])
+        self.assertFalse(details["expertise_signals"])
+        self.assertFalse(result["checks"]["eeat_proof"]["passed"])
+
+    def test_eeat_accepts_review_site_link_as_experience_signal(self):
+        content = COMPLIANT_ARTICLE.replace(
+            "https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical",
+            "https://www.g2.com/categories/field-service-management",
+        )
+
+        result = rate_aeo_geo(
+            content,
+            {"primary_keyword": "hvac scheduling software"},
+        )
+
+        details = result["checks"]["eeat_proof"]["details"]
+
+        self.assertTrue(result["checks"]["eeat_proof"]["passed"])
+        self.assertTrue(details["review_site_links"])
+        self.assertIn("review_site_link", details["experience_signals"])
 
     def test_delayed_answer_fails_direct_answer_check(self):
         content = COMPLIANT_ARTICLE.replace(

@@ -10,7 +10,8 @@ Use this command to review and analyze existing your company blog posts for SEO 
 2. Evaluates current SEO performance and optimization
 3. Identifies outdated information or statistics
 4. Suggests content expansion opportunities
-5. Provides actionable improvement recommendations
+5. Audits AEO/GEO rewrite readiness and missing strategy inputs
+6. Provides actionable improvement recommendations
 
 ## Process
 
@@ -33,6 +34,15 @@ Use this command to review and analyze existing your company blog posts for SEO 
 - **External Links**: Check for authoritative external sources
 - **Readability Score** (NEW!): Calculate Flesch Reading Ease, Flesch-Kincaid Grade Level, passive voice ratio, sentence complexity
 - **SEO Quality Rating** (NEW!): Overall score (0-100) with category breakdowns for content, keywords, meta, structure, links, and readability
+
+### AEO/GEO Rewrite Readiness
+- **AEO/GEO readiness audit**: Check direct-answer intro, Key Takeaways, Capsule Method coverage, FAQ/PAA structure, schema notes, source-backed claims, named metadata, and one-idea-per-section structure.
+- **Missing strategy inputs**: Identify missing `topic`, `audience`, `main_question`, `related_questions`, `tone`, `expertise`, and `length` inputs from @context/aeo-geo-blog-strategy.md.
+- **PAA/FAQ provenance**: Record whether selected questions come from AnswerSocrates, SERP, Reddit, YouTube, or a user PAA/FAQ CSV. If no sourced questions exist, mark the rewrite blocked until the artifact or export is available.
+- **Required PAA/source/proof artifacts**: List required `research/paa-questions-[topic-slug]-[YYYY-MM-DD].md`, source map, customer-proof source, author/reviewer source, and blocker notes before `/rewrite`.
+- **Source map**: Identify external sources, supported claims, natural anchor text, and target sections needed for the rewrite.
+- **E-E-A-T Proof Map**: Identify E-E-A-T proof details, Experience proof present/missing, Expertise proof present/missing, Authority/Trust proof present/missing, case-study proof candidates, Review-site VoC candidates, and proof gaps. Pull case-study URLs from @context/internal-links-map.md, approved metrics/proof candidates from @context/features.md, and review-site VoC or competitor experience themes from @context/competitor-analysis.md or future review-context files.
+- **Claims excluded for missing proof**: List claims that must stay out of the rewrite because no public-facing source link, approved metric, case-study URL, review-site source, expert quote, or author/reviewer support exists.
 
 ### Competitive Context
 - **SERP Position**: Research current ranking for target keywords (if known)
@@ -84,12 +94,14 @@ The new Content Analyzer agent provides:
 - **Competitive length benchmarks** (min, median, 75th percentile)
 - **Readability metrics** (Flesch scores, sentence analysis, passive voice ratio)
 - **SEO quality breakdown** by category (0-100 for each)
+- **AEO/GEO readiness audit** covering direct answers, Capsule Method, FAQ/PAA, schema notes, source map, E-E-A-T Proof Map, Experience proof present/missing, Expertise proof present/missing, and proof gaps
 
 ### 5. Rewrite Recommendations
 - **Priority Level**: Low / Medium / High / Critical (based on SEO score and competitive analysis)
 - **Estimated Effort**: Light edit / Moderate update / Major rewrite / Complete refresh
 - **Expected Impact**: Potential traffic increase, ranking improvement, engagement boost (data-driven estimates)
 - **Specific improvements needed**: Exact word count targets, keyword density adjustments, readability fixes
+- **Rewrite-specific AEO/GEO acceptance checklist**: Required direct-answer intro, 3-5 sourced FAQ/PAA questions, Source Map, E-E-A-T Proof Map, schema notes, AI copy linter zero errors, content quality 85/100+, and AEO/GEO 90/100+
 
 ### 6. Research Brief
 If a rewrite is recommended, provide initial research brief including:
@@ -100,6 +112,13 @@ If a rewrite is recommended, provide initial research brief including:
 - Search intent alignment strategy
 - Optimal content length recommendation (based on SERP analysis)
 - Internal linking opportunities
+- Main answer target and AEO/GEO variable resolution
+- PAA/FAQ provenance and selected 3-5 closest questions with intent labels
+- Insight summary and suggested blog focus
+- Source map with source, claim, anchor text, and target section
+- E-E-A-T Proof Map with Experience proof present/missing, Expertise proof present/missing, case-study proof candidates, Review-site VoC candidates, Authority/Trust proof, and any proof gaps that must remain out of the rewrite
+- Context-backed metrics that can be used only with public-facing source links
+- Required PAA/source/proof artifacts before `/rewrite`
 
 ## File Management
 After completing the analysis, automatically save the report to:
