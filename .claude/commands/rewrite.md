@@ -195,22 +195,25 @@ Example: `rewrites/content-marketing-guide-rewrite-2025-10-15.md`
 Also save the change summary separately:
 - **File Location**: `rewrites/changes-[topic-slug]-[YYYY-MM-DD].md`
 
-## Automatic Content Scrubbing
+## Automatic Scrub And AI Copy Lint
 
-**CRITICAL**: Immediately after saving the rewritten article file, automatically invoke the content scrubber to remove AI watermarks and telltale patterns.
+**CRITICAL**: Immediately after saving the rewritten article file, automatically invoke the content scrubber, then run the AI copy linter before optimization.
 
 ### Why This Matters
-AI-generated content often contains invisible Unicode watermarks and characteristic patterns (like em-dash overuse) that can identify it as AI-written. Scrubbing removes these indicators to make content appear naturally human-written.
+AI-generated content often contains invisible Unicode marks and characteristic punctuation patterns. Scrubbing handles cleanup. The linter handles AI-writing detection and Simpro style enforcement.
 
-### Scrubbing Process
+### Scrub And Lint Process
 1. **Invoke Scrubber**: Run `/scrub [file-path]` on the saved rewritten article file
-2. **Automatic Execution**: This should happen automatically, not require user action
-3. **Timing**: Must occur immediately after file save, before any other processing
-4. **Scope**: Scrub the main rewritten article file only (not change summary or analysis files)
+2. **Invoke AI Copy Linter**: Run `python data_sources/modules/ai_copy_linter.py [file-path] --profile simpro-web --fail-on error`
+3. **Automatic Execution**: This should happen automatically, not require user action
+4. **Timing**: Must occur immediately after file save, before optimization agents
+5. **Scope**: Scrub and lint the main rewritten article file only (not change summary or analysis files)
+6. **Error Handling**: If linter errors remain, revise once, rerun `/scrub`, rerun the linter, then route to `review-required/` with lint findings if errors remain
+7. **Warnings**: Include warning findings in review notes, but do not block unless strict mode is requested
 
 ### What Gets Cleaned
 - Invisible Unicode watermarks (zero-width spaces, BOMs, format-control characters)
-- Em-dashes replaced with contextually appropriate punctuation (commas, semicolons, periods)
+- Em-dashes replaced with contextually appropriate punctuation (commas or periods)
 - Whitespace normalization and formatting cleanup
 - All changes preserve content meaning and markdown structure
 
@@ -220,15 +223,21 @@ The scrubber will display statistics:
 - Format-control characters removed
 - Em-dashes replaced
 
+The AI copy linter will display:
+- Error count
+- Warning count
+- Line-level findings with suggested fixes
+
 ### Example Workflow
 ```
 1. Rewrite article → Save to rewrites/article-name-rewrite-2025-10-31.md
 2. IMMEDIATELY run: /scrub rewrites/article-name-rewrite-2025-10-31.md
-3. Verify scrubbing statistics
-4. THEN proceed with optimization agents below
+3. IMMEDIATELY run: python data_sources/modules/ai_copy_linter.py rewrites/article-name-rewrite-2025-10-31.md --profile simpro-web --fail-on error
+4. If errors remain, revise once, then rerun scrub and lint
+5. THEN proceed with optimization agents below
 ```
 
-This ensures all published content is free of AI signatures before any further processing.
+This keeps cleanup separate from AI copy detection before any further processing.
 
 ## Automatic Agent Execution
 After saving the rewritten article, run optimization agents:

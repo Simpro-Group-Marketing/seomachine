@@ -315,20 +315,27 @@ Save completed landing page to:
 
 ---
 
-## Automatic Scrubbing
+## Automatic Scrub And AI Copy Lint
 
 After saving, immediately run the content scrubber:
 ```
 /scrub landing-pages/[filename].md
 ```
 
-This removes AI watermarks and characteristic patterns.
+This removes invisible Unicode marks, em dashes, and whitespace artifacts.
+
+Then run the AI copy linter:
+```bash
+python data_sources/modules/ai_copy_linter.py landing-pages/[filename].md --profile simpro-web --fail-on error
+```
+
+If errors remain, revise once, rerun `/scrub`, rerun the linter, then save to `review-required/landing-pages/` with lint findings if errors remain. Warnings go into review notes unless strict mode is requested.
 
 ---
 
 ## Automatic Scoring
 
-After scrubbing, score the landing page using:
+After scrubbing and linting, score the landing page using:
 
 ```bash
 python data_sources/modules/landing_page_scorer.py landing-pages/[filename].md --type [seo|ppc] --goal [trial|demo|lead]
@@ -343,8 +350,9 @@ Or run via the landing-page-optimizer agent.
 ### If Score < 75:
 1. Review critical issues and warnings
 2. Apply top 3 fixes
-3. Re-score
-4. If still below threshold, save to `review-required/landing-pages/` with notes
+3. Rerun `/scrub` and the AI copy linter
+4. Re-score
+5. If AI copy lint errors remain after 1 revision or score is still below threshold, save to `review-required/landing-pages/` with notes
 
 ---
 

@@ -618,13 +618,20 @@ Save to: `drafts/[topic-slug]-[YYYY-MM-DD].md`
 
 After saving the draft:
 
-### 1. Scrub AI Patterns
+### 1. Scrub Punctuation Artifacts
 ```
 /scrub drafts/[filename].md
 ```
-Removes invisible Unicode watermarks and AI telltale patterns.
+Removes invisible Unicode marks, em dashes, and whitespace artifacts.
 
-### 2. Score Content Quality
+### 2. Lint AI Copy
+```bash
+python data_sources/modules/ai_copy_linter.py drafts/[filename].md --profile simpro-web --fail-on error
+```
+
+If errors remain, revise once, rerun `/scrub`, rerun the linter, then move to `review-required/` with lint findings if errors remain. Warnings go into review notes unless strict mode is requested.
+
+### 3. Score Content Quality
 ```bash
 python data_sources/modules/content_scorer.py drafts/[filename].md
 ```
@@ -632,7 +639,7 @@ python data_sources/modules/content_scorer.py drafts/[filename].md
 **Quality Gates:**
 - General content quality score must be **85/100** or higher.
 - AEO/GEO score must be **90/100** or higher.
-- A draft only passes if both gates pass.
+- A draft only passes if AI copy lint has zero errors and both score gates pass.
 
 | Dimension | Weight |
 |-----------|--------|
@@ -642,16 +649,17 @@ python data_sources/modules/content_scorer.py drafts/[filename].md
 | SEO Compliance | 15% |
 | Readability | 10% |
 
-### 3. Auto-Revise if Needed
+### 4. Auto-Revise if Needed
 If either gate fails:
 1. Review `priority_fixes` from scorer
 2. Review AEO/GEO failed checks from `aeo_geo`
 3. Apply top 3-5 fixes
-4. Re-score
-5. Repeat once more if needed
-6. If content quality remains below 85/100 or AEO/GEO remains below 90/100 after 2 iterations -> move to `review-required/`
+4. Rerun `/scrub` and the AI copy linter
+5. Re-score
+6. Repeat once more if needed
+7. If AI copy lint errors remain after 1 revision, or content quality remains below 85/100 or AEO/GEO remains below 90/100 after 2 iterations -> move to `review-required/`
 
-### 4. Run Optimization Agents
+### 5. Run Optimization Agents
 After passing quality threshold:
 - `content-analyzer` agent
 - `seo-optimizer` agent

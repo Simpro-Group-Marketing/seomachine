@@ -25,6 +25,24 @@ class ContentScrubberTests(unittest.TestCase):
         self.assertIn("teams use AI", cleaned)
         self.assertNotIn("In today's digital landscape", cleaned)
 
+    def test_real_unicode_em_dash_gets_replaced(self):
+        cleaned = scrub_content("Dispatch is clean" + chr(8212) + "jobs still move.")
+
+        self.assertNotIn(chr(8212), cleaned)
+        self.assertIn("Dispatch is clean", cleaned)
+        self.assertIn("jobs still move.", cleaned)
+
+    def test_scrub_output_does_not_introduce_semicolons(self):
+        cleaned = scrub_content("Dispatchers can see capacity" + chr(8212) + "teams can assign work.")
+
+        self.assertNotIn(";", cleaned)
+
+    def test_scrub_is_idempotent_after_em_dash_replacement(self):
+        once = scrub_content("Dispatch is clean" + chr(8212) + "jobs still move.")
+        twice = scrub_content(once)
+
+        self.assertEqual(once, twice)
+
 
 if __name__ == "__main__":
     unittest.main()

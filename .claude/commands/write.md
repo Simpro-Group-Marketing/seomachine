@@ -261,22 +261,25 @@ After completing the article, automatically save to:
 
 Example: `drafts/content-marketing-strategies-2025-10-15.md`
 
-## Automatic Content Scrubbing
+## Automatic Scrub And AI Copy Lint
 
-**CRITICAL**: Immediately after saving the article file, automatically invoke the content scrubber to remove AI watermarks and telltale patterns.
+**CRITICAL**: Immediately after saving the article file, automatically invoke the content scrubber, then run the AI copy linter before scoring or optimization.
 
 ### Why This Matters
-AI-generated content often contains invisible Unicode watermarks and characteristic patterns (like em-dash overuse) that can identify it as AI-written. Scrubbing removes these indicators to make content appear naturally human-written.
+AI-generated content often contains invisible Unicode marks and characteristic punctuation patterns. Scrubbing handles cleanup. The linter handles AI-writing detection and Simpro style enforcement.
 
-### Scrubbing Process
+### Scrub And Lint Process
 1. **Invoke Scrubber**: Run `/scrub [file-path]` on the saved article file
-2. **Automatic Execution**: This should happen automatically, not require user action
-3. **Timing**: Must occur immediately after file save, before any other processing
-4. **Scope**: Scrub the main article file only (not meta or analysis files)
+2. **Invoke AI Copy Linter**: Run `python data_sources/modules/ai_copy_linter.py [file-path] --profile simpro-web --fail-on error`
+3. **Automatic Execution**: This should happen automatically, not require user action
+4. **Timing**: Must occur immediately after file save, before scoring or agent processing
+5. **Scope**: Scrub and lint the main article file only (not meta or analysis files)
+6. **Error Handling**: If linter errors remain, revise once, rerun `/scrub`, rerun the linter, then route to `review-required/` with lint findings if errors remain
+7. **Warnings**: Include warning findings in review notes, but do not block unless strict mode is requested
 
 ### What Gets Cleaned
 - Invisible Unicode watermarks (zero-width spaces, BOMs, format-control characters)
-- Em-dashes replaced with contextually appropriate punctuation (commas, semicolons, periods)
+- Em-dashes replaced with contextually appropriate punctuation (commas or periods)
 - Whitespace normalization and formatting cleanup
 - All changes preserve content meaning and markdown structure
 
@@ -286,18 +289,24 @@ The scrubber will display statistics:
 - Format-control characters removed
 - Em-dashes replaced
 
+The AI copy linter will display:
+- Error count
+- Warning count
+- Line-level findings with suggested fixes
+
 ### Example Workflow
 ```
 1. Write article → Save to drafts/article-name-2025-10-31.md
 2. IMMEDIATELY run: /scrub drafts/article-name-2025-10-31.md
-3. Verify scrubbing statistics
-4. THEN proceed with optimization agents below
+3. IMMEDIATELY run: python data_sources/modules/ai_copy_linter.py drafts/article-name-2025-10-31.md --profile simpro-web --fail-on error
+4. If errors remain, revise once, then rerun scrub and lint
+5. THEN proceed with scoring and optimization agents below
 ```
 
-This ensures all published content is free of AI signatures before any further processing.
+This keeps cleanup separate from AI copy detection before any further processing.
 
 ## Automatic Agent Execution
-After saving the main article, immediately execute optimization agents:
+After saving, scrubbing, linting, and passing the quality loop, execute optimization agents:
 
 ### 1. Content Analyzer Agent (NEW!)
 - **Agent**: `content-analyzer`
@@ -338,15 +347,23 @@ This new agent uses 5 specialized analysis modules:
 
 ## Automatic Quality Loop
 
-After saving the initial draft, automatically run the content quality scorer:
+After saving the initial draft, automatically run the AI copy linter and content quality scorer:
 
-### Step 1: Score Content
+### Step 1: Confirm AI Copy Lint Gate
+Run the AI copy linter before scoring:
+```bash
+python data_sources/modules/ai_copy_linter.py drafts/[article-file].md --profile simpro-web --fail-on error
+```
+
+The draft must have zero linter errors before scoring. Warnings go into review notes unless strict mode is requested.
+
+### Step 2: Score Content
 Run the content scorer to evaluate the draft:
 ```bash
 python data_sources/modules/content_scorer.py drafts/[article-file].md
 ```
 
-### Step 2: Evaluate Score
+### Step 3: Evaluate Score
 The scorer evaluates 5 content-quality dimensions plus the required AEO/GEO gate:
 
 | Dimension | Weight | Target |
@@ -357,16 +374,17 @@ The scorer evaluates 5 content-quality dimensions plus the required AEO/GEO gate
 | SEO Compliance | 15% | Keywords, meta, structure |
 | Readability | 10% | Flesch 60-70, grade 8-10 |
 
-### Step 3: Auto-Revise if Needed
+### Step 4: Auto-Revise if Needed
 If content quality is below 85/100 or AEO/GEO is below 90/100:
 1. Review the `priority_fixes` from the scorer
 2. Apply the top 3-5 fixes automatically
-3. Re-score the content
-4. Repeat once more if still below threshold
+3. Rerun `/scrub` and the AI copy linter
+4. Re-score the content
+5. Repeat once more if still below threshold
 
-### Step 4: Route Based on Final Score
+### Step 5: Route Based on Final Score
 - **General content quality score >= 85/100 and AEO/GEO score >= 90/100**: Save to `drafts/` and proceed to optimization agents
-- **General content quality score < 85/100 or AEO/GEO score < 90/100 after 2 iterations**: Save to `review-required/` with a `_REVIEW_NOTES.md` file containing the scoring details, AEO/GEO failed checks, and remaining issues
+- **Any AI copy lint errors after 1 revision, or general content quality score < 85/100 or AEO/GEO score < 90/100 after 2 iterations**: Save to `review-required/` with a `_REVIEW_NOTES.md` file containing lint findings, scoring details, AEO/GEO failed checks, and remaining issues
 
 ### Review-Required Folder
 Articles that fail quality threshold after 2 revision attempts go to `review-required/`:

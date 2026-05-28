@@ -24,11 +24,13 @@ from pathlib import Path
 # Import existing modules
 try:
     from .aeo_geo_rater import rate_aeo_geo
+    from .ai_copy_linter import lint_content
     from .readability_scorer import ReadabilityScorer
     from .seo_quality_rater import SEOQualityRater
 except ImportError:
     # For standalone testing
     from aeo_geo_rater import rate_aeo_geo
+    from ai_copy_linter import lint_content
     from readability_scorer import ReadabilityScorer
     from seo_quality_rater import SEOQualityRater
 
@@ -47,36 +49,6 @@ class ContentScorer:
 
     # Threshold for passing the general content quality gate.
     PASS_THRESHOLD = 85
-
-    # AI phrases to detect (reduce humanity score)
-    AI_PHRASES = [
-        r'\bin today\'s (?:digital|modern|fast-paced)\b',
-        r'\bwhen it comes to\b',
-        r'\bit\'s important to (?:note|remember|understand)\b',
-        r'\bin the world of\b',
-        r'\blet\'s dive (?:in|into)\b',
-        r'\bfurthermore\b',
-        r'\bmoreover\b',
-        r'\badditionally\b',
-        r'\bin order to\b',
-        r'\bdue to the fact that\b',
-        r'\bat the end of the day\b',
-        r'\bgoing forward\b',
-        r'\bleverage\b',
-        r'\butilize\b',
-        r'\bsynergy\b',
-        r'\bholistic\b',
-        r'\brobust\b',
-        r'\bseamless(?:ly)?\b',
-        r'\bgame.?changer\b',
-        r'\bunlock(?:ing)? (?:the )?(?:power|potential)\b',
-        r'\btake (?:your|it) to the next level\b',
-        r'\bjourney\b(?! to\b)',  # "journey" alone, not "journey to"
-        r'\blandscape\b',
-        r'\bparadigm\b',
-        r'\boptimal\b',
-        r'\bfacilitate\b',
-    ]
 
     # Vague words that reduce specificity
     VAGUE_WORDS = [
@@ -296,21 +268,43 @@ class ContentScorer:
         issues = []
         details = {}
 
-        content_lower = content.lower()
         word_count = len(content.split())
 
-        # Count AI phrases
-        ai_phrase_count = 0
-        ai_phrases_found = []
-        for pattern in self.AI_PHRASES:
-            matches = re.findall(pattern, content_lower)
-            ai_phrase_count += len(matches)
-            if matches:
-                ai_phrases_found.extend(matches[:2])  # Keep first 2 examples
+        # Use the shared deterministic AI copy linter so scoring and lint gates
+        # do not drift into separate phrase lists.
+        copy_lint_findings = lint_content(content)
+        copy_lint_errors = [
+            finding for finding in copy_lint_findings
+            if finding["severity"] == "error"
+        ]
+        copy_lint_warnings = [
+            finding for finding in copy_lint_findings
+            if finding["severity"] == "warning"
+        ]
+        passive_findings = [
+            finding for finding in copy_lint_findings
+            if finding["rule_id"] == "passive_voice"
+        ]
 
-        ai_density = (ai_phrase_count / max(word_count, 1)) * 1000  # per 1000 words
+        ai_density = (len(copy_lint_errors) / max(word_count, 1)) * 1000
+        warning_density = (len(copy_lint_warnings) / max(word_count, 1)) * 1000
+        passive_ratio = len(passive_findings) / max(word_count / 100, 1)
+
         details['ai_phrases_per_1000'] = round(ai_density, 1)
-        details['ai_phrases_found'] = ai_phrases_found[:5]
+        details['ai_phrases_found'] = [
+            str(finding["match"]) for finding in copy_lint_errors[:5]
+        ]
+        details['ai_copy_lint_errors'] = len(copy_lint_errors)
+        details['ai_copy_lint_warnings'] = len(copy_lint_warnings)
+        details['ai_copy_lint_findings'] = [
+            {
+                "rule_id": finding["rule_id"],
+                "severity": finding["severity"],
+                "line": finding["line"],
+                "match": finding["match"],
+            }
+            for finding in copy_lint_findings[:10]
+        ]
 
         # Count conversational devices
         conversational_count = 0
@@ -320,9 +314,6 @@ class ContentScorer:
         conv_density = (conversational_count / max(word_count, 1)) * 1000
         details['conversational_per_1000'] = round(conv_density, 1)
 
-        # Count passive voice (simplified)
-        passive_indicators = len(re.findall(r'\b(?:is|are|was|were|been|being)\s+\w+ed\b', content_lower))
-        passive_ratio = passive_indicators / max(word_count / 100, 1)
         details['passive_voice_ratio'] = round(passive_ratio, 2)
 
         # Count contractions
@@ -333,14 +324,26 @@ class ContentScorer:
         # Calculate score
         score = 100
 
-        # Penalize AI phrases (up to -30)
-        if ai_density > 5:
-            penalty = min(30, (ai_density - 5) * 3)
+        # Penalize blocking AI copy lint errors (up to -35)
+        if copy_lint_errors:
+            penalty = min(35, max(10, ai_density * 3))
             score -= penalty
             issues.append({
-                'issue': f'AI phrases detected ({ai_phrase_count} instances)',
-                'fix': f'Remove or rephrase: {", ".join(ai_phrases_found[:3])}',
-                'severity': 'high' if ai_density > 10 else 'medium'
+                'issue': f'AI copy lint errors detected ({len(copy_lint_errors)} instances)',
+                'fix': 'Remove or rephrase: ' + ", ".join(
+                    str(finding["match"]) for finding in copy_lint_errors[:3]
+                ),
+                'severity': 'high'
+            })
+
+        # Penalize warning clusters (up to -15)
+        if warning_density > 8:
+            penalty = min(15, (warning_density - 8) * 1.5)
+            score -= penalty
+            issues.append({
+                'issue': f'AI copy lint warnings detected ({len(copy_lint_warnings)} instances)',
+                'fix': 'Review linter warnings for passive voice, filler, vague language, and modal verbs',
+                'severity': 'medium'
             })
 
         # Penalize high passive voice (up to -15)

@@ -1,11 +1,11 @@
 """
 Content Scrubber
 
-Removes AI-generated content watermarks and telltale signs including:
+Removes generated-content cleanup artifacts including:
 - Invisible Unicode characters (zero-width spaces, format-control characters, etc.)
 - Em-dashes replaced with contextually appropriate punctuation
 
-This module ensures content appears naturally human-written.
+AI-writing detection lives in ai_copy_linter.py. Keep this module focused on safe cleanup.
 """
 
 import re
@@ -15,7 +15,7 @@ from typing import Dict, List, Tuple
 
 class ContentScrubber:
     """
-    Scrubs AI-generated content to remove watermarks and telltale patterns.
+    Scrubs content to remove invisible marks and punctuation artifacts.
     """
 
     # Specific Unicode characters to remove
@@ -37,7 +37,7 @@ class ContentScrubber:
         '\u2029',  # Paragraph separator
     ]
 
-    # AI-telltale phrases that sound robotic or overly formal
+    # Narrow phrase replacements kept for backwards-compatible cleanup.
     AI_PHRASE_REPLACEMENTS = [
         # "It's important to note that X" → "X"
         (r"[Ii]t(?:'s| is) (?:important|worth|crucial|essential) to (?:note|mention|highlight|understand|remember|recognize|emphasize) that ", ""),
@@ -79,7 +79,7 @@ class ContentScrubber:
 
     def scrub(self, content: str) -> Tuple[str, Dict]:
         """
-        Scrub content of all AI watermarks and telltale signs.
+        Scrub content of invisible marks and punctuation artifacts.
 
         Args:
             content: The text content to scrub
@@ -144,12 +144,11 @@ class ContentScrubber:
 
         Analyzes the context around each em-dash to determine the best replacement:
         - Comma: For simple separation, parenthetical phrases, or lists
-        - Semicolon: For independent clauses that are closely related
         - Period: For strong breaks or when near sentence end
         - Space: When em-dash is used for attribution or breaking phrases
         """
         # Find all em-dashes with surrounding context
-        emdash_pattern = r'([^—]{0,100})—([^—]{0,100})'
+        emdash_pattern = r'([^\u2014]{0,100})\u2014([^\u2014]{0,100})'
 
         def replace_emdash(match):
             before = match.group(1)
@@ -204,14 +203,14 @@ class ContentScrubber:
             if after_context and after_context[0].isupper():
                 # Could be a new sentence
                 return '. '
-            # Check for conjunctive adverbs that suggest semicolon
+            # Check for conjunctive adverbs that need a stronger break
             conjunctive_adverbs = ['however', 'therefore', 'moreover', 'furthermore',
                                    'nevertheless', 'consequently', 'thus', 'hence']
             after_lower = after_context.lower()
             if any(after_lower.startswith(adv) for adv in conjunctive_adverbs):
-                return '; '
-            # Otherwise semicolon for independent clauses
-            return '; '
+                return '. '
+            # Otherwise use a comma to avoid introducing semicolons
+            return ', '
 
         # Check if it's a list or series
         if ',' in before_context[-20:] or ',' in after_context[:20]:
@@ -312,9 +311,9 @@ if __name__ == '__main__':
     test_content = """
     This is a test\u200Bcontent with invisible\uFEFF characters.
 
-    Here's a sentence with an em-dash—it should be replaced appropriately.
+    Here's a sentence with an em-dash\u2014it should be replaced appropriately.
 
-    And another one—this time with\u200C more context—to test the logic.
+    And another one\u2014this time with\u200C more context\u2014to test the logic.
 
     Final test: some content\u2060 with word\u00AD joiners and soft\u202F hyphens.
     """

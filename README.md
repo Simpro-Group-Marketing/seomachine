@@ -285,7 +285,7 @@ Content prioritization matrix using analytics data to identify highest-impact co
 ---
 
 ### `/scrub [file]`
-Remove AI watermarks and patterns from content (em-dashes, filler phrases, robotic patterns).
+Remove invisible Unicode marks, em dashes, and whitespace artifacts. Run the AI copy linter after scrub for AI-writing detection.
 
 ---
 
@@ -579,7 +579,8 @@ Six Python modules for landing page conversion optimization:
 - `opportunity_scorer.py` - 8-factor opportunity scoring for content prioritization
 - `content_scorer.py` - 5-dimension content quality scoring (humanity, specificity, structure, SEO, readability) with AEO/GEO gate
 - `aeo_geo_rater.py` - Capsule Method, PAA, source mapping, and E-E-A-T scoring (90+ publish target)
-- `content_scrubber.py` - Removes AI watermarks and filler phrases before publish
+- `content_scrubber.py` - Removes invisible Unicode marks, em dashes, and whitespace artifacts before publish
+- `ai_copy_linter.py` - Deterministic AI copy detection gate with line-level findings
 - `engagement_analyzer.py` - Content engagement pattern analysis
 - `competitor_gap_analyzer.py` - Competitive content gap identification
 - `article_planner.py` - Data-driven article planning
@@ -754,10 +755,11 @@ Every Simpro blog post should meet these requirements:
 
 ### After Writing
 1. **Agent passes**: SEO Optimizer, Meta Creator, Internal Linker, Keyword Mapper
-2. **Scrub AI patterns**: `/scrub` or `content_scrubber.py` before human review
-3. **Optimize**: `/optimize` for final SEO polish
-4. **Score**: Run content through scorer + AEO/GEO gate when publishing high-priority posts
-5. **Publish**: `/publish-draft` to WordPress when approved
+2. **Scrub punctuation artifacts**: `/scrub` or `content_scrubber.py` before human review
+3. **Lint AI copy**: `python data_sources/modules/ai_copy_linter.py [file] --profile simpro-web --fail-on error`
+4. **Optimize**: `/optimize` for final SEO polish
+5. **Score**: Run content through scorer + AEO/GEO gate when publishing high-priority posts
+6. **Publish**: `/publish-draft` to WordPress when approved
 
 ### For Blog Rewrites
 1. **`/analyze-existing`** on the live simprogroup.com URL or `published/` file
@@ -830,7 +832,7 @@ Every Simpro blog post should meet these requirements:
 
 ### Workflow Efficiency
 - **`/performance-review`** and `/priorities` for what to write or rewrite next
-- **`/scrub`** before editorial handoff to strip AI tells
+- **`/scrub` + `ai_copy_linter.py`** before editorial handoff
 - **MCP first** for live GSC/GA4 pulls; Python scripts for batch reports
 - **Reuse battlecard plays** from `competitor-analysis.md` in comparison posts
 
@@ -865,7 +867,7 @@ Every Simpro blog post should meet these requirements:
 ### "Blog doesn't sound like Simpro"
 - Re-read `brand-voice.md` and `writing-examples.md`; compare to a published simprogroup.com post
 - For Lightning posts, confirm `lightning-positioning.md` is loaded and Cooper/JustAsk rules are followed
-- Run `/scrub` then Editor agent for robotic phrasing
+- Run `/scrub`, then `ai_copy_linter.py`, then Editor agent for robotic phrasing
 
 ### "AEO/GEO score below 90"
 - Add Capsule blocks under missing H2s (`aeo-geo-blog-strategy.md`)

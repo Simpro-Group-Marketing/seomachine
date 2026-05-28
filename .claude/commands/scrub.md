@@ -1,156 +1,117 @@
 # Scrub Command
 
-Use this command to remove invisible AI-generated watermarks and telltale patterns from markdown content files.
+Use this command to remove invisible Unicode marks, em dashes, and whitespace artifacts from markdown content files.
 
 ## Usage
 `/scrub [file path]`
 
 ## What This Command Does
-1. Removes invisible Unicode watermarks commonly embedded by AI systems
-2. Replaces em-dashes with contextually appropriate punctuation
+1. Removes invisible Unicode marks commonly embedded in generated content
+2. Replaces em dashes with contextually appropriate commas or periods
 3. Cleans up whitespace and formatting artifacts
-4. Makes content appear naturally human-written
-5. Provides statistics on changes made
+4. Provides statistics on changes made
 
-## Why This Matters
+## What This Command Does Not Do
+`/scrub` is a cleanup step, not the AI copy detection gate. Run the AI copy linter after scrub:
 
-AI language models often embed invisible Unicode characters as watermarks or identifiers in generated content. Additionally, AI tends to overuse certain punctuation patterns like em-dashes. This command removes these telltale signs to make content appear more naturally written.
+```bash
+python data_sources/modules/ai_copy_linter.py [file-path] --profile simpro-web --fail-on error
+```
+
+The linter catches AI-writing giveaways, Simpro style violations, passive voice, filler, modal verbs, rhetorical setup questions, hashtags, semicolons, and unsupported hype terms.
 
 ## Process
 
-### 1. Watermark Detection & Removal
+### 1. Watermark Detection And Removal
 
 The scrubber identifies and removes several types of invisible Unicode characters:
 
-#### Invisible Characters Removed
 - **Zero-width spaces** (U+200B): Often inserted between words
-- **Byte Order Marks** (U+FEFF): BOM characters that shouldn't appear in content
+- **Byte Order Marks** (U+FEFF): BOM characters that should not appear in content
 - **Zero-width non-joiners** (U+200C): Invisible formatting characters
 - **Word joiners** (U+2060): Non-breaking invisible characters
 - **Soft hyphens** (U+00AD): Optional hyphenation points
 - **Narrow no-break spaces** (U+202F): Special spacing characters
 - **All format-control characters**: Unicode category Cf characters
 
-### 2. Em-Dash Replacement
+### 2. Em Dash Replacement
 
-AI-generated content tends to overuse em-dashes (—). The scrubber intelligently replaces them based on context:
+The scrubber replaces em dashes with visible punctuation:
 
-#### Contextual Rules
-- **Attribution**: Replaces with comma when used for quotes or attribution
-  - Example: "Text — Author Name" becomes "Text, Author Name"
+- **Attribution**: Replaces with a comma when used for quotes or attribution
+- **Strong breaks**: Replaces with a period when separating distinct sentences
+- **Simple separation**: Replaces with a comma for list items or short asides
+- **Conjunctive adverbs**: Replaces with a period before words like "however", "therefore", or "moreover"
 
-- **Independent Clauses**: Replaces with semicolon when joining complete thoughts
-  - Example: "First clause — second clause" becomes "First clause; second clause"
-
-- **Strong Breaks**: Replaces with period when separating distinct sentences
-  - Example: "Sentence one — Sentence two" becomes "Sentence one. Sentence two"
-
-- **Simple Separation**: Replaces with comma for list items or simple separation
-  - Example: "Item — detail" becomes "Item, detail"
-
-- **Conjunctive Adverbs**: Replaces with semicolon before words like "however", "therefore", "moreover"
-  - Example: "Text — however, more text" becomes "Text; however, more text"
+The scrubber does not introduce semicolons.
 
 ### 3. Whitespace Normalization
 
-After removing watermarks and replacing em-dashes, the scrubber cleans up formatting:
+After removing marks and replacing em dashes, the scrubber cleans up formatting:
 
-- **Multiple Spaces**: Reduces multiple consecutive spaces to single space
-- **Punctuation Spacing**: Removes spaces before punctuation marks
-- **Post-Punctuation Spacing**: Ensures single space after punctuation
-- **Excessive Line Breaks**: Reduces 3+ consecutive line breaks to 2
+- **Multiple spaces**: Reduces multiple consecutive spaces to single spaces
+- **Punctuation spacing**: Removes spaces before punctuation marks
+- **Post-punctuation spacing**: Ensures single spaces after sentence-ending punctuation where appropriate
+- **Excessive line breaks**: Reduces 3+ consecutive line breaks to 2
 
 ## Output
 
 The command displays:
 
-### Statistics Report
-```
+```text
 Content Scrubbing Complete:
   - Unicode watermarks removed: [count]
   - Format-control chars removed: [count]
   - Em-dashes replaced: [count]
+  - AI phrases replaced: [count]
 ```
 
-### File Update
-- Original file is overwritten with cleaned content
-- All changes are applied in-place
-- Original formatting and structure preserved (except cleaned elements)
+The original file is overwritten with cleaned content unless an output path is supplied by the module API.
 
-## Integration with Writing Workflow
+## Integration With Writing Workflow
 
-This command is designed to run automatically after content generation:
+After `/write`, `/rewrite`, `/article`, or `/landing-write` saves a content file:
 
-### Automatic Execution
-After `/write` or `/rewrite` commands save article files, the scrubber should run automatically on:
-- Main article file in `drafts/` directory
-- Any generated content that will be published
-
-### Manual Execution
-You can also manually scrub any markdown file:
-- Testing content cleanliness
-- Cleaning legacy content
-- Processing externally generated content
-- Verifying scrubbing was successful
+1. Run `/scrub [file-path]`
+2. Run `python data_sources/modules/ai_copy_linter.py [file-path] --profile simpro-web --fail-on error`
+3. If linter errors remain, revise once, rerun scrub, rerun lint
+4. If errors remain after revision, route to `review-required/` with lint findings
+5. Include linter warnings in review notes unless strict mode is requested
 
 ## Technical Details
 
-### Implementation
-The scrubbing functionality is implemented in:
+Scrubbing is implemented in:
+
 - **Module**: `data_sources/modules/content_scrubber.py`
 - **Main Function**: `scrub_file(file_path, output_path, verbose)`
-- **Class**: `ContentScrubber` with specialized methods for each cleaning operation
+- **Class**: `ContentScrubber`
 
-### Idempotency
-The scrubber is idempotent - running it multiple times on already-cleaned content produces no additional changes. This makes it safe to:
-- Run multiple times on same file
-- Include in automated workflows
-- Use as quality check without risk of over-processing
+AI copy detection is implemented in:
 
-### Safety
-The scrubbing process:
-- Never modifies visible content or meaning
-- Only removes invisible/problematic characters
-- Preserves all markdown formatting
-- Maintains document structure
-- Safe for all content types
+- **Module**: `data_sources/modules/ai_copy_linter.py`
+- **Main Functions**: `lint_content(content, profile="simpro-web")` and `lint_file(path, profile="simpro-web", fail_on="error")`
+
+## Idempotency
+
+The scrubber is idempotent. Running it multiple times on already cleaned content should produce no additional changes.
 
 ## Example Usage
 
-### Basic Scrubbing
-```
+```bash
 /scrub drafts/content-marketing-strategies-2025-10-31.md
+python data_sources/modules/ai_copy_linter.py drafts/content-marketing-strategies-2025-10-31.md --profile simpro-web --fail-on error
 ```
-
-### What Gets Changed
-
-**Before:**
-```
-Content​ marketing​ is​ a​ powerful​ strategy—businesses can reach global audiences—and convert more customers.
-```
-(Contains zero-width spaces after words and em-dashes)
-
-**After:**
-```
-Content marketing is a powerful strategy; businesses can reach global audiences, and convert more customers.
-```
-(Clean text with appropriate punctuation)
 
 ## Quality Standards
 
-Every scrubbed file ensures:
-- Zero invisible Unicode watermarks
-- Natural punctuation patterns
+Every scrubbed file should have:
+
+- Zero invisible Unicode marks
+- No em dashes
+- No scrubber-introduced semicolons
 - Clean whitespace formatting
-- No telltale AI signatures
-- Publish-ready cleanliness
 
-## Best Practices
+Every linted file should have:
 
-1. **Always Scrub Before Publishing**: Make this the final step before any content goes live
-2. **Run on All AI-Generated Content**: Even if you edit the content, scrub it
-3. **Check Statistics**: Review the stats to understand what was cleaned
-4. **Test on Sample Content**: If unsure, scrub a copy first to verify results
-5. **Include in Workflows**: Automate scrubbing in your content pipeline
-
-This ensures all published content appears naturally written and free of AI indicators.
+- Zero linter errors before scoring or optimization
+- Warning findings captured in review notes

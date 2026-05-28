@@ -1,0 +1,433 @@
+"""
+AI Copy Linter
+
+Deterministic copy-quality gate for AI writing tells and Simpro web-copy rules.
+This module detects risky copy patterns; it does not rewrite content.
+"""
+
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+from typing import Dict, List, Optional, Pattern, Tuple
+
+
+Finding = Dict[str, object]
+
+
+APPROVED_PROPER_NOUNS = [
+    "Simpro",
+    "Simpro.ai",
+    "Simpro Group",
+    "Lightning AI",
+    "G2",
+    "Capterra",
+    "Software Advice",
+    "GetApp",
+    "TrustRadius",
+    "Gartner Digital Markets",
+    "Gartner",
+    "Trustpilot",
+    "Google reviews",
+]
+
+
+ERROR_RULES: List[Tuple[str, Pattern[str], str, str]] = [
+    (
+        "em_dash",
+        re.compile(r"\u2014"),
+        "Em dashes are not allowed in Simpro web copy.",
+        "Replace with a comma, period, colon, or parentheses.",
+    ),
+    (
+        "semicolon",
+        re.compile(r";"),
+        "Semicolons are not allowed in Simpro web copy.",
+        "Split the sentence or use a comma or period.",
+    ),
+    (
+        "hashtag",
+        re.compile(r"(?<![#\w])#[A-Za-z][A-Za-z0-9_-]*"),
+        "Hashtags are not allowed in final copy.",
+        "Remove the hashtag or rewrite it as plain text if needed.",
+    ),
+    (
+        "not_just_but_also",
+        re.compile(r"\bnot\s+just\b.{0,100}\bbut\s+also\b", re.IGNORECASE),
+        "Avoid the formulaic 'not just X, but also Y' construction.",
+        "State the stronger point directly.",
+    ),
+    (
+        "setup_phrase",
+        re.compile(
+            r"\b(?:in conclusion|in closing|in summary|to summarize|to sum up|"
+            r"without further ado|all things considered|at the end of the day)\b,?",
+            re.IGNORECASE,
+        ),
+        "Avoid generic setup or closing language.",
+        "Delete the setup phrase and lead with the point.",
+    ),
+    (
+        "ai_phrase",
+        re.compile(
+            r"\b(?:in today's|in a world where|imagine a world where|shed light|"
+            r"dive deep|delve|embark|glimpse into|navigating the landscape|"
+            r"ever-evolving|not alone|pave the way|a myriad of|a plethora of)\b",
+            re.IGNORECASE,
+        ),
+        "This phrase is a common AI-writing tell.",
+        "Use clear, direct language.",
+    ),
+    (
+        "unsupported_hype",
+        re.compile(
+            r"\b(?:game[- ]changer|revolutionize|disruptive|skyrocket|"
+            r"groundbreaking|cutting-edge|remarkable|pivotal|intricate|"
+            r"tapestry|abyss|illuminate|unveil|elucidate|harness|utilize|"
+            r"utilizing|unlock|discover|boost|powerful)\b",
+            re.IGNORECASE,
+        ),
+        "Avoid hype terms unless a brief explicitly approves the claim.",
+        "Use a specific outcome, metric, or feature instead.",
+    ),
+]
+
+
+WARNING_RULES: List[Tuple[str, Pattern[str], str, str]] = [
+    (
+        "modal_verb",
+        re.compile(r"\b(?:can|may|could|should|might)\b", re.IGNORECASE),
+        "Modal verbs weaken copy and often hide uncertainty.",
+        "Use a direct verb when the claim is supported.",
+    ),
+    (
+        "filler_word",
+        re.compile(
+            r"\b(?:just|very|really|literally|actually|certainly|probably|"
+            r"basically|maybe|hence|furthermore|moreover|however|"
+            r"additionally|ultimately|essentially|clearly|obviously|quite)\b",
+            re.IGNORECASE,
+        ),
+        "This filler word often adds no useful meaning.",
+        "Delete it or replace it with a specific detail.",
+    ),
+    (
+        "passive_voice",
+        re.compile(
+            r"\b(?:is|are|was|were|be|been|being)\s+"
+            r"(?:\w+ed|known|made|built|driven|given|taken|seen|done|set|run)\b",
+            re.IGNORECASE,
+        ),
+        "Passive voice weakens the sentence.",
+        "Rewrite with a clear actor and active verb.",
+    ),
+    (
+        "vague_generalization",
+        re.compile(
+            r"\b(?:many|some|various|numerous|several|often|usually|typically|"
+            r"generally|a lot of|things|stuff|businesses today|teams today)\b",
+            re.IGNORECASE,
+        ),
+        "Vague language needs proof or a concrete example.",
+        "Use a number, named scenario, or specific operational detail.",
+    ),
+]
+
+
+RHETORICAL_QUESTION = re.compile(
+    r"^\s*(?:are you|do you|have you|ever wondered|what if|want to|looking for)\b.*\?",
+    re.IGNORECASE,
+)
+
+SENTENCE_RE = re.compile(r"[^.!?]+[.!?]")
+URL_RE = re.compile(r"https?://\S+|www\.\S+")
+MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\([^\)]*\)")
+INLINE_CODE_RE = re.compile(r"`[^`]*`")
+WORD_RE = re.compile(r"\b[A-Za-z][A-Za-z']*\b")
+
+
+def lint_content(content: str, profile: str = "simpro-web") -> List[Finding]:
+    """
+    Lint content for AI writing tells and Simpro web-copy issues.
+
+    Args:
+        content: Markdown or plain text to check.
+        profile: Lint profile. Only "simpro-web" is supported.
+
+    Returns:
+        List of structured findings.
+    """
+    if profile != "simpro-web":
+        raise ValueError(f"Unsupported AI copy lint profile: {profile}")
+
+    findings: List[Finding] = []
+    active_lines = _iter_active_lines(content)
+
+    for line_number, original_line, masked_line in active_lines:
+        for rule_id, pattern, message, suggestion in ERROR_RULES:
+            findings.extend(
+                _find_pattern(
+                    rule_id,
+                    "error",
+                    pattern,
+                    line_number,
+                    original_line,
+                    masked_line,
+                    message,
+                    suggestion,
+                )
+            )
+
+        for rule_id, pattern, message, suggestion in WARNING_RULES:
+            findings.extend(
+                _find_pattern(
+                    rule_id,
+                    "warning",
+                    pattern,
+                    line_number,
+                    original_line,
+                    masked_line,
+                    message,
+                    suggestion,
+                )
+            )
+
+        match = RHETORICAL_QUESTION.search(masked_line)
+        if match:
+            findings.append(
+                _finding(
+                    "rhetorical_question",
+                    "warning",
+                    line_number,
+                    match.start() + 1,
+                    original_line[match.start():match.end()].strip(),
+                    "Rhetorical setup questions make copy sound formulaic.",
+                    "Replace the question with a direct statement about the reader's job.",
+                )
+            )
+
+        findings.extend(_find_long_sentences(line_number, original_line, masked_line))
+
+    findings.extend(_find_repeated_sentence_starts(content))
+    return sorted(findings, key=lambda item: (item["line"], item["column"], item["rule_id"]))
+
+
+def lint_file(
+    path: str,
+    profile: str = "simpro-web",
+    fail_on: str = "error",
+) -> List[Finding]:
+    """
+    Lint a file and return structured findings.
+
+    Args:
+        path: File path to lint.
+        profile: Lint profile.
+        fail_on: Included for CLI/API symmetry. Does not change returned findings.
+
+    Returns:
+        List of structured findings.
+    """
+    if fail_on not in {"error", "warning", "none"}:
+        raise ValueError("fail_on must be one of: error, warning, none")
+
+    content = Path(path).read_text(encoding="utf-8")
+    return lint_content(content, profile=profile)
+
+
+def should_fail(findings: List[Finding], fail_on: str = "error") -> bool:
+    """Return True when findings meet the configured failure threshold."""
+    if fail_on == "none":
+        return False
+    if fail_on == "warning":
+        return any(finding["severity"] in {"warning", "error"} for finding in findings)
+    if fail_on == "error":
+        return any(finding["severity"] == "error" for finding in findings)
+    raise ValueError("fail_on must be one of: error, warning, none")
+
+
+def summarize_findings(findings: List[Finding]) -> Dict[str, int]:
+    """Count findings by severity."""
+    summary = {"error": 0, "warning": 0}
+    for finding in findings:
+        severity = str(finding["severity"])
+        if severity in summary:
+            summary[severity] += 1
+    return summary
+
+
+def _iter_active_lines(content: str) -> List[Tuple[int, str, str]]:
+    lines = content.splitlines()
+    active: List[Tuple[int, str, str]] = []
+    in_code_fence = False
+    in_frontmatter = False
+
+    for index, line in enumerate(lines, start=1):
+        stripped = line.strip()
+
+        if index == 1 and stripped == "---":
+            in_frontmatter = True
+            continue
+
+        if in_frontmatter:
+            if stripped == "---":
+                in_frontmatter = False
+            continue
+
+        if stripped.startswith("```"):
+            in_code_fence = not in_code_fence
+            continue
+
+        if in_code_fence:
+            continue
+
+        active.append((index, line, _mask_ignored_spans(line)))
+
+    return active
+
+
+def _mask_ignored_spans(line: str) -> str:
+    masked = line
+    for pattern in (MARKDOWN_LINK_RE, URL_RE, INLINE_CODE_RE):
+        masked = _mask_matches(masked, pattern)
+    for noun in APPROVED_PROPER_NOUNS:
+        masked = re.sub(
+            re.escape(noun),
+            lambda match: " " * (match.end() - match.start()),
+            masked,
+            flags=re.IGNORECASE,
+        )
+    return masked
+
+
+def _mask_matches(text: str, pattern: Pattern[str]) -> str:
+    return pattern.sub(lambda match: " " * (match.end() - match.start()), text)
+
+
+def _find_pattern(
+    rule_id: str,
+    severity: str,
+    pattern: Pattern[str],
+    line_number: int,
+    original_line: str,
+    masked_line: str,
+    message: str,
+    suggestion: str,
+) -> List[Finding]:
+    findings: List[Finding] = []
+    for match in pattern.finditer(masked_line):
+        findings.append(
+            _finding(
+                rule_id,
+                severity,
+                line_number,
+                match.start() + 1,
+                original_line[match.start():match.end()],
+                message,
+                suggestion,
+            )
+        )
+    return findings
+
+
+def _find_long_sentences(
+    line_number: int,
+    original_line: str,
+    masked_line: str,
+    max_words: int = 30,
+) -> List[Finding]:
+    findings: List[Finding] = []
+    for match in SENTENCE_RE.finditer(masked_line):
+        word_count = len(WORD_RE.findall(match.group(0)))
+        if word_count > max_words:
+            findings.append(
+                _finding(
+                    "long_sentence",
+                    "warning",
+                    line_number,
+                    match.start() + 1,
+                    original_line[match.start():match.end()].strip(),
+                    f"Sentence is {word_count} words; Simpro copy should stay tighter.",
+                    "Split the sentence or remove filler.",
+                )
+            )
+    return findings
+
+
+def _find_repeated_sentence_starts(content: str) -> List[Finding]:
+    starts: Dict[str, List[Tuple[int, int, str]]] = {}
+    active_lines = _iter_active_lines(content)
+
+    for line_number, original_line, masked_line in active_lines:
+        for sentence in SENTENCE_RE.finditer(masked_line):
+            words = WORD_RE.findall(sentence.group(0).lower())
+            if len(words) < 2:
+                continue
+            key = " ".join(words[:2])
+            starts.setdefault(key, []).append((line_number, sentence.start() + 1, original_line))
+
+    findings: List[Finding] = []
+    for key, occurrences in starts.items():
+        if len(occurrences) >= 3:
+            line_number, column, _ = occurrences[2]
+            findings.append(
+                _finding(
+                    "repeated_sentence_start",
+                    "warning",
+                    line_number,
+                    column,
+                    key,
+                    "Repeated sentence starts make copy sound generated.",
+                    "Vary the sentence opening or combine related ideas.",
+                )
+            )
+    return findings
+
+
+def _finding(
+    rule_id: str,
+    severity: str,
+    line: int,
+    column: int,
+    match: str,
+    message: str,
+    suggestion: str,
+) -> Finding:
+    return {
+        "rule_id": rule_id,
+        "severity": severity,
+        "line": line,
+        "column": column,
+        "match": match,
+        "message": message,
+        "suggestion": suggestion,
+    }
+
+
+def _main(argv: Optional[List[str]] = None) -> int:
+    parser = argparse.ArgumentParser(description="Lint content for AI copy tells.")
+    parser.add_argument("path", help="Markdown or text file to lint")
+    parser.add_argument("--profile", default="simpro-web", help="Lint profile")
+    parser.add_argument(
+        "--fail-on",
+        default="error",
+        choices=["error", "warning", "none"],
+        help="Minimum finding severity that returns exit code 1",
+    )
+    args = parser.parse_args(argv)
+
+    findings = lint_file(args.path, profile=args.profile, fail_on=args.fail_on)
+    payload = {
+        "path": args.path,
+        "profile": args.profile,
+        "fail_on": args.fail_on,
+        "summary": summarize_findings(findings),
+        "findings": findings,
+    }
+    print(json.dumps(payload, indent=2))
+    return 1 if should_fail(findings, fail_on=args.fail_on) else 0
+
+
+if __name__ == "__main__":
+    sys.exit(_main())
