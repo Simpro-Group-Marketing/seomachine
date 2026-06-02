@@ -97,6 +97,10 @@ class AeoGeoRaterTests(unittest.TestCase):
         self.assertFalse(result["checks"]["eeat_proof"]["passed"])
         self.assertFalse(result["passed"])
         self.assertIn("eeat_proof", {issue["check"] for issue in result["issues"]})
+        self.assertIn(
+            "review-site experience evidence",
+            result["checks"]["eeat_proof"]["fix"],
+        )
 
     def test_eeat_fails_when_case_study_has_no_expertise_signal(self):
         content = COMPLIANT_ARTICLE.replace("Author: Jordan Lee\n", "")

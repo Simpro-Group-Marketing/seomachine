@@ -56,15 +56,15 @@ Before opening the browser or drafting, resolve these variables from the user pr
 
 If a variable cannot be answered by the repo or research, ask the user for only that missing variable. Do not synthesize PAA questions, expert quotes, customer claims, search volume, or ranking evidence.
 Customer proof routing: when citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
-Review-site VoC routing: cite public review-site themes with source links. Do not use exact quotes, named reviewers, star ratings, badges, rankings, or category-leadership claims unless they are verified in the current source and approved by the brief.
+Review-site experience evidence / VoC routing: cite public review-site themes with source links when they show first-hand customer experience with product use, implementation, support, switching, pains, outcomes, or workflows. Capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved. Use review-derived stories as paraphrased, source-backed experience patterns by default. Do not use exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, or category-leadership claims unless they have current source verification and brief-level approval.
 
 ### E-E-A-T Proof Map Inputs
 
 Before planning or drafting, resolve an E-E-A-T Proof Map:
-- **Experience**: Customer case studies, customer outcomes, review-site VoC themes, implementation/support themes, user pain, and field workflow examples.
+- **Experience**: Customer case studies, customer outcomes, review-site experience evidence / VoC themes, implementation/support themes, user pain, and field workflow examples.
 - **Expertise**: Product/feature knowledge, source-backed workflow explanations, expert quotes, author/reviewer metadata, and Simpro workflow specificity.
 - **Authority/Trust**: Public research, case-study URLs, review-site/source links, limitations/caveats, and no invented proof.
-- **Context sources**: Pull case-study URLs from @context/internal-links-map.md, approved metrics/proof candidates from @context/features.md, and review-site VoC or competitor experience themes from @context/competitor-analysis.md or future review-context files.
+- **Context sources**: Pull case-study URLs from @context/internal-links-map.md, approved metrics/proof candidates from @context/features.md, and review-site experience evidence / VoC or competitor experience themes from @context/competitor-analysis.md or future review-context files.
 - **Public-copy rule**: Context-backed metrics are valid only when the article body uses public-facing source links, such as the public case-study URL, review-site URL, or public research source; context-backed proof is never cited as internal context.
 
 ### Simpro Web Copy Rules
@@ -354,6 +354,7 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
    | **AEO/GEO Target** | Capsule / PAA / FAQ / list / table / definition |
    | **Source Mapping** | External source, claim, anchor text, and target section |
    | **E-E-A-T Proof Map** | Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, claims excluded because proof is missing |
+   | **Customer Proof Pack** | Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved metrics, Use in copy, Claims excluded, approval status |
    | **CTA** | soft / medium / strong (if applicable) |
    | **Mini-Story** | Whether to place a story here |
 
@@ -395,6 +396,15 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
   |--------|-----------------|-------------|----------------|
   | [URL] | [claim] | [natural contextual phrase] | [section] |
 - **E-E-A-T Proof Map**: [Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, public-facing source links, claims excluded because proof is missing]
+- **Customer Proof Pack**:
+  - **Pack status**: ready / partial / blocked
+  - **Topic or page fit**: [topic, audience, region, trade, funnel stage]
+  - **Quote Matrix candidates**: [customer, trade, region, theme, exact quote or summary, source row/link, approval status]
+  - **Case-study proof paths**: [customer, public URL, supported metric/theme]
+  - **Review-site experience evidence**: [platform, URL, date checked, product/competitor, experience pattern, evidence summary, exact quote/rating approval status]
+  - **Approved metrics**: [metric, customer, source file, public proof URL]
+  - **Use in copy**: [exact quote / paraphrased theme / named metric / omit]
+  - **Claims excluded**: [claim and missing proof reason]
 - **Schema Notes**: BlogPosting, FAQPage if FAQ is present, Author, VideoObject if video is embedded
 - **AEO/GEO Score Target**: 90/100 or higher
 

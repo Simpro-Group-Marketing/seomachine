@@ -282,6 +282,54 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         for text in required:
             self.assertIn(text, analyze)
 
+    def test_review_site_experience_evidence_boundary_is_documented(self):
+        docs = [
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / ".claude" / "commands" / "research.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "analyze-existing.md",
+            ROOT / "CLAUDE.md",
+        ]
+        required = [
+            "review-site experience evidence",
+            "first-hand customer experience",
+            "star ratings, badges, rankings",
+            "current source verification and brief-level approval",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+    def test_customer_proof_pack_contract_is_documented(self):
+        docs = [
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / ".claude" / "commands" / "research.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "analyze-existing.md",
+            ROOT / "CLAUDE.md",
+            ROOT / "README.md",
+        ]
+        required = [
+            "Customer Proof Pack",
+            "Quote Matrix candidates",
+            "Case-study proof paths",
+            "Review-site experience evidence",
+            "Pack status",
+            "Claims excluded",
+            "approval status",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
 
 if __name__ == "__main__":
     unittest.main()

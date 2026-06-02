@@ -402,7 +402,8 @@ def _check_eeat_proof(
         "issue": "The draft is missing required E-E-A-T proof for both experience and expertise.",
         "fix": (
             "Add at least one customer-experience signal such as a public case "
-            "study or approved review-site theme, and at least one expertise "
+            "study or source-backed review-site experience evidence / VoC "
+            "theme, and at least one expertise "
             "signal such as author/reviewer metadata, Simpro product/workflow "
             "links, expert quote, or source-backed workflow explanation."
         ),

@@ -44,7 +44,7 @@ Use this command to conduct comprehensive SEO keyword research and competitive a
 - **Lightning overlay**: If the topic mentions Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, also read @context/lightning-positioning.md and apply it as a scoped overlay.
 - **Simpro advantage**: Identify how Simpro's product features, customer proof, and best-fit use cases naturally enhance this topic.
 - **Customer proof routing**: When citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
-- **Review-site VoC routing**: Public review sites are approved for sourced VoC and competitor-review themes. Use Playwright MCP for live review-site collection; capture platform, URL, date checked, product/competitor, theme, and a short evidence summary. Use CLI only for repo search, saved exports, cleanup, or validation. Exact quotes, named reviewers, ratings, badges, rankings, and category claims require current verification and brief-level approval.
+- **Review-site experience evidence / VoC routing**: Public review sites are approved for sourced review-site experience evidence, VoC themes, and competitor-review themes when they show first-hand customer experience with product use, implementation, support, switching, pains, outcomes, or workflows. Use Playwright MCP for live review-site collection; capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved. Use CLI only for repo search, saved exports, cleanup, or validation. Use review-derived stories as paraphrased, source-backed experience patterns by default. Exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, and category claims require current source verification and brief-level approval.
 - **Brand alignment**: Apply Simpro's authoritative, ambitious, trades-focused, practical, outcomes-driven voice.
 - **Evidence boundaries**: Do not present search volume, ranking, conversion priority, or live SERP findings as verified unless checked with GSC, GA4, DataForSEO, Ahrefs/Semrush, or live SERP review in this run.
 - **Lightning evidence boundary**: Do not use time-sensitive Lightning pricing, roadmap, or competitor claims publicly unless they are verified in the current run or explicitly sourced from approved current material.
@@ -85,6 +85,15 @@ Provides a comprehensive research brief with:
 - **AEO/GEO Variables**: topic, audience, main_question, related_questions, tone, expertise, length
 - **PAA/FAQ Questions**: 3-5 closest questions with intent labels and article section mapping
 - **Source Map**: source, supported claim, anchor text, target section
+- **Customer Proof Pack**:
+  - **Pack status**: ready / partial / blocked
+  - **Topic or page fit**: [topic, audience, region, trade, funnel stage]
+  - **Quote Matrix candidates**: [customer, trade, region, theme, exact quote or summary, source row/link, approval status]
+  - **Case-study proof paths**: [customer, public URL, supported metric/theme]
+  - **Review-site experience evidence**: [platform, URL, date checked, product/competitor, experience pattern, evidence summary, exact quote/rating approval status]
+  - **Approved metrics**: [metric, customer, source file, public proof URL]
+  - **Use in copy**: [exact quote / paraphrased theme / named metric / omit]
+  - **Claims excluded**: [claim and missing proof reason]
 
 ### 2. Competitive Landscape
 - **Top 3 Competitor Articles**: URLs and key takeaways from each

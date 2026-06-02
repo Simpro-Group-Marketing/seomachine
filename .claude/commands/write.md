@@ -29,10 +29,10 @@ Resolve `topic`, `audience`, `main_question`, `related_questions`, `tone`, `expe
 
 ### E-E-A-T Proof Map Inputs
 Before drafting, resolve an E-E-A-T Proof Map:
-- **Experience**: Customer case studies, customer outcomes, review-site VoC themes, implementation/support themes, user pain, and field workflow examples.
+- **Experience**: Customer case studies, customer outcomes, review-site experience evidence / VoC themes, implementation/support themes, user pain, and field workflow examples.
 - **Expertise**: Product/feature knowledge, source-backed workflow explanations, expert quotes, author/reviewer metadata, and Simpro workflow specificity.
 - **Authority/Trust**: Public research, case-study URLs, review-site/source links, limitations/caveats, and no invented proof.
-- **Context sources**: Pull case-study URLs from @context/internal-links-map.md, approved metrics/proof candidates from @context/features.md, and review-site VoC or competitor experience themes from @context/competitor-analysis.md or future review-context files.
+- **Context sources**: Pull case-study URLs from @context/internal-links-map.md, approved metrics/proof candidates from @context/features.md, and review-site experience evidence / VoC or competitor experience themes from @context/competitor-analysis.md or future review-context files.
 - **Public-copy rule**: Context-backed metrics are valid only when the article body uses public-facing source links, such as the public case-study URL, review-site URL, or public research source.
 
 ### Simpro Web Copy Rules
@@ -115,7 +115,8 @@ Apply these requirements from @context/aeo-geo-blog-strategy.md:
 - **E-E-A-T Proof Map**: Include named author, last-updated date, reviewer if available, Experience proof, Expertise proof, Authority/Trust proof, named customer proof or expert quote, and honest limitations where relevant.
 - **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, keywords, product framing, internal links, approved claims, proof candidates, and approved metrics. Public copy may use public sources and context-backed proof, but must not mention "repo context," context file paths, Source Maps, PAA artifacts, change summaries, or internal proof-path notes.
 - **Customer proof routing**: When citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
-- **Review-site VoC routing**: Cite public review-site themes with source links. Do not use exact quotes, named reviewers, star ratings, badges, rankings, or category-leadership claims unless they are verified in the current source and approved by the brief.
+- **Review-site experience evidence / VoC routing**: Cite public review-site themes with source links when they show first-hand customer experience with product use, implementation, support, switching, pains, outcomes, or workflows. Capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved. Use review-derived stories as paraphrased, source-backed experience patterns by default. Do not use exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, or category-leadership claims unless they have current source verification and brief-level approval.
+- **Customer Proof Pack**: Use the brief's Customer Proof Pack before placing direct quotes, named customer proof, approved metrics, or review-derived Experience patterns. If the pack is partial or blocked, omit unsupported claims instead of inventing proof. Required fields are Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved metrics, Use in copy, Claims excluded, and approval status.
 - **Schema notes**: Include BlogPosting, FAQPage when FAQ is present, Author, and VideoObject when a video is embedded.
 
 #### 4. Main Body (1800-2500+ words)
@@ -264,6 +265,7 @@ Word Count: [actual word count]
 - [ ] **Capsule Method**: H1 and 60%+ major H2s include 50-60 word direct-answer capsules
 - [ ] **PAA**: 3-5 selected PAA/FAQ questions are answered in the draft
 - [ ] **source mapping**: At least three source-backed claims use natural contextual links
+- [ ] **Customer Proof Pack**: Pack status is ready/partial/blocked, with Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved metrics, Use in copy, Claims excluded, and approval status resolved before using proof
 - [ ] **Schema**: BlogPosting, FAQPage, Author, and VideoObject notes are included when relevant
 
 ### 5. Engagement Checklist

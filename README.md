@@ -732,7 +732,7 @@ Every Simpro blog post should meet these requirements:
 ### AEO / GEO (generative engines)
 - [ ] Capsule Method: 50-60 word direct answer under H1 and on 60%+ major H2s
 - [ ] 3-5 PAA/FAQ questions answered (from research brief or `/article` AnswerSocrates pass)
-- [ ] E-E-A-T Proof Map resolved with Experience proof and Expertise proof
+- [ ] E-E-A-T Proof Map resolved with Experience proof and Expertise proof, including review-site experience evidence when reviews show first-hand customer experience
 - [ ] Named author, last-updated date, and customer or expert proof where applicable
 - [ ] Schema notes: BlogPosting, FAQPage (if FAQ), Author, VideoObject (if embedded)
 - [ ] Target **90+** on `aeo_geo_rater` when run through `content_scorer`
@@ -755,7 +755,8 @@ Every Simpro blog post should meet these requirements:
 3. **Check context**: `brand-voice.md`, `writing-examples.md`, and `aeo-geo-blog-strategy.md`
 4. **Lightning only if on-topic**: Load `lightning-positioning.md` for Cooper/JustAsk/agent posts
 5. **Keywords and links**: `target-keywords.md` + `internal-links-map.md` for cluster and URL targets
-6. **E-E-A-T proof**: Build the E-E-A-T Proof Map from `internal-links-map.md`, `features.md`, `competitor-analysis.md`, public research, and public-facing source links before drafting
+6. **E-E-A-T proof**: Build the E-E-A-T Proof Map from `internal-links-map.md`, `features.md`, `competitor-analysis.md`, public research, review-site experience evidence, and public-facing source links before drafting. Review narratives can support first-hand customer experience; star ratings, badges, rankings, aggregate ratings, and category claims require current source verification and brief-level approval.
+7. **Customer Proof Pack**: Resolve Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved metrics, Use in copy, Claims excluded, and approval status before drafting. Keep the Quote Matrix external and verify direct quotes or named metrics through Customer Stories, References, or public case-study paths.
 
 ### During Writing
 1. **Follow the brief**: Outline from `research/brief-*.md`

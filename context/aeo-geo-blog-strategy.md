@@ -30,28 +30,52 @@ Do not invent replacement questions, customer proof, author names, reviewer name
 
 ## E-E-A-T Proof Map
 
-Every `/article`, `/write`, and `/rewrite` plan must resolve an E-E-A-T Proof Map before drafting. `/analyze-existing` must report Experience proof present/missing, Expertise proof present/missing, case-study proof candidates, Review-site VoC candidates, and claims that must stay out because proof is missing.
+Every `/article`, `/write`, and `/rewrite` plan must resolve an E-E-A-T Proof Map before drafting. `/analyze-existing` must report Experience proof present/missing, Expertise proof present/missing, case-study proof candidates, Review-site VoC candidates, review-site experience evidence candidates, and claims that must stay out because proof is missing.
 
 | Dimension | Approved inputs | Public-copy rule |
 |---|---|---|
-| Experience | Customer case studies, customer outcomes, review-site VoC themes, implementation/support themes, user pain, and field workflow examples | Cite the public case-study URL, approved review-site/source URL, or verified source page. Do not cite internal context language. |
+| Experience | Customer case studies, customer outcomes, review-site experience evidence / VoC themes, implementation/support themes, user pain, and field workflow examples | Cite the public case-study URL, approved review-site/source URL, or verified source page. Do not cite internal context language. |
 | Expertise | Product/feature knowledge, source-backed workflow explanations, expert quotes, author/reviewer metadata, and Simpro workflow specificity | Use Simpro product/workflow links and source-backed explanations. Do not invent author, reviewer, or expert claims. |
 | Authority/Trust | Public research, case-study URLs, review-site/source links, limitations, caveats, and no invented proof | Tie each claim to a public-facing source link or keep it out. |
 
 Required proof sources:
 - Pull case-study URLs and internal proof routes from `context/internal-links-map.md`.
 - Pull approved metrics and proof candidates from `context/features.md`.
-- Pull review-site VoC and competitor experience themes from `context/competitor-analysis.md` or any future review-context file.
+- Pull review-site experience evidence / VoC themes and competitor experience themes from `context/competitor-analysis.md` or any future review-context file.
 - Context-backed metrics are valid only when the context pack carries the approved metric and proof path. Public copy must link to the public case study, review site, or source URL, not to internal context files.
 - Do not write source/proof meta-commentary in public copy, such as "that case study is useful for this topic" or "this source is relevant for the article." Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 
-## Review-Site VoC Routing
+## Review-Site Experience Evidence and VoC Routing
 
-Public review sites are approved for sourced VoC and competitor-review themes. Approved surfaces include G2, Capterra, Software Advice, GetApp, TrustRadius, Gartner/Gartner Digital Markets, Trustpilot, app stores, and Google reviews.
+Public review sites are approved for sourced review-site experience evidence, VoC themes, and competitor-review themes. Approved surfaces include G2, Capterra, Software Advice, GetApp, TrustRadius, Gartner/Gartner Digital Markets, Trustpilot, app stores, and Google reviews.
 
-Use review sites for sourced VoC themes, objections, switching triggers, implementation or support themes, and competitor-review themes. Default to theme-level citation: cite the theme and link to the relevant review, profile, category, or comparison page.
+Review narratives are first-hand customer experience when reviewers describe product use, implementation, support, switching, pains, outcomes, or workflows. Use review-derived stories as paraphrased, source-backed experience patterns by default.
 
-Exact quotes, named reviewers, star ratings, badges, rankings, and category-leadership claims require current source verification and brief-level approval.
+Use review sites for sourced VoC themes, objections, switching triggers, implementation or support themes, competitor-review themes, and first-hand customer experience patterns. Default to theme-level citation: cite the theme and link to the relevant review, profile, category, or comparison page.
+
+When a brief uses review-site experience evidence, capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved.
+
+Exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, and category-leadership claims are Trust/Authority claims; they require current source verification and brief-level approval.
+
+## Customer Proof Pack
+
+Every `/research`, `/article`, `/write`, `/analyze-existing`, and `/rewrite` workflow must resolve a task-specific Customer Proof Pack before placing direct quotes, named customer proof, approved metrics, or review-derived Experience patterns in public copy. Keep the Quote Matrix external; do not bulk-load it into repo context.
+
+Use the Global Customer Quote Matrix first for exact customer quotes. Use Customer Stories, References, and public case studies to verify the story path and publishability. Use review sites for first-hand Experience patterns by default, not unverified testimonial harvesting. Metrics from `context/features.md` must pair with public proof paths from `context/internal-links-map.md`.
+
+Required Customer Proof Pack shape:
+
+```markdown
+## Customer Proof Pack
+- **Pack status**: ready / partial / blocked
+- **Topic or page fit**: [topic, audience, region, trade, funnel stage]
+- **Quote Matrix candidates**: [customer, trade, region, theme, exact quote or summary, source row/link, approval status]
+- **Case-study proof paths**: [customer, public URL, supported metric/theme]
+- **Review-site experience evidence**: [platform, URL, date checked, product/competitor, experience pattern, evidence summary, exact quote/rating approval status]
+- **Approved metrics**: [metric, customer, source file, public proof URL]
+- **Use in copy**: [exact quote / paraphrased theme / named metric / omit]
+- **Claims excluded**: [claim and missing proof reason]
+```
 
 ## AnswerSocrates PAA Workflow
 
@@ -133,6 +157,7 @@ Every `/article` plan and every moderate, major, or complete `/rewrite` plan mus
 | Selected PAA questions | 3-5 questions from AnswerSocrates or user export |
 | Source map | Source, claim, anchor text, target section |
 | E-E-A-T Proof Map | Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, omitted unsupported claims |
+| Customer Proof Pack | Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved metrics, Use in copy, Claims excluded, approval status |
 | AI citation target | Snippet, PAA, FAQ, comparison table, definition, or list |
 
 ## Publish Gates
