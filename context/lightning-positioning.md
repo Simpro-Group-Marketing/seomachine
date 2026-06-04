@@ -1,5 +1,15 @@
 # Simpro Group Lightning Positioning Overlay
 
+**Purpose:** Scoped positioning overlay for Simpro Group Lightning and AI-for-the-trades content.
+**Use when:** Creating Lightning-specific copy, AI-for-the-trades messaging, or Cooper-first positioning.
+**Owns:** Lightning naming, architecture, proof stack, story model, and quality gates.
+**Does not own:** General Simpro product positioning, classic blog links, or non-Lightning feature claims.
+**Source boundary:** Scoped overlay from the local Lightning positioning pack; time-sensitive claims require current verification.
+**Refresh cadence:** Review when Lightning pricing, roadmap, naming, or product architecture changes.
+**Reference detail:** No separate reference file; operating guidance remains here.
+
+---
+
 This file is the local SEO Machine summary of the Lightning positioning pack at `C:\Users\patrick.grueschow\Desktop\lightning-positioning`. Use it only when the content topic is specifically about Simpro Group Lightning, including Simpro Lightning, AroFlo Lightning, BigChange Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, the AI tax, TrueTime, DirectLine, or Coming Specialists.
 
 This overlay does not replace the general Simpro FY26 Message House in `brand-voice.md` or `style-guide.md`. General Simpro content can keep the broader "AI-first operating platform for the trades" wording. Lightning-specific customer copy must follow the stricter rules below.

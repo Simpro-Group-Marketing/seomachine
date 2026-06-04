@@ -1,5 +1,15 @@
 # SEO Guidelines for Simpro Content
 
+**Purpose:** General SEO structure and optimization rules for Simpro content.
+**Use when:** Checking word count, keyword placement, headings, meta elements, readability, schema, or refresh strategy.
+**Owns:** SEO formatting, on-page optimization, meta requirements, and refresh checklist guidance.
+**Does not own:** Brand voice, AEO/GEO proof workflow, keyword source data, or internal-link priority.
+**Source boundary:** Framework-style SEO guidance; pair with current keyword, SERP, GSC, and GA4 evidence before publication.
+**Refresh cadence:** Review when SEO standards, schema policy, or content-quality gates change.
+**Reference detail:** Current keyword data lives in [target-keywords.md](target-keywords.md).
+
+---
+
 This document outlines SEO best practices and requirements for all Simpro blog content to maximize organic search visibility and rankings.
 
 ## Content Length Requirements

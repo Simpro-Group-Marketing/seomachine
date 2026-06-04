@@ -1,5 +1,15 @@
 # CRO Best Practices for Landing Pages
 
+**Purpose:** CRO operating guidance for Simpro landing pages and conversion surfaces.
+**Use when:** Writing, auditing, or improving conversion copy, CTAs, forms, trust signals, or landing-page structure.
+**Owns:** CRO principles, experiment-source boundaries, CTA rules, trust hierarchy, and form guidance.
+**Does not own:** Brand voice, SEO structure, internal-link priorities, or proof-pack approval policy.
+**Source boundary:** Combines generic CRO guidance with Simpro experiment/KPI/deck/HubSpot source boundaries already captured here.
+**Refresh cadence:** Review after new CRO experiment summaries, KPI baselines, or HubSpot form analytics changes.
+**Reference detail:** No separate reference file; operating guidance remains here.
+
+---
+
 Conversion Rate Optimization guidelines for landing pages.
 
 > **Internal CRO review update**: Treat these notes as more specific than generic rules where they conflict: two-word CTA labels have historically outperformed CTA labels of three or more words; Sales-required form fields vary by brand; CTA font choices are brand-directed; PPC pages should avoid exit points; lower-volume tests may need directional signals or leading indicators instead of fixed conversion minimums; seasonality can affect conversion results.

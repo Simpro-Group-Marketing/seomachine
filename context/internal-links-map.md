@@ -1,5 +1,15 @@
 # Simpro Internal Links Map
 
+**Purpose:** Canonical internal-link inventory and priority map for Simpro content.
+**Use when:** Choosing internal destinations, anchor examples, down-funnel links, or page-priority targets.
+**Owns:** Sitemap-verified URLs, anchor examples, link context, and US page-priority metrics.
+**Does not own:** Keyword demand, brand voice, feature claims, or competitor strategy.
+**Source boundary:** Sitemap plus US GSC/GA4 metrics through 2026-05-20; use current pulls before changing priorities.
+**Refresh cadence:** Quarterly or after major URL, sitemap, GSC, or GA4 changes.
+**Reference detail:** No separate reference file; operating guidance remains here.
+
+---
+
 This document catalogs verified Simpro URLs for strategic internal linking in blog and resource content.
 
 **Source**: `https://www.simprogroup.com/sitemap.xml`, accessed through Playwright MCP on 2026-05-21. The sitemap contained 855 URLs. The Product Marketing portal confirmed this public site is the active source for product, feature, comparison, customer proof, and resource links. GSC and GA4 first-party metrics were added on 2026-05-21.

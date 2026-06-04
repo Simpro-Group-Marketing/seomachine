@@ -43,6 +43,7 @@ All commands are defined in `.claude/commands/` and invoked as slash commands. T
 - `/analyze-existing [URL or file]` - Content health and AEO/GEO rewrite-readiness audit
 - `/performance-review` - Analytics-driven content priorities
 - `/publish-draft [file]` - Publish to WordPress via REST API
+- `grav-publish` (skill) - Publish a finished `drafts/`/`rewrites/` article to Grav CMS by committing `blogs/<slug>/article.en.md` to the GitHub `dev` branch via the `gh` Contents API (text only; images deferred). Config: `GRAV_REPO`, `GRAV_BRANCH`, `GRAV_BLOG_PATH`, `GRAV_DEFAULT_LANG` in `.env`.
 - `/article [topic]` - Simplified article creation
 - `/cluster [topic]` - Build complete topic cluster strategy with pillar + supporting articles + linking map
 - `/priorities` - Content prioritization matrix

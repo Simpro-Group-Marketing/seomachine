@@ -1,5 +1,15 @@
 # Simpro Features & Benefits
 
+**Purpose:** Canonical Simpro product features, value propositions, approved metrics, and proof candidates.
+**Use when:** Selecting feature claims, product proof, approved metrics, or solution language for Simpro content.
+**Owns:** Product capabilities, benefits, add-ons, approved proof candidates, and feature-level FAQs.
+**Does not own:** Competitor battlecards, voice rules, AEO/GEO proof workflow, or internal-link priority.
+**Source boundary:** Context-backed product guidance; public copy still needs public-facing source links for metrics.
+**Refresh cadence:** Review when product messaging, add-ons, pricing boundaries, or approved metrics change.
+**Reference detail:** Competitor-specific proof lives in [competitor-analysis.md](competitor-analysis.md).
+
+---
+
 This document outlines Simpro's key features, benefits, and differentiators to inform content creation that drives trial conversions and customer acquisition.
 
 Source: FY26 Brand Message House (Simpro tab), Sales Battlecards, ICP slides, simpro.com / simpro.ai product positioning.

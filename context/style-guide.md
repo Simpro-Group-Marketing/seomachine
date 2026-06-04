@@ -1,5 +1,15 @@
 # Simpro Style Guide
 
+**Purpose:** Canonical editorial style, grammar, mechanics, terminology, and formatting standards.
+**Use when:** Editing grammar, capitalization, punctuation, regional terms, links, lists, or technical formatting.
+**Owns:** Style mechanics, preferred terms, banned phrases, capitalization, numbers, and link-format guidance.
+**Does not own:** Brand strategy, SEO structure, proof workflow, or competitor claims.
+**Source boundary:** Derived from Simpro Voice Style Guide and approved FY26 overlay captured here.
+**Refresh cadence:** Review when the canonical Voice Style Guide or editorial standards change.
+**Reference detail:** No separate reference file; operating guidance remains here.
+
+---
+
 This guide defines writing conventions, formatting standards, and editorial guidelines for all Simpro content.
 
 > **Sources (priority order)**:

@@ -1,5 +1,15 @@
 # AEO/GEO Blog Strategy
 
+**Purpose:** Canonical AEO/GEO workflow for Simpro blog research, writing, analysis, and rewrites.
+**Use when:** Planning or checking blog content that needs PAA, source mapping, Customer Proof Pack, E-E-A-T proof, or AEO/GEO gates.
+**Owns:** AEO/GEO variables, PAA workflow, proof-pack shape, draft rules, and publish gates.
+**Does not own:** Brand voice, feature claims, competitor battlecards, keyword metrics, or internal-link inventories.
+**Source boundary:** Workflow contract only; evidence still needs current public or approved context-backed sources.
+**Refresh cadence:** Review when blog workflow gates, proof policy, or AEO/GEO scoring changes.
+**Reference detail:** No separate reference file; operating guidance remains here.
+
+---
+
 This file is the canonical blog-writing strategy for AEO and GEO. In this repo, GEO means Generative Engine Optimization: structuring content so generative answer systems can understand, extract, cite, and recommend it.
 
 Use this file for blog workflows only. It supports `/research`, `/research-serp`, `/article`, `/write`, `/analyze-existing`, and `/rewrite`; it does not replace marketing skills.

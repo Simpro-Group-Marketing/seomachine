@@ -1,5 +1,15 @@
 # Simpro Brand Voice & Messaging
 
+**Purpose:** Canonical Simpro brand voice, messaging, audience, and tone guidance.
+**Use when:** Setting voice, audience framing, tone, message pillars, or brand-safe phrasing for Simpro content.
+**Owns:** Brand north star, tone descriptors, audience fit, voice examples, and quality checklist.
+**Does not own:** SEO structure, AEO/GEO proof workflow, competitor claims, keyword metrics, or link maps.
+**Source boundary:** Derived from Simpro Voice Style Guide, FY26 Message House, and approved scoped overlays already captured here.
+**Refresh cadence:** Review when FY messaging, voice standards, or ICP guidance changes.
+**Reference detail:** No separate reference file; operating guidance remains here.
+
+---
+
 This document defines the Simpro brand voice, tone, and messaging framework. Reference this when writing all content to ensure consistency.
 
 **Sources**: Simpro Voice Style Guide (Google Doc `1Hl78trTAMAnZcSBfsdM0Qn0Xa1f-DW51s-8LbeU_Knk`, August 2024) + FY26 Brand Message House (AI-first positioning). Editorial rules and channel tone: `style-guide.md`.

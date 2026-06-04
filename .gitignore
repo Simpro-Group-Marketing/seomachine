@@ -119,6 +119,9 @@ client_secret_*.json
 NOTES.md
 personal-*.md
 
+# Grav publish preview output (grav-publish skill, --dry-run)
+.grav-preview/
+
 # Data source credentials and cache
 data_sources/config/.env
 data_sources/config/*_credentials.json

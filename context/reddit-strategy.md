@@ -1,5 +1,15 @@
 # Simpro Reddit and Community Strategy
 
+**Purpose:** Public Reddit and community strategy for Simpro AI SEO and recommendation visibility.
+**Use when:** Monitoring community recommendations, planning non-promotional responses, or mapping Reddit citation opportunities.
+**Owns:** Public thread register, target communities, monitoring queries, safe engagement rules, and community SEO actions.
+**Does not own:** AI citation evidence tables, keyword metrics, or competitor battlecards.
+**Source boundary:** Public/search-visible evidence only; no private subreddit, Reddit API, or posting analytics data.
+**Refresh cadence:** Monthly for priority queries; quarterly for the full context file.
+**Reference detail:** AI citation opportunities live in [ai-citation-targets.md](ai-citation-targets.md).
+
+---
+
 Last updated: 2026-05-22
 
 ## Evidence Boundary

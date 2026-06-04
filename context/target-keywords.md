@@ -1,5 +1,15 @@
 # Simpro Target Keywords & Topic Clusters
 
+**Purpose:** Canonical Simpro keyword and topic-cluster map.
+**Use when:** Selecting target keywords, cluster coverage, long-tail opportunities, or topic-priority signals.
+**Owns:** Keyword clusters, first-party metric snapshots, external demand validation, and sitemap-confirmed content mapping.
+**Does not own:** Internal-link destination priority, brand voice, proof workflow, or competitor battlecards.
+**Source boundary:** US GSC/GA4, Ahrefs Free, Semrush MCP, and dashboard evidence captured through 2026-05-22 unless refreshed.
+**Refresh cadence:** Quarterly or when adding new clusters, refreshing SERPs, or rerunning keyword tools.
+**Reference detail:** Internal-link priority lives in [internal-links-map.md](internal-links-map.md).
+
+---
+
 This document organizes Simpro's target keyword hypotheses by topic cluster for strategic content planning and SEO optimization.
 
 **Source**: Product Marketing portal source map, `https://www.simprogroup.com/sitemap.xml` accessed through Playwright MCP on 2026-05-21, GSC `sc-domain:simprogroup.com`, GA4 property `properties/309907809`, `simpro-seo-dashboard.html` reviewed on 2026-05-21, Ahrefs Free Keyword Generator US results queried through Playwright on 2026-05-21, Semrush MCP `phrase_these` US keyword metrics queried on 2026-05-21, and Semrush MCP expansion reports (`phrase_fullsearch`, `phrase_related`, `phrase_organic`, `domain_domains`) queried on 2026-05-22.
