@@ -400,9 +400,9 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
   - **Pack status**: ready / partial / blocked
   - **Topic or page fit**: [topic, audience, region, trade, funnel stage]
   - **Quote Matrix candidates**: [customer, trade, region, theme, exact quote or summary, source row/link, approval status]
-  - **Case-study proof paths**: [customer, public URL, supported metric/theme]
+  - **Case-study proof paths**: [customer, public URL, supported non-numeric theme]
   - **Review-site experience evidence**: [platform, URL, date checked, product/competitor, experience pattern, evidence summary, exact quote/rating approval status]
-  - **Approved metrics**: [metric, customer, source file, public proof URL]
+  - **Approved metrics**: [named customer metric, customer/brand, public proof URL, Evidence, approval status]
   - **Use in copy**: [exact quote / paraphrased theme / named metric / omit]
   - **Claims excluded**: [claim and missing proof reason]
 - **Schema Notes**: BlogPosting, FAQPage if FAQ is present, Author, VideoObject if video is embedded
@@ -688,7 +688,14 @@ python data_sources/modules/faq_proof_guard.py drafts/[filename].md --fail-on er
 
 FAQ proof requires every FAQ answer with claims to include a public proof link inside the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
 
-### 6. Score Content Quality
+### 6. Check Source Support
+```bash
+python data_sources/modules/source_support_guard.py drafts/[filename].md --fail-on error
+```
+
+The source support guard requires strict proof rows with Claim, URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact. A named customer metric must appear in Customer Proof Pack Approved metrics; Source Map alone is insufficient.
+
+### 7. Score Content Quality
 ```bash
 python data_sources/modules/content_scorer.py drafts/[filename].md --validate-urls
 ```
@@ -699,7 +706,8 @@ python data_sources/modules/content_scorer.py drafts/[filename].md --validate-ur
 - URL validation must pass before `/optimize`.
 - Numeric claim source guard must pass before scoring or `/optimize`.
 - FAQ proof guard must pass before scoring or `/optimize`.
-- A draft only passes if AI copy lint has zero errors, URL validation passes, numeric claim source guard passes, FAQ proof guard passes, and both score gates pass.
+- Source support guard must pass before scoring or `/optimize`.
+- A draft only passes if AI copy lint has zero errors, URL validation passes, numeric claim source guard passes, FAQ proof guard passes, source support guard passes, and both score gates pass.
 
 | Dimension | Weight |
 |-----------|--------|
@@ -709,20 +717,21 @@ python data_sources/modules/content_scorer.py drafts/[filename].md --validate-ur
 | SEO Compliance | 15% |
 | Readability | 10% |
 
-### 7. Auto-Revise if Needed
+### 8. Auto-Revise if Needed
 If either gate fails:
 1. Review `priority_fixes` from scorer
 2. Review AEO/GEO failed checks from `aeo_geo`
 3. Review URL validation blockers from `data_sources/modules/url_validator.py --fail-on unresolved`
 4. Review numeric claim source blockers from `data_sources/modules/numeric_claim_source_guard.py --fail-on error`
 5. Review FAQ proof blockers from `data_sources/modules/faq_proof_guard.py --fail-on error`
-6. Apply top 3-5 fixes
-7. Rerun `/scrub`, the AI copy linter, URL validation, numeric claim source guard, and FAQ proof guard
-8. Re-score
-9. Repeat once more if needed
-10. If AI copy lint errors remain after 1 revision, URL validation fails, numeric claim source guard fails, FAQ proof guard fails, or content quality remains below 85/100 or AEO/GEO remains below 90/100 after 2 iterations -> move to `review-required/`
+6. Review source support blockers from `data_sources/modules/source_support_guard.py --fail-on error`
+7. Apply top 3-5 fixes
+8. Rerun `/scrub`, the AI copy linter, URL validation, numeric claim source guard, FAQ proof guard, and source support guard
+9. Re-score
+10. Repeat once more if needed
+11. If AI copy lint errors remain after 1 revision, URL validation fails, numeric claim source guard fails, FAQ proof guard fails, source support guard fails, or content quality remains below 85/100 or AEO/GEO remains below 90/100 after 2 iterations -> move to `review-required/`
 
-### 8. Run Optimization Agents
+### 9. Run Optimization Agents
 After passing quality threshold:
 - `content-analyzer` agent
 - `seo-optimizer` agent

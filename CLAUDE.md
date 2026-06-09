@@ -71,6 +71,7 @@ Located in `data_sources/modules/`. The Content Analyzer chains:
 6. `url_validator.py` - URL validation guardrail for Markdown links and bare URLs
 7. `numeric_claim_source_guard.py` - Metric/stat proof guardrail for public numeric business claims
 8. `faq_proof_guard.py` - FAQ proof guardrail for public proof links or question-specific Source Map proof
+9. `source_support_guard.py` - Strict source support guard requiring approved proof rows with source-visible Evidence snippets
 
 ### Data Integrations
 
@@ -109,13 +110,14 @@ python3 tests/test_dataforseo.py
 
 Rewrites go to `rewrites/`. Landing pages go to `landing-pages/`. Audits go to `audits/`. Repurposed content goes to `repurposed/`.
 
-Blog rewrites must follow the same AEO/GEO evidence boundaries as new articles: sourced PAA/FAQ provenance, FAQ proof, source mapping, E-E-A-T Proof Map inputs, direct-answer structure, schema notes, AI copy lint, URL validation, numeric claim source guard, `content_scorer.py --validate-urls`, and the 85/100 general quality plus 90/100 AEO/GEO gates before `/optimize`.
+Blog rewrites must follow the same AEO/GEO evidence boundaries as new articles: sourced PAA/FAQ provenance, FAQ proof, source mapping, E-E-A-T Proof Map inputs, direct-answer structure, schema notes, AI copy lint, URL validation, numeric claim source guard, FAQ proof guard, source support guard, `content_scorer.py --validate-urls`, and the 85/100 general quality plus 90/100 AEO/GEO gates before `/optimize`.
 
 Before `/optimize` or any publish path, run:
 ```bash
 python data_sources/modules/url_validator.py [file] --fail-on unresolved
 python data_sources/modules/numeric_claim_source_guard.py [file] --fail-on error
 python data_sources/modules/faq_proof_guard.py [file] --fail-on error
+python data_sources/modules/source_support_guard.py [file] --fail-on error
 ```
 
 URL validation confirms destinations resolve; it does not prove the page supports the claim, so Source Map and E-E-A-T proof review still verify claim support.
@@ -124,13 +126,15 @@ Every metric, statistic, or numeric business claim must have a same-paragraph pu
 
 FAQ proof requires every claim-bearing FAQ answer to include a public proof link inside the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
 
+The source support guard requires strict proof rows with Claim, URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact. A named customer metric must appear in Customer Proof Pack Approved metrics with customer/brand, public URL, Evidence, and approved status; Source Map alone is insufficient.
+
 Context files are the internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics. Draft bodies may use public sources and context-backed proof, but must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, internal proof-path instructions, or source/proof meta-commentary. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 
 Blog drafts and rewrites should use only 1 link per paragraph. Move the second link to a separate paragraph or remove it.
 
 E-E-A-T proof must resolve Experience and Expertise before writing. Pull case-study URLs from `context/internal-links-map.md`, approved metrics/proof candidates from `context/features.md`, and review-site experience evidence / VoC or competitor experience themes from `context/competitor-analysis.md` or future review-context files. Review narratives count as first-hand customer experience when reviewers describe product use, implementation, support, switching, pains, outcomes, or workflows. Use review-derived stories as paraphrased, source-backed experience patterns by default, and capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved. Exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, and category claims require current source verification and brief-level approval. Context-backed metrics require public-facing source links in the article body.
 
-Blog research, article planning, writing, analysis, and rewrite workflows must include a Customer Proof Pack with Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved metrics, Use in copy, Claims excluded, and approval status. Keep the Quote Matrix external; use Customer Stories, References, and public case studies to verify story path and publishability before using direct quotes or named metrics.
+Blog research, article planning, writing, analysis, and rewrite workflows must include a Customer Proof Pack with Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved metrics, Use in copy, Claims excluded, and approval status. Keep the Quote Matrix external; use Customer Stories, References, and public case studies to verify story path and publishability before using direct quotes or named metrics. Case-study proof paths may support non-numeric themes; named customer metric rows belong in Approved metrics.
 
 Every writer and rewriter output must include at least 1 contextual down-funnel internal link to `https://www.simprogroup.com/industries`, `/industries/...`, `/solutions/...`, or `/features/...` from `context/internal-links-map.md`. Prefer a specific industry page when the intent is clear, the industries hub for broad trades topics, a solution page for category/workflow topics, and a feature page for feature/workflow topics. Anchor text must match the destination keyword or an approved anchor example.
 

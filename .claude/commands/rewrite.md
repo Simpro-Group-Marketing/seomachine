@@ -41,7 +41,7 @@ Required rewrite inputs:
 - **Source Map**: Document each external source, the claim it supports, the natural anchor text, and the target section.
 - **E-E-A-T Proof Map**: Resolve E-E-A-T proof details, Experience, Expertise, and Authority/Trust before drafting. Experience includes customer case studies, customer outcomes, review-site experience evidence / VoC themes, implementation/support themes, user pain, and field workflow examples. Review narratives count as first-hand customer experience when reviewers describe product use, implementation, support, switching, pains, outcomes, or workflows. Expertise includes product/feature knowledge, source-backed workflow explanations, expert quotes, author/reviewer metadata, and Simpro workflow specificity. Authority/Trust includes public research, case-study URLs, review-site/source links, limitations, caveats, and no invented proof.
 - **Context proof routing**: Pull case-study URLs from @context/internal-links-map.md, approved metrics/proof candidates from @context/features.md, and review-site experience evidence / VoC or competitor experience themes from @context/competitor-analysis.md or future review-context files. For review-site evidence, capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved. Use review-derived stories as paraphrased, source-backed experience patterns by default. Exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, and category claims require current source verification and brief-level approval. Context-backed metrics are valid only when paired with public-facing source links in the article body.
-- **Customer Proof Pack**: Resolve a Customer Proof Pack before placing direct quotes, named customer proof, approved metrics, or review-derived Experience patterns. Required fields are Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved metrics, Use in copy, Claims excluded, and approval status. If Pack status is partial or blocked, omit unsupported claims from the rewrite.
+- **Customer Proof Pack**: Resolve a Customer Proof Pack before placing direct quotes, named customer proof, approved metrics, or review-derived Experience patterns. Required fields are Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved metrics, Use in copy, Claims excluded, and approval status. Case-study proof paths may support non-numeric themes; any named customer metric must be listed in Approved metrics with customer/brand, public URL, Evidence, and approved status. If Pack status is partial or blocked, omit unsupported claims from the rewrite.
 - **down-funnel internal link**: Every rewrite must include at least 1 contextual body link to `/industries`, `/industries/...`, `/solutions/...`, or `/features/...` from @context/internal-links-map.md. Prefer the specific industry page when industry intent is clear, the `https://www.simprogroup.com/industries` hub for broad trades or general industry topics, the relevant solution page for category/workflow topics, and the relevant feature page for feature/workflow topics. Anchor text must match the destination keyword or an approved anchor example from @context/internal-links-map.md.
 - **Functional feature/solution anchors**: Feature and solution links must use function-bearing anchor text that explains the workflow, category, or outcome behind the destination. A feature or solution name alone is not enough. Use anchors like "field service payments," "accounts receivable follow-up with Fast Cash," or "field service management software" instead of "Simpro Payments," "Fast Cash," or "Simpro Premium."
 - **Simpro web copy rules**: Use numerals for cardinal numbers, including 1-9. Do not write number words such as "one," "two," or "three" in final public copy. Always put a comma before "because". Only 1 link per paragraph. Move the second link to a separate paragraph or remove it. Do not write source/proof meta-commentary such as "that case study is useful for this topic" or "this source is relevant for the article." Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
@@ -217,9 +217,9 @@ AEO/GEO Inputs:
 - Customer Proof Pack:
   - Pack status: [ready / partial / blocked]
   - Quote Matrix candidates: [customer, trade, region, theme, exact quote or summary, source row/link, approval status]
-  - Case-study proof paths: [customer, public URL, supported metric/theme]
+  - Case-study proof paths: [customer, public URL, supported non-numeric theme]
   - Review-site experience evidence: [platform, URL, date checked, product/competitor, experience pattern, evidence summary, exact quote/rating approval status]
-  - Approved metrics: [metric, customer, source file, public proof URL]
+  - Approved metrics: [named customer metric, customer/brand, public proof URL, Evidence, approval status]
   - Use in copy: [exact quote / paraphrased theme / named metric / omit]
   - Claims excluded: [claim and missing proof reason]
 - Context-backed metrics with public-facing source links: [metric, proof path, public URL]
@@ -246,27 +246,28 @@ Example: `rewrites/content-marketing-guide-rewrite-2025-10-15.md`
 Also save the change summary separately:
 - **File Location**: `rewrites/changes-[topic-slug]-[YYYY-MM-DD].md`
 
-## Automatic Scrub, AI Copy Lint, URL Validation, Numeric Claim Source Guard, FAQ Proof Guard, Score, And Optimize
+## Automatic Scrub, AI Copy Lint, URL Validation, Numeric Claim Source Guard, FAQ Proof Guard, Source Support Guard, Score, And Optimize
 
-**CRITICAL**: Immediately after saving the rewritten article file, automatically invoke the content scrubber, run the AI copy linter, run URL validation, run the numeric claim source guard, run the FAQ proof guard, score the content, then run `/optimize`.
+**CRITICAL**: Immediately after saving the rewritten article file, automatically invoke the content scrubber, run the AI copy linter, run URL validation, run the numeric claim source guard, run the FAQ proof guard, run the source support guard, score the content, then run `/optimize`.
 
 ### Why This Matters
 AI-generated content often contains invisible Unicode marks and characteristic punctuation patterns. Scrubbing handles cleanup. The linter handles AI-writing detection and Simpro style enforcement.
 
-### Scrub, Lint, URL Validation, Numeric Claim Source Guard, FAQ Proof Guard, Score, And Optimize Process
+### Scrub, Lint, URL Validation, Numeric Claim Source Guard, FAQ Proof Guard, Source Support Guard, Score, And Optimize Process
 1. **Invoke Scrubber**: Run `/scrub [file-path]` on the saved rewritten article file
 2. **Invoke AI Copy Linter**: Run `python data_sources/modules/ai_copy_linter.py [file-path] --profile simpro-web --fail-on error`
 3. **Invoke URL Validation**: Run `python data_sources/modules/url_validator.py [file-path] --fail-on unresolved`
 4. **Invoke Numeric Claim Source Guard**: Run `python data_sources/modules/numeric_claim_source_guard.py [file-path] --fail-on error`
 5. **Invoke FAQ Proof Guard**: Run `python data_sources/modules/faq_proof_guard.py [file-path] --fail-on error`
-6. **Invoke Content Scorer**: Run `python data_sources/modules/content_scorer.py [file-path] --validate-urls`
-7. **Check Gates**: General content quality must be 85/100 or higher, AEO/GEO must be 90/100 or higher, URL validation must pass, numeric claim source guard must pass, and FAQ proof guard must pass
-8. **Invoke Optimizer**: Run `/optimize [file-path]` only after scrub, lint, URL validation, numeric claim source guard, FAQ proof guard, and score gates are complete
-9. **Automatic Execution**: This should happen automatically, not require user action
-10. **Timing**: Must occur immediately after file save, before optimization agents
-11. **Scope**: Scrub, lint, URL validation, numeric claim source guard, FAQ proof guard, and score the main rewritten article file only (not change summary or analysis files)
-12. **Error Handling**: If linter errors remain, revise once, rerun `/scrub`, rerun the linter, then route to `review-required/` with lint findings if errors remain. If URL validation fails, replace or verify the unresolved link before `/optimize`. If numeric claim source guard fails, add a public proof link, map the same claim to a Source Map / Proof Pack row with a public URL or local proof artifact, or remove the unsupported number. If FAQ proof guard fails, add a public proof link inside the FAQ answer, map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL, or remove the unsupported claim. Context file paths alone do not count. If score gates fail after 2 iterations, route to `review-required/` with scoring details.
-13. **Warnings**: Include warning findings in review notes, but do not block unless strict mode is requested
+6. **Invoke Source Support Guard**: Run `python data_sources/modules/source_support_guard.py [file-path] --fail-on error`
+7. **Invoke Content Scorer**: Run `python data_sources/modules/content_scorer.py [file-path] --validate-urls`
+8. **Check Gates**: General content quality must be 85/100 or higher, AEO/GEO must be 90/100 or higher, URL validation must pass, numeric claim source guard must pass, FAQ proof guard must pass, and source support guard must pass
+9. **Invoke Optimizer**: Run `/optimize [file-path]` only after scrub, lint, URL validation, numeric claim source guard, FAQ proof guard, source support guard, and score gates are complete
+10. **Automatic Execution**: This should happen automatically, not require user action
+11. **Timing**: Must occur immediately after file save, before optimization agents
+12. **Scope**: Scrub, lint, URL validation, numeric claim source guard, FAQ proof guard, source support guard, and score the main rewritten article file only (not change summary or analysis files)
+13. **Error Handling**: If linter errors remain, revise once, rerun `/scrub`, rerun the linter, then route to `review-required/` with lint findings if errors remain. If URL validation fails, replace or verify the unresolved link before `/optimize`. If numeric claim source guard fails, add a public proof link, map the same claim to a Source Map / Proof Pack row with a public URL or local proof artifact, or remove the unsupported number. If FAQ proof guard fails, add a public proof link inside the FAQ answer, map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL, or remove the unsupported claim. If source support guard fails, add a strict proof row with Claim, URL, Evidence, and Status: approved, use Evidence visible in the cited source, or remove the unsupported claim. Context file paths alone do not count. If score gates fail after 2 iterations, route to `review-required/` with scoring details.
+14. **Warnings**: Include warning findings in review notes, but do not block unless strict mode is requested
 
 ### What Gets Cleaned
 - Invisible Unicode watermarks (zero-width spaces, BOMs, format-control characters)
@@ -303,11 +304,18 @@ The FAQ proof guard will display:
 - FAQ proof blocker count
 - Line-level findings for FAQ answers missing a public proof link or question-specific Source Map entry
 
+The source support guard will display:
+- Source support blocker count
+- Line-level findings for claims whose Evidence is not visible in the cited source
+- Named customer metric blockers when metrics are not in Customer Proof Pack Approved metrics
+
 URL validation confirms destinations resolve; it does not prove the page supports the claim, so Source Map and E-E-A-T proof review still verify claim support.
 
 Every metric, statistic, or numeric business claim must have a same-paragraph public link or a matching Source Map / Proof Pack entry with a public URL or local proof artifact. Context-backed metrics are acceptable only when the public copy or proof map points to evidence that proves the number.
 
 FAQ proof requires every claim-bearing FAQ answer to include a public proof link inside the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
+
+The source support guard requires strict proof rows with Claim, URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact. A named customer metric must appear in Customer Proof Pack Approved metrics with customer/brand, public URL, Evidence, and approved status; Source Map alone is insufficient.
 
 ### Example Workflow
 ```
@@ -317,10 +325,11 @@ FAQ proof requires every claim-bearing FAQ answer to include a public proof link
 4. IMMEDIATELY run: python data_sources/modules/url_validator.py rewrites/article-name-rewrite-2025-10-31.md --fail-on unresolved
 5. IMMEDIATELY run: python data_sources/modules/numeric_claim_source_guard.py rewrites/article-name-rewrite-2025-10-31.md --fail-on error
 6. IMMEDIATELY run: python data_sources/modules/faq_proof_guard.py rewrites/article-name-rewrite-2025-10-31.md --fail-on error
-7. IMMEDIATELY run: python data_sources/modules/content_scorer.py rewrites/article-name-rewrite-2025-10-31.md --validate-urls
-8. Confirm 85/100 general content quality, 90/100 AEO/GEO, passing URL validation, passing numeric claim source guard, and passing FAQ proof guard
-9. THEN run: /optimize rewrites/article-name-rewrite-2025-10-31.md
-10. If errors, unresolved URLs, unsupported numeric claims, FAQ proof blockers, or failed score gates remain, revise once, then rerun scrub, lint, URL validation, numeric claim source guard, FAQ proof guard, and score
+7. IMMEDIATELY run: python data_sources/modules/source_support_guard.py rewrites/article-name-rewrite-2025-10-31.md --fail-on error
+8. IMMEDIATELY run: python data_sources/modules/content_scorer.py rewrites/article-name-rewrite-2025-10-31.md --validate-urls
+9. Confirm 85/100 general content quality, 90/100 AEO/GEO, passing URL validation, passing numeric claim source guard, passing FAQ proof guard, and passing source support guard
+10. THEN run: /optimize rewrites/article-name-rewrite-2025-10-31.md
+11. If errors, unresolved URLs, unsupported numeric claims, FAQ proof blockers, source support blockers, or failed score gates remain, revise once, then rerun scrub, lint, URL validation, numeric claim source guard, FAQ proof guard, source support guard, and score
 ```
 
 This keeps cleanup separate from AI copy detection and scoring before optimization.

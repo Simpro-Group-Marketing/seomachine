@@ -29,8 +29,10 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 try:
+    from .source_support_guard import require_source_support
     from .url_validator import format_summary, validate_file_urls
 except ImportError:
+    from source_support_guard import require_source_support
     from url_validator import format_summary, validate_file_urls
 
 
@@ -288,6 +290,10 @@ class GravPublisher:
                 "URL validation failed before Grav publish:\n"
                 f"{format_summary(url_summary)}"
             )
+        try:
+            require_source_support(file_path, context="Grav publish")
+        except ValueError as exc:
+            raise GravPublishError(str(exc)) from exc
 
         draft = self.parse_draft_file(file_path)
         article = self.build_article(draft)

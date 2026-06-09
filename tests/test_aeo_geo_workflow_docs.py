@@ -394,6 +394,30 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
+    def test_source_support_guard_is_documented_across_blog_workflow(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / "README.md",
+            ROOT / "CLAUDE.md",
+        ]
+        required = [
+            "source support guard",
+            "data_sources/modules/source_support_guard.py",
+            "--fail-on error",
+            "Evidence",
+            "named customer metric",
+            "Approved metrics",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
 
 if __name__ == "__main__":
     unittest.main()

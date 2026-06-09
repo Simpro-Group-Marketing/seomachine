@@ -27,6 +27,7 @@ try:
     from .ai_copy_linter import lint_content
     from .readability_scorer import ReadabilityScorer
     from .seo_quality_rater import SEOQualityRater
+    from .source_support_guard import check_content as check_source_support
     from .url_validator import validate_content_urls
 except ImportError:
     # For standalone testing
@@ -34,6 +35,7 @@ except ImportError:
     from ai_copy_linter import lint_content
     from readability_scorer import ReadabilityScorer
     from seo_quality_rater import SEOQualityRater
+    from source_support_guard import check_content as check_source_support
     from url_validator import validate_content_urls
 
 
@@ -122,7 +124,8 @@ class ContentScorer:
         self,
         content: str,
         metadata: Optional[Dict[str, Any]] = None,
-        validate_urls: bool = False
+        validate_urls: bool = False,
+        validate_source_support: bool = False
     ) -> Dict[str, Any]:
         """
         Score content across all dimensions
@@ -132,6 +135,8 @@ class ContentScorer:
             metadata: Optional dict with meta_title, meta_description,
                      primary_keyword, secondary_keywords
             validate_urls: Resolve URLs and block the quality gate on failures
+            validate_source_support: Verify approved evidence snippets support
+                high-risk claims and block the quality gate on failures
 
         Returns:
             Dict with composite_score, passed, dimensions, and priority_fixes
@@ -168,6 +173,11 @@ class ContentScorer:
         if validate_urls:
             url_validation = validate_content_urls(content)
             url_validation_passed = url_validation.passed
+        source_support_findings = []
+        source_support_passed = True
+        if validate_source_support:
+            source_support_findings = check_source_support(content)
+            source_support_passed = not source_support_findings
 
         # Determine if passed
         passed = (
@@ -175,6 +185,7 @@ class ContentScorer:
             and aeo_geo_passed
             and faq_proof_passed
             and url_validation_passed
+            and source_support_passed
         )
 
         # Collect all issues and prioritize
@@ -228,6 +239,22 @@ class ContentScorer:
                 'impact': 100
             })
             priority_fixes = priority_fixes[:5]
+        if not source_support_passed:
+            blocker_lines = ", ".join(
+                f"line {finding.get('line', '?')}" for finding in source_support_findings[:3]
+            )
+            priority_fixes.insert(0, {
+                'issue': 'Source support blockers detected',
+                'fix': (
+                    'Add approved proof rows with source-visible Evidence snippets, '
+                    f'or remove unsupported claims: {blocker_lines}'
+                ),
+                'severity': 'high',
+                'dimension': 'source_support',
+                'dimension_score': 0,
+                'impact': 100
+            })
+            priority_fixes = priority_fixes[:5]
 
         quality_gates = {
             'content_quality': {
@@ -252,6 +279,12 @@ class ContentScorer:
                 'unresolved': url_validation.unresolved_count,
                 'manual_review': url_validation.manual_review_count,
                 'passed': url_validation_passed
+            }
+        if validate_source_support:
+            quality_gates['source_support'] = {
+                'finding_count': len(source_support_findings),
+                'passed': source_support_passed,
+                'findings': source_support_findings
             }
 
         return {
@@ -953,6 +986,11 @@ def main():
         action="store_true",
         help="Resolve article URLs and fail the gate on unresolved/manual-review links.",
     )
+    parser.add_argument(
+        "--validate-source-support",
+        action="store_true",
+        help="Verify approved evidence snippets support high-risk claims.",
+    )
     args = parser.parse_args()
 
     try:
@@ -963,7 +1001,11 @@ def main():
         sys.exit(1)
 
     scorer = ContentScorer()
-    result = scorer.score(content, validate_urls=args.validate_urls)
+    result = scorer.score(
+        content,
+        validate_urls=args.validate_urls,
+        validate_source_support=args.validate_source_support,
+    )
 
     print(scorer.format_report(result))
     sys.exit(0 if result["passed"] else 1)

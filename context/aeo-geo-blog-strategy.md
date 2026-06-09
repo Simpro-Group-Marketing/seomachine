@@ -52,7 +52,8 @@ Required proof sources:
 - Pull case-study URLs and internal proof routes from `context/internal-links-map.md`.
 - Pull approved metrics and proof candidates from `context/features.md`.
 - Pull review-site experience evidence / VoC themes and competitor experience themes from `context/competitor-analysis.md` or any future review-context file.
-- Context-backed metrics are valid only when the context pack carries the approved metric and proof path. Public copy must link to the public case study, review site, or source URL, not to internal context files.
+- Context-backed metrics are valid only when the context pack carries the approved metric, proof path, and a source-visible Evidence snippet. Public copy must link to the public case study, review site, or source URL, not to internal context files.
+- The source support guard requires each high-risk claim to map to a strict proof row with Claim, URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact.
 - Do not write source/proof meta-commentary in public copy, such as "that case study is useful for this topic" or "this source is relevant for the article." Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 
 ## Review-Site Experience Evidence and VoC Routing
@@ -80,12 +81,21 @@ Required Customer Proof Pack shape:
 - **Pack status**: ready / partial / blocked
 - **Topic or page fit**: [topic, audience, region, trade, funnel stage]
 - **Quote Matrix candidates**: [customer, trade, region, theme, exact quote or summary, source row/link, approval status]
-- **Case-study proof paths**: [customer, public URL, supported metric/theme]
+- **Case-study proof paths**: [customer, public URL, supported non-numeric theme]
 - **Review-site experience evidence**: [platform, URL, date checked, product/competitor, experience pattern, evidence summary, exact quote/rating approval status]
-- **Approved metrics**: [metric, customer, source file, public proof URL]
+- **Approved metrics**: [named customer metric, customer/brand, public proof URL, Evidence, approval status]
 - **Use in copy**: [exact quote / paraphrased theme / named metric / omit]
 - **Claims excluded**: [claim and missing proof reason]
 ```
+
+Example strict proof rows:
+
+```markdown
+- Claim: Shaffer Beacon Mechanical can process twice the amount of business with the same resources | URL: https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical | Evidence: "We can process twice the amount of business with the same amount of resources" | Status: approved | Use: paraphrased customer outcome
+- Approved metric: Simpro 24,000+ trade businesses | Customer/brand: Simpro | URL: https://www.simprogroup.com/company/press/simpro-group-unveils-lightning | Evidence: "More than 24,000 trade businesses" | Status: approved
+```
+
+Case-study proof paths may support non-numeric themes only. Any named customer metric must appear under Approved metrics with Customer/brand, public URL, source-visible Evidence, and Status: approved. Source Map alone is insufficient for a named customer metric.
 
 ## AnswerSocrates PAA Workflow
 
@@ -178,5 +188,6 @@ A draft is publish-ready only when both gates pass:
 - General content quality score: 85/100 or higher.
 - AEO/GEO score: 90/100 or higher.
 - FAQ proof gate: `data_sources/modules/faq_proof_guard.py --fail-on error` must pass when FAQ answers are present. Each claim-bearing FAQ answer needs a public proof link or question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
+- Source support guard: `data_sources/modules/source_support_guard.py --fail-on error` must pass before scoring or `/optimize`. Evidence snippets must be visible in the cited source, and named customer metric claims must be approved in Customer Proof Pack Approved metrics.
 
 Below-threshold drafts route to revision or `review-required/` with notes explaining failed checks.

@@ -32,6 +32,15 @@ python data_sources/modules/numeric_claim_source_guard.py [article-file] --fail-
 
 Every metric, statistic, or numeric business claim must have a same-paragraph public link or a matching Source Map / Proof Pack entry with a public URL or local proof artifact. Context-backed metrics are acceptable only when the public copy or proof map points to evidence that proves the number.
 
+### Source Support Gate
+
+Before returning `Ready`, run source support guard:
+```bash
+python data_sources/modules/source_support_guard.py [article-file] --fail-on error
+```
+
+The source support guard requires strict proof rows with Claim, URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact. A named customer metric must appear in Customer Proof Pack Approved metrics with customer/brand, public URL, Evidence, and approved status; Source Map alone is insufficient.
+
 ### Content Audit
 
 #### Keyword Analysis
@@ -242,6 +251,7 @@ Visual representation of where primary keyword appears:
 - [ ] No broken links
 - [ ] URL validation passed with `python data_sources/modules/url_validator.py [article-file] --fail-on unresolved`
 - [ ] Numeric claim source guard passed with `python data_sources/modules/numeric_claim_source_guard.py [article-file] --fail-on error`
+- [ ] Source support guard passed with `python data_sources/modules/source_support_guard.py [article-file] --fail-on error`
 - [ ] Ready to publish
 
 ### 8. Publishing Readiness

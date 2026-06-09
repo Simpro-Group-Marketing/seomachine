@@ -248,6 +248,54 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
         self.assertFalse(result["quality_gates"]["faq_proof"]["passed"])
         self.assertIn("FAQ proof blockers detected", result["priority_fixes"][0]["issue"])
 
+    def test_source_support_failure_blocks_content_scorer_when_enabled(self):
+        scorer = ContentScorer()
+        source_support_findings = [
+            {
+                "rule_id": "source_evidence_not_found",
+                "severity": "error",
+                "line": 35,
+                "column": 1,
+                "match": "Shaffer Beacon Mechanical achieved a 60% increase in profit margin.",
+                "message": "Proof evidence was not found in the cited source.",
+            }
+        ]
+
+        with patch(
+            "data_sources.modules.content_scorer.check_source_support",
+            return_value=source_support_findings,
+        ), patch.object(
+            ContentScorer,
+            "_score_humanity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_specificity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_structure_balance",
+            return_value={"score": 100, "issues": [], "details": {}, "prose_ratio": 0.65},
+        ), patch.object(
+            ContentScorer,
+            "_score_seo",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_readability",
+            return_value={"score": 100, "issues": [], "details": {}, "flesch": 68},
+        ):
+            result = scorer.score(
+                COMPLIANT_ARTICLE,
+                {"primary_keyword": "hvac scheduling software"},
+                validate_source_support=True,
+            )
+
+        self.assertFalse(result["passed"])
+        self.assertIn("source_support", result["quality_gates"])
+        self.assertFalse(result["quality_gates"]["source_support"]["passed"])
+        self.assertIn("Source support blockers detected", result["priority_fixes"][0]["issue"])
+
 
 if __name__ == "__main__":
     unittest.main()

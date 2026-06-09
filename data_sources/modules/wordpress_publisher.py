@@ -12,8 +12,10 @@ from typing import Dict, Optional, List, Tuple
 from pathlib import Path
 
 try:
+    from .source_support_guard import require_source_support
     from .url_validator import format_summary, validate_file_urls
 except ImportError:
+    from source_support_guard import require_source_support
     from url_validator import format_summary, validate_file_urls
 
 
@@ -371,6 +373,7 @@ class WordPressPublisher:
                 "URL validation failed before WordPress publish:\n"
                 f"{format_summary(url_summary)}"
             )
+        require_source_support(file_path, context="WordPress publish")
 
         # Map friendly names to REST API endpoints
         type_endpoints = {
