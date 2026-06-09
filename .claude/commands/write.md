@@ -117,7 +117,7 @@ Apply these requirements from @context/aeo-geo-blog-strategy.md:
 - **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, keywords, product framing, internal links, approved claims, proof candidates, and approved metrics. Public copy may use public sources and context-backed proof, but must not mention "repo context," context file paths, Source Maps, PAA artifacts, change summaries, or internal proof-path notes.
 - **Customer proof routing**: When citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
 - **Review-site experience evidence / VoC routing**: Cite public review-site themes with source links when they show first-hand customer experience with product use, implementation, support, switching, pains, outcomes, or workflows. Capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved. Use review-derived stories as paraphrased, source-backed experience patterns by default. Do not use exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, or category-leadership claims unless they have current source verification and brief-level approval.
-- **Customer Proof Pack**: Use the brief's Customer Proof Pack before placing direct quotes, named customer proof, approved metrics, or review-derived Experience patterns. If the pack is partial or blocked, omit unsupported claims instead of inventing proof. Required fields are Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved metrics, Use in copy, Claims excluded, and approval status. Case-study proof paths may support non-numeric themes; any named customer metric must be listed in Approved metrics with customer/brand, public URL, Evidence, and approved status.
+- **Customer Proof Pack**: Use the brief's Customer Proof Pack before placing direct quotes, named customer proof, approved metrics, or review-derived Experience patterns. If the pack is partial or blocked, omit unsupported claims instead of inventing proof. Required fields are Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved quotes, Approved metrics, Use in copy, Claims excluded, and approval status. Case-study proof paths and Review-site experience evidence may support non-numeric E-E-A-T PoV and paraphrased themes; exact quote/testimonial rows belong in Approved quotes with customer/brand or reviewer, source type, public URL, Evidence, and approved status, and any named customer metric must be listed in Approved metrics with customer/brand, public URL, Evidence, and approved status.
 - **Schema notes**: Include BlogPosting, FAQPage when FAQ is present, Author, and VideoObject when a video is embedded.
 
 #### 4. Main Body (1800-2500+ words)
@@ -266,7 +266,7 @@ Word Count: [actual word count]
 - [ ] **Capsule Method**: H1 and 60%+ major H2s include 50-60 word direct-answer capsules
 - [ ] **PAA**: 3-5 selected PAA/FAQ questions are answered in the draft
 - [ ] **source mapping**: At least three source-backed claims use natural contextual links
-- [ ] **Customer Proof Pack**: Pack status is ready/partial/blocked, with Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved metrics, Use in copy, Claims excluded, and approval status resolved before using proof. Named customer metric rows include customer/brand, public URL, Evidence, and approved status.
+- [ ] **Customer Proof Pack**: Pack status is ready/partial/blocked, with Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved quotes, Approved metrics, Use in copy, Claims excluded, and approval status resolved before using proof. Exact quote/testimonial rows include customer/brand or reviewer, source type, public URL, Evidence, and approved status. Named customer metric rows include customer/brand, public URL, Evidence, and approved status.
 - [ ] **Schema**: BlogPosting, FAQPage, Author, and VideoObject notes are included when relevant
 
 ### 5. Engagement Checklist
@@ -340,6 +340,7 @@ The source support guard will display:
 - Source support blocker count
 - Line-level findings for claims whose Evidence is not visible in the cited source
 - Named customer metric blockers when metrics are not in Customer Proof Pack Approved metrics
+- Exact quote/testimonial blockers when quotes are not in Customer Proof Pack Approved quotes
 
 ### Example Workflow
 ```
@@ -362,7 +363,7 @@ Every metric, statistic, or numeric business claim must have a same-paragraph pu
 
 FAQ proof requires every claim-bearing FAQ answer to include a public proof link inside the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
 
-The source support guard requires strict proof rows with Claim, URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact. A named customer metric must appear in Customer Proof Pack Approved metrics with customer/brand, public URL, Evidence, and approved status; Source Map alone is insufficient.
+The source support guard requires strict proof rows with Claim, Approved quote, or Approved metric plus URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact. Case-study proof paths and Review-site experience evidence may support non-metric E-E-A-T PoV and paraphrased themes only. Exact quotes/testimonials must appear in Customer Proof Pack Approved quotes with customer/brand or reviewer, source type, public URL, Evidence, and approved status. A named customer metric must appear in Customer Proof Pack Approved metrics with customer/brand, public URL, Evidence, and approved status; Source Map alone is insufficient for quotes, testimonials, or named metrics.
 
 ## Automatic Agent Execution
 After saving, scrubbing, linting, and passing the quality loop, execute optimization agents:
@@ -438,7 +439,7 @@ Run the source support guard before scoring:
 python data_sources/modules/source_support_guard.py drafts/[article-file].md --fail-on error
 ```
 
-The draft must have zero source support findings before scoring. Every strict proof row needs source-visible Evidence, and any named customer metric must be approved in Customer Proof Pack Approved metrics.
+The draft must have zero source support findings before scoring. Every strict proof row needs source-visible Evidence. Exact quotes/testimonials must be approved in Customer Proof Pack Approved quotes, and any named customer metric must be approved in Customer Proof Pack Approved metrics.
 
 ### Step 5: Score Content
 Run the content scorer to evaluate the draft:

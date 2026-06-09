@@ -61,8 +61,25 @@ DEFAULT_USER_AGENT = (
 )
 PDF_EXTENSION_RE = re.compile(r"\.pdf(?:$|[?#])", re.IGNORECASE)
 LOCAL_ARTIFACT_EXTENSION_RE = re.compile(r"\.(?:md|txt|csv|tsv|json)$", re.IGNORECASE)
-PROOF_ROW_RE = re.compile(r"^\s*(?:[-*+]\s+)?(?P<body>(?:Claim|Approved metric)\s*:.*)$", re.IGNORECASE)
+PROOF_ROW_RE = re.compile(
+    r"^\s*(?:[-*+]\s+)?(?P<body>(?:Claim|Approved metric|Approved quote)\s*:.*)$",
+    re.IGNORECASE,
+)
 SECTION_RE = re.compile(r"^\s*(?:#{1,4}\s+)?(?P<section>[A-Za-z][A-Za-z /-]+):?\s*$")
+EXACT_QUOTE_RE = re.compile(
+    r"(?:\"[^\"]{20,}\"|\u201c[^\u201d]{20,}\u201d)"
+)
+QUOTE_ATTRIBUTION_SIGNAL_RE = re.compile(
+    r"\b(?:said|says|according to|quote|quoted|testimonial|reviewer|reviewed|"
+    r"customer review|case study|customer story)\b",
+    re.IGNORECASE,
+)
+REVIEW_AUTHORITY_SIGNAL_RE = re.compile(
+    r"\b(?:reviewer|named reviewer|star rating|stars?|rating|badge|badges|"
+    r"ranked|ranking|category leader|category-leading|top rated|highest rated|"
+    r"award|awarded)\b",
+    re.IGNORECASE,
+)
 
 OUTCOME_SIGNAL_RE = re.compile(
     r"\b(?:achieved|increased|improved|reduced|saved|generated|lifted|grew|"
@@ -87,6 +104,7 @@ class ClaimCandidate:
     normalized_tokens: frozenset[str]
     customer_names: frozenset[str]
     has_case_study_link: bool
+    requires_approved_quote: bool
 
     @property
     def has_numeric_tokens(self) -> bool:
@@ -150,6 +168,34 @@ def check_content(
     findings: List[Finding] = []
     for candidate in candidates:
         matching_proofs = _matching_proofs(candidate, proof_entries)
+        if candidate.requires_approved_quote:
+            approved_quote_proofs = [
+                proof
+                for proof in matching_proofs
+                if proof.kind == "approved_quote" and proof.section == "customer proof pack"
+            ]
+            if approved_quote_proofs:
+                proof_finding = _validate_proof_entry(
+                    approved_quote_proofs[0],
+                    candidate,
+                    base_path=base,
+                    fetcher=fetcher,
+                )
+                if proof_finding:
+                    findings.append(proof_finding)
+                continue
+
+            findings.append(_finding(
+                "quote_requires_approved_quote",
+                candidate,
+                "Exact quote or testimonial language requires an approved Customer Proof Pack quote row.",
+                (
+                    "Add an Approved quote row with Customer/brand, URL, Evidence, "
+                    "Status: approved, and source-visible quote evidence."
+                ),
+            ))
+            continue
+
         if candidate.is_named_customer_metric:
             approved_metric_proofs = [
                 proof
@@ -329,8 +375,13 @@ def _extract_proof_entries(content: str) -> List[ProofEntry]:
             continue
 
         fields = _parse_proof_fields(row_match.group("body"))
-        kind = "approved_metric" if "approved metric" in fields else "claim"
-        claim = fields.get("approved metric") or fields.get("claim", "")
+        if "approved metric" in fields:
+            kind = "approved_metric"
+        elif "approved quote" in fields:
+            kind = "approved_quote"
+        else:
+            kind = "claim"
+        claim = fields.get("approved metric") or fields.get("approved quote") or fields.get("claim", "")
         url = fields.get("url", "")
         evidence = fields.get("evidence", "")
         status = fields.get("status", "")
@@ -384,12 +435,15 @@ def _extract_claim_candidates(
 
         names = _customer_names_in_text(paragraph.text, known_customer_names)
         has_case_study_link = _has_case_study_link(paragraph.text)
+        text_for_detection = _claim_text_for_detection(paragraph.text)
+        is_quote_claim = _is_exact_quote_claim(paragraph.text, names, has_case_study_link)
+        is_review_authority_claim = _is_review_authority_claim(text_for_detection)
         is_named_outcome = (
             (has_case_study_link or bool(names))
-            and bool(OUTCOME_SIGNAL_RE.search(_claim_text_for_detection(paragraph.text)))
+            and bool(OUTCOME_SIGNAL_RE.search(text_for_detection))
         )
 
-        if not numeric_tokens and not is_named_outcome:
+        if not numeric_tokens and not is_named_outcome and not is_quote_claim and not is_review_authority_claim:
             continue
 
         candidates.append(
@@ -400,6 +454,7 @@ def _extract_claim_candidates(
                 normalized_tokens=frozenset(_normalize_numeric_token(token) for token in numeric_tokens),
                 customer_names=frozenset(names),
                 has_case_study_link=has_case_study_link,
+                requires_approved_quote=is_quote_claim,
             )
         )
 
@@ -551,6 +606,37 @@ def _customer_names_in_text(text: str, known_customer_names: Sequence[str]) -> L
 
 def _has_case_study_link(text: str) -> bool:
     return any("/case-studies/" in match.group(2) for match in MARKDOWN_LINK_RE.finditer(text))
+
+
+def _is_exact_quote_claim(
+    text: str,
+    customer_names: Sequence[str],
+    has_case_study_link: bool,
+) -> bool:
+    if not EXACT_QUOTE_RE.search(text):
+        return False
+    detection_text = _claim_text_for_detection(text)
+    return (
+        has_case_study_link
+        or bool(customer_names)
+        or bool(QUOTE_ATTRIBUTION_SIGNAL_RE.search(detection_text))
+    )
+
+
+def _is_review_authority_claim(text: str) -> bool:
+    normalized = _normalize_text(text)
+    negated_patterns = (
+        "without naming a reviewer",
+        "without using ratings",
+        "without star ratings",
+        "no reviewer",
+        "no ratings",
+        "not use ratings",
+        "do not use ratings",
+    )
+    if any(pattern in normalized for pattern in negated_patterns):
+        return False
+    return bool(REVIEW_AUTHORITY_SIGNAL_RE.search(text))
 
 
 def _proof_matches_customer(candidate: ClaimCandidate, proof: ProofEntry) -> bool:

@@ -354,7 +354,7 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
    | **AEO/GEO Target** | Capsule / PAA / FAQ / list / table / definition |
    | **Source Mapping** | External source, claim, anchor text, and target section |
    | **E-E-A-T Proof Map** | Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, claims excluded because proof is missing |
-   | **Customer Proof Pack** | Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved metrics, Use in copy, Claims excluded, approval status |
+   | **Customer Proof Pack** | Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved quotes, Approved metrics, Use in copy, Claims excluded, approval status |
    | **CTA** | soft / medium / strong (if applicable) |
    | **Mini-Story** | Whether to place a story here |
 
@@ -402,6 +402,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
   - **Quote Matrix candidates**: [customer, trade, region, theme, exact quote or summary, source row/link, approval status]
   - **Case-study proof paths**: [customer, public URL, supported non-numeric theme]
   - **Review-site experience evidence**: [platform, URL, date checked, product/competitor, experience pattern, evidence summary, exact quote/rating approval status]
+  - **Approved quotes**: [exact quote/testimonial, customer/brand/reviewer, source type, public proof URL, Evidence, approval status]
   - **Approved metrics**: [named customer metric, customer/brand, public proof URL, Evidence, approval status]
   - **Use in copy**: [exact quote / paraphrased theme / named metric / omit]
   - **Claims excluded**: [claim and missing proof reason]
@@ -693,7 +694,7 @@ FAQ proof requires every FAQ answer with claims to include a public proof link i
 python data_sources/modules/source_support_guard.py drafts/[filename].md --fail-on error
 ```
 
-The source support guard requires strict proof rows with Claim, URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact. A named customer metric must appear in Customer Proof Pack Approved metrics; Source Map alone is insufficient.
+The source support guard requires strict proof rows with Claim, Approved quote, or Approved metric plus URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact. Case-study proof paths and Review-site experience evidence may support non-metric E-E-A-T PoV and paraphrased themes only. Exact quotes/testimonials must appear in Customer Proof Pack Approved quotes with customer/brand or reviewer, source type, public URL, Evidence, and approved status. A named customer metric must appear in Customer Proof Pack Approved metrics; Source Map alone is insufficient for quotes, testimonials, or named metrics.
 
 ### 7. Score Content Quality
 ```bash

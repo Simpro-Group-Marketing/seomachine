@@ -91,6 +91,7 @@ Provides a comprehensive research brief with:
   - **Quote Matrix candidates**: [customer, trade, region, theme, exact quote or summary, source row/link, approval status]
   - **Case-study proof paths**: [customer, public URL, supported metric/theme]
   - **Review-site experience evidence**: [platform, URL, date checked, product/competitor, experience pattern, evidence summary, exact quote/rating approval status]
+  - **Approved quotes**: [exact quote/testimonial, customer/brand/reviewer, source type, public proof URL, Evidence, approval status]
   - **Approved metrics**: [metric, customer, source file, public proof URL]
   - **Use in copy**: [exact quote / paraphrased theme / named metric / omit]
   - **Claims excluded**: [claim and missing proof reason]

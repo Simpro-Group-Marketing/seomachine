@@ -320,6 +320,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "Quote Matrix candidates",
             "Case-study proof paths",
             "Review-site experience evidence",
+            "Approved quotes",
             "Pack status",
             "Claims excluded",
             "approval status",
@@ -409,6 +410,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "data_sources/modules/source_support_guard.py",
             "--fail-on error",
             "Evidence",
+            "Approved quote",
+            "quotes, testimonials",
             "named customer metric",
             "Approved metrics",
         ]

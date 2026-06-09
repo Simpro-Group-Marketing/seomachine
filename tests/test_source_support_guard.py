@@ -14,6 +14,7 @@ from data_sources.modules.source_support_guard import (
 SHAFFER_URL = "https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical"
 EBITDA_URL = "https://profitabilitypartners.io/what-is-ebitda-contractors/"
 PDF_URL = "https://example.com/report.pdf"
+G2_URL = "https://www.g2.com/products/simpro/reviews"
 
 
 def fetcher_with(source_text_by_url):
@@ -26,6 +27,52 @@ def fetcher_with(source_text_by_url):
 
 
 class SourceSupportGuardTests(unittest.TestCase):
+    def test_contextual_case_study_link_passes_with_case_study_proof_path(self):
+        content = f"""---
+Customer Proof Pack:
+- Case-study proof paths: Shaffer Beacon Mechanical, {SHAFFER_URL}, supported non-numeric theme: HVAC/plumbing operations perspective
+---
+
+# HVAC franchise software
+
+[The Shaffer Beacon Mechanical case study]({SHAFFER_URL}) adds an HVAC and plumbing operator perspective to the discussion of franchise-ready field workflows.
+"""
+
+        findings = check_content(content, fetcher=fetcher_with({}))
+
+        self.assertEqual(findings, [])
+
+    def test_review_site_paraphrased_context_passes_with_review_experience_evidence(self):
+        content = f"""---
+Customer Proof Pack:
+- Review-site experience evidence: G2, {G2_URL}, date checked 2026-06-09, product: Simpro, experience pattern: field workflow pain, evidence summary: reviewers discuss dispatch and field visibility, exact quote/rating approval status: not approved
+---
+
+# Field service software
+
+Public review themes can inform a paraphrased E-E-A-T discussion of field workflow pain, without naming a reviewer or using ratings.
+"""
+
+        findings = check_content(content, fetcher=fetcher_with({}))
+
+        self.assertEqual(findings, [])
+
+    def test_named_customer_outcome_without_number_requires_claim_row(self):
+        content = f"""---
+Customer Proof Pack:
+- Case-study proof paths: Shaffer Beacon Mechanical, {SHAFFER_URL}, supported non-numeric theme: centralized job data
+---
+
+# HVAC franchise software
+
+[Shaffer Beacon Mechanical]({SHAFFER_URL}) centralized job data across office and field teams.
+"""
+
+        findings = check_content(content, fetcher=fetcher_with({}))
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule_id"], "missing_strict_proof")
+
     def test_shaffer_60_percent_claim_fails_when_source_lacks_evidence(self):
         content = f"""---
 Source Map:
@@ -222,6 +269,116 @@ Well-run HVAC operators should target [15% to 20% EBITDA margins]({EBITDA_URL}) 
 
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0]["rule_id"], "source_fetch_failed")
+
+    def test_exact_case_study_quote_fails_without_approved_quote(self):
+        content = f"""---
+Customer Proof Pack:
+- Case-study proof paths: Shaffer Beacon Mechanical, {SHAFFER_URL}, supported non-numeric theme: technician workflow perspective
+---
+
+# HVAC franchise software
+
+[Shaffer Beacon Mechanical]({SHAFFER_URL}) said, "The system gives our technicians one place to work from."
+"""
+
+        findings = check_content(content, fetcher=fetcher_with({SHAFFER_URL: "The system gives our technicians one place to work from."}))
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule_id"], "quote_requires_approved_quote")
+
+    def test_exact_case_study_quote_passes_with_approved_quote(self):
+        content = f"""---
+Customer Proof Pack:
+- Approved quote: "The system gives our technicians one place to work from." | Customer/brand: Shaffer Beacon Mechanical | Source type: case study | URL: {SHAFFER_URL} | Evidence: "The system gives our technicians one place to work from." | Status: approved | Use: exact quote
+---
+
+# HVAC franchise software
+
+[Shaffer Beacon Mechanical]({SHAFFER_URL}) said, "The system gives our technicians one place to work from."
+"""
+
+        findings = check_content(content, fetcher=fetcher_with({SHAFFER_URL: "The system gives our technicians one place to work from."}))
+
+        self.assertEqual(findings, [])
+
+    def test_exact_review_quote_fails_with_only_review_experience_evidence(self):
+        content = f"""---
+Customer Proof Pack:
+- Review-site experience evidence: G2, {G2_URL}, date checked 2026-06-09, product: Simpro, experience pattern: scheduling pain, evidence summary: reviewers mention scheduling workflows, exact quote/rating approval status: not approved
+---
+
+# Field service software
+
+A G2 reviewer said, "Scheduling is much easier for our field team now."
+"""
+
+        findings = check_content(content, fetcher=fetcher_with({G2_URL: "Scheduling is much easier for our field team now."}))
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule_id"], "quote_requires_approved_quote")
+
+    def test_approved_quote_with_candidate_status_fails(self):
+        content = f"""---
+Customer Proof Pack:
+- Approved quote: "The system gives our technicians one place to work from." | Customer/brand: Shaffer Beacon Mechanical | Source type: case study | URL: {SHAFFER_URL} | Evidence: "The system gives our technicians one place to work from." | Status: candidate | Use: exact quote
+---
+
+# HVAC franchise software
+
+[Shaffer Beacon Mechanical]({SHAFFER_URL}) said, "The system gives our technicians one place to work from."
+"""
+
+        findings = check_content(content, fetcher=fetcher_with({SHAFFER_URL: "The system gives our technicians one place to work from."}))
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule_id"], "quote_requires_approved_quote")
+
+    def test_approved_quote_with_missing_source_evidence_fails(self):
+        content = f"""---
+Customer Proof Pack:
+- Approved quote: "The system gives our technicians one place to work from." | Customer/brand: Shaffer Beacon Mechanical | Source type: case study | URL: {SHAFFER_URL} | Evidence: "The system gives our technicians one place to work from." | Status: approved | Use: exact quote
+---
+
+# HVAC franchise software
+
+[Shaffer Beacon Mechanical]({SHAFFER_URL}) said, "The system gives our technicians one place to work from."
+"""
+
+        findings = check_content(content, fetcher=fetcher_with({SHAFFER_URL: "Shaffer Beacon Mechanical uses Simpro for HVAC and plumbing workflows."}))
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule_id"], "source_evidence_not_found")
+
+    def test_named_reviewer_ranking_language_fails_without_approved_strict_row(self):
+        content = f"""---
+Customer Proof Pack:
+- Review-site experience evidence: G2, {G2_URL}, date checked 2026-06-09, product: Simpro, experience pattern: category comparison, evidence summary: reviewers discuss field service software options, exact quote/rating approval status: not approved
+---
+
+# Field service software
+
+G2 reviewer Jane Smith described Simpro as a category leader for field service software.
+"""
+
+        findings = check_content(content, fetcher=fetcher_with({G2_URL: "Jane Smith described Simpro as a category leader for field service software."}))
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule_id"], "missing_strict_proof")
+
+    def test_named_reviewer_ranking_language_passes_with_approved_strict_row(self):
+        content = f"""---
+Customer Proof Pack:
+- Claim: G2 reviewer Jane Smith described Simpro as a category leader for field service software | URL: {G2_URL} | Evidence: "Jane Smith described Simpro as a category leader for field service software" | Status: approved | Use: named reviewer claim
+---
+
+# Field service software
+
+G2 reviewer Jane Smith described Simpro as a category leader for field service software.
+"""
+
+        findings = check_content(content, fetcher=fetcher_with({G2_URL: "Jane Smith described Simpro as a category leader for field service software."}))
+
+        self.assertEqual(findings, [])
 
     def test_check_file_failure_threshold_and_require_source_support(self):
         content = f"""---

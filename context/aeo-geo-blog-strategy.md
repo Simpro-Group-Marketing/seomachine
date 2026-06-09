@@ -83,6 +83,7 @@ Required Customer Proof Pack shape:
 - **Quote Matrix candidates**: [customer, trade, region, theme, exact quote or summary, source row/link, approval status]
 - **Case-study proof paths**: [customer, public URL, supported non-numeric theme]
 - **Review-site experience evidence**: [platform, URL, date checked, product/competitor, experience pattern, evidence summary, exact quote/rating approval status]
+- **Approved quotes**: [exact quote/testimonial, customer/brand/reviewer, source type, public proof URL, Evidence, approval status]
 - **Approved metrics**: [named customer metric, customer/brand, public proof URL, Evidence, approval status]
 - **Use in copy**: [exact quote / paraphrased theme / named metric / omit]
 - **Claims excluded**: [claim and missing proof reason]
@@ -92,10 +93,11 @@ Example strict proof rows:
 
 ```markdown
 - Claim: Shaffer Beacon Mechanical can process twice the amount of business with the same resources | URL: https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical | Evidence: "We can process twice the amount of business with the same amount of resources" | Status: approved | Use: paraphrased customer outcome
+- Approved quote: "The system gives our technicians one place to work from." | Customer/brand: Shaffer Beacon Mechanical | Source type: case study | URL: https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical | Evidence: "The system gives our technicians one place to work from." | Status: approved | Use: exact quote
 - Approved metric: Simpro 24,000+ trade businesses | Customer/brand: Simpro | URL: https://www.simprogroup.com/company/press/simpro-group-unveils-lightning | Evidence: "More than 24,000 trade businesses" | Status: approved
 ```
 
-Case-study proof paths may support non-numeric themes only. Any named customer metric must appear under Approved metrics with Customer/brand, public URL, source-visible Evidence, and Status: approved. Source Map alone is insufficient for a named customer metric.
+Case-study proof paths and Review-site experience evidence may support non-numeric E-E-A-T PoV and paraphrased themes only. Exact quotes or testimonial wording must appear under Approved quotes with customer/brand or reviewer, source type, public URL, source-visible Evidence, and Status: approved. Any named customer metric must appear under Approved metrics with Customer/brand, public URL, source-visible Evidence, and Status: approved. Source Map alone is insufficient for quotes, testimonials, or named metrics.
 
 ## AnswerSocrates PAA Workflow
 
