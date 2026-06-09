@@ -44,15 +44,15 @@ The profit impact compounds when scheduling is connected to job costing. Researc
 
 ### What is the best way to schedule HVAC technicians?
 
-The best way to schedule HVAC technicians is to use a live dispatch calendar that shows availability, job priority, location, and skill fit. This helps office teams assign work without overloading technicians or missing urgent calls. Mobile updates then keep the schedule accurate as jobs change during the day.
+The best way to schedule HVAC technicians is to use [field service scheduling](https://www.simprogroup.com/features/scheduling-software) that shows availability, job priority, location, and skill fit. This helps office teams assign work without overloading technicians or missing urgent calls. Mobile updates then keep the schedule accurate as jobs change during the day.
 
 ### How does HVAC scheduling software reduce missed appointments?
 
-HVAC scheduling software reduces missed appointments by centralizing job details, technician assignments, customer notifications, and status updates. Dispatchers can see conflicts before they become failures, while technicians receive the latest job information on mobile. Automated reminders also reduce no-shows and last-minute customer confusion.
+HVAC scheduling software reduces missed appointments by centralizing job details, technician assignments, customer notifications, and status updates. Dispatchers can see conflicts before they become failures, while technicians receive the latest job information through a [field service mobile app](https://www.simprogroup.com/features/field-service-mobile-app). Automated reminders also reduce no-shows and last-minute customer confusion.
 
 ### Should HVAC scheduling connect to invoicing?
 
-HVAC scheduling should connect to invoicing because completed work loses value when job details stay trapped in the field. When technician notes, labor time, materials, and approvals flow into billing, office teams can invoice faster. That reduces rework, protects cash flow, and improves job-level reporting.
+HVAC scheduling should connect to invoicing because completed work loses value when job details stay trapped in the field. When technician notes, labor time, materials, and approvals flow into [field service invoicing](https://www.simprogroup.com/features/invoicing-software-for-construction), office teams can invoice faster. That reduces rework, protects cash flow, and improves job-level reporting.
 """
 
 
@@ -106,6 +106,16 @@ class AeoGeoRaterTests(unittest.TestCase):
         content = COMPLIANT_ARTICLE.replace("Author: Jordan Lee\n", "")
         content = content.replace("Last Updated: 2026-05-22\n", "Last Updated: 2026-05-22\n")
         content = content.replace("Simpro connects", "The platform connects")
+        content = content.replace(
+            "https://www.simprogroup.com/features/scheduling-software",
+            "https://www.fieldtechnologiesonline.com/",
+        ).replace(
+            "https://www.simprogroup.com/features/field-service-mobile-app",
+            "https://www.achrnews.com/",
+        ).replace(
+            "https://www.simprogroup.com/features/invoicing-software-for-construction",
+            "https://www.mckinsey.com/",
+        )
 
         result = rate_aeo_geo(
             content,
@@ -169,8 +179,8 @@ class AeoGeoRaterTests(unittest.TestCase):
 
     def test_faq_answers_outside_40_to_60_words_fail(self):
         content = COMPLIANT_ARTICLE.replace(
-            "The best way to schedule HVAC technicians is to use a live dispatch calendar that shows availability, job priority, location, and skill fit. This helps office teams assign work without overloading technicians or missing urgent calls. Mobile updates then keep the schedule accurate as jobs change during the day.",
-            "Use a shared calendar.",
+            "The best way to schedule HVAC technicians is to use [field service scheduling](https://www.simprogroup.com/features/scheduling-software) that shows availability, job priority, location, and skill fit. This helps office teams assign work without overloading technicians or missing urgent calls. Mobile updates then keep the schedule accurate as jobs change during the day.",
+            "Use [field service scheduling](https://www.simprogroup.com/features/scheduling-software).",
         )
 
         result = rate_aeo_geo(
@@ -188,6 +198,9 @@ class AeoGeoRaterTests(unittest.TestCase):
         content = content.replace("(https://www.fieldtechnologiesonline.com/)", "()")
         content = content.replace("(https://www.achrnews.com/)", "()")
         content = content.replace("(https://www.mckinsey.com/)", "()")
+        content = content.replace("(https://www.simprogroup.com/features/scheduling-software)", "()")
+        content = content.replace("(https://www.simprogroup.com/features/field-service-mobile-app)", "()")
+        content = content.replace("(https://www.simprogroup.com/features/invoicing-software-for-construction)", "()")
 
         result = rate_aeo_geo(
             content,
@@ -197,6 +210,27 @@ class AeoGeoRaterTests(unittest.TestCase):
         self.assertFalse(result["checks"]["external_sources"]["passed"])
         self.assertFalse(result["checks"]["metadata"]["passed"])
         self.assertLess(result["score"], 90)
+
+    def test_faq_without_linked_proof_blocks_aeo_geo_gate(self):
+        content = COMPLIANT_ARTICLE.replace(
+            "[field service scheduling](https://www.simprogroup.com/features/scheduling-software)",
+            "a live dispatch calendar",
+        ).replace(
+            "[field service mobile app](https://www.simprogroup.com/features/field-service-mobile-app)",
+            "mobile software",
+        ).replace(
+            "[field service invoicing](https://www.simprogroup.com/features/invoicing-software-for-construction)",
+            "invoicing",
+        )
+
+        result = rate_aeo_geo(
+            content,
+            {"primary_keyword": "hvac scheduling software"},
+        )
+
+        self.assertFalse(result["checks"]["faq_proof"]["passed"])
+        self.assertFalse(result["passed"])
+        self.assertIn("faq_proof", {issue["check"] for issue in result["issues"]})
 
 
 if __name__ == "__main__":

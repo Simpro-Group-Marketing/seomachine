@@ -11,6 +11,11 @@ import requests
 from typing import Dict, Optional, List, Tuple
 from pathlib import Path
 
+try:
+    from .url_validator import format_summary, validate_file_urls
+except ImportError:
+    from url_validator import format_summary, validate_file_urls
+
 
 class WordPressPublisher:
     """WordPress REST API client for publishing drafts"""
@@ -360,6 +365,13 @@ class WordPressPublisher:
         Returns:
             Dict with post_id, edit_url, view_url, and status information
         """
+        url_summary = validate_file_urls(file_path)
+        if not url_summary.passed:
+            raise ValueError(
+                "URL validation failed before WordPress publish:\n"
+                f"{format_summary(url_summary)}"
+            )
+
         # Map friendly names to REST API endpoints
         type_endpoints = {
             'post': 'posts',

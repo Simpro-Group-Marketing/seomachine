@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch
 
 from data_sources.modules.content_scorer import ContentScorer
+from data_sources.modules.url_validator import UrlValidationResult, UrlValidationSummary
 
 
 COMPLIANT_ARTICLE = """---
@@ -45,15 +46,15 @@ The profit impact compounds when scheduling is connected to job costing. Researc
 
 ### What is the best way to schedule HVAC technicians?
 
-The best way to schedule HVAC technicians is to use a live dispatch calendar that shows availability, job priority, location, and skill fit. This helps office teams assign work without overloading technicians or missing urgent calls. Mobile updates then keep the schedule accurate as jobs change during the day.
+The best way to schedule HVAC technicians is to use [field service scheduling](https://www.simprogroup.com/features/scheduling-software) that shows availability, job priority, location, and skill fit. This helps office teams assign work without overloading technicians or missing urgent calls. Mobile updates then keep the schedule accurate as jobs change during the day.
 
 ### How does HVAC scheduling software reduce missed appointments?
 
-HVAC scheduling software reduces missed appointments by centralizing job details, technician assignments, customer notifications, and status updates. Dispatchers can see conflicts before they become failures, while technicians receive the latest job information on mobile. Automated reminders also reduce no-shows and last-minute customer confusion.
+HVAC scheduling software reduces missed appointments by centralizing job details, technician assignments, customer notifications, and status updates. Dispatchers can see conflicts before they become failures, while technicians receive the latest job information through a [field service mobile app](https://www.simprogroup.com/features/field-service-mobile-app). Automated reminders also reduce no-shows and last-minute customer confusion.
 
 ### Should HVAC scheduling connect to invoicing?
 
-HVAC scheduling should connect to invoicing because completed work loses value when job details stay trapped in the field. When technician notes, labor time, materials, and approvals flow into billing, office teams can invoice faster. That reduces rework, protects cash flow, and improves job-level reporting.
+HVAC scheduling should connect to invoicing because completed work loses value when job details stay trapped in the field. When technician notes, labor time, materials, and approvals flow into [field service invoicing](https://www.simprogroup.com/features/invoicing-software-for-construction), office teams can invoice faster. That reduces rework, protects cash flow, and improves job-level reporting.
 """
 
 
@@ -156,6 +157,96 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
         self.assertGreaterEqual(result["aeo_geo"]["score"], 90)
         self.assertTrue(result["quality_gates"]["content_quality"]["passed"])
         self.assertTrue(result["quality_gates"]["aeo_geo"]["passed"])
+
+    def test_url_validation_failure_blocks_content_scorer_when_enabled(self):
+        scorer = ContentScorer()
+        blocked = UrlValidationResult(
+            url="https://example.com/dead",
+            status="unresolved",
+            status_code=404,
+            reason="HTTP 404",
+            line=9,
+            anchor="dead source",
+        )
+
+        with patch(
+            "data_sources.modules.content_scorer.validate_content_urls",
+            return_value=UrlValidationSummary([blocked]),
+        ), patch.object(
+            ContentScorer,
+            "_score_humanity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_specificity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_structure_balance",
+            return_value={"score": 100, "issues": [], "details": {}, "prose_ratio": 0.65},
+        ), patch.object(
+            ContentScorer,
+            "_score_seo",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_readability",
+            return_value={"score": 100, "issues": [], "details": {}, "flesch": 68},
+        ):
+            result = scorer.score(
+                COMPLIANT_ARTICLE,
+                {"primary_keyword": "hvac scheduling software"},
+                validate_urls=True,
+            )
+
+        self.assertFalse(result["passed"])
+        self.assertIn("url_validation", result["quality_gates"])
+        self.assertFalse(result["quality_gates"]["url_validation"]["passed"])
+        self.assertIn("URL validation blockers detected", result["priority_fixes"][0]["issue"])
+
+    def test_faq_proof_failure_blocks_content_scorer(self):
+        scorer = ContentScorer()
+        content = COMPLIANT_ARTICLE.replace(
+            "[field service scheduling](https://www.simprogroup.com/features/scheduling-software)",
+            "a live dispatch calendar",
+        ).replace(
+            "[field service mobile app](https://www.simprogroup.com/features/field-service-mobile-app)",
+            "mobile software",
+        ).replace(
+            "[field service invoicing](https://www.simprogroup.com/features/invoicing-software-for-construction)",
+            "invoicing",
+        )
+
+        with patch.object(
+            ContentScorer,
+            "_score_humanity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_specificity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_structure_balance",
+            return_value={"score": 100, "issues": [], "details": {}, "prose_ratio": 0.65},
+        ), patch.object(
+            ContentScorer,
+            "_score_seo",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_readability",
+            return_value={"score": 100, "issues": [], "details": {}, "flesch": 68},
+        ):
+            result = scorer.score(
+                content,
+                {"primary_keyword": "hvac scheduling software"},
+            )
+
+        self.assertFalse(result["passed"])
+        self.assertIn("faq_proof", result["quality_gates"])
+        self.assertFalse(result["quality_gates"]["faq_proof"]["passed"])
+        self.assertIn("FAQ proof blockers detected", result["priority_fixes"][0]["issue"])
 
 
 if __name__ == "__main__":

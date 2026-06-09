@@ -68,6 +68,9 @@ Located in `data_sources/modules/`. The Content Analyzer chains:
 3. `content_length_comparator.py` - Benchmarks against top 10 SERP results
 4. `readability_scorer.py` - Flesch Reading Ease, grade level
 5. `seo_quality_rater.py` - Comprehensive 0-100 SEO score
+6. `url_validator.py` - URL validation guardrail for Markdown links and bare URLs
+7. `numeric_claim_source_guard.py` - Metric/stat proof guardrail for public numeric business claims
+8. `faq_proof_guard.py` - FAQ proof guardrail for public proof links or question-specific Source Map proof
 
 ### Data Integrations
 
@@ -106,7 +109,20 @@ python3 tests/test_dataforseo.py
 
 Rewrites go to `rewrites/`. Landing pages go to `landing-pages/`. Audits go to `audits/`. Repurposed content goes to `repurposed/`.
 
-Blog rewrites must follow the same AEO/GEO evidence boundaries as new articles: sourced PAA/FAQ provenance, source mapping, E-E-A-T Proof Map inputs, direct-answer structure, schema notes, AI copy lint, `content_scorer.py`, and the 85/100 general quality plus 90/100 AEO/GEO gates before `/optimize`.
+Blog rewrites must follow the same AEO/GEO evidence boundaries as new articles: sourced PAA/FAQ provenance, FAQ proof, source mapping, E-E-A-T Proof Map inputs, direct-answer structure, schema notes, AI copy lint, URL validation, numeric claim source guard, `content_scorer.py --validate-urls`, and the 85/100 general quality plus 90/100 AEO/GEO gates before `/optimize`.
+
+Before `/optimize` or any publish path, run:
+```bash
+python data_sources/modules/url_validator.py [file] --fail-on unresolved
+python data_sources/modules/numeric_claim_source_guard.py [file] --fail-on error
+python data_sources/modules/faq_proof_guard.py [file] --fail-on error
+```
+
+URL validation confirms destinations resolve; it does not prove the page supports the claim, so Source Map and E-E-A-T proof review still verify claim support.
+
+Every metric, statistic, or numeric business claim must have a same-paragraph public link or a matching Source Map / Customer Proof Pack entry with a public URL or local proof artifact. Treat "industry standard," "FDD conventions," and "no anchor" as insufficient proof for numeric public claims.
+
+FAQ proof requires every claim-bearing FAQ answer to include a public proof link inside the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
 
 Context files are the internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics. Draft bodies may use public sources and context-backed proof, but must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, internal proof-path instructions, or source/proof meta-commentary. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 

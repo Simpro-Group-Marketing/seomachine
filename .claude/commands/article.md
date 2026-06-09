@@ -542,6 +542,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - 4-6 questions from research (real user questions)
 - 40-60 word answers (featured snippet optimized)
 - Direct answer first, then context
+- FAQ proof is required for every FAQ answer that makes a claim: include a public proof link inside the answer, or map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
 - 200-300 words total
 
 #### Conclusion
@@ -624,6 +625,7 @@ After all sections are written and edited:
    - [ ] AnswerSocrates PAA artifact exists at `research/paa-questions-[topic-slug]-[YYYY-MM-DD].md`
    - [ ] Capsule Method applied to H1 and 60%+ major H2s
    - [ ] AEO/GEO Map complete with selected PAA, source mapping, and E-E-A-T proof
+   - [ ] FAQ proof checked with `python data_sources/modules/faq_proof_guard.py drafts/[filename].md --fail-on error`; every claim-bearing answer has a public proof link or question-specific Source Map entry. Context file paths alone do not count
    - [ ] Schema notes included for BlogPosting, FAQPage, Author, and VideoObject when relevant
    - [ ] Public article body does not mention "repo context," context file paths, Source Maps, PAA artifacts, change summaries, or internal proof-path notes
 
@@ -665,15 +667,39 @@ python data_sources/modules/ai_copy_linter.py drafts/[filename].md --profile sim
 
 If errors remain, revise once, rerun `/scrub`, rerun the linter, then move to `review-required/` with lint findings if errors remain. Warnings go into review notes unless strict mode is requested.
 
-### 3. Score Content Quality
+### 3. Validate URLs
 ```bash
-python data_sources/modules/content_scorer.py drafts/[filename].md
+python data_sources/modules/url_validator.py drafts/[filename].md --fail-on unresolved
+```
+
+URL validation confirms destinations resolve; it does not prove the page supports the claim, so Source Map and E-E-A-T proof review still verify claim support.
+
+### 4. Check Numeric Claim Sources
+```bash
+python data_sources/modules/numeric_claim_source_guard.py drafts/[filename].md --fail-on error
+```
+
+Every metric, statistic, or numeric business claim must have a same-paragraph public link or a matching Source Map / Proof Pack entry with a public URL or local proof artifact. Context-backed metrics are acceptable only when the public copy or proof map points to evidence that proves the number.
+
+### 5. Check FAQ Proof
+```bash
+python data_sources/modules/faq_proof_guard.py drafts/[filename].md --fail-on error
+```
+
+FAQ proof requires every FAQ answer with claims to include a public proof link inside the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
+
+### 6. Score Content Quality
+```bash
+python data_sources/modules/content_scorer.py drafts/[filename].md --validate-urls
 ```
 
 **Quality Gates:**
 - General content quality score must be **85/100** or higher.
 - AEO/GEO score must be **90/100** or higher.
-- A draft only passes if AI copy lint has zero errors and both score gates pass.
+- URL validation must pass before `/optimize`.
+- Numeric claim source guard must pass before scoring or `/optimize`.
+- FAQ proof guard must pass before scoring or `/optimize`.
+- A draft only passes if AI copy lint has zero errors, URL validation passes, numeric claim source guard passes, FAQ proof guard passes, and both score gates pass.
 
 | Dimension | Weight |
 |-----------|--------|
@@ -683,17 +709,20 @@ python data_sources/modules/content_scorer.py drafts/[filename].md
 | SEO Compliance | 15% |
 | Readability | 10% |
 
-### 4. Auto-Revise if Needed
+### 7. Auto-Revise if Needed
 If either gate fails:
 1. Review `priority_fixes` from scorer
 2. Review AEO/GEO failed checks from `aeo_geo`
-3. Apply top 3-5 fixes
-4. Rerun `/scrub` and the AI copy linter
-5. Re-score
-6. Repeat once more if needed
-7. If AI copy lint errors remain after 1 revision, or content quality remains below 85/100 or AEO/GEO remains below 90/100 after 2 iterations -> move to `review-required/`
+3. Review URL validation blockers from `data_sources/modules/url_validator.py --fail-on unresolved`
+4. Review numeric claim source blockers from `data_sources/modules/numeric_claim_source_guard.py --fail-on error`
+5. Review FAQ proof blockers from `data_sources/modules/faq_proof_guard.py --fail-on error`
+6. Apply top 3-5 fixes
+7. Rerun `/scrub`, the AI copy linter, URL validation, numeric claim source guard, and FAQ proof guard
+8. Re-score
+9. Repeat once more if needed
+10. If AI copy lint errors remain after 1 revision, URL validation fails, numeric claim source guard fails, FAQ proof guard fails, or content quality remains below 85/100 or AEO/GEO remains below 90/100 after 2 iterations -> move to `review-required/`
 
-### 5. Run Optimization Agents
+### 8. Run Optimization Agents
 After passing quality threshold:
 - `content-analyzer` agent
 - `seo-optimizer` agent

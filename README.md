@@ -11,6 +11,7 @@ SEO Machine is built on Claude Code and provides:
 - **Specialized Agents**: Content analyzer, SEO optimization, meta element creation, internal linking, keyword mapping, editor, performance analysis, headline generator, CRO analyst, landing page optimizer
 - **Marketing Skills**: 26+ marketing skills for copywriting, CRO, A/B testing, email sequences, pricing strategy, and more
 - **AEO/GEO Workflow**: Capsule Method structure, PAA/FAQ integration, source mapping, E-E-A-T Proof Map checks, and `aeo_geo_rater` scoring (90+ target) via `context/aeo-geo-blog-strategy.md`
+- **Source-Proof Guardrails**: Every metric, statistic, or numeric business claim must be supported by a public URL or local proof artifact through the body link, Source Map, or Customer Proof Pack. FAQ proof requires each claim-bearing answer to include a public proof link or question-specific Source Map / FAQ Proof Map entry; Context file paths alone do not count.
 - **Advanced SEO Analysis**: Search intent detection, keyword density & clustering, content length comparison, readability scoring, SEO quality rating (0-100)
 - **Data Integrations**: GA4 and GSC via project MCP servers; DataForSEO, Ahrefs, and Semrush context in keyword/competitor files; PEEC AI citation tracking
 - **Simpro Context Pack**: Pre-filled brand voice, style guide, features, 40+ competitor battlecards, writing examples, internal links, target keywords, AI citation register, Reddit strategy, and scoped Lightning positioning overlay
@@ -136,6 +137,8 @@ After writing, these agents automatically analyze the content:
 **What it does**:
 - Comprehensive SEO audit
 - Validates all elements meet requirements
+- Runs URL validation with `python data_sources/modules/url_validator.py [file] --fail-on unresolved`
+- Runs numeric claim source guard with `python data_sources/modules/numeric_claim_source_guard.py [file] --fail-on error`
 - Provides final polish recommendations
 - Generates publishing readiness score
 - Creates optimization report
@@ -587,6 +590,9 @@ Six Python modules for landing page conversion optimization:
 - `opportunity_scorer.py` - 8-factor opportunity scoring for content prioritization
 - `content_scorer.py` - 5-dimension content quality scoring (humanity, specificity, structure, SEO, readability) with AEO/GEO gate
 - `aeo_geo_rater.py` - Capsule Method, PAA, source mapping, and E-E-A-T scoring (90+ publish target)
+- `url_validator.py` - URL validation guardrail for Markdown links and bare URLs; run `python data_sources/modules/url_validator.py [file] --fail-on unresolved` before `/optimize`
+- `numeric_claim_source_guard.py` - Metric/stat proof guardrail; run `python data_sources/modules/numeric_claim_source_guard.py [file] --fail-on error` before scoring or `/optimize` to block unsupported numeric business claims without a public URL or local proof artifact
+- `faq_proof_guard.py` - FAQ proof guardrail; run `python data_sources/modules/faq_proof_guard.py [file] --fail-on error` before scoring or `/optimize` to block FAQ answers that lack a public proof link or question-specific Source Map / FAQ Proof Map entry. Context file paths alone do not count.
 - `content_scrubber.py` - Removes invisible Unicode marks, em dashes, and whitespace artifacts before publish
 - `ai_copy_linter.py` - Deterministic AI copy detection gate with line-level findings
 - `engagement_analyzer.py` - Content engagement pattern analysis
@@ -716,6 +722,7 @@ Every Simpro blog post should meet these requirements:
 - [ ] Minimum 2,000 words (2,500-3,000+ preferred for pillar posts)
 - [ ] Unique angle vs. ServiceTitan, Jobber, Housecall Pro, and listicle competitors
 - [ ] Factually accurate — verify stats, customer names, and product claims
+- [ ] Every metric, statistic, or numeric business claim has same-paragraph proof or a Source Map / Customer Proof Pack entry with a public URL or local proof artifact
 - [ ] Actionable for **trade and field service leaders** (not generic SMB advice)
 - [ ] Simpro voice: authoritative, trades-focused, outcomes-driven (`brand-voice.md`)
 
@@ -732,6 +739,7 @@ Every Simpro blog post should meet these requirements:
 ### AEO / GEO (generative engines)
 - [ ] Capsule Method: 50-60 word direct answer under H1 and on 60%+ major H2s
 - [ ] 3-5 PAA/FAQ questions answered (from research brief or `/article` AnswerSocrates pass)
+- [ ] FAQ proof passes: every claim-bearing FAQ answer has a public proof link or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
 - [ ] E-E-A-T Proof Map resolved with Experience proof and Expertise proof, including review-site experience evidence when reviews show first-hand customer experience
 - [ ] Named author, last-updated date, and customer or expert proof where applicable
 - [ ] Schema notes: BlogPosting, FAQPage (if FAQ), Author, VideoObject (if embedded)
@@ -762,26 +770,37 @@ Every Simpro blog post should meet these requirements:
 1. **Follow the brief**: Outline from `research/brief-*.md`
 2. **Trades language**: job costing, dispatch, PM, quotes — not generic "solutions" copy
 3. **Named proof**: Customer outcomes from approved case studies and mapped metrics in `features.md`; use public-facing source links in the article body
-4. **Source mapping**: At least three external claims with clear attribution
-5. **Down-funnel link**: Add 1 contextual down-funnel internal link to an industry, solution, or feature page. Use `https://www.simprogroup.com/industries` for broad trades topics when no single industry page fits.
-6. **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics. Draft bodies may use public sources and context-backed proof, but must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, internal proof-path instructions, or source/proof meta-commentary. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
-7. **Competitive framing**: Use `competitor-analysis.md` — differentiate, do not disparage
+4. **Metric/stat proof**: Every metric, statistic, or numeric business claim must map to evidence that proves it, either through a same-paragraph public link or a Source Map / Customer Proof Pack entry with a public URL or local proof artifact
+5. **FAQ proof**: Every claim-bearing FAQ answer must include a public proof link inside the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
+6. **Source mapping**: At least three external claims with clear attribution
+7. **Down-funnel link**: Add 1 contextual down-funnel internal link to an industry, solution, or feature page. Use `https://www.simprogroup.com/industries` for broad trades topics when no single industry page fits.
+8. **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics. Draft bodies may use public sources and context-backed proof, but must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, internal proof-path instructions, or source/proof meta-commentary. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
+9. **Competitive framing**: Use `competitor-analysis.md` — differentiate, do not disparage
 
 ### After Writing
 1. **Agent passes**: SEO Optimizer, Meta Creator, Internal Linker, Keyword Mapper
 2. **Scrub punctuation artifacts**: `/scrub` or `content_scrubber.py` before human review
 3. **Lint AI copy**: `python data_sources/modules/ai_copy_linter.py [file] --profile simpro-web --fail-on error`
-4. **Optimize**: `/optimize` for final SEO polish
-5. **Score**: Run content through scorer + AEO/GEO gate when publishing high-priority posts
-6. **Publish**: `/publish-draft` to WordPress when approved
+4. **URL validation**: `python data_sources/modules/url_validator.py [file] --fail-on unresolved`
+5. **Numeric claim source guard**: `python data_sources/modules/numeric_claim_source_guard.py [file] --fail-on error`
+6. **FAQ proof guard**: `python data_sources/modules/faq_proof_guard.py [file] --fail-on error`
+7. **Score**: Run `python data_sources/modules/content_scorer.py [file] --validate-urls` for the content, AEO/GEO, FAQ proof, and URL validation gates
+8. **Optimize**: `/optimize` for final SEO polish only after URL validation, numeric claim source guard, and FAQ proof guard pass
+9. **Publish**: `/publish-draft` to WordPress when approved
 
 ### For Blog Rewrites
 1. **`/analyze-existing`** on the live simprogroup.com URL or `published/` file
 2. **Confirm AEO/GEO inputs**: main answer target, PAA/FAQ provenance, source map, E-E-A-T Proof Map, schema notes, and missing strategy inputs
-3. **Run the quality loop**: `/scrub`, AI copy linter, `content_scorer.py`, then `/optimize`
+3. **Run the quality loop**: `/scrub`, AI copy linter, `data_sources/modules/url_validator.py --fail-on unresolved`, `data_sources/modules/numeric_claim_source_guard.py --fail-on error`, `data_sources/modules/faq_proof_guard.py --fail-on error`, `content_scorer.py --validate-urls`, then `/optimize`
 4. **Refresh metrics** in intro/CTA if GSC/GA4 shows new quick-win queries
 5. **Preserve strong sections**; expand thin H2s vs. SERP leaders
 6. **Re-check AI citations** if the post targets AI-intent queries
+
+URL validation confirms destinations resolve; it does not prove the page supports the claim, so Source Map and E-E-A-T proof review still verify claim support.
+
+Numeric claim source guard confirms every metric, statistic, or numeric business claim has a same-paragraph public link or a matching Source Map / Customer Proof Pack entry with a public URL or local proof artifact. It does not prove semantic support; it blocks unmapped numbers before scoring and `/optimize`.
+
+FAQ proof guard confirms every claim-bearing FAQ answer has a public proof link or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count. It blocks unsupported FAQ answers before scoring and `/optimize`.
 
 ## Workflow Examples
 

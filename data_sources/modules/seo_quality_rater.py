@@ -13,6 +13,11 @@ from pathlib import Path
 from urllib.parse import urlparse
 from typing import Dict, List, Optional, Any, Tuple
 
+try:
+    from .url_validator import validate_content_urls
+except ImportError:
+    from url_validator import validate_content_urls
+
 
 DOWN_FUNNEL_PATH_PREFIXES = (
     "/features/",
@@ -118,7 +123,8 @@ class SEOQualityRater:
         secondary_keywords: Optional[List[str]] = None,
         keyword_density: Optional[float] = None,
         internal_link_count: Optional[int] = None,
-        external_link_count: Optional[int] = None
+        external_link_count: Optional[int] = None,
+        validate_urls: bool = False
     ) -> Dict[str, Any]:
         """
         Rate content against SEO best practices
@@ -132,6 +138,7 @@ class SEOQualityRater:
             keyword_density: Pre-calculated keyword density
             internal_link_count: Number of internal links
             external_link_count: Number of external links
+            validate_urls: Resolve URLs and block publishing readiness on failures
 
         Returns:
             Dict with overall score, category scores, and recommendations
@@ -190,6 +197,37 @@ class SEOQualityRater:
             warnings.extend(category.get('warnings', []))
             suggestions.extend(category.get('suggestions', []))
 
+        url_validation = None
+        if validate_urls:
+            url_validation = validate_content_urls(content)
+            for result in url_validation.blockers:
+                location = f" on line {result.line}" if result.line else ""
+                code = f"HTTP {result.status_code}" if result.status_code is not None else result.reason
+                if result.status == "manual_review":
+                    critical_issues.append(
+                        f"Unresolved URL manual review blocker{location}: {result.url} ({code})"
+                    )
+                else:
+                    critical_issues.append(
+                        f"Unresolved URL{location}: {result.url} ({code})"
+                    )
+
+        details = {
+            'word_count': structure['word_count'],
+            'h2_count': structure['h2_count'],
+            'has_h1': structure['has_h1'],
+            'keyword_in_h1': structure.get('keyword_in_h1', False),
+            'keyword_in_first_100': structure.get('keyword_in_first_100', False)
+        }
+        if url_validation is not None:
+            details['url_validation'] = {
+                'total': url_validation.total,
+                'resolved': url_validation.resolved_count,
+                'unresolved': url_validation.unresolved_count,
+                'manual_review': url_validation.manual_review_count,
+                'passed': url_validation.passed
+            }
+
         return {
             'overall_score': round(overall_score, 1),
             'grade': self._get_grade(overall_score),
@@ -205,13 +243,7 @@ class SEOQualityRater:
             'warnings': warnings,
             'suggestions': suggestions,
             'publishing_ready': overall_score >= 80 and len(critical_issues) == 0,
-            'details': {
-                'word_count': structure['word_count'],
-                'h2_count': structure['h2_count'],
-                'has_h1': structure['has_h1'],
-                'keyword_in_h1': structure.get('keyword_in_h1', False),
-                'keyword_in_first_100': structure.get('keyword_in_first_100', False)
-            }
+            'details': details
         }
 
     def _analyze_structure(self, content: str, primary_keyword: Optional[str]) -> Dict[str, Any]:
@@ -651,7 +683,8 @@ def rate_seo_quality(
     keyword_density: Optional[float] = None,
     internal_link_count: Optional[int] = None,
     external_link_count: Optional[int] = None,
-    custom_guidelines: Optional[Dict[str, Any]] = None
+    custom_guidelines: Optional[Dict[str, Any]] = None,
+    validate_urls: bool = False
 ) -> Dict[str, Any]:
     """
     Rate SEO quality of content
@@ -666,6 +699,7 @@ def rate_seo_quality(
         internal_link_count: Number of internal links
         external_link_count: Number of external links
         custom_guidelines: Custom SEO guidelines
+        validate_urls: Resolve URLs and block publishing readiness on failures
 
     Returns:
         SEO quality rating with score and recommendations
@@ -679,7 +713,8 @@ def rate_seo_quality(
         secondary_keywords,
         keyword_density,
         internal_link_count,
-        external_link_count
+        external_link_count,
+        validate_urls
     )
 
 
@@ -1051,6 +1086,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--primary-keyword", help="Override or provide primary keyword.")
     parser.add_argument("--secondary-keywords", help="Comma-separated secondary keywords.")
     parser.add_argument("--keyword-density", type=float, help="Pre-calculated primary keyword density percentage.")
+    parser.add_argument(
+        "--validate-urls",
+        action="store_true",
+        help="Resolve article URLs and fail readiness on unresolved/manual-review links.",
+    )
 
     args = parser.parse_args(argv)
 
@@ -1089,6 +1129,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         keyword_density=args.keyword_density,
         internal_link_count=internal_links,
         external_link_count=external_links,
+        validate_urls=args.validate_urls,
     )
 
     print(_format_report(result))

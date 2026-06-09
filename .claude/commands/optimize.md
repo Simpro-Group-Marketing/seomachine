@@ -14,6 +14,24 @@ Use this command to perform a final SEO optimization pass on completed articles 
 
 ## Process
 
+### URL Validation Gate
+
+Before returning `Ready`, run URL validation:
+```bash
+python data_sources/modules/url_validator.py [article-file] --fail-on unresolved
+```
+
+URL validation blocks unresolved and manual-review links before publish readiness. It confirms destinations resolve; it does not prove the page supports the claim, so Source Map and E-E-A-T proof review still verify claim support.
+
+### Numeric Claim Source Gate
+
+Before returning `Ready`, run numeric claim source guard:
+```bash
+python data_sources/modules/numeric_claim_source_guard.py [article-file] --fail-on error
+```
+
+Every metric, statistic, or numeric business claim must have a same-paragraph public link or a matching Source Map / Proof Pack entry with a public URL or local proof artifact. Context-backed metrics are acceptable only when the public copy or proof map points to evidence that proves the number.
+
 ### Content Audit
 
 #### Keyword Analysis
@@ -222,6 +240,8 @@ Visual representation of where primary keyword appears:
 - [ ] CTA included
 - [ ] Brand voice maintained
 - [ ] No broken links
+- [ ] URL validation passed with `python data_sources/modules/url_validator.py [article-file] --fail-on unresolved`
+- [ ] Numeric claim source guard passed with `python data_sources/modules/numeric_claim_source_guard.py [article-file] --fail-on error`
 - [ ] Ready to publish
 
 ### 8. Publishing Readiness

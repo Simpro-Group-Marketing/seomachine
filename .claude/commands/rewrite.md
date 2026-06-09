@@ -210,6 +210,7 @@ AEO/GEO Inputs:
 - PAA/FAQ provenance: [AnswerSocrates / SERP / Reddit / YouTube / user CSV / blocker]
 - PAA artifact path: [research/paa-questions-[topic-slug]-[YYYY-MM-DD].md or not available]
 - Selected questions: [3-5 closest questions with intent labels]
+- FAQ proof: [each claim-bearing FAQ answer has a public proof link or question-specific Source Map / FAQ Proof Map entry with a public URL; Context file paths alone do not count]
 - Suggested blog focus: [1-2 sentence focus statement]
 - Source Map: [source, claim, anchor text, target section]
 - E-E-A-T Proof Map: [Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, review-site experience evidence candidates, claims excluded because proof is missing]
@@ -245,24 +246,27 @@ Example: `rewrites/content-marketing-guide-rewrite-2025-10-15.md`
 Also save the change summary separately:
 - **File Location**: `rewrites/changes-[topic-slug]-[YYYY-MM-DD].md`
 
-## Automatic Scrub, AI Copy Lint, Score, And Optimize
+## Automatic Scrub, AI Copy Lint, URL Validation, Numeric Claim Source Guard, FAQ Proof Guard, Score, And Optimize
 
-**CRITICAL**: Immediately after saving the rewritten article file, automatically invoke the content scrubber, run the AI copy linter, score the content, then run `/optimize`.
+**CRITICAL**: Immediately after saving the rewritten article file, automatically invoke the content scrubber, run the AI copy linter, run URL validation, run the numeric claim source guard, run the FAQ proof guard, score the content, then run `/optimize`.
 
 ### Why This Matters
 AI-generated content often contains invisible Unicode marks and characteristic punctuation patterns. Scrubbing handles cleanup. The linter handles AI-writing detection and Simpro style enforcement.
 
-### Scrub, Lint, Score, And Optimize Process
+### Scrub, Lint, URL Validation, Numeric Claim Source Guard, FAQ Proof Guard, Score, And Optimize Process
 1. **Invoke Scrubber**: Run `/scrub [file-path]` on the saved rewritten article file
 2. **Invoke AI Copy Linter**: Run `python data_sources/modules/ai_copy_linter.py [file-path] --profile simpro-web --fail-on error`
-3. **Invoke Content Scorer**: Run `python data_sources/modules/content_scorer.py [file-path]`
-4. **Check Gates**: General content quality must be 85/100 or higher and AEO/GEO must be 90/100 or higher
-5. **Invoke Optimizer**: Run `/optimize [file-path]` only after scrub, lint, and score gates are complete
-6. **Automatic Execution**: This should happen automatically, not require user action
-7. **Timing**: Must occur immediately after file save, before optimization agents
-8. **Scope**: Scrub, lint, and score the main rewritten article file only (not change summary or analysis files)
-9. **Error Handling**: If linter errors remain, revise once, rerun `/scrub`, rerun the linter, then route to `review-required/` with lint findings if errors remain. If score gates fail after 2 iterations, route to `review-required/` with scoring details.
-10. **Warnings**: Include warning findings in review notes, but do not block unless strict mode is requested
+3. **Invoke URL Validation**: Run `python data_sources/modules/url_validator.py [file-path] --fail-on unresolved`
+4. **Invoke Numeric Claim Source Guard**: Run `python data_sources/modules/numeric_claim_source_guard.py [file-path] --fail-on error`
+5. **Invoke FAQ Proof Guard**: Run `python data_sources/modules/faq_proof_guard.py [file-path] --fail-on error`
+6. **Invoke Content Scorer**: Run `python data_sources/modules/content_scorer.py [file-path] --validate-urls`
+7. **Check Gates**: General content quality must be 85/100 or higher, AEO/GEO must be 90/100 or higher, URL validation must pass, numeric claim source guard must pass, and FAQ proof guard must pass
+8. **Invoke Optimizer**: Run `/optimize [file-path]` only after scrub, lint, URL validation, numeric claim source guard, FAQ proof guard, and score gates are complete
+9. **Automatic Execution**: This should happen automatically, not require user action
+10. **Timing**: Must occur immediately after file save, before optimization agents
+11. **Scope**: Scrub, lint, URL validation, numeric claim source guard, FAQ proof guard, and score the main rewritten article file only (not change summary or analysis files)
+12. **Error Handling**: If linter errors remain, revise once, rerun `/scrub`, rerun the linter, then route to `review-required/` with lint findings if errors remain. If URL validation fails, replace or verify the unresolved link before `/optimize`. If numeric claim source guard fails, add a public proof link, map the same claim to a Source Map / Proof Pack row with a public URL or local proof artifact, or remove the unsupported number. If FAQ proof guard fails, add a public proof link inside the FAQ answer, map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL, or remove the unsupported claim. Context file paths alone do not count. If score gates fail after 2 iterations, route to `review-required/` with scoring details.
+13. **Warnings**: Include warning findings in review notes, but do not block unless strict mode is requested
 
 ### What Gets Cleaned
 - Invisible Unicode watermarks (zero-width spaces, BOMs, format-control characters)
@@ -286,15 +290,37 @@ The content scorer will display:
 - AEO/GEO score
 - Failed checks and priority fixes
 
+URL validation will display:
+- Resolved URL count
+- Unresolved URL count
+- Manual-review URL count
+
+The numeric claim source guard will display:
+- Unsupported metric, statistic, or numeric business claim count
+- Line-level findings for claims missing a public URL or local proof artifact
+
+The FAQ proof guard will display:
+- FAQ proof blocker count
+- Line-level findings for FAQ answers missing a public proof link or question-specific Source Map entry
+
+URL validation confirms destinations resolve; it does not prove the page supports the claim, so Source Map and E-E-A-T proof review still verify claim support.
+
+Every metric, statistic, or numeric business claim must have a same-paragraph public link or a matching Source Map / Proof Pack entry with a public URL or local proof artifact. Context-backed metrics are acceptable only when the public copy or proof map points to evidence that proves the number.
+
+FAQ proof requires every claim-bearing FAQ answer to include a public proof link inside the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
+
 ### Example Workflow
 ```
 1. Rewrite article → Save to rewrites/article-name-rewrite-2025-10-31.md
 2. IMMEDIATELY run: /scrub rewrites/article-name-rewrite-2025-10-31.md
 3. IMMEDIATELY run: python data_sources/modules/ai_copy_linter.py rewrites/article-name-rewrite-2025-10-31.md --profile simpro-web --fail-on error
-4. IMMEDIATELY run: python data_sources/modules/content_scorer.py rewrites/article-name-rewrite-2025-10-31.md
-5. Confirm 85/100 general content quality and 90/100 AEO/GEO
-6. THEN run: /optimize rewrites/article-name-rewrite-2025-10-31.md
-7. If errors or failed score gates remain, revise once, then rerun scrub, lint, and score
+4. IMMEDIATELY run: python data_sources/modules/url_validator.py rewrites/article-name-rewrite-2025-10-31.md --fail-on unresolved
+5. IMMEDIATELY run: python data_sources/modules/numeric_claim_source_guard.py rewrites/article-name-rewrite-2025-10-31.md --fail-on error
+6. IMMEDIATELY run: python data_sources/modules/faq_proof_guard.py rewrites/article-name-rewrite-2025-10-31.md --fail-on error
+7. IMMEDIATELY run: python data_sources/modules/content_scorer.py rewrites/article-name-rewrite-2025-10-31.md --validate-urls
+8. Confirm 85/100 general content quality, 90/100 AEO/GEO, passing URL validation, passing numeric claim source guard, and passing FAQ proof guard
+9. THEN run: /optimize rewrites/article-name-rewrite-2025-10-31.md
+10. If errors, unresolved URLs, unsupported numeric claims, FAQ proof blockers, or failed score gates remain, revise once, then rerun scrub, lint, URL validation, numeric claim source guard, FAQ proof guard, and score
 ```
 
 This keeps cleanup separate from AI copy detection and scoring before optimization.

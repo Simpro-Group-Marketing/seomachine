@@ -9,6 +9,11 @@ before they are treated as publish-ready for AEO/GEO.
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
+try:
+    from .faq_proof_guard import check_content as check_faq_proof
+except ImportError:
+    from faq_proof_guard import check_content as check_faq_proof
+
 
 PASS_THRESHOLD = 90
 
@@ -40,6 +45,7 @@ def rate_aeo_geo(
         "external_sources": _check_external_sources(content),
         "metadata": _check_metadata(merged_metadata),
         "eeat_proof": _check_eeat_proof(content, body, merged_metadata),
+        "faq_proof": _check_faq_proof(content),
     }
     section_clarity = _check_section_clarity(body)
 
@@ -48,9 +54,10 @@ def rate_aeo_geo(
         "capsule_coverage": 20,
         "faq_questions": 15,
         "faq_answer_length": 15,
-        "external_sources": 10,
-        "metadata": 10,
+        "external_sources": 5,
+        "metadata": 5,
         "eeat_proof": 10,
+        "faq_proof": 10,
     }
 
     score = sum(weights[name] if check["passed"] else 0 for name, check in checks.items())
@@ -68,7 +75,11 @@ def rate_aeo_geo(
 
     return {
         "score": score,
-        "passed": score >= PASS_THRESHOLD and checks["eeat_proof"]["passed"],
+        "passed": (
+            score >= PASS_THRESHOLD
+            and checks["eeat_proof"]["passed"]
+            and checks["faq_proof"]["passed"]
+        ),
         "threshold": PASS_THRESHOLD,
         "checks": checks,
         "issues": issues,
@@ -81,6 +92,7 @@ def rate_aeo_geo(
             "review_site_links": checks["eeat_proof"]["details"]["review_site_links"],
             "experience_signals": checks["eeat_proof"]["details"]["experience_signals"],
             "expertise_signals": checks["eeat_proof"]["details"]["expertise_signals"],
+            "faq_proof_findings": checks["faq_proof"]["details"]["findings"],
             "section_clarity": section_clarity,
         },
     }
@@ -312,6 +324,26 @@ def _check_faq_answer_lengths(body: str) -> Dict[str, Any]:
         "details": {
             "answer_lengths": lengths,
             "failing_answers": failing,
+        },
+    }
+
+
+def _check_faq_proof(content: str) -> Dict[str, Any]:
+    findings = check_faq_proof(content)
+    passed = not findings
+
+    return {
+        "passed": passed,
+        "issue": "One or more FAQ answers lacks linked proof for its claims.",
+        "fix": (
+            "Add 1 public proof link inside each FAQ answer, or add a "
+            "question-specific Source Map / FAQ Proof Map entry with the exact "
+            "FAQ question and public URL. Context file paths alone do not count."
+        ),
+        "severity": "high",
+        "details": {
+            "finding_count": len(findings),
+            "findings": findings,
         },
     }
 

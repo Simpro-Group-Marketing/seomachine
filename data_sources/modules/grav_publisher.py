@@ -28,6 +28,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
+try:
+    from .url_validator import format_summary, validate_file_urls
+except ImportError:
+    from url_validator import format_summary, validate_file_urls
+
 
 class GravPublishError(RuntimeError):
     """Raised when a Grav publish operation fails."""
@@ -276,6 +281,13 @@ class GravPublisher:
         """
         if lang:
             self.lang = lang
+
+        url_summary = validate_file_urls(file_path)
+        if not url_summary.passed:
+            raise GravPublishError(
+                "URL validation failed before Grav publish:\n"
+                f"{format_summary(url_summary)}"
+            )
 
         draft = self.parse_draft_file(file_path)
         article = self.build_article(draft)

@@ -112,6 +112,7 @@ Apply these requirements from @context/aeo-geo-blog-strategy.md:
 - **Capsule Method**: Add a 50-60 word direct-answer capsule below the H1 and at least 60% of major H2s.
 - **PAA selection**: Use 3-5 PAA or FAQ questions from AnswerSocrates, SERP research, Reddit, YouTube, or a user-provided CSV.
 - **Source mapping**: Integrate at least three credible external sources inside natural sentences; map each source to the claim it supports.
+- **FAQ proof**: Every claim-bearing FAQ answer must include a public proof link inside the answer, or map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
 - **E-E-A-T Proof Map**: Include named author, last-updated date, reviewer if available, Experience proof, Expertise proof, Authority/Trust proof, named customer proof or expert quote, and honest limitations where relevant.
 - **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, keywords, product framing, internal links, approved claims, proof candidates, and approved metrics. Public copy may use public sources and context-backed proof, but must not mention "repo context," context file paths, Source Maps, PAA artifacts, change summaries, or internal proof-path notes.
 - **Customer proof routing**: When citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
@@ -285,21 +286,24 @@ After completing the article, automatically save to:
 
 Example: `drafts/content-marketing-strategies-2025-10-15.md`
 
-## Automatic Scrub And AI Copy Lint
+## Automatic Scrub, AI Copy Lint, URL Validation, Numeric Claim Source Guard, And FAQ Proof Guard
 
-**CRITICAL**: Immediately after saving the article file, automatically invoke the content scrubber, then run the AI copy linter before scoring or optimization.
+**CRITICAL**: Immediately after saving the article file, automatically invoke the content scrubber, run the AI copy linter, run URL validation, run the numeric claim source guard, and run the FAQ proof guard before scoring or optimization.
 
 ### Why This Matters
 AI-generated content often contains invisible Unicode marks and characteristic punctuation patterns. Scrubbing handles cleanup. The linter handles AI-writing detection and Simpro style enforcement.
 
-### Scrub And Lint Process
+### Scrub, Lint, URL Validation, Numeric Claim Source Guard, And FAQ Proof Guard Process
 1. **Invoke Scrubber**: Run `/scrub [file-path]` on the saved article file
 2. **Invoke AI Copy Linter**: Run `python data_sources/modules/ai_copy_linter.py [file-path] --profile simpro-web --fail-on error`
-3. **Automatic Execution**: This should happen automatically, not require user action
-4. **Timing**: Must occur immediately after file save, before scoring or agent processing
-5. **Scope**: Scrub and lint the main article file only (not meta or analysis files)
-6. **Error Handling**: If linter errors remain, revise once, rerun `/scrub`, rerun the linter, then route to `review-required/` with lint findings if errors remain
-7. **Warnings**: Include warning findings in review notes, but do not block unless strict mode is requested
+3. **Invoke URL Validation**: Run `python data_sources/modules/url_validator.py [file-path] --fail-on unresolved`
+4. **Invoke Numeric Claim Source Guard**: Run `python data_sources/modules/numeric_claim_source_guard.py [file-path] --fail-on error`
+5. **Invoke FAQ Proof Guard**: Run `python data_sources/modules/faq_proof_guard.py [file-path] --fail-on error`
+6. **Automatic Execution**: This should happen automatically, not require user action
+7. **Timing**: Must occur immediately after file save, before scoring or agent processing
+8. **Scope**: Scrub, lint, validate, source-check, and FAQ proof-check the main article file only (not meta or analysis files)
+9. **Error Handling**: If linter errors remain, revise once, rerun `/scrub`, rerun the linter, then route to `review-required/` with lint findings if errors remain. If URL validation fails, replace or verify the unresolved link before `/optimize`. If numeric claim source guard fails, add a public proof link, map the same claim to a Source Map / Proof Pack row with a public URL or local proof artifact, or remove the unsupported number. If FAQ proof guard fails, add a public proof link inside the FAQ answer, map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL, or remove the unsupported claim. Context file paths alone do not count.
+10. **Warnings**: Include warning findings in review notes, but do not block unless strict mode is requested
 
 ### What Gets Cleaned
 - Invisible Unicode watermarks (zero-width spaces, BOMs, format-control characters)
@@ -318,16 +322,38 @@ The AI copy linter will display:
 - Warning count
 - Line-level findings with suggested fixes
 
+URL validation will display:
+- Resolved URL count
+- Unresolved URL count
+- Manual-review URL count
+
+The numeric claim source guard will display:
+- Unsupported metric, statistic, or numeric business claim count
+- Line-level findings for claims missing a public URL or local proof artifact
+
+The FAQ proof guard will display:
+- FAQ proof blocker count
+- Line-level findings for FAQ answers missing a public proof link or question-specific Source Map entry
+
 ### Example Workflow
 ```
 1. Write article → Save to drafts/article-name-2025-10-31.md
 2. IMMEDIATELY run: /scrub drafts/article-name-2025-10-31.md
 3. IMMEDIATELY run: python data_sources/modules/ai_copy_linter.py drafts/article-name-2025-10-31.md --profile simpro-web --fail-on error
-4. If errors remain, revise once, then rerun scrub and lint
-5. THEN proceed with scoring and optimization agents below
+4. IMMEDIATELY run: python data_sources/modules/url_validator.py drafts/article-name-2025-10-31.md --fail-on unresolved
+5. IMMEDIATELY run: python data_sources/modules/numeric_claim_source_guard.py drafts/article-name-2025-10-31.md --fail-on error
+6. IMMEDIATELY run: python data_sources/modules/faq_proof_guard.py drafts/article-name-2025-10-31.md --fail-on error
+7. If errors remain, revise once, then rerun scrub, lint, URL validation, numeric claim source guard, and FAQ proof guard
+8. THEN proceed with scoring and optimization agents below
 ```
 
 This keeps cleanup separate from AI copy detection before any further processing.
+
+URL validation confirms destinations resolve; it does not prove the page supports the claim, so Source Map and E-E-A-T proof review still verify claim support.
+
+Every metric, statistic, or numeric business claim must have a same-paragraph public link or a matching Source Map / Proof Pack entry with a public URL or local proof artifact. Context-backed metrics are acceptable only when the public copy or proof map points to evidence that proves the number.
+
+FAQ proof requires every claim-bearing FAQ answer to include a public proof link inside the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
 
 ## Automatic Agent Execution
 After saving, scrubbing, linting, and passing the quality loop, execute optimization agents:
@@ -381,13 +407,31 @@ python data_sources/modules/ai_copy_linter.py drafts/[article-file].md --profile
 
 The draft must have zero linter errors before scoring. Warnings go into review notes unless strict mode is requested.
 
-### Step 2: Score Content
-Run the content scorer to evaluate the draft:
+### Step 2: Confirm Numeric Claim Source Guard
+Run the numeric claim source guard before scoring:
 ```bash
-python data_sources/modules/content_scorer.py drafts/[article-file].md
+python data_sources/modules/numeric_claim_source_guard.py drafts/[article-file].md --fail-on error
 ```
 
-### Step 3: Evaluate Score
+The draft must have zero unsupported metric, statistic, or numeric business claim findings before scoring.
+
+### Step 3: Confirm FAQ Proof Guard
+Run the FAQ proof guard before scoring:
+```bash
+python data_sources/modules/faq_proof_guard.py drafts/[article-file].md --fail-on error
+```
+
+The draft must have zero FAQ proof findings before scoring. Each FAQ answer that makes a claim needs a public proof link in the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
+
+### Step 4: Score Content
+Run the content scorer to evaluate the draft:
+```bash
+python data_sources/modules/content_scorer.py drafts/[article-file].md --validate-urls
+```
+
+This scorer command includes URL validation with `data_sources/modules/url_validator.py --fail-on unresolved` behavior before `/optimize`, and it reports the FAQ proof gate from `data_sources/modules/faq_proof_guard.py`. Numeric claim source guard must still run separately.
+
+### Step 5: Evaluate Score
 The scorer evaluates 5 content-quality dimensions plus the required AEO/GEO gate:
 
 | Dimension | Weight | Target |

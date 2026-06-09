@@ -154,6 +154,7 @@ When a PAA/FAQ CSV or raw question set is available, select the 3-5 closest ques
 - Use context-backed metrics only with public-facing source links, such as case-study URLs, review-site URLs, or public research sources.
 - Include 3-5 selected PAA/FAQ questions from research.
 - Write FAQ answers as 40-60 word direct answers before any supporting context.
+- FAQ proof is required for each claim-bearing answer: include a public proof link inside the answer, or map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count. Run `python data_sources/modules/faq_proof_guard.py [file] --fail-on error` before scoring or `/optimize`.
 - Add schema notes for `BlogPosting`, `FAQPage`, `Author`, and `VideoObject` when relevant.
 
 ## AEO/GEO Map
@@ -176,5 +177,6 @@ A draft is publish-ready only when both gates pass:
 
 - General content quality score: 85/100 or higher.
 - AEO/GEO score: 90/100 or higher.
+- FAQ proof gate: `data_sources/modules/faq_proof_guard.py --fail-on error` must pass when FAQ answers are present. Each claim-bearing FAQ answer needs a public proof link or question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
 
 Below-threshold drafts route to revision or `review-required/` with notes explaining failed checks.

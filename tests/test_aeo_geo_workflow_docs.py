@@ -330,6 +330,70 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
+    def test_url_validation_gate_is_documented_across_publish_workflow(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / "README.md",
+            ROOT / "CLAUDE.md",
+        ]
+        required = [
+            "URL validation",
+            "data_sources/modules/url_validator.py",
+            "--fail-on unresolved",
+            "does not prove the page supports the claim",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+    def test_faq_proof_gate_is_documented_across_blog_workflow(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / "README.md",
+            ROOT / "CLAUDE.md",
+        ]
+        required = [
+            "FAQ proof",
+            "data_sources/modules/faq_proof_guard.py",
+            "public proof link",
+            "question-specific Source Map",
+            "Context file paths alone do not count",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+    def test_numeric_claim_source_guard_is_documented_globally(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / "README.md",
+            ROOT / "CLAUDE.md",
+        ]
+        required = [
+            "metric, statistic, or numeric business claim",
+            "data_sources/modules/numeric_claim_source_guard.py",
+            "--fail-on error",
+            "public URL or local proof artifact",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
 
 if __name__ == "__main__":
     unittest.main()

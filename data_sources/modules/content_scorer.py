@@ -27,12 +27,14 @@ try:
     from .ai_copy_linter import lint_content
     from .readability_scorer import ReadabilityScorer
     from .seo_quality_rater import SEOQualityRater
+    from .url_validator import validate_content_urls
 except ImportError:
     # For standalone testing
     from aeo_geo_rater import rate_aeo_geo
     from ai_copy_linter import lint_content
     from readability_scorer import ReadabilityScorer
     from seo_quality_rater import SEOQualityRater
+    from url_validator import validate_content_urls
 
 
 class ContentScorer:
@@ -119,7 +121,8 @@ class ContentScorer:
     def score(
         self,
         content: str,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
+        validate_urls: bool = False
     ) -> Dict[str, Any]:
         """
         Score content across all dimensions
@@ -128,6 +131,7 @@ class ContentScorer:
             content: Full article content (markdown)
             metadata: Optional dict with meta_title, meta_description,
                      primary_keyword, secondary_keywords
+            validate_urls: Resolve URLs and block the quality gate on failures
 
         Returns:
             Dict with composite_score, passed, dimensions, and priority_fixes
@@ -157,9 +161,21 @@ class ContentScorer:
         aeo_geo = rate_aeo_geo(content, metadata)
         content_quality_passed = composite >= self.PASS_THRESHOLD
         aeo_geo_passed = bool(aeo_geo.get('passed', False))
+        faq_proof_check = aeo_geo.get('checks', {}).get('faq_proof', {})
+        faq_proof_passed = bool(faq_proof_check.get('passed', True))
+        url_validation = None
+        url_validation_passed = True
+        if validate_urls:
+            url_validation = validate_content_urls(content)
+            url_validation_passed = url_validation.passed
 
         # Determine if passed
-        passed = content_quality_passed and aeo_geo_passed
+        passed = (
+            content_quality_passed
+            and aeo_geo_passed
+            and faq_proof_passed
+            and url_validation_passed
+        )
 
         # Collect all issues and prioritize
         all_issues = []
@@ -182,6 +198,61 @@ class ContentScorer:
             issue['impact'] = weight * deficit
 
         priority_fixes = sorted(all_issues, key=lambda x: -x['impact'])[:5]
+        if not faq_proof_passed:
+            faq_findings = faq_proof_check.get('details', {}).get('findings', [])
+            faq_questions = ", ".join(
+                str(finding.get('question', 'unknown FAQ')) for finding in faq_findings[:3]
+            )
+            priority_fixes.insert(0, {
+                'issue': 'FAQ proof blockers detected',
+                'fix': (
+                    'Add public proof links inside unsupported FAQ answers or add '
+                    f'question-specific Source Map / FAQ Proof Map entries: {faq_questions}'
+                ),
+                'severity': 'high',
+                'dimension': 'faq_proof',
+                'dimension_score': 0,
+                'impact': 100
+            })
+            priority_fixes = priority_fixes[:5]
+        if url_validation is not None and not url_validation.passed:
+            blocker_urls = ", ".join(
+                result.url for result in url_validation.blockers[:3]
+            )
+            priority_fixes.insert(0, {
+                'issue': 'URL validation blockers detected',
+                'fix': f'Replace or verify unresolved/manual-review URLs before optimize or publish: {blocker_urls}',
+                'severity': 'high',
+                'dimension': 'url_validation',
+                'dimension_score': 0,
+                'impact': 100
+            })
+            priority_fixes = priority_fixes[:5]
+
+        quality_gates = {
+            'content_quality': {
+                'score': composite,
+                'threshold': self.PASS_THRESHOLD,
+                'passed': content_quality_passed
+            },
+            'aeo_geo': {
+                'score': aeo_geo.get('score', 0),
+                'threshold': aeo_geo.get('threshold', 90),
+                'passed': aeo_geo_passed
+            },
+            'faq_proof': {
+                'finding_count': faq_proof_check.get('details', {}).get('finding_count', 0),
+                'passed': faq_proof_passed
+            }
+        }
+        if url_validation is not None:
+            quality_gates['url_validation'] = {
+                'total': url_validation.total,
+                'resolved': url_validation.resolved_count,
+                'unresolved': url_validation.unresolved_count,
+                'manual_review': url_validation.manual_review_count,
+                'passed': url_validation_passed
+            }
 
         return {
             'composite_score': composite,
@@ -189,18 +260,7 @@ class ContentScorer:
             'passed': passed,
             'threshold': self.PASS_THRESHOLD,
             'aeo_geo': aeo_geo,
-            'quality_gates': {
-                'content_quality': {
-                    'score': composite,
-                    'threshold': self.PASS_THRESHOLD,
-                    'passed': content_quality_passed
-                },
-                'aeo_geo': {
-                    'score': aeo_geo.get('score', 0),
-                    'threshold': aeo_geo.get('threshold', 90),
-                    'passed': aeo_geo_passed
-                }
-            },
+            'quality_gates': quality_gates,
             'dimensions': {
                 'humanity': {
                     'score': humanity['score'],
@@ -883,25 +943,30 @@ class ContentScorer:
 
 def main():
     """CLI entry point for testing"""
+    import argparse
     import sys
 
-    if len(sys.argv) < 2:
-        print("Usage: python content_scorer.py <draft_file_path>")
-        sys.exit(1)
-
-    file_path = sys.argv[1]
+    parser = argparse.ArgumentParser(description="Score markdown content quality.")
+    parser.add_argument("file_path", help="Path to the draft or rewrite markdown file.")
+    parser.add_argument(
+        "--validate-urls",
+        action="store_true",
+        help="Resolve article URLs and fail the gate on unresolved/manual-review links.",
+    )
+    args = parser.parse_args()
 
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(args.file_path, 'r', encoding='utf-8') as f:
             content = f.read()
     except FileNotFoundError:
-        print(f"Error: File not found: {file_path}")
+        print(f"Error: File not found: {args.file_path}")
         sys.exit(1)
 
     scorer = ContentScorer()
-    result = scorer.score(content)
+    result = scorer.score(content, validate_urls=args.validate_urls)
 
     print(scorer.format_report(result))
+    sys.exit(0 if result["passed"] else 1)
 
 
 if __name__ == '__main__':

@@ -4,8 +4,10 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from data_sources.modules.seo_quality_rater import SEOQualityRater
+from data_sources.modules.url_validator import UrlValidationResult, UrlValidationSummary
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -223,6 +225,36 @@ class OptimizerModuleTests(unittest.TestCase):
         issues = "\n".join(result["critical_issues"])
         self.assertFalse(result["publishing_ready"], result)
         self.assertIn("generic anchor text", issues)
+
+    def test_seo_quality_rater_rejects_unresolved_urls_when_validation_is_enabled(self):
+        blocked = UrlValidationResult(
+            url="https://example.com/missing",
+            status="unresolved",
+            status_code=404,
+            reason="HTTP 404",
+            line=12,
+            anchor="missing source",
+        )
+
+        with patch(
+            "data_sources.modules.seo_quality_rater.validate_content_urls",
+            return_value=UrlValidationSummary([blocked]),
+        ):
+            result = SEOQualityRater().rate(
+                long_article(),
+                meta_title="Payments for Trades Businesses: Customer Guide",
+                meta_description=(
+                    "Payments for trades businesses need online, mobile and field options. "
+                    "Learn how to reduce friction and protect cash flow today."
+                ),
+                primary_keyword="payments for trades businesses",
+                validate_urls=True,
+            )
+
+        issues = "\n".join(result["critical_issues"])
+        self.assertFalse(result["publishing_ready"], result)
+        self.assertIn("Unresolved URL", issues)
+        self.assertIn("https://example.com/missing", issues)
 
     def test_seo_quality_rater_does_not_count_demo_pricing_blog_or_case_study_as_down_funnel(self):
         result = rate_article_with_links(

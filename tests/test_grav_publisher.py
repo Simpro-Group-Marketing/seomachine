@@ -1,8 +1,10 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from data_sources.modules.grav_publisher import GravPublisher
+from data_sources.modules.grav_publisher import GravPublishError, GravPublisher
+from data_sources.modules.url_validator import UrlValidationResult, UrlValidationSummary
 
 
 DRAFT_WITH_SLUG = """---
@@ -130,6 +132,34 @@ class FrontmatterTests(unittest.TestCase):
             article = self.pub.build_article(draft)
         self.assertIn("---\ntitle:", article)
         self.assertIn("Payments for trades businesses are the invoice", article)
+
+
+class PublishPreflightTests(unittest.TestCase):
+    def setUp(self):
+        self.pub = GravPublisher(repo="owner/repo", branch="dev", blog_path="blogs", lang="en")
+
+    def test_publish_stops_before_push_when_url_validation_fails(self):
+        blocked = UrlValidationResult(
+            url="https://example.com/dead",
+            status="unresolved",
+            status_code=404,
+            reason="HTTP 404",
+            line=15,
+            anchor="dead source",
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write(tmp, "post.md", DRAFT_WITH_SLUG)
+            with patch(
+                "data_sources.modules.grav_publisher.validate_file_urls",
+                return_value=UrlValidationSummary([blocked]),
+            ), patch.object(self.pub, "push_article") as push_article:
+                with self.assertRaises(GravPublishError) as raised:
+                    self.pub.publish(path, dry_run=False)
+
+        push_article.assert_not_called()
+        self.assertIn("URL validation failed", str(raised.exception))
+        self.assertIn("https://example.com/dead", str(raised.exception))
 
 
 if __name__ == "__main__":
