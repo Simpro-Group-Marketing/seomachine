@@ -54,6 +54,7 @@ Required proof sources:
 - Pull review-site experience evidence / VoC themes and competitor experience themes from `context/competitor-analysis.md` or any future review-context file.
 - Context-backed metrics are valid only when the context pack carries the approved metric, proof path, and a source-visible Evidence snippet. Public copy must link to the public case study, review site, or source URL, not to internal context files.
 - The source support guard requires each high-risk claim to map to a strict proof row with Claim, URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact.
+- The PAA provenance guard requires each FAQ question to map to a saved AnswerSocrates, SERP, Reddit, YouTube, or user PAA/FAQ CSV artifact. Proof links alone do not prove question provenance.
 - Do not write source/proof meta-commentary in public copy, such as "that case study is useful for this topic" or "this source is relevant for the article." Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 
 ## Review-Site Experience Evidence and VoC Routing
@@ -167,6 +168,7 @@ When a PAA/FAQ CSV or raw question set is available, select the 3-5 closest ques
 - Include 3-5 selected PAA/FAQ questions from research.
 - Write FAQ answers as 40-60 word direct answers before any supporting context.
 - FAQ proof is required for each claim-bearing answer: include a public proof link inside the answer, or map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count. Run `python data_sources/modules/faq_proof_guard.py [file] --fail-on error` before scoring or `/optimize`.
+- PAA provenance is required for each FAQ question: include `PAA/FAQ Provenance` with Source, Artifact, and exact Selected questions. Run `python data_sources/modules/paa_provenance_guard.py [file] --fail-on error` before scoring or `/optimize`.
 - Add schema notes for `BlogPosting`, `FAQPage`, `Author`, and `VideoObject` when relevant.
 
 ## AEO/GEO Map
@@ -178,6 +180,7 @@ Every `/article` plan and every moderate, major, or complete `/rewrite` plan mus
 | Main answer target | The core question the article answers |
 | Capsule targets | H1 plus 60%+ major H2s |
 | Selected PAA questions | 3-5 questions from AnswerSocrates or user export |
+| PAA/FAQ provenance | Source label, artifact path, and exact selected questions from a saved source artifact |
 | Source map | Source, claim, anchor text, target section |
 | E-E-A-T Proof Map | Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, omitted unsupported claims |
 | Customer Proof Pack | Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved metrics, Use in copy, Claims excluded, approval status |
@@ -190,6 +193,7 @@ A draft is publish-ready only when both gates pass:
 - General content quality score: 85/100 or higher.
 - AEO/GEO score: 90/100 or higher.
 - FAQ proof gate: `data_sources/modules/faq_proof_guard.py --fail-on error` must pass when FAQ answers are present. Each claim-bearing FAQ answer needs a public proof link or question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
+- PAA provenance guard: `data_sources/modules/paa_provenance_guard.py --fail-on error` must pass when FAQ questions are present. Each FAQ question must match the `PAA/FAQ Provenance` selected-question list and saved source artifact.
 - Source support guard: `data_sources/modules/source_support_guard.py --fail-on error` must pass before scoring or `/optimize`. Evidence snippets must be visible in the cited source, and named customer metric claims must be approved in Customer Proof Pack Approved metrics.
 
 Below-threshold drafts route to revision or `review-required/` with notes explaining failed checks.

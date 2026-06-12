@@ -286,25 +286,26 @@ After completing the article, automatically save to:
 
 Example: `drafts/content-marketing-strategies-2025-10-15.md`
 
-## Automatic Scrub, AI Copy Lint, URL Validation, Numeric Claim Source Guard, FAQ Proof Guard, And Source Support Guard
+## Automatic Scrub, AI Copy Lint, URL Validation, Numeric Claim Source Guard, FAQ Proof Guard, PAA Provenance Guard, And Source Support Guard
 
-**CRITICAL**: Immediately after saving the article file, automatically invoke the content scrubber, run the AI copy linter, run URL validation, run the numeric claim source guard, run the FAQ proof guard, and run the source support guard before scoring or optimization.
+**CRITICAL**: Immediately after saving the article file, automatically invoke the content scrubber, run the AI copy linter, run URL validation, run the numeric claim source guard, run the FAQ proof guard, run the PAA provenance guard, and run the source support guard before scoring or optimization.
 
 ### Why This Matters
 AI-generated content often contains invisible Unicode marks and characteristic punctuation patterns. Scrubbing handles cleanup. The linter handles AI-writing detection and Simpro style enforcement.
 
-### Scrub, Lint, URL Validation, Numeric Claim Source Guard, FAQ Proof Guard, And Source Support Guard Process
+### Scrub, Lint, URL Validation, Numeric Claim Source Guard, FAQ Proof Guard, PAA Provenance Guard, And Source Support Guard Process
 1. **Invoke Scrubber**: Run `/scrub [file-path]` on the saved article file
 2. **Invoke AI Copy Linter**: Run `python data_sources/modules/ai_copy_linter.py [file-path] --profile simpro-web --fail-on error`
 3. **Invoke URL Validation**: Run `python data_sources/modules/url_validator.py [file-path] --fail-on unresolved`
 4. **Invoke Numeric Claim Source Guard**: Run `python data_sources/modules/numeric_claim_source_guard.py [file-path] --fail-on error`
 5. **Invoke FAQ Proof Guard**: Run `python data_sources/modules/faq_proof_guard.py [file-path] --fail-on error`
-6. **Invoke Source Support Guard**: Run `python data_sources/modules/source_support_guard.py [file-path] --fail-on error`
-7. **Automatic Execution**: This should happen automatically, not require user action
-8. **Timing**: Must occur immediately after file save, before scoring or agent processing
-9. **Scope**: Scrub, lint, validate, source-check, FAQ proof-check, and source-support-check the main article file only (not meta or analysis files)
-10. **Error Handling**: If linter errors remain, revise once, rerun `/scrub`, rerun the linter, then route to `review-required/` with lint findings if errors remain. If URL validation fails, replace or verify the unresolved link before `/optimize`. If numeric claim source guard fails, add a public proof link, map the same claim to a Source Map / Proof Pack row with a public URL or local proof artifact, or remove the unsupported number. If FAQ proof guard fails, add a public proof link inside the FAQ answer, map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL, or remove the unsupported claim. If source support guard fails, add a strict proof row with Claim, URL, Evidence, and Status: approved, use Evidence visible in the cited source, or remove the unsupported claim. Context file paths alone do not count.
-11. **Warnings**: Include warning findings in review notes, but do not block unless strict mode is requested
+6. **Invoke PAA Provenance Guard**: Run `python data_sources/modules/paa_provenance_guard.py [file-path] --fail-on error`
+7. **Invoke Source Support Guard**: Run `python data_sources/modules/source_support_guard.py [file-path] --fail-on error`
+8. **Automatic Execution**: This should happen automatically, not require user action
+9. **Timing**: Must occur immediately after file save, before scoring or agent processing
+10. **Scope**: Scrub, lint, validate, source-check, FAQ proof-check, PAA provenance-check, and source-support-check the main article file only (not meta or analysis files)
+11. **Error Handling**: If linter errors remain, revise once, rerun `/scrub`, rerun the linter, then route to `review-required/` with lint findings if errors remain. If URL validation fails, replace or verify the unresolved link before `/optimize`. If numeric claim source guard fails, add a public proof link, map the same claim to a Source Map / Proof Pack row with a public URL or local proof artifact, or remove the unsupported number. If FAQ proof guard fails, add a public proof link inside the FAQ answer, map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL, or remove the unsupported claim. If PAA provenance guard fails, add a `PAA/FAQ Provenance` block with an allowed source, real artifact path, and exact selected questions from that artifact. If source support guard fails, add a strict proof row with Claim, URL, Evidence, and Status: approved, use Evidence visible in the cited source, or remove the unsupported claim. Context file paths alone do not count.
+12. **Warnings**: Include warning findings in review notes, but do not block unless strict mode is requested
 
 ### What Gets Cleaned
 - Invisible Unicode watermarks (zero-width spaces, BOMs, format-control characters)
@@ -336,6 +337,10 @@ The FAQ proof guard will display:
 - FAQ proof blocker count
 - Line-level findings for FAQ answers missing a public proof link or question-specific Source Map entry
 
+The PAA provenance guard will display:
+- PAA provenance blocker count
+- Line-level findings for FAQ questions missing exact saved source-artifact provenance
+
 The source support guard will display:
 - Source support blocker count
 - Line-level findings for claims whose Evidence is not visible in the cited source
@@ -350,9 +355,10 @@ The source support guard will display:
 4. IMMEDIATELY run: python data_sources/modules/url_validator.py drafts/article-name-2025-10-31.md --fail-on unresolved
 5. IMMEDIATELY run: python data_sources/modules/numeric_claim_source_guard.py drafts/article-name-2025-10-31.md --fail-on error
 6. IMMEDIATELY run: python data_sources/modules/faq_proof_guard.py drafts/article-name-2025-10-31.md --fail-on error
-7. IMMEDIATELY run: python data_sources/modules/source_support_guard.py drafts/article-name-2025-10-31.md --fail-on error
-8. If errors remain, revise once, then rerun scrub, lint, URL validation, numeric claim source guard, FAQ proof guard, and source support guard
-9. THEN proceed with scoring and optimization agents below
+7. IMMEDIATELY run: python data_sources/modules/paa_provenance_guard.py drafts/article-name-2025-10-31.md --fail-on error
+8. IMMEDIATELY run: python data_sources/modules/source_support_guard.py drafts/article-name-2025-10-31.md --fail-on error
+9. If errors remain, revise once, then rerun scrub, lint, URL validation, numeric claim source guard, FAQ proof guard, PAA provenance guard, and source support guard
+10. THEN proceed with scoring and optimization agents below
 ```
 
 This keeps cleanup separate from AI copy detection before any further processing.
@@ -362,6 +368,8 @@ URL validation confirms destinations resolve; it does not prove the page support
 Every metric, statistic, or numeric business claim must have a same-paragraph public link or a matching Source Map / Proof Pack entry with a public URL or local proof artifact. Context-backed metrics are acceptable only when the public copy or proof map points to evidence that proves the number.
 
 FAQ proof requires every claim-bearing FAQ answer to include a public proof link inside the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
+
+PAA provenance requires every FAQ question to match a saved PAA/FAQ source artifact when an FAQ section is present. Use `PAA/FAQ Provenance` with Source, Artifact, and Selected questions. Allowed source labels are AnswerSocrates, SERP, Reddit, YouTube, and user PAA/FAQ CSV. Proof links alone do not prove question provenance.
 
 The source support guard requires strict proof rows with Claim, Approved quote, or Approved metric plus URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact. Case-study proof paths and Review-site experience evidence may support non-metric E-E-A-T PoV and paraphrased themes only. Exact quotes/testimonials must appear in Customer Proof Pack Approved quotes with customer/brand or reviewer, source type, public URL, Evidence, and approved status. A named customer metric must appear in Customer Proof Pack Approved metrics with customer/brand, public URL, Evidence, and approved status; Source Map alone is insufficient for quotes, testimonials, or named metrics.
 
@@ -433,7 +441,15 @@ python data_sources/modules/faq_proof_guard.py drafts/[article-file].md --fail-o
 
 The draft must have zero FAQ proof findings before scoring. Each FAQ answer that makes a claim needs a public proof link in the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
 
-### Step 4: Confirm Source Support Guard
+### Step 4: Confirm PAA Provenance Guard
+Run the PAA provenance guard before scoring:
+```bash
+python data_sources/modules/paa_provenance_guard.py drafts/[article-file].md --fail-on error
+```
+
+The draft must have zero PAA provenance findings before scoring. FAQ questions must match the exact selected questions in a saved source artifact; FAQ answer proof links do not satisfy question provenance.
+
+### Step 5: Confirm Source Support Guard
 Run the source support guard before scoring:
 ```bash
 python data_sources/modules/source_support_guard.py drafts/[article-file].md --fail-on error
@@ -441,15 +457,15 @@ python data_sources/modules/source_support_guard.py drafts/[article-file].md --f
 
 The draft must have zero source support findings before scoring. Every strict proof row needs source-visible Evidence. Exact quotes/testimonials must be approved in Customer Proof Pack Approved quotes, and any named customer metric must be approved in Customer Proof Pack Approved metrics.
 
-### Step 5: Score Content
+### Step 6: Score Content
 Run the content scorer to evaluate the draft:
 ```bash
 python data_sources/modules/content_scorer.py drafts/[article-file].md --validate-urls
 ```
 
-This scorer command includes URL validation with `data_sources/modules/url_validator.py --fail-on unresolved` behavior before `/optimize`, and it reports the FAQ proof gate from `data_sources/modules/faq_proof_guard.py`. Numeric claim source guard and source support guard must still run separately.
+This scorer command includes URL validation with `data_sources/modules/url_validator.py --fail-on unresolved` behavior before `/optimize`, and it reports the FAQ proof gate from `data_sources/modules/faq_proof_guard.py` plus the PAA provenance gate from `data_sources/modules/paa_provenance_guard.py`. Numeric claim source guard and source support guard must still run separately.
 
-### Step 6: Evaluate Score
+### Step 7: Evaluate Score
 The scorer evaluates 5 content-quality dimensions plus the required AEO/GEO gate:
 
 | Dimension | Weight | Target |

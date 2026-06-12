@@ -544,6 +544,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - 40-60 word answers (featured snippet optimized)
 - Direct answer first, then context
 - FAQ proof is required for every FAQ answer that makes a claim: include a public proof link inside the answer, or map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
+- PAA provenance is required for every FAQ question: include `PAA/FAQ Provenance` with Source, Artifact, and exact Selected questions from AnswerSocrates, SERP, Reddit, YouTube, or a user PAA/FAQ CSV.
 - 200-300 words total
 
 #### Conclusion
@@ -627,6 +628,7 @@ After all sections are written and edited:
    - [ ] Capsule Method applied to H1 and 60%+ major H2s
    - [ ] AEO/GEO Map complete with selected PAA, source mapping, and E-E-A-T proof
    - [ ] FAQ proof checked with `python data_sources/modules/faq_proof_guard.py drafts/[filename].md --fail-on error`; every claim-bearing answer has a public proof link or question-specific Source Map entry. Context file paths alone do not count
+   - [ ] PAA provenance checked with `python data_sources/modules/paa_provenance_guard.py drafts/[filename].md --fail-on error`; every FAQ question matches the saved source artifact
    - [ ] Schema notes included for BlogPosting, FAQPage, Author, and VideoObject when relevant
    - [ ] Public article body does not mention "repo context," context file paths, Source Maps, PAA artifacts, change summaries, or internal proof-path notes
 
@@ -689,14 +691,21 @@ python data_sources/modules/faq_proof_guard.py drafts/[filename].md --fail-on er
 
 FAQ proof requires every FAQ answer with claims to include a public proof link inside the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
 
-### 6. Check Source Support
+### 6. Check PAA Provenance
+```bash
+python data_sources/modules/paa_provenance_guard.py drafts/[filename].md --fail-on error
+```
+
+PAA provenance requires every FAQ question to match a saved PAA/FAQ source artifact when an FAQ section is present. Use `PAA/FAQ Provenance` with Source, Artifact, and Selected questions. Allowed source labels are AnswerSocrates, SERP, Reddit, YouTube, and user PAA/FAQ CSV. Proof links alone do not prove question provenance.
+
+### 7. Check Source Support
 ```bash
 python data_sources/modules/source_support_guard.py drafts/[filename].md --fail-on error
 ```
 
 The source support guard requires strict proof rows with Claim, Approved quote, or Approved metric plus URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact. Case-study proof paths and Review-site experience evidence may support non-metric E-E-A-T PoV and paraphrased themes only. Exact quotes/testimonials must appear in Customer Proof Pack Approved quotes with customer/brand or reviewer, source type, public URL, Evidence, and approved status. A named customer metric must appear in Customer Proof Pack Approved metrics; Source Map alone is insufficient for quotes, testimonials, or named metrics.
 
-### 7. Score Content Quality
+### 8. Score Content Quality
 ```bash
 python data_sources/modules/content_scorer.py drafts/[filename].md --validate-urls
 ```
@@ -707,8 +716,9 @@ python data_sources/modules/content_scorer.py drafts/[filename].md --validate-ur
 - URL validation must pass before `/optimize`.
 - Numeric claim source guard must pass before scoring or `/optimize`.
 - FAQ proof guard must pass before scoring or `/optimize`.
+- PAA provenance guard must pass before scoring or `/optimize`.
 - Source support guard must pass before scoring or `/optimize`.
-- A draft only passes if AI copy lint has zero errors, URL validation passes, numeric claim source guard passes, FAQ proof guard passes, source support guard passes, and both score gates pass.
+- A draft only passes if AI copy lint has zero errors, URL validation passes, numeric claim source guard passes, FAQ proof guard passes, PAA provenance guard passes, source support guard passes, and both score gates pass.
 
 | Dimension | Weight |
 |-----------|--------|
@@ -718,19 +728,20 @@ python data_sources/modules/content_scorer.py drafts/[filename].md --validate-ur
 | SEO Compliance | 15% |
 | Readability | 10% |
 
-### 8. Auto-Revise if Needed
+### 9. Auto-Revise if Needed
 If either gate fails:
 1. Review `priority_fixes` from scorer
 2. Review AEO/GEO failed checks from `aeo_geo`
 3. Review URL validation blockers from `data_sources/modules/url_validator.py --fail-on unresolved`
 4. Review numeric claim source blockers from `data_sources/modules/numeric_claim_source_guard.py --fail-on error`
 5. Review FAQ proof blockers from `data_sources/modules/faq_proof_guard.py --fail-on error`
-6. Review source support blockers from `data_sources/modules/source_support_guard.py --fail-on error`
-7. Apply top 3-5 fixes
-8. Rerun `/scrub`, the AI copy linter, URL validation, numeric claim source guard, FAQ proof guard, and source support guard
-9. Re-score
-10. Repeat once more if needed
-11. If AI copy lint errors remain after 1 revision, URL validation fails, numeric claim source guard fails, FAQ proof guard fails, source support guard fails, or content quality remains below 85/100 or AEO/GEO remains below 90/100 after 2 iterations -> move to `review-required/`
+6. Review PAA provenance blockers from `data_sources/modules/paa_provenance_guard.py --fail-on error`
+7. Review source support blockers from `data_sources/modules/source_support_guard.py --fail-on error`
+8. Apply top 3-5 fixes
+9. Rerun `/scrub`, the AI copy linter, URL validation, numeric claim source guard, FAQ proof guard, PAA provenance guard, and source support guard
+10. Re-score
+11. Repeat once more if needed
+12. If AI copy lint errors remain after 1 revision, URL validation fails, numeric claim source guard fails, FAQ proof guard fails, PAA provenance guard fails, source support guard fails, or content quality remains below 85/100 or AEO/GEO remains below 90/100 after 2 iterations -> move to `review-required/`
 
 ### 9. Run Optimization Agents
 After passing quality threshold:

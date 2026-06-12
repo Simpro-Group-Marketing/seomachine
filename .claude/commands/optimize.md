@@ -32,6 +32,24 @@ python data_sources/modules/numeric_claim_source_guard.py [article-file] --fail-
 
 Every metric, statistic, or numeric business claim must have a same-paragraph public link or a matching Source Map / Proof Pack entry with a public URL or local proof artifact. Context-backed metrics are acceptable only when the public copy or proof map points to evidence that proves the number.
 
+### FAQ Proof Gate
+
+Before returning `Ready`, run FAQ proof guard:
+```bash
+python data_sources/modules/faq_proof_guard.py [article-file] --fail-on error
+```
+
+FAQ proof requires every claim-bearing FAQ answer to include a public proof link inside the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
+
+### PAA Provenance Gate
+
+Before returning `Ready`, run PAA provenance guard:
+```bash
+python data_sources/modules/paa_provenance_guard.py [article-file] --fail-on error
+```
+
+PAA provenance requires every FAQ question to match a saved PAA/FAQ source artifact when an FAQ section is present. Use `PAA/FAQ Provenance` with Source, Artifact, and Selected questions. Allowed source labels are AnswerSocrates, SERP, Reddit, YouTube, and user PAA/FAQ CSV. Proof links alone do not prove question provenance.
+
 ### Source Support Gate
 
 Before returning `Ready`, run source support guard:
@@ -251,6 +269,8 @@ Visual representation of where primary keyword appears:
 - [ ] No broken links
 - [ ] URL validation passed with `python data_sources/modules/url_validator.py [article-file] --fail-on unresolved`
 - [ ] Numeric claim source guard passed with `python data_sources/modules/numeric_claim_source_guard.py [article-file] --fail-on error`
+- [ ] FAQ proof guard passed with `python data_sources/modules/faq_proof_guard.py [article-file] --fail-on error`
+- [ ] PAA provenance guard passed with `python data_sources/modules/paa_provenance_guard.py [article-file] --fail-on error`
 - [ ] Source support guard passed with `python data_sources/modules/source_support_guard.py [article-file] --fail-on error`
 - [ ] Ready to publish
 

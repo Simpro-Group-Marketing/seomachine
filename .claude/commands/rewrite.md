@@ -247,28 +247,29 @@ Example: `rewrites/content-marketing-guide-rewrite-2025-10-15.md`
 Also save the change summary separately:
 - **File Location**: `rewrites/changes-[topic-slug]-[YYYY-MM-DD].md`
 
-## Automatic Scrub, AI Copy Lint, URL Validation, Numeric Claim Source Guard, FAQ Proof Guard, Source Support Guard, Score, And Optimize
+## Automatic Scrub, AI Copy Lint, URL Validation, Numeric Claim Source Guard, FAQ Proof Guard, PAA Provenance Guard, Source Support Guard, Score, And Optimize
 
-**CRITICAL**: Immediately after saving the rewritten article file, automatically invoke the content scrubber, run the AI copy linter, run URL validation, run the numeric claim source guard, run the FAQ proof guard, run the source support guard, score the content, then run `/optimize`.
+**CRITICAL**: Immediately after saving the rewritten article file, automatically invoke the content scrubber, run the AI copy linter, run URL validation, run the numeric claim source guard, run the FAQ proof guard, run the PAA provenance guard, run the source support guard, score the content, then run `/optimize`.
 
 ### Why This Matters
 AI-generated content often contains invisible Unicode marks and characteristic punctuation patterns. Scrubbing handles cleanup. The linter handles AI-writing detection and Simpro style enforcement.
 
-### Scrub, Lint, URL Validation, Numeric Claim Source Guard, FAQ Proof Guard, Source Support Guard, Score, And Optimize Process
+### Scrub, Lint, URL Validation, Numeric Claim Source Guard, FAQ Proof Guard, PAA Provenance Guard, Source Support Guard, Score, And Optimize Process
 1. **Invoke Scrubber**: Run `/scrub [file-path]` on the saved rewritten article file
 2. **Invoke AI Copy Linter**: Run `python data_sources/modules/ai_copy_linter.py [file-path] --profile simpro-web --fail-on error`
 3. **Invoke URL Validation**: Run `python data_sources/modules/url_validator.py [file-path] --fail-on unresolved`
 4. **Invoke Numeric Claim Source Guard**: Run `python data_sources/modules/numeric_claim_source_guard.py [file-path] --fail-on error`
 5. **Invoke FAQ Proof Guard**: Run `python data_sources/modules/faq_proof_guard.py [file-path] --fail-on error`
-6. **Invoke Source Support Guard**: Run `python data_sources/modules/source_support_guard.py [file-path] --fail-on error`
-7. **Invoke Content Scorer**: Run `python data_sources/modules/content_scorer.py [file-path] --validate-urls`
-8. **Check Gates**: General content quality must be 85/100 or higher, AEO/GEO must be 90/100 or higher, URL validation must pass, numeric claim source guard must pass, FAQ proof guard must pass, and source support guard must pass
-9. **Invoke Optimizer**: Run `/optimize [file-path]` only after scrub, lint, URL validation, numeric claim source guard, FAQ proof guard, source support guard, and score gates are complete
-10. **Automatic Execution**: This should happen automatically, not require user action
-11. **Timing**: Must occur immediately after file save, before optimization agents
-12. **Scope**: Scrub, lint, URL validation, numeric claim source guard, FAQ proof guard, source support guard, and score the main rewritten article file only (not change summary or analysis files)
-13. **Error Handling**: If linter errors remain, revise once, rerun `/scrub`, rerun the linter, then route to `review-required/` with lint findings if errors remain. If URL validation fails, replace or verify the unresolved link before `/optimize`. If numeric claim source guard fails, add a public proof link, map the same claim to a Source Map / Proof Pack row with a public URL or local proof artifact, or remove the unsupported number. If FAQ proof guard fails, add a public proof link inside the FAQ answer, map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL, or remove the unsupported claim. If source support guard fails, add a strict proof row with Claim, URL, Evidence, and Status: approved, use Evidence visible in the cited source, or remove the unsupported claim. Context file paths alone do not count. If score gates fail after 2 iterations, route to `review-required/` with scoring details.
-14. **Warnings**: Include warning findings in review notes, but do not block unless strict mode is requested
+6. **Invoke PAA Provenance Guard**: Run `python data_sources/modules/paa_provenance_guard.py [file-path] --fail-on error`
+7. **Invoke Source Support Guard**: Run `python data_sources/modules/source_support_guard.py [file-path] --fail-on error`
+8. **Invoke Content Scorer**: Run `python data_sources/modules/content_scorer.py [file-path] --validate-urls`
+9. **Check Gates**: General content quality must be 85/100 or higher, AEO/GEO must be 90/100 or higher, URL validation must pass, numeric claim source guard must pass, FAQ proof guard must pass, PAA provenance guard must pass, and source support guard must pass
+10. **Invoke Optimizer**: Run `/optimize [file-path]` only after scrub, lint, URL validation, numeric claim source guard, FAQ proof guard, PAA provenance guard, source support guard, and score gates are complete
+11. **Automatic Execution**: This should happen automatically, not require user action
+12. **Timing**: Must occur immediately after file save, before optimization agents
+13. **Scope**: Scrub, lint, URL validation, numeric claim source guard, FAQ proof guard, PAA provenance guard, source support guard, and score the main rewritten article file only (not change summary or analysis files)
+14. **Error Handling**: If linter errors remain, revise once, rerun `/scrub`, rerun the linter, then route to `review-required/` with lint findings if errors remain. If URL validation fails, replace or verify the unresolved link before `/optimize`. If numeric claim source guard fails, add a public proof link, map the same claim to a Source Map / Proof Pack row with a public URL or local proof artifact, or remove the unsupported number. If FAQ proof guard fails, add a public proof link inside the FAQ answer, map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL, or remove the unsupported claim. If PAA provenance guard fails, add a `PAA/FAQ Provenance` block with an allowed source, real artifact path, and exact selected questions from that artifact. If source support guard fails, add a strict proof row with Claim, URL, Evidence, and Status: approved, use Evidence visible in the cited source, or remove the unsupported claim. Context file paths alone do not count. If score gates fail after 2 iterations, route to `review-required/` with scoring details.
+15. **Warnings**: Include warning findings in review notes, but do not block unless strict mode is requested
 
 ### What Gets Cleaned
 - Invisible Unicode watermarks (zero-width spaces, BOMs, format-control characters)
@@ -305,6 +306,10 @@ The FAQ proof guard will display:
 - FAQ proof blocker count
 - Line-level findings for FAQ answers missing a public proof link or question-specific Source Map entry
 
+The PAA provenance guard will display:
+- PAA provenance blocker count
+- Line-level findings for FAQ questions missing exact saved source-artifact provenance
+
 The source support guard will display:
 - Source support blocker count
 - Line-level findings for claims whose Evidence is not visible in the cited source
@@ -317,6 +322,8 @@ Every metric, statistic, or numeric business claim must have a same-paragraph pu
 
 FAQ proof requires every claim-bearing FAQ answer to include a public proof link inside the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
 
+PAA provenance requires every FAQ question to match a saved PAA/FAQ source artifact when an FAQ section is present. Use `PAA/FAQ Provenance` with Source, Artifact, and Selected questions. Allowed source labels are AnswerSocrates, SERP, Reddit, YouTube, and user PAA/FAQ CSV. Proof links alone do not prove question provenance.
+
 The source support guard requires strict proof rows with Claim, Approved quote, or Approved metric plus URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact. Case-study proof paths and Review-site experience evidence may support non-metric E-E-A-T PoV and paraphrased themes only. Exact quotes/testimonials must appear in Customer Proof Pack Approved quotes with customer/brand or reviewer, source type, public URL, Evidence, and approved status. A named customer metric must appear in Customer Proof Pack Approved metrics with customer/brand, public URL, Evidence, and approved status; Source Map alone is insufficient for quotes, testimonials, or named metrics.
 
 ### Example Workflow
@@ -327,11 +334,12 @@ The source support guard requires strict proof rows with Claim, Approved quote, 
 4. IMMEDIATELY run: python data_sources/modules/url_validator.py rewrites/article-name-rewrite-2025-10-31.md --fail-on unresolved
 5. IMMEDIATELY run: python data_sources/modules/numeric_claim_source_guard.py rewrites/article-name-rewrite-2025-10-31.md --fail-on error
 6. IMMEDIATELY run: python data_sources/modules/faq_proof_guard.py rewrites/article-name-rewrite-2025-10-31.md --fail-on error
-7. IMMEDIATELY run: python data_sources/modules/source_support_guard.py rewrites/article-name-rewrite-2025-10-31.md --fail-on error
-8. IMMEDIATELY run: python data_sources/modules/content_scorer.py rewrites/article-name-rewrite-2025-10-31.md --validate-urls
-9. Confirm 85/100 general content quality, 90/100 AEO/GEO, passing URL validation, passing numeric claim source guard, passing FAQ proof guard, and passing source support guard
-10. THEN run: /optimize rewrites/article-name-rewrite-2025-10-31.md
-11. If errors, unresolved URLs, unsupported numeric claims, FAQ proof blockers, source support blockers, or failed score gates remain, revise once, then rerun scrub, lint, URL validation, numeric claim source guard, FAQ proof guard, source support guard, and score
+7. IMMEDIATELY run: python data_sources/modules/paa_provenance_guard.py rewrites/article-name-rewrite-2025-10-31.md --fail-on error
+8. IMMEDIATELY run: python data_sources/modules/source_support_guard.py rewrites/article-name-rewrite-2025-10-31.md --fail-on error
+9. IMMEDIATELY run: python data_sources/modules/content_scorer.py rewrites/article-name-rewrite-2025-10-31.md --validate-urls
+10. Confirm 85/100 general content quality, 90/100 AEO/GEO, passing URL validation, passing numeric claim source guard, passing FAQ proof guard, passing PAA provenance guard, and passing source support guard
+11. THEN run: /optimize rewrites/article-name-rewrite-2025-10-31.md
+12. If errors, unresolved URLs, unsupported numeric claims, FAQ proof blockers, PAA provenance blockers, source support blockers, or failed score gates remain, revise once, then rerun scrub, lint, URL validation, numeric claim source guard, FAQ proof guard, PAA provenance guard, source support guard, and score
 ```
 
 This keeps cleanup separate from AI copy detection and scoring before optimization.

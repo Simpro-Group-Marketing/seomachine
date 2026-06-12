@@ -125,7 +125,8 @@ class ContentScorer:
         content: str,
         metadata: Optional[Dict[str, Any]] = None,
         validate_urls: bool = False,
-        validate_source_support: bool = False
+        validate_source_support: bool = False,
+        source_path: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Score content across all dimensions
@@ -137,6 +138,8 @@ class ContentScorer:
             validate_urls: Resolve URLs and block the quality gate on failures
             validate_source_support: Verify approved evidence snippets support
                 high-risk claims and block the quality gate on failures
+            source_path: Optional draft path used to resolve relative PAA/FAQ
+                provenance artifact paths
 
         Returns:
             Dict with composite_score, passed, dimensions, and priority_fixes
@@ -163,11 +166,13 @@ class ContentScorer:
         )
         composite = round(composite, 1)
 
-        aeo_geo = rate_aeo_geo(content, metadata)
+        aeo_geo = rate_aeo_geo(content, metadata, source_path=source_path)
         content_quality_passed = composite >= self.PASS_THRESHOLD
         aeo_geo_passed = bool(aeo_geo.get('passed', False))
         faq_proof_check = aeo_geo.get('checks', {}).get('faq_proof', {})
         faq_proof_passed = bool(faq_proof_check.get('passed', True))
+        paa_provenance_check = aeo_geo.get('checks', {}).get('paa_provenance', {})
+        paa_provenance_passed = bool(paa_provenance_check.get('passed', True))
         url_validation = None
         url_validation_passed = True
         if validate_urls:
@@ -184,6 +189,7 @@ class ContentScorer:
             content_quality_passed
             and aeo_geo_passed
             and faq_proof_passed
+            and paa_provenance_passed
             and url_validation_passed
             and source_support_passed
         )
@@ -222,6 +228,24 @@ class ContentScorer:
                 ),
                 'severity': 'high',
                 'dimension': 'faq_proof',
+                'dimension_score': 0,
+                'impact': 100
+            })
+            priority_fixes = priority_fixes[:5]
+        if not paa_provenance_passed:
+            paa_findings = paa_provenance_check.get('details', {}).get('findings', [])
+            paa_questions = ", ".join(
+                str(finding.get('question') or finding.get('match') or 'unknown FAQ')
+                for finding in paa_findings[:3]
+            )
+            priority_fixes.insert(0, {
+                'issue': 'PAA provenance blockers detected',
+                'fix': (
+                    'Add a PAA/FAQ Provenance block with an allowed source label, '
+                    f'a real artifact path, and exact selected questions: {paa_questions}'
+                ),
+                'severity': 'high',
+                'dimension': 'paa_provenance',
                 'dimension_score': 0,
                 'impact': 100
             })
@@ -270,6 +294,10 @@ class ContentScorer:
             'faq_proof': {
                 'finding_count': faq_proof_check.get('details', {}).get('finding_count', 0),
                 'passed': faq_proof_passed
+            },
+            'paa_provenance': {
+                'finding_count': paa_provenance_check.get('details', {}).get('finding_count', 0),
+                'passed': paa_provenance_passed
             }
         }
         if url_validation is not None:
@@ -1005,6 +1033,7 @@ def main():
         content,
         validate_urls=args.validate_urls,
         validate_source_support=args.validate_source_support,
+        source_path=args.file_path,
     )
 
     print(scorer.format_report(result))

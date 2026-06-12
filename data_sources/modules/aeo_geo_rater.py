@@ -11,8 +11,10 @@ from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from .faq_proof_guard import check_content as check_faq_proof
+    from .paa_provenance_guard import check_content as check_paa_provenance_content
 except ImportError:
     from faq_proof_guard import check_content as check_faq_proof
+    from paa_provenance_guard import check_content as check_paa_provenance_content
 
 
 PASS_THRESHOLD = 90
@@ -21,6 +23,7 @@ PASS_THRESHOLD = 90
 def rate_aeo_geo(
     content: str,
     metadata: Optional[Dict[str, Any]] = None,
+    source_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Rate content against AEO/GEO publishing requirements.
@@ -28,6 +31,8 @@ def rate_aeo_geo(
     Args:
         content: Full markdown article content.
         metadata: Optional metadata such as primary_keyword, main_question, author.
+        source_path: Optional draft path used to resolve relative PAA/FAQ
+            provenance artifact paths.
 
     Returns:
         Dict with score, passed, checks, issues, and details.
@@ -46,18 +51,20 @@ def rate_aeo_geo(
         "metadata": _check_metadata(merged_metadata),
         "eeat_proof": _check_eeat_proof(content, body, merged_metadata),
         "faq_proof": _check_faq_proof(content),
+        "paa_provenance": _check_paa_provenance(content, source_path),
     }
     section_clarity = _check_section_clarity(body)
 
     weights = {
         "direct_answer": 20,
         "capsule_coverage": 20,
-        "faq_questions": 15,
-        "faq_answer_length": 15,
+        "faq_questions": 10,
+        "faq_answer_length": 10,
         "external_sources": 5,
         "metadata": 5,
         "eeat_proof": 10,
         "faq_proof": 10,
+        "paa_provenance": 10,
     }
 
     score = sum(weights[name] if check["passed"] else 0 for name, check in checks.items())
@@ -77,8 +84,11 @@ def rate_aeo_geo(
         "score": score,
         "passed": (
             score >= PASS_THRESHOLD
+            and checks["faq_questions"]["passed"]
+            and checks["faq_answer_length"]["passed"]
             and checks["eeat_proof"]["passed"]
             and checks["faq_proof"]["passed"]
+            and checks["paa_provenance"]["passed"]
         ),
         "threshold": PASS_THRESHOLD,
         "checks": checks,
@@ -93,6 +103,7 @@ def rate_aeo_geo(
             "experience_signals": checks["eeat_proof"]["details"]["experience_signals"],
             "expertise_signals": checks["eeat_proof"]["details"]["expertise_signals"],
             "faq_proof_findings": checks["faq_proof"]["details"]["findings"],
+            "paa_provenance_findings": checks["paa_provenance"]["details"]["findings"],
             "section_clarity": section_clarity,
         },
     }
@@ -339,6 +350,29 @@ def _check_faq_proof(content: str) -> Dict[str, Any]:
             "Add 1 public proof link inside each FAQ answer, or add a "
             "question-specific Source Map / FAQ Proof Map entry with the exact "
             "FAQ question and public URL. Context file paths alone do not count."
+        ),
+        "severity": "high",
+        "details": {
+            "finding_count": len(findings),
+            "findings": findings,
+        },
+    }
+
+
+def _check_paa_provenance(
+    content: str,
+    source_path: Optional[str],
+) -> Dict[str, Any]:
+    findings = check_paa_provenance_content(content, source_path=source_path)
+    passed = not findings
+
+    return {
+        "passed": passed,
+        "issue": "One or more FAQ questions lacks saved PAA/FAQ source provenance.",
+        "fix": (
+            "Add a PAA/FAQ Provenance block with an allowed source label, a "
+            "real artifact path, and exact selected FAQ questions that appear "
+            "in the artifact. Proof links alone do not prove question provenance."
         ),
         "severity": "high",
         "details": {

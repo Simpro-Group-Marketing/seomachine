@@ -11,7 +11,7 @@ SEO Machine is built on Claude Code and provides:
 - **Specialized Agents**: Content analyzer, SEO optimization, meta element creation, internal linking, keyword mapping, editor, performance analysis, headline generator, CRO analyst, landing page optimizer
 - **Marketing Skills**: 26+ marketing skills for copywriting, CRO, A/B testing, email sequences, pricing strategy, and more
 - **AEO/GEO Workflow**: Capsule Method structure, PAA/FAQ integration, source mapping, E-E-A-T Proof Map checks, and `aeo_geo_rater` scoring (90+ target) via `context/aeo-geo-blog-strategy.md`
-- **Source-Proof Guardrails**: Every metric, statistic, or numeric business claim must be supported by a public URL or local proof artifact through the body link, Source Map, or Customer Proof Pack. FAQ proof requires each claim-bearing answer to include a public proof link or question-specific Source Map / FAQ Proof Map entry; Context file paths alone do not count. The source support guard requires strict proof rows with source-visible Evidence. Exact quotes/testimonials must be approved in Customer Proof Pack Approved quotes, and any named customer metric must be approved in Customer Proof Pack Approved metrics.
+- **Source-Proof Guardrails**: Every metric, statistic, or numeric business claim must be supported by a public URL or local proof artifact through the body link, Source Map, or Customer Proof Pack. FAQ proof requires each claim-bearing answer to include a public proof link or question-specific Source Map / FAQ Proof Map entry; Context file paths alone do not count. PAA provenance requires every FAQ question to match a saved source artifact from AnswerSocrates, SERP, Reddit, YouTube, or a user PAA/FAQ CSV. The source support guard requires strict proof rows with source-visible Evidence. Exact quotes/testimonials must be approved in Customer Proof Pack Approved quotes, and any named customer metric must be approved in Customer Proof Pack Approved metrics.
 - **Advanced SEO Analysis**: Search intent detection, keyword density & clustering, content length comparison, readability scoring, SEO quality rating (0-100)
 - **Data Integrations**: GA4 and GSC via project MCP servers; DataForSEO, Ahrefs, and Semrush context in keyword/competitor files; PEEC AI citation tracking
 - **Simpro Context Pack**: Pre-filled brand voice, style guide, features, 40+ competitor battlecards, writing examples, internal links, target keywords, AI citation register, Reddit strategy, and scoped Lightning positioning overlay
@@ -139,6 +139,8 @@ After writing, these agents automatically analyze the content:
 - Validates all elements meet requirements
 - Runs URL validation with `python data_sources/modules/url_validator.py [file] --fail-on unresolved`
 - Runs numeric claim source guard with `python data_sources/modules/numeric_claim_source_guard.py [file] --fail-on error`
+- Runs FAQ proof guard with `python data_sources/modules/faq_proof_guard.py [file] --fail-on error`
+- Runs PAA provenance guard with `python data_sources/modules/paa_provenance_guard.py [file] --fail-on error`
 - Runs source support guard with `python data_sources/modules/source_support_guard.py [file] --fail-on error`
 - Provides final polish recommendations
 - Generates publishing readiness score
@@ -594,6 +596,7 @@ Six Python modules for landing page conversion optimization:
 - `url_validator.py` - URL validation guardrail for Markdown links and bare URLs; run `python data_sources/modules/url_validator.py [file] --fail-on unresolved` before `/optimize`
 - `numeric_claim_source_guard.py` - Metric/stat proof guardrail; run `python data_sources/modules/numeric_claim_source_guard.py [file] --fail-on error` before scoring or `/optimize` to block unsupported numeric business claims without a public URL or local proof artifact
 - `faq_proof_guard.py` - FAQ proof guardrail; run `python data_sources/modules/faq_proof_guard.py [file] --fail-on error` before scoring or `/optimize` to block FAQ answers that lack a public proof link or question-specific Source Map / FAQ Proof Map entry. Context file paths alone do not count.
+- `paa_provenance_guard.py` - PAA provenance guardrail; run `python data_sources/modules/paa_provenance_guard.py [file] --fail-on error` before scoring or `/optimize` to block FAQ questions that do not match a saved AnswerSocrates, SERP, Reddit, YouTube, or user PAA/FAQ CSV artifact. Proof links alone do not prove question provenance.
 - `source_support_guard.py` - Strict source support guard; run `python data_sources/modules/source_support_guard.py [file] --fail-on error` before scoring or `/optimize` to verify each strict proof row has Claim, Approved quote, or Approved metric plus URL, Evidence, and Status: approved, with Evidence visible in the cited source
 - `content_scrubber.py` - Removes invisible Unicode marks, em dashes, and whitespace artifacts before publish
 - `ai_copy_linter.py` - Deterministic AI copy detection gate with line-level findings
@@ -743,6 +746,7 @@ Every Simpro blog post should meet these requirements:
 - [ ] Capsule Method: 50-60 word direct answer under H1 and on 60%+ major H2s
 - [ ] 3-5 PAA/FAQ questions answered (from research brief or `/article` AnswerSocrates pass)
 - [ ] FAQ proof passes: every claim-bearing FAQ answer has a public proof link or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
+- [ ] PAA provenance passes: every FAQ question appears exactly in the selected questions and saved source artifact
 - [ ] E-E-A-T Proof Map resolved with Experience proof and Expertise proof, including review-site experience evidence when reviews show first-hand customer experience
 - [ ] Named author, last-updated date, and customer or expert proof where applicable
 - [ ] Schema notes: BlogPosting, FAQPage (if FAQ), Author, VideoObject (if embedded)
@@ -788,15 +792,16 @@ Every Simpro blog post should meet these requirements:
 4. **URL validation**: `python data_sources/modules/url_validator.py [file] --fail-on unresolved`
 5. **Numeric claim source guard**: `python data_sources/modules/numeric_claim_source_guard.py [file] --fail-on error`
 6. **FAQ proof guard**: `python data_sources/modules/faq_proof_guard.py [file] --fail-on error`
-7. **Source support guard**: `python data_sources/modules/source_support_guard.py [file] --fail-on error`
-8. **Score**: Run `python data_sources/modules/content_scorer.py [file] --validate-urls` for the content, AEO/GEO, FAQ proof, and URL validation gates
-9. **Optimize**: `/optimize` for final SEO polish only after URL validation, numeric claim source guard, FAQ proof guard, and source support guard pass
-10. **Publish**: `/publish-draft` to WordPress when approved
+7. **PAA provenance guard**: `python data_sources/modules/paa_provenance_guard.py [file] --fail-on error`
+8. **Source support guard**: `python data_sources/modules/source_support_guard.py [file] --fail-on error`
+9. **Score**: Run `python data_sources/modules/content_scorer.py [file] --validate-urls` for the content, AEO/GEO, FAQ proof, PAA provenance, and URL validation gates
+10. **Optimize**: `/optimize` for final SEO polish only after URL validation, numeric claim source guard, FAQ proof guard, PAA provenance guard, and source support guard pass
+11. **Publish**: `/publish-draft` to WordPress when approved
 
 ### For Blog Rewrites
 1. **`/analyze-existing`** on the live simprogroup.com URL or `published/` file
 2. **Confirm AEO/GEO inputs**: main answer target, PAA/FAQ provenance, source map, E-E-A-T Proof Map, schema notes, and missing strategy inputs
-3. **Run the quality loop**: `/scrub`, AI copy linter, `data_sources/modules/url_validator.py --fail-on unresolved`, `data_sources/modules/numeric_claim_source_guard.py --fail-on error`, `data_sources/modules/faq_proof_guard.py --fail-on error`, `data_sources/modules/source_support_guard.py --fail-on error`, `content_scorer.py --validate-urls`, then `/optimize`
+3. **Run the quality loop**: `/scrub`, AI copy linter, `data_sources/modules/url_validator.py --fail-on unresolved`, `data_sources/modules/numeric_claim_source_guard.py --fail-on error`, `data_sources/modules/faq_proof_guard.py --fail-on error`, `data_sources/modules/paa_provenance_guard.py --fail-on error`, `data_sources/modules/source_support_guard.py --fail-on error`, `content_scorer.py --validate-urls`, then `/optimize`
 4. **Refresh metrics** in intro/CTA if GSC/GA4 shows new quick-win queries
 5. **Preserve strong sections**; expand thin H2s vs. SERP leaders
 6. **Re-check AI citations** if the post targets AI-intent queries
@@ -806,6 +811,8 @@ URL validation confirms destinations resolve; it does not prove the page support
 Numeric claim source guard confirms every metric, statistic, or numeric business claim has a same-paragraph public link or a matching Source Map / Customer Proof Pack entry with a public URL or local proof artifact. It does not prove semantic support; it blocks unmapped numbers before scoring and `/optimize`.
 
 FAQ proof guard confirms every claim-bearing FAQ answer has a public proof link or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count. It blocks unsupported FAQ answers before scoring and `/optimize`.
+
+PAA provenance guard confirms every FAQ question appears in a saved source artifact and in the draft's `PAA/FAQ Provenance` selected-question list. It blocks proof-linked but unprovenanced FAQ questions before scoring and `/optimize`.
 
 Source support guard confirms high-risk claims have strict proof rows with source-visible Evidence. Case-study proof paths and Review-site experience evidence may support non-metric E-E-A-T PoV and paraphrased themes only. Exact quotes/testimonials must appear in Customer Proof Pack Approved quotes with customer/brand or reviewer, source type, public URL, Evidence, and approved status. A named customer metric must appear in Customer Proof Pack Approved metrics with customer/brand, public URL, Evidence, and approved status; Source Map alone is insufficient for quotes, testimonials, or named metrics.
 

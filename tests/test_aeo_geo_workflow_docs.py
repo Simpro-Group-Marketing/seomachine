@@ -374,6 +374,30 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
+    def test_paa_provenance_gate_is_documented_across_blog_workflow(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / "README.md",
+            ROOT / "CLAUDE.md",
+        ]
+        required = [
+            "PAA provenance",
+            "data_sources/modules/paa_provenance_guard.py",
+            "--fail-on error",
+            "AnswerSocrates",
+            "user PAA/FAQ CSV",
+            "Proof links alone do not prove question provenance",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
     def test_numeric_claim_source_guard_is_documented_globally(self):
         docs = [
             ROOT / ".claude" / "commands" / "optimize.md",

@@ -1,7 +1,22 @@
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from data_sources.modules.aeo_geo_rater import rate_aeo_geo
 
+
+PAA_ARTIFACT = "research/paa-questions-hvac-scheduling-2026-05-22.md"
+PAA_PROVENANCE_BLOCK = f"""
+```text
+PAA/FAQ Provenance
+- Source: AnswerSocrates via Playwright MCP
+- Artifact: {PAA_ARTIFACT}
+- Selected questions:
+  - What is the best way to schedule HVAC technicians?
+  - How does HVAC scheduling software reduce missed appointments?
+  - Should HVAC scheduling connect to invoicing?
+```
+"""
 
 COMPLIANT_ARTICLE = """---
 Meta Title: HVAC Scheduling Software for Contractors | Simpro
@@ -39,6 +54,7 @@ Scheduling affects profit because every missed appointment, double-booking, and 
 The profit impact compounds when scheduling is connected to job costing. Research from [McKinsey](https://www.mckinsey.com/) has shown that field productivity depends on better planning, tighter coordination, and faster information flow across operational teams.
 
 [Schaffer Beacon Mechanical](https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical) shows how field service teams use connected workflows to improve operational control.
+""" + PAA_PROVENANCE_BLOCK + """
 
 ## Frequently Asked Questions
 
@@ -56,12 +72,40 @@ HVAC scheduling should connect to invoicing because completed work loses value w
 """
 
 
+def write_paa_fixture(test_case: unittest.TestCase, content: str) -> str:
+    temp_dir = TemporaryDirectory()
+    test_case.addCleanup(temp_dir.cleanup)
+    root = Path(temp_dir.name)
+    artifact = root / PAA_ARTIFACT
+    artifact.parent.mkdir(parents=True, exist_ok=True)
+    artifact.write_text(
+        "\n".join(
+            [
+                "# AnswerSocrates PAA Questions",
+                "",
+                "What is the best way to schedule HVAC technicians?",
+                "How does HVAC scheduling software reduce missed appointments?",
+                "Should HVAC scheduling connect to invoicing?",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    article_path = root / "drafts" / "hvac-scheduling-software.md"
+    article_path.parent.mkdir(parents=True, exist_ok=True)
+    article_path.write_text(content, encoding="utf-8")
+    return str(article_path)
+
+
 class AeoGeoRaterTests(unittest.TestCase):
-    def test_compliant_article_passes_90_point_gate(self):
-        result = rate_aeo_geo(
-            COMPLIANT_ARTICLE,
+    def rate(self, content: str = COMPLIANT_ARTICLE):
+        return rate_aeo_geo(
+            content,
             {"primary_keyword": "hvac scheduling software"},
+            source_path=write_paa_fixture(self, content),
         )
+
+    def test_compliant_article_passes_90_point_gate(self):
+        result = self.rate()
 
         self.assertTrue(result["passed"])
         self.assertGreaterEqual(result["score"], 90)
@@ -69,12 +113,10 @@ class AeoGeoRaterTests(unittest.TestCase):
         self.assertTrue(result["checks"]["capsule_coverage"]["passed"])
         self.assertTrue(result["checks"]["faq_questions"]["passed"])
         self.assertTrue(result["checks"]["eeat_proof"]["passed"])
+        self.assertTrue(result["checks"]["paa_provenance"]["passed"])
 
     def test_eeat_detects_case_study_experience_and_author_expertise(self):
-        result = rate_aeo_geo(
-            COMPLIANT_ARTICLE,
-            {"primary_keyword": "hvac scheduling software"},
-        )
+        result = self.rate()
 
         details = result["checks"]["eeat_proof"]["details"]
 
@@ -89,10 +131,7 @@ class AeoGeoRaterTests(unittest.TestCase):
             "\nThe article uses public research to explain scheduling workflows.\n",
         )
 
-        result = rate_aeo_geo(
-            content,
-            {"primary_keyword": "hvac scheduling software"},
-        )
+        result = self.rate(content)
 
         self.assertFalse(result["checks"]["eeat_proof"]["passed"])
         self.assertFalse(result["passed"])
@@ -117,10 +156,7 @@ class AeoGeoRaterTests(unittest.TestCase):
             "https://www.mckinsey.com/",
         )
 
-        result = rate_aeo_geo(
-            content,
-            {"primary_keyword": "hvac scheduling software"},
-        )
+        result = self.rate(content)
 
         details = result["checks"]["eeat_proof"]["details"]
 
@@ -134,10 +170,7 @@ class AeoGeoRaterTests(unittest.TestCase):
             "https://www.g2.com/categories/field-service-management",
         )
 
-        result = rate_aeo_geo(
-            content,
-            {"primary_keyword": "hvac scheduling software"},
-        )
+        result = self.rate(content)
 
         details = result["checks"]["eeat_proof"]["details"]
 
@@ -151,10 +184,7 @@ class AeoGeoRaterTests(unittest.TestCase):
             "Running a service business has always been complicated, and teams face more pressure every year.",
         )
 
-        result = rate_aeo_geo(
-            content,
-            {"primary_keyword": "hvac scheduling software"},
-        )
+        result = self.rate(content)
 
         self.assertFalse(result["passed"])
         self.assertFalse(result["checks"]["direct_answer"]["passed"])
@@ -169,10 +199,7 @@ class AeoGeoRaterTests(unittest.TestCase):
             "This section explains selection criteria in more detail.",
         )
 
-        result = rate_aeo_geo(
-            content,
-            {"primary_keyword": "hvac scheduling software"},
-        )
+        result = self.rate(content)
 
         self.assertFalse(result["checks"]["capsule_coverage"]["passed"])
         self.assertLess(result["score"], 90)
@@ -183,13 +210,11 @@ class AeoGeoRaterTests(unittest.TestCase):
             "Use [field service scheduling](https://www.simprogroup.com/features/scheduling-software).",
         )
 
-        result = rate_aeo_geo(
-            content,
-            {"primary_keyword": "hvac scheduling software"},
-        )
+        result = self.rate(content)
 
         self.assertFalse(result["checks"]["faq_answer_length"]["passed"])
-        self.assertLess(result["score"], 90)
+        self.assertEqual(result["score"], 90)
+        self.assertFalse(result["passed"])
 
     def test_missing_metadata_and_external_links_fail(self):
         content = COMPLIANT_ARTICLE.replace("Author: Jordan Lee\n", "").replace(
@@ -202,10 +227,7 @@ class AeoGeoRaterTests(unittest.TestCase):
         content = content.replace("(https://www.simprogroup.com/features/field-service-mobile-app)", "()")
         content = content.replace("(https://www.simprogroup.com/features/invoicing-software-for-construction)", "()")
 
-        result = rate_aeo_geo(
-            content,
-            {"primary_keyword": "hvac scheduling software"},
-        )
+        result = self.rate(content)
 
         self.assertFalse(result["checks"]["external_sources"]["passed"])
         self.assertFalse(result["checks"]["metadata"]["passed"])
@@ -223,14 +245,20 @@ class AeoGeoRaterTests(unittest.TestCase):
             "invoicing",
         )
 
-        result = rate_aeo_geo(
-            content,
-            {"primary_keyword": "hvac scheduling software"},
-        )
+        result = self.rate(content)
 
         self.assertFalse(result["checks"]["faq_proof"]["passed"])
         self.assertFalse(result["passed"])
         self.assertIn("faq_proof", {issue["check"] for issue in result["issues"]})
+
+    def test_faq_without_paa_provenance_blocks_aeo_geo_gate(self):
+        content = COMPLIANT_ARTICLE.replace(PAA_PROVENANCE_BLOCK, "")
+
+        result = self.rate(content)
+
+        self.assertFalse(result["checks"]["paa_provenance"]["passed"])
+        self.assertFalse(result["passed"])
+        self.assertIn("paa_provenance", {issue["check"] for issue in result["issues"]})
 
 
 if __name__ == "__main__":

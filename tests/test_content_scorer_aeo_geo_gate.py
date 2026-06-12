@@ -1,9 +1,24 @@
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from data_sources.modules.content_scorer import ContentScorer
 from data_sources.modules.url_validator import UrlValidationResult, UrlValidationSummary
 
+
+PAA_ARTIFACT = "research/paa-questions-hvac-scheduling-2026-05-22.md"
+PAA_PROVENANCE_BLOCK = f"""
+```text
+PAA/FAQ Provenance
+- Source: AnswerSocrates via Playwright MCP
+- Artifact: {PAA_ARTIFACT}
+- Selected questions:
+  - What is the best way to schedule HVAC technicians?
+  - How does HVAC scheduling software reduce missed appointments?
+  - Should HVAC scheduling connect to invoicing?
+```
+"""
 
 COMPLIANT_ARTICLE = """---
 Meta Title: HVAC Scheduling Software for Contractors | Simpro
@@ -41,6 +56,7 @@ Scheduling affects profit because every missed appointment, double-booking, and 
 The profit impact compounds when scheduling is connected to job costing. Research from [McKinsey](https://www.mckinsey.com/) has shown that field productivity depends on better planning, tighter coordination, and faster information flow across operational teams.
 
 [Schaffer Beacon Mechanical](https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical) shows how field service teams use connected workflows to improve operational control.
+""" + PAA_PROVENANCE_BLOCK + """
 
 ## Frequently Asked Questions
 
@@ -56,6 +72,30 @@ HVAC scheduling software reduces missed appointments by centralizing job details
 
 HVAC scheduling should connect to invoicing because completed work loses value when job details stay trapped in the field. When technician notes, labor time, materials, and approvals flow into [field service invoicing](https://www.simprogroup.com/features/invoicing-software-for-construction), office teams can invoice faster. That reduces rework, protects cash flow, and improves job-level reporting.
 """
+
+
+def write_paa_fixture(test_case: unittest.TestCase, content: str) -> str:
+    temp_dir = TemporaryDirectory()
+    test_case.addCleanup(temp_dir.cleanup)
+    root = Path(temp_dir.name)
+    artifact = root / PAA_ARTIFACT
+    artifact.parent.mkdir(parents=True, exist_ok=True)
+    artifact.write_text(
+        "\n".join(
+            [
+                "# AnswerSocrates PAA Questions",
+                "",
+                "What is the best way to schedule HVAC technicians?",
+                "How does HVAC scheduling software reduce missed appointments?",
+                "Should HVAC scheduling connect to invoicing?",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    article_path = root / "drafts" / "hvac-scheduling-software.md"
+    article_path.parent.mkdir(parents=True, exist_ok=True)
+    article_path.write_text(content, encoding="utf-8")
+    return str(article_path)
 
 
 class ContentScorerAeoGeoGateTests(unittest.TestCase):
@@ -115,6 +155,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
             result = scorer.score(
                 content,
                 {"primary_keyword": "hvac scheduling software"},
+                source_path=write_paa_fixture(self, content),
             )
 
         self.assertFalse(result["passed"])
@@ -150,6 +191,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
             result = scorer.score(
                 COMPLIANT_ARTICLE,
                 {"primary_keyword": "hvac scheduling software"},
+                source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
             )
 
         self.assertTrue(result["passed"])
@@ -197,6 +239,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
                 COMPLIANT_ARTICLE,
                 {"primary_keyword": "hvac scheduling software"},
                 validate_urls=True,
+                source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
             )
 
         self.assertFalse(result["passed"])
@@ -241,6 +284,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
             result = scorer.score(
                 content,
                 {"primary_keyword": "hvac scheduling software"},
+                source_path=write_paa_fixture(self, content),
             )
 
         self.assertFalse(result["passed"])
@@ -289,12 +333,49 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
                 COMPLIANT_ARTICLE,
                 {"primary_keyword": "hvac scheduling software"},
                 validate_source_support=True,
+                source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
             )
 
         self.assertFalse(result["passed"])
         self.assertIn("source_support", result["quality_gates"])
         self.assertFalse(result["quality_gates"]["source_support"]["passed"])
         self.assertIn("Source support blockers detected", result["priority_fixes"][0]["issue"])
+
+    def test_paa_provenance_failure_blocks_content_scorer(self):
+        scorer = ContentScorer()
+        content = COMPLIANT_ARTICLE.replace(PAA_PROVENANCE_BLOCK, "")
+
+        with patch.object(
+            ContentScorer,
+            "_score_humanity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_specificity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_structure_balance",
+            return_value={"score": 100, "issues": [], "details": {}, "prose_ratio": 0.65},
+        ), patch.object(
+            ContentScorer,
+            "_score_seo",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_readability",
+            return_value={"score": 100, "issues": [], "details": {}, "flesch": 68},
+        ):
+            result = scorer.score(
+                content,
+                {"primary_keyword": "hvac scheduling software"},
+                source_path=write_paa_fixture(self, content),
+            )
+
+        self.assertFalse(result["passed"])
+        self.assertIn("paa_provenance", result["quality_gates"])
+        self.assertFalse(result["quality_gates"]["paa_provenance"]["passed"])
+        self.assertIn("PAA provenance blockers detected", result["priority_fixes"][0]["issue"])
 
 
 if __name__ == "__main__":

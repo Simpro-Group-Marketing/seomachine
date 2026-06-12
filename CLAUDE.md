@@ -71,7 +71,8 @@ Located in `data_sources/modules/`. The Content Analyzer chains:
 6. `url_validator.py` - URL validation guardrail for Markdown links and bare URLs
 7. `numeric_claim_source_guard.py` - Metric/stat proof guardrail for public numeric business claims
 8. `faq_proof_guard.py` - FAQ proof guardrail for public proof links or question-specific Source Map proof
-9. `source_support_guard.py` - Strict source support guard requiring approved proof rows with source-visible Evidence snippets
+9. `paa_provenance_guard.py` - PAA provenance guardrail requiring FAQ questions to match saved AnswerSocrates, SERP, Reddit, YouTube, or user PAA/FAQ CSV artifacts
+10. `source_support_guard.py` - Strict source support guard requiring approved proof rows with source-visible Evidence snippets
 
 ### Data Integrations
 
@@ -110,13 +111,14 @@ python3 tests/test_dataforseo.py
 
 Rewrites go to `rewrites/`. Landing pages go to `landing-pages/`. Audits go to `audits/`. Repurposed content goes to `repurposed/`.
 
-Blog rewrites must follow the same AEO/GEO evidence boundaries as new articles: sourced PAA/FAQ provenance, FAQ proof, source mapping, E-E-A-T Proof Map inputs, direct-answer structure, schema notes, AI copy lint, URL validation, numeric claim source guard, FAQ proof guard, source support guard, `content_scorer.py --validate-urls`, and the 85/100 general quality plus 90/100 AEO/GEO gates before `/optimize`.
+Blog rewrites must follow the same AEO/GEO evidence boundaries as new articles: sourced PAA/FAQ provenance, FAQ proof, source mapping, E-E-A-T Proof Map inputs, direct-answer structure, schema notes, AI copy lint, URL validation, numeric claim source guard, FAQ proof guard, PAA provenance guard, source support guard, `content_scorer.py --validate-urls`, and the 85/100 general quality plus 90/100 AEO/GEO gates before `/optimize`.
 
 Before `/optimize` or any publish path, run:
 ```bash
 python data_sources/modules/url_validator.py [file] --fail-on unresolved
 python data_sources/modules/numeric_claim_source_guard.py [file] --fail-on error
 python data_sources/modules/faq_proof_guard.py [file] --fail-on error
+python data_sources/modules/paa_provenance_guard.py [file] --fail-on error
 python data_sources/modules/source_support_guard.py [file] --fail-on error
 ```
 
@@ -125,6 +127,8 @@ URL validation confirms destinations resolve; it does not prove the page support
 Every metric, statistic, or numeric business claim must have a same-paragraph public link or a matching Source Map / Customer Proof Pack entry with a public URL or local proof artifact. Treat "industry standard," "FDD conventions," and "no anchor" as insufficient proof for numeric public claims.
 
 FAQ proof requires every claim-bearing FAQ answer to include a public proof link inside the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
+
+PAA provenance requires every FAQ question to match a saved PAA/FAQ source artifact when an FAQ section is present. Use `PAA/FAQ Provenance` with Source, Artifact, and Selected questions. Allowed source labels are AnswerSocrates, SERP, Reddit, YouTube, and user PAA/FAQ CSV. Proof links alone do not prove question provenance.
 
 The source support guard requires strict proof rows with Claim, URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact. Case-study proof paths and Review-site experience evidence may support non-metric E-E-A-T PoV and paraphrased themes only. Exact quotes or testimonial wording must appear in Customer Proof Pack Approved quotes with customer/brand or reviewer, source type, public URL, Evidence, and approved status. A named customer metric must appear in Customer Proof Pack Approved metrics with customer/brand, public URL, Evidence, and approved status; Source Map alone is insufficient for quotes, testimonials, or named metrics.
 
