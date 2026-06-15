@@ -597,6 +597,7 @@ Six Python modules for landing page conversion optimization:
 - `paa_provenance_guard.py` - PAA provenance guardrail; use the After Writing command stack before scoring or `/optimize`
 - `source_support_guard.py` - Strict source support guard; use the After Writing command stack before scoring or `/optimize`
 - `customer_proof_selector.py` - Customer proof selector; run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme --limit 10` before selecting proof and record the generated selector-first `Customer Proof Slate`
+- `customer_proof_index_health.py` - Read-only proof inventory health report; run it before proof-index intake when checking source mix, approvals, overuse, and public-copy gaps
 - `customer_proof_index_intake.py` - Customer proof intake validator/merger; add new candidates through `context/customer-proof-intake-template.csv` and validate before relying on them in selector slates
 - `customer_proof_diversity_guard.py` - Customer proof diversity guard; use the After Writing command stack and `context/aeo-geo-blog-strategy.md` for full reuse policy
 - `review_story_identity_guard.py` - Review story identity guard; use the After Writing command stack and `context/aeo-geo-blog-strategy.md` for full review story/theme policy
@@ -778,7 +779,7 @@ Every Simpro blog post should meet these requirements:
 6. **E-E-A-T proof**: Build the E-E-A-T Proof Map before drafting. Use `context/aeo-geo-blog-strategy.md` for review-story, Capterra-theme, exact-quote, rating, and metric boundaries.
 7. **Metric Proof Pack**: For software, comparison, pricing, cost, ROI, KPI, profit, margin, guide, and vs topics, complete metric research before drafting and record approved metrics in the validation sidecar.
 8. **Customer Proof Pack**: Before selecting proof, run or consult `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme --limit 10`. Add the generated selector-first `Customer Proof Slate`; edit selected/rejected rows only when editorial judgment requires it. If selected proof is overused, add a selector-backed, source-specific `Reuse reason` in the validation sidecar. Use `context/aeo-geo-blog-strategy.md` as the full policy.
-9. **Proof-index intake**: Add new proof candidates through `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates.
+9. **Proof-index health and intake**: Run `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` before adding proof candidates, then use `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json`.
 
 ### During Writing
 1. **Follow the brief**: Outline from `research/brief-*.md`

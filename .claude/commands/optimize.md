@@ -92,6 +92,8 @@ python data_sources/modules/customer_proof_diversity_guard.py [article-file] --p
 
 Run or consult `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme --limit 10` before selecting proof. The validation sidecar needs the generated selector-first `Customer Proof Slate`; use `context/aeo-geo-blog-strategy.md` for the full customer proof policy.
 
+Run or consult `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` before adding proof candidates.
+
 Add new proof candidates through `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates.
 
 ### Review Story Identity Gate

@@ -75,9 +75,10 @@ Located in `data_sources/modules/`. The Content Analyzer chains:
 10. `paa_provenance_guard.py` - PAA provenance guardrail requiring FAQ questions to match saved AnswerSocrates, SERP, Reddit, YouTube, or user PAA/FAQ CSV artifacts
 11. `source_support_guard.py` - Strict source support guard requiring approved proof rows with source-visible Evidence snippets
 12. `customer_proof_selector.py` - Customer proof selector using `customer-proof-index.json` and `customer-proof-usage-ledger.json` to choose the most relevant approved proof
-13. `customer_proof_index_intake.py` - Customer proof intake validator/merger for `context/customer-proof-intake-template.csv`
-14. `customer_proof_diversity_guard.py` - Customer proof diversity guard requiring non-case-study proof search evidence, a `Customer Proof Selection Decision`, and source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved proof fits the same role
-15. `review_story_identity_guard.py` - Review story identity guard requiring identity-backed Review Story Selection, a public review URL, and same paragraph article link for review-derived E-E-A-T stories
+13. `customer_proof_index_health.py` - Read-only proof inventory health report for source mix, approvals, overuse, and public-copy gaps
+14. `customer_proof_index_intake.py` - Customer proof intake validator/merger for `context/customer-proof-intake-template.csv`
+15. `customer_proof_diversity_guard.py` - Customer proof diversity guard requiring non-case-study proof search evidence, a `Customer Proof Selection Decision`, and source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved proof fits the same role
+16. `review_story_identity_guard.py` - Review story identity guard requiring identity-backed Review Story Selection, a public review URL, and same paragraph article link for review-derived E-E-A-T stories
 
 ### Data Integrations
 
@@ -146,6 +147,8 @@ PAA provenance requires every FAQ question to match a saved PAA/FAQ source artif
 The source support guard requires strict proof rows with Claim, URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact. Case-study proof paths and Review-site experience evidence may support non-metric E-E-A-T PoV and paraphrased themes only. Exact quotes or testimonial wording must appear in Customer Proof Pack Approved quotes with customer/brand or reviewer, source type, public URL, Evidence, and approved status. A named customer metric must appear in Customer Proof Pack Approved metrics with customer/brand, public URL, Evidence, and approved status; Source Map alone is insufficient for quotes, testimonials, or named metrics.
 
 Before selecting customer proof, run or consult `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme --limit 10`. Add the generated selector-first `Customer Proof Slate` to the validation sidecar before drafting; edit selected/rejected rows only when editorial judgment requires it. Choose the most relevant approved proof, not the easiest mapped case study. If selected proof is overused, the validation sidecar needs a selector-backed, source-specific `Reuse reason`.
+
+Use `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` to check source mix, public-copy gaps, and overuse before adding proof candidates.
 
 Add new proof candidates through `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates.
 

@@ -775,6 +775,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             ROOT / ".claude" / "rules" / "customer-proof.md",
         ]
         required = [
+            "customer_proof_index_health.py",
             "customer_proof_index_intake.py",
             "context/customer-proof-intake-template.csv",
         ]
@@ -786,7 +787,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
             encoding="utf-8"
         )
-        for text in required + ["proof-index intake"]:
+        for text in required + ["proof-index intake", "proof-index health"]:
             self.assertIn(text, canonical)
 
     def test_customer_proof_rules_apply_across_agent_platforms(self):

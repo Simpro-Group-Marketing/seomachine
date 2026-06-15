@@ -65,6 +65,10 @@ REQUIRED_COLUMNS = [
     "review_copy_use",
     "review_verification_status",
 ]
+OPTIONAL_COLUMNS = [
+    "review_objective_fit",
+    "company_size",
+]
 
 Finding = Dict[str, Any]
 
@@ -149,7 +153,7 @@ def _load_index(index_path: str | Path) -> Dict[str, Any]:
     path = Path(index_path)
     if not path.exists():
         return {"version": 1, "proof": []}
-    return json.loads(path.read_text(encoding="utf-8"))
+    return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
 def _existing_index_findings(index: Dict[str, Any]) -> List[Finding]:
@@ -417,6 +421,7 @@ def _normalize_row(row: Dict[str, str]) -> Dict[str, Any]:
         "approval_status",
         "evidence",
         "last_verified",
+        "company_size",
     ):
         value = row.get(field, "").strip()
         if value:
@@ -470,13 +475,14 @@ def _normalize_review_story(row: Dict[str, str]) -> Dict[str, Any]:
         "source_row_ref": row.get("review_source_row_ref", "").strip(),
         "public_url": row.get("review_public_url", "").strip(),
         "workflow_story": row.get("review_workflow_story", "").strip(),
+        "objective_fit": _split_list(row.get("review_objective_fit", "")),
         "copy_use": row.get("review_copy_use", "").strip(),
         "verification_status": row.get("review_verification_status", "").strip(),
     }
     if not any(value not in ("", None, False) for value in review_fields.values()):
         return {}
     review_fields["story_allowed"] = bool(review_fields["story_allowed"])
-    return {key: value for key, value in review_fields.items() if value not in ("", None)}
+    return {key: value for key, value in review_fields.items() if value not in ("", None, [])}
 
 
 def _merge_index(index: Dict[str, Any], rows: Sequence[Dict[str, Any]]) -> tuple[Dict[str, Any], int, int]:
@@ -492,7 +498,8 @@ def _merge_index(index: Dict[str, Any], rows: Sequence[Dict[str, Any]]) -> tuple
     for row in rows:
         proof_id = str(row.get("proof_id", ""))
         if proof_id in positions:
-            proof[positions[proof_id]] = row
+            existing = proof[positions[proof_id]]
+            proof[positions[proof_id]] = _merge_existing_row(existing, row)
             updated += 1
         else:
             positions[proof_id] = len(proof)
@@ -506,6 +513,24 @@ def _merge_index(index: Dict[str, Any], rows: Sequence[Dict[str, Any]]) -> tuple
     )
     merged["proof"] = proof
     return merged, updated, appended
+
+
+def _merge_existing_row(existing: Dict[str, Any], incoming: Dict[str, Any]) -> Dict[str, Any]:
+    merged = dict(existing)
+    for key, value in incoming.items():
+        if key == "review_story" and isinstance(value, dict):
+            existing_story = merged.get("review_story", {})
+            if isinstance(existing_story, dict):
+                story = dict(existing_story)
+                story.update(value)
+                merged[key] = story
+            else:
+                merged[key] = value
+            continue
+        if isinstance(value, list) and value == [] and merged.get(key):
+            continue
+        merged[key] = value
+    return merged
 
 
 def _split_list(value: str) -> List[str]:

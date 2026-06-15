@@ -45,6 +45,8 @@ FIELDNAMES = [
     "review_workflow_story",
     "review_copy_use",
     "review_verification_status",
+    "review_objective_fit",
+    "company_size",
 ]
 
 
@@ -331,6 +333,155 @@ class CustomerProofIndexIntakeTests(unittest.TestCase):
                 proof_ids,
             )
             self.assertEqual("Queenstown Plumbing Updated", merged["proof"][0]["customer"])
+
+    def test_merge_preserves_review_story_objective_fit_when_supplied(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            csv_path = root / "intake.csv"
+            out_path = root / "customer-proof-index.json"
+            write_index(index_path)
+            write_csv(
+                csv_path,
+                [
+                    base_row(
+                        proof_id="review-capterra-qbo-service-jobs-quotes-invoices",
+                        customer="Capterra review theme",
+                        source_type="review_site",
+                        public_url="https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+                        internal_source_ref="Capterra tab row 50",
+                        approval_status="approved",
+                        public_copy_allowed="true",
+                        review_story_allowed="true",
+                        review_identity_type="person",
+                        review_identity_display="Megan B",
+                        review_person_name="Megan B",
+                        review_role_title="Owner",
+                        review_platform="Capterra",
+                        review_source_row_ref="Capterra tab row 50",
+                        review_public_url="https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+                        review_workflow_story="Capterra row describes service jobs, recurring jobs, invoices, quotes, and QuickBooks Online integration.",
+                        review_copy_use="paraphrased E-E-A-T story with same-paragraph source link",
+                        review_verification_status="brand-captured public review source",
+                        review_objective_fit="service jobs; recurring jobs; invoicing; quotes; QBO",
+                        company_size="2-10 employees",
+                    )
+                ],
+            )
+
+            result = merge_intake_file(csv_path, index_path=index_path, out_path=out_path)
+            merged = json.loads(out_path.read_text(encoding="utf-8"))
+
+            self.assertTrue(result["passed"])
+            self.assertEqual(
+                ["service jobs", "recurring jobs", "invoicing", "quotes", "QBO"],
+                merged["proof"][0]["review_story"]["objective_fit"],
+            )
+            self.assertEqual("2-10 employees", merged["proof"][0]["company_size"])
+
+    def test_merge_preserves_existing_metadata_not_represented_in_csv(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            csv_path = root / "intake.csv"
+            out_path = root / "customer-proof-index.json"
+            write_index(
+                index_path,
+                [
+                    {
+                        "proof_id": "review-capterra-commercial-hvac-cloud-quotes",
+                        "customer": "Capterra commercial HVAC president review",
+                        "source_type": "review_site",
+                        "company_size": "11-50 employees",
+                        "workflow_fit": ["quoting"],
+                        "themes": ["commercial HVAC quoting"],
+                        "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+                        "approval_status": "ready",
+                        "public_copy_allowed": True,
+                        "evidence": "Existing evidence.",
+                        "restrictions": [
+                            "Use as paraphrased review-story evidence only; exact review wording requires approval."
+                        ],
+                        "review_story": {
+                            "story_allowed": True,
+                            "identity_type": "person",
+                            "identity_display": "Gerald S",
+                            "person_name": "Gerald S",
+                            "role_title": "President",
+                            "platform": "Capterra",
+                            "source_row_ref": "Capterra tab row 19",
+                            "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+                            "workflow_story": "Existing workflow story.",
+                            "objective_fit": ["quoting", "commercial HVAC"],
+                            "copy_use": "paraphrased E-E-A-T story with same-paragraph source link",
+                            "verification_status": "brand-captured public review source",
+                        },
+                    }
+                ],
+            )
+            write_csv(
+                csv_path,
+                [
+                    base_row(
+                        proof_id="review-capterra-commercial-hvac-cloud-quotes",
+                        customer="Capterra commercial HVAC president review",
+                        source_type="review_site",
+                        public_url="https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+                        internal_source_ref="Capterra tab row 19",
+                        approval_status="approved",
+                        public_copy_allowed="true",
+                        evidence="Existing evidence.",
+                        restrictions="",
+                        review_story_allowed="true",
+                        review_identity_type="person",
+                        review_identity_display="Gerald S",
+                        review_person_name="Gerald S",
+                        review_role_title="President",
+                        review_platform="Capterra",
+                        review_source_row_ref="Capterra tab row 19",
+                        review_public_url="https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+                        review_workflow_story="Existing workflow story.",
+                        review_copy_use="paraphrased E-E-A-T story with same-paragraph source link",
+                        review_verification_status="brand-captured public review source",
+                    )
+                ],
+            )
+
+            result = merge_intake_file(csv_path, index_path=index_path, out_path=out_path)
+            merged = json.loads(out_path.read_text(encoding="utf-8"))
+
+            self.assertTrue(result["passed"])
+            self.assertEqual("approved", merged["proof"][0]["approval_status"])
+            self.assertEqual("11-50 employees", merged["proof"][0]["company_size"])
+            self.assertEqual(
+                ["quoting", "commercial HVAC"],
+                merged["proof"][0]["review_story"]["objective_fit"],
+            )
+            self.assertEqual(
+                ["Use as paraphrased review-story evidence only; exact review wording requires approval."],
+                merged["proof"][0]["restrictions"],
+            )
+
+    def test_validate_accepts_utf8_bom_index_files(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            csv_path = root / "intake.csv"
+            index_path.write_text(
+                "\ufeff"
+                + json.dumps(
+                    {
+                        "version": 1,
+                        "proof": [],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            write_csv(csv_path, [base_row()])
+
+            findings = validate_intake_file(csv_path, index_path=index_path)
+
+            self.assertEqual([], findings)
 
 
 if __name__ == "__main__":
