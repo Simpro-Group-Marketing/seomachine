@@ -246,6 +246,48 @@ class CustomerProofIndexHealthTests(unittest.TestCase):
                 report["priority_intake_targets"][1]["priority_score"],
             )
 
+    def test_priority_intake_targets_skip_source_register_placeholders(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            ledger_path = root / "customer-proof-usage-ledger.json"
+            write_json(
+                index_path,
+                {
+                    "version": 1,
+                    "proof": [
+                        {
+                            "proof_id": "references-source-register",
+                            "customer": "Simpro References source register",
+                            "source_type": "reference",
+                            "workflow_fit": ["reference matching", "customer proof"],
+                            "approval_status": "ready",
+                            "public_copy_allowed": False,
+                            "public_url": "https://docs.google.com/presentation/d/example/edit",
+                            "restrictions": [
+                                "Selection and governance source only; public copy requires approved proof."
+                            ],
+                        },
+                        {
+                            "proof_id": "review-site-simpro-g2",
+                            "customer": "Simpro G2 review themes",
+                            "source_type": "review_site",
+                            "workflow_fit": ["implementation", "workflow pain"],
+                            "approval_status": "ready",
+                            "public_copy_allowed": False,
+                            "public_url": "https://www.g2.com/products/simpro/reviews",
+                        },
+                    ],
+                },
+            )
+            write_json(ledger_path, {"version": 1, "uses": []})
+
+            report = analyze_proof_index(index_path=index_path, ledger_path=ledger_path)
+            target_ids = {row["proof_id"] for row in report["priority_intake_targets"]}
+
+            self.assertNotIn("references-source-register", target_ids)
+            self.assertIn("review-site-simpro-g2", target_ids)
+
     def test_priority_workflow_gaps_group_and_rank_useful_gap_candidates(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -290,6 +332,49 @@ class CustomerProofIndexHealthTests(unittest.TestCase):
                 gap for gap in report["priority_workflow_gaps"] if gap["workflow"] == "electrical workflow"
             )
             self.assertEqual("capture_public_url_or_keep_internal", electrical_gap["recommended_action"])
+
+    def test_priority_workflow_gaps_do_not_select_source_register_as_best_candidate(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            ledger_path = root / "customer-proof-usage-ledger.json"
+            write_json(
+                index_path,
+                {
+                    "version": 1,
+                    "proof": [
+                        {
+                            "proof_id": "customer-stories-source-register",
+                            "customer": "Simpro Customer Stories source register",
+                            "source_type": "customer_story",
+                            "workflow_fit": ["quote-to-cash"],
+                            "approval_status": "ready",
+                            "public_copy_allowed": False,
+                            "public_url": "https://docs.google.com/presentation/d/example/edit",
+                            "restrictions": [
+                                "Selection source only; individual quotes and metrics still need row-level approval."
+                            ],
+                        },
+                        {
+                            "proof_id": "customer-story-queenstown-plumbing",
+                            "customer": "Queenstown Plumbing",
+                            "source_type": "customer_story",
+                            "workflow_fit": ["quote-to-cash"],
+                            "approval_status": "candidate",
+                            "public_copy_allowed": False,
+                        },
+                    ],
+                },
+            )
+            write_json(ledger_path, {"version": 1, "uses": []})
+
+            report = analyze_proof_index(index_path=index_path, ledger_path=ledger_path)
+            quote_to_cash_gap = next(
+                gap for gap in report["priority_workflow_gaps"] if gap["workflow"] == "quote-to-cash"
+            )
+
+            self.assertEqual("customer-story-queenstown-plumbing", quote_to_cash_gap["best_candidate"])
+            self.assertNotIn("customer-stories-source-register", quote_to_cash_gap["candidate_proof_ids"])
 
     def test_text_report_prints_priority_sections(self):
         with TemporaryDirectory() as temp_dir:

@@ -207,6 +207,8 @@ def _priority_intake_targets(proof_rows: Sequence[FindingDict], ledger: FindingD
     for row in proof_rows:
         if _is_approved_public(row):
             continue
+        if _is_source_register(row):
+            continue
         usage = count_customer_proof_usage(
             ledger,
             proof_id=_text(row.get("proof_id")),
@@ -246,7 +248,9 @@ def _priority_workflow_gaps(proof_rows: Sequence[FindingDict]) -> List[FindingDi
         if row["approved_public_rows"] > 0:
             continue
         workflow = row["workflow"]
-        candidates = rows_by_workflow.get(workflow, [])
+        candidates = [
+            candidate for candidate in rows_by_workflow.get(workflow, []) if not _is_source_register(candidate)
+        ]
         ranked = sorted(
             candidates,
             key=lambda candidate: (-_target_priority_score(candidate, {}), _text(candidate.get("proof_id"))),
@@ -329,6 +333,17 @@ def _recommended_action(row: FindingDict) -> str:
 
 def _is_approved_public(row: FindingDict) -> bool:
     return _text(row.get("approval_status")) == "approved" and bool(row.get("public_copy_allowed"))
+
+
+def _is_source_register(row: FindingDict) -> bool:
+    proof_id = _text(row.get("proof_id"))
+    customer = _text(row.get("customer"))
+    restrictions = " ".join(_list_values(row.get("restrictions")))
+    if proof_id.endswith("source-register"):
+        return True
+    if "source register" in customer:
+        return True
+    return "selection source only" in restrictions or "selection and governance source only" in restrictions
 
 
 def _list_values(value: Any) -> List[str]:
