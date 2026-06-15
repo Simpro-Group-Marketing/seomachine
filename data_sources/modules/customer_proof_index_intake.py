@@ -15,6 +15,7 @@ import sys
 from datetime import date
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence
+from urllib.parse import urlparse
 
 
 ALLOWED_SOURCE_TYPES = {
@@ -253,6 +254,16 @@ def _validate_row(row_number: int, row: Dict[str, str]) -> List[Finding]:
 
     public_url = row.get("public_url", "").strip()
     review_public_url = row.get("review_public_url", "").strip()
+    if not _is_public_web_url(public_url):
+        findings.append(
+            _finding(
+                row_number,
+                "public_web_url_missing",
+                "error",
+                "Active customer proof index rows require a usable public web URL in public_url.",
+            )
+        )
+
     if public_copy_allowed and not public_url and not review_public_url:
         findings.append(
             _finding(
@@ -273,7 +284,7 @@ def _validate_row(row_number: int, row: Dict[str, str]) -> List[Finding]:
                     row_number,
                     "google_review_public_url_missing",
                     "error",
-                    "Google review rows without a usable public URL must remain internal-only with public_copy_allowed false.",
+                    "Google review rows require a usable public URL before public copy or review-story use.",
                 )
             )
 
@@ -556,6 +567,13 @@ def _parse_bool(value: str) -> Optional[bool]:
 def _is_google_review(platform: str) -> bool:
     normalized = platform.lower().replace("-", " ")
     return "google" in normalized
+
+
+def _is_public_web_url(value: str) -> bool:
+    parsed = urlparse(str(value or "").strip())
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return False
+    return parsed.netloc.lower() not in {"docs.google.com", "drive.google.com"}
 
 
 def _warning_count(findings: Iterable[Finding]) -> int:

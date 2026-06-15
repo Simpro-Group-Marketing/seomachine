@@ -81,7 +81,7 @@ def base_row(**overrides):
         "region": "NZ",
         "workflow_fit": "job management; quoting; invoicing",
         "themes": "small trade workflow; official customer story source route",
-        "public_url": "",
+        "public_url": "https://www.simprogroup.com/case-studies/queenstown-plumbing",
         "internal_source_ref": "Customer Story folder row: Queenstown Plumbing Customer Story",
         "approval_status": "approved",
         "public_copy_allowed": "false",
@@ -191,7 +191,7 @@ class CustomerProofIndexIntakeTests(unittest.TestCase):
             self.assertTrue(any(f["rule_id"] == "review_story_identity_missing" for f in findings))
             self.assertTrue(any(f["rule_id"] == "review_story_public_url_missing" for f in findings))
 
-    def test_google_review_without_public_url_can_be_approved_internal_only(self):
+    def test_google_review_without_public_url_fails_active_index_validation(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             index_path = root / "customer-proof-index.json"
@@ -215,7 +215,8 @@ class CustomerProofIndexIntakeTests(unittest.TestCase):
                 ],
             )
 
-            self.assertEqual([], validate_intake_file(csv_path, index_path=index_path))
+            findings = validate_intake_file(csv_path, index_path=index_path)
+            self.assertTrue(any(f["rule_id"] == "public_web_url_missing" for f in findings))
 
             write_csv(
                 csv_path,
@@ -224,6 +225,7 @@ class CustomerProofIndexIntakeTests(unittest.TestCase):
                         proof_id="review-google-kingson-electrical-public",
                         customer="Kingson Electrical Ltd",
                         source_type="review_site",
+                        public_url="",
                         approval_status="approved",
                         public_copy_allowed="true",
                         review_platform="Google Reviews",
@@ -234,6 +236,30 @@ class CustomerProofIndexIntakeTests(unittest.TestCase):
 
             findings = validate_intake_file(csv_path, index_path=index_path)
             self.assertTrue(any(f["rule_id"] == "google_review_public_url_missing" for f in findings))
+            self.assertTrue(any(f["rule_id"] == "public_web_url_missing" for f in findings))
+
+    def test_google_docs_url_fails_active_index_validation(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            csv_path = root / "intake.csv"
+            write_index(index_path)
+            write_csv(
+                csv_path,
+                [
+                    base_row(
+                        proof_id="references-source-register",
+                        customer="Simpro References source register",
+                        source_type="reference",
+                        public_url="https://docs.google.com/presentation/d/example/edit",
+                        public_copy_allowed="false",
+                    )
+                ],
+            )
+
+            findings = validate_intake_file(csv_path, index_path=index_path)
+
+            self.assertTrue(any(f["rule_id"] == "public_web_url_missing" for f in findings))
 
     def test_approved_quote_missing_evidence_or_status_fails(self):
         with TemporaryDirectory() as temp_dir:
@@ -272,6 +298,7 @@ class CustomerProofIndexIntakeTests(unittest.TestCase):
                     base_row(
                         proof_id="quote-matrix-approved-metric-missing-url",
                         source_type="quote_matrix",
+                        public_url="",
                         public_copy_allowed="true",
                         approval_status="approved",
                         approved_metric_claim="Customer reduced admin time by 50%",
@@ -298,6 +325,7 @@ class CustomerProofIndexIntakeTests(unittest.TestCase):
                         "proof_id": "customer-story-queenstown-plumbing",
                         "customer": "Old Queenstown Plumbing",
                         "source_type": "customer_story",
+                        "public_url": "https://www.simprogroup.com/case-studies/queenstown-plumbing",
                         "workflow_fit": ["old"],
                         "themes": ["old"],
                         "approval_status": "candidate",

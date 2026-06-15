@@ -14,6 +14,7 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence
+from urllib.parse import urlparse
 
 try:  # pragma: no cover - import fallback for direct script execution
     from .proof_usage import count_customer_proof_usage
@@ -43,6 +44,7 @@ def analyze_proof_index(
         "workflow_coverage": _workflow_coverage(proof_rows),
         "overused_proof": _overused_proof(proof_rows, ledger),
         "blocked_from_public_copy": _blocked_from_public_copy(proof_rows),
+        "rows_without_public_web_url": _rows_without_public_web_url(proof_rows),
         "gaps": _gaps(proof_rows),
         "priority_intake_targets": _priority_intake_targets(proof_rows, ledger),
         "priority_workflow_gaps": _priority_workflow_gaps(proof_rows),
@@ -171,6 +173,8 @@ def _blocked_from_public_copy(proof_rows: Sequence[FindingDict]) -> List[Finding
 def _blocked_reasons(row: FindingDict) -> List[str]:
     reasons = []
     approval_status = _text(row.get("approval_status"))
+    if not _has_public_web_url(row):
+        reasons.append("public_web_url missing")
     if not bool(row.get("public_copy_allowed")):
         reasons.append("public_copy_allowed false")
     if approval_status in {"blocked", "candidate", "rejected"}:
@@ -187,6 +191,23 @@ def _blocked_reasons(row: FindingDict) -> List[str]:
             ):
                 reasons.append("review_story identity missing")
     return reasons
+
+
+def _rows_without_public_web_url(proof_rows: Sequence[FindingDict]) -> List[FindingDict]:
+    rows = []
+    for row in proof_rows:
+        if _has_public_web_url(row):
+            continue
+        rows.append(
+            {
+                "proof_id": _text(row.get("proof_id")),
+                "customer": _text(row.get("customer")),
+                "source_type": _text(row.get("source_type")),
+                "public_url": _text(row.get("public_url")),
+                "recommended_action": "remove_from_active_index",
+            }
+        )
+    return sorted(rows, key=lambda row: (row["source_type"], row["proof_id"]))
 
 
 def _gaps(proof_rows: Sequence[FindingDict]) -> List[FindingDict]:
@@ -286,8 +307,10 @@ def _target_priority_score(row: FindingDict, usage: FindingDict) -> int:
     elif approval_status in {"blocked", "rejected"}:
         score -= 100
 
-    if _text(row.get("public_url")):
+    if _has_public_web_url(row):
         score += 30
+    else:
+        score += 5
     if bool(row.get("public_copy_allowed")):
         score += 20
 
@@ -313,8 +336,6 @@ def _target_blocking_reasons(row: FindingDict) -> List[str]:
     approval_status = _text(row.get("approval_status"))
     if approval_status and approval_status != "approved":
         reasons.append(f"approval_status {approval_status}")
-    if not _text(row.get("public_url")):
-        reasons.append("public_url missing")
     return sorted(set(reasons))
 
 
@@ -322,8 +343,8 @@ def _recommended_action(row: FindingDict) -> str:
     if not row:
         return "add_source_backed_candidate"
     approval_status = _text(row.get("approval_status"))
-    if not _text(row.get("public_url")):
-        return "capture_public_url"
+    if not _has_public_web_url(row):
+        return "remove_from_active_index"
     if not bool(row.get("public_copy_allowed")):
         return "resolve_public_copy_permission"
     if approval_status != "approved":
@@ -338,7 +359,22 @@ def _recommended_action(row: FindingDict) -> str:
 
 
 def _is_approved_public(row: FindingDict) -> bool:
-    return _text(row.get("approval_status")) == "approved" and bool(row.get("public_copy_allowed"))
+    return (
+        _text(row.get("approval_status")) == "approved"
+        and bool(row.get("public_copy_allowed"))
+        and _has_public_web_url(row)
+    )
+
+
+def _has_public_web_url(row: FindingDict) -> bool:
+    public_url = str(row.get("public_url") or "").strip()
+    if not public_url:
+        return False
+    parsed = urlparse(public_url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return False
+    blocked_hosts = {"docs.google.com", "drive.google.com"}
+    return parsed.netloc.lower() not in blocked_hosts
 
 
 def _is_source_register(row: FindingDict) -> bool:
@@ -386,6 +422,9 @@ def _print_text_report(report: FindingDict) -> None:
             f"  - {row['proof_id']} ({row['customer']}): "
             f"{row['recent_uses_90d']} recent uses, {row['total_occurrences']} raw occurrences"
         )
+    print(f"- Rows without public web URLs: {len(report['rows_without_public_web_url'])}")
+    for row in report["rows_without_public_web_url"][:10]:
+        print(f"  - {row['proof_id']} ({row['source_type']}): {row['recommended_action']}")
     print(f"- Blocked from public copy: {len(report['blocked_from_public_copy'])}")
     print(f"- Priority intake targets: {len(report['priority_intake_targets'])}")
     for row in report["priority_intake_targets"][:10]:

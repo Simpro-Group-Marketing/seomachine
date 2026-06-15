@@ -649,25 +649,37 @@ class CustomerProofSelectorTests(unittest.TestCase):
             output,
         )
 
-    def test_default_index_contains_expanded_customer_story_and_reference_routes(self):
+    def test_default_index_contains_only_public_web_url_proof_routes(self):
         index = json.loads(Path("context/customer-proof-index.json").read_text(encoding="utf-8"))
-        customer_story_ids = [
-            row["proof_id"]
-            for row in index["proof"]
-            if row.get("source_type") == "customer_story"
-            and row.get("proof_id") != "customer-stories-source-register"
-        ]
+        deleted_internal_ids = {
+            "quote-matrix-alarmquest-positive-feedback",
+            "customer-stories-source-register",
+            "references-source-register",
+            "review-google-kingson-electrical-quote-to-invoice",
+            "review-google-plumbing-material-labor-cost-field-story",
+            "review-site-simpro-google-review-themes",
+            "customer-story-all-round-security",
+            "customer-story-roam",
+            "customer-story-rilmac",
+            "customer-story-fords",
+            "customer-story-queenstown-plumbing",
+            "customer-story-heron-plumbing-simprosium",
+            "customer-story-obrien-electrical-plumbing-simprosium",
+            "customer-story-second-nature-simprosium",
+        }
+        proof_by_id = {row["proof_id"]: row for row in index["proof"]}
         reference_ids = [
             row["proof_id"]
             for row in index["proof"]
             if row.get("source_type") == "reference"
-            and row.get("proof_id") != "references-source-register"
         ]
 
-        self.assertGreaterEqual(len(customer_story_ids), 8)
+        self.assertFalse(deleted_internal_ids.intersection(proof_by_id))
         self.assertGreaterEqual(len(reference_ids), 8)
-        self.assertIn("customer-story-queenstown-plumbing", customer_story_ids)
         self.assertIn("reference-excel-refrigeration-hvac-operations", reference_ids)
+        self.assertTrue(proof_by_id["case-study-alarmquest"]["public_copy_allowed"])
+        self.assertTrue(proof_by_id["case-study-norberg-electric"]["public_copy_allowed"])
+        self.assertTrue(proof_by_id["review-site-simpro-g2"]["public_copy_allowed"])
 
     def test_default_index_ranks_topic_fit_reference_for_reference_intent(self):
         with TemporaryDirectory() as temp_dir:

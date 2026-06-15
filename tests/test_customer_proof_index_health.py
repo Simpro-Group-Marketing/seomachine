@@ -184,6 +184,7 @@ class CustomerProofIndexHealthTests(unittest.TestCase):
                     "priority_intake_targets",
                     "priority_workflow_gaps",
                     "proof_assets",
+                    "rows_without_public_web_url",
                     "total_rows",
                     "workflow_coverage",
                 ],
@@ -326,10 +327,14 @@ class CustomerProofIndexHealthTests(unittest.TestCase):
 
             self.assertEqual("resolve_public_copy_permission", targets["review-site-simpro-g2"]["recommended_action"])
             self.assertNotIn("approval_status approved", targets["review-site-simpro-g2"]["blocking_reasons"])
-            self.assertEqual("capture_public_url", targets["customer-story-queenstown-plumbing"]["recommended_action"])
+            self.assertEqual("remove_from_active_index", targets["customer-story-queenstown-plumbing"]["recommended_action"])
             self.assertNotIn(
                 "approval_status approved",
                 targets["customer-story-queenstown-plumbing"]["blocking_reasons"],
+            )
+            self.assertEqual(
+                ["customer-story-queenstown-plumbing"],
+                [row["proof_id"] for row in report["rows_without_public_web_url"]],
             )
 
     def test_priority_workflow_gaps_group_and_rank_useful_gap_candidates(self):
@@ -375,7 +380,7 @@ class CustomerProofIndexHealthTests(unittest.TestCase):
             electrical_gap = next(
                 gap for gap in report["priority_workflow_gaps"] if gap["workflow"] == "electrical workflow"
             )
-            self.assertEqual("capture_public_url", electrical_gap["recommended_action"])
+            self.assertEqual("remove_from_active_index", electrical_gap["recommended_action"])
 
     def test_priority_workflow_gaps_do_not_select_source_register_as_best_candidate(self):
         with TemporaryDirectory() as temp_dir:
@@ -419,6 +424,15 @@ class CustomerProofIndexHealthTests(unittest.TestCase):
 
             self.assertEqual("customer-story-queenstown-plumbing", quote_to_cash_gap["best_candidate"])
             self.assertNotIn("customer-stories-source-register", quote_to_cash_gap["candidate_proof_ids"])
+
+    def test_default_index_contains_only_public_web_url_rows(self):
+        report = analyze_proof_index(
+            index_path="context/customer-proof-index.json",
+            ledger_path="context/customer-proof-usage-ledger.json",
+        )
+
+        self.assertEqual([], report["rows_without_public_web_url"])
+        self.assertFalse(any(row["recommended_action"] == "remove_from_active_index" for row in report["priority_intake_targets"]))
 
     def test_text_report_prints_priority_sections(self):
         with TemporaryDirectory() as temp_dir:
