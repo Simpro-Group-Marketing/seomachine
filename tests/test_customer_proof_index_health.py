@@ -181,6 +181,8 @@ class CustomerProofIndexHealthTests(unittest.TestCase):
                     "index_path",
                     "ledger_path",
                     "overused_proof",
+                    "priority_intake_targets",
+                    "priority_workflow_gaps",
                     "proof_assets",
                     "total_rows",
                     "workflow_coverage",
@@ -189,6 +191,139 @@ class CustomerProofIndexHealthTests(unittest.TestCase):
             )
             self.assertEqual(before_index, index_path.read_text(encoding="utf-8"))
             self.assertEqual(before_ledger, ledger_path.read_text(encoding="utf-8"))
+
+    def test_priority_intake_targets_rank_ready_public_references_first(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            ledger_path = root / "customer-proof-usage-ledger.json"
+            write_json(
+                index_path,
+                {
+                    "version": 1,
+                    "proof": [
+                        {
+                            "proof_id": "customer-story-internal-service-workflow",
+                            "customer": "Internal Story",
+                            "source_type": "customer_story",
+                            "workflow_fit": ["service workflow"],
+                            "approval_status": "ready",
+                            "public_copy_allowed": False,
+                            "internal_source_ref": "Customer Story folder row 2",
+                        },
+                        {
+                            "proof_id": "reference-level-group-quote-operations-visibility",
+                            "customer": "Level Group",
+                            "source_type": "reference",
+                            "workflow_fit": ["quoting", "operations visibility"],
+                            "approval_status": "ready",
+                            "public_copy_allowed": True,
+                            "public_url": "https://www.simprogroup.com/resources/videos/level-group",
+                        },
+                        {
+                            "proof_id": "review-google-no-public-url",
+                            "customer": "Google review candidate",
+                            "source_type": "review_site",
+                            "workflow_fit": ["field notes"],
+                            "approval_status": "candidate",
+                            "public_copy_allowed": False,
+                            "internal_source_ref": "Google Review Quotes tab row 9",
+                        },
+                    ],
+                },
+            )
+            write_json(ledger_path, {"version": 1, "uses": []})
+
+            report = analyze_proof_index(index_path=index_path, ledger_path=ledger_path)
+
+            self.assertEqual(
+                "reference-level-group-quote-operations-visibility",
+                report["priority_intake_targets"][0]["proof_id"],
+            )
+            self.assertEqual("verify_public_theme_support", report["priority_intake_targets"][0]["recommended_action"])
+            self.assertGreater(
+                report["priority_intake_targets"][0]["priority_score"],
+                report["priority_intake_targets"][1]["priority_score"],
+            )
+
+    def test_priority_workflow_gaps_group_and_rank_useful_gap_candidates(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            ledger_path = root / "customer-proof-usage-ledger.json"
+            write_json(
+                index_path,
+                {
+                    "version": 1,
+                    "proof": [
+                        {
+                            "proof_id": "reference-mekhane-roofing-project-visibility",
+                            "customer": "Mekhane Roofing",
+                            "source_type": "reference",
+                            "workflow_fit": ["project visibility", "job costing"],
+                            "approval_status": "ready",
+                            "public_copy_allowed": True,
+                            "public_url": "https://www.simprogroup.com/resources/videos/mekhane-roofing",
+                        },
+                        {
+                            "proof_id": "customer-story-obrien-electrical-plumbing-simprosium",
+                            "customer": "O'Brien Electrical & Plumbing",
+                            "source_type": "customer_story",
+                            "workflow_fit": ["electrical workflow", "plumbing workflow"],
+                            "approval_status": "ready",
+                            "public_copy_allowed": False,
+                            "internal_source_ref": "2023 Simprosium Quotes tab row 10",
+                        },
+                    ],
+                },
+            )
+            write_json(ledger_path, {"version": 1, "uses": []})
+
+            report = analyze_proof_index(index_path=index_path, ledger_path=ledger_path)
+
+            self.assertEqual("job costing", report["priority_workflow_gaps"][0]["workflow"])
+            self.assertEqual(
+                "reference-mekhane-roofing-project-visibility",
+                report["priority_workflow_gaps"][0]["best_candidate"],
+            )
+            electrical_gap = next(
+                gap for gap in report["priority_workflow_gaps"] if gap["workflow"] == "electrical workflow"
+            )
+            self.assertEqual("capture_public_url_or_keep_internal", electrical_gap["recommended_action"])
+
+    def test_text_report_prints_priority_sections(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            ledger_path = root / "customer-proof-usage-ledger.json"
+            write_json(
+                index_path,
+                {
+                    "version": 1,
+                    "proof": [
+                        {
+                            "proof_id": "reference-rcr-infrastructure-field-service-system",
+                            "customer": "RCR Infrastructure",
+                            "source_type": "reference",
+                            "workflow_fit": ["field service management"],
+                            "approval_status": "ready",
+                            "public_copy_allowed": True,
+                            "public_url": "https://www.simprogroup.com/resources/videos/rcr-infrastructure",
+                        }
+                    ],
+                },
+            )
+            write_json(ledger_path, {"version": 1, "uses": []})
+
+            output = StringIO()
+            with redirect_stdout(output):
+                exit_code = main(["--index", str(index_path), "--ledger", str(ledger_path)])
+
+            self.assertEqual(0, exit_code)
+            text = output.getvalue()
+            self.assertIn("Priority intake targets", text)
+            self.assertIn("Priority workflow gaps", text)
+            self.assertIn("reference-rcr-infrastructure-field-service-system", text)
 
 
 if __name__ == "__main__":

@@ -2591,8 +2591,8 @@
       "source_type": "reference",
       "public_url": "https://www.simprogroup.com/case-studies/hostcomm-and-james-frew",
       "internal_source_ref": "Quote Matrix Quotes tab row 11: Business Name James Frew, Theme Growth/Profitability, URL Link hostcomm-and-james-frew, Added URL to Orca TRUE.",
-      "approval_status": "ready",
-      "evidence": "Quote Matrix Quotes tab row 11 marks the James Frew public case-study URL as Added URL to Orca TRUE for reference routing.",
+      "approval_status": "approved",
+      "evidence": "Public Hostcomm and James Frew case study supports remote visual assistance embedded in Simpro, service workflows, reduced travel, triage speed, first-time-fix support, service history capture, operational efficiency, and field workforce capacity themes.",
       "last_verified": "2026-06-15",
       "region": [
         "UK"
@@ -2619,7 +2619,10 @@
       ],
       "public_copy_allowed": true,
       "approved_quotes": [],
-      "approved_metrics": []
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "reference-vsg-ignite-facilities-management",
@@ -2627,8 +2630,8 @@
       "source_type": "reference",
       "public_url": "https://www.simprogroup.com/case-studies/vsg-and-ignite",
       "internal_source_ref": "Quote Matrix Quotes tab row 12: Business Name Virtual Services Group, Customer Name Dawn Lawrie, Facilities Management, URL Link vsg-and-ignite, Added URL to Orca TRUE.",
-      "approval_status": "ready",
-      "evidence": "Quote Matrix Quotes tab row 12 marks the VSG public case-study URL as Added URL to Orca TRUE for reference routing.",
+      "approval_status": "approved",
+      "evidence": "Public VSG and Ignite case study supports facilities management workflows, real-time maintenance schedules, asset journeys, compliance records, performance data, automated job creation, digital compliance forms, client dashboards, transparency, and scale across many sites.",
       "last_verified": "2026-06-15",
       "region": [
         "UK"
@@ -2653,7 +2656,10 @@
       ],
       "public_copy_allowed": true,
       "approved_quotes": [],
-      "approved_metrics": []
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "reference-mekhane-roofing-project-visibility",
@@ -2661,8 +2667,8 @@
       "source_type": "reference",
       "public_url": "https://www.simprogroup.com/resources/videos/mekhane-roofing",
       "internal_source_ref": "Quote Matrix Quotes tab row 24: Business Name Mekhane Limited, Customer Name Josiah Murray, Theme Growth/Profitability, URL Link mekhane-roofing, Added URL to Orca TRUE.",
-      "approval_status": "ready",
-      "evidence": "Quote Matrix Quotes tab row 24 marks the Mekhane Roofing video URL as Added URL to Orca TRUE for reference routing.",
+      "approval_status": "approved",
+      "evidence": "Public Mekhane Roofing video page supports profitability, job oversight, resource management, job transparency, real-time data, reporting, and operational guidance themes.",
       "last_verified": "2026-06-15",
       "region": [
         "NZ"
@@ -2687,7 +2693,10 @@
       ],
       "public_copy_allowed": true,
       "approved_quotes": [],
-      "approved_metrics": []
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "reference-level-group-quote-operations-visibility",
@@ -2695,8 +2704,8 @@
       "source_type": "reference",
       "public_url": "https://www.simprogroup.com/resources/videos/level-group",
       "internal_source_ref": "Quote Matrix Quotes tab row 25: Business Name Level Group, Customer Name Jonathan Holbrow, Theme Invoicing/Quoting/Accounting, URL Link level-group, Added URL to Orca TRUE.",
-      "approval_status": "ready",
-      "evidence": "Quote Matrix Quotes tab row 25 marks the Level Group video URL as Added URL to Orca TRUE for reference routing.",
+      "approval_status": "approved",
+      "evidence": "Public Level Group video page supports Simpro improving visibility, connecting field and office teams, and managing quoting, sales, project management, operations, job costing, real-time reporting, paperless operations, centralised data, and technician/customer communication.",
       "last_verified": "2026-06-15",
       "region": [
         "AU"
@@ -2722,7 +2731,10 @@
       ],
       "public_copy_allowed": true,
       "approved_quotes": [],
-      "approved_metrics": []
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "reference-ldn-security-solutions-scale",
@@ -2730,8 +2742,8 @@
       "source_type": "reference",
       "public_url": "https://www.simprogroup.com/case-studies/ldn-security-solutions",
       "internal_source_ref": "Quote Matrix Quotes tab rows 30-35: Business Name LDN Security Solutions, Customer Name John Line, multiple themes, URL Link ldn-security-solutions, Added URL to Orca TRUE.",
-      "approval_status": "ready",
-      "evidence": "Quote Matrix Quotes tab rows 30-35 mark the LDN Security Solutions public case-study URL as Added URL to Orca TRUE for reference routing.",
+      "approval_status": "approved",
+      "evidence": "Public LDN Security Solutions case study supports a centralised system for jobs, customers, and operational workflows, business-data access, staff training, scalable systems, quoting, asset management, job/customer history, and greater operational visibility.",
       "last_verified": "2026-06-15",
       "region": [
         "UK"
@@ -2757,7 +2769,10 @@
       ],
       "public_copy_allowed": true,
       "approved_quotes": [],
-      "approved_metrics": []
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "reference-365-alongside-construction-scale",
@@ -2765,8 +2780,8 @@
       "source_type": "reference",
       "public_url": "https://www.simprogroup.com/case-studies/365-alongside",
       "internal_source_ref": "Quote Matrix Quotes tab rows 44-46: Business Name 365 Alongside, Customer Name James Dean, URL Link 365-alongside, Added URL to Orca TRUE.",
-      "approval_status": "ready",
-      "evidence": "Quote Matrix Quotes tab rows 44-46 mark the 365 Alongside public case-study URL as Added URL to Orca TRUE for reference routing.",
+      "approval_status": "approved",
+      "evidence": "Public 365 Alongside case study supports centralised job data, leadership and field-team access, cost tracking, performance monitoring, operational consistency, scalable growth, job costing, field updates, reporting, visibility, and team coordination themes.",
       "last_verified": "2026-06-15",
       "region": [
         "AU"
@@ -2792,7 +2807,10 @@
       ],
       "public_copy_allowed": true,
       "approved_quotes": [],
-      "approved_metrics": []
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "reference-rcr-infrastructure-field-service-system",
@@ -2800,8 +2818,8 @@
       "source_type": "reference",
       "public_url": "https://www.simprogroup.com/resources/videos/rcr-infrastructure",
       "internal_source_ref": "Quote Matrix Quotes tab row 43: Business Name RCR Infrastructure, Customer Name Lorene Maher, URL Link rcr-infrastructure, Added URL to Orca TRUE.",
-      "approval_status": "ready",
-      "evidence": "Quote Matrix Quotes tab row 43 marks the RCR Infrastructure video URL as Added URL to Orca TRUE for reference routing.",
+      "approval_status": "approved",
+      "evidence": "Public RCR Infrastructure video page supports a field service management system for growth, paperless workflow, technician field work, customer communications, customer portal, real-time reporting, and scalable operations.",
       "last_verified": "2026-06-15",
       "region": [
         "AU"
@@ -2826,7 +2844,10 @@
       ],
       "public_copy_allowed": true,
       "approved_quotes": [],
-      "approved_metrics": []
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "reference-excel-refrigeration-hvac-operations",
@@ -2834,8 +2855,8 @@
       "source_type": "reference",
       "public_url": "https://www.simprogroup.com/resources/videos/excel",
       "internal_source_ref": "Quote Matrix Quotes tab row 49: Business Name Excel Refrigeration, Customer Name Paul Manning, Airconditioning/HVAC, URL Link excel, Added URL to Orca TRUE.",
-      "approval_status": "ready",
-      "evidence": "Quote Matrix Quotes tab row 49 marks the Excel Refrigeration video URL as Added URL to Orca TRUE for reference routing.",
+      "approval_status": "approved",
+      "evidence": "Public Excel Refrigeration video page supports scalable centralised job management, real-time technician tracking, automated reporting, accounting and BI integrations, reduced paperwork, accountability, productivity, operational efficiency, growth, and customer service themes.",
       "last_verified": "2026-06-15",
       "region": [
         "NZ"
@@ -2861,7 +2882,10 @@
       ],
       "public_copy_allowed": true,
       "approved_quotes": [],
-      "approved_metrics": []
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false
+      }
     }
   ]
 }

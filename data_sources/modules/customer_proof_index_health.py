@@ -44,6 +44,8 @@ def analyze_proof_index(
         "overused_proof": _overused_proof(proof_rows, ledger),
         "blocked_from_public_copy": _blocked_from_public_copy(proof_rows),
         "gaps": _gaps(proof_rows),
+        "priority_intake_targets": _priority_intake_targets(proof_rows, ledger),
+        "priority_workflow_gaps": _priority_workflow_gaps(proof_rows),
     }
 
 
@@ -200,6 +202,131 @@ def _gaps(proof_rows: Sequence[FindingDict]) -> List[FindingDict]:
     ]
 
 
+def _priority_intake_targets(proof_rows: Sequence[FindingDict], ledger: FindingDict) -> List[FindingDict]:
+    targets = []
+    for row in proof_rows:
+        if _is_approved_public(row):
+            continue
+        usage = count_customer_proof_usage(
+            ledger,
+            proof_id=_text(row.get("proof_id")),
+            source_url=_text(row.get("public_url")),
+            customer=_text(row.get("customer")),
+        )
+        score = _target_priority_score(row, usage)
+        if score <= 0:
+            continue
+        targets.append(
+            {
+                "proof_id": _text(row.get("proof_id")),
+                "customer": _text(row.get("customer")),
+                "source_type": _text(row.get("source_type")),
+                "approval_status": _text(row.get("approval_status")),
+                "public_copy_allowed": bool(row.get("public_copy_allowed")),
+                "public_url": _text(row.get("public_url")),
+                "workflows": _list_values(row.get("workflow_fit")),
+                "blocking_reasons": _target_blocking_reasons(row),
+                "recommended_action": _recommended_action(row),
+                "priority_score": score,
+                "overused": bool(usage.get("overused")),
+            }
+        )
+    return sorted(targets, key=lambda row: (-int(row["priority_score"]), row["proof_id"]))
+
+
+def _priority_workflow_gaps(proof_rows: Sequence[FindingDict]) -> List[FindingDict]:
+    coverage = _workflow_coverage(proof_rows)
+    rows_by_workflow: Dict[str, List[FindingDict]] = defaultdict(list)
+    for row in proof_rows:
+        for workflow in _list_values(row.get("workflow_fit")):
+            rows_by_workflow[workflow].append(row)
+
+    priority_gaps = []
+    for row in coverage:
+        if row["approved_public_rows"] > 0:
+            continue
+        workflow = row["workflow"]
+        candidates = rows_by_workflow.get(workflow, [])
+        ranked = sorted(
+            candidates,
+            key=lambda candidate: (-_target_priority_score(candidate, {}), _text(candidate.get("proof_id"))),
+        )
+        best = ranked[0] if ranked else {}
+        priority_gaps.append(
+            {
+                "workflow": workflow,
+                "total_rows": row["total_rows"],
+                "source_types": row["source_types"],
+                "candidate_proof_ids": [_text(candidate.get("proof_id")) for candidate in ranked],
+                "best_candidate": _text(best.get("proof_id")) if best else "",
+                "recommended_action": _recommended_action(best) if best else "add_source_backed_candidate",
+                "priority_score": _target_priority_score(best, {}) if best else 0,
+            }
+        )
+    return sorted(
+        priority_gaps,
+        key=lambda row: (-int(row["priority_score"]), -int(row["total_rows"]), row["workflow"]),
+    )
+
+
+def _target_priority_score(row: FindingDict, usage: FindingDict) -> int:
+    approval_status = _text(row.get("approval_status"))
+    source_type = _text(row.get("source_type"))
+    score = 0
+    if approval_status == "ready":
+        score += 50
+    elif approval_status == "candidate":
+        score += 10
+    elif approval_status in {"blocked", "rejected"}:
+        score -= 100
+
+    if _text(row.get("public_url")):
+        score += 30
+    if bool(row.get("public_copy_allowed")):
+        score += 20
+
+    score += {
+        "reference": 25,
+        "quote_matrix": 22,
+        "case_study": 20,
+        "review_site": 14,
+        "customer_story": 8,
+    }.get(source_type, 0)
+
+    if _approved_item_count(row.get("approved_quotes", [])):
+        score += 8
+    if _approved_item_count(row.get("approved_metrics", [])):
+        score += 8
+    if usage.get("overused"):
+        score -= 30
+    return score
+
+
+def _target_blocking_reasons(row: FindingDict) -> List[str]:
+    reasons = _blocked_reasons(row)
+    approval_status = _text(row.get("approval_status"))
+    if approval_status and approval_status != "approved":
+        reasons.append(f"approval_status {approval_status}")
+    if not _text(row.get("public_url")):
+        reasons.append("public_url missing")
+    return sorted(set(reasons))
+
+
+def _recommended_action(row: FindingDict) -> str:
+    if not row:
+        return "add_source_backed_candidate"
+    approval_status = _text(row.get("approval_status"))
+    if not _text(row.get("public_url")):
+        return "capture_public_url_or_keep_internal"
+    if approval_status == "ready" and bool(row.get("public_copy_allowed")):
+        return "verify_public_theme_support"
+    if not bool(row.get("public_copy_allowed")):
+        return "resolve_public_copy_permission"
+    if approval_status == "candidate":
+        return "resolve_approval_boundary"
+    return "review_source_boundary"
+
+
 def _is_approved_public(row: FindingDict) -> bool:
     return _text(row.get("approval_status")) == "approved" and bool(row.get("public_copy_allowed"))
 
@@ -239,6 +366,20 @@ def _print_text_report(report: FindingDict) -> None:
             f"{row['recent_uses_90d']} recent uses, {row['total_occurrences']} raw occurrences"
         )
     print(f"- Blocked from public copy: {len(report['blocked_from_public_copy'])}")
+    print(f"- Priority intake targets: {len(report['priority_intake_targets'])}")
+    for row in report["priority_intake_targets"][:10]:
+        workflows = ", ".join(row["workflows"][:4]) if row["workflows"] else "no workflow"
+        reasons = "; ".join(row["blocking_reasons"]) if row["blocking_reasons"] else "approval needed"
+        print(
+            f"  - {row['proof_id']} ({row['source_type']}/{row['approval_status']}): "
+            f"{workflows}; {row['recommended_action']}; {reasons}"
+        )
+    print(f"- Priority workflow gaps: {len(report['priority_workflow_gaps'])}")
+    for row in report["priority_workflow_gaps"][:10]:
+        print(
+            f"  - {row['workflow']}: best={row['best_candidate'] or 'none'}; "
+            f"{row['recommended_action']}; {row['total_rows']} indexed rows"
+        )
     print(f"- Workflow gaps: {len(report['gaps'])}")
     for row in report["gaps"][:10]:
         print(f"  - {row['workflow']}: {row['total_rows']} indexed rows, 0 approved public rows")
