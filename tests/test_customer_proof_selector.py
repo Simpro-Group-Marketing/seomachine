@@ -649,6 +649,44 @@ class CustomerProofSelectorTests(unittest.TestCase):
             output,
         )
 
+    def test_default_index_contains_expanded_customer_story_and_reference_routes(self):
+        index = json.loads(Path("context/customer-proof-index.json").read_text(encoding="utf-8"))
+        customer_story_ids = [
+            row["proof_id"]
+            for row in index["proof"]
+            if row.get("source_type") == "customer_story"
+            and row.get("proof_id") != "customer-stories-source-register"
+        ]
+        reference_ids = [
+            row["proof_id"]
+            for row in index["proof"]
+            if row.get("source_type") == "reference"
+            and row.get("proof_id") != "references-source-register"
+        ]
+
+        self.assertGreaterEqual(len(customer_story_ids), 8)
+        self.assertGreaterEqual(len(reference_ids), 8)
+        self.assertIn("customer-story-queenstown-plumbing", customer_story_ids)
+        self.assertIn("reference-excel-refrigeration-hvac-operations", reference_ids)
+
+    def test_default_index_ranks_topic_fit_reference_for_reference_intent(self):
+        with TemporaryDirectory() as temp_dir:
+            ledger_path = Path(temp_dir) / "customer-proof-usage-ledger.json"
+            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+
+            results = select_customer_proofs(
+                "hvac refrigeration reference field service operations",
+                index_path=Path("context/customer-proof-index.json"),
+                ledger_path=ledger_path,
+                title="HVAC field service operations proof",
+                objective="find a reference customer for HVAC refrigeration field service operations",
+                proof_role="theme",
+                limit=5,
+            )
+
+        self.assertEqual("reference-excel-refrigeration-hvac-operations", results[0]["proof_id"])
+        self.assertEqual("reference", results[0]["source_type"])
+
 
 if __name__ == "__main__":
     unittest.main()

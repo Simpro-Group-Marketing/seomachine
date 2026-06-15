@@ -10,6 +10,8 @@ python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title
 
 Generate a `Customer Proof Slate` in the validation sidecar with metric, quote, and theme roles. Add `experience_story` when review-derived copy is considered. Edit selected/rejected rows only when editorial judgment requires it. Use `context/aeo-geo-blog-strategy.md` as the canonical policy.
 
+Add new proof candidates through `context/customer-proof-intake-template.csv` and validate them with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates.
+
 Run publish readiness before handoff:
 
 ```powershell

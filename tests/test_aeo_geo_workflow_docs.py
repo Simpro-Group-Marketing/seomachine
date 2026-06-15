@@ -760,6 +760,35 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         ]:
             self.assertIn(text, canonical)
 
+    def test_customer_proof_index_intake_workflow_is_documented(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "research.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / "README.md",
+            ROOT / "CLAUDE.md",
+            ROOT / "AGENTS.md",
+            ROOT / ".cursor" / "rules" / "customer-proof.mdc",
+            ROOT / ".agents" / "rules" / "customer-proof.md",
+            ROOT / ".claude" / "rules" / "customer-proof.md",
+        ]
+        required = [
+            "customer_proof_index_intake.py",
+            "context/customer-proof-intake-template.csv",
+        ]
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+        canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
+            encoding="utf-8"
+        )
+        for text in required + ["proof-index intake"]:
+            self.assertIn(text, canonical)
+
     def test_customer_proof_rules_apply_across_agent_platforms(self):
         rule_paths = [
             ROOT / ".cursor" / "rules" / "customer-proof.mdc",

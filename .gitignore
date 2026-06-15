@@ -136,6 +136,7 @@ venv/
 # Local agent/tool state
 .cache/
 .codex/
+.playwright-cli/
 .playwright-mcp/
 .agents/*
 !.agents/rules/

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-06-12",
+  "updated_at": "2026-06-15",
   "source_boundary": "Curated customer proof index for selection and governance. This is not the full Quote Matrix. Exact quotes, review ratings, badges, rankings, and named reviewer claims require current source verification and approval before public copy use. Review-site rows may support public E-E-A-T stories only when review_story.story_allowed is true, the row has a real person or business identity, and a usable public review URL is linked in the same public paragraph as the paraphrase. Generic review themes remain VoC research only.",
   "proof": [
     {
@@ -2338,6 +2338,530 @@
         "copy_use": "internal research only until row-level public review URLs are captured",
         "verification_status": "aggregate internal review-theme route with no public URL"
       }
+    },
+    {
+      "proof_id": "customer-story-all-round-security",
+      "customer": "All Round Security",
+      "source_type": "customer_story",
+      "internal_source_ref": "Drive search q=name contains 'Customer Story' returned folder 'All Round Security Customer Story' id 1WH1eEJmJ2caKux5kSZwcAdPr8RF1c4NZ on 2026-06-15.",
+      "approval_status": "candidate",
+      "evidence": "Drive search returned a named All Round Security Customer Story folder; no public story URL or approved quote/metric captured in this pass.",
+      "last_verified": "2026-06-15",
+      "region": [
+        "unknown"
+      ],
+      "industry": [
+        "security",
+        "field service"
+      ],
+      "restrictions": [
+        "Internal story route only",
+        "verify the story asset and approval before public copy, quotes, metrics, or named claims."
+      ],
+      "workflow_fit": [
+        "customer story",
+        "service workflow"
+      ],
+      "themes": [
+        "customer story candidate",
+        "security operations"
+      ],
+      "public_copy_allowed": false,
+      "approved_quotes": [],
+      "approved_metrics": []
+    },
+    {
+      "proof_id": "customer-story-roam",
+      "customer": "Roam",
+      "source_type": "customer_story",
+      "internal_source_ref": "Drive search q=name contains 'Customer Story' returned folder 'Roam Customer Story' id 174Oh3EtJOzJStnw2ddOdW6reY86mfV0V on 2026-06-15.",
+      "approval_status": "candidate",
+      "evidence": "Drive search returned a named Roam Customer Story folder; no public story URL or approved quote/metric captured in this pass.",
+      "last_verified": "2026-06-15",
+      "region": [
+        "unknown"
+      ],
+      "industry": [
+        "field service"
+      ],
+      "restrictions": [
+        "Internal story route only",
+        "verify the story asset and approval before public copy, quotes, metrics, or named claims."
+      ],
+      "workflow_fit": [
+        "customer story",
+        "service workflow"
+      ],
+      "themes": [
+        "customer story candidate"
+      ],
+      "public_copy_allowed": false,
+      "approved_quotes": [],
+      "approved_metrics": []
+    },
+    {
+      "proof_id": "customer-story-rilmac",
+      "customer": "Rilmac",
+      "source_type": "customer_story",
+      "internal_source_ref": "Drive search q=name contains 'Customer Story' returned folder 'Rilmac Customer Story' id 1K5DvCrM7wJ4sCvmDiJXmTwufxRawdv7P on 2026-06-15.",
+      "approval_status": "candidate",
+      "evidence": "Drive search returned a named Rilmac Customer Story folder; no public story URL or approved quote/metric captured in this pass.",
+      "last_verified": "2026-06-15",
+      "region": [
+        "unknown"
+      ],
+      "industry": [
+        "field service"
+      ],
+      "restrictions": [
+        "Internal story route only",
+        "verify the story asset and approval before public copy, quotes, metrics, or named claims."
+      ],
+      "workflow_fit": [
+        "customer story",
+        "service workflow"
+      ],
+      "themes": [
+        "customer story candidate"
+      ],
+      "public_copy_allowed": false,
+      "approved_quotes": [],
+      "approved_metrics": []
+    },
+    {
+      "proof_id": "customer-story-fords",
+      "customer": "Fords",
+      "source_type": "customer_story",
+      "internal_source_ref": "Drive search q=name contains 'Customer Story' returned folder 'Fords Customer Story' id 11chq34wZhcLrNj0esQU-wLZdZyA1c0Wv on 2026-06-15.",
+      "approval_status": "candidate",
+      "evidence": "Drive search returned a named Fords Customer Story folder; no public story URL or approved quote/metric captured in this pass.",
+      "last_verified": "2026-06-15",
+      "region": [
+        "unknown"
+      ],
+      "industry": [
+        "field service"
+      ],
+      "restrictions": [
+        "Internal story route only",
+        "verify the story asset and approval before public copy, quotes, metrics, or named claims."
+      ],
+      "workflow_fit": [
+        "customer story",
+        "service workflow"
+      ],
+      "themes": [
+        "customer story candidate"
+      ],
+      "public_copy_allowed": false,
+      "approved_quotes": [],
+      "approved_metrics": []
+    },
+    {
+      "proof_id": "customer-story-queenstown-plumbing",
+      "customer": "Queenstown Plumbing",
+      "source_type": "customer_story",
+      "internal_source_ref": "Drive search returned 'SP | Customer Story - Queenstown Plumbing' document id 1GyBD8w57OoUFALnUVHU8o5YkRjQ1EQZ5SfLEsbo2Gd8 and folder 'Queenstown Plumbing Customer Story' id 1wvoTq-3O5SsBzjyv1lyKosjMpK6jh9c6 on 2026-06-15.",
+      "approval_status": "candidate",
+      "evidence": "Drive search returned a named Queenstown Plumbing Customer Story document and folder; no public story URL or approved quote/metric captured in this pass.",
+      "last_verified": "2026-06-15",
+      "region": [
+        "NZ"
+      ],
+      "industry": [
+        "plumbing",
+        "field service"
+      ],
+      "restrictions": [
+        "Internal story route only",
+        "verify the story asset and approval before public copy, quotes, metrics, or named claims."
+      ],
+      "workflow_fit": [
+        "customer story",
+        "plumbing workflow",
+        "quoting",
+        "invoicing"
+      ],
+      "themes": [
+        "customer story candidate",
+        "small trade workflow"
+      ],
+      "public_copy_allowed": false,
+      "approved_quotes": [],
+      "approved_metrics": []
+    },
+    {
+      "proof_id": "customer-story-heron-plumbing-simprosium",
+      "customer": "Heron Plumbing",
+      "source_type": "customer_story",
+      "internal_source_ref": "Quote Matrix 2023 Simprosium Quotes tab row 4: Heron Plumbing, Dale & Andrea Lowell, NZ Auckland, Plumbing, Existing Story already? Yes, raw footage and rough transcript source.",
+      "approval_status": "ready",
+      "evidence": "2023 Simprosium Quotes tab row 4 identifies Heron Plumbing as an existing story with raw footage and rough transcript references.",
+      "last_verified": "2026-06-15",
+      "region": [
+        "NZ"
+      ],
+      "industry": [
+        "plumbing",
+        "field service"
+      ],
+      "restrictions": [
+        "Internal story route only",
+        "do not use exact quotes, metrics, or public claims until the story asset or public URL is verified and approved."
+      ],
+      "workflow_fit": [
+        "customer story",
+        "plumbing workflow"
+      ],
+      "themes": [
+        "existing customer story",
+        "interview transcript route"
+      ],
+      "public_copy_allowed": false,
+      "approved_quotes": [],
+      "approved_metrics": []
+    },
+    {
+      "proof_id": "customer-story-obrien-electrical-plumbing-simprosium",
+      "customer": "O'Brien Electrical & Plumbing",
+      "source_type": "customer_story",
+      "internal_source_ref": "Quote Matrix 2023 Simprosium Quotes tab row 10: O'Brien Electrical & Plumbing, Ash Clemmett, AU Brisbane, Electrical & Plumbing, Existing Story already? Yes, raw footage and transcript source.",
+      "approval_status": "ready",
+      "evidence": "2023 Simprosium Quotes tab row 10 identifies O'Brien Electrical & Plumbing as an existing story with raw footage and transcript references.",
+      "last_verified": "2026-06-15",
+      "region": [
+        "AU"
+      ],
+      "industry": [
+        "electrical",
+        "plumbing",
+        "field service"
+      ],
+      "restrictions": [
+        "Internal story route only",
+        "do not use exact quotes, metrics, or public claims until the story asset or public URL is verified and approved."
+      ],
+      "workflow_fit": [
+        "customer story",
+        "electrical workflow",
+        "plumbing workflow"
+      ],
+      "themes": [
+        "existing customer story",
+        "interview transcript route"
+      ],
+      "public_copy_allowed": false,
+      "approved_quotes": [],
+      "approved_metrics": []
+    },
+    {
+      "proof_id": "customer-story-second-nature-simprosium",
+      "customer": "Second Nature",
+      "source_type": "customer_story",
+      "internal_source_ref": "Quote Matrix 2023 Simprosium Quotes tab row 22: Second Nature, Janet and Jonty, NZ Auckland, Landscaping, Existing Story already? Yes, raw footage and interview transcript source.",
+      "approval_status": "ready",
+      "evidence": "2023 Simprosium Quotes tab row 22 identifies Second Nature as an existing story with raw footage and interview transcript references.",
+      "last_verified": "2026-06-15",
+      "region": [
+        "NZ"
+      ],
+      "industry": [
+        "landscaping",
+        "field service"
+      ],
+      "restrictions": [
+        "Internal story route only",
+        "do not use exact quotes, metrics, or public claims until the story asset or public URL is verified and approved."
+      ],
+      "workflow_fit": [
+        "customer story",
+        "service workflow"
+      ],
+      "themes": [
+        "existing customer story",
+        "interview transcript route"
+      ],
+      "public_copy_allowed": false,
+      "approved_quotes": [],
+      "approved_metrics": []
+    },
+    {
+      "proof_id": "reference-james-frew-hostcomm-rvx",
+      "customer": "James Frew",
+      "source_type": "reference",
+      "public_url": "https://www.simprogroup.com/case-studies/hostcomm-and-james-frew",
+      "internal_source_ref": "Quote Matrix Quotes tab row 11: Business Name James Frew, Theme Growth/Profitability, URL Link hostcomm-and-james-frew, Added URL to Orca TRUE.",
+      "approval_status": "ready",
+      "evidence": "Quote Matrix Quotes tab row 11 marks the James Frew public case-study URL as Added URL to Orca TRUE for reference routing.",
+      "last_verified": "2026-06-15",
+      "region": [
+        "UK"
+      ],
+      "industry": [
+        "plumbing",
+        "electrical",
+        "renewables",
+        "field service"
+      ],
+      "restrictions": [
+        "Use as a reference route or paraphrased theme only",
+        "exact quotes and metrics require source-visible approved proof rows."
+      ],
+      "workflow_fit": [
+        "remote visual assistance",
+        "service workflow",
+        "profitability"
+      ],
+      "themes": [
+        "Orca-routed reference",
+        "public case-study route",
+        "partner integration"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": []
+    },
+    {
+      "proof_id": "reference-vsg-ignite-facilities-management",
+      "customer": "Virtual Services Group",
+      "source_type": "reference",
+      "public_url": "https://www.simprogroup.com/case-studies/vsg-and-ignite",
+      "internal_source_ref": "Quote Matrix Quotes tab row 12: Business Name Virtual Services Group, Customer Name Dawn Lawrie, Facilities Management, URL Link vsg-and-ignite, Added URL to Orca TRUE.",
+      "approval_status": "ready",
+      "evidence": "Quote Matrix Quotes tab row 12 marks the VSG public case-study URL as Added URL to Orca TRUE for reference routing.",
+      "last_verified": "2026-06-15",
+      "region": [
+        "UK"
+      ],
+      "industry": [
+        "facilities management",
+        "field service"
+      ],
+      "restrictions": [
+        "Use as a reference route or paraphrased theme only",
+        "exact quotes and metrics require source-visible approved proof rows."
+      ],
+      "workflow_fit": [
+        "facilities management",
+        "multi-platform workflow",
+        "operations transparency"
+      ],
+      "themes": [
+        "Orca-routed reference",
+        "public case-study route",
+        "partner implementation"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": []
+    },
+    {
+      "proof_id": "reference-mekhane-roofing-project-visibility",
+      "customer": "Mekhane Limited",
+      "source_type": "reference",
+      "public_url": "https://www.simprogroup.com/resources/videos/mekhane-roofing",
+      "internal_source_ref": "Quote Matrix Quotes tab row 24: Business Name Mekhane Limited, Customer Name Josiah Murray, Theme Growth/Profitability, URL Link mekhane-roofing, Added URL to Orca TRUE.",
+      "approval_status": "ready",
+      "evidence": "Quote Matrix Quotes tab row 24 marks the Mekhane Roofing video URL as Added URL to Orca TRUE for reference routing.",
+      "last_verified": "2026-06-15",
+      "region": [
+        "NZ"
+      ],
+      "industry": [
+        "roofing",
+        "field service"
+      ],
+      "restrictions": [
+        "Use as a reference route or paraphrased theme only",
+        "exact quotes and metrics require source-visible approved proof rows."
+      ],
+      "workflow_fit": [
+        "project visibility",
+        "profitability",
+        "job costing"
+      ],
+      "themes": [
+        "Orca-routed reference",
+        "public video route",
+        "project-level visibility"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": []
+    },
+    {
+      "proof_id": "reference-level-group-quote-operations-visibility",
+      "customer": "Level Group",
+      "source_type": "reference",
+      "public_url": "https://www.simprogroup.com/resources/videos/level-group",
+      "internal_source_ref": "Quote Matrix Quotes tab row 25: Business Name Level Group, Customer Name Jonathan Holbrow, Theme Invoicing/Quoting/Accounting, URL Link level-group, Added URL to Orca TRUE.",
+      "approval_status": "ready",
+      "evidence": "Quote Matrix Quotes tab row 25 marks the Level Group video URL as Added URL to Orca TRUE for reference routing.",
+      "last_verified": "2026-06-15",
+      "region": [
+        "AU"
+      ],
+      "industry": [
+        "multi-trade",
+        "field service"
+      ],
+      "restrictions": [
+        "Use as a reference route or paraphrased theme only",
+        "exact quotes and metrics require source-visible approved proof rows."
+      ],
+      "workflow_fit": [
+        "quoting",
+        "operations visibility",
+        "inventory",
+        "reporting"
+      ],
+      "themes": [
+        "Orca-routed reference",
+        "public video route",
+        "quoting and operational visibility"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": []
+    },
+    {
+      "proof_id": "reference-ldn-security-solutions-scale",
+      "customer": "LDN Security Solutions",
+      "source_type": "reference",
+      "public_url": "https://www.simprogroup.com/case-studies/ldn-security-solutions",
+      "internal_source_ref": "Quote Matrix Quotes tab rows 30-35: Business Name LDN Security Solutions, Customer Name John Line, multiple themes, URL Link ldn-security-solutions, Added URL to Orca TRUE.",
+      "approval_status": "ready",
+      "evidence": "Quote Matrix Quotes tab rows 30-35 mark the LDN Security Solutions public case-study URL as Added URL to Orca TRUE for reference routing.",
+      "last_verified": "2026-06-15",
+      "region": [
+        "UK"
+      ],
+      "industry": [
+        "security",
+        "field service"
+      ],
+      "restrictions": [
+        "Use as a reference route or paraphrased theme only",
+        "exact quotes and metrics require source-visible approved proof rows."
+      ],
+      "workflow_fit": [
+        "security workflow",
+        "scaling",
+        "implementation",
+        "operational process"
+      ],
+      "themes": [
+        "Orca-routed reference",
+        "public case-study route",
+        "security scale story"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": []
+    },
+    {
+      "proof_id": "reference-365-alongside-construction-scale",
+      "customer": "365 Alongside",
+      "source_type": "reference",
+      "public_url": "https://www.simprogroup.com/case-studies/365-alongside",
+      "internal_source_ref": "Quote Matrix Quotes tab rows 44-46: Business Name 365 Alongside, Customer Name James Dean, URL Link 365-alongside, Added URL to Orca TRUE.",
+      "approval_status": "ready",
+      "evidence": "Quote Matrix Quotes tab rows 44-46 mark the 365 Alongside public case-study URL as Added URL to Orca TRUE for reference routing.",
+      "last_verified": "2026-06-15",
+      "region": [
+        "AU"
+      ],
+      "industry": [
+        "construction",
+        "property care",
+        "field service"
+      ],
+      "restrictions": [
+        "Use as a reference route or paraphrased theme only",
+        "exact quotes and metrics require source-visible approved proof rows."
+      ],
+      "workflow_fit": [
+        "construction operations",
+        "scaling",
+        "preventive maintenance"
+      ],
+      "themes": [
+        "Orca-routed reference",
+        "public case-study route",
+        "structured scaling"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": []
+    },
+    {
+      "proof_id": "reference-rcr-infrastructure-field-service-system",
+      "customer": "RCR Infrastructure",
+      "source_type": "reference",
+      "public_url": "https://www.simprogroup.com/resources/videos/rcr-infrastructure",
+      "internal_source_ref": "Quote Matrix Quotes tab row 43: Business Name RCR Infrastructure, Customer Name Lorene Maher, URL Link rcr-infrastructure, Added URL to Orca TRUE.",
+      "approval_status": "ready",
+      "evidence": "Quote Matrix Quotes tab row 43 marks the RCR Infrastructure video URL as Added URL to Orca TRUE for reference routing.",
+      "last_verified": "2026-06-15",
+      "region": [
+        "AU"
+      ],
+      "industry": [
+        "maintenance services",
+        "field service"
+      ],
+      "restrictions": [
+        "Use as a reference route or paraphrased theme only",
+        "exact quotes and metrics require source-visible approved proof rows."
+      ],
+      "workflow_fit": [
+        "field service management",
+        "growth support",
+        "system reliability"
+      ],
+      "themes": [
+        "Orca-routed reference",
+        "public video route",
+        "operational system adoption"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": []
+    },
+    {
+      "proof_id": "reference-excel-refrigeration-hvac-operations",
+      "customer": "Excel Refrigeration",
+      "source_type": "reference",
+      "public_url": "https://www.simprogroup.com/resources/videos/excel",
+      "internal_source_ref": "Quote Matrix Quotes tab row 49: Business Name Excel Refrigeration, Customer Name Paul Manning, Airconditioning/HVAC, URL Link excel, Added URL to Orca TRUE.",
+      "approval_status": "ready",
+      "evidence": "Quote Matrix Quotes tab row 49 marks the Excel Refrigeration video URL as Added URL to Orca TRUE for reference routing.",
+      "last_verified": "2026-06-15",
+      "region": [
+        "NZ"
+      ],
+      "industry": [
+        "HVAC",
+        "refrigeration",
+        "field service"
+      ],
+      "restrictions": [
+        "Use as a reference route or paraphrased theme only",
+        "exact quotes and metrics require source-visible approved proof rows."
+      ],
+      "workflow_fit": [
+        "field service operations",
+        "scaling",
+        "job management"
+      ],
+      "themes": [
+        "Orca-routed reference",
+        "public video route",
+        "HVAC operations"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": []
     }
   ]
 }

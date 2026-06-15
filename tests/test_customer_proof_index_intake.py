@@ -1,0 +1,337 @@
+import csv
+import json
+import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
+from data_sources.modules.customer_proof_index_intake import (
+    merge_intake_file,
+    validate_intake_file,
+)
+
+
+FIELDNAMES = [
+    "proof_id",
+    "customer",
+    "source_type",
+    "industry",
+    "region",
+    "workflow_fit",
+    "themes",
+    "public_url",
+    "internal_source_ref",
+    "approval_status",
+    "public_copy_allowed",
+    "evidence",
+    "last_verified",
+    "restrictions",
+    "approved_quote",
+    "approved_quote_evidence",
+    "approved_quote_url",
+    "approved_quote_status",
+    "approved_metric_claim",
+    "approved_metric_evidence",
+    "approved_metric_url",
+    "approved_metric_status",
+    "review_story_allowed",
+    "review_identity_type",
+    "review_identity_display",
+    "review_business_name",
+    "review_person_name",
+    "review_role_title",
+    "review_platform",
+    "review_source_row_ref",
+    "review_public_url",
+    "review_workflow_story",
+    "review_copy_use",
+    "review_verification_status",
+]
+
+
+def write_index(path: Path, proof_rows=None) -> None:
+    path.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "updated_at": "2026-06-12",
+                "source_boundary": "Existing test index.",
+                "proof": proof_rows or [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
+def write_csv(path: Path, rows) -> None:
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=FIELDNAMES)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow({field: row.get(field, "") for field in FIELDNAMES})
+
+
+def base_row(**overrides):
+    row = {
+        "proof_id": "customer-story-queenstown-plumbing",
+        "customer": "Queenstown Plumbing",
+        "source_type": "customer_story",
+        "industry": "plumbing; field service",
+        "region": "NZ",
+        "workflow_fit": "job management; quoting; invoicing",
+        "themes": "small trade workflow; customer story candidate",
+        "public_url": "",
+        "internal_source_ref": "Customer Story folder row: Queenstown Plumbing Customer Story",
+        "approval_status": "ready",
+        "public_copy_allowed": "false",
+        "evidence": "Drive search returned SP | Customer Story - Queenstown Plumbing and the Queenstown Plumbing Customer Story folder.",
+        "last_verified": "2026-06-15",
+        "restrictions": "Internal story candidate only; do not use exact quotes or public copy until public URL or approval is added.",
+    }
+    row.update(overrides)
+    return row
+
+
+class CustomerProofIndexIntakeTests(unittest.TestCase):
+    def test_valid_csv_with_customer_story_reference_quote_matrix_and_review_rows_validates(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            csv_path = root / "intake.csv"
+            write_index(index_path)
+            write_csv(
+                csv_path,
+                [
+                    base_row(),
+                    base_row(
+                        proof_id="reference-alarmquest-job-workflow",
+                        customer="AlarmQuest",
+                        source_type="reference",
+                        workflow_fit="job management; service workflow",
+                        themes="reference candidate; security workflow",
+                        internal_source_ref="Simpro References program source row for AlarmQuest",
+                        evidence="Reference candidate for job workflow validation.",
+                        approval_status="ready",
+                        public_copy_allowed="false",
+                    ),
+                    base_row(
+                        proof_id="quote-matrix-zebra-plumbing-onsite-quoting",
+                        customer="Zebra Plumbing",
+                        source_type="quote_matrix",
+                        public_url="https://www.simprogroup.com/case-studies/zebra-plumbing",
+                        internal_source_ref="Quote Matrix URLs tab row 27",
+                        approval_status="approved",
+                        public_copy_allowed="true",
+                        approved_metric_claim="Zebra Plumbing accelerated quoting speed by 20x",
+                        approved_metric_evidence="accelerated quoting speed by 20x",
+                        approved_metric_url="https://www.simprogroup.com/case-studies/zebra-plumbing",
+                        approved_metric_status="approved",
+                    ),
+                    base_row(
+                        proof_id="review-capterra-quote-invoice-theme",
+                        customer="Capterra review theme",
+                        source_type="review_site",
+                        public_url="https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+                        internal_source_ref="Capterra tab row 25",
+                        approval_status="ready",
+                        public_copy_allowed="true",
+                        review_platform="Capterra",
+                        review_source_row_ref="Capterra tab row 25",
+                        review_public_url="https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+                        review_workflow_story="Managing Director describes enquiries, quotes, jobs, costs, and project tracking.",
+                        review_copy_use="paraphrased review-theme use only",
+                        review_verification_status="brand-captured public review source",
+                    ),
+                ],
+            )
+
+            findings = validate_intake_file(csv_path, index_path=index_path)
+
+            self.assertEqual([], findings)
+
+    def test_duplicate_proof_id_in_csv_fails(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            csv_path = root / "intake.csv"
+            write_index(index_path)
+            write_csv(csv_path, [base_row(), base_row()])
+
+            findings = validate_intake_file(csv_path, index_path=index_path)
+
+            self.assertTrue(any(f["rule_id"] == "duplicate_proof_id" for f in findings))
+
+    def test_public_review_story_without_identity_or_url_fails(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            csv_path = root / "intake.csv"
+            write_index(index_path)
+            write_csv(
+                csv_path,
+                [
+                    base_row(
+                        proof_id="review-capterra-missing-identity",
+                        customer="Capterra story candidate",
+                        source_type="review_site",
+                        public_url="https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+                        approval_status="ready",
+                        public_copy_allowed="true",
+                        review_story_allowed="true",
+                        review_platform="Capterra",
+                        review_source_row_ref="Capterra tab row 25",
+                        review_workflow_story="Review story candidate.",
+                    )
+                ],
+            )
+
+            findings = validate_intake_file(csv_path, index_path=index_path)
+
+            self.assertTrue(any(f["rule_id"] == "review_story_identity_missing" for f in findings))
+            self.assertTrue(any(f["rule_id"] == "review_story_public_url_missing" for f in findings))
+
+    def test_google_review_without_public_url_validates_only_as_candidate_internal(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            csv_path = root / "intake.csv"
+            write_index(index_path)
+            write_csv(
+                csv_path,
+                [
+                    base_row(
+                        proof_id="review-google-kingson-electrical-candidate",
+                        customer="Kingson Electrical Ltd",
+                        source_type="review_site",
+                        public_url="",
+                        approval_status="candidate",
+                        public_copy_allowed="false",
+                        review_platform="Google Reviews",
+                        review_source_row_ref="Google Review Quotes tab row 2",
+                        review_workflow_story="Internal Google review candidate; public URL not captured.",
+                        restrictions="Research only until a usable public Google review URL is captured.",
+                    )
+                ],
+            )
+
+            self.assertEqual([], validate_intake_file(csv_path, index_path=index_path))
+
+            write_csv(
+                csv_path,
+                [
+                    base_row(
+                        proof_id="review-google-kingson-electrical-public",
+                        customer="Kingson Electrical Ltd",
+                        source_type="review_site",
+                        approval_status="ready",
+                        public_copy_allowed="true",
+                        review_platform="Google Reviews",
+                        review_source_row_ref="Google Review Quotes tab row 2",
+                    )
+                ],
+            )
+
+            findings = validate_intake_file(csv_path, index_path=index_path)
+            self.assertTrue(any(f["rule_id"] == "google_review_public_url_missing" for f in findings))
+
+    def test_approved_quote_missing_evidence_or_status_fails(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            csv_path = root / "intake.csv"
+            write_index(index_path)
+            write_csv(
+                csv_path,
+                [
+                    base_row(
+                        proof_id="quote-matrix-approved-quote-missing-evidence",
+                        source_type="quote_matrix",
+                        public_url="https://www.simprogroup.com/case-studies/example",
+                        public_copy_allowed="true",
+                        approval_status="approved",
+                        approved_quote="Approved quote text",
+                        approved_quote_status="approved",
+                    )
+                ],
+            )
+
+            findings = validate_intake_file(csv_path, index_path=index_path)
+
+            self.assertTrue(any(f["rule_id"] == "approved_quote_evidence_missing" for f in findings))
+
+    def test_approved_metric_missing_public_url_or_evidence_fails(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            csv_path = root / "intake.csv"
+            write_index(index_path)
+            write_csv(
+                csv_path,
+                [
+                    base_row(
+                        proof_id="quote-matrix-approved-metric-missing-url",
+                        source_type="quote_matrix",
+                        public_copy_allowed="true",
+                        approval_status="approved",
+                        approved_metric_claim="Customer reduced admin time by 50%",
+                        approved_metric_evidence="reduced admin time by 50%",
+                        approved_metric_status="approved",
+                    )
+                ],
+            )
+
+            findings = validate_intake_file(csv_path, index_path=index_path)
+
+            self.assertTrue(any(f["rule_id"] == "approved_metric_url_missing" for f in findings))
+
+    def test_merge_updates_existing_row_and_appends_new_rows_deterministically(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            csv_path = root / "intake.csv"
+            out_path = root / "customer-proof-index.json"
+            write_index(
+                index_path,
+                [
+                    {
+                        "proof_id": "customer-story-queenstown-plumbing",
+                        "customer": "Old Queenstown Plumbing",
+                        "source_type": "customer_story",
+                        "workflow_fit": ["old"],
+                        "themes": ["old"],
+                        "approval_status": "candidate",
+                        "public_copy_allowed": False,
+                    }
+                ],
+            )
+            write_csv(
+                csv_path,
+                [
+                    base_row(customer="Queenstown Plumbing Updated"),
+                    base_row(
+                        proof_id="reference-alarmquest-job-workflow",
+                        customer="AlarmQuest",
+                        source_type="reference",
+                        internal_source_ref="Simpro References program source row for AlarmQuest",
+                        workflow_fit="job management; service workflow",
+                        themes="reference candidate; security workflow",
+                        evidence="Reference candidate for job workflow validation.",
+                        approval_status="ready",
+                        public_copy_allowed="false",
+                    ),
+                ],
+            )
+
+            result = merge_intake_file(csv_path, index_path=index_path, out_path=out_path)
+            merged = json.loads(out_path.read_text(encoding="utf-8"))
+            proof_ids = [row["proof_id"] for row in merged["proof"]]
+
+            self.assertEqual(0, result["errors"])
+            self.assertEqual(
+                ["customer-story-queenstown-plumbing", "reference-alarmquest-job-workflow"],
+                proof_ids,
+            )
+            self.assertEqual("Queenstown Plumbing Updated", merged["proof"][0]["customer"])
+
+
+if __name__ == "__main__":
+    unittest.main()

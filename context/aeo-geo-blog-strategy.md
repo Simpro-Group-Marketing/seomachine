@@ -121,6 +121,17 @@ Use the Global Customer Quote Matrix first for exact customer quotes. Use Custom
 
 Before selecting customer proof, run or consult `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme --limit 10`. For review-derived E-E-A-T stories, run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles experience_story --require-eeat-story --limit 10`. The selector uses `customer-proof-index.json` and `customer-proof-usage-ledger.json` to choose the most relevant approved proof, then penalizes overused proof. Do not pick the easiest mapped case study when a better-fit Quote Matrix, Reference, Customer Story, or review-site proof route exists. Generate a `Customer Proof Slate` before drafting so the writer can compare metric, quote, and theme options; edit selected/rejected rows only when editorial judgment requires it. If a repeated case study is still the best proof, add a `Customer Proof Selection Decision` with a source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved proof fits the same role.
 
+### proof-index intake
+
+New customer proof candidates must enter `context/customer-proof-index.json` through `context/customer-proof-intake-template.csv` and `data_sources/modules/customer_proof_index_intake.py` before a writer relies on them in selector slates. Use:
+
+```powershell
+python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json
+python data_sources/modules/customer_proof_index_intake.py merge [input.csv] --index context/customer-proof-index.json --out context/customer-proof-index.json
+```
+
+The intake row must state source type, source ref, approval status, public-copy boundary, evidence summary, restrictions, and verification date. Exact quotes, metrics, review-story identity claims, reviewer-name claims, ratings, rankings, and badges need explicit source-visible evidence before approval. Google review rows stay candidate and `public_copy_allowed: false` unless a usable public review URL is captured.
+
 Required Customer Proof Slate shape:
 
 ```text
