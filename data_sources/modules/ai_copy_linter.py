@@ -125,6 +125,26 @@ ERROR_RULES: List[Tuple[str, Pattern[str], str, str]] = [
         "Public blog copy must not explain why a source or proof point is useful for the draft.",
         "Translate the source into an audience-facing takeaway, outcome, or workflow lesson.",
     ),
+    (
+        "named_fictional_scenario",
+        re.compile(
+            r"\b(?:Picture|Imagine|Meet)\s+"
+            r"(?:Marissa|Sarah|Mike|Marcus|Lisa|John|David|Emily|Chris|Alex|"
+            r"Tom|Anna|James|Maria|Rachel|Dan|Kate)\b"
+            r"(?=\s*(?:,|\.|\bwho\b|\btrying\b|\bas\b|\ban?\b|\bthe\b))|"
+            r"\b(?:Marissa|Sarah|Mike|Marcus|Lisa|John|David|Emily|Chris|Alex|"
+            r"Tom|Anna|James|Maria|Rachel|Dan|Kate)\s*,\s+"
+            r"(?:an?|the)\s+"
+            r"(?:operations manager|office manager|contractor|estimator|"
+            r"technician|coordinator|dispatcher|business owner|project manager)\b",
+            re.IGNORECASE,
+        ),
+        "Named fictional scenarios are not allowed in proof-sensitive blog copy.",
+        (
+            "Use an unnamed workflow example, or use an actual customer/review POV "
+            "with proof in the validation sidecar."
+        ),
+    ),
 ]
 
 

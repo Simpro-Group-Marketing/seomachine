@@ -135,20 +135,17 @@ Apply these requirements from @context/aeo-geo-blog-strategy.md:
 - **Lists**: Use bulleted or numbered lists for scannability
 - **Formatting**: Bold key concepts, use short paragraphs (2-4 sentences MAX)
 
-**REQUIRED: Mini-Stories (2-3 per article)**
+**OPTIONAL: Proof-Backed Customer/Review POV**
 
-Research shows we're 22x more likely to remember facts wrapped in stories. Every article MUST include 2-3 mini-scenarios with:
-- A **specific person** (use names, even if fictional: "Sarah," "Mike," "The team at Acme Corp")
-- A **concrete situation** with details (dates, numbers, specifics)
-- A **clear outcome** that illustrates the point
+Use a proof-backed customer/review POV only when it improves the article objective. If no strong proof-backed story fits, omit the story.
 
-**Example mini-story (aim for 50-150 words each):**
-> "When Marcus launched his SaaS product in March 2024, he chose the cheapest hosting plan he could find, $5/month seemed like a no-brainer. Six months later, his app hit 10,000 active users. That's when he discovered the hidden bandwidth fees buried in his provider's terms. His $5/month plan suddenly became $89/month. Worse, migrating mid-growth meant a 3-week gap in analytics that cost him a $2,000 partnership deal. The 'savings' from cheap hosting cost him over $3,000."
+Allowed:
+- Actual person or business POV from an approved customer story, case study, Quote Matrix route, reference, or review-site row with sidecar proof.
+- Unnamed workflow scenarios for explanation only; do not treat them as E-E-A-T.
 
-**Place mini-stories:**
-- One in the introduction or early section (to hook readers)
-- One in the middle (to re-engage skimmers)
-- One near the conclusion (to reinforce the main point)
+Not allowed:
+- Fictional named personas or invented company stories.
+- Invented dates, metrics, quotes, outcomes, or testimonial wording.
 
 **REQUIRED: Contextual CTAs (2-3 per article)**
 
@@ -496,7 +493,7 @@ Every article must meet these requirements:
 
 ### Engagement Requirements
 - **Compelling hook** in first 1-2 sentences (no generic openings)
-- **2-3 mini-stories** with specific names, details, and outcomes
+- Optional proof-backed customer/review POV when it improves the objective
 - **2-3 contextual CTAs** distributed throughout (not just at end)
 - **First CTA within 500 words**
 - **No paragraphs longer than 4 sentences**

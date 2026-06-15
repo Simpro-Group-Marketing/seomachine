@@ -56,7 +56,7 @@ Before opening the browser or drafting, resolve these variables from the user pr
 
 If a variable cannot be answered by the repo or research, ask the user for only that missing variable. Do not synthesize PAA questions, expert quotes, customer claims, search volume, or ranking evidence.
 Customer proof routing: before citing customer proof, generate a selector-first `Customer Proof Slate` with `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme --limit 10` so metric, quote, and theme options are compared before drafting. Run `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` before adding proof candidates. Add new proof candidates through `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates. Then pair approved case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
-Review-site experience evidence / VoC routing: cite public review-site themes with source links when they show first-hand customer experience with product use, implementation, support, switching, pains, outcomes, or workflows. Capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved. Use review-derived stories as paraphrased, source-backed experience patterns by default. Do not use exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, or category-leadership claims unless they have current source verification and brief-level approval.
+Review-site experience evidence / VoC routing: cite public review-site themes with source links when they show first-hand customer experience with product use, implementation, support, switching, pains, outcomes, or workflows. Capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved. Use a proof-backed customer/review POV only when it improves the article objective; if no actual person or business POV fits, omit the story. Do not use fictional named personas, exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, or category-leadership claims unless they have current source verification and brief-level approval.
 
 ### E-E-A-T Proof Map Inputs
 
@@ -311,8 +311,9 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
 1. [Real question from Reddit/YouTube]
 2. [Another real question]
 
-### Story Seeds (for mini-stories)
-- [Story possibility based on real user experience]
+### Proof-Backed POV Opportunities
+- [Actual person or business POV from approved proof, only if it improves the article objective]
+- [Unnamed workflow scenario for explanation only, not E-E-A-T proof]
 
 ### Language to Use
 - Use "[real user phrase]" instead of "[generic SEO phrase]"
@@ -357,10 +358,11 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
    | **E-E-A-T Proof Map** | Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, claims excluded because proof is missing |
    | **Customer Proof Pack** | Selector result, selected proof, source-specific overuse reason when needed, approved quotes/metrics, claims excluded |
    | **CTA** | soft / medium / strong (if applicable) |
-   | **Mini-Story** | Whether to place a story here |
+   | **Proof-Backed POV** | Optional actual person or business POV when it improves the objective |
 
 4. **Plan Engagement Distribution**
-   - Mini-stories: Early, middle, near-end (2-3 total)
+   - Proof-backed customer/review POV: Optional; use only when an actual person or business story improves the objective and is sidecar-mapped
+   - Unnamed workflow scenarios: Explanatory only, not E-E-A-T proof
    - CTAs: First 500 words (soft), middle (medium), end (strong)
    - Featured snippet opportunities: FAQ, definitions
 
@@ -424,7 +426,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - **Word Target**: 200
 - **Hook Strategy**: [question / scenario / statistic / bold statement]
 - **APP Elements**: [Agree point, Promise, Preview]
-- **Mini-Story**: [Yes - place opening scenario here]
+- **Proof-Backed POV**: [Optional actual person or business POV, sidecar-mapped]
 - **CTA**: soft (within first 500 words)
 - **Unique Data**: [Insight from social research to include]
 
@@ -441,7 +443,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - **Word Target**: 400
 - **Strategic Angle**: [Unique angle]
 - **Knowledge Gap**: [Gap being filled]
-- **Mini-Story**: [Yes - real user scenario]
+- **Proof-Backed POV**: [Optional actual person or business POV, sidecar-mapped]
 
 [Continue for all sections...]
 
@@ -459,15 +461,13 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - **Type**: conclusion
 - **Word Target**: 200
 - **CTA**: strong
-- **Mini-Story**: [Optional - reinforcing story]
+- **Proof-Backed POV**: [Optional actual person or business story, sidecar-mapped]
 
 ## Engagement Map
 
 | Element | Location |
 |---------|----------|
-| Mini-Story 1 | Introduction |
-| Mini-Story 2 | Section [X] |
-| Mini-Story 3 | Conclusion (optional) |
+| Optional proof-backed customer/review POV | Section where it improves the objective |
 | CTA (soft) | Section 1 or 2 |
 | CTA (medium) | Section [X] |
 | CTA (strong) | Conclusion |
@@ -646,7 +646,7 @@ After all sections are written and edited:
    **Engagement Checklist:**
    - [ ] Hook (not generic opening)
    - [ ] APP Formula in intro
-   - [ ] 2-3 mini-stories with names/details/outcomes
+   - [ ] Optional proof-backed customer/review POV is used only when it fits the objective and is sidecar-mapped
    - [ ] 2-3 contextual CTAs
    - [ ] First CTA within 500 words
    - [ ] No paragraphs > 4 sentences
@@ -851,7 +851,7 @@ Before writing, review these context files:
 - 3-5 internal links
 - 2-3 external authority links
 - Compelling hook (not generic)
-- 2-3 mini-stories with specifics
+- Optional proof-backed customer/review POV when it improves the objective
 - 2-3 contextual CTAs
 - FAQ with real user questions
 - General content quality score 85/100+

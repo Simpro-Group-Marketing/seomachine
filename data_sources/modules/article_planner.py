@@ -89,7 +89,7 @@ class MetaElements:
 @dataclass
 class EngagementMap:
     """Maps engagement elements to sections."""
-    mini_story_locations: List[int]  # Section numbers
+    mini_story_locations: List[int]  # Legacy field: optional proof-backed POV section numbers
     cta_locations: Dict[str, int]  # CTAType -> section number
     featured_snippet_sections: List[int]
 
@@ -215,8 +215,8 @@ class ArticlePlanner:
         Returns:
             EngagementMap with locations
         """
-        # Mini-stories: intro, middle, near-end
-        mini_story_locations = [1]  # Always in intro
+        # Optional proof-backed POV opportunities: intro, middle, near-end.
+        mini_story_locations = [1]
         if num_sections >= 4:
             mini_story_locations.append(num_sections // 2)
         if num_sections >= 6:
@@ -278,7 +278,7 @@ class ArticlePlanner:
                 cta_type = CTAType(cta)
                 break
 
-        # Check if mini-story planned here
+        # Check if optional proof-backed POV opportunity is planned here.
         mini_story = section_number in engagement_map.mini_story_locations
 
         # Check for featured snippet opportunity
@@ -360,13 +360,13 @@ def format_article_plan(plan: ArticlePlan) -> str:
 
 ## Section Plan
 
-| # | Type | Heading | Words | CTA | Story |
-|---|------|---------|-------|-----|-------|
+| # | Type | Heading | Words | CTA | Proof-Backed POV |
+|---|------|---------|-------|-----|------------------|
 """
 
     for section in plan.sections:
         cta = section.cta_type.value if section.cta_type else "-"
-        story = "Yes" if section.mini_story_planned else "-"
+        story = "Optional" if section.mini_story_planned else "-"
         report += f"| {section.section_number} | {section.section_type.value} | {section.heading} | {section.word_target} | {cta} | {story} |\n"
 
     report += "\n---\n\n## Section Details\n\n"
@@ -388,7 +388,7 @@ def format_article_plan(plan: ArticlePlan) -> str:
         if section.cta_type:
             report += f"- **CTA Type**: {section.cta_type.value}\n"
         if section.mini_story_planned:
-            report += "- **Mini-Story**: Yes - include specific scenario\n"
+            report += "- **Proof-Backed POV**: Optional actual person or business POV when it improves the objective; omit if no source-backed story fits\n"
         if section.featured_snippet_target:
             report += "- **Featured Snippet**: Target for snippet optimization\n"
         report += "\n"
@@ -403,7 +403,7 @@ def format_article_plan(plan: ArticlePlan) -> str:
     for loc in plan.engagement_map.mini_story_locations:
         section = plan.sections[loc - 1] if loc <= len(plan.sections) else None
         heading = section.heading if section else f"Section {loc}"
-        report += f"| Mini-Story | Section {loc}: {heading} |\n"
+        report += f"| Optional proof-backed POV | Section {loc}: {heading} |\n"
 
     for cta_type, loc in plan.engagement_map.cta_locations.items():
         section = plan.sections[loc - 1] if loc <= len(plan.sections) else None

@@ -842,6 +842,47 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
+    def test_story_policy_blocks_fictional_named_personas(self):
+        canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
+            encoding="utf-8"
+        )
+        required = [
+            "E-E-A-T stories are optional",
+            "actual person or business POV",
+            "fictional named personas are prohibited",
+            "Unnamed workflow scenarios are explanatory only",
+        ]
+        for text in required:
+            self.assertIn(text, canonical)
+
+        docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / "README.md",
+            ROOT / "CLAUDE.md",
+            ROOT / "AGENTS.md",
+            ROOT / ".cursor" / "rules" / "customer-proof.mdc",
+            ROOT / ".agents" / "rules" / "customer-proof.md",
+            ROOT / ".claude" / "rules" / "customer-proof.md",
+        ]
+        forbidden = [
+            "use names, even if fictional",
+            "Every article MUST include 2-3 mini-scenarios",
+            "2-3 mini-stories with names/details/outcomes",
+            "2-3 mini-stories with specifics",
+        ]
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            lowered = content.lower()
+            self.assertIn(
+                "proof-backed customer/review pov",
+                lowered,
+                f"{path.name} missing optional proof-backed POV rule",
+            )
+            for text in forbidden:
+                self.assertNotIn(text.lower(), lowered, f"{path.name} still allows fictional stories")
+
     def test_capterra_review_site_theme_policy_is_documented(self):
         canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
             encoding="utf-8"

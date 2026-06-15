@@ -473,11 +473,11 @@ def format_writing_prompt(
 
     if has_mini_story:
         prompt += """
-### Mini-Story Required
-Include a mini-story with:
-- Specific person (use a name)
-- Concrete situation with details
-- Clear outcome that illustrates the point
+### Optional Proof-Backed POV
+Use an actual person or business POV only when it improves this section and is source-backed in the validation sidecar.
+If no proof-backed customer or review story fits, omit the story.
+Unnamed workflow scenarios are allowed for explanation only and do not count as E-E-A-T proof.
+Do not invent names, companies, dates, metrics, quotes, outcomes, or testimonial wording.
 """
 
     if has_cta:

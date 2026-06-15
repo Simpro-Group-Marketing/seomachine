@@ -109,6 +109,46 @@ class AiCopyLinterTests(unittest.TestCase):
             ),
         )
 
+    def test_named_fictional_scenario_framing_is_error(self):
+        findings = lint_content(
+            "Picture Marissa, an operations manager at an electrical contractor. "
+            "Her estimator sends a polished quote from the office."
+        )
+
+        fictional = [
+            finding
+            for finding in findings
+            if finding["rule_id"] == "named_fictional_scenario"
+        ]
+
+        self.assertEqual(len(fictional), 1)
+        self.assertEqual(fictional[0]["severity"], "error")
+
+    def test_imagine_and_meet_stock_named_scenarios_are_errors(self):
+        content = (
+            "Imagine Sarah trying to invoice from a spreadsheet.\n\n"
+            "Meet Mike, a contractor who tracks job notes in email."
+        )
+
+        fictional = [
+            finding
+            for finding in lint_content(content)
+            if finding["rule_id"] == "named_fictional_scenario"
+        ]
+
+        self.assertEqual(len(fictional), 2)
+
+    def test_sourced_review_and_case_study_story_language_is_allowed(self):
+        content = (
+            "A [Capterra review from Joel A.]"
+            "(https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/) "
+            "describes lead, quote, job, invoice, payment, QuickBooks, and mobile field work.\n\n"
+            "The [Zebra Plumbing case study]"
+            "(https://www.simprogroup.com/case-studies/zebra-plumbing) reports faster quoting."
+        )
+
+        self.assertNotIn("named_fictional_scenario", finding_ids(content))
+
     def test_multiple_links_in_one_paragraph_is_error(self):
         content = (
             "The [Federal Reserve](https://www.frbservices.org/news) reported "

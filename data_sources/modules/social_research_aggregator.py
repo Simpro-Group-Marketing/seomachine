@@ -379,7 +379,7 @@ def format_social_research_report(
     for question in synthesis.questions_to_answer[:6]:
         report += f"- {question}\n"
 
-    report += "\n### Story Seeds (for mini-stories)\n"
+    report += "\n### Proof-Backed POV Opportunities\n"
     for seed in synthesis.story_seeds[:3]:
         report += f"- {seed}\n"
 

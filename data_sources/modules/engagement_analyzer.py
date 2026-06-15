@@ -1,12 +1,11 @@
 """
 Engagement Analyzer
 
-Analyzes articles for the 5 new engagement criteria:
+Analyzes articles for the 4 current engagement criteria:
 1. Hook quality (not generic opening)
 2. Sentence rhythm variety
-3. Mini-stories (specific scenarios with names)
-4. Contextual CTAs (distributed throughout)
-5. Paragraph length (max 4 sentences)
+3. Contextual CTAs (distributed throughout)
+4. Paragraph length (max 4 sentences)
 """
 
 import re
@@ -51,7 +50,7 @@ class EngagementAnalyzer:
         r'Want to\s+(?:see|learn|try|get)',
     ]
 
-    # Name patterns for mini-stories
+    # Legacy name patterns retained only for older report compatibility.
     NAME_PATTERNS = [
         r'\b(?:Sarah|Mike|Marcus|Lisa|John|David|Emily|Chris|Alex|Tom|Anna|James|Maria|Rachel|Dan|Kate)\b',
         r'\b(?:The team at|At) [A-Z][a-z]+(?:\s+[A-Z][a-z]+)?\b',  # "The team at Acme"
@@ -210,7 +209,7 @@ class EngagementAnalyzer:
         }
 
     def _analyze_mini_stories(self, content: str) -> Dict[str, Any]:
-        """Analyze presence of mini-stories with specific names"""
+        """Legacy helper retained for older report compatibility."""
         stories_found = []
 
         # Look for name patterns

@@ -100,6 +100,8 @@ Add new proof candidates through `context/customer-proof-intake-template.csv` an
 
 For review-derived public copy, consult the selector with `--require-eeat-story --proof-role experience_story`; use `context/aeo-geo-blog-strategy.md` for Review Story Selection, Review Site Theme Selection, Capterra theme, exact-quote, rating, and metric boundaries.
 
+Use a proof-backed customer/review POV only when it improves the article objective. If no actual person or business POV fits, omit the story. Fictional named personas are prohibited; unnamed workflow scenarios are explanatory only and do not count as E-E-A-T.
+
 Before returning `Ready`, run review story identity guard:
 ```bash
 python data_sources/modules/review_story_identity_guard.py [article-file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
