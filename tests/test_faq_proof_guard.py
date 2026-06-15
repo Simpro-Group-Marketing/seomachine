@@ -63,6 +63,21 @@ HVAC scheduling software reduces missed appointments by centralizing job details
 
         self.assertEqual(check_content(content), [])
 
+    def test_faq_answer_with_sidecar_faq_proof_map_passes(self):
+        content = """# HVAC Scheduling Software
+
+## Frequently Asked Questions
+
+### How does HVAC scheduling software reduce missed appointments?
+
+HVAC scheduling software reduces missed appointments by centralizing job details, technician assignments, customer notifications, and status updates. Dispatchers can see conflicts before they become failures, while technicians receive the latest job information on mobile.
+"""
+        sidecar = """FAQ Proof Map
+- How does HVAC scheduling software reduce missed appointments? URL: https://www.simprogroup.com/features/scheduling
+"""
+
+        self.assertEqual(check_content(content, proof_content=sidecar), [])
+
     def test_context_only_source_map_does_not_count_as_public_proof(self):
         content = """---
 Source Map:

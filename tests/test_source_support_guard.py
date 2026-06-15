@@ -2,10 +2,12 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 from data_sources.modules.source_support_guard import (
     check_content,
     check_file,
+    fetch_source_text,
     require_source_support,
     should_fail,
 )
@@ -27,6 +29,31 @@ def fetcher_with(source_text_by_url):
 
 
 class SourceSupportGuardTests(unittest.TestCase):
+    def test_fetch_source_text_uses_builtin_file_cache_when_diskcache_is_unavailable(self):
+        class FakeResponse:
+            text = "<html><body>Visible proof text for source support.</body></html>"
+
+            def raise_for_status(self):
+                return None
+
+        old_cwd = os.getcwd()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            os.chdir(temp_dir)
+            try:
+                request = Mock(return_value=FakeResponse())
+                with patch("data_sources.modules.source_support_guard.Cache", None), patch(
+                    "data_sources.modules.source_support_guard.requests.get",
+                    request,
+                ):
+                    first = fetch_source_text("https://example.com/source")
+                    second = fetch_source_text("https://example.com/source")
+
+                self.assertIn("Visible proof text", first)
+                self.assertEqual(first, second)
+                self.assertEqual(request.call_count, 1)
+            finally:
+                os.chdir(old_cwd)
+
     def test_contextual_case_study_link_passes_with_case_study_proof_path(self):
         content = f"""---
 Customer Proof Pack:
@@ -160,6 +187,42 @@ Customer Proof Pack:
         findings = check_content(
             content,
             fetcher=fetcher_with({SHAFFER_URL: "Shaffer Beacon Mechanical achieved a 60% increase in profit margin."}),
+        )
+
+        self.assertEqual(findings, [])
+
+    def test_named_customer_metric_passes_with_sidecar_approved_metric_row(self):
+        content = f"""# HVAC franchise software
+
+[Shaffer Beacon Mechanical]({SHAFFER_URL}) achieved a 60% increase in profit margin using Simpro job costing workflows.
+"""
+        sidecar = f"""Customer Proof Pack
+- Approved metric: Shaffer Beacon Mechanical achieved a 60% increase in profit margin | Customer/brand: Shaffer Beacon Mechanical | URL: {SHAFFER_URL} | Evidence: "60% increase in profit margin" | Status: approved
+"""
+
+        findings = check_content(
+            content,
+            proof_content=sidecar,
+            fetcher=fetcher_with({SHAFFER_URL: "Shaffer Beacon Mechanical achieved a 60% increase in profit margin."}),
+        )
+
+        self.assertEqual(findings, [])
+
+    def test_spelled_out_named_customer_metric_passes_with_approved_metric_row(self):
+        bge_url = "https://www.simprogroup.com/case-studies/bge-digital"
+        content = f"""---
+Customer Proof Pack:
+- Approved metric: BGE Digital put quotes out ten times quicker than spreadsheets | Customer/brand: BGE Digital | URL: {bge_url} | Evidence: "put a quote out ten times quicker" | Status: approved
+---
+
+# Quoting workflow
+
+[BGE Digital]({bge_url}) put quotes out ten times quicker than spreadsheets after changing its quoting workflow.
+"""
+
+        findings = check_content(
+            content,
+            fetcher=fetcher_with({bge_url: "BGE Digital can put a quote out ten times quicker than spreadsheets."}),
         )
 
         self.assertEqual(findings, [])

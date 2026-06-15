@@ -44,7 +44,9 @@ Use this command to conduct comprehensive SEO keyword research and competitive a
 - **Lightning overlay**: If the topic mentions Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, also read @context/lightning-positioning.md and apply it as a scoped overlay.
 - **Simpro advantage**: Identify how Simpro's product features, customer proof, and best-fit use cases naturally enhance this topic.
 - **Customer proof routing**: When citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
-- **Review-site experience evidence / VoC routing**: Public review sites are approved for sourced review-site experience evidence, VoC themes, and competitor-review themes when they show first-hand customer experience with product use, implementation, support, switching, pains, outcomes, or workflows. Use Playwright MCP for live review-site collection; capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved. Use CLI only for repo search, saved exports, cleanup, or validation. Use review-derived stories as paraphrased, source-backed experience patterns by default. Exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, and category claims require current source verification and brief-level approval.
+- **Customer proof selection governance**: Before selecting proof, run or consult `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme --limit 10`. Add the generated selector-first `Customer Proof Slate` before drafting; include `experience_story` with `--require-eeat-story` when review-derived copy is considered. Edit selected/rejected rows only when editorial judgment requires it. If selected proof is overused, the sidecar needs a selector-backed, source-specific `Reuse reason`.
+- **Customer proof diversity gate**: Plan for `python data_sources/modules/customer_proof_diversity_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error` before scoring or `/optimize`. The brief and sidecar must include non-case-study proof search evidence when case studies are selected.
+- **Review proof routing**: For review-site experience evidence, use Playwright MCP for live collection, run the selector with `--require-eeat-story --proof-role experience_story` when Review Story Selection is needed, and run `python data_sources/modules/review_story_identity_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error` before scoring. Keep detailed Review Site Theme Selection, Capterra, exact-quote, rating, and metric boundaries in `context/aeo-geo-blog-strategy.md`.
 - **Brand alignment**: Apply Simpro's authoritative, ambitious, trades-focused, practical, outcomes-driven voice.
 - **Evidence boundaries**: Do not present search volume, ranking, conversion priority, or live SERP findings as verified unless checked with GSC, GA4, DataForSEO, Ahrefs/Semrush, or live SERP review in this run.
 - **Lightning evidence boundary**: Do not use time-sensitive Lightning pricing, roadmap, or competitor claims publicly unless they are verified in the current run or explicitly sourced from approved current material.
@@ -66,6 +68,8 @@ Use this command to conduct comprehensive SEO keyword research and competitive a
 - **External Authority**: Identify 2-3 authoritative external sources to link
 - **AEO/GEO Variables**: Resolve `topic`, `audience`, `main_question`, `related_questions`, `tone`, `expertise`, and `length` where possible from repo context and research evidence
 - **Source Mapping**: For each credible external source, document the claim it supports, the natural anchor phrase, and the target section
+- **Metric Proof Pack**: For software, comparison, guide, pricing, cost, ROI, KPI, profit, margin, or vs topics, extract usable numbers before writing. Record `Search log`, each `Approved metric`, public proof URL or local proof artifact, source-visible Evidence, Status: approved, and intended Use. Run `python data_sources/modules/metric_proof_pack_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error` before writing or scoring.
+- **Validation sidecar**: Store proof-only blocks in `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in the public draft. The sidecar can contain `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, and structured data notes. Do not add an `Editorial Validation Appendix` to blog copy. Preferred publish check: `python data_sources/modules/publish_readiness.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`.
 - **PAA/FAQ Inputs**: If AnswerSocrates or a PAA/FAQ CSV has been used, identify the 3-5 closest questions, intent labels, and suggested article placement
 
 ### Hook Development
@@ -85,12 +89,20 @@ Provides a comprehensive research brief with:
 - **AEO/GEO Variables**: topic, audience, main_question, related_questions, tone, expertise, length
 - **PAA/FAQ Questions**: 3-5 closest questions with intent labels and article section mapping
 - **Source Map**: source, supported claim, anchor text, target section
+- **Metric Proof Pack**:
+  - **Metric requirement**: required / not applicable
+  - **Search log**: [public sources and local proof artifacts checked for usable numbers]
+  - **Approved metric**: [metric claim, public proof URL or local proof artifact, source-visible Evidence, Status: approved, intended Use]
+  - **Rejected metrics**: [candidate metric and missing proof reason]
 - **Customer Proof Pack**:
   - **Pack status**: ready / partial / blocked
   - **Topic or page fit**: [topic, audience, region, trade, funnel stage]
+  - **Customer Proof Slate**: [selector command plus metric, quote, theme, and experience_story role rows when applicable]
   - **Quote Matrix candidates**: [customer, trade, region, theme, exact quote or summary, source row/link, approval status]
   - **Case-study proof paths**: [customer, public URL, supported metric/theme]
   - **Review-site experience evidence**: [platform, URL, date checked, product/competitor, experience pattern, evidence summary, exact quote/rating approval status]
+  - **Customer Proof Selection Decision**: [selector command, selected proof IDs, rejected stronger candidates, final use in copy]
+  - **Reuse reason**: [source-specific; required when customer-proof-usage-ledger.json marks the selected proof as overused; must prove no stronger underused approved proof fits the same role]
   - **Approved quotes**: [exact quote/testimonial, customer/brand/reviewer, source type, public proof URL, Evidence, approval status]
   - **Approved metrics**: [metric, customer, source file, public proof URL]
   - **Use in copy**: [exact quote / paraphrased theme / named metric / omit]

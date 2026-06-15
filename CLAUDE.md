@@ -69,10 +69,14 @@ Located in `data_sources/modules/`. The Content Analyzer chains:
 4. `readability_scorer.py` - Flesch Reading Ease, grade level
 5. `seo_quality_rater.py` - Comprehensive 0-100 SEO score
 6. `url_validator.py` - URL validation guardrail for Markdown links and bare URLs
-7. `numeric_claim_source_guard.py` - Metric/stat proof guardrail for public numeric business claims
-8. `faq_proof_guard.py` - FAQ proof guardrail for public proof links or question-specific Source Map proof
-9. `paa_provenance_guard.py` - PAA provenance guardrail requiring FAQ questions to match saved AnswerSocrates, SERP, Reddit, YouTube, or user PAA/FAQ CSV artifacts
-10. `source_support_guard.py` - Strict source support guard requiring approved proof rows with source-visible Evidence snippets
+7. `metric_proof_pack_guard.py` - Metric Proof Pack guardrail requiring a Search log and at least one Approved metric with source-visible Evidence for metric-sensitive topics
+8. `numeric_claim_source_guard.py` - Metric/stat proof guardrail for public numeric business claims
+9. `faq_proof_guard.py` - FAQ proof guardrail for public proof links or question-specific Source Map proof
+10. `paa_provenance_guard.py` - PAA provenance guardrail requiring FAQ questions to match saved AnswerSocrates, SERP, Reddit, YouTube, or user PAA/FAQ CSV artifacts
+11. `source_support_guard.py` - Strict source support guard requiring approved proof rows with source-visible Evidence snippets
+12. `customer_proof_selector.py` - Customer proof selector using `customer-proof-index.json` and `customer-proof-usage-ledger.json` to choose the most relevant approved proof
+13. `customer_proof_diversity_guard.py` - Customer proof diversity guard requiring non-case-study proof search evidence, a `Customer Proof Selection Decision`, and source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved proof fits the same role
+14. `review_story_identity_guard.py` - Review story identity guard requiring identity-backed Review Story Selection, a public review URL, and same paragraph article link for review-derived E-E-A-T stories
 
 ### Data Integrations
 
@@ -111,34 +115,48 @@ python3 tests/test_dataforseo.py
 
 Rewrites go to `rewrites/`. Landing pages go to `landing-pages/`. Audits go to `audits/`. Repurposed content goes to `repurposed/`.
 
-Blog rewrites must follow the same AEO/GEO evidence boundaries as new articles: sourced PAA/FAQ provenance, FAQ proof, source mapping, E-E-A-T Proof Map inputs, direct-answer structure, schema notes, AI copy lint, URL validation, numeric claim source guard, FAQ proof guard, PAA provenance guard, source support guard, `content_scorer.py --validate-urls`, and the 85/100 general quality plus 90/100 AEO/GEO gates before `/optimize`.
+Blog rewrites must follow the same AEO/GEO evidence boundaries as new articles: sourced PAA/FAQ provenance, FAQ proof, source mapping, Metric Proof Pack inputs, E-E-A-T Proof Map inputs, direct-answer structure, schema notes, AI copy lint, URL validation, Metric Proof Pack guard, numeric claim source guard, FAQ proof guard, PAA provenance guard, source support guard, `content_scorer.py --validate-urls --validate-source-support`, and the 85/100 general quality plus 90/100 AEO/GEO gates before `/optimize`.
+
+Use a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md` for proof-only infrastructure. Public blog drafts and rewrites must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan. Preferred publish readiness command: `python data_sources/modules/publish_readiness.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`.
 
 Before `/optimize` or any publish path, run:
 ```bash
 python data_sources/modules/url_validator.py [file] --fail-on unresolved
-python data_sources/modules/numeric_claim_source_guard.py [file] --fail-on error
-python data_sources/modules/faq_proof_guard.py [file] --fail-on error
-python data_sources/modules/paa_provenance_guard.py [file] --fail-on error
-python data_sources/modules/source_support_guard.py [file] --fail-on error
+python data_sources/modules/public_artifact_guard.py [file] --fail-on error
+python data_sources/modules/metric_proof_pack_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
+python data_sources/modules/numeric_claim_source_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
+python data_sources/modules/faq_proof_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
+python data_sources/modules/paa_provenance_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
+python data_sources/modules/source_support_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
+python data_sources/modules/customer_proof_diversity_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
+python data_sources/modules/review_story_identity_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
 ```
 
 URL validation confirms destinations resolve; it does not prove the page supports the claim, so Source Map and E-E-A-T proof review still verify claim support.
+
+Metric Proof Pack guard confirms metric-sensitive articles have documented metric research before writing or publish readiness. It requires a Search log and at least one Approved metric with public URL or local proof artifact, source-visible Evidence, Status: approved, and intended Use unless `Metric requirement: not applicable` is documented with a reason.
 
 Every metric, statistic, or numeric business claim must have a same-paragraph public link or a matching Source Map / Customer Proof Pack entry with a public URL or local proof artifact. Treat "industry standard," "FDD conventions," and "no anchor" as insufficient proof for numeric public claims.
 
 FAQ proof requires every claim-bearing FAQ answer to include a public proof link inside the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
 
-PAA provenance requires every FAQ question to match a saved PAA/FAQ source artifact when an FAQ section is present. Use `PAA/FAQ Provenance` with Source, Artifact, and Selected questions. Allowed source labels are AnswerSocrates, SERP, Reddit, YouTube, and user PAA/FAQ CSV. Proof links alone do not prove question provenance.
+PAA provenance requires every FAQ question to match a saved PAA/FAQ source artifact when an FAQ section is present. Use `PAA/FAQ Provenance` with Source, Artifact, and Selected questions; see `context/aeo-geo-blog-strategy.md` for the full source-label and proof-boundary policy.
 
 The source support guard requires strict proof rows with Claim, URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact. Case-study proof paths and Review-site experience evidence may support non-metric E-E-A-T PoV and paraphrased themes only. Exact quotes or testimonial wording must appear in Customer Proof Pack Approved quotes with customer/brand or reviewer, source type, public URL, Evidence, and approved status. A named customer metric must appear in Customer Proof Pack Approved metrics with customer/brand, public URL, Evidence, and approved status; Source Map alone is insufficient for quotes, testimonials, or named metrics.
+
+Before selecting customer proof, run or consult `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme --limit 10`. Add the generated selector-first `Customer Proof Slate` to the validation sidecar before drafting; edit selected/rejected rows only when editorial judgment requires it. Choose the most relevant approved proof, not the easiest mapped case study. If selected proof is overused, the validation sidecar needs a selector-backed, source-specific `Reuse reason`.
+
+For review-derived public E-E-A-T stories, consult `customer_proof_selector.py` with `--slate --roles experience_story --require-eeat-story`, then run the review story identity gate from the command stack above. Use `context/aeo-geo-blog-strategy.md` as the canonical policy for Review Story Selection, Review Site Theme Selection, and approved quote/rating boundaries.
 
 Context files are the internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics. Draft bodies may use public sources and context-backed proof, but must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, internal proof-path instructions, or source/proof meta-commentary. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 
 Blog drafts and rewrites should use only 1 link per paragraph. Move the second link to a separate paragraph or remove it.
 
-E-E-A-T proof must resolve Experience and Expertise before writing. Pull case-study URLs from `context/internal-links-map.md`, approved metrics/proof candidates from `context/features.md`, and review-site experience evidence / VoC or competitor experience themes from `context/competitor-analysis.md` or future review-context files. Review narratives count as first-hand customer experience when reviewers describe product use, implementation, support, switching, pains, outcomes, or workflows. Use review-derived stories as paraphrased, source-backed experience patterns by default, and capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved. Exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, and category claims require current source verification and brief-level approval. Context-backed metrics require public-facing source links in the article body.
+E-E-A-T proof must resolve Experience and Expertise before writing. Pull case-study URLs from `context/internal-links-map.md`, approved metrics/proof candidates from `context/features.md`, and review-site experience evidence / VoC or competitor experience themes from `context/competitor-analysis.md` or future review-context files. Review narratives count as first-hand customer experience when reviewers describe product use, implementation, support, switching, pains, outcomes, or workflows, but generic review-site themes remain VoC research unless a `Review Story Selection` is identity-backed and link-backed. Capterra theme paragraphs may use `Review Site Theme Selection` with `Capterra tab row`, `https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/`, and `paraphrased review-theme use` when that theme fits the article objective. Use review-derived stories as paraphrased, source-backed experience patterns only when the sidecar selected story has a real identity and public review URL, and capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved. Exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, and category claims require current source verification and brief-level approval. Context-backed metrics require public-facing source links in the article body.
 
-Blog research, article planning, writing, analysis, and rewrite workflows must include a Customer Proof Pack with Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved quotes, Approved metrics, Use in copy, Claims excluded, and approval status. Keep the Quote Matrix external; use Customer Stories, References, and public case studies to verify story path and publishability before using direct quotes or named metrics. Case-study proof paths may support non-numeric themes; exact quote/testimonial rows belong in Approved quotes, and named customer metric rows belong in Approved metrics.
+Blog research, article planning, writing, analysis, and rewrite workflows must include a Metric Proof Pack for metric-sensitive software, comparison, pricing, cost, ROI, KPI, profit, margin, guide, and vs topics. Resolve the Search log, Approved metric rows, public proof URL or local proof artifact, source-visible Evidence, Status: approved, intended Use, rejected candidates, and not-applicable reason before drafting or publishing.
+
+Blog research, article planning, writing, analysis, and rewrite workflows must include a Customer Proof Pack in the validation sidecar. Keep detailed proof policy in `context/aeo-geo-blog-strategy.md`; command docs should carry the selector command, guard command, and source-specific overuse rule only.
 
 Every writer and rewriter output must include at least 1 contextual down-funnel internal link to `https://www.simprogroup.com/industries`, `/industries/...`, `/solutions/...`, or `/features/...` from `context/internal-links-map.md`. Prefer a specific industry page when the intent is clear, the industries hub for broad trades topics, a solution page for category/workflow topics, and a feature page for feature/workflow topics. Anchor text must match the destination keyword or an approved anchor example.
 

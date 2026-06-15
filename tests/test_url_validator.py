@@ -1,3 +1,4 @@
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -132,6 +133,30 @@ class UrlValidationTests(unittest.TestCase):
 
         self.assertEqual(result.status, "resolved")
         self.assertEqual([call[0] for call in session.calls], ["HEAD", "GET"])
+
+    def test_reuses_cached_resolved_result_when_later_requests_are_rate_limited(self):
+        old_cwd = os.getcwd()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            os.chdir(temp_dir)
+            try:
+                url = "https://example.com/cached"
+                first_session = FakeSession([FakeResponse(200)])
+                cache_dir = Path(".cache") / "url_validator"
+                first_validator = UrlValidator(session=first_session, cache_dir=cache_dir)
+
+                first = first_validator.validate_url(url)
+
+                second_session = FakeSession([FakeResponse(429), FakeResponse(429)])
+                second_validator = UrlValidator(session=second_session, cache_dir=cache_dir)
+                second = second_validator.validate_url(url, line=12, anchor="Cached")
+
+                self.assertEqual(first.status, "resolved")
+                self.assertEqual(second.status, "resolved")
+                self.assertEqual(second.line, 12)
+                self.assertEqual(second.anchor, "Cached")
+                self.assertEqual(second_session.calls, [])
+            finally:
+                os.chdir(old_cwd)
 
     def test_fails_timeout_dns_and_ssl_errors(self):
         session = FakeSession(

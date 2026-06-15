@@ -55,7 +55,7 @@ Before opening the browser or drafting, resolve these variables from the user pr
 | `length` | Use `/research-serp` competitive length; default to the top-SERP benchmark if available. |
 
 If a variable cannot be answered by the repo or research, ask the user for only that missing variable. Do not synthesize PAA questions, expert quotes, customer claims, search volume, or ranking evidence.
-Customer proof routing: when citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
+Customer proof routing: before citing customer proof, generate a selector-first `Customer Proof Slate` with `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme --limit 10` so metric, quote, and theme options are compared before drafting. Then pair approved case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
 Review-site experience evidence / VoC routing: cite public review-site themes with source links when they show first-hand customer experience with product use, implementation, support, switching, pains, outcomes, or workflows. Capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved. Use review-derived stories as paraphrased, source-backed experience patterns by default. Do not use exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, or category-leadership claims unless they have current source verification and brief-level approval.
 
 ### E-E-A-T Proof Map Inputs
@@ -70,7 +70,7 @@ Before planning or drafting, resolve an E-E-A-T Proof Map:
 ### Simpro Web Copy Rules
 
 - Use numerals for cardinal numbers, including 1-9.
-- Do not write number words such as "one," "two," or "three" in final public copy.
+- Do not block source-visible metric wording when a public proof source spells out the number; preserve the supported claim wording and rely on Metric Proof Pack, numeric claim source guard, and source support guard for proof.
 - Always put a comma before "because".
 - Only 1 link per paragraph. Move the second link to a separate paragraph or remove it.
 - Do not write source/proof meta-commentary such as "that case study is useful for this topic" or "this source is relevant for the article." Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
@@ -353,8 +353,9 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
    | **Internal Links** | Which your brand pages to link |
    | **AEO/GEO Target** | Capsule / PAA / FAQ / list / table / definition |
    | **Source Mapping** | External source, claim, anchor text, and target section |
+   | **Metric Proof Pack** | Metric requirement, Search log, Approved metric rows, public URL or local proof artifact, source-visible Evidence, Status: approved, intended Use, rejected metrics |
    | **E-E-A-T Proof Map** | Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, claims excluded because proof is missing |
-   | **Customer Proof Pack** | Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved quotes, Approved metrics, Use in copy, Claims excluded, approval status |
+   | **Customer Proof Pack** | Selector result, selected proof, source-specific overuse reason when needed, approved quotes/metrics, claims excluded |
    | **CTA** | soft / medium / strong (if applicable) |
    | **Mini-Story** | Whether to place a story here |
 
@@ -395,13 +396,22 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
   | Source | Claim Supported | Anchor Text | Target Section |
   |--------|-----------------|-------------|----------------|
   | [URL] | [claim] | [natural contextual phrase] | [section] |
+- **Metric Proof Pack**:
+  - **Metric requirement**: required / not applicable
+  - **Search log**: [public pages and local proof artifacts checked for source-visible numbers]
+  - **Approved metric**: [metric claim, public proof URL or local proof artifact, source-visible Evidence, Status: approved, intended Use]
+  - **Rejected metrics**: [candidate metric, source checked, reason excluded]
 - **E-E-A-T Proof Map**: [Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, public-facing source links, claims excluded because proof is missing]
 - **Customer Proof Pack**:
   - **Pack status**: ready / partial / blocked
+  - **Selection governance**: Run or consult `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme --limit 10`; choose the most relevant approved proof, not the easiest mapped case study.
+  - **Customer Proof Slate**: [generated selector command plus metric, quote, theme, and experience_story role rows when applicable]
   - **Topic or page fit**: [topic, audience, region, trade, funnel stage]
   - **Quote Matrix candidates**: [customer, trade, region, theme, exact quote or summary, source row/link, approval status]
   - **Case-study proof paths**: [customer, public URL, supported non-numeric theme]
   - **Review-site experience evidence**: [platform, URL, date checked, product/competitor, experience pattern, evidence summary, exact quote/rating approval status]
+  - **Customer Proof Selection Decision**: [selector command, selected proof IDs, rejected stronger candidates, final use in copy]
+  - **Reuse reason**: [source-specific; required when customer-proof-usage-ledger.json marks the selected proof as overused; must prove no stronger underused approved proof fits the same role]
   - **Approved quotes**: [exact quote/testimonial, customer/brand/reviewer, source type, public proof URL, Evidence, approval status]
   - **Approved metrics**: [named customer metric, customer/brand, public proof URL, Evidence, approval status]
   - **Use in copy**: [exact quote / paraphrased theme / named metric / omit]
@@ -627,8 +637,9 @@ After all sections are written and edited:
    - [ ] AnswerSocrates PAA artifact exists at `research/paa-questions-[topic-slug]-[YYYY-MM-DD].md`
    - [ ] Capsule Method applied to H1 and 60%+ major H2s
    - [ ] AEO/GEO Map complete with selected PAA, source mapping, and E-E-A-T proof
-   - [ ] FAQ proof checked with `python data_sources/modules/faq_proof_guard.py drafts/[filename].md --fail-on error`; every claim-bearing answer has a public proof link or question-specific Source Map entry. Context file paths alone do not count
-   - [ ] PAA provenance checked with `python data_sources/modules/paa_provenance_guard.py drafts/[filename].md --fail-on error`; every FAQ question matches the saved source artifact
+   - [ ] Metric Proof Pack checked using the post-writing gate stack
+   - [ ] FAQ proof checked using the post-writing gate stack
+   - [ ] PAA provenance checked using the post-writing gate stack
    - [ ] Schema notes included for BlogPosting, FAQPage, Author, and VideoObject when relevant
    - [ ] Public article body does not mention "repo context," context file paths, Source Maps, PAA artifacts, change summaries, or internal proof-path notes
 
@@ -677,48 +688,83 @@ python data_sources/modules/url_validator.py drafts/[filename].md --fail-on unre
 
 URL validation confirms destinations resolve; it does not prove the page supports the claim, so Source Map and E-E-A-T proof review still verify claim support.
 
-### 4. Check Numeric Claim Sources
+### Validation Sidecar And Public Artifact Check
+
+Save proof-only blocks to a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`. The article draft must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan as public copy.
+
+Preferred publish readiness command:
 ```bash
-python data_sources/modules/numeric_claim_source_guard.py drafts/[filename].md --fail-on error
+python data_sources/modules/publish_readiness.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
 ```
 
-Every metric, statistic, or numeric business claim must have a same-paragraph public link or a matching Source Map / Proof Pack entry with a public URL or local proof artifact. Context-backed metrics are acceptable only when the public copy or proof map points to evidence that proves the number.
+Run `python data_sources/modules/public_artifact_guard.py drafts/[filename].md --fail-on error` before proof gates. Run proof-aware gates with `--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` so the guards can read the sidecar without exposing proof infrastructure in the article.
 
-### 5. Check FAQ Proof
+### 4. Check Metric Proof Pack
 ```bash
-python data_sources/modules/faq_proof_guard.py drafts/[filename].md --fail-on error
+python data_sources/modules/metric_proof_pack_guard.py drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
 ```
 
-FAQ proof requires every FAQ answer with claims to include a public proof link inside the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
+Use `context/aeo-geo-blog-strategy.md` for the Metric Proof Pack policy and evidence boundary.
 
-### 6. Check PAA Provenance
+### 5. Check Numeric Claim Sources
 ```bash
-python data_sources/modules/paa_provenance_guard.py drafts/[filename].md --fail-on error
+python data_sources/modules/numeric_claim_source_guard.py drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
 ```
 
-PAA provenance requires every FAQ question to match a saved PAA/FAQ source artifact when an FAQ section is present. Use `PAA/FAQ Provenance` with Source, Artifact, and Selected questions. Allowed source labels are AnswerSocrates, SERP, Reddit, YouTube, and user PAA/FAQ CSV. Proof links alone do not prove question provenance.
+Use `context/aeo-geo-blog-strategy.md` for numeric-claim proof requirements.
 
-### 7. Check Source Support
+### 6. Check FAQ Proof
 ```bash
-python data_sources/modules/source_support_guard.py drafts/[filename].md --fail-on error
+python data_sources/modules/faq_proof_guard.py drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
 ```
 
-The source support guard requires strict proof rows with Claim, Approved quote, or Approved metric plus URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact. Case-study proof paths and Review-site experience evidence may support non-metric E-E-A-T PoV and paraphrased themes only. Exact quotes/testimonials must appear in Customer Proof Pack Approved quotes with customer/brand or reviewer, source type, public URL, Evidence, and approved status. A named customer metric must appear in Customer Proof Pack Approved metrics; Source Map alone is insufficient for quotes, testimonials, or named metrics.
+Use `context/aeo-geo-blog-strategy.md` for FAQ proof requirements.
 
-### 8. Score Content Quality
+### 7. Check PAA Provenance
 ```bash
-python data_sources/modules/content_scorer.py drafts/[filename].md --validate-urls
+python data_sources/modules/paa_provenance_guard.py drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
+```
+
+Use `context/aeo-geo-blog-strategy.md` for PAA provenance source-label and proof-boundary policy.
+
+### 8. Check Source Support
+```bash
+python data_sources/modules/source_support_guard.py drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
+```
+
+Use `context/aeo-geo-blog-strategy.md` for source support, Approved quote, testimonial, and named customer metric boundaries.
+
+### 9. Check Customer Proof Diversity
+```bash
+python data_sources/modules/customer_proof_diversity_guard.py drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
+```
+
+Before selecting proof, generate a `Customer Proof Slate` with `customer_proof_selector.py --slate`; use `context/aeo-geo-blog-strategy.md` for diversity and reuse policy.
+
+### 10. Check Review Story Identity
+```bash
+python data_sources/modules/review_story_identity_guard.py drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
+```
+
+Use `context/aeo-geo-blog-strategy.md` for Review Story Selection, Review Site Theme Selection, identity, same-paragraph link, exact-quote, rating, and metric boundaries.
+
+### 11. Score Content Quality
+```bash
+python data_sources/modules/content_scorer.py drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --validate-urls --validate-source-support
 ```
 
 **Quality Gates:**
 - General content quality score must be **85/100** or higher.
 - AEO/GEO score must be **90/100** or higher.
 - URL validation must pass before `/optimize`.
+- Metric Proof Pack guard must pass before scoring or `/optimize`.
 - Numeric claim source guard must pass before scoring or `/optimize`.
 - FAQ proof guard must pass before scoring or `/optimize`.
 - PAA provenance guard must pass before scoring or `/optimize`.
 - Source support guard must pass before scoring or `/optimize`.
-- A draft only passes if AI copy lint has zero errors, URL validation passes, numeric claim source guard passes, FAQ proof guard passes, PAA provenance guard passes, source support guard passes, and both score gates pass.
+- Customer proof diversity guard must pass before scoring or `/optimize`.
+- Review story identity guard must pass before scoring or `/optimize`.
+- A draft only passes if AI copy lint has zero errors, URL validation passes, Metric Proof Pack guard passes, numeric claim source guard passes, FAQ proof guard passes, PAA provenance guard passes, source support guard passes, customer proof diversity guard passes, review story identity guard passes, and both score gates pass.
 
 | Dimension | Weight |
 |-----------|--------|
@@ -728,22 +774,25 @@ python data_sources/modules/content_scorer.py drafts/[filename].md --validate-ur
 | SEO Compliance | 15% |
 | Readability | 10% |
 
-### 9. Auto-Revise if Needed
+### 11. Auto-Revise if Needed
 If either gate fails:
 1. Review `priority_fixes` from scorer
 2. Review AEO/GEO failed checks from `aeo_geo`
 3. Review URL validation blockers from `data_sources/modules/url_validator.py --fail-on unresolved`
-4. Review numeric claim source blockers from `data_sources/modules/numeric_claim_source_guard.py --fail-on error`
-5. Review FAQ proof blockers from `data_sources/modules/faq_proof_guard.py --fail-on error`
-6. Review PAA provenance blockers from `data_sources/modules/paa_provenance_guard.py --fail-on error`
-7. Review source support blockers from `data_sources/modules/source_support_guard.py --fail-on error`
-8. Apply top 3-5 fixes
-9. Rerun `/scrub`, the AI copy linter, URL validation, numeric claim source guard, FAQ proof guard, PAA provenance guard, and source support guard
-10. Re-score
-11. Repeat once more if needed
-12. If AI copy lint errors remain after 1 revision, URL validation fails, numeric claim source guard fails, FAQ proof guard fails, PAA provenance guard fails, source support guard fails, or content quality remains below 85/100 or AEO/GEO remains below 90/100 after 2 iterations -> move to `review-required/`
+4. Review Metric Proof Pack blockers from `data_sources/modules/metric_proof_pack_guard.py --fail-on error`
+5. Review numeric claim source blockers from `data_sources/modules/numeric_claim_source_guard.py --fail-on error`
+6. Review FAQ proof blockers from `data_sources/modules/faq_proof_guard.py --fail-on error`
+7. Review PAA provenance blockers from `data_sources/modules/paa_provenance_guard.py --fail-on error`
+8. Review source support blockers from `data_sources/modules/source_support_guard.py --fail-on error`
+9. Review customer proof diversity blockers from `data_sources/modules/customer_proof_diversity_guard.py --fail-on error`
+10. Review review story identity blockers from `data_sources/modules/review_story_identity_guard.py --fail-on error`
+11. Apply top 3-5 fixes
+12. Rerun `/scrub`, the AI copy linter, URL validation, Metric Proof Pack guard, numeric claim source guard, FAQ proof guard, PAA provenance guard, source support guard, customer proof diversity guard, and review story identity guard
+13. Re-score
+14. Repeat once more if needed
+15. If AI copy lint errors remain after 1 revision, URL validation fails, Metric Proof Pack guard fails, numeric claim source guard fails, FAQ proof guard fails, PAA provenance guard fails, source support guard fails, customer proof diversity guard fails, review story identity guard fails, or content quality remains below 85/100 or AEO/GEO remains below 90/100 after 2 iterations -> move to `review-required/`
 
-### 9. Run Optimization Agents
+### 11. Run Optimization Agents
 After passing quality threshold:
 - `content-analyzer` agent
 - `seo-optimizer` agent
@@ -814,3 +863,5 @@ Before writing, review these context files:
 - Uses real user language (not SEO-speak)
 - Updates outdated competitor info
 - Provides depth where competitors are thin
+
+- **Review proof routing**: For review-derived public copy, run the selector and `review_story_identity_guard.py` before scoring. Keep detailed Review Story Selection, Capterra theme, exact-quote, rating, and metric boundaries in `context/aeo-geo-blog-strategy.md`.

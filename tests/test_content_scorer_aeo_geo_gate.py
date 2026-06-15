@@ -8,6 +8,7 @@ from data_sources.modules.url_validator import UrlValidationResult, UrlValidatio
 
 
 PAA_ARTIFACT = "research/paa-questions-hvac-scheduling-2026-05-22.md"
+METRIC_ARTIFACT = "research/metric-proof-hvac-scheduling-2026-05-22.md"
 PAA_PROVENANCE_BLOCK = f"""
 ```text
 PAA/FAQ Provenance
@@ -17,6 +18,35 @@ PAA/FAQ Provenance
   - What is the best way to schedule HVAC technicians?
   - How does HVAC scheduling software reduce missed appointments?
   - Should HVAC scheduling connect to invoicing?
+```
+"""
+METRIC_PROOF_BLOCK = f"""
+```text
+Metric Proof Pack
+- Metric requirement: required
+- Search log: Checked Simpro company proof for platform scale.
+- Approved metric: Simpro supports more than 24,000 trade businesses | URL: {METRIC_ARTIFACT} | Evidence: "more than 24,000 trade businesses" | Status: approved | Use: platform scale proof
+```
+"""
+CUSTOMER_PROOF_BLOCK = """
+```text
+Customer Proof Slate
+- Selector command: python data_sources/modules/customer_proof_selector.py "hvac scheduling software" --proof-role theme --limit 10
+- Role: metric | Top candidates: [quote-matrix-bwe-engineering-job-to-invoice] | Selected: [quote-matrix-bwe-engineering-job-to-invoice] | Rejected stronger candidates: [none]
+- Role: quote | Top candidates: [quote-matrix-bwe-engineering-job-to-invoice] | Selected: [none] | Rejected stronger candidates: [none]
+- Role: theme | Top candidates: [quote-matrix-bwe-engineering-job-to-invoice] | Selected: [quote-matrix-bwe-engineering-job-to-invoice] | Rejected stronger candidates: [none]
+
+Customer Proof Pack
+- Pack status: ready.
+- Quote Matrix candidates: Checked Quote Matrix for HVAC scheduling proof; no exact quote selected for this test fixture.
+- Case-study proof path: BWE Engineering, URL: https://www.simprogroup.com/case-studies/bwe-engineering, supported theme: job-card, invoicing, cash-flow, and field-service workflow.
+- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: field workflow pain, evidence summary: reviewers discuss dispatch and field visibility, exact quote/rating approval status: not approved.
+- Use in copy: paraphrased case-study proof only.
+- Claims excluded: exact review quotes and ratings.
+
+Customer Proof Selection Decision
+- Selector command: python data_sources/modules/customer_proof_selector.py "hvac scheduling software" --proof-role theme
+- Selected proof: quote-matrix-bwe-engineering-job-to-invoice | Customer: BWE Engineering | URL: https://www.simprogroup.com/case-studies/bwe-engineering | Use: field-service workflow proof
 ```
 """
 
@@ -55,8 +85,8 @@ Scheduling affects profit because every missed appointment, double-booking, and 
 
 The profit impact compounds when scheduling is connected to job costing. Research from [McKinsey](https://www.mckinsey.com/) has shown that field productivity depends on better planning, tighter coordination, and faster information flow across operational teams.
 
-[Schaffer Beacon Mechanical](https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical) shows how field service teams use connected workflows to improve operational control.
-""" + PAA_PROVENANCE_BLOCK + """
+[BWE Engineering](https://www.simprogroup.com/case-studies/bwe-engineering) shows how field service teams use connected workflows to improve operational control.
+""" + METRIC_PROOF_BLOCK + PAA_PROVENANCE_BLOCK + CUSTOMER_PROOF_BLOCK + """
 
 ## Frequently Asked Questions
 
@@ -92,10 +122,27 @@ def write_paa_fixture(test_case: unittest.TestCase, content: str) -> str:
         ),
         encoding="utf-8",
     )
+    metric_artifact = root / METRIC_ARTIFACT
+    metric_artifact.parent.mkdir(parents=True, exist_ok=True)
+    metric_artifact.write_text(
+        "Simpro supports more than 24,000 trade businesses worldwide.",
+        encoding="utf-8",
+    )
     article_path = root / "drafts" / "hvac-scheduling-software.md"
     article_path.parent.mkdir(parents=True, exist_ok=True)
     article_path.write_text(content, encoding="utf-8")
     return str(article_path)
+
+
+def write_sidecar_fixture(test_case: unittest.TestCase, content: str) -> tuple[str, str]:
+    article_path = Path(write_paa_fixture(test_case, content))
+    sidecar_path = (
+        article_path.parent.parent
+        / "research"
+        / f"validation-{article_path.stem}.md"
+    )
+    sidecar_path.write_text(METRIC_PROOF_BLOCK + PAA_PROVENANCE_BLOCK + CUSTOMER_PROOF_BLOCK, encoding="utf-8")
+    return str(article_path), str(sidecar_path)
 
 
 class ContentScorerAeoGeoGateTests(unittest.TestCase):
@@ -199,6 +246,90 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
         self.assertGreaterEqual(result["aeo_geo"]["score"], 90)
         self.assertTrue(result["quality_gates"]["content_quality"]["passed"])
         self.assertTrue(result["quality_gates"]["aeo_geo"]["passed"])
+        self.assertTrue(result["quality_gates"]["metric_proof_pack"]["passed"])
+
+    def test_proof_blocks_can_live_in_sidecar_for_scoring(self):
+        scorer = ContentScorer()
+        content = COMPLIANT_ARTICLE.replace(METRIC_PROOF_BLOCK, "").replace(
+            PAA_PROVENANCE_BLOCK,
+            "",
+        )
+        article_path, sidecar_path = write_sidecar_fixture(self, content)
+
+        with patch.object(
+            ContentScorer,
+            "_score_humanity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_specificity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_structure_balance",
+            return_value={"score": 100, "issues": [], "details": {}, "prose_ratio": 0.65},
+        ), patch.object(
+            ContentScorer,
+            "_score_seo",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_readability",
+            return_value={"score": 100, "issues": [], "details": {}, "flesch": 68},
+        ):
+            result = scorer.score(
+                content,
+                {"primary_keyword": "hvac scheduling software"},
+                source_path=article_path,
+                proof_sidecar=sidecar_path,
+            )
+
+        self.assertTrue(result["passed"])
+        self.assertTrue(result["quality_gates"]["paa_provenance"]["passed"])
+        self.assertTrue(result["quality_gates"]["metric_proof_pack"]["passed"])
+        self.assertTrue(result["quality_gates"]["customer_proof_diversity"]["passed"])
+
+    def test_review_story_identity_failure_blocks_content_scorer(self):
+        scorer = ContentScorer()
+        content = COMPLIANT_ARTICLE.replace(
+            "\n[BWE Engineering](https://www.simprogroup.com/case-studies/bwe-engineering) shows how field service teams use connected workflows to improve operational control.\n",
+            "\n[G2 reviews](https://www.g2.com/products/simpro/reviews) mention quote-to-invoice workflows for trade businesses.\n",
+        )
+        content = content.replace(METRIC_PROOF_BLOCK, "").replace(PAA_PROVENANCE_BLOCK, "")
+        article_path, sidecar_path = write_sidecar_fixture(self, content)
+
+        with patch.object(
+            ContentScorer,
+            "_score_humanity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_specificity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_structure_balance",
+            return_value={"score": 100, "issues": [], "details": {}, "prose_ratio": 0.65},
+        ), patch.object(
+            ContentScorer,
+            "_score_seo",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_readability",
+            return_value={"score": 100, "issues": [], "details": {}, "flesch": 68},
+        ):
+            result = scorer.score(
+                content,
+                {"primary_keyword": "hvac scheduling software"},
+                source_path=article_path,
+                proof_sidecar=sidecar_path,
+            )
+
+        self.assertFalse(result["passed"])
+        self.assertIn("review_story_identity", result["quality_gates"])
+        self.assertFalse(result["quality_gates"]["review_story_identity"]["passed"])
+        self.assertIn("Review story identity blockers detected", result["priority_fixes"][0]["issue"])
 
     def test_url_validation_failure_blocks_content_scorer_when_enabled(self):
         scorer = ContentScorer()
@@ -341,6 +472,64 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
         self.assertFalse(result["quality_gates"]["source_support"]["passed"])
         self.assertIn("Source support blockers detected", result["priority_fixes"][0]["issue"])
 
+    def test_source_support_runs_before_url_validation_when_both_are_enabled(self):
+        scorer = ContentScorer()
+        call_order = []
+
+        def fake_source_support(*args, **kwargs):
+            call_order.append("source_support")
+            return []
+
+        def fake_url_validation(*args, **kwargs):
+            call_order.append("url_validation")
+            return UrlValidationSummary([
+                UrlValidationResult(
+                    url="https://www.simprogroup.com/features/scheduling-software",
+                    status="resolved",
+                    status_code=200,
+                    reason="HTTP 200",
+                )
+            ])
+
+        with patch(
+            "data_sources.modules.content_scorer.check_source_support",
+            side_effect=fake_source_support,
+        ), patch(
+            "data_sources.modules.content_scorer.validate_content_urls",
+            side_effect=fake_url_validation,
+        ), patch.object(
+            ContentScorer,
+            "_score_humanity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_specificity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_structure_balance",
+            return_value={"score": 100, "issues": [], "details": {}, "prose_ratio": 0.65},
+        ), patch.object(
+            ContentScorer,
+            "_score_seo",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_readability",
+            return_value={"score": 100, "issues": [], "details": {}, "flesch": 68},
+        ):
+            result = scorer.score(
+                COMPLIANT_ARTICLE,
+                {"primary_keyword": "hvac scheduling software"},
+                validate_urls=True,
+                validate_source_support=True,
+                source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+            )
+
+        self.assertTrue(result["quality_gates"]["source_support"]["passed"])
+        self.assertTrue(result["quality_gates"]["url_validation"]["passed"])
+        self.assertEqual(call_order, ["source_support", "url_validation"])
+
     def test_paa_provenance_failure_blocks_content_scorer(self):
         scorer = ContentScorer()
         content = COMPLIANT_ARTICLE.replace(PAA_PROVENANCE_BLOCK, "")
@@ -376,6 +565,78 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
         self.assertIn("paa_provenance", result["quality_gates"])
         self.assertFalse(result["quality_gates"]["paa_provenance"]["passed"])
         self.assertIn("PAA provenance blockers detected", result["priority_fixes"][0]["issue"])
+
+    def test_metric_proof_pack_failure_blocks_content_scorer(self):
+        scorer = ContentScorer()
+        content = COMPLIANT_ARTICLE.replace(METRIC_PROOF_BLOCK, "")
+
+        with patch.object(
+            ContentScorer,
+            "_score_humanity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_specificity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_structure_balance",
+            return_value={"score": 100, "issues": [], "details": {}, "prose_ratio": 0.65},
+        ), patch.object(
+            ContentScorer,
+            "_score_seo",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_readability",
+            return_value={"score": 100, "issues": [], "details": {}, "flesch": 68},
+        ):
+            result = scorer.score(
+                content,
+                {"primary_keyword": "hvac scheduling software"},
+                source_path=write_paa_fixture(self, content),
+            )
+
+        self.assertFalse(result["passed"])
+        self.assertIn("metric_proof_pack", result["quality_gates"])
+        self.assertFalse(result["quality_gates"]["metric_proof_pack"]["passed"])
+        self.assertIn("Metric Proof Pack blockers detected", result["priority_fixes"][0]["issue"])
+
+    def test_customer_proof_diversity_failure_blocks_content_scorer(self):
+        scorer = ContentScorer()
+        content = COMPLIANT_ARTICLE.replace(CUSTOMER_PROOF_BLOCK, "")
+
+        with patch.object(
+            ContentScorer,
+            "_score_humanity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_specificity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_structure_balance",
+            return_value={"score": 100, "issues": [], "details": {}, "prose_ratio": 0.65},
+        ), patch.object(
+            ContentScorer,
+            "_score_seo",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_readability",
+            return_value={"score": 100, "issues": [], "details": {}, "flesch": 68},
+        ):
+            result = scorer.score(
+                content,
+                {"primary_keyword": "hvac scheduling software"},
+                source_path=write_paa_fixture(self, content),
+            )
+
+        self.assertFalse(result["passed"])
+        self.assertIn("customer_proof_diversity", result["quality_gates"])
+        self.assertFalse(result["quality_gates"]["customer_proof_diversity"]["passed"])
+        self.assertIn("Customer proof diversity blockers detected", result["priority_fixes"][0]["issue"])
 
 
 if __name__ == "__main__":

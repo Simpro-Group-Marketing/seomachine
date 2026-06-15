@@ -115,6 +115,19 @@ class AeoGeoRaterTests(unittest.TestCase):
         self.assertTrue(result["checks"]["eeat_proof"]["passed"])
         self.assertTrue(result["checks"]["paa_provenance"]["passed"])
 
+    def test_paa_provenance_can_live_in_sidecar(self):
+        content = COMPLIANT_ARTICLE.replace(PAA_PROVENANCE_BLOCK, "")
+
+        result = rate_aeo_geo(
+            content,
+            {"primary_keyword": "hvac scheduling software"},
+            source_path=write_paa_fixture(self, content),
+            proof_sidecar_content=PAA_PROVENANCE_BLOCK,
+        )
+
+        self.assertTrue(result["checks"]["paa_provenance"]["passed"])
+        self.assertTrue(result["passed"])
+
     def test_eeat_detects_case_study_experience_and_author_expertise(self):
         result = self.rate()
 
@@ -164,19 +177,48 @@ class AeoGeoRaterTests(unittest.TestCase):
         self.assertFalse(details["expertise_signals"])
         self.assertFalse(result["checks"]["eeat_proof"]["passed"])
 
-    def test_eeat_accepts_review_site_link_as_experience_signal(self):
+    def test_generic_review_site_link_without_story_selection_does_not_satisfy_experience(self):
         content = COMPLIANT_ARTICLE.replace(
-            "https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical",
-            "https://www.g2.com/categories/field-service-management",
+            "\n[Schaffer Beacon Mechanical](https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical) shows how field service teams use connected workflows to improve operational control.\n",
+            "\n[G2 reviews](https://www.g2.com/products/simpro/reviews) mention field workflow visibility themes for trade businesses.\n",
         )
 
         result = self.rate(content)
 
         details = result["checks"]["eeat_proof"]["details"]
 
+        self.assertFalse(result["checks"]["eeat_proof"]["passed"])
+        self.assertTrue(details["review_site_links"])
+        self.assertNotIn("review_site_link", details["experience_signals"])
+        self.assertIn("review_story_selection", result["checks"]["eeat_proof"]["fix"])
+
+    def test_identity_backed_review_story_selection_satisfies_experience(self):
+        content = COMPLIANT_ARTICLE.replace(
+            "\n[Schaffer Beacon Mechanical](https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical) shows how field service teams use connected workflows to improve operational control.\n",
+            "\n[Megan B's Capterra review](https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/) describes a service business using Simpro for service jobs, recurring jobs, quotes, invoices, and QBO integration.\n",
+        )
+        proof_sidecar = PAA_PROVENANCE_BLOCK + """
+```text
+Review Story Selection
+- Article title: HVAC Scheduling Software for Contractors
+- Content objective: explain connected field-service workflows
+- Selected story: review-capterra-megan-qbo-quotes | Identity: Megan B | Platform: Capterra | URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/ | Workflow story: owner describes service jobs, recurring jobs, quotes, invoices, and QBO integration | Status: approved | Use: E-E-A-T experience story
+- Article link requirement: same paragraph as review-derived paraphrase must link to the selected public review URL
+```
+"""
+
+        result = rate_aeo_geo(
+            content,
+            {"primary_keyword": "hvac scheduling software"},
+            source_path=write_paa_fixture(self, content),
+            proof_sidecar_content=proof_sidecar,
+        )
+
+        details = result["checks"]["eeat_proof"]["details"]
+
         self.assertTrue(result["checks"]["eeat_proof"]["passed"])
         self.assertTrue(details["review_site_links"])
-        self.assertIn("review_site_link", details["experience_signals"])
+        self.assertIn("review_story_selection", details["experience_signals"])
 
     def test_delayed_answer_fails_direct_answer_check(self):
         content = COMPLIANT_ARTICLE.replace(

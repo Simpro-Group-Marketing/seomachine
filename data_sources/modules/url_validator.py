@@ -9,8 +9,11 @@ proof review still decide whether the page supports the article claim.
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 import re
 import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, List, Optional
@@ -26,6 +29,8 @@ DEFAULT_USER_AGENT = (
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/125.0 Safari/537.36 SEO-Machine-URL-Validator/1.0"
 )
+RESOLUTION_CACHE_SECONDS = 60 * 60 * 24
+RATE_LIMIT_RETRY_SECONDS = 1.0
 
 MARKDOWN_LINK_RE = re.compile(r"(?<!!)\[([^\]]+)\]\(([^)]+)\)")
 MARKDOWN_IMAGE_RE = re.compile(r"!\[[^\]]*\]\([^)]+\)")
@@ -104,10 +109,17 @@ class UrlValidator:
         session: Optional[requests.Session] = None,
         timeout: int = DEFAULT_TIMEOUT_SECONDS,
         user_agent: str = DEFAULT_USER_AGENT,
+        cache_dir: Optional[Path] = None,
+        rate_limit_retry_seconds: float = RATE_LIMIT_RETRY_SECONDS,
     ):
         self.session = session or requests.Session()
         self.timeout = timeout
         self.headers = {"User-Agent": user_agent}
+        if session is not None and cache_dir is None:
+            self.cache = _NullUrlResolutionCache()
+        else:
+            self.cache = _UrlResolutionCache(cache_dir or Path(".cache") / "url_validator")
+        self.rate_limit_retry_seconds = rate_limit_retry_seconds
 
     def validate_url(
         self,
@@ -115,12 +127,16 @@ class UrlValidator:
         line: Optional[int] = None,
         anchor: str = "",
     ) -> UrlValidationResult:
+        cached = self.cache.get(url)
+        if cached is not None:
+            return _copy_context(cached, line=line, anchor=anchor)
+
         head = self._request("HEAD", url)
         if isinstance(head, UrlValidationResult):
             return _copy_context(head, line=line, anchor=anchor)
 
         if _is_resolved_status(head.status_code):
-            return UrlValidationResult(
+            result = UrlValidationResult(
                 url=url,
                 status="resolved",
                 status_code=head.status_code,
@@ -129,13 +145,15 @@ class UrlValidator:
                 anchor=anchor,
                 final_url=getattr(head, "url", "") or url,
             )
+            self.cache.set(result)
+            return result
 
         get = self._request("GET", url)
         if isinstance(get, UrlValidationResult):
             return _copy_context(get, line=line, anchor=anchor)
 
         if _is_resolved_status(get.status_code):
-            return UrlValidationResult(
+            result = UrlValidationResult(
                 url=url,
                 status="resolved",
                 status_code=get.status_code,
@@ -144,6 +162,8 @@ class UrlValidator:
                 anchor=anchor,
                 final_url=getattr(get, "url", "") or url,
             )
+            self.cache.set(result)
+            return result
 
         status_code = get.status_code
         final_url = getattr(get, "url", "") or url
@@ -161,13 +181,23 @@ class UrlValidator:
 
     def _request(self, method: str, url: str):
         try:
-            return self.session.request(
+            response = self.session.request(
                 method,
                 url,
                 allow_redirects=True,
                 timeout=self.timeout,
                 headers=self.headers,
             )
+            if getattr(response, "status_code", None) == 429:
+                self._sleep_after_rate_limit(response)
+                response = self.session.request(
+                    method,
+                    url,
+                    allow_redirects=True,
+                    timeout=self.timeout,
+                    headers=self.headers,
+                )
+            return response
         except requests.exceptions.RequestException as exc:
             return UrlValidationResult(
                 url=url,
@@ -175,6 +205,17 @@ class UrlValidator:
                 status_code=None,
                 reason=str(exc),
             )
+
+    def _sleep_after_rate_limit(self, response) -> None:
+        retry_after = getattr(response, "headers", {}).get("Retry-After")
+        delay = self.rate_limit_retry_seconds
+        if retry_after:
+            try:
+                delay = min(float(retry_after), max(self.rate_limit_retry_seconds, 5.0))
+            except ValueError:
+                delay = self.rate_limit_retry_seconds
+        if delay > 0:
+            time.sleep(delay)
 
 
 def extract_urls(content: str, base_url: str = DEFAULT_BASE_URL) -> List[ExtractedUrl]:
@@ -320,6 +361,65 @@ def _copy_context(
         anchor=anchor,
         final_url=result.final_url,
     )
+
+
+class _UrlResolutionCache:
+    """Small file cache for successfully resolved URLs."""
+
+    def __init__(self, cache_dir: Path, expire_seconds: int = RESOLUTION_CACHE_SECONDS):
+        self.cache_dir = cache_dir
+        self.expire_seconds = expire_seconds
+
+    def get(self, url: str) -> Optional[UrlValidationResult]:
+        path = self._path(url)
+        if not path.exists():
+            return None
+        if time.time() - path.stat().st_mtime > self.expire_seconds:
+            try:
+                path.unlink()
+            except OSError:
+                pass
+            return None
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return None
+        if payload.get("status") != "resolved":
+            return None
+        return UrlValidationResult(
+            url=payload.get("url", url),
+            status="resolved",
+            status_code=payload.get("status_code"),
+            reason=payload.get("reason", "cached resolved URL"),
+            final_url=payload.get("final_url", payload.get("url", url)),
+        )
+
+    def set(self, result: UrlValidationResult) -> None:
+        if not result.passed:
+            return
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "url": result.url,
+            "status": result.status,
+            "status_code": result.status_code,
+            "reason": result.reason,
+            "final_url": result.final_url or result.url,
+        }
+        self._path(result.url).write_text(json.dumps(payload, sort_keys=True), encoding="utf-8")
+
+    def _path(self, url: str) -> Path:
+        key = hashlib.sha256(url.encode("utf-8")).hexdigest()
+        return self.cache_dir / f"{key}.json"
+
+
+class _NullUrlResolutionCache:
+    """No-op cache used for injected test sessions unless a cache is requested."""
+
+    def get(self, url: str) -> Optional[UrlValidationResult]:
+        return None
+
+    def set(self, result: UrlValidationResult) -> None:
+        return None
 
 
 def _strip_frontmatter_preserve_lines(content: str) -> str:

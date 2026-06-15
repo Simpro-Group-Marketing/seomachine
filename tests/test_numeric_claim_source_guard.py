@@ -103,6 +103,17 @@ Specialty trade contractors in GF Data's 2024 sample reported adjusted EBITDA ma
 
         self.assertEqual(check_content(content), [])
 
+    def test_sidecar_source_map_can_support_body_claim(self):
+        content = """# Operational scale
+
+The 24,000+ trade businesses already running on Simpro use documented workflows, pricing catalogs, and job card standards.
+"""
+        sidecar = """Source Map
+- Claim: Simpro Group platforms are used by more than 24,000 trade businesses | URL: https://www.simprogroup.com/company/press/simpro-group-unveils-lightning | Evidence: "More than 24,000 trade businesses" | Status: approved
+"""
+
+        self.assertEqual(check_content(content, proof_content=sidecar), [])
+
     def test_list_items_are_checked_as_separate_claims(self):
         content = """# Franchise checklist
 
@@ -148,6 +159,26 @@ The 24,000+ trade businesses already running on Simpro use documented workflows,
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0]["rule_id"], "unsupported_numeric_claim")
         self.assertIn("24,000+", findings[0]["numeric_tokens"])
+
+    def test_spelled_out_metric_multiple_requires_proof(self):
+        content = """# Quoting workflow
+
+BGE Digital put quotes out ten times quicker than spreadsheets after changing its quoting workflow.
+"""
+
+        findings = check_content(content)
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule_id"], "unsupported_numeric_claim")
+        self.assertIn("ten times", findings[0]["numeric_tokens"])
+
+    def test_spelled_out_metric_multiple_with_same_paragraph_link_passes(self):
+        content = """# Quoting workflow
+
+[BGE Digital](https://www.simprogroup.com/case-studies/bge-digital) put quotes out ten times quicker than spreadsheets after changing its quoting workflow.
+"""
+
+        self.assertEqual(check_content(content), [])
 
     def test_check_file_and_failure_threshold(self):
         with NamedTemporaryFile("w", encoding="utf-8", suffix=".md", delete=False) as temp_file:

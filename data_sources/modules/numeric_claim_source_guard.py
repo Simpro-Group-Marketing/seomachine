@@ -14,10 +14,14 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Sequence
+from typing import Iterable, List, Optional, Sequence
 
-
-Finding = Dict[str, object]
+try:
+    from .guard_common import Finding, should_fail, summarize_findings
+    from .proof_sidecar import compose_with_sidecar, load_sidecar_content
+except ImportError:  # pragma: no cover - supports direct script execution.
+    from guard_common import Finding, should_fail, summarize_findings
+    from proof_sidecar import compose_with_sidecar, load_sidecar_content
 
 
 FRONTMATTER_RE = re.compile(r"\A---\s*\n.*?\n---\s*", re.DOTALL)
@@ -41,6 +45,16 @@ MONEY_RE = re.compile(
     re.IGNORECASE,
 )
 MULTIPLE_RE = re.compile(r"\b\d+(?:\.\d+)?\s?x\b", re.IGNORECASE)
+NUMBER_WORD_PATTERN = (
+    r"(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|"
+    r"twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|"
+    r"nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)"
+    r"(?:[-\s](?:one|two|three|four|five|six|seven|eight|nine))?"
+)
+WORD_MULTIPLE_RE = re.compile(
+    rf"\b{NUMBER_WORD_PATTERN}\s+times?\b",
+    re.IGNORECASE,
+)
 SCALE_RE = re.compile(
     r"\b\d[\d,]*(?:\.\d+)?\+?\s?(?:K|M|B|k|m|b|million|billion)?"
     r"(?:\s+[A-Za-z-]+){0,3}\s+"
@@ -62,9 +76,40 @@ BUSINESS_KEYWORD_RE = re.compile(
     r"royalties|investment|investments|valuation|valuations|revenue|revenues|"
     r"cost|costs|saving|savings|fee|fees|franchise fee|gross revenue|"
     r"owner income|owner compensation|public-facing|businesses|customers|"
-    r"users|locations|franchisees|companies|contracts|assets|sales)\b",
+    r"users|locations|franchisees|companies|contracts|assets|sales|quotes?|"
+    r"quoting|estimates?|estimating|invoices?|invoicing|payments?)\b",
     re.IGNORECASE,
 )
+NUMBER_WORD_VALUES = {
+    "zero": 0,
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+    "eleven": 11,
+    "twelve": 12,
+    "thirteen": 13,
+    "fourteen": 14,
+    "fifteen": 15,
+    "sixteen": 16,
+    "seventeen": 17,
+    "eighteen": 18,
+    "nineteen": 19,
+    "twenty": 20,
+    "thirty": 30,
+    "forty": 40,
+    "fifty": 50,
+    "sixty": 60,
+    "seventy": 70,
+    "eighty": 80,
+    "ninety": 90,
+}
 INSUFFICIENT_PROOF_RE = re.compile(
     r"\b(?:industry standard|FDD conventions|no anchor)\b",
     re.IGNORECASE,
@@ -83,9 +128,13 @@ class ProofEntry:
     normalized_tokens: frozenset[str]
 
 
-def check_content(content: str) -> List[Finding]:
+def check_content(
+    content: str,
+    proof_content: Optional[str] = None,
+) -> List[Finding]:
     """Return unsupported numeric business-claim findings for markdown content."""
-    proof_entries = _extract_proof_entries(content)
+    proof_source = compose_with_sidecar(content, proof_content)
+    proof_entries = _extract_proof_entries(proof_source)
     body = _strip_frontmatter_preserve_lines(content)
     body = _blank_fenced_code(body)
     body = INLINE_CODE_RE.sub("", body)
@@ -132,6 +181,7 @@ def check_content(content: str) -> List[Finding]:
 def check_file(
     path: str,
     fail_on: str = "error",
+    proof_sidecar: Optional[str] = None,
 ) -> List[Finding]:
     """
     Check a file and return structured findings.
@@ -143,28 +193,9 @@ def check_file(
     if fail_on not in {"error", "warning", "none"}:
         raise ValueError("fail_on must be one of: error, warning, none")
 
-    return check_content(Path(path).read_text(encoding="utf-8"))
-
-
-def should_fail(findings: Sequence[Finding], fail_on: str = "error") -> bool:
-    """Return True when findings meet the configured failure threshold."""
-    if fail_on == "none":
-        return False
-    if fail_on == "warning":
-        return any(finding["severity"] in {"warning", "error"} for finding in findings)
-    if fail_on == "error":
-        return any(finding["severity"] == "error" for finding in findings)
-    raise ValueError("fail_on must be one of: error, warning, none")
-
-
-def summarize_findings(findings: Sequence[Finding]) -> Dict[str, int]:
-    """Count findings by severity."""
-    summary = {"error": 0, "warning": 0}
-    for finding in findings:
-        severity = str(finding["severity"])
-        if severity in summary:
-            summary[severity] += 1
-    return summary
+    content = Path(path).read_text(encoding="utf-8")
+    proof_content = load_sidecar_content(path, proof_sidecar)
+    return check_content(content, proof_content=proof_content)
 
 
 def _strip_frontmatter_preserve_lines(content: str) -> str:
@@ -251,6 +282,7 @@ def _is_candidate_claim(text: str) -> bool:
         PERCENT_RE.search(detection_text)
         or MONEY_RE.search(detection_text)
         or MULTIPLE_RE.search(detection_text)
+        or WORD_MULTIPLE_RE.search(detection_text)
         or SCALE_RE.search(detection_text)
     )
 
@@ -280,6 +312,8 @@ def _extract_numeric_tokens(text: str) -> List[str]:
         if _is_date_like_token(token):
             continue
         tokens.append(token)
+    for match in WORD_MULTIPLE_RE.finditer(text):
+        tokens.append(match.group(0).strip())
     return tokens
 
 
@@ -289,7 +323,15 @@ def _is_date_like_token(token: str) -> bool:
 
 
 def _normalize_numeric_token(token: str) -> str:
-    token = token.strip().lower().replace(",", "").replace(" ", "")
+    token = token.strip().lower().replace(",", "")
+    word_multiple = WORD_MULTIPLE_RE.fullmatch(token)
+    if word_multiple:
+        word_part = re.sub(r"\s+times?$", "", token)
+        value = _number_word_to_int(word_part)
+        if value is not None:
+            return f"{value}x"
+
+    token = token.replace(" ", "")
     token = token.replace("$", "")
     token = token.replace("+", "")
 
@@ -330,6 +372,22 @@ def _normalize_numeric_token(token: str) -> str:
     return normalized + suffix
 
 
+def _number_word_to_int(text: str) -> Optional[int]:
+    parts = re.split(r"[-\s]+", text.strip().lower())
+    if not parts:
+        return None
+    values = []
+    for part in parts:
+        if part not in NUMBER_WORD_VALUES:
+            return None
+        values.append(NUMBER_WORD_VALUES[part])
+    if len(values) == 1:
+        return values[0]
+    if len(values) == 2 and values[0] >= 20 and 1 <= values[1] <= 9:
+        return values[0] + values[1]
+    return None
+
+
 def _has_matching_proof(
     normalized_tokens: set[str],
     proof_entries: Sequence[ProofEntry],
@@ -351,9 +409,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         default="error",
         help="Finding severity that should produce a nonzero exit code.",
     )
+    parser.add_argument(
+        "--proof-sidecar",
+        help="Optional validation sidecar containing Source Map or Proof Pack rows.",
+    )
     args = parser.parse_args(argv)
 
-    findings = check_file(args.path, fail_on=args.fail_on)
+    findings = check_file(args.path, fail_on=args.fail_on, proof_sidecar=args.proof_sidecar)
     payload = {
         "path": args.path,
         "fail_on": args.fail_on,

@@ -13,10 +13,15 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Optional
 
+try:
+    from .guard_common import Finding, should_fail, summarize_findings
+    from .proof_sidecar import compose_with_sidecar, load_sidecar_content
+except ImportError:  # pragma: no cover - supports direct script execution.
+    from guard_common import Finding, should_fail, summarize_findings
+    from proof_sidecar import compose_with_sidecar, load_sidecar_content
 
-Finding = Dict[str, object]
 
 FAQ_H2_RE = re.compile(r"^##\s+(?:Frequently Asked Questions|FAQ)\s*$", re.IGNORECASE)
 H2_RE = re.compile(r"^##\s+")
@@ -32,7 +37,10 @@ class FaqAnswer:
     answer: str
 
 
-def check_content(content: str) -> List[Finding]:
+def check_content(
+    content: str,
+    proof_content: Optional[str] = None,
+) -> List[Finding]:
     """
     Check FAQ answers for linked proof.
 
@@ -46,7 +54,8 @@ def check_content(content: str) -> List[Finding]:
     if not faq_answers:
         return []
 
-    source_map_lines = _extract_source_map_candidate_lines(content)
+    proof_source = compose_with_sidecar(content, proof_content)
+    source_map_lines = _extract_source_map_candidate_lines(proof_source)
     findings: List[Finding] = []
 
     for faq_answer in faq_answers:
@@ -81,6 +90,7 @@ def check_content(content: str) -> List[Finding]:
 def check_file(
     path: str,
     fail_on: str = "error",
+    proof_sidecar: Optional[str] = None,
 ) -> List[Finding]:
     """
     Check a Markdown file for unsupported FAQ answers.
@@ -96,28 +106,8 @@ def check_file(
         raise ValueError("fail_on must be one of: error, warning, none")
 
     content = Path(path).read_text(encoding="utf-8")
-    return check_content(content)
-
-
-def should_fail(findings: List[Finding], fail_on: str = "error") -> bool:
-    """Return True when findings meet the configured failure threshold."""
-    if fail_on == "none":
-        return False
-    if fail_on == "warning":
-        return any(finding["severity"] in {"warning", "error"} for finding in findings)
-    if fail_on == "error":
-        return any(finding["severity"] == "error" for finding in findings)
-    raise ValueError("fail_on must be one of: error, warning, none")
-
-
-def summarize_findings(findings: List[Finding]) -> Dict[str, int]:
-    """Count FAQ proof findings by severity."""
-    summary = {"error": 0, "warning": 0}
-    for finding in findings:
-        severity = str(finding["severity"])
-        if severity in summary:
-            summary[severity] += 1
-    return summary
+    proof_content = load_sidecar_content(path, proof_sidecar)
+    return check_content(content, proof_content=proof_content)
 
 
 def _extract_faq_answers(content: str) -> List[FaqAnswer]:
@@ -180,7 +170,11 @@ def _extract_source_map_candidate_lines(content: str) -> List[str]:
         stripped = line.strip()
         lower = stripped.lower()
 
-        if re.match(r"^#{1,3}\s+(?:source map|faq proof map|faq proof)\b", stripped, re.IGNORECASE):
+        if re.match(
+            r"^(?:#{1,3}\s+)?(?:source map|faq proof map|faq proof)\b",
+            stripped,
+            re.IGNORECASE,
+        ):
             in_source_section = True
             candidates.append(stripped)
             continue
@@ -227,9 +221,13 @@ def _main(argv: Optional[List[str]] = None) -> int:
         choices=["error", "warning", "none"],
         help="Minimum finding severity that returns exit code 1",
     )
+    parser.add_argument(
+        "--proof-sidecar",
+        help="Optional validation sidecar containing FAQ Proof Map rows.",
+    )
     args = parser.parse_args(argv)
 
-    findings = check_file(args.path, fail_on=args.fail_on)
+    findings = check_file(args.path, fail_on=args.fail_on, proof_sidecar=args.proof_sidecar)
     payload = {
         "path": args.path,
         "fail_on": args.fail_on,

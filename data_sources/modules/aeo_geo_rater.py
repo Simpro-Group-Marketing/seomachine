@@ -24,6 +24,7 @@ def rate_aeo_geo(
     content: str,
     metadata: Optional[Dict[str, Any]] = None,
     source_path: Optional[str] = None,
+    proof_sidecar_content: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Rate content against AEO/GEO publishing requirements.
@@ -49,9 +50,13 @@ def rate_aeo_geo(
         "faq_answer_length": _check_faq_answer_lengths(body),
         "external_sources": _check_external_sources(content),
         "metadata": _check_metadata(merged_metadata),
-        "eeat_proof": _check_eeat_proof(content, body, merged_metadata),
-        "faq_proof": _check_faq_proof(content),
-        "paa_provenance": _check_paa_provenance(content, source_path),
+        "eeat_proof": _check_eeat_proof(content, body, merged_metadata, proof_sidecar_content),
+        "faq_proof": _check_faq_proof(content, proof_sidecar_content),
+        "paa_provenance": _check_paa_provenance(
+            content,
+            source_path,
+            proof_sidecar_content,
+        ),
     }
     section_clarity = _check_section_clarity(body)
 
@@ -339,8 +344,11 @@ def _check_faq_answer_lengths(body: str) -> Dict[str, Any]:
     }
 
 
-def _check_faq_proof(content: str) -> Dict[str, Any]:
-    findings = check_faq_proof(content)
+def _check_faq_proof(
+    content: str,
+    proof_sidecar_content: Optional[str],
+) -> Dict[str, Any]:
+    findings = check_faq_proof(content, proof_content=proof_sidecar_content)
     passed = not findings
 
     return {
@@ -362,8 +370,13 @@ def _check_faq_proof(content: str) -> Dict[str, Any]:
 def _check_paa_provenance(
     content: str,
     source_path: Optional[str],
+    proof_sidecar_content: Optional[str],
 ) -> Dict[str, Any]:
-    findings = check_paa_provenance_content(content, source_path=source_path)
+    findings = check_paa_provenance_content(
+        content,
+        source_path=source_path,
+        proof_content=proof_sidecar_content,
+    )
     passed = not findings
 
     return {
@@ -423,6 +436,7 @@ def _check_eeat_proof(
     content: str,
     body: str,
     metadata: Dict[str, Any],
+    proof_sidecar_content: Optional[str] = None,
 ) -> Dict[str, Any]:
     links = _extract_markdown_links(content)
     normalized = {_normalize_key(str(key)): value for key, value in metadata.items()}
@@ -440,10 +454,9 @@ def _check_eeat_proof(
     experience_signals = []
     if case_study_links:
         experience_signals.append("case_study_link")
-    if review_site_links:
-        experience_signals.append("review_site_link")
-    if _has_review_site_theme(body):
-        experience_signals.append("review_site_theme")
+    has_review_story_selection = _has_valid_review_story_selection(content, proof_sidecar_content)
+    if has_review_story_selection:
+        experience_signals.append("review_story_selection")
 
     expertise_signals = []
     if normalized.get("author"):
@@ -468,8 +481,10 @@ def _check_eeat_proof(
         "issue": "The draft is missing required E-E-A-T proof for both experience and expertise.",
         "fix": (
             "Add at least one customer-experience signal such as a public case "
-            "study or source-backed review-site experience evidence / VoC "
-            "theme, and at least one expertise "
+            "study or an identity-backed Review Story Selection with the public "
+            "review URL linked in the same paragraph as the paraphrase "
+            "(review_story_selection). Generic review-site experience evidence "
+            "and VoC themes are research inputs, not E-E-A-T story proof. Add at least one expertise "
             "signal such as author/reviewer metadata, Simpro product/workflow "
             "links, expert quote, or source-backed workflow explanation."
         ),
@@ -482,6 +497,7 @@ def _check_eeat_proof(
             "expertise_signals": expertise_signals,
             "has_experience": has_experience,
             "has_expertise": has_expertise,
+            "has_review_story_selection": has_review_story_selection,
         },
     }
 
@@ -543,6 +559,79 @@ def _has_review_site_theme(body: str) -> bool:
     return any(surface in text for surface in review_surfaces) and any(
         term in text for term in review_terms
     )
+
+
+def _has_valid_review_story_selection(content: str, proof_sidecar_content: Optional[str]) -> bool:
+    if not proof_sidecar_content:
+        return False
+    selected = _extract_review_story_selected_line(proof_sidecar_content)
+    if not selected:
+        return False
+    identity = selected.get("identity", "")
+    url = selected.get("url", "")
+    status = selected.get("status", "").lower()
+    use = selected.get("use", "").lower()
+    if not identity or not url.startswith(("http://", "https://")):
+        return False
+    if status != "approved":
+        return False
+    if "e-e-a-t experience story" not in use:
+        return False
+    return _paragraph_has_url_and_identity(content, url, identity)
+
+
+def _extract_review_story_selected_line(content: str) -> Dict[str, str]:
+    in_block = False
+    for line in content.splitlines():
+        stripped = line.strip()
+        if re.match(r"^(?:#{1,6}\s+)?Review Story Selection:?\s*$", stripped, re.IGNORECASE):
+            in_block = True
+            continue
+        if not in_block:
+            continue
+        if stripped.startswith("```"):
+            break
+        if re.match(
+            r"^(?:#{1,6}\s+)?(?:PAA/FAQ Provenance|Metric Proof Pack|Source Map|"
+            r"Customer Proof Pack|E-E-A-T Proof Map|FAQ Proof Map|Structured data plan)\s*$",
+            stripped,
+            re.IGNORECASE,
+        ):
+            break
+        match = re.match(r"^\s*[-*+]\s*Selected story:\s*(.+?)\s*$", line, re.IGNORECASE)
+        if not match:
+            continue
+        parts = [part.strip() for part in match.group(1).split("|")]
+        selected = {"proof_id": parts[0] if parts else ""}
+        for part in parts[1:]:
+            if ":" not in part:
+                continue
+            key, value = part.split(":", 1)
+            selected[_normalize_key(key).replace(" ", "_")] = value.strip()
+        return selected
+    return {}
+
+
+def _paragraph_has_url_and_identity(content: str, url: str, identity: str) -> bool:
+    normalized_url = _normalize_url(url)
+    normalized_identity = _normalize_text(identity)
+    for paragraph in re.split(r"\n\s*\n", content):
+        if normalized_url not in _normalize_url(paragraph):
+            continue
+        if normalized_identity and normalized_identity in _normalize_text(paragraph):
+            return True
+    return False
+
+
+def _normalize_url(value: str) -> str:
+    url_match = re.search(r"https?://[^\s),]+", value, re.IGNORECASE)
+    if url_match:
+        value = url_match.group(0)
+    return value.strip().rstrip(".,)").lower()
+
+
+def _normalize_text(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", value.lower()).strip()
 
 
 def _has_expert_quote(body: str) -> bool:

@@ -134,9 +134,12 @@ venv/
 .venv/
 
 # Local agent/tool state
+.cache/
 .codex/
 .playwright-mcp/
-.agents/
+.agents/*
+!.agents/rules/
+!.agents/rules/customer-proof.md
 .mcp.json
 .claude/settings.local.json
 mcp-gsc/venv/

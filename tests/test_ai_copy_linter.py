@@ -19,16 +19,16 @@ class AiCopyLinterTests(unittest.TestCase):
     def test_semicolon_is_error(self):
         self.assertIn("semicolon", finding_ids("Dispatch is late; invoices slip."))
 
-    def test_spelled_out_number_is_error(self):
-        findings = lint_content("Teams need two payment options on every invoice.")
+    def test_spelled_out_metric_words_do_not_block_lint(self):
+        findings = lint_content(
+            "The BGE Digital case study reports the team put quotes out ten times quicker."
+        )
 
         number_words = [
             finding for finding in findings if finding["rule_id"] == "spelled_out_number"
         ]
 
-        self.assertEqual(len(number_words), 1)
-        self.assertEqual(number_words[0]["severity"], "error")
-        self.assertEqual(number_words[0]["match"], "two")
+        self.assertEqual(number_words, [])
 
     def test_missing_comma_before_because_is_error(self):
         findings = lint_content("Invoices slow down because job data stays in the field.")

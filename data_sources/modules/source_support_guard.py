@@ -13,6 +13,7 @@ import hashlib
 import json
 import re
 import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence
@@ -26,6 +27,8 @@ except ImportError:  # pragma: no cover - dependency is declared, fallback is de
     Cache = None
 
 try:
+    from .guard_common import Finding, should_fail, summarize_findings
+    from .proof_sidecar import compose_with_sidecar, load_sidecar_content
     from .numeric_claim_source_guard import (
         MARKDOWN_LINK_RE,
         _blank_fenced_code,
@@ -37,6 +40,8 @@ try:
         _strip_frontmatter_preserve_lines,
     )
 except ImportError:  # pragma: no cover - supports direct script execution.
+    from guard_common import Finding, should_fail, summarize_findings
+    from proof_sidecar import compose_with_sidecar, load_sidecar_content
     from numeric_claim_source_guard import (
         MARKDOWN_LINK_RE,
         _blank_fenced_code,
@@ -49,7 +54,6 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     )
 
 
-Finding = Dict[str, object]
 Fetcher = Callable[[str], str]
 
 
@@ -59,6 +63,7 @@ DEFAULT_USER_AGENT = (
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/125.0 Safari/537.36 SEO-Machine-Source-Support/1.0"
 )
+SOURCE_TEXT_CACHE_SECONDS = 60 * 60 * 24
 PDF_EXTENSION_RE = re.compile(r"\.pdf(?:$|[?#])", re.IGNORECASE)
 LOCAL_ARTIFACT_EXTENSION_RE = re.compile(r"\.(?:md|txt|csv|tsv|json)$", re.IGNORECASE)
 PROOF_ROW_RE = re.compile(
@@ -158,10 +163,12 @@ def check_content(
     content: str,
     base_path: str | Path | None = None,
     fetcher: Optional[Fetcher] = None,
+    proof_content: Optional[str] = None,
 ) -> List[Finding]:
     """Return source-support findings for high-risk article claims."""
     base = Path(base_path) if base_path is not None else Path.cwd()
-    proof_entries = _extract_proof_entries(content)
+    proof_source = compose_with_sidecar(content, proof_content)
+    proof_entries = _extract_proof_entries(proof_source)
     known_customer_names = _known_customer_names(proof_entries)
     candidates = _extract_claim_candidates(content, known_customer_names)
 
@@ -275,16 +282,19 @@ def check_file(
     path: str | Path,
     fail_on: str = "error",
     fetcher: Optional[Fetcher] = None,
+    proof_sidecar: Optional[str] = None,
 ) -> List[Finding]:
     """Check a Markdown file for strict source-support findings."""
     if fail_on not in {"error", "warning", "none"}:
         raise ValueError("fail_on must be one of: error, warning, none")
 
     file_path = Path(path)
+    proof_content = load_sidecar_content(file_path, proof_sidecar)
     return check_content(
         file_path.read_text(encoding="utf-8"),
         base_path=file_path.parent,
         fetcher=fetcher,
+        proof_content=proof_content,
     )
 
 
@@ -292,36 +302,21 @@ def require_source_support(
     path: str | Path,
     context: str = "publish",
     fetcher: Optional[Fetcher] = None,
+    proof_sidecar: Optional[str] = None,
 ) -> List[Finding]:
     """Raise ValueError if strict source support fails for a file."""
-    findings = check_file(path, fail_on="error", fetcher=fetcher)
+    findings = check_file(
+        path,
+        fail_on="error",
+        fetcher=fetcher,
+        proof_sidecar=proof_sidecar,
+    )
     if should_fail(findings, fail_on="error"):
         raise ValueError(
             f"Source support validation failed before {context}:\n"
             f"{format_findings(findings)}"
         )
     return findings
-
-
-def should_fail(findings: Sequence[Finding], fail_on: str = "error") -> bool:
-    """Return True when findings meet the configured failure threshold."""
-    if fail_on == "none":
-        return False
-    if fail_on == "warning":
-        return any(finding["severity"] in {"warning", "error"} for finding in findings)
-    if fail_on == "error":
-        return any(finding["severity"] == "error" for finding in findings)
-    raise ValueError("fail_on must be one of: error, warning, none")
-
-
-def summarize_findings(findings: Sequence[Finding]) -> Dict[str, int]:
-    """Count source-support findings by severity."""
-    summary = {"error": 0, "warning": 0}
-    for finding in findings:
-        severity = str(finding["severity"])
-        if severity in summary:
-            summary[severity] += 1
-    return summary
 
 
 def format_findings(findings: Sequence[Finding]) -> str:
@@ -550,14 +545,20 @@ def _validate_proof_entry(
 
 def _read_artifact_text(proof: ProofEntry, base_path: Path) -> Optional[str]:
     artifact_path = Path(proof.artifact)
-    if not artifact_path.is_absolute():
-        artifact_path = base_path / artifact_path
-    resolved = artifact_path.resolve()
-    if not resolved.exists() or not resolved.is_file():
-        return None
-    if not LOCAL_ARTIFACT_EXTENSION_RE.search(resolved.name):
-        return None
-    return resolved.read_text(encoding="utf-8")
+    candidates = [artifact_path] if artifact_path.is_absolute() else [
+        base_path / artifact_path,
+        base_path.parent / artifact_path,
+        Path.cwd() / artifact_path,
+    ]
+    for candidate in candidates:
+        resolved = candidate.resolve()
+        if (
+            resolved.exists()
+            and resolved.is_file()
+            and LOCAL_ARTIFACT_EXTENSION_RE.search(resolved.name)
+        ):
+            return resolved.read_text(encoding="utf-8")
+    return None
 
 
 def _finding(
@@ -673,13 +674,47 @@ def _extract_visible_text(html: str) -> str:
 
 
 def _cache():
-    if Cache is None:
-        return None
-    return Cache(str(Path(".cache") / "source_support_guard"))
+    cache_dir = Path(".cache") / "source_support_guard"
+    if Cache is not None:
+        try:
+            return Cache(str(cache_dir))
+        except Exception:
+            pass
+    return _FileCache(cache_dir)
 
 
 def _cache_key(url: str) -> str:
     return hashlib.sha256(url.encode("utf-8")).hexdigest()
+
+
+class _FileCache:
+    """Tiny text cache used when diskcache is not installed."""
+
+    def __init__(self, cache_dir: Path, expire_seconds: int = SOURCE_TEXT_CACHE_SECONDS):
+        self.cache_dir = cache_dir
+        self.expire_seconds = expire_seconds
+
+    def __contains__(self, key: str) -> bool:
+        path = self._path(key)
+        if not path.exists():
+            return False
+        if time.time() - path.stat().st_mtime > self.expire_seconds:
+            try:
+                path.unlink()
+            except OSError:
+                pass
+            return False
+        return True
+
+    def __getitem__(self, key: str) -> str:
+        return self._path(key).read_text(encoding="utf-8")
+
+    def set(self, key: str, value: str, expire: Optional[int] = None) -> None:
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self._path(key).write_text(value, encoding="utf-8")
+
+    def _path(self, key: str) -> Path:
+        return self.cache_dir / f"{key}.txt"
 
 
 def _normalize_key(key: str) -> str:
@@ -745,9 +780,13 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
         default="error",
         help="Finding severity that should produce a nonzero exit code.",
     )
+    parser.add_argument(
+        "--proof-sidecar",
+        help="Optional validation sidecar containing Source Map or Proof Pack rows.",
+    )
     args = parser.parse_args(argv)
 
-    findings = check_file(args.path, fail_on=args.fail_on)
+    findings = check_file(args.path, fail_on=args.fail_on, proof_sidecar=args.proof_sidecar)
     payload = {
         "path": args.path,
         "fail_on": args.fail_on,

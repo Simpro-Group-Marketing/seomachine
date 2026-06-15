@@ -13,10 +13,15 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Optional
 
+try:
+    from .guard_common import Finding, should_fail, summarize_findings
+    from .proof_sidecar import compose_with_sidecar, load_sidecar_content
+except ImportError:  # pragma: no cover - supports direct script execution.
+    from guard_common import Finding, should_fail, summarize_findings
+    from proof_sidecar import compose_with_sidecar, load_sidecar_content
 
-Finding = Dict[str, object]
 
 FAQ_H2_RE = re.compile(r"^##\s+(?:Frequently Asked Questions|FAQ)\s*$", re.IGNORECASE)
 H2_RE = re.compile(r"^##\s+")
@@ -53,7 +58,11 @@ class ProvenanceBlock:
     line: int
 
 
-def check_content(content: str, source_path: Optional[str] = None) -> List[Finding]:
+def check_content(
+    content: str,
+    source_path: Optional[str] = None,
+    proof_content: Optional[str] = None,
+) -> List[Finding]:
     """
     Check FAQ questions against a saved PAA/FAQ provenance artifact.
 
@@ -68,7 +77,8 @@ def check_content(content: str, source_path: Optional[str] = None) -> List[Findi
     if not faq_questions:
         return []
 
-    provenance = _extract_provenance_block(content)
+    proof_source = compose_with_sidecar(content, proof_content)
+    provenance = _extract_provenance_block(proof_source)
     if provenance is None:
         return [
             _finding(
@@ -169,7 +179,11 @@ def check_content(content: str, source_path: Optional[str] = None) -> List[Findi
     return findings
 
 
-def check_file(path: str, fail_on: str = "error") -> List[Finding]:
+def check_file(
+    path: str,
+    fail_on: str = "error",
+    proof_sidecar: Optional[str] = None,
+) -> List[Finding]:
     """
     Check a Markdown file for FAQ/PAA provenance.
 
@@ -184,28 +198,8 @@ def check_file(path: str, fail_on: str = "error") -> List[Finding]:
         raise ValueError("fail_on must be one of: error, warning, none")
 
     content = Path(path).read_text(encoding="utf-8")
-    return check_content(content, source_path=path)
-
-
-def should_fail(findings: List[Finding], fail_on: str = "error") -> bool:
-    """Return True when findings meet the configured failure threshold."""
-    if fail_on == "none":
-        return False
-    if fail_on == "warning":
-        return any(finding["severity"] in {"warning", "error"} for finding in findings)
-    if fail_on == "error":
-        return any(finding["severity"] == "error" for finding in findings)
-    raise ValueError("fail_on must be one of: error, warning, none")
-
-
-def summarize_findings(findings: List[Finding]) -> Dict[str, int]:
-    """Count PAA provenance findings by severity."""
-    summary = {"error": 0, "warning": 0}
-    for finding in findings:
-        severity = str(finding["severity"])
-        if severity in summary:
-            summary[severity] += 1
-    return summary
+    proof_content = load_sidecar_content(path, proof_sidecar)
+    return check_content(content, source_path=path, proof_content=proof_content)
 
 
 def _extract_faq_questions(content: str) -> List[FaqQuestion]:
@@ -353,9 +347,13 @@ def _main(argv: Optional[List[str]] = None) -> int:
         choices=["error", "warning", "none"],
         help="Minimum finding severity that returns exit code 1",
     )
+    parser.add_argument(
+        "--proof-sidecar",
+        help="Optional validation sidecar containing PAA/FAQ provenance.",
+    )
     args = parser.parse_args(argv)
 
-    findings = check_file(args.path, fail_on=args.fail_on)
+    findings = check_file(args.path, fail_on=args.fail_on, proof_sidecar=args.proof_sidecar)
     payload = {
         "path": args.path,
         "fail_on": args.fail_on,

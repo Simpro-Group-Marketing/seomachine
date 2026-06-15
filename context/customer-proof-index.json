@@ -1,0 +1,2343 @@
+{
+  "version": 1,
+  "updated_at": "2026-06-12",
+  "source_boundary": "Curated customer proof index for selection and governance. This is not the full Quote Matrix. Exact quotes, review ratings, badges, rankings, and named reviewer claims require current source verification and approval before public copy use. Review-site rows may support public E-E-A-T stories only when review_story.story_allowed is true, the row has a real person or business identity, and a usable public review URL is linked in the same public paragraph as the paraphrase. Generic review themes remain VoC research only.",
+  "proof": [
+    {
+      "proof_id": "case-study-bge-digital",
+      "customer": "BGE Digital",
+      "source_type": "case_study",
+      "industry": [
+        "digital services",
+        "field service",
+        "trades"
+      ],
+      "region": [
+        "AU"
+      ],
+      "workflow_fit": [
+        "quoting",
+        "estimating",
+        "digital jobs",
+        "spreadsheets"
+      ],
+      "themes": [
+        "quote speed",
+        "move from spreadsheets",
+        "cloud field workflow"
+      ],
+      "public_url": "https://www.simprogroup.com/case-studies/bge-digital",
+      "internal_source_ref": "context/internal-links-map.md customer proof links; context/features.md Named Customer Proof Points",
+      "approved_quotes": [],
+      "approved_metrics": [
+        {
+          "claim": "BGE Digital can put quotes out ten times quicker than spreadsheets",
+          "evidence": "put a quote out ten times quicker",
+          "url": "https://www.simprogroup.com/case-studies/bge-digital",
+          "status": "approved"
+        }
+      ],
+      "evidence": "BGE Digital case study supports quoting/estimating speed and spreadsheet replacement themes.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Do not use exact customer quotes unless separately approved."
+      ]
+    },
+    {
+      "proof_id": "case-study-teamwired",
+      "customer": "TEAMWired",
+      "source_type": "case_study",
+      "industry": [
+        "security",
+        "low voltage"
+      ],
+      "region": [
+        "US"
+      ],
+      "workflow_fit": [
+        "invoicing",
+        "payments",
+        "manual admin",
+        "cash collection"
+      ],
+      "themes": [
+        "manual invoicing reduction",
+        "payment workflow",
+        "security integrator operations"
+      ],
+      "public_url": "https://www.simprogroup.com/case-studies/teamwired",
+      "internal_source_ref": "context/internal-links-map.md customer proof links; context/features.md Named Customer Proof Points",
+      "approved_quotes": [],
+      "approved_metrics": [
+        {
+          "claim": "TEAMWired manual invoicing time fell by 90%",
+          "evidence": "time office staff spent manually invoicing customers plummeted by 90%",
+          "url": "https://www.simprogroup.com/case-studies/teamwired",
+          "status": "approved"
+        }
+      ],
+      "evidence": "TEAMWired case study supports invoicing and payments workflow proof.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Overused in recent drafts; require Reuse reason before selecting again."
+      ]
+    },
+    {
+      "proof_id": "case-study-quorum",
+      "customer": "Quorum",
+      "source_type": "case_study",
+      "industry": [
+        "field service",
+        "project service"
+      ],
+      "region": [
+        "AU"
+      ],
+      "workflow_fit": [
+        "estimating",
+        "cost visibility",
+        "project cost"
+      ],
+      "themes": [
+        "estimating speed",
+        "project cost visibility"
+      ],
+      "public_url": "https://www.simprogroup.com/case-studies/quorum",
+      "internal_source_ref": "research/metric-proof-pack-best-job-quoting-and-invoicing-software-2026-06-12.md",
+      "approved_quotes": [],
+      "approved_metrics": [
+        {
+          "claim": "Quorum estimated costs 60% faster",
+          "evidence": "estimate costs 60% faster than before",
+          "url": "https://www.simprogroup.com/case-studies/quorum",
+          "status": "approved"
+        }
+      ],
+      "evidence": "Quorum case study supports estimating-speed and cost-visibility themes.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Overused in recent proof packs; require Reuse reason before selecting again."
+      ]
+    },
+    {
+      "proof_id": "case-study-schaffer-beacon-mechanical",
+      "customer": "Shaffer Beacon Mechanical",
+      "source_type": "case_study",
+      "industry": [
+        "HVAC",
+        "plumbing",
+        "mechanical"
+      ],
+      "region": [
+        "US"
+      ],
+      "workflow_fit": [
+        "job costing",
+        "operations visibility",
+        "field workflows"
+      ],
+      "themes": [
+        "profit margin",
+        "business capacity",
+        "centralized data"
+      ],
+      "public_url": "https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical",
+      "internal_source_ref": "context/internal-links-map.md customer proof links",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Shaffer Beacon Mechanical case study supports HVAC/plumbing operational-control themes.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-09",
+      "restrictions": [
+        "Use exact metrics or quotes only when source-visible evidence is separately approved."
+      ]
+    },
+    {
+      "proof_id": "case-study-alarmquest",
+      "customer": "alarmQuest",
+      "source_type": "case_study",
+      "industry": [
+        "security",
+        "alarms"
+      ],
+      "region": [
+        "US"
+      ],
+      "workflow_fit": [
+        "invoicing",
+        "field workflows",
+        "service operations"
+      ],
+      "themes": [
+        "invoice generation",
+        "software satisfaction",
+        "security workflows"
+      ],
+      "public_url": "https://www.simprogroup.com/case-studies/alarmquest",
+      "internal_source_ref": "context/internal-links-map.md customer proof links; context/seo-guidelines.md named customer proof",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Potential security/invoicing proof path. Exact 55% invoice-generation candidate was excluded in the active proof pack until source-visible evidence is reverified.",
+      "approval_status": "candidate",
+      "public_copy_allowed": false,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Do not use numeric invoice-generation claim until source-visible evidence is approved."
+      ]
+    },
+    {
+      "proof_id": "case-study-norberg-electric",
+      "customer": "Norberg Electric",
+      "source_type": "case_study",
+      "industry": [
+        "electrical"
+      ],
+      "region": [
+        "US"
+      ],
+      "workflow_fit": [
+        "estimating",
+        "project blueprints",
+        "electrical service"
+      ],
+      "themes": [
+        "electrical estimating",
+        "project workflow"
+      ],
+      "public_url": "https://www.simprogroup.com/case-studies/norberg-electric",
+      "internal_source_ref": "context/internal-links-map.md customer proof links",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Potential electrical estimating proof path.",
+      "approval_status": "candidate",
+      "public_copy_allowed": false,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Verify source-visible exact claims before public use."
+      ]
+    },
+    {
+      "proof_id": "quote-matrix-cinos-project-delivery",
+      "customer": "Cinos",
+      "source_type": "quote_matrix",
+      "industry": [
+        "audio/visual",
+        "IT",
+        "network infrastructure",
+        "project service"
+      ],
+      "region": [
+        "UK"
+      ],
+      "workflow_fit": [
+        "quoting",
+        "project delivery",
+        "job activation",
+        "reporting",
+        "profitability",
+        "quote-to-delivery"
+      ],
+      "themes": [
+        "quote-to-delivery flow",
+        "commercial visibility",
+        "project activation speed",
+        "project manager capacity",
+        "profit margin"
+      ],
+      "public_url": "https://www.simprogroup.com/case-studies/cinos",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Quotes rows for Cinos checked via GWS on 2026-06-12; public case study verified 2026-06-12.",
+      "approved_quotes": [
+        {
+          "quote": "A project that used to take us hours to activate can now be live within seconds. Everyone is notified immediately, and the process flows smoothly from quote to delivery.",
+          "customer_or_reviewer": "Johanna Guest, Cinos",
+          "source_type": "Quote Matrix and public case study",
+          "url": "https://www.simprogroup.com/case-studies/cinos",
+          "evidence": "A project that used to take us hours to activate can now be live within seconds. Everyone is notified immediately, and the process flows smoothly from quote to delivery.",
+          "status": "approved",
+          "use": "quote-to-delivery workflow proof"
+        }
+      ],
+      "approved_metrics": [
+        {
+          "claim": "Cinos project managers handle 50% more work",
+          "evidence": "project managers are handling 50% more work",
+          "url": "https://www.simprogroup.com/case-studies/cinos",
+          "status": "approved"
+        },
+        {
+          "claim": "Cinos saw a 10-15% gross-profit increase across project delivery",
+          "evidence": "10-15% increase in gross profit across project delivery",
+          "url": "https://www.simprogroup.com/case-studies/cinos",
+          "status": "approved"
+        },
+        {
+          "claim": "Cinos job activation became 75% faster from quote to live project",
+          "evidence": "75% faster job activation from quote to live project",
+          "url": "https://www.simprogroup.com/case-studies/cinos",
+          "status": "approved"
+        }
+      ],
+      "evidence": "Cinos is strong proof for AV/project businesses that need quoting, reporting, job activation, and project profitability visibility.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use only the approved quote and metrics above; do not generalize Cinos outcomes to all customers."
+      ]
+    },
+    {
+      "proof_id": "quote-matrix-kiely-plumbing-estimates-invoicing",
+      "customer": "Kiely Plumbing",
+      "source_type": "quote_matrix",
+      "industry": [
+        "plumbing",
+        "gasfitting"
+      ],
+      "region": [
+        "AU"
+      ],
+      "workflow_fit": [
+        "estimating",
+        "invoicing",
+        "scheduling",
+        "dispatch",
+        "admin reduction",
+        "small trade business"
+      ],
+      "themes": [
+        "estimate speed",
+        "invoicing speed",
+        "admin reduction",
+        "revenue growth",
+        "billable hours"
+      ],
+      "public_url": "https://www.simprogroup.com/case-studies/kiely-plumbing",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Quotes row for Kiely Plumbing checked via GWS on 2026-06-12; public case study verified 2026-06-12.",
+      "approved_quotes": [
+        {
+          "quote": "Simpro has helped us cut our estimate creation time by 10 times and reduced admin work by 63%. Our team is now more efficient, and we've been able to scale our business by 35% without adding extra overhead.",
+          "customer_or_reviewer": "Sam Kiely, Kiely Plumbing",
+          "source_type": "Quote Matrix and public case study",
+          "url": "https://www.simprogroup.com/case-studies/kiely-plumbing",
+          "evidence": "Simpro has helped us cut our estimate creation time by 10 times and reduced admin work by 63%. Our team is now more efficient, and we've been able to scale our business by 35% without adding extra overhead.",
+          "status": "approved",
+          "use": "plumbing estimating, invoicing, and admin-efficiency proof"
+        }
+      ],
+      "approved_metrics": [
+        {
+          "claim": "Kiely Plumbing creates estimates 10 times faster",
+          "evidence": "10X faster estimates, now completed in minutes",
+          "url": "https://www.simprogroup.com/case-studies/kiely-plumbing",
+          "status": "approved"
+        },
+        {
+          "claim": "Kiely Plumbing sends invoices 10 times faster",
+          "evidence": "10X faster invoicing, sent the same day as job completion",
+          "url": "https://www.simprogroup.com/case-studies/kiely-plumbing",
+          "status": "approved"
+        },
+        {
+          "claim": "Kiely Plumbing reduced admin time by 63%",
+          "evidence": "63% less admin time spent on scheduling, dispatch, and customer communication",
+          "url": "https://www.simprogroup.com/case-studies/kiely-plumbing",
+          "status": "approved"
+        },
+        {
+          "claim": "Kiely Plumbing supported 35% revenue growth while cutting admin time",
+          "evidence": "supports a 35% revenue growth while cutting admin time by 63%",
+          "url": "https://www.simprogroup.com/case-studies/kiely-plumbing",
+          "status": "approved"
+        }
+      ],
+      "evidence": "Kiely Plumbing is strong proof for small-to-growing plumbing teams that need faster estimates, faster invoicing, and less scheduling/admin drag.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use outcomes as Kiely-specific proof only; do not imply every plumbing customer sees the same results."
+      ]
+    },
+    {
+      "proof_id": "quote-matrix-zebra-plumbing-onsite-quoting",
+      "customer": "Zebra Plumbing",
+      "source_type": "quote_matrix",
+      "industry": [
+        "plumbing",
+        "residential service"
+      ],
+      "region": [
+        "AU"
+      ],
+      "workflow_fit": [
+        "onsite quoting",
+        "invoicing",
+        "payments",
+        "mobile workflow",
+        "customer communication",
+        "small trade business"
+      ],
+      "themes": [
+        "same-day payment",
+        "onsite quotes",
+        "mobile field workflow",
+        "profitability",
+        "field productivity"
+      ],
+      "public_url": "https://www.simprogroup.com/case-studies/zebra-plumbing",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Quotes rows for Zebra Plumbing checked via GWS on 2026-06-12; public case study verified 2026-06-12.",
+      "approved_quotes": [
+        {
+          "quote": "We can quote most jobs on-site in under a minute thanks to prebuilds. That used to take 15 to 45 minutes.",
+          "customer_or_reviewer": "Byron Slabbert, Zebra Plumbing",
+          "source_type": "Quote Matrix and public case study",
+          "url": "https://www.simprogroup.com/case-studies/zebra-plumbing",
+          "evidence": "We can quote most jobs on-site in under a minute thanks to prebuilds. That used to take 15 to 45 minutes.",
+          "status": "approved",
+          "use": "onsite quoting proof for plumbing service teams"
+        }
+      ],
+      "approved_metrics": [
+        {
+          "claim": "Zebra Plumbing quotes 20 times faster",
+          "evidence": "20x faster quoting, from up to 45 minutes down to less than one",
+          "url": "https://www.simprogroup.com/case-studies/zebra-plumbing",
+          "status": "approved"
+        },
+        {
+          "claim": "Zebra Plumbing receives same-day payment for 90% of jobs",
+          "evidence": "Instant invoicing and same-day payment for 90 percent of jobs",
+          "url": "https://www.simprogroup.com/case-studies/zebra-plumbing",
+          "status": "approved"
+        },
+        {
+          "claim": "Zebra Plumbing increased field productivity by 25%",
+          "evidence": "25 percent increase in field productivity, with 4 jobs completed daily per tech",
+          "url": "https://www.simprogroup.com/case-studies/zebra-plumbing",
+          "status": "approved"
+        }
+      ],
+      "evidence": "Zebra Plumbing is strong proof for residential plumbing articles about onsite quoting, invoice speed, same-day payment, and mobile field workflows.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use only where a small residential plumbing proof point is relevant; avoid unsupported 'best tool' wording from the story."
+      ]
+    },
+    {
+      "proof_id": "quote-matrix-coastal-security-recurring-payments",
+      "customer": "Coastal Security",
+      "source_type": "quote_matrix",
+      "industry": [
+        "security",
+        "alarms",
+        "monitoring"
+      ],
+      "region": [
+        "US"
+      ],
+      "workflow_fit": [
+        "invoicing",
+        "payments",
+        "recurring services",
+        "payment reconciliation",
+        "field service",
+        "QuickBooks"
+      ],
+      "themes": [
+        "recurring revenue automation",
+        "manual reconciliation reduction",
+        "faster invoicing",
+        "customer billing portal"
+      ],
+      "public_url": "https://www.simprogroup.com/case-studies/coastal-security",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Quotes rows for Coastal Security checked via GWS on 2026-06-12; public case study verified 2026-06-12.",
+      "approved_quotes": [
+        {
+          "quote": "With Simpro, we save 40 hours a week, cut out manual errors, and give customers a seamless recurring payment experience. It does everything our old system couldn't.",
+          "customer_or_reviewer": "Jeff Bertuccio, Coastal Security",
+          "source_type": "Quote Matrix and public case study",
+          "url": "https://www.simprogroup.com/case-studies/coastal-security",
+          "evidence": "With Simpro, we save 40 hours a week, cut out manual errors, and give customers a seamless recurring payment experience. It does everything our old system couldn't.",
+          "status": "approved",
+          "use": "recurring payments and security workflow proof"
+        }
+      ],
+      "approved_metrics": [
+        {
+          "claim": "Coastal Security saves 40+ hours weekly on payment processing and reconciliation",
+          "evidence": "40+ hours saved weekly on payment processing and reconciliation",
+          "url": "https://www.simprogroup.com/case-studies/coastal-security",
+          "status": "approved"
+        },
+        {
+          "claim": "Recurring services account for 75% of Coastal Security revenue",
+          "evidence": "Recurring revenue automation through Stripe, supporting 75% of all billing",
+          "url": "https://www.simprogroup.com/case-studies/coastal-security",
+          "status": "approved"
+        }
+      ],
+      "evidence": "Coastal Security is strong proof for security, recurring billing, payment automation, and QuickBooks-connected workflows.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use for recurring-service and payment workflow topics; do not frame as a broad all-trades benchmark."
+      ]
+    },
+    {
+      "proof_id": "quote-matrix-bop-plumbing-multibranch-invoicing",
+      "customer": "BOP Plumbing and Gas",
+      "source_type": "quote_matrix",
+      "industry": [
+        "plumbing",
+        "gas",
+        "drainage"
+      ],
+      "region": [
+        "NZ"
+      ],
+      "workflow_fit": [
+        "invoicing",
+        "multi-branch visibility",
+        "scheduling",
+        "job tracking",
+        "mobile job data",
+        "supplier integration"
+      ],
+      "themes": [
+        "branch visibility",
+        "invoice speed",
+        "centralized operations",
+        "mobile job closeout",
+        "growth structure"
+      ],
+      "public_url": "https://www.simprogroup.com/case-studies/bop-plumbing-and-gas",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Quotes rows for BOP Plumbing and Gas checked via GWS on 2026-06-12; public case study verified 2026-06-12.",
+      "approved_quotes": [
+        {
+          "quote": "Simpro gives us full visibility across three branches, helps us invoice faster, and keeps every technician connected. It's been a huge step forward for efficiency and control.",
+          "customer_or_reviewer": "Sarah Jamieson, BOP Plumbing and Gas",
+          "source_type": "Quote Matrix and public case study",
+          "url": "https://www.simprogroup.com/case-studies/bop-plumbing-and-gas",
+          "evidence": "Simpro gives us full visibility across three branches, helps us invoice faster, and keeps every technician connected. It's been a huge step forward for efficiency and control.",
+          "status": "approved",
+          "use": "multi-branch plumbing visibility and invoice-speed proof"
+        }
+      ],
+      "approved_metrics": [
+        {
+          "claim": "BOP Plumbing and Gas issues invoices within 24 hours of job completion across all branches",
+          "evidence": "Invoices issued within 24 hours of job completion across all branches",
+          "url": "https://www.simprogroup.com/case-studies/bop-plumbing-and-gas",
+          "status": "approved"
+        },
+        {
+          "claim": "BOP Plumbing and Gas operates across three branches with one system",
+          "evidence": "Multi-company visibility with a single login across three locations",
+          "url": "https://www.simprogroup.com/case-studies/bop-plumbing-and-gas",
+          "status": "approved"
+        }
+      ],
+      "evidence": "BOP Plumbing and Gas is strong proof for growing plumbing businesses that need multi-location visibility, mobile job data, and faster invoicing.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use for multi-branch plumbing or growth-with-control topics; avoid implying all customers invoice within 24 hours."
+      ]
+    },
+    {
+      "proof_id": "quote-matrix-bwe-engineering-job-to-invoice",
+      "customer": "BWE Engineering",
+      "source_type": "quote_matrix",
+      "industry": [
+        "agricultural engineering",
+        "field service"
+      ],
+      "region": [
+        "UK"
+      ],
+      "workflow_fit": [
+        "job cards",
+        "invoicing",
+        "cash flow",
+        "job profitability",
+        "field service",
+        "small trade business"
+      ],
+      "themes": [
+        "job-to-invoice speed",
+        "cash flow",
+        "paperless job cards",
+        "profitability visibility",
+        "small team efficiency"
+      ],
+      "public_url": "https://www.simprogroup.com/case-studies/bwe-engineering",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Quotes rows for BWE Engineering checked via GWS on 2026-06-12; public case study verified 2026-06-12.",
+      "approved_quotes": [
+        {
+          "quote": "Simpro has completely changed how we manage the business. Job cards take minutes, invoicing happens straight away, and we can finally stay on top of cash flow and job profitability.",
+          "customer_or_reviewer": "Thomas Roberts, BWE Engineering",
+          "source_type": "Quote Matrix and public case study",
+          "url": "https://www.simprogroup.com/case-studies/bwe-engineering",
+          "evidence": "Simpro has completely changed how we manage the business. Job cards take minutes, invoicing happens straight away, and we can finally stay on top of cash flow and job profitability.",
+          "status": "approved",
+          "use": "small business job-to-invoice and cash-flow proof"
+        }
+      ],
+      "approved_metrics": [
+        {
+          "claim": "BWE Engineering reduced job-to-invoice time by 50%",
+          "evidence": "Job-to-invoice time reduced by 50%",
+          "url": "https://www.simprogroup.com/case-studies/bwe-engineering",
+          "status": "approved"
+        },
+        {
+          "claim": "BWE Engineering reduced job card completion from half a day to minutes",
+          "evidence": "Job card completion reduced from half a day to just minutes",
+          "url": "https://www.simprogroup.com/case-studies/bwe-engineering",
+          "status": "approved"
+        }
+      ],
+      "evidence": "BWE Engineering is strong proof for small field-service teams where job cards, invoicing, and cash flow are tightly connected.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use for small-team field service and cash-flow workflow topics; avoid using agricultural engineering proof for unrelated industries without a fit note."
+      ]
+    },
+    {
+      "proof_id": "case-study-foster-plumbing-job-costing-exit",
+      "customer": "Foster Plumbing",
+      "source_type": "case_study",
+      "industry": [
+        "plumbing",
+        "commercial plumbing",
+        "tenant improvement"
+      ],
+      "region": [
+        "US"
+      ],
+      "workflow_fit": [
+        "job costing",
+        "estimating",
+        "quote accuracy",
+        "project profitability",
+        "cash collection",
+        "business exit"
+      ],
+      "themes": [
+        "real-time job costing",
+        "growth",
+        "profit margin",
+        "collection period",
+        "business valuation"
+      ],
+      "public_url": "https://www.simprogroup.com/case-studies/foster-plumbing",
+      "internal_source_ref": "Public Foster Plumbing case study checked on 2026-06-12; context/features.md also names Foster Plumbing as a customer proof point.",
+      "approved_quotes": [
+        {
+          "quote": "Simpro gave us the real-time job costing we wanted and was invaluable during volatile periods, especially during COVID and the following years' pricing escalations. It helped us move fast, quote accurately, and make decisions with confidence.",
+          "customer_or_reviewer": "Amy Carnrick, Foster Plumbing",
+          "source_type": "public case study",
+          "url": "https://www.simprogroup.com/case-studies/foster-plumbing",
+          "evidence": "Simpro gave us the real-time job costing we wanted and was invaluable during volatile periods, especially during COVID and the following years' pricing escalations. It helped us move fast, quote accurately, and make decisions with confidence.",
+          "status": "approved",
+          "use": "job-costing and quote-accuracy proof"
+        }
+      ],
+      "approved_metrics": [
+        {
+          "claim": "Foster Plumbing scaled from $1 million to $10 million in revenue",
+          "evidence": "generating just $1 million in revenue. Five years later, it had scaled to $10 million",
+          "url": "https://www.simprogroup.com/case-studies/foster-plumbing",
+          "status": "approved"
+        },
+        {
+          "claim": "Foster Plumbing sold for a six-times EBITDA multiple",
+          "evidence": "sold for a six-times EBITDA multiple",
+          "url": "https://www.simprogroup.com/case-studies/foster-plumbing",
+          "status": "approved"
+        },
+        {
+          "claim": "Foster Plumbing reduced its collection period by 33%",
+          "evidence": "Reduced collection period by 33%, from 90 days to around 60 days",
+          "url": "https://www.simprogroup.com/case-studies/foster-plumbing",
+          "status": "approved"
+        },
+        {
+          "claim": "Foster Plumbing estimators produced up to 25 large TI blueprinted bids per week",
+          "evidence": "Estimator output increased to 25 large TI blueprinted bids per week",
+          "url": "https://www.simprogroup.com/case-studies/foster-plumbing",
+          "status": "approved"
+        }
+      ],
+      "evidence": "Foster Plumbing is strong proof for business-control, project profitability, job-costing, and exit-readiness narratives.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use for owner/operator, growth, exit-readiness, and profitability topics; avoid implying Simpro alone caused the exit."
+      ]
+    },
+    {
+      "proof_id": "quote-matrix-alarmquest-positive-feedback",
+      "customer": "AlarmQuest",
+      "source_type": "quote_matrix",
+      "industry": [
+        "security",
+        "alarms"
+      ],
+      "region": [
+        "US"
+      ],
+      "workflow_fit": [
+        "software selection",
+        "field service operations"
+      ],
+      "themes": [
+        "customer satisfaction",
+        "software comparison"
+      ],
+      "public_url": "",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk; context/seo-guidelines.md named customer proof",
+      "approved_quotes": [
+        {
+          "quote": "more positive feedback from Simpro than any other software we've used",
+          "customer_or_reviewer": "Todd Rankin, AlarmQuest",
+          "status": "candidate",
+          "evidence": "context/seo-guidelines.md lists this as named customer proof"
+        }
+      ],
+      "approved_metrics": [],
+      "evidence": "Quote Matrix candidate for software-selection proof. Requires public-copy approval and story-path verification before exact quote use.",
+      "approval_status": "candidate",
+      "public_copy_allowed": false,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Do not use as public exact quote until Quote Matrix row and publishability are rechecked."
+      ]
+    },
+    {
+      "proof_id": "customer-stories-source-register",
+      "customer": "Simpro Customer Stories source register",
+      "source_type": "customer_story",
+      "industry": [
+        "multi-trade"
+      ],
+      "region": [
+        "global"
+      ],
+      "workflow_fit": [
+        "quote-to-cash",
+        "workflow proof",
+        "customer story path"
+      ],
+      "themes": [
+        "story-path verification",
+        "metric-driven customer examples",
+        "approved quote discovery",
+        "public case-study routing"
+      ],
+      "public_url": "https://docs.google.com/presentation/d/1UzYrlZAh0iqoPjnC34DNS789xhpWXUzFgW-h4y4eTqk/edit",
+      "internal_source_ref": "Customer Stories deck 1UzYrlZAh0iqoPjnC34DNS789xhpWXUzFgW-h4y4eTqk checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Deck states the goal is to provide real-life, metric-driven examples of how Simpro products or services have positively impacted customers, with key links to the Global Customer Quote Matrix, Customer Story PDFs, and Simpro webpage.",
+      "approval_status": "ready",
+      "public_copy_allowed": false,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Selection source only; individual quotes and metrics still need row-level approval and public/source-visible support."
+      ]
+    },
+    {
+      "proof_id": "references-source-register",
+      "customer": "Simpro References source register",
+      "source_type": "reference",
+      "industry": [
+        "multi-trade"
+      ],
+      "region": [
+        "global"
+      ],
+      "workflow_fit": [
+        "reference matching",
+        "industry fit",
+        "customer proof"
+      ],
+      "themes": [
+        "reference discovery",
+        "trade fit",
+        "workflow fit",
+        "reference overuse prevention",
+        "customer fatigue prevention"
+      ],
+      "public_url": "https://docs.google.com/presentation/d/1tWlR0WNDRRnvA5b-2fdBdjC7rwaQQs1CYCc48pD62HE/edit",
+      "internal_source_ref": "Simpro References deck 1tWlR0WNDRRnvA5b-2fdBdjC7rwaQQs1CYCc48pD62HE checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Deck states the reference program streamlines reference processes from request to closure, accelerates deal closures through effective content utilization, and prevents customer overuse and fatigue.",
+      "approval_status": "ready",
+      "public_copy_allowed": false,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Selection and governance source only; public copy requires approved quote, reference permission, and source-visible support."
+      ]
+    },
+    {
+      "proof_id": "review-g2-security-quote-schedule-invoice-minutes",
+      "customer": "G2 security review, 11-50 employee company",
+      "source_type": "review_site",
+      "industry": [
+        "security",
+        "field service"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "11-50 employees",
+      "workflow_fit": [
+        "quoting",
+        "scheduling",
+        "invoicing",
+        "job management",
+        "project materials"
+      ],
+      "themes": [
+        "quote-to-invoice workflow",
+        "schedule creation",
+        "material allocation",
+        "field-service administration"
+      ],
+      "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-5005256",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, G2 tab row 28, Referenceable Yes, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Referenceable G2 row describes a security business using Simpro to quote, schedule, and invoice jobs from one workflow while managing project notes, purchase orders, and allocated materials.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": false,
+        "identity_type": "none",
+        "identity_display": "",
+        "business_name": "",
+        "person_name": "",
+        "role_title": "",
+        "platform": "G2",
+        "source_row_ref": "G2 tab row 28",
+        "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-5005256",
+        "workflow_story": "Referenceable G2 row describes a security business using Simpro to quote, schedule, and invoice jobs from one workflow while managing project notes, purchase orders, and allocated materials.",
+        "objective_fit": [
+          "quoting",
+          "scheduling",
+          "invoicing",
+          "job management",
+          "project materials",
+          "quote-to-invoice workflow",
+          "schedule creation",
+          "material allocation",
+          "field-service administration"
+        ],
+        "copy_use": "review theme only; not E-E-A-T story until person or business identity is verified",
+        "verification_status": "anonymous or role-only review row"
+      }
+    },
+    {
+      "proof_id": "review-g2-electrical-lead-through-invoice-reporting",
+      "customer": "G2 electrical review, 11-50 employee company",
+      "source_type": "review_site",
+      "industry": [
+        "electrical",
+        "field service"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "11-50 employees",
+      "workflow_fit": [
+        "lead tracking",
+        "quoting",
+        "invoicing",
+        "dispatch",
+        "reporting",
+        "field communication"
+      ],
+      "themes": [
+        "lead-to-invoice visibility",
+        "engineer scheduling",
+        "quoting time savings",
+        "reduced field calls"
+      ],
+      "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-5050764",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, G2 tab row 35, Referenceable Yes, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Referenceable G2 row describes an electrical business keeping data in one place, organizing engineers, tracking leads through invoices, and saving quoting time on project work after switching from Powered Now.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": false,
+        "identity_type": "none",
+        "identity_display": "",
+        "business_name": "",
+        "person_name": "",
+        "role_title": "",
+        "platform": "G2",
+        "source_row_ref": "G2 tab row 35",
+        "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-5050764",
+        "workflow_story": "Referenceable G2 row describes an electrical business keeping data in one place, organizing engineers, tracking leads through invoices, and saving quoting time on project work after switching from Powered Now.",
+        "objective_fit": [
+          "lead tracking",
+          "quoting",
+          "invoicing",
+          "dispatch",
+          "reporting",
+          "field communication",
+          "lead-to-invoice visibility",
+          "engineer scheduling",
+          "quoting time savings",
+          "reduced field calls"
+        ],
+        "copy_use": "review theme only; not E-E-A-T story until person or business identity is verified",
+        "verification_status": "anonymous or role-only review row"
+      }
+    },
+    {
+      "proof_id": "review-g2-construction-quote-to-accounts-invoicing-profitability",
+      "customer": "G2 construction administrator review, 11-50 employee company",
+      "source_type": "review_site",
+      "industry": [
+        "construction",
+        "field service"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "11-50 employees",
+      "workflow_fit": [
+        "quoting",
+        "accounts invoicing",
+        "job profitability",
+        "field tools",
+        "reporting"
+      ],
+      "themes": [
+        "single operational record",
+        "quote-to-accounts workflow",
+        "profitability visibility",
+        "field technician tools"
+      ],
+      "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-4999588",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, G2 tab row 49, Referenceable Yes, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Referenceable G2 row describes a construction business using one tool from quoting salespeople through accounts invoicing, with job profitability reporting and field technician tools.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": false,
+        "identity_type": "none",
+        "identity_display": "",
+        "business_name": "",
+        "person_name": "",
+        "role_title": "Administrator",
+        "platform": "G2",
+        "source_row_ref": "G2 tab row 49",
+        "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-4999588",
+        "workflow_story": "Referenceable G2 row describes a construction business using one tool from quoting salespeople through accounts invoicing, with job profitability reporting and field technician tools.",
+        "objective_fit": [
+          "quoting",
+          "accounts invoicing",
+          "job profitability",
+          "field tools",
+          "reporting",
+          "single operational record",
+          "quote-to-accounts workflow",
+          "profitability visibility",
+          "field technician tools"
+        ],
+        "copy_use": "review theme only; not E-E-A-T story until person or business identity is verified",
+        "verification_status": "anonymous or role-only review row"
+      }
+    },
+    {
+      "proof_id": "review-g2-telecom-quickbooks-billing-mobile",
+      "customer": "G2 telecommunications administrator review, 2-10 employee company",
+      "source_type": "review_site",
+      "industry": [
+        "telecommunications",
+        "field service",
+        "small business"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "2-10 employees",
+      "workflow_fit": [
+        "billing",
+        "invoicing",
+        "QuickBooks",
+        "QBO",
+        "mobile app",
+        "catalog"
+      ],
+      "themes": [
+        "QuickBooks relief",
+        "billing flexibility",
+        "field technician mobile app",
+        "contracting-world fit"
+      ],
+      "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-6665013",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, G2 tab row 53, Referenceable Yes, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Referenceable G2 row describes a small telecommunications business reducing dependency on QuickBooks/QBO for billing and invoicing, improving contact data, and upgrading the mobile app for field technicians after switching from W3B Management Solutions.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": false,
+        "identity_type": "none",
+        "identity_display": "",
+        "business_name": "",
+        "person_name": "",
+        "role_title": "Administrator",
+        "platform": "G2",
+        "source_row_ref": "G2 tab row 53",
+        "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-6665013",
+        "workflow_story": "Referenceable G2 row describes a small telecommunications business reducing dependency on QuickBooks/QBO for billing and invoicing, improving contact data, and upgrading the mobile app for field technicians after switching from W3B Management Solutions.",
+        "objective_fit": [
+          "billing",
+          "invoicing",
+          "QuickBooks",
+          "QBO",
+          "mobile app",
+          "catalog",
+          "QuickBooks relief",
+          "billing flexibility",
+          "field technician mobile app",
+          "contracting-world fit"
+        ],
+        "copy_use": "review theme only; not E-E-A-T story until person or business identity is verified",
+        "verification_status": "anonymous or role-only review row"
+      }
+    },
+    {
+      "proof_id": "review-g2-construction-fergus-job-costing-uninvoiced",
+      "customer": "G2 construction administrator review, 2-10 employee company",
+      "source_type": "review_site",
+      "industry": [
+        "construction",
+        "small business"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "2-10 employees",
+      "workflow_fit": [
+        "job costing",
+        "invoicing",
+        "job management",
+        "Fergus alternative",
+        "custom fields"
+      ],
+      "themes": [
+        "uninvoiced job prevention",
+        "job-cost accuracy",
+        "custom workflow",
+        "small contractor complexity"
+      ],
+      "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-4999633",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, G2 tab row 94, Referenceable Yes, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Referenceable G2 row describes a small construction business using Simpro for job-cost accuracy and to avoid completed jobs being missed for invoicing after needing more functionality than Fergus.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": false,
+        "identity_type": "none",
+        "identity_display": "",
+        "business_name": "",
+        "person_name": "",
+        "role_title": "Administrator",
+        "platform": "G2",
+        "source_row_ref": "G2 tab row 94",
+        "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-4999633",
+        "workflow_story": "Referenceable G2 row describes a small construction business using Simpro for job-cost accuracy and to avoid completed jobs being missed for invoicing after needing more functionality than Fergus.",
+        "objective_fit": [
+          "job costing",
+          "invoicing",
+          "job management",
+          "Fergus alternative",
+          "custom fields",
+          "uninvoiced job prevention",
+          "job-cost accuracy",
+          "custom workflow",
+          "small contractor complexity"
+        ],
+        "copy_use": "review theme only; not E-E-A-T story until person or business identity is verified",
+        "verification_status": "anonymous or role-only review row"
+      }
+    },
+    {
+      "proof_id": "review-g2-commercial-plumbing-call-to-invoice-fergus",
+      "customer": "G2 commercial plumbing review, 11-50 employee company",
+      "source_type": "review_site",
+      "industry": [
+        "commercial plumbing",
+        "construction"
+      ],
+      "region": [
+        "NZ"
+      ],
+      "company_size": "11-50 employees",
+      "workflow_fit": [
+        "customer call",
+        "invoicing",
+        "workflow automation",
+        "prebuilds",
+        "retention",
+        "payment claims",
+        "Fergus alternative"
+      ],
+      "themes": [
+        "customer-call-to-invoice workflow",
+        "commercial plumbing",
+        "retention and payment claims",
+        "deep reporting",
+        "system switching"
+      ],
+      "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-4999982",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, G2 tab row 99, Referenceable Yes, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Referenceable G2 row describes a commercial plumbing business using custom workflows, prebuilds, reporting, retention, and payment claims to automate workflow from customer call to invoice after switching from Fergus.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": false,
+        "identity_type": "none",
+        "identity_display": "",
+        "business_name": "",
+        "person_name": "",
+        "role_title": "",
+        "platform": "G2",
+        "source_row_ref": "G2 tab row 99",
+        "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-4999982",
+        "workflow_story": "Referenceable G2 row describes a commercial plumbing business using custom workflows, prebuilds, reporting, retention, and payment claims to automate workflow from customer call to invoice after switching from Fergus.",
+        "objective_fit": [
+          "customer call",
+          "invoicing",
+          "workflow automation",
+          "prebuilds",
+          "retention",
+          "payment claims",
+          "Fergus alternative",
+          "customer-call-to-invoice workflow",
+          "commercial plumbing",
+          "retention and payment claims",
+          "deep reporting",
+          "system switching"
+        ],
+        "copy_use": "review theme only; not E-E-A-T story until person or business identity is verified",
+        "verification_status": "anonymous or role-only review row"
+      }
+    },
+    {
+      "proof_id": "review-g2-construction-lead-quote-job-invoice",
+      "customer": "G2 construction user review, 11-50 employee company",
+      "source_type": "review_site",
+      "industry": [
+        "construction",
+        "field service"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "11-50 employees",
+      "workflow_fit": [
+        "lead tracking",
+        "quoting",
+        "job conversion",
+        "invoicing",
+        "schedule"
+      ],
+      "themes": [
+        "lead-to-quote-to-job-to-invoice workflow",
+        "schedule-to-payroll connection",
+        "job lifecycle visibility"
+      ],
+      "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-5004558",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, G2 tab row 102, Referenceable Yes, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Referenceable G2 row describes a construction user following a job from lead to quote, job, completion, and invoicing, with scheduling also supporting payroll workflows.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": false,
+        "identity_type": "none",
+        "identity_display": "",
+        "business_name": "",
+        "person_name": "",
+        "role_title": "User",
+        "platform": "G2",
+        "source_row_ref": "G2 tab row 102",
+        "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-5004558",
+        "workflow_story": "Referenceable G2 row describes a construction user following a job from lead to quote, job, completion, and invoicing, with scheduling also supporting payroll workflows.",
+        "objective_fit": [
+          "lead tracking",
+          "quoting",
+          "job conversion",
+          "invoicing",
+          "schedule",
+          "lead-to-quote-to-job-to-invoice workflow",
+          "schedule-to-payroll connection",
+          "job lifecycle visibility"
+        ],
+        "copy_use": "review theme only; not E-E-A-T story until person or business identity is verified",
+        "verification_status": "anonymous or role-only review row"
+      }
+    },
+    {
+      "proof_id": "review-g2-small-construction-xero-overcost-visibility",
+      "customer": "G2 small construction administrator review, 2-10 employee company",
+      "source_type": "review_site",
+      "industry": [
+        "construction",
+        "small business"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "2-10 employees",
+      "workflow_fit": [
+        "job management",
+        "Xero",
+        "job cost visibility",
+        "over-cost jobs",
+        "small trade business"
+      ],
+      "themes": [
+        "small business visibility",
+        "real-time over-cost monitoring",
+        "Xero integration",
+        "job-management process"
+      ],
+      "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-6631343",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, G2 tab row 110, Referenceable Yes, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Referenceable G2 row describes a small construction business integrating with Xero and gaining visibility into job status and over-cost jobs in real time.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": false,
+        "identity_type": "none",
+        "identity_display": "",
+        "business_name": "",
+        "person_name": "",
+        "role_title": "Administrator",
+        "platform": "G2",
+        "source_row_ref": "G2 tab row 110",
+        "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-6631343",
+        "workflow_story": "Referenceable G2 row describes a small construction business integrating with Xero and gaining visibility into job status and over-cost jobs in real time.",
+        "objective_fit": [
+          "job management",
+          "Xero",
+          "job cost visibility",
+          "over-cost jobs",
+          "small trade business",
+          "small business visibility",
+          "real-time over-cost monitoring",
+          "Xero integration",
+          "job-management process"
+        ],
+        "copy_use": "review theme only; not E-E-A-T story until person or business identity is verified",
+        "verification_status": "anonymous or role-only review row"
+      }
+    },
+    {
+      "proof_id": "review-g2-electrical-quote-invoice-xero-service-mate",
+      "customer": "G2 electrical administrator review, 11-50 employee company",
+      "source_type": "review_site",
+      "industry": [
+        "electrical",
+        "contracting",
+        "field service"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "11-50 employees",
+      "workflow_fit": [
+        "quoting",
+        "invoicing",
+        "purchase orders",
+        "Xero",
+        "eForms",
+        "project management",
+        "scheduling"
+      ],
+      "themes": [
+        "quote-invoice-purchase-order workflow",
+        "Xero transfer",
+        "prompt invoicing",
+        "contracting company fit",
+        "Service-Mate switch"
+      ],
+      "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-6990973",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, G2 tab row 151, Referenceable Yes, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Referenceable G2 row describes an electrical contracting administrator using Simpro for quotes, invoices, purchase orders, Xero transfer, eForms, scheduling, and project management after switching from Service-Mate.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": false,
+        "identity_type": "none",
+        "identity_display": "",
+        "business_name": "",
+        "person_name": "",
+        "role_title": "Administrator",
+        "platform": "G2",
+        "source_row_ref": "G2 tab row 151",
+        "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-6990973",
+        "workflow_story": "Referenceable G2 row describes an electrical contracting administrator using Simpro for quotes, invoices, purchase orders, Xero transfer, eForms, scheduling, and project management after switching from Service-Mate.",
+        "objective_fit": [
+          "quoting",
+          "invoicing",
+          "purchase orders",
+          "Xero",
+          "eForms",
+          "project management",
+          "scheduling",
+          "quote-invoice-purchase-order workflow",
+          "Xero transfer",
+          "prompt invoicing",
+          "contracting company fit",
+          "Service-Mate switch"
+        ],
+        "copy_use": "review theme only; not E-E-A-T story until person or business identity is verified",
+        "verification_status": "anonymous or role-only review row"
+      }
+    },
+    {
+      "proof_id": "review-g2-public-safety-paperless-quote-to-job-profitability",
+      "customer": "G2 public-safety administrator review, 51-200 employee company",
+      "source_type": "review_site",
+      "industry": [
+        "public safety",
+        "field service"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "51-200 employees",
+      "workflow_fit": [
+        "quote-to-job",
+        "paperless workflow",
+        "profitability",
+        "API",
+        "cloud operations"
+      ],
+      "themes": [
+        "paperless operations",
+        "quote-to-job workflow",
+        "profitability improvement",
+        "larger field-service operation"
+      ],
+      "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-5031799",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, G2 tab row 180, Referenceable Yes, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Referenceable G2 row describes a public-safety business moving away from paper, using a quote-to-job workflow, and connecting workflow control to profitability themes.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": false,
+        "identity_type": "none",
+        "identity_display": "",
+        "business_name": "",
+        "person_name": "",
+        "role_title": "Administrator",
+        "platform": "G2",
+        "source_row_ref": "G2 tab row 180",
+        "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-5031799",
+        "workflow_story": "Referenceable G2 row describes a public-safety business moving away from paper, using a quote-to-job workflow, and connecting workflow control to profitability themes.",
+        "objective_fit": [
+          "quote-to-job",
+          "paperless workflow",
+          "profitability",
+          "API",
+          "cloud operations",
+          "paperless operations",
+          "quote-to-job workflow",
+          "profitability improvement",
+          "larger field-service operation"
+        ],
+        "copy_use": "review theme only; not E-E-A-T story until person or business identity is verified",
+        "verification_status": "anonymous or role-only review row"
+      }
+    },
+    {
+      "proof_id": "review-g2-small-electrical-quote-conversion-job-invoice",
+      "customer": "G2 small electrical administrator review, 2-10 employee company",
+      "source_type": "review_site",
+      "industry": [
+        "electrical",
+        "small business",
+        "field service"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "2-10 employees",
+      "workflow_fit": [
+        "quote conversion",
+        "job conversion",
+        "invoicing",
+        "job management",
+        "small trade business"
+      ],
+      "themes": [
+        "quote-to-job-to-invoice conversion",
+        "small electrical business",
+        "job-management workflow"
+      ],
+      "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-4999668",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, G2 tab row 211, Referenceable Yes, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Referenceable G2 row describes a small electrical administrator using Simpro to convert quotes into jobs and invoices while managing job workflows.",
+      "approval_status": "approved",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": false,
+        "identity_type": "none",
+        "identity_display": "",
+        "business_name": "",
+        "person_name": "",
+        "role_title": "Administrator",
+        "platform": "G2",
+        "source_row_ref": "G2 tab row 211",
+        "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-4999668",
+        "workflow_story": "Referenceable G2 row describes a small electrical administrator using Simpro to convert quotes into jobs and invoices while managing job workflows.",
+        "objective_fit": [
+          "quote conversion",
+          "job conversion",
+          "invoicing",
+          "job management",
+          "small trade business",
+          "quote-to-job-to-invoice conversion",
+          "small electrical business",
+          "job-management workflow"
+        ],
+        "copy_use": "review theme only; not E-E-A-T story until person or business identity is verified",
+        "verification_status": "anonymous or role-only review row"
+      }
+    },
+    {
+      "proof_id": "review-capterra-commercial-hvac-cloud-quotes",
+      "customer": "Capterra commercial HVAC president review",
+      "source_type": "review_site",
+      "industry": [
+        "HVAC",
+        "facilities services",
+        "field service"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "11-50 employees",
+      "workflow_fit": [
+        "quoting",
+        "cloud workflow",
+        "implementation",
+        "support"
+      ],
+      "themes": [
+        "commercial HVAC quoting",
+        "cloud software switch",
+        "workflow learning curve",
+        "support experience"
+      ],
+      "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Capterra tab row 19, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Capterra row describes a commercial HVAC president using Simpro for quoting after choosing a cloud-based workflow, with setup and support context.",
+      "approval_status": "ready",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": true,
+        "identity_type": "person",
+        "identity_display": "Gerald S",
+        "business_name": "",
+        "person_name": "Gerald S",
+        "role_title": "President",
+        "platform": "Capterra",
+        "source_row_ref": "Capterra tab row 19",
+        "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+        "workflow_story": "Capterra row describes a commercial HVAC president using Simpro for quoting after choosing a cloud-based workflow, with setup and support context.",
+        "objective_fit": [
+          "quoting",
+          "cloud workflow",
+          "implementation",
+          "support",
+          "commercial HVAC quoting",
+          "cloud software switch",
+          "workflow learning curve",
+          "support experience"
+        ],
+        "copy_use": "paraphrased E-E-A-T story with same-paragraph source link",
+        "verification_status": "brand-captured public review source"
+      }
+    },
+    {
+      "proof_id": "review-capterra-electrical-paperless-jobs-to-invoice",
+      "customer": "Capterra small electrical managing-director review",
+      "source_type": "review_site",
+      "industry": [
+        "electrical",
+        "small business",
+        "field service"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "1-10 employees",
+      "workflow_fit": [
+        "job tracking",
+        "invoicing",
+        "mobile app",
+        "field updates",
+        "paperless workflow",
+        "Xero"
+      ],
+      "themes": [
+        "jobs not missed for invoicing",
+        "paperless operations",
+        "technician app updates",
+        "small electrical workflow"
+      ],
+      "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Capterra tab row 26, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Capterra row describes a small electrical business using Simpro for job tracking, field app updates, parts and labor capture, and keeping completed jobs visible for invoicing.",
+      "approval_status": "ready",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": true,
+        "identity_type": "person",
+        "identity_display": "Njela T",
+        "business_name": "",
+        "person_name": "Njela T",
+        "role_title": "Managing Director",
+        "platform": "Capterra",
+        "source_row_ref": "Capterra tab row 26",
+        "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+        "workflow_story": "Capterra row describes a small electrical business using Simpro for job tracking, field app updates, parts and labor capture, and keeping completed jobs visible for invoicing.",
+        "objective_fit": [
+          "job tracking",
+          "invoicing",
+          "mobile app",
+          "field updates",
+          "paperless workflow",
+          "Xero",
+          "jobs not missed for invoicing",
+          "paperless operations",
+          "technician app updates",
+          "small electrical workflow"
+        ],
+        "copy_use": "paraphrased E-E-A-T story with same-paragraph source link",
+        "verification_status": "brand-captured public review source"
+      }
+    },
+    {
+      "proof_id": "review-capterra-construction-lead-estimate-final-invoice-job-costing",
+      "customer": "Capterra construction general-manager review",
+      "source_type": "review_site",
+      "industry": [
+        "construction",
+        "project service"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "11-50 employees",
+      "workflow_fit": [
+        "lead generation",
+        "estimating",
+        "job conversion",
+        "final invoice",
+        "job costing",
+        "purchasing",
+        "labor entries",
+        "payments"
+      ],
+      "themes": [
+        "full project lifecycle",
+        "lead-to-estimate-to-final-invoice",
+        "job-costing visibility",
+        "purchase and labor visibility",
+        "contractor pain points"
+      ],
+      "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Capterra tab row 39, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Capterra row describes a construction general manager using Simpro to track a project from lead generation through estimate, job/project conversion, purchases, labor entries, customer invoices, payment status, and job costing.",
+      "approval_status": "ready",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": true,
+        "identity_type": "person",
+        "identity_display": "Timothy O",
+        "business_name": "",
+        "person_name": "Timothy O",
+        "role_title": "General Manager",
+        "platform": "Capterra",
+        "source_row_ref": "Capterra tab row 39",
+        "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+        "workflow_story": "Capterra row describes a construction general manager using Simpro to track a project from lead generation through estimate, job/project conversion, purchases, labor entries, customer invoices, payment status, and job costing.",
+        "objective_fit": [
+          "lead generation",
+          "estimating",
+          "job conversion",
+          "final invoice",
+          "job costing",
+          "purchasing",
+          "labor entries",
+          "payments",
+          "full project lifecycle",
+          "lead-to-estimate-to-final-invoice",
+          "job-costing visibility",
+          "purchase and labor visibility",
+          "contractor pain points"
+        ],
+        "copy_use": "paraphrased E-E-A-T story with same-paragraph source link",
+        "verification_status": "brand-captured public review source"
+      }
+    },
+    {
+      "proof_id": "review-capterra-qbo-service-jobs-quotes-invoices",
+      "customer": "Capterra owner review with QBO integration",
+      "source_type": "review_site",
+      "industry": [
+        "field service",
+        "small business"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "unknown",
+      "workflow_fit": [
+        "service jobs",
+        "recurring jobs",
+        "invoicing",
+        "quotes",
+        "QBO",
+        "QuickBooks Online"
+      ],
+      "themes": [
+        "QBO-connected operations",
+        "service and recurring jobs",
+        "fast invoicing",
+        "easy quotes"
+      ],
+      "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Capterra tab row 50, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Capterra row describes an owner using Simpro for service jobs, recurring jobs, invoicing, quotes, and QuickBooks Online integration.",
+      "approval_status": "ready",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": true,
+        "identity_type": "person",
+        "identity_display": "Megan B",
+        "business_name": "",
+        "person_name": "Megan B",
+        "role_title": "Owner",
+        "platform": "Capterra",
+        "source_row_ref": "Capterra tab row 50",
+        "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+        "workflow_story": "Capterra row describes an owner using Simpro for service jobs, recurring jobs, invoicing, quotes, and QuickBooks Online integration.",
+        "objective_fit": [
+          "service jobs",
+          "recurring jobs",
+          "invoicing",
+          "quotes",
+          "QBO",
+          "QuickBooks Online",
+          "QBO-connected operations",
+          "service and recurring jobs",
+          "fast invoicing",
+          "easy quotes"
+        ],
+        "copy_use": "paraphrased E-E-A-T story with same-paragraph source link",
+        "verification_status": "brand-captured public review source"
+      }
+    },
+    {
+      "proof_id": "review-capterra-construction-bid-catalog-job-costing",
+      "customer": "Capterra construction project-manager review",
+      "source_type": "review_site",
+      "industry": [
+        "construction",
+        "project service"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "11-50 employees",
+      "workflow_fit": [
+        "bid creation",
+        "catalog",
+        "labor time",
+        "job costing",
+        "inventory management",
+        "Zendesk alternative"
+      ],
+      "themes": [
+        "bid creation",
+        "catalog-driven estimating",
+        "job costing",
+        "inventory management",
+        "system switching"
+      ],
+      "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Capterra tab row 75, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Capterra row describes a construction project manager using Simpro for bid creation, catalog parts with associated time, job costing, and inventory management after switching from Zendesk.",
+      "approval_status": "ready",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": true,
+        "identity_type": "person",
+        "identity_display": "Andrew M",
+        "business_name": "",
+        "person_name": "Andrew M",
+        "role_title": "Project Manager",
+        "platform": "Capterra",
+        "source_row_ref": "Capterra tab row 75",
+        "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+        "workflow_story": "Capterra row describes a construction project manager using Simpro for bid creation, catalog parts with associated time, job costing, and inventory management after switching from Zendesk.",
+        "objective_fit": [
+          "bid creation",
+          "catalog",
+          "labor time",
+          "job costing",
+          "inventory management",
+          "Zendesk alternative",
+          "bid creation",
+          "catalog-driven estimating",
+          "job costing",
+          "inventory management",
+          "system switching"
+        ],
+        "copy_use": "paraphrased E-E-A-T story with same-paragraph source link",
+        "verification_status": "brand-captured public review source"
+      }
+    },
+    {
+      "proof_id": "review-capterra-construction-lead-quote-invoice-payment-quickbooks",
+      "customer": "Capterra construction operations-manager review",
+      "source_type": "review_site",
+      "industry": [
+        "construction",
+        "field service"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "11-50 employees",
+      "workflow_fit": [
+        "lead management",
+        "quoting",
+        "job tracking",
+        "invoicing",
+        "payments",
+        "QuickBooks",
+        "mobile app"
+      ],
+      "themes": [
+        "lead-to-quote-to-job-to-invoice-to-payment workflow",
+        "QuickBooks Enterprise integration",
+        "mobile field work",
+        "remote work",
+        "field-service software comparison"
+      ],
+      "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Capterra tab row 76, checked via GWS on 2026-06-12; public Capterra result verified on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Capterra row describes a construction operations manager using Simpro to move from lead to quote, job, invoice, and payment, with QuickBooks Enterprise integration and mobile field workflows after comparing FieldEdge, mHelpDesk, ServiceTitan, FieldAware, Jobber, ServiceTrade, and Joblogic.",
+      "approval_status": "ready",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": true,
+        "identity_type": "person",
+        "identity_display": "Joel A",
+        "business_name": "",
+        "person_name": "Joel A",
+        "role_title": "Operations Manager",
+        "platform": "Capterra",
+        "source_row_ref": "Capterra tab row 76",
+        "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+        "workflow_story": "Capterra row describes a construction operations manager using Simpro to move from lead to quote, job, invoice, and payment, with QuickBooks Enterprise integration and mobile field workflows after comparing FieldEdge, mHelpDesk, ServiceTitan, FieldAware, Jobber, ServiceTrade, and Joblogic.",
+        "objective_fit": [
+          "lead management",
+          "quoting",
+          "job tracking",
+          "invoicing",
+          "payments",
+          "QuickBooks",
+          "mobile app",
+          "lead-to-quote-to-job-to-invoice-to-payment workflow",
+          "QuickBooks Enterprise integration",
+          "mobile field work",
+          "remote work",
+          "field-service software comparison"
+        ],
+        "copy_use": "paraphrased E-E-A-T story with same-paragraph source link",
+        "verification_status": "brand-captured public review source"
+      }
+    },
+    {
+      "proof_id": "review-capterra-public-safety-lead-quote-invoice-payments",
+      "customer": "Capterra public-safety president review",
+      "source_type": "review_site",
+      "industry": [
+        "public safety",
+        "field service"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "11-50 employees",
+      "workflow_fit": [
+        "lead management",
+        "quoting",
+        "job management",
+        "invoicing",
+        "payments",
+        "field personnel time",
+        "software consolidation"
+      ],
+      "themes": [
+        "lead-to-cash workflow",
+        "one system for employees",
+        "field time tracking",
+        "software consolidation",
+        "implementation support"
+      ],
+      "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Capterra tab row 90, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Capterra row describes a public-safety business bringing employees into one software package for lead, quote, job management, invoicing, payments, and field personnel time after canceling multiple other software programs.",
+      "approval_status": "ready",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": true,
+        "identity_type": "person",
+        "identity_display": "Lori M",
+        "business_name": "",
+        "person_name": "Lori M",
+        "role_title": "President",
+        "platform": "Capterra",
+        "source_row_ref": "Capterra tab row 90",
+        "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+        "workflow_story": "Capterra row describes a public-safety business bringing employees into one software package for lead, quote, job management, invoicing, payments, and field personnel time after canceling multiple other software programs.",
+        "objective_fit": [
+          "lead management",
+          "quoting",
+          "job management",
+          "invoicing",
+          "payments",
+          "field personnel time",
+          "software consolidation",
+          "lead-to-cash workflow",
+          "one system for employees",
+          "field time tracking",
+          "software consolidation",
+          "implementation support"
+        ],
+        "copy_use": "paraphrased E-E-A-T story with same-paragraph source link",
+        "verification_status": "brand-captured public review source"
+      }
+    },
+    {
+      "proof_id": "review-capterra-e2e-estimating-invoicing-xero",
+      "customer": "Capterra director review with E2E workflow",
+      "source_type": "review_site",
+      "industry": [
+        "field service",
+        "project service"
+      ],
+      "region": [
+        "CA"
+      ],
+      "company_size": "unknown",
+      "workflow_fit": [
+        "customer contact",
+        "estimating",
+        "delivery",
+        "invoicing",
+        "Xero",
+        "scheduling",
+        "paperless operations"
+      ],
+      "themes": [
+        "end-to-end workflow",
+        "estimating-to-invoicing",
+        "Xero integration",
+        "paper removal",
+        "audit trail",
+        "workflow transparency"
+      ],
+      "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Capterra tab row 106, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Capterra row describes a director using Simpro across the full process from customer contact through estimating, delivery, invoicing, and Xero integration, with scheduling, risk, paper, duplication, and transparency themes.",
+      "approval_status": "ready",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": true,
+        "identity_type": "person",
+        "identity_display": "Richard C",
+        "business_name": "",
+        "person_name": "Richard C",
+        "role_title": "Director",
+        "platform": "Capterra",
+        "source_row_ref": "Capterra tab row 106",
+        "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+        "workflow_story": "Capterra row describes a director using Simpro across the full process from customer contact through estimating, delivery, invoicing, and Xero integration, with scheduling, risk, paper, duplication, and transparency themes.",
+        "objective_fit": [
+          "customer contact",
+          "estimating",
+          "delivery",
+          "invoicing",
+          "Xero",
+          "scheduling",
+          "paperless operations",
+          "end-to-end workflow",
+          "estimating-to-invoicing",
+          "Xero integration",
+          "paper removal",
+          "audit trail",
+          "workflow transparency"
+        ],
+        "copy_use": "paraphrased E-E-A-T story with same-paragraph source link",
+        "verification_status": "brand-captured public review source"
+      }
+    },
+    {
+      "proof_id": "review-capterra-trades-sme-job-costing-xero-qbo",
+      "customer": "Capterra trades sales-manager review",
+      "source_type": "review_site",
+      "industry": [
+        "trades",
+        "construction",
+        "SME"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "company_size": "unknown",
+      "workflow_fit": [
+        "job costing",
+        "project management",
+        "scheduling",
+        "supplier catalogs",
+        "asset management",
+        "Xero",
+        "QBO"
+      ],
+      "themes": [
+        "trades job costing",
+        "SME project management",
+        "Xero and QBO fit",
+        "supplier catalogs",
+        "asset management"
+      ],
+      "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Capterra tab row 107, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Capterra row describes a trades/construction SME perspective on Simpro job costing, project management, scheduling, supplier catalogs, asset management, and Xero/QBO fit.",
+      "approval_status": "ready",
+      "public_copy_allowed": true,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Use as paraphrased review-story evidence only; exact review wording, reviewer identity, rating, and ranking claims require current public capture and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": true,
+        "identity_type": "person",
+        "identity_display": "Guy E",
+        "business_name": "",
+        "person_name": "Guy E",
+        "role_title": "Sales Manager",
+        "platform": "Capterra",
+        "source_row_ref": "Capterra tab row 107",
+        "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+        "workflow_story": "Capterra row describes a trades/construction SME perspective on Simpro job costing, project management, scheduling, supplier catalogs, asset management, and Xero/QBO fit.",
+        "objective_fit": [
+          "job costing",
+          "project management",
+          "scheduling",
+          "supplier catalogs",
+          "asset management",
+          "Xero",
+          "QBO",
+          "trades job costing",
+          "SME project management",
+          "Xero and QBO fit",
+          "supplier catalogs",
+          "asset management"
+        ],
+        "copy_use": "paraphrased E-E-A-T story with same-paragraph source link",
+        "verification_status": "brand-captured public review source"
+      }
+    },
+    {
+      "proof_id": "review-google-kingson-electrical-quote-to-invoice",
+      "customer": "Kingson Electrical Google review",
+      "source_type": "review_site",
+      "industry": [
+        "electrical",
+        "field service"
+      ],
+      "region": [
+        "UK"
+      ],
+      "workflow_fit": [
+        "quoting",
+        "invoicing",
+        "job tracking",
+        "single source of truth"
+      ],
+      "themes": [
+        "quote-to-invoice visibility",
+        "job lifecycle tracking",
+        "electrical contractor operations"
+      ],
+      "public_url": "",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Google Review Quotes tab row 2, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Brand-captured Google review row describes Kingson Electrical keeping job information in one place from quote to invoice to track jobs end to end.",
+      "approval_status": "candidate",
+      "public_copy_allowed": false,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Internal review-story route only until a current public Google review URL is captured; no exact quote, rating, or named-reviewer claim without public verification and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": false,
+        "identity_type": "business",
+        "identity_display": "Kingson Electrical",
+        "business_name": "Kingson Electrical",
+        "person_name": "",
+        "role_title": "",
+        "platform": "Google Review",
+        "source_row_ref": "Google Review Quotes tab row 2",
+        "public_url": "",
+        "workflow_story": "Brand-captured Google review row describes Kingson Electrical keeping job information in one place from quote to invoice to track jobs end to end.",
+        "objective_fit": [
+          "quoting",
+          "invoicing",
+          "job tracking",
+          "single source of truth",
+          "quote-to-invoice visibility",
+          "job lifecycle tracking",
+          "electrical contractor operations"
+        ],
+        "copy_use": "internal research only until a usable public Google review URL exists",
+        "verification_status": "missing public URL"
+      }
+    },
+    {
+      "proof_id": "review-google-plumbing-material-labor-cost-field-story",
+      "customer": "Google plumbing/construction review",
+      "source_type": "review_site",
+      "industry": [
+        "plumbing",
+        "construction",
+        "field service"
+      ],
+      "region": [
+        "US"
+      ],
+      "workflow_fit": [
+        "material costs",
+        "labor hours",
+        "field notes",
+        "plans and specs",
+        "retention",
+        "job costing"
+      ],
+      "themes": [
+        "material and labor cost tracking",
+        "field documentation",
+        "small plumbing service projects",
+        "large construction projects",
+        "retention tracking"
+      ],
+      "public_url": "",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Google Review Quotes tab row 8, checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Brand-captured Google review row describes using Simpro to track material costs, labor hours, field pictures, notes, plans, specs, submittals, and retention across plumbing service and construction projects.",
+      "approval_status": "candidate",
+      "public_copy_allowed": false,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Internal review-story route only until a current public Google review URL is captured; no exact quote, rating, or named-reviewer claim without public verification and Approved quote status."
+      ],
+      "review_story": {
+        "story_allowed": false,
+        "identity_type": "none",
+        "identity_display": "",
+        "business_name": "",
+        "person_name": "",
+        "role_title": "",
+        "platform": "Google Review",
+        "source_row_ref": "Google Review Quotes tab row 8",
+        "public_url": "",
+        "workflow_story": "Brand-captured Google review row describes using Simpro to track material costs, labor hours, field pictures, notes, plans, specs, submittals, and retention across plumbing service and construction projects.",
+        "objective_fit": [
+          "material costs",
+          "labor hours",
+          "field notes",
+          "plans and specs",
+          "retention",
+          "job costing",
+          "material and labor cost tracking",
+          "field documentation",
+          "small plumbing service projects",
+          "large construction projects",
+          "retention tracking"
+        ],
+        "copy_use": "internal research only until a usable public Google review URL exists",
+        "verification_status": "missing public URL"
+      }
+    },
+    {
+      "proof_id": "review-site-simpro-g2",
+      "customer": "Simpro public review themes",
+      "source_type": "review_site",
+      "industry": [
+        "field service",
+        "trades"
+      ],
+      "region": [
+        "global"
+      ],
+      "workflow_fit": [
+        "implementation",
+        "support",
+        "product use",
+        "workflow pain"
+      ],
+      "themes": [
+        "first-hand customer experience",
+        "voice of customer"
+      ],
+      "public_url": "https://www.g2.com/products/simpro/reviews",
+      "internal_source_ref": "Task-specific Playwright MCP review-site capture required",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "G2 tab in the Global Customer Quote Matrix contains first-hand review themes around quoting, quote-to-job-to-invoice workflow, accounting integration, job costing, estimating, implementation, support, and product-fit tradeoffs. Use for research and paraphrased experience patterns only after current public review capture.",
+      "approval_status": "ready",
+      "public_copy_allowed": false,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "No exact quotes, ratings, badges, rankings, aggregate claims, or named reviewers without current public review verification and approval."
+      ],
+      "review_story": {
+        "story_allowed": false,
+        "identity_type": "none",
+        "identity_display": "",
+        "business_name": "",
+        "person_name": "",
+        "role_title": "",
+        "platform": "G2",
+        "source_row_ref": "Task-specific Playwright MCP review-site capture required",
+        "public_url": "https://www.g2.com/products/simpro/reviews",
+        "workflow_story": "G2 tab in the Global Customer Quote Matrix contains first-hand review themes around quoting, quote-to-job-to-invoice workflow, accounting integration, job costing, estimating, implementation, support, and product-fit tradeoffs. Use for research and paraphrased experience patterns only after current public review capture.",
+        "objective_fit": [
+          "implementation",
+          "support",
+          "product use",
+          "workflow pain",
+          "first-hand customer experience",
+          "voice of customer"
+        ],
+        "copy_use": "review theme only; not E-E-A-T story until a real identity and public review URL are verified",
+        "verification_status": "aggregate review-theme route, not row-level story proof"
+      }
+    },
+    {
+      "proof_id": "review-site-simpro-google-review-themes",
+      "customer": "Simpro Google Review themes",
+      "source_type": "review_site",
+      "industry": [
+        "field service",
+        "trades",
+        "electrical",
+        "plumbing",
+        "construction"
+      ],
+      "region": [
+        "US",
+        "UK",
+        "AU"
+      ],
+      "workflow_fit": [
+        "quote-to-invoice tracking",
+        "project management",
+        "material cost tracking",
+        "labor tracking",
+        "project cost management"
+      ],
+      "themes": [
+        "voice of customer",
+        "quote-to-invoice visibility",
+        "project management",
+        "cost tracking",
+        "trade-business fit"
+      ],
+      "public_url": "",
+      "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Google Review Quotes tab rows 1-17 checked via GWS on 2026-06-12.",
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "evidence": "Google Review Quotes tab contains review themes about keeping information in one place from quote to invoice, tracking material costs and labor hours for plumbing projects, project cost management for trades, and operational visibility.",
+      "approval_status": "candidate",
+      "public_copy_allowed": false,
+      "last_verified": "2026-06-12",
+      "restrictions": [
+        "Internal review-theme route only until a current public review URL is captured; no exact quotes, ratings, rankings, or named-reviewer claims without public verification and approval."
+      ],
+      "review_story": {
+        "story_allowed": false,
+        "identity_type": "none",
+        "identity_display": "",
+        "business_name": "",
+        "person_name": "",
+        "role_title": "",
+        "platform": "Google Review",
+        "source_row_ref": "Google Review Quotes tab rows 1-17",
+        "public_url": "",
+        "workflow_story": "Google Review Quotes tab contains review themes about keeping information in one place from quote to invoice, tracking material costs and labor hours for plumbing projects, project cost management for trades, and operational visibility.",
+        "objective_fit": [
+          "quote-to-invoice tracking",
+          "project management",
+          "material cost tracking",
+          "labor tracking",
+          "project cost management",
+          "voice of customer",
+          "quote-to-invoice visibility",
+          "project management",
+          "cost tracking",
+          "trade-business fit"
+        ],
+        "copy_use": "internal research only until row-level public review URLs are captured",
+        "verification_status": "aggregate internal review-theme route with no public URL"
+      }
+    }
+  ]
+}

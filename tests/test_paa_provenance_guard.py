@@ -78,6 +78,37 @@ PAA/FAQ Provenance
 
             self.assertEqual(check_file(str(article)), [])
 
+    def test_matching_provenance_sidecar_passes_clean_draft(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            artifact = root / "research" / "paa-questions-hvac-scheduling-2026-06-12.md"
+            sidecar = root / "research" / "validation-hvac-scheduling-2026-06-12.md"
+            artifact.parent.mkdir()
+            artifact.write_text(
+                """# PAA Questions: HVAC Scheduling
+
+- What is the best way to schedule HVAC technicians?
+- Should HVAC scheduling connect to invoicing?
+""",
+                encoding="utf-8",
+            )
+            sidecar.write_text(
+                """```text
+PAA/FAQ Provenance
+- Source: AnswerSocrates via Playwright MCP
+- Artifact: research/paa-questions-hvac-scheduling-2026-06-12.md
+- Selected questions:
+  - What is the best way to schedule HVAC technicians?
+  - Should HVAC scheduling connect to invoicing?
+```""",
+                encoding="utf-8",
+            )
+            article = root / "drafts" / "hvac-scheduling-2026-06-12.md"
+            article.parent.mkdir()
+            article.write_text(article_with_faq(), encoding="utf-8")
+
+            self.assertEqual(check_file(str(article), proof_sidecar=str(sidecar)), [])
+
     def test_faq_question_missing_from_artifact_fails(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

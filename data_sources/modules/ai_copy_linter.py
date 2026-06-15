@@ -33,14 +33,6 @@ APPROVED_PROPER_NOUNS = [
 ]
 
 
-NUMBER_WORD_RE = re.compile(
-    r"\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|"
-    r"twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|"
-    r"nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)"
-    r"(?:[-\s](?:one|two|three|four|five|six|seven|eight|nine))?\b",
-    re.IGNORECASE,
-)
-
 BECAUSE_RE = re.compile(r"\bbecause\b", re.IGNORECASE)
 
 
@@ -56,12 +48,6 @@ ERROR_RULES: List[Tuple[str, Pattern[str], str, str]] = [
         re.compile(r";"),
         "Semicolons are not allowed in Simpro web copy.",
         "Split the sentence or use a comma or period.",
-    ),
-    (
-        "spelled_out_number",
-        NUMBER_WORD_RE,
-        "Spelled-out number words are not allowed in Simpro web copy.",
-        "Use numerals instead, such as 2 instead of two.",
     ),
     (
         "hashtag",
