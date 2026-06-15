@@ -277,7 +277,9 @@ def _target_priority_score(row: FindingDict, usage: FindingDict) -> int:
     approval_status = _text(row.get("approval_status"))
     source_type = _text(row.get("source_type"))
     score = 0
-    if approval_status == "ready":
+    if approval_status == "approved":
+        score += 60
+    elif approval_status == "ready":
         score += 50
     elif approval_status == "candidate":
         score += 10
@@ -321,13 +323,17 @@ def _recommended_action(row: FindingDict) -> str:
         return "add_source_backed_candidate"
     approval_status = _text(row.get("approval_status"))
     if not _text(row.get("public_url")):
-        return "capture_public_url_or_keep_internal"
-    if approval_status == "ready" and bool(row.get("public_copy_allowed")):
-        return "verify_public_theme_support"
+        return "capture_public_url"
     if not bool(row.get("public_copy_allowed")):
         return "resolve_public_copy_permission"
-    if approval_status == "candidate":
-        return "resolve_approval_boundary"
+    if approval_status != "approved":
+        return "approve_theme_only"
+    has_quote_or_metric = bool(
+        _approved_item_count(row.get("approved_quotes", []))
+        or _approved_item_count(row.get("approved_metrics", []))
+    )
+    if not has_quote_or_metric:
+        return "add_quote_or_metric_evidence"
     return "review_source_boundary"
 
 

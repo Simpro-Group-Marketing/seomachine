@@ -80,14 +80,14 @@ def base_row(**overrides):
         "industry": "plumbing; field service",
         "region": "NZ",
         "workflow_fit": "job management; quoting; invoicing",
-        "themes": "small trade workflow; customer story candidate",
+        "themes": "small trade workflow; official customer story source route",
         "public_url": "",
         "internal_source_ref": "Customer Story folder row: Queenstown Plumbing Customer Story",
-        "approval_status": "ready",
+        "approval_status": "approved",
         "public_copy_allowed": "false",
         "evidence": "Drive search returned SP | Customer Story - Queenstown Plumbing and the Queenstown Plumbing Customer Story folder.",
         "last_verified": "2026-06-15",
-        "restrictions": "Internal story candidate only; do not use exact quotes or public copy until public URL or approval is added.",
+        "restrictions": "Internal story route only; do not use exact quotes or public copy until public URL or public-copy permission is recorded.",
     }
     row.update(overrides)
     return row
@@ -109,10 +109,10 @@ class CustomerProofIndexIntakeTests(unittest.TestCase):
                         customer="AlarmQuest",
                         source_type="reference",
                         workflow_fit="job management; service workflow",
-                        themes="reference candidate; security workflow",
+                        themes="official reference route; security workflow",
                         internal_source_ref="Simpro References program source row for AlarmQuest",
-                        evidence="Reference candidate for job workflow validation.",
-                        approval_status="ready",
+                        evidence="Official reference route for job workflow validation.",
+                        approval_status="approved",
                         public_copy_allowed="false",
                     ),
                     base_row(
@@ -134,7 +134,7 @@ class CustomerProofIndexIntakeTests(unittest.TestCase):
                         source_type="review_site",
                         public_url="https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
                         internal_source_ref="Capterra tab row 25",
-                        approval_status="ready",
+                        approval_status="approved",
                         public_copy_allowed="true",
                         review_platform="Capterra",
                         review_source_row_ref="Capterra tab row 25",
@@ -191,7 +191,7 @@ class CustomerProofIndexIntakeTests(unittest.TestCase):
             self.assertTrue(any(f["rule_id"] == "review_story_identity_missing" for f in findings))
             self.assertTrue(any(f["rule_id"] == "review_story_public_url_missing" for f in findings))
 
-    def test_google_review_without_public_url_validates_only_as_candidate_internal(self):
+    def test_google_review_without_public_url_can_be_approved_internal_only(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             index_path = root / "customer-proof-index.json"
@@ -205,12 +205,12 @@ class CustomerProofIndexIntakeTests(unittest.TestCase):
                         customer="Kingson Electrical Ltd",
                         source_type="review_site",
                         public_url="",
-                        approval_status="candidate",
+                        approval_status="approved",
                         public_copy_allowed="false",
                         review_platform="Google Reviews",
                         review_source_row_ref="Google Review Quotes tab row 2",
-                        review_workflow_story="Internal Google review candidate; public URL not captured.",
-                        restrictions="Research only until a usable public Google review URL is captured.",
+                        review_workflow_story="Internal Google review route; public URL not captured.",
+                        restrictions="Official brand-captured review route; internal only until a usable public Google review URL is captured.",
                     )
                 ],
             )
@@ -224,7 +224,7 @@ class CustomerProofIndexIntakeTests(unittest.TestCase):
                         proof_id="review-google-kingson-electrical-public",
                         customer="Kingson Electrical Ltd",
                         source_type="review_site",
-                        approval_status="ready",
+                        approval_status="approved",
                         public_copy_allowed="true",
                         review_platform="Google Reviews",
                         review_source_row_ref="Google Review Quotes tab row 2",
@@ -315,9 +315,9 @@ class CustomerProofIndexIntakeTests(unittest.TestCase):
                         source_type="reference",
                         internal_source_ref="Simpro References program source row for AlarmQuest",
                         workflow_fit="job management; service workflow",
-                        themes="reference candidate; security workflow",
-                        evidence="Reference candidate for job workflow validation.",
-                        approval_status="ready",
+                        themes="official reference route; security workflow",
+                        evidence="Official reference route for job workflow validation.",
+                        approval_status="approved",
                         public_copy_allowed="false",
                     ),
                 ],

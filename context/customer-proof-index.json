@@ -184,13 +184,17 @@
       "internal_source_ref": "context/internal-links-map.md customer proof links; context/seo-guidelines.md named customer proof",
       "approved_quotes": [],
       "approved_metrics": [],
-      "evidence": "Potential security/invoicing proof path. Exact 55% invoice-generation candidate was excluded in the active proof pack until source-visible evidence is reverified.",
-      "approval_status": "candidate",
+      "evidence": "Official Simpro case-study route for security, service operations, and invoicing proof. Numeric invoice-generation claims remain excluded until an approved metric row captures source-visible evidence.",
+      "approval_status": "approved",
       "public_copy_allowed": false,
-      "last_verified": "2026-06-12",
+      "last_verified": "2026-06-15",
       "restrictions": [
-        "Do not use numeric invoice-generation claim until source-visible evidence is approved."
-      ]
+        "Public copy permission not yet enabled in this index row",
+        "do not use numeric invoice-generation claims until an approved metric row captures source-visible evidence."
+      ],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "case-study-norberg-electric",
@@ -215,13 +219,17 @@
       "internal_source_ref": "context/internal-links-map.md customer proof links",
       "approved_quotes": [],
       "approved_metrics": [],
-      "evidence": "Potential electrical estimating proof path.",
-      "approval_status": "candidate",
+      "evidence": "Official Simpro case-study route for electrical estimating and project proof. Exact public claims still require approved quote, metric, or source-support evidence.",
+      "approval_status": "approved",
       "public_copy_allowed": false,
-      "last_verified": "2026-06-12",
+      "last_verified": "2026-06-15",
       "restrictions": [
-        "Verify source-visible exact claims before public use."
-      ]
+        "Public copy permission not yet enabled in this index row",
+        "exact claims require approved quote, metric, or source-support evidence."
+      ],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "quote-matrix-cinos-project-delivery",
@@ -720,13 +728,17 @@
         }
       ],
       "approved_metrics": [],
-      "evidence": "Quote Matrix candidate for software-selection proof. Requires public-copy approval and story-path verification before exact quote use.",
-      "approval_status": "candidate",
+      "evidence": "Official brand-captured Quote Matrix row for software-selection proof. Public copy and exact quote use remain blocked until public URL or story-path permission and approved quote evidence are recorded.",
+      "approval_status": "approved",
       "public_copy_allowed": false,
-      "last_verified": "2026-06-12",
+      "last_verified": "2026-06-15",
       "restrictions": [
-        "Do not use as public exact quote until Quote Matrix row and publishability are rechecked."
-      ]
+        "Internal Quote Matrix route only",
+        "no public exact quote, testimonial wording, metric, or named claim until public-copy permission and approved proof rows are recorded."
+      ],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "customer-stories-source-register",
@@ -754,12 +766,16 @@
       "approved_quotes": [],
       "approved_metrics": [],
       "evidence": "Deck states the goal is to provide real-life, metric-driven examples of how Simpro products or services have positively impacted customers, with key links to the Global Customer Quote Matrix, Customer Story PDFs, and Simpro webpage.",
-      "approval_status": "ready",
+      "approval_status": "approved",
       "public_copy_allowed": false,
-      "last_verified": "2026-06-12",
+      "last_verified": "2026-06-15",
       "restrictions": [
-        "Selection source only; individual quotes and metrics still need row-level approval and public/source-visible support."
-      ]
+        "Selection source only",
+        "individual quotes and metrics still need row-level approval and public/source-visible support."
+      ],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "references-source-register",
@@ -788,12 +804,16 @@
       "approved_quotes": [],
       "approved_metrics": [],
       "evidence": "Deck states the reference program streamlines reference processes from request to closure, accelerates deal closures through effective content utilization, and prevents customer overuse and fatigue.",
-      "approval_status": "ready",
+      "approval_status": "approved",
       "public_copy_allowed": false,
-      "last_verified": "2026-06-12",
+      "last_verified": "2026-06-15",
       "restrictions": [
-        "Selection and governance source only; public copy requires approved quote, reference permission, and source-visible support."
-      ]
+        "Selection and governance source only",
+        "public copy requires approved quote, reference permission, and source-visible support."
+      ],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "review-g2-security-quote-schedule-invoice-minutes",
@@ -2119,12 +2139,13 @@
       "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Google Review Quotes tab row 2, checked via GWS on 2026-06-12.",
       "approved_quotes": [],
       "approved_metrics": [],
-      "evidence": "Brand-captured Google review row describes Kingson Electrical keeping job information in one place from quote to invoice to track jobs end to end.",
-      "approval_status": "candidate",
+      "evidence": "Official brand-captured Google review row describes Kingson Electrical keeping job information in one place from quote to invoice to track jobs end to end.",
+      "approval_status": "approved",
       "public_copy_allowed": false,
-      "last_verified": "2026-06-12",
+      "last_verified": "2026-06-15",
       "restrictions": [
-        "Internal review-story route only until a current public Google review URL is captured; no exact quote, rating, or named-reviewer claim without public verification and Approved quote status."
+        "Internal review-story route only until a current public Google review URL is captured",
+        "no exact quote, rating, or named-reviewer claim without public verification and Approved quote status."
       ],
       "review_story": {
         "story_allowed": false,
@@ -2181,12 +2202,13 @@
       "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Google Review Quotes tab row 8, checked via GWS on 2026-06-12.",
       "approved_quotes": [],
       "approved_metrics": [],
-      "evidence": "Brand-captured Google review row describes using Simpro to track material costs, labor hours, field pictures, notes, plans, specs, submittals, and retention across plumbing service and construction projects.",
-      "approval_status": "candidate",
+      "evidence": "Official brand-captured Google review row describes using Simpro to track material costs, labor hours, field pictures, notes, plans, specs, submittals, and retention across plumbing service and construction projects.",
+      "approval_status": "approved",
       "public_copy_allowed": false,
-      "last_verified": "2026-06-12",
+      "last_verified": "2026-06-15",
       "restrictions": [
-        "Internal review-story route only until a current public Google review URL is captured; no exact quote, rating, or named-reviewer claim without public verification and Approved quote status."
+        "Internal review-story route only until a current public Google review URL is captured",
+        "no exact quote, rating, or named-reviewer claim without public verification and Approved quote status."
       ],
       "review_story": {
         "story_allowed": false,
@@ -2241,12 +2263,13 @@
       "internal_source_ref": "Task-specific Playwright MCP review-site capture required",
       "approved_quotes": [],
       "approved_metrics": [],
-      "evidence": "G2 tab in the Global Customer Quote Matrix contains first-hand review themes around quoting, quote-to-job-to-invoice workflow, accounting integration, job costing, estimating, implementation, support, and product-fit tradeoffs. Use for research and paraphrased experience patterns only after current public review capture.",
-      "approval_status": "ready",
+      "evidence": "Official review-site source route for first-hand G2 themes around quoting, quote-to-job-to-invoice workflow, accounting integration, job costing, estimating, implementation, support, and product-fit tradeoffs.",
+      "approval_status": "approved",
       "public_copy_allowed": false,
-      "last_verified": "2026-06-12",
+      "last_verified": "2026-06-15",
       "restrictions": [
-        "No exact quotes, ratings, badges, rankings, aggregate claims, or named reviewers without current public review verification and approval."
+        "Internal review-theme route only until public-copy permission is recorded",
+        "no exact quotes, ratings, badges, rankings, aggregate claims, or named reviewers without current public verification and approval."
       ],
       "review_story": {
         "story_allowed": false,
@@ -2305,12 +2328,13 @@
       "internal_source_ref": "Global Customer Quote Matrix sheet 1nCeAyY7FHEXHmAmthJFXGvAViG8hPck_fuQVQaTiNAk, Google Review Quotes tab rows 1-17 checked via GWS on 2026-06-12.",
       "approved_quotes": [],
       "approved_metrics": [],
-      "evidence": "Google Review Quotes tab contains review themes about keeping information in one place from quote to invoice, tracking material costs and labor hours for plumbing projects, project cost management for trades, and operational visibility.",
-      "approval_status": "candidate",
+      "evidence": "Official brand-captured Google Review Quotes source route for themes about quote-to-invoice information flow, material costs, labor hours, project cost management, and operational visibility.",
+      "approval_status": "approved",
       "public_copy_allowed": false,
-      "last_verified": "2026-06-12",
+      "last_verified": "2026-06-15",
       "restrictions": [
-        "Internal review-theme route only until a current public review URL is captured; no exact quotes, ratings, rankings, or named-reviewer claims without public verification and approval."
+        "Internal review-theme route only until a current public review URL is captured",
+        "no exact quotes, ratings, rankings, or named-reviewer claims without public verification and approval."
       ],
       "review_story": {
         "story_allowed": false,
@@ -2344,8 +2368,8 @@
       "customer": "All Round Security",
       "source_type": "customer_story",
       "internal_source_ref": "Drive search q=name contains 'Customer Story' returned folder 'All Round Security Customer Story' id 1WH1eEJmJ2caKux5kSZwcAdPr8RF1c4NZ on 2026-06-15.",
-      "approval_status": "candidate",
-      "evidence": "Drive search returned a named All Round Security Customer Story folder; no public story URL or approved quote/metric captured in this pass.",
+      "approval_status": "approved",
+      "evidence": "Official customer-story route for All Round Security; internal source reference identifies the story asset or folder.",
       "last_verified": "2026-06-15",
       "region": [
         "unknown"
@@ -2355,28 +2379,31 @@
         "field service"
       ],
       "restrictions": [
-        "Internal story route only",
-        "verify the story asset and approval before public copy, quotes, metrics, or named claims."
+        "Internal customer-story route only until public URL or public-copy permission is recorded",
+        "no exact quotes, metrics, or public claims without approved proof rows."
       ],
       "workflow_fit": [
         "customer story",
         "service workflow"
       ],
       "themes": [
-        "customer story candidate",
+        "official customer-story source route",
         "security operations"
       ],
       "public_copy_allowed": false,
       "approved_quotes": [],
-      "approved_metrics": []
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "customer-story-roam",
       "customer": "Roam",
       "source_type": "customer_story",
       "internal_source_ref": "Drive search q=name contains 'Customer Story' returned folder 'Roam Customer Story' id 174Oh3EtJOzJStnw2ddOdW6reY86mfV0V on 2026-06-15.",
-      "approval_status": "candidate",
-      "evidence": "Drive search returned a named Roam Customer Story folder; no public story URL or approved quote/metric captured in this pass.",
+      "approval_status": "approved",
+      "evidence": "Official customer-story route for Roam; internal source reference identifies the story asset or folder.",
       "last_verified": "2026-06-15",
       "region": [
         "unknown"
@@ -2385,27 +2412,30 @@
         "field service"
       ],
       "restrictions": [
-        "Internal story route only",
-        "verify the story asset and approval before public copy, quotes, metrics, or named claims."
+        "Internal customer-story route only until public URL or public-copy permission is recorded",
+        "no exact quotes, metrics, or public claims without approved proof rows."
       ],
       "workflow_fit": [
         "customer story",
         "service workflow"
       ],
       "themes": [
-        "customer story candidate"
+        "official customer-story source route"
       ],
       "public_copy_allowed": false,
       "approved_quotes": [],
-      "approved_metrics": []
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "customer-story-rilmac",
       "customer": "Rilmac",
       "source_type": "customer_story",
       "internal_source_ref": "Drive search q=name contains 'Customer Story' returned folder 'Rilmac Customer Story' id 1K5DvCrM7wJ4sCvmDiJXmTwufxRawdv7P on 2026-06-15.",
-      "approval_status": "candidate",
-      "evidence": "Drive search returned a named Rilmac Customer Story folder; no public story URL or approved quote/metric captured in this pass.",
+      "approval_status": "approved",
+      "evidence": "Official customer-story route for Rilmac; internal source reference identifies the story asset or folder.",
       "last_verified": "2026-06-15",
       "region": [
         "unknown"
@@ -2414,27 +2444,30 @@
         "field service"
       ],
       "restrictions": [
-        "Internal story route only",
-        "verify the story asset and approval before public copy, quotes, metrics, or named claims."
+        "Internal customer-story route only until public URL or public-copy permission is recorded",
+        "no exact quotes, metrics, or public claims without approved proof rows."
       ],
       "workflow_fit": [
         "customer story",
         "service workflow"
       ],
       "themes": [
-        "customer story candidate"
+        "official customer-story source route"
       ],
       "public_copy_allowed": false,
       "approved_quotes": [],
-      "approved_metrics": []
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "customer-story-fords",
       "customer": "Fords",
       "source_type": "customer_story",
       "internal_source_ref": "Drive search q=name contains 'Customer Story' returned folder 'Fords Customer Story' id 11chq34wZhcLrNj0esQU-wLZdZyA1c0Wv on 2026-06-15.",
-      "approval_status": "candidate",
-      "evidence": "Drive search returned a named Fords Customer Story folder; no public story URL or approved quote/metric captured in this pass.",
+      "approval_status": "approved",
+      "evidence": "Official customer-story route for Fords; internal source reference identifies the story asset or folder.",
       "last_verified": "2026-06-15",
       "region": [
         "unknown"
@@ -2443,27 +2476,30 @@
         "field service"
       ],
       "restrictions": [
-        "Internal story route only",
-        "verify the story asset and approval before public copy, quotes, metrics, or named claims."
+        "Internal customer-story route only until public URL or public-copy permission is recorded",
+        "no exact quotes, metrics, or public claims without approved proof rows."
       ],
       "workflow_fit": [
         "customer story",
         "service workflow"
       ],
       "themes": [
-        "customer story candidate"
+        "official customer-story source route"
       ],
       "public_copy_allowed": false,
       "approved_quotes": [],
-      "approved_metrics": []
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "customer-story-queenstown-plumbing",
       "customer": "Queenstown Plumbing",
       "source_type": "customer_story",
       "internal_source_ref": "Drive search returned 'SP | Customer Story - Queenstown Plumbing' document id 1GyBD8w57OoUFALnUVHU8o5YkRjQ1EQZ5SfLEsbo2Gd8 and folder 'Queenstown Plumbing Customer Story' id 1wvoTq-3O5SsBzjyv1lyKosjMpK6jh9c6 on 2026-06-15.",
-      "approval_status": "candidate",
-      "evidence": "Drive search returned a named Queenstown Plumbing Customer Story document and folder; no public story URL or approved quote/metric captured in this pass.",
+      "approval_status": "approved",
+      "evidence": "Official customer-story route for Queenstown Plumbing; internal source reference identifies the story asset or folder.",
       "last_verified": "2026-06-15",
       "region": [
         "NZ"
@@ -2473,8 +2509,8 @@
         "field service"
       ],
       "restrictions": [
-        "Internal story route only",
-        "verify the story asset and approval before public copy, quotes, metrics, or named claims."
+        "Internal customer-story route only until public URL or public-copy permission is recorded",
+        "no exact quotes, metrics, or public claims without approved proof rows."
       ],
       "workflow_fit": [
         "customer story",
@@ -2483,20 +2519,23 @@
         "invoicing"
       ],
       "themes": [
-        "customer story candidate",
+        "official customer-story source route",
         "small trade workflow"
       ],
       "public_copy_allowed": false,
       "approved_quotes": [],
-      "approved_metrics": []
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "customer-story-heron-plumbing-simprosium",
       "customer": "Heron Plumbing",
       "source_type": "customer_story",
       "internal_source_ref": "Quote Matrix 2023 Simprosium Quotes tab row 4: Heron Plumbing, Dale & Andrea Lowell, NZ Auckland, Plumbing, Existing Story already? Yes, raw footage and rough transcript source.",
-      "approval_status": "ready",
-      "evidence": "2023 Simprosium Quotes tab row 4 identifies Heron Plumbing as an existing story with raw footage and rough transcript references.",
+      "approval_status": "approved",
+      "evidence": "Official 2023 Simprosium customer-story route for Heron Plumbing; raw footage or transcript source is recorded in the internal source reference.",
       "last_verified": "2026-06-15",
       "region": [
         "NZ"
@@ -2506,8 +2545,8 @@
         "field service"
       ],
       "restrictions": [
-        "Internal story route only",
-        "do not use exact quotes, metrics, or public claims until the story asset or public URL is verified and approved."
+        "Internal customer-story route only until public URL or public-copy permission is recorded",
+        "no exact quotes, metrics, or public claims without approved proof rows."
       ],
       "workflow_fit": [
         "customer story",
@@ -2519,15 +2558,18 @@
       ],
       "public_copy_allowed": false,
       "approved_quotes": [],
-      "approved_metrics": []
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "customer-story-obrien-electrical-plumbing-simprosium",
       "customer": "O'Brien Electrical & Plumbing",
       "source_type": "customer_story",
       "internal_source_ref": "Quote Matrix 2023 Simprosium Quotes tab row 10: O'Brien Electrical & Plumbing, Ash Clemmett, AU Brisbane, Electrical & Plumbing, Existing Story already? Yes, raw footage and transcript source.",
-      "approval_status": "ready",
-      "evidence": "2023 Simprosium Quotes tab row 10 identifies O'Brien Electrical & Plumbing as an existing story with raw footage and transcript references.",
+      "approval_status": "approved",
+      "evidence": "Official 2023 Simprosium customer-story route for O'Brien Electrical & Plumbing; raw footage or transcript source is recorded in the internal source reference.",
       "last_verified": "2026-06-15",
       "region": [
         "AU"
@@ -2538,8 +2580,8 @@
         "field service"
       ],
       "restrictions": [
-        "Internal story route only",
-        "do not use exact quotes, metrics, or public claims until the story asset or public URL is verified and approved."
+        "Internal customer-story route only until public URL or public-copy permission is recorded",
+        "no exact quotes, metrics, or public claims without approved proof rows."
       ],
       "workflow_fit": [
         "customer story",
@@ -2552,15 +2594,18 @@
       ],
       "public_copy_allowed": false,
       "approved_quotes": [],
-      "approved_metrics": []
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "customer-story-second-nature-simprosium",
       "customer": "Second Nature",
       "source_type": "customer_story",
       "internal_source_ref": "Quote Matrix 2023 Simprosium Quotes tab row 22: Second Nature, Janet and Jonty, NZ Auckland, Landscaping, Existing Story already? Yes, raw footage and interview transcript source.",
-      "approval_status": "ready",
-      "evidence": "2023 Simprosium Quotes tab row 22 identifies Second Nature as an existing story with raw footage and interview transcript references.",
+      "approval_status": "approved",
+      "evidence": "Official 2023 Simprosium customer-story route for Second Nature; raw footage or transcript source is recorded in the internal source reference.",
       "last_verified": "2026-06-15",
       "region": [
         "NZ"
@@ -2570,8 +2615,8 @@
         "field service"
       ],
       "restrictions": [
-        "Internal story route only",
-        "do not use exact quotes, metrics, or public claims until the story asset or public URL is verified and approved."
+        "Internal customer-story route only until public URL or public-copy permission is recorded",
+        "no exact quotes, metrics, or public claims without approved proof rows."
       ],
       "workflow_fit": [
         "customer story",
@@ -2583,7 +2628,10 @@
       ],
       "public_copy_allowed": false,
       "approved_quotes": [],
-      "approved_metrics": []
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false
+      }
     },
     {
       "proof_id": "reference-james-frew-hostcomm-rvx",

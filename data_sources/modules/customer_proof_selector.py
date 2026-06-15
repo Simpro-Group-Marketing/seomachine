@@ -1,7 +1,7 @@
 """
 Customer Proof Selector
 
-Ranks approved or candidate customer proof by topic fit and reuse history.
+Ranks curated customer proof by topic fit, copy boundary, and reuse history.
 This module helps writers choose the most relevant proof instead of defaulting
 to whichever case study is easiest to cite.
 """

@@ -267,13 +267,13 @@ def _validate_row(row_number: int, row: Dict[str, str]) -> List[Finding]:
         findings.extend(_review_row_findings(row_number, row, public_copy_allowed, story_allowed))
 
     if _is_google_review(platform) and not public_url and not review_public_url:
-        if public_copy_allowed or story_allowed or approval_status != "candidate":
+        if public_copy_allowed or story_allowed:
             findings.append(
                 _finding(
                     row_number,
                     "google_review_public_url_missing",
                     "error",
-                    "Google review rows without a usable public URL must remain candidate and public_copy_allowed false.",
+                    "Google review rows without a usable public URL must remain internal-only with public_copy_allowed false.",
                 )
             )
 

@@ -240,7 +240,7 @@ class CustomerProofIndexHealthTests(unittest.TestCase):
                 "reference-level-group-quote-operations-visibility",
                 report["priority_intake_targets"][0]["proof_id"],
             )
-            self.assertEqual("verify_public_theme_support", report["priority_intake_targets"][0]["recommended_action"])
+            self.assertEqual("approve_theme_only", report["priority_intake_targets"][0]["recommended_action"])
             self.assertGreater(
                 report["priority_intake_targets"][0]["priority_score"],
                 report["priority_intake_targets"][1]["priority_score"],
@@ -288,6 +288,50 @@ class CustomerProofIndexHealthTests(unittest.TestCase):
             self.assertNotIn("references-source-register", target_ids)
             self.assertIn("review-site-simpro-g2", target_ids)
 
+    def test_approved_internal_routes_use_public_copy_or_url_actions(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            ledger_path = root / "customer-proof-usage-ledger.json"
+            write_json(
+                index_path,
+                {
+                    "version": 1,
+                    "proof": [
+                        {
+                            "proof_id": "review-site-simpro-g2",
+                            "customer": "Simpro G2 review themes",
+                            "source_type": "review_site",
+                            "workflow_fit": ["implementation", "workflow pain"],
+                            "approval_status": "approved",
+                            "public_copy_allowed": False,
+                            "public_url": "https://www.g2.com/products/simpro/reviews",
+                        },
+                        {
+                            "proof_id": "customer-story-queenstown-plumbing",
+                            "customer": "Queenstown Plumbing",
+                            "source_type": "customer_story",
+                            "workflow_fit": ["quote-to-cash"],
+                            "approval_status": "approved",
+                            "public_copy_allowed": False,
+                            "internal_source_ref": "Customer Story folder row",
+                        },
+                    ],
+                },
+            )
+            write_json(ledger_path, {"version": 1, "uses": []})
+
+            report = analyze_proof_index(index_path=index_path, ledger_path=ledger_path)
+            targets = {row["proof_id"]: row for row in report["priority_intake_targets"]}
+
+            self.assertEqual("resolve_public_copy_permission", targets["review-site-simpro-g2"]["recommended_action"])
+            self.assertNotIn("approval_status approved", targets["review-site-simpro-g2"]["blocking_reasons"])
+            self.assertEqual("capture_public_url", targets["customer-story-queenstown-plumbing"]["recommended_action"])
+            self.assertNotIn(
+                "approval_status approved",
+                targets["customer-story-queenstown-plumbing"]["blocking_reasons"],
+            )
+
     def test_priority_workflow_gaps_group_and_rank_useful_gap_candidates(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -331,7 +375,7 @@ class CustomerProofIndexHealthTests(unittest.TestCase):
             electrical_gap = next(
                 gap for gap in report["priority_workflow_gaps"] if gap["workflow"] == "electrical workflow"
             )
-            self.assertEqual("capture_public_url_or_keep_internal", electrical_gap["recommended_action"])
+            self.assertEqual("capture_public_url", electrical_gap["recommended_action"])
 
     def test_priority_workflow_gaps_do_not_select_source_register_as_best_candidate(self):
         with TemporaryDirectory() as temp_dir:
