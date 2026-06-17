@@ -159,7 +159,7 @@ class ContentScorer:
         clean_content = self._clean_for_analysis(content)
 
         # Score each dimension
-        humanity = self._score_humanity(clean_content)
+        humanity = self._score_humanity(clean_content, lint_source=content)
         specificity = self._score_specificity(clean_content)
         structure = self._score_structure_balance(content)
         seo = self._score_seo(content, metadata)
@@ -593,7 +593,7 @@ class ContentScorer:
 
         return text.strip()
 
-    def _score_humanity(self, content: str) -> Dict[str, Any]:
+    def _score_humanity(self, content: str, lint_source: Optional[str] = None) -> Dict[str, Any]:
         """Score content for human voice and personality"""
         issues = []
         details = {}
@@ -602,7 +602,7 @@ class ContentScorer:
 
         # Use the shared deterministic AI copy linter so scoring and lint gates
         # do not drift into separate phrase lists.
-        copy_lint_findings = lint_content(content)
+        copy_lint_findings = lint_content(lint_source or content)
         copy_lint_errors = [
             finding for finding in copy_lint_findings
             if finding["severity"] == "error"

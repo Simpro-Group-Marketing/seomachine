@@ -25,9 +25,13 @@ Preferred publish readiness command:
 
 Before returning `Ready`, run `/publish-readiness`. It runs URL validation, public artifact checks, AI copy linting, Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, content score, and AEO/GEO gates internally.
 
+Fix copy avoid-rule errors before returning `Ready`. The AI copy linter blocks modal verbs, passive voice, repeated starts, vague generalizations, filler words, and long sentences in Simpro web copy.
+
 Use `context/aeo-geo-blog-strategy.md` for the full proof policy and individual module debugging when `/publish-readiness` reports a specific failed gate.
 
 If selected customer proof appears in public copy, confirm the validation sidecar has `Selected Customer Proof Mining`. Selector chooses candidates; proof mining reads the selected public URL before the writer decides quote, metric, POV/story, theme, or omit use.
+
+If customer proof appears in public copy, experience_story consideration is required and E-E-A-T story usage is optional. Confirm the `Customer Proof Slate` includes an `experience_story` row with a selected proof-backed story or `Selected: [none]` plus section-specific rejection reasons. Full policy lives in `context/aeo-geo-blog-strategy.md`.
 
 ### Content Audit
 

@@ -314,10 +314,7 @@ def _slate_findings(
             )
         )
 
-    required_roles = list(REQUIRED_SLATE_ROLES)
-    if _needs_experience_story_slate_role(content, proof_source):
-        required_roles.append("experience_story")
-    for role in required_roles:
+    for role in REQUIRED_SLATE_ROLES:
         if role not in roles:
             findings.append(
                 _finding(
@@ -329,15 +326,22 @@ def _slate_findings(
                 )
             )
 
-    if "experience_story" not in roles and _needs_experience_story_slate_role(content, proof_source):
+    if "experience_story" not in roles:
         findings.append(
             _finding(
                 "customer_proof_slate_experience_story_missing",
                 int(slate["line"]),
-                "Review-derived public copy appears without an experience_story Customer Proof Slate role.",
-                "Run the selector with --require-eeat-story --proof-role experience_story and add that role row to the slate.",
+                "Customer proof appears without an experience_story Customer Proof Slate role.",
+                (
+                    "Run or consult the selector with --require-eeat-story and add an "
+                    "experience_story role row. Select a proof-backed story only when it "
+                    "improves the article objective; otherwise use Selected: [none] with "
+                    "section-specific rejection reasons."
+                ),
             )
         )
+    else:
+        findings.extend(_experience_story_consideration_findings(roles["experience_story"]))
 
     selected_ids = _selected_proof_ids(decision)
     slate_selected_ids = _slate_selected_ids(roles)
@@ -629,6 +633,68 @@ def _stronger_slate_candidate_findings(slate: Dict[str, object]) -> List[Finding
                 )
             )
     return findings
+
+
+def _experience_story_consideration_findings(role_details: Dict[str, object]) -> List[Finding]:
+    selected = {str(candidate) for candidate in role_details.get("selected", [])}
+    if selected:
+        return []
+
+    top_candidates = [str(candidate) for candidate in role_details.get("top_candidates", [])]
+    if not top_candidates:
+        return [
+            _finding(
+                "customer_proof_slate_experience_story_candidates_missing",
+                int(role_details.get("line", 1)),
+                "experience_story slate row has no story candidates.",
+                (
+                    "Run or consult the selector with --require-eeat-story and list the "
+                    "strongest identity-backed story candidates, even when none are used."
+                ),
+            )
+        ]
+
+    rejected = role_details.get("rejected", {})
+    if not isinstance(rejected, dict):
+        rejected = {}
+
+    for candidate, reason in rejected.items():
+        if candidate in top_candidates and _has_section_specific_story_rejection_reason(str(reason)):
+            return []
+
+    return [
+        _finding(
+            "customer_proof_slate_experience_story_rejection_missing",
+            int(role_details.get("line", 1)),
+            (
+                "experience_story slate row selected no story but did not give a "
+                "section-specific rejection reason for a ranked story candidate."
+            ),
+            (
+                "Use the proof-backed story if it improves the article objective, or "
+                "add at least one ranked candidate to Rejected stronger candidates with "
+                "a concrete section-specific reason."
+            ),
+            match=top_candidates[0],
+        )
+    ]
+
+
+def _has_section_specific_story_rejection_reason(reason: str) -> bool:
+    normalized = _normalize_space(reason)
+    if not normalized or NONE_RESULT_RE.match(normalized):
+        return False
+    reason_signals = (
+        "because",
+        "section",
+        "article",
+        "objective",
+        "omitted",
+        "not used",
+        "instead",
+        "while",
+    )
+    return len(normalized.split()) >= 8 and any(signal in normalized for signal in reason_signals)
 
 
 def _needs_experience_story_slate_role(content: str, proof_source: str) -> bool:

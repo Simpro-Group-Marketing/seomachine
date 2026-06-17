@@ -24,13 +24,19 @@ def proof_slate(
     metric_selected: str = "case-study-teamwired",
     quote_selected: str = "none",
     theme_selected: str = "case-study-teamwired",
+    experience_story_selected: str = "none",
     metric_top: str = "case-study-teamwired",
     quote_top: str = "case-study-teamwired",
     theme_top: str = "case-study-teamwired",
+    experience_story_top: str = "review-capterra-owner-quote-invoice",
     metric_rejected: str = "none",
     quote_rejected: str = "none",
     theme_rejected: str = "none",
-    include_experience_story: bool = False,
+    experience_story_rejected: str = (
+        "review-capterra-owner-quote-invoice: omitted because this section needs "
+        "case-study workflow proof, not a review POV story"
+    ),
+    include_experience_story: bool = True,
 ) -> str:
     rows = [
         "Customer Proof Slate",
@@ -41,7 +47,7 @@ def proof_slate(
     ]
     if include_experience_story:
         rows.append(
-            "- Role: experience_story | Top candidates: [review-capterra-owner-quote-invoice] | Selected: [review-capterra-owner-quote-invoice] | Rejected stronger candidates: [none]"
+            f"- Role: experience_story | Top candidates: [{experience_story_top}] | Selected: [{experience_story_selected}] | Rejected stronger candidates: [{experience_story_rejected}]"
         )
     return "\n".join(rows) + "\n\n"
 
@@ -376,6 +382,22 @@ Customer Proof Selection Decision
                                 "public_copy_allowed": True,
                                 "approved_quotes": [{"quote": "Approved quote", "status": "approved"}],
                             },
+                            {
+                                "proof_id": "review-capterra-owner-quote-invoice",
+                                "customer": "Capterra owner review",
+                                "source_type": "review_site",
+                                "workflow_fit": ["quoting", "invoicing"],
+                                "themes": ["quote-to-invoice workflow"],
+                                "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+                                "approval_status": "approved",
+                                "public_copy_allowed": True,
+                                "review_story": {
+                                    "story_allowed": True,
+                                    "identity_type": "person",
+                                    "identity_display": "Megan B",
+                                    "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+                                },
+                            },
                         ],
                     }
                 ),
@@ -394,7 +416,12 @@ Customer Proof Selection Decision
                         str(ledger_path),
                         "--slate",
                         "--roles",
-                        "metric,quote,theme",
+                        "metric,quote,theme,experience_story",
+                        "--require-eeat-story",
+                        "--selected",
+                        "experience_story=none",
+                        "--reject",
+                        "experience_story=review-capterra-owner-quote-invoice:omitted because this fixture needs Zebra onsite quoting proof instead of a review story",
                         "--limit",
                         "3",
                     ]
@@ -445,6 +472,86 @@ Customer Proof Selection Decision
 
         self.assertTrue(any(f["rule_id"] == "customer_proof_slate_missing" for f in findings))
         self.assertTrue(should_fail(findings, fail_on="error"))
+
+    def test_customer_proof_requires_experience_story_consideration_role(self):
+        sidecar = proof_slate(include_experience_story=False) + proof_mining() + """Customer Proof Pack
+- Pack status: ready.
+- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
+- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
+- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
+- Use in copy: paraphrased case-study proof only.
+- Claims excluded: exact review quotes.
+
+Customer Proof Selection Decision
+- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
+- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
+"""
+
+        with TemporaryDirectory() as temp_dir:
+            ledger_path = Path(temp_dir) / "ledger.json"
+            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+            findings = check_content(
+                ARTICLE_WITH_CASE_STUDY,
+                proof_content=sidecar,
+                ledger_path=ledger_path,
+            )
+
+        self.assertTrue(any(f["rule_id"] == "customer_proof_slate_experience_story_missing" for f in findings))
+
+    def test_experience_story_none_selected_without_rejection_reason_fails(self):
+        sidecar = proof_slate(experience_story_rejected="none") + proof_mining() + """Customer Proof Pack
+- Pack status: ready.
+- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
+- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
+- Review-site experience evidence: Capterra, https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/, date checked 2026-06-12, product: Simpro, experience pattern: quote-to-invoice workflow, evidence summary: review story candidate checked, exact quote/rating approval status: not approved.
+- Use in copy: paraphrased case-study proof only.
+- Claims excluded: exact review quotes.
+
+Customer Proof Selection Decision
+- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
+- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
+"""
+
+        with TemporaryDirectory() as temp_dir:
+            ledger_path = Path(temp_dir) / "ledger.json"
+            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+            findings = check_content(
+                ARTICLE_WITH_CASE_STUDY,
+                proof_content=sidecar,
+                ledger_path=ledger_path,
+            )
+
+        self.assertTrue(any(f["rule_id"] == "customer_proof_slate_experience_story_rejection_missing" for f in findings))
+
+    def test_experience_story_none_selected_with_rejection_reason_passes(self):
+        sidecar = proof_slate() + proof_mining() + """Customer Proof Pack
+- Pack status: ready.
+- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
+- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
+- Review-site experience evidence: Capterra, https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/, date checked 2026-06-12, product: Simpro, experience pattern: quote-to-invoice workflow, evidence summary: review story candidate checked, exact quote/rating approval status: not approved.
+- Use in copy: paraphrased case-study proof only.
+- Claims excluded: exact review quotes.
+
+Customer Proof Selection Decision
+- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
+- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
+"""
+
+        with TemporaryDirectory() as temp_dir:
+            ledger_path = Path(temp_dir) / "ledger.json"
+            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+            findings = check_content(
+                ARTICLE_WITH_CASE_STUDY,
+                proof_content=sidecar,
+                ledger_path=ledger_path,
+            )
+
+        self.assertEqual([finding for finding in findings if finding["severity"] == "error"], [])
+
+    def test_no_customer_proof_does_not_require_experience_story_slate_role(self):
+        findings = check_content("# HVAC PPC\n\nTrack paid search from click to booked job.")
+
+        self.assertEqual(findings, [])
 
     def test_selected_proof_missing_from_slate_fails(self):
         sidecar = proof_slate(
@@ -529,7 +636,7 @@ Customer Proof Selection Decision
         self.assertEqual(findings, [])
 
     def test_review_story_copy_requires_experience_story_slate_role(self):
-        sidecar = proof_slate() + """Customer Proof Pack
+        sidecar = proof_slate(include_experience_story=False) + """Customer Proof Pack
 - Pack status: ready.
 - Review-site experience evidence: Capterra, https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/, date checked 2026-06-12, product: Simpro, experience pattern: quote-to-invoice workflow, evidence summary: reviewer discusses quotes and invoices, exact quote/rating approval status: not approved.
 - Use in copy: paraphrased review story.

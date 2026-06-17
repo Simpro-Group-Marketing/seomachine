@@ -18,7 +18,7 @@ Use this command to remove invisible Unicode marks, em dashes, and whitespace ar
 python data_sources/modules/ai_copy_linter.py [file-path] --profile simpro-web --fail-on error
 ```
 
-The linter catches AI-writing giveaways, Simpro style violations, passive voice, filler, modal verbs, rhetorical setup questions, hashtags, semicolons, and unsupported hype terms.
+The linter catches AI-writing giveaways, Simpro style violations, copy avoid-rule errors, rhetorical setup questions, hashtags, semicolons, and unsupported hype terms. Copy avoid-rule errors include modal verbs, passive voice, repeated starts, vague generalizations, filler words, and long sentences.
 
 ## Process
 
@@ -76,7 +76,7 @@ After `/write`, `/rewrite`, `/article`, or `/landing-write` saves a content file
 2. Run `python data_sources/modules/ai_copy_linter.py [file-path] --profile simpro-web --fail-on error`
 3. If linter errors remain, revise once, rerun scrub, rerun lint
 4. If errors remain after revision, route to `review-required/` with lint findings
-5. Include linter warnings in review notes unless strict mode is requested
+5. Treat copy avoid-rule errors as blockers before scoring, optimization, or publish readiness
 
 ## Technical Details
 
@@ -114,4 +114,4 @@ Every scrubbed file should have:
 Every linted file should have:
 
 - Zero linter errors before scoring or optimization
-- Warning findings captured in review notes
+- Zero copy avoid-rule errors, including modal verbs, passive voice, repeated starts, vague generalizations, filler words, and long sentences

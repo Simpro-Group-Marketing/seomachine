@@ -194,6 +194,23 @@ class PublishReadinessTests(unittest.TestCase):
         self.assertEqual(lint_gate["warnings"], 1)
         self.assertEqual(lint_gate["blockers"], [])
 
+    def test_ai_copy_avoid_rule_error_fails_runner(self):
+        patchers = self.patch_passing_gates()
+        with patchers[0], patch(
+            "data_sources.modules.publish_readiness.ai_copy_linter.lint_file",
+            return_value=[finding("modal_verb", severity="error")],
+        ), patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10]:
+            result = publish_readiness.run_publish_readiness(
+                self.article_path,
+                proof_sidecar=self.sidecar_path,
+            )
+
+        self.assertFalse(result["passed"])
+        lint_gate = next(gate for gate in result["gates"] if gate["name"] == "ai_copy_linter")
+        self.assertFalse(lint_gate["passed"])
+        self.assertEqual(lint_gate["errors"], 1)
+        self.assertIn("modal_verb", lint_gate["blockers"][0])
+
     def test_proof_sidecar_is_passed_to_proof_gates_and_scorer(self):
         patchers = self.patch_passing_gates()
         with patchers[0], patchers[1], patchers[2], patchers[3] as metric, patchers[4] as numeric, patchers[5] as faq, patchers[6] as paa, patchers[7] as source, patchers[8] as customer, patchers[9] as review, patchers[10] as scorer_class:

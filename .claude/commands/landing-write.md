@@ -329,7 +329,7 @@ Then run the AI copy linter:
 python data_sources/modules/ai_copy_linter.py landing-pages/[filename].md --profile simpro-web --fail-on error
 ```
 
-If errors remain, revise once, rerun `/scrub`, rerun the linter, then save to `review-required/landing-pages/` with lint findings if errors remain. Warnings go into review notes unless strict mode is requested.
+If errors remain, revise once, rerun `/scrub`, rerun the linter, then save to `review-required/landing-pages/` with lint findings if errors remain. Copy avoid-rule errors block handoff, including modal verbs, passive voice, repeated starts, vague generalizations, filler words, and long sentences.
 
 ---
 

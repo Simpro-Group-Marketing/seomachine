@@ -187,6 +187,68 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
+    def test_blog_workflow_docs_treat_ai_copy_avoid_rules_as_blocking(self):
+        command_paths = [
+            ROOT / ".claude" / "commands" / "scrub.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "publish-readiness.md",
+        ]
+        required = [
+            "copy avoid-rule errors",
+            "modal verbs, passive voice, repeated starts, vague generalizations, filler words, and long sentences",
+        ]
+        banned = [
+            "Include warning findings in review notes unless strict mode is requested",
+            "Warnings go into review notes unless strict mode is requested",
+        ]
+
+        for path in command_paths:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+            for text in banned:
+                self.assertNotIn(text, content, f"{path.name} keeps non-blocking avoid-rule language")
+
+    def test_blog_workflow_docs_require_optional_experience_story_consideration(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / "README.md",
+            ROOT / "CLAUDE.md",
+            ROOT / "AGENTS.md",
+            ROOT / ".cursor" / "rules" / "customer-proof.mdc",
+            ROOT / ".agents" / "rules" / "customer-proof.md",
+            ROOT / ".claude" / "rules" / "customer-proof.md",
+        ]
+        canonical_required = [
+            "experience_story consideration is required",
+            "E-E-A-T story usage is optional",
+        ]
+        doc_required = [
+            *canonical_required,
+            "context/aeo-geo-blog-strategy.md",
+        ]
+        banned = [
+            "every blog needs an E-E-A-T story",
+            "must add an E-E-A-T story",
+        ]
+
+        canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
+            encoding="utf-8"
+        )
+        for text in canonical_required:
+            self.assertIn(text, canonical, f"canonical proof policy missing {text}")
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in doc_required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+            for text in banned:
+                self.assertNotIn(text, content, f"{path.name} implies mandatory story use")
+
     def test_blog_writing_commands_require_down_funnel_internal_link(self):
         command_paths = [
             ROOT / ".claude" / "commands" / "article.md",

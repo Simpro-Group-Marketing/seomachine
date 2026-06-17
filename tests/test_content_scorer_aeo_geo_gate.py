@@ -35,6 +35,7 @@ Customer Proof Slate
 - Role: metric | Top candidates: [quote-matrix-bwe-engineering-job-to-invoice] | Selected: [quote-matrix-bwe-engineering-job-to-invoice] | Rejected stronger candidates: [none]
 - Role: quote | Top candidates: [quote-matrix-bwe-engineering-job-to-invoice] | Selected: [none] | Rejected stronger candidates: [none]
 - Role: theme | Top candidates: [quote-matrix-bwe-engineering-job-to-invoice] | Selected: [quote-matrix-bwe-engineering-job-to-invoice] | Rejected stronger candidates: [none]
+- Role: experience_story | Top candidates: [review-capterra-owner-quote-invoice] | Selected: [none] | Rejected stronger candidates: [review-capterra-owner-quote-invoice: omitted because this fixture uses case-study workflow proof instead of a review POV story]
 
 Selected Customer Proof Mining
 - Proof: quote-matrix-bwe-engineering-job-to-invoice | Customer: BWE Engineering | URL: https://www.simprogroup.com/case-studies/bwe-engineering
@@ -161,6 +162,26 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
         scorer = ContentScorer()
 
         self.assertEqual(scorer.PASS_THRESHOLD, 85)
+
+    def test_humanity_lint_uses_raw_markdown_context(self):
+        scorer = ContentScorer()
+        content = """# HVAC PPC Guide
+
+[Simpro's HVAC software](https://www.simprogroup.com/industries/hvac-software) page connects customer contact, invoicing, payment, office-to-field communication, automated tasks, quotes, job cards, and reporting.
+
+## FAQ
+
+### Is PPC just Google Ads?
+
+No. PPC is a pricing model for ad clicks.
+"""
+
+        result = scorer.score(content, {"primary_keyword": "hvac ppc"})
+
+        self.assertEqual(
+            result["dimensions"]["humanity"]["details"]["ai_copy_lint_errors"],
+            0,
+        )
 
     def test_seo_score_reads_lowercase_frontmatter_metadata(self):
         scorer = ContentScorer()

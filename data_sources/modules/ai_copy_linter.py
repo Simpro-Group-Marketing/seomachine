@@ -34,6 +34,7 @@ APPROVED_PROPER_NOUNS = [
 
 
 BECAUSE_RE = re.compile(r"\bbecause\b", re.IGNORECASE)
+FAQ_QUESTION_HEADING_RE = re.compile(r"^\s{0,3}#{2,6}\s+.+\?\s*$")
 
 
 ERROR_RULES: List[Tuple[str, Pattern[str], str, str]] = [
@@ -287,10 +288,12 @@ def lint_content(content: str, profile: str = "simpro-web") -> List[Finding]:
             )
 
         for rule_id, pattern, message, suggestion in WARNING_RULES:
+            if _should_skip_copy_avoid_rule(rule_id, original_line):
+                continue
             findings.extend(
                 _find_pattern(
                     rule_id,
-                    "warning",
+                    "error",
                     pattern,
                     line_number,
                     original_line,
@@ -321,6 +324,12 @@ def lint_content(content: str, profile: str = "simpro-web") -> List[Finding]:
     findings.extend(_find_repeated_sentence_starts(content))
     findings.extend(_find_capitalized_title_prepositions(content))
     return sorted(findings, key=lambda item: (item["line"], item["column"], item["rule_id"]))
+
+
+def _should_skip_copy_avoid_rule(rule_id: str, original_line: str) -> bool:
+    if rule_id == "filler_word" and FAQ_QUESTION_HEADING_RE.match(original_line):
+        return True
+    return False
 
 
 def lint_file(
@@ -454,7 +463,7 @@ def _find_long_sentences(
             findings.append(
                 _finding(
                     "long_sentence",
-                    "warning",
+                    "error",
                     line_number,
                     match.start() + 1,
                     original_line[match.start():match.end()].strip(),
@@ -570,7 +579,7 @@ def _find_repeated_sentence_starts(content: str) -> List[Finding]:
             findings.append(
                 _finding(
                     "repeated_sentence_start",
-                    "warning",
+                    "error",
                     line_number,
                     column,
                     key,

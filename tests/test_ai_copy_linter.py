@@ -184,19 +184,70 @@ class AiCopyLinterTests(unittest.TestCase):
         self.assertEqual(len(rhetorical), 1)
         self.assertEqual(rhetorical[0]["severity"], "warning")
 
-    def test_passive_voice_is_warning(self):
+    def test_passive_voice_is_error(self):
         findings = lint_content("The invoice was created after the technician left.")
 
         passive = [finding for finding in findings if finding["rule_id"] == "passive_voice"]
         self.assertEqual(len(passive), 1)
-        self.assertEqual(passive[0]["severity"], "warning")
+        self.assertEqual(passive[0]["severity"], "error")
 
-    def test_modal_verbs_are_warnings(self):
+    def test_modal_verbs_are_errors(self):
         findings = lint_content("Teams can assign work faster when dispatchers see capacity.")
 
         modal = [finding for finding in findings if finding["rule_id"] == "modal_verb"]
         self.assertEqual(len(modal), 1)
-        self.assertEqual(modal[0]["severity"], "warning")
+        self.assertEqual(modal[0]["severity"], "error")
+
+    def test_filler_words_are_errors(self):
+        findings = lint_content("Dispatchers just need one job record.")
+
+        filler = [finding for finding in findings if finding["rule_id"] == "filler_word"]
+        self.assertEqual(len(filler), 1)
+        self.assertEqual(filler[0]["severity"], "error")
+
+    def test_filler_words_in_faq_question_headings_are_allowed(self):
+        content = "## FAQ\n\n### Is PPC just Google Ads?\n\nNo. PPC is a pricing model."
+
+        findings = lint_content(content)
+
+        filler = [finding for finding in findings if finding["rule_id"] == "filler_word"]
+        self.assertEqual(filler, [])
+
+    def test_vague_generalizations_are_errors(self):
+        findings = lint_content("Many teams track job outcomes after dispatch.")
+
+        vague = [finding for finding in findings if finding["rule_id"] == "vague_generalization"]
+        self.assertEqual(len(vague), 1)
+        self.assertEqual(vague[0]["severity"], "error")
+
+    def test_long_sentences_are_errors(self):
+        findings = lint_content(
+            "Dispatchers review lead source, customer history, service area, job type, "
+            "technician capacity, route timing, estimate status, invoice status, payment "
+            "status, margin risk, seasonal demand, replacement intent, office ownership, "
+            "and technician availability before spend increases."
+        )
+
+        long_sentence = [
+            finding for finding in findings if finding["rule_id"] == "long_sentence"
+        ]
+        self.assertEqual(len(long_sentence), 1)
+        self.assertEqual(long_sentence[0]["severity"], "error")
+
+    def test_repeated_sentence_starts_are_errors(self):
+        findings = lint_content(
+            "Lead source follows each job.\n"
+            "Lead source stays visible after booking.\n"
+            "Lead source links ad spend to invoices."
+        )
+
+        repeated = [
+            finding
+            for finding in findings
+            if finding["rule_id"] == "repeated_sentence_start"
+        ]
+        self.assertEqual(len(repeated), 1)
+        self.assertEqual(repeated[0]["severity"], "error")
 
     def test_markdown_links_urls_code_and_frontmatter_are_ignored(self):
         content = """---

@@ -61,3 +61,5 @@ Return:
 - Whether the artifact is ready for `/optimize`, handoff, or `published/`
 
 If the command fails, fix the highest-severity gate first and rerun `/publish-readiness`.
+
+AI copy lint failures include copy avoid-rule errors. The Simpro web-copy linter blocks modal verbs, passive voice, repeated starts, vague generalizations, filler words, and long sentences before publish readiness can pass.

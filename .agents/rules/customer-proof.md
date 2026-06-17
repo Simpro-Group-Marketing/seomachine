@@ -5,10 +5,10 @@ Apply this selector-first rule to blog drafts, rewrites, and research proof side
 Before drafting customer proof, run or consult:
 
 ```powershell
-python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme --limit 10
+python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10
 ```
 
-Generate a `Customer Proof Slate` in the validation sidecar with metric, quote, and theme roles. Add `experience_story` when review-derived copy is considered. Edit selected/rejected rows only when editorial judgment requires it. Use `context/aeo-geo-blog-strategy.md` as the canonical policy.
+Generate a `Customer Proof Slate` in the validation sidecar with metric, quote, theme, and experience_story roles. experience_story consideration is required and E-E-A-T story usage is optional; if no story fits, use `Selected: [none]` with section-specific rejection reasons. Edit selected/rejected rows only when editorial judgment requires it. Use `context/aeo-geo-blog-strategy.md` as the canonical policy.
 
 When selected customer proof appears in public copy, add `Selected Customer Proof Mining` to the validation sidecar. Selector chooses candidates; proof mining reads the selected public URL before the writer decides quote, metric, POV/story, theme, or omit use.
 
