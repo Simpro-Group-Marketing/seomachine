@@ -36,6 +36,17 @@ Customer Proof Slate
 - Role: quote | Top candidates: [quote-matrix-bwe-engineering-job-to-invoice] | Selected: [none] | Rejected stronger candidates: [none]
 - Role: theme | Top candidates: [quote-matrix-bwe-engineering-job-to-invoice] | Selected: [quote-matrix-bwe-engineering-job-to-invoice] | Rejected stronger candidates: [none]
 
+Selected Customer Proof Mining
+- Proof: quote-matrix-bwe-engineering-job-to-invoice | Customer: BWE Engineering | URL: https://www.simprogroup.com/case-studies/bwe-engineering
+- Checked for: exact quotes, customer metrics, POV story, workflow themes
+- Usable quotes found: none found
+- Usable metrics found: none found
+- Usable POV/story found: none found
+- Recommended use: theme
+- Final use in copy: paraphrased case-study workflow proof only
+- Excluded proof: none
+- Status: approved
+
 Customer Proof Pack
 - Pack status: ready.
 - Quote Matrix candidates: Checked Quote Matrix for HVAC scheduling proof; no exact quote selected for this test fixture.

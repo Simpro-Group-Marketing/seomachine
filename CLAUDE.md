@@ -139,6 +139,8 @@ The source support guard requires strict proof rows with Claim, URL, Evidence, a
 
 Before selecting customer proof, run or consult `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme --limit 10`. Add the generated selector-first `Customer Proof Slate` to the validation sidecar before drafting; edit selected/rejected rows only when editorial judgment requires it. Choose the most relevant approved proof, not the easiest mapped case study. If selected proof is overused, the validation sidecar needs a selector-backed, source-specific `Reuse reason`.
 
+When selected customer proof appears in public copy, add `Selected Customer Proof Mining` to the validation sidecar. Selector chooses candidates; proof mining reads the selected public URL before the writer decides quote, metric, POV/story, theme, or omit use. Full details live in `context/aeo-geo-blog-strategy.md`.
+
 Use `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` to check source mix, public-copy gaps, and overuse before adding proof candidates.
 
 Add new proof candidates through `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates.

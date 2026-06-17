@@ -46,6 +46,42 @@ def proof_slate(
     return "\n".join(rows) + "\n\n"
 
 
+def proof_mining(
+    *,
+    usable_quotes: str = "none found",
+    usable_metrics: str = "none found",
+    usable_pov: str = "none found",
+    recommended_use: str = "theme",
+    final_use: str = "paraphrased case-study theme proof only",
+    excluded_proof: str = "none",
+    include_checked_for: bool = True,
+    include_recommended_use: bool = True,
+    include_final_use: bool = True,
+    include_status: bool = True,
+    include_usable_quotes: bool = True,
+    include_usable_metrics: bool = True,
+) -> str:
+    rows = [
+        "Selected Customer Proof Mining",
+        "- Proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired",
+    ]
+    if include_checked_for:
+        rows.append("- Checked for: exact quotes, customer metrics, POV story, workflow themes")
+    if include_usable_quotes:
+        rows.append(f"- Usable quotes found: {usable_quotes}")
+    if include_usable_metrics:
+        rows.append(f"- Usable metrics found: {usable_metrics}")
+    rows.append(f"- Usable POV/story found: {usable_pov}")
+    if include_recommended_use:
+        rows.append(f"- Recommended use: {recommended_use}")
+    if include_final_use:
+        rows.append(f"- Final use in copy: {final_use}")
+    rows.append(f"- Excluded proof: {excluded_proof}")
+    if include_status:
+        rows.append("- Status: approved")
+    return "\n".join(rows) + "\n\n"
+
+
 class CustomerProofDiversityGuardTests(unittest.TestCase):
     def test_only_case_studies_without_non_case_study_search_attempt_fails(self):
         sidecar = """Customer Proof Pack
@@ -57,10 +93,162 @@ class CustomerProofDiversityGuardTests(unittest.TestCase):
 - Claims excluded: none.
 """
 
-        findings = check_content(ARTICLE_WITH_CASE_STUDY, proof_content=sidecar)
+        with TemporaryDirectory() as temp_dir:
+            ledger_path = Path(temp_dir) / "ledger.json"
+            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+            findings = check_content(
+                ARTICLE_WITH_CASE_STUDY,
+                proof_content=sidecar,
+                ledger_path=ledger_path,
+            )
 
         self.assertTrue(any(f["rule_id"] == "customer_proof_non_case_study_attempt_missing" for f in findings))
         self.assertTrue(should_fail(findings, fail_on="error"))
+
+    def test_customer_proof_without_mining_block_fails(self):
+        sidecar = proof_slate() + """Customer Proof Pack
+- Pack status: ready.
+- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
+- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
+- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
+- Use in copy: paraphrased case-study proof only.
+- Claims excluded: exact review quotes.
+
+Customer Proof Selection Decision
+- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
+- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
+"""
+
+        with TemporaryDirectory() as temp_dir:
+            ledger_path = Path(temp_dir) / "ledger.json"
+            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+            findings = check_content(
+                ARTICLE_WITH_CASE_STUDY,
+                proof_content=sidecar,
+                ledger_path=ledger_path,
+            )
+
+        self.assertTrue(any(f["rule_id"] == "selected_customer_proof_mining_missing" for f in findings))
+
+    def test_mining_block_missing_required_fields_fails(self):
+        sidecar = proof_slate() + proof_mining(
+            include_checked_for=False,
+            include_recommended_use=False,
+            include_final_use=False,
+            include_status=False,
+        ) + """Customer Proof Pack
+- Pack status: ready.
+- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
+- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
+- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
+- Use in copy: paraphrased case-study proof only.
+- Claims excluded: exact review quotes.
+
+Customer Proof Selection Decision
+- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
+- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
+"""
+
+        with TemporaryDirectory() as temp_dir:
+            ledger_path = Path(temp_dir) / "ledger.json"
+            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+            findings = check_content(
+                ARTICLE_WITH_CASE_STUDY,
+                proof_content=sidecar,
+                ledger_path=ledger_path,
+            )
+
+        missing = [f for f in findings if f["rule_id"] == "selected_customer_proof_mining_required_field_missing"]
+        self.assertGreaterEqual(len(missing), 4)
+
+    def test_approved_quotes_none_requires_quote_mining_result(self):
+        sidecar = proof_slate() + proof_mining(include_usable_quotes=False) + """Customer Proof Pack
+- Pack status: ready.
+- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
+- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
+- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
+- Approved quotes: none used.
+- Use in copy: paraphrased case-study proof only.
+- Claims excluded: exact review quotes.
+
+Customer Proof Selection Decision
+- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
+- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
+"""
+
+        with TemporaryDirectory() as temp_dir:
+            ledger_path = Path(temp_dir) / "ledger.json"
+            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+            findings = check_content(
+                ARTICLE_WITH_CASE_STUDY,
+                proof_content=sidecar,
+                ledger_path=ledger_path,
+            )
+
+        self.assertTrue(any(f["rule_id"] == "selected_customer_proof_mining_quote_result_missing" for f in findings))
+
+    def test_usable_quote_omitted_without_rejection_reason_warns(self):
+        sidecar = proof_slate() + proof_mining(
+            usable_quotes="Joel Anderson quote about quote-to-job workflow is usable if an exact quote is selected",
+            excluded_proof="none",
+        ) + """Customer Proof Pack
+- Pack status: ready.
+- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
+- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
+- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
+- Approved quotes: none used.
+- Use in copy: paraphrased case-study proof only.
+- Claims excluded: exact review quotes.
+
+Customer Proof Selection Decision
+- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
+- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
+"""
+
+        with TemporaryDirectory() as temp_dir:
+            ledger_path = Path(temp_dir) / "ledger.json"
+            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+            findings = check_content(
+                ARTICLE_WITH_CASE_STUDY,
+                proof_content=sidecar,
+                ledger_path=ledger_path,
+            )
+
+        warning = next(
+            finding
+            for finding in findings
+            if finding["rule_id"] == "selected_customer_proof_mining_usable_proof_omitted"
+        )
+        self.assertEqual(warning["severity"], "warning")
+        self.assertFalse(should_fail(findings, fail_on="error"))
+
+    def test_usable_quote_omitted_with_rejection_reason_passes(self):
+        sidecar = proof_slate() + proof_mining(
+            usable_quotes="Joel Anderson quote about quote-to-job workflow is usable if an exact quote is selected",
+            excluded_proof="exact Joel Anderson quote omitted because this section needs concise paraphrased workflow proof, not a quote block",
+        ) + """Customer Proof Pack
+- Pack status: ready.
+- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
+- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
+- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
+- Approved quotes: none used.
+- Use in copy: paraphrased case-study proof only.
+- Claims excluded: exact review quotes.
+
+Customer Proof Selection Decision
+- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
+- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
+"""
+        with TemporaryDirectory() as temp_dir:
+            ledger_path = Path(temp_dir) / "ledger.json"
+            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+            findings = check_content(
+                ARTICLE_WITH_CASE_STUDY,
+                proof_content=sidecar,
+                ledger_path=ledger_path,
+            )
+
+        self.assertEqual(findings, [])
 
     def test_repeated_case_study_without_reuse_reason_fails(self):
         sidecar = """Customer Proof Pack
@@ -103,7 +291,7 @@ class CustomerProofDiversityGuardTests(unittest.TestCase):
         self.assertTrue(any(f["rule_id"] == "customer_proof_reuse_requires_source_specific_reason" for f in findings))
 
     def test_documented_quote_matrix_and_reuse_reason_passes(self):
-        sidecar = proof_slate() + """Customer Proof Pack
+        sidecar = proof_slate() + proof_mining() + """Customer Proof Pack
 - Pack status: ready.
 - Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof; no exact quote selected because no public-copy approval was recorded for this topic.
 - Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
@@ -212,7 +400,12 @@ Customer Proof Selection Decision
                     ]
                 )
 
-            sidecar = buffer.getvalue() + """Customer Proof Pack
+            sidecar = buffer.getvalue() + proof_mining(
+                usable_metrics="20x quoting metric available for Zebra Plumbing",
+                recommended_use="theme and metric if needed",
+                final_use="paraphrased customer proof only",
+                excluded_proof="metric proof omitted because this fixture only checks slate compatibility",
+            ) + """Customer Proof Pack
 - Pack status: ready.
 - Quote Matrix candidates: Zebra Plumbing and BWE Engineering checked for quote-to-invoice proof.
 - Case-study proof path: Zebra Plumbing, URL: https://www.simprogroup.com/case-studies/zebra-plumbing, supported theme: onsite quoting workflow.
@@ -278,7 +471,7 @@ Customer Proof Selection Decision
         sidecar = proof_slate(
             metric_top="quote-matrix-bwe-engineering-job-to-invoice, case-study-teamwired",
             metric_selected="case-study-teamwired",
-        ) + """Customer Proof Pack
+        ) + proof_mining() + """Customer Proof Pack
 - Pack status: ready.
 - Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof and found BWE Engineering.
 - Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
@@ -312,7 +505,7 @@ Customer Proof Selection Decision
             metric_top="quote-matrix-bwe-engineering-job-to-invoice, case-study-teamwired",
             metric_selected="case-study-teamwired",
             metric_rejected="quote-matrix-bwe-engineering-job-to-invoice: rejected because this section needs security-specific invoicing proof",
-        ) + """Customer Proof Pack
+        ) + proof_mining() + """Customer Proof Pack
 - Pack status: ready.
 - Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof and found BWE Engineering.
 - Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
@@ -481,7 +674,7 @@ Customer Proof Selection Decision
             metric_top="quote-matrix-bwe-engineering-job-to-invoice, case-study-teamwired",
             metric_selected="case-study-teamwired",
             metric_rejected="quote-matrix-bwe-engineering-job-to-invoice: rejected because BWE is agricultural engineering, while this section specifically needs security contractor invoicing proof",
-        ) + """Customer Proof Pack
+        ) + proof_mining() + """Customer Proof Pack
 - Pack status: ready.
 - Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof and found BWE Engineering.
 - Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
@@ -697,7 +890,7 @@ Customer Proof Selection Decision
             theme_selected="case-study-bge-digital",
             metric_top="case-study-bge-digital",
             theme_top="case-study-bge-digital",
-        ) + """Customer Proof Pack
+        ) + proof_mining() + """Customer Proof Pack
 - Pack status: ready.
 - Case-study proof path: BGE Digital, URL: https://www.simprogroup.com/case-studies/bge-digital, supported theme: quote workflow.
 - Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: quoting workflow, evidence summary: reviewers discuss quote and job workflow visibility, exact quote/rating approval status: not approved.
@@ -730,7 +923,10 @@ Customer Proof Selection Decision
 """
         article = '# Review proof\n\nA G2 reviewer said, "Scheduling is much easier for our field team now."'
 
-        findings = check_content(article, proof_content=sidecar)
+        with TemporaryDirectory() as temp_dir:
+            ledger_path = Path(temp_dir) / "ledger.json"
+            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+            findings = check_content(article, proof_content=sidecar, ledger_path=ledger_path)
 
         self.assertTrue(any(f["rule_id"] == "customer_quote_requires_approved_quote" for f in findings))
 
@@ -740,6 +936,10 @@ Customer Proof Selection Decision
             quote_selected="quote-matrix-example-customer",
             theme_selected="none",
             quote_top="quote-matrix-example-customer",
+        ) + proof_mining(
+            usable_quotes='"Scheduling is much easier for our field team now." approved for exact quote use',
+            recommended_use="exact quote",
+            final_use="exact quote",
         ) + """Customer Proof Pack
 - Pack status: ready.
 - Quote Matrix candidates: Checked Quote Matrix for scheduling proof and selected an approved exact quote.
@@ -753,7 +953,10 @@ Customer Proof Selection Decision
 """
         article = '# Review proof\n\nExample Customer said, "Scheduling is much easier for our field team now."'
 
-        findings = check_content(article, proof_content=sidecar)
+        with TemporaryDirectory() as temp_dir:
+            ledger_path = Path(temp_dir) / "ledger.json"
+            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+            findings = check_content(article, proof_content=sidecar, ledger_path=ledger_path)
 
         self.assertEqual(findings, [])
 
@@ -768,7 +971,7 @@ Customer Proof Selection Decision
             ledger.parent.mkdir(parents=True)
             article.write_text(ARTICLE_WITH_CASE_STUDY, encoding="utf-8")
             sidecar.write_text(
-                proof_slate() + """Customer Proof Pack
+                proof_slate() + proof_mining() + """Customer Proof Pack
 - Pack status: ready.
 - Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof; no exact quote selected.
 - Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.

@@ -199,6 +199,59 @@ URL_RE = re.compile(r"https?://\S+|www\.\S+")
 MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\([^\)]*\)")
 INLINE_CODE_RE = re.compile(r"`[^`]*`")
 WORD_RE = re.compile(r"\b[A-Za-z][A-Za-z']*\b")
+TITLE_FRONTMATTER_RE = re.compile(r"^\s*(?:title|meta_title)\s*:\s*(.+?)\s*$", re.IGNORECASE)
+TITLE_PREPOSITIONS = {
+    "About",
+    "Above",
+    "Across",
+    "After",
+    "Against",
+    "Along",
+    "Among",
+    "Around",
+    "As",
+    "At",
+    "Before",
+    "Behind",
+    "Below",
+    "Beneath",
+    "Beside",
+    "Between",
+    "Beyond",
+    "By",
+    "Despite",
+    "Down",
+    "During",
+    "For",
+    "From",
+    "In",
+    "Inside",
+    "Into",
+    "Like",
+    "Near",
+    "Of",
+    "Off",
+    "On",
+    "Onto",
+    "Out",
+    "Over",
+    "Past",
+    "Per",
+    "Since",
+    "Through",
+    "Throughout",
+    "To",
+    "Toward",
+    "Towards",
+    "Under",
+    "Until",
+    "Up",
+    "Upon",
+    "Via",
+    "With",
+    "Within",
+    "Without",
+}
 
 
 def lint_content(content: str, profile: str = "simpro-web") -> List[Finding]:
@@ -266,6 +319,7 @@ def lint_content(content: str, profile: str = "simpro-web") -> List[Finding]:
 
     findings.extend(_find_multiple_links_in_paragraph(content))
     findings.extend(_find_repeated_sentence_starts(content))
+    findings.extend(_find_capitalized_title_prepositions(content))
     return sorted(findings, key=lambda item: (item["line"], item["column"], item["rule_id"]))
 
 
@@ -524,6 +578,98 @@ def _find_repeated_sentence_starts(content: str) -> List[Finding]:
                     "Vary the sentence opening or combine related ideas.",
                 )
             )
+    return findings
+
+
+def _find_capitalized_title_prepositions(content: str) -> List[Finding]:
+    findings: List[Finding] = []
+    in_code_fence = False
+    in_frontmatter = False
+
+    for line_number, original_line in enumerate(content.splitlines(), start=1):
+        stripped = original_line.strip()
+
+        if index_is_frontmatter_start(line_number, stripped):
+            in_frontmatter = True
+            continue
+
+        if stripped.startswith("```"):
+            in_code_fence = not in_code_fence
+            continue
+
+        if in_code_fence:
+            continue
+
+        if in_frontmatter:
+            if stripped == "---":
+                in_frontmatter = False
+                continue
+
+            title_match = TITLE_FRONTMATTER_RE.match(original_line)
+            if title_match:
+                raw_value = title_match.group(1).strip()
+                title_text, offset_in_raw = _strip_wrapping_quotes(raw_value)
+                title_start_column = title_match.start(1) + 1 + offset_in_raw
+                findings.extend(
+                    _title_preposition_findings(
+                        line_number,
+                        original_line,
+                        title_text,
+                        title_start_column,
+                    )
+                )
+            continue
+
+        heading_match = re.match(r"^\s{0,3}#{1,6}\s+(.+?)\s*$", original_line)
+        if heading_match:
+            title_text = heading_match.group(1).strip()
+            title_start_column = heading_match.start(1) + 1
+            findings.extend(
+                _title_preposition_findings(
+                    line_number,
+                    original_line,
+                    title_text,
+                    title_start_column,
+                )
+            )
+
+    return findings
+
+
+def index_is_frontmatter_start(line_number: int, stripped: str) -> bool:
+    return line_number == 1 and stripped == "---"
+
+
+def _strip_wrapping_quotes(value: str) -> Tuple[str, int]:
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+        return value[1:-1], 1
+    return value, 0
+
+
+def _title_preposition_findings(
+    line_number: int,
+    original_line: str,
+    title_text: str,
+    title_start_column: int,
+) -> List[Finding]:
+    findings: List[Finding] = []
+
+    for match in WORD_RE.finditer(title_text):
+        word = match.group(0)
+        if word not in TITLE_PREPOSITIONS:
+            continue
+        findings.append(
+            _finding(
+                "title_capitalized_preposition",
+                "error",
+                line_number,
+                title_start_column + match.start(),
+                word,
+                "Prepositions in titles must be lowercase in Simpro blog copy.",
+                f"Change '{word}' to '{word.lower()}' unless it is part of a proper noun.",
+            )
+        )
+
     return findings
 
 

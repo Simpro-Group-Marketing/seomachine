@@ -216,6 +216,53 @@ Use 1 dispatch record.
 
         self.assertEqual(lint_content(content), [])
 
+    def test_capitalized_prepositions_in_title_fields_are_errors(self):
+        content = """---
+title: "HVAC PPC Advertising: How to Turn Paid Clicks Into Booked Jobs"
+meta_title: "HVAC PPC Advertising: Turn Paid Clicks Into Booked Jobs"
+---
+
+# HVAC PPC Advertising: How to Turn Paid Clicks Into Booked Jobs
+"""
+
+        findings = [
+            finding
+            for finding in lint_content(content)
+            if finding["rule_id"] == "title_capitalized_preposition"
+        ]
+
+        self.assertEqual(len(findings), 3)
+        self.assertTrue(all(finding["severity"] == "error" for finding in findings))
+        self.assertTrue(all(finding["match"] == "Into" for finding in findings))
+
+    def test_lowercase_prepositions_in_title_fields_are_allowed(self):
+        content = """---
+title: "HVAC PPC Advertising: How to Turn Paid Clicks into Booked Jobs"
+meta_title: "HVAC PPC Advertising: Turn Paid Clicks into Booked Jobs"
+---
+
+# HVAC PPC Advertising: How to Turn Paid Clicks into Booked Jobs
+"""
+
+        self.assertNotIn("title_capitalized_preposition", finding_ids(content))
+
+    def test_capitalized_prepositions_in_subheadings_are_errors(self):
+        content = """## Connect PPC To HVAC Field Service Operations
+
+### What Is PPC In HVAC?
+"""
+
+        findings = [
+            finding
+            for finding in lint_content(content)
+            if finding["rule_id"] == "title_capitalized_preposition"
+        ]
+
+        self.assertEqual(
+            [(finding["line"], finding["match"]) for finding in findings],
+            [(1, "To"), (3, "In")],
+        )
+
     def test_output_fields_are_present(self):
         finding = lint_content("Furthermore, teams can improve dispatch.")[0]
 

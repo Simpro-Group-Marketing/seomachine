@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-06-15",
+  "updated_at": "2026-06-17",
   "source_boundary": "Curated customer proof index for selection and governance. This is not the full Quote Matrix. Exact quotes, review ratings, badges, rankings, and named reviewer claims require current source verification and approval before public copy use. Review-site rows may support public E-E-A-T stories only when review_story.story_allowed is true, the row has a real person or business identity, and a usable public review URL is linked in the same public paragraph as the paraphrase. Generic review themes remain VoC research only.",
   "proof": [
     {
@@ -2348,6 +2348,48 @@
         "Orca-routed reference",
         "public video route",
         "HVAC operations"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false
+      }
+    },
+    {
+      "proof_id": "case-study-buchanan-and-hall",
+      "customer": "Buchanan & Hall",
+      "source_type": "case_study",
+      "public_url": "https://www.simprogroup.com/case-studies/buchanan-and-hall",
+      "internal_source_ref": "Public case study verified for HVAC PPC rewrite on 2026-06-17",
+      "approval_status": "approved",
+      "evidence": "Public Buchanan & Hall case study supports commercial refrigeration and HVAC workflow, quote and material connectivity to jobs, accounting integration, and office workflow fit.",
+      "last_verified": "2026-06-17",
+      "workflow_fit": [
+        "quoting",
+        "job handoff",
+        "accounting integration",
+        "workflow connectivity",
+        "office workflow"
+      ],
+      "region": [
+        "Canada"
+      ],
+      "restrictions": [
+        "Paraphrased case-study theme use only",
+        "exact quotes and metrics require approved proof rows."
+      ],
+      "industry": [
+        "commercial refrigeration",
+        "HVAC",
+        "geothermal",
+        "residential HVAC"
+      ],
+      "themes": [
+        "HVAC quote-to-job workflow",
+        "connected operations",
+        "accounting integration",
+        "office productivity"
       ],
       "public_copy_allowed": true,
       "approved_quotes": [],

@@ -27,6 +27,8 @@ Before returning `Ready`, run `/publish-readiness`. It runs URL validation, publ
 
 Use `context/aeo-geo-blog-strategy.md` for the full proof policy and individual module debugging when `/publish-readiness` reports a specific failed gate.
 
+If selected customer proof appears in public copy, confirm the validation sidecar has `Selected Customer Proof Mining`. Selector chooses candidates; proof mining reads the selected public URL before the writer decides quote, metric, POV/story, theme, or omit use.
+
 ### Content Audit
 
 #### Keyword Analysis

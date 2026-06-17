@@ -127,6 +127,25 @@ Use the Global Customer Quote Matrix first for exact customer quotes. Use Custom
 
 Before selecting customer proof, run or consult `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme --limit 10`. For review-derived E-E-A-T stories, run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles experience_story --require-eeat-story --limit 10`. The selector uses `customer-proof-index.json` and `customer-proof-usage-ledger.json` to choose the most relevant approved proof, then penalizes overused proof. Do not pick the easiest mapped case study when a better-fit Quote Matrix, Reference, Customer Story, or review-site proof route exists. Generate a `Customer Proof Slate` before drafting so the writer can compare metric, quote, and theme options; edit selected/rejected rows only when editorial judgment requires it. If a repeated case study is still the best proof, add a `Customer Proof Selection Decision` with a source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved proof fits the same role.
 
+Selector chooses proof candidates; proof mining reads the selected public URL before the writer decides quote, metric, POV/story, theme, or omit use. When public copy uses selected customer proof, the validation sidecar must include `Selected Customer Proof Mining`. This block proves the selected source was checked for stronger quote, metric, POV/story, and theme evidence before the final copy used only the selected proof role.
+
+Required Selected Customer Proof Mining shape:
+
+```text
+Selected Customer Proof Mining
+- Proof: [proof_id] | Customer: [customer] | URL: [public URL]
+- Checked for: exact quotes, customer metrics, POV story, workflow themes
+- Usable quotes found: [exact approved quote rows or none found]
+- Usable metrics found: [approved metric rows or none found]
+- Usable POV/story found: [identity-backed POV summary or none found]
+- Recommended use: [theme / paraphrased POV / exact quote / metric / omit]
+- Final use in copy: [what the article actually uses]
+- Excluded proof: [quote/metric/POV and section-specific reason]
+- Status: approved
+```
+
+If `Approved quotes: none used` or `Approved metrics: none used` appears in the Customer Proof Pack, the mining block must still document whether usable quotes or metrics were found and why they were omitted. When usable quote or POV evidence is found but omitted, add a section-specific reason under `Excluded proof`.
+
 ### proof-index intake and health
 
 The proof-index health report is `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json`; use it to inspect source mix, approval status, public-copy gaps, and overused proof before expanding the index.
@@ -161,6 +180,7 @@ Required Customer Proof Pack shape:
 - **Case-study proof paths**: [customer, public URL, supported non-numeric theme]
 - **Review-site experience evidence**: [platform, URL, date checked, product/competitor, experience pattern, evidence summary, exact quote/rating approval status]
 - **Customer Proof Slate**: [selector command plus metric, quote, theme, and experience_story role rows when applicable]
+- **Selected Customer Proof Mining**: [selected public URL checked for exact quotes, customer metrics, POV story, workflow themes, recommended use, final use, excluded proof, and Status: approved]
 - **Customer Proof Selection Decision**: [selector command, selected proof IDs, rejected stronger candidates, final use in copy]
 - **Reuse reason**: [source-specific; required when selected proof appears 3+ times in the last 90 days or is already marked overused in the ledger; must include selector-backed proof that no stronger underused approved proof fits the same role]
 - **Approved quotes**: [exact quote/testimonial, customer/brand/reviewer, source type, public proof URL, Evidence, approval status]
@@ -283,6 +303,7 @@ A draft is publish-ready only when both gates pass:
 - PAA provenance guard: `data_sources/modules/paa_provenance_guard.py --fail-on error` must pass when FAQ questions are present. Each FAQ question must match the `PAA/FAQ Provenance` selected-question list and saved source artifact.
 - Source support guard: `data_sources/modules/source_support_guard.py --fail-on error` must pass before scoring or `/optimize`. Evidence snippets must be visible in the cited source, and named customer metric claims must be approved in Customer Proof Pack Approved metrics.
 - Customer proof diversity guard: `data_sources/modules/customer_proof_diversity_guard.py --fail-on error` must pass before scoring or `/optimize`. It verifies that case-study proof is not the only checked source route, that repeated customer proof has a source-specific `Reuse reason`, that the sidecar includes `Customer Proof Selection Decision`, and that `customer_proof_selector.py` inputs from `customer-proof-index.json` and `customer-proof-usage-ledger.json` were respected, including selector-backed proof that no stronger underused approved proof fits the same role.
+- Selected customer proof mining: the customer proof diversity guard also requires `Selected Customer Proof Mining` whenever public copy uses customer proof, so selected proof is mined for quotes, metrics, POV/story, and workflow themes before final use is documented.
 - Review story identity guard: `data_sources/modules/review_story_identity_guard.py --fail-on error` must pass before scoring or `/optimize`. It verifies that review-derived E-E-A-T story copy has an identity-backed `Review Story Selection`, a usable public review URL, and a same paragraph public link. It also verifies that Capterra review-theme copy has `Review Site Theme Selection`, `Source row ref: Capterra tab row [n]`, `Public review-site URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/`, same paragraph source link, and no exact quote, reviewer-name claim, rating, ranking, or metric unless separately approved.
 
 Use `--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` with Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, and content scorer commands so proof maps stay out of the article copy artifact.

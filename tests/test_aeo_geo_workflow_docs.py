@@ -853,6 +853,33 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
+    def test_selected_customer_proof_mining_is_documented(self):
+        canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
+            encoding="utf-8"
+        )
+        for text in [
+            "Selected Customer Proof Mining",
+            "Checked for: exact quotes, customer metrics, POV story, workflow themes",
+            "proof mining reads the selected public URL",
+        ]:
+            self.assertIn(text, canonical)
+
+        docs = [
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / "README.md",
+            ROOT / "CLAUDE.md",
+            ROOT / "AGENTS.md",
+            ROOT / ".cursor" / "rules" / "customer-proof.mdc",
+            ROOT / ".agents" / "rules" / "customer-proof.md",
+            ROOT / ".claude" / "rules" / "customer-proof.md",
+        ]
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            self.assertIn("Selected Customer Proof Mining", content, f"{path.name} missing proof-mining block")
+            self.assertIn("context/aeo-geo-blog-strategy.md", content, f"{path.name} missing canonical policy link")
+
     def test_customer_proof_index_intake_workflow_is_documented(self):
         canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
             encoding="utf-8"
