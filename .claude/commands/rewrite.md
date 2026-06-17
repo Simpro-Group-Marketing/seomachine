@@ -261,38 +261,28 @@ Save non-public proof infrastructure to a validation sidecar at `research/valida
 
 Preferred publish readiness command:
 ```bash
-python data_sources/modules/publish_readiness.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
+/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
 ```
 
-Before proof gates, run `python data_sources/modules/public_artifact_guard.py [file-path] --fail-on error` to confirm the rewrite is clean. Then run proof-aware gates with `--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` so the guards can read PAA provenance, metric proof, FAQ proof maps, source maps, and Customer Proof Pack rows without exposing them in public copy.
+Run `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` to confirm the rewrite is clean and all proof, URL validation, source support, content score, and AEO/GEO gates pass. The command reads the validation sidecar without exposing proof infrastructure in public copy.
 
-## Automatic Scrub, AI Copy Lint, URL Validation, Metric Proof Pack Guard, Numeric Claim Source Guard, FAQ Proof Guard, PAA Provenance Guard, Source Support Guard, Customer Proof Diversity Guard, Score, And Optimize
+## Automatic Scrub, Publish Readiness, And Optimize
 
-**CRITICAL**: Immediately after saving the rewritten article file, automatically invoke the content scrubber, run the AI copy linter, run URL validation, run the Metric Proof Pack guard, run the numeric claim source guard, run the FAQ proof guard, run the PAA provenance guard, run the source support guard, run the customer proof diversity guard, score the content, then run `/optimize`.
+**CRITICAL**: Immediately after saving the rewritten article file, automatically invoke the content scrubber, run `/publish-readiness`, then run `/optimize`.
 
 ### Why This Matters
 AI-generated content often contains invisible Unicode marks and characteristic punctuation patterns. Scrubbing handles cleanup. The linter handles AI-writing detection and Simpro style enforcement.
 
-### Scrub, Lint, URL Validation, Metric Proof Pack Guard, Numeric Claim Source Guard, FAQ Proof Guard, PAA Provenance Guard, Source Support Guard, Customer Proof Diversity Guard, Score, And Optimize Process
+### Scrub, Publish Readiness, And Optimize Process
 1. **Invoke Scrubber**: Run `/scrub [file-path]` on the saved rewritten article file
-2. **Invoke Public Artifact Guard**: Run `python data_sources/modules/public_artifact_guard.py [file-path] --fail-on error`
-3. **Invoke AI Copy Linter**: Run `python data_sources/modules/ai_copy_linter.py [file-path] --profile simpro-web --fail-on error`
-4. **Invoke URL Validation**: Run `python data_sources/modules/url_validator.py [file-path] --fail-on unresolved`
-5. **Invoke Metric Proof Pack Guard**: Run `python data_sources/modules/metric_proof_pack_guard.py [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-6. **Invoke Numeric Claim Source Guard**: Run `python data_sources/modules/numeric_claim_source_guard.py [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-7. **Invoke FAQ Proof Guard**: Run `python data_sources/modules/faq_proof_guard.py [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-8. **Invoke PAA Provenance Guard**: Run `python data_sources/modules/paa_provenance_guard.py [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-9. **Invoke Source Support Guard**: Run `python data_sources/modules/source_support_guard.py [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-10. **Invoke Customer Proof Diversity Guard**: Run `python data_sources/modules/customer_proof_diversity_guard.py [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-11. **Invoke Review Story Identity Guard**: Run `python data_sources/modules/review_story_identity_guard.py [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-11. **Invoke Content Scorer**: Run `python data_sources/modules/content_scorer.py [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --validate-urls --validate-source-support`
-12. **Check Gates**: General content quality must be 85/100 or higher, AEO/GEO must be 90/100 or higher, URL validation must pass, public artifact guard must pass, Metric Proof Pack guard must pass, numeric claim source guard must pass, FAQ proof guard must pass, PAA provenance guard must pass, source support guard must pass, and customer proof diversity guard must pass
-13. **Invoke Optimizer**: Run `/optimize [file-path]` only after scrub, public artifact guard, lint, URL validation, Metric Proof Pack guard, numeric claim source guard, FAQ proof guard, PAA provenance guard, source support guard, customer proof diversity guard, and score gates are complete
-14. **Automatic Execution**: This should happen automatically, not require user action
-15. **Timing**: Must occur immediately after file save, before optimization agents
-16. **Scope**: Scrub, lint, URL validation, Metric Proof Pack guard, numeric claim source guard, FAQ proof guard, PAA provenance guard, source support guard, customer proof diversity guard, review story identity guard, and score the main rewritten article file only; proof maps live in the validation sidecar.
-17. **Error Handling**: If linter errors remain, revise once, rerun `/scrub`, rerun the linter, then route to `review-required/` with lint findings if errors remain. If public artifact guard fails, move proof-only headings to the validation sidecar. If URL validation fails, replace or verify the unresolved link before `/optimize`. If Metric Proof Pack guard fails, research usable metrics and add `Metric Proof Pack` rows with `Search log`, `Approved metric`, public URL or proof artifact, source-visible Evidence, Status: approved, and Use in the sidecar. If numeric claim source guard fails, add a public proof link, map the same claim to a Source Map / Proof Pack row with a public URL or local proof artifact in the sidecar, or remove the unsupported number. If FAQ proof guard fails, add a public proof link inside the FAQ answer, map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL in the sidecar, or remove the unsupported claim. If PAA provenance guard fails, add a `PAA/FAQ Provenance` block with an allowed source, real artifact path, and exact selected questions to the sidecar. If source support guard fails, add a strict proof row with Claim, URL, Evidence, and Status: approved to the sidecar, use Evidence visible in the cited source, or remove the unsupported claim. If customer proof diversity guard fails, add Quote Matrix, Reference, Customer Story, or review-site search evidence to the Customer Proof Pack, add Customer Proof Selection Decision, or document a source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved proof fits the same role. If review story identity guard fails, add an identity-backed Review Story Selection with a public review URL and same paragraph article link, or remove the review-derived story. Context file paths alone do not count. If score gates fail after 2 iterations, route to `review-required/` with scoring details.
-18. **Warnings**: Include warning findings in review notes, but do not block unless strict mode is requested
+2. **Invoke Publish Readiness**: Run `/publish-readiness [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`
+3. **Check Gates**: General content quality must be 85/100 or higher, AEO/GEO must be 90/100 or higher, and all blocking gates must pass
+4. **Invoke Optimizer**: Run `/optimize [file-path]` only after scrub and `/publish-readiness` pass
+5. **Automatic Execution**: This should happen automatically, not require user action
+6. **Timing**: Must occur immediately after file save, before optimization agents
+7. **Scope**: Scrub and publish-readiness checks apply to the main rewritten article file only; proof maps live in the validation sidecar.
+8. **Error Handling**: If `/publish-readiness` fails, fix the highest-severity gate it reports. Use `context/aeo-geo-blog-strategy.md` for proof policy and individual module debugging. If score gates fail after 2 iterations, route to `review-required/` with scoring details.
+9. **Warnings**: Include warning findings in review notes, but do not block unless strict mode is requested
 
 ### What Gets Cleaned
 - Invisible Unicode watermarks (zero-width spaces, BOMs, format-control characters)
@@ -347,7 +337,7 @@ URL validation confirms destinations resolve; it does not prove the page support
 
 ### Example Workflow
 1. Rewrite article and save to `rewrites/article-name-rewrite-2025-10-31.md`.
-2. Run `/scrub`, AI copy lint, URL validation, the required proof gate stack above, and the scorer from the required stack.
+2. Run `/scrub`, then `/publish-readiness rewrites/article-name-rewrite-2025-10-31.md --proof-sidecar research/validation-article-name-2025-10-31.md`.
 3. Confirm 85/100 general content quality, 90/100 AEO/GEO, and passing proof gates.
 4. Then run `/optimize rewrites/article-name-rewrite-2025-10-31.md`.
 5. If blockers remain, revise once and rerun the same stack.

@@ -32,19 +32,11 @@ Use a proof-backed customer/review POV only when it improves the article objecti
 Preferred publish readiness command:
 
 ```powershell
-python data_sources/modules/publish_readiness.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
+/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
 ```
 
-Run the diversity gate before scoring or publish readiness:
-
-```powershell
-python data_sources/modules/customer_proof_diversity_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
+The diversity gate runs inside `/publish-readiness` before scoring or publish readiness.
 
 Case-study proof requires documented Quote Matrix, Reference, Customer Story, or review-site search evidence. Exact quotes, ratings, badges, rankings, named reviewers, and testimonials require approved proof rows with source-visible evidence.
 
-Run the review story identity gate before scoring or publish readiness when review-derived story copy appears:
-
-```powershell
-python data_sources/modules/review_story_identity_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
+The review story identity gate runs inside `/publish-readiness` when review-derived story copy appears.

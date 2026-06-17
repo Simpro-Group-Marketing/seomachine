@@ -34,34 +34,22 @@ Extract from user input:
 - **Target month**: Parse month name (e.g., "april", "next-month", "june"). Default to current month. Determine the year, first day, last day, and number of weeks.
 - **Focus cluster**: Optional text filter. If provided, prioritize items matching this cluster.
 
-### 2. Run Research Scripts
+### 2. Resolve Research Inputs
 
-Check if today's reports already exist before running each script. Skip any script whose report for today is already in `research/`.
+Use slash-command workflows as the user-facing interface. Scripts and MCP calls are implementation details for the command runner; do not ask the user to run Python scripts manually.
 
-```bash
-python3 research_quick_wins.py
-```
-Generates `research/quick-wins-YYYY-MM-DD.md`
+Check if today's reports already exist in `research/`. If they do, read the existing report instead of refreshing the underlying data. If they do not, internally run or invoke the matching research workflow:
 
-```bash
-python3 research_topic_clusters.py
-```
-Generates `research/topic-clusters-YYYY-MM-DD.md`
-
-```bash
-python3 research_performance_matrix.py
-```
-Generates `research/performance-matrix-YYYY-MM-DD.md`
-
-```bash
-python3 research_trending.py
-```
-Generates `research/trending-topics-YYYY-MM-DD.md`
+- `/research-performance` for performance matrix or target-priority inputs
+- `/research-topics` for topic-cluster inputs
+- `/research-trending` for trend inputs
+- `/research-gaps` for competitor-gap inputs
+- `/priorities` when the calendar needs a blended execution queue
 
 Also check for recent competitor gap reports:
 - Read `research/competitor-gaps-*.md` if any exist (use most recent)
 
-**Important**: If a report for today already exists, skip that script to save API credits. Read the existing report instead.
+**Important**: If a report for today already exists, skip the data refresh to save API credits. Read the existing report instead.
 
 ### 3. Read and Parse All Reports
 

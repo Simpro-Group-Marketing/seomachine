@@ -95,7 +95,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "internal source of truth",
             "public-facing source links",
             "suggested blog focus",
-            "content_scorer.py",
+            "/publish-readiness",
             "/optimize",
             "85/100",
             "90/100",
@@ -361,6 +361,16 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
     def test_url_validation_gate_is_documented_across_publish_workflow(self):
+        canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
+            encoding="utf-8"
+        )
+        for text in [
+            "URL validation",
+            "url_validator.py",
+            "does not prove the page supports the claim",
+        ]:
+            self.assertIn(text, canonical)
+
         docs = [
             ROOT / ".claude" / "commands" / "optimize.md",
             ROOT / ".claude" / "commands" / "write.md",
@@ -371,9 +381,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         ]
         required = [
             "URL validation",
-            "data_sources/modules/url_validator.py",
-            "--fail-on unresolved",
-            "does not prove the page supports the claim",
+            "/publish-readiness",
+            "context/aeo-geo-blog-strategy.md",
         ]
 
         for path in docs:
@@ -382,20 +391,29 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
     def test_faq_proof_gate_is_documented_across_blog_workflow(self):
+        canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
+            encoding="utf-8"
+        )
+        for text in [
+            "FAQ proof",
+            "faq_proof_guard.py",
+            "public proof link",
+            "question-specific Source Map",
+            "Context file paths alone do not count",
+        ]:
+            self.assertIn(text, canonical)
+
         docs = [
             ROOT / ".claude" / "commands" / "article.md",
             ROOT / ".claude" / "commands" / "write.md",
             ROOT / ".claude" / "commands" / "rewrite.md",
-            ROOT / "context" / "aeo-geo-blog-strategy.md",
             ROOT / "README.md",
             ROOT / "CLAUDE.md",
         ]
         required = [
             "FAQ proof",
-            "data_sources/modules/faq_proof_guard.py",
-            "public proof link",
-            "question-specific Source Map",
-            "Context file paths alone do not count",
+            "/publish-readiness",
+            "context/aeo-geo-blog-strategy.md",
         ]
 
         for path in docs:
@@ -404,19 +422,28 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
     def test_paa_provenance_gate_is_documented_across_blog_workflow(self):
+        canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
+            encoding="utf-8"
+        )
+        for text in [
+            "PAA provenance",
+            "paa_provenance_guard.py",
+            "Proof links alone do not prove question provenance",
+        ]:
+            self.assertIn(text, canonical)
+
         workflow_docs = [
             ROOT / ".claude" / "commands" / "optimize.md",
             ROOT / ".claude" / "commands" / "article.md",
             ROOT / ".claude" / "commands" / "write.md",
             ROOT / ".claude" / "commands" / "rewrite.md",
-            ROOT / "context" / "aeo-geo-blog-strategy.md",
             ROOT / "README.md",
             ROOT / "CLAUDE.md",
         ]
         command_required = [
             "PAA provenance",
-            "data_sources/modules/paa_provenance_guard.py",
-            "--fail-on error",
+            "/publish-readiness",
+            "context/aeo-geo-blog-strategy.md",
         ]
 
         for path in workflow_docs:
@@ -440,13 +467,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                 f"{path.name} missing user PAA/FAQ CSV or user-provided CSV wording",
             )
 
-        strategy = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("Proof links alone do not prove question provenance", strategy)
         for path in workflow_docs:
-            if path.name == "aeo-geo-blog-strategy.md":
-                continue
             content = path.read_text(encoding="utf-8")
             self.assertNotIn(
                 "Proof links alone do not prove question provenance",
@@ -455,6 +476,16 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             )
 
     def test_numeric_claim_source_guard_is_documented_globally(self):
+        canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
+            encoding="utf-8"
+        )
+        for text in [
+            "Numeric claim source guard",
+            "Numeric claim source guard and source support guard still prove any numbers",
+            "public proof URL or local proof artifact",
+        ]:
+            self.assertIn(text, canonical)
+
         docs = [
             ROOT / ".claude" / "commands" / "optimize.md",
             ROOT / ".claude" / "commands" / "write.md",
@@ -464,8 +495,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             ROOT / "CLAUDE.md",
         ]
         required = [
-            "data_sources/modules/numeric_claim_source_guard.py",
-            "--fail-on error",
+            "/publish-readiness",
+            "context/aeo-geo-blog-strategy.md",
         ]
 
         for path in docs:
@@ -473,30 +504,32 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
+    def test_metric_proof_pack_gate_is_documented_across_blog_workflow(self):
         canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
             encoding="utf-8"
         )
         for text in [
-            "Numeric claim source guard and source support guard still prove any numbers",
-            "public proof URL or local proof artifact",
+            "Metric Proof Pack",
+            "metric_proof_pack_guard.py",
+            "Approved metric",
+            "Search log",
+            "source-visible Evidence",
         ]:
             self.assertIn(text, canonical)
 
-    def test_metric_proof_pack_gate_is_documented_across_blog_workflow(self):
         docs = [
             ROOT / ".claude" / "commands" / "research.md",
             ROOT / ".claude" / "commands" / "optimize.md",
             ROOT / ".claude" / "commands" / "article.md",
             ROOT / ".claude" / "commands" / "write.md",
             ROOT / ".claude" / "commands" / "rewrite.md",
-            ROOT / "context" / "aeo-geo-blog-strategy.md",
             ROOT / "README.md",
             ROOT / "CLAUDE.md",
         ]
         required = [
             "Metric Proof Pack",
-            "data_sources/modules/metric_proof_pack_guard.py",
-            "--fail-on error",
+            "/publish-readiness",
+            "context/aeo-geo-blog-strategy.md",
         ]
 
         for path in docs:
@@ -504,19 +537,17 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
+    def test_validation_sidecar_workflow_is_documented(self):
         canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
             encoding="utf-8"
         )
-        for text in ["Approved metric", "Search log", "source-visible Evidence"]:
-            self.assertIn(text, canonical)
+        self.assertIn("public_artifact_guard.py", canonical)
 
-    def test_validation_sidecar_workflow_is_documented(self):
         docs = [
             ROOT / ".claude" / "commands" / "optimize.md",
             ROOT / ".claude" / "commands" / "article.md",
             ROOT / ".claude" / "commands" / "write.md",
             ROOT / ".claude" / "commands" / "rewrite.md",
-            ROOT / "context" / "aeo-geo-blog-strategy.md",
             ROOT / "README.md",
             ROOT / "CLAUDE.md",
         ]
@@ -524,8 +555,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "validation sidecar",
             "research/validation-[topic-slug]-[YYYY-MM-DD].md",
             "--proof-sidecar",
-            "data_sources/modules/public_artifact_guard.py",
             "Editorial Validation Appendix",
+            "/publish-readiness",
         ]
 
         for path in docs:
@@ -534,30 +565,12 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
     def test_source_support_guard_is_documented_across_blog_workflow(self):
-        docs = [
-            ROOT / ".claude" / "commands" / "optimize.md",
-            ROOT / ".claude" / "commands" / "write.md",
-            ROOT / ".claude" / "commands" / "rewrite.md",
-            ROOT / ".claude" / "commands" / "article.md",
-            ROOT / "context" / "aeo-geo-blog-strategy.md",
-            ROOT / "README.md",
-            ROOT / "CLAUDE.md",
-        ]
-        required = [
-            "source support guard",
-            "data_sources/modules/source_support_guard.py",
-            "--fail-on error",
-        ]
-
-        for path in docs:
-            content = path.read_text(encoding="utf-8")
-            for text in required:
-                self.assertIn(text, content, f"{path.name} missing {text}")
-
         canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
             encoding="utf-8"
         )
         for text in [
+            "source support guard",
+            "source_support_guard.py",
             "Evidence",
             "Approved quote",
             "quotes, testimonials",
@@ -565,6 +578,25 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "Approved metrics",
         ]:
             self.assertIn(text, canonical)
+
+        docs = [
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / "README.md",
+            ROOT / "CLAUDE.md",
+        ]
+        required = [
+            "source support",
+            "/publish-readiness",
+            "context/aeo-geo-blog-strategy.md",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
 
     def test_publish_scoring_commands_include_source_support_flag(self):
         docs = [
@@ -598,15 +630,78 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             ROOT / "AGENTS.md",
             ROOT / ".cursor" / "rules" / "customer-proof.mdc",
         ]
-        preferred_command = "python data_sources/modules/publish_readiness.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md"
+        preferred_command = "/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md"
 
         for path in docs:
             content = path.read_text(encoding="utf-8")
             self.assertIn(
                 preferred_command,
                 content,
-                f"{path.name} must document publish_readiness.py as the preferred publish gate command",
+                f"{path.name} must document /publish-readiness as the preferred publish gate command",
             )
+
+    def test_publish_readiness_slash_command_contract_exists(self):
+        command_path = ROOT / ".claude" / "commands" / "publish-readiness.md"
+        content = command_path.read_text(encoding="utf-8")
+
+        self.assertIn(
+            "/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md",
+            content,
+        )
+        self.assertIn("Do not ask the user to call the Python runner manually", content)
+        for gate in [
+            "public_artifact_guard",
+            "ai_copy_linter",
+            "url_validator",
+            "metric_proof_pack_guard",
+            "numeric_claim_source_guard",
+            "faq_proof_guard",
+            "paa_provenance_guard",
+            "source_support_guard",
+            "customer_proof_diversity_guard",
+            "review_story_identity_guard",
+            "content_scorer",
+        ]:
+            self.assertIn(gate, content)
+
+    def test_noncanonical_blog_workflows_do_not_require_manual_publish_gate_scripts(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "research.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / "README.md",
+            ROOT / "CLAUDE.md",
+            ROOT / "AGENTS.md",
+            ROOT / ".cursor" / "rules" / "customer-proof.mdc",
+            ROOT / ".agents" / "rules" / "customer-proof.md",
+            ROOT / ".claude" / "rules" / "customer-proof.md",
+        ]
+        publish_gate_modules = [
+            "public_artifact_guard.py",
+            "ai_copy_linter.py",
+            "url_validator.py",
+            "metric_proof_pack_guard.py",
+            "numeric_claim_source_guard.py",
+            "faq_proof_guard.py",
+            "paa_provenance_guard.py",
+            "source_support_guard.py",
+            "customer_proof_diversity_guard.py",
+            "review_story_identity_guard.py",
+            "content_scorer.py",
+            "publish_readiness.py",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for line in content.splitlines():
+                if "python " not in line:
+                    continue
+                self.assertFalse(
+                    any(module in line for module in publish_gate_modules),
+                    f"{path.name} should use /publish-readiness instead of manual publish gate script: {line}",
+                )
 
     def test_proof_aware_guard_command_examples_include_sidecar(self):
         docs = [
@@ -707,7 +802,6 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "customer_proof_diversity_guard.py",
             "review_story_identity_guard.py",
             "content_scorer.py",
-            "publish_readiness.py",
         ]
 
         for path in docs:
@@ -725,32 +819,13 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                 )
 
     def test_customer_proof_selection_governance_is_documented(self):
-        docs = [
-            ROOT / ".claude" / "commands" / "research.md",
-            ROOT / ".claude" / "commands" / "optimize.md",
-            ROOT / ".claude" / "commands" / "article.md",
-            ROOT / ".claude" / "commands" / "write.md",
-            ROOT / ".claude" / "commands" / "rewrite.md",
-            ROOT / "context" / "aeo-geo-blog-strategy.md",
-            ROOT / "README.md",
-            ROOT / "CLAUDE.md",
-        ]
-        required = [
-            "customer_proof_selector.py",
-            "customer_proof_diversity_guard.py",
-            "Customer Proof Slate",
-            "--slate",
-        ]
-
-        for path in docs:
-            content = path.read_text(encoding="utf-8")
-            for text in required:
-                self.assertIn(text, content, f"{path.name} missing {text}")
-
         canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
             encoding="utf-8"
         )
         for text in [
+            "customer_proof_selector.py",
+            "customer_proof_diversity_guard.py",
+            "--slate",
             "customer-proof-index.json",
             "customer-proof-usage-ledger.json",
             "Reuse reason",
@@ -760,10 +835,38 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         ]:
             self.assertIn(text, canonical)
 
-    def test_customer_proof_index_intake_workflow_is_documented(self):
         docs = [
             ROOT / ".claude" / "commands" / "research.md",
-            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / "README.md",
+            ROOT / "CLAUDE.md",
+        ]
+        required = [
+            "Customer Proof Slate",
+            "context/aeo-geo-blog-strategy.md",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+    def test_customer_proof_index_intake_workflow_is_documented(self):
+        canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
+            encoding="utf-8"
+        )
+        required = [
+            "customer_proof_index_health.py",
+            "customer_proof_index_intake.py",
+            "context/customer-proof-intake-template.csv",
+        ]
+        for text in required + ["proof-index intake", "proof-index health"]:
+            self.assertIn(text, canonical)
+
+        docs = [
+            ROOT / ".claude" / "commands" / "research.md",
             ROOT / ".claude" / "commands" / "article.md",
             ROOT / ".claude" / "commands" / "write.md",
             ROOT / ".claude" / "commands" / "rewrite.md",
@@ -775,20 +878,13 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             ROOT / ".claude" / "rules" / "customer-proof.md",
         ]
         required = [
-            "customer_proof_index_health.py",
-            "customer_proof_index_intake.py",
             "context/customer-proof-intake-template.csv",
+            "context/aeo-geo-blog-strategy.md",
         ]
         for path in docs:
             content = path.read_text(encoding="utf-8")
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
-
-        canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
-            encoding="utf-8"
-        )
-        for text in required + ["proof-index intake", "proof-index health"]:
-            self.assertIn(text, canonical)
 
     def test_customer_proof_rules_apply_across_agent_platforms(self):
         rule_paths = [
@@ -808,6 +904,41 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("alwaysApply: true", cursor_rule)
+
+    def test_research_performance_is_slash_command_first(self):
+        research_performance = (
+            ROOT / ".claude" / "commands" / "research-performance.md"
+        ).read_text(encoding="utf-8")
+
+        required = [
+            "/research-performance [blog URL or path]",
+            "This is a slash-command workflow",
+            "Do not ask the user to run Python scripts by hand",
+            "research/performance-review-[topic-slug]-[YYYY-MM-DD].md",
+            "Recommended next slash command",
+        ]
+        for text in required:
+            self.assertIn(text, research_performance)
+
+        user_facing_docs = [
+            ROOT / ".claude" / "commands" / "research-performance.md",
+            ROOT / ".claude" / "commands" / "content-calendar.md",
+            ROOT / "README.md",
+            ROOT / "CLAUDE.md",
+        ]
+        forbidden = [
+            "python3 research_performance_matrix.py",
+            "python3 scripts/research_performance_matrix.py",
+            "scripts/research_performance_matrix.py",
+        ]
+        for path in user_facing_docs:
+            content = path.read_text(encoding="utf-8")
+            for text in forbidden:
+                self.assertNotIn(
+                    text,
+                    content,
+                    f"{path.name} exposes performance script instead of slash command workflow",
+                )
 
     def test_review_story_identity_governance_is_documented(self):
         canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
@@ -834,8 +965,9 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             ROOT / "AGENTS.md",
         ]
         required = [
-            "Review Story Selection",
-            "review_story_identity_guard.py",
+            "review",
+            "context/aeo-geo-blog-strategy.md",
+            "/publish-readiness",
         ]
         for path in docs:
             content = path.read_text(encoding="utf-8")
@@ -907,8 +1039,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             ROOT / "AGENTS.md",
         ]
         required = [
-            "Review Site Theme Selection",
             "context/aeo-geo-blog-strategy.md",
+            "review",
         ]
         for path in docs:
             content = path.read_text(encoding="utf-8")

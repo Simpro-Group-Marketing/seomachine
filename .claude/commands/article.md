@@ -674,97 +674,22 @@ After saving the draft:
 ```
 Removes invisible Unicode marks, em dashes, and whitespace artifacts.
 
-### 2. Lint AI Copy
-```bash
-python data_sources/modules/ai_copy_linter.py drafts/[filename].md --profile simpro-web --fail-on error
-```
-
-If errors remain, revise once, rerun `/scrub`, rerun the linter, then move to `review-required/` with lint findings if errors remain. Warnings go into review notes unless strict mode is requested.
-
-### 3. Validate URLs
-```bash
-python data_sources/modules/url_validator.py drafts/[filename].md --fail-on unresolved
-```
-
-URL validation confirms destinations resolve; it does not prove the page supports the claim, so Source Map and E-E-A-T proof review still verify claim support.
-
-### Validation Sidecar And Public Artifact Check
+### 2. Publish Readiness
 
 Save proof-only blocks to a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`. The article draft must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan as public copy.
 
 Preferred publish readiness command:
 ```bash
-python data_sources/modules/publish_readiness.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
+/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
+/publish-readiness drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
 ```
 
-Run `python data_sources/modules/public_artifact_guard.py drafts/[filename].md --fail-on error` before proof gates. Run proof-aware gates with `--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` so the guards can read the sidecar without exposing proof infrastructure in the article.
-
-### 4. Check Metric Proof Pack
-```bash
-python data_sources/modules/metric_proof_pack_guard.py drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
-
-Use `context/aeo-geo-blog-strategy.md` for the Metric Proof Pack policy and evidence boundary.
-
-### 5. Check Numeric Claim Sources
-```bash
-python data_sources/modules/numeric_claim_source_guard.py drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
-
-Use `context/aeo-geo-blog-strategy.md` for numeric-claim proof requirements.
-
-### 6. Check FAQ Proof
-```bash
-python data_sources/modules/faq_proof_guard.py drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
-
-Use `context/aeo-geo-blog-strategy.md` for FAQ proof requirements.
-
-### 7. Check PAA Provenance
-```bash
-python data_sources/modules/paa_provenance_guard.py drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
-
-Use `context/aeo-geo-blog-strategy.md` for PAA provenance source-label and proof-boundary policy.
-
-### 8. Check Source Support
-```bash
-python data_sources/modules/source_support_guard.py drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
-
-Use `context/aeo-geo-blog-strategy.md` for source support, Approved quote, testimonial, and named customer metric boundaries.
-
-### 9. Check Customer Proof Diversity
-```bash
-python data_sources/modules/customer_proof_diversity_guard.py drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
-
-Before selecting proof, generate a `Customer Proof Slate` with `customer_proof_selector.py --slate`; use `context/aeo-geo-blog-strategy.md` for diversity and reuse policy.
-
-### 10. Check Review Story Identity
-```bash
-python data_sources/modules/review_story_identity_guard.py drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
-
-Use `context/aeo-geo-blog-strategy.md` for Review Story Selection, Review Site Theme Selection, identity, same-paragraph link, exact-quote, rating, and metric boundaries.
-
-### 11. Score Content Quality
-```bash
-python data_sources/modules/content_scorer.py drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --validate-urls --validate-source-support
-```
+The command runs AI copy linting, URL validation, public artifact checks, Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, content score, and AEO/GEO gates internally.
 
 **Quality Gates:**
 - General content quality score must be **85/100** or higher.
 - AEO/GEO score must be **90/100** or higher.
-- URL validation must pass before `/optimize`.
-- Metric Proof Pack guard must pass before scoring or `/optimize`.
-- Numeric claim source guard must pass before scoring or `/optimize`.
-- FAQ proof guard must pass before scoring or `/optimize`.
-- PAA provenance guard must pass before scoring or `/optimize`.
-- Source support guard must pass before scoring or `/optimize`.
-- Customer proof diversity guard must pass before scoring or `/optimize`.
-- Review story identity guard must pass before scoring or `/optimize`.
-- A draft only passes if AI copy lint has zero errors, URL validation passes, Metric Proof Pack guard passes, numeric claim source guard passes, FAQ proof guard passes, PAA provenance guard passes, source support guard passes, customer proof diversity guard passes, review story identity guard passes, and both score gates pass.
+- A draft only passes if `/publish-readiness` reports no blocking gate failures.
 
 | Dimension | Weight |
 |-----------|--------|

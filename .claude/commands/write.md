@@ -292,35 +292,26 @@ Save non-public proof infrastructure to a validation sidecar at `research/valida
 
 Preferred publish readiness command:
 ```bash
-python data_sources/modules/publish_readiness.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
+/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
 ```
 
-Before proof gates, run `python data_sources/modules/public_artifact_guard.py [file-path] --fail-on error` to confirm the article is clean. Then run proof-aware gates with `--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` so the guards can read PAA provenance, metric proof, FAQ proof maps, source maps, and Customer Proof Pack rows without exposing them in public copy.
+Run `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` to confirm the article is clean and all proof, URL validation, source support, content score, and AEO/GEO gates pass. The command reads the validation sidecar without exposing proof infrastructure in public copy.
 
-## Automatic Scrub, AI Copy Lint, URL Validation, Metric Proof Pack Guard, Numeric Claim Source Guard, FAQ Proof Guard, PAA Provenance Guard, Source Support Guard, Customer Proof Diversity Guard, And Review Story Identity Guard
+## Automatic Scrub And Publish Readiness
 
-**CRITICAL**: Immediately after saving the article file, automatically invoke the content scrubber, run the AI copy linter, run URL validation, run the Metric Proof Pack guard, run the numeric claim source guard, run the FAQ proof guard, run the PAA provenance guard, run the source support guard, run the customer proof diversity guard, and run the review story identity guard before scoring or optimization.
+**CRITICAL**: Immediately after saving the article file, automatically invoke the content scrubber and then `/publish-readiness` before scoring, optimization, or handoff.
 
 ### Why This Matters
 AI-generated content often contains invisible Unicode marks and characteristic punctuation patterns. Scrubbing handles cleanup. The linter handles AI-writing detection and Simpro style enforcement.
 
-### Scrub, Lint, URL Validation, Metric Proof Pack Guard, Numeric Claim Source Guard, FAQ Proof Guard, PAA Provenance Guard, Source Support Guard, Customer Proof Diversity Guard, And Review Story Identity Guard Process
+### Scrub And Publish Readiness Process
 1. **Invoke Scrubber**: Run `/scrub [file-path]` on the saved article file
-2. **Invoke Public Artifact Guard**: Run `python data_sources/modules/public_artifact_guard.py [file-path] --fail-on error`
-3. **Invoke AI Copy Linter**: Run `python data_sources/modules/ai_copy_linter.py [file-path] --profile simpro-web --fail-on error`
-4. **Invoke URL Validation**: Run `python data_sources/modules/url_validator.py [file-path] --fail-on unresolved`
-5. **Invoke Metric Proof Pack Guard**: Run `python data_sources/modules/metric_proof_pack_guard.py [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-6. **Invoke Numeric Claim Source Guard**: Run `python data_sources/modules/numeric_claim_source_guard.py [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-7. **Invoke FAQ Proof Guard**: Run `python data_sources/modules/faq_proof_guard.py [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-8. **Invoke PAA Provenance Guard**: Run `python data_sources/modules/paa_provenance_guard.py [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-9. **Invoke Source Support Guard**: Run `python data_sources/modules/source_support_guard.py [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-10. **Invoke Customer Proof Diversity Guard**: Run `python data_sources/modules/customer_proof_diversity_guard.py [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-11. **Invoke Review Story Identity Guard**: Run `python data_sources/modules/review_story_identity_guard.py [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-11. **Automatic Execution**: This should happen automatically, not require user action
-12. **Timing**: Must occur immediately after file save, before scoring or agent processing
-13. **Scope**: Scrub, lint, validate, metric proof-check, numeric proof-check, FAQ proof-check, PAA provenance-check, source-support-check, customer-proof-check, and review-story-check the main article file only; proof maps live in the validation sidecar.
-14. **Error Handling**: If linter errors remain, revise once, rerun `/scrub`, rerun the linter, then route to `review-required/` with lint findings if errors remain. If public artifact guard fails, move proof-only headings to the validation sidecar. If URL validation fails, replace or verify the unresolved link before `/optimize`. If Metric Proof Pack guard fails, research usable metrics and add `Metric Proof Pack` rows with `Search log`, `Approved metric`, public URL or proof artifact, source-visible Evidence, Status: approved, and Use in the sidecar. If numeric claim source guard fails, add a public proof link, map the same claim to a Source Map / Proof Pack row with a public URL or local proof artifact in the sidecar, or remove the unsupported number. If FAQ proof guard fails, add a public proof link inside the FAQ answer, map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL in the sidecar, or remove the unsupported claim. If PAA provenance guard fails, add a `PAA/FAQ Provenance` block with an allowed source, real artifact path, and exact selected questions to the sidecar. If source support guard fails, add a strict proof row with Claim, URL, Evidence, and Status: approved to the sidecar, use Evidence visible in the cited source, or remove the unsupported claim. If customer proof diversity guard fails, add Quote Matrix, Reference, Customer Story, or review-site search evidence to the Customer Proof Pack, add Customer Proof Selection Decision, or document a source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved proof fits the same role. If review story identity guard fails, add an identity-backed Review Story Selection with a public review URL and same paragraph article link, or remove the review-derived story. Context file paths alone do not count.
-15. **Warnings**: Include warning findings in review notes, but do not block unless strict mode is requested
+2. **Invoke Publish Readiness**: Run `/publish-readiness [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`
+3. **Automatic Execution**: This should happen automatically, not require user action
+4. **Timing**: Must occur immediately after file save, before scoring or agent processing
+5. **Scope**: Scrub and publish-readiness checks apply to the main article file only; proof maps live in the validation sidecar.
+6. **Error Handling**: If `/publish-readiness` fails, fix the highest-severity gate it reports. Use `context/aeo-geo-blog-strategy.md` for proof policy and individual module debugging.
+7. **Warnings**: Include warning findings in review notes, but do not block unless strict mode is requested
 
 ### What Gets Cleaned
 - Invisible Unicode watermarks (zero-width spaces, BOMs, format-control characters)
@@ -418,29 +409,24 @@ This new agent uses 5 specialized analysis modules:
 
 ## Automatic Quality Loop
 
-After saving the initial draft, automatically run the AI copy linter and content quality scorer:
+After saving the initial draft, automatically run the scrubber and publish-readiness gate:
 
-### Step 1: Confirm AI Copy Lint Gate
-Run the AI copy linter before scoring:
+### Step 1: Scrub The Draft
+Run the scrubber before publish readiness:
 ```bash
-python data_sources/modules/ai_copy_linter.py drafts/[article-file].md --profile simpro-web --fail-on error
+/scrub drafts/[article-file].md
 ```
 
-The draft must have zero linter errors before scoring. Warnings go into review notes unless strict mode is requested.
-
-### Step 2: Confirm Proof Gates
-Run the required proof gate stack above. The draft must have zero blocking findings before scoring.
-
-### Step 3: Score Content
-Run the content scorer to evaluate the draft:
+### Step 2: Confirm Publish Readiness
+Run the command-system gate:
 ```bash
-python data_sources/modules/content_scorer.py drafts/[article-file].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --validate-urls --validate-source-support
+/publish-readiness drafts/[article-file].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
 ```
 
-This scorer command includes URL validation and source support validation before `/optimize`.
+The draft must have zero blocking findings, general content quality at 85/100 or higher, and AEO/GEO at 90/100 or higher before `/optimize`.
 
-### Step 4: Evaluate Score
-The scorer evaluates 5 content-quality dimensions plus the required AEO/GEO gate:
+### Step 3: Evaluate Score
+The publish-readiness command includes 5 content-quality dimensions plus the required AEO/GEO gate:
 
 | Dimension | Weight | Target |
 |-----------|--------|--------|
@@ -452,10 +438,10 @@ The scorer evaluates 5 content-quality dimensions plus the required AEO/GEO gate
 
 ### Step 4: Auto-Revise if Needed
 If content quality is below 85/100 or AEO/GEO is below 90/100:
-1. Review the `priority_fixes` from the scorer
+1. Review the `priority_fixes` from `/publish-readiness`
 2. Apply the top 3-5 fixes automatically
-3. Rerun `/scrub` and the AI copy linter
-4. Re-score the content
+3. Rerun `/scrub`
+4. Rerun `/publish-readiness`
 5. Repeat once more if still below threshold
 
 ### Step 5: Route Based on Final Score

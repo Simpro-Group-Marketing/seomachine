@@ -14,100 +14,18 @@ Use this command to perform a final SEO optimization pass on completed articles 
 
 ## Process
 
-### Validation Sidecar And Public Artifact Gate
+### Validation Sidecar And Publish Readiness
 
 Before returning `Ready`, confirm proof-only infrastructure lives in a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in the blog copy. The article file must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan.
 
 Preferred publish readiness command:
 ```bash
-python data_sources/modules/publish_readiness.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
+/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
 ```
 
-```bash
-python data_sources/modules/public_artifact_guard.py [article-file] --fail-on error
-```
+Before returning `Ready`, run `/publish-readiness`. It runs URL validation, public artifact checks, AI copy linting, Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, content score, and AEO/GEO gates internally.
 
-Run proof-aware gates with `--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` so the guards can read proof maps and proof packs without exposing them in public copy.
-
-### URL Validation Gate
-
-Before returning `Ready`, run URL validation:
-```bash
-python data_sources/modules/url_validator.py [article-file] --fail-on unresolved
-```
-
-URL validation blocks unresolved and manual-review links before publish readiness. It confirms destinations resolve; it does not prove the page supports the claim, so Source Map and E-E-A-T proof review still verify claim support.
-
-### Metric Proof Pack Gate
-
-Before returning `Ready`, run Metric Proof Pack guard:
-```bash
-python data_sources/modules/metric_proof_pack_guard.py [article-file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
-
-Use `context/aeo-geo-blog-strategy.md` for the Metric Proof Pack policy and evidence boundary.
-
-### Numeric Claim Source Gate
-
-Before returning `Ready`, run numeric claim source guard:
-```bash
-python data_sources/modules/numeric_claim_source_guard.py [article-file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
-
-Use `context/aeo-geo-blog-strategy.md` for numeric-claim proof requirements.
-
-### FAQ Proof Gate
-
-Before returning `Ready`, run FAQ proof guard:
-```bash
-python data_sources/modules/faq_proof_guard.py [article-file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
-
-Use `context/aeo-geo-blog-strategy.md` for FAQ proof requirements.
-
-### PAA Provenance Gate
-
-Before returning `Ready`, run PAA provenance guard:
-```bash
-python data_sources/modules/paa_provenance_guard.py [article-file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
-
-PAA provenance requires every FAQ question to match a saved PAA/FAQ source artifact when an FAQ section is present. Use `PAA/FAQ Provenance` with Source, Artifact, and Selected questions; see `context/aeo-geo-blog-strategy.md` for the full source-label and proof-boundary policy.
-
-### Source Support Gate
-
-Before returning `Ready`, run source support guard:
-```bash
-python data_sources/modules/source_support_guard.py [article-file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
-
-Use `context/aeo-geo-blog-strategy.md` for source support, Approved quote, testimonial, and named customer metric boundaries.
-
-### Customer Proof Diversity Gate
-
-Before returning `Ready`, run customer proof diversity guard:
-```bash
-python data_sources/modules/customer_proof_diversity_guard.py [article-file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
-
-Run or consult `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme --limit 10` before selecting proof. The validation sidecar needs the generated selector-first `Customer Proof Slate`; use `context/aeo-geo-blog-strategy.md` for the full customer proof policy.
-
-Run or consult `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` before adding proof candidates.
-
-Add new proof candidates through `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates.
-
-### Review Story Identity Gate
-
-For review-derived public copy, consult the selector with `--require-eeat-story --proof-role experience_story`; use `context/aeo-geo-blog-strategy.md` for Review Story Selection, Review Site Theme Selection, Capterra theme, exact-quote, rating, and metric boundaries.
-
-Use a proof-backed customer/review POV only when it improves the article objective. If no actual person or business POV fits, omit the story. Fictional named personas are prohibited; unnamed workflow scenarios are explanatory only and do not count as E-E-A-T.
-
-Before returning `Ready`, run review story identity guard:
-```bash
-python data_sources/modules/review_story_identity_guard.py [article-file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
-
-Exact review wording still requires Approved quote handling per `context/aeo-geo-blog-strategy.md`.
+Use `context/aeo-geo-blog-strategy.md` for the full proof policy and individual module debugging when `/publish-readiness` reports a specific failed gate.
 
 ### Content Audit
 
@@ -317,7 +235,7 @@ Visual representation of where primary keyword appears:
 - [ ] CTA included
 - [ ] Brand voice maintained
 - [ ] No broken links
-- [ ] URL validation passed with `python data_sources/modules/url_validator.py [article-file] --fail-on unresolved`
+- [ ] URL validation passed through `/publish-readiness`
 - [ ] Metric Proof Pack guard passed using the gate command above
 - [ ] Numeric claim source guard passed using the gate command above
 - [ ] FAQ proof guard passed using the gate command above

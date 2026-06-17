@@ -92,23 +92,20 @@ Located in `data_sources/modules/`. The Content Analyzer chains:
 
 `opportunity_scorer.py` uses 8 weighted factors: Volume (25%), Position (20%), Intent (20%), Competition (15%), Cluster (10%), CTR (5%), Freshness (5%), Trend (5%).
 
-## Running Python Scripts
+## Research Command Workflows
 
-```bash
-# Research & analysis scripts (run from repo root)
-python3 scripts/research_quick_wins.py
-python3 scripts/research_competitor_gaps.py
-python3 scripts/research_performance_matrix.py
-python3 scripts/research_priorities_comprehensive.py
-python3 scripts/research_serp_analysis.py
-python3 scripts/research_topic_clusters.py
-python3 scripts/research_trending.py
-python3 scripts/seo_baseline_analysis.py
-python3 scripts/seo_bofu_rankings.py
-python3 scripts/seo_competitor_analysis.py
+Use slash commands for research and optimization workflows. Do not hand Python script calls back to the user as required steps; scripts and MCP calls are implementation details for the command runner.
 
-# Test API connectivity
-python3 tests/test_dataforseo.py
+```text
+/research-performance
+/research-performance [blog URL or path]
+/research-gaps
+/research-serp
+/research-topics
+/research-trending
+/analyze-existing [blog URL]
+/rewrite [blog URL]
+/optimize [draft or rewrite file]
 ```
 
 ## Content Pipeline
@@ -117,22 +114,16 @@ python3 tests/test_dataforseo.py
 
 Rewrites go to `rewrites/`. Landing pages go to `landing-pages/`. Audits go to `audits/`. Repurposed content goes to `repurposed/`.
 
-Blog rewrites must follow the same AEO/GEO evidence boundaries as new articles: sourced PAA/FAQ provenance, FAQ proof, source mapping, Metric Proof Pack inputs, E-E-A-T Proof Map inputs, direct-answer structure, schema notes, AI copy lint, URL validation, Metric Proof Pack guard, numeric claim source guard, FAQ proof guard, PAA provenance guard, source support guard, `content_scorer.py --validate-urls --validate-source-support`, and the 85/100 general quality plus 90/100 AEO/GEO gates before `/optimize`.
+Blog rewrites must follow the same AEO/GEO evidence boundaries as new articles: sourced PAA/FAQ provenance, FAQ proof, source mapping, Metric Proof Pack inputs, E-E-A-T Proof Map inputs, direct-answer structure, schema notes, AI copy lint, URL validation, proof gates, source support, and the 85/100 general quality plus 90/100 AEO/GEO gates before `/optimize`.
 
-Use a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md` for proof-only infrastructure. Public blog drafts and rewrites must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan. Preferred publish readiness command: `python data_sources/modules/publish_readiness.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`.
+Use a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md` for proof-only infrastructure. Public blog drafts and rewrites must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan. Preferred publish readiness command: `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`.
 
-Before `/optimize` or any publish path, run:
+Before `/optimize` or any publish path, run the command-system gate:
 ```bash
-python data_sources/modules/url_validator.py [file] --fail-on unresolved
-python data_sources/modules/public_artifact_guard.py [file] --fail-on error
-python data_sources/modules/metric_proof_pack_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-python data_sources/modules/numeric_claim_source_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-python data_sources/modules/faq_proof_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-python data_sources/modules/paa_provenance_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-python data_sources/modules/source_support_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-python data_sources/modules/customer_proof_diversity_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-python data_sources/modules/review_story_identity_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
+/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
 ```
+
+The slash command runs the public artifact, AI copy, URL, proof, source support, customer proof, review story, content score, and AEO/GEO gates internally. Use individual guard modules only when debugging a failed gate from `context/aeo-geo-blog-strategy.md`.
 
 URL validation confirms destinations resolve; it does not prove the page supports the claim, so Source Map and E-E-A-T proof review still verify claim support.
 

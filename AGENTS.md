@@ -35,21 +35,13 @@ Proof-only infrastructure belongs in `research/validation-[topic-slug]-[YYYY-MM-
 Preferred publish readiness command:
 
 ```powershell
-python data_sources/modules/publish_readiness.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
+/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
 ```
 
-The customer proof diversity gate is mandatory before scoring or publish readiness:
-
-```powershell
-python data_sources/modules/customer_proof_diversity_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
+The customer proof diversity gate is mandatory before scoring or publish readiness and runs inside `/publish-readiness`.
 
 The guard requires Quote Matrix, Reference, Customer Story, or review-site search evidence when case studies are used. Exact quotes, named reviewers, ratings, badges, rankings, and testimonials require approved proof rows with source-visible evidence.
 
-The review story identity gate is mandatory before scoring or publish readiness whenever review-derived story copy appears:
-
-```powershell
-python data_sources/modules/review_story_identity_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error
-```
+The review story identity gate is mandatory before scoring or publish readiness whenever review-derived story copy appears and runs inside `/publish-readiness`.
 
 Use `context/aeo-geo-blog-strategy.md` as the canonical policy for Review Story Selection, Review Site Theme Selection, and approved quote/rating boundaries.

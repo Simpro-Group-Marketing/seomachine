@@ -1,4 +1,4 @@
-﻿# SEO Machine (Simpro Group)
+# SEO Machine (Simpro Group)
 
 Simpro Marketing's Claude Code workspace for **SEO and AEO/GEO blog posts** — research, write, optimize, and publish long-form articles for field-service and trades audiences, with Simpro-specific brand context, first-party analytics, and generative-engine optimization built in.
 
@@ -137,7 +137,7 @@ After writing, these agents automatically analyze the content:
 **What it does**:
 - Comprehensive SEO audit
 - Validates all elements meet requirements
-- Runs URL validation with `python data_sources/modules/url_validator.py [file] --fail-on unresolved`
+- Runs URL validation through `/publish-readiness`
 - Runs the publish-readiness guard stack listed in the After Writing checklist
 - Provides final polish recommendations
 - Generates publishing readiness score
@@ -514,7 +514,7 @@ Project-scoped MCP servers feed live data into research and performance workflow
 | `gsc` | Search Console queries, pages, performance overview | `credentials/gsc_client_secrets.json` + OAuth token (`mcp-gsc/`) |
 | `analytics-mcp` | GA4 reports and account summaries | `credentials/adc.json` via `GOOGLE_APPLICATION_CREDENTIALS` |
 
-Copy `.mcp.json.template` → `.mcp.json` and `.claude/settings.local.template.json` → `.claude/settings.local.json`. See `CLAUDE.md` and `mcp-gsc/README.md`.
+Copy `.mcp.json.template` ? `.mcp.json` and `.claude/settings.local.template.json` ? `.claude/settings.local.json`. See `CLAUDE.md` and `mcp-gsc/README.md`.
 
 ### Python module integrations
 
@@ -590,7 +590,7 @@ Six Python modules for landing page conversion optimization:
 - `opportunity_scorer.py` - 8-factor opportunity scoring for content prioritization
 - `content_scorer.py` - 5-dimension content quality scoring (humanity, specificity, structure, SEO, readability) with AEO/GEO gate
 - `aeo_geo_rater.py` - Capsule Method, PAA, source mapping, and E-E-A-T scoring (90+ publish target)
-- `url_validator.py` - URL validation guardrail for Markdown links and bare URLs; run `python data_sources/modules/url_validator.py [file] --fail-on unresolved` before `/optimize`
+- `url_validator.py` - URL validation guardrail for Markdown links and bare URLs; runs inside `/publish-readiness`
 - `metric_proof_pack_guard.py` - Metric Proof Pack guardrail; use the After Writing command stack before scoring or `/optimize`
 - `numeric_claim_source_guard.py` - Metric/stat proof guardrail; use the After Writing command stack before scoring or `/optimize`
 - `faq_proof_guard.py` - FAQ proof guardrail; use the After Writing command stack before scoring or `/optimize`
@@ -609,30 +609,26 @@ Six Python modules for landing page conversion optimization:
 - `section_writer.py` - Section-level content guidance
 - `social_research_aggregator.py` - Social media research aggregation
 
-### Python Research Scripts
+### Research Command Entry Points
 
-Run from repo root:
+Use slash commands for research workflows. Scripts and MCP calls are implementation details the command runner should execute internally.
 
-```bash
+```text
 # Content research
-python3 scripts/research_quick_wins.py
-python3 scripts/research_competitor_gaps.py
-python3 scripts/research_performance_matrix.py
-python3 scripts/research_priorities_comprehensive.py
-python3 scripts/research_serp_analysis.py
-python3 scripts/research_topic_clusters.py
-python3 scripts/research_trending.py
+/research-performance
+/research-performance [blog URL or path]
+/research-gaps
+/research-serp
+/research-topics
+/research-trending
 
-# SEO analysis (config-driven - set up config/competitors.json first)
-python3 scripts/seo_baseline_analysis.py
-python3 scripts/seo_bofu_rankings.py
-python3 scripts/seo_competitor_analysis.py
-
-# Test API connectivity
-python3 tests/test_dataforseo.py
+# Follow-up analysis
+/analyze-existing [blog URL]
+/rewrite [blog URL]
+/optimize [draft or rewrite file]
 ```
 
-**Note**: SEO analysis scripts can use `config/competitors.json` (copy from `config/competitors.example.json`). Simpro's primary competitor intel lives in `context/competitor-analysis.md` (40+ battlecards).
+**Note**: Low-level scripts remain available for maintainers, but user-facing workflows should be run through slash commands. Simpro's primary competitor intel lives in `context/competitor-analysis.md` (40+ battlecards).
 
 ### WordPress Integration
 
@@ -654,49 +650,49 @@ See `wordpress/README.md` and `data_sources/README.md` for setup details.
 
 ```
 seomachine/
-├── .claude/
-│   ├── commands/              # Slash commands (research, write, article, landing, etc.)
-│   ├── agents/                # SEO, meta, internal link, editor, CRO, performance agents
-│   ├── skills/                  # Marketing skills (copywriting, CRO, seo-audit, …)
-│   ├── settings.local.template.json
-│   └── settings.local.json    # Local only (gitignored)
-├── mcp-gsc/                   # Bundled GSC MCP server (venv/ and token.json gitignored)
-├── tools/mcp/                 # analytics-mcp stdio wrapper
-├── credentials/             # adc.json, gsc secrets (gitignored except .gitkeep)
-├── .mcp.json.template         # Copy to .mcp.json (gitignored)
-├── data_sources/
-│   ├── modules/               # GA4, GSC, analyzers, aeo_geo_rater, content_scrubber, …
-│   └── config/.env.example
-├── context/                   # Simpro brand + SEO/AEO context (see _coverage-report.md)
-│   ├── brand-voice.md
-│   ├── style-guide.md
-│   ├── features.md
-│   ├── competitor-analysis.md
-│   ├── target-keywords.md
-│   ├── internal-links-map.md
-│   ├── writing-examples.md
-│   ├── seo-guidelines.md
-│   ├── aeo-geo-blog-strategy.md
-│   ├── ai-citation-targets.md
-│   ├── reddit-strategy.md
-│   ├── cro-best-practices.md
-│   ├── lightning-positioning.md   # Scoped Lightning overlay only
-│   └── _coverage-report.md
-├── config/competitors.example.json
-├── wordpress/                 # Yoast REST MU-plugin
-├── examples/castos/           # Upstream template reference
-├── topics/                    # Blog topic ideas
-├── research/                  # Briefs and SERP research (gitignored content)
-├── drafts/                    # Blog drafts in progress
-├── rewrites/                  # Updated blog posts
-├── published/                 # Final blog markdown
-├── review-required/
-├── landing-pages/
-├── audits/                    # Landing/page audits (e.g. FSM software page)
-├── repurposed/
-├── tests/                     # Unit tests (aeo_geo_rater, content_scrubber, …)
-├── scripts/                   # Batch research and SEO scripts
-└── README.md
++-- .claude/
+¦   +-- commands/              # Slash commands (research, write, article, landing, etc.)
+¦   +-- agents/                # SEO, meta, internal link, editor, CRO, performance agents
+¦   +-- skills/                  # Marketing skills (copywriting, CRO, seo-audit, …)
+¦   +-- settings.local.template.json
+¦   +-- settings.local.json    # Local only (gitignored)
++-- mcp-gsc/                   # Bundled GSC MCP server (venv/ and token.json gitignored)
++-- tools/mcp/                 # analytics-mcp stdio wrapper
++-- credentials/             # adc.json, gsc secrets (gitignored except .gitkeep)
++-- .mcp.json.template         # Copy to .mcp.json (gitignored)
++-- data_sources/
+¦   +-- modules/               # GA4, GSC, analyzers, aeo_geo_rater, content_scrubber, …
+¦   +-- config/.env.example
++-- context/                   # Simpro brand + SEO/AEO context (see _coverage-report.md)
+¦   +-- brand-voice.md
+¦   +-- style-guide.md
+¦   +-- features.md
+¦   +-- competitor-analysis.md
+¦   +-- target-keywords.md
+¦   +-- internal-links-map.md
+¦   +-- writing-examples.md
+¦   +-- seo-guidelines.md
+¦   +-- aeo-geo-blog-strategy.md
+¦   +-- ai-citation-targets.md
+¦   +-- reddit-strategy.md
+¦   +-- cro-best-practices.md
+¦   +-- lightning-positioning.md   # Scoped Lightning overlay only
+¦   +-- _coverage-report.md
++-- config/competitors.example.json
++-- wordpress/                 # Yoast REST MU-plugin
++-- examples/castos/           # Upstream template reference
++-- topics/                    # Blog topic ideas
++-- research/                  # Briefs and SERP research (gitignored content)
++-- drafts/                    # Blog drafts in progress
++-- rewrites/                  # Updated blog posts
++-- published/                 # Final blog markdown
++-- review-required/
++-- landing-pages/
++-- audits/                    # Landing/page audits (e.g. FSM software page)
++-- repurposed/
++-- tests/                     # Unit tests (aeo_geo_rater, content_scrubber, …)
++-- scripts/                   # Batch research and SEO scripts
++-- README.md
 ```
 
 ## Context Files (Simpro)
@@ -746,7 +742,7 @@ Every Simpro blog post should meet these requirements:
 - [ ] 2-3 credible external sources with natural in-sentence attribution
 - [ ] Meta title 50-60 characters with `| Simpro` when space allows
 - [ ] Meta description 150-160 characters with a clear CTA
-- [ ] Proper H1 → H2 → H3 hierarchy
+- [ ] Proper H1 ? H2 ? H3 hierarchy
 
 ### AEO / GEO (generative engines)
 - [ ] Capsule Method: 50-60 word direct answer under H1 and on 60%+ major H2s
@@ -764,7 +760,7 @@ Every Simpro blog post should meet these requirements:
 - [ ] Subheadings every 300-400 words; scannable lists
 
 ### Structure
-- [ ] Hook → problem → promise intro
+- [ ] Hook ? problem ? promise intro
 - [ ] Demo- or trial-aligned CTA matched to funnel stage
 - [ ] Lightning topics only: also pass `lightning-positioning.md` naming rules
 
@@ -797,27 +793,19 @@ Every Simpro blog post should meet these requirements:
 ### After Writing
 1. **Agent passes**: SEO Optimizer, Meta Creator, Internal Linker, Keyword Mapper
 2. **Scrub punctuation artifacts**: `/scrub` or `content_scrubber.py` before human review
-3. **Preferred publish readiness command**: `python data_sources/modules/publish_readiness.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`
-4. **Public artifact guard**: `python data_sources/modules/public_artifact_guard.py [file] --fail-on error`
-5. **Lint AI copy**: `python data_sources/modules/ai_copy_linter.py [file] --profile simpro-web --fail-on error`
-6. **URL validation**: `python data_sources/modules/url_validator.py [file] --fail-on unresolved`
-7. **Metric Proof Pack guard**: `python data_sources/modules/metric_proof_pack_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-8. **Numeric claim source guard**: `python data_sources/modules/numeric_claim_source_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-9. **FAQ proof guard**: `python data_sources/modules/faq_proof_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-10. **PAA provenance guard**: `python data_sources/modules/paa_provenance_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-11. **Source support guard**: `python data_sources/modules/source_support_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-12. **Customer proof diversity guard**: `python data_sources/modules/customer_proof_diversity_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-13. **Review story identity guard**: `python data_sources/modules/review_story_identity_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error`
-14. **Score**: Run `python data_sources/modules/content_scorer.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --validate-urls --validate-source-support` for content quality, AEO/GEO, proof-pack gates, source support, customer proof diversity, review story identity, and URL validation
-15. **Optimize**: `/optimize` for final SEO polish only after URL validation, public artifact guard, Metric Proof Pack guard, numeric claim source guard, FAQ proof guard, PAA provenance guard, source support guard, customer proof diversity guard, and review story identity guard pass
-16. **Publish**: `/publish-draft` to WordPress when approved
+3. **Preferred publish readiness command**: `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`
+4. **Optimize**: `/optimize` for final SEO polish only after `/publish-readiness` passes
+5. **Final readiness**: Rerun `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`
+6. **Publish**: `/publish-draft` to WordPress when approved
+
+The `/publish-readiness` command runs the public artifact, AI copy, URL, proof, source support, customer proof, review story, content score, and AEO/GEO gates internally. Use individual Python guard modules only when debugging a specific failed gate from the canonical policy in `context/aeo-geo-blog-strategy.md`.
 
 Use a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md` for non-public proof blocks. Blog copy must not contain an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan.
 
 ### For Blog Rewrites
 1. **`/analyze-existing`** on the live simprogroup.com URL or `published/` file
 2. **Confirm AEO/GEO inputs**: main answer target, PAA/FAQ provenance, source map, E-E-A-T Proof Map, schema notes, and missing strategy inputs
-3. **Run the quality loop**: `/scrub`, public artifact guard, AI copy linter, URL validator, Metric Proof Pack guard, numeric claim guard, FAQ proof guard, PAA provenance guard, source support guard, customer proof diversity guard, review story identity guard, `content_scorer.py --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --validate-urls --validate-source-support`, then `/optimize`
+3. **Run the quality loop**: `/scrub`, `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`, `/optimize`, then rerun `/publish-readiness`
 4. **Refresh metrics** in intro/CTA if GSC/GA4 shows new quick-win queries
 5. **Preserve strong sections**; expand thin H2s vs. SERP leaders
 6. **Re-check AI citations** if the post targets AI-intent queries
@@ -844,10 +832,10 @@ Customer proof diversity guard confirms proof selection is not defaulting to ove
 # Topic in topics/field-service-management-software.md
 
 /research field service management software
-# → research/brief-field-service-management-software-[date].md
+# ? research/brief-field-service-management-software-[date].md
 
 /write field service management software
-# → drafts/…md (auto agent passes)
+# ? drafts/…md (auto agent passes)
 
 /optimize drafts/field-service-management-software-[date].md
 /publish-draft drafts/field-service-management-software-[date].md
@@ -857,7 +845,7 @@ Customer proof diversity guard confirms proof selection is not defaulting to ove
 
 ```
 /article best hvac software
-# AnswerSocrates PAA → brief → draft with FAQ schema notes
+# AnswerSocrates PAA ? brief ? draft with FAQ schema notes
 ```
 
 ### Example 3: Rewrite an Existing Simpro Blog
@@ -907,11 +895,11 @@ Customer proof diversity guard confirms proof selection is not defaulting to ove
 - **Reuse battlecard plays** from `competitor-analysis.md` in comparison posts
 
 ### Avoiding Common Mistakes
-- ❌ Generic SaaS voice instead of trades-leader tone
-- ❌ Using *Lightning* without brand prefix (Simpro Lightning, etc.)
-- ❌ Skipping PAA/FAQ on informational posts
-- ❌ Publishing Lightning pricing or roadmap without verification
-- ❌ Empty competitor differentiation (name + outcome, not trash talk)
+- ? Generic SaaS voice instead of trades-leader tone
+- ? Using *Lightning* without brand prefix (Simpro Lightning, etc.)
+- ? Skipping PAA/FAQ on informational posts
+- ? Publishing Lightning pricing or roadmap without verification
+- ? Empty competitor differentiation (name + outcome, not trash talk)
 
 ## Maintenance
 
@@ -947,7 +935,7 @@ Customer proof diversity guard confirms proof selection is not defaulting to ove
 ### "MCP / GSC / GA4 not connecting"
 - Confirm `.mcp.json` paths match your machine (from `.mcp.json.template`)
 - GSC: OAuth via `mcp-gsc/` — do not point `GSC_CREDENTIALS_PATH` at the OAuth client secret
-- GA4: `GOOGLE_APPLICATION_CREDENTIALS` → `credentials/adc.json`
+- GA4: `GOOGLE_APPLICATION_CREDENTIALS` ? `credentials/adc.json`
 - See `CLAUDE.md` credential boundaries
 
 ### "Internal links are wrong or stale"

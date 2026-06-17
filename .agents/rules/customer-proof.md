@@ -19,5 +19,5 @@ Add new proof candidates through `context/customer-proof-intake-template.csv` an
 Run publish readiness before handoff:
 
 ```powershell
-python data_sources/modules/publish_readiness.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
+/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
 ```
