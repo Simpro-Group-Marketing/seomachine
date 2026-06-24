@@ -915,6 +915,59 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
+    def test_customer_proof_selector_runs_automatically_before_drafting(self):
+        docs = [
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / ".claude" / "commands" / "research.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / "README.md",
+            ROOT / "CLAUDE.md",
+            ROOT / "AGENTS.md",
+            ROOT / ".cursor" / "rules" / "customer-proof.mdc",
+            ROOT / ".agents" / "rules" / "customer-proof.md",
+            ROOT / ".claude" / "rules" / "customer-proof.md",
+        ]
+        canonical = ROOT / "context" / "aeo-geo-blog-strategy.md"
+        required = [
+            "automatically run",
+            "Customer Proof Slate",
+            "experience_story consideration is required",
+            "E-E-A-T story usage is optional",
+            "Selected: [none]",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            selector_index = content.find("customer_proof_selector.py")
+            self.assertGreaterEqual(
+                selector_index,
+                0,
+                f"{path.name} missing customer_proof_selector.py",
+            )
+            selector_window = content[
+                max(0, selector_index - 500) : selector_index + 800
+            ].lower()
+            self.assertIn(
+                "automatically run",
+                selector_window,
+                f"{path.name} must make customer_proof_selector.py automatic",
+            )
+            self.assertNotIn(
+                "run or consult",
+                content.lower(),
+                f"{path.name} must not make customer proof selection optional",
+            )
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+            if path != canonical:
+                self.assertIn(
+                    "context/aeo-geo-blog-strategy.md",
+                    content,
+                    f"{path.name} missing context/aeo-geo-blog-strategy.md",
+                )
+
     def test_selected_customer_proof_mining_is_documented(self):
         canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
             encoding="utf-8"
