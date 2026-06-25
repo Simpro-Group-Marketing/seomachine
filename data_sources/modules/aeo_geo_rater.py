@@ -305,12 +305,12 @@ def _extract_faq_questions(body: str) -> List[Tuple[str, str]]:
 def _check_faq_questions(body: str) -> Dict[str, Any]:
     questions = _extract_faq_questions(body)
     question_count = len(questions)
-    passed = 3 <= question_count <= 5
+    passed = 3 <= question_count <= 6
 
     return {
         "passed": passed,
-        "issue": "The FAQ/PAA section does not include 3-5 natural-language questions.",
-        "fix": "Use AnswerSocrates or a PAA export to select 3-5 relevant user questions for the FAQ.",
+        "issue": "The FAQ/PAA section does not include 3-6 natural-language questions.",
+        "fix": "Use AnswerSocrates or a PAA export to select 3-6 relevant user questions for the FAQ.",
         "severity": "high",
         "details": {
             "question_count": question_count,

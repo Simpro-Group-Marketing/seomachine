@@ -213,6 +213,19 @@ class AiCopyLinterTests(unittest.TestCase):
         filler = [finding for finding in findings if finding["rule_id"] == "filler_word"]
         self.assertEqual(filler, [])
 
+    def test_modal_verbs_in_faq_question_headings_are_allowed(self):
+        content = (
+            "## FAQ\n\n"
+            "### Should I choose an all-in-one FSM platform or a simpler scheduling app?\n\n"
+            "Choose the all-in-one platform when jobs need quoting, scheduling, dispatch, "
+            "invoicing, reporting, and customer records in one workflow."
+        )
+
+        findings = lint_content(content)
+
+        modal = [finding for finding in findings if finding["rule_id"] == "modal_verb"]
+        self.assertEqual(modal, [])
+
     def test_vague_generalizations_are_errors(self):
         findings = lint_content("Many teams track job outcomes after dispatch.")
 

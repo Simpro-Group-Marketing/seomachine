@@ -327,7 +327,7 @@ def lint_content(content: str, profile: str = "simpro-web") -> List[Finding]:
 
 
 def _should_skip_copy_avoid_rule(rule_id: str, original_line: str) -> bool:
-    if rule_id == "filler_word" and FAQ_QUESTION_HEADING_RE.match(original_line):
+    if rule_id in {"filler_word", "modal_verb"} and FAQ_QUESTION_HEADING_RE.match(original_line):
         return True
     return False
 

@@ -2,7 +2,7 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from data_sources.modules.aeo_geo_rater import rate_aeo_geo
+from data_sources.modules.aeo_geo_rater import _check_faq_questions, rate_aeo_geo
 
 
 PAA_ARTIFACT = "research/paa-questions-hvac-scheduling-2026-05-22.md"
@@ -114,6 +114,39 @@ class AeoGeoRaterTests(unittest.TestCase):
         self.assertTrue(result["checks"]["faq_questions"]["passed"])
         self.assertTrue(result["checks"]["eeat_proof"]["passed"])
         self.assertTrue(result["checks"]["paa_provenance"]["passed"])
+
+    def test_faq_question_gate_allows_six_natural_language_questions(self):
+        content = """## FAQ
+
+### What is field service management software?
+
+Answer.
+
+### Who uses field service management software?
+
+Answer.
+
+### How does field service management software help dispatch?
+
+Answer.
+
+### How much does field service management software cost?
+
+Answer.
+
+### Which field service management software fits growing contractors?
+
+Answer.
+
+### Should I choose an all-in-one FSM platform or a simpler scheduling app?
+
+Answer.
+"""
+
+        result = _check_faq_questions(content)
+
+        self.assertTrue(result["passed"])
+        self.assertEqual(result["details"]["question_count"], 6)
 
     def test_paa_provenance_can_live_in_sidecar(self):
         content = COMPLIANT_ARTICLE.replace(PAA_PROVENANCE_BLOCK, "")
