@@ -2,6 +2,10 @@
 
 A specialized Claude Code workspace for creating long-form, SEO-optimized blog content for any business. This system helps you research, write, analyze, and optimize content that ranks well and serves your target audience.
 
+## Authors
+
+See [AUTHORS.md](AUTHORS.md) for the current Simpro Group Marketing repo authors and maintainers.
+
 ## Overview
 
 SEO Machine is built on Claude Code and provides:
