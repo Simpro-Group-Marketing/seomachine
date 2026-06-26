@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-06-17",
+  "updated_at": "2026-06-26",
   "source_boundary": "Curated customer proof index for selection and governance. This is not the full Quote Matrix. Exact quotes, review ratings, badges, rankings, and named reviewer claims require current source verification and approval before public copy use. Review-site rows may support public E-E-A-T stories only when review_story.story_allowed is true, the row has a real person or business identity, and a usable public review URL is linked in the same public paragraph as the paraphrase. Generic review themes remain VoC research only.",
   "proof": [
     {
@@ -2397,6 +2397,60 @@
       "review_story": {
         "story_allowed": false
       }
+    },
+    {
+      "proof_id": "clockshark-customer-story-chesapeake-lawn-home",
+      "customer": "Chesapeake Lawn and Home",
+      "source_type": "customer_story",
+      "public_url": "https://www.clockshark.com/testimonials/chesapeake-lawn-and-home",
+      "internal_source_ref": "ClockShark public success story page",
+      "approval_status": "approved",
+      "evidence": "ClockShark page states: Learn how Chesapeake Lawn and Home eliminated Frustrating Timekeeping and Payroll Issues with the ClockShark app. Page headings include Integrating Payroll and Time Tracking and Easy Time Tracking for Mobile Crews.",
+      "last_verified": "2026-06-26",
+      "restrictions": [
+        "Use only as paraphrased ClockShark customer-story proof. Do not use exact quote wording, monthly savings claims, employee count, ratings, rankings, or named-person quote attribution without separate approved quote or metric rows."
+      ],
+      "region": [
+        "US"
+      ],
+      "themes": [
+        "mobile crew timekeeping",
+        "payroll workflow",
+        "field crew operations"
+      ],
+      "industry": [
+        "lawn care",
+        "landscaping",
+        "field service"
+      ],
+      "workflow_fit": [
+        "time tracking",
+        "payroll",
+        "mobile crews",
+        "QuickBooks integration"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": true,
+        "identity_type": "business",
+        "identity_display": "Chesapeake Lawn and Home",
+        "role_title": "ClockShark customer story",
+        "platform": "ClockShark customer story",
+        "source_row_ref": "ClockShark public success story page",
+        "public_url": "https://www.clockshark.com/testimonials/chesapeake-lawn-and-home",
+        "workflow_story": "Chesapeake Lawn and Home uses ClockShark for payroll, QuickBooks integration, and mobile crew timekeeping workflows.",
+        "objective_fit": [
+          "landscaping marketing operations",
+          "crew capacity",
+          "lead handling"
+        ],
+        "copy_use": "E-E-A-T experience story",
+        "verification_status": "public ClockShark customer story page",
+        "business_name": "Chesapeake Lawn and Home"
+      },
+      "company_size": "unknown"
     }
   ]
 }
