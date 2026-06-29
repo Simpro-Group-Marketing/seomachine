@@ -32,9 +32,12 @@ except ImportError:  # pragma: no cover - supports direct script execution.
 DEFAULT_LEDGER_PATH = Path("context/customer-proof-usage-ledger.json")
 DEFAULT_INDEX_PATH = Path("context/customer-proof-index.json")
 
-CASE_STUDY_URL_RE = re.compile(r"https?://[^\s),|]+/case-studies/[^\s),|]+", re.IGNORECASE)
+CASE_STUDY_URL_RE = re.compile(
+    r"https?://[^\s),|]+(?:/case-studies/[^\s),|]+|/resources/case-study-[^\s),|]+)",
+    re.IGNORECASE,
+)
 ANY_CUSTOMER_PROOF_URL_RE = re.compile(
-    r"https?://[^\s),|]+(?:/case-studies/|/reviews|/customer|/testimonials?)[^\s),|]*",
+    r"https?://[^\s),|]+(?:/case-studies/|/resources/case-study-|/reviews|/customer|/testimonials?)[^\s),|]*",
     re.IGNORECASE,
 )
 CUSTOMER_PROOF_HEADING_RE = re.compile(
@@ -1163,7 +1166,7 @@ def _load_ledger(path: str | Path) -> Dict[str, object]:
 
 def _proof_id_from_url(url: str) -> str:
     slug = url.rstrip("/").rsplit("/", 1)[-1]
-    if "/case-studies/" in url:
+    if "/case-studies/" in url or "/resources/case-study-" in url:
         return f"case-study-{slug}"
     return slug
 

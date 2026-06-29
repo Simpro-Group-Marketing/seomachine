@@ -66,6 +66,7 @@ Before planning or drafting, resolve an E-E-A-T Proof Map:
 - **Authority/Trust**: Public research, case-study URLs, review-site/source links, limitations/caveats, and no invented proof.
 - **Context sources**: Pull case-study URLs from @context/internal-links-map.md, approved metrics/proof candidates from @context/features.md, and review-site experience evidence / VoC or competitor experience themes from @context/competitor-analysis.md or future review-context files.
 - **Public-copy rule**: Context-backed metrics are valid only when the article body uses public-facing source links, such as the public case-study URL, review-site URL, or public research source; context-backed proof is never cited as internal context.
+- **403 replacement rule**: If a DOL, Capterra, G2, Trustpilot, Google Play, or other public research/source URL returns 401, 403, or `manual_review`, do not remove the citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. Source Map notes must document both the rejected 403 URL and the replacement URL. Full policy and the `public_research_link_guard.py` gate live in `context/aeo-geo-blog-strategy.md`.
 
 ### Simpro Web Copy Rules
 
@@ -602,7 +603,7 @@ After all sections are written and edited:
 2. **Add Meta Elements**
    ```markdown
    ---
-   Meta Title: [50-60 chars]
+   Meta Title: [50-60 chars ending with | Brand]
    Meta Description: [150-160 chars]
    Primary Keyword: [keyword]
    Secondary Keywords: [list]
@@ -613,6 +614,8 @@ After all sections are written and edited:
    ---
    ```
 
+   Meta titles must always end with the owning brand suffix in pipe format, for example `Construction Draw Schedule Explained | ClockShark`.
+
 3. **Generate Checklists**
 
    **SEO Checklist:**
@@ -622,7 +625,7 @@ After all sections are written and edited:
    - [ ] Keyword density 1-2%
    - [ ] 3-5+ internal links
    - [ ] 2-3 external authority links
-   - [ ] Meta title 50-60 chars
+   - [ ] Meta title 50-60 chars ending with `| Brand`
    - [ ] Meta description 150-160 chars
    - [ ] 2000+ words
 

@@ -146,19 +146,21 @@ Primary keyword MUST appear in:
 
 ### Meta Title
 **Requirements**:
-- **Length**: 50-60 characters (including "| Simpro" if used)
+- **Length**: 50-60 characters including the required brand suffix
 - **Primary keyword**: Must be included
+- **Brand suffix**: Must end with the owning brand in pipe format, such as `| Simpro` or `| ClockShark`
 - **Compelling**: Should encourage clicks from SERP
-- **Unique**: Different from all other Simpro page titles
+- **Unique**: Different from other page titles for the same brand
 - **Accurate**: Must match page content
 
 **Format Options**:
-- `[Primary Keyword]: [Benefit/Promise]`
-- `How to [Goal] | [Qualifier]`
-- `[Number] Ways to [Achieve Benefit]`
-- `[Topic] Guide for [Audience] | Simpro`
+- `[Primary Keyword]: [Benefit/Promise] | [Brand]`
+- `How to [Goal] for [Audience] | [Brand]`
+- `[Number] Ways to [Achieve Benefit] | [Brand]`
+- `[Topic] Guide for [Audience] | [Brand]`
 
 **Examples**:
+- ✅ "Construction Draw Schedule Explained | ClockShark"
 - ✅ "HVAC Service Software: Streamline Jobs & Profit | Simpro"
 - ✅ "12 Best FSM Software for Trades Contractors | Simpro"
 - ❌ "Field Service Tips and Tricks" (too vague, no keyword)

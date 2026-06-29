@@ -226,6 +226,30 @@ class AiCopyLinterTests(unittest.TestCase):
         modal = [finding for finding in findings if finding["rule_id"] == "modal_verb"]
         self.assertEqual(modal, [])
 
+    def test_vague_words_in_faq_question_headings_are_allowed(self):
+        content = (
+            "## FAQ\n\n"
+            "### What documents are usually needed for a draw request?\n\n"
+            "A draw request needs the milestone, requested amount, and inspection evidence."
+        )
+
+        findings = lint_content(content)
+
+        vague = [finding for finding in findings if finding["rule_id"] == "vague_generalization"]
+        self.assertEqual(vague, [])
+
+    def test_passive_voice_in_faq_question_headings_is_allowed(self):
+        content = (
+            "## FAQ\n\n"
+            "### Can a construction draw schedule be changed after the project starts?\n\n"
+            "Project stakeholders change the schedule through the approved contract process."
+        )
+
+        findings = lint_content(content)
+
+        passive = [finding for finding in findings if finding["rule_id"] == "passive_voice"]
+        self.assertEqual(passive, [])
+
     def test_vague_generalizations_are_errors(self):
         findings = lint_content("Many teams track job outcomes after dispatch.")
 

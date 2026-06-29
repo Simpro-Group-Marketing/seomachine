@@ -442,13 +442,16 @@ def _check_eeat_proof(
     normalized = {_normalize_key(str(key)): value for key, value in metadata.items()}
 
     case_study_links = [
-        url for _, url in links if re.search(r"/case-stud(?:y|ies)/", url.lower())
+        url for _, url in links if _is_case_study_link(url)
     ]
     review_site_links = [
         url for _, url in links if _is_review_site_link(url)
     ]
     simpro_product_links = [
         url for _, url in links if _is_simpro_product_or_workflow_link(url)
+    ]
+    clockshark_workflow_links = [
+        url for _, url in links if _is_clockshark_product_or_workflow_link(url)
     ]
 
     experience_signals = []
@@ -457,6 +460,8 @@ def _check_eeat_proof(
     has_review_story_selection = _has_valid_review_story_selection(content, proof_sidecar_content)
     if has_review_story_selection:
         experience_signals.append("review_story_selection")
+    if _has_sidecar_experience_proof(proof_sidecar_content):
+        experience_signals.append("sidecar_experience_proof")
 
     expertise_signals = []
     if normalized.get("author"):
@@ -469,6 +474,8 @@ def _check_eeat_proof(
         expertise_signals.append("reviewer_metadata")
     if simpro_product_links:
         expertise_signals.append("simpro_product_or_workflow_link")
+    if clockshark_workflow_links:
+        expertise_signals.append("clockshark_product_or_workflow_link")
     if _has_expert_quote(body):
         expertise_signals.append("expert_quote")
 
@@ -493,6 +500,7 @@ def _check_eeat_proof(
             "case_study_links": case_study_links,
             "review_site_links": review_site_links,
             "simpro_product_links": simpro_product_links,
+            "clockshark_workflow_links": clockshark_workflow_links,
             "experience_signals": experience_signals,
             "expertise_signals": expertise_signals,
             "has_experience": has_experience,
@@ -519,6 +527,14 @@ def _is_review_site_link(url: str) -> bool:
     return any(domain in lower for domain in review_domains)
 
 
+def _is_case_study_link(url: str) -> bool:
+    lower = url.lower()
+    return bool(
+        re.search(r"/case-stud(?:y|ies)/", lower)
+        or "/resources/case-study-" in lower
+    )
+
+
 def _is_simpro_product_or_workflow_link(url: str) -> bool:
     lower = url.lower()
     if "simprogroup.com" not in lower:
@@ -530,8 +546,52 @@ def _is_simpro_product_or_workflow_link(url: str) -> bool:
         "/industries/",
         "/product/",
         "/products/",
+        "/tour/",
     )
     return any(path in lower for path in product_paths)
+
+
+def _is_clockshark_product_or_workflow_link(url: str) -> bool:
+    lower = url.lower()
+    if "clockshark.com" not in lower:
+        return False
+
+    workflow_paths = (
+        "/industries/",
+        "/tour/",
+        "/blog/",
+    )
+    return any(path in lower for path in workflow_paths)
+
+
+def _has_sidecar_experience_proof(proof_sidecar_content: Optional[str]) -> bool:
+    if not proof_sidecar_content:
+        return False
+
+    in_block = False
+    for line in proof_sidecar_content.splitlines():
+        stripped = line.strip()
+        if re.match(r"^(?:#{1,6}\s+)?E-E-A-T Proof Map:?\s*$", stripped, re.IGNORECASE):
+            in_block = True
+            continue
+        if not in_block:
+            continue
+        if stripped.startswith("```"):
+            continue
+        if re.match(
+            r"^(?:#{1,6}\s+)?(?:PAA/FAQ Provenance|Metric Proof Pack|Source Map|"
+            r"Customer Proof Pack|FAQ Proof Map|Structured data plan|Review Story Selection|"
+            r"Review Site Theme Selection)\s*$",
+            stripped,
+            re.IGNORECASE,
+        ):
+            break
+
+        match = re.match(r"^[-*+]\s*Experience proof:\s*(.+)$", stripped, re.IGNORECASE)
+        if match and re.search(r"https?://", match.group(1)):
+            return True
+
+    return False
 
 
 def _has_review_site_theme(body: str) -> bool:

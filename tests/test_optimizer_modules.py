@@ -60,7 +60,7 @@ def article_with_links(links, primary_keyword="payments for trades businesses"):
 def rate_article_with_links(links):
     return SEOQualityRater().rate(
         article_with_links(links),
-        meta_title="Payments for Trades Businesses: Customer Guide",
+        meta_title="Payments for Trades Businesses Guide and Tips | Simpro",
         meta_description=(
             "Payments for trades businesses need online, mobile and field options. "
             "Learn how to reduce friction and protect cash flow today."
@@ -89,7 +89,7 @@ class OptimizerModuleTests(unittest.TestCase):
                     "--primary-keyword",
                     "payments for trades businesses",
                     "--meta-title",
-                    "Payments for Trades Businesses: Customer Guide",
+                    "Payments for Trades Businesses Guide and Tips | Simpro",
                     "--meta-description",
                     "Payments for trades businesses need online, mobile and field options. Learn how to reduce friction and protect cash flow today.",
                 ],
@@ -114,7 +114,7 @@ class OptimizerModuleTests(unittest.TestCase):
 
         result = SEOQualityRater().rate(
             content,
-            meta_title="Payments for Trades Businesses: Customer Guide",
+            meta_title="Payments for Trades Businesses Guide and Tips | Simpro",
             meta_description=(
                 "Payments for trades businesses need online, mobile and field options. "
                 "Learn how to reduce friction and protect cash flow today."
@@ -126,6 +126,45 @@ class OptimizerModuleTests(unittest.TestCase):
             "Too few internal links",
             "\n".join(result["warnings"] + result["suggestions"]),
         )
+
+    def test_seo_quality_rater_warns_when_meta_title_missing_brand_suffix(self):
+        result = SEOQualityRater().rate(
+            long_article(),
+            meta_title="Payments for Trades Businesses: Customer Guide",
+            meta_description=(
+                "Payments for trades businesses need online, mobile and field options. "
+                "Learn how to reduce friction and protect cash flow today."
+            ),
+            primary_keyword="payments for trades businesses",
+        )
+
+        self.assertIn("brand suffix", "\n".join(result["warnings"]))
+
+    def test_seo_quality_rater_accepts_clockshark_brand_suffix(self):
+        result = SEOQualityRater().rate(
+            long_article("construction draw schedule"),
+            meta_title="Construction Draw Schedule Explained | ClockShark",
+            meta_description=(
+                "Construction draw schedule planning helps contractors prepare draw requests, "
+                "track inspections, and protect cash flow."
+            ),
+            primary_keyword="construction draw schedule",
+        )
+
+        self.assertNotIn("brand suffix", "\n".join(result["warnings"]))
+
+    def test_seo_quality_rater_counts_absolute_clockshark_links_as_internal(self):
+        result = rate_article_with_links(
+            "[ClockShark construction trades](https://www.clockshark.com/industries/construction-trades)\n"
+            "[ClockShark job management tools](https://www.clockshark.com/tour/job-management)\n"
+            "[construction schedule example](https://www.clockshark.com/blog/construction-schedule-example)\n"
+            "[types of construction projects](https://www.clockshark.com/blog/types-of-construction-projects)\n"
+            "[Underground Contractors customer story](https://www.clockshark.com/resources/case-study-underground-contractors)\n"
+        )
+
+        self.assertTrue(result["publishing_ready"], result)
+        self.assertNotIn("Too few internal links", "\n".join(result["warnings"] + result["suggestions"]))
+        self.assertNotIn("down-funnel", "\n".join(result["critical_issues"]))
 
     def test_seo_quality_rater_accepts_industries_hub_down_funnel_link(self):
         result = rate_article_with_links(
@@ -242,7 +281,7 @@ class OptimizerModuleTests(unittest.TestCase):
         ):
             result = SEOQualityRater().rate(
                 long_article(),
-                meta_title="Payments for Trades Businesses: Customer Guide",
+                meta_title="Payments for Trades Businesses Guide and Tips | Simpro",
                 meta_description=(
                     "Payments for trades businesses need online, mobile and field options. "
                     "Learn how to reduce friction and protect cash flow today."

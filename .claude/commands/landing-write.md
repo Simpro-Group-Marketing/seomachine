@@ -57,7 +57,7 @@ Use this command to create high-converting landing pages optimized for either or
 ```markdown
 # [Benefit-Focused Headline with Keyword]
 
-**Meta Title**: [50-60 chars, keyword + benefit]
+**Meta Title**: [50-60 chars, keyword + benefit, ending with | Brand]
 **Meta Description**: [150-160 chars, includes CTA]
 **Target Keyword**: [primary keyword]
 **Page Type**: seo

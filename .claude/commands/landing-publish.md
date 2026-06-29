@@ -38,7 +38,7 @@ Landing page files must include this metadata:
 ```markdown
 # [H1 Headline]
 
-**Meta Title**: [50-60 characters]
+**Meta Title**: [50-60 characters ending with | Brand]
 **Meta Description**: [150-160 characters]
 **Target Keyword**: [primary keyword]
 **Page Type**: seo | ppc
@@ -182,7 +182,7 @@ Before running this command, verify:
 - [ ] FAQ section (for SEO pages)
 
 ### Meta
-- [ ] Meta title 50-60 characters
+- [ ] Meta title 50-60 characters ending with `| Brand`
 - [ ] Meta title includes keyword
 - [ ] Meta description 150-160 characters
 - [ ] Meta description includes CTA

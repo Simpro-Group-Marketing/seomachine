@@ -18,6 +18,11 @@ ARTICLE_WITH_CASE_STUDY = """# Job quoting software
 [TEAMWired](https://www.simprogroup.com/case-studies/teamwired) is used as customer proof for invoicing workflow context.
 """
 
+ARTICLE_WITH_CLOCKSHARK_CASE_STUDY = """# Construction draw schedule
+
+[Underground Contractors](https://www.clockshark.com/resources/case-study-underground-contractors) is used as customer proof for construction crew workflow context.
+"""
+
 
 def proof_slate(
     *,
@@ -89,6 +94,15 @@ def proof_mining(
 
 
 class CustomerProofDiversityGuardTests(unittest.TestCase):
+    def test_clockshark_case_study_resource_path_requires_customer_proof_pack(self):
+        findings = check_content(
+            ARTICLE_WITH_CLOCKSHARK_CASE_STUDY,
+            proof_content="",
+        )
+
+        self.assertTrue(any(f["rule_id"] == "customer_proof_pack_missing" for f in findings))
+        self.assertTrue(should_fail(findings, fail_on="error"))
+
     def test_only_case_studies_without_non_case_study_search_attempt_fails(self):
         sidecar = """Customer Proof Pack
 - Pack status: ready.

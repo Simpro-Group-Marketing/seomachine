@@ -39,14 +39,17 @@ The command runs the complete publish-readiness stack:
 1. `public_artifact_guard`
 2. `ai_copy_linter`
 3. `url_validator`
-4. `metric_proof_pack_guard`
-5. `numeric_claim_source_guard`
-6. `faq_proof_guard`
-7. `paa_provenance_guard`
-8. `source_support_guard`
-9. `customer_proof_diversity_guard`
-10. `review_story_identity_guard`
-11. `content_scorer` with URL and source-support validation
+4. `public_research_link_guard`
+5. `metric_proof_pack_guard`
+6. `numeric_claim_source_guard`
+7. `faq_proof_guard`
+8. `paa_provenance_guard`
+9. `source_support_guard`
+10. `customer_proof_diversity_guard`
+11. `review_story_identity_guard`
+12. `content_scorer` with URL and source-support validation
+
+403 replacement rule: If a DOL, Capterra, G2, Trustpilot, Google Play, or other public research/source URL returns 401, 403, or `manual_review`, do not remove the citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. Source Map notes must document both the rejected 403 URL and the replacement URL. The `public_research_link_guard` blocks sidecar-only handling of public research, compliance, legal, regulatory, or statistical proof and requires visible resolved non-owned public research links in the relevant article section or FAQ answer. Full policy lives in `context/aeo-geo-blog-strategy.md`.
 
 ## Output
 

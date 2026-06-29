@@ -171,6 +171,30 @@ Answer.
         self.assertIn("case_study_link", details["experience_signals"])
         self.assertIn("author_metadata", details["expertise_signals"])
 
+    def test_eeat_detects_clockshark_case_study_and_workflow_links(self):
+        content = COMPLIANT_ARTICLE.replace(
+            "https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical",
+            "https://www.clockshark.com/resources/case-study-underground-contractors",
+        ).replace(
+            "https://www.simprogroup.com/features/scheduling-software",
+            "https://www.clockshark.com/tour/job-management",
+        )
+
+        result = self.rate(content)
+        details = result["checks"]["eeat_proof"]["details"]
+
+        self.assertTrue(result["checks"]["eeat_proof"]["passed"])
+        self.assertIn(
+            "https://www.clockshark.com/resources/case-study-underground-contractors",
+            details["case_study_links"],
+        )
+        self.assertIn("case_study_link", details["experience_signals"])
+        self.assertIn(
+            "https://www.clockshark.com/tour/job-management",
+            details["clockshark_workflow_links"],
+        )
+        self.assertIn("clockshark_product_or_workflow_link", details["expertise_signals"])
+
     def test_eeat_fails_when_external_research_has_no_experience_signal(self):
         content = COMPLIANT_ARTICLE.replace(
             "\n[Schaffer Beacon Mechanical](https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical) shows how field service teams use connected workflows to improve operational control.\n",
@@ -252,6 +276,44 @@ Review Story Selection
         self.assertTrue(result["checks"]["eeat_proof"]["passed"])
         self.assertTrue(details["review_site_links"])
         self.assertIn("review_story_selection", details["experience_signals"])
+
+    def test_clockshark_sidecar_experience_proof_and_workflow_links_satisfy_eeat(self):
+        content = COMPLIANT_ARTICLE.replace(
+            "Meta Title: HVAC Scheduling Software for Contractors | Simpro",
+            "Meta Title: Construction Draw Schedule Explained",
+        ).replace(
+            "Primary Keyword: hvac scheduling software",
+            "Primary Keyword: construction draw schedule",
+        ).replace(
+            "Author: Jordan Lee",
+            "Author: ClockShark Editorial Team",
+        ).replace(
+            "\n[Schaffer Beacon Mechanical](https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical) shows how field service teams use connected workflows to improve operational control.\n",
+            "\nClockShark's [job management tools](https://www.clockshark.com/tour/job-management) show active jobs, completed work hours, and job stages in one place.\n",
+        ).replace(
+            "https://www.simprogroup.com/features/scheduling-software",
+            "https://www.clockshark.com/industries/construction-trades",
+        )
+        proof_sidecar = PAA_PROVENANCE_BLOCK + """
+```text
+E-E-A-T Proof Map
+- Experience proof: The rewrite uses first-party ClockShark workflow evidence from https://www.clockshark.com/blog/construction-draw-schedule and https://www.clockshark.com/tour/job-management. No customer quote, customer metric, or review story appears in public copy.
+- Expertise proof: The rewrite uses source-backed workflow explanation plus ClockShark construction and job-management pages.
+```
+"""
+
+        result = rate_aeo_geo(
+            content,
+            {"primary_keyword": "construction draw schedule"},
+            source_path=write_paa_fixture(self, content),
+            proof_sidecar_content=proof_sidecar,
+        )
+
+        details = result["checks"]["eeat_proof"]["details"]
+
+        self.assertTrue(result["checks"]["eeat_proof"]["passed"])
+        self.assertIn("sidecar_experience_proof", details["experience_signals"])
+        self.assertIn("clockshark_product_or_workflow_link", details["expertise_signals"])
 
     def test_delayed_answer_fails_direct_answer_check(self):
         content = COMPLIANT_ARTICLE.replace(

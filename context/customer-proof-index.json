@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-06-26",
+  "updated_at": "2026-06-29",
   "source_boundary": "Curated customer proof index for selection and governance. This is not the full Quote Matrix. Exact quotes, review ratings, badges, rankings, and named reviewer claims require current source verification and approval before public copy use. Review-site rows may support public E-E-A-T stories only when review_story.story_allowed is true, the row has a real person or business identity, and a usable public review URL is linked in the same public paragraph as the paraphrase. Generic review themes remain VoC research only.",
   "proof": [
     {
@@ -2451,6 +2451,120 @@
         "business_name": "Chesapeake Lawn and Home"
       },
       "company_size": "unknown"
+    },
+    {
+      "proof_id": "review-capterra-clockshark-marvin-estimator-construction-payment-records",
+      "customer": "Capterra ClockShark construction estimator review",
+      "source_type": "review_site",
+      "public_url": "https://www.capterra.com/p/155467/ClockShark/reviews/",
+      "internal_source_ref": "Capterra public ClockShark reviews page, Marvin E. review, checked 2026-06-29",
+      "approval_status": "approved",
+      "evidence": "Capterra public review page shows Marvin E., verified user, estimator in construction, 2-10 employees, used ClockShark for 1-2 years; review discusses field team time management and office payment processing accuracy through time tracking and attendance verification.",
+      "last_verified": "2026-06-29",
+      "company_size": "2-10 employees",
+      "restrictions": [
+        "Use only as paraphrased review-story evidence. Do not use exact review wording, ratings, rankings, aggregate review claims, or metric claims."
+      ],
+      "industry": [
+        "construction",
+        "field service"
+      ],
+      "themes": [
+        "field time records",
+        "attendance verification",
+        "office payment accuracy",
+        "construction crew management"
+      ],
+      "workflow_fit": [
+        "time tracking",
+        "attendance verification",
+        "field-to-office records",
+        "payment processing",
+        "construction operations"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": true,
+        "identity_type": "person",
+        "identity_display": "Marvin E.",
+        "person_name": "Marvin E.",
+        "role_title": "Estimator",
+        "platform": "Capterra",
+        "source_row_ref": "Capterra public ClockShark reviews page, Marvin E. review, checked 2026-06-29",
+        "public_url": "https://www.capterra.com/p/155467/ClockShark/reviews/",
+        "workflow_story": "Estimator in construction describes ClockShark helping field teams manage time while office teams process payments more accurately through time tracking and attendance verification.",
+        "objective_fit": [
+          "draw documentation",
+          "field progress evidence",
+          "payment timing",
+          "construction office handoff"
+        ],
+        "copy_use": "paraphrased E-E-A-T story with same-paragraph source link",
+        "verification_status": "public Capterra review page"
+      }
+    },
+    {
+      "proof_id": "review-capterra-aroflo-gill-maintenance-plumbing-billing",
+      "customer": "Capterra AroFlo business-owner review",
+      "source_type": "review_site",
+      "public_url": "https://www.capterra.com/p/166811/AroFlo/reviews/",
+      "internal_source_ref": "Capterra AroFlo reviews page, Gill M. review, checked 2026-06-29 via public Capterra result and live page URL",
+      "approval_status": "approved",
+      "evidence": "Capterra AroFlo review page shows Gill M., verified user, business owner in construction, 11-50 employees, used AroFlo for more than two years. The review describes a maintenance plumbing business using AroFlo for scheduling, inventory control, integrations, and more accurate time-and-material billing.",
+      "last_verified": "2026-06-29",
+      "company_size": "11-50 employees",
+      "themes": [
+        "maintenance plumbing workflow",
+        "scheduling and inventory control",
+        "time and material billing accuracy",
+        "connected operating data"
+      ],
+      "region": [
+        "unknown"
+      ],
+      "industry": [
+        "construction",
+        "plumbing",
+        "field service"
+      ],
+      "restrictions": [
+        "Use only as paraphrased review-story evidence. Do not use exact review wording, ratings, rankings, aggregate review claims, profit metrics, or named reviewer claims in public copy."
+      ],
+      "workflow_fit": [
+        "maintenance plumbing",
+        "scheduling",
+        "inventory control",
+        "integrations",
+        "time and material billing",
+        "job accuracy"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": true,
+        "identity_type": "person",
+        "identity_display": "Gill M.",
+        "person_name": "Gill M.",
+        "role_title": "Business Owner",
+        "platform": "Capterra",
+        "source_row_ref": "Capterra AroFlo reviews page, Gill M. review, checked 2026-06-29",
+        "public_url": "https://www.capterra.com/p/166811/AroFlo/reviews/",
+        "workflow_story": "Business owner describes a maintenance plumbing business using AroFlo to connect scheduling, inventory control, integrations, and more accurate time-and-material billing.",
+        "objective_fit": [
+          "plumbing pricing",
+          "job accuracy",
+          "margin protection",
+          "time and material billing"
+        ],
+        "copy_use": "paraphrased E-E-A-T story with same-paragraph public review link",
+        "verification_status": "public Capterra review page"
+      }
     }
   ]
 }

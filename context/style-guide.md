@@ -533,8 +533,8 @@ Examples:
 ### Meta Titles
 - 50–60 characters including spaces
 - Include primary keyword
-- Brand suffix: " | Simpro" when space allows (saves room over " - Simpro")
-- No ending punctuation
+- Always end with the owning brand suffix in pipe format, such as " | Simpro" or " | ClockShark"
+- Keep the suffix as the final text in the title; do not add punctuation after the brand
 
 ### Meta Descriptions
 - 150–160 characters including spaces
@@ -711,7 +711,7 @@ Before publishing any content:
 
 **SEO**:
 - [ ] Primary keyword in H1, first 100 words, at least 2 H2s, conclusion, meta title, meta description, URL slug
-- [ ] Meta title 50–60 chars, " | Simpro" if space allows
+- [ ] Meta title 50–60 chars and ending with the owning brand suffix, such as " | Simpro" or " | ClockShark"
 - [ ] Meta description 150–160 chars with CTA
 - [ ] Internal links to relevant Simpro pages (see `internal-links-map.md`)
 - [ ] External links open in new tab with `rel="noopener noreferrer"`

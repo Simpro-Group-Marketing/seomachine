@@ -322,7 +322,14 @@ def format_summary(summary: UrlValidationSummary) -> str:
             location = f"line {result.line}: " if result.line else ""
             anchor = f" [{result.anchor}]" if result.anchor else ""
             code = f"HTTP {result.status_code}" if result.status_code is not None else result.reason
-            lines.append(f"  - {location}{result.url}{anchor} ({result.status}: {code})")
+            blocker = f"  - {location}{result.url}{anchor} ({result.status}: {code})"
+            if result.status == "manual_review":
+                blocker += (
+                    " Replace this source with an equivalent resolved public source "
+                    "or remove the supported claim. Do not remove the citation without "
+                    "replacing it with a resolved source supporting the same claim."
+                )
+            lines.append(blocker)
 
     return "\n".join(lines)
 

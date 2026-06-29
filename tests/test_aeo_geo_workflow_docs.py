@@ -452,6 +452,40 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
+    def test_403_replacement_rule_is_documented_across_publish_workflow(self):
+        canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
+            encoding="utf-8"
+        )
+        for text in [
+            "403 replacement rule",
+            "manual_review",
+            "public_research_link_guard.py",
+            "resolved non-owned public research links",
+            "Source Map notes must document the rejected 403 URL and the replacement URL",
+        ]:
+            self.assertIn(text, canonical)
+
+        docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "publish-readiness.md",
+            ROOT / "README.md",
+        ]
+        required = [
+            "403 replacement rule",
+            "manual_review",
+            "rejected 403 URL",
+            "replacement URL",
+            "context/aeo-geo-blog-strategy.md",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
     def test_faq_proof_gate_is_documented_across_blog_workflow(self):
         canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
             encoding="utf-8"
@@ -715,6 +749,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "public_artifact_guard",
             "ai_copy_linter",
             "url_validator",
+            "public_research_link_guard",
             "metric_proof_pack_guard",
             "numeric_claim_source_guard",
             "faq_proof_guard",
@@ -744,6 +779,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "public_artifact_guard.py",
             "ai_copy_linter.py",
             "url_validator.py",
+            "public_research_link_guard.py",
             "metric_proof_pack_guard.py",
             "numeric_claim_source_guard.py",
             "faq_proof_guard.py",

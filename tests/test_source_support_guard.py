@@ -314,6 +314,31 @@ Specialty trade contractors reported adjusted EBITDA margins from 18.1% to 20.4%
 
         self.assertEqual(findings, [])
 
+    def test_blocked_html_source_with_local_text_artifact_passes(self):
+        blocked_url = "https://www.capterra.com/p/166811/AroFlo/reviews/"
+        with tempfile.TemporaryDirectory() as tmp:
+            proof = Path(tmp) / "capterra-aroflo-proof.md"
+            proof.write_text(
+                "Capterra AroFlo review page, Gill M. review, checked 2026-06-29; paraphrased only.",
+                encoding="utf-8",
+            )
+            content = f"""---
+Source Map:
+- Claim: A public Capterra AroFlo review from Gill M. supports a maintenance plumbing workflow story about scheduling, inventory, integrations, and time-and-material billing accuracy. | URL: {blocked_url} | Evidence: Capterra AroFlo review page, Gill M. review, checked 2026-06-29; paraphrased only. | Artifact: capterra-aroflo-proof.md | Status: approved | Use: E-E-A-T review story paragraph
+---
+
+# Plumbing pricing
+
+A public [Capterra AroFlo review]({blocked_url}) from Gill M., a business owner, describes a maintenance plumbing workflow where scheduling, inventory, integrations, and time-and-material billing affect job accuracy.
+"""
+
+            def blocked_fetcher(url):
+                raise RuntimeError("403 forbidden")
+
+            findings = check_content(content, base_path=tmp, fetcher=blocked_fetcher)
+
+        self.assertEqual(findings, [])
+
     def test_unreachable_source_fails_closed(self):
         def failing_fetcher(url):
             raise RuntimeError("timeout")

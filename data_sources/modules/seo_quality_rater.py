@@ -72,7 +72,14 @@ OWNED_INTERNAL_DOMAINS = {
     "www.simprogroup.com",
     "simpro.ai",
     "www.simpro.ai",
+    "clockshark.com",
+    "www.clockshark.com",
 }
+META_TITLE_BRAND_SUFFIX_RE = re.compile(r"\|\s*[A-Za-z][A-Za-z0-9 .&-]{1,40}$")
+
+
+def _has_meta_title_brand_suffix(meta_title: str) -> bool:
+    return bool(META_TITLE_BRAND_SUFFIX_RE.search(meta_title.strip()))
 
 
 class SEOQualityRater:
@@ -138,7 +145,10 @@ class SEOQualityRater:
             keyword_density: Pre-calculated keyword density
             internal_link_count: Number of internal links
             external_link_count: Number of external links
-            validate_urls: Resolve URLs and block publishing readiness on failures
+            validate_urls: Resolve URLs and block publishing readiness on
+                unresolved/manual-review links. With URL validation enabled,
+                the external-link requirement means resolved non-owned public
+                research links; owned Simpro and ClockShark links do not count.
 
         Returns:
             Dict with overall score, category scores, and recommendations
@@ -205,7 +215,11 @@ class SEOQualityRater:
                 code = f"HTTP {result.status_code}" if result.status_code is not None else result.reason
                 if result.status == "manual_review":
                     critical_issues.append(
-                        f"Unresolved URL manual review blocker{location}: {result.url} ({code})"
+                        "Unresolved URL manual review blocker"
+                        f"{location}: {result.url} ({code}). Replace this source "
+                        "with an equivalent resolved public source or remove the "
+                        "supported claim. Do not remove the citation without replacing "
+                        "it with a resolved source supporting the same claim."
                     )
                 else:
                     critical_issues.append(
@@ -466,6 +480,10 @@ class SEOQualityRater:
                 score -= 15
                 warnings.append(f"Primary keyword '{primary_keyword}' not in meta title")
 
+            if not _has_meta_title_brand_suffix(meta_title):
+                score -= 10
+                warnings.append('Meta title must end with a brand suffix like " | Simpro" or " | ClockShark".')
+
         # Meta description
         if not meta_description:
             score -= 40
@@ -599,12 +617,15 @@ class SEOQualityRater:
         if external_count < min_external:
             score -= 15
             warnings.append(
-                f"Too few external links ({external_count}). "
-                f"Add authoritative sources (target: {optimal_external})."
+                f"Too few non-owned public research links ({external_count}). "
+                f"Add authoritative resolved sources (target: {optimal_external})."
             )
         elif external_count < optimal_external:
             score -= 5
-            suggestions.append(f"Could add more external links ({external_count}). Optimal is {optimal_external}.")
+            suggestions.append(
+                f"Could add more non-owned public research links ({external_count}). "
+                f"Optimal is {optimal_external}."
+            )
 
         return {
             'score': max(0, score),
@@ -699,7 +720,10 @@ def rate_seo_quality(
         internal_link_count: Number of internal links
         external_link_count: Number of external links
         custom_guidelines: Custom SEO guidelines
-        validate_urls: Resolve URLs and block publishing readiness on failures
+        validate_urls: Resolve URLs and block publishing readiness on failures.
+            With URL validation enabled, external links are expected to be
+            resolved non-owned public research links; owned Simpro and
+            ClockShark links do not count as external research.
 
     Returns:
         SEO quality rating with score and recommendations
@@ -719,7 +743,7 @@ def rate_seo_quality(
 
 
 def _count_markdown_links(content: str) -> Tuple[int, int]:
-    """Count markdown links as internal or external for Simpro content."""
+    """Count markdown links as internal or external for owned web content."""
     internal_count = 0
     external_count = 0
 
@@ -735,6 +759,7 @@ def _count_markdown_links(content: str) -> Tuple[int, int]:
                 hostname in OWNED_INTERNAL_DOMAINS
                 or hostname.endswith(".simprogroup.com")
                 or hostname.endswith(".simpro.ai")
+                or hostname.endswith(".clockshark.com")
             ):
                 internal_count += 1
             else:
@@ -787,6 +812,7 @@ def _internal_link_path(url: str) -> Optional[str]:
             hostname in OWNED_INTERNAL_DOMAINS
             or hostname.endswith(".simprogroup.com")
             or hostname.endswith(".simpro.ai")
+            or hostname.endswith(".clockshark.com")
         ):
             return None
         return _normalize_path(parsed.path)
@@ -1089,7 +1115,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument(
         "--validate-urls",
         action="store_true",
-        help="Resolve article URLs and fail readiness on unresolved/manual-review links.",
+        help=(
+            "Resolve article URLs and fail readiness on unresolved/manual-review links. "
+            "Use with 2+ non-owned public research links unless the sidecar marks "
+            "External research requirement: not applicable with a reason."
+        ),
     )
 
     args = parser.parse_args(argv)

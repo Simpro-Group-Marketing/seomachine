@@ -34,6 +34,7 @@ Before drafting, resolve an E-E-A-T Proof Map:
 - **Authority/Trust**: Public research, case-study URLs, review-site/source links, limitations/caveats, and no invented proof.
 - **Context sources**: Pull case-study URLs from @context/internal-links-map.md, approved metrics/proof candidates from @context/features.md, and review-site experience evidence / VoC or competitor experience themes from @context/competitor-analysis.md or future review-context files.
 - **Public-copy rule**: Context-backed metrics are valid only when the article body uses public-facing source links, such as the public case-study URL, review-site URL, or public research source.
+- **403 replacement rule**: If a DOL, Capterra, G2, Trustpilot, Google Play, or other public research/source URL returns 401, 403, or `manual_review`, do not remove the citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. Source Map notes must document both the rejected 403 URL and the replacement URL. Full policy and the `public_research_link_guard.py` gate live in `context/aeo-geo-blog-strategy.md`.
 
 ### Simpro Web Copy Rules
 - Use numerals for cardinal numbers, including 1-9.
@@ -231,7 +232,7 @@ Full markdown-formatted article with:
 ### 2. Meta Elements
 ```
 ---
-Meta Title: [50-60 character optimized title]
+Meta Title: [50-60 character optimized title ending with | Brand]
 Meta Description: [150-160 character compelling description]
 Primary Keyword: [main target keyword]
 Secondary Keywords: [keyword1, keyword2, keyword3]
@@ -295,6 +296,8 @@ Preferred publish readiness command:
 ```bash
 /publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
 ```
+
+Meta titles must always end with the owning brand suffix in pipe format, for example `Construction Draw Schedule Explained | ClockShark`.
 
 Run `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` to confirm the article is clean and all proof, URL validation, source support, content score, and AEO/GEO gates pass. The command reads the validation sidecar without exposing proof infrastructure in public copy.
 

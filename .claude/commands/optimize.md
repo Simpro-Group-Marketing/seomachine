@@ -23,7 +23,9 @@ Preferred publish readiness command:
 /publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
 ```
 
-Before returning `Ready`, run `/publish-readiness`. It runs URL validation, public artifact checks, AI copy linting, Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, content score, and AEO/GEO gates internally.
+Before returning `Ready`, run `/publish-readiness`. It runs URL validation, public artifact checks, AI copy linting, public research link checks, Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, content score, and AEO/GEO gates internally.
+
+403 replacement rule: If a DOL, Capterra, G2, Trustpilot, Google Play, or other public research/source URL returns 401, 403, or `manual_review`, do not remove the citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. Source Map notes must document both the rejected 403 URL and the replacement URL. `/publish-readiness` runs `public_research_link_guard.py` to block sidecar-only handling of public research, compliance, legal, regulatory, or statistical proof.
 
 Fix copy avoid-rule errors before returning `Ready`. The AI copy linter blocks modal verbs, passive voice, repeated starts, vague generalizations, filler words, and long sentences in Simpro web copy.
 
@@ -82,12 +84,13 @@ If customer proof appears in public copy, experience_story consideration is requ
 - High-priority pages that should be linked
 
 #### External Links (2-3+ required)
-- **Quantity**: Count external authority links
+- **Quantity**: Count resolved non-owned public research links; owned Simpro and ClockShark product links do not count as external research links
 - **Authority**: Verify links are to credible, authoritative sources
 - **Relevance**: Ensure external links support content claims
 - **Freshness**: Check that linked sources are current
 - **Broken Links**: Test all external links
 - **Link Attributes**: Verify appropriate use of nofollow where needed
+- **Not Applicable**: Use fewer than 2 resolved non-owned public research links only when the validation sidecar marks `External research requirement: not applicable` with a reason
 
 **Recommendations**:
 - Additional authoritative sources to link
@@ -100,7 +103,7 @@ If customer proof appears in public copy, experience_story consideration is requ
 - **Length**: 50-60 characters (check current length)
 - **Keyword**: Primary keyword included naturally
 - **Compelling**: Attention-grabbing and click-worthy
-- **Brand**: Consider adding "| your company" if space allows
+- **Brand**: Required final suffix in pipe format, such as `| Simpro` or `| ClockShark`
 - **Uniqueness**: Distinct from other your company page titles
 
 **Provide**:
@@ -197,9 +200,9 @@ List of critical issues to address before publishing:
 
 ### 4. Optimized Meta Options
 **Meta Title Options** (pick one):
-1. [Option 1] (58 chars)
-2. [Option 2] (59 chars)
-3. [Option 3] (60 chars)
+1. [Option 1 | Brand] (58 chars)
+2. [Option 2 | Brand] (59 chars)
+3. [Option 3 | Brand] (60 chars)
 
 **Meta Description Options** (pick one):
 1. [Option 1] (157 chars)
@@ -232,7 +235,7 @@ Visual representation of where primary keyword appears:
 - [ ] Keyword density 1-2%
 - [ ] 3-5+ internal links included
 - [ ] 2-3+ external authority links
-- [ ] Meta title 50-60 characters
+- [ ] Meta title 50-60 characters ending with `| Brand`
 - [ ] Meta description 150-160 characters
 - [ ] Article 2000+ words
 - [ ] Proper H1/H2/H3 hierarchy

@@ -514,6 +514,17 @@ def _validate_proof_entry(
         try:
             source_text = fetcher(proof.url) if fetcher is not None else fetch_source_text(proof.url)
         except Exception as exc:  # fail closed on fetch errors
+            if proof.artifact:
+                source_text = _read_artifact_text(proof, base_path)
+                if source_text is not None:
+                    return _validate_source_text_contains_evidence(source_text, proof, candidate)
+                return _finding(
+                    "proof_artifact_missing",
+                    candidate,
+                    "The local proof artifact for this source does not exist or is unsupported.",
+                    "Create the referenced .md/.txt/.csv/.tsv/.json proof artifact or remove the claim.",
+                    proof,
+                )
             return _finding(
                 "source_fetch_failed",
                 candidate,
@@ -522,14 +533,9 @@ def _validate_proof_entry(
                 proof,
             )
 
-    if not _contains_evidence(source_text, proof.evidence):
-        return _finding(
-            "source_evidence_not_found",
-            candidate,
-            "Proof evidence was not found in the cited source.",
-            "Replace the claim with source-visible wording, update Evidence to an exact visible snippet, or remove the claim.",
-            proof,
-        )
+    evidence_finding = _validate_source_text_contains_evidence(source_text, proof, candidate)
+    if evidence_finding:
+        return evidence_finding
 
     if candidate.has_numeric_tokens and not candidate.normalized_tokens.issubset(proof.normalized_numeric_tokens):
         return _finding(
@@ -540,6 +546,22 @@ def _validate_proof_entry(
             proof,
         )
 
+    return None
+
+
+def _validate_source_text_contains_evidence(
+    source_text: str,
+    proof: ProofEntry,
+    candidate: ClaimCandidate,
+) -> Optional[Finding]:
+    if not _contains_evidence(source_text, proof.evidence):
+        return _finding(
+            "source_evidence_not_found",
+            candidate,
+            "Proof evidence was not found in the cited source.",
+            "Replace the claim with source-visible wording, update Evidence to an exact visible snippet, or remove the claim.",
+            proof,
+        )
     return None
 
 

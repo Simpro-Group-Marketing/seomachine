@@ -20,6 +20,7 @@ try:
         metric_proof_pack_guard,
         numeric_claim_source_guard,
         paa_provenance_guard,
+        public_research_link_guard,
         public_artifact_guard,
         review_story_identity_guard,
         source_support_guard,
@@ -34,6 +35,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import metric_proof_pack_guard
     import numeric_claim_source_guard
     import paa_provenance_guard
+    import public_research_link_guard
     import public_artifact_guard
     import review_story_identity_guard
     import source_support_guard
@@ -119,6 +121,19 @@ def run_publish_readiness(
 
     url_summary = validate_file_urls(article_path)
     gates.append(_gate_from_url_summary(url_summary))
+
+    gates.append(
+        _gate_from_findings(
+            "public_research_links",
+            "Public Research Links",
+            public_research_link_guard.check_file(
+                str(article_path),
+                fail_on="error",
+                proof_sidecar=proof_sidecar_path,
+                url_summary=url_summary,
+            ),
+        )
+    )
 
     for name, label, guard_module in PROOF_AWARE_GATES:
         findings = guard_module.check_file(
@@ -313,7 +328,14 @@ def _url_blocker_line(result: Any) -> str:
     location = f"line {result.line}: " if result.line else ""
     anchor = f" [{result.anchor}]" if result.anchor else ""
     code = f"HTTP {result.status_code}" if result.status_code is not None else result.reason
-    return f"{location}{result.url}{anchor} ({result.status}: {code})"
+    line = f"{location}{result.url}{anchor} ({result.status}: {code})"
+    if result.status == "manual_review":
+        line += (
+            " Replace this source with an equivalent resolved public source "
+            "or remove the supported claim. Do not remove the citation without "
+            "replacing it with a resolved source supporting the same claim."
+        )
+    return line
 
 
 def _priority_fix_lines(priority_fixes: List[Dict[str, Any]]) -> List[str]:

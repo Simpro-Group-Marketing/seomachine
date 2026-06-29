@@ -24,7 +24,8 @@ This document catalogs verified Simpro URLs for strategic internal linking in bl
 4. Use descriptive anchors. Do not use "click here," "read more," or vague anchors.
 5. For BOFU content, include one demo, pricing, comparison, or customer story link.
 6. For TOFU content, use one product/category link only when the product relevance is explicit.
-7. When a customer outcome is mentioned, link to the matching case study if one exists in the sitemap.
+7. For TOFU trade-vertical blogs, use the relevant brand industry page as the final cluster link instead of a generic demo page unless the brief explicitly requires a demo CTA.
+8. When a customer outcome is mentioned, link to the matching case study if one exists in the sitemap.
 
 ## Performance-Informed Internal Linking Priorities
 

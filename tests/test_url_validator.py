@@ -6,8 +6,11 @@ from pathlib import Path
 import requests
 
 from data_sources.modules.url_validator import (
+    UrlValidationResult,
+    UrlValidationSummary,
     UrlValidator,
     extract_urls,
+    format_summary,
     validate_file_urls,
 )
 
@@ -124,6 +127,29 @@ class UrlValidationTests(unittest.TestCase):
 
         self.assertEqual(unauthorized.status, "manual_review")
         self.assertEqual(forbidden.status, "manual_review")
+
+    def test_manual_review_summary_tells_agents_to_replace_not_remove_citation(self):
+        report = format_summary(
+            UrlValidationSummary([
+                UrlValidationResult(
+                    url="https://www.dol.gov/agencies/whd/fact-sheets/21-flsa-recordkeeping",
+                    status="manual_review",
+                    status_code=403,
+                    reason="HTTP 403",
+                    line=7,
+                    anchor="DOL recordkeeping",
+                )
+            ])
+        )
+
+        self.assertIn(
+            "Replace this source with an equivalent resolved public source",
+            report,
+        )
+        self.assertIn(
+            "Do not remove the citation without replacing it",
+            report,
+        )
 
     def test_passes_when_get_resolves_after_forbidden_head(self):
         session = FakeSession([FakeResponse(403), FakeResponse(200)])

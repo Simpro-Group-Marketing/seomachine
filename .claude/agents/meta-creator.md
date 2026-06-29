@@ -18,8 +18,8 @@ Generate multiple compelling meta title and description options that balance SEO
 ### Technical Requirements
 - **Length**: 50-60 characters (Google displays ~50-60 on desktop)
 - **Primary Keyword**: Must include naturally, preferably near beginning
-- **Brand**: Consider adding "| Castos" if space allows (adds credibility)
-- **Uniqueness**: Must be distinct from other Castos page titles
+- **Brand**: Must end with the owning brand suffix in pipe format, such as `| Simpro` or `| ClockShark`
+- **Uniqueness**: Must be distinct from other page titles for the same brand
 - **Accuracy**: Must accurately represent page content
 
 ### Psychological Principles
