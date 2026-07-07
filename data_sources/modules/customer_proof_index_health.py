@@ -42,6 +42,7 @@ def analyze_proof_index(
         "counts": _counts(proof_rows),
         "proof_assets": _proof_assets(proof_rows),
         "workflow_coverage": _workflow_coverage(proof_rows),
+        "recently_used_proof": _recently_used_proof(proof_rows, ledger),
         "overused_proof": _overused_proof(proof_rows, ledger),
         "blocked_from_public_copy": _blocked_from_public_copy(proof_rows),
         "rows_without_public_web_url": _rows_without_public_web_url(proof_rows),
@@ -150,6 +151,33 @@ def _overused_proof(proof_rows: Sequence[FindingDict], ledger: FindingDict) -> L
             }
         )
     return sorted(overused, key=lambda row: (-int(row["recent_uses_90d"]), row["proof_id"]))
+
+
+def _recently_used_proof(proof_rows: Sequence[FindingDict], ledger: FindingDict) -> List[FindingDict]:
+    recently_used = []
+    for row in proof_rows:
+        usage = count_customer_proof_usage(
+            ledger,
+            proof_id=_text(row.get("proof_id")),
+            source_url=_text(row.get("public_url")),
+            customer=_text(row.get("customer")),
+        )
+        if int(usage.get("recent_uses_90d", 0)) <= 0:
+            continue
+        recently_used.append(
+            {
+                "proof_id": _text(row.get("proof_id")),
+                "customer": _text(row.get("customer")),
+                "source_type": _text(row.get("source_type")),
+                "public_url": _text(row.get("public_url")),
+                "recent_uses_90d": usage.get("recent_uses_90d", 0),
+                "total_uses": usage.get("total_uses", 0),
+                "total_occurrences": usage.get("total_occurrences", 0),
+                "baseline_recent_uses_90d": usage.get("baseline_recent_uses_90d", 0),
+                "overused": bool(usage.get("overused")),
+            }
+        )
+    return sorted(recently_used, key=lambda row: (-int(row["recent_uses_90d"]), row["proof_id"]))
 
 
 def _blocked_from_public_copy(proof_rows: Sequence[FindingDict]) -> List[FindingDict]:
@@ -421,6 +449,18 @@ def _print_text_report(report: FindingDict) -> None:
         print(
             f"  - {row['proof_id']} ({row['customer']}): "
             f"{row['recent_uses_90d']} recent uses, {row['total_occurrences']} raw occurrences"
+        )
+    print(f"- Recently used proof rows: {len(report['recently_used_proof'])}")
+    for row in report["recently_used_proof"][:10]:
+        baseline_note = (
+            f", baseline={row['baseline_recent_uses_90d']}"
+            if int(row.get("baseline_recent_uses_90d", 0)) > 0
+            else ""
+        )
+        print(
+            f"  - {row['proof_id']} ({row['customer']}): "
+            f"{row['recent_uses_90d']} recent uses{baseline_note}, "
+            f"{row['total_occurrences']} raw occurrences"
         )
     print(f"- Rows without public web URLs: {len(report['rows_without_public_web_url'])}")
     for row in report["rows_without_public_web_url"][:10]:

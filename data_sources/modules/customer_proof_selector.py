@@ -37,6 +37,8 @@ SOURCE_TYPE_WEIGHT = {
 }
 
 SOURCE_INTENT_BONUS = 18
+RECENT_USE_SCORE_PENALTY = 20
+HISTORICAL_USE_SCORE_PENALTY = 2
 
 SOURCE_INTENT_PATTERNS = {
     "review_site": (
@@ -318,8 +320,11 @@ def _score_candidate(candidate: FindingDict) -> int:
     if public_copy_allowed:
         score += 8
     score += int(candidate.get("source_intent_score", 0))
-    score -= int(candidate.get("recent_uses_90d", 0)) * 9
-    score -= max(int(candidate.get("total_uses", 0)) - int(candidate.get("recent_uses_90d", 0)), 0) * 2
+    score -= int(candidate.get("recent_uses_90d", 0)) * RECENT_USE_SCORE_PENALTY
+    score -= max(
+        int(candidate.get("total_uses", 0)) - int(candidate.get("recent_uses_90d", 0)),
+        0,
+    ) * HISTORICAL_USE_SCORE_PENALTY
     return score
 
 

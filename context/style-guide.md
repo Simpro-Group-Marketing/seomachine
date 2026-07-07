@@ -4,8 +4,8 @@
 **Use when:** Editing grammar, capitalization, punctuation, regional terms, links, lists, or technical formatting.
 **Owns:** Style mechanics, preferred terms, banned phrases, capitalization, numbers, and link-format guidance.
 **Does not own:** Brand strategy, SEO structure, proof workflow, or competitor claims.
-**Source boundary:** Derived from Simpro Voice Style Guide and approved FY26 overlay captured here.
-**Refresh cadence:** Review when the canonical Voice Style Guide or editorial standards change.
+**Source boundary:** Derived from Simpro Voice Style Guide, approved FY26 overlay, and the Simpro Group Style Sheet captured here.
+**Refresh cadence:** Review when the canonical Voice Style Guide, editorial standards, or Simpro Group visual standards change.
 **Reference detail:** No separate reference file; operating guidance remains here.
 
 ---
@@ -15,6 +15,7 @@ This guide defines writing conventions, formatting standards, and editorial guid
 > **Sources (priority order)**:
 > 1. **Simpro Voice Style Guide** — Google Doc `1Hl78trTAMAnZcSBfsdM0Qn0Xa1f-DW51s-8LbeU_Knk` (*SP-content style guide V1 — August 2024*). Canonical voice, terminology, channel tone, regional rules. Pulled 2026-05-21.
 > 2. **FY26 Brand Message House** — current AI-first positioning, pillars, boilerplate. Use for hero/messaging when it does not conflict with (1).
+> 3. **Simpro Group Style Sheet** — Google Drive PDF `SimproGroup-StyleSheet_29.06.26.pdf` (`1lNwFd8NwYJ2TwbtyoLZBlXYGkPkBaN9t`). Simpro Group visual identity, lock-up, palette, typography, asset route, and approval path. Source last updated 2026-06-29; reviewed 2026-06-30.
 >
 > Where Aug 2024 voice descriptors differ from FY26 (e.g., six-word vs. four-word tone), use **FY26 for brand/hero messaging** and **Aug 2024 for editorial mechanics, product names, and channel tone**. See `brand-voice.md` for the full messaging framework.
 
@@ -303,6 +304,32 @@ Examples:
 - About/press copy: "Simpro Group builds the AI operating platform for the trades."
 
 Do not force **Simpro Group** into every marketing asset. If a piece needs one parent-company reference, make the first reference explicit, then return to **Simpro** for product-led copy unless the paragraph stays focused on the parent company or brand family.
+
+### Simpro Group brand application
+
+The Simpro Group Style Sheet (`SimproGroup-StyleSheet_29.06.26.pdf`, Drive file `1lNwFd8NwYJ2TwbtyoLZBlXYGkPkBaN9t`) is the approved source for Simpro Group visual identity rules captured here. It does not replace the referenced Simpro Group Brand Usage Guide; use that guide to determine whether Simpro Group branding is appropriate before applying this style sheet.
+
+**Brand role**: Simpro Group is the corporate umbrella brand representing AroFlo, BigChange, ClockShark, and Simpro. It supports shared corporate functions, portfolio communications, and internal initiatives. It is not a customer-facing product brand, not a software platform, and not a normal go-to-market identity. Use the relevant product brand first: customer-facing product, sales, customer story, product launch, single-brand partnership, and two-brand partnership copy defaults to the actual product brand. Reserve Simpro Group for corporate, portfolio, internal, shared-function, multi-brand, investor/media, and approved shared partner contexts where the communication genuinely represents the broader organization or multiple brands.
+
+**Lock-up usage**:
+- Use the **Simpro Group master lock-up** wherever Simpro Group is represented. The master lock-up places the Simpro Group logo alongside the four FSM brands and reinforces that Simpro Group represents the broader organisation rather than one product brand.
+- The **standalone Simpro Group logo** should only be used when the master lock-up is not practical due to space, format, or production constraints, or when the Brand Team has approved it.
+- The standalone horizontal logo format should only be used in exceptional circumstances or when vertical space is permitted.
+- Use approved Simpro Group, AroFlo, BigChange, ClockShark, and Simpro assets from `Google Drive > Shared Files > Group Brand Resources > Group`.
+- For clarification, approval, or branding requests, contact `brandcontent@simprogroup.com` or submit a request through the Marketing Unified Intake Form.
+
+**Simpro Group color palette**:
+
+| Color | Hex | RGB | CMYK | PMS |
+|---|---|---|---|---|
+| Navy | `#0A2240` | R10 G34 B64 | C100 M84 Y44 K51 | PMS 289 |
+| Yellow | `#FFC600` | R255 G198 B0 | C0 M25 Y100 K0 | PMS 7548 |
+| Green | `#01B59A` | R1 G181 B154 | C76 M1 Y51 K0 | PMS 3275 |
+| Grey | `#BDC6CC` | R189 G198 B204 | C26 M16 Y15 K0 | PMS Cool Grey 2 |
+| Blue | `#00A3D9` | R0 G163 B217 | C75 M18 Y2 K0 | PMS 299 |
+| Orange | `#E75C0D` | R231 G92 B13 | C5 M78 Y100 K0 | PMS 7579 |
+
+**Typography**: Urbanist is the Simpro Group primary Google font. The style sheet shows Urbanist Extra Bold for display use and includes Urbanist Bold, Urbanist Medium, Urbanist Regular, and Urbanist Light.
 
 **AI Feature Names**: Use Title Case with the rule above. Example: **AI Mobile Work Notes**. Do not sentence-case feature names after first mention.
 
@@ -728,14 +755,16 @@ Before publishing any content:
 
 ## Updates & Maintenance
 
-**Style Guide Version**: 1.0 (canonical Voice Style Guide + FY26 Message House overlay)
-**Last Updated**: 2026-05-21
+**Style Guide Version**: 1.1 (canonical Voice Style Guide + FY26 Message House overlay + Simpro Group Style Sheet)
+**Last Updated**: 2026-06-30
+**Latest source update captured**: Simpro Group Style Sheet last updated 2026-06-29
 **Next Review**: 2026-08-21 (quarterly) or when FY27 messaging ships
 
 This style guide is a living document. Update when:
 - New product / feature names launch (add capitalization rules)
 - Brand messaging evolves materially (sync with the Message House)
 - The Voice Style Guide doc is revised in Google Docs
+- The Simpro Group Style Sheet or Brand Usage Guide changes
 - Style questions arise in editing — document the decision here for the next person
 
-**Open style questions**: None active as of 2026-05-21.
+**Open style questions**: None active as of 2026-06-30.

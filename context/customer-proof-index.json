@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-06-29",
+  "updated_at": "2026-06-30",
   "source_boundary": "Curated customer proof index for selection and governance. This is not the full Quote Matrix. Exact quotes, review ratings, badges, rankings, and named reviewer claims require current source verification and approval before public copy use. Review-site rows may support public E-E-A-T stories only when review_story.story_allowed is true, the row has a real person or business identity, and a usable public review URL is linked in the same public paragraph as the paraphrase. Generic review themes remain VoC research only.",
   "proof": [
     {
@@ -2564,6 +2564,299 @@
         ],
         "copy_use": "paraphrased E-E-A-T story with same-paragraph public review link",
         "verification_status": "public Capterra review page"
+      }
+    },
+    {
+      "proof_id": "bigchange-customer-story-htf-transport-job-scheduling",
+      "customer": "HTF Transport",
+      "source_type": "customer_story",
+      "public_url": "https://www.bigchange.com/success-stories/htf-lifts-weight-of-business-expansion-with-bigchange",
+      "internal_source_ref": "BigChange public success story",
+      "approval_status": "approved",
+      "evidence": "Public page covers job scheduling, live tracking, financial management, business intelligence, customer updates, route planning, and ETA workflows for HTF Transport.",
+      "last_verified": "2026-06-29",
+      "themes": [
+        "BigChange public customer story for scheduling and mobile operations"
+      ],
+      "region": [
+        "UK"
+      ],
+      "industry": [
+        "transport",
+        "specialist lifting"
+      ],
+      "restrictions": [
+        "Do not use exact quotes, named metrics, ratings, rankings, or testimonial language without separate approved evidence in the validation sidecar."
+      ],
+      "workflow_fit": [
+        "job scheduling",
+        "route planning",
+        "mobile workforce",
+        "customer communication",
+        "business intelligence"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false,
+        "objective_fit": [
+          "job scheduling",
+          "route planning",
+          "mobile workforce",
+          "customer communication"
+        ],
+        "copy_use": "paraphrased customer-story workflow only after proof mining",
+        "verification_status": "brand-captured public source"
+      }
+    },
+    {
+      "proof_id": "bigchange-customer-story-hodge-clemco-paperless-jobs",
+      "customer": "Hodge Clemco",
+      "source_type": "customer_story",
+      "public_url": "https://www.bigchange.com/success-stories/hodge-clemco-rolls-out-paperless-working-with-bigchange",
+      "internal_source_ref": "BigChange public success story",
+      "approval_status": "approved",
+      "evidence": "Public page covers paperless job management, job sheets, scheduling, customer portal, invoicing, and stock updates for Hodge Clemco.",
+      "last_verified": "2026-06-29",
+      "themes": [
+        "BigChange public customer story for paperless field-service workflow"
+      ],
+      "region": [
+        "UK"
+      ],
+      "industry": [
+        "surface treatment",
+        "engineering services"
+      ],
+      "restrictions": [
+        "Do not use exact quotes, named metrics, ratings, rankings, or testimonial language without separate approved evidence in the validation sidecar."
+      ],
+      "workflow_fit": [
+        "paperless job management",
+        "job sheets",
+        "scheduling",
+        "customer portal",
+        "invoicing",
+        "stock updates"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false,
+        "objective_fit": [
+          "paperless jobs",
+          "scheduling",
+          "invoicing",
+          "customer portal"
+        ],
+        "copy_use": "paraphrased customer-story workflow only after proof mining",
+        "verification_status": "brand-captured public source"
+      }
+    },
+    {
+      "proof_id": "bigchange-customer-story-blackhall-plumbing-job-lifecycle",
+      "customer": "Blackhall",
+      "source_type": "customer_story",
+      "public_url": "https://www.bigchange.com/success-stories/bigchange-secures-sustainable-future-of-edinburghs-oldest-plumbing-company",
+      "internal_source_ref": "BigChange public success story",
+      "approval_status": "approved",
+      "evidence": "Public page covers CRM, scheduling, routing, resource management, job finance, invoicing, payment, and real-time tracking for Blackhall.",
+      "last_verified": "2026-06-29",
+      "themes": [
+        "BigChange public customer story for job lifecycle workflow"
+      ],
+      "region": [
+        "UK"
+      ],
+      "industry": [
+        "plumbing",
+        "heating",
+        "electrical services"
+      ],
+      "restrictions": [
+        "Do not use exact quotes, named metrics, ratings, rankings, or testimonial language without separate approved evidence in the validation sidecar."
+      ],
+      "workflow_fit": [
+        "CRM",
+        "scheduling",
+        "routing",
+        "job finance",
+        "invoicing",
+        "payment",
+        "real-time tracking"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false,
+        "objective_fit": [
+          "end-to-end job lifecycle",
+          "scheduling",
+          "invoicing",
+          "payment"
+        ],
+        "copy_use": "paraphrased customer-story workflow only after proof mining",
+        "verification_status": "brand-captured public source"
+      }
+    },
+    {
+      "proof_id": "bigchange-customer-story-precision-fm-scheduling-sla",
+      "customer": "Precision FM",
+      "source_type": "customer_story",
+      "public_url": "https://www.bigchange.com/case-study/precision-fm-drives-sustainability-with-bigchange-field-service-tech",
+      "internal_source_ref": "BigChange public case study",
+      "approval_status": "approved",
+      "evidence": "Public page covers schedules, resource skills, routing issues, job histories, a customer portal, invoices, and SLAs for Precision FM.",
+      "last_verified": "2026-06-29",
+      "themes": [
+        "BigChange public customer story for facilities management scheduling"
+      ],
+      "region": [
+        "UK"
+      ],
+      "industry": [
+        "facilities management"
+      ],
+      "restrictions": [
+        "Do not use exact quotes, named metrics, ratings, rankings, or testimonial language without separate approved evidence in the validation sidecar."
+      ],
+      "workflow_fit": [
+        "resource scheduling",
+        "engineer skills",
+        "route planning",
+        "job history",
+        "customer portal",
+        "invoicing",
+        "SLA tracking"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": false,
+        "objective_fit": [
+          "resource scheduling",
+          "maintenance workflow",
+          "customer portal",
+          "invoicing",
+          "SLA tracking"
+        ],
+        "copy_use": "paraphrased customer-story workflow only after proof mining",
+        "verification_status": "brand-captured public source"
+      }
+    },
+    {
+      "proof_id": "review-capterra-bigchange-alexina-office-manager-job-lifecycle",
+      "customer": "Capterra BigChange office-manager review",
+      "source_type": "review_site",
+      "public_url": "https://www.capterra.ca/software/149479/jobwatch-powered-by-bigchange",
+      "internal_source_ref": "Capterra Canada BigChange reviews page, Alexina review, checked 2026-06-29",
+      "approval_status": "approved",
+      "evidence": "Capterra public BigChange page shows Alexina, office manager in construction, 11-50 employees, used BigChange for 2+ years; review describes moving from sticky notes and manual engineer job sheets to one system covering enquiry, quotes, installs, service jobs, invoicing, payment chasing, stock control, and reporting.",
+      "last_verified": "2026-06-29",
+      "company_size": "11-50 employees",
+      "themes": [
+        "Capterra review story for BigChange end-to-end job workflow"
+      ],
+      "region": [
+        "UK"
+      ],
+      "industry": [
+        "construction",
+        "field service"
+      ],
+      "restrictions": [
+        "Use only as paraphrased review-story evidence. Do not use exact review wording, ratings, rankings, aggregate review claims, or metric claims."
+      ],
+      "workflow_fit": [
+        "job scheduling",
+        "job management",
+        "quote-to-job-to-invoice",
+        "payment follow-up",
+        "stock control",
+        "reporting"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": true,
+        "identity_type": "person",
+        "identity_display": "Alexina",
+        "person_name": "Alexina",
+        "role_title": "Office Manager",
+        "platform": "Capterra",
+        "source_row_ref": "Capterra Canada BigChange reviews page, Alexina review, checked 2026-06-29",
+        "public_url": "https://www.capterra.ca/software/149479/jobwatch-powered-by-bigchange",
+        "workflow_story": "Office manager in construction describes BigChange replacing manual notes and engineer job sheets with one workflow for enquiries, quotes, installs, service jobs, invoices, payment follow-up, stock, and reports.",
+        "objective_fit": [
+          "job scheduling",
+          "job management",
+          "field-office handoff",
+          "invoicing",
+          "payment follow-up"
+        ],
+        "copy_use": "paraphrased E-E-A-T story with same-paragraph public review link",
+        "verification_status": "public Capterra Canada review page"
+      }
+    },
+    {
+      "proof_id": "review-capterra-bigchange-hannah-construction-one-system-workflow",
+      "customer": "Capterra BigChange company-secretary review",
+      "source_type": "review_site",
+      "public_url": "https://www.capterra.ca/software/149479/jobwatch-powered-by-bigchange",
+      "internal_source_ref": "Playwright MCP snapshot research/capterra-bigchange-5star-full-snapshot.md lines 219-252, checked 2026-06-30",
+      "approval_status": "approved",
+      "evidence": "Capterra public BigChange page shows Hannah, company secretary in UK construction with 11-50 employees; review describes BigChange bringing CRM, vehicle tracking, job and scheduler management, a fieldworker app, and finance-related workflow into one system.",
+      "last_verified": "2026-06-30",
+      "company_size": "11-50 employees",
+      "restrictions": [
+        "Use only as paraphrased review-story evidence. Do not use exact review wording, ratings, rankings, aggregate review claims, or metric claims."
+      ],
+      "workflow_fit": [
+        "CRM",
+        "vehicle tracking",
+        "job scheduling",
+        "job management",
+        "fieldworker app",
+        "finance workflow"
+      ],
+      "industry": [
+        "construction",
+        "field service"
+      ],
+      "themes": [
+        "BigChange one-system operating workflow",
+        "connected job scheduling and finance visibility"
+      ],
+      "region": [
+        "UK"
+      ],
+      "public_copy_allowed": true,
+      "approved_quotes": [],
+      "approved_metrics": [],
+      "review_story": {
+        "story_allowed": true,
+        "identity_type": "person",
+        "identity_display": "Hannah",
+        "person_name": "Hannah",
+        "role_title": "Company Secretary",
+        "platform": "Capterra",
+        "source_row_ref": "Playwright MCP Capterra BigChange page, Hannah review, checked 2026-06-30",
+        "public_url": "https://www.capterra.ca/software/149479/jobwatch-powered-by-bigchange",
+        "workflow_story": "Company secretary in UK construction describes BigChange bringing CRM, vehicle tracking, job and scheduler management, fieldworker app, and finance-related workflow into one system.",
+        "objective_fit": [
+          "live job tracking",
+          "job scheduling",
+          "field-office handoff",
+          "finance workflow",
+          "one operating view"
+        ],
+        "copy_use": "paraphrased E-E-A-T story with same-paragraph public review link",
+        "verification_status": "public Capterra Canada review page verified by Playwright MCP"
       }
     }
   ]

@@ -25,6 +25,27 @@ class ContextRefactorIntegrityTests(unittest.TestCase):
             for field in required_fields:
                 self.assertIn(field, search_area, f"{path.name} missing {field}")
 
+    def test_simpro_group_style_sheet_context_is_preserved(self):
+        style = (CONTEXT / "style-guide.md").read_text(encoding="utf-8")
+
+        required_style_markers = [
+            "SimproGroup-StyleSheet_29.06.26.pdf",
+            "1lNwFd8NwYJ2TwbtyoLZBlXYGkPkBaN9t",
+            "Simpro Group master lock-up",
+            "standalone Simpro Group logo",
+            "Google Drive > Shared Files > Group Brand Resources > Group",
+            "Urbanist",
+            "brandcontent@simprogroup.com",
+            "#0A2240",
+            "#FFC600",
+            "#01B59A",
+            "#BDC6CC",
+            "#00A3D9",
+            "#E75C0D",
+        ]
+        for text in required_style_markers:
+            self.assertIn(text, style, f"style-guide.md missing {text}")
+
     def test_context_reference_links_from_top_level_files_resolve(self):
         link_pattern = re.compile(r"\[([^\]]+)\]\((reference/[^)#]+)(?:#[^)]+)?\)")
 
@@ -103,6 +124,43 @@ class ContextRefactorIntegrityTests(unittest.TestCase):
 
         self.assertEqual(len(prompt_rows), 25)
         self.assertEqual(len(peec_rows), 40)
+
+    def test_simpro_group_brand_usage_boundary_is_documented(self):
+        style = (CONTEXT / "style-guide.md").read_text(encoding="utf-8")
+        brand_voice = (CONTEXT / "brand-voice.md").read_text(encoding="utf-8")
+        features = (CONTEXT / "features.md").read_text(encoding="utf-8")
+        lightning = (CONTEXT / "lightning-positioning.md").read_text(
+            encoding="utf-8"
+        )
+
+        for text in [
+            "corporate umbrella brand",
+            "not a customer-facing product brand",
+            "not a software platform",
+            "not a normal go-to-market identity",
+            "Use the relevant product brand first",
+            "customer-facing product, sales, customer story, product launch, single-brand partnership, and two-brand partnership copy defaults to the actual product brand",
+            "corporate, portfolio, internal, shared-function, multi-brand, investor/media, and approved shared partner contexts",
+        ]:
+            self.assertIn(text, style)
+
+        for text in [
+            "Parent-brand references are subordinate to product-led Simpro copy",
+            "Simpro Group Brand Usage Guide",
+        ]:
+            self.assertIn(text, brand_voice)
+
+        for text in [
+            "does not make Simpro Group a public SKU list",
+            "does not authorize calling customer-facing product features Simpro Group",
+        ]:
+            self.assertIn(text, features)
+
+        for text in [
+            "Simpro Group Lightning remains the approved cross-brand Lightning naming pattern",
+            "does not generalize Simpro Group into a product brand",
+        ]:
+            self.assertIn(text, lightning)
 
 
 if __name__ == "__main__":

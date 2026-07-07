@@ -74,6 +74,8 @@ OWNED_INTERNAL_DOMAINS = {
     "www.simpro.ai",
     "clockshark.com",
     "www.clockshark.com",
+    "bigchange.com",
+    "www.bigchange.com",
 }
 META_TITLE_BRAND_SUFFIX_RE = re.compile(r"\|\s*[A-Za-z][A-Za-z0-9 .&-]{1,40}$")
 
@@ -760,6 +762,7 @@ def _count_markdown_links(content: str) -> Tuple[int, int]:
                 or hostname.endswith(".simprogroup.com")
                 or hostname.endswith(".simpro.ai")
                 or hostname.endswith(".clockshark.com")
+                or hostname.endswith(".bigchange.com")
             ):
                 internal_count += 1
             else:
@@ -813,6 +816,7 @@ def _internal_link_path(url: str) -> Optional[str]:
             or hostname.endswith(".simprogroup.com")
             or hostname.endswith(".simpro.ai")
             or hostname.endswith(".clockshark.com")
+            or hostname.endswith(".bigchange.com")
         ):
             return None
         return _normalize_path(parsed.path)

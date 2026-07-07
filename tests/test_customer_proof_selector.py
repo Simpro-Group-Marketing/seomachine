@@ -217,6 +217,79 @@ class CustomerProofSelectorTests(unittest.TestCase):
         self.assertEqual(result["recent_uses_90d"], 1)
         self.assertFalse(result["overused"])
 
+    def test_single_recent_reuse_demotes_proof_below_strong_unused_alternative(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            ledger_path = root / "customer-proof-usage-ledger.json"
+            index_path.write_text(
+                json.dumps(
+                    {
+                        "version": 1,
+                        "proof": [
+                            {
+                                "proof_id": "quote-matrix-kiely-plumbing-estimates-invoicing",
+                                "customer": "Kiely Plumbing",
+                                "source_type": "quote_matrix",
+                                "industry": ["plumbing"],
+                                "workflow_fit": ["estimating", "invoicing", "scheduling", "admin reduction"],
+                                "themes": ["estimate speed", "invoicing speed", "admin reduction"],
+                                "public_url": "https://www.simprogroup.com/case-studies/kiely-plumbing",
+                                "approval_status": "approved",
+                                "public_copy_allowed": True,
+                                "approved_metrics": [{"claim": "10x faster estimates", "status": "approved"}],
+                            },
+                            {
+                                "proof_id": "quote-matrix-bop-plumbing-multibranch-invoicing",
+                                "customer": "BOP Plumbing and Gas",
+                                "source_type": "quote_matrix",
+                                "industry": ["plumbing", "gas"],
+                                "workflow_fit": ["invoicing", "scheduling", "job tracking", "mobile job data"],
+                                "themes": ["invoice speed", "centralized operations", "mobile job closeout"],
+                                "public_url": "https://www.simprogroup.com/case-studies/bop-plumbing-and-gas",
+                                "approval_status": "approved",
+                                "public_copy_allowed": True,
+                                "approved_metrics": [{"claim": "invoices within 24 hours", "status": "approved"}],
+                            },
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            ledger_path.write_text(
+                json.dumps(
+                    {
+                        "version": 1,
+                        "overuse_baselines": [
+                            {
+                                "proof_id": "quote-matrix-kiely-plumbing-estimates-invoicing",
+                                "customer": "Kiely Plumbing",
+                                "source_url": "https://www.simprogroup.com/case-studies/kiely-plumbing",
+                                "recent_uses_90d": 1,
+                                "total_uses": 1,
+                            }
+                        ],
+                        "uses": [],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            results = select_customer_proofs(
+                "plumbing job sheet template",
+                index_path=index_path,
+                ledger_path=ledger_path,
+                title="Free Plumbing Job Sheet Template",
+                objective="help plumbing teams move from paper job sheets to connected mobile job data and invoicing",
+                proof_role="metric",
+                limit=2,
+            )
+
+        self.assertEqual("quote-matrix-bop-plumbing-multibranch-invoicing", results[0]["proof_id"])
+        self.assertEqual(0, results[0]["recent_uses_90d"])
+        self.assertEqual("quote-matrix-kiely-plumbing-estimates-invoicing", results[1]["proof_id"])
+        self.assertEqual(1, results[1]["recent_uses_90d"])
+
     def test_selector_uses_overuse_baseline_when_ledger_rows_are_removed(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

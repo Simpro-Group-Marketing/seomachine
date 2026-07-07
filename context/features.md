@@ -114,7 +114,7 @@ For content specifically about Simpro Group Lightning, load `context/lightning-p
 
 ### Simpro Group Platform Taxonomy
 
-Use this taxonomy when a brief asks for broader Simpro Group platform, expansion, or suite context. Treat it as positioning context, not a public SKU list unless the specific page or product source confirms availability.
+Use this taxonomy when a brief asks for broader Simpro Group platform, expansion, or suite context. It does not make Simpro Group a public SKU list and does not authorize calling customer-facing product features Simpro Group unless the specific page or product source confirms availability. Use the actual product brand for customer-facing product, feature, sales, customer story, and launch copy unless the asset is explicitly corporate, portfolio-level, or multi-brand.
 
 - **Field Service Management Suite**: Simpro, AroFlo, and BigChange as the operational heart for scheduling, dispatch, job management, projects, mobile field work, quoting, invoicing, and reporting.
 - **Customer Retention & Revenue Growth Suite**: Delight and customer-growth workflows that use operational data to drive re-engagement, repeat work, maintenance reminders, and revenue from existing customers.

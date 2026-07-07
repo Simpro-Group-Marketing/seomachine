@@ -166,6 +166,20 @@ class OptimizerModuleTests(unittest.TestCase):
         self.assertNotIn("Too few internal links", "\n".join(result["warnings"] + result["suggestions"]))
         self.assertNotIn("down-funnel", "\n".join(result["critical_issues"]))
 
+    def test_seo_quality_rater_counts_absolute_bigchange_links_as_internal(self):
+        result = rate_article_with_links(
+            "[mobile workforce management software]"
+            "(https://www.bigchange.com/features/mobile-workforce-management-software)\n"
+            "[field service management software]"
+            "(https://www.bigchange.com/field-service-management-software)\n"
+            "[stock setup guide]"
+            "(https://www.bigchange.com/blog/how-to-set-up-and-sort-your-stock-hassle-free-with-bigchange)\n"
+        )
+
+        self.assertTrue(result["publishing_ready"], result)
+        self.assertNotIn("Too few internal links", "\n".join(result["warnings"] + result["suggestions"]))
+        self.assertNotIn("down-funnel", "\n".join(result["critical_issues"]))
+
     def test_seo_quality_rater_accepts_industries_hub_down_funnel_link(self):
         result = rate_article_with_links(
             "[field service management solutions for your industry]"

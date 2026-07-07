@@ -479,5 +479,5 @@ These are sitemap-confirmed blog pages relevant to Simpro content production. Us
 - Re-check the sitemap quarterly or after major site migrations.
 - Refresh GSC/GA4 performance data quarterly before changing link priority.
 - Rebuild this map only when a new sitemap pull changes the URL inventory or a new GSC/GA4 pull materially changes page priority.
-- Canonical destination rule: `simpro.ai` is for Lightning, Cooper, JustAsk, named Lightning agents, and AI-for-the-trades topics. Classic Simpro product, feature, industry, comparison, pricing, blog, resource, customer-story, and internal-link destinations remain on `simprogroup.com` unless a specific URL migration is verified.
+- Destination-domain owner: follow the Canonical Domain Rules in `context/brand-voice.md`; this internal-link map keeps classic Simpro product, feature, industry, comparison, pricing, blog, resource, and customer-story destinations on `simprogroup.com` unless a specific URL migration is verified.
 - If any `simpro.ai` content path becomes relevant for internal linking, build a separate verified `simpro.ai` map from that domain's sitemap and analytics data instead of replacing this `simprogroup.com` map.

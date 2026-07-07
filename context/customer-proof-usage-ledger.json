@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-06-15",
+  "updated_at": "2026-07-07",
   "source_boundary": "Initialized from a repo scan of drafts, rewrites, and research proof artifacts on 2026-06-12. Each entry records a detected customer proof URL occurrence so selection tooling can penalize repeated proof unless a reuse reason is documented.",
   "overuse_baselines": [
     {
@@ -213,6 +213,45 @@
       "use_type": "proof_path",
       "claim_summary": "Shaffer HVAC/plumbing operations proof path",
       "reuse_reason": ""
+    },
+    {
+      "proof_id": "quote-matrix-kiely-plumbing-estimates-invoicing",
+      "source_type": "quote_matrix",
+      "customer": "Kiely Plumbing",
+      "source_url": "https://www.simprogroup.com/case-studies/kiely-plumbing",
+      "article_slug": "best-job-quoting-and-invoicing-software-for-field-service-businesses",
+      "artifact_path": "published/best-job-quoting-and-invoicing-software-for-field-service-businesses-2026-06-12.md",
+      "date_used": "2026-06-12",
+      "section": "body",
+      "use_type": "metric",
+      "claim_summary": "Kiely Plumbing 10X faster estimates and 10X faster invoicing proof",
+      "reuse_reason": "Backfilled from live repo scan on 2026-07-07 after missing ledger entry was found."
+    },
+    {
+      "proof_id": "quote-matrix-kiely-plumbing-estimates-invoicing",
+      "source_type": "quote_matrix",
+      "customer": "Kiely Plumbing",
+      "source_url": "https://www.simprogroup.com/case-studies/kiely-plumbing",
+      "article_slug": "best-plumbing-job-management-software",
+      "artifact_path": "published/best-plumbing-job-management-software-rewrite-2026-06-26.md",
+      "date_used": "2026-06-26",
+      "section": "body",
+      "use_type": "case_study_link",
+      "claim_summary": "Kiely Plumbing public case-study link for plumbing job-management workflow proof",
+      "reuse_reason": "Backfilled from live repo scan on 2026-07-07 after missing ledger entry was found."
+    },
+    {
+      "proof_id": "quote-matrix-kiely-plumbing-estimates-invoicing",
+      "source_type": "quote_matrix",
+      "customer": "Kiely Plumbing",
+      "source_url": "https://www.simprogroup.com/case-studies/kiely-plumbing",
+      "article_slug": "labor-burden-rate-calculator",
+      "artifact_path": "published/labor-burden-rate-calculator-rewrite-2026-07-06.md",
+      "date_used": "2026-07-06",
+      "section": "body",
+      "use_type": "metric",
+      "claim_summary": "Kiely Plumbing 10X estimating, 10X invoicing, 25% billed-hours, and 63% admin-time proof",
+      "reuse_reason": "Backfilled from live repo scan on 2026-07-07 after missing ledger entry was found."
     }
   ]
 }

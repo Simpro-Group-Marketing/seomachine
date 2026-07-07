@@ -24,6 +24,7 @@ Use the highest supported scale proof in general context: `24,000+ businesses` a
 
 - Never use `Lightning` alone in customer-facing copy. Use `Simpro Lightning`, `AroFlo Lightning`, `BigChange Lightning`, or `Simpro Group Lightning`.
 - Use `Simpro Group Lightning` when speaking generically across the brand family.
+- Simpro Group Lightning remains the approved cross-brand Lightning naming pattern; that exception does not generalize Simpro Group into a product brand.
 - Use `JustAsk` as one word with both words capitalized. JustAsk is the conversational interface, not an agent.
 - Use `Cooper` for the AI brain. Cooper is not the platform, not an agent, and not the product name.
 - The four launch agents are exactly `FieldReady`, `JobReady`, `JobScribe`, and `JobBrief`.

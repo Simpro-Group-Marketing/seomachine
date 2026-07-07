@@ -133,6 +133,56 @@ class CustomerProofIndexHealthTests(unittest.TestCase):
             self.assertEqual("case-study-teamwired", overused["proof_id"])
             self.assertEqual(3, overused["recent_uses_90d"])
             self.assertTrue(overused["overused"])
+            self.assertEqual(1, len(report["recently_used_proof"]))
+            self.assertEqual("case-study-teamwired", report["recently_used_proof"][0]["proof_id"])
+
+    def test_analyze_proof_index_surfaces_single_recent_use_before_overuse(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            ledger_path = root / "customer-proof-usage-ledger.json"
+            write_json(
+                index_path,
+                {
+                    "version": 1,
+                    "proof": [
+                        {
+                            "proof_id": "quote-matrix-kiely-plumbing-estimates-invoicing",
+                            "customer": "Kiely Plumbing",
+                            "source_type": "quote_matrix",
+                            "workflow_fit": ["estimating"],
+                            "approval_status": "approved",
+                            "public_copy_allowed": True,
+                            "public_url": "https://www.simprogroup.com/case-studies/kiely-plumbing",
+                        }
+                    ],
+                },
+            )
+            write_json(
+                ledger_path,
+                {
+                    "version": 1,
+                    "overuse_baselines": [
+                        {
+                            "proof_id": "quote-matrix-kiely-plumbing-estimates-invoicing",
+                            "customer": "Kiely Plumbing",
+                            "source_url": "https://www.simprogroup.com/case-studies/kiely-plumbing",
+                            "recent_uses_90d": 1,
+                            "total_uses": 1,
+                        }
+                    ],
+                    "uses": [],
+                },
+            )
+
+            report = analyze_proof_index(index_path=index_path, ledger_path=ledger_path)
+
+            self.assertEqual([], report["overused_proof"])
+            self.assertEqual(1, len(report["recently_used_proof"]))
+            recent = report["recently_used_proof"][0]
+            self.assertEqual("quote-matrix-kiely-plumbing-estimates-invoicing", recent["proof_id"])
+            self.assertEqual(1, recent["recent_uses_90d"])
+            self.assertFalse(recent["overused"])
 
     def test_json_cli_outputs_stable_keys_and_does_not_mutate_files(self):
         with TemporaryDirectory() as temp_dir:
@@ -184,6 +234,7 @@ class CustomerProofIndexHealthTests(unittest.TestCase):
                     "priority_intake_targets",
                     "priority_workflow_gaps",
                     "proof_assets",
+                    "recently_used_proof",
                     "rows_without_public_web_url",
                     "total_rows",
                     "workflow_coverage",
@@ -466,6 +517,7 @@ class CustomerProofIndexHealthTests(unittest.TestCase):
             text = output.getvalue()
             self.assertIn("Priority intake targets", text)
             self.assertIn("Priority workflow gaps", text)
+            self.assertIn("Recently used proof rows", text)
             self.assertIn("reference-rcr-infrastructure-field-service-system", text)
 
 

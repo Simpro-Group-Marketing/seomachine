@@ -4,7 +4,7 @@
 **Use when:** Setting voice, audience framing, tone, message pillars, or brand-safe phrasing for Simpro content.
 **Owns:** Brand north star, tone descriptors, audience fit, voice examples, and quality checklist.
 **Does not own:** SEO structure, AEO/GEO proof workflow, competitor claims, keyword metrics, or link maps.
-**Source boundary:** Derived from Simpro Voice Style Guide, FY26 Message House, and approved scoped overlays already captured here.
+**Source boundary:** Derived from Simpro Voice Style Guide, FY26 Message House, approved scoped overlays, and Simpro Group Brand Usage Guide / Style Sheet boundaries captured here.
 **Refresh cadence:** Review when FY messaging, voice standards, or ICP guidance changes.
 **Reference detail:** No separate reference file; operating guidance remains here.
 
@@ -12,7 +12,7 @@
 
 This document defines the Simpro brand voice, tone, and messaging framework. Reference this when writing all content to ensure consistency.
 
-**Sources**: Simpro Voice Style Guide (Google Doc `1Hl78trTAMAnZcSBfsdM0Qn0Xa1f-DW51s-8LbeU_Knk`, August 2024) + FY26 Brand Message House (AI-first positioning). Editorial rules and channel tone: `style-guide.md`.
+**Sources**: Simpro Voice Style Guide (Google Doc `1Hl78trTAMAnZcSBfsdM0Qn0Xa1f-DW51s-8LbeU_Knk`, August 2024) + FY26 Brand Message House (AI-first positioning) + Simpro Group Brand Usage Guide (Google Doc `1jcqQuwzauZqRLF9ma5S1GpzFGT584Y0YbxqC_UmK3ZY`, checked 2026-06-30) + Simpro Group Style Sheet (`SimproGroup-StyleSheet_29.06.26.pdf`, reviewed 2026-06-30). Editorial rules, visual identity, and channel tone: `style-guide.md`.
 
 ## Brand North Star
 
@@ -23,6 +23,8 @@ This document defines the Simpro brand voice, tone, and messaging framework. Ref
 **Vision** *(FY26 — Simpro Group)*: Build a future where the trades are respected, recognized, and fully rewarded for the work that powers the world.
 
 **Category**: AI-first operating platform for the trades.
+
+**Simpro Group brand-usage note**: Source: Simpro Group Brand Usage Guide. Parent-brand references are subordinate to product-led Simpro copy. Apply the detailed usage boundary in `style-guide.md` before using FY26 Simpro Group message-house language in public copy.
 
 **Lightning-specific overlay**: When content is specifically about Simpro Group Lightning, follow `context/lightning-positioning.md` in addition to this file. That overlay is scoped to Lightning messaging and does not globally replace the FY26 Simpro category line.
 

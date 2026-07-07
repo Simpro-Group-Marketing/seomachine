@@ -642,5 +642,5 @@ These topics are strategically important based on Product Marketing context and 
 - Refresh Semrush MCP `phrase_these` quarterly for the priority set, and expand it again only when new keyword clusters are added.
 - Run a manual live SERP review for every High Priority to Validate topic, including human interpretation of Semrush SERP feature codes and page format.
 - Cannibalization review for topic clusters with several existing pages.
-- Canonical destination rule: `simpro.ai` is for Lightning, Cooper, JustAsk, named Lightning agents, and AI-for-the-trades topics. Classic Simpro product, feature, industry, comparison, pricing, blog, resource, customer-story, and SEO baseline URLs remain on `simprogroup.com`.
+- Destination-domain owner: follow `context/brand-voice.md` for the canonical `simpro.ai` versus `simprogroup.com` boundary; this keyword file preserves the historical `simprogroup.com` SEO baseline unless verified migration evidence changes that scope.
 - Add `simpro.ai` GSC and GA4 data only for Lightning and AI-for-the-trades analysis, and keep it separate from this historical `simprogroup.com` baseline unless a verified migration changes the classic-domain rule.

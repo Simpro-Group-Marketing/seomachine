@@ -24,7 +24,7 @@ Generates comprehensive content brief for creating or updating content.
 
 Execute SERP analysis for a keyword:
 ```bash
-python3 research_serp_analysis.py "your target keyword"
+python scripts/research_serp_analysis.py "your target keyword"
 ```
 
 This will:
@@ -37,6 +37,44 @@ This will:
 7. Assess competitive difficulty
 8. Generate content brief
 9. Create report: `research/serp-analysis-[keyword].md`
+
+## Required Fallback Order
+
+Use this evidence order every time:
+
+1. DataForSEO
+2. Playwright SERP fallback
+3. documented blocker plus verified non-SERP evidence only
+
+DataForSEO remains the preferred source because it provides structured SERP data. If `DATAFORSEO_LOGIN` or `DATAFORSEO_PASSWORD` is missing, unavailable, or the DataForSEO request fails, run the Playwright SERP fallback instead of stopping immediately.
+
+The Playwright fallback must use this controlled Google URL pattern:
+`https://www.google.com/search?q=[keyword]&num=10&hl=en&gl=us&pws=0`
+
+Before running Playwright, verify `npx` is available. If it is not available, stop with this blocker:
+`npx unavailable; install Node/npm or provide a SERP/PAA export.`
+
+The Playwright fallback may collect only browser-visible facts:
+- Top visible organic result titles, URLs, snippets, and observed positions
+- Visible SERP feature labels such as AI Overview, featured snippet, PAA, videos, images, ads, discussions/forums, and shopping modules
+- PAA questions only when exact question text is present in the browser snapshot
+- Blocker status when Google shows CAPTCHA, consent wall, login wall, no results, or unstable markup
+
+Save raw fallback provenance to:
+`research/serp-playwright-[keyword-slug]-[YYYY-MM-DD].json`
+
+The human report must still be saved to:
+`research/serp-analysis-[keyword-slug].md`
+
+When fallback is used, the report must include a `Playwright SERP Fallback` section with:
+- DataForSEO failure reason
+- Search URL used
+- Timestamp
+- Locale assumptions: US, English, personalization disabled via `pws=0`
+- Raw artifact path
+- Limitations: browser-visible only, no search volume, no DataForSEO rank metrics, no invented competitor metrics
+
+If Playwright fallback is blocked, the report must state that DataForSEO failed, Playwright SERP fallback failed, no SERP competitor metrics were used, and the next acceptable evidence is user-provided SERP/PAA export, verified Asana brief, GSC, live page evidence, and public sources.
 
 ## Output
 
