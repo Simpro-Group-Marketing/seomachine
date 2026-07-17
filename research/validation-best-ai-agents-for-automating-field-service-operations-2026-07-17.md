@@ -15,6 +15,13 @@ Plan artifact: `research/article-plan-best-ai-agents-for-automating-field-servic
 - Exclusions: generic LLMs and agent builders are not ranked as turnkey field-service agents. Unsupported vendor outcomes, pricing, ratings, market leadership, and roadmap commitments are excluded.
 - Verification date: all vendor statuses and capabilities below were checked on 2026-07-17.
 
+## Reconciliation Record
+
+- Reconciled on 2026-07-17 after saved editorial updates to the public draft.
+- Retained: branded meta title, AI-intelligence terminology, lifecycle phrasing, and numeral formatting for the verified Lightning and Housecall Pro product counts.
+- Restored: required Simpro comparison disclosure, the sitemap-verified FSM solution link in body and FAQ copy, and the source-supported IBM FAQ wording.
+- Corrected: the `management` spelling in the Simpro Lightning selection guidance.
+- Customer proof selection, metric proof pack, source map, FAQ provenance, and vendor status verification remain applicable; no new customer proof, metric, vendor capability, or availability claim was added.
 ## PAA/FAQ Provenance
 
 - Source: AnswerSocrates main-browser research for the exact seed `best AI agents for automating field service operations`, United States, English.
