@@ -20,6 +20,8 @@ python data_sources/modules/ai_copy_linter.py [file-path] --profile simpro-web -
 
 The linter catches AI-writing giveaways, Simpro style violations, copy avoid-rule errors, rhetorical setup questions, hashtags, semicolons, and unsupported hype terms. Copy avoid-rule errors include modal verbs, passive voice, repeated starts, vague generalizations, filler words, and long sentences.
 
+Simpro web copy rules still apply after cleanup: Use numerals for cardinal numbers, including 1-9. Do not block source-visible metric wording when a public proof source spells out the number; preserve the supported claim wording and rely on Metric Proof Pack, numeric claim source guard, and source support guard for proof. Because comma decisions are grammar/context dependent. No comma when the because clause is essential to the sentence meaning. Use a comma when the because clause is nonessential, contrastive, or needed to prevent misreading. Review negative constructions carefully because comma placement can change meaning.
+
 ## Process
 
 ### 1. Watermark Detection And Removal
@@ -74,7 +76,7 @@ After `/write`, `/rewrite`, `/article`, or `/landing-write` saves a content file
 
 1. Run `/scrub [file-path]`
 2. Run `python data_sources/modules/ai_copy_linter.py [file-path] --profile simpro-web --fail-on error`
-3. If linter errors remain, revise once, rerun scrub, rerun lint
+3. If linter errors remain, revise once, review `because` grammar in context, rerun scrub, rerun lint
 4. If errors remain after revision, route to `review-required/` with lint findings
 5. Treat copy avoid-rule errors as blockers before scoring, optimization, or publish readiness
 

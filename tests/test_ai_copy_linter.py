@@ -30,22 +30,18 @@ class AiCopyLinterTests(unittest.TestCase):
 
         self.assertEqual(number_words, [])
 
-    def test_missing_comma_before_because_is_error(self):
+    def test_restrictive_because_clause_is_not_linted(self):
         findings = lint_content("Invoices slow down because job data stays in the field.")
 
-        because = [
-            finding for finding in findings if finding["rule_id"] == "missing_comma_before_because"
-        ]
+        self.assertEqual(findings, [])
 
-        self.assertEqual(len(because), 1)
-        self.assertEqual(because[0]["severity"], "error")
-        self.assertEqual(because[0]["match"], "because")
-
-    def test_comma_before_because_is_allowed(self):
-        self.assertNotIn(
-            "missing_comma_before_because",
-            finding_ids("Invoices move faster, because job data reaches finance."),
+    def test_because_comma_decisions_are_not_regex_linted(self):
+        findings = lint_content(
+            "Invoices did not move faster because dispatch was cleaner. They moved faster "
+            "because job data reached finance on time."
         )
+
+        self.assertEqual(findings, [])
 
     def test_not_just_but_also_pattern_is_error(self):
         self.assertIn(

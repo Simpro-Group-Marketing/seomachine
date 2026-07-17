@@ -30,6 +30,22 @@ class MetricProofPackGuardTests(unittest.TestCase):
         self.assertEqual(findings[0]["rule_id"], "metric_proof_pack_missing")
         self.assertTrue(should_fail(findings, fail_on="error"))
 
+    def test_body_metric_claim_requires_metric_proof_pack_even_with_neutral_title(self):
+        content = """---
+title: "How to Clean Up Field Service Workflows"
+primary_keyword: "field service workflows"
+---
+
+# How to Clean Up Field Service Workflows
+
+Simpro users cut admin by 40% after implementation.
+"""
+
+        findings = check_content(content)
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule_id"], "metric_proof_pack_missing")
+
     def test_metric_required_article_with_no_approved_metrics_fails(self):
         content = REQUIRED_FRONTMATTER + """
 ```text

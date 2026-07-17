@@ -39,6 +39,33 @@ PAA/FAQ Provenance
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0]["match"], "PAA/FAQ Provenance")
 
+    def test_early_artifact_plan_heading_fails(self):
+        content = """# Article
+
+## Early Artifact Plan
+
+- Early artifact requirement: not applicable
+- Reason: internal planning note
+"""
+
+        findings = check_content(content)
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["match"], "## Early Artifact Plan")
+
+    def test_concrete_answer_check_heading_fails(self):
+        content = """# Article
+
+Concrete Answer Check
+
+- Concrete answer requirement: not applicable
+"""
+
+        findings = check_content(content)
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["match"], "Concrete Answer Check")
+
     def test_clean_public_article_passes(self):
         content = """# Article
 

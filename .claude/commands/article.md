@@ -55,7 +55,7 @@ Before opening the browser or drafting, resolve these variables from the user pr
 | `length` | Use `/research-serp` competitive length; default to the top-SERP benchmark if available. |
 
 If a variable cannot be answered by the repo or research, ask the user for only that missing variable. Do not synthesize PAA questions, expert quotes, customer claims, search volume, or ranking evidence.
-Customer proof routing: before citing customer proof, the slash-command workflow must resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and write a selector-first `Customer Proof Slate` to the validation sidecar so metric, quote, theme, and optional story options are compared before drafting. If inputs are missing or the selector fails, stop before drafting customer proof, record the blocker in the sidecar, and do not invent proof. experience_story consideration is required and E-E-A-T story usage is optional; if no story fits, use `Selected: [none]` with section-specific rejection reasons. Run `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` before adding proof candidates. Add new proof candidates through `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates. Then pair approved case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme. Full policy lives in `context/aeo-geo-blog-strategy.md`.
+Customer proof routing: before citing customer proof, the slash-command workflow must resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and write a selector-first `Customer Proof Slate` to the validation sidecar so metric, quote, theme, and optional story options are compared before drafting. If inputs are missing or the selector fails, stop before drafting customer proof, record the blocker in the sidecar, and do not invent proof. experience_story consideration is required and E-E-A-T story usage is optional; if no story fits, use `Selected: [none]` with section-specific rejection reasons. Treat any `recent_uses_90d` value above 0 as a proof-diversity warning. Before claiming a proof source is underused, inspect the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the proof ID, public URL, and customer name. If the live repo scan finds public-copy usage missing from the ledger, backfill `context/customer-proof-usage-ledger.json`, rerun proof health and selector checks, and document the backfill in the validation sidecar. If a recently used or overused proof source is still selected, document why no stronger underused approved proof fits. Run `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` before adding proof candidates. Add new proof candidates through `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates. Then pair approved case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme. Full policy lives in `context/aeo-geo-blog-strategy.md`.
 Review-site experience evidence / VoC routing: cite public review-site themes with source links when they show first-hand customer experience with product use, implementation, support, switching, pains, outcomes, or workflows. Capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved. Use a proof-backed customer/review POV only when it improves the article objective; if no actual person or business POV fits, omit the story. Do not use fictional named personas, exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, or category-leadership claims unless they have current source verification and brief-level approval.
 
 ### E-E-A-T Proof Map Inputs
@@ -72,7 +72,7 @@ Before planning or drafting, resolve an E-E-A-T Proof Map:
 
 - Use numerals for cardinal numbers, including 1-9.
 - Do not block source-visible metric wording when a public proof source spells out the number; preserve the supported claim wording and rely on Metric Proof Pack, numeric claim source guard, and source support guard for proof.
-- Always put a comma before "because".
+- Because comma decisions are grammar/context dependent. No comma when the because clause is essential to the sentence meaning. Use a comma when the because clause is nonessential, contrastive, or needed to prevent misreading. Review negative constructions carefully because comma placement can change meaning.
 - Only 1 link per paragraph. Move the second link to a separate paragraph or remove it.
 - Do not write source/proof meta-commentary such as "that case study is useful for this topic" or "this source is relevant for the article." Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 
@@ -90,10 +90,10 @@ Use Playwright MCP on `https://answersocrates.com`:
 2. `browser_snapshot` to identify the query input and submit control.
 3. Enter `main_question`; if missing, enter `topic`.
 4. Submit using snapshot-derived targets only. Do not hard-code selectors.
-5. Wait for results and extract visible questions with `browser_evaluate`.
+5. Wait for results and extract visible complete natural-language questions with `browser_evaluate`.
 6. Save results to `research/paa-questions-[topic-slug]-[YYYY-MM-DD].md`.
 
-If AnswerSocrates is blocked, unavailable, or requires login/CAPTCHA, record the blocker in the PAA artifact and ask the user for a PAA/FAQ CSV export. Do not invent replacement questions.
+If AnswerSocrates shows keyword fragments or query modifiers instead of complete questions, save them as query-fragment notes only and do not use them as FAQ headings or selected questions. Collect a cleaner PAA/FAQ source from AnswerSocrates, SERP, Reddit, YouTube, or a user CSV before adding FAQ copy. If AnswerSocrates is blocked, unavailable, or requires login/CAPTCHA, record the blocker in the PAA artifact and ask the user for a PAA/FAQ CSV export. Do not invent replacement questions.
 
 ### PAA Artifact Format
 
@@ -106,10 +106,13 @@ If AnswerSocrates is blocked, unavailable, or requires login/CAPTCHA, record the
 **Status:** [collected / blocked / user-export-needed]
 
 ## Raw Questions
-- [question]
+- [complete natural-language question]
+
+## Query Fragments Not Eligible For FAQ
+- [keyword fragment or query modifier, if present]
 
 ## Closest Related Questions
-1. [question]
+1. [complete natural-language question]
 2. [question]
 3. [question]
 
@@ -414,12 +417,12 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
   - **Case-study proof paths**: [customer, public URL, supported non-numeric theme]
   - **Review-site experience evidence**: [platform, URL, date checked, product/competitor, experience pattern, evidence summary, exact quote/rating approval status]
   - **Customer Proof Selection Decision**: [selector command, selected proof IDs, rejected stronger candidates, final use in copy]
-  - **Reuse reason**: [source-specific; required when customer-proof-usage-ledger.json marks the selected proof as overused; must prove no stronger underused approved proof fits the same role]
+  - **Reuse reason**: [source-specific; required when customer-proof-usage-ledger.json marks the selected proof as recently used or overused; must prove no stronger underused approved proof fits the same role]
   - **Approved quotes**: [exact quote/testimonial, customer/brand/reviewer, source type, public proof URL, Evidence, approval status]
   - **Approved metrics**: [named customer metric, customer/brand, public proof URL, Evidence, approval status]
   - **Use in copy**: [exact quote / paraphrased theme / named metric / omit]
   - **Claims excluded**: [claim and missing proof reason]
-- **Schema Notes**: BlogPosting, FAQPage if FAQ is present, Author, VideoObject if video is embedded
+- **Schema Notes**: BlogPosting, BreadcrumbList, and FAQPage for standard blog posts with FAQs; nest Person as author, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Keep the Author frontmatter field mapped to Person. Add VideoObject only if video is embedded.
 - **AEO/GEO Score Target**: 90/100 or higher
 
 ### 1. Introduction
@@ -556,6 +559,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - Direct answer first, then context
 - FAQ proof is required for every FAQ answer that makes a claim: include a public proof link inside the answer, or map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
 - PAA provenance is required for every FAQ question: include `PAA/FAQ Provenance` with Source, Artifact, and exact Selected questions from AnswerSocrates, SERP, Reddit, YouTube, or a user PAA/FAQ CSV.
+- FAQ headings must be complete natural-language questions. Do not use AnswerSocrates keyword fragments or query modifiers such as `plumbing job sheet template pdf` as FAQ headings.
 - 200-300 words total
 
 #### Conclusion
@@ -634,7 +638,7 @@ After all sections are written and edited:
    - [ ] Key Takeaways block with 3-5 specific bullet points after introduction
    - [ ] Meta description directly answers the target query
    - [ ] At least one relevant YouTube video embedded
-   - [ ] FAQ questions written in natural prompt language
+   - [ ] FAQ questions written in natural prompt language, not keyword fragments from AnswerSocrates
    - [ ] One idea per section (each H2/H3 focuses on single concept)
    - [ ] Author attribution in frontmatter
    - [ ] AnswerSocrates PAA artifact exists at `research/paa-questions-[topic-slug]-[YYYY-MM-DD].md`
@@ -643,7 +647,7 @@ After all sections are written and edited:
    - [ ] Metric Proof Pack checked using the post-writing gate stack
    - [ ] FAQ proof checked using the post-writing gate stack
    - [ ] PAA provenance checked using the post-writing gate stack
-   - [ ] Schema notes included for BlogPosting, FAQPage, Author, and VideoObject when relevant
+   - [ ] Schema notes included for BlogPosting, BreadcrumbList, FAQPage, Person as author, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. VideoObject is included only when relevant.
    - [ ] Public article body does not mention "repo context," context file paths, Source Maps, PAA artifacts, change summaries, or internal proof-path notes
 
    **Engagement Checklist:**
@@ -715,12 +719,12 @@ If either gate fails:
 9. Review customer proof diversity blockers from `data_sources/modules/customer_proof_diversity_guard.py --fail-on error`
 10. Review review story identity blockers from `data_sources/modules/review_story_identity_guard.py --fail-on error`
 11. Apply top 3-5 fixes
-12. Rerun `/scrub`, the AI copy linter, URL validation, Metric Proof Pack guard, numeric claim source guard, FAQ proof guard, PAA provenance guard, source support guard, customer proof diversity guard, and review story identity guard
+12. Review every `because` construction during the revision loop. Fix grammar in the sentence itself, then rerun `/scrub`, the AI copy linter, URL validation, Metric Proof Pack guard, numeric claim source guard, FAQ proof guard, PAA provenance guard, source support guard, customer proof diversity guard, and review story identity guard
 13. Re-score
 14. Repeat once more if needed
 15. If AI copy lint errors remain after 1 revision, URL validation fails, Metric Proof Pack guard fails, numeric claim source guard fails, FAQ proof guard fails, PAA provenance guard fails, source support guard fails, customer proof diversity guard fails, review story identity guard fails, or content quality remains below 85/100 or AEO/GEO remains below 90/100 after 2 iterations -> move to `review-required/`
 
-### 11. Run Optimization Agents
+### 12. Run Optimization Agents
 After passing quality threshold:
 - `content-analyzer` agent
 - `seo-optimizer` agent

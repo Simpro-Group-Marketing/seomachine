@@ -43,6 +43,47 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         for text in required:
             self.assertIn(text, write)
 
+    def test_standard_blog_faq_schema_stack_is_documented(self):
+        required = [
+            "BlogPosting",
+            "BreadcrumbList",
+            "FAQPage",
+            "Person as author",
+            "Question and Answer inside FAQPage",
+            "ImageObject for the featured image or logo",
+            "Organization as publisher reference only",
+            "not a separate full schema block",
+            "schema_notes",
+            "top YAML frontmatter block",
+            "between the opening and closing --- delimiters",
+        ]
+
+        docs = [
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / "README.md",
+            ROOT / "CLAUDE.md",
+            ROOT / "AGENTS.md",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+        rule_paths = [
+            ROOT / ".agents" / "rules" / "blog-schema.md",
+            ROOT / ".claude" / "rules" / "blog-schema.md",
+            ROOT / ".cursor" / "rules" / "blog-schema.mdc",
+        ]
+        for path in rule_paths:
+            self.assertTrue(path.exists(), f"{path} must exist")
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
     def test_canonical_strategy_doc_exists(self):
         strategy = ROOT / "context" / "aeo-geo-blog-strategy.md"
 
@@ -154,20 +195,30 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                 f"{path.name} missing public-facing source links",
             )
 
-    def test_blog_writing_commands_document_numeric_and_because_rules(self):
+    def test_blog_writing_commands_document_numeric_and_because_reasoning_rules(self):
         command_paths = [
             ROOT / ".claude" / "commands" / "article.md",
             ROOT / ".claude" / "commands" / "write.md",
             ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "scrub.md",
+            ROOT / ".claude" / "commands" / "publish-readiness.md",
         ]
         required = [
             "Use numerals for cardinal numbers",
             "Do not block source-visible metric wording",
-            "Always put a comma before \"because\"",
+            "Because comma decisions are grammar/context dependent",
+            "No comma when the because clause is essential to the sentence meaning",
+            "Use a comma when the because clause is nonessential, contrastive, or needed to prevent misreading",
+            "Review negative constructions carefully because comma placement can change meaning",
         ]
 
         for path in command_paths:
             content = path.read_text(encoding="utf-8")
+            self.assertNotIn(
+                "Always put a comma before \"because\"",
+                content,
+                f"{path.name} must not require a blanket comma before because",
+            )
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
@@ -757,9 +808,51 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "source_support_guard",
             "customer_proof_diversity_guard",
             "review_story_identity_guard",
+            "early_artifact_guard",
+            "answer_withholding_guard",
             "content_scorer",
         ]:
             self.assertIn(gate, content)
+
+    def test_early_artifact_gate_is_documented_across_blog_workflow(self):
+        strategy = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(encoding="utf-8")
+        for text in [
+            "early_artifact_guard.py",
+            "first 300 words",
+            "Early Artifact Plan",
+            "Early artifact requirement: not applicable",
+            "Early usable artifact",
+        ]:
+            self.assertIn(text, strategy, f"strategy doc missing {text}")
+
+        for name in ["write.md", "rewrite.md"]:
+            command = (ROOT / ".claude" / "commands" / name).read_text(encoding="utf-8")
+            self.assertIn("first 300 words", command, f"{name} missing early artifact echo")
+            self.assertIn("context/aeo-geo-blog-strategy.md", command)
+
+        readiness = (ROOT / ".claude" / "commands" / "publish-readiness.md").read_text(encoding="utf-8")
+        self.assertIn("early_artifact_guard", readiness)
+
+        editor = (ROOT / ".claude" / "agents" / "editor.md").read_text(encoding="utf-8")
+        self.assertIn("Early Artifact Check", editor)
+
+    def test_answer_withholding_gate_is_documented_across_blog_workflow(self):
+        strategy = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(encoding="utf-8")
+        for text in [
+            "answer_withholding_guard.py",
+            "Concrete Answer Check",
+            "Concrete answer requirement: not applicable",
+            "Enter lender-approved value",
+            "Placeholder table scaffolds block publish unconditionally",
+        ]:
+            self.assertIn(text, strategy, f"strategy doc missing {text}")
+
+        for name in ["write.md", "rewrite.md"]:
+            command = (ROOT / ".claude" / "commands" / name).read_text(encoding="utf-8")
+            self.assertIn("placeholder table scaffolds", command, f"{name} missing scaffold echo")
+
+        readiness = (ROOT / ".claude" / "commands" / "publish-readiness.md").read_text(encoding="utf-8")
+        self.assertIn("answer_withholding_guard", readiness)
 
     def test_noncanonical_blog_workflows_do_not_require_manual_publish_gate_scripts(self):
         docs = [
@@ -787,6 +880,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "source_support_guard.py",
             "customer_proof_diversity_guard.py",
             "review_story_identity_guard.py",
+            "early_artifact_guard.py",
+            "answer_withholding_guard.py",
             "content_scorer.py",
             "publish_readiness.py",
         ]
@@ -1082,6 +1177,63 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("alwaysApply: true", cursor_rule)
+
+    def test_customer_proof_recent_use_and_live_scan_policy_is_cross_platform(self):
+        docs = [
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / "CLAUDE.md",
+            ROOT / "AGENTS.md",
+            ROOT / "README.md",
+            ROOT / ".claude" / "commands" / "research.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".cursor" / "rules" / "customer-proof.mdc",
+            ROOT / ".agents" / "rules" / "customer-proof.md",
+            ROOT / ".claude" / "rules" / "customer-proof.md",
+        ]
+        required = [
+            "recent_uses_90d",
+            "live repo scan",
+            "drafts/",
+            "rewrites/",
+            "research/",
+            "published/",
+            "backfill",
+            "recently used or overused",
+            "no stronger underused approved proof fits",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+    def test_publish_docs_and_agents_reference_publish_readiness(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "publish-draft.md",
+            ROOT / ".claude" / "skills" / "grav-publish" / "SKILL.md",
+            ROOT / ".claude" / "agents" / "content-analyzer.md",
+            ROOT / ".claude" / "agents" / "editor.md",
+            ROOT / ".claude" / "agents" / "seo-optimizer.md",
+        ]
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            self.assertIn("/publish-readiness", content, f"{path.name} missing /publish-readiness")
+
+        landing_publish = (ROOT / ".claude" / "commands" / "landing-publish.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn("Content score ≥70", landing_publish)
+        self.assertIn("Full publish-readiness stack", landing_publish)
+
+        claude = (ROOT / "CLAUDE.md").read_text(encoding="utf-8")
+        self.assertNotIn("C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main", claude)
+
+        article = (ROOT / ".claude" / "commands" / "article.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("### 12. Run Optimization Agents", article)
 
     def test_research_performance_is_slash_command_first(self):
         research_performance = (

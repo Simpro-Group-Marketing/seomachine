@@ -12,9 +12,11 @@ from typing import Dict, Optional, List, Tuple
 from pathlib import Path
 
 try:
+    from .publish_readiness import run_publish_readiness
     from .source_support_guard import require_source_support
     from .url_validator import format_summary, validate_file_urls
 except ImportError:
+    from publish_readiness import run_publish_readiness
     from source_support_guard import require_source_support
     from url_validator import format_summary, validate_file_urls
 
@@ -356,13 +358,19 @@ class WordPressPublisher:
         response.raise_for_status()
         return response.json()
 
-    def publish_draft(self, file_path: str, post_type: str = 'post') -> Dict:
+    def publish_draft(
+        self,
+        file_path: str,
+        post_type: str = 'post',
+        proof_sidecar: Optional[str] = None,
+    ) -> Dict:
         """
         Publish a draft file to WordPress as a post, page, or custom post type
 
         Args:
             file_path: Path to the markdown draft file
             post_type: Content type - 'post', 'page', or custom post type (e.g., 'compare')
+            proof_sidecar: Optional validation sidecar for proof-aware readiness gates.
 
         Returns:
             Dict with post_id, edit_url, view_url, and status information
@@ -374,6 +382,7 @@ class WordPressPublisher:
                 f"{format_summary(url_summary)}"
             )
         require_source_support(file_path, context="WordPress publish")
+        _require_publish_readiness(file_path, proof_sidecar, "WordPress publish")
 
         # Map friendly names to REST API endpoints
         type_endpoints = {
@@ -452,6 +461,36 @@ class WordPressPublisher:
         }
 
 
+def _require_publish_readiness(
+    file_path: str,
+    proof_sidecar: Optional[str],
+    context: str,
+) -> Dict:
+    result = run_publish_readiness(file_path, proof_sidecar=proof_sidecar)
+    if result.get("passed"):
+        return result
+    raise ValueError(
+        f"Publish readiness failed before {context}:\n"
+        f"{_format_readiness_blockers(result)}"
+    )
+
+
+def _format_readiness_blockers(result: Dict) -> str:
+    lines = []
+    for gate in result.get("gates", []):
+        if gate.get("passed"):
+            continue
+        name = gate.get("name", "unknown_gate")
+        label = gate.get("label", name)
+        lines.append(f"- {name} ({label})")
+        for blocker in gate.get("blockers", [])[:3]:
+            lines.append(f"  - {blocker}")
+    if not lines:
+        for fix in result.get("priority_fixes", [])[:3]:
+            lines.append(f"- {fix.get('issue', 'readiness blocker')}")
+    return "\n".join(lines) if lines else "- readiness failed"
+
+
 def main():
     """CLI entry point for testing"""
     import sys
@@ -470,11 +509,19 @@ def main():
         default='post',
         help='Content type: post, page, or custom post type (default: post)'
     )
+    parser.add_argument(
+        '--proof-sidecar',
+        help='Optional validation sidecar for publish-readiness proof gates',
+    )
     args = parser.parse_args()
 
     try:
         publisher = WordPressPublisher()
-        result = publisher.publish_draft(args.file_path, post_type=args.type)
+        result = publisher.publish_draft(
+            args.file_path,
+            post_type=args.type,
+            proof_sidecar=args.proof_sidecar,
+        )
 
         type_label = result['post_type'].title()
         print(f"\n✓ Parsed draft file")

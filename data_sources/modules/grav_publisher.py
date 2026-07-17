@@ -29,9 +29,11 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 try:
+    from .publish_readiness import run_publish_readiness
     from .source_support_guard import require_source_support
     from .url_validator import format_summary, validate_file_urls
 except ImportError:
+    from publish_readiness import run_publish_readiness
     from source_support_guard import require_source_support
     from url_validator import format_summary, validate_file_urls
 
@@ -274,7 +276,13 @@ class GravPublisher:
 
     # ------------------------------------------------------------------ publish
 
-    def publish(self, file_path: str, dry_run: bool = False, lang: Optional[str] = None) -> Dict:
+    def publish(
+        self,
+        file_path: str,
+        dry_run: bool = False,
+        lang: Optional[str] = None,
+        proof_sidecar: Optional[str] = None,
+    ) -> Dict:
         """
         Publish a draft/rewrite file to the Grav repo.
 
@@ -294,6 +302,8 @@ class GravPublisher:
             require_source_support(file_path, context="Grav publish")
         except ValueError as exc:
             raise GravPublishError(str(exc)) from exc
+        if not dry_run:
+            _require_publish_readiness(file_path, proof_sidecar, "Grav publish")
 
         draft = self.parse_draft_file(file_path)
         article = self.build_article(draft)
@@ -331,6 +341,36 @@ class GravPublisher:
         return result
 
 
+def _require_publish_readiness(
+    file_path: str,
+    proof_sidecar: Optional[str],
+    context: str,
+) -> Dict:
+    result = run_publish_readiness(file_path, proof_sidecar=proof_sidecar)
+    if result.get("passed"):
+        return result
+    raise GravPublishError(
+        f"Publish readiness failed before {context}:\n"
+        f"{_format_readiness_blockers(result)}"
+    )
+
+
+def _format_readiness_blockers(result: Dict) -> str:
+    lines = []
+    for gate in result.get("gates", []):
+        if gate.get("passed"):
+            continue
+        name = gate.get("name", "unknown_gate")
+        label = gate.get("label", name)
+        lines.append(f"- {name} ({label})")
+        for blocker in gate.get("blockers", [])[:3]:
+            lines.append(f"  - {blocker}")
+    if not lines:
+        for fix in result.get("priority_fixes", [])[:3]:
+            lines.append(f"- {fix.get('issue', 'readiness blocker')}")
+    return "\n".join(lines) if lines else "- readiness failed"
+
+
 def main():
     """CLI entry point."""
     import sys
@@ -355,11 +395,20 @@ def main():
         help="Build and preview the article locally without pushing to GitHub",
     )
     parser.add_argument("--lang", default=None, help="Language code for article file (default: en)")
+    parser.add_argument(
+        "--proof-sidecar",
+        help="Optional validation sidecar for publish-readiness proof gates",
+    )
     args = parser.parse_args()
 
     try:
         publisher = GravPublisher()
-        result = publisher.publish(args.file_path, dry_run=args.dry_run, lang=args.lang)
+        result = publisher.publish(
+            args.file_path,
+            dry_run=args.dry_run,
+            lang=args.lang,
+            proof_sidecar=args.proof_sidecar,
+        )
 
         print(f"\n[OK] Parsed draft: {result['title']}")
         print(f"[OK] Built {result['word_count']:,}-word Grav article ({result['lang']})")

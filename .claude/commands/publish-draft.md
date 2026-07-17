@@ -3,13 +3,13 @@
 Publishes a draft article from this project to WordPress as a Draft, with all SEO metadata auto-populated.
 
 ## Usage
-`/publish-draft [filename] [--type post|page|custom]`
+`/publish-draft [filename] [--type post|page|custom] [--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md]`
 
 ### Examples
 
 **Create a blog post (default):**
 ```
-/publish-draft drafts/content-marketing-guide-2025-12-10.md
+/publish-draft drafts/content-marketing-guide-2025-12-10.md --proof-sidecar research/validation-content-marketing-guide-2025-12-10.md
 ```
 
 **Create a page:**
@@ -29,15 +29,16 @@ Publishes a draft article from this project to WordPress as a Draft, with all SE
 
 ## What This Command Does
 
-1. **Parses the draft file** - Extracts all metadata from frontmatter
-2. **Converts Markdown to HTML** - Formats content for WordPress
-3. **Creates WordPress draft** - Posts via REST API with status "draft"
-4. **Sets Yoast SEO fields**:
+1. **Runs publish readiness preflight** - Executes `/publish-readiness [file] --proof-sidecar [sidecar]` before any WordPress API call
+2. **Parses the draft file** - Extracts all metadata from frontmatter
+3. **Converts Markdown to HTML** - Formats content for WordPress
+4. **Creates WordPress draft** - Posts via REST API with status "draft"
+5. **Sets Yoast SEO fields**:
    - SEO Title (from Meta Title)
    - Meta Description
    - Focus Keyphrase (from Target Keyword)
-5. **Assigns taxonomy** - Categories and Tags if specified
-6. **Returns edit URL** - Direct link to edit the post in WordPress
+6. **Assigns taxonomy** - Categories and Tags if specified
+7. **Returns edit URL** - Direct link to edit the post in WordPress
 
 ## Metadata Mapping
 
@@ -78,16 +79,24 @@ When you run this command:
 - Parse metadata and content
 - Display extracted fields for confirmation
 
-### Step 2: Publish to WordPress
+### Step 2: Run Publish Readiness
+Run the full command-system gate before any WordPress request:
+```bash
+/publish-readiness "$FILE_PATH" --proof-sidecar "$PROOF_SIDECAR"
+```
+
+The WordPress publisher also enforces this preflight internally. If readiness fails, fix the highest-severity blocker and rerun; do not create a WordPress draft.
+
+### Step 3: Publish to WordPress
 Run the WordPress publisher:
 ```bash
 cd /path/to/seomachine
-python data_sources/modules/wordpress_publisher.py "$FILE_PATH" --type "$POST_TYPE"
+python data_sources/modules/wordpress_publisher.py "$FILE_PATH" --type "$POST_TYPE" --proof-sidecar "$PROOF_SIDECAR"
 ```
 
 Where `$POST_TYPE` is `post`, `page`, or a custom post type.
 
-### Step 3: Confirm Success
+### Step 4: Confirm Success
 Display the WordPress edit URL so the user can review and publish.
 
 ## Optional: Add Categories/Tags
@@ -120,3 +129,4 @@ The category will be created automatically if it doesn't exist.
 - The H1 heading from the article becomes the WordPress post title
 - Images/media are not uploaded - only text content is transferred
 - You can run this command multiple times on the same file (creates new drafts each time)
+- `/publish-readiness` must pass before WordPress network calls begin

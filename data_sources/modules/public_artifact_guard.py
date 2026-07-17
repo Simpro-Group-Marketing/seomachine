@@ -29,6 +29,8 @@ BANNED_HEADINGS = (
     "E-E-A-T Proof Map",
     "FAQ Proof Map",
     "Structured data plan",
+    "Early Artifact Plan",
+    "Concrete Answer Check",
 )
 
 

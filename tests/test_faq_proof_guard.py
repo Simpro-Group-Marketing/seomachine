@@ -41,10 +41,25 @@ HVAC scheduling software reduces missed appointments by centralizing job details
 
 ### How does HVAC scheduling software reduce missed appointments?
 
-HVAC scheduling software reduces missed appointments by centralizing job details, technician assignments, customer notifications, and status updates. Simpro's [field service scheduling software](https://www.simprogroup.com/features/scheduling) connects dispatch workflows with field updates.
+HVAC scheduling software reduces missed appointments by centralizing job details, technician assignments, customer notifications, and status updates. The [field service scheduling guide](https://example.com/field-service-scheduling) connects dispatch workflows with field updates.
 """
 
         self.assertEqual(check_content(content), [])
+
+    def test_faq_answer_with_only_owned_inline_link_requires_question_proof_map(self):
+        content = """# HVAC Scheduling Software
+
+## Frequently Asked Questions
+
+### How does HVAC scheduling software reduce missed appointments?
+
+HVAC scheduling software reduces missed appointments by centralizing job details, technician assignments, customer notifications, and status updates. Simpro's [field service scheduling software](https://www.simprogroup.com/features/scheduling) connects dispatch workflows with field updates.
+"""
+
+        findings = check_content(content)
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule_id"], "faq_answer_missing_linked_proof")
 
     def test_faq_answer_with_question_specific_source_map_public_url_passes(self):
         content = """---

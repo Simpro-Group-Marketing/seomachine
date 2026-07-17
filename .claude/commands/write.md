@@ -39,7 +39,7 @@ Before drafting, resolve an E-E-A-T Proof Map:
 ### Simpro Web Copy Rules
 - Use numerals for cardinal numbers, including 1-9.
 - Do not block source-visible metric wording when a public proof source spells out the number; preserve the supported claim wording and rely on Metric Proof Pack, numeric claim source guard, and source support guard for proof.
-- Always put a comma before "because".
+- Because comma decisions are grammar/context dependent. No comma when the because clause is essential to the sentence meaning. Use a comma when the because clause is nonessential, contrastive, or needed to prevent misreading. Review negative constructions carefully because comma placement can change meaning.
 - Only 1 link per paragraph. Move the second link to a separate paragraph or remove it.
 - Do not write source/proof meta-commentary such as "that case study is useful for this topic" or "this source is relevant for the article." Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 
@@ -111,20 +111,22 @@ This gets pulled into AI-generated summaries and helps both AI and human readers
 
 Apply these requirements from @context/aeo-geo-blog-strategy.md:
 - **Capsule Method**: Add a 50-60 word direct-answer capsule below the H1 and at least 60% of major H2s.
-- **PAA selection**: Use 3-5 PAA or FAQ questions from AnswerSocrates, SERP research, Reddit, YouTube, or a user-provided CSV.
+- **Early usable artifact**: Place a filled data table, download link, checklist deliverable, or calculator reference within the first 300 words of body copy; Key Takeaways bullets and plain lists do not count. Full policy and the not-applicable exemption live in `context/aeo-geo-blog-strategy.md`.
+- **Concrete answers**: If the target query implies a number, range, or template, supply a concrete version with disclaimers as needed. Placeholder-only table cells such as `TBD` or `Enter lender-approved value` block publish. Full policy lives in `context/aeo-geo-blog-strategy.md`.
+- **PAA selection**: Use 3-5 complete natural-language PAA or FAQ questions from AnswerSocrates, SERP research, Reddit, YouTube, or a user-provided CSV. Do not use AnswerSocrates keyword fragments or query modifiers as FAQ headings or selected questions.
 - **Source mapping**: Integrate at least three credible external sources inside natural sentences; map each source to the claim it supports.
 - **FAQ proof**: Every claim-bearing FAQ answer must include a public proof link inside the answer, or map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
 - **E-E-A-T Proof Map**: Include named author, last-updated date, reviewer if available, Experience proof, Expertise proof, Authority/Trust proof, named customer proof or expert quote, and honest limitations where relevant.
 - **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, keywords, product framing, internal links, approved claims, proof candidates, and approved metrics. Public copy may use public sources and context-backed proof, but must not mention "repo context," context file paths, Source Maps, PAA artifacts, change summaries, or internal proof-path notes.
 - **Customer proof routing**: When citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
 - **Customer proof selection governance**: Before selecting or drafting proof, resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and write the generated selector-first `Customer Proof Slate` to the validation sidecar. If inputs are missing, resolve them from the brief/context or stop before drafting customer proof. If the selector fails, write the blocker into the sidecar and do not invent proof. experience_story consideration is required and E-E-A-T story usage is optional. If no story fits, use `Selected: [none]` with section-specific rejection reasons. Full policy lives in `context/aeo-geo-blog-strategy.md`.
-- **Recent-use proof diversity**: Treat any `recent_uses_90d` value above 0 as a proof-diversity warning, not only sources marked `overused`. Prefer an approved zero-recent-use source when one fits the same role, or document why no stronger underused approved proof fits.
+- **Recent-use proof diversity**: Treat any `recent_uses_90d` value above 0 as a proof-diversity warning, not only sources marked `overused`. Before claiming a proof source is underused, inspect the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the proof ID, public URL, and customer name. If the live repo scan finds public-copy usage missing from the ledger, backfill `context/customer-proof-usage-ledger.json`, rerun proof health and selector checks, and document the backfill in the validation sidecar. Prefer an approved zero-recent-use source when one fits the same role, or document why no stronger underused approved proof fits. If a recently used or overused proof source is still selected, document why no stronger underused approved proof fits.
 - **Selected customer proof mining**: When selected customer proof appears in public copy, add `Selected Customer Proof Mining` to the validation sidecar. Selector chooses candidates; proof mining reads the selected public URL before the writer decides quote, metric, POV/story, theme, or omit use. Full policy lives in `context/aeo-geo-blog-strategy.md`.
 - **Proof-index health**: Run `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` before adding proof candidates, and review both recently used and overused proof rows.
 - **Proof-index intake**: Add new proof candidates through `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates.
 - **Review proof routing**: For review-derived E-E-A-T stories, automatically run `customer_proof_selector.py` with `--slate --roles experience_story --require-eeat-story`, then run the review story identity gate from the required stack below. Use `context/aeo-geo-blog-strategy.md` for Review Story Selection, Review Site Theme Selection, Capterra theme use, exact-quote, rating, and metric boundaries.
 - **Customer Proof Pack**: Use the brief's Customer Proof Pack before placing direct quotes, named customer proof, approved metrics, or review-derived Experience patterns. If the pack is partial or blocked, omit unsupported claims.
-- **Schema notes**: Include BlogPosting, FAQPage when FAQ is present, Author, and VideoObject when a video is embedded.
+- **Schema notes**: For standard blog posts with FAQs, include BlogPosting, BreadcrumbList, and FAQPage. Nest Person as author, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Keep the Author frontmatter field mapped to Person. Use VideoObject only when a video is embedded.
 
 #### 4. Main Body (1800-2500+ words)
 - **Logical Flow**: Organize sections in clear, progressive order
@@ -263,14 +265,16 @@ Word Count: [actual word count]
 - [ ] **Key Takeaways**: TL;DR block with 3-5 specific bullet points after introduction
 - [ ] **Meta description**: Directly answers the query (not just a teaser)
 - [ ] **YouTube embed**: At least one relevant video embedded
-- [ ] **FAQ prompts**: Questions written in natural language people would type into ChatGPT
+- [ ] **FAQ prompts**: Questions written in natural language people would type into ChatGPT, not keyword fragments from AnswerSocrates
 - [ ] **One idea per section**: Each H2/H3 focuses on a single clear concept
 - [ ] **Author attribution**: Named author in frontmatter
 - [ ] **Capsule Method**: H1 and 60%+ major H2s include 50-60 word direct-answer capsules
+- [ ] **Early usable artifact**: A filled data table, download link, checklist deliverable, or calculator reference starts within the first 300 words of body copy, or the sidecar documents a not-applicable reason
+- [ ] **Concrete answers**: Number/range/template queries get a concrete answer; no placeholder table scaffolds
 - [ ] **PAA**: 3-5 selected PAA/FAQ questions are answered in the draft
 - [ ] **source mapping**: At least three source-backed claims use natural contextual links
 - [ ] **Customer Proof Pack**: Selector automatically run, selected proof mined with `Selected Customer Proof Mining`, recent-use or overuse reason added when needed, and approved quotes/metrics mapped before use. Full proof boundaries live in `context/aeo-geo-blog-strategy.md`.
-- [ ] **Schema**: BlogPosting, FAQPage, Author, and VideoObject notes are included when relevant
+- [ ] **Schema**: BlogPosting, BreadcrumbList, FAQPage, Person as author, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. VideoObject is included only when relevant.
 
 ### 5. Engagement Checklist
 - [ ] **Hook**: Opens with question, scenario, statistic, or bold statement (NOT generic definition)
@@ -315,7 +319,7 @@ AI-generated content often contains invisible Unicode marks and characteristic p
 3. **Automatic Execution**: This should happen automatically, not require user action
 4. **Timing**: Must occur immediately after file save, before scoring or agent processing
 5. **Scope**: Scrub and publish-readiness checks apply to the main article file only; proof maps live in the validation sidecar.
-6. **Error Handling**: If `/publish-readiness` fails, fix the highest-severity gate it reports. Use `context/aeo-geo-blog-strategy.md` for proof policy and individual module debugging.
+6. **Error Handling**: If `/publish-readiness` fails, fix the highest-severity gate it reports. Use `context/aeo-geo-blog-strategy.md` for proof policy and individual module debugging. Review `because` grammar in context during each revision loop, fix the sentence when comma placement changes or clarifies meaning, and rerun `/scrub` plus `/publish-readiness`.
 7. **AI copy avoid-rule errors**: Fix copy avoid-rule errors before handoff. The linter blocks modal verbs, passive voice, repeated starts, vague generalizations, filler words, and long sentences in Simpro web copy.
 
 ### What Gets Cleaned
@@ -364,7 +368,7 @@ The source support guard will display:
 
 ### Example Workflow
 1. Write article and save to `drafts/article-name-2025-10-31.md`.
-2. Run `/scrub`, AI copy lint, URL validation, and the required proof gate stack above.
+2. Run `/scrub`, AI copy lint, URL validation, and the required proof gate stack above. Review every `because` construction during this loop, fix grammar in the sentence itself, and rerun the gates.
 3. If errors remain, revise once and rerun the same stack.
 4. Then proceed with scoring and optimization agents below.
 
@@ -446,7 +450,7 @@ If content quality is below 85/100 or AEO/GEO is below 90/100:
 1. Review the `priority_fixes` from `/publish-readiness`
 2. Apply the top 3-5 fixes automatically
 3. Rerun `/scrub`
-4. Rerun `/publish-readiness`
+4. Review `because` grammar in context, then rerun `/publish-readiness`
 5. Repeat once more if still below threshold
 
 ### Step 5: Route Based on Final Score
@@ -487,6 +491,7 @@ Every article must meet these requirements:
 - Optional proof-backed customer/review POV when it improves the objective
 - **2-3 contextual CTAs** distributed throughout (not just at end)
 - **First CTA within 500 words**
+- **Usable artifact within first 300 words**
 - **No paragraphs longer than 4 sentences**
 - **Varied sentence rhythm** (mix short punchy + longer flowing)
 

@@ -11,7 +11,10 @@ desktop.ini
 # Editor directories and files
 .vscode/
 .idea/
-.cursor/
+.cursor/*
+!.cursor/rules/
+.cursor/rules/*
+!.cursor/rules/*.mdc
 *.swp
 *.swo
 *~

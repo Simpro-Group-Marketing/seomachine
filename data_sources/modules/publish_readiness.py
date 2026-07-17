@@ -15,7 +15,9 @@ from typing import Any, Dict, List, Optional, Sequence
 try:
     from . import (
         ai_copy_linter,
+        answer_withholding_guard,
         customer_proof_diversity_guard,
+        early_artifact_guard,
         faq_proof_guard,
         metric_proof_pack_guard,
         numeric_claim_source_guard,
@@ -30,7 +32,9 @@ try:
     from .url_validator import UrlValidationSummary, validate_file_urls
 except ImportError:  # pragma: no cover - supports direct script execution.
     import ai_copy_linter
+    import answer_withholding_guard
     import customer_proof_diversity_guard
+    import early_artifact_guard
     import faq_proof_guard
     import metric_proof_pack_guard
     import numeric_claim_source_guard
@@ -83,6 +87,16 @@ PROOF_AWARE_GATES = (
         "review_story_identity",
         "Review Story Identity",
         review_story_identity_guard,
+    ),
+    (
+        "early_artifact",
+        "Early Artifact",
+        early_artifact_guard,
+    ),
+    (
+        "answer_withholding",
+        "Answer Withholding",
+        answer_withholding_guard,
     ),
 )
 

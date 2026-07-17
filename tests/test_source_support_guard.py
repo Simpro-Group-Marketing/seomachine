@@ -314,7 +314,7 @@ Specialty trade contractors reported adjusted EBITDA margins from 18.1% to 20.4%
 
         self.assertEqual(findings, [])
 
-    def test_blocked_html_source_with_local_text_artifact_passes(self):
+    def test_blocked_html_source_with_local_text_artifact_warns(self):
         blocked_url = "https://www.capterra.com/p/166811/AroFlo/reviews/"
         with tempfile.TemporaryDirectory() as tmp:
             proof = Path(tmp) / "capterra-aroflo-proof.md"
@@ -337,7 +337,10 @@ A public [Capterra AroFlo review]({blocked_url}) from Gill M., a business owner,
 
             findings = check_content(content, base_path=tmp, fetcher=blocked_fetcher)
 
-        self.assertEqual(findings, [])
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule_id"], "source_fetch_artifact_fallback")
+        self.assertEqual(findings[0]["severity"], "warning")
+        self.assertIn("403 forbidden", findings[0]["match"])
 
     def test_unreachable_source_fails_closed(self):
         def failing_fetcher(url):

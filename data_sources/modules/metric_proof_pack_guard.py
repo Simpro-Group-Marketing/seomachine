@@ -44,6 +44,16 @@ METRIC_REQUIRED_TRIGGERS = (
     " vs ",
     "versus",
 )
+BODY_METRIC_CLAIM_RE = re.compile(
+    r"\b(?:cut|cuts|reduced|reduces|saved|saves|increased|increases|improved|"
+    r"improves|grew|grows|admin|revenue|profit|margin|cost|costs|roi|kpi|"
+    r"implementation|productivity|efficiency|faster|quicker)\b"
+    r".{0,80}"
+    r"(?:\b\d+(?:\.\d+)?\s?%|\$\s?\d|\b\d+(?:\.\d+)?\s?x\b|"
+    r"\b\d[\d,]*\+?\s?(?:K|M|B|million|billion)?\s+"
+    r"(?:businesses|customers|users|jobs|invoices|quotes|revenue|profit|costs?)\b)",
+    re.IGNORECASE,
+)
 
 
 @dataclass
@@ -174,7 +184,13 @@ def _is_metric_required(content: str) -> bool:
         ]
     ).lower()
     padded = f" {text} "
-    return any(trigger in padded for trigger in METRIC_REQUIRED_TRIGGERS)
+    return any(trigger in padded for trigger in METRIC_REQUIRED_TRIGGERS) or _has_body_metric_claim(content)
+
+
+def _has_body_metric_claim(content: str) -> bool:
+    body = re.sub(r"\A---\s*\n.*?\n---\s*", "", content, flags=re.DOTALL)
+    body = re.sub(r"```.*?```", "", body, flags=re.DOTALL)
+    return bool(BODY_METRIC_CLAIM_RE.search(body))
 
 
 def _extract_frontmatter(content: str) -> Dict[str, str]:

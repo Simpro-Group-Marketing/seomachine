@@ -90,13 +90,15 @@ class PublishReadinessTests(unittest.TestCase):
             patch("data_sources.modules.publish_readiness.source_support_guard.check_file", side_effect=gate("source_support")),
             patch("data_sources.modules.publish_readiness.customer_proof_diversity_guard.check_file", side_effect=gate("customer_proof_diversity")),
             patch("data_sources.modules.publish_readiness.review_story_identity_guard.check_file", side_effect=gate("review_story_identity")),
+            patch("data_sources.modules.publish_readiness.early_artifact_guard.check_file", side_effect=gate("early_artifact")),
+            patch("data_sources.modules.publish_readiness.answer_withholding_guard.check_file", side_effect=gate("answer_withholding")),
             patch("data_sources.modules.publish_readiness.ContentScorer", return_value=fake_scorer),
         ]
 
     def test_all_gates_pass_in_required_order(self):
         call_order = []
         patchers = self.patch_passing_gates(call_order=call_order)
-        with patchers[0], patchers[1], patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11]:
+        with patchers[0], patchers[1], patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13]:
             result = publish_readiness.run_publish_readiness(
                 self.article_path,
                 proof_sidecar=self.sidecar_path,
@@ -117,6 +119,8 @@ class PublishReadinessTests(unittest.TestCase):
                 "source_support",
                 "customer_proof_diversity",
                 "review_story_identity",
+                "early_artifact",
+                "answer_withholding",
                 "content_scorer",
             ],
         )
@@ -129,7 +133,7 @@ class PublishReadinessTests(unittest.TestCase):
         with patchers[0], patchers[1], patchers[2], patchers[3], patch(
             "data_sources.modules.publish_readiness.metric_proof_pack_guard.check_file",
             return_value=[finding("metric_source_unavailable")],
-        ), patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11]:
+        ), patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13]:
             result = publish_readiness.run_publish_readiness(
                 self.article_path,
                 proof_sidecar=self.sidecar_path,
@@ -155,7 +159,7 @@ class PublishReadinessTests(unittest.TestCase):
         with patchers[0], patchers[1], patch(
             "data_sources.modules.publish_readiness.validate_file_urls",
             return_value=failing_url,
-        ), patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11]:
+        ), patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13]:
             result = publish_readiness.run_publish_readiness(
                 self.article_path,
                 proof_sidecar=self.sidecar_path,
@@ -168,7 +172,7 @@ class PublishReadinessTests(unittest.TestCase):
 
     def test_content_scorer_failure_fails_runner(self):
         patchers = self.patch_passing_gates(score=failing_score())
-        with patchers[0], patchers[1], patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11]:
+        with patchers[0], patchers[1], patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13]:
             result = publish_readiness.run_publish_readiness(
                 self.article_path,
                 proof_sidecar=self.sidecar_path,
@@ -185,7 +189,7 @@ class PublishReadinessTests(unittest.TestCase):
         with patchers[0], patch(
             "data_sources.modules.publish_readiness.ai_copy_linter.lint_file",
             return_value=[finding("modal_verb", severity="warning")],
-        ), patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11]:
+        ), patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13]:
             result = publish_readiness.run_publish_readiness(
                 self.article_path,
                 proof_sidecar=self.sidecar_path,
@@ -201,7 +205,7 @@ class PublishReadinessTests(unittest.TestCase):
         with patchers[0], patch(
             "data_sources.modules.publish_readiness.ai_copy_linter.lint_file",
             return_value=[finding("modal_verb", severity="error")],
-        ), patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11]:
+        ), patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13]:
             result = publish_readiness.run_publish_readiness(
                 self.article_path,
                 proof_sidecar=self.sidecar_path,
@@ -215,7 +219,7 @@ class PublishReadinessTests(unittest.TestCase):
 
     def test_proof_sidecar_is_passed_to_proof_gates_and_scorer(self):
         patchers = self.patch_passing_gates()
-        with patchers[0], patchers[1], patchers[2], patchers[3] as public_research, patchers[4] as metric, patchers[5] as numeric, patchers[6] as faq, patchers[7] as paa, patchers[8] as source, patchers[9] as customer, patchers[10] as review, patchers[11] as scorer_class:
+        with patchers[0], patchers[1], patchers[2], patchers[3] as public_research, patchers[4] as metric, patchers[5] as numeric, patchers[6] as faq, patchers[7] as paa, patchers[8] as source, patchers[9] as customer, patchers[10] as review, patchers[11] as early_artifact, patchers[12] as answer_withholding, patchers[13] as scorer_class:
             result = publish_readiness.run_publish_readiness(
                 self.article_path,
                 proof_sidecar=self.sidecar_path,
@@ -224,7 +228,7 @@ class PublishReadinessTests(unittest.TestCase):
         self.assertTrue(result["passed"])
         self.assertEqual(public_research.call_args.kwargs["proof_sidecar"], str(self.sidecar_path))
         self.assertIn("url_summary", public_research.call_args.kwargs)
-        for guard in [metric, numeric, faq, paa, source, customer, review]:
+        for guard in [metric, numeric, faq, paa, source, customer, review, early_artifact, answer_withholding]:
             self.assertEqual(guard.call_args.kwargs["proof_sidecar"], str(self.sidecar_path))
         scorer = scorer_class.return_value
         self.assertEqual(scorer.score.call_args.kwargs["proof_sidecar"], str(self.sidecar_path))
@@ -339,10 +343,53 @@ class PublishReadinessTests(unittest.TestCase):
         guard_gate = next(gate for gate in result["gates"] if gate["name"] == "public_research_links")
         self.assertTrue(guard_gate["passed"], guard_gate)
 
+    def test_early_artifact_error_fails_runner(self):
+        patchers = self.patch_passing_gates()
+        with ExitStack() as stack:
+            for patcher in patchers[:11]:
+                stack.enter_context(patcher)
+            stack.enter_context(patch(
+                "data_sources.modules.publish_readiness.early_artifact_guard.check_file",
+                return_value=[finding("early_artifact_missing")],
+            ))
+            for patcher in patchers[12:]:
+                stack.enter_context(patcher)
+            result = publish_readiness.run_publish_readiness(
+                self.article_path,
+                proof_sidecar=self.sidecar_path,
+            )
+
+        self.assertFalse(result["passed"])
+        artifact_gate = next(gate for gate in result["gates"] if gate["name"] == "early_artifact")
+        self.assertFalse(artifact_gate["passed"])
+        self.assertEqual(artifact_gate["errors"], 1)
+
+    def test_answer_withholding_error_fails_runner(self):
+        patchers = self.patch_passing_gates()
+        with ExitStack() as stack:
+            for patcher in patchers[:12]:
+                stack.enter_context(patcher)
+            stack.enter_context(patch(
+                "data_sources.modules.publish_readiness.answer_withholding_guard.check_file",
+                return_value=[finding("placeholder_table_scaffold")],
+            ))
+            stack.enter_context(patchers[13])
+            result = publish_readiness.run_publish_readiness(
+                self.article_path,
+                proof_sidecar=self.sidecar_path,
+            )
+
+        self.assertFalse(result["passed"])
+        withholding_gate = next(
+            gate for gate in result["gates"] if gate["name"] == "answer_withholding"
+        )
+        self.assertFalse(withholding_gate["passed"])
+        self.assertEqual(withholding_gate["errors"], 1)
+
     def test_json_output_uses_stable_top_level_keys(self):
         patchers = self.patch_passing_gates()
         stdout = io.StringIO()
-        with patchers[0], patchers[1], patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], redirect_stdout(stdout):
+        with patchers[0], patchers[1], patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13], redirect_stdout(stdout):
             exit_code = publish_readiness.main([
                 str(self.article_path),
                 "--proof-sidecar",

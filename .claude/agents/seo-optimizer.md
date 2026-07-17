@@ -241,6 +241,8 @@ Specific recommendations with exact placement:
 ### Publishing Recommendation
 **Status**: [Ready to Publish / Needs Minor Fixes / Needs Revision / Not Ready]
 
+Confirm final status with `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`; do not treat SEO optimization alone as publish approval.
+
 **Estimated Time to Fix**: [X minutes/hours]
 
 **Priority Actions**:

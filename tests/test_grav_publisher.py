@@ -27,6 +27,33 @@ The payment step now shapes the service experience too.
 """
 
 
+def passing_readiness():
+    return {
+        "passed": True,
+        "gates": [],
+        "score": 91,
+        "aeo_geo": {"score": 94},
+        "priority_fixes": [],
+    }
+
+
+def failing_readiness():
+    return {
+        "passed": False,
+        "gates": [
+            {
+                "name": "metric_proof_pack",
+                "label": "Metric Proof Pack",
+                "passed": False,
+                "blockers": ["line 1: metric_proof_pack_missing"],
+            }
+        ],
+        "score": 80,
+        "aeo_geo": {"score": 88},
+        "priority_fixes": [{"issue": "Metric Proof Pack blockers detected"}],
+    }
+
+
 def _write(tmpdir: str, name: str, content: str) -> str:
     path = Path(tmpdir) / name
     path.write_text(content, encoding="utf-8")
@@ -153,6 +180,9 @@ class PublishPreflightTests(unittest.TestCase):
             with patch(
                 "data_sources.modules.grav_publisher.validate_file_urls",
                 return_value=UrlValidationSummary([blocked]),
+            ), patch(
+                "data_sources.modules.grav_publisher.run_publish_readiness",
+                return_value=passing_readiness(),
             ), patch.object(self.pub, "push_article") as push_article:
                 with self.assertRaises(GravPublishError) as raised:
                     self.pub.publish(path, dry_run=False)
@@ -170,12 +200,66 @@ class PublishPreflightTests(unittest.TestCase):
             ), patch(
                 "data_sources.modules.grav_publisher.require_source_support",
                 side_effect=GravPublishError("Source support validation failed before Grav publish"),
+            ), patch(
+                "data_sources.modules.grav_publisher.run_publish_readiness",
+                return_value=passing_readiness(),
             ), patch.object(self.pub, "push_article") as push_article:
                 with self.assertRaises(GravPublishError) as raised:
                     self.pub.publish(path, dry_run=False)
 
         push_article.assert_not_called()
         self.assertIn("Source support validation failed", str(raised.exception))
+
+    def test_publish_stops_before_push_when_publish_readiness_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write(tmp, "post.md", DRAFT_WITH_SLUG)
+            sidecar = _write(tmp, "validation-post.md", "Metric Proof Pack\n")
+            with patch(
+                "data_sources.modules.grav_publisher.validate_file_urls",
+                return_value=UrlValidationSummary([]),
+            ), patch(
+                "data_sources.modules.grav_publisher.require_source_support",
+                return_value=[],
+            ), patch(
+                "data_sources.modules.grav_publisher.run_publish_readiness",
+                return_value=failing_readiness(),
+            ) as readiness, patch.object(self.pub, "push_article") as push_article:
+                with self.assertRaises(GravPublishError) as raised:
+                    self.pub.publish(path, dry_run=False, proof_sidecar=sidecar)
+
+        readiness.assert_called_once_with(path, proof_sidecar=sidecar)
+        push_article.assert_not_called()
+        self.assertIn("Publish readiness failed before Grav publish", str(raised.exception))
+        self.assertIn("metric_proof_pack", str(raised.exception))
+
+    def test_publish_runs_readiness_before_grav_push(self):
+        calls = []
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write(tmp, "post.md", DRAFT_WITH_SLUG)
+
+            def readiness(*args, **kwargs):
+                calls.append("readiness")
+                return passing_readiness()
+
+            def push_article(*args, **kwargs):
+                calls.append("push_article")
+                return {"action": "created", "commit_url": "https://github.example/commit"}
+
+            with patch(
+                "data_sources.modules.grav_publisher.validate_file_urls",
+                return_value=UrlValidationSummary([]),
+            ), patch(
+                "data_sources.modules.grav_publisher.require_source_support",
+                return_value=[],
+            ), patch(
+                "data_sources.modules.grav_publisher.run_publish_readiness",
+                side_effect=readiness,
+            ), patch.object(self.pub, "push_article", side_effect=push_article):
+                result = self.pub.publish(path, dry_run=False)
+
+        self.assertEqual(calls, ["readiness", "push_article"])
+        self.assertFalse(result["dry_run"])
 
 
 if __name__ == "__main__":

@@ -21,6 +21,7 @@ later iteration.
 
 This skill only relocates already-approved body content. Do not inject, rewrite, or strip
 anything beyond the frontmatter block and the leading H1 (which Grav renders from frontmatter).
+The article body must pass `/publish-readiness` before any Grav push.
 Honor the content boundaries in `CLAUDE.md` — the article body must already be publish-ready.
 
 ## How it works
@@ -51,7 +52,15 @@ If `GRAV_REPO` is unset, the publisher automatically runs in dry-run mode (no pu
 ## Workflow
 
 1. Resolve the input file the user named in `drafts/` or `rewrites/`.
-2. **Always preview first** with a dry run, and show the user the generated `article.en.md`:
+2. Run the full publish-readiness preflight before any Grav push:
+
+   ```bash
+   /publish-readiness <path-to-draft-or-rewrite> --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
+   ```
+
+   The Grav publisher also enforces this preflight internally before committing to GitHub. If readiness fails, fix the highest-severity blocker and rerun; do not push.
+
+3. **Always preview first** with a dry run, and show the user the generated `article.en.md`:
 
    ```bash
    python data_sources/modules/grav_publisher.py <path-to-draft-or-rewrite> --dry-run
@@ -59,13 +68,13 @@ If `GRAV_REPO` is unset, the publisher automatically runs in dry-run mode (no pu
 
    The preview is also written to `.grav-preview/<slug>/article.en.md` at the repo root.
 
-3. After the user confirms the frontmatter and slug look right (and `GRAV_REPO` is set), push:
+4. After the user confirms the frontmatter and slug look right (and `GRAV_REPO` is set), push:
 
    ```bash
-   python data_sources/modules/grav_publisher.py <path-to-draft-or-rewrite>
+   python data_sources/modules/grav_publisher.py <path-to-draft-or-rewrite> --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
    ```
 
-4. Report the slug, the `blogs/<slug>/article.en.md` path, and the returned commit URL.
+5. Report the slug, the `blogs/<slug>/article.en.md` path, and the returned commit URL.
 
 ## Notes & open items
 

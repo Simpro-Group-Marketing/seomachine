@@ -14,6 +14,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
+from urllib.parse import urlparse
 
 try:
     from .guard_common import Finding, should_fail, summarize_findings
@@ -28,6 +29,13 @@ H2_RE = re.compile(r"^##\s+")
 FAQ_QUESTION_RE = re.compile(r"^###\s+(.+\?)\s*$")
 PUBLIC_URL_RE = re.compile(r"https?://[^\s)\]|<>\"']+", re.IGNORECASE)
 MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\((https?://[^)]+)\)", re.IGNORECASE)
+OWNED_PROOF_DOMAINS = (
+    "simprogroup.com",
+    "simpro.com",
+    "bigchange.com",
+    "clockshark.com",
+    "aroflo.com",
+)
 
 
 @dataclass
@@ -59,7 +67,7 @@ def check_content(
     findings: List[Finding] = []
 
     for faq_answer in faq_answers:
-        if _has_public_proof_url(faq_answer.answer):
+        if _has_non_owned_public_proof_url(faq_answer.answer):
             continue
 
         if _source_map_supports_question(source_map_lines, faq_answer.question):
@@ -157,8 +165,22 @@ def _extract_faq_answers(content: str) -> List[FaqAnswer]:
     return faq_answers
 
 
-def _has_public_proof_url(text: str) -> bool:
-    return bool(MARKDOWN_LINK_RE.search(text) or PUBLIC_URL_RE.search(text))
+def _has_non_owned_public_proof_url(text: str) -> bool:
+    return any(not _is_owned_proof_url(url) for url in _extract_public_urls(text))
+
+
+def _extract_public_urls(text: str) -> List[str]:
+    urls = [match.group(1) for match in MARKDOWN_LINK_RE.finditer(text)]
+    text_without_markdown = MARKDOWN_LINK_RE.sub("", text)
+    urls.extend(match.group(0) for match in PUBLIC_URL_RE.finditer(text_without_markdown))
+    return urls
+
+
+def _is_owned_proof_url(url: str) -> bool:
+    host = urlparse(url).netloc.lower()
+    if host.startswith("www."):
+        host = host[4:]
+    return any(host == domain or host.endswith(f".{domain}") for domain in OWNED_PROOF_DOMAINS)
 
 
 def _extract_source_map_candidate_lines(content: str) -> List[str]:

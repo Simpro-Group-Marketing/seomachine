@@ -20,6 +20,14 @@ PAA/FAQ Provenance
   - Should HVAC scheduling connect to invoicing?
 ```
 """
+FAQ_PROOF_BLOCK = """
+```text
+FAQ Proof Map
+- FAQ: What is the best way to schedule HVAC technicians? | URL: https://www.simprogroup.com/features/scheduling-software | Evidence: scheduling workflow supports availability, priority, location, and skill-fit claims | Status: approved
+- FAQ: How does HVAC scheduling software reduce missed appointments? | URL: https://www.simprogroup.com/features/field-service-mobile-app | Evidence: mobile job details and status updates support appointment coordination claims | Status: approved
+- FAQ: Should HVAC scheduling connect to invoicing? | URL: https://www.simprogroup.com/features/invoicing-software-for-construction | Evidence: invoicing workflow supports completed-work-to-invoice claims | Status: approved
+```
+"""
 METRIC_PROOF_BLOCK = f"""
 ```text
 Metric Proof Pack
@@ -98,7 +106,7 @@ Scheduling affects profit because every missed appointment, double-booking, and 
 The profit impact compounds when scheduling is connected to job costing. Research from [McKinsey](https://www.mckinsey.com/) has shown that field productivity depends on better planning, tighter coordination, and faster information flow across operational teams.
 
 [BWE Engineering](https://www.simprogroup.com/case-studies/bwe-engineering) shows how field service teams use connected workflows to improve operational control.
-""" + METRIC_PROOF_BLOCK + PAA_PROVENANCE_BLOCK + CUSTOMER_PROOF_BLOCK + """
+""" + METRIC_PROOF_BLOCK + PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK + CUSTOMER_PROOF_BLOCK + """
 
 ## Frequently Asked Questions
 
@@ -153,7 +161,7 @@ def write_sidecar_fixture(test_case: unittest.TestCase, content: str) -> tuple[s
         / "research"
         / f"validation-{article_path.stem}.md"
     )
-    sidecar_path.write_text(METRIC_PROOF_BLOCK + PAA_PROVENANCE_BLOCK + CUSTOMER_PROOF_BLOCK, encoding="utf-8")
+    sidecar_path.write_text(METRIC_PROOF_BLOCK + PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK + CUSTOMER_PROOF_BLOCK, encoding="utf-8")
     return str(article_path), str(sidecar_path)
 
 
@@ -284,6 +292,9 @@ No. PPC is a pricing model for ad clicks.
         scorer = ContentScorer()
         content = COMPLIANT_ARTICLE.replace(METRIC_PROOF_BLOCK, "").replace(
             PAA_PROVENANCE_BLOCK,
+            "",
+        ).replace(
+            FAQ_PROOF_BLOCK,
             "",
         )
         article_path, sidecar_path = write_sidecar_fixture(self, content)
@@ -421,7 +432,7 @@ No. PPC is a pricing model for ad clicks.
         ).replace(
             "[field service invoicing](https://www.simprogroup.com/features/invoicing-software-for-construction)",
             "invoicing",
-        )
+        ).replace(FAQ_PROOF_BLOCK, "")
 
         with patch.object(
             ContentScorer,

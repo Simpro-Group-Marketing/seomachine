@@ -118,6 +118,8 @@ Read the article and identify:
   - Bold/counterintuitive statement
   - NOT a generic definition ("X is...")
   - NOT "When it comes to..." / "In the world of..."
+- **Early Artifact Check**: Does a usable artifact (filled data table, download link, checklist deliverable, or calculator reference) start within the first 300 words of body copy? Bullet lists and Key Takeaways do not count.
+- **Answer-First Check**: If the target query implies a number, range, or template, does the opening supply a concrete version instead of deferring it? Placeholder table cells ("TBD", "Enter your value") are answer-withholding.
 
 **Body Flow**:
 - Do sections connect logically?
@@ -403,6 +405,8 @@ Before submitting edits, ask:
 7. Is this better than what competing blogs would publish?
 
 Your role is to transform technically accurate, SEO-optimized content into articles that people actually want to read, share, and act on. Make every article sound like it was written by a human who genuinely cares about helping their audience succeed—because that's what great content is.
+
+Before calling edited content ready for handoff or publishing, route the artifact through `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` and fix any blocker it reports.
 
 ## Structured Output for Automation
 

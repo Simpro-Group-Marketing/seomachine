@@ -15,6 +15,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, List, Optional, Sequence
+from urllib.parse import urlparse
 
 try:
     from .guard_common import Finding, should_fail, summarize_findings
@@ -114,6 +115,13 @@ INSUFFICIENT_PROOF_RE = re.compile(
     r"\b(?:industry standard|FDD conventions|no anchor)\b",
     re.IGNORECASE,
 )
+OWNED_PROOF_DOMAINS = (
+    "simprogroup.com",
+    "simpro.com",
+    "bigchange.com",
+    "clockshark.com",
+    "aroflo.com",
+)
 
 
 @dataclass(frozen=True)
@@ -126,6 +134,7 @@ class Paragraph:
 class ProofEntry:
     text: str
     normalized_tokens: frozenset[str]
+    urls: frozenset[str]
 
 
 def check_content(
@@ -148,10 +157,10 @@ def check_content(
         if not numeric_tokens:
             continue
 
-        if _has_same_paragraph_public_link(paragraph.text):
+        normalized_tokens = {_normalize_numeric_token(token) for token in numeric_tokens}
+        if _has_supported_same_paragraph_public_link(paragraph.text, normalized_tokens, proof_entries):
             continue
 
-        normalized_tokens = {_normalize_numeric_token(token) for token in numeric_tokens}
         if _has_matching_proof(normalized_tokens, proof_entries):
             continue
 
@@ -253,6 +262,8 @@ def _iter_paragraphs(content: str) -> Iterable[Paragraph]:
 def _extract_proof_entries(content: str) -> List[ProofEntry]:
     entries: List[ProofEntry] = []
     for line in content.splitlines():
+        if not _is_structured_proof_line(line):
+            continue
         if not _line_has_public_url_or_artifact(line):
             continue
         if INSUFFICIENT_PROOF_RE.search(line):
@@ -265,9 +276,21 @@ def _extract_proof_entries(content: str) -> List[ProofEntry]:
             ProofEntry(
                 text=line.strip(),
                 normalized_tokens=frozenset(_normalize_numeric_token(token) for token in tokens),
+                urls=frozenset(_extract_public_urls(line)),
             )
         )
     return entries
+
+
+def _is_structured_proof_line(text: str) -> bool:
+    stripped = text.strip().lower()
+    return (
+        "|" in stripped
+        or stripped.startswith(("- claim:", "* claim:", "+ claim:"))
+        or stripped.startswith(("- approved metric:", "* approved metric:", "+ approved metric:"))
+        or stripped.startswith(("- approved quote:", "* approved quote:", "+ approved quote:"))
+        or stripped.startswith(("- faq:", "* faq:", "+ faq:"))
+    )
 
 
 def _line_has_public_url_or_artifact(text: str) -> bool:
@@ -294,15 +317,61 @@ def _claim_text_for_detection(text: str) -> str:
     return text
 
 
-def _has_same_paragraph_public_link(text: str) -> bool:
-    return bool(
-        any(_is_public_url(match.group(2)) for match in MARKDOWN_LINK_RE.finditer(text))
-        or any(_is_public_url(match.group(0)) for match in BARE_URL_RE.finditer(text))
-    )
+def _has_supported_same_paragraph_public_link(
+    text: str,
+    normalized_tokens: set[str],
+    proof_entries: Sequence[ProofEntry],
+) -> bool:
+    urls = _extract_public_urls(text)
+    for url in urls:
+        if not _is_owned_proof_url(url):
+            return True
+        if _has_matching_owned_url_proof(url, normalized_tokens, proof_entries, text):
+            return True
+    return False
 
 
 def _is_public_url(url: str) -> bool:
     return url.startswith("http://") or url.startswith("https://")
+
+
+def _extract_public_urls(text: str) -> List[str]:
+    urls = [match.group(2) for match in MARKDOWN_LINK_RE.finditer(text)]
+    text_without_markdown = MARKDOWN_LINK_RE.sub("", text)
+    urls.extend(match.group(0) for match in BARE_URL_RE.finditer(text_without_markdown))
+    return [url for url in urls if _is_public_url(url)]
+
+
+def _is_owned_proof_url(url: str) -> bool:
+    host = urlparse(url).netloc.lower()
+    if host.startswith("www."):
+        host = host[4:]
+    return any(host == domain or host.endswith(f".{domain}") for domain in OWNED_PROOF_DOMAINS)
+
+
+def _has_matching_owned_url_proof(
+    url: str,
+    normalized_tokens: set[str],
+    proof_entries: Sequence[ProofEntry],
+    source_text: str = "",
+) -> bool:
+    normalized_url = _normalize_url(url)
+    for proof in proof_entries:
+        if source_text and _normalize_for_proof_text(proof.text) == _normalize_for_proof_text(source_text):
+            continue
+        if normalized_url not in {_normalize_url(proof_url) for proof_url in proof.urls}:
+            continue
+        if normalized_tokens.issubset(proof.normalized_tokens):
+            return True
+    return False
+
+
+def _normalize_url(url: str) -> str:
+    return url.rstrip("/")
+
+
+def _normalize_for_proof_text(text: str) -> str:
+    return re.sub(r"\s+", " ", text.strip().lower())
 
 
 def _extract_numeric_tokens(text: str) -> List[str]:

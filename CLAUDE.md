@@ -30,7 +30,7 @@ This repo uses two project-scoped MCP servers:
 - `gsc`
 - `analytics-mcp`
 
-Codex reads `.codex/config.toml`; Claude-compatible clients can read `.mcp.json`. Both should point to `C:\Users\patrick.grueschow\Desktop\Repos\seomachine-main`, not to another local repo.
+Codex reads `.codex/config.toml`; Claude-compatible clients can read `.mcp.json`. Both should point to this repo root, not to another local repo.
 
 ## Commands
 
@@ -116,6 +116,8 @@ Rewrites go to `rewrites/`. Landing pages go to `landing-pages/`. Audits go to `
 
 Blog rewrites must follow the same AEO/GEO evidence boundaries as new articles: sourced PAA/FAQ provenance, FAQ proof, source mapping, Metric Proof Pack inputs, E-E-A-T Proof Map inputs, direct-answer structure, schema notes, AI copy lint, URL validation, proof gates, source support, and the 85/100 general quality plus 90/100 AEO/GEO gates before `/optimize`.
 
+For standard blog posts with FAQs, schema notes must list `BlogPosting`, `BreadcrumbList`, and `FAQPage`; nested entities must be `Person as author`, `Question and Answer inside FAQPage`, `ImageObject for the featured image or logo`, and `Organization as publisher reference only, not a separate full schema block`. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Use `VideoObject` only when a video is embedded.
+
 Use a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md` for proof-only infrastructure. Public blog drafts and rewrites must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan. Preferred publish readiness command: `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`.
 
 Before `/optimize` or any publish path, run the command-system gate:
@@ -123,7 +125,9 @@ Before `/optimize` or any publish path, run the command-system gate:
 /publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
 ```
 
-The slash command runs the public artifact, AI copy, URL, proof, source support, customer proof, review story, content score, and AEO/GEO gates internally. Use individual guard modules only when debugging a failed gate from `context/aeo-geo-blog-strategy.md`.
+The slash command runs the public artifact, AI copy, URL, proof, source support, customer proof, review story, early artifact, answer withholding, content score, and AEO/GEO gates internally. Use individual guard modules only when debugging a failed gate from `context/aeo-geo-blog-strategy.md`.
+
+Every standard blog draft and rewrite needs a usable artifact — a filled data table, download link, checklist deliverable, or calculator reference — within the first 300 words of body copy, and must supply a concrete number, range, or template when the target query implies one. Placeholder table scaffolds block publish. Policy lives in `context/aeo-geo-blog-strategy.md`.
 
 URL validation confirms destinations resolve; it does not prove the page supports the claim, so Source Map and E-E-A-T proof review still verify claim support.
 
@@ -137,7 +141,7 @@ PAA provenance requires every FAQ question to match a saved PAA/FAQ source artif
 
 The source support guard requires strict proof rows with Claim, URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact. Case-study proof paths and Review-site experience evidence may support non-metric E-E-A-T PoV and paraphrased themes only. Exact quotes or testimonial wording must appear in Customer Proof Pack Approved quotes with customer/brand or reviewer, source type, public URL, Evidence, and approved status. A named customer metric must appear in Customer Proof Pack Approved metrics with customer/brand, public URL, Evidence, and approved status; Source Map alone is insufficient for quotes, testimonials, or named metrics.
 
-Before selecting customer proof, the command workflow must resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and add the generated selector-first `Customer Proof Slate` to the validation sidecar before drafting. If inputs are missing, resolve them from the brief/context or stop before drafting customer proof. If the selector fails, write the blocker into the sidecar and do not invent proof. Review generated selector output before choosing proof; do not skip execution. Edit selected/rejected rows only when editorial judgment requires it. experience_story consideration is required and E-E-A-T story usage is optional; if no story fits, use `Selected: [none]` with section-specific rejection reasons. Choose the most relevant approved proof, not the easiest mapped case study. If selected proof is overused, the validation sidecar needs a selector-backed, source-specific `Reuse reason`.
+Before selecting customer proof, the command workflow must resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and add the generated selector-first `Customer Proof Slate` to the validation sidecar before drafting. If inputs are missing, resolve them from the brief/context or stop before drafting customer proof. If the selector fails, write the blocker into the sidecar and do not invent proof. Review generated selector output before choosing proof; do not skip execution. Edit selected/rejected rows only when editorial judgment requires it. experience_story consideration is required and E-E-A-T story usage is optional; if no story fits, use `Selected: [none]` with section-specific rejection reasons. Choose the most relevant approved proof, not the easiest mapped case study. Before claiming a proof source is underused, inspect the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the proof ID, public URL, and customer name. If the live repo scan finds public-copy usage missing from the ledger, backfill `context/customer-proof-usage-ledger.json`, rerun proof health and selector checks, and document the backfill in the validation sidecar. If selected proof is recently used or overused, the validation sidecar needs a selector-backed, source-specific `Reuse reason`.
 
 Treat any `recent_uses_90d` value above 0 as a proof-diversity warning, not only sources marked `overused`. Prefer an approved zero-recent-use source when one fits the same role. If a recently used or overused proof source is still selected, the validation sidecar must explain why no stronger underused approved proof fits.
 

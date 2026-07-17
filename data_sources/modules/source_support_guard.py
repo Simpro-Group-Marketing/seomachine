@@ -517,7 +517,25 @@ def _validate_proof_entry(
             if proof.artifact:
                 source_text = _read_artifact_text(proof, base_path)
                 if source_text is not None:
-                    return _validate_source_text_contains_evidence(source_text, proof, candidate)
+                    evidence_finding = _validate_source_text_contains_evidence(
+                        source_text,
+                        proof,
+                        candidate,
+                    )
+                    if evidence_finding:
+                        return evidence_finding
+                    return _finding(
+                        "source_fetch_artifact_fallback",
+                        candidate,
+                        "Cited source could not be fetched live; local artifact was used as fallback.",
+                        (
+                            "Verify the public source manually or replace it with a resolved "
+                            "public URL before final approval."
+                        ),
+                        proof,
+                        severity="warning",
+                        match=str(exc),
+                    )
                 return _finding(
                     "proof_artifact_missing",
                     candidate,
@@ -589,13 +607,15 @@ def _finding(
     message: str,
     suggestion: str,
     proof: Optional[ProofEntry] = None,
+    severity: str = "error",
+    match: Optional[str] = None,
 ) -> Finding:
     finding: Finding = {
         "rule_id": rule_id,
-        "severity": "error",
+        "severity": severity,
         "line": candidate.line,
         "column": 1,
-        "match": candidate.text,
+        "match": candidate.text if match is None else match,
         "message": message,
         "suggestion": suggestion,
     }

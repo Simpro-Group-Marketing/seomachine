@@ -17,6 +17,14 @@ PAA/FAQ Provenance
   - Should HVAC scheduling connect to invoicing?
 ```
 """
+FAQ_PROOF_BLOCK = """
+```text
+FAQ Proof Map
+- FAQ: What is the best way to schedule HVAC technicians? | URL: https://www.simprogroup.com/features/scheduling-software | Evidence: scheduling workflow supports availability, priority, location, and skill-fit claims | Status: approved
+- FAQ: How does HVAC scheduling software reduce missed appointments? | URL: https://www.simprogroup.com/features/field-service-mobile-app | Evidence: mobile job details and status updates support appointment coordination claims | Status: approved
+- FAQ: Should HVAC scheduling connect to invoicing? | URL: https://www.simprogroup.com/features/invoicing-software-for-construction | Evidence: invoicing workflow supports completed-work-to-invoice claims | Status: approved
+```
+"""
 
 COMPLIANT_ARTICLE = """---
 Meta Title: HVAC Scheduling Software for Contractors | Simpro
@@ -54,7 +62,7 @@ Scheduling affects profit because every missed appointment, double-booking, and 
 The profit impact compounds when scheduling is connected to job costing. Research from [McKinsey](https://www.mckinsey.com/) has shown that field productivity depends on better planning, tighter coordination, and faster information flow across operational teams.
 
 [Schaffer Beacon Mechanical](https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical) shows how field service teams use connected workflows to improve operational control.
-""" + PAA_PROVENANCE_BLOCK + """
+""" + PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK + """
 
 ## Frequently Asked Questions
 
@@ -380,7 +388,7 @@ E-E-A-T Proof Map
         ).replace(
             "[field service invoicing](https://www.simprogroup.com/features/invoicing-software-for-construction)",
             "invoicing",
-        )
+        ).replace(FAQ_PROOF_BLOCK, "")
 
         result = self.rate(content)
 

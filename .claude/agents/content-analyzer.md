@@ -347,5 +347,6 @@ Your analysis is successful when:
 3. Issues are clearly prioritized by severity
 4. Writer knows exactly what to fix and why
 5. Estimated impact and effort are clear
+6. Final publishing recommendations defer to `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` for the canonical gate result before handoff or publishing
 
 Remember: Your role is to be the analytical foundation that helps create content that ranks #1 and genuinely helps podcast creators succeed.

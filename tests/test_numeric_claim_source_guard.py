@@ -175,10 +175,33 @@ BGE Digital put quotes out ten times quicker than spreadsheets after changing it
     def test_spelled_out_metric_multiple_with_same_paragraph_link_passes(self):
         content = """# Quoting workflow
 
-[BGE Digital](https://www.simprogroup.com/case-studies/bge-digital) put quotes out ten times quicker than spreadsheets after changing its quoting workflow.
+[BGE Digital](https://example.com/case-studies/bge-digital) put quotes out ten times quicker than spreadsheets after changing its quoting workflow.
 """
 
         self.assertEqual(check_content(content), [])
+
+    def test_owned_same_paragraph_link_without_matching_proof_row_fails(self):
+        content = """# Operational scale
+
+Simpro supports [24,000+ trade businesses](https://www.simprogroup.com/) through field service workflows.
+"""
+
+        findings = check_content(content)
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule_id"], "unsupported_numeric_claim")
+        self.assertIn("24,000+", findings[0]["numeric_tokens"])
+
+    def test_owned_same_paragraph_link_passes_with_matching_proof_row(self):
+        content = """# Operational scale
+
+Simpro supports [24,000+ trade businesses](https://www.simprogroup.com/company/press/simpro-group-unveils-lightning) through field service workflows.
+"""
+        sidecar = """Source Map
+- Claim: Simpro Group platforms are used by more than 24,000 trade businesses | URL: https://www.simprogroup.com/company/press/simpro-group-unveils-lightning | Evidence: "More than 24,000 trade businesses" | Status: approved
+"""
+
+        self.assertEqual(check_content(content, proof_content=sidecar), [])
 
     def test_check_file_and_failure_threshold(self):
         with NamedTemporaryFile("w", encoding="utf-8", suffix=".md", delete=False) as temp_file:

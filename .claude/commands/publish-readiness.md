@@ -47,7 +47,9 @@ The command runs the complete publish-readiness stack:
 9. `source_support_guard`
 10. `customer_proof_diversity_guard`
 11. `review_story_identity_guard`
-12. `content_scorer` with URL and source-support validation
+12. `early_artifact_guard`
+13. `answer_withholding_guard`
+14. `content_scorer` with URL and source-support validation
 
 403 replacement rule: If a DOL, Capterra, G2, Trustpilot, Google Play, or other public research/source URL returns 401, 403, or `manual_review`, do not remove the citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. Source Map notes must document both the rejected 403 URL and the replacement URL. The `public_research_link_guard` blocks sidecar-only handling of public research, compliance, legal, regulatory, or statistical proof and requires visible resolved non-owned public research links in the relevant article section or FAQ answer. Full policy lives in `context/aeo-geo-blog-strategy.md`.
 
@@ -66,3 +68,5 @@ Return:
 If the command fails, fix the highest-severity gate first and rerun `/publish-readiness`.
 
 AI copy lint failures include copy avoid-rule errors. The Simpro web-copy linter blocks modal verbs, passive voice, repeated starts, vague generalizations, filler words, and long sentences before publish readiness can pass.
+
+Simpro web copy rules still apply during recovery: Use numerals for cardinal numbers, including 1-9. Do not block source-visible metric wording when a public proof source spells out the number; preserve the supported claim wording and rely on Metric Proof Pack, numeric claim source guard, and source support guard for proof. Because comma decisions are grammar/context dependent. No comma when the because clause is essential to the sentence meaning. Use a comma when the because clause is nonessential, contrastive, or needed to prevent misreading. Review negative constructions carefully because comma placement can change meaning. When `/publish-readiness` fails, the agent must revise the sentence and rerun the command instead of treating `because` punctuation as a passive warning.

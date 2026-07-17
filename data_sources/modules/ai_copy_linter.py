@@ -33,7 +33,6 @@ APPROVED_PROPER_NOUNS = [
 ]
 
 
-BECAUSE_RE = re.compile(r"\bbecause\b", re.IGNORECASE)
 FAQ_QUESTION_HEADING_RE = re.compile(r"^\s{0,3}#{2,6}\s+.+\?\s*$")
 
 
@@ -317,7 +316,6 @@ def lint_content(content: str, profile: str = "simpro-web") -> List[Finding]:
                 )
             )
 
-        findings.extend(_find_missing_comma_before_because(line_number, original_line, masked_line))
         findings.extend(_find_long_sentences(line_number, original_line, masked_line))
 
     findings.extend(_find_multiple_links_in_paragraph(content))
@@ -474,32 +472,6 @@ def _find_long_sentences(
                     "Split the sentence or remove filler.",
                 )
             )
-    return findings
-
-
-def _find_missing_comma_before_because(
-    line_number: int,
-    original_line: str,
-    masked_line: str,
-) -> List[Finding]:
-    findings: List[Finding] = []
-
-    for match in BECAUSE_RE.finditer(masked_line):
-        prefix = masked_line[: match.start()].rstrip()
-        if prefix.endswith(","):
-            continue
-        findings.append(
-            _finding(
-                "missing_comma_before_because",
-                "error",
-                line_number,
-                match.start() + 1,
-                original_line[match.start():match.end()],
-                "Use a comma before because in Simpro web copy.",
-                "Add a comma before because or rewrite the sentence.",
-            )
-        )
-
     return findings
 
 

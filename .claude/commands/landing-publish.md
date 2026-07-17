@@ -164,7 +164,7 @@ Run `/landing-audit landing-pages/[file].md` for full analysis.
 |--------|----------------------|--------------------------|
 | WordPress Type | Post | Page |
 | Categories/Tags | Yes | No |
-| Score Required | Content score ≥70 | Landing page score ≥75 |
+| Score Required | Full publish-readiness stack PASS | Landing page score >=75 |
 | noindex Option | No | Yes (for PPC) |
 | Template Option | No | Yes |
 | Output Directory | drafts/ | landing-pages/ |
