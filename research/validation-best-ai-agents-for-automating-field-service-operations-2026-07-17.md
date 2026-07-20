@@ -10,10 +10,44 @@ Plan artifact: `research/article-plan-best-ai-agents-for-automating-field-servic
 ## Relationship Disclosure and Comparison Methodology
 
 - Disclosure: Simpro publishes the article and is one of the products evaluated.
-- “Best” meaning: best fit for the stated use case under the documented criteria, not an absolute market winner.
+- "Best" meaning: best fit for the stated use case under the documented criteria, not an absolute market winner.
 - Qualification criteria: field-service or directly connected workflow; multi-step execution or coordination; operational data or system-of-record connection; human review, escalation, or control; verifiable current availability or preview status; first-party capability documentation.
 - Exclusions: generic LLMs and agent builders are not ranked as turnkey field-service agents. Unsupported vendor outcomes, pricing, ratings, market leadership, and roadmap commitments are excluded.
 - Verification date: all vendor statuses and capabilities below were checked on 2026-07-17.
+
+## Vault Context Read Path
+
+- Active context source: `C:\Users\patrick.grueschow\Desktop\Obsidian\Simpro Brand Context`.
+- Required sequence completed on 2026-07-20: vault `AGENTS.md` -> `wiki/cache/hot.md` -> `wiki/Brand Graph Index.md`.
+- Lightning and RAIN routes checked: `wiki/lightning/Lightning Knowledge Hub.md`, `wiki/lightning/Lightning Architecture.md`, `wiki/lightning/Simpro RAIN Release Wave.md`, `wiki/lightning/Lightning Current Commercial and Availability Context.md`, and `indexes/lightning-current-claim-status.csv`.
+- Competitor routes checked: `wiki/competitors/Competitive Context.md`, `wiki/sources/simpro-battlecards-direct-competitors-1bzgf9r8.md`, and `raw/drive/sheets/nested/competitive-battlecards-simpro-simpro-battlecards-direct-competitors-1bZgf9r8.md`.
+- Feature/add-on routes checked: `wiki/concepts/payments-and-add-ons.md` and `wiki/features/Feature Library.md`.
+- Downstream repo-local sources used only for workflow gates and link validation: `context/internal-links-map.md`, customer proof index/ledger files, draft linter, and publish-readiness tooling. Repo-local context does not override vault context.
+- External first-party vendor URLs remain the current capability and availability evidence for non-Simpro offerings.
+
+## Competitive Shortlist Decision
+
+- Article objective: compare evidence-backed AI agents and agentic workflows for field service operations by role, system integration, availability, safeguards, and human oversight.
+- Vault competitive routes checked: `wiki/competitors/Competitive Context.md`; `wiki/sources/simpro-battlecards-direct-competitors-1bzgf9r8.md`; raw index `raw/drive/sheets/nested/competitive-battlecards-simpro-simpro-battlecards-direct-competitors-1bZgf9r8.md`.
+- Raw battlecard routing confirmed current direct-competitor/source coverage for Housecall Pro, Salesforce Field Service, Workiz, Zuper, and ServiceTitan, plus additional non-selected field-service vendors such as BuildOps, Jobber, ServiceM8, FieldPulse, and ServiceTrade.
+- Selected ranked comparison set: Simpro Lightning, Salesforce Agentforce for Field Service, Microsoft Dynamics 365 Scheduling Operations Agent, Housecall Pro AI Team, Workiz Genius Answering, and Zuper CSR Agent.
+- Microsoft selection reason: not found in the direct-competitor raw index under checked terms, but selected because current first-party Microsoft documentation describes a field-service scheduling operations agent that meets the article qualification criteria and fills the Microsoft-centered scheduling use case.
+- ServiceTitan decision: watchlist only. Atlas is documented as an AI sidekick/conversational interface, but the evidence did not establish an available action-taking field-service agent under this article ranking criteria.
+- Rejected/not ranked alternatives: BuildOps, Jobber, FieldPulse, ServiceM8, ServiceTrade/Stella, ServiceNow field-service AI agents, and generic agent builders. They either did not fit the six selected use cases as well as the chosen vendors, were better treated as researched alternatives, or lacked enough current fit for a ranked field-service-agent selection in this public copy.
+- Public-copy boundary: vault competitor/battlecard sources were used for shortlist routing only. Public competitor capability and availability claims rely on current first-party vendor sources in the Source Map.
+- Hindsight boundary: Hindsight/deal intelligence was not used; no raw deal counts, internal win/loss claims, or confidential battlecard claims appear in public copy.
+
+## Named Feature/Add-On Link Check
+
+| Name in draft | Vault route checked | Link decision | Reason |
+|---|---|---|---|
+| Simpro Lightning | `wiki/lightning/Lightning Knowledge Hub.md`; `wiki/lightning/Lightning Architecture.md`; `indexes/lightning-current-claim-status.csv` | Link first meaningful mention to `/lightning`. | Canonical public route for Lightning; vault confirms Lightning taxonomy and current four-agent structure. |
+| Cooper, JustAsk, FieldReady, JobReady, JobScribe, JobBrief | `wiki/lightning/Lightning Knowledge Hub.md`; `wiki/lightning/Lightning Architecture.md`; `indexes/lightning-current-claim-status.csv` | Do not create separate public links in this draft. | Vault treats these as Lightning taxonomy/entity context; public copy should keep them under the Lightning route and avoid implying separate product pages. |
+| Simpro RAIN | `wiki/lightning/Simpro RAIN Release Wave.md`; `wiki/lightning/Lightning Current Commercial and Availability Context.md`; `indexes/lightning-current-claim-status.csv` | Link first meaningful mention to `/rain`. | Canonical public route for the June-September 2026 release wave with timing-may-shift caveat. |
+| Intelligent AI Scheduler | `wiki/lightning/Simpro RAIN Release Wave.md`; `indexes/lightning-current-claim-status.csv` row `LCUR-0023` | No separate link. | Use as a target-timed RAIN example only; no separate public feature route was verified. |
+| AI-Guided Forms | `wiki/lightning/Simpro RAIN Release Wave.md`; `indexes/lightning-current-claim-status.csv` row `LCUR-0028`; `wiki/concepts/payments-and-add-ons.md`; `wiki/features/Feature Library.md` | No separate link. | Treat as a target-timed RAIN feature. Do not conflate it with the existing Digital Forms add-on routes. |
+| Digital Forms add-on | `wiki/concepts/payments-and-add-ons.md`; `wiki/features/Feature Library.md` | Not linked or claimed in public copy. | Checked only to prevent conflation with AI-Guided Forms. |
+| Two-Way Messaging and GPS Time Tracking | `wiki/lightning/Lightning Knowledge Hub.md`; `wiki/lightning/Lightning Architecture.md`; `indexes/lightning-current-claim-status.csv` row `LCUR-0006` | Not linked or claimed in public copy. | Vault classifies these as platform features, not additional Lightning role agents. |
 
 ## Reconciliation Record
 
@@ -22,6 +56,7 @@ Plan artifact: `research/article-plan-best-ai-agents-for-automating-field-servic
 - Restored: required Simpro comparison disclosure, the sitemap-verified FSM solution link in body and FAQ copy, and the source-supported IBM FAQ wording.
 - Corrected: the `management` spelling in the Simpro Lightning selection guidance.
 - Customer proof selection, metric proof pack, source map, FAQ provenance, and vendor status verification remain applicable; no new customer proof, metric, vendor capability, or availability claim was added.
+
 ## PAA/FAQ Provenance
 
 - Source: AnswerSocrates main-browser research for the exact seed `best AI agents for automating field service operations`, United States, English.
@@ -45,8 +80,8 @@ Plan artifact: `research/article-plan-best-ai-agents-for-automating-field-servic
 ## Metric Proof Pack
 
 - Metric requirement: required.
-- Search log: Checked the current Simpro Lightning positioning artifact and Housecall Pro first-party AI Team overview for product-count evidence. Excluded vendor outcome metrics and dated RAIN aggregate counts.
-- Approved metric: four current Simpro Lightning role agents | URL: context/lightning-positioning.md | Evidence: "The four launch agents are exactly `FieldReady`, `JobReady`, `JobScribe`, and `JobBrief`." | Status: approved | Use: comparison table and Simpro section.
+- Search log: Checked vault Lightning Knowledge Hub, Lightning Architecture, and `indexes/lightning-current-claim-status.csv` for Simpro role-agent count; checked Housecall Pro first-party AI Team overview for product-count evidence. Excluded vendor outcome metrics and dated RAIN aggregate counts.
+- Approved metric: four current Simpro Lightning role agents | Proof artifact: C:\Users\patrick.grueschow\Desktop\Obsidian\Simpro Brand Context\indexes\lightning-current-claim-status.csv | Evidence: "The four current Simpro role-based agents are FieldReady, JobReady, JobScribe, and JobBrief." | Status: approved | Use: comparison table and Simpro section. Vault row: `LCUR-0005`; compiled support pages: `wiki/lightning/Lightning Knowledge Hub.md` and `wiki/lightning/Lightning Architecture.md`.
 - Approved metric: five Housecall Pro AI Team teammates | URL: https://help.housecallpro.com/en/articles/9311875-ai-team-overview | Evidence: "The AI Team includes five specialized Teammates" | Status: approved | Use: Housecall Pro section only.
 - Rejected metrics: vendor productivity, booking, revenue, time-saving, call-handling, and cost-saving percentages | Sources checked: current vendor pages | Reason excluded: vendor-reported outcomes were unnecessary to answer the comparison and were not independently substantiated.
 - Rejected aggregate RAIN counts: release-wave feature and improvement totals | Proof artifact: vault RAIN pages | Reason excluded: counts are dated and not required to explain the selected scheduler and forms examples; omission reduces metric clutter and superiority risk.
@@ -55,7 +90,7 @@ Plan artifact: `research/article-plan-best-ai-agents-for-automating-field-servic
 
 - Claim: Lightning is the AI intelligence layer within the Simpro platform; Cooper is the intelligence foundation; JustAsk is the conversational/BI interface; FieldReady, JobReady, JobScribe, and JobBrief are role agents. | URL: https://www.simprogroup.com/lightning | Evidence: current Simpro Lightning page plus compiled vault Lightning Knowledge Hub and Architecture pages. | Status: approved | Use: Simpro selection and table.
 - Claim: JobBrief content is shown to and reviewed by the technician at signoff. | Proof artifact: compiled vault Lightning Architecture and current claim-status index | Status: approved | Use: Simpro human checkpoint.
-- Claim: RAIN is a June–September 2026 release wave; Intelligent AI Scheduler and AI-Guided Forms are target-timed examples and timing may shift. | URL: https://www.simprogroup.com/rain | Evidence: current RAIN page plus compiled vault Simpro RAIN Release Wave and availability pages. | Status: approved with qualification | Use: Simpro roadmap context only.
+- Claim: RAIN is a June-September 2026 release wave; Intelligent AI Scheduler and AI-Guided Forms are target-timed examples and timing may shift. | URL: https://www.simprogroup.com/rain | Evidence: current RAIN page plus compiled vault Simpro RAIN Release Wave and availability pages. | Status: approved with qualification | Use: Simpro roadmap context only.
 - Claim: Agentforce for Field Service supports appointment scheduling, troubleshooting, schedule gaps, and job wrap-up in Salesforce-centered field workflows. | URL: https://www.salesforce.com/news/stories/agentforce-for-field-service-announcement/ | Evidence: "Agentforce for Field Service helps companies with in-the-field workers quickly and securely deploy AI agents that can execute tasks proactively or in the flow of work." | Status: approved | Use: Salesforce section and table.
 - Claim: Dynamics 365 Field Service Scheduling Operations Agent is a preview capability for scheduling operations. | URL: https://learn.microsoft.com/en-us/dynamics365/field-service/ai-agents-overview | Evidence: Microsoft Learn page labels the capability preview; page updated 2026-07-01. | Status: approved with preview label | Use: Microsoft section and table.
 - Claim: Housecall Pro AI Team is available and comprises CSR AI, Analyst AI, Coach AI, Marketing AI, and Help AI; CSR AI is an optional add-on that handles calls, booking, scheduling, and logs. | URL: https://help.housecallpro.com/en/articles/9311875-ai-team-overview | Evidence: current Housecall Pro help article. | Status: approved | Use: Housecall Pro section and table.
@@ -70,7 +105,7 @@ Plan artifact: `research/article-plan-best-ai-agents-for-automating-field-servic
 | Offering | Status used in public copy | Verification date | First-party source |
 |---|---|---|---|
 | Simpro Lightning role agents | Current Lightning capability; regional/account availability should be confirmed with Simpro | 2026-07-17 | https://www.simprogroup.com/lightning |
-| Simpro RAIN scheduler and forms examples | Target-timed in June–September 2026 release wave; timing may shift | 2026-07-17 | https://www.simprogroup.com/rain |
+| Simpro RAIN scheduler and forms examples | Target-timed in June-September 2026 release wave; timing may shift | 2026-07-17 | https://www.simprogroup.com/rain |
 | Salesforce Agentforce for Field Service | Official source documents generally available field-service functions and 2025 GA milestones | 2026-07-17 | https://www.salesforce.com/news/stories/agentforce-for-field-service-announcement/ |
 | Microsoft Scheduling Operations Agent | Preview | 2026-07-17 | https://learn.microsoft.com/en-us/dynamics365/field-service/ai-agents-overview |
 | Housecall Pro AI Team | Available; CSR AI optional add-on | 2026-07-17 | https://help.housecallpro.com/en/articles/9311875-ai-team-overview |
@@ -130,7 +165,7 @@ Plan artifact: `research/article-plan-best-ai-agents-for-automating-field-servic
 
 ## Claims Excluded Because Proof Is Missing or Unnecessary
 
-- Any universal or market-wide “number one” claim.
+- Any universal or market-wide "number one" claim.
 - Vendor-reported productivity, revenue, booking, labor, or time-saving outcomes.
 - Competitor pricing, rankings, ratings, customer counts, and market share.
 - A claim that preview or target-timed features are generally available.
