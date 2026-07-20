@@ -22,7 +22,7 @@ Simpro publishes this article and evaluates its own product alongside competitor
 
 | Offering | Best for | Workflow stage | Actions/data used | Availability status | Human checkpoint | Last verified/source |
 |---|---|---|---|---|---|---|
-| Simpro Lightning | Connected field-service workflows | Preparation through closeout | Simpro job, customer and field data | Current capabilities. RAIN examples are target-timed | Technician and office review by workflow | [July 17, 2026](https://www.simprogroup.com/lightning) |
+| [Simpro Lightning](https://www.simprogroup.com/lightning) | Connected field-service workflows | Preparation through closeout | Simpro job, customer and field data | Current capabilities. RAIN examples are target-timed | Technician and office review by workflow | July 17, 2026 |
 | Salesforce Agentforce for Field Service | Enterprise customization | Booking through job wrap-up | Salesforce field-service data and actions | Documented current capabilities | Dispatcher, technician or service-team handoff | [July 17, 2026](https://www.salesforce.com/news/stories/agentforce-for-field-service-announcement/) |
 | Microsoft Scheduling Operations Agent | Dynamics-centered scheduling | Scheduling and dispatch | Dynamics 365 Field Service schedule data | Preview | Scheduler reviews recommendations and exceptions | [July 17, 2026](https://learn.microsoft.com/en-us/dynamics365/field-service/ai-agents-overview) |
 | Housecall Pro AI Team | Small home-service office workflows | Intake, booking and office support | Calls, schedules, business and account data | Available. CSR AI is an add-on | Office staff review logs and take over | [July 17, 2026](https://help.housecallpro.com/en/articles/9311875-ai-team-overview) |
@@ -81,7 +81,7 @@ We did not use vendor outcome percentages, customer ratings, pricing comparisons
 
 [Simpro Lightning](https://www.simprogroup.com/lightning) is the AI intelligence layer within the Simpro field service management platform. Its AI agents use the same environment as customer, job and field work. This connected context suits service businesses seeking agent support from preparation through closeout. It offers a wider lifecycle scope than a standalone phone or scheduling agent.
 
-The product taxonomy matters. Cooper is the intelligence foundation. JustAsk is the conversational and business-intelligence interface, not another role agent. Lightning has 4 role agents:
+The product taxonomy matters. Cooper is the intelligence foundation. JustAsk is the conversational and business-intelligence interface, not another role agent. Simpro Lightning has 4 role agents:
 
 - **FieldReady** helps office teams prepare field work with the information technicians need.
 - **JobReady** supports job preparation and readiness workflows.
@@ -90,11 +90,11 @@ The product taxonomy matters. Cooper is the intelligence foundation. JustAsk is 
 
 That final checkpoint illustrates the appropriate model for field service operational AI: the agent reduces preparation and documentation work while the person responsible for the job remains in the loop.
 
-Lightning also supports selected capabilities in [Simpro RAIN](https://www.simprogroup.com/rain), a June–September 2026 release wave rather than a fifth agent. Current target-timed examples include Intelligent AI Scheduler and AI-Guided Forms. These are roadmap context, not promises of present availability.
+Simpro Lightning also supports selected capabilities in [Simpro RAIN](https://www.simprogroup.com/rain), a June-September 2026 release wave rather than a fifth agent. Current target-timed examples include Intelligent AI Scheduler and AI-Guided Forms. These are roadmap context, not promises of present availability.
 
 Target timing remains subject to change. Confirm current account and regional availability with Simpro before planning a rollout.
 
-[IMAGE PLACEHOLDER: Simpro Lightning and RAIN architecture, four agents on Lightning with RAIN-delivered scheduler, forms, and platform enhancements | Alt: Simpro Lightning agents and RAIN automation updates for field service operations]
+[IMAGE PLACEHOLDER: Simpro Lightning and RAIN architecture, four agents on Simpro Lightning with RAIN-delivered scheduler, forms, and platform enhancements | Alt: Simpro Lightning agents and RAIN automation updates for field service operations]
 
 **Choose Simpro Lightning when:** your priority spans preparation, field execution, documentation and closeout inside a connected field service management platform. It is less relevant if you only need a standalone phone-answering agent and do not want the surrounding operational system.
 
