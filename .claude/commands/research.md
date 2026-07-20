@@ -14,6 +14,25 @@ Use this command to conduct comprehensive SEO keyword research and competitive a
 
 ## Process
 
+### Obsidian Vault Source Rule
+
+For every blog, SEO, AEO, competitor, proof, product, audience, partner, or workflow decision, use the Obsidian vault as the active context source: `C:\Users\patrick.grueschow\Desktop\Obsidian\Simpro Brand Context`.
+
+Required read order: `AGENTS.md -> wiki/cache/hot.md -> wiki/Brand Graph Index.md -> smallest relevant wiki/source/raw pages`.
+
+Do not use Google Workspace or old marketing-portal URLs as the active read path. Use them only as historical provenance when the vault already exposes a local source route.
+
+The repo-local context files are downstream mirrors/fallbacks only and cannot override the vault when the vault is available. If a repo-local fallback is used because the vault is unavailable, document that in `Vault Context Read Path` in the validation sidecar.
+
+Required validation sidecar sections: `Vault Context Read Path` for every workflow; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. Missing required sections block `/publish-readiness`, `/optimize`, and dev-ready handoff until documented.
+
+### Vault-Backed Competitor and Feature Guardrails
+
+- `Competitive Shortlist Decision`: competitor-aware posts must document selected competitors, rejected competitors, `wiki/competitors/Competitive Context.md`, `wiki/sources/simpro-battlecards-direct-competitors-1bzgf9r8.md`, and linked source/raw files in the validation sidecar, plus why the shortlist fits the article objective.
+- Public competitor pages may shape SERP/article format, but cannot decide named competitors for Simpro public copy.
+- `Hindsight Boundary`: Hindsight/deal intelligence can inform internal strategy, but cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified. Route Hindsight context through `wiki/sources/hindsight-copy-of-simpro-battlecards-1elcobgn.md` and keep raw deal counts out of public copy.
+- `Named Feature/Add-On Link Check`: first meaningful mentions of Simpro features/add-ons must be checked against vault product routes before link decisions. Start with `wiki/concepts/payments-and-add-ons.md` and `wiki/features/Feature Library`; document each vault route checked, link decision, and reason in the validation sidecar.
+
 ### Keyword Research
 - **Primary Keyword**: Identify main target keyword for the topic
 - **Search Volume & Difficulty**: Research estimated monthly searches and competition level
@@ -32,7 +51,8 @@ Use this command to conduct comprehensive SEO keyword research and competitive a
 - **Domain Authority**: Note which competitors rank (indie blogs vs. major publications)
 
 ### Context Integration
-- **Must-read context before drafting the brief**:
+- **Vault first**: Complete `Vault Context Read Path` before drafting the brief, then use repo-local context only as fallback/mirror guidance.
+- **Must-read fallback context before drafting the brief**:
   - @context/brand-voice.md for Simpro voice, FY26 positioning, audience maturity archetypes, and best-fit targeting boundaries
   - @context/features.md for Simpro capabilities, add-ons, AI positioning, implementation, integrations, security, proof points, and fit boundaries
   - @context/style-guide.md for terminology, product-name rules, tone, regional language, and forbidden phrasing
@@ -69,7 +89,7 @@ Use this command to conduct comprehensive SEO keyword research and competitive a
 - **Visual Opportunities**: Suggest images, screenshots, or graphics needed
 - **Internal Links**: Map 3-5 key your company pages to link to (from @context/internal-links-map.md)
 - **External Authority**: Identify 2-3 authoritative external sources to link
-- **AEO/GEO Variables**: Resolve `topic`, `audience`, `main_question`, `related_questions`, `tone`, `expertise`, and `length` where possible from repo context and research evidence
+- **AEO/GEO Variables**: Resolve `topic`, `audience`, `main_question`, `related_questions`, `tone`, `expertise`, and `length` where possible from Vault Context Read Path, repo context fallback, and research evidence
 - **Source Mapping**: For each credible external source, document the claim it supports, the natural anchor phrase, and the target section
 - **Metric Proof Pack**: For software, comparison, guide, pricing, cost, ROI, KPI, profit, margin, or vs topics, extract usable numbers before writing. Record `Search log`, each `Approved metric`, public proof URL or local proof artifact, source-visible Evidence, Status: approved, and intended Use. Plan for `/publish-readiness` before writing or scoring.
 - **Validation sidecar**: Store proof-only blocks in `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in the public draft. The sidecar can contain `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, and structured data notes. Do not add an `Editorial Validation Appendix` to blog copy. Preferred publish check: `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`.

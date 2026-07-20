@@ -4,6 +4,26 @@ Simpro Marketing's Claude Code workspace for **SEO and AEO/GEO blog posts** — 
 
 Fork of [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/seomachine), customized on branch `custom/local-context` for [simprogroup.com](https://www.simprogroup.com).
 
+## Obsidian Vault Source Rule
+
+For every blog, SEO, AEO, competitor, proof, product, audience, partner, or workflow decision, use the Obsidian vault as the active context source: `C:\Users\patrick.grueschow\Desktop\Obsidian\Simpro Brand Context`.
+
+Required read order: `AGENTS.md -> wiki/cache/hot.md -> wiki/Brand Graph Index.md -> smallest relevant wiki/source/raw pages`.
+
+Do not use Google Workspace or old marketing-portal URLs as the active read path. Use them only as historical provenance when the vault already exposes a local source route.
+
+The repo-local context files are downstream mirrors/fallbacks only and cannot override the vault when the vault is available. If a repo-local fallback is used because the vault is unavailable, document that in `Vault Context Read Path` in the validation sidecar.
+
+Required validation sidecar sections: `Vault Context Read Path` for every workflow; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. Missing required sections block `/publish-readiness`, `/optimize`, and dev-ready handoff until documented.
+
+## Vault-Backed Competitor and Feature Guardrails
+
+- `Competitive Shortlist Decision`: competitor-aware posts must document selected competitors, rejected competitors, `wiki/competitors/Competitive Context.md`, `wiki/sources/simpro-battlecards-direct-competitors-1bzgf9r8.md`, and linked source/raw files in the validation sidecar, plus why the shortlist fits the article objective.
+- Public competitor pages may shape SERP/article format, but cannot decide named competitors for Simpro public copy.
+- `Hindsight Boundary`: Hindsight/deal intelligence can inform internal strategy, but cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified. Route Hindsight context through `wiki/sources/hindsight-copy-of-simpro-battlecards-1elcobgn.md` and keep raw deal counts out of public copy.
+- `Named Feature/Add-On Link Check`: first meaningful mentions of Simpro features/add-ons must be checked against vault product routes before link decisions. Start with `wiki/concepts/payments-and-add-ons.md` and `wiki/features/Feature Library`; document each vault route checked, link decision, and reason in the validation sidecar.
+
+
 ## Overview
 
 SEO Machine is built on Claude Code and provides:
@@ -14,7 +34,7 @@ SEO Machine is built on Claude Code and provides:
 - **Source-Proof Guardrails**: Metric-sensitive articles require a Metric Proof Pack before writing or publish readiness, including a Search log and at least one Approved metric with public URL or local proof artifact, source-visible Evidence, Status: approved, and intended Use. Every metric, statistic, or numeric business claim must be supported by a public URL or local proof artifact through the body link, Source Map, or Customer Proof Pack. FAQ proof requires each claim-bearing answer to include a public proof link or question-specific Source Map / FAQ Proof Map entry; Context file paths alone do not count. PAA provenance requires every FAQ question to match a saved source artifact from AnswerSocrates, SERP, Reddit, YouTube, or a user PAA/FAQ CSV. The source support guard requires strict proof rows with source-visible Evidence. The 403 replacement rule requires blocked 401, 403, or `manual_review` public research/source URLs to be replaced with an equivalent resolved public source link in public copy or the supported claim removed; Source Map notes must document the rejected 403 URL and replacement URL. Exact quotes/testimonials must be approved in Customer Proof Pack Approved quotes, and any named customer metric must be approved in Customer Proof Pack Approved metrics. Review-derived public E-E-A-T stories require identity-backed `Review Story Selection`, a public review URL, and a same paragraph article link. experience_story consideration is required and E-E-A-T story usage is optional when customer proof appears; use a proof-backed customer/review POV only when it improves the article objective. Fictional named personas are prohibited. Capterra review themes may use `Review Site Theme Selection` with `Source row ref: Capterra tab row [n]`, `Public review-site URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/`, and `Status: approved for paraphrased review-theme use`; public copy must link the Capterra review-site URL in the same paragraph and use no exact quote, reviewer-name claim, rating, ranking, or metric unless separately approved. Full policy lives in `context/aeo-geo-blog-strategy.md`.
 - **Advanced SEO Analysis**: Search intent detection, keyword density & clustering, content length comparison, readability scoring, SEO quality rating (0-100)
 - **Data Integrations**: GA4 and GSC via project MCP servers; DataForSEO, Ahrefs, and Semrush context in keyword/competitor files; PEEC AI citation tracking
-- **Simpro Context Pack**: Pre-filled brand voice, style guide, features, 40+ competitor battlecards, writing examples, internal links, target keywords, AI citation register, Reddit strategy, and scoped Lightning positioning overlay
+- **Simpro Context Pack**: Obsidian-vault-first context with repo-local mirror/fallback files for brand voice, style guide, features, 40+ competitor battlecards, writing examples, internal links, target keywords, AI citation register, Reddit strategy, and scoped Lightning positioning overlay
 - **Workflow Organization**: Structured directories for topics, research, drafts, audits, and published content
 
 ## Getting Started
@@ -698,7 +718,7 @@ seomachine/
 
 ## Context Files (Simpro)
 
-Blog quality depends on these context files. Most are **pre-filled** for Simpro; see `context/_coverage-report.md` for status, sources, and refresh cadence.
+Blog quality depends on the Obsidian vault first. These `context/` files are downstream mirrors/fallbacks for cloned routines without vault access; see `context/_coverage-report.md` for status, sources, and refresh cadence.
 
 | File | Status | Use when |
 |------|--------|----------|
@@ -788,8 +808,8 @@ Every Simpro blog post should meet these requirements:
 7. **Source support proof**: Add strict proof rows with Claim, Approved quote, or Approved metric plus URL, Evidence, and Status: approved for high-risk claims. Evidence must be visible in the cited public source or local proof artifact.
 8. **Source mapping**: At least three external claims with clear attribution
 9. **Down-funnel link**: Add 1 contextual down-funnel internal link to an industry, solution, or feature page. Use `https://www.simprogroup.com/industries` for broad trades topics when no single industry page fits.
-10. **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics. Draft bodies may use public sources and context-backed proof, but must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, internal proof-path instructions, or source/proof meta-commentary. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
-11. **Competitive framing**: Use `competitor-analysis.md` — differentiate, do not disparage
+10. **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics only when the Obsidian vault is unavailable; otherwise treat them as repo-local mirrors/fallbacks. Draft bodies may use public sources and context-backed proof, but must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, internal proof-path instructions, or source/proof meta-commentary. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
+11. **Competitive framing**: Use `Competitive Shortlist Decision` from the validation sidecar and `competitor-analysis.md` only as a fallback mirror; differentiate, do not disparage
 
 ### After Writing
 1. **Agent passes**: SEO Optimizer, Meta Creator, Internal Linker, Keyword Mapper

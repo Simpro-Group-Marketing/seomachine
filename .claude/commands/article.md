@@ -42,7 +42,7 @@ This prevents the "AI knows everything" trap that produces generic content match
 
 ### Variable Resolution
 
-Before opening the browser or drafting, resolve these variables from the user prompt, repo context, existing research, and current SERP/PAA evidence:
+Before opening the browser or drafting, resolve these variables from the user prompt, Vault Context Read Path, repo context fallback, existing research, and current SERP/PAA evidence:
 
 | Variable | Resolution Rule |
 |----------|-----------------|
@@ -64,7 +64,7 @@ Before planning or drafting, resolve an E-E-A-T Proof Map:
 - **Experience**: Customer case studies, customer outcomes, review-site experience evidence / VoC themes, implementation/support themes, user pain, and field workflow examples.
 - **Expertise**: Product/feature knowledge, source-backed workflow explanations, expert quotes, author/reviewer metadata, and Simpro workflow specificity.
 - **Authority/Trust**: Public research, case-study URLs, review-site/source links, limitations/caveats, and no invented proof.
-- **Context sources**: Pull case-study URLs from @context/internal-links-map.md, approved metrics/proof candidates from @context/features.md, and review-site experience evidence / VoC or competitor experience themes from @context/competitor-analysis.md or future review-context files.
+- **Fallback context sources**: After Vault Context Read Path, pull case-study URLs from @context/internal-links-map.md, approved metrics/proof candidates from @context/features.md, and review-site experience evidence / VoC or competitor experience themes from @context/competitor-analysis.md or future review-context files only as repo-local mirror/fallback inputs.
 - **Public-copy rule**: Context-backed metrics are valid only when the article body uses public-facing source links, such as the public case-study URL, review-site URL, or public research source; context-backed proof is never cited as internal context.
 - **403 replacement rule**: If a DOL, Capterra, G2, Trustpilot, Google Play, or other public research/source URL returns 401, 403, or `manual_review`, do not remove the citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. Source Map notes must document both the rejected 403 URL and the replacement URL. Full policy and the `public_research_link_guard.py` gate live in `context/aeo-geo-blog-strategy.md`.
 
@@ -138,6 +138,25 @@ If AnswerSocrates shows keyword fragments or query modifiers instead of complete
 **You MUST research before writing. No exceptions.**
 
 ### Process
+
+### Obsidian Vault Source Rule
+
+For every blog, SEO, AEO, competitor, proof, product, audience, partner, or workflow decision, use the Obsidian vault as the active context source: `C:\Users\patrick.grueschow\Desktop\Obsidian\Simpro Brand Context`.
+
+Required read order: `AGENTS.md -> wiki/cache/hot.md -> wiki/Brand Graph Index.md -> smallest relevant wiki/source/raw pages`.
+
+Do not use Google Workspace or old marketing-portal URLs as the active read path. Use them only as historical provenance when the vault already exposes a local source route.
+
+The repo-local context files are downstream mirrors/fallbacks only and cannot override the vault when the vault is available. If a repo-local fallback is used because the vault is unavailable, document that in `Vault Context Read Path` in the validation sidecar.
+
+Required validation sidecar sections: `Vault Context Read Path` for every workflow; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. Missing required sections block `/publish-readiness`, `/optimize`, and dev-ready handoff until documented.
+
+### Vault-Backed Competitor and Feature Guardrails
+
+- `Competitive Shortlist Decision`: competitor-aware posts must document selected competitors, rejected competitors, `wiki/competitors/Competitive Context.md`, `wiki/sources/simpro-battlecards-direct-competitors-1bzgf9r8.md`, and linked source/raw files in the validation sidecar, plus why the shortlist fits the article objective.
+- Public competitor pages may shape SERP/article format, but cannot decide named competitors for Simpro public copy.
+- `Hindsight Boundary`: Hindsight/deal intelligence can inform internal strategy, but cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified. Route Hindsight context through `wiki/sources/hindsight-copy-of-simpro-battlecards-1elcobgn.md` and keep raw deal counts out of public copy.
+- `Named Feature/Add-On Link Check`: first meaningful mentions of Simpro features/add-ons must be checked against vault product routes before link decisions. Start with `wiki/concepts/payments-and-add-ons.md` and `wiki/features/Feature Library`; document each vault route checked, link decision, and reason in the validation sidecar.
 
 1. **Search the Target Keyword**
    Use WebSearch to find what's currently ranking:

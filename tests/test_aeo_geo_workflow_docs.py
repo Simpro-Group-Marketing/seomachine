@@ -1378,5 +1378,129 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
 
+    def test_workflow_docs_require_obsidian_vault_first_context(self):
+        docs = [
+            ROOT / "AGENTS.md",
+            ROOT / "CLAUDE.md",
+            ROOT / "README.md",
+            ROOT / ".claude" / "commands" / "research.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "analyze-existing.md",
+        ]
+        required = [
+            "Obsidian Vault Source Rule",
+            r"C:\Users\patrick.grueschow\Desktop\Obsidian\Simpro Brand Context",
+            "AGENTS.md -> wiki/cache/hot.md -> wiki/Brand Graph Index.md -> smallest relevant wiki/source/raw pages",
+            "repo-local context files are downstream mirrors/fallbacks only",
+            "cannot override the vault when the vault is available",
+            "Do not use Google Workspace or old marketing-portal URLs as the active read path",
+            "Vault Context Read Path",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+    def test_competitor_shortlist_requires_vault_backed_decision(self):
+        docs = [
+            ROOT / "CLAUDE.md",
+            ROOT / "README.md",
+            ROOT / ".claude" / "commands" / "research.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "analyze-existing.md",
+            ROOT / "context" / "competitor-analysis.md",
+        ]
+        required = [
+            "Competitive Shortlist Decision",
+            "selected competitors",
+            "rejected competitors",
+            "wiki/competitors/Competitive Context.md",
+            "wiki/sources/simpro-battlecards-direct-competitors-1bzgf9r8.md",
+            "linked source/raw files",
+            "Public competitor pages may shape SERP/article format, but cannot decide named competitors for Simpro public copy",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+    def test_hindsight_boundary_is_documented_for_public_claims(self):
+        docs = [
+            ROOT / "CLAUDE.md",
+            ROOT / "README.md",
+            ROOT / ".claude" / "commands" / "research.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "analyze-existing.md",
+            ROOT / "context" / "competitor-analysis.md",
+        ]
+        required = [
+            "Hindsight Boundary",
+            "Hindsight/deal intelligence can inform internal strategy",
+            "cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified",
+            "wiki/sources/hindsight-copy-of-simpro-battlecards-1elcobgn.md",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+    def test_named_feature_add_on_link_check_is_documented(self):
+        docs = [
+            ROOT / "CLAUDE.md",
+            ROOT / "README.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "analyze-existing.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+        ]
+        required = [
+            "Named Feature/Add-On Link Check",
+            "first meaningful mentions of Simpro features/add-ons",
+            "wiki/concepts/payments-and-add-ons.md",
+            "wiki/features/Feature Library",
+            "vault route checked",
+            "link decision",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+    def test_pmm_qa_rule_is_not_part_of_repo_guardrail_update(self):
+        docs = [
+            ROOT / "AGENTS.md",
+            ROOT / "CLAUDE.md",
+            ROOT / "README.md",
+            ROOT / ".claude" / "commands" / "research.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "analyze-existing.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / "context" / "competitor-analysis.md",
+        ]
+        forbidden = [
+            "Self-Generated Blog PMM QA Rule",
+            "AI/self-generated blogs with competitor, product, or proof claims require PMM QA before dev-ready handoff",
+            "External PMM QA",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in forbidden:
+                self.assertNotIn(text, content, f"{path.name} must not include deferred PMM QA rule")
+
+
 if __name__ == "__main__":
     unittest.main()

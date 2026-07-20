@@ -10,9 +10,28 @@
 
 ---
 
+
+## Obsidian Vault Source Rule
+
+For every blog, SEO, AEO, competitor, proof, product, audience, partner, or workflow decision, use the Obsidian vault as the active context source: `C:\Users\patrick.grueschow\Desktop\Obsidian\Simpro Brand Context`.
+
+Required read order: `AGENTS.md -> wiki/cache/hot.md -> wiki/Brand Graph Index.md -> smallest relevant wiki/source/raw pages`.
+
+Do not use Google Workspace or old marketing-portal URLs as the active read path. Use them only as historical provenance when the vault already exposes a local source route.
+
+The repo-local context files are downstream mirrors/fallbacks only and cannot override the vault when the vault is available. If a repo-local fallback is used because the vault is unavailable, document that in `Vault Context Read Path` in the validation sidecar.
+
+Required validation sidecar sections: `Vault Context Read Path` for every workflow; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. Missing required sections block `/publish-readiness`, `/optimize`, and dev-ready handoff until documented.
+
+## Vault-Backed Competitor Guardrails
+
+- `Competitive Shortlist Decision`: competitor-aware posts must document selected competitors, rejected competitors, `wiki/competitors/Competitive Context.md`, `wiki/sources/simpro-battlecards-direct-competitors-1bzgf9r8.md`, and linked source/raw files in the validation sidecar, plus why the shortlist fits the article objective.
+- Public competitor pages may shape SERP/article format, but cannot decide named competitors for Simpro public copy.
+- `Hindsight Boundary`: Hindsight/deal intelligence can inform internal strategy, but cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified. Route Hindsight context through `wiki/sources/hindsight-copy-of-simpro-battlecards-1elcobgn.md` and keep raw deal counts out of public copy.
+
 ## How to Use This File
 
-Use this file as the fast entrypoint for competitor-aware content decisions. Start here for the strategic readout, then open the linked reference files only when you need exact battlecard wording, source boundaries, or detailed SEO market evidence.
+Use the Obsidian vault as the fast entrypoint for competitor-aware content decisions. This repo file is a downstream mirror/fallback only when the vault is unavailable. When using this fallback, still document `Vault Context Read Path` with the blocker or fallback reason, then open linked reference files only when you need exact battlecard wording, source boundaries, or detailed SEO market evidence.
 
 ## Source Boundaries
 
