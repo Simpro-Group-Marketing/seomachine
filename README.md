@@ -14,7 +14,7 @@ Do not use Google Workspace or old marketing-portal URLs as the active read path
 
 The repo-local context files are downstream mirrors/fallbacks only and cannot override the vault when the vault is available. If a repo-local fallback is used because the vault is unavailable, document that in `Vault Context Read Path` in the validation sidecar.
 
-Required validation sidecar sections: `Vault Context Read Path` for every workflow; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. Missing required sections block `/publish-readiness`, `/optimize`, and dev-ready handoff until documented.
+Required validation sidecar sections: `Vault Context Read Path` for every workflow; `Vault Brand Language Alignment` when product, feature, add-on, solution, industry, or related Simpro product URL language appears; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. Missing required sections block `/publish-readiness`, `/optimize`, and dev-ready handoff until documented.
 
 ## Vault-Backed Competitor and Feature Guardrails
 
@@ -22,6 +22,7 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
 - Public competitor pages may shape SERP/article format, but cannot decide named competitors for Simpro public copy.
 - `Hindsight Boundary`: Hindsight/deal intelligence can inform internal strategy, but cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified. Route Hindsight context through `wiki/sources/hindsight-copy-of-simpro-battlecards-1elcobgn.md` and keep raw deal counts out of public copy.
 - `Named Feature/Add-On Link Check`: first meaningful mentions of Simpro features/add-ons must be checked against vault product routes before link decisions. Start with `wiki/concepts/payments-and-add-ons.md` and `wiki/features/Feature Library`; document each vault route checked, link decision, and reason in the validation sidecar.
+- `Vault Brand Language Alignment`: product, feature, add-on, solution, and industry language must be drafted from the vault first. Read `wiki/messaging/Simpro Core Messaging Repository.md`, `wiki/messaging/Message House.md`, `wiki/messaging/Core Value Pillars.md`, `wiki/product/Product Positioning.md`, and `wiki/features/Feature Library.md`; when a named feature/add-on appears, add the relevant `wiki/features/source-docs/` route or specific source/raw route; when solution/industry language is used, also read `wiki/verticals/Vertical Profile Library.md` and the relevant vertical/source page. Document routes checked, language applied, fallback context use, source-verification boundary, and `Status: aligned` in `Vault Brand Language Alignment`. The `vault_brand_language_guard.py` publish gate runs inside `/publish-readiness`; keep this block in the validation sidecar, not public copy. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
 
 
 ## Overview
@@ -128,7 +129,7 @@ claude-code .
 **What it does**:
 - Creates 2000-3000+ word SEO-optimized article
 - Applies `context/aeo-geo-blog-strategy.md` (Capsule Method, PAA/FAQ, source mapping, schema notes)
-- Maintains Simpro brand voice from `context/brand-voice.md` (and `lightning-positioning.md` when relevant)
+- Maintains Simpro brand voice from the vault first; `context/brand-voice.md` and `lightning-positioning.md` are fallback mirrors when the vault is unavailable
 - Integrates keywords from `context/target-keywords.md`
 - Includes internal and external links per `context/internal-links-map.md`
 - Uses only 1 link per paragraph, moving any second link to a separate paragraph or removing it
@@ -753,7 +754,7 @@ Every Simpro blog post should meet these requirements:
 - [ ] Customer proof diversity guard passes: Customer Proof Pack includes Quote Matrix, Reference, Customer Story, or review-site search evidence when case studies are used, a `Customer Proof Selection Decision`, and a source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved proof fits the same role when selected proof is recently used or overused
 - [ ] Review story identity guard passes when review-derived story copy appears: the sidecar includes identity-backed `Review Story Selection`, the selected story has a public review URL, and the public article links that URL in the same paragraph as the paraphrase
 - [ ] Actionable for **trade and field service leaders** (not generic SMB advice)
-- [ ] Simpro voice: authoritative, trades-focused, outcomes-driven (`brand-voice.md`)
+- [ ] Simpro voice: authoritative, trades-focused, outcomes-driven from the vault first (`brand-voice.md` is fallback mirror context only)
 
 ### SEO
 - [ ] Primary keyword density ~1-2% per `seo-guidelines.md`
@@ -777,7 +778,7 @@ Every Simpro blog post should meet these requirements:
 
 ### Readability
 - [ ] 8th-10th grade reading level (trades audience)
-- [ ] Short sentences; active voice; no vendor clichÃ©s (`style-guide.md` avoid list)
+- [ ] Short sentences; active voice; no vendor cliches (`style-guide.md` avoid list)
 - [ ] Subheadings every 300-400 words; scannable lists
 
 ### Structure
@@ -790,7 +791,7 @@ Every Simpro blog post should meet these requirements:
 ### Before Writing a Blog Post
 1. **Research first**: `/research` or `/research-serp` — confirm intent and gaps vs. top SERP
 2. **PAA when needed**: Use `/article` or supply a FAQ CSV if the brief lacks People Also Ask questions
-3. **Check context**: `brand-voice.md`, `writing-examples.md`, and `aeo-geo-blog-strategy.md`
+3. **Check context**: vault routes first, then `brand-voice.md`, `writing-examples.md`, and `aeo-geo-blog-strategy.md` only as fallback mirrors where applicable
 4. **Lightning only if on-topic**: Load `lightning-positioning.md` for Cooper/JustAsk/agent posts
 5. **Keywords and links**: `target-keywords.md` + `internal-links-map.md` for cluster and URL targets
 6. **E-E-A-T proof**: Build the E-E-A-T Proof Map before drafting. Use `context/aeo-geo-blog-strategy.md` for review-story, Capterra-theme, exact-quote, rating, and metric boundaries.
@@ -819,7 +820,7 @@ Every Simpro blog post should meet these requirements:
 5. **Final readiness**: Rerun `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`
 6. **Publish**: `/publish-draft` to WordPress when approved
 
-The `/publish-readiness` command runs the public artifact, AI copy, URL, proof, source support, customer proof, review story, early artifact, answer withholding, content score, and AEO/GEO gates internally. Use individual Python guard modules only when debugging a specific failed gate from the canonical policy in `context/aeo-geo-blog-strategy.md`.
+The `/publish-readiness` command runs the public artifact, AI copy, URL, proof, source support, customer proof, review story, early artifact, answer withholding, vault brand language, content score, and AEO/GEO gates internally. Use individual Python guard modules only when debugging a specific failed gate from the canonical policy in `context/aeo-geo-blog-strategy.md`.
 
 Use a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md` for non-public proof blocks. Blog copy must not contain an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan.
 
@@ -944,7 +945,7 @@ Customer proof diversity guard confirms proof selection is not defaulting to rec
 ## Troubleshooting
 
 ### "Blog doesn't sound like Simpro"
-- Re-read `brand-voice.md` and `writing-examples.md`; compare to a published simprogroup.com post
+- Re-read vault messaging routes first, then `brand-voice.md` and `writing-examples.md` only as fallback mirrors; compare to a published simprogroup.com post
 - For Lightning posts, confirm `lightning-positioning.md` is loaded and Cooper/JustAsk rules are followed
 - Run `/scrub`, then `ai_copy_linter.py`, then Editor agent for robotic phrasing
 

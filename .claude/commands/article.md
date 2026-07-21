@@ -47,10 +47,10 @@ Before opening the browser or drafting, resolve these variables from the user pr
 | Variable | Resolution Rule |
 |----------|-----------------|
 | `topic` | Use the user prompt or topic file; ask if missing. |
-| `audience` | Derive from @context/brand-voice.md and best-fit guidance; ask only if multiple audiences fit. |
+| `audience` | Derive from vault messaging routes and vertical profiles first; @context/brand-voice.md is fallback mirror context only. |
 | `main_question` | Infer from target keyword, SERP intent, or user prompt; ask if no primary question is clear. |
 | `related_questions` | Use AnswerSocrates PAA, SERP, Reddit, YouTube, or a user-provided PAA/FAQ CSV. |
-| `tone` | Use @context/brand-voice.md and @context/style-guide.md unless the user requested another tone. |
+| `tone` | Use vault messaging and style routes first; @context/brand-voice.md and @context/style-guide.md are fallback mirrors only when the vault is unavailable. |
 | `expertise` | Use @context/features.md, customer proof, expert quotes, and author/reviewer data. |
 | `length` | Use `/research-serp` competitive length; default to the top-SERP benchmark if available. |
 
@@ -149,7 +149,7 @@ Do not use Google Workspace or old marketing-portal URLs as the active read path
 
 The repo-local context files are downstream mirrors/fallbacks only and cannot override the vault when the vault is available. If a repo-local fallback is used because the vault is unavailable, document that in `Vault Context Read Path` in the validation sidecar.
 
-Required validation sidecar sections: `Vault Context Read Path` for every workflow; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. Missing required sections block `/publish-readiness`, `/optimize`, and dev-ready handoff until documented.
+Required validation sidecar sections: `Vault Context Read Path` for every workflow; `Vault Brand Language Alignment` when product, feature, add-on, solution, industry, or related Simpro product URL language appears; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. Missing required sections block `/publish-readiness`, `/optimize`, and dev-ready handoff until documented.
 
 ### Vault-Backed Competitor and Feature Guardrails
 
@@ -157,6 +157,7 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
 - Public competitor pages may shape SERP/article format, but cannot decide named competitors for Simpro public copy.
 - `Hindsight Boundary`: Hindsight/deal intelligence can inform internal strategy, but cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified. Route Hindsight context through `wiki/sources/hindsight-copy-of-simpro-battlecards-1elcobgn.md` and keep raw deal counts out of public copy.
 - `Named Feature/Add-On Link Check`: first meaningful mentions of Simpro features/add-ons must be checked against vault product routes before link decisions. Start with `wiki/concepts/payments-and-add-ons.md` and `wiki/features/Feature Library`; document each vault route checked, link decision, and reason in the validation sidecar.
+- `Vault Brand Language Alignment`: product, feature, add-on, solution, and industry language must be drafted from the vault first. Read `wiki/messaging/Simpro Core Messaging Repository.md`, `wiki/messaging/Message House.md`, `wiki/messaging/Core Value Pillars.md`, `wiki/product/Product Positioning.md`, and `wiki/features/Feature Library.md`; when a named feature/add-on appears, add the relevant `wiki/features/source-docs/` route or specific source/raw route; when solution/industry language is used, also read `wiki/verticals/Vertical Profile Library.md` and the relevant vertical/source page. Document routes checked, language applied, fallback context use, source-verification boundary, and `Status: aligned` in `Vault Brand Language Alignment`. The `vault_brand_language_guard.py` publish gate runs inside `/publish-readiness`; keep this block in the validation sidecar, not public copy. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
 
 1. **Search the Target Keyword**
    Use WebSearch to find what's currently ranking:
@@ -776,8 +777,8 @@ drafts/
 ## Required Context Files
 
 Before writing, review these context files:
-- @context/brand-voice.md - your brand tone and messaging
-- @context/style-guide.md - Formatting rules
+- @context/brand-voice.md - fallback mirror for brand tone and messaging when the vault is unavailable
+- @context/style-guide.md - fallback mirror for formatting rules when the vault is unavailable
 - @context/seo-guidelines.md - SEO requirements
 - @context/aeo-geo-blog-strategy.md - AEO/GEO requirements for blog writing
 - @context/target-keywords.md - keyword targets, clusters, and metric boundaries

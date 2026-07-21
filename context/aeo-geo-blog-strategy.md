@@ -22,7 +22,7 @@ Do not use Google Workspace or old marketing-portal URLs as the active read path
 
 The repo-local context files are downstream mirrors/fallbacks only and cannot override the vault when the vault is available. If a repo-local fallback is used because the vault is unavailable, document that in `Vault Context Read Path` in the validation sidecar.
 
-Required validation sidecar sections: `Vault Context Read Path` for every workflow; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. Missing required sections block `/publish-readiness`, `/optimize`, and dev-ready handoff until documented.
+Required validation sidecar sections: `Vault Context Read Path` for every workflow; `Vault Brand Language Alignment` when product, feature, add-on, solution, industry, or related Simpro product URL language appears; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. Missing required sections block `/publish-readiness`, `/optimize`, and dev-ready handoff until documented.
 
 ## Vault-Backed Competitor and Feature Guardrails
 
@@ -30,7 +30,23 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
 - Public competitor pages may shape SERP/article format, but cannot decide named competitors for Simpro public copy.
 - `Hindsight Boundary`: Hindsight/deal intelligence can inform internal strategy, but cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified. Route Hindsight context through `wiki/sources/hindsight-copy-of-simpro-battlecards-1elcobgn.md` and keep raw deal counts out of public copy.
 - `Named Feature/Add-On Link Check`: first meaningful mentions of Simpro features/add-ons must be checked against vault product routes before link decisions. Start with `wiki/concepts/payments-and-add-ons.md` and `wiki/features/Feature Library`; document each vault route checked, link decision, and reason in the validation sidecar.
+- `Vault Brand Language Alignment`: product, feature, add-on, solution, and industry language must be drafted from the vault first. Read `wiki/messaging/Simpro Core Messaging Repository.md`, `wiki/messaging/Message House.md`, `wiki/messaging/Core Value Pillars.md`, `wiki/product/Product Positioning.md`, and `wiki/features/Feature Library.md`; when a named feature/add-on appears, add the relevant `wiki/features/source-docs/` route or specific source/raw route; when solution/industry language is used, also read `wiki/verticals/Vertical Profile Library.md` and the relevant vertical/source page. Document routes checked, language applied, fallback context use, source-verification boundary, and `Status: aligned` in `Vault Brand Language Alignment`. The `vault_brand_language_guard.py` publish gate runs inside `/publish-readiness`; keep this block in the validation sidecar, not public copy. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
 
+Required `Vault Brand Language Alignment` sidecar block:
+
+```markdown
+## Vault Brand Language Alignment
+- Article title: [title]
+- Product/solution language scope: product/feature | solution/industry | mixed
+- Vault routes checked: AGENTS.md; wiki/cache/hot.md; wiki/Brand Graph Index.md; wiki/messaging/Simpro Core Messaging Repository.md; wiki/messaging/Message House.md; wiki/messaging/Core Value Pillars.md; wiki/product/Product Positioning.md; wiki/features/Feature Library.md; [specific wiki/features/source-docs/ feature route]; [wiki/verticals/Vertical Profile Library.md when solution/industry language is used]
+- Product/feature language applied: [category, product naming, value pillar, workflow phrase, avoided terms]
+- Solution/industry language applied: [vertical profile, audience, work environment, guardrails, or not applicable]
+- Fallback context use: none | [repo-local fallback plus vault-unavailable blocker]
+- Claims requiring source verification: none | mapped in Source Map / Customer Proof Pack / Metric Proof Pack
+- Status: aligned
+```
+
+This block validates vault language alignment only. It does not approve claims, pricing, metrics, proof, customer outcomes, competitive statements, quotes, rankings, or ratings; those still route through Source Map, Customer Proof Pack, Metric Proof Pack, and the existing proof gates.
 
 Use this file for blog workflows only. It supports `/research`, `/research-serp`, `/article`, `/write`, `/analyze-existing`, and `/rewrite`; it does not replace marketing skills.
 
@@ -41,10 +57,10 @@ Before drafting with `/article`, `/write`, or `/rewrite`, resolve these variable
 | Variable | First source | Fallback |
 |---|---|---|
 | `topic` | User prompt or topic file | Ask the user |
-| `audience` | `context/brand-voice.md` audience and fit guidance | Ask only if multiple audiences fit |
+| `audience` | Vault messaging routes and vertical profiles | `context/brand-voice.md` fallback mirror if the vault is unavailable |
 | `main_question` | SERP/PAA intent, title, or brief | Ask if no clear primary question exists |
 | `related_questions` | AnswerSocrates PAA artifact, SERP, Reddit, YouTube | Ask for PAA/FAQ CSV if AnswerSocrates is blocked |
-| `tone` | `context/brand-voice.md` and `context/style-guide.md` | Ask only if user requests a non-standard tone |
+| `tone` | Vault messaging and style routes | `context/brand-voice.md` and `context/style-guide.md` fallback mirrors if the vault is unavailable |
 | `expertise` | `context/features.md`, customer proof, expert quotes | Ask if a named author/reviewer is required and missing |
 | `length` | SERP/content brief | Default to competitive length from `/research-serp` |
 
@@ -319,7 +335,7 @@ A draft is publish-ready only when both gates pass:
 
 - General content quality score: 85/100 or higher.
 - AEO/GEO score: 90/100 or higher.
-- Validation sidecar: proof-only blocks must live in `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in public copy. Public artifacts must pass `data_sources/modules/public_artifact_guard.py --fail-on error` and must not contain an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, `Early Artifact Plan`, `Concrete Answer Check`, or structured data plan.
+- Validation sidecar: proof-only blocks must live in `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in public copy. Public artifacts must pass `data_sources/modules/public_artifact_guard.py --fail-on error` and must not contain an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, `Vault Brand Language Alignment`, `Early Artifact Plan`, `Concrete Answer Check`, or structured data plan.
 - AI copy linting: `data_sources/modules/ai_copy_linter.py --profile simpro-web --fail-on error` blocks copy avoid-rule errors before publish readiness. Copy avoid-rule errors include modal verbs, passive voice, repeated starts, vague generalizations, filler words, and long sentences.
 - Publish readiness runner: use `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` as the default execution command. Use the individual gates below for debugging and policy-specific failures.
 - URL validation gate: `data_sources/modules/url_validator.py --fail-on unresolved` must pass before scoring, `/optimize`, handoff, or publish. URL validation confirms destinations resolve; it does not prove the page supports the claim.
@@ -334,8 +350,9 @@ A draft is publish-ready only when both gates pass:
 - Review story identity guard: `data_sources/modules/review_story_identity_guard.py --fail-on error` must pass before scoring or `/optimize`. It verifies that review-derived E-E-A-T story copy has an identity-backed `Review Story Selection`, a usable public review URL, and a same paragraph public link. It also verifies that Capterra review-theme copy has `Review Site Theme Selection`, `Source row ref: Capterra tab row [n]`, `Public review-site URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/`, same paragraph source link, and no exact quote, reviewer-name claim, rating, ranking, or metric unless separately approved.
 - Early artifact guard: `data_sources/modules/early_artifact_guard.py --fail-on error` must pass before scoring or `/optimize`. A usable artifact — a filled data table, a download link, a checklist deliverable, or a calculator/tool reference — must start within the first 300 words of body copy. The only exemption is an `Early Artifact Plan` block in the validation sidecar with `Early artifact requirement: not applicable` and a Reason.
 - Answer withholding guard: `data_sources/modules/answer_withholding_guard.py --fail-on error` must pass before scoring or `/optimize`. Placeholder table scaffolds block publish unconditionally with no exemption. When the target query implies a number, range, or template, the article must supply a concrete numeric answer early or a filled data table or download; a `Concrete Answer Check` block with `Concrete answer requirement: not applicable` and a Reason exempts only the numeric/template answer requirement, never scaffolds.
+- Vault brand language guard: `data_sources/modules/vault_brand_language_guard.py --fail-on error` must pass before scoring or `/optimize` when Simpro product, feature, add-on, solution, industry, or related Simpro product URL language appears. It requires `Vault Brand Language Alignment` in the validation sidecar with the core vault routes, any needed `wiki/features/source-docs/` route, `wiki/verticals/Vertical Profile Library.md` for solution/industry language, fallback blocker details if fallback mirrors were used, and `Status: aligned`.
 
-Use `--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` with Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, and content scorer commands so proof maps stay out of the article copy artifact.
+Use `--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` with Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, vault brand language, and content scorer commands so proof maps stay out of the article copy artifact.
 
 The validation sidecar is the only approved place for proof maps and proof packs that are not publishable article copy.
 

@@ -26,6 +26,7 @@ try:
         public_artifact_guard,
         review_story_identity_guard,
         source_support_guard,
+        vault_brand_language_guard,
     )
     from .content_scorer import ContentScorer
     from .guard_common import should_fail, summarize_findings
@@ -43,6 +44,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import public_artifact_guard
     import review_story_identity_guard
     import source_support_guard
+    import vault_brand_language_guard
     from content_scorer import ContentScorer
     from guard_common import should_fail, summarize_findings
     from url_validator import UrlValidationSummary, validate_file_urls
@@ -97,6 +99,11 @@ PROOF_AWARE_GATES = (
         "answer_withholding",
         "Answer Withholding",
         answer_withholding_guard,
+    ),
+    (
+        "vault_brand_language",
+        "Vault Brand Language",
+        vault_brand_language_guard,
     ),
 )
 

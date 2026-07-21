@@ -16,14 +16,15 @@ Use this command to perform a final SEO optimization pass on completed articles 
 
 ### Validation Sidecar And Publish Readiness
 
-Before returning `Ready`, confirm proof-only infrastructure lives in a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in the blog copy. The article file must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan.
+Before returning `Ready`, confirm proof-only infrastructure lives in a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in the blog copy. The article file must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, `Vault Brand Language Alignment`, or structured data plan.
 
+Vault product-language check: If the article uses Simpro product, feature, add-on, solution, industry, or related Simpro product URL language, confirm the validation sidecar contains `Vault Brand Language Alignment` with `wiki/messaging/Simpro Core Messaging Repository.md`, `wiki/messaging/Message House.md`, `wiki/messaging/Core Value Pillars.md`, `wiki/product/Product Positioning.md`, `wiki/features/Feature Library.md`, any needed `wiki/features/source-docs/` route, `wiki/verticals/Vertical Profile Library.md` for solution/industry language, and `Status: aligned`. The `vault_brand_language_guard.py` publish gate runs inside `/publish-readiness`. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
 Preferred publish readiness command:
 ```bash
 /publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
 ```
 
-Before returning `Ready`, run `/publish-readiness`. It runs URL validation, public artifact checks, AI copy linting, public research link checks, Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, content score, and AEO/GEO gates internally.
+Before returning `Ready`, run `/publish-readiness`. It runs URL validation, public artifact checks, AI copy linting, public research link checks, Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, vault brand language, content score, and AEO/GEO gates internally.
 
 403 replacement rule: If a DOL, Capterra, G2, Trustpilot, Google Play, or other public research/source URL returns 401, 403, or `manual_review`, do not remove the citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. Source Map notes must document both the rejected 403 URL and the replacement URL. `/publish-readiness` runs `public_research_link_guard.py` to block sidecar-only handling of public research, compliance, legal, regulatory, or statistical proof.
 
@@ -158,8 +159,8 @@ If customer proof appears in public copy, experience_story consideration is requ
 ### Brand & Voice
 
 #### your company Alignment
-- **Brand Voice**: Verify alignment with @context/brand-voice.md
-- **Style Guide**: Check adherence to @context/style-guide.md
+- **Brand Voice**: Verify alignment with the vault messaging routes first; use @context/brand-voice.md only as a fallback mirror when the vault is unavailable
+- **Style Guide**: Check vault terminology first; use @context/style-guide.md only as a fallback mirror when the vault is unavailable
 - **Messaging**: Ensure messaging reflects your company positioning
 - **Product Mentions**: Natural integration of your company features
 - **CTA**: Appropriate call-to-action for article intent

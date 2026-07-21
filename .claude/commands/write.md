@@ -24,7 +24,7 @@ Do not use Google Workspace or old marketing-portal URLs as the active read path
 
 The repo-local context files are downstream mirrors/fallbacks only and cannot override the vault when the vault is available. If a repo-local fallback is used because the vault is unavailable, document that in `Vault Context Read Path` in the validation sidecar.
 
-Required validation sidecar sections: `Vault Context Read Path` for every workflow; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. Missing required sections block `/publish-readiness`, `/optimize`, and dev-ready handoff until documented.
+Required validation sidecar sections: `Vault Context Read Path` for every workflow; `Vault Brand Language Alignment` when product, feature, add-on, solution, industry, or related Simpro product URL language appears; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. Missing required sections block `/publish-readiness`, `/optimize`, and dev-ready handoff until documented.
 
 ### Vault-Backed Competitor and Feature Guardrails
 
@@ -32,12 +32,13 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
 - Public competitor pages may shape SERP/article format, but cannot decide named competitors for Simpro public copy.
 - `Hindsight Boundary`: Hindsight/deal intelligence can inform internal strategy, but cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified. Route Hindsight context through `wiki/sources/hindsight-copy-of-simpro-battlecards-1elcobgn.md` and keep raw deal counts out of public copy.
 - `Named Feature/Add-On Link Check`: first meaningful mentions of Simpro features/add-ons must be checked against vault product routes before link decisions. Start with `wiki/concepts/payments-and-add-ons.md` and `wiki/features/Feature Library`; document each vault route checked, link decision, and reason in the validation sidecar.
+- `Vault Brand Language Alignment`: product, feature, add-on, solution, and industry language must be drafted from the vault first. Read `wiki/messaging/Simpro Core Messaging Repository.md`, `wiki/messaging/Message House.md`, `wiki/messaging/Core Value Pillars.md`, `wiki/product/Product Positioning.md`, and `wiki/features/Feature Library.md`; when a named feature/add-on appears, add the relevant `wiki/features/source-docs/` route or specific source/raw route; when solution/industry language is used, also read `wiki/verticals/Vertical Profile Library.md` and the relevant vertical/source page. Document routes checked, language applied, fallback context use, source-verification boundary, and `Status: aligned` in `Vault Brand Language Alignment`. The `vault_brand_language_guard.py` publish gate runs inside `/publish-readiness`; keep this block in the validation sidecar, not public copy. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
 
 ### Pre-Writing Review
 - **Research Brief**: Review research brief from `/research` command if available
-- **Brand Voice**: Check @context/brand-voice.md for tone and messaging
+- **Brand Voice**: Use the vault messaging routes first; @context/brand-voice.md is a fallback mirror only when the vault is unavailable
 - **Writing Examples**: Study @context/writing-examples.md for style consistency
-- **Style Guide**: Follow formatting rules from @context/style-guide.md
+- **Style Guide**: Use vault terminology first; @context/style-guide.md is a fallback mirror only when the vault is unavailable
 - **SEO Guidelines**: Apply requirements from @context/seo-guidelines.md
 - **AEO/GEO Strategy**: Apply @context/aeo-geo-blog-strategy.md for Generative Engine Optimization
 - **Target Keywords**: Integrate keywords from @context/target-keywords.md naturally
@@ -226,14 +227,14 @@ Don't just put one CTA at the end. Embedded CTAs get 121% more conversions than 
 - Break up text with subheadings every 300-400 words
 
 ### Target Audience Focus
-- **Audience Perspective**: Write for your target audience (defined in @context/brand-voice.md)
+- **Audience Perspective**: Write for the target audience from the vault route; @context/brand-voice.md is fallback mirror context only
 - **Practical Application**: Show how information applies to their specific challenges
 - **Product Integration**: Naturally mention how your features solve problems (reference @context/features.md)
 - **Industry Context**: Reference relevant trends and best practices
 - **Technical Accuracy**: Ensure terminology and processes are correct for your industry
 
 ### Brand Voice Consistency
-- Maintain your brand tone (reference @context/brand-voice.md for specifics)
+- Maintain Simpro tone from the vault first; reference @context/brand-voice.md only as fallback mirror context
 - Follow your established voice pillars
 - Use messaging framework from your context files
 - Apply terminology preferences consistently

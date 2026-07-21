@@ -810,6 +810,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "review_story_identity_guard",
             "early_artifact_guard",
             "answer_withholding_guard",
+            "vault_brand_language_guard",
             "content_scorer",
         ]:
             self.assertIn(gate, content)
@@ -882,6 +883,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "review_story_identity_guard.py",
             "early_artifact_guard.py",
             "answer_withholding_guard.py",
+            "vault_brand_language_guard.py",
             "content_scorer.py",
             "publish_readiness.py",
         ]
@@ -1470,6 +1472,40 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "wiki/features/Feature Library",
             "vault route checked",
             "link decision",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+    def test_vault_brand_language_alignment_is_documented(self):
+        docs = [
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / "AGENTS.md",
+            ROOT / "CLAUDE.md",
+            ROOT / "README.md",
+            ROOT / ".claude" / "commands" / "research.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "analyze-existing.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "publish-readiness.md",
+        ]
+        required = [
+            "Vault Brand Language Alignment",
+            "vault_brand_language_guard.py",
+            "wiki/messaging/Simpro Core Messaging Repository.md",
+            "wiki/messaging/Message House.md",
+            "wiki/messaging/Core Value Pillars.md",
+            "wiki/product/Product Positioning.md",
+            "wiki/features/Feature Library.md",
+            "wiki/features/source-docs/",
+            "wiki/verticals/Vertical Profile Library.md",
+            "repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors",
+            "Status: aligned",
+            "/publish-readiness",
         ]
 
         for path in docs:

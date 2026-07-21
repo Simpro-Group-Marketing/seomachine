@@ -66,6 +66,19 @@ Concrete Answer Check
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0]["match"], "Concrete Answer Check")
 
+    def test_vault_brand_language_alignment_heading_fails(self):
+        content = """# Article
+
+## Vault Brand Language Alignment
+
+- Status: aligned
+"""
+
+        findings = check_content(content)
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["match"], "## Vault Brand Language Alignment")
+
     def test_clean_public_article_passes(self):
         content = """# Article
 

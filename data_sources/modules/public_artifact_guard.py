@@ -31,6 +31,7 @@ BANNED_HEADINGS = (
     "Structured data plan",
     "Early Artifact Plan",
     "Concrete Answer Check",
+    "Vault Brand Language Alignment",
 )
 
 
