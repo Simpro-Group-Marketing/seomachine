@@ -135,7 +135,9 @@ Apply these requirements from @context/aeo-geo-blog-strategy.md:
 - **Concrete answers**: If the target query implies a number, range, or template, supply a concrete version with disclaimers as needed. Placeholder-only table cells such as `TBD` or `Enter lender-approved value` block publish. Full policy lives in `context/aeo-geo-blog-strategy.md`.
 - **PAA selection**: Use 3-5 complete natural-language PAA or FAQ questions from AnswerSocrates, SERP research, Reddit, YouTube, or a user-provided CSV. Do not use AnswerSocrates keyword fragments or query modifiers as FAQ headings or selected questions.
 - **Source mapping**: Integrate at least three credible external sources inside natural sentences; map each source to the claim it supports.
-- **FAQ proof**: Every claim-bearing FAQ answer must include a public proof link inside the answer, or map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
+- **FAQ answer quality**: Write a 40-60 word first paragraph that leads with a supported number or range, named recommendation, definition, concrete action, or explained yes/no response. Generic deflections such as `There is no`, `It depends`, `Pricing depends`, `Costs vary`, `We do not know`, `It is unclear`, and `No source ranks` block publish readiness. Put limitations after the direct answer.
+- **FAQ proof**: Every FAQ answer must include at least 1 authoritative non-owned public evidence link inside the visible answer. A Source Map or FAQ Proof Map can document the same evidence but cannot replace the reader-facing link.
+- **FAQ quality gate**: Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error` before scoring or optimization; `/publish-readiness` runs it automatically.
 - **E-E-A-T Proof Map**: Include named author, last-updated date, reviewer if available, Experience proof, Expertise proof, Authority/Trust proof, named customer proof or expert quote, and honest limitations where relevant.
 - **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, keywords, product framing, internal links, approved claims, proof candidates, and approved metrics only when the Obsidian vault is unavailable; otherwise treat them as repo-local mirrors/fallbacks. Public copy may use public sources and context-backed proof, but must not mention "repo context," context file paths, Source Maps, PAA artifacts, change summaries, or internal proof-path notes.
 - **Customer proof routing**: When citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
@@ -374,7 +376,7 @@ The numeric claim source guard will display:
 
 The FAQ proof guard will display:
 - FAQ proof blocker count
-- Line-level findings for FAQ answers missing a public proof link or question-specific Source Map entry
+- Line-level findings for generic FAQ openers and FAQ answers missing an authoritative non-owned public evidence link in visible copy
 
 The PAA provenance guard will display:
 - PAA provenance blocker count

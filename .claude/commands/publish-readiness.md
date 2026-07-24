@@ -28,6 +28,8 @@ Use this command before `/optimize`, after `/optimize`, before an Asana intake h
 
 Vault product-language gate: When the article uses Simpro product, feature, add-on, solution, industry, or related Simpro product URL language, `/publish-readiness` runs `vault_brand_language_guard.py`. The validation sidecar must contain `Vault Brand Language Alignment` with `wiki/messaging/Simpro Core Messaging Repository.md`, `wiki/messaging/Message House.md`, `wiki/messaging/Core Value Pillars.md`, `wiki/product/Product Positioning.md`, `wiki/features/Feature Library.md`, any needed `wiki/features/source-docs/` route, `wiki/verticals/Vertical Profile Library.md` for solution/industry language, and `Status: aligned`. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
 
+Source routing gate: For Simpro articles, `/publish-readiness` runs `source_routing_guard.py`. The validation sidecar must contain `Source Routing Decision` with `Vault-sourced data types`, `Repo-context-sourced data types`, `Vault routes checked`, `Repo context files checked`, `Fallback context use`, `Conflicts found`, and `Status: aligned`. Brand voice, audience, ICP, message pillars, tone, Customer proof, quotes, metrics, review stories, approval status, product, feature, add-on, solution, industry, Lightning, competitor, Hindsight, and public factual/statistical claims cannot use repo context as the primary authority. SEO mechanics, AEO/GEO workflow, schema notes, publish gates, internal links, keyword snapshots, AI citation targets, CRO, Reddit, writing examples, and style mechanics may route through repo `context/`.
+
 The validation sidecar should live at:
 
 ```text
@@ -44,15 +46,19 @@ The command runs the complete publish-readiness stack:
 4. `public_research_link_guard`
 5. `metric_proof_pack_guard`
 6. `numeric_claim_source_guard`
-7. `faq_proof_guard`
-8. `paa_provenance_guard`
-9. `source_support_guard`
-10. `customer_proof_diversity_guard`
-11. `review_story_identity_guard`
-12. `early_artifact_guard`
-13. `answer_withholding_guard`
-14. `vault_brand_language_guard`
-15. `content_scorer` with URL and source-support validation
+7. `faq_answer_quality_guard.py`
+8. `faq_proof_guard`
+9. `paa_provenance_guard`
+10. `source_support_guard`
+11. `customer_proof_diversity_guard`
+12. `review_story_identity_guard`
+13. `early_artifact_guard`
+14. `answer_withholding_guard`
+15. `vault_brand_language_guard`
+16. `source_routing_guard`
+17. `content_scorer` with URL and source-support validation
+
+FAQ answer-quality rule: every FAQ must use a 40-60 word first paragraph and lead with a supported number or range, named recommendation, definition, concrete action, or explained yes/no response. Generic deflections block gate 7. Gate 8 separately requires at least 1 authoritative non-owned public evidence link inside each visible FAQ answer; a Source Map or FAQ Proof Map cannot replace that link, so sidecar-only proof does not pass.
 
 403 replacement rule: If a DOL, Capterra, G2, Trustpilot, Google Play, or other public research/source URL returns 401, 403, or `manual_review`, do not remove the citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. Source Map notes must document both the rejected 403 URL and the replacement URL. The `public_research_link_guard` blocks sidecar-only handling of public research, compliance, legal, regulatory, or statistical proof and requires visible resolved non-owned public research links in the relevant article section or FAQ answer. Full policy lives in `context/aeo-geo-blog-strategy.md`.
 

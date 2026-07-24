@@ -6,14 +6,21 @@ optimization readiness. The score is out of 100; drafts should score 90+
 before they are treated as publish-ready for AEO/GEO.
 """
 
+import json
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from functools import lru_cache
+from pathlib import Path
+from typing import Any, Dict, FrozenSet, List, Optional, Tuple
 
 try:
+    from .faq_answer_quality_guard import check_content as check_faq_answer_quality
     from .faq_proof_guard import check_content as check_faq_proof
+    from .image_placeholder import is_production_image_placeholder_line
     from .paa_provenance_guard import check_content as check_paa_provenance_content
 except ImportError:
+    from faq_answer_quality_guard import check_content as check_faq_answer_quality
     from faq_proof_guard import check_content as check_faq_proof
+    from image_placeholder import is_production_image_placeholder_line
     from paa_provenance_guard import check_content as check_paa_provenance_content
 
 
@@ -48,6 +55,7 @@ def rate_aeo_geo(
         "capsule_coverage": _check_capsule_coverage(body),
         "faq_questions": _check_faq_questions(body),
         "faq_answer_length": _check_faq_answer_lengths(body),
+        "faq_answer_quality": _check_faq_answer_quality(content),
         "external_sources": _check_external_sources(content),
         "metadata": _check_metadata(merged_metadata),
         "eeat_proof": _check_eeat_proof(content, body, merged_metadata, proof_sidecar_content),
@@ -72,7 +80,10 @@ def rate_aeo_geo(
         "paa_provenance": 10,
     }
 
-    score = sum(weights[name] if check["passed"] else 0 for name, check in checks.items())
+    score = sum(
+        weight if checks[name]["passed"] else 0
+        for name, weight in weights.items()
+    )
     issues = []
     for name, check in checks.items():
         if not check["passed"]:
@@ -91,6 +102,7 @@ def rate_aeo_geo(
             score >= PASS_THRESHOLD
             and checks["faq_questions"]["passed"]
             and checks["faq_answer_length"]["passed"]
+            and checks["faq_answer_quality"]["passed"]
             and checks["eeat_proof"]["passed"]
             and checks["faq_proof"]["passed"]
             and checks["paa_provenance"]["passed"]
@@ -102,6 +114,7 @@ def rate_aeo_geo(
             "h2_count": checks["capsule_coverage"]["details"]["h2_count"],
             "capsule_count": checks["capsule_coverage"]["details"]["capsule_count"],
             "faq_question_count": checks["faq_questions"]["details"]["question_count"],
+            "faq_answer_quality_findings": checks["faq_answer_quality"]["details"]["findings"],
             "external_link_count": checks["external_sources"]["details"]["external_link_count"],
             "case_study_links": checks["eeat_proof"]["details"]["case_study_links"],
             "review_site_links": checks["eeat_proof"]["details"]["review_site_links"],
@@ -174,6 +187,8 @@ def _first_body_paragraph(body: str) -> str:
             if current:
                 paragraphs.append(" ".join(current))
                 current = []
+            continue
+        if is_production_image_placeholder_line(stripped):
             continue
         if stripped.startswith("#") or stripped.startswith(">") or stripped.startswith("- "):
             continue
@@ -344,6 +359,26 @@ def _check_faq_answer_lengths(body: str) -> Dict[str, Any]:
     }
 
 
+def _check_faq_answer_quality(content: str) -> Dict[str, Any]:
+    findings = check_faq_answer_quality(content)
+    passed = not findings
+
+    return {
+        "passed": passed,
+        "issue": "One or more FAQ answers opens with a generic non-answer.",
+        "fix": (
+            "Lead with a supported number or range, named recommendation, "
+            "definition, concrete action, or explained yes/no answer. Move "
+            "limitations after the direct answer."
+        ),
+        "severity": "high",
+        "details": {
+            "finding_count": len(findings),
+            "findings": findings,
+        },
+    }
+
+
 def _check_faq_proof(
     content: str,
     proof_sidecar_content: Optional[str],
@@ -355,9 +390,9 @@ def _check_faq_proof(
         "passed": passed,
         "issue": "One or more FAQ answers lacks linked proof for its claims.",
         "fix": (
-            "Add 1 public proof link inside each FAQ answer, or add a "
-            "question-specific Source Map / FAQ Proof Map entry with the exact "
-            "FAQ question and public URL. Context file paths alone do not count."
+            "Add 1 authoritative non-owned public evidence link inside each "
+            "FAQ answer. A Source Map or FAQ Proof Map can document the same "
+            "evidence but cannot replace the reader-facing link."
         ),
         "severity": "high",
         "details": {
@@ -462,6 +497,11 @@ def _check_eeat_proof(
         experience_signals.append("review_story_selection")
     if _has_sidecar_experience_proof(proof_sidecar_content):
         experience_signals.append("sidecar_experience_proof")
+    has_documented_no_fit_boundary = _has_documented_no_fit_experience_boundary(
+        proof_sidecar_content
+    )
+    if has_documented_no_fit_boundary:
+        experience_signals.append("documented_no_fit_experience_boundary")
 
     expertise_signals = []
     if normalized.get("author"):
@@ -490,7 +530,10 @@ def _check_eeat_proof(
             "Add at least one customer-experience signal such as a public case "
             "study or an identity-backed Review Story Selection with the public "
             "review URL linked in the same paragraph as the paraphrase "
-            "(review_story_selection). Generic review-site experience evidence "
+            "(review_story_selection). If no story fits, document a substantive "
+            "First-hand evidence decision with Selected: [none] in the E-E-A-T "
+            "Proof Map and a matching experience_story slate row with rejected-"
+            "candidate reasons. Generic review-site experience evidence "
             "and VoC themes are research inputs, not E-E-A-T story proof. Add at least one expertise "
             "signal such as author/reviewer metadata, Simpro product/workflow "
             "links, expert quote, or source-backed workflow explanation."
@@ -506,6 +549,7 @@ def _check_eeat_proof(
             "has_experience": has_experience,
             "has_expertise": has_expertise,
             "has_review_story_selection": has_review_story_selection,
+            "has_documented_no_fit_boundary": has_documented_no_fit_boundary,
         },
     }
 
@@ -588,10 +632,233 @@ def _has_sidecar_experience_proof(proof_sidecar_content: Optional[str]) -> bool:
             break
 
         match = re.match(r"^[-*+]\s*Experience proof:\s*(.+)$", stripped, re.IGNORECASE)
-        if match and re.search(r"https?://", match.group(1)):
-            return True
+        if (
+            match
+            and re.search(r"https?://", match.group(1))
+            and _has_approved_experience_proof_status(match.group(1))
+        ):
+            proof_description = match.group(1)
+            if _is_explicit_first_hand_evidence(proof_description):
+                return True
 
     return False
+
+
+def _is_explicit_first_hand_evidence(proof_description: str) -> bool:
+    proof_type_match = re.search(
+        r"(?:^|\|)\s*Proof type:\s*([^|]+)",
+        proof_description,
+        re.IGNORECASE,
+    )
+    evidence_match = re.search(
+        r"(?:^|\|)\s*Evidence:\s*([^|]+)",
+        proof_description,
+        re.IGNORECASE,
+    )
+    if proof_type_match and evidence_match and evidence_match.group(1).strip():
+        proof_type = _normalize_text(proof_type_match.group(1))
+        return proof_type in {
+            "first hand experience",
+            "first hand evidence",
+            "identity backed experience",
+            "identity backed story",
+            "identity backed account",
+            "identity backed review",
+            "identity backed evidence",
+            "first party workflow experience",
+            "first party workflow evidence",
+        }
+
+    return re.search(
+        r"\bThe rewrite uses first[- ]party ClockShark workflow evidence from\s+"
+        r"https?://(?:www\.)?clockshark\.com/(?:blog|tour|industries)/",
+        proof_description,
+        re.IGNORECASE,
+    ) is not None
+
+
+def _has_approved_experience_proof_status(proof_description: str) -> bool:
+    status_match = re.search(
+        r"(?:^|\|)\s*Status:\s*([^|]+)",
+        proof_description,
+        re.IGNORECASE,
+    )
+    if not status_match:
+        return False
+
+    status = _normalize_text(status_match.group(1))
+    return status in {
+        "approved",
+        "approved for public use",
+        "verified",
+        "verified for public use",
+    }
+
+
+def _has_documented_no_fit_experience_boundary(
+    proof_sidecar_content: Optional[str],
+) -> bool:
+    if not proof_sidecar_content:
+        return False
+
+    has_substantive_decision = False
+    has_rejected_story_reason = False
+    in_eeat_map = False
+    in_customer_slate = False
+
+    for line in proof_sidecar_content.splitlines():
+        stripped = line.strip()
+        if re.match(
+            r"^(?:#{1,6}\s+)?E-E-A-T Proof Map:?\s*$",
+            stripped,
+            re.IGNORECASE,
+        ):
+            in_eeat_map = True
+            in_customer_slate = False
+            continue
+        if re.match(
+            r"^(?:#{1,6}\s+)?Customer Proof Slate:?\s*$",
+            stripped,
+            re.IGNORECASE,
+        ):
+            in_eeat_map = False
+            in_customer_slate = True
+            continue
+        if stripped.startswith("```") or re.match(r"^#{1,6}\s+", stripped):
+            in_eeat_map = False
+            in_customer_slate = False
+            continue
+
+        if in_eeat_map:
+            decision = re.match(
+                r"^[-*+]\s*First-hand evidence decision:\s*"
+                r"Selected:\s*\[none\]\s*(.*)$",
+                stripped,
+                re.IGNORECASE,
+            )
+            if decision:
+                reason = decision.group(1).lstrip(" .:|-\t")
+                normalized_reason = _normalize_text(reason)
+                reason_signals = (
+                    "because",
+                    "does not",
+                    "did not",
+                    "cannot",
+                    "no approved",
+                    "no relevant",
+                    "not relevant",
+                    "objective",
+                    "article",
+                    "section",
+                    "omitted",
+                    "excluded",
+                    "substantiat",
+                    "rather than",
+                )
+                has_substantive_decision = _word_count(reason) >= 8 and any(
+                    signal in normalized_reason for signal in reason_signals
+                )
+            continue
+
+        if not in_customer_slate or not re.match(
+            r"^[-*+]\s*Role:\s*experience_story\b",
+            stripped,
+            re.IGNORECASE,
+        ):
+            continue
+        if not re.search(r"\|\s*Selected:\s*\[none\]", stripped, re.IGNORECASE):
+            continue
+        top_candidates_match = re.search(
+            r"\|\s*Top candidates:\s*\[([^\]]*)\]",
+            stripped,
+            re.IGNORECASE,
+        )
+        if not top_candidates_match:
+            continue
+        top_candidates = {
+            candidate.strip().strip("`\"'").lower()
+            for candidate in top_candidates_match.group(1).split(",")
+            if candidate.strip()
+        }
+        valid_proof_ids = _customer_proof_ids()
+        top_candidates = {
+            candidate
+            for candidate in top_candidates
+            if candidate in valid_proof_ids
+        }
+        if not top_candidates:
+            continue
+        rejected = re.search(
+            r"\|\s*Rejected stronger candidates:\s*\[([^\]]*)\]",
+            stripped,
+            re.IGNORECASE,
+        )
+        if not rejected:
+            continue
+        for rejected_candidate in rejected.group(1).split(","):
+            candidate, separator, reason = rejected_candidate.partition(":")
+            if (
+                separator
+                and candidate.strip().strip("`\"'").lower() in top_candidates
+                and _has_section_specific_story_rejection_reason(reason)
+            ):
+                has_rejected_story_reason = True
+                break
+
+    return has_substantive_decision and has_rejected_story_reason
+
+
+@lru_cache(maxsize=1)
+def _customer_proof_ids() -> FrozenSet[str]:
+    """Load approved, public, story-eligible proof IDs; fail closed on error."""
+    index_path = (
+        Path(__file__).resolve().parents[2]
+        / "context"
+        / "customer-proof-index.json"
+    )
+    try:
+        payload = json.loads(index_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return frozenset()
+
+    proof_rows = payload.get("proof")
+    if not isinstance(proof_rows, list):
+        return frozenset()
+    eligible_ids = set()
+    for row in proof_rows:
+        if not isinstance(row, dict):
+            continue
+        review_story = row.get("review_story")
+        if not isinstance(review_story, dict):
+            continue
+        proof_id = str(row.get("proof_id", "")).strip().lower()
+        if (
+            proof_id
+            and str(row.get("approval_status", "")).strip().lower() == "approved"
+            and row.get("public_copy_allowed") is True
+            and review_story.get("story_allowed") is True
+        ):
+            eligible_ids.add(proof_id)
+    return frozenset(eligible_ids)
+
+
+def _has_section_specific_story_rejection_reason(reason: str) -> bool:
+    normalized = re.sub(r"\s+", " ", reason.strip().lower())
+    if not normalized or normalized in {"none", "n/a", "na"}:
+        return False
+    reason_signals = (
+        "because",
+        "section",
+        "article",
+        "objective",
+        "omitted",
+        "not used",
+        "instead",
+        "while",
+    )
+    return len(normalized.split()) >= 8 and any(
+        signal in normalized for signal in reason_signals
+    )
 
 
 def _has_review_site_theme(body: str) -> bool:

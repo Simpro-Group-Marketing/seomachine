@@ -22,7 +22,23 @@ Do not use Google Workspace or old marketing-portal URLs as the active read path
 
 The repo-local context files are downstream mirrors/fallbacks only and cannot override the vault when the vault is available. If a repo-local fallback is used because the vault is unavailable, document that in `Vault Context Read Path` in the validation sidecar.
 
-Required validation sidecar sections: `Vault Context Read Path` for every workflow; `Vault Brand Language Alignment` when product, feature, add-on, solution, industry, or related Simpro product URL language appears; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. Missing required sections block `/publish-readiness`, `/optimize`, and dev-ready handoff until documented.
+Required validation sidecar sections: `Vault Context Read Path` and `Source Routing Decision` for every workflow; `Vault Brand Language Alignment` when product, feature, add-on, solution, industry, or related Simpro product URL language appears; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. Missing required sections block `/publish-readiness`, `/optimize`, and dev-ready handoff until documented.
+
+Required `Source Routing Decision` sidecar block:
+
+```markdown
+## Source Routing Decision
+- Article title: [title]
+- Vault-sourced data types: [Brand voice, audience, ICP, message pillars, tone; product/feature/add-on/solution/industry language; competitor shortlist or Hindsight boundary; Customer proof, quotes, metrics, review stories, approval status; or none]
+- Repo-context-sourced data types: [SEO mechanics, AEO/GEO workflow, schema notes, publish gates; internal links, keyword snapshots, AI citation targets, CRO, Reddit, writing examples; style mechanics; operational proof indexes]
+- Vault routes checked: AGENTS.md; wiki/cache/hot.md; wiki/Brand Graph Index.md; [smallest relevant wiki/source/raw pages]
+- Repo context files checked: [context files used, or none]
+- Fallback context use: none | [repo-local fallback plus vault-unavailable blocker]
+- Conflicts found: none | [conflict and resolution]
+- Status: aligned
+```
+
+The `source_routing_guard.py` publish gate enforces this block. Brand, audience, ICP, product, feature, add-on, solution, industry, Lightning, competitor, Hindsight, and Customer proof, quotes, metrics, review stories, approval status data must be vault-first. Repo `context/` owns SEO mechanics, AEO/GEO workflow, schema notes, publish gates, internal links, keyword snapshots, AI citation targets, CRO, Reddit, writing examples, style mechanics, and operational proof-index inputs.
 
 ## Vault-Backed Competitor and Feature Guardrails
 
@@ -306,7 +322,8 @@ When a PAA/FAQ CSV or raw question set is available, select the 3-5 closest ques
 - Include a Metric Proof Pack when the topic calls for metrics, with a Search log and at least one Approved metric carrying source-visible Evidence before numeric claims are placed in the draft.
 - Include 3-5 selected PAA/FAQ questions from research.
 - Write FAQ answers as 40-60 word direct answers before any supporting context.
-- FAQ proof is required for each claim-bearing answer: include a public proof link inside the answer, or map the exact question to a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count. Run `python data_sources/modules/faq_proof_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error` before scoring or `/optimize`.
+- FAQ answer quality is mandatory: use a 40-60 word first visible paragraph and lead with a supported number or range, named recommendation, definition, concrete action, or explained yes/no response. Do not open with `There is no`, `It depends`, `Pricing depends`, `Costs vary`, `We do not know`, `It is unclear`, `No source ranks`, or an equivalent deflection. Put limitations after the direct answer. Replace or remove a question when no defensible answer exists. Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error` before scoring or `/optimize`.
+- FAQ proof is required for every answer: include at least 1 authoritative non-owned public evidence link inside the visible answer. A question-specific Source Map / FAQ Proof Map row may document the same evidence but cannot replace the reader-facing link. Context file paths and owned product links alone do not count. Run `python data_sources/modules/faq_proof_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error` before scoring or `/optimize`.
 - PAA provenance is required for each FAQ question: include `PAA/FAQ Provenance` with Source, Artifact, and exact Selected questions. Run `python data_sources/modules/paa_provenance_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error` before scoring or `/optimize`.
 - Add schema notes for standard blog posts with FAQs: primary schemas are `BlogPosting`, `BreadcrumbList`, and `FAQPage`; nest `Person as author`, `Question and Answer inside FAQPage`, `ImageObject for the featured image or logo`, and `Organization as publisher reference only, not a separate full schema block`. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Use `VideoObject` only when a video is embedded.
 
@@ -328,6 +345,7 @@ Every `/article` plan and every moderate, major, or complete `/rewrite` plan mus
 | Review Site Theme Selection | Required when public copy paraphrases a Capterra review-site theme without using an E-E-A-T story; must include Capterra tab row, public Capterra review-site URL, approved workflow theme, same paragraph link requirement, and exact quote/rating boundary |
 | Early usable artifact | Filled data table, download link, checklist deliverable, or calculator reference planned within the first 300 words of body copy, or a documented not-applicable reason |
 | AI citation target | Snippet, PAA, FAQ, comparison table, definition, or list |
+| Source Routing Decision | Vault-sourced data types, repo-context-sourced data types, routes checked, fallback use, conflicts, and `Status: aligned` |
 
 ## Publish Gates
 
@@ -335,14 +353,15 @@ A draft is publish-ready only when both gates pass:
 
 - General content quality score: 85/100 or higher.
 - AEO/GEO score: 90/100 or higher.
-- Validation sidecar: proof-only blocks must live in `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in public copy. Public artifacts must pass `data_sources/modules/public_artifact_guard.py --fail-on error` and must not contain an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, `Vault Brand Language Alignment`, `Early Artifact Plan`, `Concrete Answer Check`, or structured data plan.
+- Validation sidecar: proof-only blocks must live in `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in public copy. Public artifacts must pass `data_sources/modules/public_artifact_guard.py --fail-on error` and must not contain an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, `Vault Brand Language Alignment`, `Source Routing Decision`, `Early Artifact Plan`, `Concrete Answer Check`, or structured data plan.
 - AI copy linting: `data_sources/modules/ai_copy_linter.py --profile simpro-web --fail-on error` blocks copy avoid-rule errors before publish readiness. Copy avoid-rule errors include modal verbs, passive voice, repeated starts, vague generalizations, filler words, and long sentences.
 - Publish readiness runner: use `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` as the default execution command. Use the individual gates below for debugging and policy-specific failures.
 - URL validation gate: `data_sources/modules/url_validator.py --fail-on unresolved` must pass before scoring, `/optimize`, handoff, or publish. URL validation confirms destinations resolve; it does not prove the page supports the claim.
 - Public research link guard: `data_sources/modules/public_research_link_guard.py --fail-on error` must pass before scoring or `/optimize`. It blocks sidecar-only handling of public research, compliance, legal, regulatory, or statistical proof, treats `manual_review` URLs as replacement-rule blockers, and requires visible resolved non-owned public research links in the relevant article section or FAQ answer.
 - Optimization scoring expectation: `seo_quality_rater.py --validate-urls` and `/optimize` require at least 2 resolved non-owned public research links unless the validation sidecar marks `External research requirement: not applicable` with a reason. Owned Simpro and ClockShark product links do not count as external research links.
 - Metric Proof Pack guard: `data_sources/modules/metric_proof_pack_guard.py --fail-on error` must pass before scoring or `/optimize`. Required topics need a Search log and at least one Approved metric with public URL or local proof artifact, source-visible Evidence, Status: approved, and intended Use.
-- FAQ proof gate: `data_sources/modules/faq_proof_guard.py --fail-on error` must pass when FAQ answers are present. Each claim-bearing FAQ answer needs a public proof link or question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
+- FAQ answer quality gate: `data_sources/modules/faq_answer_quality_guard.py --fail-on error` must pass when FAQ answers are present. The first visible paragraph must answer the question directly; generic deflections, missing answers, and unexplained binary answers block publish readiness. This is a mandatory AEO/GEO condition but does not reweight the existing 100-point score.
+- FAQ proof gate: `data_sources/modules/faq_proof_guard.py --fail-on error` must pass when FAQ answers are present. Every FAQ answer needs an authoritative non-owned public evidence link in visible copy. A Source Map or FAQ Proof Map can document the same evidence but cannot replace the inline link.
 - PAA provenance guard: `data_sources/modules/paa_provenance_guard.py --fail-on error` must pass when FAQ questions are present. Each FAQ question must match the `PAA/FAQ Provenance` selected-question list and saved source artifact.
 - Source support guard: `data_sources/modules/source_support_guard.py --fail-on error` must pass before scoring or `/optimize`. Evidence snippets must be visible in the cited source, and named customer metric claims must be approved in Customer Proof Pack Approved metrics.
 - Customer proof diversity guard: `data_sources/modules/customer_proof_diversity_guard.py --fail-on error` must pass before scoring or `/optimize`. It verifies that case-study proof is not the only checked source route, that recently used or overused customer proof has a source-specific `Reuse reason`, that the sidecar includes `Customer Proof Selection Decision`, and that `customer_proof_selector.py` inputs from `customer-proof-index.json` and `customer-proof-usage-ledger.json` were respected, including selector-backed proof that no stronger underused approved proof fits the same role.
@@ -351,8 +370,9 @@ A draft is publish-ready only when both gates pass:
 - Early artifact guard: `data_sources/modules/early_artifact_guard.py --fail-on error` must pass before scoring or `/optimize`. A usable artifact — a filled data table, a download link, a checklist deliverable, or a calculator/tool reference — must start within the first 300 words of body copy. The only exemption is an `Early Artifact Plan` block in the validation sidecar with `Early artifact requirement: not applicable` and a Reason.
 - Answer withholding guard: `data_sources/modules/answer_withholding_guard.py --fail-on error` must pass before scoring or `/optimize`. Placeholder table scaffolds block publish unconditionally with no exemption. When the target query implies a number, range, or template, the article must supply a concrete numeric answer early or a filled data table or download; a `Concrete Answer Check` block with `Concrete answer requirement: not applicable` and a Reason exempts only the numeric/template answer requirement, never scaffolds.
 - Vault brand language guard: `data_sources/modules/vault_brand_language_guard.py --fail-on error` must pass before scoring or `/optimize` when Simpro product, feature, add-on, solution, industry, or related Simpro product URL language appears. It requires `Vault Brand Language Alignment` in the validation sidecar with the core vault routes, any needed `wiki/features/source-docs/` route, `wiki/verticals/Vertical Profile Library.md` for solution/industry language, fallback blocker details if fallback mirrors were used, and `Status: aligned`.
+- Source routing guard: `data_sources/modules/source_routing_guard.py --fail-on error` must pass before scoring or `/optimize` for Simpro articles. It requires `Source Routing Decision` in the validation sidecar, blocks repo context as the primary authority for vault-first data, allows repo-primary workflow data such as SEO mechanics, AEO/GEO workflow, schema notes, publish gates, internal links, keyword snapshots, AI citation targets, CRO, Reddit, writing examples, and requires `Status: aligned`.
 
-Use `--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` with Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, vault brand language, and content scorer commands so proof maps stay out of the article copy artifact.
+Use `--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` with Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, vault brand language, source routing, and content scorer commands so proof maps stay out of the article copy artifact.
 
 The validation sidecar is the only approved place for proof maps and proof packs that are not publishable article copy.
 

@@ -71,14 +71,15 @@ Located in `data_sources/modules/`. The Content Analyzer chains:
 6. `url_validator.py` - URL validation guardrail for Markdown links and bare URLs
 7. `metric_proof_pack_guard.py` - Metric Proof Pack guardrail requiring a Search log and at least one Approved metric with source-visible Evidence for metric-sensitive topics
 8. `numeric_claim_source_guard.py` - Metric/stat proof guardrail for public numeric business claims
-9. `faq_proof_guard.py` - FAQ proof guardrail for public proof links or question-specific Source Map proof
-10. `paa_provenance_guard.py` - PAA provenance guardrail requiring FAQ questions to match saved AnswerSocrates, SERP, Reddit, YouTube, or user PAA/FAQ CSV artifacts
-11. `source_support_guard.py` - Strict source support guard requiring approved proof rows with source-visible Evidence snippets
-12. `customer_proof_selector.py` - Customer proof selector automatically run by slash workflows with `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10` to choose the most relevant approved proof
-13. `customer_proof_index_health.py` - Read-only proof inventory health report for source mix, approvals, overuse, and public-copy gaps
-14. `customer_proof_index_intake.py` - Customer proof intake validator/merger for `context/customer-proof-intake-template.csv`
-15. `customer_proof_diversity_guard.py` - Customer proof diversity guard requiring non-case-study proof search evidence, a `Customer Proof Selection Decision`, and source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved proof fits the same role
-16. `review_story_identity_guard.py` - Review story identity guard requiring identity-backed Review Story Selection, a public review URL, and same paragraph article link for review-derived E-E-A-T stories
+9. `faq_answer_quality_guard.py` - Blocking answer-first FAQ guardrail for generic deflections, missing answers, and unexplained binary responses
+10. `faq_proof_guard.py` - FAQ proof guardrail requiring an authoritative non-owned public evidence link inside every visible FAQ answer; sidecar-only proof does not pass
+11. `paa_provenance_guard.py` - PAA provenance guardrail requiring FAQ questions to match saved AnswerSocrates, SERP, Reddit, YouTube, or user PAA/FAQ CSV artifacts
+12. `source_support_guard.py` - Strict source support guard requiring approved proof rows with source-visible Evidence snippets
+13. `customer_proof_selector.py` - Customer proof selector automatically run by slash workflows with `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10` to choose the most relevant approved proof
+14. `customer_proof_index_health.py` - Read-only proof inventory health report for source mix, approvals, overuse, and public-copy gaps
+15. `customer_proof_index_intake.py` - Customer proof intake validator/merger for `context/customer-proof-intake-template.csv`
+16. `customer_proof_diversity_guard.py` - Customer proof diversity guard requiring non-case-study proof search evidence, a `Customer Proof Selection Decision`, and source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved proof fits the same role
+17. `review_story_identity_guard.py` - Review story identity guard requiring identity-backed Review Story Selection, a public review URL, and same paragraph article link for review-derived E-E-A-T stories
 
 ### Data Integrations
 
@@ -135,7 +136,9 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
 
 Rewrites go to `rewrites/`. Landing pages go to `landing-pages/`. Audits go to `audits/`. Repurposed content goes to `repurposed/`.
 
-Blog rewrites must follow the same AEO/GEO evidence boundaries as new articles: sourced PAA/FAQ provenance, FAQ proof, source mapping, Metric Proof Pack inputs, E-E-A-T Proof Map inputs, direct-answer structure, schema notes, AI copy lint, URL validation, proof gates, source support, and the 85/100 general quality plus 90/100 AEO/GEO gates before `/optimize`.
+Blog rewrites must follow the same AEO/GEO evidence boundaries as new articles: sourced PAA/FAQ provenance, answer-first FAQ quality, inline non-owned FAQ evidence links, source mapping, Metric Proof Pack inputs, E-E-A-T Proof Map inputs, direct-answer structure, schema notes, AI copy lint, URL validation, proof gates, source support, and the 85/100 general quality plus 90/100 AEO/GEO gates before `/optimize`.
+
+Every FAQ must use a 40-60 word first paragraph and lead with a supported number/range, named recommendation, definition, concrete action, or explained yes/no response. Generic deflections block `faq_answer_quality_guard.py`. Every FAQ answer also needs at least 1 authoritative non-owned public evidence link in visible copy; a Source Map or FAQ Proof Map cannot substitute for that link.
 
 For standard blog posts with FAQs, schema notes must list `BlogPosting`, `BreadcrumbList`, and `FAQPage`; nested entities must be `Person as author`, `Question and Answer inside FAQPage`, `ImageObject for the featured image or logo`, and `Organization as publisher reference only, not a separate full schema block`. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Use `VideoObject` only when a video is embedded.
 
@@ -156,7 +159,7 @@ Metric Proof Pack guard confirms metric-sensitive articles have documented metri
 
 Every metric, statistic, or numeric business claim must have a same-paragraph public link or a matching Source Map / Customer Proof Pack entry with a public URL or local proof artifact. Treat "industry standard," "FDD conventions," and "no anchor" as insufficient proof for numeric public claims.
 
-FAQ proof requires every claim-bearing FAQ answer to include a public proof link inside the answer or a question-specific Source Map / FAQ Proof Map entry with a public URL. Context file paths alone do not count.
+FAQ proof requires every FAQ answer to include at least 1 authoritative non-owned public evidence link in visible copy. A question-specific Source Map / FAQ Proof Map row can document the same evidence but cannot replace the reader-facing link.
 
 PAA provenance requires every FAQ question to match a saved PAA/FAQ source artifact when an FAQ section is present. Use `PAA/FAQ Provenance` with Source, Artifact, and Selected questions; see `context/aeo-geo-blog-strategy.md` for the full source-label and proof-boundary policy.
 

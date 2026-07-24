@@ -93,13 +93,15 @@ class PublishReadinessTests(unittest.TestCase):
             patch("data_sources.modules.publish_readiness.early_artifact_guard.check_file", side_effect=gate("early_artifact")),
             patch("data_sources.modules.publish_readiness.answer_withholding_guard.check_file", side_effect=gate("answer_withholding")),
             patch("data_sources.modules.publish_readiness.vault_brand_language_guard.check_file", side_effect=gate("vault_brand_language")),
+            patch("data_sources.modules.publish_readiness.source_routing_guard.check_file", side_effect=gate("source_routing")),
             patch("data_sources.modules.publish_readiness.ContentScorer", return_value=fake_scorer),
+            patch("data_sources.modules.publish_readiness.faq_answer_quality_guard.check_file", side_effect=gate("faq_answer_quality")),
         ]
 
     def test_all_gates_pass_in_required_order(self):
         call_order = []
         patchers = self.patch_passing_gates(call_order=call_order)
-        with patchers[0], patchers[1], patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13], patchers[14]:
+        with patchers[0], patchers[1], patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13], patchers[14], patchers[15], patchers[16]:
             result = publish_readiness.run_publish_readiness(
                 self.article_path,
                 proof_sidecar=self.sidecar_path,
@@ -115,6 +117,7 @@ class PublishReadinessTests(unittest.TestCase):
                 "public_research_links",
                 "metric_proof_pack",
                 "numeric_claim_source",
+                "faq_answer_quality",
                 "faq_proof",
                 "paa_provenance",
                 "source_support",
@@ -123,6 +126,7 @@ class PublishReadinessTests(unittest.TestCase):
                 "early_artifact",
                 "answer_withholding",
                 "vault_brand_language",
+                "source_routing",
                 "content_scorer",
             ],
         )
@@ -135,7 +139,7 @@ class PublishReadinessTests(unittest.TestCase):
         with patchers[0], patchers[1], patchers[2], patchers[3], patch(
             "data_sources.modules.publish_readiness.metric_proof_pack_guard.check_file",
             return_value=[finding("metric_source_unavailable")],
-        ), patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13], patchers[14]:
+        ), patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13], patchers[14], patchers[15]:
             result = publish_readiness.run_publish_readiness(
                 self.article_path,
                 proof_sidecar=self.sidecar_path,
@@ -145,6 +149,28 @@ class PublishReadinessTests(unittest.TestCase):
         metric_gate = next(gate for gate in result["gates"] if gate["name"] == "metric_proof_pack")
         self.assertFalse(metric_gate["passed"])
         self.assertEqual(metric_gate["errors"], 1)
+
+    def test_faq_answer_quality_error_fails_runner(self):
+        patchers = self.patch_passing_gates()
+        with ExitStack() as stack:
+            for patcher in patchers:
+                stack.enter_context(patcher)
+            stack.enter_context(patch(
+                "data_sources.modules.publish_readiness.faq_answer_quality_guard.check_file",
+                return_value=[finding("faq_answer_generic_opener")],
+            ))
+            result = publish_readiness.run_publish_readiness(
+                self.article_path,
+                proof_sidecar=self.sidecar_path,
+            )
+
+        self.assertFalse(result["passed"])
+        quality_gate = next(
+            gate for gate in result["gates"]
+            if gate["name"] == "faq_answer_quality"
+        )
+        self.assertFalse(quality_gate["passed"])
+        self.assertEqual(quality_gate["errors"], 1)
 
     def test_url_validation_blocker_fails_runner(self):
         patchers = self.patch_passing_gates()
@@ -161,7 +187,7 @@ class PublishReadinessTests(unittest.TestCase):
         with patchers[0], patchers[1], patch(
             "data_sources.modules.publish_readiness.validate_file_urls",
             return_value=failing_url,
-        ), patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13], patchers[14]:
+        ), patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13], patchers[14], patchers[15]:
             result = publish_readiness.run_publish_readiness(
                 self.article_path,
                 proof_sidecar=self.sidecar_path,
@@ -174,7 +200,7 @@ class PublishReadinessTests(unittest.TestCase):
 
     def test_content_scorer_failure_fails_runner(self):
         patchers = self.patch_passing_gates(score=failing_score())
-        with patchers[0], patchers[1], patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13], patchers[14]:
+        with patchers[0], patchers[1], patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13], patchers[14], patchers[15]:
             result = publish_readiness.run_publish_readiness(
                 self.article_path,
                 proof_sidecar=self.sidecar_path,
@@ -191,7 +217,7 @@ class PublishReadinessTests(unittest.TestCase):
         with patchers[0], patch(
             "data_sources.modules.publish_readiness.ai_copy_linter.lint_file",
             return_value=[finding("modal_verb", severity="warning")],
-        ), patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13], patchers[14]:
+        ), patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13], patchers[14], patchers[15]:
             result = publish_readiness.run_publish_readiness(
                 self.article_path,
                 proof_sidecar=self.sidecar_path,
@@ -207,7 +233,7 @@ class PublishReadinessTests(unittest.TestCase):
         with patchers[0], patch(
             "data_sources.modules.publish_readiness.ai_copy_linter.lint_file",
             return_value=[finding("modal_verb", severity="error")],
-        ), patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13], patchers[14]:
+        ), patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13], patchers[14], patchers[15]:
             result = publish_readiness.run_publish_readiness(
                 self.article_path,
                 proof_sidecar=self.sidecar_path,
@@ -221,7 +247,7 @@ class PublishReadinessTests(unittest.TestCase):
 
     def test_proof_sidecar_is_passed_to_proof_gates_and_scorer(self):
         patchers = self.patch_passing_gates()
-        with patchers[0], patchers[1], patchers[2], patchers[3] as public_research, patchers[4] as metric, patchers[5] as numeric, patchers[6] as faq, patchers[7] as paa, patchers[8] as source, patchers[9] as customer, patchers[10] as review, patchers[11] as early_artifact, patchers[12] as answer_withholding, patchers[13] as vault_brand_language, patchers[14] as scorer_class:
+        with patchers[0], patchers[1], patchers[2], patchers[3] as public_research, patchers[4] as metric, patchers[5] as numeric, patchers[6] as faq, patchers[7] as paa, patchers[8] as source, patchers[9] as customer, patchers[10] as review, patchers[11] as early_artifact, patchers[12] as answer_withholding, patchers[13] as vault_brand_language, patchers[14] as source_routing, patchers[15] as scorer_class, patchers[16] as faq_answer_quality:
             result = publish_readiness.run_publish_readiness(
                 self.article_path,
                 proof_sidecar=self.sidecar_path,
@@ -230,7 +256,7 @@ class PublishReadinessTests(unittest.TestCase):
         self.assertTrue(result["passed"])
         self.assertEqual(public_research.call_args.kwargs["proof_sidecar"], str(self.sidecar_path))
         self.assertIn("url_summary", public_research.call_args.kwargs)
-        for guard in [metric, numeric, faq, paa, source, customer, review, early_artifact, answer_withholding, vault_brand_language]:
+        for guard in [metric, numeric, faq_answer_quality, faq, paa, source, customer, review, early_artifact, answer_withholding, vault_brand_language, source_routing]:
             self.assertEqual(guard.call_args.kwargs["proof_sidecar"], str(self.sidecar_path))
         scorer = scorer_class.return_value
         self.assertEqual(scorer.score.call_args.kwargs["proof_sidecar"], str(self.sidecar_path))
@@ -377,6 +403,7 @@ class PublishReadinessTests(unittest.TestCase):
             ))
             stack.enter_context(patchers[13])
             stack.enter_context(patchers[14])
+            stack.enter_context(patchers[15])
             result = publish_readiness.run_publish_readiness(
                 self.article_path,
                 proof_sidecar=self.sidecar_path,
@@ -392,7 +419,7 @@ class PublishReadinessTests(unittest.TestCase):
     def test_json_output_uses_stable_top_level_keys(self):
         patchers = self.patch_passing_gates()
         stdout = io.StringIO()
-        with patchers[0], patchers[1], patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13], patchers[14], redirect_stdout(stdout):
+        with patchers[0], patchers[1], patchers[2], patchers[3], patchers[4], patchers[5], patchers[6], patchers[7], patchers[8], patchers[9], patchers[10], patchers[11], patchers[12], patchers[13], patchers[14], patchers[15], redirect_stdout(stdout):
             exit_code = publish_readiness.main([
                 str(self.article_path),
                 "--proof-sidecar",

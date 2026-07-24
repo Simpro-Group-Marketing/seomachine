@@ -32,6 +32,7 @@ BANNED_HEADINGS = (
     "Early Artifact Plan",
     "Concrete Answer Check",
     "Vault Brand Language Alignment",
+    "Source Routing Decision",
 )
 
 

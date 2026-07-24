@@ -79,6 +79,19 @@ Concrete Answer Check
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0]["match"], "## Vault Brand Language Alignment")
 
+    def test_source_routing_decision_heading_fails(self):
+        content = """# Article
+
+## Source Routing Decision
+
+- Status: aligned
+"""
+
+        findings = check_content(content)
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["match"], "## Source Routing Decision")
+
     def test_clean_public_article_passes(self):
         content = """# Article
 

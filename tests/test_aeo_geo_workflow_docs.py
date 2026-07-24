@@ -6,6 +6,41 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class AeoGeoWorkflowDocsTests(unittest.TestCase):
+    def test_faq_answer_quality_and_inline_evidence_rule_is_mirrored(self):
+        required = [
+            "faq_answer_quality_guard.py",
+            "40-60 word",
+            "authoritative non-owned public evidence link",
+            "cannot replace",
+        ]
+        docs = [
+            ROOT / "AGENTS.md",
+            ROOT / "CLAUDE.md",
+            ROOT / "README.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "publish-readiness.md",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+        rule_paths = [
+            ROOT / ".agents" / "rules" / "faq-answer-quality.md",
+            ROOT / ".claude" / "rules" / "faq-answer-quality.md",
+            ROOT / ".cursor" / "rules" / "faq-answer-quality.mdc",
+        ]
+        for path in rule_paths:
+            self.assertTrue(path.exists(), f"{path} must exist")
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
     def test_article_command_documents_answer_socrates_workflow_and_gates(self):
         article = (ROOT / ".claude" / "commands" / "article.md").read_text(
             encoding="utf-8"
@@ -544,9 +579,9 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         for text in [
             "FAQ proof",
             "faq_proof_guard.py",
-            "public proof link",
+            "authoritative non-owned public evidence link",
             "question-specific Source Map",
-            "Context file paths alone do not count",
+            "Context file paths and owned product links alone do not count",
         ]:
             self.assertIn(text, canonical)
 
@@ -957,7 +992,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "For Capterra rows that fit a blog topic",
             "Every `/research`, `/article`, `/write`, `/analyze-existing`, and `/rewrite` workflow must resolve a task-specific Customer Proof Pack",
             "Case-study proof paths and Review-site experience evidence may support non-numeric E-E-A-T",
-            "FAQ proof is required for each claim-bearing answer",
+            "Context file paths and owned product links alone do not count",
         ]
         for snippet in canonical_snippets:
             self.assertIn(snippet, canonical, f"canonical strategy missing policy snippet: {snippet}")
@@ -1512,6 +1547,34 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             content = path.read_text(encoding="utf-8")
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
+
+    def test_source_routing_decision_is_documented(self):
+        source_routing_map = (ROOT / "context" / "source-routing-map.md").read_text(
+            encoding="utf-8"
+        )
+        canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
+            encoding="utf-8"
+        )
+        publish_readiness = (ROOT / ".claude" / "commands" / "publish-readiness.md").read_text(
+            encoding="utf-8"
+        )
+
+        required = [
+            "Source Routing Decision",
+            "source_routing_guard.py",
+            "Brand voice, audience, ICP, message pillars, tone",
+            "SEO mechanics, AEO/GEO workflow, schema notes, publish gates",
+            "Customer proof, quotes, metrics, review stories, approval status",
+            "Status: aligned",
+        ]
+
+        for content, name in [
+            (source_routing_map, "source-routing-map.md"),
+            (canonical, "aeo-geo-blog-strategy.md"),
+            (publish_readiness, "publish-readiness.md"),
+        ]:
+            for text in required:
+                self.assertIn(text, content, f"{name} missing {text}")
 
     def test_pmm_qa_rule_is_not_part_of_repo_guardrail_update(self):
         docs = [

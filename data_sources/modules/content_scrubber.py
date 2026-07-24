@@ -12,6 +12,11 @@ import re
 import unicodedata
 from typing import Dict, List, Tuple
 
+try:
+    from .image_placeholder import is_production_image_placeholder_line
+except ImportError:
+    from image_placeholder import is_production_image_placeholder_line
+
 
 class ContentScrubber:
     """
@@ -95,22 +100,41 @@ class ContentScrubber:
             'ai_phrases_replaced': 0,
         }
 
-        # Step 1: Remove specific watermark characters
+        cleaned_segments = []
+        for protected, segment in self._split_protected_image_placeholders(content):
+            if protected:
+                cleaned_segments.append(segment)
+                continue
+            cleaned_segments.append(self._scrub_unprotected_content(segment))
+
+        return "".join(cleaned_segments), self.stats
+
+    @staticmethod
+    def _split_protected_image_placeholders(content: str) -> List[Tuple[bool, str]]:
+        """Split complete image markers from scrubbed text without text sentinels."""
+        segments: List[Tuple[bool, str]] = []
+        cursor = 0
+        for match in re.finditer(r"^[^\r\n]+(?=\r?$)", content, re.MULTILINE):
+            if not is_production_image_placeholder_line(match.group(0)):
+                continue
+            if match.start() > cursor:
+                segments.append((False, content[cursor:match.start()]))
+            segments.append((True, match.group(0)))
+            cursor = match.end()
+
+        if cursor < len(content):
+            segments.append((False, content[cursor:]))
+        if not segments:
+            segments.append((False, content))
+        return segments
+
+    def _scrub_unprotected_content(self, content: str) -> str:
+        """Run the cleanup pipeline on text that is safe to mutate."""
         content = self._remove_watermark_chars(content)
-
-        # Step 2: Remove all Unicode format-control characters (Category Cf)
         content = self._remove_format_control_chars(content)
-
-        # Step 3: Replace em-dashes with contextually appropriate punctuation
         content = self._replace_emdashes(content)
-
-        # Step 4: Replace AI-telltale phrases
         content = self._replace_ai_phrases(content)
-
-        # Step 5: Clean up any double spaces created by removals
-        content = self._clean_whitespace(content)
-
-        return content, self.stats
+        return self._clean_whitespace(content)
 
     def _remove_watermark_chars(self, content: str) -> str:
         """Remove specific invisible Unicode watermark characters."""
@@ -121,7 +145,7 @@ class ContentScrubber:
             # Don't replace with regular space as it breaks URLs
             content = content.replace(char, '')
 
-        self.stats['unicode_removed'] = original_len - len(content)
+        self.stats['unicode_removed'] += original_len - len(content)
         return content
 
     def _remove_format_control_chars(self, content: str) -> str:
@@ -135,7 +159,7 @@ class ContentScrubber:
                 continue
             cleaned.append(char)
 
-        self.stats['format_control_removed'] = removed
+        self.stats['format_control_removed'] += removed
         return ''.join(cleaned)
 
     def _replace_emdashes(self, content: str) -> str:

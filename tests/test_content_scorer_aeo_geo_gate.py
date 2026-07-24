@@ -112,15 +112,15 @@ The profit impact compounds when scheduling is connected to job costing. Researc
 
 ### What is the best way to schedule HVAC technicians?
 
-The best way to schedule HVAC technicians is to use [field service scheduling](https://www.simprogroup.com/features/scheduling-software) that shows availability, job priority, location, and skill fit. This helps office teams assign work without overloading technicians or missing urgent calls. Mobile updates then keep the schedule accurate as jobs change during the day.
+The best way to schedule HVAC technicians is to use [field service scheduling](https://www.fieldtechnologiesonline.com/) that shows availability, job priority, location, and skill fit. This helps office teams assign work without overloading technicians or missing urgent calls. Mobile updates then keep the schedule accurate as jobs change during the day.
 
 ### How does HVAC scheduling software reduce missed appointments?
 
-HVAC scheduling software reduces missed appointments by centralizing job details, technician assignments, customer notifications, and status updates. Dispatchers can see conflicts before they become failures, while technicians receive the latest job information through a [field service mobile app](https://www.simprogroup.com/features/field-service-mobile-app). Automated reminders also reduce no-shows and last-minute customer confusion.
+HVAC scheduling software reduces missed appointments by centralizing job details, technician assignments, customer notifications, and status updates. Dispatchers can see conflicts before they become failures, while technicians receive the latest job information through a [field service mobile app](https://www.achrnews.com/). Automated reminders also reduce no-shows and last-minute customer confusion.
 
 ### Should HVAC scheduling connect to invoicing?
 
-HVAC scheduling should connect to invoicing because completed work loses value when job details stay trapped in the field. When technician notes, labor time, materials, and approvals flow into [field service invoicing](https://www.simprogroup.com/features/invoicing-software-for-construction), office teams can invoice faster. That reduces rework, protects cash flow, and improves job-level reporting.
+HVAC scheduling should connect to invoicing because completed work loses value when job details stay trapped in the field. When technician notes, labor time, materials, and approvals flow into [field service invoicing](https://www.mckinsey.com/), office teams can invoice faster. That reduces rework, protects cash flow, and improves job-level reporting.
 """
 
 
@@ -424,13 +424,13 @@ No. PPC is a pricing model for ad clicks.
     def test_faq_proof_failure_blocks_content_scorer(self):
         scorer = ContentScorer()
         content = COMPLIANT_ARTICLE.replace(
-            "[field service scheduling](https://www.simprogroup.com/features/scheduling-software)",
+            "[field service scheduling](https://www.fieldtechnologiesonline.com/)",
             "a live dispatch calendar",
         ).replace(
-            "[field service mobile app](https://www.simprogroup.com/features/field-service-mobile-app)",
+            "[field service mobile app](https://www.achrnews.com/)",
             "mobile software",
         ).replace(
-            "[field service invoicing](https://www.simprogroup.com/features/invoicing-software-for-construction)",
+            "[field service invoicing](https://www.mckinsey.com/)",
             "invoicing",
         ).replace(FAQ_PROOF_BLOCK, "")
 

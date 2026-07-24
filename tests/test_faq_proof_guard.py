@@ -27,7 +27,7 @@ HVAC scheduling software reduces missed appointments by centralizing job details
         findings = check_content(content)
 
         self.assertEqual(len(findings), 1)
-        self.assertEqual(findings[0]["rule_id"], "faq_answer_missing_linked_proof")
+        self.assertEqual(findings[0]["rule_id"], "faq_answer_missing_inline_proof")
         self.assertEqual(findings[0]["severity"], "error")
         self.assertEqual(
             findings[0]["question"],
@@ -46,7 +46,7 @@ HVAC scheduling software reduces missed appointments by centralizing job details
 
         self.assertEqual(check_content(content), [])
 
-    def test_faq_answer_with_only_owned_inline_link_requires_question_proof_map(self):
+    def test_faq_answer_with_only_owned_inline_link_fails(self):
         content = """# HVAC Scheduling Software
 
 ## Frequently Asked Questions
@@ -59,9 +59,9 @@ HVAC scheduling software reduces missed appointments by centralizing job details
         findings = check_content(content)
 
         self.assertEqual(len(findings), 1)
-        self.assertEqual(findings[0]["rule_id"], "faq_answer_missing_linked_proof")
+        self.assertEqual(findings[0]["rule_id"], "faq_answer_missing_inline_proof")
 
-    def test_faq_answer_with_question_specific_source_map_public_url_passes(self):
+    def test_faq_answer_with_only_question_specific_source_map_fails(self):
         content = """---
 Source Map:
 - FAQ: How does HVAC scheduling software reduce missed appointments? | Claim: scheduling workflows centralize dispatch and mobile updates | Proof: https://www.simprogroup.com/features/scheduling
@@ -76,9 +76,9 @@ Source Map:
 HVAC scheduling software reduces missed appointments by centralizing job details, technician assignments, customer notifications, and status updates. Dispatchers can see conflicts before they become failures, while technicians receive the latest job information on mobile.
 """
 
-        self.assertEqual(check_content(content), [])
+        self.assertIn("faq_answer_missing_inline_proof", finding_ids(content))
 
-    def test_faq_answer_with_sidecar_faq_proof_map_passes(self):
+    def test_faq_answer_with_only_sidecar_faq_proof_map_fails(self):
         content = """# HVAC Scheduling Software
 
 ## Frequently Asked Questions
@@ -91,7 +91,11 @@ HVAC scheduling software reduces missed appointments by centralizing job details
 - How does HVAC scheduling software reduce missed appointments? URL: https://www.simprogroup.com/features/scheduling
 """
 
-        self.assertEqual(check_content(content, proof_content=sidecar), [])
+        findings = check_content(content, proof_content=sidecar)
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule_id"], "faq_answer_missing_inline_proof")
+        self.assertIn("inside the FAQ answer", findings[0]["suggestion"])
 
     def test_context_only_source_map_does_not_count_as_public_proof(self):
         content = """---
@@ -108,7 +112,7 @@ Source Map:
 HVAC scheduling software reduces missed appointments by centralizing job details, technician assignments, customer notifications, and status updates. Dispatchers can see conflicts before they become failures, while technicians receive the latest job information on mobile.
 """
 
-        self.assertIn("faq_answer_missing_linked_proof", finding_ids(content))
+        self.assertIn("faq_answer_missing_inline_proof", finding_ids(content))
 
     def test_non_faq_content_is_not_checked(self):
         content = """# HVAC Scheduling Software

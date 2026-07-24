@@ -10,6 +10,74 @@ def finding_ids(content):
 
 
 class AiCopyLinterTests(unittest.TestCase):
+    def test_standalone_original_hero_image_placeholder_is_ignored(self):
+        quote = chr(34)
+        content = (
+            '[IMAGE PLACEHOLDER — ORIGINAL HERO: retain immediately before the '
+            'introduction | source: '
+            'https://www.simprogroup.com/images/2/9/6/5/f/'
+            '2965fceb5942ff039f447cff8ce3cd7aee49b2f9-'
+            'simpro-best-trades-for-women.jpg | alt: '
+            + quote
+            + 'Woman smiling in navy work overalls'
+            + quote
+            + ' | render target: 819 × 461 px; resize and compress before upload]'
+        )
+
+        self.assertEqual(lint_content(content), [])
+
+    def test_incomplete_image_placeholder_does_not_bypass_copy_rules(self):
+        findings = lint_content(
+            "[IMAGE PLACEHOLDER: prohibited prose; editors must revise it]"
+        )
+
+        self.assertIn("semicolon", {finding["rule_id"] for finding in findings})
+
+    def test_mixed_image_placeholder_and_prose_does_not_bypass_copy_rules(self):
+        findings = lint_content(
+            "[IMAGE PLACEHOLDER: hero] Teams can fabricate results; [source]"
+        )
+
+        self.assertIn("semicolon", {finding["rule_id"] for finding in findings})
+
+    def test_image_placeholder_punctuation_in_prose_is_still_linted(self):
+        findings = lint_content(
+            'The production note uses an em dash — in prose; editors must revise it.'
+        )
+
+        self.assertEqual(
+            {'em_dash', 'semicolon'},
+            {
+                finding['rule_id']
+                for finding in findings
+                if finding['rule_id'] in {'em_dash', 'semicolon'}
+            },
+        )
+
+    def test_first_word_preposition_in_heading_is_allowed(self):
+        findings = lint_content('## From Apprentice to Owner')
+
+        self.assertNotIn(
+            'title_capitalized_preposition',
+            {finding['rule_id'] for finding in findings},
+        )
+
+    def test_how_can_heading_allows_modal_can(self):
+        findings = lint_content('## How Women Can Start a Career in the Trades')
+
+        self.assertNotIn(
+            'modal_verb',
+            {finding['rule_id'] for finding in findings},
+        )
+
+    def test_how_can_heading_does_not_hide_another_modal(self):
+        findings = lint_content('## How Women Can and Should Start in the Trades')
+
+        self.assertIn(
+            'modal_verb',
+            {finding['rule_id'] for finding in findings},
+        )
+
     def test_em_dash_is_error(self):
         findings = lint_content("Dispatch looks clean" + chr(8212) + "until jobs move.")
 

@@ -3,8 +3,9 @@ FAQ Proof Guard
 
 Deterministic guardrail for FAQ answers. It does not decide whether a source
 semantically proves a claim; it enforces the minimum evidence contract:
-every FAQ answer must carry a public proof URL in the answer body or have a
-question-specific Source Map / FAQ Proof Map entry with a public URL.
+every FAQ answer must carry a non-owned public proof URL in the visible answer
+body. A Source Map or FAQ Proof Map can document evidence, but it cannot replace
+the reader-facing link.
 """
 
 import argparse
@@ -18,10 +19,8 @@ from urllib.parse import urlparse
 
 try:
     from .guard_common import Finding, should_fail, summarize_findings
-    from .proof_sidecar import compose_with_sidecar, load_sidecar_content
 except ImportError:  # pragma: no cover - supports direct script execution.
     from guard_common import Finding, should_fail, summarize_findings
-    from proof_sidecar import compose_with_sidecar, load_sidecar_content
 
 
 FAQ_H2_RE = re.compile(r"^##\s+(?:Frequently Asked Questions|FAQ)\s*$", re.IGNORECASE)
@@ -54,6 +53,8 @@ def check_content(
 
     Args:
         content: Markdown article or rewrite content.
+        proof_content: Accepted for API compatibility. Sidecar evidence cannot
+            replace the required inline public evidence link.
 
     Returns:
         Structured findings for FAQ answers missing linked proof.
@@ -62,32 +63,28 @@ def check_content(
     if not faq_answers:
         return []
 
-    proof_source = compose_with_sidecar(content, proof_content)
-    source_map_lines = _extract_source_map_candidate_lines(proof_source)
+    del proof_content
     findings: List[Finding] = []
 
     for faq_answer in faq_answers:
         if _has_non_owned_public_proof_url(faq_answer.answer):
             continue
 
-        if _source_map_supports_question(source_map_lines, faq_answer.question):
-            continue
-
         findings.append(
             {
-                "rule_id": "faq_answer_missing_linked_proof",
+                "rule_id": "faq_answer_missing_inline_proof",
                 "severity": "error",
                 "line": faq_answer.heading_line,
                 "column": 1,
                 "question": faq_answer.question,
                 "message": (
-                    "FAQ answer has no linked proof in the answer body and no "
-                    "question-specific Source Map / FAQ Proof Map entry with a public URL."
+                    "FAQ answer has no non-owned public evidence link in its "
+                    "visible answer body."
                 ),
                 "suggestion": (
-                    "Add 1 public proof link inside the FAQ answer, or add a Source Map "
-                    "entry that names this exact FAQ question and includes the public URL "
-                    "supporting the answer. Internal context paths alone do not count."
+                    "Add 1 authoritative public evidence link inside the FAQ answer. "
+                    "A Source Map or FAQ Proof Map may document the same evidence, "
+                    "but sidecar-only proof and owned product links do not count."
                 ),
             }
         )
@@ -106,6 +103,7 @@ def check_file(
     Args:
         path: Markdown file path.
         fail_on: Included for CLI/API symmetry.
+        proof_sidecar: Accepted for runner compatibility and documentation only.
 
     Returns:
         Structured findings.
@@ -113,9 +111,9 @@ def check_file(
     if fail_on not in {"error", "warning", "none"}:
         raise ValueError("fail_on must be one of: error, warning, none")
 
+    del proof_sidecar
     content = Path(path).read_text(encoding="utf-8")
-    proof_content = load_sidecar_content(path, proof_sidecar)
-    return check_content(content, proof_content=proof_content)
+    return check_content(content)
 
 
 def _extract_faq_answers(content: str) -> List[FaqAnswer]:
@@ -183,57 +181,6 @@ def _is_owned_proof_url(url: str) -> bool:
     return any(host == domain or host.endswith(f".{domain}") for domain in OWNED_PROOF_DOMAINS)
 
 
-def _extract_source_map_candidate_lines(content: str) -> List[str]:
-    lines = content.splitlines()
-    candidates: List[str] = []
-    in_source_section = False
-
-    for line in lines:
-        stripped = line.strip()
-        lower = stripped.lower()
-
-        if re.match(
-            r"^(?:#{1,3}\s+)?(?:source map|faq proof map|faq proof)\b",
-            stripped,
-            re.IGNORECASE,
-        ):
-            in_source_section = True
-            candidates.append(stripped)
-            continue
-
-        if in_source_section and re.match(r"^#{1,3}\s+", stripped):
-            in_source_section = False
-
-        if (
-            in_source_section
-            or "source map" in lower
-            or "faq proof" in lower
-            or lower.startswith("- faq:")
-            or lower.startswith("|")
-        ):
-            candidates.append(stripped)
-
-    return candidates
-
-
-def _source_map_supports_question(source_map_lines: List[str], question: str) -> bool:
-    normalized_question = _normalize_for_match(question)
-    if not normalized_question:
-        return False
-
-    for line in source_map_lines:
-        if not PUBLIC_URL_RE.search(line):
-            continue
-        if normalized_question in _normalize_for_match(line):
-            return True
-
-    return False
-
-
-def _normalize_for_match(text: str) -> str:
-    return re.sub(r"[^a-z0-9]+", " ", text.lower()).strip()
-
-
 def _main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Check FAQ answers for linked proof.")
     parser.add_argument("path", help="Markdown file to check")
@@ -245,7 +192,10 @@ def _main(argv: Optional[List[str]] = None) -> int:
     )
     parser.add_argument(
         "--proof-sidecar",
-        help="Optional validation sidecar containing FAQ Proof Map rows.",
+        help=(
+            "Optional validation sidecar for interface compatibility; FAQ Proof "
+            "Map rows cannot replace inline public evidence links."
+        ),
     )
     args = parser.parse_args(argv)
 

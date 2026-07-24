@@ -18,6 +18,7 @@ try:
         answer_withholding_guard,
         customer_proof_diversity_guard,
         early_artifact_guard,
+        faq_answer_quality_guard,
         faq_proof_guard,
         metric_proof_pack_guard,
         numeric_claim_source_guard,
@@ -26,6 +27,7 @@ try:
         public_artifact_guard,
         review_story_identity_guard,
         source_support_guard,
+        source_routing_guard,
         vault_brand_language_guard,
     )
     from .content_scorer import ContentScorer
@@ -36,6 +38,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import answer_withholding_guard
     import customer_proof_diversity_guard
     import early_artifact_guard
+    import faq_answer_quality_guard
     import faq_proof_guard
     import metric_proof_pack_guard
     import numeric_claim_source_guard
@@ -44,6 +47,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import public_artifact_guard
     import review_story_identity_guard
     import source_support_guard
+    import source_routing_guard
     import vault_brand_language_guard
     from content_scorer import ContentScorer
     from guard_common import should_fail, summarize_findings
@@ -54,7 +58,7 @@ GateResult = Dict[str, Any]
 ReadinessResult = Dict[str, Any]
 
 
-PROOF_AWARE_GATES = (
+ARTICLE_GATES = (
     (
         "metric_proof_pack",
         "Metric Proof Pack",
@@ -64,6 +68,11 @@ PROOF_AWARE_GATES = (
         "numeric_claim_source",
         "Numeric Claim Source",
         numeric_claim_source_guard,
+    ),
+    (
+        "faq_answer_quality",
+        "FAQ Answer Quality",
+        faq_answer_quality_guard,
     ),
     (
         "faq_proof",
@@ -104,6 +113,11 @@ PROOF_AWARE_GATES = (
         "vault_brand_language",
         "Vault Brand Language",
         vault_brand_language_guard,
+    ),
+    (
+        "source_routing",
+        "Source Routing",
+        source_routing_guard,
     ),
 )
 
@@ -156,7 +170,7 @@ def run_publish_readiness(
         )
     )
 
-    for name, label, guard_module in PROOF_AWARE_GATES:
+    for name, label, guard_module in ARTICLE_GATES:
         findings = guard_module.check_file(
             str(article_path),
             fail_on="error",

@@ -12,6 +12,11 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Pattern, Tuple
 
+try:
+    from .image_placeholder import is_production_image_placeholder_line
+except ImportError:
+    from image_placeholder import is_production_image_placeholder_line
+
 
 Finding = Dict[str, object]
 
@@ -34,6 +39,14 @@ APPROVED_PROPER_NOUNS = [
 
 
 FAQ_QUESTION_HEADING_RE = re.compile(r"^\s{0,3}#{2,6}\s+.+\?\s*$")
+
+
+HOW_CAN_HEADING_RE = re.compile(
+    r'^\s{0,3}##\s+How\b.+\bCan\b.+$', re.IGNORECASE
+)
+MODAL_VERB_TOKEN_RE = re.compile(
+    r'\b(?:can|may|could|should|might)\b', re.IGNORECASE
+)
 
 
 ERROR_RULES: List[Tuple[str, Pattern[str], str, str]] = [
@@ -325,6 +338,11 @@ def lint_content(content: str, profile: str = "simpro-web") -> List[Finding]:
 
 
 def _should_skip_copy_avoid_rule(rule_id: str, original_line: str) -> bool:
+    if rule_id == 'modal_verb' and HOW_CAN_HEADING_RE.match(original_line):
+        modal_words = MODAL_VERB_TOKEN_RE.findall(original_line)
+        if len(modal_words) == 1 and modal_words[0].lower() == 'can':
+            return True
+
     if (
         rule_id in {"filler_word", "modal_verb", "passive_voice", "vague_generalization"}
         and FAQ_QUESTION_HEADING_RE.match(original_line)
@@ -400,6 +418,9 @@ def _iter_active_lines(content: str) -> List[Tuple[int, str, str]]:
             continue
 
         if in_code_fence:
+            continue
+
+        if is_production_image_placeholder_line(stripped):
             continue
 
         active.append((index, line, _mask_ignored_spans(line)))
@@ -639,6 +660,8 @@ def _title_preposition_findings(
     findings: List[Finding] = []
 
     for match in WORD_RE.finditer(title_text):
+        if match.start() == 0:
+            continue
         word = match.group(0)
         if word not in TITLE_PREPOSITIONS:
             continue

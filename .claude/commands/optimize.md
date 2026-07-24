@@ -24,7 +24,11 @@ Preferred publish readiness command:
 /publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
 ```
 
-Before returning `Ready`, run `/publish-readiness`. It runs URL validation, public artifact checks, AI copy linting, public research link checks, Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, vault brand language, content score, and AEO/GEO gates internally.
+Before returning `Ready`, run `/publish-readiness`. It runs URL validation, public artifact checks, AI copy linting, public research link checks, Metric Proof Pack, numeric claim, FAQ answer quality, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, vault brand language, content score, and AEO/GEO gates internally.
+
+FAQ answers must use a 40-60 word first paragraph, lead with a supported number/range, named recommendation, definition, concrete action, or explained yes/no response, and move limitations after the direct answer. Every FAQ answer must contain at least 1 authoritative non-owned public evidence link in visible copy; a Source Map or FAQ Proof Map cannot replace that link.
+
+Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error` when debugging FAQ quality failures; `/publish-readiness` runs it automatically.
 
 403 replacement rule: If a DOL, Capterra, G2, Trustpilot, Google Play, or other public research/source URL returns 401, 403, or `manual_review`, do not remove the citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. Source Map notes must document both the rejected 403 URL and the replacement URL. `/publish-readiness` runs `public_research_link_guard.py` to block sidecar-only handling of public research, compliance, legal, regulatory, or statistical proof.
 

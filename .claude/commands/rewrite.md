@@ -240,7 +240,9 @@ AEO/GEO Inputs:
 - PAA/FAQ provenance: [AnswerSocrates / SERP / Reddit / YouTube / user CSV / blocker]
 - PAA artifact path: [research/paa-questions-[topic-slug]-[YYYY-MM-DD].md or not available]
 - Selected questions: [3-5 closest questions with intent labels]
-- FAQ proof: [each claim-bearing FAQ answer has a public proof link or question-specific Source Map / FAQ Proof Map entry with a public URL; Context file paths alone do not count]
+- FAQ answer quality: [each FAQ uses a 40-60 word first paragraph, leads with a supported number/range, named recommendation, definition, concrete action, or explained yes/no response, and moves limitations after the direct answer]
+- FAQ proof: [each FAQ answer contains at least 1 authoritative non-owned public evidence link in visible copy; a Source Map or FAQ Proof Map can document the same evidence but cannot replace that link]
+- FAQ quality gate: [run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error`; `/publish-readiness` runs it automatically]
 - Suggested blog focus: [1-2 sentence focus statement]
 - Source Map: [source, claim, anchor text, target section]
 - E-E-A-T Proof Map: [Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, review-site experience evidence candidates, claims excluded because proof is missing]
@@ -346,7 +348,7 @@ The numeric claim source guard will display:
 
 The FAQ proof guard will display:
 - FAQ proof blocker count
-- Line-level findings for FAQ answers missing a public proof link or question-specific Source Map entry
+- Line-level findings for generic FAQ openers and FAQ answers missing an authoritative non-owned public evidence link in visible copy
 
 The PAA provenance guard will display:
 - PAA provenance blocker count
