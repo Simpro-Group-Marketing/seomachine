@@ -1,7 +1,7 @@
 # Optimization Report: Top Trades for Women Rewrite
 
 - Date: 2026-07-23
-- File: `rewrites/women-in-skilled-trades-the-ultimate-guide-rewrite-2026-07-23.md`
+- File: `published/women-in-skilled-trades-the-ultimate-guide-rewrite-2026-07-23.md`
 - Primary keyword: `top trades for women`
 - Secondary keywords: `best trades for women`; `list of skilled trades for females`
 - Live slug retained: `/blog/women-in-skilled-trades-the-ultimate-guide`
@@ -11,8 +11,8 @@
 The `/optimize` command is a repository workflow contract rather than a PowerShell executable. Its documented SEO, link, metadata, structure, brand, proof, and publish-readiness checks were applied through:
 
 ```powershell
-python data_sources/modules/seo_quality_rater.py rewrites/women-in-skilled-trades-the-ultimate-guide-rewrite-2026-07-23.md --validate-urls
-python -m data_sources.modules.publish_readiness rewrites/women-in-skilled-trades-the-ultimate-guide-rewrite-2026-07-23.md --proof-sidecar research/validation-women-in-skilled-trades-the-ultimate-guide-2026-07-23.md
+python data_sources/modules/seo_quality_rater.py published/women-in-skilled-trades-the-ultimate-guide-rewrite-2026-07-23.md --validate-urls
+python -m data_sources.modules.publish_readiness published/women-in-skilled-trades-the-ultimate-guide-rewrite-2026-07-23.md --proof-sidecar research/validation-women-in-skilled-trades-the-ultimate-guide-2026-07-23.md
 ```
 
 ## Optimization Result

@@ -2,7 +2,7 @@
 
 - Date: 2026-07-23
 - Source article: https://www.simprogroup.com/blog/women-in-skilled-trades-the-ultimate-guide
-- Rewrite: `rewrites/women-in-skilled-trades-the-ultimate-guide-rewrite-2026-07-23.md`
+- Published article: `published/women-in-skilled-trades-the-ultimate-guide-rewrite-2026-07-23.md`
 - Rewrite type: major US evidence, intent, and framing refresh
 
 ## Metadata and URL Decision
@@ -75,4 +75,4 @@
 - Reran the scrubber, warnings-as-failures AI copy lint, FAQ answer quality, FAQ proof, PAA provenance, live URL validation, the legacy SEO rater, and the full proof-aware publish-readiness stack. Focused guards returned 0 errors and 0 warnings; live URL validation resolved 16/16 validator-visible URLs; the legacy SEO rater reports 90.5 but retains its separate hard-coded down-funnel-link objection; canonical publish readiness passed all 17 gates with content 92.0 and AEO/GEO 100.
 - Verified 2,800 visible body words, exactly 12 trade profiles, 36 profile fact bullets, 1 hero placeholder, 2 Simpro body links, 1 YouTube body link, 6 FAQs, and 0 competitor mentions. The Amy Carnrick paragraph and complete profile section remain textually identical to their pre-FAQ baselines after line-ending normalization. Schema types remain unchanged; only the documentation now states their AI-extraction purpose explicitly.
 - Verified the new FAQ rule with 153 focused tests and 12 subtests, then passed the complete repository suite with 471 tests and 14 subtests. A read-only corpus scan found 6 generic-opener FAQs and 57 FAQ answers missing inline evidence links; no legacy article was modified.
-- Kept the rewrite in `rewrites/` for CMS/editorial handoff; it was not moved to `published/` and no live publishing action was taken.
+- Moved the finalized article into `published/` on 2026-07-27 after a fresh live 17/17 readiness pass. No WordPress API call or live-site publication was performed.

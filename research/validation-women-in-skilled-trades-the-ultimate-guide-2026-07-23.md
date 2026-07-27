@@ -2,7 +2,7 @@
 
 Date: 2026-07-23
 Validation status: publish-ready; final canonical gate stack passed 17/17 on 2026-07-24
-Public rewrite: `rewrites/women-in-skilled-trades-the-ultimate-guide-rewrite-2026-07-23.md`
+Published article: `published/women-in-skilled-trades-the-ultimate-guide-rewrite-2026-07-23.md`
 Source analysis: `research/analysis-women-in-skilled-trades-the-ultimate-guide-2026-07-23.md`
 Research brief: `research/brief-women-in-skilled-trades-the-ultimate-guide-2026-07-23.md`
 Original backup: `research/original-women-in-skilled-trades-the-ultimate-guide-2026-07-23.md`
@@ -363,6 +363,13 @@ O*NET is sponsored by the U.S. Department of Labor. The detailed profile routes 
 - VideoObject: not applicable because no video is embedded.
 - Purpose boundary: `FAQPage` is retained for structured machine readability and potential AI extraction lift. It is not presented as a promise of Google FAQ rich-result visibility.
 - Validation status: passed. The complete schema note is in the top YAML frontmatter, with the author identity left for CMS verification rather than invention.
+
+## Publication State
+
+- Local state: `published/women-in-skilled-trades-the-ultimate-guide-rewrite-2026-07-23.md`
+- Transition date: 2026-07-27
+- Pre-move validation: fresh live publish readiness passed 17/17 with content score 92.0 and AEO/GEO 100.
+- Boundary: repository state change only; no WordPress API call or live-site publication occurred.
 
 ## Claims Excluded
 
