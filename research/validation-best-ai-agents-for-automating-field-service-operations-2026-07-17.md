@@ -1,7 +1,8 @@
 # Validation Sidecar: Best AI Agents for Automating Field Service Operations
 
 Date: 2026-07-17
-Public draft: `drafts/best-ai-agents-for-automating-field-service-operations-2026-07-17.md`
+Last updated: 2026-07-27
+Public draft: `published/best-ai-agents-for-automating-field-service-operations-2026-07-17.md`
 SERP artifact: `research/serp-analysis-best-ai-agents-for-automating-field-service-operations-2026-07-17.md`
 Social artifact: `research/social-research-best-ai-agents-for-automating-field-service-operations-2026-07-17.md`
 PAA artifact: `research/paa-questions-best-ai-agents-for-automating-field-service-operations-2026-07-17.md`
@@ -18,13 +19,34 @@ Plan artifact: `research/article-plan-best-ai-agents-for-automating-field-servic
 ## Vault Context Read Path
 
 - Active context source: `C:\Users\patrick.grueschow\Desktop\Obsidian\Simpro Brand Context`.
-- Required sequence completed on 2026-07-20: vault `AGENTS.md` -> `wiki/cache/hot.md` -> `wiki/Brand Graph Index.md`.
+- Required sequence refreshed on 2026-07-27: vault `AGENTS.md` -> `wiki/cache/hot.md` -> `wiki/Brand Graph Index.md`.
 - Lightning and RAIN routes checked: `wiki/lightning/Lightning Knowledge Hub.md`, `wiki/lightning/Lightning Architecture.md`, `wiki/lightning/Simpro RAIN Release Wave.md`, `wiki/lightning/Lightning Current Commercial and Availability Context.md`, and `indexes/lightning-current-claim-status.csv`.
 - Competitor routes checked: `wiki/competitors/Competitive Context.md`, `wiki/sources/simpro-battlecards-direct-competitors-1bzgf9r8.md`, and `raw/drive/sheets/nested/competitive-battlecards-simpro-simpro-battlecards-direct-competitors-1bZgf9r8.md`.
-- Feature/add-on routes checked: `wiki/concepts/payments-and-add-ons.md` and `wiki/features/Feature Library.md`.
+- Brand-language and feature/add-on routes checked: `wiki/messaging/Simpro Core Messaging Repository.md`, `wiki/messaging/Message House.md`, `wiki/messaging/Core Value Pillars.md`, `wiki/messaging/AI Positioning and Messaging Rules.md`, `wiki/product/Product Positioning.md`, `wiki/concepts/payments-and-add-ons.md`, `wiki/features/Feature Library.md`, and `wiki/verticals/Vertical Profile Library.md`.
 - Downstream repo-local sources used only for workflow gates and link validation: `context/internal-links-map.md`, customer proof index/ledger files, draft linter, and publish-readiness tooling. Repo-local context does not override vault context.
 - External first-party vendor URLs remain the current capability and availability evidence for non-Simpro offerings.
 
+## Source Routing Decision
+
+- Article title: Best AI Agents for Automating Field Service Operations | Simpro
+- Vault-sourced data types: Simpro brand language, Lightning and RAIN taxonomy, feature and availability boundaries, competitor-shortlist routing, customer-proof eligibility, metric approval boundaries, and Fred Voccola authority eligibility.
+- Repo-context-sourced data types: SEO metadata, AEO/GEO capsule and FAQ mechanics, schema notes, internal links, PAA provenance, comparison formatting, and publish gates.
+- Vault routes checked: AGENTS.md; wiki/cache/hot.md; wiki/Brand Graph Index.md; wiki/messaging/AI Positioning and Messaging Rules.md; wiki/lightning/Lightning Knowledge Hub.md; wiki/lightning/Lightning Architecture.md; wiki/lightning/Simpro RAIN Release Wave.md; wiki/proof/Fred Voccola Media Authority Hub.md; wiki/proof/Trust and Authority Signals.md; indexes/fred-voccola-media-inventory.csv; indexes/authority-signal-matrix.csv.
+- Repo context files checked: context/aeo-geo-blog-strategy.md; context/internal-links-map.md; context/customer-proof-index.json; context/customer-proof-usage-ledger.json; research/article-plan-best-ai-agents-for-automating-field-service-operations-2026-07-17.md; research/paa-questions-best-ai-agents-for-automating-field-service-operations-2026-07-17.md.
+- Fallback context use: none
+- Conflicts found: none
+- Status: aligned
+
+## Vault Brand Language Alignment
+
+- Article title: Best AI Agents for Automating Field Service Operations | Simpro
+- Product/solution language scope: mixed
+- Vault routes checked: AGENTS.md; wiki/cache/hot.md; wiki/Brand Graph Index.md; wiki/messaging/Simpro Core Messaging Repository.md; wiki/messaging/Message House.md; wiki/messaging/Core Value Pillars.md; wiki/messaging/AI Positioning and Messaging Rules.md; wiki/product/Product Positioning.md; wiki/concepts/payments-and-add-ons.md; wiki/features/Feature Library.md; wiki/features/source-docs/simpro-ai-strategic-outlook-us-pdf-1hjnxmpg.md; wiki/verticals/Vertical Profile Library.md; wiki/lightning/Lightning Knowledge Hub.md; wiki/lightning/Lightning Architecture.md; wiki/lightning/Simpro RAIN Release Wave.md; indexes/lightning-current-claim-status.csv.
+- Product/feature language applied: Lightning remains the AI intelligence layer and platform upgrade. RAIN remains a release wave, not a fifth agent or separate platform. Public anchors use `Simpro Lightning AI field service software`, `Simpro RAIN AI release wave`, and `Simpro AI integration through Lightning`.
+- Solution/industry language applied: Simpro AI remains embedded in the field-service operating platform and tied to job-management lifecycle operations, not detached chatbot or worker-replacement positioning.
+- Fallback context use: none
+- Claims requiring source verification: Corey O’Donnell author metadata, the Fred Voccola authority embed and paraphrase, Microsoft FAQ evidence, and existing Lightning/RAIN anchors. No customer proof, metric, ranking, pricing, availability, or outcome claim was added.
+- Status: aligned
 ## Competitive Shortlist Decision
 
 - Article objective: compare evidence-backed AI agents and agentic workflows for field service operations by role, system integration, availability, safeguards, and human oversight.
@@ -41,9 +63,9 @@ Plan artifact: `research/article-plan-best-ai-agents-for-automating-field-servic
 
 | Name in draft | Vault route checked | Link decision | Reason |
 |---|---|---|---|
-| Simpro Lightning | `wiki/lightning/Lightning Knowledge Hub.md`; `wiki/lightning/Lightning Architecture.md`; `indexes/lightning-current-claim-status.csv` | Link first meaningful mention to `/lightning`. | Canonical public route for Lightning; vault confirms Lightning taxonomy and current four-agent structure. |
+| Simpro Lightning | `wiki/lightning/Lightning Knowledge Hub.md`; `wiki/lightning/Lightning Architecture.md`; `indexes/lightning-current-claim-status.csv` | Link first meaningful mention to `/lightning` using anchor `Simpro Lightning AI field service software`; keep the final CTA link using anchor `Simpro AI integration through Lightning`. | Canonical public route for Lightning; vault confirms Lightning taxonomy and current four-agent structure. |
 | Cooper, JustAsk, FieldReady, JobReady, JobScribe, JobBrief | `wiki/lightning/Lightning Knowledge Hub.md`; `wiki/lightning/Lightning Architecture.md`; `indexes/lightning-current-claim-status.csv` | Do not create separate public links in this draft. | Vault treats these as Lightning taxonomy/entity context; public copy should keep them under the Lightning route and avoid implying separate product pages. |
-| Simpro RAIN | `wiki/lightning/Simpro RAIN Release Wave.md`; `wiki/lightning/Lightning Current Commercial and Availability Context.md`; `indexes/lightning-current-claim-status.csv` | Link first meaningful mention to `/rain`. | Canonical public route for the June-September 2026 release wave with timing-may-shift caveat. |
+| Simpro RAIN | `wiki/lightning/Simpro RAIN Release Wave.md`; `wiki/lightning/Lightning Current Commercial and Availability Context.md`; `indexes/lightning-current-claim-status.csv` | Link first meaningful mention to `/rain` using anchor `Simpro RAIN AI release wave`. | Canonical public route for the June-September 2026 release wave with timing-may-shift caveat. |
 | Intelligent AI Scheduler | `wiki/lightning/Simpro RAIN Release Wave.md`; `indexes/lightning-current-claim-status.csv` row `LCUR-0023` | No separate link. | Use as a target-timed RAIN example only; no separate public feature route was verified. |
 | AI-Guided Forms | `wiki/lightning/Simpro RAIN Release Wave.md`; `indexes/lightning-current-claim-status.csv` row `LCUR-0028`; `wiki/concepts/payments-and-add-ons.md`; `wiki/features/Feature Library.md` | No separate link. | Treat as a target-timed RAIN feature. Do not conflate it with the existing Digital Forms add-on routes. |
 | Digital Forms add-on | `wiki/concepts/payments-and-add-ons.md`; `wiki/features/Feature Library.md` | Not linked or claimed in public copy. | Checked only to prevent conflation with AI-Guided Forms. |
@@ -53,9 +75,10 @@ Plan artifact: `research/article-plan-best-ai-agents-for-automating-field-servic
 
 - Reconciled on 2026-07-17 after saved editorial updates to the public draft.
 - Retained: branded meta title, AI-intelligence terminology, lifecycle phrasing, and numeral formatting for the verified Lightning and Housecall Pro product counts.
-- Restored: required Simpro comparison disclosure, the sitemap-verified FSM solution link in body and FAQ copy, and the source-supported IBM FAQ wording.
+- Restored: required Simpro comparison disclosure and the sitemap-verified FSM solution link in body and FAQ copy.
 - Corrected: the `management` spelling in the Simpro Lightning selection guidance.
 - Customer proof selection, metric proof pack, source map, FAQ provenance, and vendor status verification remain applicable; no new customer proof, metric, vendor capability, or availability claim was added.
+- Remediation update 2026-07-27: added Corey O’Donnell as the approved public author, embedded the selected Fred Voccola authority source, added non-owned FAQ evidence, and preserved the existing comparison methodology and Lightning/RAIN anchor changes.
 
 ## PAA/FAQ Provenance
 
@@ -69,19 +92,25 @@ Plan artifact: `research/article-plan-best-ai-agents-for-automating-field-servic
   - What is the difference between CRM and FSM?
   - Will CRM be replaced by AI?
 
+## FAQ Source Policy
+
+- Allowed source classes: neutral, non_competing_expert.
+- Competitor-owned FAQ sources: prohibited.
+- Status: aligned.
+
 ## FAQ Proof Map
 
-- FAQ: What are AI agents good for? | URL: https://www.ibm.com/think/topics/ai-agents | Support: IBM describes AI agents as systems that autonomously perform tasks by designing workflows and using available tools; the public answer adds bounded-workflow and human-control selection criteria.
-- FAQ: What can AI agents be used for? | URL: https://www.salesforce.com/news/stories/agentforce-for-field-service-announcement/ | Support: Salesforce documents field-service appointment scheduling, troubleshooting, schedule-gap handling, and job-wrap-up workflows.
-- FAQ: What can AI agents be used for? | URL: https://learn.microsoft.com/en-us/dynamics365/field-service/ai-agents-overview | Support: Microsoft documents scheduling operations use cases in Dynamics 365 Field Service.
-- FAQ: What is the difference between CRM and FSM? | URL: https://www.simprogroup.com/solutions/field-service-management-software | Support: Simpro describes FSM operational scope across quoting, scheduling, inventory, job management, and field workflows.
-- FAQ: Will CRM be replaced by AI? | URL: https://www.salesforce.com/news/stories/agentforce-for-field-service-announcement/ | Support: Agentforce is documented as operating with Salesforce field-service data and workflows, supporting the answer that AI changes interaction and automation while governed systems remain important.
+- FAQ: What are AI agents good for? | URL: https://www.youtube.com/watch?v=jmeGqDu4tPU&t=40s | Source class: non_competing_expert | Competitor check: passed | Support: In `26 Key Takeaways from Building 150+ Agents in 9 months`, Arseny Shatokhin distinguishes automation's hardcoded steps and sequence from agents, then explains that agents have less autonomy than employees and require exact instructions. The answer gives a field-service definition first, then applies that supported distinction to operational context, permitted workflow actions, trusted data, permissions, guardrails and human exception handoffs.
+- FAQ: What can AI agents be used for? | URL: https://www.linkedin.com/posts/hunkartoyoglu_ai-and-the-next-frontier-of-field-service-activity-7350067981361569792-3KUG | Source class: non_competing_expert | Competitor check: passed | Support: BCG article coauthor Hunkar Toyoglu identifies adaptive field-learning systems and agentic AI that coordinates action across people and processes. His post links the primary BCG analysis, which identifies service-history lookup, job sequencing, troubleshooting, dispatch optimization, scheduling, parts management, and offsite support as field-service AI applications.
+- FAQ: What is the difference between CRM and FSM? | URL: https://www.techtarget.com/searchcustomerexperience/definition/CRM-customer-relationship-management | Source class: neutral | Competitor check: passed | Support: TechTarget defines CRM as managing and analyzing customer interactions and data throughout the customer lifecycle.
+- FAQ: What is the difference between CRM and FSM? | URL: https://www.techtarget.com/searchcustomerexperience/definition/field-service-management-FSM | Source class: neutral | Competitor check: passed | Support: TechTarget's FSM definition covers off-site workers, schedules, work orders, customer-account records, inventory, invoices, and field-service workflow support; FSM can integrate with CRM, but it serves a distinct operational role.
+- FAQ: Will CRM be replaced by AI? | URL: https://www.techtarget.com/searchcustomerexperience/definition/CRM-customer-relationship-management | Source class: neutral | Competitor check: passed | Support: TechTarget describes CRM as combining practices, strategies and technologies to manage customer interactions and lifecycle data; it also describes AI capabilities for automation and predictive analysis. The answer applies that evidence as an explanatory system-governance boundary: AI augments CRM and FSM systems rather than removing the need for governed records, work orders, permissions and workflows.
 
 ## Metric Proof Pack
 
 - Metric requirement: required.
 - Search log: Checked vault Lightning Knowledge Hub, Lightning Architecture, and `indexes/lightning-current-claim-status.csv` for Simpro role-agent count; checked Housecall Pro first-party AI Team overview for product-count evidence. Excluded vendor outcome metrics and dated RAIN aggregate counts.
-- Approved metric: four current Simpro Lightning role agents | Proof artifact: C:\Users\patrick.grueschow\Desktop\Obsidian\Simpro Brand Context\indexes\lightning-current-claim-status.csv | Evidence: "The four current Simpro role-based agents are FieldReady, JobReady, JobScribe, and JobBrief." | Status: approved | Use: comparison table and Simpro section. Vault row: `LCUR-0005`; compiled support pages: `wiki/lightning/Lightning Knowledge Hub.md` and `wiki/lightning/Lightning Architecture.md`.
+- Omitted metric: four current Simpro Lightning role agents | Proof artifact: C:\Users\patrick.grueschow\Desktop\Obsidian\Simpro Brand Context\indexes\lightning-current-claim-status.csv | Evidence: "The four current Simpro role-based agents are FieldReady, JobReady, JobScribe, and JobBrief." | Status: omitted from public copy | Reason excluded: public copy lists the named Lightning agents without a numeric count because this strict proof is vault-only and the public route is the Lightning product page.
 - Approved metric: five Housecall Pro AI Team teammates | URL: https://help.housecallpro.com/en/articles/9311875-ai-team-overview | Evidence: "The AI Team includes five specialized Teammates" | Status: approved | Use: Housecall Pro section only.
 - Rejected metrics: vendor productivity, booking, revenue, time-saving, call-handling, and cost-saving percentages | Sources checked: current vendor pages | Reason excluded: vendor-reported outcomes were unnecessary to answer the comparison and were not independently substantiated.
 - Rejected aggregate RAIN counts: release-wave feature and improvement totals | Proof artifact: vault RAIN pages | Reason excluded: counts are dated and not required to explain the selected scheduler and forms examples; omission reduces metric clutter and superiority risk.
@@ -92,13 +121,33 @@ Plan artifact: `research/article-plan-best-ai-agents-for-automating-field-servic
 - Claim: JobBrief content is shown to and reviewed by the technician at signoff. | Proof artifact: compiled vault Lightning Architecture and current claim-status index | Status: approved | Use: Simpro human checkpoint.
 - Claim: RAIN is a June-September 2026 release wave; Intelligent AI Scheduler and AI-Guided Forms are target-timed examples and timing may shift. | URL: https://www.simprogroup.com/rain | Evidence: current RAIN page plus compiled vault Simpro RAIN Release Wave and availability pages. | Status: approved with qualification | Use: Simpro roadmap context only.
 - Claim: Agentforce for Field Service supports appointment scheduling, troubleshooting, schedule gaps, and job wrap-up in Salesforce-centered field workflows. | URL: https://www.salesforce.com/news/stories/agentforce-for-field-service-announcement/ | Evidence: "Agentforce for Field Service helps companies with in-the-field workers quickly and securely deploy AI agents that can execute tasks proactively or in the flow of work." | Status: approved | Use: Salesforce section and table.
-- Claim: Dynamics 365 Field Service Scheduling Operations Agent is a preview capability for scheduling operations. | URL: https://learn.microsoft.com/en-us/dynamics365/field-service/ai-agents-overview | Evidence: Microsoft Learn page labels the capability preview; page updated 2026-07-01. | Status: approved with preview label | Use: Microsoft section and table.
+- Claim: Dynamics 365 Field Service Scheduling Operations Agent is a preview capability operating inside Dynamics 365 Field Service. | URL: https://learn.microsoft.com/en-us/dynamics365/field-service/ai-agents-overview | Evidence: Microsoft Learn page labels the capability preview; page updated 2026-07-01. | Status: approved with preview label | Use: Microsoft section and table.
 - Claim: Housecall Pro AI Team is available and comprises CSR AI, Analyst AI, Coach AI, Marketing AI, and Help AI; CSR AI is an optional add-on that handles calls, booking, scheduling, and logs. | URL: https://help.housecallpro.com/en/articles/9311875-ai-team-overview | Evidence: current Housecall Pro help article. | Status: approved | Use: Housecall Pro section and table.
 - Claim: Workiz Genius Answering handles calls, email, and text; can schedule, reschedule, and cancel jobs; follows business rules; and can transfer to staff. | URL: https://www.workiz.com/ai-genius-answering/ | Evidence: "Books, reschedules, or cancels jobs" | Status: approved | Use: Workiz section and table.
 - Claim: Zuper CSR Agent supports intake, qualification, booking, job creation, status questions, emergency triage, and escalation within Zuper. | URL: https://www.zuper.co/csr-agent | Evidence: current Zuper product page. | Status: approved | Use: Zuper section and table.
 - Claim: ServiceTitan positions Atlas as an AI sidekick and conversational interface inside ServiceTitan. | URL: https://help.servicetitan.com/docs/atlas | Evidence: "Atlas is your team's AI sidekick" | Status: approved | Use: watchlist classification; Atlas is not ranked as a field-service agent.
 - Claim: ServiceNow documents field-service AI agents including work-order, parts-management, and scheduling use cases. | URL: https://www.servicenow.com/docs/r/field-service-management/now-assist-for-field-service-management-fsm/fsm-ai-agent-use-cases.html | Evidence: current first-party documentation. | Status: approved for research context | Use: researched alternative, not a ranked selection.
 - Claim: ServiceTrade Stella coordinates quoting, scheduling approvals, job context, and guardrails. | URL: https://servicetrade.com/products/stella-ai-agents/ | Evidence: current first-party product page. | Status: approved for research context | Use: researched alternative, not a ranked selection.
+- Claim: Dynamics 365 Field Service documents FSM operational scope across work orders, scheduling, dispatch, technicians, assets, inventory, billing, time tracking, and analytics. | URL: https://learn.microsoft.com/dynamics365/field-service/overview | Evidence: current Microsoft Learn Dynamics 365 Field Service overview. | Status: approved | Use: Microsoft section and table.
+- Claim: CRM manages and analyzes customer interactions and data throughout the customer lifecycle; CRM systems can apply AI for task automation and predictive analysis. | URL: https://www.techtarget.com/searchcustomerexperience/definition/CRM-customer-relationship-management | Evidence: TechTarget CRM definition published 2025-02-12. | Status: approved | Use: CRM-versus-FSM and CRM-replacement FAQs.
+- Claim: FSM manages off-site workers and the resources they need, including schedules, work orders, customer-account records, inventory and invoices; FSM can integrate with CRM. | URL: https://www.techtarget.com/searchcustomerexperience/definition/field-service-management-FSM | Evidence: TechTarget FSM definition published 2025-05-28. | Status: approved | Use: CRM-versus-FSM FAQ.
+- Claim: Fred Voccola discusses practical AI across field-service job preparation, scheduling, documentation, and related operational work. | URL: https://www.youtube.com/watch?v=zdllV42qWyI | Evidence: verified public YouTube title, description, and video metadata captured 2026-07-21. | Status: approved for attributed paraphrase and embed; not ranking or product-performance evidence | Use: executive-perspective module.
+- Claim: Corey O’Donnell, Chief Brand & Strategy Officer, is the approved public author. | Evidence: user-approved metadata decision on 2026-07-27. | Status: approved | Use: article frontmatter and Person author schema handoff.
+- Claim: AI agents in field service use operational context to select and complete permitted workflow actions with limited autonomy, while fixed automation follows hardcoded steps; effective deployment requires trusted data, permissions, guardrails and human exception handoffs. | URL: https://www.youtube.com/watch?v=jmeGqDu4tPU&t=40s | Evidence: public YouTube auto-caption transcript at 00:40-01:09 distinguishes automation's hardcoded steps and sequence from agents with limited autonomy that require exact instructions. The field-service definition and control requirements are a constrained explanatory application of that distinction, not an exact quote. Video title, channel, public availability, upload date `2025-02-21`, and duration `PT30M8S` verified on 2026-07-27. | Status: approved for attributed paraphrase and explanatory field-service application; no exact quote | Use: `What are AI agents good for?` FAQ.
+- Claim: Field-service AI can use adaptive systems and agentic coordination across people and processes, including service-history lookup, job sequencing, troubleshooting, dispatch optimization, scheduling, parts management, and offsite support. | Reader-facing URL: https://www.linkedin.com/posts/hunkartoyoglu_ai-and-the-next-frontier-of-field-service-activity-7350067981361569792-3KUG | Primary source URL: https://www.bcg.com/publications/2025/the-next-frontier-of-field-service | Evidence: BCG article coauthor Hunkar Toyoglu's public summary identifies adaptive field-learning systems and agentic AI that coordinates action across people and processes, and links the primary BCG analysis; the dated source-visible capture below records the primary source's application examples. | Status: approved for attributed application examples; BCG X performance metrics excluded | Use: `What can AI agents be used for?` FAQ.
+
+## BCG Source-Visible Capture
+
+- Capture date: 2026-07-27.
+- Public URL retained: https://www.bcg.com/publications/2025/the-next-frontier-of-field-service.
+- Source title: `AI and the Next Frontier of Field Service`.
+- Reader-facing fallback URL: https://www.linkedin.com/posts/hunkartoyoglu_ai-and-the-next-frontier-of-field-service-activity-7350067981361569792-3KUG. This public summary is by BCG article coauthor Hunkar Toyoglu, links the primary BCG analysis and resolved with `HTTP 200` on 2026-07-27.
+- Source-visible locators checked: opening field-service application summary; `Build Adaptive Systems That Learn from Field Experience`; `Deploy Agentic AI to Automate and Coordinate Action`.
+- Captured support: the source describes prediction, repair guidance, dispatch optimization, remote collaboration, scheduling, parts management and offsite support. It also identifies service-history lookup, job sequencing and troubleshooting, then illustrates an agent comparing diagnostic signals with maintenance records, retrieving a calibration procedure, preordering parts and assigning a suitably experienced technician.
+- Exact excerpt retained for proof review: "service history lookup, job sequencing, and troubleshooting."
+- Automated-fetch result: the repository URL validator received `HTTP 403` after a network-enabled retry on 2026-07-27. The page remained source-visible through browser retrieval, so this is recorded as publisher bot blocking rather than a broken public URL.
+- Proof artifact: this dated `BCG Source-Visible Capture` block in the existing validation sidecar.
+- Exclusions: no BCG X productivity, effectiveness, savings, availability or margin claims are used in public copy.
 
 ## Vendor Availability and Status Verification
 
@@ -113,14 +162,43 @@ Plan artifact: `research/article-plan-best-ai-agents-for-automating-field-servic
 | Zuper CSR Agent | Current product offering; confirm configuration/region fit with Zuper | 2026-07-17 | https://www.zuper.co/csr-agent |
 | ServiceTitan Atlas | Watchlist; AI sidekick positioning verified, action-agent qualification not established | 2026-07-17 | https://help.servicetitan.com/docs/atlas |
 
+## Internal Link Verification
+
+- AI features guide: https://www.simprogroup.com/blog/ai-features-field-service-software. Public role: feature-level workflow checklist for readers not ready for an agent/vendor shortlist.
+- AI scheduling guide: https://www.simprogroup.com/blog/ai-scheduling-dispatch-field-service. Public role: scheduling-control checklist for the Microsoft scheduling-agent section.
+- Lightning page: https://www.simprogroup.com/lightning. Public role: canonical Simpro Lightning product route for current AI intelligence-layer and role-agent context. Public anchors used: `Simpro Lightning AI field service software` and `Simpro AI integration through Lightning`.
+- RAIN page: https://www.simprogroup.com/rain. Public role: canonical RAIN release-wave route for target-timed scheduler/forms examples with timing caveats. Public anchor used: `Simpro RAIN AI release wave`.
+- Link discipline update 2026-07-20: no Lightning or RAIN links were added to non-AI donor posts; those posts route into AI features or AI scheduling only when the paragraph already discusses workflow data, automation, scheduling, documentation or controls.
+
 ## E-E-A-T Proof Map
 
-- Experience proof: The lifecycle workflow analysis, buyer-role checkpoints, implementation trade-offs, and controlled pilot use the governance approach in https://www.nist.gov/itl/ai-risk-management-framework as a public reference.
-- Expertise: compiled Simpro brand and product taxonomy from the vault; current first-party vendor documentation; distinction between generally available, preview, and target-timed functionality.
-- Authority: explicit inclusion criteria, consistent decision fields, comparison disclosure, and first-party sources for each vendor.
+- Experience proof: No public customer or review story is used because the approved inventory does not substantiate AI-agent performance, availability, or safeguards for this comparison.
+- First-hand evidence decision: Selected: [none] because no approved customer or review story directly substantiates AI-agent performance, availability or safeguards for this article.
+- Expertise: Corey O’Donnell is the named public author and Chief Brand & Strategy Officer; the article also uses compiled Simpro product taxonomy from the vault and current first-party vendor documentation.
+- Authority: Fred Voccola’s selected public video adds attributed executive context; explicit inclusion criteria, consistent decision fields, comparison disclosure, and first-party vendor sources remain the ranking authority controls.
 - Trust: no customer story, rating, outcome metric, pricing claim, or universal-winner assertion; preview and roadmap caveats remain visible.
 - Customer/case-study evidence used in public copy: none.
 - Review-derived experience story used in public copy: none.
+
+## Fred Voccola Authority Selection
+
+- Selector command: python data_sources/modules/fred_authority_selector.py 'AI agents for automating field service operations' --title 'Best AI Agents for Automating Field Service Operations' --objective 'Compare current field service AI agents by workflow fit, operational data, availability, integrations, and human oversight so service teams can select and pilot the right option' --slate --limit 5
+- Evaluation status: completed
+- Top candidates: [FVMI-0011, FVMI-0010, FVMI-0007, FVMI-0006, FVMI-0005]
+- Selected: [FVMI-0007]
+- Fit decision: Editorial review selected the public Evan Kirstel video because its verified metadata directly covers field-service AI agents, job preparation, scheduling, documentation, and operational work. It is used only as attributed executive context and does not support the vendor rankings or product-performance claims.
+- Intended use: embed_and_paraphrase
+- Target section: Executive perspective: AI agents across field-service work
+- Authority row: [AUTH-0033]
+- Public URL: https://www.youtube.com/watch?v=zdllV42qWyI
+- Evidence status: source_checked_usable_authority_signal
+- Verification method: paraphrase_evidence
+- Evidence excerpt: The verified public YouTube description says the discussion covers practical AI at the job site and back office and describes AI agents performing job preparation, scheduling, documentation, and optimization work.
+- Timestamp or locator: Public YouTube description and video metadata captured 2026-07-21; video ID zdllV42qWyI; upload date 2026-04-03; duration PT25M47S.
+- Playback verified: not_applicable
+- Exact quote: not applicable
+- Embed decision: yes
+- VideoObject: required
 
 ## Customer Proof Pack
 
@@ -139,7 +217,7 @@ Plan artifact: `research/article-plan-best-ai-agents-for-automating-field-servic
 - Role: metric | Top candidates: [quote-matrix-bop-plumbing-multibranch-invoicing, quote-matrix-coastal-security-recurring-payments, quote-matrix-bwe-engineering-job-to-invoice, quote-matrix-cinos-project-delivery, quote-matrix-zebra-plumbing-onsite-quoting, case-study-foster-plumbing-job-costing-exit, quote-matrix-kiely-plumbing-estimates-invoicing, case-study-quorum, case-study-bge-digital, case-study-teamwired] | Selected: [none] | Rejection reason: candidates do not substantiate AI-agent performance, maturity, availability, or safeguards; general workflow metrics would create an unsupported inference.
 - Role: quote | Top candidates: [quote-matrix-bop-plumbing-multibranch-invoicing, quote-matrix-coastal-security-recurring-payments, quote-matrix-bwe-engineering-job-to-invoice, quote-matrix-cinos-project-delivery, quote-matrix-zebra-plumbing-onsite-quoting, case-study-foster-plumbing-job-costing-exit, quote-matrix-kiely-plumbing-estimates-invoicing] | Selected: [none] | Rejection reason: available quotes concern invoicing, payments, project delivery, or quoting rather than operational AI agents.
 - Role: theme | Top candidates: [review-capterra-e2e-estimating-invoicing-xero, review-capterra-construction-lead-quote-invoice-payment-quickbooks, clockshark-customer-story-chesapeake-lawn-home, review-g2-construction-lead-quote-job-invoice, review-capterra-qbo-service-jobs-quotes-invoices, review-g2-small-electrical-quote-conversion-job-invoice, quote-matrix-bop-plumbing-multibranch-invoicing, reference-james-frew-hostcomm-rvx, review-site-simpro-g2, review-g2-public-safety-paperless-quote-to-job-profitability] | Selected: [none] | Rejection reason: general workflow themes do not prove agent capability or buyer fit and would not improve the comparison.
-- Role: experience_story | Top candidates: [review-capterra-e2e-estimating-invoicing-xero, review-capterra-construction-lead-quote-invoice-payment-quickbooks, clockshark-customer-story-chesapeake-lawn-home, review-capterra-qbo-service-jobs-quotes-invoices, review-capterra-public-safety-lead-quote-invoice-payments, review-capterra-electrical-paperless-jobs-to-invoice, review-capterra-bigchange-alexina-office-manager-job-lifecycle, review-capterra-construction-lead-estimate-final-invoice-job-costing, review-capterra-construction-bid-catalog-job-costing, review-capterra-commercial-hvac-cloud-quotes] | Selected: [none] | Rejection reason: no candidate supplies an identity-backed experience with AI agents relevant to the article objective.
+- Role: experience_story | Top candidates: [review-capterra-e2e-estimating-invoicing-xero, review-capterra-construction-lead-quote-invoice-payment-quickbooks, clockshark-customer-story-chesapeake-lawn-home, review-capterra-qbo-service-jobs-quotes-invoices, review-capterra-public-safety-lead-quote-invoice-payments, review-capterra-electrical-paperless-jobs-to-invoice, review-capterra-bigchange-alexina-office-manager-job-lifecycle, review-capterra-construction-lead-estimate-final-invoice-job-costing, review-capterra-construction-bid-catalog-job-costing, review-capterra-commercial-hvac-cloud-quotes] | Selected: [none] | Rejected stronger candidates: [review-capterra-e2e-estimating-invoicing-xero: omitted because this article needs first-hand AI-agent performance evidence rather than unrelated estimating and invoicing experience] | Rejection reason: no candidate supplies an identity-backed experience with AI agents relevant to the article objective.
 
 ## Customer Proof Selection Decision
 
@@ -175,7 +253,7 @@ Plan artifact: `research/article-plan-best-ai-agents-for-automating-field-servic
 
 ## Schema Notes
 
-- BlogPosting: headline, description, datePublished/dateModified, canonical URL, Person as author, ImageObject for featured image, and Organization as publisher reference only.
+- BlogPosting: headline, description, datePublished/dateModified, canonical URL, Person as author with name `Corey O’Donnell` and jobTitle `Chief Brand & Strategy Officer`, ImageObject for the featured image, and Organization as publisher reference only.
 - BreadcrumbList: reflect the final blog hierarchy and canonical URL.
 - FAQPage: include the four exact AnswerSocrates questions with Question and Answer entities.
-- VideoObject: not applicable unless a video is embedded.
+- VideoObject: required for the embedded Fred Voccola video with name `Smarter Jobsites: How AI Is Rewiring the Trades`, uploadDate `2026-04-03`, duration `PT25M47S`, thumbnailUrl `https://i.ytimg.com/vi/zdllV42qWyI/maxresdefault.jpg`, contentUrl `https://www.youtube.com/watch?v=zdllV42qWyI`, and embedUrl `https://www.youtube-nocookie.com/embed/zdllV42qWyI`.

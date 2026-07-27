@@ -18,6 +18,8 @@ Use this command to perform a final SEO optimization pass on completed articles 
 
 Before returning `Ready`, confirm proof-only infrastructure lives in a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in the blog copy. The article file must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, `Vault Brand Language Alignment`, or structured data plan.
 
+For every Simpro optimization, resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --limit 5`, and write the complete `Fred Voccola Authority Selection` block from `context/aeo-geo-blog-strategy.md` to the validation sidecar. Evaluation is mandatory and public use is optional. The selector defaults to `Selected: none`; select a source explicitly only after reviewing it and confirming direct topical support. If the selector, vault, manifest, or inventories fail, record `Evaluation status: blocked` and the blocker; do not invent Fred evidence, change public Fred content, or return `Ready`.
+
 Vault product-language check: If the article uses Simpro product, feature, add-on, solution, industry, or related Simpro product URL language, confirm the validation sidecar contains `Vault Brand Language Alignment` with `wiki/messaging/Simpro Core Messaging Repository.md`, `wiki/messaging/Message House.md`, `wiki/messaging/Core Value Pillars.md`, `wiki/product/Product Positioning.md`, `wiki/features/Feature Library.md`, any needed `wiki/features/source-docs/` route, `wiki/verticals/Vertical Profile Library.md` for solution/industry language, and `Status: aligned`. The `vault_brand_language_guard.py` publish gate runs inside `/publish-readiness`. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
 Preferred publish readiness command:
 ```bash
@@ -27,6 +29,9 @@ Preferred publish readiness command:
 Before returning `Ready`, run `/publish-readiness`. It runs URL validation, public artifact checks, AI copy linting, public research link checks, Metric Proof Pack, numeric claim, FAQ answer quality, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, vault brand language, content score, and AEO/GEO gates internally.
 
 FAQ answers must use a 40-60 word first paragraph, lead with a supported number/range, named recommendation, definition, concrete action, or explained yes/no response, and move limitations after the direct answer. Every FAQ answer must contain at least 1 authoritative non-owned public evidence link in visible copy; a Source Map or FAQ Proof Map cannot replace that link.
+
+FAQ Source Policy: For every visible non-owned FAQ URL, add an exact `FAQ Proof Map` row with `FAQ`, `URL`, `Source class`, `Competitor check`, and `Support`; source class must be `neutral` or `non_competing_expert`. Competitor-owned FAQ sources: prohibited. Use neutral authorities or non-competing experts; Simpro-owned links are supplemental only. Reframe or remove vendor-specific FAQs without compliant evidence and retain vendor evidence in comparison or vendor-specific body sections.
+
 
 Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error` when debugging FAQ quality failures; `/publish-readiness` runs it automatically.
 

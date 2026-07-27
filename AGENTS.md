@@ -53,6 +53,20 @@ Use a proof-backed customer/review POV only when it improves the article objecti
 
 For Capterra theme use, add `Review Site Theme Selection` with `Capterra tab row`, `https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/`, and `Status: approved for paraphrased review-theme use`. Same-paragraph link required; no exact quote, reviewer-name claim, rating, ranking, or metric unless separately approved.
 
+## Fred Voccola Authority Selection
+
+For every new or changed Simpro blog and every rewrite, analysis, optimization, or publish-readiness pass, resolve `topic`, `title`, and `objective`, automatically run:
+
+```powershell
+python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --limit 5
+```
+
+Write the complete `Fred Voccola Authority Selection` block to the validation sidecar. Evaluation is mandatory; public use is optional. The vault is the sole eligibility source, and the selector must fail closed unless the manifest hashes for `fred-voccola-media-inventory.csv` and `authority-signal-matrix.csv` are current. Do not invent evidence when the vault, manifest, inventory, or selector is blocked.
+
+Fred evidence supports Expertise and Authority by default. It counts as Experience only when the source explicitly supports first-hand personal or operating experience, and it remains additive to customer Experience proof, customer stories, and independent evidence. Exact article quotes require `source_visible_article_text`; exact video/audio quotes require `transcript_and_playback`, a timestamp, and playback verification; paraphrases require `paraphrase_evidence`. Exact quotes and paraphrased observations need a contextual public link in the same paragraph. A playlist-only row is for discovery or embedding, never independent earned-media authority.
+
+Embed only a selected, public, embeddable YouTube source that materially supports the section. Use a responsive 16:9 `youtube-nocookie.com` handoff with a visible fallback link, descriptive title, lazy loading, no autoplay, and verified metadata. Require `VideoObject` if and only if a video is embedded. No usage ledger or frequency penalty applies in v1; topical support controls selection. Existing content is not bulk-backfilled, but this evaluation is required when it is next rewritten, optimized, or passed through publish readiness.
+
 ## Proof Gates
 
 Proof-only infrastructure belongs in `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in public blog copy. Run proof-aware gates with `--proof-sidecar`.
@@ -76,6 +90,14 @@ The early artifact and answer withholding gates run inside `/publish-readiness`:
 Every FAQ answer must use a 40-60 word first visible paragraph and lead with a supported number or range, named recommendation, definition, concrete action, or explained yes/no response. Generic openers such as `There is no`, `It depends`, `Pricing depends`, `Costs vary`, `We do not know`, `It is unclear`, and `No source ranks` block publish readiness. Put limitations after the direct answer.
 
 Every FAQ answer must also contain at least 1 authoritative non-owned public evidence link in the visible answer. A Source Map or FAQ Proof Map can document the same evidence but cannot replace that reader-facing link. If no defensible evidence-backed answer exists, replace or remove the question. The `faq_answer_quality_guard.py` and `faq_proof_guard.py` gates both run inside `/publish-readiness`.
+## FAQ Source Policy
+
+- Allowed source classes: neutral, non_competing_expert.
+- Competitor-owned FAQ sources: prohibited.
+- Every visible non-owned FAQ URL requires its own exact `FAQ Proof Map` row in the validation sidecar: `FAQ`, `URL`, `Source class`, `Competitor check`, and `Support`.
+- Permitted evidence includes regulators, standards bodies, universities, trade associations, independent research or editorial sources, and non-competing experts.
+- Simpro-owned links may be additional reader resources but never satisfy the non-owned FAQ-proof requirement.
+- If compliant evidence cannot support a vendor-specific question, remove or reframe the FAQ and retain vendor evidence in the comparison or vendor-specific body section.
 
 Use `context/aeo-geo-blog-strategy.md` as the canonical policy for Review Story Selection, Review Site Theme Selection, and approved quote/rating boundaries.
 

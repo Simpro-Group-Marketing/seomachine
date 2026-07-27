@@ -52,13 +52,19 @@ The command runs the complete publish-readiness stack:
 10. `source_support_guard`
 11. `customer_proof_diversity_guard`
 12. `review_story_identity_guard`
-13. `early_artifact_guard`
-14. `answer_withholding_guard`
-15. `vault_brand_language_guard`
-16. `source_routing_guard`
-17. `content_scorer` with URL and source-support validation
+13. `fred_authority` via `fred_authority_guard.py`
+14. `early_artifact_guard`
+15. `answer_withholding_guard`
+16. `vault_brand_language_guard`
+17. `source_routing_guard`
+18. `content_scorer` with URL and source-support validation
+
+The blocking `fred_authority` gate passes the validation sidecar to `fred_authority_guard.py`. It requires a complete `Fred Voccola Authority Selection` evaluation for every new or changed Simpro blog and for existing content when next rewritten, optimized, or passed through publish readiness. A selector or vault failure remains blocked; public Fred use is optional and receives no AEO/E-E-A-T credit merely because the internal block exists.
 
 FAQ answer-quality rule: every FAQ must use a 40-60 word first paragraph and lead with a supported number or range, named recommendation, definition, concrete action, or explained yes/no response. Generic deflections block gate 7. Gate 8 separately requires at least 1 authoritative non-owned public evidence link inside each visible FAQ answer; a Source Map or FAQ Proof Map cannot replace that link, so sidecar-only proof does not pass.
+
+FAQ Source Policy: Gate 8 receives the proof sidecar and requires one exact `FAQ Proof Map` row for each visible non-owned FAQ URL: `FAQ`, `URL`, `Source class`, `Competitor check`, and `Support`. The only allowed classes are `neutral` and `non_competing_expert`. Competitor-owned FAQ sources: prohibited. Simpro-owned links remain supplemental and cannot satisfy the non-owned proof requirement; reframe or remove vendor-specific FAQs without compliant evidence.
+
 
 403 replacement rule: If a DOL, Capterra, G2, Trustpilot, Google Play, or other public research/source URL returns 401, 403, or `manual_review`, do not remove the citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. Source Map notes must document both the rejected 403 URL and the replacement URL. The `public_research_link_guard` blocks sidecar-only handling of public research, compliance, legal, regulatory, or statistical proof and requires visible resolved non-owned public research links in the relevant article section or FAQ answer. Full policy lives in `context/aeo-geo-blog-strategy.md`.
 

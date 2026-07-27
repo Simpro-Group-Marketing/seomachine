@@ -22,7 +22,7 @@ Do not use Google Workspace or old marketing-portal URLs as the active read path
 
 The repo-local context files are downstream mirrors/fallbacks only and cannot override the vault when the vault is available. If a repo-local fallback is used because the vault is unavailable, document that in `Vault Context Read Path` in the validation sidecar.
 
-Required validation sidecar sections: `Vault Context Read Path` and `Source Routing Decision` for every workflow; `Vault Brand Language Alignment` when product, feature, add-on, solution, industry, or related Simpro product URL language appears; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. Missing required sections block `/publish-readiness`, `/optimize`, and dev-ready handoff until documented.
+Required validation sidecar sections: `Vault Context Read Path`, `Source Routing Decision`, and `Fred Voccola Authority Selection` for every new or changed Simpro blog workflow; `Vault Brand Language Alignment` when product, feature, add-on, solution, industry, or related Simpro product URL language appears; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. Missing required sections block `/publish-readiness`, `/optimize`, and dev-ready handoff until documented.
 
 Required `Source Routing Decision` sidecar block:
 
@@ -251,6 +251,55 @@ Example strict proof rows:
 
 Case-study proof paths and Review-site experience evidence may support non-numeric E-E-A-T PoV and paraphrased themes only. Exact quotes or testimonial wording must appear under Approved quotes with customer/brand or reviewer, source type, public URL, source-visible Evidence, and Status: approved. Any named customer metric must appear under Approved metrics with Customer/brand, public URL, source-visible Evidence, and Status: approved. Source Map alone is insufficient for quotes, testimonials, or named metrics.
 
+## Fred Voccola Authority Selection
+
+Every `/research`, `/article`, `/write`, `/rewrite`, `/analyze-existing`, and `/optimize` workflow for a new or changed Simpro blog must resolve `topic`, `title`, and `objective`, automatically run:
+
+```powershell
+python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --limit 5
+```
+
+Write the complete selector evaluation to `research/validation-[topic-slug]-[YYYY-MM-DD].md` before drafting or changing public Fred content. Evaluation is mandatory; public use is optional and must materially support the article subject and target section. The selector defaults to `Selected: none`; selection requires an explicit editorial decision after the source is reviewed. If the selector, vault, manifest, or required inventory is unavailable or stale, set `Evaluation status: blocked`, document the blocker, and do not invent, infer, quote, paraphrase, cite, or embed Fred evidence.
+
+The Obsidian vault is the sole authority for Fred media eligibility and status. The selector resolves the vault through `--vault-root`, then `SIMPRO_BRAND_CONTEXT_VAULT`, then the established local vault path. It must validate the current manifest hashes for `fred-voccola-media-inventory.csv` and `authority-signal-matrix.csv` and fail closed when the manifest or either inventory is unavailable or stale. Only current usable authority rows and public playlist assets are candidates. Internal assets, blocked rows, syndicated-placement-only rows, non-Simpro evidence, and any row outside its allowed-use status are excluded.
+
+Fred's source-backed industry observations supplement E-E-A-T Expertise and Authority by default. They count as Experience only when the source explicitly supports Fred's first-hand personal or operating experience. Fred evidence is additive: it does not replace customer Experience proof, customer stories, the Customer Proof Pack, or authoritative independent evidence. No usage ledger or frequency penalty applies in v1; direct topical support is the primary selection criterion.
+
+Required sidecar block:
+
+```markdown
+## Fred Voccola Authority Selection
+- Selector command: [...]
+- Evaluation status: completed | blocked
+- Top candidates: [FVMI IDs or none]
+- Selected: [FVMI ID or none]
+- Fit decision: [specific article relevance or rejection reason]
+- Intended use: none | embed | inline_citation | paraphrased_industry_observation | exact_quote | embed_and_paraphrase | embed_and_quote
+- Target section: [heading or not applicable]
+- Authority row: [AUTH ID or none]
+- Public URL: [URL or not applicable]
+- Evidence status: [vault status or not applicable]
+- Verification method: not_applicable | source_visible_article_text | transcript_and_playback | paraphrase_evidence
+- Evidence excerpt: [source text or not applicable]
+- Timestamp or locator: [timestamp, article locator, or not applicable]
+- Playback verified: yes | not_applicable
+- Exact quote: [text or not applicable]
+- Embed decision: yes | no
+- VideoObject: required | not_applicable
+```
+
+`Selected: none` passes only when `Fit decision` gives a substantive, article-specific topical rejection reason. A generic statement such as "not relevant" does not pass. For a selected row, the sidecar must match the fields it carries: selected ID, authority ID, public URL, and evidence status. The guard must also confirm that the current manifest-backed inventory and authority rows agree on title, URL, recommended brand, evidence status, public-use status, and allowed-use eligibility.
+
+Public-use rules:
+
+- Exact article quotations require source-visible article text, `Verification method: source_visible_article_text`, an evidence excerpt, and an article locator. Exact video or audio quotations require source-visible transcript or caption evidence, a timestamp, `Verification method: transcript_and_playback`, and `Playback verified: yes`. If those checks are incomplete, paraphrase or omit the observation.
+- An exact quote or paraphrased industry observation must include a contextual public source link in the same paragraph. The source must directly support the surrounding statement; a sidecar URL alone does not satisfy this requirement.
+- playlist-only rows may be used for discovery or an eligible embed, but never as independent earned-media authority. Do not present a curated playlist entry as third-party validation.
+- Embedding is content-first and optional. Embed only a selected, public, embeddable YouTube source that materially supports the target section. Use the existing responsive 16:9 handoff: a privacy-enhanced `https://www.youtube-nocookie.com/embed/[video-id]` URL, visible public fallback link, descriptive iframe title, `loading="lazy"`, no autoplay, verified video metadata, and responsive dimensions.
+- Frontmatter must include `VideoObject` when a Fred video is embedded and must omit `VideoObject` when no video is embedded. The internal selection block alone never earns AEO or E-E-A-T credit; only source-backed public content counts.
+
+Existing articles and sidecars are not bulk-backfilled. This block becomes mandatory when an existing Simpro article is next rewritten, optimized, or passed through `/publish-readiness`.
+
 ## AnswerSocrates PAA Workflow
 
 For every new `/article` run, collect People Also Ask style questions from `https://answersocrates.com` with Playwright MCP.
@@ -324,8 +373,17 @@ When a PAA/FAQ CSV or raw question set is available, select the 3-5 closest ques
 - Write FAQ answers as 40-60 word direct answers before any supporting context.
 - FAQ answer quality is mandatory: use a 40-60 word first visible paragraph and lead with a supported number or range, named recommendation, definition, concrete action, or explained yes/no response. Do not open with `There is no`, `It depends`, `Pricing depends`, `Costs vary`, `We do not know`, `It is unclear`, `No source ranks`, or an equivalent deflection. Put limitations after the direct answer. Replace or remove a question when no defensible answer exists. Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error` before scoring or `/optimize`.
 - FAQ proof is required for every answer: include at least 1 authoritative non-owned public evidence link inside the visible answer. A question-specific Source Map / FAQ Proof Map row may document the same evidence but cannot replace the reader-facing link. Context file paths and owned product links alone do not count. Run `python data_sources/modules/faq_proof_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error` before scoring or `/optimize`.
+- **FAQ Source Policy**: Every visible non-owned FAQ URL needs one exact `FAQ Proof Map` row with `FAQ`, `URL`, `Source class`, `Competitor check`, and source-grounded `Support`.
+  - Allowed source classes: neutral, non_competing_expert.
+  - Competitor-owned FAQ sources: prohibited.
+  - Use regulators, standards bodies, universities, trade associations, independent research/editorial, or non-competing expert sources.
+  - Simpro-owned links can be additional reader resources but never satisfy the non-owned FAQ-proof requirement.
+  - If no compliant source supports a vendor-specific question, remove or reframe the FAQ and retain vendor evidence in a comparison or vendor-specific body section.
+  - Add `- Status: aligned.` in the `FAQ Source Policy` sidecar block.
+
 - PAA provenance is required for each FAQ question: include `PAA/FAQ Provenance` with Source, Artifact, and exact Selected questions. Run `python data_sources/modules/paa_provenance_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error` before scoring or `/optimize`.
 - Add schema notes for standard blog posts with FAQs: primary schemas are `BlogPosting`, `BreadcrumbList`, and `FAQPage`; nest `Person as author`, `Question and Answer inside FAQPage`, `ImageObject for the featured image or logo`, and `Organization as publisher reference only, not a separate full schema block`. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Use `VideoObject` only when a video is embedded.
+- Evaluate Fred authority evidence for every new or changed Simpro blog, but add Fred content only when a selected source directly supports the section. Keep `Fred Voccola Authority Selection` in the validation sidecar, not public copy.
 
 ## AEO/GEO Map
 
@@ -341,6 +399,7 @@ Every `/article` plan and every moderate, major, or complete `/rewrite` plan mus
 | Metric Proof Pack | Metric requirement, Search log, Approved metric rows, public URL or local proof artifact, source-visible Evidence, Status: approved, intended Use, rejected candidates |
 | E-E-A-T Proof Map | Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, omitted unsupported claims |
 | Customer Proof Pack | Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved metrics, Use in copy, Claims excluded, approval status |
+| Fred Voccola Authority Selection | Mandatory selector evaluation, ranked FVMI candidates, explicit selected-or-none decision, topical fit, intended use, source verification, embed decision, and VideoObject decision |
 | Review Story Selection | Required only when public copy paraphrases a review-derived E-E-A-T story; must include identity-backed selected story, public review URL, same paragraph link requirement, and exact quote boundary |
 | Review Site Theme Selection | Required when public copy paraphrases a Capterra review-site theme without using an E-E-A-T story; must include Capterra tab row, public Capterra review-site URL, approved workflow theme, same paragraph link requirement, and exact quote/rating boundary |
 | Early usable artifact | Filled data table, download link, checklist deliverable, or calculator reference planned within the first 300 words of body copy, or a documented not-applicable reason |
@@ -353,7 +412,7 @@ A draft is publish-ready only when both gates pass:
 
 - General content quality score: 85/100 or higher.
 - AEO/GEO score: 90/100 or higher.
-- Validation sidecar: proof-only blocks must live in `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in public copy. Public artifacts must pass `data_sources/modules/public_artifact_guard.py --fail-on error` and must not contain an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, `Vault Brand Language Alignment`, `Source Routing Decision`, `Early Artifact Plan`, `Concrete Answer Check`, or structured data plan.
+- Validation sidecar: proof-only blocks must live in `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in public copy. Public artifacts must pass `data_sources/modules/public_artifact_guard.py --fail-on error` and must not contain an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, `Fred Voccola Authority Selection`, `Vault Brand Language Alignment`, `Source Routing Decision`, `Early Artifact Plan`, `Concrete Answer Check`, or structured data plan.
 - AI copy linting: `data_sources/modules/ai_copy_linter.py --profile simpro-web --fail-on error` blocks copy avoid-rule errors before publish readiness. Copy avoid-rule errors include modal verbs, passive voice, repeated starts, vague generalizations, filler words, and long sentences.
 - Publish readiness runner: use `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` as the default execution command. Use the individual gates below for debugging and policy-specific failures.
 - URL validation gate: `data_sources/modules/url_validator.py --fail-on unresolved` must pass before scoring, `/optimize`, handoff, or publish. URL validation confirms destinations resolve; it does not prove the page supports the claim.
@@ -367,12 +426,13 @@ A draft is publish-ready only when both gates pass:
 - Customer proof diversity guard: `data_sources/modules/customer_proof_diversity_guard.py --fail-on error` must pass before scoring or `/optimize`. It verifies that case-study proof is not the only checked source route, that recently used or overused customer proof has a source-specific `Reuse reason`, that the sidecar includes `Customer Proof Selection Decision`, and that `customer_proof_selector.py` inputs from `customer-proof-index.json` and `customer-proof-usage-ledger.json` were respected, including selector-backed proof that no stronger underused approved proof fits the same role.
 - Selected customer proof mining: the customer proof diversity guard also requires `Selected Customer Proof Mining` whenever public copy uses customer proof, so selected proof is mined for quotes, metrics, POV/story, and workflow themes before final use is documented.
 - Review story identity guard: `data_sources/modules/review_story_identity_guard.py --fail-on error` must pass before scoring or `/optimize`. It verifies that review-derived E-E-A-T story copy has an identity-backed `Review Story Selection`, a usable public review URL, and a same paragraph public link. It also verifies that Capterra review-theme copy has `Review Site Theme Selection`, `Source row ref: Capterra tab row [n]`, `Public review-site URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/`, same paragraph source link, and no exact quote, reviewer-name claim, rating, ranking, or metric unless separately approved.
+- Fred authority guard: `data_sources/modules/fred_authority_guard.py --fail-on error` is a blocking `/publish-readiness` gate for Simpro blogs. It requires the complete `Fred Voccola Authority Selection` sidecar block, validates selected inventory and authority fields against the current manifest-backed vault, enforces exact quote and same-paragraph link evidence, restricts playlist assets to discovery or embedding, validates the privacy-enhanced responsive YouTube handoff, and requires `VideoObject` if and only if a video is embedded. A completed selection block without source-backed public use receives no AEO or E-E-A-T score credit.
 - Early artifact guard: `data_sources/modules/early_artifact_guard.py --fail-on error` must pass before scoring or `/optimize`. A usable artifact — a filled data table, a download link, a checklist deliverable, or a calculator/tool reference — must start within the first 300 words of body copy. The only exemption is an `Early Artifact Plan` block in the validation sidecar with `Early artifact requirement: not applicable` and a Reason.
 - Answer withholding guard: `data_sources/modules/answer_withholding_guard.py --fail-on error` must pass before scoring or `/optimize`. Placeholder table scaffolds block publish unconditionally with no exemption. When the target query implies a number, range, or template, the article must supply a concrete numeric answer early or a filled data table or download; a `Concrete Answer Check` block with `Concrete answer requirement: not applicable` and a Reason exempts only the numeric/template answer requirement, never scaffolds.
 - Vault brand language guard: `data_sources/modules/vault_brand_language_guard.py --fail-on error` must pass before scoring or `/optimize` when Simpro product, feature, add-on, solution, industry, or related Simpro product URL language appears. It requires `Vault Brand Language Alignment` in the validation sidecar with the core vault routes, any needed `wiki/features/source-docs/` route, `wiki/verticals/Vertical Profile Library.md` for solution/industry language, fallback blocker details if fallback mirrors were used, and `Status: aligned`.
 - Source routing guard: `data_sources/modules/source_routing_guard.py --fail-on error` must pass before scoring or `/optimize` for Simpro articles. It requires `Source Routing Decision` in the validation sidecar, blocks repo context as the primary authority for vault-first data, allows repo-primary workflow data such as SEO mechanics, AEO/GEO workflow, schema notes, publish gates, internal links, keyword snapshots, AI citation targets, CRO, Reddit, writing examples, and requires `Status: aligned`.
 
-Use `--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` with Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, vault brand language, source routing, and content scorer commands so proof maps stay out of the article copy artifact.
+Use `--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` with Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, Fred authority, vault brand language, source routing, and content scorer commands so proof maps stay out of the article copy artifact.
 
 The validation sidecar is the only approved place for proof maps and proof packs that are not publishable article copy.
 

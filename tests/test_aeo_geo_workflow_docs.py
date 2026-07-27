@@ -1601,5 +1601,116 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                 self.assertNotIn(text, content, f"{path.name} must not include deferred PMM QA rule")
 
 
+    def test_fred_authority_workflow_is_mandatory_and_source_bounded(self):
+        selector_command = (
+            'python data_sources/modules/fred_authority_selector.py "[topic]" '
+            '--title "[title]" --objective "[objective]" --slate --limit 5'
+        )
+        workflow_paths = [
+            ROOT / ".claude" / "commands" / "research.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "analyze-existing.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+        ]
+        workflow_required = [
+            selector_command,
+            "Fred Voccola Authority Selection",
+            "Evaluation is mandatory",
+            "public use is optional",
+            "validation sidecar",
+        ]
+        for path in workflow_paths:
+            content = path.read_text(encoding="utf-8")
+            for text in workflow_required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+        canonical_paths = [
+            ROOT / "AGENTS.md",
+            ROOT / "CLAUDE.md",
+            ROOT / "README.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+        ]
+        canonical_required = [
+            "fred-voccola-media-inventory.csv",
+            "authority-signal-matrix.csv",
+            "same paragraph",
+            "source_visible_article_text",
+            "transcript_and_playback",
+            "paraphrase_evidence",
+            "playlist-only",
+            "youtube-nocookie.com",
+            "VideoObject",
+            "Expertise",
+            "Authority",
+            "Experience",
+            "customer Experience proof",
+            "No usage ledger",
+            "public use is optional",
+        ]
+        for path in canonical_paths:
+            content = path.read_text(encoding="utf-8")
+            self.assertIn(selector_command, content, f"{path.name} missing selector command")
+            for text in canonical_required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+        strategy = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
+            encoding="utf-8"
+        )
+        sidecar_fields = [
+            "Selector command",
+            "Evaluation status",
+            "Top candidates",
+            "Selected",
+            "Fit decision",
+            "Intended use",
+            "Target section",
+            "Authority row",
+            "Public URL",
+            "Evidence status",
+            "Verification method",
+            "Evidence excerpt",
+            "Timestamp or locator",
+            "Playback verified",
+            "Exact quote",
+            "Embed decision",
+            "VideoObject",
+        ]
+        for field in sidecar_fields:
+            self.assertIn(f"- {field}:", strategy, f"canonical strategy missing {field}")
+
+        publish_doc = (ROOT / ".claude" / "commands" / "publish-readiness.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("fred_authority", publish_doc)
+        self.assertIn("fred_authority_guard.py", publish_doc)
+
+    def test_faq_source_selection_policy_is_documented_and_enforced(self):
+        canonical_paths = [
+            ROOT / "AGENTS.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+        ]
+        workflow_paths = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "research.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "publish-readiness.md",
+        ]
+        required = [
+            "FAQ Source Policy",
+            "neutral",
+            "non_competing_expert",
+            "Competitor-owned FAQ sources: prohibited",
+            "FAQ Proof Map",
+        ]
+
+        for path in canonical_paths + workflow_paths:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
 if __name__ == "__main__":
     unittest.main()

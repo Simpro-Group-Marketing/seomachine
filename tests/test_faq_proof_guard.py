@@ -13,8 +13,42 @@ def finding_ids(content):
     return {finding["rule_id"] for finding in check_content(content)}
 
 
+def finding_ids_with_sidecar(content, sidecar):
+    return {finding["rule_id"] for finding in check_content(content, proof_content=sidecar)}
+
+
+
+
+def faq_content(question, urls):
+    links = " and ".join(
+        f"[evidence {index + 1}]({url})" for index, url in enumerate(urls)
+    )
+    return f"""# Field Service Management
+
+## Frequently Asked Questions
+
+### {question}
+
+Field service management coordinates off-site workers, work orders, schedules and customer service records. {links} supports this explanation.
+"""
+
+
+def faq_sidecar(question, rows, include_policy=True):
+    policy = """## FAQ Source Policy
+
+- Allowed source classes: neutral, non_competing_expert.
+- Competitor-owned FAQ sources: prohibited.
+- Status: aligned.
+
+""" if include_policy else ""
+    return f"{policy}## FAQ Proof Map\n\n" + "\n".join(rows)
+
 class FaqProofGuardTests(unittest.TestCase):
+
+
     def test_faq_answer_without_linked_proof_fails(self):
+
+
         content = """# HVAC Scheduling Software
 
 ## Frequently Asked Questions
@@ -93,9 +127,9 @@ HVAC scheduling software reduces missed appointments by centralizing job details
 
         findings = check_content(content, proof_content=sidecar)
 
-        self.assertEqual(len(findings), 1)
-        self.assertEqual(findings[0]["rule_id"], "faq_answer_missing_inline_proof")
-        self.assertIn("inside the FAQ answer", findings[0]["suggestion"])
+        finding_ids = {finding["rule_id"] for finding in findings}
+        self.assertIn("faq_answer_missing_inline_proof", finding_ids)
+        self.assertIn("faq_source_policy_missing", finding_ids)
 
     def test_context_only_source_map_does_not_count_as_public_proof(self):
         content = """---
@@ -146,6 +180,111 @@ HVAC scheduling should connect to invoicing because completed work loses value w
         self.assertTrue(should_fail(findings, fail_on="error"))
         self.assertFalse(should_fail(findings, fail_on="none"))
 
+
+    def test_classified_neutral_faq_source_passes(self):
+        question = "What is field service management?"
+        url = "https://example.org/fsm-definition"
+        sidecar = faq_sidecar(
+            question,
+            [
+                f"- FAQ: {question} | URL: {url} | Source class: neutral | Competitor check: passed | Support: Independent definition."
+            ],
+        )
+
+        self.assertEqual(check_content(faq_content(question, [url]), proof_content=sidecar), [])
+
+    def test_classified_non_competing_expert_faq_source_passes(self):
+        question = "What are AI agents good for?"
+        url = "https://expert.example.org/ai-agents"
+        sidecar = faq_sidecar(
+            question,
+            [
+                f"- FAQ: {question} | URL: {url} | Source class: non_competing_expert | Competitor check: passed | Support: Expert workflow guidance."
+            ],
+        )
+
+        self.assertEqual(check_content(faq_content(question, [url]), proof_content=sidecar), [])
+
+    def test_classified_faq_source_requires_an_allowed_source_class(self):
+        question = "What is field service management?"
+        url = "https://example.org/fsm-definition"
+        sidecar = faq_sidecar(
+            question,
+            [
+                f"- FAQ: {question} | URL: {url} | Competitor check: passed | Support: Independent definition."
+            ],
+        )
+
+        self.assertIn(
+            "faq_answer_source_class_missing",
+            finding_ids_with_sidecar(faq_content(question, [url]), sidecar),
+        )
+
+    def test_unlisted_visible_faq_source_fails_even_when_another_source_is_classified(self):
+        question = "What is field service management?"
+        classified_url = "https://example.org/fsm-definition"
+        unlisted_url = "https://example.net/fsm-guide"
+        sidecar = faq_sidecar(
+            question,
+            [
+                f"- FAQ: {question} | URL: {classified_url} | Source class: neutral | Competitor check: passed | Support: Independent definition."
+            ],
+        )
+
+        self.assertIn(
+            "faq_answer_source_map_url_missing",
+            finding_ids_with_sidecar(
+                faq_content(question, [classified_url, unlisted_url]),
+                sidecar,
+            ),
+        )
+
+    def test_competitor_owned_faq_source_fails_even_with_a_neutral_source(self):
+        question = "What is field service management?"
+        neutral_url = "https://example.org/fsm-definition"
+        competitor_url = "https://competitor.example.com/fsm"
+        sidecar = faq_sidecar(
+            question,
+            [
+                f"- FAQ: {question} | URL: {neutral_url} | Source class: neutral | Competitor check: passed | Support: Independent definition.",
+                f"- FAQ: {question} | URL: {competitor_url} | Source class: competitor_owned | Competitor check: failed | Support: Vendor documentation is prohibited.",
+            ],
+        )
+
+        self.assertIn(
+            "faq_answer_competitor_owned_source",
+            finding_ids_with_sidecar(
+                faq_content(question, [neutral_url, competitor_url]),
+                sidecar,
+            ),
+        )
+
+    def test_faq_source_policy_is_required_when_a_sidecar_is_supplied(self):
+        question = "What is field service management?"
+        url = "https://example.org/fsm-definition"
+        sidecar = faq_sidecar(
+            question,
+            [
+                f"- FAQ: {question} | URL: {url} | Source class: neutral | Competitor check: passed | Support: Independent definition."
+            ],
+            include_policy=False,
+        )
+
+        self.assertIn(
+            "faq_source_policy_missing",
+            finding_ids_with_sidecar(faq_content(question, [url]), sidecar),
+        )
+
+    def test_non_faq_comparison_sources_are_unaffected(self):
+        content = """# Field Service Management
+
+## Comparison
+
+Vendor documentation may appear in a comparison section when it supports a vendor-specific claim: [competitor documentation](https://competitor.example.com/fsm).
+"""
+        sidecar = faq_sidecar("Unused question?", [])
+
+        self.assertEqual(check_content(content, proof_content=sidecar), [])
 
 if __name__ == "__main__":
     unittest.main()
