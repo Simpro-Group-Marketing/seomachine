@@ -33,7 +33,8 @@ NEXT_HEADING_RE = re.compile(
     r"Selected Customer Proof Mining|Customer Proof Pack|Customer Proof Selection Decision|"
     r"E-E-A-T Proof Map|FAQ Proof Map|Review Story Selection|Review Site Theme Selection|"
     r"Structured data plan|Early Artifact Plan|Concrete Answer Check|"
-    r"Competitive Shortlist Decision|Named Feature/Add-On Link Check|Hindsight Boundary)\s*$",
+    r"Competitive Shortlist Decision|Named Feature/Add-On Link Check|Hindsight Boundary|"
+    r"Fred Voccola Authority Selection)\s*$",
     re.IGNORECASE,
 )
 BULLET_FIELD_RE = re.compile(r"^\s*[-*+]\s*(?P<key>[^:]+):\s*(?P<value>.*?)\s*$")
@@ -54,6 +55,8 @@ REQUIRED_CORE_ROUTES = (
     "AGENTS.md",
     "wiki/cache/hot.md",
     "wiki/Brand Graph Index.md",
+    "wiki/messaging/Voice and Tone.md",
+    "wiki/messaging/Tone Voice and Localization Rules.md",
 )
 FALLBACK_BLOCKER_TERMS = (
     "vault unavailable",

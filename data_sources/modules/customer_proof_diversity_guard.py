@@ -60,27 +60,27 @@ NEXT_PROOF_HEADING_RE = re.compile(
     r"^\s*(?:#{1,6}\s+)?(?:PAA/FAQ Provenance|Metric Proof Pack|Source Map|"
     r"Customer Proof Slate|Selected Customer Proof Mining|Customer Proof Selection Decision|"
     r"E-E-A-T Proof Map|FAQ Proof Map|Review Story Selection|Review Site Theme Selection|"
-    r"Structured data plan)\s*$",
+    r"Structured data plan|Fred Voccola Authority Selection)\s*$",
     re.IGNORECASE,
 )
 NEXT_DECISION_HEADING_RE = re.compile(
     r"^\s*(?:#{1,6}\s+)?(?:PAA/FAQ Provenance|Metric Proof Pack|Source Map|"
     r"Customer Proof Slate|Selected Customer Proof Mining|Customer Proof Pack|E-E-A-T Proof Map|"
-    r"FAQ Proof Map|Review Story Selection|Review Site Theme Selection|Structured data plan)\s*$",
+    r"FAQ Proof Map|Review Story Selection|Review Site Theme Selection|Structured data plan|Fred Voccola Authority Selection)\s*$",
     re.IGNORECASE,
 )
 NEXT_SLATE_HEADING_RE = re.compile(
     r"^\s*(?:#{1,6}\s+)?(?:PAA/FAQ Provenance|Metric Proof Pack|Source Map|"
     r"Selected Customer Proof Mining|Customer Proof Pack|Customer Proof Selection Decision|"
     r"E-E-A-T Proof Map|FAQ Proof Map|Review Story Selection|Review Site Theme Selection|"
-    r"Structured data plan)\s*$",
+    r"Structured data plan|Fred Voccola Authority Selection)\s*$",
     re.IGNORECASE,
 )
 NEXT_MINING_HEADING_RE = re.compile(
     r"^\s*(?:#{1,6}\s+)?(?:PAA/FAQ Provenance|Metric Proof Pack|Source Map|"
     r"Customer Proof Slate|Customer Proof Pack|Customer Proof Selection Decision|"
     r"E-E-A-T Proof Map|FAQ Proof Map|Review Story Selection|Review Site Theme Selection|"
-    r"Structured data plan)\s*$",
+    r"Structured data plan|Fred Voccola Authority Selection)\s*$",
     re.IGNORECASE,
 )
 REVIEW_PROOF_HEADING_RE = re.compile(

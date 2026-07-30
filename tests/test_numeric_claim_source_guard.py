@@ -203,6 +203,115 @@ Simpro supports [24,000+ trade businesses](https://www.simprogroup.com/company/p
 
         self.assertEqual(check_content(content, proof_content=sidecar), [])
 
+    def test_single_digit_margin_claim_requires_proof(self):
+        content = """# Operating margin
+
+The average field service trade business runs on a single-digit net margin.
+"""
+
+        findings = check_content(content)
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(
+            findings[0]["rule_id"],
+            "unsupported_verbal_quantified_claim",
+        )
+        self.assertIn("single-digit", findings[0]["match"])
+
+    def test_average_business_performance_claim_requires_proof(self):
+        content = """# Business performance
+
+The average operator carries higher costs when dispatch work stays manual.
+"""
+
+        self.assertIn(
+            "unsupported_verbal_quantified_claim",
+            finding_ids(content),
+        )
+
+    def test_most_complaints_claim_requires_proof(self):
+        content = """# Customer communication
+
+Most customer complaints are about the silence after the job.
+"""
+
+        self.assertIn(
+            "unsupported_verbal_quantified_claim",
+            finding_ids(content),
+        )
+
+    def test_number_word_business_size_requires_proof(self):
+        content = """# Back office capacity
+
+A twenty-person shop has to squeeze coordination work in between jobs.
+"""
+
+        self.assertIn(
+            "unsupported_verbal_quantified_claim",
+            finding_ids(content),
+        )
+
+    def test_operator_group_comparison_requires_proof(self):
+        content = """# Business performance
+
+National operators run healthier than small field service businesses because they have larger back offices.
+"""
+
+        self.assertIn(
+            "unsupported_verbal_quantified_claim",
+            finding_ids(content),
+        )
+
+    def test_verbal_quantity_with_same_paragraph_public_link_passes(self):
+        content = """# Operating margin
+
+The [average contractor margin](https://example.org/field-service-margins) remains in the single-digit range.
+"""
+
+        self.assertEqual(check_content(content), [])
+
+    def test_verbal_quantity_with_matching_source_map_row_passes(self):
+        content = """# Customer communication
+
+Most customer complaints are about the silence after the job.
+"""
+        sidecar = """## Source Map
+
+| Claim | URL | Status |
+|---|---|---|
+| Most customer complaints are about the silence after the job | https://example.org/customer-complaints | approved |
+"""
+
+        self.assertEqual(check_content(content, proof_content=sidecar), [])
+
+    def test_source_map_must_cover_each_verbal_claim_phrase(self):
+        content = """# Operating margin
+
+The average trade business runs on a single-digit net margin.
+"""
+        sidecar = """## Source Map
+
+| Claim | URL | Status |
+|---|---|---|
+| Single-digit net margin | https://example.org/field-service-margins | approved |
+"""
+
+        self.assertIn(
+            "unsupported_verbal_quantified_claim",
+            {
+                finding["rule_id"]
+                for finding in check_content(content, proof_content=sidecar)
+            },
+        )
+
+    def test_instructional_number_words_are_not_claims(self):
+        content = """# Pilot setup
+
+Pick one workflow, one user group, and one review period.
+"""
+
+        self.assertEqual(check_content(content), [])
+
     def test_check_file_and_failure_threshold(self):
         with NamedTemporaryFile("w", encoding="utf-8", suffix=".md", delete=False) as temp_file:
             temp_file.write(

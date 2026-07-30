@@ -77,6 +77,20 @@ class PublishReadinessTests(unittest.TestCase):
             return score or passing_score()
 
         fake_scorer.score.side_effect = score_content
+        fred_patcher = patch(
+            "data_sources.modules.publish_readiness.fred_authority_guard.check_file",
+            side_effect=gate("fred_authority"),
+        )
+        self.fred_guard_mock = fred_patcher.start()
+        self.addCleanup(fred_patcher.stop)
+
+        named_feature_patcher = patch(
+            "data_sources.modules.publish_readiness.named_feature_status_guard.check_file",
+            side_effect=gate("named_feature_status"),
+        )
+        self.named_feature_guard_mock = named_feature_patcher.start()
+        self.addCleanup(named_feature_patcher.stop)
+
 
         return [
             patch("data_sources.modules.publish_readiness.public_artifact_guard.check_file", side_effect=gate("public_artifact")),
@@ -126,7 +140,9 @@ class PublishReadinessTests(unittest.TestCase):
                 "early_artifact",
                 "answer_withholding",
                 "vault_brand_language",
+                "named_feature_status",
                 "source_routing",
+                "fred_authority",
                 "content_scorer",
             ],
         )
@@ -149,6 +165,52 @@ class PublishReadinessTests(unittest.TestCase):
         metric_gate = next(gate for gate in result["gates"] if gate["name"] == "metric_proof_pack")
         self.assertFalse(metric_gate["passed"])
         self.assertEqual(metric_gate["errors"], 1)
+
+    def test_fred_authority_error_fails_runner(self):
+        patchers = self.patch_passing_gates()
+        with ExitStack() as stack:
+            for patcher in patchers:
+                stack.enter_context(patcher)
+            stack.enter_context(
+                patch(
+                    "data_sources.modules.publish_readiness.fred_authority_guard.check_file",
+                    return_value=[finding("fred_authority_selection_missing")],
+                )
+            )
+            result = publish_readiness.run_publish_readiness(
+                self.article_path,
+                proof_sidecar=self.sidecar_path,
+            )
+
+        self.assertFalse(result["passed"])
+        fred_gate = next(
+            gate for gate in result["gates"] if gate["name"] == "fred_authority"
+        )
+        self.assertFalse(fred_gate["passed"])
+        self.assertEqual(fred_gate["errors"], 1)
+
+    def test_named_feature_status_error_fails_runner(self):
+        patchers = self.patch_passing_gates()
+        with ExitStack() as stack:
+            for patcher in patchers:
+                stack.enter_context(patcher)
+            stack.enter_context(
+                patch(
+                    "data_sources.modules.publish_readiness.named_feature_status_guard.check_file",
+                    return_value=[finding("named_feature_status_row_missing")],
+                )
+            )
+            result = publish_readiness.run_publish_readiness(
+                self.article_path,
+                proof_sidecar=self.sidecar_path,
+            )
+
+        self.assertFalse(result["passed"])
+        feature_gate = next(
+            gate for gate in result["gates"] if gate["name"] == "named_feature_status"
+        )
+        self.assertEqual(feature_gate["label"], "Named Feature Status")
+        self.assertEqual(feature_gate["errors"], 1)
 
     def test_faq_answer_quality_error_fails_runner(self):
         patchers = self.patch_passing_gates()
@@ -258,6 +320,14 @@ class PublishReadinessTests(unittest.TestCase):
         self.assertIn("url_summary", public_research.call_args.kwargs)
         for guard in [metric, numeric, faq_answer_quality, faq, paa, source, customer, review, early_artifact, answer_withholding, vault_brand_language, source_routing]:
             self.assertEqual(guard.call_args.kwargs["proof_sidecar"], str(self.sidecar_path))
+        self.assertEqual(
+            self.fred_guard_mock.call_args.kwargs["proof_sidecar"],
+            str(self.sidecar_path),
+        )
+        self.assertEqual(
+            self.named_feature_guard_mock.call_args.kwargs["proof_sidecar"],
+            str(self.sidecar_path),
+        )
         scorer = scorer_class.return_value
         self.assertEqual(scorer.score.call_args.kwargs["proof_sidecar"], str(self.sidecar_path))
         self.assertTrue(scorer.score.call_args.kwargs["validate_urls"])

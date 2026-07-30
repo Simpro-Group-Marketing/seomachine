@@ -33,11 +33,26 @@ BANNED_HEADINGS = (
     "Concrete Answer Check",
     "Vault Brand Language Alignment",
     "Source Routing Decision",
+    "Fred Voccola Authority Selection",
+    "Named Feature Status and Commercial Treatment",
+)
+
+EDITORIAL_REVIEW_SYMBOL_RE = re.compile(r"\N{LEFT-POINTING MAGNIFYING GLASS}")
+EDITORIAL_REVIEW_LABEL_RE = re.compile(
+    r"\[\s*(?:PMM\s+REVIEW|COD\s+NOTE|NEEDS\s+REVIEW)(?:\s*:[^\]]*)?\s*\]",
+    re.IGNORECASE,
+)
+PUBLICATION_CONFIRMATION_RE = re.compile(r"\bbefore publication\b", re.IGNORECASE)
+UNRESOLVED_AVAILABILITY_RE = re.compile(r"\bmay now be live\b", re.IGNORECASE)
+DRAFT_PLACEHOLDER_RE = re.compile(
+    r"^\s*(?:[-*+]\s+)?(?:\[(?:x| )\]\s*)?"
+    r"(?:TODO|TBD|TK)(?:\s*:\s*[^|\n]+)?\s*$",
+    re.IGNORECASE,
 )
 
 
 def check_content(content: str) -> List[Finding]:
-    """Return findings for internal validation headings in public copy."""
+    """Return findings for internal validation artifacts in public copy."""
     findings: List[Finding] = []
     patterns = [
         (
@@ -50,6 +65,7 @@ def check_content(content: str) -> List[Finding]:
         for heading in BANNED_HEADINGS
     ]
 
+    in_fence = False
     for line_number, line in enumerate(content.splitlines(), start=1):
         stripped = line.strip()
         for heading, pattern in patterns:
@@ -72,7 +88,69 @@ def check_content(content: str) -> List[Finding]:
                 )
                 break
 
+        if stripped.startswith("```") or stripped.startswith("~~~"):
+            in_fence = not in_fence
+            continue
+        if in_fence or _is_quoted_source_line(stripped):
+            continue
+
+        if EDITORIAL_REVIEW_SYMBOL_RE.search(line) or EDITORIAL_REVIEW_LABEL_RE.search(line):
+            findings.append(
+                make_finding(
+                    "editorial_review_marker",
+                    "error",
+                    line_number,
+                    match=stripped,
+                    message="Public article copy contains an internal editorial review marker.",
+                    suggestion="Resolve the note in the validation sidecar and remove it from public copy.",
+                )
+            )
+        if PUBLICATION_CONFIRMATION_RE.search(line):
+            findings.append(
+                make_finding(
+                    "publication_confirmation_note",
+                    "error",
+                    line_number,
+                    match=stripped,
+                    message="Public article copy contains an unresolved publication confirmation note.",
+                    suggestion="Complete the confirmation and replace the note with approved public wording.",
+                )
+            )
+        if UNRESOLVED_AVAILABILITY_RE.search(line):
+            findings.append(
+                make_finding(
+                    "unresolved_availability_note",
+                    "error",
+                    line_number,
+                    match=stripped,
+                    message="Public article copy contains unresolved feature availability wording.",
+                    suggestion="Verify current availability in approved evidence or omit the feature statement.",
+                )
+            )
+        if DRAFT_PLACEHOLDER_RE.match(stripped):
+            findings.append(
+                make_finding(
+                    "draft_placeholder_note",
+                    "error",
+                    line_number,
+                    match=stripped,
+                    message="Public article copy contains a standalone draft placeholder.",
+                    suggestion="Resolve or remove the TODO, TBD, or TK marker before publication.",
+                )
+            )
+
     return findings
+
+
+def _is_quoted_source_line(stripped: str) -> bool:
+    if stripped.startswith(">"):
+        return True
+    quote_pairs = (('"', '"'), ("'", "'"), ("\N{LEFT DOUBLE QUOTATION MARK}", "\N{RIGHT DOUBLE QUOTATION MARK}"))
+    return any(
+        stripped.startswith(opening) and stripped.endswith(closing)
+        for opening, closing in quote_pairs
+        if len(stripped) >= 2
+    )
 
 
 def check_file(path: str | Path, fail_on: str = "error") -> List[Finding]:

@@ -19,8 +19,10 @@ try:
         customer_proof_diversity_guard,
         early_artifact_guard,
         faq_answer_quality_guard,
+        fred_authority_guard,
         faq_proof_guard,
         metric_proof_pack_guard,
+        named_feature_status_guard,
         numeric_claim_source_guard,
         paa_provenance_guard,
         public_research_link_guard,
@@ -39,8 +41,10 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import customer_proof_diversity_guard
     import early_artifact_guard
     import faq_answer_quality_guard
+    import fred_authority_guard
     import faq_proof_guard
     import metric_proof_pack_guard
+    import named_feature_status_guard
     import numeric_claim_source_guard
     import paa_provenance_guard
     import public_research_link_guard
@@ -115,9 +119,19 @@ ARTICLE_GATES = (
         vault_brand_language_guard,
     ),
     (
+        "named_feature_status",
+        "Named Feature Status",
+        named_feature_status_guard,
+    ),
+    (
         "source_routing",
         "Source Routing",
         source_routing_guard,
+    ),
+    (
+        "fred_authority",
+        "Fred Voccola Authority",
+        fred_authority_guard,
     ),
 )
 

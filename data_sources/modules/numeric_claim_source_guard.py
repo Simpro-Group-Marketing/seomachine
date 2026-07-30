@@ -81,6 +81,33 @@ BUSINESS_KEYWORD_RE = re.compile(
     r"quoting|estimates?|estimating|invoices?|invoicing|payments?)\b",
     re.IGNORECASE,
 )
+VERBAL_DIGIT_RE = re.compile(
+    r"\b(?:single|double)[-\s]+digit(?:s)?"
+    r"(?:\s+(?:net|gross|operating|business|profit|revenue|cost|margin|margins)){0,3}\b",
+    re.IGNORECASE,
+)
+BUSINESS_UNIT_RE = re.compile(
+    rf"\b{NUMBER_WORD_PATTERN}(?:-|\s)+"
+    r"(?:person|employee|technician|operator|user|location|branch|truck|vehicle|"
+    r"job|customer)(?:s)?"
+    r"(?:\s+(?:shop|business|company|team|operation))?\b",
+    re.IGNORECASE,
+)
+VERBAL_QUANTIFIED_BUSINESS_RE = re.compile(
+    r"\b(?:average|most|majority)\b"
+    r"(?:\W+\w+){0,4}\W+"
+    r"(?:margin|margins|cost|costs|complaint|complaints|customer|customers|"
+    r"operator|operators|job|jobs|revenue|revenues|profit|profits|profitable|"
+    r"business|businesses|performance)\b",
+    re.IGNORECASE,
+)
+OPERATOR_COMPARISON_RE = re.compile(
+    r"\b(?:national|large|larger|small|smaller|independent|regional|enterprise)"
+    r"\s+(?:operator|operators|business|businesses|company|companies|shop|shops|firm|firms)\b"
+    r".{0,120}\b(?:run|perform|operate|are)\s+"
+    r"(?:healthier|better|more profitably|more profitable|stronger)\b",
+    re.IGNORECASE,
+)
 NUMBER_WORD_VALUES = {
     "zero": 0,
     "one": 1,
@@ -135,6 +162,7 @@ class ProofEntry:
     text: str
     normalized_tokens: frozenset[str]
     urls: frozenset[str]
+    normalized_text: str
 
 
 def check_content(
@@ -150,36 +178,56 @@ def check_content(
 
     findings: List[Finding] = []
     for paragraph in _iter_paragraphs(body):
-        if not _is_candidate_claim(paragraph.text):
-            continue
+        if _is_candidate_claim(paragraph.text):
+            numeric_tokens = _extract_numeric_tokens(_claim_text_for_detection(paragraph.text))
+            normalized_tokens = {_normalize_numeric_token(token) for token in numeric_tokens}
+            if numeric_tokens and not _has_supported_same_paragraph_public_link(
+                paragraph.text,
+                normalized_tokens,
+                proof_entries,
+            ) and not _has_matching_proof(normalized_tokens, proof_entries):
+                findings.append(
+                    {
+                        "rule_id": "unsupported_numeric_claim",
+                        "severity": "error",
+                        "line": paragraph.line,
+                        "column": 1,
+                        "match": paragraph.text.strip(),
+                        "numeric_tokens": numeric_tokens,
+                        "message": (
+                            "High-risk numeric business claims need a public source link in "
+                            "the same paragraph or matching Source Map / Proof Pack proof."
+                        ),
+                        "suggestion": (
+                            "Add a public-facing proof URL next to the claim, map the same "
+                            "numeric claim to a Source Map / Proof Pack row with a URL or "
+                            "local proof artifact, or remove the unsupported number."
+                        ),
+                    }
+                )
 
-        numeric_tokens = _extract_numeric_tokens(_claim_text_for_detection(paragraph.text))
-        if not numeric_tokens:
+        verbal_phrases = _extract_verbal_claim_phrases(paragraph.text)
+        if not verbal_phrases:
             continue
-
-        normalized_tokens = {_normalize_numeric_token(token) for token in numeric_tokens}
-        if _has_supported_same_paragraph_public_link(paragraph.text, normalized_tokens, proof_entries):
+        if _has_visible_public_evidence_link(paragraph.text, verbal_phrases, proof_entries):
             continue
-
-        if _has_matching_proof(normalized_tokens, proof_entries):
+        if _has_matching_verbal_proof(verbal_phrases, proof_entries):
             continue
-
         findings.append(
             {
-                "rule_id": "unsupported_numeric_claim",
+                "rule_id": "unsupported_verbal_quantified_claim",
                 "severity": "error",
                 "line": paragraph.line,
                 "column": 1,
                 "match": paragraph.text.strip(),
-                "numeric_tokens": numeric_tokens,
+                "claim_phrases": verbal_phrases,
                 "message": (
-                    "High-risk numeric business claims need a public source link in "
-                    "the same paragraph or matching Source Map / Proof Pack proof."
+                    "Source-sensitive verbal quantities and business comparisons need "
+                    "a visible public evidence link or a matching Source Map row."
                 ),
                 "suggestion": (
-                    "Add a public-facing proof URL next to the claim, map the same "
-                    "numeric claim to a Source Map / Proof Pack row with a URL or "
-                    "local proof artifact, or remove the unsupported number."
+                    "Add a public evidence link, map the claim phrase to a public URL "
+                    "in the Source Map, or remove the unsupported comparison."
                 ),
             }
         )
@@ -270,13 +318,15 @@ def _extract_proof_entries(content: str) -> List[ProofEntry]:
             continue
         line_text = _claim_text_for_detection(line)
         tokens = _extract_numeric_tokens(line_text)
-        if not tokens:
+        verbal_phrases = _extract_verbal_claim_phrases(line_text)
+        if not tokens and not verbal_phrases:
             continue
         entries.append(
             ProofEntry(
                 text=line.strip(),
                 normalized_tokens=frozenset(_normalize_numeric_token(token) for token in tokens),
                 urls=frozenset(_extract_public_urls(line)),
+                normalized_text=_normalize_verbal_text(line_text),
             )
         )
     return entries
@@ -307,6 +357,39 @@ def _is_candidate_claim(text: str) -> bool:
         or MULTIPLE_RE.search(detection_text)
         or WORD_MULTIPLE_RE.search(detection_text)
         or SCALE_RE.search(detection_text)
+    )
+
+
+def _extract_verbal_claim_phrases(text: str) -> List[str]:
+    detection_text = _claim_text_for_detection(text)
+    phrases: List[str] = []
+    phrases.extend(match.group(0) for match in VERBAL_DIGIT_RE.finditer(detection_text))
+    if not _is_instructional_workflow_count(detection_text):
+        phrases.extend(match.group(0) for match in BUSINESS_UNIT_RE.finditer(detection_text))
+
+    if VERBAL_QUANTIFIED_BUSINESS_RE.search(detection_text):
+        phrases.append(detection_text.strip())
+    if OPERATOR_COMPARISON_RE.search(detection_text):
+        phrases.append(detection_text.strip())
+
+    normalized: List[str] = []
+    seen = set()
+    for phrase in phrases:
+        value = _normalize_verbal_text(phrase)
+        if value and value not in seen:
+            normalized.append(value)
+            seen.add(value)
+    return normalized
+
+
+def _is_instructional_workflow_count(text: str) -> bool:
+    return bool(
+        re.match(
+            r"^\s*(?:[-*+]\s+)?(?:pick|choose|select|use|test|run|ask|give|"
+            r"confirm|record|request|put|finish)\b",
+            text,
+            re.IGNORECASE,
+        )
     )
 
 
@@ -366,12 +449,50 @@ def _has_matching_owned_url_proof(
     return False
 
 
+def _has_visible_public_evidence_link(
+    text: str,
+    verbal_phrases: Sequence[str],
+    proof_entries: Sequence[ProofEntry],
+) -> bool:
+    urls = _extract_public_urls(text)
+    for url in urls:
+        if not _is_owned_proof_url(url):
+            return True
+        normalized_url = _normalize_url(url)
+        matching_proofs = [
+            proof
+            for proof in proof_entries
+            if normalized_url in {_normalize_url(proof_url) for proof_url in proof.urls}
+        ]
+        if all(
+            any(phrase in proof.normalized_text for proof in matching_proofs)
+            for phrase in verbal_phrases
+        ):
+            return True
+    return False
+
+
+def _has_matching_verbal_proof(
+    verbal_phrases: Sequence[str],
+    proof_entries: Sequence[ProofEntry],
+) -> bool:
+    public_proofs = [proof for proof in proof_entries if proof.urls]
+    return all(
+        any(phrase in proof.normalized_text for proof in public_proofs)
+        for phrase in verbal_phrases
+    )
+
+
 def _normalize_url(url: str) -> str:
     return url.rstrip("/")
 
 
 def _normalize_for_proof_text(text: str) -> str:
     return re.sub(r"\s+", " ", text.strip().lower())
+
+
+def _normalize_verbal_text(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", text.lower()).strip()
 
 
 def _extract_numeric_tokens(text: str) -> List[str]:

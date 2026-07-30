@@ -381,7 +381,9 @@ Examples:
 
 **No Source/Proof Meta-Commentary**: Do not explain why a case study, source, statistic, or example is useful for the topic, draft, article, or section. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 
-**Em Dashes**: Use em dash (—) with no spaces for parenthetical emphasis ("real-time job costing—the difference between knowing and guessing"). Avoid hyphens with spaces (-) as a substitute.
+**Author-Led Blog Voice**: For every Simpro blog, read `wiki/messaging/Voice and Tone.md` and `wiki/messaging/Tone Voice and Localization Rules.md` from the vault. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Product pages and landing pages retain their existing restrained channel treatment.
+
+**Em Dashes**: Em dashes are prohibited. Use a period, comma, colon, or parentheses when the grammar supports it. The scrubber and linter enforce this rule.
 
 **Quotation Marks**: Use curly/smart quotes in published content ("Work. Smarter."). Straight quotes are acceptable in draft Markdown and convert at publish time.
 

@@ -22,10 +22,15 @@ PAA/FAQ Provenance
 """
 FAQ_PROOF_BLOCK = """
 ```text
-FAQ Proof Map
-- FAQ: What is the best way to schedule HVAC technicians? | URL: https://www.simprogroup.com/features/scheduling-software | Evidence: scheduling workflow supports availability, priority, location, and skill-fit claims | Status: approved
-- FAQ: How does HVAC scheduling software reduce missed appointments? | URL: https://www.simprogroup.com/features/field-service-mobile-app | Evidence: mobile job details and status updates support appointment coordination claims | Status: approved
-- FAQ: Should HVAC scheduling connect to invoicing? | URL: https://www.simprogroup.com/features/invoicing-software-for-construction | Evidence: invoicing workflow supports completed-work-to-invoice claims | Status: approved
+## FAQ Source Policy
+- Allowed source classes: neutral, non_competing_expert.
+- Competitor-owned FAQ sources: prohibited.
+- Status: aligned.
+
+## FAQ Proof Map
+- FAQ: What is the best way to schedule HVAC technicians? | URL: https://www.fieldtechnologiesonline.com/ | Source class: neutral | Competitor check: passed | Evidence: scheduling workflow supports availability, priority, location, and skill-fit claims | Status: approved
+- FAQ: How does HVAC scheduling software reduce missed appointments? | URL: https://www.achrnews.com/ | Source class: neutral | Competitor check: passed | Evidence: mobile job details and status updates support appointment coordination claims | Status: approved
+- FAQ: Should HVAC scheduling connect to invoicing? | URL: https://www.mckinsey.com/ | Source class: neutral | Competitor check: passed | Evidence: invoicing workflow supports completed-work-to-invoice claims | Status: approved
 ```
 """
 METRIC_PROOF_BLOCK = f"""

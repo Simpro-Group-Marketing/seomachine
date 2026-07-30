@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-07-07",
+  "updated_at": "2026-07-29",
   "source_boundary": "Initialized from a repo scan of drafts, rewrites, and research proof artifacts on 2026-06-12. Each entry records a detected customer proof URL occurrence so selection tooling can penalize repeated proof unless a reuse reason is documented.",
   "overuse_baselines": [
     {
@@ -252,6 +252,19 @@
       "use_type": "metric",
       "claim_summary": "Kiely Plumbing 10X estimating, 10X invoicing, 25% billed-hours, and 63% admin-time proof",
       "reuse_reason": "Backfilled from live repo scan on 2026-07-07 after missing ledger entry was found."
+    },
+    {
+      "proof_id": "quote-matrix-cinos-project-delivery",
+      "source_type": "quote_matrix",
+      "customer": "Cinos",
+      "source_url": "https://www.simprogroup.com/case-studies/cinos",
+      "article_slug": "ai-features-field-service-software",
+      "artifact_path": "published/ai-features-field-service-software-2026-07-17.md",
+      "date_used": "2026-07-29",
+      "section": "Why this list matters",
+      "use_type": "metric",
+      "claim_summary": "Cinos project managers handle 50% more work",
+      "reuse_reason": ""
     }
   ]
 }

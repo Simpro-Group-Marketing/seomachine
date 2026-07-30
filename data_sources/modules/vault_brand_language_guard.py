@@ -33,7 +33,7 @@ NEXT_HEADING_RE = re.compile(
     r"Customer Proof Selection Decision|E-E-A-T Proof Map|FAQ Proof Map|"
     r"Review Story Selection|Review Site Theme Selection|Structured data plan|"
     r"Early Artifact Plan|Concrete Answer Check|Competitive Shortlist Decision|"
-    r"Named Feature/Add-On Link Check)\s*$",
+    r"Named Feature/Add-On Link Check|Fred Voccola Authority Selection)\s*$",
     re.IGNORECASE,
 )
 BULLET_FIELD_RE = re.compile(r"^\s*[-*+]\s*(?P<key>[^:]+):\s*(?P<value>.*?)\s*$")

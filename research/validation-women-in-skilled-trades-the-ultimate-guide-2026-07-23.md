@@ -357,12 +357,28 @@ O*NET is sponsored by the U.S. Department of Labor. The detailed profile routes 
 ## Schema Notes
 
 - Public location: top YAML frontmatter, between the opening and closing `---` delimiters.
-- Required top-level types: `BlogPosting`, `BreadcrumbList`, and `FAQPage`.
+- Required top-level types: `BlogPosting`, `BreadcrumbList`, `FAQPage`, and `VideoObject`.
 - Required nested entities: `Person` as author; `Question` and `Answer` inside `FAQPage`; `ImageObject` for the featured image; `Organization` as publisher reference only, not a separate full schema block.
 - Author boundary: the CMS must supply or verify the author Person. Do not invent an author identity.
-- VideoObject: not applicable because no video is embedded.
-- Purpose boundary: `FAQPage` is retained for structured machine readability and potential AI extraction lift. It is not presented as a promise of Google FAQ rich-result visibility.
+- VideoObject: applicable when development replaces the article's `VIDEO_EMBED_HANDOFF:J_3pSBjdh3Q` marker with the approved embed described below.
+- Purpose boundary: `FAQPage` and `VideoObject` support structured machine readability and potential AI extraction lift. Neither is presented as a promise of Google rich-result visibility.
 - Validation status: passed. The complete schema note is in the top YAML frontmatter, with the author identity left for CMS verification rather than invention.
+
+## Video Embed Handoff
+
+- Placement marker: `<!-- VIDEO_EMBED_HANDOFF:J_3pSBjdh3Q -->`, directly after the Amy Carnrick owner-experience paragraph in `From Apprentice to Owner`.
+- CMS action: replace the marker with a responsive 16:9 iframe. Use full container width with `560 × 315` as the reference dimensions.
+- Video ID: `J_3pSBjdh3Q`.
+- Visible source and fallback link: `https://www.youtube.com/watch?v=J_3pSBjdh3Q`, with fallback link text `Watch Amy Carnrick's Simpro interview on YouTube`. The existing visible `Simpro interview` link in the paragraph must remain.
+- Privacy-enhanced embed URL: `https://www.youtube-nocookie.com/embed/J_3pSBjdh3Q?start=199`. The `start=199` parameter begins at 03:19, where Carnrick describes entering commercial plumbing as an owner without prior industry experience.
+- Iframe title: `Amy Carnrick on entering the trades as a business owner`.
+- Iframe attributes: `width="560"`, `height="315"`, `loading="lazy"`, `referrerpolicy="strict-origin-when-cross-origin"`, `allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"`, and `allowfullscreen`.
+- Responsive behavior: preserve a 16:9 aspect ratio, set the iframe width to 100% of its content container, and avoid a fixed mobile width.
+- Verified metadata for `VideoObject`: `name` is `Innovation & Inspiration Series | Episode 3`; `uploadDate` is `2025-11-25T22:12:20Z`; `duration` is `PT31M24S`; `contentUrl` is the public watch URL; `embedUrl` is the privacy-enhanced embed URL; publisher references Simpro's existing `Organization` entity.
+- CMS-populated metadata: map `description` and `thumbnailUrl` from the current YouTube API response or CMS video record at implementation time. Do not invent either value. Use the CMS-verified page publication date for `datePublished` and modification date for `dateModified` on `BlogPosting`.
+- Accessibility and resilience: keep the descriptive iframe title, retain a visible watch link outside the iframe, and do not autoplay.
+- Evidence boundary: the embed supports the same bounded owner-experience paragraph already approved in `Owned-Media E-E-A-T Story Selection`. It does not make Carnrick a plumber, technician, apprentice, or field worker and does not substantiate wages, outlook, training, product performance, or universal career suitability.
+- Verification basis: the fresh 2026-07-24 YouTube API check recorded below verified Simpro channel ownership, public status, title, publication timestamp, 31:24 duration, and one serving English ASR caption track.
 
 ## Publication State
 
@@ -423,3 +439,4 @@ O*NET is sponsored by the U.S. Department of Labor. The detailed profile routes 
 - Final scrub and focused verification on 2026-07-24: the scrubber reported 0 Unicode watermark, format-control, em-dash, or AI-phrase replacements; its only byte-level effect was line-ending normalization. FAQ answer quality, FAQ proof, PAA provenance, and warnings-as-failures AI copy lint each returned 0 errors and 0 warnings.
 - Final acceptance checks on 2026-07-24: visible-text body count is 2,800; H1 count is 1; required trade profiles total 12; profile fact bullets total 36; starting-pathway steps total 6; original-image placeholders total 1; body Markdown link placements total 15 across 9 unique destinations; total URL mentions total 17 including canonical URL and hero-image placeholder; Simpro body links total 2; YouTube body links total 1; FAQ questions total 6 with answer lengths 54, 53, 53, 55, 50, and 50 words; FAQ evidence links total 6; competitor mentions total 0. The Amy paragraph SHA-256 remains `477919ef141e745b981ed6c03b93506e4674c5b5cd2aac40db0090a38f559cb8`, and the complete profile section SHA-256 remains `d053c8a7b1bba377917fc2b6886e16064f43a32f82c2fae57d526500a0a2f910` after normalized line endings.
 - Final validation decision on 2026-07-24: ready for CMS/editorial handoff on the retained canonical URL. Live URL validation resolved 16/16 validator-visible URLs. The final proof-aware stack passes 17/17 gates with content score 92.0 and AEO/GEO 100. The CMS must verify or supply the author Person before implementing schema.
+- Video-embed handoff verification on 2026-07-27: added one non-public marker directly after Amy Carnrick's unchanged paragraph, retained the visible YouTube source link, and documented the privacy-enhanced iframe plus verified `VideoObject` fields. Warnings-as-failures AI copy lint returned 0 errors and 0 warnings. The fresh proof-aware stack passed 17/17 gates with content score 91.9 and AEO/GEO 100.

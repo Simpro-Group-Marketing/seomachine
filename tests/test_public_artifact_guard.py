@@ -92,6 +92,69 @@ Concrete Answer Check
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0]["match"], "## Source Routing Decision")
 
+    def test_fred_authority_selection_heading_fails(self):
+        content = """# Article
+
+## Fred Voccola Authority Selection
+
+- Selected: [none]
+"""
+
+        findings = check_content(content)
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["match"], "## Fred Voccola Authority Selection")
+
+    def test_cod_editorial_review_notes_fail(self):
+        content = """# Article
+
+| Workflow | Feature | Status |
+|---|---|---|
+| Intake | Pulse | Roadmap. Named, not dated. 🔍 *Confirm sequencing and commercial treatment before publication* |
+| Scheduling | Intelligent AI Scheduler | Delivered through RAIN. 🔍 *Confirm current Simpro availability - may now be live* |
+"""
+
+        findings = check_content(content)
+        rule_ids = {finding["rule_id"] for finding in findings}
+
+        self.assertIn("editorial_review_marker", rule_ids)
+        self.assertIn("publication_confirmation_note", rule_ids)
+        self.assertIn("unresolved_availability_note", rule_ids)
+
+    def test_bracketed_editorial_labels_and_standalone_placeholders_fail(self):
+        content = """# Article
+
+[PMM REVIEW: Confirm this claim]
+[COD NOTE] Recheck packaging.
+[NEEDS REVIEW]
+
+TODO
+TBD: replace the source
+TK
+"""
+
+        findings = check_content(content)
+        rule_ids = [finding["rule_id"] for finding in findings]
+
+        self.assertEqual(rule_ids.count("editorial_review_marker"), 3)
+        self.assertEqual(rule_ids.count("draft_placeholder_note"), 3)
+
+    def test_reader_instructions_image_placeholders_and_examples_pass(self):
+        content = """# Article
+
+Confirm the package and region before choosing a plan.
+
+```text
+[IMAGE PLACEHOLDER: Dispatch board showing a cancellation workflow]
+[COD NOTE] This is a fenced example.
+TODO
+```
+
+> "The source text said 'may now be live' during editorial review."
+"""
+
+        self.assertEqual(check_content(content), [])
+
     def test_clean_public_article_passes(self):
         content = """# Article
 

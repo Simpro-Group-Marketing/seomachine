@@ -427,10 +427,20 @@ These are sitemap-confirmed blog pages relevant to Simpro content production. Us
 - https://www.simprogroup.com/demo - conversion next step
 
 **When writing about AI in the trades**, link to:
+- https://www.simprogroup.com/lightning - Simpro Lightning product/platform page for AI agents, Cooper, JustAsk, and connected field-service workflow intelligence
+- https://www.simprogroup.com/rain - Simpro RAIN release-wave page for Intelligent AI Scheduler, AI-Guided Forms, and dated AI-infused enhancement context; preserve target-timing and Lightning-required access distinctions
 - https://www.simprogroup.com/company/ai-pledge - trust and responsible AI
+- https://www.simprogroup.com/blog/ai-for-field-service - broad educational AI hub
+- https://www.simprogroup.com/blog/ai-features-field-service-software - feature-by-feature AI evaluation and demo checklist
+- https://www.simprogroup.com/blog/ai-scheduling-dispatch-field-service - AI scheduling, dispatch, constraints, release-status, and human-control evaluation
+- https://www.simprogroup.com/blog/best-ai-agents-field-service-operations - AI agent shortlist and lifecycle comparison
 - https://www.simprogroup.com/blog/ai-operating-platforms-for-trades-businesses - AI operating platform education
 - https://www.simprogroup.com/blog/ai-first-vs-ai-powered-in-the-trades - category distinction
 - https://www.simprogroup.com/features/delight - AI customer marketing agent
+
+For AI scheduling/dispatch content, link once to Simpro RAIN when naming Intelligent AI Scheduler or RAIN-delivered features, and link once to Simpro Lightning when explaining required platform context. Do not link ordinary "rain" mentions, weather wording, or unrelated proof notes to the RAIN page.
+
+For non-AI Simpro trades/workflow posts, link into the AI blog cluster only when the paragraph already discusses connected workflow data, automation, scheduling/dispatch, job documentation, field guidance, or software-demo controls. Use the AI feature or scheduling guides as the destination. Do not force Lightning or RAIN product links from quoting, payments, job-sheet, work-order, or vertical software posts unless the copy explicitly names Lightning, Cooper, JustAsk, RAIN, Intelligent AI Scheduler, AI-Guided Forms, or another vault-approved AI feature.
 
 **When writing about profitability or margin**, link to:
 - https://www.simprogroup.com/resources/ebooks/job-costing - job costing guide

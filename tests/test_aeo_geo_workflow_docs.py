@@ -1712,5 +1712,65 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
+    def test_cod_editorial_voice_routes_and_em_dash_policy_are_enforced(self):
+        canonical_paths = [
+            ROOT / "AGENTS.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / "context" / "style-guide.md",
+        ]
+        workflow_paths = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "scrub.md",
+            ROOT / ".claude" / "commands" / "publish-readiness.md",
+        ]
+        required = [
+            "wiki/messaging/Voice and Tone.md",
+            "wiki/messaging/Tone Voice and Localization Rules.md",
+            "Named-author Simpro blogs and thought leadership",
+            "first-person judgment",
+            "Author opinion must remain distinguishable from empirical fact",
+            "Em dashes are prohibited",
+            "Product pages and landing pages retain their existing restrained channel treatment",
+        ]
+
+        for path in canonical_paths + workflow_paths:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+        forbidden_permissions = [
+            "**em dashes**: use",
+            "use em dashes",
+            "em dashes are allowed",
+            "em dash is permitted",
+        ]
+        for path in canonical_paths + workflow_paths:
+            content = path.read_text(encoding="utf-8").lower()
+            for text in forbidden_permissions:
+                self.assertNotIn(
+                    text,
+                    content,
+                    f"{path.name} simultaneously permits and prohibits em dashes",
+                )
+
+    def test_named_feature_status_gate_is_documented(self):
+        publish_doc = (
+            ROOT / ".claude" / "commands" / "publish-readiness.md"
+        ).read_text(encoding="utf-8")
+        canonical = (
+            ROOT / "context" / "aeo-geo-blog-strategy.md"
+        ).read_text(encoding="utf-8")
+
+        for content, name in [
+            (publish_doc, "publish-readiness.md"),
+            (canonical, "aeo-geo-blog-strategy.md"),
+        ]:
+            self.assertIn("Named Feature Status and Commercial Treatment", content, name)
+            self.assertIn("named_feature_status_guard.py", content, name)
+            self.assertIn("Named Feature Status", content, name)
+
 if __name__ == "__main__":
     unittest.main()

@@ -2,6 +2,8 @@
 
 Run the complete publish-readiness gate stack for a blog draft, rewrite, or published article artifact.
 
+For every Simpro blog, read `wiki/messaging/Voice and Tone.md` and `wiki/messaging/Tone Voice and Localization Rules.md` from the vault. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Em dashes are prohibited. Product pages and landing pages retain their existing restrained channel treatment.
+
 ## Usage
 
 ```text
@@ -30,6 +32,8 @@ Vault product-language gate: When the article uses Simpro product, feature, add-
 
 Source routing gate: For Simpro articles, `/publish-readiness` runs `source_routing_guard.py`. The validation sidecar must contain `Source Routing Decision` with `Vault-sourced data types`, `Repo-context-sourced data types`, `Vault routes checked`, `Repo context files checked`, `Fallback context use`, `Conflicts found`, and `Status: aligned`. Brand voice, audience, ICP, message pillars, tone, Customer proof, quotes, metrics, review stories, approval status, product, feature, add-on, solution, industry, Lightning, competitor, Hindsight, and public factual/statistical claims cannot use repo context as the primary authority. SEO mechanics, AEO/GEO workflow, schema notes, publish gates, internal links, keyword snapshots, AI citation targets, CRO, Reddit, writing examples, and style mechanics may route through repo `context/`.
 
+Named feature gate: When public copy names Lightning, RAIN, a current role agent, Intelligent AI Scheduler, or a roadmap specialist, `/publish-readiness` runs `named_feature_status_guard.py`. The validation sidecar must contain exactly one row per detected name under `Named Feature Status and Commercial Treatment`, using the current vault claim IDs, allowed release status, allowed commercial treatment, region or account boundary, and public wording decision. The gate is reported as `Named Feature Status`.
+
 The validation sidecar should live at:
 
 ```text
@@ -52,12 +56,13 @@ The command runs the complete publish-readiness stack:
 10. `source_support_guard`
 11. `customer_proof_diversity_guard`
 12. `review_story_identity_guard`
-13. `fred_authority` via `fred_authority_guard.py`
-14. `early_artifact_guard`
-15. `answer_withholding_guard`
-16. `vault_brand_language_guard`
+13. `early_artifact_guard`
+14. `answer_withholding_guard`
+15. `vault_brand_language_guard`
+16. `named_feature_status` via `named_feature_status_guard.py`
 17. `source_routing_guard`
-18. `content_scorer` with URL and source-support validation
+18. `fred_authority` via `fred_authority_guard.py`
+19. `content_scorer` with URL and source-support validation
 
 The blocking `fred_authority` gate passes the validation sidecar to `fred_authority_guard.py`. It requires a complete `Fred Voccola Authority Selection` evaluation for every new or changed Simpro blog and for existing content when next rewritten, optimized, or passed through publish readiness. A selector or vault failure remains blocked; public Fred use is optional and receives no AEO/E-E-A-T credit merely because the internal block exists.
 

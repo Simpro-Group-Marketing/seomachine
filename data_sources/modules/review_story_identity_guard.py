@@ -36,7 +36,8 @@ REVIEW_SITE_THEME_HEADING_RE = re.compile(
 NEXT_PROOF_HEADING_RE = re.compile(
     r"^\s*(?:#{1,6}\s+)?(?:PAA/FAQ Provenance|Metric Proof Pack|Source Map|"
     r"Customer Proof Pack|E-E-A-T Proof Map|FAQ Proof Map|Structured data plan|"
-    r"Review Story Selection|Review Site Theme Selection)\s*$",
+    r"Review Story Selection|Review Site Theme Selection|"
+    r"Fred Voccola Authority Selection)\s*$",
     re.IGNORECASE,
 )
 BULLET_FIELD_RE = re.compile(r"^\s*[-*+]\s*(?P<key>[^:]+):\s*(?P<value>.*?)\s*$")

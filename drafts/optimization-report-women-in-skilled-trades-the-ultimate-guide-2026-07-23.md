@@ -33,8 +33,9 @@ python -m data_sources.modules.publish_readiness published/women-in-skilled-trad
 | Required trade profiles | 12 |
 | FAQ questions | 6 |
 | Original-image placeholders | 1 |
+| Video-embed handoff markers | 1 |
 | Live URLs | 16/16 validator-visible URLs resolved; 17 total URL mentions including canonical and hero placeholder |
-| Publish-readiness content score | 92.0/100 |
+| Publish-readiness content score | 91.9/100 |
 | AEO/GEO score | 100/100 |
 | Publish-readiness gates | 17/17 passed |
 
@@ -73,7 +74,7 @@ The legacy rater reports 90.5/100 but does not mark the article publishing-ready
 - The article contains exactly 12 required trade profiles and treats construction management only as an advancement path.
 - Six distinct questions form the parser-compatible FAQ: three retained live-Google PAA questions and three independently rewritten questions from a ServiceTitan competitor-content gap review. Their answer-first responses are 54, 53, 53, 55, 50, and 50 words, and each contains one visible primary-source evidence link.
 - The exact original hero subject, URL, alt text, placement, dimensions, and upload instruction appear in one production placeholder.
-- Schema notes remain in top YAML frontmatter and cover `BlogPosting`, `BreadcrumbList`, `FAQPage`, nested author `Person`, FAQ `Question` and `Answer`, `ImageObject`, and publisher-reference `Organization`. `FAQPage` supports structured machine readability and AI extraction; it is not treated as a Google rich-result promise.
+- Schema notes remain in top YAML frontmatter and cover `BlogPosting`, `BreadcrumbList`, `FAQPage`, `VideoObject`, nested author `Person`, FAQ `Question` and `Answer`, `ImageObject`, and publisher-reference `Organization`. `FAQPage` and `VideoObject` support structured machine readability and AI extraction; neither is treated as a Google rich-result promise.
 
 ## Source and Link Optimization
 
@@ -98,11 +99,12 @@ The legacy rater reports 90.5/100 but does not mark the article publishing-ready
 8. Kept each trade's work-and-conditions introduction as prose and converted its existing pay, outlook, and entry/advancement passages into 36 separate bullets. Reformatted the six starting steps as separate Markdown blocks with colon lead-ins. No profile wording or Amy Carnrick wording changed.
 9. Retained the three strongest Google PAA FAQs and added independently written questions on no-four-year-degree entry routes, shorter documented training categories, and local apprenticeship searches after reviewing all 17 ServiceTitan question-led sections. Removed the subjective easiest-trade FAQ. ServiceTitan remains research provenance only; every public answer uses BLS or Apprenticeship.gov proof.
 10. Removed duplicated setup copy from the starting pathway, shortened step 2, removed the separate WANTO setup paragraph, and revised the six-tips introduction. One evidence-neutral action sentence keeps the introduction at 50 words and restores AEO capsule coverage to 71%.
+11. Added one non-public video-embed handoff marker directly below Amy Carnrick's story. The validation sidecar gives development the privacy-enhanced embed URL, 03:19 start time, responsive dimensions, accessibility attributes, fallback link, verified metadata, and `VideoObject` mapping without adding visible body copy.
 
 ## Nonblocking Readability Advisories
 
-The publish-readiness scorer reports a 31.8 Flesch score, grade level 12.5, 1 mechanically long paragraph with 5 sentences, 49 uniform sections, and low contraction use. The article is 64% prose, inside the structure target. These are nonblocking at a content score of 92.0. Much of the complexity comes from official occupation names, source labels, repeated decision fields, and a 12-row comparison table. Further simplification would risk factual precision or the approved comparison format.
+The publish-readiness scorer reports a 31.6 Flesch score, grade level 12.5, 1 mechanically long paragraph with 5 sentences, 49 uniform sections, and low contraction use. The article is 64% prose, inside the structure target. These are nonblocking at a content score of 91.9. Much of the complexity comes from official occupation names, source labels, repeated decision fields, and a 12-row comparison table. Further simplification would risk factual precision or the approved comparison format.
 
 ## Publishing Decision
 
-Status: Ready under the canonical proof-aware workflow. Warnings-as-failures AI copy lint, FAQ answer quality, FAQ proof, and PAA provenance each returned 0 errors and 0 warnings. Live URL validation resolved 16/16 validator-visible URLs; explicit counting found 17 total URL mentions and 15 body Markdown link placements across 9 unique destinations. Publish readiness passed 17/17 with content 92.0 and AEO/GEO 100.
+Status: Ready under the canonical proof-aware workflow. Warnings-as-failures AI copy lint, FAQ answer quality, FAQ proof, and PAA provenance each returned 0 errors and 0 warnings. Live URL validation resolved 16/16 validator-visible URLs; explicit counting found 17 total URL mentions and 15 body Markdown link placements across 9 unique destinations. Publish readiness passed 17/17 with content 91.9 and AEO/GEO 100 after the video-embed handoff update.

@@ -9,6 +9,8 @@ Simpro requires the same image to be supplied in two different sizes:
 - Listing Thumbnail  
 - Article Feature Image
 
+People in Simpro blog feature images do not need to wear Simpro brand colors. Clothing should look natural for the person's role, trade and work setting. All other Simpro brand guidelines still apply, including image sizes, listing-thumbnail Torx treatment, palette and visual style, approved logo or asset use, and no fabricated product UI.
+
 ## Listing Thumbnail
 
 ![][image1]

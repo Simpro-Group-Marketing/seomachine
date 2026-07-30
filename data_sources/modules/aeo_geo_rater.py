@@ -383,7 +383,7 @@ def _check_faq_proof(
     content: str,
     proof_sidecar_content: Optional[str],
 ) -> Dict[str, Any]:
-    findings = check_faq_proof(content, proof_content=proof_sidecar_content)
+    findings = check_faq_proof(content, proof_content=proof_sidecar_content or None)
     passed = not findings
 
     return {
@@ -625,7 +625,7 @@ def _has_sidecar_experience_proof(proof_sidecar_content: Optional[str]) -> bool:
         if re.match(
             r"^(?:#{1,6}\s+)?(?:PAA/FAQ Provenance|Metric Proof Pack|Source Map|"
             r"Customer Proof Pack|FAQ Proof Map|Structured data plan|Review Story Selection|"
-            r"Review Site Theme Selection)\s*$",
+            r"Review Site Theme Selection|Fred Voccola Authority Selection)\s*$",
             stripped,
             re.IGNORECASE,
         ):
@@ -920,7 +920,7 @@ def _extract_review_story_selected_line(content: str) -> Dict[str, str]:
             break
         if re.match(
             r"^(?:#{1,6}\s+)?(?:PAA/FAQ Provenance|Metric Proof Pack|Source Map|"
-            r"Customer Proof Pack|E-E-A-T Proof Map|FAQ Proof Map|Structured data plan)\s*$",
+            r"Customer Proof Pack|E-E-A-T Proof Map|FAQ Proof Map|Structured data plan|Fred Voccola Authority Selection)\s*$",
             stripped,
             re.IGNORECASE,
         ):

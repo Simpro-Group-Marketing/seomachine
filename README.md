@@ -24,6 +24,18 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
 - `Named Feature/Add-On Link Check`: first meaningful mentions of Simpro features/add-ons must be checked against vault product routes before link decisions. Start with `wiki/concepts/payments-and-add-ons.md` and `wiki/features/Feature Library`; document each vault route checked, link decision, and reason in the validation sidecar.
 - `Vault Brand Language Alignment`: product, feature, add-on, solution, and industry language must be drafted from the vault first. Read `wiki/messaging/Simpro Core Messaging Repository.md`, `wiki/messaging/Message House.md`, `wiki/messaging/Core Value Pillars.md`, `wiki/product/Product Positioning.md`, and `wiki/features/Feature Library.md`; when a named feature/add-on appears, add the relevant `wiki/features/source-docs/` route or specific source/raw route; when solution/industry language is used, also read `wiki/verticals/Vertical Profile Library.md` and the relevant vertical/source page. Document routes checked, language applied, fallback context use, source-verification boundary, and `Status: aligned` in `Vault Brand Language Alignment`. The `vault_brand_language_guard.py` publish gate runs inside `/publish-readiness`; keep this block in the validation sidecar, not public copy. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
 
+## Fred Voccola Authority Selection
+
+Every new or changed Simpro blog and every rewrite, analysis, optimization, or publish-readiness pass automatically runs:
+
+```powershell
+python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --limit 5
+```
+
+Write the complete `Fred Voccola Authority Selection` block to the validation sidecar. Evaluation is mandatory; public use is optional and requires direct topical support. The vault is the sole eligibility source, and selection fails closed unless manifest hashes for `fred-voccola-media-inventory.csv` and `authority-signal-matrix.csv` are current. Fred observations support Expertise and Authority by default and count as Experience only when a source explicitly supports first-hand personal or operating experience. They supplement, never replace, customer Experience proof, customer stories, or independent evidence.
+
+Exact article quotes require `source_visible_article_text`; exact video/audio quotes require `transcript_and_playback`, a timestamp, and playback verification; paraphrases require `paraphrase_evidence`. Exact quotes and paraphrased observations need a contextual public link in the same paragraph. A playlist-only row supports discovery or an eligible embed, not independent earned-media authority. Embed only a selected public YouTube source through a responsive 16:9 `youtube-nocookie.com` handoff with a visible fallback link, descriptive title, lazy loading, no autoplay, and verified metadata. Include `VideoObject` if and only if embedded. No usage ledger or frequency penalty applies in v1. Existing content is evaluated when next rewritten, optimized, or passed through publish readiness. Full policy and the exact sidecar fields live in `context/aeo-geo-blog-strategy.md`.
+
 
 ## Overview
 
