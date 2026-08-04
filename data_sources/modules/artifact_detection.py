@@ -72,17 +72,23 @@ def strip_frontmatter(content: str) -> Tuple[str, int]:
 
 def extract_frontmatter(content: str) -> Dict[str, str]:
     """Return normalized frontmatter key/value pairs."""
+    values = extract_frontmatter_values(content)
+    return {key: entries[-1] for key, entries in values.items()}
+
+
+def extract_frontmatter_values(content: str) -> Dict[str, List[str]]:
+    """Return all normalized frontmatter key/value pairs in source order."""
     match = re.match(r"\A---\s*\n(.*?)\n---\s*", content, re.DOTALL)
     if not match:
         return {}
 
-    values = {}
+    values: Dict[str, List[str]] = {}
     for line in match.group(1).splitlines():
         if ":" not in line:
             continue
         key, value = line.split(":", 1)
         normalized_key = key.strip().lower().replace("-", "_").replace(" ", "_")
-        values[normalized_key] = value.strip().strip('"').strip("'")
+        values.setdefault(normalized_key, []).append(value.strip().strip('"').strip("'"))
     return values
 
 

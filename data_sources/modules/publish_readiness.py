@@ -17,6 +17,7 @@ try:
         ai_copy_linter,
         answer_withholding_guard,
         customer_proof_diversity_guard,
+        context_binding_guard,
         early_artifact_guard,
         faq_answer_quality_guard,
         fred_authority_guard,
@@ -39,6 +40,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import ai_copy_linter
     import answer_withholding_guard
     import customer_proof_diversity_guard
+    import context_binding_guard
     import early_artifact_guard
     import faq_answer_quality_guard
     import fred_authority_guard
@@ -140,12 +142,78 @@ def run_publish_readiness(
     file_path: str | Path,
     *,
     proof_sidecar: str | Path | None = None,
+    context_request: str | Path | None = None,
+    context_pack: str | Path | None = None,
+    context_receipt: str | Path | None = None,
+    vault_root: str | Path | None = None,
+    artifact_kind: str = "blog",
     ai_profile: str = "simpro-web",
 ) -> ReadinessResult:
     """Run the full publish-readiness stack and return structured results."""
     article_path = Path(file_path)
     proof_sidecar_path = str(proof_sidecar) if proof_sidecar is not None else None
+    context_request_path = str(context_request) if context_request is not None else None
+    context_pack_path = str(context_pack) if context_pack is not None else None
+    context_receipt_path = str(context_receipt) if context_receipt is not None else None
     gates: List[GateResult] = []
+
+    article_content = article_path.read_text(encoding="utf-8")
+    normalized_artifact_kind, artifact_rule, artifact_error = _resolve_artifact_kind(
+        article_path, article_content, artifact_kind
+    )
+    if artifact_rule:
+        context_gate = _gate_from_findings(
+            "context_binding",
+            "Context Binding",
+            [{
+                "rule_id": artifact_rule,
+                "severity": "error",
+                "line": 1,
+                "column": 1,
+                "message": artifact_error,
+                "suggestion": "Use the artifact type derived from the article, then regenerate context artifacts.",
+            }],
+        )
+        gates.append(context_gate)
+        return {
+            "file": str(article_path), "artifact_kind": normalized_artifact_kind,
+            "proof_sidecar": proof_sidecar_path, "context_request": context_request_path,
+            "context_pack": context_pack_path, "context_receipt": context_receipt_path,
+            "passed": False, "gates": gates, "score": None, "aeo_geo": {},
+            "priority_fixes": [{"dimension": "context", "issue": blocker} for blocker in context_gate.get("blockers", [])],
+        }
+    if normalized_artifact_kind == "blog":
+        context_gate = _gate_from_findings(
+                "context_binding",
+                "Context Binding",
+                context_binding_guard.check_file(
+                    str(article_path),
+                    fail_on="error",
+                    proof_sidecar=proof_sidecar_path,
+                    context_request=context_request_path,
+                    context_pack=context_pack_path,
+                    context_receipt=context_receipt_path,
+                    vault_root=vault_root,
+                ),
+        )
+        gates.append(context_gate)
+        if not context_gate["passed"]:
+            return {
+                "file": str(article_path),
+                "artifact_kind": normalized_artifact_kind,
+                "proof_sidecar": proof_sidecar_path,
+                "context_request": context_request_path,
+                "context_pack": context_pack_path,
+                "context_receipt": context_receipt_path,
+                "passed": False,
+                "gates": gates,
+                "score": None,
+                "aeo_geo": {},
+                "priority_fixes": [
+                    {"dimension": "context", "issue": blocker}
+                    for blocker in context_gate.get("blockers", [])
+                ],
+            }
 
     gates.append(
         _gate_from_findings(
@@ -185,11 +253,22 @@ def run_publish_readiness(
     )
 
     for name, label, guard_module in ARTICLE_GATES:
-        findings = guard_module.check_file(
-            str(article_path),
-            fail_on="error",
-            proof_sidecar=proof_sidecar_path,
-        )
+        guard_kwargs: Dict[str, Any] = {
+            "fail_on": "error",
+            "proof_sidecar": proof_sidecar_path,
+        }
+        if name in {"named_feature_status", "fred_authority", "customer_proof_diversity", "review_story_identity"}:
+            guard_kwargs.update(
+                {
+                    "context_pack": context_pack_path,
+                    "context_receipt": context_receipt_path,
+                }
+            )
+        if name == "fred_authority":
+            guard_kwargs["vault_root"] = vault_root
+        if name == "customer_proof_diversity":
+            guard_kwargs["vault_root"] = vault_root
+        findings = guard_module.check_file(str(article_path), **guard_kwargs)
         gates.append(_gate_from_findings(name, label, findings))
 
     scorer_result = _score_content(article_path, proof_sidecar_path)
@@ -198,7 +277,11 @@ def run_publish_readiness(
     passed = all(gate["passed"] for gate in gates)
     return {
         "file": str(article_path),
+        "artifact_kind": normalized_artifact_kind,
         "proof_sidecar": proof_sidecar_path,
+        "context_request": context_request_path,
+        "context_pack": context_pack_path,
+        "context_receipt": context_receipt_path,
         "passed": passed,
         "gates": gates,
         "score": _content_score(scorer_result),
@@ -213,7 +296,11 @@ def format_text_report(result: ReadinessResult) -> str:
         "PUBLISH READINESS",
         "=" * 50,
         f"File: {result['file']}",
+        f"Artifact kind: {result.get('artifact_kind', 'blog')}",
         f"Proof sidecar: {result.get('proof_sidecar') or 'auto/default'}",
+        f"Context request: {result.get('context_request') or 'not required/provided'}",
+        f"Context pack: {result.get('context_pack') or 'not required/provided'}",
+        f"Context receipt: {result.get('context_receipt') or 'not required/provided'}",
         f"Overall: {'PASS' if result['passed'] else 'FAIL'}",
         "",
         "Gates:",
@@ -261,6 +348,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         default="simpro-web",
         help="AI copy linter profile. Defaults to simpro-web.",
     )
+    parser.add_argument("--context-request", help="Current Simpro context request JSON.")
+    parser.add_argument("--context-pack", help="Current Simpro v2 context pack JSON.")
+    parser.add_argument("--context-receipt", help="Current Simpro context receipt JSON.")
+    parser.add_argument("--vault-root", help="Configured Simpro vault root override.")
+    parser.add_argument(
+        "--artifact-kind",
+        choices=["blog", "landing_page"],
+        default="blog",
+        help="Artifact class. Context enforcement is blog-only in this rollout.",
+    )
     parser.add_argument(
         "--json",
         action="store_true",
@@ -271,6 +368,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     result = run_publish_readiness(
         args.file_path,
         proof_sidecar=args.proof_sidecar,
+        context_request=args.context_request,
+        context_pack=args.context_pack,
+        context_receipt=args.context_receipt,
+        vault_root=args.vault_root,
+        artifact_kind=args.artifact_kind,
         ai_profile=args.profile,
     )
     if args.json:
@@ -394,6 +496,101 @@ def _priority_fix_lines(priority_fixes: List[Dict[str, Any]]) -> List[str]:
         issue = fix.get("issue", "Unknown issue")
         lines.append(f"{dimension}: {issue}")
     return lines
+
+
+def _artifact_kind(value: object) -> str | None:
+    normalized = str(value or "").strip().lower().replace("-", "_").replace(" ", "_")
+    aliases = {
+        "article": "blog",
+        "post": "blog",
+        "posts": "blog",
+        "page": "landing_page",
+        "pages": "landing_page",
+        "landing": "landing_page",
+    }
+    normalized = aliases.get(normalized, normalized)
+    if normalized not in {"blog", "landing_page"}:
+        return None
+    return normalized
+
+
+def _resolve_artifact_kind(
+    path: Path,
+    content: str,
+    requested_value: object,
+) -> tuple[str, str | None, str | None]:
+    """Resolve kind from symmetric positive evidence, defaulting ambiguity to blog."""
+    from .artifact_detection import extract_frontmatter, extract_frontmatter_values
+
+    frontmatter = extract_frontmatter(content)
+    frontmatter_values = extract_frontmatter_values(content)
+    evidence: list[tuple[str, str]] = []
+    requested = _artifact_kind(requested_value)
+    if requested is None:
+        return (
+            "blog",
+            "context_artifact_kind_invalid",
+            f"Caller artifact kind is unsupported: {requested_value!s}.",
+        )
+    for field in ("artifact_type", "artifact_kind"):
+        declared_values = frontmatter_values.get(field, [])
+        declared_kinds: list[str] = []
+        for declared_value in declared_values:
+            kind = _artifact_kind(declared_value)
+            if kind is None:
+                return (
+                    "blog",
+                    "context_artifact_kind_invalid",
+                    f"Article {field} is unsupported: {declared_value}.",
+                )
+            declared_kinds.append(kind)
+        if len(set(declared_kinds)) > 1:
+            return (
+                "blog",
+                "context_artifact_kind_conflict",
+                f"Article {field} frontmatter contains conflicting duplicate values.",
+            )
+        declared = frontmatter.get(field)
+        if not declared:
+            continue
+        kind = _artifact_kind(declared)
+        if kind is None:
+            return (
+                "blog",
+                "context_artifact_kind_invalid",
+                f"Article {field} is unsupported: {declared}.",
+            )
+        evidence.append((kind, f"article {field} frontmatter"))
+    workflow = frontmatter.get("workflow")
+    if workflow:
+        normalized_workflow = str(workflow).strip().lower().replace("-", "_")
+        if normalized_workflow in {
+            "article", "blog", "post", "posts", "page", "pages", "landing", "landing_page"
+        }:
+            workflow_kind = _artifact_kind(workflow)
+            if workflow_kind is not None:
+                evidence.append((workflow_kind, "workflow frontmatter"))
+    path_parts = {part.casefold().replace("-", "_") for part in path.parts}
+    if path_parts.intersection({"drafts", "rewrites", "published", "blogs", "blog"}):
+        evidence.append(("blog", "article path"))
+    if path_parts.intersection({"landing_pages", "landing_page", "landingpages", "pages"}):
+        evidence.append(("landing_page", "article path"))
+    kinds = {kind for kind, _ in evidence}
+    if len(kinds) > 1:
+        return (
+            "blog",
+            "context_artifact_kind_conflict",
+            "Artifact evidence conflicts between article frontmatter, workflow, or path.",
+        )
+    resolved = evidence[0][0] if evidence else "blog"
+    if resolved != requested:
+        source = evidence[0][1] if evidence else "generic Markdown default"
+        return (
+            resolved,
+            "context_artifact_kind_conflict",
+            f"Caller artifact kind conflicts with {resolved} evidence from {source}.",
+        )
+    return resolved, None, None
 
 
 if __name__ == "__main__":

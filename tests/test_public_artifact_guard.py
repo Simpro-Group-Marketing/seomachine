@@ -105,6 +105,103 @@ Concrete Answer Check
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0]["match"], "## Fred Voccola Authority Selection")
 
+    def test_context_binding_and_trace_headings_fail(self):
+        content = """# Article
+
+## Context Binding
+
+## Context Claim Use Map
+
+## Discovery Trace
+
+## Selected Resource Inventory
+"""
+
+        findings = check_content(content)
+
+        self.assertEqual(
+            [finding["match"] for finding in findings],
+            [
+                "## Context Binding",
+                "## Context Claim Use Map",
+                "## Discovery Trace",
+                "## Selected Resource Inventory",
+            ],
+        )
+
+    def test_context_recovery_report_heading_fails(self):
+        findings = check_content(
+            "# Article\n\n## Context Recovery Report\n\nInternal connector attempts."
+        )
+
+        self.assertEqual(findings[0]["match"], "## Context Recovery Report")
+
+    def test_context_heading_variants_cannot_leak(self):
+        content = """# Article
+
+## Simpro Product Context Binding
+## Context Receipt
+## Context Validation Receipt
+## Context Resource Inventory
+## Context Discovery Trace
+## Claim Use Map
+## Context Pack
+## Context Request
+## Context Inventory
+## Simpro Product Context Pack
+## Context Validation
+"""
+        findings = check_content(content)
+        matches = {finding["match"] for finding in findings}
+        self.assertIn("## Simpro Product Context Binding", matches)
+        self.assertIn("## Context Receipt", matches)
+        self.assertIn("## Context Validation Receipt", matches)
+        self.assertIn("## Context Resource Inventory", matches)
+        self.assertIn("## Context Discovery Trace", matches)
+        self.assertIn("## Claim Use Map", matches)
+        self.assertIn("## Context Pack", matches)
+        self.assertIn("## Context Request", matches)
+        self.assertIn("## Context Inventory", matches)
+        self.assertIn("## Simpro Product Context Pack", matches)
+        self.assertIn("## Context Validation", matches)
+
+    def test_context_pack_subsections_and_decorated_headings_cannot_leak(self):
+        content = """# Article
+
+## Approved Claim Evidence
+## Constraints and Unresolved Gaps
+## Retrieved Guidance
+## **Context Pack**
+### __Approved Claim Evidence__
+## `Context Request`
+## [Context Pack](#internal)
+## Context Pack {#internal}
+## Context Pack {.private}
+## Context Pack <!-- internal -->
+<h2>Context Pack</h2>
+## [Approved Claim Evidence](#proof)
+"""
+
+        findings = check_content(content)
+        matches = {finding["match"] for finding in findings}
+        self.assertEqual(
+            matches,
+            {
+                "## Approved Claim Evidence",
+                "## Constraints and Unresolved Gaps",
+                "## Retrieved Guidance",
+                "## **Context Pack**",
+                "### __Approved Claim Evidence__",
+                "## `Context Request`",
+                "## [Context Pack](#internal)",
+                "## Context Pack {#internal}",
+                "## Context Pack {.private}",
+                "## Context Pack <!-- internal -->",
+                "<h2>Context Pack</h2>",
+                "## [Approved Claim Evidence](#proof)",
+            },
+        )
+
     def test_cod_editorial_review_notes_fail(self):
         content = """# Article
 

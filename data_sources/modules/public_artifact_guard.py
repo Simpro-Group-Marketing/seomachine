@@ -8,6 +8,7 @@ Proof maps belong in validation sidecars, not in the publishable draft body.
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import re
 import sys
@@ -35,6 +36,14 @@ BANNED_HEADINGS = (
     "Source Routing Decision",
     "Fred Voccola Authority Selection",
     "Named Feature Status and Commercial Treatment",
+    "Context Binding",
+    "Context Claim Use Map",
+    "Discovery Trace",
+    "Selected Resource Inventory",
+    "Context Recovery Report",
+    "Approved Claim Evidence",
+    "Constraints and Unresolved Gaps",
+    "Retrieved Guidance",
 )
 
 EDITORIAL_REVIEW_SYMBOL_RE = re.compile(r"\N{LEFT-POINTING MAGNIFYING GLASS}")
@@ -49,27 +58,24 @@ DRAFT_PLACEHOLDER_RE = re.compile(
     r"(?:TODO|TBD|TK)(?:\s*:\s*[^|\n]+)?\s*$",
     re.IGNORECASE,
 )
+CONTEXT_INTERNAL_HEADING_RE = re.compile(
+    r"^\s*(?:#{1,6}\s+)?(?:claim use map|(?:simpro\s+(?:product\s+)?|product\s+)?context\s+"
+    r"(?:binding|pack|request|receipt|validation(?: receipt)?|claim use map|discovery trace|"
+    r"(?:resource )?inventory|recovery report))\s*:?\s*$",
+    re.IGNORECASE,
+)
 
 
 def check_content(content: str) -> List[Finding]:
     """Return findings for internal validation artifacts in public copy."""
     findings: List[Finding] = []
-    patterns = [
-        (
-            heading,
-            re.compile(
-                rf"^\s*(?:#{{1,6}}\s+)?{re.escape(heading)}\s*:?\s*$",
-                re.IGNORECASE,
-            ),
-        )
-        for heading in BANNED_HEADINGS
-    ]
-
     in_fence = False
     for line_number, line in enumerate(content.splitlines(), start=1):
         stripped = line.strip()
-        for heading, pattern in patterns:
-            if pattern.match(stripped):
+        normalized_heading = _normalize_heading(stripped)
+        matched_heading = False
+        for heading in BANNED_HEADINGS:
+            if normalized_heading.casefold() == heading.casefold():
                 findings.append(
                     make_finding(
                         "internal_validation_artifact",
@@ -86,7 +92,19 @@ def check_content(content: str) -> List[Finding]:
                         ),
                     )
                 )
+                matched_heading = True
                 break
+        if not matched_heading and CONTEXT_INTERNAL_HEADING_RE.match(normalized_heading):
+            findings.append(
+                make_finding(
+                    "internal_validation_artifact",
+                    "error",
+                    line_number,
+                    match=stripped,
+                    message="Public article copy contains an internal context validation heading.",
+                    suggestion="Move context bindings and receipts to the research validation sidecar.",
+                )
+            )
 
         if stripped.startswith("```") or stripped.startswith("~~~"):
             in_fence = not in_fence
@@ -140,6 +158,37 @@ def check_content(content: str) -> List[Finding]:
             )
 
     return findings
+
+
+def _normalize_heading(line: str) -> str:
+    """Remove Markdown heading and balanced inline decoration safely."""
+    value = line.strip()
+    html_heading_match = re.match(
+        r"^<h[1-6]\b[^>]*>(?P<text>.*?)</h[1-6]>\s*$",
+        value,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if html_heading_match:
+        value = html_heading_match.group("text").strip()
+    heading_match = re.match(r"^#{1,6}\s+(.+?)\s*#*\s*$", value)
+    if heading_match:
+        value = heading_match.group(1).strip()
+    value = re.sub(r"<!--.*?-->", " ", value, flags=re.DOTALL)
+    value = re.sub(r"\{[^}]+\}\s*$", " ", value).strip()
+    value = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", value)
+    value = re.sub(r"<[^>]+>", " ", value)
+    value = html.unescape(value)
+    value = value.rstrip(":").strip()
+    pairs = (("**", "**"), ("__", "__"), ("~~", "~~"), ("`", "`"), ("*", "*"), ("_", "_"))
+    changed = True
+    while changed:
+        changed = False
+        for opening, closing in pairs:
+            if value.startswith(opening) and value.endswith(closing) and len(value) > len(opening) + len(closing):
+                value = value[len(opening):-len(closing)].strip()
+                changed = True
+                break
+    return value.rstrip(":").strip()
 
 
 def _is_quoted_source_line(stripped: str) -> bool:
