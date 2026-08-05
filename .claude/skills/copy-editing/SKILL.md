@@ -158,15 +158,17 @@ For every statement, ask "Okay, so what?" If the copy doesn't answer that questi
 - Round numbers that feel made up
 - Missing details that would make it real
 
-**Specificity upgrades:**
+**Proof-safe specificity upgrades:**
 
-| Vague | Specific |
-|-------|----------|
-| Save time | Save 4 hours every week |
-| Many customers | 2,847 teams |
-| Fast results | Results in 14 days |
-| Improve your workflow | Cut your reporting time in half |
-| Great support | Response within 2 hours |
+| Vague | More concrete without fabricated precision |
+|-------|---------------------------------------------|
+| Save time | Remove the duplicate handoff between dispatch and invoicing |
+| Many customers | Name the approved customer segment or omit the scale claim |
+| Fast results | Name the workflow stage that changes and what "faster" means operationally |
+| Improve your workflow | Show the decision, constraint, or handoff that becomes clearer |
+| Great support | Describe the source-supported support channel or service boundary |
+
+Use numbers, dates, timeframes, quotes, metrics, and outcomes only when a source-supported proof route approves them. Concrete workflows, decisions, constraints, and tradeoffs are valid specificity and should come before numerical claims.
 
 **Common specificity issues:**
 - Adjectives doing the work nouns should do
@@ -177,7 +179,7 @@ For every statement, ask "Okay, so what?" If the copy doesn't answer that questi
 **Process:**
 1. Highlight vague words and phrases
 2. Ask "Can this be more specific?"
-3. Add numbers, timeframes, or examples
+3. Add a concrete workflow, decision, constraint, tradeoff, or source-supported example
 4. Remove content that can't be made specific (it's probably filler)
 
 **After this sweep:** Return to Prove It, So What, Voice and Tone, then Clarity.
@@ -338,7 +340,7 @@ Use these for faster reviews when a full seven-sweep process isn't needed.
 
 ### Specificity (Sweep 5)
 - [ ] Vague words replaced with concrete ones
-- [ ] Numbers and timeframes included
+- [ ] Any numbers and timeframes are source-supported; non-numeric specificity is used where proof is unavailable
 - [ ] Generic statements made specific
 - [ ] Filler content removed
 

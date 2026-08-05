@@ -335,14 +335,8 @@ class SEOQualityRater:
         warnings = []
         suggestions = []
 
-        word_count = structure['word_count']
-        max_words = self.guidelines['max_word_count']
-
-        # Word count is diagnostic. Only unusually long content prompts a
-        # possible split; short content is not penalized when it fulfills intent.
-        if word_count > max_words:
-            score -= 5
-            suggestions.append(f"Content is quite long ({word_count} words). Consider breaking into multiple articles if over {max_words} words.")
+        # Word count remains available in diagnostics but does not alter the
+        # content score. Scope and completeness are editorial judgments.
 
         # Paragraph length
         avg_para = structure['avg_paragraph_length']

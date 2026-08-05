@@ -39,15 +39,18 @@ def _metadata() -> dict[str, str]:
 def test_complete_short_blog_has_no_word_count_penalty_in_both_scorers():
     short = _article(6)
     long = _article(55)
+    very_long = _article(80)
 
     rater_short = SEOQualityRater().rate(short, **_metadata())
     rater_long = SEOQualityRater().rate(long, **_metadata())
+    rater_very_long = SEOQualityRater().rate(very_long, **_metadata())
     scorer_short = ContentScorer()._score_seo(short, _metadata())
     scorer_long = ContentScorer()._score_seo(long, _metadata())
 
     assert rater_short["details"]["word_count"] < 2000
     assert scorer_short["details"]["word_count"] < 2000
     assert rater_short["category_scores"]["content"] == rater_long["category_scores"]["content"]
+    assert rater_long["category_scores"]["content"] == rater_very_long["category_scores"]["content"]
     assert scorer_short["score"] == scorer_long["score"]
     combined = "\n".join(
         rater_short["critical_issues"]
@@ -57,6 +60,10 @@ def test_complete_short_blog_has_no_word_count_penalty_in_both_scorers():
     ).lower()
     assert "too short" not in combined
     assert "2,000 words" not in combined
+    assert not any(
+        "breaking into multiple articles" in item.lower()
+        for item in rater_very_long["suggestions"]
+    )
 
 
 def test_low_keyword_density_has_no_recommendation_or_score_penalty():

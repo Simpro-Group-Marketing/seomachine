@@ -45,9 +45,29 @@ class EngagementAnalyzer:
         r'\[.{5,50}→\]',  # [Text →]
         r'\*\*\[.{5,50}\]',  # **[Text]
         r'(?:Start|Try|Get|Begin|Sign up|Create).{0,20}(?:free|trial|today|now)',
+        r'(?:Book|Schedule|Request).{0,20}(?:demo|consultation|call)',
+        r'(?:View|See|Compare).{0,20}(?:pricing|plans)',
+        r'(?:Talk to|Contact)\s+(?:sales|our team)',
+        r'(?:Explore|See)\s+(?:our\s+)?(?:features|product|platform|software)',
         r'(?:Learn|Read|Discover|Explore|See)\s+(?:more|how)',
         r'Ready to\s+\w+',
         r'Want to\s+(?:see|learn|try|get)',
+    ]
+
+    COMMERCIAL_CTA_PATTERNS = [
+        r'\b(?:Start|Try|Get|Begin|Sign up|Create)\b.{0,25}\b(?:free|trial|today|now|started)\b',
+        r'\b(?:Book|Schedule|Request)\b.{0,25}\b(?:demo|consultation|call)\b',
+        r'\b(?:View|See|Compare)\b.{0,25}\b(?:pricing|plans)\b',
+        r'\b(?:Talk to|Contact)\s+(?:sales|our team)\b',
+    ]
+
+    PRODUCT_RELEVANT_CTA_PATTERNS = [
+        r'\b(?:Explore|See)\s+(?:our\s+)?(?:features|product|platform|software)\b',
+    ]
+
+    EDUCATIONAL_CTA_PATTERNS = [
+        r'\b(?:Learn|Read|Discover|Explore|See)\s+(?:more|how)\b',
+        r'\bWant to\s+learn\b',
     ]
 
     CTA_PROFILES = {
@@ -235,15 +255,21 @@ class EngagementAnalyzer:
     def _analyze_ctas(self, content: str, cta_profile: str) -> Dict[str, Any]:
         """Analyze CTA distribution"""
         ctas = []
+        matched_spans = []
 
         for pattern in self.CTA_PATTERNS:
             matches = re.finditer(pattern, content, re.IGNORECASE)
             for match in matches:
+                span = match.span()
+                if any(span[0] < end and span[1] > start for start, end in matched_spans):
+                    continue
+                matched_spans.append(span)
                 position = match.start() / len(content) * 100  # Position as percentage
                 ctas.append({
                     'text': match.group()[:50],
                     'position_pct': round(position),
                     'word_position': len(content[:match.start()].split()),
+                    'intent': self._classify_cta_intent(match.group()),
                 })
 
         # Check distribution
@@ -265,11 +291,30 @@ class EngagementAnalyzer:
         within_500_words = (
             words_before_first_cta is not None and words_before_first_cta <= 500
         )
-        meets_profile = len(ctas) >= profile['required_min']
-        if profile['requires_distribution']:
-            meets_profile = meets_profile and distributed
-        if profile['requires_early_cta']:
-            meets_profile = meets_profile and within_500_words
+        intent_counts = {
+            intent: sum(cta['intent'] == intent for cta in ctas)
+            for intent in ('reader_value', 'educational', 'product_relevant', 'commercial')
+        }
+
+        if cta_profile in ('tofu', 'thought_leadership'):
+            meets_profile = len(ctas) >= profile['required_min']
+        elif cta_profile == 'mofu':
+            qualifying = [
+                cta for cta in ctas
+                if cta['intent'] in ('educational', 'product_relevant', 'commercial')
+            ]
+            meets_profile = (
+                intent_counts['educational'] >= 1
+                and intent_counts['product_relevant'] + intent_counts['commercial'] >= 1
+                and self._ctas_are_distributed(qualifying)
+            )
+        else:
+            commercial_ctas = [cta for cta in ctas if cta['intent'] == 'commercial']
+            meets_profile = (
+                2 <= len(commercial_ctas) <= 3
+                and self._ctas_are_distributed(commercial_ctas)
+                and any(cta['word_position'] <= 500 for cta in commercial_ctas)
+            )
 
         return {
             'count': len(ctas),
@@ -281,8 +326,31 @@ class EngagementAnalyzer:
             'required_min': profile['required_min'],
             'requires_distribution': profile['requires_distribution'],
             'requires_early_cta': profile['requires_early_cta'],
+            'intent_counts': intent_counts,
             'meets_profile': meets_profile,
         }
+
+    def _classify_cta_intent(self, text: str) -> str:
+        """Classify a detected next step from its action language."""
+        for pattern in self.COMMERCIAL_CTA_PATTERNS:
+            if re.search(pattern, text, re.IGNORECASE):
+                return 'commercial'
+        for pattern in self.PRODUCT_RELEVANT_CTA_PATTERNS:
+            if re.search(pattern, text, re.IGNORECASE):
+                return 'product_relevant'
+        for pattern in self.EDUCATIONAL_CTA_PATTERNS:
+            if re.search(pattern, text, re.IGNORECASE):
+                return 'educational'
+        return 'reader_value'
+
+    def _ctas_are_distributed(self, ctas: List[Dict[str, Any]]) -> bool:
+        """Return whether qualifying CTAs appear in early and late content."""
+        if len(ctas) < 2:
+            return False
+        positions = [cta['position_pct'] for cta in ctas]
+        return any(position < 50 for position in positions) and any(
+            position > 70 for position in positions
+        )
 
     def _analyze_paragraphs(self, content: str) -> Dict[str, Any]:
         """Analyze paragraph lengths"""

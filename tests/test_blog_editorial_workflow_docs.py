@@ -141,6 +141,12 @@ def test_editorial_agents_pair_specificity_with_proof_and_promise_integrity():
     assert "Sweep 6: Stakes and Relevance" in editing_content
     assert "Heightened Emotion" not in editing_content
     assert "manufactured fear or urgency" in editing_content
+    assert "Save 4 hours every week" not in editing_content
+    assert "Add numbers, timeframes, or examples" not in editing_content
+    assert "Numbers and timeframes included" not in editing_content
+    assert "source-supported" in editing_content
+    assert "For blog and article workflows only" in headline_content
+    assert "Do not apply this blog contract to landing pages" in headline_content
 
 
 def test_cta_rules_are_selected_by_funnel_stage():
