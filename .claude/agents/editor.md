@@ -138,10 +138,12 @@ Read the article and identify:
 - Does the article fully deliver that promise?
 - Is all numerical or named specificity sourced rather than fabricated precision?
 
-**CTA Distribution Check**:
-- Is there a CTA within the first 500 words?
-- Are there 2-3 contextual CTAs throughout (not just at end)?
-- Are CTAs related to the surrounding content?
+**CTA profile check**:
+- `tofu`: Is there at least one reader-value next step, without imposing a commercial or early-placement quota?
+- `mofu`: Is there one educational next step and one contextual product-relevant CTA, distributed across the article?
+- `bofu`: Are there two or three contextual commercial CTAs, including one within 500 words and one near the conclusion?
+- `thought_leadership`: Is there at least one relevant next step, such as reflection, discussion, evidence, or related reading?
+- For mixed stages, was the earliest stage used unless the brief explicitly names a conversion objective?
 
 **Paragraph & Rhythm Check**:
 - Are any paragraphs longer than 4 sentences?
@@ -376,7 +378,7 @@ Read the article and identify:
 ### Engagement Requirements (Check for these):
 8. **Compelling Hook**: First 1-2 sentences must grab attention (not generic definitions)
 9. **Optional Stories or Scenes**: Stories and scenes are optional; when used, require proof-safe specificity and a documented reader payoff
-10. **Contextual CTAs**: 2-3 CTAs distributed throughout (not just at end)
+10. **CTA Profile**: Apply the Reader Contract's `tofu`, `mofu`, `bofu`, or `thought_leadership` requirement
 11. **Paragraph Length**: No paragraphs should exceed 4 sentences
 12. **Sentence Rhythm**: Mix short punchy (5-10 words) with longer flowing (15-25 words)
 

@@ -190,21 +190,21 @@ Not allowed:
 - Fictional named personas or invented company stories.
 - Invented dates, metrics, quotes, outcomes, or testimonial wording.
 
-**REQUIRED: Contextual CTAs (2-3 per article)**
+**CTA profile rules**
 
-Don't just put one CTA at the end. Embedded CTAs get 121% more conversions than end-only CTAs.
+Select the CTA profile from the Reader Contract's funnel stage.
 
-**CTA Placement Strategy:**
-| Location | CTA Type | Example |
-|----------|----------|---------|
-| After first major value section | Soft CTA (learn more) | "Want to see how this works in practice? [Explore our features →]" |
-| After comparison/proof section | Medium CTA (try it) | "**Ready to test the difference?** Start a free trial, no credit card required." |
-| End of article | Strong CTA (convert) | "**[Start Your Free Trial →]**" with supporting text |
+| Profile | Requirement |
+|---------|-------------|
+| `tofu` | At least one reader-value next step; no commercial or early-placement quota |
+| `mofu` | One educational next step and one contextual product-relevant CTA, distributed across the article |
+| `bofu` | Two or three contextual commercial CTAs; at least one within 500 words and one near the conclusion |
+| `thought_leadership` | At least one relevant next step; it may be reflection, discussion, evidence, or related reading |
 
 **CTA Rules:**
 - Make CTAs contextual (relate to the section content)
 - Vary the format (inline text, bold callout, button-style)
-- First CTA should appear within the first 500 words
+- For mixed funnel stages, apply the earliest stage unless the brief explicitly names a conversion objective
 - Never use generic "Click here" text
 
 #### 5. Conclusion (150-200 words)
@@ -318,8 +318,7 @@ Word Count: [actual word count]
 - [ ] **Hook**: Opens with question, scenario, statistic, or bold statement (NOT generic definition)
 - [ ] **APP Formula**: Introduction includes Agree, Promise, Preview elements
 - [ ] **Optional scenes**: Any story is approved customer proof, source-supported author experience, or an unnamed explanatory workflow without invented precision
-- [ ] **Contextual CTAs**: 2-3 CTAs placed throughout (not just at end)
-- [ ] **First CTA**: Appears within first 500 words
+- [ ] **CTA profile**: Next steps meet the Reader Contract's `tofu`, `mofu`, `bofu`, or `thought_leadership` requirement
 - [ ] **Paragraph length**: No paragraphs exceed 4 sentences
 - [ ] **Sentence rhythm**: Mix of short (5-10 words) and longer sentences (15-25 words)
 
@@ -527,8 +526,7 @@ Every article must meet these requirements:
 ### Engagement Requirements
 - **Compelling hook** in first 1-2 sentences (no generic openings)
 - Optional proof-backed customer/review POV when it improves the objective
-- **2-3 contextual CTAs** distributed throughout (not just at end)
-- **First CTA within 500 words**
+- **CTA profile satisfied** for `tofu`, `mofu`, `bofu`, or `thought_leadership`; mixed stages use the earliest stage unless the brief names a conversion objective
 - **Usable artifact within first 300 words**
 - **No paragraphs longer than 4 sentences**
 - **Varied sentence rhythm** (mix short punchy + longer flowing)

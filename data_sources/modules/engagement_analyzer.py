@@ -50,20 +50,44 @@ class EngagementAnalyzer:
         r'Want to\s+(?:see|learn|try|get)',
     ]
 
-    # Legacy name patterns retained only for older report compatibility.
-    NAME_PATTERNS = [
-        r'\b(?:Sarah|Mike|Marcus|Lisa|John|David|Emily|Chris|Alex|Tom|Anna|James|Maria|Rachel|Dan|Kate)\b',
-        r'\b(?:The team at|At) [A-Z][a-z]+(?:\s+[A-Z][a-z]+)?\b',  # "The team at Acme"
-        r'\b[A-Z][a-z]+\'s (?:podcast|show|episode|company|business|team)\b',  # "Sarah's podcast"
-    ]
+    CTA_PROFILES = {
+        'tofu': {
+            'required_min': 1,
+            'requires_distribution': False,
+            'requires_early_cta': False,
+        },
+        'mofu': {
+            'required_min': 2,
+            'requires_distribution': True,
+            'requires_early_cta': False,
+        },
+        'bofu': {
+            'required_min': 2,
+            'requires_distribution': True,
+            'requires_early_cta': True,
+        },
+        'thought_leadership': {
+            'required_min': 1,
+            'requires_distribution': False,
+            'requires_early_cta': False,
+        },
+    }
 
-    def analyze(self, content: str, filename: str = "") -> Dict[str, Any]:
+    def analyze(
+        self,
+        content: str,
+        filename: str = "",
+        cta_profile: str = "mofu",
+    ) -> dict[str, Any]:
         """Analyze article for 4 engagement criteria (stories removed)"""
+        if cta_profile not in self.CTA_PROFILES:
+            raise ValueError(f"Unsupported CTA profile: {cta_profile}")
+
         results = {
             'filename': filename,
             'hook': self._analyze_hook(content),
             'rhythm': self._analyze_rhythm(content),
-            'ctas': self._analyze_ctas(content),
+            'ctas': self._analyze_ctas(content, cta_profile),
             'paragraphs': self._analyze_paragraphs(content),
         }
 
@@ -71,7 +95,7 @@ class EngagementAnalyzer:
         results['scores'] = {
             'hook': results['hook']['is_good'],
             'rhythm': results['rhythm']['score'] >= 45,  # Lowered from 60 - comparison articles are table-heavy by design
-            'ctas': results['ctas']['distributed'],
+            'ctas': results['ctas']['meets_profile'],
             'paragraphs': results['paragraphs']['long_count'] <= 3,
         }
 
@@ -208,41 +232,7 @@ class EngagementAnalyzer:
             'avg_length': round(mean, 1)
         }
 
-    def _analyze_mini_stories(self, content: str) -> Dict[str, Any]:
-        """Legacy helper retained for older report compatibility."""
-        stories_found = []
-
-        # Look for name patterns
-        for pattern in self.NAME_PATTERNS:
-            matches = re.finditer(pattern, content)
-            for match in matches:
-                # Get surrounding context
-                start = max(0, match.start() - 50)
-                end = min(len(content), match.end() + 100)
-                context = content[start:end]
-
-                # Check if it's in a story context (has outcome indicators)
-                if re.search(r'(?:discovered|realized|found|spent|cost|saved|grew|increased|launched|started|switched|moved)', context, re.IGNORECASE):
-                    stories_found.append({
-                        'name': match.group(),
-                        'context': context[:80].strip()
-                    })
-
-        # Deduplicate by name
-        unique_names = set()
-        unique_stories = []
-        for story in stories_found:
-            if story['name'] not in unique_names:
-                unique_names.add(story['name'])
-                unique_stories.append(story)
-
-        return {
-            'count': len(unique_stories),
-            'names_found': list(unique_names)[:5],
-            'stories': unique_stories[:3]
-        }
-
-    def _analyze_ctas(self, content: str) -> Dict[str, Any]:
+    def _analyze_ctas(self, content: str, cta_profile: str) -> Dict[str, Any]:
         """Analyze CTA distribution"""
         ctas = []
 
@@ -252,16 +242,15 @@ class EngagementAnalyzer:
                 position = match.start() / len(content) * 100  # Position as percentage
                 ctas.append({
                     'text': match.group()[:50],
-                    'position_pct': round(position)
+                    'position_pct': round(position),
+                    'word_position': len(content[:match.start()].split()),
                 })
 
         # Check distribution
-        word_count = len(content.split())
         words_before_first_cta = None
 
         if ctas:
-            first_cta_pos = min(c['position_pct'] for c in ctas)
-            words_before_first_cta = int(word_count * first_cta_pos / 100)
+            words_before_first_cta = min(c['word_position'] for c in ctas)
 
         # Check if CTAs are distributed (not all at end)
         distributed = False
@@ -272,12 +261,27 @@ class EngagementAnalyzer:
             has_late = any(p > 70 for p in positions)
             distributed = has_early and has_late
 
+        profile = self.CTA_PROFILES[cta_profile]
+        within_500_words = (
+            words_before_first_cta is not None and words_before_first_cta <= 500
+        )
+        meets_profile = len(ctas) >= profile['required_min']
+        if profile['requires_distribution']:
+            meets_profile = meets_profile and distributed
+        if profile['requires_early_cta']:
+            meets_profile = meets_profile and within_500_words
+
         return {
             'count': len(ctas),
             'distributed': distributed,
             'first_cta_word_position': words_before_first_cta,
-            'within_500_words': words_before_first_cta is not None and words_before_first_cta <= 500,
-            'ctas': ctas[:5]
+            'within_500_words': within_500_words,
+            'ctas': ctas[:5],
+            'profile': cta_profile,
+            'required_min': profile['required_min'],
+            'requires_distribution': profile['requires_distribution'],
+            'requires_early_cta': profile['requires_early_cta'],
+            'meets_profile': meets_profile,
         }
 
     def _analyze_paragraphs(self, content: str) -> Dict[str, Any]:

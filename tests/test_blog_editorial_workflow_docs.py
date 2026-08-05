@@ -141,3 +141,26 @@ def test_editorial_agents_pair_specificity_with_proof_and_promise_integrity():
     assert "Sweep 6: Stakes and Relevance" in editing_content
     assert "Heightened Emotion" not in editing_content
     assert "manufactured fear or urgency" in editing_content
+
+
+def test_cta_rules_are_selected_by_funnel_stage():
+    contract = (ROOT / "context" / "blog-editorial-strategy.md").read_text(
+        encoding="utf-8"
+    )
+    paths = [
+        ROOT / ".claude" / "commands" / "write.md",
+        ROOT / ".claude" / "commands" / "article.md",
+        ROOT / ".claude" / "agents" / "editor.md",
+    ]
+
+    for profile in ["tofu", "mofu", "bofu", "thought_leadership"]:
+        assert f"`{profile}`" in contract
+
+    assert "earliest stage" in contract
+    for path in paths:
+        content = path.read_text(encoding="utf-8")
+        assert "CTA profile" in content, f"{path.name} does not apply a CTA profile"
+        assert "tofu" in content
+        assert "mofu" in content
+        assert "bofu" in content
+        assert "thought_leadership" in content

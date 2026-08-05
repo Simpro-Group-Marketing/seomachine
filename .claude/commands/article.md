@@ -398,7 +398,11 @@ Stories and scenes are optional. Use only approved customer proof, source-suppor
 4. **Plan Engagement Distribution**
    - Proof-backed customer/review POV: Optional; use only when an actual person or business story improves the objective and is sidecar-mapped
    - Unnamed workflow scenarios: Explanatory only, not E-E-A-T proof
-   - CTAs: First 500 words (soft), middle (medium), end (strong)
+   - CTA profile: Select `tofu`, `mofu`, `bofu`, or `thought_leadership` from the Reader Contract. For mixed stages, use the earliest stage unless the brief explicitly names a conversion objective.
+   - `tofu`: At least one reader-value next step; no commercial or early-placement quota
+   - `mofu`: One educational next step and one contextual product-relevant CTA, distributed across the article
+   - `bofu`: Two or three contextual commercial CTAs; at least one within 500 words and one near the conclusion
+   - `thought_leadership`: At least one relevant next step, which may be reflection, discussion, evidence, or related reading
    - Featured snippet opportunities: FAQ, definitions
 
 ### Output
@@ -475,7 +479,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - **Hook Strategy**: [question / scenario / statistic / bold statement]
 - **APP Elements**: [Agree point, Promise, Preview]
 - **Proof-Backed POV**: [Optional actual person or business POV, sidecar-mapped]
-- **CTA**: soft (within first 500 words)
+- **CTA**: [Next step required by the selected CTA profile]
 - **Unique Data**: [Insight from social research to include]
 
 ### 2. [H2 Title]
@@ -520,9 +524,8 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 | Element | Location |
 |---------|----------|
 | Optional proof-backed customer/review POV | Section where it improves the objective |
-| CTA (soft) | Section 1 or 2 |
-| CTA (medium) | Section [X] |
-| CTA (strong) | Conclusion |
+| CTA profile | `tofu` / `mofu` / `bofu` / `thought_leadership` |
+| Required next step(s) | [Locations and purpose based on profile] |
 
 ## Gap-to-Section Mapping
 
@@ -655,7 +658,7 @@ After all sections are written and edited:
    - Assemble in planned order
    - Check transitions between sections
    - Verify internal link placement
-   - Confirm CTA distribution
+   - Confirm the selected CTA profile is satisfied
 
 2. **Mandatory Continuity Pass**
    - Every section advances the headline promise.
@@ -715,8 +718,7 @@ After all sections are written and edited:
    - [ ] Hook (not generic opening)
    - [ ] APP Formula in intro
    - [ ] Optional proof-backed customer/review POV is used only when it fits the objective and is sidecar-mapped
-   - [ ] 2-3 contextual CTAs
-   - [ ] First CTA within 500 words
+   - [ ] CTA profile requirement satisfied for `tofu`, `mofu`, `bofu`, or `thought_leadership`
    - [ ] No paragraphs > 4 sentences
    - [ ] Varied sentence rhythm
 
@@ -845,7 +847,7 @@ Before writing, review these context files:
 - 2-3 external authority links
 - Compelling hook (not generic)
 - Optional proof-backed customer/review POV when it improves the objective
-- 2-3 contextual CTAs
+- CTA profile satisfied for `tofu`, `mofu`, `bofu`, or `thought_leadership`
 - FAQ with real user questions
 - General content quality score 85/100+
 - AEO/GEO score 90/100+
