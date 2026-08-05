@@ -1,3 +1,4 @@
+import hashlib
 import json
 import unittest
 from contextlib import redirect_stdout
@@ -5,7 +6,100 @@ from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from data_sources.modules.customer_proof_selector import _main, select_customer_proofs
+from data_sources.modules.customer_proof_selector import (
+    _main,
+    select_customer_proofs as _select_customer_proofs,
+)
+
+
+def canonical_json(value):
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def sha256_json(value):
+    return hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()
+
+
+def write_context_receipt_fixture(root: Path, index_path: Path) -> tuple[Path, Path]:
+    index = json.loads(index_path.read_text(encoding="utf-8"))
+    request = {"topic": "customer proof selector fixture"}
+    revisions = {
+        "content_revision": "content-1",
+        "contract_revision": "contract-1",
+        "inventory_revision": "inventory-1",
+        "manifest_revision": "manifest-1",
+        "claim_registry_revision": "claims-1",
+        "approval_policy_revision": "policy-1",
+    }
+    evidence = []
+    decisions = []
+    for candidate in index.get("proof", []):
+        proof_id = str(candidate.get("proof_id") or "").strip()
+        public_url = str(candidate.get("public_url") or "").strip()
+        if not proof_id or not public_url.startswith(("http://", "https://")):
+            continue
+        modes = {"public_paraphrase"}
+        if candidate.get("approved_metrics"):
+            modes.add("public_metric")
+        if candidate.get("approved_quotes"):
+            modes.add("exact_quote")
+        for mode in sorted(modes):
+            source_hash = f"hash-{proof_id}-{mode}"
+            row = {
+                "claim_id": f"claim-customer-proof-{proof_id}-{mode}",
+                "selector_id": proof_id,
+                "assertion": str(candidate.get("evidence") or candidate.get("customer") or proof_id),
+                "use_mode": mode,
+                "brand_scope": ["Simpro"],
+                "source_hash": source_hash,
+                "support_resource_hashes": {f"res-{proof_id}-{mode}": source_hash},
+                "public_url": public_url,
+                "approval_source": "connector_claim_result",
+            }
+            evidence.append(row)
+            decisions.append(
+                {
+                    "claim_id": row["claim_id"],
+                    "selector_id": row["selector_id"],
+                    "assertion": row["assertion"],
+                    "requested_use_mode": row["use_mode"],
+                    "brand_scope": row["brand_scope"],
+                    "source_hash": row["source_hash"],
+                    "public_url": row["public_url"],
+                    "approval_source": row["approval_source"],
+                    "decision": "approved",
+                }
+            )
+    pack = {
+        "schema": "simpro-product-context-pack/v2",
+        "request": request,
+        "revisions": revisions,
+        "approved_claim_evidence": evidence,
+    }
+    receipt = {
+        "schema": "simpro-context-receipt/v1",
+        "request_sha256": sha256_json(request),
+        "pack_sha256": sha256_json(pack),
+        "revisions": revisions,
+        "claim_decisions": decisions,
+        "canonical_receipt_sha256": "customer-proof-receipt-fixture",
+    }
+    pack_path = root / "context-pack.json"
+    receipt_path = root / "context-receipt.json"
+    pack_path.write_text(json.dumps(pack, indent=2), encoding="utf-8")
+    receipt_path.write_text(json.dumps(receipt, indent=2), encoding="utf-8")
+    return pack_path, receipt_path
+
+
+def select_customer_proofs(*args, **kwargs):
+    if not kwargs.get("context_pack") and not kwargs.get("context_receipt"):
+        index_path = Path(kwargs.get("index_path", "context/customer-proof-index.json"))
+        ledger_path = Path(kwargs.get("ledger_path", index_path))
+        root = ledger_path.parent if ledger_path.parent != Path("") else Path(".")
+        pack_path, receipt_path = write_context_receipt_fixture(root, index_path)
+        kwargs["context_pack"] = pack_path
+        kwargs["context_receipt"] = receipt_path
+    return _select_customer_proofs(*args, **kwargs)
 
 
 def write_selector_fixture(root: Path) -> tuple[Path, Path]:
@@ -81,6 +175,21 @@ def write_selector_fixture(root: Path) -> tuple[Path, Path]:
 
 
 class CustomerProofSelectorTests(unittest.TestCase):
+    def test_public_customer_proof_requires_context_receipt(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path, ledger_path = write_selector_fixture(root)
+
+            results = _select_customer_proofs(
+                "best job quoting and invoicing software",
+                index_path=index_path,
+                ledger_path=ledger_path,
+                proof_role="metric",
+                limit=1,
+            )
+
+        self.assertEqual(results, [])
+
     def test_underused_matching_reference_beats_overused_case_study(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -112,6 +221,7 @@ class CustomerProofSelectorTests(unittest.TestCase):
                                 "workflow_fit": ["quoting", "invoicing", "field service"],
                                 "themes": ["quote-to-cash", "small trade business", "invoice generation"],
                                 "internal_source_ref": "References sheet 1tWlR0WNDRRnvA5b-2fdBdjC7rwaQQs1CYCc48pD62HE",
+                                "public_url": "https://www.simprogroup.com/references/alarmquest",
                                 "approval_status": "approved",
                                 "public_copy_allowed": True,
                                 "evidence": "Reference candidate for quote-to-cash workflow validation.",
@@ -376,6 +486,7 @@ class CustomerProofSelectorTests(unittest.TestCase):
                                 "industry": ["electrical", "small business"],
                                 "workflow_fit": ["quoting", "invoicing", "small trade business"],
                                 "themes": ["quote-to-invoice workflow", "customer review story"],
+                                "public_url": "https://www.simprogroup.com/case-studies/small-trade-case",
                                 "approval_status": "approved",
                                 "public_copy_allowed": True,
                                 "evidence": "Approved Quote Matrix customer review story proof for quote-to-invoice workflows.",
@@ -387,6 +498,7 @@ class CustomerProofSelectorTests(unittest.TestCase):
                                 "industry": ["electrical", "small business"],
                                 "workflow_fit": ["quoting", "invoicing", "small trade business"],
                                 "themes": ["quote-to-invoice workflow", "customer review story"],
+                                "public_url": "https://www.g2.com/products/simpro/reviews/small-trade",
                                 "approval_status": "approved",
                                 "public_copy_allowed": True,
                                 "evidence": "Referenceable G2 review story for quote-to-invoice workflows.",
@@ -608,6 +720,7 @@ class CustomerProofSelectorTests(unittest.TestCase):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             index_path, ledger_path = write_selector_fixture(root)
+            pack_path, receipt_path = write_context_receipt_fixture(root, index_path)
             buffer = StringIO()
 
             with redirect_stdout(buffer):
@@ -618,6 +731,10 @@ class CustomerProofSelectorTests(unittest.TestCase):
                         str(index_path),
                         "--ledger",
                         str(ledger_path),
+                        "--context-pack",
+                        str(pack_path),
+                        "--context-receipt",
+                        str(receipt_path),
                         "--proof-role",
                         "metric",
                         "--limit",
@@ -635,6 +752,7 @@ class CustomerProofSelectorTests(unittest.TestCase):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             index_path, ledger_path = write_selector_fixture(root)
+            pack_path, receipt_path = write_context_receipt_fixture(root, index_path)
             buffer = StringIO()
 
             with redirect_stdout(buffer):
@@ -649,6 +767,10 @@ class CustomerProofSelectorTests(unittest.TestCase):
                         str(index_path),
                         "--ledger",
                         str(ledger_path),
+                        "--context-pack",
+                        str(pack_path),
+                        "--context-receipt",
+                        str(receipt_path),
                         "--slate",
                         "--roles",
                         "metric,quote,theme,experience_story",
@@ -687,6 +809,7 @@ class CustomerProofSelectorTests(unittest.TestCase):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             index_path, ledger_path = write_selector_fixture(root)
+            pack_path, receipt_path = write_context_receipt_fixture(root, index_path)
             buffer = StringIO()
 
             with redirect_stdout(buffer):
@@ -697,6 +820,10 @@ class CustomerProofSelectorTests(unittest.TestCase):
                         str(index_path),
                         "--ledger",
                         str(ledger_path),
+                        "--context-pack",
+                        str(pack_path),
+                        "--context-receipt",
+                        str(receipt_path),
                         "--slate",
                         "--roles",
                         "metric,theme",

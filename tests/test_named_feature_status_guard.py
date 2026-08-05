@@ -1,8 +1,11 @@
+import csv
+import hashlib
+import json
 import tempfile
 import unittest
 from pathlib import Path
 
-from data_sources.modules.named_feature_status_guard import check_content
+from data_sources.modules.named_feature_status_guard import check_content as _check_content
 
 
 CSV_HEADER = (
@@ -50,6 +53,97 @@ def status_table(*rows):
             *rows,
         ]
     )
+
+
+def canonical_json(value):
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def sha256_json(value):
+    return hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()
+
+
+def write_context_receipt_fixture(vault_path: Path) -> tuple[Path, Path]:
+    claim_path = vault_path / "indexes" / "lightning-current-claim-status.csv"
+    request = {"topic": "named feature fixture"}
+    revisions = {
+        "content_revision": "content-1",
+        "contract_revision": "contract-1",
+        "inventory_revision": "inventory-1",
+        "manifest_revision": "manifest-1",
+        "claim_registry_revision": "claims-1",
+        "approval_policy_revision": "policy-1",
+    }
+    evidence = []
+    decisions = []
+    with claim_path.open("r", encoding="utf-8-sig", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    for row in rows:
+        claim_id = str(row.get("claim_id") or "").strip()
+        public_status = str(row.get("public_use_status") or "").strip()
+        evidence_status = str(row.get("evidence_status") or "").strip()
+        if not claim_id or not public_status.startswith("usable_public"):
+            continue
+        if "internal" in evidence_status or "superseded" in evidence_status:
+            continue
+        mode = (
+            "public_metric"
+            if public_status == "usable_public_source_bound_metric"
+            else "public_paraphrase"
+        )
+        source_hash = f"hash-{claim_id}-{mode}"
+        item = {
+            "claim_id": f"claim-lightning-{claim_id}",
+            "selector_id": claim_id,
+            "assertion": str(row.get("claim_text") or claim_id),
+            "use_mode": mode,
+            "brand_scope": ["Simpro"],
+            "source_hash": source_hash,
+            "support_resource_hashes": {f"res-{claim_id}": source_hash},
+            "public_url": f"https://www.simprogroup.com/lightning/{claim_id.lower()}",
+            "approval_source": "connector_claim_result",
+        }
+        evidence.append(item)
+        decisions.append(
+            {
+                "claim_id": item["claim_id"],
+                "selector_id": item["selector_id"],
+                "assertion": item["assertion"],
+                "requested_use_mode": item["use_mode"],
+                "brand_scope": item["brand_scope"],
+                "source_hash": item["source_hash"],
+                "public_url": item["public_url"],
+                "approval_source": item["approval_source"],
+                "decision": "approved",
+            }
+        )
+    pack = {
+        "schema": "simpro-product-context-pack/v2",
+        "request": request,
+        "revisions": revisions,
+        "approved_claim_evidence": evidence,
+    }
+    receipt = {
+        "schema": "simpro-context-receipt/v1",
+        "request_sha256": sha256_json(request),
+        "pack_sha256": sha256_json(pack),
+        "revisions": revisions,
+        "claim_decisions": decisions,
+        "canonical_receipt_sha256": "named-feature-receipt-fixture",
+    }
+    pack_path = vault_path / "context-pack.json"
+    receipt_path = vault_path / "context-receipt.json"
+    pack_path.write_text(json.dumps(pack, indent=2), encoding="utf-8")
+    receipt_path.write_text(json.dumps(receipt, indent=2), encoding="utf-8")
+    return pack_path, receipt_path
+
+
+def check_content(*args, **kwargs):
+    if kwargs.get("vault_path") and not kwargs.get("context_pack") and not kwargs.get("context_receipt"):
+        pack_path, receipt_path = write_context_receipt_fixture(Path(kwargs["vault_path"]))
+        kwargs["context_pack"] = pack_path
+        kwargs["context_receipt"] = receipt_path
+    return _check_content(*args, **kwargs)
 
 
 class NamedFeatureStatusGuardTests(unittest.TestCase):
@@ -100,6 +194,18 @@ class NamedFeatureStatusGuardTests(unittest.TestCase):
         )
 
         self.assertEqual(findings, [])
+
+    def test_named_feature_claim_requires_context_receipt(self):
+        row = "| Lightning | LCUR-0001 | | current_public_context | not_asserted | Current Simpro accounts | use |"
+        findings = _check_content(
+            "# AI workflows\n\nLightning helps connect AI workflows to Simpro data.",
+            proof_content=status_table(row),
+            vault_path=self.vault_path,
+        )
+
+        self.assertTrue(
+            any(f["rule_id"] == "named_feature_context_receipt_missing" for f in findings)
+        )
 
     def test_missing_status_row_fails(self):
         findings = check_content(

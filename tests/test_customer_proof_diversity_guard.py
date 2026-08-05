@@ -11,6 +11,7 @@ from data_sources.modules.customer_proof_diversity_guard import (
     should_fail,
 )
 from data_sources.modules.customer_proof_selector import _main as selector_main
+from tests.test_customer_proof_selector import write_context_receipt_fixture
 
 
 ARTICLE_WITH_CASE_STUDY = """# Job quoting software
@@ -418,6 +419,7 @@ Customer Proof Selection Decision
                 encoding="utf-8",
             )
             ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+            pack_path, receipt_path = write_context_receipt_fixture(root, index_path)
             buffer = StringIO()
 
             with redirect_stdout(buffer):
@@ -428,6 +430,10 @@ Customer Proof Selection Decision
                         str(index_path),
                         "--ledger",
                         str(ledger_path),
+                        "--context-pack",
+                        str(pack_path),
+                        "--context-receipt",
+                        str(receipt_path),
                         "--slate",
                         "--roles",
                         "metric,quote,theme,experience_story",
@@ -781,11 +787,14 @@ Customer Proof Selection Decision
             index_path = Path(temp_dir) / "index.json"
             ledger_path.write_text(json.dumps(ledger), encoding="utf-8")
             index_path.write_text(json.dumps(index), encoding="utf-8")
+            pack_path, receipt_path = write_context_receipt_fixture(Path(temp_dir), index_path)
             findings = check_content(
                 ARTICLE_WITH_CASE_STUDY,
                 proof_content=sidecar,
                 ledger_path=ledger_path,
                 proof_index_path=index_path,
+                context_pack=pack_path,
+                context_receipt=receipt_path,
             )
 
         self.assertTrue(any(f["rule_id"] == "customer_proof_stronger_underused_candidate_available" for f in findings))

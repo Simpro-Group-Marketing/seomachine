@@ -18,8 +18,13 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 try:
     from .proof_usage import count_customer_proof_usage, usage_matches_candidate
+    from .vault_claim_receipts import (
+        VaultClaimReceiptError,
+        load_validated_claim_set,
+    )
 except ImportError:  # pragma: no cover - supports direct script execution.
     from proof_usage import count_customer_proof_usage, usage_matches_candidate
+    from vault_claim_receipts import VaultClaimReceiptError, load_validated_claim_set
 
 
 DEFAULT_INDEX_PATH = Path("context/customer-proof-index.json")
@@ -95,6 +100,8 @@ def select_customer_proofs(
     *,
     index_path: str | Path = DEFAULT_INDEX_PATH,
     ledger_path: str | Path = DEFAULT_LEDGER_PATH,
+    context_pack: str | Path | None = None,
+    context_receipt: str | Path | None = None,
     article_slug: str = "",
     title: str = "",
     objective: str = "",
@@ -107,6 +114,10 @@ def select_customer_proofs(
     reference = reference_date or date.today()
     index = _load_json(index_path, default={"proof": []})
     ledger = _load_json(ledger_path, default={"uses": []})
+    try:
+        receipt_claims = load_validated_claim_set(context_pack, context_receipt)
+    except VaultClaimReceiptError as exc:
+        raise ValueError(f"Customer proof context receipt is invalid: {exc}") from exc
     search_text = " ".join(part for part in (topic, title, objective) if part)
     topic_tokens = _tokens(search_text)
 
@@ -117,6 +128,13 @@ def select_customer_proofs(
         if require_eeat_story and not _is_review_story_eligible(candidate):
             continue
         if not _matches_proof_role(candidate, proof_role):
+            continue
+        approved_claim = receipt_claims.require_selector_claim(
+            str(candidate.get("proof_id", "")),
+            use_modes=_use_modes_for_role(proof_role),
+            public_url=str(candidate.get("public_url", "")),
+        )
+        if approved_claim is None:
             continue
         result = dict(candidate)
         result.update(
@@ -132,6 +150,9 @@ def select_customer_proofs(
         result["source_intent_score"] = _source_intent_score(search_text, candidate)
         result["proof_role"] = proof_role
         result["review_story_eligible"] = _is_review_story_eligible(candidate)
+        result["claim_id"] = approved_claim.claim_id
+        result["approval_source"] = approved_claim.approval_source
+        result["context_receipt_revision"] = approved_claim.receipt_revision
         result["score"] = _score_candidate(result)
         result["overused"] = bool(result.get("overused", False))
         result["selection_reason"] = _selection_reason(result)
@@ -161,6 +182,8 @@ def build_customer_proof_slate(
     *,
     index_path: str | Path = DEFAULT_INDEX_PATH,
     ledger_path: str | Path = DEFAULT_LEDGER_PATH,
+    context_pack: str | Path | None = None,
+    context_receipt: str | Path | None = None,
     article_slug: str = "",
     title: str = "",
     objective: str = "",
@@ -179,6 +202,8 @@ def build_customer_proof_slate(
         topic,
         title=title,
         objective=objective,
+        context_pack=context_pack,
+        context_receipt=context_receipt,
         require_eeat_story=require_eeat_story,
         roles=normalized_roles,
         limit=limit,
@@ -186,12 +211,16 @@ def build_customer_proof_slate(
     lines = [
         "Customer Proof Slate",
         f"- Selector command: {command}",
+        f"- Context receipt: {context_receipt or 'not supplied'}",
+        "- Approval source: connector_claim_result",
     ]
     for role in normalized_roles:
         results = select_customer_proofs(
             topic,
             index_path=index_path,
             ledger_path=ledger_path,
+            context_pack=context_pack,
+            context_receipt=context_receipt,
             article_slug=article_slug,
             title=title,
             objective=objective,
@@ -201,12 +230,22 @@ def build_customer_proof_slate(
             reference_date=reference_date,
         )
         top_candidates = [str(result.get("proof_id", "")) for result in results if result.get("proof_id")]
+        claim_ids = [str(result.get("claim_id", "")) for result in results if result.get("claim_id")]
+        receipt_revision = next(
+            (
+                str(result.get("context_receipt_revision", ""))
+                for result in results
+                if result.get("context_receipt_revision")
+            ),
+            "not available",
+        )
         selected_id = selected.get(role) or (top_candidates[0] if top_candidates else "none")
         rejected_text = _format_rejected_candidates(rejected.get(role, {}))
         lines.append(
             "- Role: "
             f"{role} | Top candidates: [{', '.join(top_candidates) if top_candidates else 'none'}] "
-            f"| Selected: [{selected_id}] | Rejected stronger candidates: [{rejected_text}]"
+            f"| Selected: [{selected_id}] | Claim IDs: [{', '.join(claim_ids) if claim_ids else 'none'}] "
+            f"| Receipt revision: {receipt_revision} | Rejected stronger candidates: [{rejected_text}]"
         )
     return "\n".join(lines)
 
@@ -260,6 +299,8 @@ def _slate_selector_command(
     *,
     title: str,
     objective: str,
+    context_pack: str | Path | None,
+    context_receipt: str | Path | None,
     require_eeat_story: bool,
     roles: Sequence[str],
     limit: int,
@@ -273,6 +314,10 @@ def _slate_selector_command(
         parts.extend(["--title", _quote_command_value(title)])
     if objective:
         parts.extend(["--objective", _quote_command_value(objective)])
+    if context_pack:
+        parts.extend(["--context-pack", _quote_command_value(str(context_pack))])
+    if context_receipt:
+        parts.extend(["--context-receipt", _quote_command_value(str(context_receipt))])
     if require_eeat_story:
         parts.append("--require-eeat-story")
     parts.extend(["--slate", "--roles", ",".join(roles), "--limit", str(limit)])
@@ -400,6 +445,17 @@ def _matches_proof_role(candidate: FindingDict, proof_role: str) -> bool:
     return True
 
 
+def _use_modes_for_role(proof_role: str) -> set[str]:
+    role = str(proof_role or "any").strip().lower()
+    if role == "metric":
+        return {"public_metric"}
+    if role == "quote":
+        return {"exact_quote"}
+    if role in {"theme", "experience_story"}:
+        return {"public_paraphrase"}
+    return {"public_metric", "exact_quote", "public_paraphrase"}
+
+
 def _is_review_story_eligible(candidate: FindingDict) -> bool:
     story = candidate.get("review_story") or {}
     if not isinstance(story, dict):
@@ -476,6 +532,8 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("topic", help="Topic or keyword to rank proof against.")
     parser.add_argument("--index", default=str(DEFAULT_INDEX_PATH), help="Customer proof index JSON path.")
     parser.add_argument("--ledger", default=str(DEFAULT_LEDGER_PATH), help="Customer proof usage ledger JSON path.")
+    parser.add_argument("--context-pack", help="simpro-product-context-pack/v2 JSON path.")
+    parser.add_argument("--context-receipt", help="simpro-context-receipt/v1 JSON path.")
     parser.add_argument("--article-slug", default="", help="Optional current article slug to avoid same-article repeats.")
     parser.add_argument("--title", default="", help="Optional article title for proof fit scoring.")
     parser.add_argument("--objective", default="", help="Optional content objective for proof fit scoring.")
@@ -527,6 +585,8 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
                 args.topic,
                 index_path=args.index,
                 ledger_path=args.ledger,
+                context_pack=args.context_pack,
+                context_receipt=args.context_receipt,
                 article_slug=args.article_slug,
                 title=args.title,
                 objective=args.objective,
@@ -543,6 +603,8 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
         args.topic,
         index_path=args.index,
         ledger_path=args.ledger,
+        context_pack=args.context_pack,
+        context_receipt=args.context_receipt,
         article_slug=args.article_slug,
         title=args.title,
         objective=args.objective,

@@ -67,6 +67,89 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _canonical_json(value) -> str:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _sha256_json(value) -> str:
+    return hashlib.sha256(_canonical_json(value).encode("utf-8")).hexdigest()
+
+
+def write_context_receipt_fixture(
+    root: Path,
+    selector_ids: tuple[str, ...] = ("FVMI-001", "FVMI-002", "FVMI-003"),
+    url_overrides: dict[str, str] | None = None,
+) -> tuple[Path, Path]:
+    urls = {
+        "FVMI-001": "https://example.com/skilled-trades",
+        "FVMI-002": "https://example.com/finance",
+        "FVMI-003": "https://www.youtube.com/watch?v=abc123XYZ00",
+    }
+    urls.update(url_overrides or {})
+    titles = {
+        "FVMI-001": "Why skilled trades need better workforce technology",
+        "FVMI-002": "Private equity market conditions",
+        "FVMI-003": "Fred Voccola on field service leadership",
+    }
+    request = {"topic": "fred authority fixture"}
+    revisions = {
+        "content_revision": "content-1",
+        "contract_revision": "contract-1",
+        "inventory_revision": "inventory-1",
+        "manifest_revision": "manifest-1",
+        "claim_registry_revision": "claims-1",
+        "approval_policy_revision": "policy-1",
+    }
+    evidence = []
+    decisions = []
+    for selector_id in selector_ids:
+        source_hash = f"hash-{selector_id}"
+        row = {
+            "claim_id": f"claim-fred-{selector_id}",
+            "selector_id": selector_id,
+            "assertion": titles[selector_id],
+            "use_mode": "authority_support",
+            "brand_scope": ["Simpro"],
+            "source_hash": source_hash,
+            "support_resource_hashes": {f"res-{selector_id}": source_hash},
+            "public_url": urls[selector_id],
+            "approval_source": "connector_claim_result",
+        }
+        evidence.append(row)
+        decisions.append(
+            {
+                "claim_id": row["claim_id"],
+                "selector_id": row["selector_id"],
+                "assertion": row["assertion"],
+                "requested_use_mode": row["use_mode"],
+                "brand_scope": row["brand_scope"],
+                "source_hash": row["source_hash"],
+                "public_url": row["public_url"],
+                "approval_source": row["approval_source"],
+                "decision": "approved",
+            }
+        )
+    pack = {
+        "schema": "simpro-product-context-pack/v2",
+        "request": request,
+        "revisions": revisions,
+        "approved_claim_evidence": evidence,
+    }
+    receipt = {
+        "schema": "simpro-context-receipt/v1",
+        "request_sha256": _sha256_json(request),
+        "pack_sha256": _sha256_json(pack),
+        "revisions": revisions,
+        "claim_decisions": decisions,
+        "canonical_receipt_sha256": "fred-receipt-fixture",
+    }
+    pack_path = root / "context-pack.json"
+    receipt_path = root / "context-receipt.json"
+    pack_path.write_text(json.dumps(pack, indent=2), encoding="utf-8")
+    receipt_path.write_text(json.dumps(receipt, indent=2), encoding="utf-8")
+    return pack_path, receipt_path
+
+
 def write_vault_fixture(root: Path) -> Path:
     inventory_path = root / "indexes" / "fred-voccola-media-inventory.csv"
     authority_path = root / "indexes" / "authority-signal-matrix.csv"
@@ -300,14 +383,24 @@ def refresh_manifest(vault: Path) -> None:
         item["sha256"] = _sha256(vault / item["path"])
     manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
 class FredAuthoritySelectorTests(unittest.TestCase):
+    def test_public_fred_authority_requires_context_receipt(self):
+        with TemporaryDirectory() as temp_dir:
+            vault = write_vault_fixture(Path(temp_dir))
+            results = select_fred_authority("skilled trades", vault_root=vault)
+
+        self.assertEqual(results, [])
+
     def test_topic_fit_ranks_relevant_authority_first(self):
         with TemporaryDirectory() as temp_dir:
             vault = write_vault_fixture(Path(temp_dir))
+            pack_path, receipt_path = write_context_receipt_fixture(Path(temp_dir))
             results = select_fred_authority(
                 "skilled trades workforce",
                 title="How workforce technology supports field service teams",
                 objective="Explain labor challenges in the trades",
                 vault_root=vault,
+                context_pack=pack_path,
+                context_receipt=receipt_path,
                 limit=5,
             )
 
@@ -318,11 +411,14 @@ class FredAuthoritySelectorTests(unittest.TestCase):
     def test_slate_defaults_to_explicit_no_selection(self):
         with TemporaryDirectory() as temp_dir:
             vault = write_vault_fixture(Path(temp_dir))
+            pack_path, receipt_path = write_context_receipt_fixture(Path(temp_dir))
             slate = build_fred_authority_slate(
                 "skilled trades workforce",
                 title="Workforce technology",
                 objective="Explain labor challenges",
                 vault_root=vault,
+                context_pack=pack_path,
+                context_receipt=receipt_path,
                 limit=3,
             )
 
@@ -334,7 +430,14 @@ class FredAuthoritySelectorTests(unittest.TestCase):
     def test_status_brand_and_syndication_filters_fail_closed(self):
         with TemporaryDirectory() as temp_dir:
             vault = write_vault_fixture(Path(temp_dir))
-            results = select_fred_authority("skilled trades", vault_root=vault, limit=10)
+            pack_path, receipt_path = write_context_receipt_fixture(Path(temp_dir))
+            results = select_fred_authority(
+                "skilled trades",
+                vault_root=vault,
+                context_pack=pack_path,
+                context_receipt=receipt_path,
+                limit=10,
+            )
 
         ids = {result["inventory_id"] for result in results}
         self.assertEqual(ids, {"FVMI-001", "FVMI-002", "FVMI-003"})
@@ -342,11 +445,14 @@ class FredAuthoritySelectorTests(unittest.TestCase):
     def test_public_playlist_asset_is_discovery_only_without_authority_join(self):
         with TemporaryDirectory() as temp_dir:
             vault = write_vault_fixture(Path(temp_dir))
+            pack_path, receipt_path = write_context_receipt_fixture(Path(temp_dir))
             result = next(
                 item
                 for item in select_fred_authority(
                     "field service leadership",
                     vault_root=vault,
+                    context_pack=pack_path,
+                    context_receipt=receipt_path,
                     limit=5,
                 )
                 if item["inventory_id"] == "FVMI-003"
@@ -398,6 +504,7 @@ class FredAuthoritySelectorTests(unittest.TestCase):
     def test_cli_slate_keeps_selection_none_without_selected_id(self):
         with TemporaryDirectory() as temp_dir:
             vault = write_vault_fixture(Path(temp_dir))
+            pack_path, receipt_path = write_context_receipt_fixture(Path(temp_dir))
             output = StringIO()
             with redirect_stdout(output):
                 exit_code = _main(
@@ -409,6 +516,10 @@ class FredAuthoritySelectorTests(unittest.TestCase):
                         "Explain labor challenges",
                         "--vault-root",
                         str(vault),
+                        "--context-pack",
+                        str(pack_path),
+                        "--context-receipt",
+                        str(receipt_path),
                         "--slate",
                         "--limit",
                         "2",
@@ -440,7 +551,17 @@ class FredAuthoritySelectorTests(unittest.TestCase):
                 item["sha256"] = _sha256(vault / item["path"])
             manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
 
-            results = select_fred_authority("workforce technology", vault_root=vault, limit=10)
+            pack_path, receipt_path = write_context_receipt_fixture(
+                Path(temp_dir),
+                url_overrides={"FVMI-003": "https://www.youtube.com/playlist?list=PL123"},
+            )
+            results = select_fred_authority(
+                "workforce technology",
+                vault_root=vault,
+                context_pack=pack_path,
+                context_receipt=receipt_path,
+                limit=10,
+            )
 
         ids = {result["inventory_id"] for result in results}
         self.assertIn("FVMI-001", ids)
@@ -459,10 +580,13 @@ class FredAuthoritySelectorTests(unittest.TestCase):
                     row["headline"] = ""
             _write_csv(authority_path, AUTHORITY_FIELDS, rows)
             refresh_manifest(vault)
+            pack_path, receipt_path = write_context_receipt_fixture(Path(temp_dir))
 
             results = select_fred_authority(
                 "skilled trades workforce technology",
                 vault_root=vault,
+                context_pack=pack_path,
+                context_receipt=receipt_path,
                 limit=10,
             )
 

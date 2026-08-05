@@ -13,6 +13,14 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence
 
+try:
+    from .vault_claim_receipts import (
+        VaultClaimReceiptError,
+        load_validated_claim_set,
+    )
+except ImportError:  # pragma: no cover - supports direct script execution.
+    from vault_claim_receipts import VaultClaimReceiptError, load_validated_claim_set
+
 
 DEFAULT_VAULT_ROOT = Path(
     "C:/Users/patrick.grueschow/Desktop/Obsidian/Simpro Brand Context"
@@ -98,11 +106,17 @@ def select_fred_authority(
     title: str = "",
     objective: str = "",
     vault_root: str | Path | None = None,
+    context_pack: str | Path | None = None,
+    context_receipt: str | Path | None = None,
     limit: int = 5,
 ) -> List[dict]:
     """Return ranked, vault-verified Fred Voccola authority candidates."""
     root = _resolve_vault_root(vault_root)
     inventory_rows, authority_rows = _load_verified_rows(root)
+    try:
+        receipt_claims = load_validated_claim_set(context_pack, context_receipt)
+    except VaultClaimReceiptError as exc:
+        raise FredAuthorityDataError(f"Fred authority context receipt is invalid: {exc}") from exc
     authority_by_id = {
         row.get("authority_id", "").strip(): row
         for row in authority_rows
@@ -124,6 +138,13 @@ def select_fred_authority(
         if playlist_only and not _is_public_youtube_asset_url(
             inventory.get("url_or_locator", "")
         ):
+            continue
+        approved_claim = receipt_claims.require_selector_claim(
+            inventory.get("inventory_id", ""),
+            use_modes={"authority_support"},
+            public_url=inventory.get("url_or_locator", ""),
+        )
+        if approved_claim is None:
             continue
 
         authority_id = inventory.get("authority_id", "").strip()
@@ -155,6 +176,9 @@ def select_fred_authority(
                     if playlist_only
                     else "earned_media_authority"
                 ),
+                "claim_id": approved_claim.claim_id,
+                "approval_source": approved_claim.approval_source,
+                "context_receipt_revision": approved_claim.receipt_revision,
                 "playlist_only": playlist_only,
                 "playlist_collection": playlist_collection,
             }
@@ -183,6 +207,8 @@ def build_fred_authority_slate(
     title: str = "",
     objective: str = "",
     vault_root: str | Path | None = None,
+    context_pack: str | Path | None = None,
+    context_receipt: str | Path | None = None,
     limit: int = 5,
     selected_id: Optional[str] = None,
 ) -> str:
@@ -192,6 +218,8 @@ def build_fred_authority_slate(
         title=title,
         objective=objective,
         vault_root=vault_root,
+        context_pack=context_pack,
+        context_receipt=context_receipt,
         limit=limit,
     )
     candidate_by_id = {
@@ -207,6 +235,8 @@ def build_fred_authority_slate(
         topic,
         title=title,
         objective=objective,
+        context_pack=context_pack,
+        context_receipt=context_receipt,
         limit=limit,
     )
     top_candidates = [
@@ -215,6 +245,19 @@ def build_fred_authority_slate(
         if result.get("inventory_id")
     ]
     selected_row = candidate_by_id.get(selected)
+    claim_ids = [
+        str(result.get("claim_id", ""))
+        for result in results
+        if result.get("claim_id")
+    ]
+    receipt_revision = next(
+        (
+            str(result.get("context_receipt_revision", ""))
+            for result in results
+            if result.get("context_receipt_revision")
+        ),
+        "not available",
+    )
     if selected_row:
         authority_id = selected_row.get("authority_id") or "none"
         public_url = selected_row.get("url_or_locator") or "not applicable"
@@ -242,6 +285,10 @@ def build_fred_authority_slate(
                 f"[{', '.join(top_candidates) if top_candidates else 'none'}]"
             ),
             f"- Selected: [{selected}]",
+            f"- Context receipt: {context_receipt or 'not supplied'}",
+            f"- Claim IDs: [{', '.join(claim_ids) if claim_ids else 'none'}]",
+            f"- Receipt revision: {receipt_revision}",
+            "- Approval source: connector_claim_result",
             f"- Fit decision: {fit_decision}",
             "- Intended use: none",
             "- Target section: not applicable",
@@ -479,6 +526,8 @@ def _selector_command(
     *,
     title: str,
     objective: str,
+    context_pack: str | Path | None,
+    context_receipt: str | Path | None,
     limit: int,
 ) -> str:
     parts = [
@@ -490,6 +539,10 @@ def _selector_command(
         parts.extend(("--title", title))
     if objective:
         parts.extend(("--objective", objective))
+    if context_pack:
+        parts.extend(("--context-pack", str(context_pack)))
+    if context_receipt:
+        parts.extend(("--context-receipt", str(context_receipt)))
     parts.extend(("--slate", "--limit", str(limit)))
     return " ".join(shlex.quote(part) for part in parts)
 
@@ -502,6 +555,8 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--title", default="", help="Working article title.")
     parser.add_argument("--objective", default="", help="Article objective.")
     parser.add_argument("--vault-root", help="Simpro Brand Context vault root.")
+    parser.add_argument("--context-pack", help="simpro-product-context-pack/v2 JSON path.")
+    parser.add_argument("--context-receipt", help="simpro-context-receipt/v1 JSON path.")
     parser.add_argument("--limit", type=int, default=5, help="Maximum candidates.")
     parser.add_argument(
         "--slate",
@@ -525,6 +580,8 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
                     title=args.title,
                     objective=args.objective,
                     vault_root=args.vault_root,
+                    context_pack=args.context_pack,
+                    context_receipt=args.context_receipt,
                     limit=args.limit,
                     selected_id=args.selected_id,
                 )
@@ -537,6 +594,8 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
                         title=args.title,
                         objective=args.objective,
                         vault_root=args.vault_root,
+                        context_pack=args.context_pack,
+                        context_receipt=args.context_receipt,
                         limit=args.limit,
                     ),
                     indent=2,

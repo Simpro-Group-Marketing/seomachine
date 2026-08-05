@@ -16,9 +16,19 @@ from typing import Dict, Iterable, List, Optional, Sequence
 try:
     from .guard_common import Finding, make_finding, should_fail, summarize_findings
     from .proof_sidecar import load_sidecar_content
+    from .vault_claim_receipts import (
+        VaultClaimReceiptError,
+        ValidatedClaimSet,
+        load_validated_claim_set,
+    )
 except ImportError:  # pragma: no cover - supports direct script execution.
     from guard_common import Finding, make_finding, should_fail, summarize_findings
     from proof_sidecar import load_sidecar_content
+    from vault_claim_receipts import (
+        VaultClaimReceiptError,
+        ValidatedClaimSet,
+        load_validated_claim_set,
+    )
 
 
 DEFAULT_VAULT_ROOT = Path(
@@ -84,6 +94,8 @@ def check_content(
     content: str,
     proof_content: str | None = None,
     vault_path: str | Path | None = None,
+    context_pack: str | Path | None = None,
+    context_receipt: str | Path | None = None,
 ) -> List[Finding]:
     """Return status and commercial treatment findings for named features."""
     public_body = _public_body(content)
@@ -111,6 +123,29 @@ def check_content(
             )
         )
         claims_by_id = {}
+    try:
+        receipt_claims = load_validated_claim_set(context_pack, context_receipt)
+    except VaultClaimReceiptError as exc:
+        findings.append(
+            make_finding(
+                "named_feature_context_receipt_invalid",
+                "error",
+                1,
+                message=f"Named feature context receipt could not be verified: {exc}",
+                suggestion="Regenerate the vault context pack and receipt before using named feature claims.",
+            )
+        )
+        receipt_claims = ValidatedClaimSet(blocker=str(exc))
+    if not receipt_claims.available:
+        findings.append(
+            make_finding(
+                "named_feature_context_receipt_missing",
+                "error",
+                1,
+                message="Named feature public eligibility requires a validated context receipt.",
+                suggestion="Provide simpro-product-context-pack/v2 and simpro-context-receipt/v1 inputs.",
+            )
+        )
 
     for name, line in detected.items():
         matching_rows = rows_by_name.get(_normalize_name(name), [])
@@ -147,6 +182,7 @@ def check_content(
                 row,
                 public_body,
                 claims_by_id,
+                receipt_claims,
             )
         )
 
@@ -164,13 +200,21 @@ def check_file(
     fail_on: str = "error",
     proof_sidecar: str | Path | None = None,
     vault_path: str | Path | None = None,
+    context_pack: str | Path | None = None,
+    context_receipt: str | Path | None = None,
 ) -> List[Finding]:
     """Check an article and its validation sidecar."""
     if fail_on not in {"error", "warning", "none"}:
         raise ValueError("fail_on must be one of: error, warning, none")
     content = Path(path).read_text(encoding="utf-8")
     proof_content = load_sidecar_content(path, proof_sidecar)
-    return check_content(content, proof_content=proof_content, vault_path=vault_path)
+    return check_content(
+        content,
+        proof_content=proof_content,
+        vault_path=vault_path,
+        context_pack=context_pack,
+        context_receipt=context_receipt,
+    )
 
 
 def _public_body(content: str) -> str:
@@ -310,6 +354,7 @@ def _validate_row(
     row: dict,
     public_body: str,
     claims_by_id: Dict[str, List[dict]],
+    receipt_claims: ValidatedClaimSet,
 ) -> List[Finding]:
     findings: List[Finding] = []
     row_line = int(row.get("_line", line))
@@ -379,7 +424,12 @@ def _validate_row(
         unusable_claim = True
 
     for claim_id in capability_ids + commercial_ids:
-        claim_findings = _validate_claim_id(claim_id, row_line, claims_by_id)
+        claim_findings = _validate_claim_id(
+            claim_id,
+            row_line,
+            claims_by_id,
+            receipt_claims,
+        )
         if claim_findings:
             unusable_claim = True
             findings.extend(claim_findings)
@@ -447,6 +497,7 @@ def _validate_claim_id(
     claim_id: str,
     line: int,
     claims_by_id: Dict[str, List[dict]],
+    receipt_claims: ValidatedClaimSet,
 ) -> List[Finding]:
     rows = claims_by_id.get(claim_id, [])
     if len(rows) != 1:
@@ -488,7 +539,22 @@ def _validate_claim_id(
         or "do not use" in allowed_use
     )
     if not blocked:
-        return []
+        approved_claim = receipt_claims.require_selector_claim(
+            claim_id,
+            use_modes={"public_paraphrase", "public_metric"},
+        )
+        if approved_claim is not None:
+            return []
+        return [
+            make_finding(
+                "named_feature_claim_not_receipt_approved",
+                "error",
+                line,
+                match=claim_id,
+                message=f"Claim ID {claim_id} is not approved by the context receipt.",
+                suggestion="Use a receipt-approved connector claim result or omit the feature wording.",
+            )
+        ]
     return [
         make_finding(
             "named_feature_claim_unusable",
@@ -522,6 +588,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("path", help="Markdown article path")
     parser.add_argument("--proof-sidecar", help="Validation sidecar path")
     parser.add_argument("--vault-path", help="Simpro Brand Context vault path")
+    parser.add_argument("--context-pack", help="simpro-product-context-pack/v2 JSON path")
+    parser.add_argument("--context-receipt", help="simpro-context-receipt/v1 JSON path")
     parser.add_argument(
         "--fail-on",
         choices=["error", "warning", "none"],
@@ -535,11 +603,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         fail_on=args.fail_on,
         proof_sidecar=args.proof_sidecar,
         vault_path=args.vault_path,
+        context_pack=args.context_pack,
+        context_receipt=args.context_receipt,
     )
     payload = {
         "path": args.path,
         "proof_sidecar": args.proof_sidecar,
         "vault_path": args.vault_path,
+        "context_pack": args.context_pack,
+        "context_receipt": args.context_receipt,
         "fail_on": args.fail_on,
         "summary": summarize_findings(findings),
         "findings": findings,

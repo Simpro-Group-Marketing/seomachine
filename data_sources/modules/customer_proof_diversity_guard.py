@@ -125,6 +125,8 @@ def check_content(
     source_path: str | Path | None = None,
     ledger_path: str | Path = DEFAULT_LEDGER_PATH,
     proof_index_path: str | Path = DEFAULT_INDEX_PATH,
+    context_pack: str | Path | None = None,
+    context_receipt: str | Path | None = None,
     reference_date: Optional[date] = None,
 ) -> List[Finding]:
     """Return customer-proof selection and reuse findings."""
@@ -189,6 +191,8 @@ def check_content(
                 ledger=ledger,
                 ledger_path=ledger_path,
                 proof_index_path=proof_index_path,
+                context_pack=context_pack,
+                context_receipt=context_receipt,
                 reference=reference,
             )
         )
@@ -203,6 +207,8 @@ def check_file(
     proof_sidecar: Optional[str] = None,
     ledger_path: str | Path = DEFAULT_LEDGER_PATH,
     proof_index_path: str | Path = DEFAULT_INDEX_PATH,
+    context_pack: str | Path | None = None,
+    context_receipt: str | Path | None = None,
 ) -> List[Finding]:
     """Check a public article file plus optional validation sidecar."""
     if fail_on not in {"error", "warning", "none"}:
@@ -215,6 +221,8 @@ def check_file(
         source_path=file_path,
         ledger_path=ledger_path,
         proof_index_path=proof_index_path,
+        context_pack=context_pack,
+        context_receipt=context_receipt,
     )
 
 
@@ -839,6 +847,8 @@ def _stronger_underused_candidate_findings(
     ledger: Dict[str, object],
     ledger_path: str | Path,
     proof_index_path: str | Path,
+    context_pack: str | Path | None,
+    context_receipt: str | Path | None,
     reference: date,
 ) -> List[Finding]:
     index_status = _load_index_for_comparison(proof_index_path)
@@ -862,6 +872,8 @@ def _stronger_underused_candidate_findings(
         selector_query,
         index_path=proof_index_path,
         ledger_path=ledger_path,
+        context_pack=context_pack,
+        context_receipt=context_receipt,
         proof_role=proof_role,
         limit=25,
         reference_date=reference,
@@ -1238,6 +1250,8 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--proof-sidecar", help="Optional validation sidecar containing Customer Proof Pack rows.")
     parser.add_argument("--ledger", default=str(DEFAULT_LEDGER_PATH), help="Customer proof usage ledger JSON path.")
     parser.add_argument("--proof-index", default=str(DEFAULT_INDEX_PATH), help="Customer proof index JSON path.")
+    parser.add_argument("--context-pack", help="simpro-product-context-pack/v2 JSON path for receipt-backed comparison.")
+    parser.add_argument("--context-receipt", help="simpro-context-receipt/v1 JSON path for receipt-backed comparison.")
     args = parser.parse_args(argv)
 
     findings = check_file(
@@ -1246,6 +1260,8 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
         proof_sidecar=args.proof_sidecar,
         ledger_path=args.ledger,
         proof_index_path=args.proof_index,
+        context_pack=args.context_pack,
+        context_receipt=args.context_receipt,
     )
     payload = {
         "path": args.path,
