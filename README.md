@@ -37,6 +37,10 @@ Write the complete `Fred Voccola Authority Selection` block to the validation si
 Exact article quotes require `source_visible_article_text`; exact video/audio quotes require `transcript_and_playback`, a timestamp, and playback verification; paraphrases require `paraphrase_evidence`. Exact quotes and paraphrased observations need a contextual public link in the same paragraph. A playlist-only row supports discovery or an eligible embed, not independent earned-media authority. Embed only a selected public YouTube source through a responsive 16:9 `youtube-nocookie.com` handoff with a visible fallback link, descriptive title, lazy loading, no autoplay, and verified metadata. Include `VideoObject` if and only if embedded. No usage ledger or frequency penalty applies in v1. Existing content is evaluated when next rewritten, optimized, or passed through publish readiness. Full policy and the exact sidecar fields live in `context/aeo-geo-blog-strategy.md`.
 
 
+## Authors
+
+See [AUTHORS.md](AUTHORS.md) for the current Simpro Group Marketing repo authors and maintainers.
+
 ## Overview
 
 SEO Machine is built on Claude Code and provides:
