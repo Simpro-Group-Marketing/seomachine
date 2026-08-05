@@ -215,7 +215,7 @@ Read the article and identify:
 
 **Actionable List**:
 - **Keyword research**: Open Ahrefs and find 5 keywords ranking 11-20 (these are your quick wins)
-- **Content creation**: Write 2,500+ words. Don't pad it—make every word count.
+- **Content creation**: Cover the reader's decision, necessary evidence, and useful next steps. Remove any section without a documented payoff.
 - **SEO optimization**: Check your meta description. If it doesn't make you want to click, rewrite it.
 - **Performance tracking**: Set a Google Analytics alert for pages that drop 20%+ in traffic
 

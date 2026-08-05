@@ -164,3 +164,54 @@ def test_cta_rules_are_selected_by_funnel_stage():
         assert "mofu" in content
         assert "bofu" in content
         assert "thought_leadership" in content
+
+
+def test_blog_docs_do_not_require_fixed_length_or_low_density_targets():
+    paths = [
+        ROOT / "README.md",
+        ROOT / "context" / "seo-guidelines.md",
+        ROOT / ".claude" / "commands" / "research.md",
+        ROOT / ".claude" / "commands" / "write.md",
+        ROOT / ".claude" / "commands" / "rewrite.md",
+        ROOT / ".claude" / "commands" / "article.md",
+        ROOT / ".claude" / "commands" / "analyze-existing.md",
+        ROOT / ".claude" / "commands" / "optimize.md",
+        ROOT / ".claude" / "agents" / "content-analyzer.md",
+        ROOT / ".claude" / "agents" / "editor.md",
+        ROOT / ".claude" / "agents" / "keyword-mapper.md",
+        ROOT / ".claude" / "agents" / "seo-optimizer.md",
+    ]
+    forbidden = [
+        r"minimum\s+2,?000\s+words",
+        r"2,?000\+\s+words",
+        r"2,?500\+\s+words",
+        r"2,?000\s*[-–]\s*3,?000\+?\s+words",
+        r"2,?500\s*[-–]\s*3,?000\+?\s+(?:words|preferred)",
+        r"(?:keyword\s+)?density\s+(?:~\s*)?1\s*[-–]\s*2%",
+        r"1\s*[-–]\s*2%\s+density",
+    ]
+
+    for path in paths:
+        content = path.read_text(encoding="utf-8")
+        for pattern in forbidden:
+            assert re.search(pattern, content, re.IGNORECASE) is None, (
+                f"{path.name} retains fixed proxy {pattern}"
+            )
+
+    guidelines = (ROOT / "context" / "seo-guidelines.md").read_text(
+        encoding="utf-8"
+    )
+    assert "intent, necessary evidence, and topic coverage" in guidelines
+    assert "Competitor length is diagnostic" in guidelines
+    assert "cannot create an instruction to add words by itself" in guidelines
+    assert "semantic coverage" in guidelines
+    assert "section distribution" in guidelines
+    assert "stuffing detection" in guidelines
+
+
+def test_aeo_policy_is_not_recast_as_editorial_contract():
+    aeo_policy = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "canonical non-AEO editorial contract" not in aeo_policy

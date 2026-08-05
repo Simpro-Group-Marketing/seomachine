@@ -230,6 +230,7 @@ class SEOQualityRater:
 
         details = {
             'word_count': structure['word_count'],
+            'keyword_density': keyword_density,
             'h2_count': structure['h2_count'],
             'has_h1': structure['has_h1'],
             'keyword_in_h1': structure.get('keyword_in_h1', False),
@@ -335,18 +336,11 @@ class SEOQualityRater:
         suggestions = []
 
         word_count = structure['word_count']
-        min_words = self.guidelines['min_word_count']
-        optimal_words = self.guidelines['optimal_word_count']
         max_words = self.guidelines['max_word_count']
 
-        # Word count scoring
-        if word_count < min_words:
-            score -= 30
-            critical.append(f"Content is too short ({word_count} words). Minimum is {min_words} words.")
-        elif word_count < optimal_words:
-            score -= 10
-            warnings.append(f"Content could be longer ({word_count} words). Optimal is {optimal_words}+ words.")
-        elif word_count > max_words:
+        # Word count is diagnostic. Only unusually long content prompts a
+        # possible split; short content is not penalized when it fulfills intent.
+        if word_count > max_words:
             score -= 5
             suggestions.append(f"Content is quite long ({word_count} words). Consider breaking into multiple articles if over {max_words} words.")
 
@@ -416,13 +410,7 @@ class SEOQualityRater:
             min_density = self.guidelines['primary_keyword_density_min']
             max_density = self.guidelines['primary_keyword_density_max']
 
-            if keyword_density < min_density:
-                score -= 15
-                warnings.append(
-                    f"Keyword density is too low ({keyword_density}%). "
-                    f"Target is {min_density}-{max_density}%"
-                )
-            elif keyword_density > max_density * 1.5:
+            if keyword_density > max_density * 1.5:
                 score -= 20
                 critical.append(
                     f"Keyword density is too high ({keyword_density}%). "

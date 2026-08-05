@@ -63,7 +63,7 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
 
 ### Competitive Analysis
 - **Top 10 SERP Review**: Analyze the top 10 ranking articles for target keyword
-- **Content Length**: Note word count of top-performing articles (benchmark target)
+- **Content Length**: Record competitor word counts as a diagnostic only; they cannot create an instruction to add words by themselves
 - **Common Themes**: What topics/sections do all top articles cover?
 - **Content Gaps**: What's missing from competitor coverage?
 - **Unique Angles**: What perspectives or insights are underexplored?
@@ -105,7 +105,7 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
 ### Content Planning
 - **Reader Contract first**: Use the resolved audience, entry situation, decision, angle, payoff, scope, and funnel stage to govern every recommendation. Do not silently substitute a different reader or promise.
 - **Recommended Structure**: Outline H2 and H3 headings based on research
-- **Content Depth**: Determine target word count (typically 2000-3000+ for SEO)
+- **Content Depth**: Record a directional range based on intent, necessary evidence, and topic coverage; do not turn it into a minimum or padding instruction
 - **Supporting Evidence**: Identify statistics, studies, or data to include
 - **Expert Sources**: Find industry experts or quotes to reference
 - **Visual Opportunities**: Suggest images, screenshots, or graphics needed
@@ -132,7 +132,7 @@ Provides a comprehensive research brief with:
 ### 1. SEO Foundation
 - **Primary Keyword**: [keyword] (volume, difficulty)
 - **Secondary Keywords**: 3-5 related keywords and variations
-- **Target Word Count**: Minimum words needed to compete
+- **Directional Word-Count Range**: Evidence-led planning range based on intent and coverage, not competitor length alone
 - **Featured Snippet Opportunity**: Yes/No, format (paragraph, list, table)
 - **AEO/GEO Variables**: topic, audience, main_question, related_questions, tone, expertise, length
 - **PAA/FAQ Questions**: 3-5 closest questions with intent labels and article section mapping

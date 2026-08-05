@@ -19,7 +19,7 @@ Analyze completed articles and provide actionable recommendations to maximize se
 
 #### Primary Keyword Analysis
 - Identify the primary target keyword
-- Calculate keyword density (target: 1-2%)
+- Calculate keyword density as a stuffing diagnostic; do not target or penalize low density
 - Map all instances of primary keyword in:
   - H1 headline
   - First 100 words
@@ -186,7 +186,7 @@ Visual representation showing where primary keyword appears:
 H1: ✓/✗
 First 100 words: ✓/✗
 H2 Sections: X/7 (need 2-3 minimum)
-Body density: X% (target 1-2%)
+Body density: X% (diagnostic; investigate only high density or stuffing)
 Conclusion: ✓/✗
 Meta title: ✓/✗
 Meta description: ✓/✗
@@ -225,12 +225,12 @@ Specific recommendations with exact placement:
 - [ ] Primary keyword in H1
 - [ ] Primary keyword in first 100 words
 - [ ] Primary keyword in 2+ H2 headings
-- [ ] Keyword density 1-2%
+- [ ] Primary keyword placement is natural; semantic coverage and section distribution are sufficient without stuffing
 - [ ] 3-5+ internal links with good anchor text
 - [ ] 2-3+ external authoritative links
 - [ ] Meta title 50-60 characters with keyword
 - [ ] Meta description 150-160 characters with keyword & CTA
-- [ ] 2000+ words
+- [ ] Article is complete for its intent, necessary evidence, and topic coverage
 - [ ] Proper H1/H2/H3 hierarchy
 - [ ] Readability 8th-10th grade level
 - [ ] Images have alt text with keywords

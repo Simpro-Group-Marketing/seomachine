@@ -52,7 +52,7 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
 - **Keyword Density & Clustering** (NEW!): Deep analysis of keyword density, distribution heatmap, topic clustering, and keyword stuffing risk detection
 - **Keyword Placement**: Check H1, H2, first 100 words, meta title/description
 - **Heading Structure**: Evaluate H1-H6 hierarchy and keyword integration
-- **Content Length Comparison** (NEW!): Compare word count against top 10-20 SERP competitors to determine optimal length
+- **Content Length Comparison** (NEW!): Compare word count with top SERP competitors as a diagnostic only; competitor length cannot justify adding words by itself
 - **Meta Elements**: Review meta title (50-60 chars) and description (150-160 chars)
 - **Internal Links**: Count and evaluate quality of internal links (aim for 3-5+)
 - **External Links**: Check for authoritative external sources
@@ -106,7 +106,7 @@ Top 3-5 immediate improvements that can be made quickly:
 
 ### 3. Strategic Improvements
 Longer-term enhancements for maximum impact:
-- **Content expansion**: Based on length comparison with competitors (e.g., "Add 800 words to match top performers")
+- **Content expansion**: Recommend only the missing answer, evidence, workflow, or decision support; competitor length alone cannot justify expansion
 - **Intent alignment**: Adjust content type to match search intent
 - **Topic clustering**: Add missing semantic keywords and related topics
 - New sections to add based on competitive gap analysis
@@ -126,17 +126,17 @@ The new Content Analyzer agent provides:
 - **Priority Level**: Low / Medium / High / Critical (based on SEO score and competitive analysis)
 - **Estimated Effort**: Light edit / Moderate update / Major rewrite / Complete refresh
 - **Expected Impact**: Potential traffic increase, ranking improvement, engagement boost (data-driven estimates)
-- **Specific improvements needed**: Exact word count targets, keyword density adjustments, readability fixes
+- **Specific improvements needed**: Missing reader payoff, semantic coverage, section distribution, stuffing risk, and readability fixes; do not prescribe additions for low density or competitor length alone
 - **Rewrite-specific AEO/GEO acceptance checklist**: Required direct-answer intro, 3-5 sourced FAQ/PAA questions, Source Map, E-E-A-T Proof Map, schema notes, AI copy linter zero errors, content quality 85/100+, and AEO/GEO 90/100+
 
 ### 6. Research Brief
 If a rewrite is recommended, provide initial research brief including:
-- Updated target keywords with optimal density targets
+- Updated target keywords with natural placement, semantic coverage, section distribution, and stuffing diagnostics
 - Competitor articles to review with word count benchmarks
 - New statistics or data to incorporate
 - Trending angles or perspectives
 - Search intent alignment strategy
-- Optimal content length recommendation (based on SERP analysis)
+- Directional content-depth recommendation based on intent, necessary evidence, and topic coverage, with competitor length kept diagnostic
 - Internal linking opportunities
 - Main answer target and AEO/GEO variable resolution
 - PAA/FAQ provenance and selected 3-5 closest questions with intent labels

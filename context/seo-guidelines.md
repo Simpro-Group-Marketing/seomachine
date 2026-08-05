@@ -12,30 +12,29 @@
 
 This document outlines SEO best practices and requirements for all Simpro blog content to maximize organic search visibility and rankings.
 
-## Content Length Requirements
+## Content Depth Guidelines
 
-### Target Word Counts
-- **Standard Blog Post**: 1,500-3,000 words (target: 2,000-2,500)
-- **Pillar Content / Comprehensive Guides**: 3,000-5,000 words maximum
-- **How-To Guides**: 1,500-2,500 words
-- **News / Updates**: 800-1,200 words (exception to standard)
+### Intent-Led Planning
+- Set a directional word-count range only after considering intent, necessary evidence, and topic coverage.
+- Treat the range as a planning diagnostic, not a minimum, preferred length, or scoring target.
+- Competitor length is diagnostic and cannot create an instruction to add words by itself.
+- Stop when the article has fulfilled the Reader Contract, supported its claims, resolved its open loops, and supplied the appropriate next action.
 
 ### Important Length Guidelines
-- **Maximum for most articles**: 3,000 words
-- **Maximum for pillar content**: 5,000 words
+- Split an article when separate reader decisions would be clearer as separate resources.
 - If a topic requires more than the maximum, break it into a series of related articles
 - Aim for the lower end of ranges when possible—concise, focused content often performs better
 
 ### Why Length Matters
-- Longer content typically ranks higher in search results
-- More words = more opportunities for keyword integration and topic coverage
+- Length alone does not establish search quality or completeness.
+- Topic coverage should follow reader questions and supported evidence.
 - Comprehensive content earns more backlinks and engagement
 - Depth signals expertise and authority to search engines
 
 ### Quality Over Quantity
 - Don't add fluff just to hit word counts
 - Every section should provide genuine value
-- Better to have 2,000 valuable words than 3,000 padded words
+- Concise, complete coverage is preferable to padded comprehensiveness.
 - **Stay within the maximum word counts**—overly long articles hurt user experience
 
 ## Keyword Optimization
@@ -48,12 +47,13 @@ Before writing any article:
 4. Identify 3-5 secondary/related keywords
 5. List LSI (Latent Semantic Indexing) keywords
 
-### Keyword Density Guidelines
-- **Primary Keyword**: 1-2% density
-  - Example: In a 2,000-word article, use keyword 20-40 times
+### Keyword Use Guidelines
+- **Primary Keyword**: Place it naturally where it clarifies the page topic and search intent.
+- **Semantic coverage**: Answer related reader questions without calculating repetitions.
+- **Section distribution**: Check for omission or awkward clustering, not a quota.
+- **Density diagnostic**: Use density for stuffing detection only; low density does not require added mentions.
   - Natural integration is critical—never force keywords
-- **Secondary Keywords**: 0.5-1% density each
-- **LSI Keywords**: Sprinkle throughout naturally
+- **Secondary and related terms**: Use them only when they improve clarity or coverage.
 
 ### Critical Keyword Placement
 Primary keyword MUST appear in:
@@ -108,7 +108,7 @@ Primary keyword MUST appear in:
 ```markdown
 # [H1: Compelling Title with Primary Keyword]
 
-## Introduction (150-250 words)
+## Introduction
 - Hook: Attention-grabbing opening
 - Problem: What challenge does this address?
 - Promise: What will reader learn/achieve?
@@ -135,7 +135,7 @@ Primary keyword MUST appear in:
 ## [H2: Main Section 4]
 [Continue with 4-7 total H2 sections]
 
-## Conclusion (150-250 words)
+## Conclusion
 - Recap key points (3-5 takeaways)
 - Include keyword
 - Clear call-to-action
@@ -218,7 +218,7 @@ Primary keyword MUST appear in:
 #### 1. Pillar Content (1-2 links)
 - Link to main comprehensive guides on related topics
 - Builds topic cluster authority
-- Usually 2,000+ word cornerstone content
+- Usually a substantial resource that owns a broad reader decision or topic cluster
 
 #### 2. Related Blog Posts (2-3 links)
 - Link to articles on related subtopics
@@ -304,7 +304,7 @@ Primary keyword MUST appear in:
 - **Mobile-friendly**: Short paragraphs scan better on phones
 
 ### Formatting for Scannability
-- **Subheadings**: Every 300-400 words
+- **Subheadings**: Add one when the reader question or logical step changes
 - **Lists**: Use bullets/numbers for sequential or multiple items
 - **Bold**: Emphasize key concepts or takeaways
 - **Short paragraphs**: Easier to digest
@@ -663,9 +663,9 @@ For competitive topics, audit which sources AI actually cites. See `context/ai-c
 Before publishing, verify:
 
 ### Content
-- [ ] 2,000+ words (or appropriate for content type)
+- [ ] Article is complete for its intent, necessary evidence, and topic coverage
 - [ ] Primary keyword identified
-- [ ] Keyword density 1-2%
+- [ ] Primary keyword placement is natural; semantic coverage and section distribution are sufficient
 - [ ] 3-5 secondary keywords included
 - [ ] LSI keywords naturally integrated
 - [ ] Provides unique value vs. competitors
@@ -703,7 +703,7 @@ Before publishing, verify:
 - [ ] 8th-10th grade reading level
 - [ ] Average sentence length 15-20 words
 - [ ] Paragraphs 2-4 sentences
-- [ ] Subheadings every 300-400 words
+- [ ] Subheadings reflect meaningful reader questions or logical steps
 - [ ] Lists used for scannability
 - [ ] Active voice predominantly
 

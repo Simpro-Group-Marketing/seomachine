@@ -175,7 +175,7 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
    |---------|-----------------|
    | **Structure** | H2 headings, section order, content type |
    | **Word Count** | Approximate length |
-   | **Gaps** | Topics covered superficially (<150 words) |
+   | **Gaps** | Reader questions, evidence, decisions, or workflows covered superficially or not at all |
    | **Missing Angles** | Perspectives not addressed |
    | **Unsupported Claims** | Statements without data/sources |
    | **Outdated Info** | Old statistics, deprecated tools |
@@ -381,7 +381,7 @@ Stories and scenes are optional. Use only approved customer proof, source-suppor
    | **Section answer or payoff** | The useful answer, decision support, or progress this section provides |
    | **Bridge from previous section** | The actual logical relationship to what came before |
    | **Bridge to next section** | The reason the reader needs the next section |
-   | **Word Target** | Based on competitor depth + gap filling |
+   | **Depth Note** | Based on reader intent, necessary evidence, and the section payoff; competitor length is diagnostic only |
    | **Strategic Angle** | What unique perspective we bring |
    | **Engagement Hook** | How this section captures attention |
    | **Knowledge Gaps** | Which competitor gaps this fills |
@@ -412,7 +412,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 # Article Plan: [Topic]
 
 **Date**: [YYYY-MM-DD]
-**Total Word Target**: [count]
+**Directional Word-Count Range**: [range justified by intent, necessary evidence, and topic coverage]
 **Primary Keyword**: [keyword]
 **Secondary Keywords**: [list]
 
@@ -475,7 +475,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 
 ### 1. Introduction
 - **Type**: intro
-- **Word Target**: 200
+- **Depth Note**: [Enough to establish the promise and move the reader forward]
 - **Hook Strategy**: [question / scenario / statistic / bold statement]
 - **APP Elements**: [Agree point, Promise, Preview]
 - **Proof-Backed POV**: [Optional actual person or business POV, sidecar-mapped]
@@ -488,7 +488,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - Section answer or payoff: [Useful answer or progress delivered]
 - Bridge from previous section: [Logical connection]
 - Bridge to next section: [Why the next section follows]
-- **Word Target**: 300
+- **Depth Note**: [Enough to answer the reader question with necessary evidence]
 - **Strategic Angle**: [What unique perspective]
 - **Knowledge Gap**: [Which competitor gap this fills]
 - **Internal Links**: [your brand page to link]
@@ -496,7 +496,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 
 ### 3. [H2 Title]
 - **Type**: body-how-to
-- **Word Target**: 400
+- **Depth Note**: [Enough to make the process actionable without padding]
 - **Strategic Angle**: [Unique angle]
 - **Knowledge Gap**: [Gap being filled]
 - **Proof-Backed POV**: [Optional actual person or business POV, sidecar-mapped]
@@ -505,7 +505,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 
 ### N. FAQ
 - **Type**: faq
-- **Word Target**: 200
+- **Depth Note**: [Governed by the unchanged FAQ answer-quality rules]
 - **Questions from Research**:
   1. [Real question from Reddit]
   2. [Another real question]
@@ -515,7 +515,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 
 ### N+1. Conclusion
 - **Type**: conclusion
-- **Word Target**: 200
+- **Depth Note**: [Enough to complete the introduction and provide the right next action]
 - **CTA**: strong
 - **Proof-Backed POV**: [Optional actual person or business story, sidecar-mapped]
 
@@ -563,7 +563,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - APP Formula: Agree, Promise, Preview
 - Primary keyword in first 100 words
 - Trust signal
-- 150-250 words
+- Use only the depth needed to establish the reader promise and move into the first useful answer
 
 **Do NOT open with:**
 - "[Product category] is..."
@@ -585,7 +585,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - Each step actionable and specific
 - Time estimates where helpful
 - Common mistakes to avoid
-- 250-400 words per section
+- Use the depth required to make each step actionable and supported
 
 #### Body: Comparison
 **Requirements:**
@@ -593,7 +593,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - Data tables for key metrics
 - Specific prices/features
 - "Best for" recommendations
-- 300-400 words per section
+- Use the depth required for a fair, supported comparison
 
 #### Body: Explanation
 **Requirements:**
@@ -601,7 +601,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - Analogies for complex concepts
 - Examples with specifics
 - Embed at least one relevant YouTube video in a body section where it adds context (prefer your own channel, then authoritative third-party)
-- 250-400 words per section
+- Use the depth required to explain the concept and its operational consequence
 
 #### FAQ
 **Requirements:**
@@ -616,7 +616,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error` before scoring or optimization; `/publish-readiness` runs it as a blocking gate.
 - PAA provenance is required for every FAQ question: include `PAA/FAQ Provenance` with Source, Artifact, and exact Selected questions from AnswerSocrates, SERP, Reddit, YouTube, or a user PAA/FAQ CSV.
 - FAQ headings must be complete natural-language questions. Do not use AnswerSocrates keyword fragments or query modifiers such as `plumbing job sheet template pdf` as FAQ headings.
-- 200-300 words total
+- Let the selected questions and unchanged FAQ answer-quality rules determine total depth
 
 #### Conclusion
 **Requirements:**
@@ -625,7 +625,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - Clear next steps ("This week:", "This month:")
 - Strong CTA with risk reversal
 - Empowering, forward-looking close
-- 150-250 words
+- Use the depth required to complete the introduction and supply the right next action
 
 ### Writing Process Per Section
 
@@ -634,7 +634,7 @@ For each section in the plan:
 1. **Write Draft**
    - Use section-specific requirements above
    - Include planned unique data/insights from research
-   - Follow word target
+   - Follow the section's reader question, payoff, and depth note
    - Apply planned engagement hook
 
 2. **Edit Pass**
@@ -648,7 +648,7 @@ For each section in the plan:
 3. **Verify Requirements**
    - Section-specific criteria met
    - Planned insights included
-   - Word target within ±10%
+   - Section is complete without padding or removable material
 
 ### Assembly
 
@@ -690,12 +690,12 @@ After all sections are written and edited:
    - [ ] Primary keyword in H1
    - [ ] Primary keyword in first 100 words
    - [ ] Primary keyword in 2+ H2 headings
-   - [ ] Keyword density 1-2%
+   - [ ] Primary keyword placement is natural; semantic coverage and section distribution are sufficient without stuffing
    - [ ] 3-5+ internal links
    - [ ] 2-3 external authority links
    - [ ] Meta title 50-60 chars ending with `| Brand`
    - [ ] Meta description 150-160 chars
-   - [ ] 2000+ words
+   - [ ] Article is complete for its intent, necessary evidence, and topic coverage
 
    **AI Search Optimization Checklist:**
    - [ ] Direct answer in first 1-2 sentences (not buried behind narrative)
@@ -841,7 +841,7 @@ Before writing, review these context files:
 - Social insights synthesized
 
 ### Content Standards
-- 2000-3000+ words
+- Intent-complete depth based on necessary evidence and topic coverage
 - Proper H1/H2/H3 hierarchy
 - 3-5 internal links
 - 2-3 external authority links

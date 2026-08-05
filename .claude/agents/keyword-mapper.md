@@ -48,13 +48,13 @@ Map presence of primary keyword in:
 - **URL Slug**: ✓/✗ (Required)
 - **Image Alt Text**: Count (If applicable)
 
-#### Density Analysis
-- **Primary Keyword Density**: [X%] (Target: 1-2%)
+#### Density Diagnostics
+- **Primary Keyword Density**: [X%] (diagnostic; high density can indicate stuffing)
   - Total instances: [X]
   - Total word count: [X]
   - Calculation: (instances / total words) × 100
 
-- **Secondary Keyword Density**: [X%] (Target: 0.5-1% each)
+- **Secondary Keyword Coverage**: [terms and sections where they improve clarity]
 - **LSI Keyword Coverage**: [X terms found]
 
 #### Distribution Pattern
@@ -150,8 +150,8 @@ Identify missing topically related terms that would strengthen relevance:
 - Search Volume: [if known]
 - Search Intent: [informational/commercial/transactional]
 - Current Density: [X%]
-- Target Density: 1-2%
-- Status: ✓ Optimal / ⚠ Too Low / ❌ Too High
+- Density Use: Diagnostic only; low density is not a recommendation to repeat the phrase
+- Status: Natural / Review high density / Stuffing risk
 
 **Secondary Keywords**: [keyword1, keyword2, keyword3]
 - Current Coverage: [X/3 well-integrated]
@@ -183,31 +183,29 @@ Status: 2/5 H2s contain keyword (Target: 3/5)
 
 #### Distribution Heat Map
 ```
-Introduction (0-200 words):     ████░░░░░░ 3 instances (Good)
-Section 1 (200-600 words):      ██░░░░░░░░ 1 instance  (Low)
-Section 2 (600-1000 words):     ████░░░░░░ 2 instances (Good)
-Section 3 (1000-1500 words):    ░░░░░░░░░░ 0 instances (Missing!)
-Section 4 (1500-2000 words):    ████░░░░░░ 2 instances (Good)
-Section 5 (2000-2400 words):    ██░░░░░░░░ 1 instance  (Low)
-Conclusion (2400-2600 words):   ████░░░░░░ 2 instances (Good)
+Introduction: Present naturally
+Section 1: Present naturally
+Section 2: Semantic variation present
+Section 3: Exact phrase absent; no action unless reader clarity or topic focus suffers
+Section 4: Present naturally
+Section 5: Related term present
+Conclusion: No forced repetition required
 
-Total: 11 instances across 2600 words = 0.42% density (TOO LOW)
+Total density: [X%] (diagnostic; evaluate only clustering or stuffing risk)
 ```
 
 ### Priority Recommendations
 
 #### Critical Fixes (Must Address)
-1. **Increase Overall Density to 1-2%**
-   - Current: 0.42% (11 instances)
-   - Target: 1.5% (39 instances)
-   - Need: +28 instances across 2600 words
+1. **Resolve Missing Critical Placement**
+   - Add the primary phrase to the H1 or first 100 words only when it is absent.
+   - Keep the phrasing natural and aligned with the reader's question.
 
-2. **Add to Section 3 (Currently Zero Instances)**
-   - Location: "Promotion and Distribution Tactics" section
-   - Suggested Addition: After paragraph about social media
-   - Revision: "Effective social media promotion is key to **growing your podcast audience** beyond your current listener base."
+2. **Correct Stuffing or Awkward Clustering**
+   - Remove repetitions that interrupt meaning or pile up within a section.
+   - Replace only where a semantic variation improves clarity.
 
-3. **Add Keyword to H2 Headings**
+3. **Improve a Relevant H2 Heading**
    - Current: 2/5 H2s include keyword
    - Target: 3/5 H2s
    - Suggested Change: "Understanding Your Listeners" → "Understanding Your Podcast Audience"
@@ -218,15 +216,13 @@ Total: 11 instances across 2600 words = 0.42% density (TOO LOW)
    - Recommended: /blog/grow-podcast-audience
    - Impact: Keyword in URL structure
 
-2. **First 100 Words Enhancement**
-   - Current: Keyword appears once
-   - Add variation: "podcast audience growth" or "growing your audience"
-   - Location: Second paragraph, after hook
+2. **First 100 Words Check**
+   - If the topic is already clear, make no density-driven edit.
+   - If the primary phrase is absent, add one natural mention after the hook.
 
-3. **Add to Section 1**
-   - Current: Only 1 instance in 400 words
-   - Where: After listener persona discussion
-   - Suggestion: "Understanding your target **podcast audience** helps you create content that resonates and drives growth."
+3. **Review Section Coverage**
+   - Add a related term only when it makes the section's answer clearer.
+   - Do not add an exact phrase merely because a section has zero instances.
 
 #### Strategic Enhancements (Better Long-term)
 1. **LSI Keyword Integration**
@@ -235,7 +231,7 @@ Total: 11 instances across 2600 words = 0.42% density (TOO LOW)
    - Add "audience engagement" (quality over quantity theme)
 
 2. **Semantic Variations**
-   - Use "growing your audience" more frequently
+   - Use "growing your audience" where it is the clearest natural phrasing
    - Include "podcast listeners" as variation
    - Add "expand your reach" as natural alternative
 
@@ -262,14 +258,14 @@ Total: 11 instances across 2600 words = 0.42% density (TOO LOW)
 **Revised**: "Implementing these strategies will help you **grow your podcast audience** and build a loyal listener base that keeps coming back."
 **Added**: 1 keyword instance, enhances conclusion
 
-[Continue with 5-7 more specific revisions to reach target density]
+[Continue only with revisions that improve natural placement, semantic coverage, or section distribution]
 
-### Keyword Density Projection
-If all recommendations implemented:
-- Current Density: 0.42% (11 instances)
-- Projected Density: 1.5% (39 instances)
-- Added Instances: +28
-- Status: ✓ Within optimal 1-2% range
+### Keyword Use Projection
+If all recommendations are implemented:
+- Current density: [X%] (diagnostic)
+- Placement improvements: [H1, introduction, relevant sections, or none]
+- Semantic coverage improvements: [reader questions or concepts added]
+- Stuffing status: safe / review / high risk
 
 ### Integration Quality Score: [X/100]
 - Natural Language Flow: [X/25]
@@ -288,7 +284,7 @@ If all recommendations implemented:
 - [ ] Primary keyword in H1
 - [ ] Primary keyword in first 100 words
 - [ ] Primary keyword in 2-3 H2 headings
-- [ ] Keyword density 1-2%
+- [ ] Density reviewed for high repetition or stuffing; low density is not penalized
 - [ ] Even distribution across article
 - [ ] Natural variations used
 - [ ] LSI keywords present

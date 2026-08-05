@@ -143,7 +143,7 @@ claude-code .
 ```
 
 **What it does**:
-- Creates 2000-3000+ word SEO-optimized article
+- Creates an intent-complete, SEO-optimized article with evidence-led depth
 - Applies `context/aeo-geo-blog-strategy.md` (Capsule Method, PAA/FAQ, source mapping, schema notes)
 - Maintains Simpro brand voice from the vault first; `context/brand-voice.md` and `lightning-positioning.md` are fallback mirrors when the vault is unavailable
 - Integrates keywords from `context/target-keywords.md`
@@ -248,7 +248,7 @@ Comprehensive keyword and competitive research for new content.
 ---
 
 ### `/write [topic]`
-Create long-form SEO-optimized blog post (2000-3000+ words).
+Create an intent-complete, SEO-optimized blog post. Any directional length range comes from necessary evidence and topic coverage.
 
 **Output**: Article in `/drafts/[topic]-[date].md`
 
@@ -762,7 +762,7 @@ Blog quality depends on the Obsidian vault first. These `context/` files are dow
 Every Simpro blog post should meet these requirements:
 
 ### Content
-- [ ] Minimum 2,000 words (2,500-3,000+ preferred for pillar posts)
+- [ ] Complete for the Reader Contract, necessary evidence, and topic coverage; no universal blog minimum applies
 - [ ] Unique angle vs. ServiceTitan, Jobber, Housecall Pro, and listicle competitors
 - [ ] Factually accurate — verify stats, customer names, and product claims
 - [ ] Metric Proof Pack passes for metric-sensitive topics: Search log complete, at least one Approved metric included, and each metric has public URL or local proof artifact plus source-visible Evidence
@@ -774,7 +774,7 @@ Every Simpro blog post should meet these requirements:
 - [ ] Simpro voice: authoritative, trades-focused, outcomes-driven from the vault first (`brand-voice.md` is fallback mirror context only)
 
 ### SEO
-- [ ] Primary keyword density ~1-2% per `seo-guidelines.md`
+- [ ] Primary keyword is placed naturally, with semantic coverage and section distribution checked for clarity and stuffing
 - [ ] Keyword in H1, first 100 words, 2-3 H2s, conclusion, meta, and slug
 - [ ] 3-5 internal links from `internal-links-map.md` (performance-prioritized pages where relevant)
 - [ ] At least 1 down-funnel internal link to `https://www.simprogroup.com/industries`, `/industries/...`, `/solutions/...`, or `/features/...`; Anchor text must match the destination keyword
@@ -797,7 +797,7 @@ Every Simpro blog post should meet these requirements:
 ### Readability
 - [ ] 8th-10th grade reading level (trades audience)
 - [ ] Short sentences; active voice; no vendor cliches (`style-guide.md` avoid list)
-- [ ] Subheadings every 300-400 words; scannable lists
+- [ ] Subheadings mark meaningful reader questions or logical steps; lists are scannable
 
 ### Structure
 - [ ] Hook ? problem ? promise intro

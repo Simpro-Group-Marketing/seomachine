@@ -54,7 +54,7 @@ If customer proof appears in public copy, experience_story consideration is requ
 ### Content Audit
 
 #### Keyword Analysis
-- **Primary Keyword Density**: Check 1-2% density throughout article
+- **Primary Keyword Use**: Check natural placement, semantic coverage, section distribution, and stuffing risk; low density is not a reason to add repetitions
 - **Keyword Placement Check**:
   - [ ] In H1 headline
   - [ ] In first 100 words
@@ -74,7 +74,7 @@ If customer proof appears in public copy, experience_story consideration is requ
 - **Length**: Headings are descriptive but concise
 
 #### Content Quality
-- **Word Count**: Minimum 2000 words (2500-3000+ preferred)
+- **Content Depth**: Confirm the article fulfills intent, necessary evidence, and topic coverage; word count remains diagnostic
 - **Paragraph Length**: Average 2-4 sentences, no walls of text
 - **Sentence Length**: Varied, averaging under 25 words
 - **Readability Score**: 8th-10th grade level (Flesch-Kincaid)
@@ -248,12 +248,12 @@ Visual representation of where primary keyword appears:
 - [ ] Primary keyword in H1
 - [ ] Primary keyword in first 100 words
 - [ ] Primary keyword in 2+ H2 headings
-- [ ] Keyword density 1-2%
+- [ ] Primary keyword placement is natural; semantic coverage and section distribution are sufficient without stuffing
 - [ ] 3-5+ internal links included
 - [ ] 2-3+ external authority links
 - [ ] Meta title 50-60 characters ending with `| Brand`
 - [ ] Meta description 150-160 characters
-- [ ] Article 2000+ words
+- [ ] Article is complete for its intent, necessary evidence, and topic coverage
 - [ ] Proper H1/H2/H3 hierarchy
 - [ ] Readability optimized (8th-10th grade)
 - [ ] Images have alt text

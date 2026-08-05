@@ -8,7 +8,7 @@ For every Simpro blog, read `wiki/messaging/Voice and Tone.md` and `wiki/messagi
 `/write [topic or research brief]`
 
 ## What This Command Does
-1. Creates complete, well-structured long-form articles (2000-3000+ words)
+1. Creates complete, well-structured articles with depth determined by intent, necessary evidence, and topic coverage
 2. Optimizes content for target keywords and SEO best practices
 3. Maintains your brand voice and messaging throughout
 4. Integrates internal and external links strategically
@@ -89,7 +89,7 @@ Feature and solution links must use function-bearing anchor text that explains t
 - Keep under 60 characters for SERP display
 - Promise clear value to reader
 
-#### 2. Introduction (150-250 words)
+#### 2. Introduction
 
 **CRITICAL: Direct Answer First (AI Search Optimization)**
 
@@ -166,11 +166,11 @@ Apply these requirements from @context/aeo-geo-blog-strategy.md:
 - **Customer Proof Pack**: Use the brief's Customer Proof Pack before placing direct quotes, named customer proof, approved metrics, or review-derived Experience patterns. If the pack is partial or blocked, omit unsupported claims.
 - **Schema notes**: For standard blog posts with FAQs, include BlogPosting, BreadcrumbList, and FAQPage. Nest Person as author, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Keep the Author frontmatter field mapped to Person. Use VideoObject only when a video is embedded.
 
-#### 4. Main Body (1800-2500+ words)
+#### 4. Main Body
 - **Logical Flow**: Organize sections in clear, progressive order
 - **H2 Sections**: 4-7 main sections covering comprehensive topic scope
 - **H3 Subsections**: Break complex sections into digestible pieces
-- **Keyword Integration**: Use primary keyword 1-2% density, variations throughout
+- **Keyword Integration**: Place the primary keyword naturally and use semantic coverage and section distribution; use density only to detect stuffing
 - **Depth**: Provide thorough, actionable information at each point
 - **Data**: Reference statistics and studies to support claims
 - **Visuals**: Note where images, screenshots, or graphics enhance understanding
@@ -207,7 +207,7 @@ Select the CTA profile from the Reader Contract's funnel stage.
 - For mixed funnel stages, apply the earliest stage unless the brief explicitly names a conversion objective
 - Never use generic "Click here" text
 
-#### 5. Conclusion (150-200 words)
+#### 5. Conclusion
 - **Recap**: Summarize 3-5 key takeaways
 - **Action**: Provide clear next steps for reader
 - **CTA**: Include relevant call-to-action (free trial, resource download, etc.)
@@ -219,7 +219,7 @@ Select the CTA profile from the Reader Contract's funnel stage.
 - H1 headline
 - First paragraph (within first 100 words)
 - At least 2-3 H2 headings
-- Naturally throughout body (1-2% density)
+- Naturally throughout the body without a calculated repetition target
 - Meta title and description
 - URL slug
 
@@ -242,7 +242,7 @@ Select the CTA profile from the Reader Contract's funnel stage.
 - Vary sentence length for rhythm
 - Write at 8th-10th grade reading level
 - Use active voice predominantly
-- Break up text with subheadings every 300-400 words
+- Add subheadings where the reader question or logical step changes
 
 ### Target Audience Focus
 - **Audience Perspective**: Write for the target audience from the vault route; @context/brand-voice.md is fallback mirror context only
@@ -288,12 +288,12 @@ Word Count: [actual word count]
 - [ ] Primary keyword in H1
 - [ ] Primary keyword in first 100 words
 - [ ] Primary keyword in 2+ H2 headings
-- [ ] Keyword density 1-2%
+- [ ] Primary keyword placement is natural; semantic coverage and section distribution support the topic without stuffing
 - [ ] 3-5+ internal links included
 - [ ] 2-3 external authority links
 - [ ] Meta title 50-60 characters
 - [ ] Meta description 150-160 characters
-- [ ] Article 2000+ words
+- [ ] Article is complete for the Reader Contract, necessary evidence, and topic coverage
 - [ ] Proper H2/H3 hierarchy
 - [ ] Readability optimized
 
@@ -512,7 +512,7 @@ The `_REVIEW_NOTES.md` file contains:
 Every article must meet these requirements:
 
 ### Content Requirements
-- Minimum 2000 words (2500-3000+ preferred)
+- Depth is sufficient for intent, necessary evidence, and topic coverage; no universal blog minimum applies
 - Proper H1/H2/H3 hierarchy
 - Primary keyword naturally integrated
 - 3-5 internal links to your site content

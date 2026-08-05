@@ -968,13 +968,6 @@ class ContentScorer:
         # Word count
         word_count = len(clean_content.split())
         details['word_count'] = word_count
-        if word_count < 2000:
-            score -= 15
-            issues.append({
-                'issue': f'Content too short ({word_count} words)',
-                'fix': 'Expand to at least 2,000 words',
-                'severity': 'high'
-            })
 
         return {
             'score': max(0, min(100, round(score))),

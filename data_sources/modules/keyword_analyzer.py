@@ -45,7 +45,8 @@ class KeywordAnalyzer:
             content: Article content to analyze
             primary_keyword: Main target keyword
             secondary_keywords: List of secondary keywords
-            target_density: Target keyword density percentage (default 1.5%)
+            target_density: Legacy density reference retained for output compatibility;
+                low density does not produce recommendations
 
         Returns:
             Dict with density metrics, distribution map, and recommendations
@@ -558,19 +559,10 @@ class KeywordAnalyzer:
         """Generate actionable recommendations"""
         recommendations = []
 
-        # Primary keyword density
+        # Density is diagnostic at the low end and protective at the high end.
+        # Do not recommend adding repetitions to meet a density target.
         status = primary_analysis['density_status']
-        if status == "too_low":
-            recommendations.append(
-                f"WARNING: Primary keyword density is too low ({primary_analysis['density']}%). "
-                f"Target is {target_density}%. Add {primary_analysis['keyword']} naturally in more paragraphs."
-            )
-        elif status == "slightly_low":
-            recommendations.append(
-                f"INFO: Primary keyword density is slightly low ({primary_analysis['density']}%). "
-                f"Consider adding a few more mentions of '{primary_analysis['keyword']}'."
-            )
-        elif status == "too_high":
+        if status == "too_high":
             recommendations.append(
                 f"WARNING: Primary keyword density is too high ({primary_analysis['density']}%). "
                 f"This may trigger keyword stuffing penalties. Remove some instances or replace with variations."
@@ -629,7 +621,7 @@ def analyze_keywords(
         content: Article text
         primary_keyword: Main target keyword
         secondary_keywords: List of secondary keywords
-        target_density: Target density percentage
+        target_density: Legacy density reference retained for compatibility
 
     Returns:
         Comprehensive keyword analysis
@@ -706,7 +698,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("path", nargs="?", help="Markdown file to analyze. If omitted, runs the built-in sample.")
     parser.add_argument("--primary-keyword", help="Primary keyword to analyze.")
     parser.add_argument("--secondary-keywords", help="Comma-separated secondary keywords.")
-    parser.add_argument("--target-density", type=float, default=1.5, help="Target primary keyword density percentage.")
+    parser.add_argument(
+        "--target-density",
+        type=float,
+        default=1.5,
+        help="Legacy density reference retained for diagnostic output compatibility.",
+    )
 
     args = parser.parse_args(argv)
 

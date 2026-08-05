@@ -162,7 +162,7 @@ Follow same structure as `/write` command:
 ### SEO Enhancement
 
 #### Keyword Optimization
-- **Primary Keyword**: Ensure 1-2% density throughout
+- **Primary Keyword**: Preserve natural placement, semantic coverage, and section distribution; use density only to detect stuffing
 - **Keyword Placement**: Add to H2s if missing
 - **Semantic Variations**: Use related keywords naturally
 - **First 100 Words**: Confirm primary keyword appears early

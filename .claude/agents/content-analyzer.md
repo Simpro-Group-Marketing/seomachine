@@ -158,15 +158,15 @@ Combine all analysis results into a comprehensive report.
 - 75th Percentile: [X] words
 - Range: [min]-[max] words
 
-**Status**: [too_short/short/competitive/optimal/long]
+**Status**: [more concise / similar depth / more extensive]
 
 **Your Position**: [percentile among top 10 competitors]
 
-**Recommended Length**: [min]-[optimal] words
-**Gap to Optimal**: [X] words ([X]% increase needed)
+**Directional Range**: [range justified by intent, necessary evidence, and topic coverage]
+**Coverage Gap**: [missing reader question, evidence, workflow, or decision support; none if complete]
 
 **Recommendations**:
-- [Specific advice on whether to expand and where]
+- [Specific advice on missing coverage or a removable section; never add words to match competitors alone]
 
 ---
 
@@ -271,7 +271,7 @@ Use this checklist before publishing:
 - [ ] Examples and data included
 
 ### SEO
-- [ ] Primary keyword density 1-2%
+- [ ] Primary keyword placement is natural; semantic coverage and section distribution are sufficient; density is used only for stuffing detection
 - [ ] Keyword in H1, first 100 words, 2+ H2s
 - [ ] 3-5 internal links with descriptive anchors
 - [ ] 2-3 external authority links
