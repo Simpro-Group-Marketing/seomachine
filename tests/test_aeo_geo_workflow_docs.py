@@ -1215,6 +1215,37 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         )
         self.assertIn("alwaysApply: true", cursor_rule)
 
+    def test_agent_governance_rules_apply_without_superpowers_duplication(self):
+        rule_paths = [
+            ROOT / ".cursor" / "rules" / "agent-governance.mdc",
+            ROOT / ".agents" / "rules" / "agent-governance.md",
+            ROOT / ".claude" / "rules" / "agent-governance.md",
+        ]
+        required = [
+            "Superpowers owns process mechanics",
+            "proof-sensitive",
+            "verified evidence",
+            "mirror",
+            "do not duplicate",
+        ]
+        forbidden = [
+            "superpowers:",
+            "REQUIRED SUB-SKILL",
+        ]
+
+        for path in rule_paths:
+            self.assertTrue(path.exists(), f"{path} must exist")
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+            for text in forbidden:
+                self.assertNotIn(text, content, f"{path.name} must not duplicate Superpowers triggers")
+
+        cursor_rule = (ROOT / ".cursor" / "rules" / "agent-governance.mdc").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("alwaysApply: false", cursor_rule)
+
     def test_customer_proof_recent_use_and_live_scan_policy_is_cross_platform(self):
         docs = [
             ROOT / "context" / "aeo-geo-blog-strategy.md",
