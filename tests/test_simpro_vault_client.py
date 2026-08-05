@@ -40,14 +40,14 @@ class SimproVaultClientTests(unittest.TestCase):
                 {
                     "id": "simpro-context@simpro",
                     "enabled": False,
-                    "version": "1.2.2",
+                    "version": "1.2.5",
                     "installPath": str(other),
                     "projectPath": str(self.root / "other-worktree"),
                 },
                 {
                     "id": "simpro-context@simpro",
                     "enabled": True,
-                    "version": "1.2.2",
+                    "version": "1.2.5",
                     "installPath": str(canonical),
                     "projectPath": str(Path.cwd()),
                 },
@@ -69,7 +69,7 @@ class SimproVaultClientTests(unittest.TestCase):
                 {
                     "id": "simpro-context@simpro",
                     "enabled": False,
-                    "version": "1.2.2",
+                    "version": "1.2.5",
                     "installPath": str(canonical),
                     "projectPath": str(Path.cwd()),
                 },
@@ -98,7 +98,7 @@ class SimproVaultClientTests(unittest.TestCase):
                 {
                     "id": "simpro-context@simpro",
                     "enabled": False,
-                    "version": "1.2.2",
+                    "version": "1.2.5",
                     "installPath": str(self.root / "plugin"),
                     "projectPath": str(Path.cwd()),
                 }
@@ -134,17 +134,25 @@ class SimproVaultClientTests(unittest.TestCase):
         self.assertEqual(kwargs["errors"], "strict")
         self.assertGreater(kwargs["timeout"], 0)
 
-    def test_discovery_rejects_outdated_plugin(self):
+    def test_discovery_rejects_canonical_1_2_4_even_when_legacy_is_valid(self):
         plugin = self._plugin("plugin")
+        legacy = self._plugin("legacy")
         inventory = json.dumps(
             [
                 {
                     "id": "simpro-context@simpro",
                     "enabled": True,
-                    "version": "1.2.1",
+                    "version": "1.2.4",
                     "installPath": str(plugin),
                     "projectPath": str(Path.cwd()),
-                }
+                },
+                {
+                    "id": "simpro-context@marketingskills",
+                    "enabled": True,
+                    "version": "1.1.2",
+                    "installPath": str(legacy),
+                    "projectPath": str(Path.cwd()),
+                },
             ]
         )
         with patch(
@@ -155,6 +163,27 @@ class SimproVaultClientTests(unittest.TestCase):
                 discover_plugin()
 
         self.assertEqual(raised.exception.code, "plugin_outdated")
+
+    def test_discovery_accepts_canonical_1_2_5(self):
+        plugin = self._plugin("plugin")
+        inventory = json.dumps(
+            [
+                {
+                    "id": "simpro-context@simpro",
+                    "enabled": True,
+                    "version": "1.2.5",
+                    "installPath": str(plugin),
+                    "projectPath": str(Path.cwd()),
+                }
+            ]
+        )
+        with patch(
+            "data_sources.modules.simpro_vault_client.subprocess.run",
+            return_value=Completed(stdout=inventory),
+        ):
+            discovered = discover_plugin()
+
+        self.assertEqual(discovered, plugin.resolve() / "scripts" / "vault_cli.py")
 
     def test_status_rejects_unhealthy_or_incomplete_connector(self):
         vault = self.root / "vault"
@@ -227,7 +256,7 @@ print(json.dumps({"ok": True, "result": {
                 {
                     "id": "simpro-context@simpro",
                     "enabled": True,
-                    "version": "1.2.2",
+                    "version": "1.2.5",
                     "installPath": str(plugin),
                     "projectPath": str(Path.cwd()),
                 }
@@ -277,7 +306,7 @@ raise SystemExit(1)
                 {
                     "id": "simpro-context@simpro",
                     "enabled": True,
-                    "version": "1.2.2",
+                    "version": "1.2.5",
                     "installPath": str(plugin),
                     "projectPath": str(Path.cwd()),
                 }

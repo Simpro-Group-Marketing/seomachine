@@ -20,7 +20,7 @@ from typing import Any, Mapping, Optional, Sequence
 CANONICAL_PLUGIN_ID = "simpro-context@simpro"
 LEGACY_PLUGIN_ID = "simpro-context@marketingskills"
 MINIMUM_PLUGIN_VERSIONS = {
-    CANONICAL_PLUGIN_ID: (1, 2, 2),
+    CANONICAL_PLUGIN_ID: (1, 2, 5),
     LEGACY_PLUGIN_ID: (1, 1, 2),
 }
 ROOT_ENVIRONMENT_VARIABLE = "SIMPRO_VAULT_ROOT"
