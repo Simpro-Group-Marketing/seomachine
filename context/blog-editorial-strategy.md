@@ -1,5 +1,15 @@
 # Blog Editorial Strategy
 
+**Purpose:** Canonical non-AEO editorial contract for reader focus, continuity, story safety, headline integrity, and CTA pressure across supported blog brands.
+**Use when:** Researching, planning, writing, rewriting, analyzing, editing, or optimizing blog content.
+**Owns:** Reader Contract fields, proof-safe story rules, specificity hierarchy, stakes and relevance, promise integrity, continuity, and intent-sensitive CTA profiles.
+**Does not own:** AEO/GEO requirements, claims approval, customer proof, product language, competitive assertions, brand authority, or publish readiness.
+**Source boundary:** Editorial operating guidance synthesized from the approved 2026-08-05 review; brand and proof sources remain authoritative for public claims and voice permissions.
+**Refresh cadence:** Review when shared blog workflows or editorial quality expectations change.
+**Reference detail:** Implementation plan: `docs/superpowers/plans/2026-08-05-blog-editorial-quality-upgrades.md`.
+
+---
+
 This is the canonical non-AEO editorial contract for Simpro, ClockShark, BigChange, AroFlo, and other blog brands supported by this repository. It governs reader focus, article coherence, story safety, editorial stakes, headline integrity, and CTA pressure. It does not replace brand-specific voice, proof, product, competitor, SEO, or AEO sources.
 
 ## Reader Contract
