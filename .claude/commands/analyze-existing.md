@@ -15,6 +15,10 @@ Use this command to review and analyze existing your company blog posts for SEO 
 
 ## Process
 
+### Non-AEO Editorial Contract
+
+Use `context/blog-editorial-strategy.md`. Resolve the Reader Contract before recommending an outline or rewrite, then evaluate whether the existing article serves that reader, advances the distinctive angle, and delivers the promised payoff. Do not let this contract approve claims, proof, product language, or competitive assertions.
+
 ### Obsidian Vault Source Rule
 
 For every blog, SEO, AEO, competitor, proof, product, audience, partner, or workflow decision, use the Obsidian vault as the active context source: `C:\Users\patrick.grueschow\Desktop\Obsidian\Simpro Brand Context`.

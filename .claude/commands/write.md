@@ -16,6 +16,16 @@ For every Simpro blog, read `wiki/messaging/Voice and Tone.md` and `wiki/messagi
 
 ## Process
 
+### Non-AEO Editorial Contract
+
+Use the resolved Reader Contract from the brief and `context/blog-editorial-strategy.md`. Do not silently infer or substitute a different audience, payoff, angle, author mode, or funnel stage. If a required field is unresolved, resolve it before drafting.
+
+Stories and scenes are optional. Use only approved customer proof, source-supported author experience, or unnamed explanatory workflows. Unnamed scenarios cannot contain invented people, businesses, dates, numbers, quotes, metrics, or outcomes. Prefer concrete workflows, decisions, constraints, and tradeoffs before sourced numbers.
+
+### Headline Promise Integrity
+
+Check reader specificity, payoff clarity, distinctiveness, and Promise Integrity. Specificity must be source-supported; never use fabricated precision in a headline or subheading. The article must fully deliver the promised payoff without widening the claim beyond approved proof.
+
 ### Obsidian Vault Source Rule
 
 For every blog, SEO, AEO, competitor, proof, product, audience, partner, or workflow decision, use the Obsidian vault as the active context source: `C:\Users\patrick.grueschow\Desktop\Obsidian\Simpro Brand Context`.
@@ -170,7 +180,7 @@ Apply these requirements from @context/aeo-geo-blog-strategy.md:
 
 **OPTIONAL: Proof-Backed Customer/Review POV**
 
-Use a proof-backed customer/review POV only when it improves the article objective. If no strong proof-backed story fits, omit the story.
+Stories and scenes are optional. Use a proof-backed customer/review POV only when it improves the article objective. If no strong proof-backed story fits, omit the story.
 
 Allowed:
 - Actual person or business POV from an approved customer story, case study, Quote Matrix route, reference, or review-site row with sidecar proof.
@@ -307,7 +317,7 @@ Word Count: [actual word count]
 ### 5. Engagement Checklist
 - [ ] **Hook**: Opens with question, scenario, statistic, or bold statement (NOT generic definition)
 - [ ] **APP Formula**: Introduction includes Agree, Promise, Preview elements
-- [ ] **Mini-stories**: 2-3 specific scenarios with names, details, and outcomes
+- [ ] **Optional scenes**: Any story is approved customer proof, source-supported author experience, or an unnamed explanatory workflow without invented precision
 - [ ] **Contextual CTAs**: 2-3 CTAs placed throughout (not just at end)
 - [ ] **First CTA**: Appears within first 500 words
 - [ ] **Paragraph length**: No paragraphs exceed 4 sentences

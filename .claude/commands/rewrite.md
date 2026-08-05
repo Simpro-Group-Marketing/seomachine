@@ -16,6 +16,12 @@ For every Simpro blog, read `wiki/messaging/Voice and Tone.md` and `wiki/messagi
 
 ## Process
 
+### Non-AEO Editorial Contract
+
+Use `context/blog-editorial-strategy.md` and resolve the Reader Contract before recommending a rewrite. The rewrite must consume that contract without silently changing the primary reader, promised payoff, distinctive angle, author mode, or funnel stage. If the existing article and contract conflict, document the conflict in the rewrite plan before changing copy.
+
+Stories and scenes are optional. Use only approved customer proof, source-supported author experience, or unnamed explanatory workflows. Unnamed scenarios cannot contain invented people, businesses, dates, numbers, quotes, metrics, or outcomes.
+
 ### Obsidian Vault Source Rule
 
 For every blog, SEO, AEO, competitor, proof, product, audience, partner, or workflow decision, use the Obsidian vault as the active context source: `C:\Users\patrick.grueschow\Desktop\Obsidian\Simpro Brand Context`.

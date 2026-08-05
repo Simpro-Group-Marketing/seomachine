@@ -14,6 +14,25 @@ Use this command to conduct comprehensive SEO keyword research and competitive a
 
 ## Process
 
+### Non-AEO Editorial Contract
+
+Use `context/blog-editorial-strategy.md` as the canonical non-AEO editorial contract. Resolve the Reader Contract before recommending an outline, angle, headline, or content depth. This contract guides reader value and editorial continuity only; it cannot approve claims, proof, product language, or competitive assertions.
+
+Include the resolved contract in the research brief:
+
+## Reader Contract
+- Brand:
+- Author mode: named_author | brand_editorial
+- Primary reader:
+- Sophistication:
+- Entry situation or problem:
+- Existing belief:
+- Desired decision or action:
+- Distinctive angle:
+- Promised payoff:
+- Intentionally out of scope:
+- Funnel stage: tofu | mofu | bofu | thought_leadership
+
 ### Obsidian Vault Source Rule
 
 For every blog, SEO, AEO, competitor, proof, product, audience, partner, or workflow decision, use the Obsidian vault as the active context source: `C:\Users\patrick.grueschow\Desktop\Obsidian\Simpro Brand Context`.
@@ -84,6 +103,7 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
 - **Pain points**: Anchor recommendations in margin visibility, cash flow, admin reduction, field adoption, recurring maintenance, asset compliance, quoting speed, inventory, and scaling without chaos.
 
 ### Content Planning
+- **Reader Contract first**: Use the resolved audience, entry situation, decision, angle, payoff, scope, and funnel stage to govern every recommendation. Do not silently substitute a different reader or promise.
 - **Recommended Structure**: Outline H2 and H3 headings based on research
 - **Content Depth**: Determine target word count (typically 2000-3000+ for SEO)
 - **Supporting Evidence**: Identify statistics, studies, or data to include

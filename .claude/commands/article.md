@@ -352,6 +352,10 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
 
 **Create a section-by-section plan before writing.**
 
+Use `context/blog-editorial-strategy.md` as the canonical non-AEO editorial contract. Resolve the Reader Contract before planning sections, and do not silently change its audience, payoff, angle, author mode, or funnel stage during drafting.
+
+Stories and scenes are optional. Use only approved customer proof, source-supported author experience, or unnamed explanatory workflows. Unnamed scenarios cannot contain invented people, businesses, dates, numbers, quotes, metrics, or outcomes.
+
 ### Process
 
 1. **Merge Research**
@@ -373,6 +377,10 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
    | Element | Purpose |
    |---------|---------|
    | **Type** | intro / body-how-to / body-comparison / body-explanation / faq / conclusion |
+   | **Reader question** | The question this section resolves for the contracted reader |
+   | **Section answer or payoff** | The useful answer, decision support, or progress this section provides |
+   | **Bridge from previous section** | The actual logical relationship to what came before |
+   | **Bridge to next section** | The reason the reader needs the next section |
    | **Word Target** | Based on competitor depth + gap filling |
    | **Strategic Angle** | What unique perspective we bring |
    | **Engagement Hook** | How this section captures attention |
@@ -403,6 +411,19 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 **Total Word Target**: [count]
 **Primary Keyword**: [keyword]
 **Secondary Keywords**: [list]
+
+## Reader Contract
+- Brand:
+- Author mode: named_author | brand_editorial
+- Primary reader:
+- Sophistication:
+- Entry situation or problem:
+- Existing belief:
+- Desired decision or action:
+- Distinctive angle:
+- Promised payoff:
+- Intentionally out of scope:
+- Funnel stage: tofu | mofu | bofu | thought_leadership
 
 ## Meta Elements
 - **Title Options**:
@@ -459,6 +480,10 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 
 ### 2. [H2 Title]
 - **Type**: body-explanation
+- Reader question: [Question this section resolves]
+- Section answer or payoff: [Useful answer or progress delivered]
+- Bridge from previous section: [Logical connection]
+- Bridge to next section: [Why the next section follows]
 - **Word Target**: 300
 - **Strategic Angle**: [What unique perspective]
 - **Knowledge Gap**: [Which competitor gap this fills]
@@ -632,7 +657,15 @@ After all sections are written and edited:
    - Verify internal link placement
    - Confirm CTA distribution
 
-2. **Add Meta Elements**
+2. **Mandatory Continuity Pass**
+   - Every section advances the headline promise.
+   - Sections do not restart the article or repeat prior setup.
+   - Transitions express the actual logical relationship between sections.
+   - Introduction tensions, questions, and open loops are resolved.
+   - The conclusion completes the introduction and supplies a suitable next action.
+   - A removable section is removed unless it provides a documented payoff.
+
+3. **Add Meta Elements**
    ```markdown
    ---
    Meta Title: [50-60 chars ending with | Brand]
@@ -648,7 +681,7 @@ After all sections are written and edited:
 
    Meta titles must always end with the owning brand suffix in pipe format, for example `Construction Draw Schedule Explained | ClockShark`.
 
-3. **Generate Checklists**
+4. **Generate Checklists**
 
    **SEO Checklist:**
    - [ ] Primary keyword in H1

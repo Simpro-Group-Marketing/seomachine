@@ -184,36 +184,36 @@ For every statement, ask "Okay, so what?" If the copy doesn't answer that questi
 
 ---
 
-### Sweep 6: Heightened Emotion
+### Sweep 6: Stakes and Relevance
 
-**Focus:** Does the copy make the reader feel something?
+**Focus:** Does the copy show why the issue matters in the reader's real operating context?
 
 **What to check:**
-- Flat, informational language
-- Missing emotional triggers
-- Pain points mentioned but not felt
-- Aspirations stated but not evoked
+- The operational consequence of acting or not acting
+- Abstract pain points that need a concrete workflow, decision, constraint, or tradeoff
+- Reader relevance that is asserted rather than demonstrated
+- Missing practical upside or next-step clarity
+- Manufactured fear or urgency that is not supported by the situation
 
-**Emotional dimensions to consider:**
-- Pain of the current state
-- Frustration with alternatives
-- Fear of missing out
-- Desire for transformation
-- Pride in making smart choices
-- Relief from solving the problem
+**Dimensions to consider:**
+- Effect on time, margin, risk, coordination, or decision quality
+- Constraints the reader actually manages
+- Tradeoffs among plausible choices
+- Practical upside of a better decision
+- Evidence boundaries and honest limitations
 
-**Techniques for heightening emotion:**
-- Paint the "before" state vividly
-- Use sensory language
-- Tell micro-stories
-- Reference shared experiences
-- Ask questions that prompt reflection
+**Techniques for showing relevance:**
+- Show the workflow before and after the decision
+- Name the constraint or tradeoff precisely
+- Use a proof-safe scene only when it adds understanding
+- Connect an abstract point to a concrete operating consequence
+- Ask a question that helps the reader evaluate their situation
 
 **Process:**
 1. Read for emotional impact—does it move you?
-2. Identify flat sections that should resonate
-3. Add emotional texture while staying authentic
-4. Ensure emotion serves the message (not manipulation)
+2. Identify sections whose relevance is implied but not explained
+3. Add a concrete workflow, constraint, tradeoff, or supported consequence
+4. Remove manufactured fear or urgency and keep the stakes proportional to the evidence
 
 **After this sweep:** Return to Specificity, Prove It, So What, Voice and Tone, then Clarity.
 
@@ -251,7 +251,7 @@ For every statement, ask "Okay, so what?" If the copy doesn't answer that questi
 3. Check if the copy addresses each concern
 4. Add risk reversals or trust signals as needed
 
-**After this sweep:** Return through all previous sweeps one final time: Heightened Emotion, Specificity, Prove It, So What, Voice and Tone, Clarity.
+**After this sweep:** Return through all previous sweeps one final time: Stakes and Relevance, Specificity, Prove It, So What, Voice and Tone, Clarity.
 
 ---
 
@@ -342,11 +342,11 @@ Use these for faster reviews when a full seven-sweep process isn't needed.
 - [ ] Generic statements made specific
 - [ ] Filler content removed
 
-### Heightened Emotion (Sweep 6)
-- [ ] Copy evokes feeling, not just information
-- [ ] Pain points feel real
-- [ ] Aspirations feel achievable
-- [ ] Emotion serves the message authentically
+### Stakes and Relevance (Sweep 6)
+- [ ] Operational consequences are concrete and proportional
+- [ ] Reader relevance is explained, not merely asserted
+- [ ] Workflows, decisions, constraints, or tradeoffs make abstract points specific
+- [ ] Copy avoids manufactured fear or urgency
 
 ### Zero Risk (Sweep 7)
 - [ ] Objections addressed near CTA

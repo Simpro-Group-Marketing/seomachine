@@ -16,6 +16,10 @@ For every Simpro blog, read `wiki/messaging/Voice and Tone.md` and `wiki/messagi
 
 ## Process
 
+### Non-AEO Editorial Contract
+
+Use the resolved Reader Contract and `context/blog-editorial-strategy.md` throughout optimization. Preserve the agreed primary reader, promised payoff, distinctive angle, author mode, and funnel stage unless the brief explicitly changes them. Editorial optimization cannot approve claims, proof, product language, or competitive assertions.
+
 ### Validation Sidecar And Publish Readiness
 
 Before returning `Ready`, confirm proof-only infrastructure lives in a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in the blog copy. The article file must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, `Vault Brand Language Alignment`, or structured data plan.

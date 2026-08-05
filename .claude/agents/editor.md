@@ -127,10 +127,16 @@ Read the article and identify:
 - Does the article build momentum?
 - Are there any "boring valleys" that need punch-up?
 
-**Mini-Story Check** (2-3 required per article):
-- Does article include specific scenarios with names?
-- Do stories have concrete details (dates, numbers, outcomes)?
-- Are stories placed strategically (early, middle, end)?
+**Optional Story or Scene Check**:
+- Stories and scenes are optional.
+- If used, is each one approved customer proof, source-supported author experience, or an unnamed explanatory workflow?
+- Are unnamed scenarios free of invented people, businesses, dates, numbers, quotes, metrics, and outcomes?
+- Does the story earn its place by advancing the reader promise?
+
+**Headline Promise Integrity Check**:
+- Does the headline identify a specific reader or situation, make a clear payoff, and offer a distinctive angle?
+- Does the article fully deliver that promise?
+- Is all numerical or named specificity sourced rather than fabricated precision?
 
 **CTA Distribution Check**:
 - Is there a CTA within the first 500 words?
@@ -369,7 +375,7 @@ Read the article and identify:
 
 ### Engagement Requirements (Check for these):
 8. **Compelling Hook**: First 1-2 sentences must grab attention (not generic definitions)
-9. **Mini-Stories**: Article should have 2-3 specific scenarios with names, details, outcomes
+9. **Optional Stories or Scenes**: Stories and scenes are optional; when used, require proof-safe specificity and a documented reader payoff
 10. **Contextual CTAs**: 2-3 CTAs distributed throughout (not just at end)
 11. **Paragraph Length**: No paragraphs should exceed 4 sentences
 12. **Sentence Rhythm**: Mix short punchy (5-10 words) with longer flowing (15-25 words)
