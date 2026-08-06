@@ -102,6 +102,7 @@ class SectionWriter:
         Returns:
             WritingGuidelines with requirements, dos, and donts
         """
+        section_type = self._coerce_section_type(section_type)
         guidelines = {
             SectionType.INTRO: self._intro_guidelines(),
             SectionType.BODY_HOW_TO: self._how_to_guidelines(),
@@ -113,6 +114,17 @@ class SectionWriter:
         }
 
         return guidelines.get(section_type, self._explanation_guidelines())
+
+    @staticmethod
+    def _coerce_section_type(section_type: SectionType) -> SectionType:
+        """Accept compatible planner enum values without coupling the modules."""
+        if isinstance(section_type, SectionType):
+            return section_type
+        value = getattr(section_type, "value", section_type)
+        try:
+            return SectionType(value)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("section_type must be a recognized section type") from exc
 
     def get_editing_checklist(
         self,
@@ -127,6 +139,7 @@ class SectionWriter:
         Returns:
             EditingChecklist with universal and specific checks
         """
+        section_type = self._coerce_section_type(section_type)
         universal = [
             "Remove AI phrases from the removal list",
             "Replace vague words with approved proof-backed detail or concrete workflow detail",
@@ -439,7 +452,9 @@ def format_writing_prompt(
     This generates the prompt that guides section writing.
     """
     writer = SectionWriter()
+    section_type = writer._coerce_section_type(section_type)
     guidelines = writer.get_writing_guidelines(section_type)
+    has_cta = getattr(has_cta, "value", has_cta)
 
     prompt = f"""## Write Section: {heading}
 
@@ -520,6 +535,7 @@ def format_editing_prompt(
     This generates the prompt for the editing pass.
     """
     writer = SectionWriter()
+    section_type = writer._coerce_section_type(section_type)
     checklist = writer.get_editing_checklist(section_type)
 
     prompt = f"""## Edit This {section_type.value} Section

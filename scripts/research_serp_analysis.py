@@ -131,7 +131,10 @@ def run_serp_analysis(
     if dfs is not None:
         print_fn(f"\n2. Fetching SERP data for '{keyword}'...")
         try:
-            serp_data = dfs.get_serp_data(keyword, limit=20)
+            serp_data = normalize_serp_payload(
+                dfs.get_serp_data(keyword, limit=20),
+                source="DataForSEO",
+            )
             if not serp_data or "organic_results" not in serp_data:
                 dataforseo_error = "No SERP data available from DataForSEO"
                 print_fn(f"   {dataforseo_error}")
@@ -295,12 +298,22 @@ def calculate_content_requirements(
     print_fn("\n4. Summarizing observed SERP context...")
 
     if analysis["content_types"]:
-        type_counts = Counter(analysis["content_types"])
-        dominant_type = type_counts.most_common(1)[0][0]
-        analysis["dominant_content_type"] = dominant_type
-        analysis["content_type_distribution"] = dict(type_counts)
-        print_fn(f"   Dominant Content Type: {dominant_type}")
-        print_fn(f"   Distribution: {dict(type_counts)}")
+        type_counts = Counter(
+            content_type
+            for content_type in analysis["content_types"]
+            if content_type != "Unknown"
+        )
+        if not type_counts:
+            analysis["dominant_content_type"] = "Unknown"
+            analysis["content_type_distribution"] = {}
+            print_fn("   Dominant Content Type: unresolved from title evidence")
+            type_counts = None
+        if type_counts:
+            dominant_type = type_counts.most_common(1)[0][0]
+            analysis["dominant_content_type"] = dominant_type
+            analysis["content_type_distribution"] = dict(type_counts)
+            print_fn(f"   Dominant Content Type: {dominant_type}")
+            print_fn(f"   Distribution: {dict(type_counts)}")
 
     if analysis["word_counts"]:
         avg_words = statistics.mean(analysis["word_counts"])
@@ -398,6 +411,57 @@ def find_npx_executable() -> Optional[str]:
     return shutil.which("npx") or shutil.which("npx.cmd") or shutil.which("npx.exe")
 
 
+def normalize_serp_payload(
+    payload: Any,
+    *,
+    source: str,
+    require_paa: bool = False,
+) -> Dict[str, Any]:
+    """Validate untrusted SERP payloads before treating values as observations."""
+    if not isinstance(payload, dict):
+        raise ValueError(f"{source} SERP payload must be an object")
+
+    organic_results = payload.get("organic_results")
+    features = payload.get("features")
+    paa_questions = payload.get("paa_questions", [])
+    if not isinstance(organic_results, list):
+        raise ValueError(f"{source} organic_results must be a list")
+    if not isinstance(features, list):
+        raise ValueError(f"{source} features must be a list")
+    if require_paa and not isinstance(paa_questions, list):
+        raise ValueError(f"{source} paa_questions must be a list")
+
+    normalized_results = []
+    for result in organic_results:
+        if not isinstance(result, dict):
+            raise ValueError(f"{source} organic results must be objects")
+        title = result.get("title")
+        url = result.get("url")
+        description = result.get("description", "")
+        if not isinstance(title, str) or not title.strip():
+            raise ValueError(f"{source} organic result title must be non-empty")
+        if not isinstance(url, str) or not url.strip():
+            raise ValueError(f"{source} organic result URL must be non-empty")
+        if description is None:
+            description = ""
+        if not isinstance(description, str):
+            raise ValueError(f"{source} organic result description must be text")
+        normalized_results.append({**result, "title": title, "url": url, "description": description})
+
+    for field_name, values in (("features", features), ("paa_questions", paa_questions)):
+        if not isinstance(values, list) or any(
+            not isinstance(value, str) or not value.strip() for value in values
+        ):
+            raise ValueError(f"{source} {field_name} must contain non-empty strings")
+
+    return {
+        **payload,
+        "organic_results": normalized_results,
+        "features": features,
+        "paa_questions": paa_questions,
+    }
+
+
 def run_playwright_serp_fallback(
     keyword: str,
     output_dir: str | Path = "research",
@@ -427,7 +491,11 @@ def run_playwright_serp_fallback(
 
     try:
         raw_output = (cli_runner or run_playwright_cli_serp_capture)(keyword)
-        payload = parse_playwright_cli_payload(raw_output)
+        payload = normalize_serp_payload(
+            parse_playwright_cli_payload(raw_output),
+            source="Playwright",
+            require_paa=True,
+        )
         blocker = payload.get("blocker")
     except Exception as exc:
         result = empty_playwright_fallback(
@@ -767,7 +835,7 @@ def detect_content_type(title: str) -> str:
             if re.search(pattern, title_lower):
                 return content_type
 
-    return "General Article"
+    return "Unknown"
 
 
 def has_freshness_signal(title: str, now: Optional[datetime] = None) -> bool:
@@ -906,9 +974,9 @@ def generate_content_brief(
 
     # Transitional aliases preserve existing brief consumers without restoring
     # heuristic recommendations or a SERP-derived word target.
-    brief["must_have_elements"] = list(brief["observed_elements"])
-    brief["serp_features_to_target"] = list(brief["serp_features_to_evaluate"])
-    brief["structure_recommendations"] = list(brief["structure_patterns"])
+    brief["must_have_elements"] = None
+    brief["serp_features_to_target"] = None
+    brief["structure_recommendations"] = None
 
     return brief
 

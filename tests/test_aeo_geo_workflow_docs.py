@@ -2305,5 +2305,23 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             self.assertIn("named_feature_status_guard.py", content, name)
             self.assertIn("Named Feature Status", content, name)
 
+    def test_blog_optimization_agents_do_not_default_to_legacy_brand(self):
+        for relative_path in (
+            ".claude/agents/seo-optimizer.md",
+            ".claude/agents/meta-creator.md",
+        ):
+            content = (ROOT / relative_path).read_text(encoding="utf-8")
+            self.assertIn("Reader Contract", content, relative_path)
+            self.assertIn("active vault context", content, relative_path)
+            legacy_defaults = [
+                "| Castos",
+                "castos.com",
+                "podcast creator needs",
+                "Podcast-Focused",
+                "Podcast Industry Relevance",
+            ]
+            for phrase in legacy_defaults:
+                self.assertNotIn(phrase, content, relative_path)
+
 if __name__ == "__main__":
     unittest.main()

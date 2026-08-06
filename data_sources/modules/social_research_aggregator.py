@@ -266,8 +266,8 @@ class SocialResearchAggregator:
         questions.extend(reddit_research.questions[:5])
         questions.extend(youtube_research.comment_questions[:3])
 
-        # Extract up to two scene candidates; named use still requires approved proof.
-        story_seeds = reddit_research.success_stories[:2]
+        # Public success claims remain research leads, not automatic scene seeds.
+        story_seeds = []
 
         return SocialResearchSynthesis(
             unique_insights=unique_insights[:10],
@@ -369,9 +369,12 @@ def format_social_research_report(
     )
 
     # Add real language
-    report += "\n### Real User Language\n"
+    report += "\n### Real User Language (Research Vocabulary Leads Only)\n"
     for phrase in reddit_research.real_language[:5]:
-        report += f'- Users say: "{phrase}"\n'
+        report += (
+            f"- Vocabulary lead: {phrase} (source mapping and approval required "
+            "before public quotation or attribution)\n"
+        )
 
     report += """
 ---
@@ -398,9 +401,9 @@ def format_social_research_report(
         report += f"- {gap}\n"
 
     # Add expert opinions
-    report += "\n### Expert Takes\n"
+    report += "\n### Expert Takes (Research Leads Only)\n"
     for opinion in youtube_research.expert_opinions[:5]:
-        report += f"- {opinion}\n"
+        report += f"- {opinion} (source mapping required before public use)\n"
 
     # Synthesis section
     report += """
@@ -419,8 +422,9 @@ def format_social_research_report(
 
     report += "\n### Editorial Scene Opportunities\n"
     report += (
-        "Use these only as explanatory, unnamed workflow scenarios unless "
-        "separate approved proof supports a named person or business.\n"
+        "Design scenes from the Reader Contract and independently supported workflow "
+        "understanding. Do not anonymize an unapproved success claim into a scene. "
+        "Named people or businesses require separate approved proof.\n"
     )
     for seed in synthesis.story_seeds[:2]:
         lead = lead_by_content.get(seed.strip())

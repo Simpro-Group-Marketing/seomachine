@@ -10,6 +10,7 @@ Analyzes articles for the 4 current engagement criteria:
 
 import argparse
 import glob
+import json
 import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -301,6 +302,7 @@ class EngagementAnalyzer:
             ctas.append({
                 'text': matched_text[:50],
                 'position_pct': round(position),
+                'role': self._classify_cta_role(matched_text),
                 '_start_offset': start,
             })
 
@@ -344,8 +346,27 @@ class EngagementAnalyzer:
             if planned_section_locations is not None
             else None
         )
+        role_mismatches = []
+        if cta_plan is not None:
+            for planned_role, section_number in cta_plan.items():
+                observed_roles = {
+                    cta['role']
+                    for cta in ctas
+                    if cta['section_number'] == section_number
+                }
+                compatible_roles = {
+                    "soft_resource_action": {"educational_next_step"},
+                    "thought_leadership_next_action": {"educational_next_step"},
+                }.get(planned_role, {planned_role})
+                if not observed_roles.intersection(compatible_roles):
+                    role_mismatches.append({
+                        "planned_role": planned_role,
+                        "section_number": section_number,
+                        "observed_roles": sorted(observed_roles),
+                    })
+        roles_match_plan = not role_mismatches if cta_plan is not None else None
         meets_plan = (
-            len(ctas) == required_count and locations_match_plan
+            len(ctas) == required_count and locations_match_plan and roles_match_plan
             if required_count is not None
             else None
         )
@@ -361,8 +382,22 @@ class EngagementAnalyzer:
             'planned_section_locations': planned_section_locations,
             'observed_section_locations': observed_section_locations,
             'locations_match_plan': locations_match_plan,
+            'roles_match_plan': roles_match_plan,
+            'role_mismatches': role_mismatches,
             'meets_plan': meets_plan,
         }
+
+    @staticmethod
+    def _classify_cta_role(text: str) -> str:
+        """Classify only CTA intent that is explicit in the observed wording."""
+        normalized = re.sub(r"[*\[\]]", "", text).strip().lower()
+        if re.search(r"\b(?:start|try|get|begin|sign up|create)\b", normalized):
+            return "commercial_conversion"
+        if re.search(r"\b(?:ready to|want to)\s+(?:see|try|get)\b", normalized):
+            return "contextual_product"
+        if re.search(r"\b(?:learn|read|discover|explore|see)\s+(?:more|how)\b", normalized):
+            return "educational_next_step"
+        return "unresolved"
 
     def _analyze_paragraphs(self, content: str) -> Dict[str, Any]:
         """Analyze paragraph lengths"""
@@ -493,13 +528,44 @@ def parse_cli_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         default="drafts/*.md",
         help="Glob used when no explicit files are supplied (default: drafts/*.md)",
     )
+    parser.add_argument(
+        "--cta-plan",
+        help=(
+            "CTA map as JSON, or a JSON article-plan file containing "
+            "engagement_map.ctas"
+        ),
+    )
     return parser.parse_args(argv)
+
+
+def load_cta_plan(value: Optional[str]) -> Optional[Dict[str, int]]:
+    """Load a direct CTA map or extract one from a serialized article plan."""
+    if value is None:
+        return None
+    candidate = Path(value)
+    try:
+        raw = candidate.read_text(encoding="utf-8") if candidate.is_file() else value
+        payload = json.loads(raw)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"invalid --cta-plan: {exc}") from exc
+
+    if isinstance(payload, dict) and "engagement_map" in payload:
+        payload = payload["engagement_map"]
+    if isinstance(payload, dict) and "ctas" in payload:
+        payload = payload["ctas"]
+    EngagementAnalyzer._validate_cta_plan(payload)
+    return payload
 
 
 def main(argv: Optional[List[str]] = None) -> int:
     """Analyze explicit Markdown files or all drafts matching a caller glob."""
     args = parse_cli_args(argv)
     files = sorted(args.files or glob.glob(args.pattern))
+    try:
+        cta_plan = load_cta_plan(args.cta_plan)
+    except ValueError as exc:
+        print(str(exc))
+        return 2
 
     if not files:
         print(f"No files found matching {args.pattern}")
@@ -516,7 +582,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             content = f.read()
 
         filename = Path(filepath).name
-        result = analyzer.analyze(content, filename)
+        result = analyzer.analyze(content, filename, cta_plan=cta_plan)
         results.append(result)
 
     print(format_results(results))

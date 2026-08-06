@@ -331,8 +331,8 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
 - [Story with specific details and preserved source URL]
 - Research lead only: preserve the source URL and do not publish a name, quote, metric, or outcome until the proof workflow approves it
 
-### Real User Language
-- Users say "[phrase]" instead of "[what competitors say]"
+### Real User Language (Research Vocabulary Leads Only)
+- Vocabulary lead: [phrase]; source mapping and approval are required before public quotation or "users say" attribution
 
 ## YouTube Insights
 
@@ -348,8 +348,8 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
 ### Content Gaps in Video
 - [Topic tutorials don't cover well]
 
-### Expert Takes
-- [Notable opinion from creator]
+### Expert Takes (Research Leads Only)
+- [Notable opinion from creator with source URL]; source mapping and approval are required before public authority or quotation use
 
 ## Synthesis: Unique Insights for Article
 
@@ -366,6 +366,7 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
 
 ### Editorial Scene Opportunities
 - [Unnamed workflow scenario for explanation only, not E-E-A-T proof]
+- Do not anonymize an unapproved success claim into an editorial scene
 
 ### Language to Use
 - Use "[real user phrase]" instead of "[generic SEO phrase]"

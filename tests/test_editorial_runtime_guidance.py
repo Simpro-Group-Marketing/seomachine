@@ -26,6 +26,7 @@ from data_sources.modules.competitor_gap_analyzer import (
 from data_sources.modules.engagement_analyzer import (
     EngagementAnalyzer,
     format_results,
+    load_cta_plan,
     parse_cli_args as parse_engagement_cli_args,
 )
 from data_sources.modules.section_writer import (
@@ -729,6 +730,22 @@ class ArticlePlannerEditorialContractTests(unittest.TestCase):
 
 
 class RuntimeEditorialGuidanceTests(unittest.TestCase):
+    def test_planner_section_and_cta_enums_flow_into_writer_prompt(self):
+        prompt = format_writing_prompt(
+            section_type=PlannerSectionType.INTRO,
+            heading="Introduction",
+            word_target=180,
+            strategic_angle="Resolve the reader's immediate decision",
+            unique_data=[],
+            internal_links=[],
+            has_mini_story=False,
+            has_cta=CTAType.CONTEXTUAL_PRODUCT,
+        )
+
+        self.assertIn("**Type**: intro", prompt)
+        self.assertIn("Compelling hook", prompt)
+        self.assertIn("CTA Required (contextual product)", prompt)
+
     def test_social_success_story_leads_preserve_source_urls_and_proof_status(self):
         lead = RedditInsight(
             thread_title="Dispatch workflow discussion",
@@ -761,7 +778,7 @@ class RuntimeEditorialGuidanceTests(unittest.TestCase):
         self.assertIn("research lead only", success_block)
         self.assertIn("customer-proof approval", success_block)
 
-    def test_social_scene_opportunities_preserve_source_and_research_status(self):
+    def test_social_success_leads_do_not_become_editorial_scenes(self):
         lead = RedditInsight(
             thread_title="Scheduling result",
             thread_url="https://reddit.com/r/fieldservice/example",
@@ -787,8 +804,10 @@ class RuntimeEditorialGuidanceTests(unittest.TestCase):
         )
         scene_block = report.split("### Editorial Scene Opportunities", 1)[1]
 
-        self.assertIn(lead.thread_url, scene_block)
-        self.assertIn("research lead only", scene_block)
+        self.assertEqual(synthesis.story_seeds, [])
+        self.assertNotIn(lead.content, scene_block)
+        self.assertNotIn(lead.thread_url, scene_block)
+        self.assertIn("Do not anonymize an unapproved success claim", scene_block)
         self.assertIn("Quote research lead", report)
         self.assertNotIn("**Quotable**", report)
 
@@ -839,6 +858,13 @@ class RuntimeEditorialGuidanceTests(unittest.TestCase):
         parsed = parse_engagement_cli_args(["--glob", "rewrites/*.md"])
         self.assertEqual(parsed.pattern, "rewrites/*.md")
 
+    def test_engagement_cli_loads_serialized_article_plan_ctas(self):
+        plan = load_cta_plan(
+            '{"engagement_map":{"ctas":{"educational_next_step":4}}}'
+        )
+
+        self.assertEqual(plan, {"educational_next_step": 4})
+
     def test_engagement_analyzer_counts_overlapping_markdown_cta_once(self):
         result = EngagementAnalyzer().analyze(
             "A practical workflow starts with fixed constraints.\n\n"
@@ -887,6 +913,21 @@ class RuntimeEditorialGuidanceTests(unittest.TestCase):
         self.assertTrue(result["ctas"]["locations_match_plan"])
         self.assertTrue(result["ctas"]["meets_plan"])
         self.assertTrue(result["scores"]["ctas"])
+
+    def test_engagement_analyzer_rejects_generic_ctas_for_commercial_roles(self):
+        result = EngagementAnalyzer().analyze(
+            "## Compare options\n\nLearn more about the options.\n\n"
+            "## Choose a platform\n\nLearn more about the platform.",
+            cta_plan={
+                "commercial_contextual": 2,
+                "commercial_conversion": 3,
+            },
+        )
+
+        self.assertTrue(result["ctas"]["locations_match_plan"])
+        self.assertFalse(result["ctas"]["roles_match_plan"])
+        self.assertFalse(result["ctas"]["meets_plan"])
+        self.assertEqual(len(result["ctas"]["role_mismatches"]), 2)
 
     def test_engagement_analyzer_rejects_right_count_in_wrong_sections(self):
         result = EngagementAnalyzer().analyze(
@@ -1028,8 +1069,29 @@ class RuntimeEditorialGuidanceTests(unittest.TestCase):
         ]
         self.assertEqual(
             analyzer.create_blueprint(distinct).structure_to_match,
-            ["dispatch workflow"],
+            ["Dispatch workflow"],
         )
+
+    def test_competitor_structure_preserves_observed_heading_capitalization(self):
+        analyzer = CompetitorGapAnalyzer()
+        analyses = [
+            CompetitorAnalysis(
+                url=f"https://example.com/{index}",
+                title=f"Competitor {index}",
+                word_count=900,
+                structure=["HVAC FAQs"],
+                strengths=[],
+                gaps=[],
+                outdated_items=[],
+            )
+            for index in range(3)
+        ]
+
+        blueprint = analyzer.create_blueprint(analyses)
+        report = format_gap_report("hvac software", analyses, blueprint)
+
+        self.assertEqual(blueprint.structure_to_match, ["HVAC FAQs"])
+        self.assertIn("- HVAC FAQs", report)
 
     def test_competitor_analysis_does_not_invent_generic_structural_gaps(self):
         analysis = CompetitorGapAnalyzer().analyze_content(

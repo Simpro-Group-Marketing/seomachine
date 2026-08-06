@@ -276,6 +276,27 @@ The strongest workflow connects quoting, inventory, invoicing, and reporting ins
         self.assertNotIn("Unsupported specifics require proof context", issues)
         self.assertGreater(result["details"]["proof_sensitive_specifics_per_1000"], 0)
 
+    def test_specificity_records_plain_percentage_without_changing_score(self):
+        result = ContentScorer()._score_specificity(
+            "The measured change was 25%."
+        )
+
+        self.assertEqual(result["score"], 70)
+        self.assertEqual(result["details"]["proof_sensitive_specifics_count"], 1)
+
+    def test_proof_sensitive_claim_does_not_gain_workflow_specificity_points(self):
+        scorer = ContentScorer()
+        baseline = scorer._score_specificity("The measured change was material.")
+        claimed = scorer._score_specificity(
+            "Sarah at Acme Mechanical saved 25% of customer time in 2026."
+        )
+
+        self.assertEqual(claimed["score"], baseline["score"])
+        self.assertGreater(
+            claimed["details"]["proof_sensitive_specifics_count"],
+            baseline["details"]["proof_sensitive_specifics_count"],
+        )
+
     def test_specificity_does_not_assume_named_details_are_unsupported_before_proof_gates(self):
         scorer = ContentScorer()
         content = (

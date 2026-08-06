@@ -327,16 +327,22 @@ class CompetitorGapAnalyzer:
 
         # Find common structure (appears in 3+ competitors)
         structure_urls: Dict[str, set] = {}
+        structure_labels: Dict[str, str] = {}
         for analysis in analyses:
             for heading in analysis.structure:
                 normalized = heading.lower().strip()
                 if not normalized:
                     continue
                 structure_urls.setdefault(normalized, set()).add(analysis.url)
+                structure_labels.setdefault(normalized, heading.strip())
 
         common_structure = sorted(
-            heading for heading, urls in structure_urls.items()
-            if len(urls) >= 3
+            [
+                structure_labels[heading]
+                for heading, urls in structure_urls.items()
+                if len(urls) >= 3
+            ],
+            key=str.casefold,
         )
 
         return GapBlueprint(
@@ -502,7 +508,7 @@ def format_gap_report(
 Common ranking sections to evaluate against the Reader Contract:
 """
     for heading in blueprint.structure_to_match:
-        report += f"- {heading.title()}\n"
+        report += f"- {heading}\n"
 
     report += """
 ---

@@ -118,7 +118,11 @@ class KeywordAnalyzer:
         stuffing_risk = self._detect_keyword_stuffing(
             content,
             primary_keyword,
-            primary_analysis['density']
+            (
+                primary_analysis['total_occurrences'] / word_count * 100
+                if word_count
+                else 0.0
+            )
         )
 
         # Perform topic clustering
@@ -359,10 +363,14 @@ class KeywordAnalyzer:
         # High density check
         if density > 3.0:
             risk_level = "high"
-            warnings.append(f"Keyword density {density}% is very high (over 3%)")
+            warnings.append(
+                f"Keyword density {density:.2f}% is very high (over 3%)"
+            )
         elif density > 2.5:
             risk_level = "medium"
-            warnings.append(f"Keyword density {density}% is high (over 2.5%)")
+            warnings.append(
+                f"Keyword density {density:.2f}% is high (over 2.5%)"
+            )
 
         # Check for keyword clustering (multiple instances in same paragraph)
         paragraphs = content.split('\n\n')

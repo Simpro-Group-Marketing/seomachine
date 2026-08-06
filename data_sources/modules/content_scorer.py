@@ -96,7 +96,7 @@ class ContentScorer:
     # Proof-sensitive specifics. These are reported as needing proof context;
     # they do not automatically improve the score.
     PROOF_SENSITIVE_SPECIFICITY_PATTERNS = [
-        r'\b\d{1,3}%\b',  # Percentages
+        r'(?<!\w)\d+(?:\.\d+)?%(?!\w)',  # Percentages
         r'\$[\d,]+(?:\.\d{2})?\b',  # Dollar amounts
         r'\b\d{4}\b',  # Years
         r'\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}',  # Dates
@@ -742,12 +742,16 @@ class ContentScorer:
 
         # Count proof-sensitive specifics without treating them as proof.
         proof_sensitive_specific_count = 0
+        workflow_content = content
         for pattern in self.PROOF_SENSITIVE_SPECIFICITY_PATTERNS:
             proof_sensitive_specific_count += len(re.findall(pattern, content))
+            workflow_content = re.sub(pattern, " ", workflow_content)
 
         workflow_specific_count = 0
         for pattern in self.WORKFLOW_SPECIFICITY_PATTERNS:
-            workflow_specific_count += len(re.findall(pattern, content, re.IGNORECASE))
+            workflow_specific_count += len(
+                re.findall(pattern, workflow_content, re.IGNORECASE)
+            )
 
         specific_count = workflow_specific_count
         specific_density = (specific_count / max(word_count, 1)) * 1000

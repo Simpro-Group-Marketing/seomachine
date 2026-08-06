@@ -318,15 +318,9 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
         )
         self.assertEqual(brief["structure_patterns"], [])
         self.assertIsNone(brief["recommended_word_count"])
-        self.assertEqual(brief["must_have_elements"], brief["observed_elements"])
-        self.assertEqual(
-            brief["serp_features_to_target"],
-            brief["serp_features_to_evaluate"],
-        )
-        self.assertEqual(
-            brief["structure_recommendations"],
-            brief["structure_patterns"],
-        )
+        self.assertIsNone(brief["must_have_elements"])
+        self.assertIsNone(brief["serp_features_to_target"])
+        self.assertIsNone(brief["structure_recommendations"])
         serialized = json.dumps(brief)
         for unobserved_claim in [
             "Visual aids",
@@ -451,6 +445,29 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
             self.assertEqual(result["fallback_blocker"], "captcha_or_unusual_traffic")
             self.assertEqual(result["organic_results"], [])
             self.assertEqual(result["paa_questions"], [])
+
+    def test_playwright_fallback_blocks_malformed_external_payload(self):
+        module = load_research_serp_module()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            result = module.run_playwright_serp_fallback(
+                "malformed keyword",
+                output_dir=Path(temp_dir),
+                now=datetime(2026, 7, 7),
+                cli_runner=lambda keyword: json.dumps(
+                    {
+                        "organic_results": [],
+                        "features": None,
+                        "paa_questions": [],
+                        "blocker": None,
+                    }
+                ),
+                npx_checker=lambda: True,
+            )
+
+        self.assertIn("features must be a list", result["fallback_blocker"])
+        self.assertEqual(result["organic_results"], [])
+        self.assertEqual(result["features"], [])
 
     def test_missing_dataforseo_credentials_uses_playwright_fallback_and_writes_report(self):
         module = load_research_serp_module()
@@ -641,8 +658,8 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
             report_text = (
                 output_dir / "serp-analysis-field-service-scheduling.md"
             ).read_text(encoding="utf-8")
-            self.assertIn("| 1 | example.com | General Article | N/A |", report_text)
-            self.assertIn("| 2 | example.com | General Article | 1,200 |", report_text)
+            self.assertIn("| 1 | example.com | Unknown | N/A |", report_text)
+            self.assertIn("| 2 | example.com | Unknown | 1,200 |", report_text)
 
     def test_dataforseo_success_does_not_call_playwright_fallback(self):
         module = load_research_serp_module()

@@ -513,6 +513,18 @@ class OptimizerModuleTests(unittest.TestCase):
         self.assertEqual(result["keyword_stuffing"]["risk_level"], "high")
         self.assertFalse(result["keyword_stuffing"]["safe"])
 
+    def test_keyword_analyzer_uses_unrounded_density_at_stuffing_boundary(self):
+        paragraphs = [
+            "target phrase " + " ".join(f"word{i}_{j}" for j in range(31))
+            for i in range(10)
+        ]
+        content = "\n\n".join(paragraphs) + " filler filler filler"
+
+        result = KeywordAnalyzer().analyze(content, "target phrase")
+
+        self.assertEqual(result["primary_keyword"]["density"], 3.0)
+        self.assertEqual(result["keyword_stuffing"]["risk_level"], "high")
+
     def test_keyword_analyzer_counts_only_bounded_exact_phrase_matches(self):
         analyzer = KeywordAnalyzer()
 

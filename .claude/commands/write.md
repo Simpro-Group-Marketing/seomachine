@@ -495,7 +495,7 @@ The publish-readiness command includes 5 content-quality dimensions plus the req
 | Dimension | Weight | Target |
 |-----------|--------|--------|
 | Humanity/Voice | 30% | No AI phrases, use contractions |
-| Specificity | 25% | Concrete examples, numbers, names |
+| Specificity | 25% | Concrete operational and workflow detail; proof-sensitive names, numbers, quotes, metrics, dates, and outcomes remain score-neutral until validated |
 | Structure Balance | 20% | 40-70% prose (not all lists) |
 | SEO Compliance | 15% | Keywords, meta, structure |
 | Readability | 10% | Flesch 60-70, grade 8-10 |
