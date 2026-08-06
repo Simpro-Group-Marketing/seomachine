@@ -78,8 +78,8 @@ Use these four words for **brand/hero/pillar** copy and FY26 campaigns. They sha
 - **Avoid**: Buzzwords, layered jargon, paragraph-long hero copy.
 
 ### 5. Outcomes-Driven
-- **What it means**: Every claim ties back to a number — margin, hours, revenue, time-to-paid, customers retained. If we can't quantify the win, we earn the right to make the claim with a customer story.
-- **How it sounds**: Specific. Named customers, named numbers. "60% increase in profit margin (Shaffer Beacon Mechanical)" beats "significant profit improvements."
+- **What it means**: Every material outcome claim ties back to approved evidence. Use approved numbers or customer stories when they fit; otherwise explain the operational workflow without implying an unproved outcome.
+- **How it sounds**: Specific. Prefer approved named customers and approved numbers when they materially support the point. Otherwise use concrete workflow detail rather than a vague claim.
 - **Example**: "Foster Plumbing grew 10x in six years, improved margin by 10%, cut collection times by 33%, and sold at a 6x EBITDA multiple."
 - **Avoid**: Vague impact claims. "Significantly faster," "much more efficient," "world-class."
 
@@ -119,7 +119,7 @@ Imagine you're a seasoned trades operator who got the tech right and now helps p
 - "AI in the trades isn't about chatbots. It's about smaller invoices missed and bigger margins earned."
 - "Here's what changed in the field service category this quarter and what it means for contractors."
 
-**Product/Feature Content**: Benefit-focused, named-outcome, proof-led.
+**Product/Feature Content**: Benefit-focused and proof-led. Use named outcomes only when approved proof fits; otherwise explain concrete workflow value.
 - "AI Mobile Work Notes reduces typing after site visits so techs can get job notes back to the office faster."
 - "Real-time job costing means you know whether a job made money before the truck leaves the site."
 - "Multi-Company lets one Simpro instance run multiple business units with roll-up reporting."
@@ -341,7 +341,7 @@ Use these archetypes to shape the problem framing and proof, not as visible camp
 
 - **Respect their time**: Lead with the win. The "why this matters" goes in the headline, not the third paragraph.
 - **Make it actionable**: Every piece of content ends with something the reader can do or evaluate.
-- **Show the math**: Round numbers, named customers, specific outcomes — always.
+- **Show the math when approved proof supports it**: Use approved numbers, named customers, and outcomes when relevant. Otherwise make the operational decision or workflow concrete without inventing proof.
 - **Acknowledge the realities**: Adoption is hard. Onboarding takes weeks. Integrations break. Don't pretend otherwise.
 - **Champion the trades**: Treat the industry as the backbone of the economy — because it is.
 
@@ -351,7 +351,7 @@ Before publishing any content, verify:
 
 - [ ] **Voice**: Sounds Simpro (authoritative, ambitious, trades-focused, practical, outcomes-driven)
 - [ ] **Tone**: Appropriate for content type and audience stage
-- [ ] **Specifics**: At least one named customer, named number, or named trade per major section
+- [ ] **Specifics**: Relevant approved named proof where it fits, or concrete operational and workflow detail where it does not
 - [ ] **Clarity**: A trades operator on a job site phone could understand it
 - [ ] **Accuracy**: Technical references (workflows, integrations, pricing logic) are correct
 - [ ] **Action**: Reader has a clear next step

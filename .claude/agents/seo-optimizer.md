@@ -19,11 +19,11 @@ Analyze completed articles and provide actionable recommendations to maximize se
 
 #### Primary Keyword Analysis
 - Identify the primary target keyword
-- Calculate keyword density (target: 1-2%)
+- Report keyword density for context without treating it as a fixed target
 - Map all instances of primary keyword in:
   - H1 headline
   - First 100 words
-  - H2 headings (should appear in 2-3)
+  - Relevant H2 headings where exact-match or semantic placement reads naturally
   - Body paragraphs (evenly distributed)
   - Conclusion
   - Meta elements
@@ -44,7 +44,7 @@ Analyze completed articles and provide actionable recommendations to maximize se
 
 #### Heading Hierarchy
 - **H1**: Single H1, includes primary keyword, compelling and clear
-- **H2s**: 4-7 main sections, logical progression, 2-3 include keyword variations
+- **H2s**: Use the sections needed for logical progression and place exact-match or semantic variations only where relevant
 - **H3s**: Proper nesting, descriptive, keyword-rich where natural
 - **No gaps**: No skipped heading levels (H2→H4)
 
@@ -52,7 +52,7 @@ Analyze completed articles and provide actionable recommendations to maximize se
 - Introduction hooks reader and includes keyword early
 - Each section delivers on subheading promise
 - Logical flow from problem → solution → action
-- Conclusion summarizes and provides clear CTA
+- Conclusion completes the headline promise and provides an intent-appropriate next action
 - Sections are balanced in length
 - No orphan paragraphs or unnecessary filler
 
@@ -101,7 +101,7 @@ Analyze completed articles and provide actionable recommendations to maximize se
   - Current length (target: 150-160 characters)
   - Includes primary keyword?
   - Clear value proposition?
-  - Contains call-to-action?
+  - Uses accurate value or action language when appropriate for search intent?
   - Generates 3-5 improved alternatives
 
 - **URL Slug**:
@@ -139,7 +139,7 @@ Analyze completed articles and provide actionable recommendations to maximize se
 - Practical, actionable advice provided?
 - Examples and use cases included?
 - Clear next steps or takeaways?
-- Strong conclusion with CTA?
+- Conclusion closes the Reader Contract with an intent-appropriate next action?
 
 ### 6. Podcast Industry Relevance
 
@@ -185,8 +185,8 @@ Visual representation showing where primary keyword appears:
 ```
 H1: ✓/✗
 First 100 words: ✓/✗
-H2 Sections: X/7 (need 2-3 minimum)
-Body density: X% (target 1-2%)
+H2 Sections: report relevant exact-match and semantic placements without a heading quota
+Body density: X% (reported for context; check natural coverage and stuffing risk)
 Conclusion: ✓/✗
 Meta title: ✓/✗
 Meta description: ✓/✗
@@ -224,17 +224,17 @@ Specific recommendations with exact placement:
 ### Final Checklist
 - [ ] Primary keyword in H1
 - [ ] Primary keyword in first 100 words
-- [ ] Primary keyword in 2+ H2 headings
-- [ ] Keyword density 1-2%
+- [ ] Primary keyword in at least one relevant H2 where natural; semantic variations used elsewhere without a quota
+- [ ] Natural terminology coverage, semantic variations, and keyword-stuffing detection checked
 - [ ] 3-5+ internal links with good anchor text
 - [ ] 2-3+ external authoritative links
 - [ ] Meta title 50-60 characters with keyword
-- [ ] Meta description 150-160 characters with keyword & CTA
-- [ ] 2000+ words
+- [ ] Meta description 150-160 characters with accurate value or action language suited to search intent
+- [ ] Word count fits search intent, evidence depth, and article objective
 - [ ] Proper H1/H2/H3 hierarchy
 - [ ] Readability 8th-10th grade level
 - [ ] Images have alt text with keywords
-- [ ] Clear CTA in conclusion
+- [ ] Next action matches the Reader Contract and funnel stage; no CTA is added when none is called for
 - [ ] No broken links
 - [ ] Mobile-friendly formatting (short paragraphs, lists)
 

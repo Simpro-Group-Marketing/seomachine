@@ -197,7 +197,7 @@ WARNING_RULES: List[Tuple[str, Pattern[str], str, str]] = [
             re.IGNORECASE,
         ),
         "Vague language needs proof or a concrete example.",
-        "Use a number, named scenario, or specific operational detail.",
+        "Use approved proof or a specific unnamed operational detail.",
     ),
 ]
 

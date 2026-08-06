@@ -9,7 +9,7 @@ Use this command to review and analyze existing your company blog posts for SEO 
 1. Fetches and analyzes existing blog post content
 2. Evaluates current SEO performance and optimization
 3. Identifies outdated information or statistics
-4. Suggests content expansion opportunities
+4. Identifies reader-payoff, evidence, and task-completion gaps that may justify revision or expansion
 5. Audits AEO/GEO rewrite readiness and missing strategy inputs
 6. Provides actionable improvement recommendations
 
@@ -45,10 +45,10 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
 ### SEO Audit (Enhanced with New Analysis Tools)
 - **Search Intent Analysis** (NEW!): Determine if content matches user search intent (informational/commercial/transactional/navigational)
 - **Target Keyword**: Identify primary keyword and variations
-- **Keyword Density & Clustering** (NEW!): Deep analysis of keyword density, distribution heatmap, topic clustering, and keyword stuffing risk detection
+- **Keyword Coverage & Clustering** (NEW!): Report density as context, assess distribution and semantic coverage, and detect keyword stuffing. Apply density-audit labels only when the caller supplies an explicit target.
 - **Keyword Placement**: Check H1, H2, first 100 words, meta title/description
 - **Heading Structure**: Evaluate H1-H6 hierarchy and keyword integration
-- **Content Length Comparison** (NEW!): Compare word count against top 10-20 SERP competitors to determine optimal length
+- **Content Length Context** (NEW!): Report the article and top 10-20 SERP competitor word counts as observed context. Do not derive the article target from competitor length.
 - **Meta Elements**: Review meta title (50-60 chars) and description (150-160 chars)
 - **Internal Links**: Count and evaluate quality of internal links (aim for 3-5+)
 - **External Links**: Check for authoritative external sources
@@ -69,7 +69,9 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
 ### Competitive Context
 - **SERP Position**: Research current ranking for target keywords (if known)
 - **Top Competitors**: Identify top 3-5 ranking articles for same keywords
-- **Content Gaps**: What do competitors cover that this article doesn't?
+- **Dominant format default**: Match the dominant observed content type unless the Reader Contract documents a justified exception
+- **SERP feature default**: Evaluate every identified feature and target every applicable feature supported by intent, format, reader value, and verified inputs
+- **Content Gaps**: Treat recurring, reader-critical, evidence-supported gaps as must-fill; document any Reader Contract exception
 - **Competitive Advantage**: What unique angles or insights could differentiate this?
 
 ### User Experience
@@ -77,7 +79,7 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
 - **Structure**: Does the article flow logically with clear sections?
 - **Actionability**: Are there practical takeaways and next steps?
 - **Visual Elements**: Note if images, screenshots, or media are mentioned/needed
-- **Call-to-Action**: Is there a clear CTA aligned with user intent?
+- **Next Action**: Does the conclusion provide the next action called for by the Reader Contract and funnel intent? No CTA is required when the contract does not call for one.
 
 ## Output
 Provides a comprehensive analysis report with:
@@ -87,7 +89,7 @@ Enhanced with new analysis modules:
 - **SEO Quality Rating**: Overall SEO score with category breakdowns
 - **Search Intent Alignment**: How well content matches search intent
 - **Keyword Optimization**: Density, distribution, clustering analysis
-- **Content Length Competitiveness**: Position vs SERP competitors
+- **Content Length Context**: Observed position vs SERP competitors and fit against any caller-supplied target
 - **Readability Score**: Flesch scores and grade level
 - **Relevance & Freshness**: Outdated content detection
 - **User Experience**: Flow, structure, actionability
@@ -95,17 +97,17 @@ Enhanced with new analysis modules:
 ### 2. Quick Wins
 Top 3-5 immediate improvements that can be made quickly:
 - Update specific statistics or dates
-- Add missing keywords to headings (with exact density recommendations)
+- Improve critical keyword placement or semantic coverage where the audit identifies a real gap
 - Optimize meta description
 - Add internal links to specific pages
 - Fix readability issues (sentence length, passive voice)
 
 ### 3. Strategic Improvements
 Longer-term enhancements for maximum impact:
-- **Content expansion**: Based on length comparison with competitors (e.g., "Add 800 words to match top performers")
+- **Scope completion**: Fill every applicable must-fill gap; do not expand solely to match competitor word count
 - **Intent alignment**: Adjust content type to match search intent
 - **Topic clustering**: Add missing semantic keywords and related topics
-- New sections to add based on competitive gap analysis
+- New sections only where competitive analysis exposes a reader-payoff, evidence, or task-completion gap
 - SEO optimization priorities from quality rating
 
 ### 4. Detailed Analysis Reports
@@ -113,7 +115,7 @@ The new Content Analyzer agent provides:
 - **Search intent classification** with confidence scores
 - **Keyword density heatmap** by section
 - **Topic cluster visualization**
-- **Competitive length benchmarks** (min, median, 75th percentile)
+- **Observed competitor length context** (min, median, 75th percentile; context only)
 - **Readability metrics** (Flesch scores, sentence analysis, passive voice ratio)
 - **SEO quality breakdown** by category (0-100 for each)
 - **AEO/GEO readiness audit** covering direct answers, Capsule Method, FAQ/PAA, schema notes, source map, E-E-A-T Proof Map, Experience proof present/missing, Expertise proof present/missing, and proof gaps
@@ -121,18 +123,18 @@ The new Content Analyzer agent provides:
 ### 5. Rewrite Recommendations
 - **Priority Level**: Low / Medium / High / Critical (based on SEO score and competitive analysis)
 - **Estimated Effort**: Light edit / Moderate update / Major rewrite / Complete refresh
-- **Expected Impact**: Potential traffic increase, ranking improvement, engagement boost (data-driven estimates)
-- **Specific improvements needed**: Exact word count targets, keyword density adjustments, readability fixes
+- **Expected Impact**: State the evidence-bound expected direction for reader value, task completion, or search alignment, plus uncertainty; do not forecast traffic or rankings without validated forecast inputs
+- **Specific improvements needed**: Reader Contract target fit, critical keyword placement, semantic coverage, stuffing risk, and readability fixes
 - **Rewrite-specific AEO/GEO acceptance checklist**: Required direct-answer intro, 3-5 sourced FAQ/PAA questions, Source Map, E-E-A-T Proof Map, schema notes, AI copy linter zero errors, content quality 85/100+, and AEO/GEO 90/100+
 
 ### 6. Research Brief
 If a rewrite is recommended, provide initial research brief including:
-- Updated target keywords with optimal density targets
-- Competitor articles to review with word count benchmarks
+- Updated target keywords with critical placements, semantic variations, and stuffing-risk notes
+- Competitor articles to review with observed word counts labeled as context only
 - New statistics or data to incorporate
 - Trending angles or perspectives
 - Search intent alignment strategy
-- Optimal content length recommendation (based on SERP analysis)
+- Caller-supplied content target from Reader Contract planning, or an unresolved status when no target exists
 - Internal linking opportunities
 - Main answer target and AEO/GEO variable resolution
 - PAA/FAQ provenance and selected 3-5 closest questions with intent labels

@@ -4,14 +4,15 @@ Engagement Analyzer
 Analyzes articles for the 4 current engagement criteria:
 1. Hook quality (not generic opening)
 2. Sentence rhythm variety
-3. Contextual CTAs (distributed throughout)
+3. CTA alignment with an optional article-plan CTA map
 4. Paragraph length (max 4 sentences)
 """
 
+import argparse
+import glob
 import re
-import sys
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Any, Dict, List, Optional
 
 
 class EngagementAnalyzer:
@@ -57,29 +58,60 @@ class EngagementAnalyzer:
         r'\b[A-Z][a-z]+\'s (?:podcast|show|episode|company|business|team)\b',  # "Sarah's podcast"
     ]
 
-    def analyze(self, content: str, filename: str = "") -> Dict[str, Any]:
-        """Analyze article for 4 engagement criteria (stories removed)"""
+    def analyze(
+        self,
+        content: str,
+        filename: str = "",
+        cta_plan: Optional[Dict[str, int]] = None,
+    ) -> Dict[str, Any]:
+        """Analyze article engagement and optionally enforce its planned CTA count."""
+        if not isinstance(content, str):
+            raise ValueError("content must be a string")
+        if not isinstance(filename, str):
+            raise ValueError("filename must be a string")
+        self._validate_cta_plan(cta_plan)
         results = {
             'filename': filename,
             'hook': self._analyze_hook(content),
             'rhythm': self._analyze_rhythm(content),
-            'ctas': self._analyze_ctas(content),
+            'ctas': self._analyze_ctas(content, cta_plan),
             'paragraphs': self._analyze_paragraphs(content),
         }
 
-        # Calculate pass/fail for each (4 criteria, stories removed)
+        # CTA compliance is unassessed when no article-plan CTA map is supplied.
         results['scores'] = {
             'hook': results['hook']['is_good'],
             'rhythm': results['rhythm']['score'] >= 45,  # Lowered from 60 - comparison articles are table-heavy by design
-            'ctas': results['ctas']['distributed'],
+            'ctas': results['ctas']['meets_plan'],
             'paragraphs': results['paragraphs']['long_count'] <= 3,
         }
 
-        results['passed_count'] = sum(results['scores'].values())
-        results['total_criteria'] = 4
-        results['all_passed'] = results['passed_count'] == 4
+        assessed_scores = [
+            score for score in results['scores'].values() if score is not None
+        ]
+        results['passed_count'] = sum(score is True for score in assessed_scores)
+        results['total_criteria'] = len(assessed_scores)
+        results['all_passed'] = all(score is True for score in assessed_scores)
 
         return results
+
+    @staticmethod
+    def _validate_cta_plan(cta_plan: Optional[Dict[str, int]]) -> None:
+        if cta_plan is None:
+            return
+        if not isinstance(cta_plan, dict):
+            raise ValueError("cta_plan must be a dictionary or None")
+        for role, section_number in cta_plan.items():
+            if not isinstance(role, str) or not role.strip():
+                raise ValueError("cta_plan roles must be non-empty strings")
+            if (
+                isinstance(section_number, bool)
+                or not isinstance(section_number, int)
+                or section_number <= 0
+            ):
+                raise ValueError("cta_plan section numbers must be positive integers")
+        if len(cta_plan.values()) != len(set(cta_plan.values())):
+            raise ValueError("cta_plan section numbers must be distinct")
 
     def _analyze_hook(self, content: str) -> Dict[str, Any]:
         """Analyze opening hook quality"""
@@ -87,7 +119,6 @@ class EngagementAnalyzer:
         lines = content.split('\n')
         first_para = ""
 
-        in_metadata = True
         for line in lines:
             line = line.strip()
             if not line:
@@ -110,7 +141,7 @@ class EngagementAnalyzer:
             if re.search(pattern, first_para, re.IGNORECASE):
                 return {
                     'is_good': False,
-                    'reason': f'Generic opening detected',
+                    'reason': 'Generic opening detected',
                     'opening': first_sentence[:100]
                 }
 
@@ -242,18 +273,48 @@ class EngagementAnalyzer:
             'stories': unique_stories[:3]
         }
 
-    def _analyze_ctas(self, content: str) -> Dict[str, Any]:
-        """Analyze CTA distribution"""
+    def _analyze_ctas(
+        self,
+        content: str,
+        cta_plan: Optional[Dict[str, int]] = None,
+    ) -> Dict[str, Any]:
+        """Report CTA observations and evaluate count only when a plan is supplied."""
         ctas = []
+        candidates = []
 
         for pattern in self.CTA_PATTERNS:
-            matches = re.finditer(pattern, content, re.IGNORECASE)
-            for match in matches:
-                position = match.start() / len(content) * 100  # Position as percentage
-                ctas.append({
-                    'text': match.group()[:50],
-                    'position_pct': round(position)
-                })
+            for match in re.finditer(pattern, content, re.IGNORECASE):
+                candidates.append((match.start(), match.end(), match.group()))
+
+        accepted_spans = []
+        for start, end, matched_text in sorted(
+            candidates,
+            key=lambda item: (item[0], -(item[1] - item[0])),
+        ):
+            if any(
+                start < accepted_end and end > accepted_start
+                for accepted_start, accepted_end in accepted_spans
+            ):
+                continue
+            accepted_spans.append((start, end))
+            position = start / max(len(content), 1) * 100
+            ctas.append({
+                'text': matched_text[:50],
+                'position_pct': round(position),
+                '_start_offset': start,
+            })
+
+        ctas.sort(key=lambda item: item['_start_offset'])
+
+        h2_starts = [
+            match.start()
+            for match in re.finditer(r'^##\s+', content, re.MULTILINE)
+        ]
+        for cta in ctas:
+            cta['section_number'] = 1 + sum(
+                heading_start < cta['_start_offset'] for heading_start in h2_starts
+            )
+            del cta['_start_offset']
 
         # Check distribution
         word_count = len(content.split())
@@ -272,12 +333,35 @@ class EngagementAnalyzer:
             has_late = any(p > 70 for p in positions)
             distributed = has_early and has_late
 
+        evaluation_status = 'evaluated' if cta_plan is not None else 'reported'
+        required_count = len(cta_plan) if cta_plan is not None else None
+        planned_section_locations = (
+            list(cta_plan.values()) if cta_plan is not None else None
+        )
+        observed_section_locations = [cta['section_number'] for cta in ctas]
+        locations_match_plan = (
+            sorted(observed_section_locations) == sorted(planned_section_locations)
+            if planned_section_locations is not None
+            else None
+        )
+        meets_plan = (
+            len(ctas) == required_count and locations_match_plan
+            if required_count is not None
+            else None
+        )
+
         return {
             'count': len(ctas),
             'distributed': distributed,
             'first_cta_word_position': words_before_first_cta,
             'within_500_words': words_before_first_cta is not None and words_before_first_cta <= 500,
-            'ctas': ctas[:5]
+            'ctas': ctas[:5],
+            'evaluation_status': evaluation_status,
+            'required_count': required_count,
+            'planned_section_locations': planned_section_locations,
+            'observed_section_locations': observed_section_locations,
+            'locations_match_plan': locations_match_plan,
+            'meets_plan': meets_plan,
         }
 
     def _analyze_paragraphs(self, content: str) -> Dict[str, Any]:
@@ -317,7 +401,7 @@ def format_results(results: List[Dict]) -> str:
     """Format analysis results as a table"""
     lines = []
     lines.append("=" * 90)
-    lines.append("ENGAGEMENT CRITERIA ANALYSIS - All Articles from 2025-12-10")
+    lines.append("ENGAGEMENT CRITERIA ANALYSIS")
     lines.append("=" * 90)
     lines.append("")
 
@@ -329,12 +413,14 @@ def format_results(results: List[Dict]) -> str:
     totals = {'hook': 0, 'rhythm': 0, 'ctas': 0, 'paragraphs': 0}
 
     for r in results:
-        name = r['filename'].replace('-2025-12-10.md', '')[:43]
+        name = Path(r['filename']).stem[:43] if r['filename'] else "Untitled"
         hook = "✓" if r['scores']['hook'] else "✗"
         rhythm = "✓" if r['scores']['rhythm'] else "✗"
         ctas = "✓" if r['scores']['ctas'] else "✗"
         paras = "✓" if r['scores']['paragraphs'] else "✗"
-        score = f"{r['passed_count']}/4"
+        if r['scores']['ctas'] is None:
+            ctas = "N/A"
+        score = f"{r['passed_count']}/{r['total_criteria']}"
 
         if r['all_passed']:
             passed_all += 1
@@ -361,17 +447,17 @@ def format_results(results: List[Dict]) -> str:
         lines.append("")
         lines.append(f"❌ HOOK ISSUES ({len(hook_issues)} articles):")
         for r in hook_issues:
-            lines.append(f"   • {r['filename'].replace('-2025-12-10.md', '')}")
+            lines.append(f"   • {Path(r['filename']).stem}")
             lines.append(f"     Opening: \"{r['hook']['opening'][:70]}...\"")
             lines.append(f"     Reason: {r['hook']['reason']}")
 
     # CTA issues
-    cta_issues = [r for r in results if not r['scores']['ctas']]
+    cta_issues = [r for r in results if r['scores']['ctas'] is False]
     if cta_issues:
         lines.append("")
         lines.append(f"❌ CTA DISTRIBUTION ISSUES ({len(cta_issues)} articles):")
         for r in cta_issues:
-            lines.append(f"   • {r['filename'].replace('-2025-12-10.md', '')}: {r['ctas']['count']} CTAs, distributed={r['ctas']['distributed']}")
+            lines.append(f"   • {Path(r['filename']).stem}: {r['ctas']['count']} CTAs, distributed={r['ctas']['distributed']}")
 
     # Paragraph issues
     para_issues = [r for r in results if not r['scores']['paragraphs']]
@@ -379,7 +465,7 @@ def format_results(results: List[Dict]) -> str:
         lines.append("")
         lines.append(f"❌ PARAGRAPH LENGTH ISSUES ({len(para_issues)} articles - >3 long paragraphs):")
         for r in para_issues:
-            lines.append(f"   • {r['filename'].replace('-2025-12-10.md', '')}: {r['paragraphs']['long_count']} paragraphs >4 sentences")
+            lines.append(f"   • {Path(r['filename']).stem}: {r['paragraphs']['long_count']} paragraphs >4 sentences")
 
     # Rhythm issues (list last as there are many)
     rhythm_issues = [r for r in results if not r['scores']['rhythm']]
@@ -387,7 +473,7 @@ def format_results(results: List[Dict]) -> str:
         lines.append("")
         lines.append(f"❌ RHYTHM ISSUES ({len(rhythm_issues)} articles - monotonous sentence patterns):")
         for r in rhythm_issues:
-            lines.append(f"   • {r['filename'].replace('-2025-12-10.md', '')}: score={r['rhythm']['score']}, monotonous_sections={r['rhythm']['monotonous_sections']}")
+            lines.append(f"   • {Path(r['filename']).stem}: score={r['rhythm']['score']}, monotonous_sections={r['rhythm']['monotonous_sections']}")
 
     lines.append("")
     lines.append("=" * 90)
@@ -395,17 +481,29 @@ def format_results(results: List[Dict]) -> str:
     return "\n".join(lines)
 
 
-def main():
-    """Analyze all articles from today"""
-    import glob
+def parse_cli_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
+    """Parse explicit files or a configurable Markdown glob."""
+    parser = argparse.ArgumentParser(
+        description="Analyze article engagement and optional CTA-plan compliance."
+    )
+    parser.add_argument("files", nargs="*", help="Markdown files to analyze")
+    parser.add_argument(
+        "--glob",
+        dest="pattern",
+        default="drafts/*.md",
+        help="Glob used when no explicit files are supplied (default: drafts/*.md)",
+    )
+    return parser.parse_args(argv)
 
-    # Find all articles from today
-    pattern = "drafts/*2025-12-10*.md"
-    files = sorted(glob.glob(pattern))
+
+def main(argv: Optional[List[str]] = None) -> int:
+    """Analyze explicit Markdown files or all drafts matching a caller glob."""
+    args = parse_cli_args(argv)
+    files = sorted(args.files or glob.glob(args.pattern))
 
     if not files:
-        print(f"No files found matching {pattern}")
-        sys.exit(1)
+        print(f"No files found matching {args.pattern}")
+        return 1
 
     print(f"Found {len(files)} articles to analyze...")
     print("")
@@ -422,7 +520,8 @@ def main():
         results.append(result)
 
     print(format_results(results))
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

@@ -1,31 +1,36 @@
 # Research SERP Command
 
-Deep SERP analysis for a specific keyword to understand what Google wants.
+Deep SERP analysis for a specific keyword to understand what Google wants from verified visible results. Treat observed patterns as strong editorial defaults, with documented Reader Contract exceptions when reader intent, evidence, format, or business needs justify a different choice.
 
 ## Usage
-`/research-serp "keyword phrase"`
+`/research-serp "keyword phrase" [--word-target 1600]`
 
 ## What This Command Does
 
-Analyzes the top 10 ranking results for a keyword to provide detailed content requirements:
+Analyzes the top 10 ranking results for a keyword to provide observed search context:
 - Content type patterns (listicle, how-to, guide, etc.)
-- Average word count and recommended length
+- Average, median, range, and individual competitor word counts as context only
 - SERP features present (featured snippet, PAA, video, etc.)
 - AEO/GEO variable candidates for blog writing
 - PAA/FAQ questions that should feed the AnswerSocrates artifact or article plan
-- Freshness requirements
+- Observed freshness signals
 - Competitive difficulty
 - Search intent
 - Common content structure
 
-Generates comprehensive content brief for creating or updating content.
+Generates an evidence-bound content brief with explicit observations, strong default recommendations, exception requirements, and proof boundaries.
 
 ## Process
 
 Execute SERP analysis for a keyword:
 ```bash
 python scripts/research_serp_analysis.py "your target keyword"
+python scripts/research_serp_analysis.py "your target keyword" --word-target 1600
 ```
+
+Omit `--word-target` when Reader Contract planning has not resolved an intent- and evidence-complete target. The report will mark the target unresolved rather than inventing one from competitor counts.
+
+Within the AEO variable-resolution workflow, "competitive length from `/research-serp`" means the observed competitor distribution is planning context. It does not authorize a derived target, minimum, or expansion recommendation. The Reader Contract remains the source of the caller-supplied target.
 
 This will:
 1. Fetch top 20 organic results from DataForSEO
@@ -80,15 +85,17 @@ If Playwright fallback is blocked, the report must state that DataForSEO failed,
 
 The report includes:
 
-### Content Requirements
-- Recommended word count (based on top 10 average + 10%)
-- Dominant content type (what format works)
+### Content Context
+- Observed competitor word-count average, median, range, and individual counts
+- Caller-supplied word target and observed difference when `--word-target` is present; otherwise target status is unresolved
+- Match the dominant observed content type by default; document a Reader Contract exception when a different format better serves reader intent, evidence, or business needs
 - Content type distribution
 
 ### SERP Features
 - Featured snippet opportunity
 - People Also Ask questions
-- Video/image requirements
+- Evaluate every identified SERP feature and target every applicable feature supported by search intent, article format, reader value, and verified inputs
+- Observed video/image modules to evaluate and target when applicable
 - Other SERP features present
 
 ### AEO/GEO Inputs
@@ -98,16 +105,16 @@ The report includes:
 - Source mapping needs for credible external claims
 
 ### Content Brief
-- Target specifications (word count, type, tone)
-- Must-have elements
-- Recommended structure
-- SERP features to target
-- Freshness requirements
+- Article context (caller-supplied word target or unresolved status, observed type, tone)
+- Must-have elements supported by verified observations, reader importance, and available evidence
+- Recommended structure based on verified ranking patterns, with any Reader Contract exception documented
+- SERP features to target when applicable
+- Observed freshness signals
 
 ### Competitive Analysis
 - Domain authority mix
 - Difficulty assessment
-- Timeframe expectations
+- Authority context without ranking or timeframe predictions
 
 ### Action Plan
 Step-by-step process from research to publishing
@@ -118,13 +125,13 @@ Step-by-step process from research to publishing
 ```
 /research-serp "best project management tools"
 ```
-Understand: Is this a listicle? How long should it be? What features to include?
+Understand: Is this a listicle? What reader questions and evidence patterns recur? What features should the brief evaluate?
 
 **Before updating existing content**:
 ```
 /research-serp "how to choose the right software"
 ```
-Check if SERP patterns have changed, update to match current expectations
+Check whether visible SERP patterns have changed, then evaluate them against the Reader Contract, evidence, and intended reader task.
 
 ## Integration
 
@@ -132,7 +139,8 @@ After running `/research-serp`:
 - Use the content brief to guide writing
 - Feed the PAA questions and `main_question` into `research/paa-questions-[topic-slug]-[YYYY-MM-DD].md` or the `/article` AEO/GEO Map
 - Use `/write [keyword]` with insights from SERP analysis
-- Ensure content matches recommended structure and length
+- Match the dominant observed content type by default; evaluate recurring observed structure, include each applicable structure, target every applicable SERP feature, and document any Reader Contract exception
+- Use competitor length only as observed context; resolve scope from the Reader Contract, reader payoff, task coverage, and available evidence
 
 ## Time & Cost
 
@@ -142,7 +150,7 @@ After running `/research-serp`:
 
 ## When to Run
 
-- **Before creating any new content**: Know requirements upfront
-- **Before major content updates**: Check current SERP expectations
-- **When stuck on format**: See what type of content ranks
+- **Before creating any new content**: Record visible search context before Reader Contract planning
+- **Before major content updates**: Check current SERP observations and treat applicable verified patterns as strong defaults, with each deviation documented in the Reader Contract
+- **When evaluating format**: Compare observed title patterns with the reader's intended task
 - **For competitive research**: Understand difficulty before committing

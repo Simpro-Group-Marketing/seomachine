@@ -188,11 +188,11 @@ Examples:
 
 ## Scoring Breakdown
 
-| Headline | Clarity | Benefit | Urgency | Specificity | Keyword | Total |
-|----------|---------|---------|---------|-------------|---------|-------|
-| [H1] | [X/20] | [X/25] | [X/15] | [X/20] | [X/20] | [X/100] |
-| [H2] | [X/20] | [X/25] | [X/15] | [X/20] | [X/20] | [X/100] |
-| [H3] | [X/20] | [X/25] | [X/15] | [X/20] | [X/20] | [X/100] |
+| Headline | Reader Specificity | Clarity | Payoff Clarity | Distinctiveness | Promise Integrity | Keyword | Total |
+|----------|--------------------|---------|----------------|-----------------|-------------------|---------|-------|
+| [H1] | [X/15] | [X/15] | [X/20] | [X/15] | [X/20] | [X/15] | [X/100] |
+| [H2] | [X/15] | [X/15] | [X/20] | [X/15] | [X/20] | [X/15] | [X/100] |
+| [H3] | [X/15] | [X/15] | [X/20] | [X/15] | [X/20] | [X/15] | [X/100] |
 
 ---
 
@@ -250,27 +250,32 @@ For each top headline, a supporting subheadline:
 
 ## Headline Scoring Criteria
 
-### Clarity (20 points)
+### Reader Specificity (15 points)
+- Is the intended reader identifiable?
+- Does the headline signal role, business type, workflow, region, or maturity where useful?
+- Would the right reader recognize the article is for them?
+
+### Clarity (15 points)
 - Is it immediately understandable?
 - No jargon or ambiguity?
 - Clear subject and action?
 
-### Benefit Focus (25 points)
+### Payoff Clarity (20 points)
 - Clear benefit to the reader?
 - "What's in it for me" is obvious?
 - Outcome-focused, not feature-focused?
 
-### Urgency/Curiosity (15 points)
-- Creates desire to learn more?
-- Implies time-sensitivity?
-- Generates curiosity?
+### Distinctiveness (15 points)
+- Does the headline have a real angle rather than cosmetic power words?
+- Does it avoid generic category framing?
+- Does it make the article worth choosing over similar SERP results?
 
-### Specificity (20 points)
-- Specific numbers or timeframes?
-- Concrete outcome?
-- Not vague or generic?
+### Promise Integrity (20 points)
+- Does the article fully deliver the headline promise?
+- Are claims bounded to the available evidence?
+- Numbers, timeframes, superlatives, urgency, and transformation claims require proof or must be softened.
 
-### Keyword Integration (20 points)
+### Keyword Integration (15 points)
 - Contains primary keyword naturally?
 - Keyword near the beginning?
 - SEO-friendly (for SEO pages)?
@@ -290,6 +295,7 @@ For each top headline, a supporting subheadline:
 - Use jargon or buzzwords
 - Make it too long
 - Start with "Welcome" or "Introducing"
+- Use numbers, timeframes, superlatives, urgency, or transformation claims without proof
 
 ## Weak Headline Patterns to Avoid
 

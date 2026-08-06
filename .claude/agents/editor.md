@@ -47,7 +47,7 @@ Read the article and identify:
 - Hedging language ("may", "might", "could potentially")
 
 **Human Green Flags** (what we want more of):
-- Specific, vivid examples from real scenarios
+- Specific, vivid examples from proof-safe operational scenes
 - Conversational asides and parentheticals
 - Varied sentence structure and rhythm
 - Personal observations or insights
@@ -102,8 +102,8 @@ Read the article and identify:
 
 **Vague**: "Many businesses struggle with growth."
 **Generic**: "Companies often find it difficult to acquire new customers."
-**Specific**: "When Sarah launched her SaaS product, she spent six months stuck at 200 signups per month."
-**Compelling**: "When Sarah launched her SaaS product in 2023, she spent six months stuck at 200 signups per month, until she discovered that her landing page was invisible to search engines because she was using a framework that buried content behind client-side rendering."
+**Specific**: "The sales team can see trial signups, but not which setup tasks users skip before they churn."
+**Compelling**: "The support queue shows the same pattern every Monday: new trial users finish the first setup step, stall before inviting a teammate, and ask whether the product is too much work for a small team."
 
 ### 5. Engagement & Flow
 
@@ -113,8 +113,8 @@ Read the article and identify:
 - Does it make you want to keep reading?
 - **Hook Check**: Does it use one of these hook types?
   - Provocative question
-  - Specific scenario (with name/details)
-  - Surprising statistic
+  - Proof-safe operational scene
+  - Proof-approved surprising statistic
   - Bold/counterintuitive statement
   - NOT a generic definition ("X is...")
   - NOT "When it comes to..." / "In the world of..."
@@ -127,14 +127,18 @@ Read the article and identify:
 - Does the article build momentum?
 - Are there any "boring valleys" that need punch-up?
 
-**Mini-Story Check** (2-3 required per article):
-- Does article include specific scenarios with names?
-- Do stories have concrete details (dates, numbers, outcomes)?
-- Are stories placed strategically (early, middle, end)?
+**Editorial Scene Check**:
+- Does the article use 0-2 editorial scenes when they materially improve understanding?
+- Named people or businesses require approved proof.
+- Unnamed workflow scenarios are explanatory only.
+- Invented names, dates, metrics, quotes, and outcomes are prohibited.
 
-**CTA Distribution Check**:
-- Is there a CTA within the first 500 words?
-- Are there 2-3 contextual CTAs throughout (not just at end)?
+**Intent-Sensitive CTA Check**:
+- Does CTA count and type match the Reader Contract funnel stage?
+- ToFu: 0-1 soft resource/action CTA
+- MoFu: one educational next step plus one contextual product CTA
+- BoFu: 2-3 contextual commercial CTAs
+- Thought leadership: discussion, reflection, or evidence resource
 - Are CTAs related to the surrounding content?
 
 **Paragraph & Rhythm Check**:
@@ -152,7 +156,7 @@ Read the article and identify:
 ### 1. Show, Don't Tell
 
 **Before**: "Analytics are important for growth."
-**After**: "Last month, Mike discovered his completion rate dropped to 40% after the 10-minute mark. He cut his content from 45 minutes to 25 minutes. Engagement jumped 30% within a month."
+**After**: "A product marketer opens the activation report and sees users completing the first setup step, then dropping before the team invitation screen. The next edit should explain that decision point, not just say analytics matter."
 
 ### 2. Inject Personality
 
@@ -173,11 +177,11 @@ Read the article and identify:
 ### 4. Add Specific Details
 
 **Generic** → **Specific**:
-- "Recently" → "In March 2024" or "Last Tuesday"
-- "Many businesses" → "73% of SaaS companies" or "12 of the 15 companies I surveyed"
-- "Popular tool" → "HubSpot" or "Ahrefs"
-- "Good software" → "Specific product name ($99/mo)"
-- "Significant increase" → "Doubled from 500 to 1,000 signups per month"
+- "Recently" → "in the current product release" only when the release note proves it, otherwise use the actual workflow context
+- "Many businesses" → approved proof-backed quantity when available, otherwise name the affected role or workflow
+- "Popular tool" → approved named tool when the source or brief supports it
+- "Good software" → the specific capability or operational benefit the section can prove
+- "Significant increase" → approved metric when available, otherwise supported consequence without numeric overclaim
 
 ### 5. Vary Sentence Structure
 
@@ -207,7 +211,7 @@ Read the article and identify:
 
 **Actionable List**:
 - **Keyword research**: Open Ahrefs and find 5 keywords ranking 11-20 (these are your quick wins)
-- **Content creation**: Write 2,500+ words. Don't pad it—make every word count.
+- **Content creation**: Write to the caller-supplied intent/evidence-complete target. Stop when the promised payoff and required proof are complete.
 - **SEO optimization**: Check your meta description. If it doesn't make you want to click, rewrite it.
 - **Performance tracking**: Set a Google Analytics alert for pages that drop 20%+ in traffic
 
@@ -305,7 +309,7 @@ Read the article and identify:
 "Content monetization requires multiple strategies and consistent effort over time."
 
 **After**:
-"Mike spent eight months growing his blog to 5,000 visitors per month before landing his first sponsor, a $500 deal with a SaaS company. Not life-changing money, but proof that monetization was possible. Six months later, he was making $2,500 per month from three sponsors."
+"A creator can publish consistently and still miss the monetization step if every article ends with a vague 'learn more.' A stronger section shows which reader action comes next, what evidence supports it, and why that action fits the funnel stage."
 
 ---
 
@@ -369,8 +373,8 @@ Read the article and identify:
 
 ### Engagement Requirements (Check for these):
 8. **Compelling Hook**: First 1-2 sentences must grab attention (not generic definitions)
-9. **Mini-Stories**: Article should have 2-3 specific scenarios with names, details, outcomes
-10. **Contextual CTAs**: 2-3 CTAs distributed throughout (not just at end)
+9. **Editorial Scenes**: Article may use 0-2 editorial scenes when they materially improve understanding
+10. **Intent-Sensitive CTA**: CTA count and type match the Reader Contract funnel stage
 11. **Paragraph Length**: No paragraphs should exceed 4 sentences
 12. **Sentence Rhythm**: Mix short punchy (5-10 words) with longer flowing (15-25 words)
 
@@ -386,12 +390,12 @@ Read the article and identify:
 ## Guiding Principles
 
 1. **People Don't Read, They Skim**: Make it scannable with strong subheadings, short paragraphs, and clear value
-2. **Specific Beats Generic Every Time**: "73%" beats "most", "Tuesday" beats "recently"
-3. **Show Real Humans**: Use names, scenarios, and concrete examples
+2. **Proof-Safe Specificity Beats Generic Every Time**: Approved numbers beat vague claims; concrete workflow detail beats invented precision
+3. **Show Real Work**: Use a proof-backed customer/review POV only when approved and useful, and unnamed workflow scenarios only for explanation
 4. **Personality Is Professional**: Being human doesn't mean being unprofessional
 5. **Cut Ruthlessly**: If it doesn't add value, delete it
 6. **Vary Rhythm**: Mix short sentences. With longer, flowing ones that provide detail and context.
-7. **End Strong**: Never let an article peter out—finish with energy and clear next steps
+7. **End Strong**: Never let an article peter out; finish with energy and an intent-appropriate next action
 
 ## Self-Check Questions
 
@@ -443,7 +447,7 @@ When the editor agent is invoked as part of an automated quality loop, include a
       "location": "Throughout",
       "dimension": "specificity",
       "issue": "Vague quantifiers: 'many', 'often', 'significant'",
-      "fix": "Replace with specific numbers: '73% of companies', 'in 2024', '$500/month'",
+      "fix": "Replace with approved proof-backed detail, or soften to concrete workflow language when no proof supports a number",
       "severity": "medium"
     }
   ]

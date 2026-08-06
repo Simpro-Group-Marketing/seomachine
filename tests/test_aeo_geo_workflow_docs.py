@@ -1,3 +1,4 @@
+import re
 import unittest
 from pathlib import Path
 
@@ -1389,6 +1390,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             ROOT / ".claude" / "commands" / "article.md",
             ROOT / ".claude" / "commands" / "write.md",
             ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "agents" / "editor.md",
             ROOT / "README.md",
             ROOT / "CLAUDE.md",
             ROOT / "AGENTS.md",
@@ -1401,6 +1403,10 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "Every article MUST include 2-3 mini-scenarios",
             "2-3 mini-stories with names/details/outcomes",
             "2-3 mini-stories with specifics",
+            "specific scenario (with name/details)",
+            "when sarah launched her saas product",
+            "spent six months stuck at 200 signups per month",
+            "until she discovered",
         ]
         for path in docs:
             content = path.read_text(encoding="utf-8")
@@ -1412,6 +1418,502 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             )
             for text in forbidden:
                 self.assertNotIn(text.lower(), lowered, f"{path.name} still allows fictional stories")
+
+    def test_active_blog_guidance_does_not_force_unsupported_specifics(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "agents" / "editor.md",
+            ROOT / ".claude" / "skills" / "copy-editing" / "SKILL.md",
+            ROOT / "context" / "style-guide.md",
+            ROOT / "data_sources" / "modules" / "section_writer.py",
+        ]
+        forbidden_patterns = [
+            r"\bmany\b\s*(?:->|\u2192)\s*['\"]?73%",
+            r"\brecently\b\s*(?:->|\u2192)\s*['\"]?(?:in\s+)?(?:march\s+2024|last\s+tuesday)",
+            r"\bspecific numbers? (?:are|is) included\b",
+            r"replace with specific numbers?:\s*['\"]?73% of companies",
+            r"\$500/month",
+            r"at least one named customer or named number per major section",
+            r"Save time\s*\|\s*Save 4 hours every week",
+            r"Many customers\s*\|\s*2,847 teams",
+            r"Fast results\s*\|\s*Results in 14 days",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for pattern in forbidden_patterns:
+                self.assertIsNone(
+                    re.search(pattern, content, re.IGNORECASE),
+                    f"{path} still forces unsupported specificity: {pattern}",
+                )
+
+    def test_blog_editorial_quality_contracts_are_documented(self):
+        workflow_docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+        ]
+        reader_contract_terms = [
+            "Reader Contract",
+            "Primary reader",
+            "Sophistication level",
+            "Trigger problem",
+            "Existing belief",
+            "Decision or task helped",
+            "Distinctive angle",
+            "Promised payoff",
+            "Funnel stage",
+            "Exclusions",
+        ]
+        continuity_terms = [
+            "Continuity Pass",
+            "advance the headline promise",
+            "question created by the previous section",
+            "repeated resets",
+            "logical relationship",
+            "complete the introduction",
+            "remove or justify",
+        ]
+        scene_terms = [
+            "0-2 editorial scenes",
+            "materially improve understanding",
+            "Named people or businesses require approved proof",
+            "Unnamed workflow scenarios are explanatory only",
+            "invented names, dates, metrics, quotes, and outcomes",
+        ]
+        cta_terms = [
+            "intent-sensitive CTA",
+            "ToFu: 0-1 soft resource/action CTA",
+            "MoFu: one educational next step plus one contextual product CTA",
+            "BoFu: 2-3 contextual commercial CTAs",
+            "Thought leadership: discussion, reflection, or evidence resource",
+        ]
+        keyword_terms = [
+            "intent/evidence-complete word target",
+            "natural terminology coverage",
+            "critical keyword placement",
+            "semantic variations",
+            "keyword-stuffing detection",
+        ]
+
+        for path in workflow_docs:
+            content = path.read_text(encoding="utf-8")
+            for text in reader_contract_terms:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+            for text in continuity_terms:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+            for text in scene_terms:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+            for text in cta_terms:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+            for text in keyword_terms:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
+        article_command = workflow_docs[0].read_text(encoding="utf-8")
+        self.assertNotIn("**Proof-Backed POV**", article_command)
+        self.assertGreaterEqual(article_command.count("**Editorial Scene**"), 4)
+        self.assertIn("1. **Create Reader Contract**", article_command)
+        self.assertIn("3. **Create Reader-Guided Structure**", article_command)
+        self.assertNotIn("2. **Create Google-Validated Structure**", article_command)
+        self.assertLess(
+            article_command.index("1. **Create Reader Contract**"),
+            article_command.index("3. **Create Reader-Guided Structure**"),
+            "article.md must resolve the Reader Contract before SERP-derived structure planning",
+        )
+
+    def test_editorial_docs_remove_hard_story_length_density_requirements(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "analyze-existing.md",
+            ROOT / ".claude" / "commands" / "research-serp.md",
+            ROOT / ".claude" / "commands" / "cluster.md",
+            ROOT / ".claude" / "commands" / "priorities.md",
+            ROOT / ".claude" / "commands" / "research-topics.md",
+            ROOT / ".claude" / "agents" / "editor.md",
+            ROOT / ".claude" / "agents" / "seo-optimizer.md",
+            ROOT / ".claude" / "agents" / "content-analyzer.md",
+            ROOT / ".claude" / "agents" / "cluster-strategist.md",
+            ROOT / ".claude" / "agents" / "performance.md",
+            ROOT / ".claude" / "agents" / "keyword-mapper.md",
+            ROOT / ".claude" / "agents" / "meta-creator.md",
+            ROOT / ".claude" / "skills" / "copy-editing" / "SKILL.md",
+            ROOT / ".claude" / "skills" / "seo-audit" / "references" / "aeo-geo-patterns.md",
+            ROOT / "README.md",
+            ROOT / "context" / "seo-guidelines.md",
+            ROOT / "context" / "style-guide.md",
+            ROOT / "context" / "features.md",
+            ROOT / "scripts" / "research_serp_analysis.py",
+            ROOT / "scripts" / "research_trending.py",
+            ROOT / "scripts" / "research_quick_wins.py",
+            ROOT / "scripts" / "research_priorities_comprehensive.py",
+            ROOT / "scripts" / "research_performance_matrix.py",
+            ROOT / "scripts" / "research_competitor_gaps.py",
+            ROOT / "data_sources" / "modules" / "content_length_comparator.py",
+            ROOT / "data_sources" / "modules" / "competitor_gap_analyzer.py",
+            ROOT / "data_sources" / "modules" / "social_research_aggregator.py",
+        ]
+        forbidden_patterns = [
+            r"specific scenarios " + r"with names",
+            r"names, details, " + r"and outcomes",
+            r"Mini-Story Check " + r"\(2-3 required",
+            r"Minimum 2000 " + r"words",
+            r"Keyword density " + r"1-2%",
+            r"Primary Keyword Density.*"
+            + r"1-2%",
+            r"Target:\s*1\.0-2\.0%",
+            r"1\.5%\s+density.*\u2713",
+            r"Write\s+2,500\+\s+words",
+            r"Main Body\s+\(1800-2500\+\s+words\)",
+            r"Target Word Count\*\*:\s+Minimum words needed to compete",
+            r"Word count expansion",
+            r"optimal keyword placement and density",
+            r"(?:Introduction|Conclusion)\s+\(150[-\u2013]2(?:00|50)\s+words\)",
+            r"\b(?:200[-\u2013]300|250[-\u2013]400|300[-\u2013]400)\s+words(?:\s+per section|\s+total)",
+            r"Minimum\*\*:\s+150 words per H2",
+            r"Maximum\*\*:\s+500 words per H2",
+            r"Ideal\*\*:\s+250[-\u2013]350 words per main section",
+            r"subheadings every 300[-\u2013]400 words",
+            r"Section length within 150[-\u2013]500 words",
+            r"\(Good\)|\(Sparse\)|\(Missing!\)",
+            r"optimal/too_low/too_high",
+            r"too_short/short/competitive/optimal/long",
+            r"recommended word count",
+            r"average\s*\+\s*10%",
+            r"exceed average by 10%",
+            r"meets/exceeds the recommended word count",
+            r"exact word count targets",
+            r"optimal density targets",
+            r"optimal content length recommendation",
+            r"determine optimal word count",
+            r"Add\s+\d[\d,]*\s+words",
+            r"Content expansion.*length comparison",
+            r"\b1,500[-\u2013]3,000\b",
+            r"\b2,000\+\s+word",
+            r"\b2500\+\s+word",
+            r"\b2000\+\s+word",
+            r"\b2000[-\u2013]3000\b",
+            r"\b3,000[-\u2013]5,000\s+words\b",
+            r"\b3000\+\s+words\b",
+            r"\b500\+\s+words\b",
+            r"\b500[-\u2013]800\s+words\b",
+            r"\b300[-\u2013]500\s+words\s+minimum\b",
+            r"\b250[-\u2013]400\s+words\b",
+            r"target word count based on competitor analysis",
+            r"Improve keyword density and placement",
+            r"optimal blog length",
+            r"Distribution Heat Map",
+            r"exact-match instance",
+            r"(?:Introduction|Section \d+|Conclusion)\s+\(\d+[-\u2013]\d+ words\)",
+            r"Target:\s*3/5",
+            r"unless\s+3,000\+\s+word article",
+            r"Only\s+1\s+instance\s+in\s+400\s+words",
+            r"Specific scenario\s+\(with name/details\)",
+            r"when Sarah launched her SaaS product",
+            r"spent six months stuck at 200 signups per month",
+            r"\bmany\b\s*(?:->|\u2192)\s*['\"]?73%",
+            r"\$500/month",
+            r"At least one named customer or named number per major section",
+            r"Length:\s*\[behind/competitive/leading\]",
+            r"Competitive length benchmarks",
+            r"New sections to add based on competitive gap analysis",
+            r"New sections to fill competitive content gaps",
+            r"Deepen shallow sections with more detail",
+            r"Google-Validated Structure",
+            r"sections appear essential",
+            r"ranking sections appear essential",
+            r"Include top-ranking sections unless",
+            r"Address 3\+ competitor gaps",
+            r"Fine-tunes keyword placement and density",
+            r"4[-\u2013]7 H2 sections",
+            r"2[-\u2013]3 (?:should include|H2s include|with) keyword variations",
+            r"(?:keyword|primary keyword).{0,30}(?:2[-\u2013]3|2\+) H2",
+            r"(?:at least )?2[-\u2013]3 H2 headings",
+            r"(?:keyword|primary keyword).{0,40}at least [2-9] H2",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for pattern in forbidden_patterns:
+                self.assertIsNone(
+                    re.search(pattern, content, re.IGNORECASE),
+                    f"{path.name} still contains hard editorial proxy: {pattern}",
+                )
+
+    def test_serp_gap_and_named_proof_guidance_uses_strong_defaults_with_guards(self):
+        research_serp = (
+            ROOT / ".claude" / "commands" / "research-serp.md"
+        ).read_text(encoding="utf-8")
+        article = (ROOT / ".claude" / "commands" / "article.md").read_text(
+            encoding="utf-8"
+        )
+        priorities = (
+            ROOT / "scripts" / "research_priorities_comprehensive.py"
+        ).read_text(encoding="utf-8")
+        seo_guidelines = (ROOT / "context" / "seo-guidelines.md").read_text(
+            encoding="utf-8"
+        )
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+        for text in [
+            "understand what Google wants",
+            "Match the dominant observed content type by default",
+            "target every applicable feature",
+            "Reader Contract exception",
+            "Must-have elements",
+            "Recommended structure",
+        ]:
+            self.assertIn(text, research_serp)
+
+        for text in [
+            "MUST-FILL GAPS",
+            "Success Stories Found",
+            "structure that ranks",
+            "opportunities to beat",
+            "recurring, reader-critical",
+            "Named people or businesses require approved proof",
+            "## SERP Strategy Decision",
+            "do not continue with an undocumented deviation",
+        ]:
+            self.assertIn(text, article)
+
+        self.assertIn("Evaluate all identified SERP features", priorities)
+        self.assertIn("target every applicable feature", priorities)
+        self.assertIn("Evaluate all identified coverage gaps", priorities)
+        self.assertIn("recurring, reader-critical, evidence-supported", priorities)
+        self.assertIn("document the Reader Contract exception", priorities)
+        self.assertIn("Use approved named customer proof", seo_guidelines)
+        self.assertIn("approved named customer proof", readme)
+
+    def test_direct_writing_workflows_preserve_serp_decision_handoff(self):
+        for relative_path in (
+            ".claude/commands/write.md",
+            ".claude/commands/rewrite.md",
+        ):
+            content = (ROOT / relative_path).read_text(encoding="utf-8")
+            self.assertIn("## SERP Strategy Decision", content)
+            self.assertIn("dominant observed content type", content)
+            self.assertIn("documented Reader Contract exception", content)
+            self.assertIn("verified SERP", content)
+
+    def test_blog_docs_do_not_use_h2_quotas_or_universal_video_embeds(self):
+        active_docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "agents" / "seo-optimizer.md",
+            ROOT / ".claude" / "agents" / "keyword-mapper.md",
+            ROOT / "context" / "seo-guidelines.md",
+        ]
+        h2_quota = re.compile(
+            r"H2[^\n]{0,80}(?:\bneed\b|\bminimum\b|\btarget\s*:)[^\n]{0,40}\d",
+            re.IGNORECASE,
+        )
+        universal_video = re.compile(
+            r"(?:include|embed|require)[^\n]{0,35}at least one[^\n]{0,30}video|"
+            r"at least one[^\n]{0,30}video[^\n]{0,35}(?:include|embed|required)",
+            re.IGNORECASE,
+        )
+
+        for path in active_docs:
+            content = path.read_text(encoding="utf-8")
+            self.assertIsNone(h2_quota.search(content), f"H2 quota remains in {path}")
+            self.assertIsNone(
+                universal_video.search(content),
+                f"Universal video requirement remains in {path}",
+            )
+
+        article = active_docs[0].read_text(encoding="utf-8")
+        self.assertIn("omit the embed", article)
+        self.assertIn("VideoObject only when a video is embedded", article)
+
+    def test_proof_infrastructure_routes_only_to_validation_sidecars(self):
+        article = (ROOT / ".claude" / "commands" / "article.md").read_text(
+            encoding="utf-8"
+        )
+        rewrite = (ROOT / ".claude" / "commands" / "rewrite.md").read_text(
+            encoding="utf-8"
+        )
+
+        for content in (article, rewrite):
+            self.assertIn("Proof infrastructure belongs only in the validation sidecar", content)
+            self.assertIn("sidecar path and status", content)
+
+    def test_fallback_style_and_linter_guidance_remain_proof_safe(self):
+        style = (ROOT / "context" / "style-guide.md").read_text(encoding="utf-8")
+        brand_voice = (ROOT / "context" / "brand-voice.md").read_text(
+            encoding="utf-8"
+        )
+        features = (ROOT / "context" / "features.md").read_text(encoding="utf-8")
+        linter = (
+            ROOT / "data_sources" / "modules" / "ai_copy_linter.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertNotIn("Always put a comma before because", style)
+        self.assertNotIn("Em dashes (—) not hyphens with spaces", style)
+        self.assertIn("grammar and sentence meaning", style)
+        self.assertNotIn("number, named scenario", linter)
+        self.assertIn("approved proof", linter)
+        self.assertNotIn(
+            "At least one named customer, named number, or named trade per major section",
+            brand_voice,
+        )
+        self.assertNotIn(
+            "Round numbers, named customers, specific outcomes — always",
+            brand_voice,
+        )
+        self.assertIn("approved named customers", brand_voice)
+        self.assertNotIn("Quantify everything possible", features)
+        self.assertIn("Quantify only from approved proof", features)
+
+    def test_analyzer_guidance_does_not_turn_analysis_into_unapproved_public_proof(self):
+        analyzer = (
+            ROOT / ".claude" / "agents" / "content-analyzer.md"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("verified observed values", analyzer)
+        self.assertIn("approved public proof", analyzer)
+        self.assertIn("Do not fabricate before/after impact estimates", analyzer)
+        self.assertNotIn("Use exact numbers and percentages from analysis modules", analyzer)
+        self.assertNotIn("Show before/after impact estimates", analyzer)
+        self.assertNotIn("improvement in ranking potential", analyzer)
+        self.assertNotIn("Examples and data included", analyzer)
+
+        analyze_existing = (
+            ROOT / ".claude" / "commands" / "analyze-existing.md"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("Potential traffic increase", analyze_existing)
+        self.assertIn("evidence-bound expected direction", analyze_existing)
+
+    def test_serp_research_guidance_keeps_verified_patterns_as_strong_defaults(self):
+        research_serp = (
+            ROOT / ".claude" / "commands" / "research-serp.md"
+        ).read_text(encoding="utf-8")
+
+        self.assertNotIn("without treating them as requirements", research_serp)
+        self.assertIn("applicable verified patterns as strong defaults", research_serp)
+        self.assertIn("recurring observed structure", research_serp)
+
+    def test_article_strategy_template_exposes_all_exception_and_gap_lanes(self):
+        article = (ROOT / ".claude" / "commands" / "article.md").read_text(
+            encoding="utf-8"
+        )
+
+        for exception_type in [
+            "content_type",
+            "serp_feature",
+            "serp_structure",
+            "competitor_gap",
+            "cta",
+        ]:
+            self.assertIn(f"`{exception_type}:", article)
+        self.assertIn("QUALIFICATION REQUIRED", article)
+        self.assertIn("reader importance and evidence", article)
+
+    def test_blog_guidance_removes_universal_cta_requirements(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "analyze-existing.md",
+            ROOT / ".claude" / "commands" / "cluster.md",
+            ROOT / ".claude" / "commands" / "priorities.md",
+            ROOT / ".claude" / "commands" / "research-topics.md",
+            ROOT / ".claude" / "agents" / "editor.md",
+            ROOT / ".claude" / "agents" / "seo-optimizer.md",
+            ROOT / ".claude" / "agents" / "content-analyzer.md",
+            ROOT / ".claude" / "agents" / "cluster-strategist.md",
+            ROOT / ".claude" / "agents" / "performance.md",
+            ROOT / ".claude" / "agents" / "meta-creator.md",
+            ROOT / ".claude" / "skills" / "copy-editing" / "SKILL.md",
+            ROOT / "README.md",
+            ROOT / "context" / "seo-guidelines.md",
+            ROOT / "context" / "style-guide.md",
+        ]
+        forbidden = [
+            "CTA included",
+            "Strong CTA with risk reversal",
+            "Clear CTA in conclusion",
+            "Make the CTA obvious, early, and repeated",
+            "Conclusion with CTA",
+            "Include relevant call-to-action",
+            "Stronger conclusion and CTA",
+            "Strong summary and clear CTA",
+            "Clear call-to-action",
+            "keyword & CTA",
+            "Include a verb-driven CTA",
+            "Problem-Solution-CTA",
+            "Demo- or trial-aligned CTA",
+            "Objections addressed near CTA",
+            "Risk reversals stated",
+            "**Clear CTAs**",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in forbidden:
+                self.assertNotIn(
+                    text.lower(),
+                    content.lower(),
+                    f"{path.name} still contains universal CTA requirement: {text}",
+                )
+
+        features = (ROOT / "context" / "features.md").read_text(encoding="utf-8")
+        self.assertIn("Follow the Reader Contract", features)
+        self.assertIn("ToFu may use zero or one", features)
+        self.assertIn("thought leadership may close", features)
+
+    def test_headline_and_copy_editing_quality_upgrades_are_documented(self):
+        headline = (ROOT / ".claude" / "agents" / "headline-generator.md").read_text(
+            encoding="utf-8"
+        )
+        for text in [
+            "Reader Specificity",
+            "Payoff Clarity",
+            "Distinctiveness",
+            "Promise Integrity",
+            "Numbers, timeframes, superlatives, urgency, and transformation claims require proof",
+        ]:
+            self.assertIn(text, headline)
+
+        copy_editing = (
+            ROOT / ".claude" / "skills" / "copy-editing" / "SKILL.md"
+        ).read_text(encoding="utf-8")
+        for text in [
+            "### Sweep 6: Stakes and Relevance",
+            "operational consequence",
+            "affected role",
+            "decision pressure",
+            "proof-safe author/customer experience",
+        ]:
+            self.assertIn(text, copy_editing)
+        self.assertNotIn("### Sweep 6: Heightened Emotion", copy_editing)
+
+    def test_active_style_and_editor_guidance_keep_specificity_proof_safe(self):
+        style = (ROOT / "context" / "style-guide.md").read_text(encoding="utf-8")
+        brand_voice = (ROOT / "context" / "brand-voice.md").read_text(
+            encoding="utf-8"
+        )
+        editor = (ROOT / ".claude" / "agents" / "editor.md").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("numbers and named customers require approved proof", style)
+        self.assertIn("otherwise explain concrete workflow value", style)
+        self.assertIn("Use named outcomes only when approved proof fits", brand_voice)
+        self.assertIn("Proof-approved surprising statistic", editor)
+        for stale in (
+            "every claim ties to a number or a customer",
+            "named-numbers",
+            "named-outcome, proof-led",
+            "  - Surprising statistic",
+        ):
+            self.assertNotIn(stale, style + "\n" + brand_voice + "\n" + editor)
 
     def test_capterra_review_site_theme_policy_is_documented(self):
         canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(

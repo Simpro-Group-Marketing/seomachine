@@ -74,7 +74,7 @@ For each trend:
 
 ### If You Don't Rank (Position >30)
 **New Content Needed**
-1. Create comprehensive 2000+ word guide
+1. Create an intent/evidence-complete guide
 2. Publish within 3-7 days
 3. Promote on social immediately
 4. Consider paid promotion to accelerate

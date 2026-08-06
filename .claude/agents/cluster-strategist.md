@@ -18,14 +18,14 @@ Design topic cluster strategies with pillar/spoke architecture, keyword cannibal
 ### Cluster Architecture Principles
 
 **Pillar Page:**
-- Broad topic coverage (3,000-5,000 words)
+- Broad topic coverage sized by Reader Contract, evidence, and task completeness
 - Targets high-volume, competitive head term
 - Provides comprehensive overview of entire topic
 - Links to every supporting article
 - Serves as the hub for the cluster
 
 **Supporting Articles:**
-- Specific subtopic deep-dives (1,500-3,000 words)
+- Specific subtopic deep-dives sized by Reader Contract, evidence, and task completeness
 - Each targets a distinct, non-overlapping primary keyword
 - Links back to pillar page
 - Cross-links to related supporting articles

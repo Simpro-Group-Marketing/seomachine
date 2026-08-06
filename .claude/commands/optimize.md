@@ -9,7 +9,7 @@ For every Simpro blog, read `wiki/messaging/Voice and Tone.md` and `wiki/messagi
 
 ## What This Command Does
 1. Performs comprehensive SEO audit of article
-2. Fine-tunes keyword placement and density
+2. Reviews critical keyword placement, natural terminology coverage, and stuffing risk
 3. Optimizes meta elements for SERP performance
 4. Validates internal and external links
 5. Ensures all SEO best practices are met
@@ -50,11 +50,11 @@ If customer proof appears in public copy, experience_story consideration is requ
 ### Content Audit
 
 #### Keyword Analysis
-- **Primary Keyword Density**: Check 1-2% density throughout article
+- **Primary Keyword Coverage**: Check natural terminology coverage, critical keyword placement, semantic variations, and keyword-stuffing detection
 - **Keyword Placement Check**:
   - [ ] In H1 headline
   - [ ] In first 100 words
-  - [ ] In at least 2-3 H2 headings
+  - [ ] In at least one relevant H2 where the exact phrase is natural
   - [ ] In meta title
   - [ ] In meta description
   - [ ] In URL slug
@@ -64,13 +64,13 @@ If customer proof appears in public copy, experience_story consideration is requ
 
 #### Heading Structure
 - **H1**: Only one H1, includes primary keyword
-- **H2s**: 4-7 H2 sections, at least 2-3 with keyword variations
+- **H2s**: One section per distinct reader question or task change; use the primary term or a semantic variation where natural, without a quota
 - **H3s**: Proper nesting under H2s, descriptive and keyword-rich
 - **Hierarchy**: Logical progression, no skipped levels (H1→H3)
 - **Length**: Headings are descriptive but concise
 
 #### Content Quality
-- **Word Count**: Minimum 2000 words (2500-3000+ preferred)
+- **Word Count**: Fits search intent, evidence depth, and article objective without filler
 - **Paragraph Length**: Average 2-4 sentences, no walls of text
 - **Sentence Length**: Varied, averaging under 25 words
 - **Readability Score**: 8th-10th grade level (Flesch-Kincaid)
@@ -127,7 +127,7 @@ If customer proof appears in public copy, experience_story consideration is requ
 - **Length**: 150-160 characters (check current length)
 - **Keyword**: Primary keyword included
 - **Value Prop**: Clear benefit to reader
-- **Call-to-Action**: Includes action phrase (learn, discover, find out)
+- **Search Intent**: Uses accurate value or action language when it improves the result snippet
 - **Compelling**: Encourages click from SERP
 - **Completeness**: Doesn't cut off mid-sentence
 
@@ -174,13 +174,13 @@ If customer proof appears in public copy, experience_story consideration is requ
 - **Style Guide**: Check vault terminology first; use @context/style-guide.md only as a fallback mirror when the vault is unavailable
 - **Messaging**: Ensure messaging reflects your company positioning
 - **Product Mentions**: Natural integration of your company features
-- **CTA**: Appropriate call-to-action for article intent
+- **Next Action**: Matches the Reader Contract and funnel stage; no CTA is added when none is called for
 
 #### User Experience
 - **Introduction**: Compelling hook that draws reader in
 - **Value Delivery**: Article delivers on headline promise
 - **Actionability**: Practical takeaways and next steps
-- **Conclusion**: Strong summary and clear CTA
+- **Conclusion**: Completes the headline promise with an intent-appropriate next action
 - **Scannability**: Easy to skim and find key information
 
 ## Output
@@ -234,8 +234,8 @@ List of critical issues to address before publishing:
 Visual representation of where primary keyword appears:
 - H1: ✓
 - First 100 words: ✓
-- H2 sections: 2/5 (need 1-2 more)
-- Body paragraphs: 15 instances (1.5% density) ✓
+- H2 sections: report relevant exact-match and semantic placements without a heading quota
+- Body paragraphs: 15 instances (1.5% density, reported for context)
 - Conclusion: ✓
 - Meta title: ✓
 - Meta description: ✓
@@ -243,17 +243,17 @@ Visual representation of where primary keyword appears:
 ### 7. Final Checklist
 - [ ] Primary keyword in H1
 - [ ] Primary keyword in first 100 words
-- [ ] Primary keyword in 2+ H2 headings
-- [ ] Keyword density 1-2%
+- [ ] Primary keyword in at least one relevant H2 where natural; semantic variations used elsewhere without a quota
+- [ ] Natural terminology coverage, semantic variations, and keyword-stuffing detection checked
 - [ ] 3-5+ internal links included
 - [ ] 2-3+ external authority links
 - [ ] Meta title 50-60 characters ending with `| Brand`
 - [ ] Meta description 150-160 characters
-- [ ] Article 2000+ words
+- [ ] Word count fits search intent, evidence depth, and article objective
 - [ ] Proper H1/H2/H3 hierarchy
 - [ ] Readability optimized (8th-10th grade)
 - [ ] Images have alt text
-- [ ] CTA included
+- [ ] Next action matches the Reader Contract and funnel stage; no CTA is added when none is called for
 - [ ] Brand voice maintained
 - [ ] No broken links
 - [ ] URL validation passed through `/publish-readiness`

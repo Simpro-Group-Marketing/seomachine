@@ -44,7 +44,7 @@ This prevents the "AI knows everything" trap that produces generic content match
 
 ### Variable Resolution
 
-Before opening the browser or drafting, resolve these variables from the user prompt, Vault Context Read Path, repo context fallback, existing research, and current SERP/PAA evidence:
+Before opening the browser or drafting, resolve every variable except `length` from the user prompt, Vault Context Read Path, repo context fallback, existing research, and current SERP/PAA evidence. Resolve `length` only after the Reader Contract and verified research context are available:
 
 | Variable | Resolution Rule |
 |----------|-----------------|
@@ -54,9 +54,9 @@ Before opening the browser or drafting, resolve these variables from the user pr
 | `related_questions` | Use AnswerSocrates PAA, SERP, Reddit, YouTube, or a user-provided PAA/FAQ CSV. |
 | `tone` | Use vault messaging and style routes first; @context/brand-voice.md and @context/style-guide.md are fallback mirrors only when the vault is unavailable. |
 | `expertise` | Use @context/features.md, customer proof, expert quotes, and author/reviewer data. |
-| `length` | Use `/research-serp` competitive length; default to the top-SERP benchmark if available. |
+| `length` | Set an intent/evidence-complete word target from the Reader Contract, search intent, source depth, and useful competitor context. |
 
-If a variable cannot be answered by the repo or research, ask the user for only that missing variable. Do not synthesize PAA questions, expert quotes, customer claims, search volume, or ranking evidence.
+If a non-length variable cannot be answered by the repo or research, ask the user for only that missing variable. Leave `length` unresolved until Reader Contract planning rather than asking for a mechanical target. Do not synthesize PAA questions, expert quotes, customer claims, search volume, or ranking evidence.
 Customer proof routing: before citing customer proof, the slash-command workflow must resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and write a selector-first `Customer Proof Slate` to the validation sidecar so metric, quote, theme, and optional story options are compared before drafting. If inputs are missing or the selector fails, stop before drafting customer proof, record the blocker in the sidecar, and do not invent proof. experience_story consideration is required and E-E-A-T story usage is optional; if no story fits, use `Selected: [none]` with section-specific rejection reasons. Treat any `recent_uses_90d` value above 0 as a proof-diversity warning. Before claiming a proof source is underused, inspect the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the proof ID, public URL, and customer name. If the live repo scan finds public-copy usage missing from the ledger, backfill `context/customer-proof-usage-ledger.json`, rerun proof health and selector checks, and document the backfill in the validation sidecar. If a recently used or overused proof source is still selected, document why no stronger underused approved proof fits. Run `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` before adding proof candidates. Add new proof candidates through `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates. Then pair approved case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme. Full policy lives in `context/aeo-geo-blog-strategy.md`.
 Fred Voccola authority evaluation: resolve `topic`, `title`, and `objective`, then automatically run `python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --limit 5` and write the complete `Fred Voccola Authority Selection` block from `context/aeo-geo-blog-strategy.md` to the validation sidecar. Evaluation is mandatory and public use is optional. The selector defaults to `Selected: none`; select a source explicitly only after reviewing it and confirming direct topical support. If the selector, vault, manifest, or inventories fail, record `Evaluation status: blocked` and the blocker; do not invent Fred evidence or continue to Fred public use.
 Review-site experience evidence / VoC routing: cite public review-site themes with source links when they show first-hand customer experience with product use, implementation, support, switching, pains, outcomes, or workflows. Capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved. Use a proof-backed customer/review POV only when it improves the article objective; if no actual person or business POV fits, omit the story. Do not use fictional named personas, exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, or category-leadership claims unless they have current source verification and brief-level approval.
@@ -70,6 +70,24 @@ Before planning or drafting, resolve an E-E-A-T Proof Map:
 - **Fallback context sources**: After Vault Context Read Path, pull case-study URLs from @context/internal-links-map.md, approved metrics/proof candidates from @context/features.md, and review-site experience evidence / VoC or competitor experience themes from @context/competitor-analysis.md or future review-context files only as repo-local mirror/fallback inputs.
 - **Public-copy rule**: Context-backed metrics are valid only when the article body uses public-facing source links, such as the public case-study URL, review-site URL, or public research source; context-backed proof is never cited as internal context.
 - **403 replacement rule**: If a DOL, Capterra, G2, Trustpilot, Google Play, or other public research/source URL returns 401, 403, or `manual_review`, do not remove the citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. Source Map notes must document both the rejected 403 URL and the replacement URL. Full policy and the `public_research_link_guard.py` gate live in `context/aeo-geo-blog-strategy.md`.
+
+Proof infrastructure belongs only in the validation sidecar. The article plan records only the validation sidecar path and status so there is one authoritative proof state.
+
+### Reader Contract
+
+Before article planning, write a `Reader Contract` block. This is an editorial planning control, not public proof infrastructure:
+
+- **Primary reader**: the role, business type, region, or maturity level the article is written for.
+- **Sophistication level**: beginner, intermediate, expert, or mixed, with one sentence explaining what the reader already understands.
+- **Trigger problem**: the moment, decision, or operational pressure that brought the reader to the article.
+- **Existing belief**: what the reader likely already believes, worries about, or has tried.
+- **Decision or task helped**: the decision, task, or understanding the article will help them complete.
+- **Distinctive angle**: why this article deserves to exist beyond matching the SERP.
+- **Promised payoff**: the concrete reader payoff the headline and intro must deliver.
+- **Funnel stage**: ToFu, MoFu, BoFu, or thought leadership.
+- **Exclusions**: what the article intentionally will not cover, rank, quantify, or claim.
+
+Use the contract to set an intent/evidence-complete word target, natural terminology coverage, critical keyword placement, semantic variations, and keyword-stuffing detection. Do not expand a complete article to satisfy a universal length target or add exact-match phrases to chase density.
 
 ### Simpro Web Copy Rules
 
@@ -175,18 +193,19 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
    |---------|-----------------|
    | **Structure** | H2 headings, section order, content type |
    | **Word Count** | Approximate length |
-   | **Gaps** | Topics covered superficially (<150 words) |
+   | **Gaps** | Topics missing evidence, explanation, or a useful answer |
    | **Missing Angles** | Perspectives not addressed |
    | **Unsupported Claims** | Statements without data/sources |
    | **Outdated Info** | Old statistics, deprecated tools |
-   | **What They Do Well** | Strong sections to match |
+   | **What They Do Well** | Useful elements to evaluate against the Reader Contract |
 
 3. **Build Competitor Gap Blueprint**
-   Document opportunities where your brand content can beat, not match:
-   - Gaps found in all competitors (must-fill)
-   - Unique angles no one covers
-   - Data needed to be more specific
-   - Outdated info to update with 2025 data
+   Use verified competitor observations to identify opportunities to beat, not merely match:
+   - Recurring, reader-critical gaps found across 3 or more competitors are must-fill when evidence is available
+   - Omit a must-fill candidate only when it is irrelevant, redundant, unsupported, or explicitly excluded by the Reader Contract; document the exception
+   - Distinctive angles the Reader Contract supports
+   - Evidence needed to support useful specificity
+   - Outdated information that warrants current, source-verified replacement
 
 ### Output
 Save to: `research/serp-analysis-[topic-slug]-[YYYY-MM-DD].md`
@@ -210,17 +229,20 @@ Save to: `research/serp-analysis-[topic-slug]-[YYYY-MM-DD].md`
 
 [Repeat for top 5]
 
-## Google-Validated Structure
-Based on what's ranking, these sections appear essential:
+## SERP Structure Context
+Common ranking sections to evaluate against the Reader Contract:
 1. [Common H2 found across multiple articles]
 2. [Another common section]
 ...
 
 ## Competitor Gap Blueprint
 
-### MUST-FILL GAPS (found in 3+ competitors)
-- [Gap 1]: [How to address]
-- [Gap 2]: [How to address]
+### MUST-FILL GAPS (recurring, reader-critical, and evidence-supported)
+- [Gap 1]: [How to address it, or documented Reader Contract exception]
+- [Gap 2]: [How to address it, or documented Reader Contract exception]
+
+### QUALIFICATION REQUIRED
+- [Recurring candidate]: [Resolve reader importance and evidence availability before promoting to must-fill, excluding, or omitting]
 
 ### DIFFERENTIATION OPPORTUNITIES
 - [Unique angle 1]
@@ -231,7 +253,7 @@ Based on what's ranking, these sections appear essential:
 - [Expert quote needed]
 
 ### OUTDATED INFO TO UPDATE
-- [Old stat] → Need 2025 version
+- [Old stat] -> Find a current, source-verified replacement only when it supports the reader payoff
 ```
 
 ---
@@ -261,8 +283,8 @@ Based on what's ranking, these sections appear essential:
    | **Recommendations** | What the community endorses |
    | **Real Language** | How actual users talk about this |
 
-3. **Extract Quotable Insights**
-   Pull specific quotes that can inform (or be used in) the article.
+3. **Extract Quote Research Leads**
+   Preserve each source-visible excerpt with its URL. Treat it as a research lead, not approved public copy, until the proof workflow validates its use.
 
 ### YouTube Research (Analyze 5 Videos)
 
@@ -297,7 +319,7 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
 - URL: [url]
 - OP's Question: "[quote]"
 - Key Insight: [summary]
-- Quotable: "[specific quote that could inform article]"
+- Quote research lead: "[source-visible excerpt plus URL; not approved for public use until proof validation]"
 
 [Repeat for 5 threads]
 
@@ -306,7 +328,8 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
 - [Pain point 2]
 
 ### Success Stories Found
-- [Story with specific details]
+- [Story with specific details and preserved source URL]
+- Research lead only: preserve the source URL and do not publish a name, quote, metric, or outcome until the proof workflow approves it
 
 ### Real User Language
 - Users say "[phrase]" instead of "[what competitors say]"
@@ -338,8 +361,10 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
 1. [Real question from Reddit/YouTube]
 2. [Another real question]
 
-### Proof-Backed POV Opportunities
+### Proof-Backed Customer/Review POV Opportunities
 - [Actual person or business POV from approved proof, only if it improves the article objective]
+
+### Editorial Scene Opportunities
 - [Unnamed workflow scenario for explanation only, not E-E-A-T proof]
 
 ### Language to Use
@@ -354,26 +379,32 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
 
 ### Process
 
-1. **Merge Research**
+1. **Create Reader Contract**
+   - Document Primary reader, Sophistication level, Trigger problem, Existing belief, Decision or task helped, Distinctive angle, Promised payoff, Funnel stage, and Exclusions
+   - Use it to choose article scope, proof needs, CTA treatment, and section order
+
+2. **Merge Research**
    Combine:
-   - SERP analysis (structure that ranks)
-   - Competitor gaps (opportunities to beat)
+   - SERP analysis (structure that ranks, used as the default unless a Reader Contract exception is documented)
+   - Competitor gaps (opportunities to beat, with recurring reader-critical gaps treated as must-fill when evidence is available)
    - Social research (unique insights)
    - AnswerSocrates PAA questions and intent clusters
    - your brand context (features, brand voice)
+   - Validate the selected content type, applicable SERP features, and qualified must-fill gaps against the Reader Contract; do not continue with an undocumented deviation
 
-2. **Create Google-Validated Structure**
-   - Include sections that appear in multiple top-ranking articles
-   - Add sections to fill identified gaps
+3. **Create Reader-Guided Structure**
+   - Match the dominant observed content type by default; document any Reader Contract exception
+   - Include verified must-have sections and target every applicable SERP feature
+   - Add must-fill sections for recurring, reader-critical, evidence-supported gaps
    - Order for logical reader flow
 
-3. **Assign Section Details**
+4. **Assign Section Details**
    For each section, specify:
 
    | Element | Purpose |
    |---------|---------|
    | **Type** | intro / body-how-to / body-comparison / body-explanation / faq / conclusion |
-   | **Word Target** | Based on competitor depth + gap filling |
+   | **Word Target** | Based on intent/evidence-complete scope, source depth, and gap filling |
    | **Strategic Angle** | What unique perspective we bring |
    | **Engagement Hook** | How this section captures attention |
    | **Knowledge Gaps** | Which competitor gaps this fills |
@@ -381,16 +412,15 @@ Save to: `research/social-research-[topic-slug]-[YYYY-MM-DD].md`
    | **Internal Links** | Which your brand pages to link |
    | **AEO/GEO Target** | Capsule / PAA / FAQ / list / table / definition |
    | **Source Mapping** | External source, claim, anchor text, and target section |
-   | **Metric Proof Pack** | Metric requirement, Search log, Approved metric rows, public URL or local proof artifact, source-visible Evidence, Status: approved, intended Use, rejected metrics |
-   | **E-E-A-T Proof Map** | Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, claims excluded because proof is missing |
-   | **Customer Proof Pack** | Selector result, selected proof, source-specific overuse reason when needed, approved quotes/metrics, claims excluded |
-   | **CTA** | soft / medium / strong (if applicable) |
-   | **Proof-Backed POV** | Optional actual person or business POV when it improves the objective |
+   | **Proof Sidecar** | Validation sidecar path and status; proof packs and maps stay in that sidecar |
+   | **CTA** | intent-sensitive CTA based on ToFu / MoFu / BoFu / thought leadership |
+   | **Editorial Scene** | Optional unnamed workflow scene, or a named person/business only with approved proof |
 
-4. **Plan Engagement Distribution**
+5. **Plan Engagement Distribution**
    - Proof-backed customer/review POV: Optional; use only when an actual person or business story improves the objective and is sidecar-mapped
-   - Unnamed workflow scenarios: Explanatory only, not E-E-A-T proof
-   - CTAs: First 500 words (soft), middle (medium), end (strong)
+   - Editorial scenes: 0-2 editorial scenes when they materially improve understanding
+   - Named people or businesses require approved proof; Unnamed workflow scenarios are explanatory only; invented names, dates, metrics, quotes, and outcomes are prohibited
+   - CTAs: ToFu: 0-1 soft resource/action CTA; MoFu: one educational next step plus one contextual product CTA; BoFu: 2-3 contextual commercial CTAs; Thought leadership: discussion, reflection, or evidence resource
    - Featured snippet opportunities: FAQ, definitions
 
 ### Output
@@ -403,6 +433,23 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 **Total Word Target**: [count]
 **Primary Keyword**: [keyword]
 **Secondary Keywords**: [list]
+
+## Reader Contract
+- **Primary reader**: [role, business type, region, or maturity level]
+- **Sophistication level**: [beginner / intermediate / expert / mixed, plus what the reader already understands]
+- **Trigger problem**: [moment, decision, or operational pressure]
+- **Existing belief**: [what they already believe, worry about, or tried]
+- **Decision or task helped**: [decision, task, or understanding the article helps complete]
+- **Distinctive angle**: [why this article exists beyond matching the SERP]
+- **Promised payoff**: [concrete reader payoff the headline and intro must deliver]
+- **Funnel stage**: [ToFu / MoFu / BoFu / thought leadership]
+- **Exclusions**: [what the article will not cover, rank, quantify, or claim]
+
+## SERP Strategy Decision
+- **Observation**: [verified dominant content type, observed SERP features, recurring observed structure, and qualified must-fill gaps]
+- **Default recommendation**: [match the dominant type, target each applicable feature, and include each qualified must-fill gap]
+- **Exception decision**: [none, or one reasoned Reader Contract entry per deviation using `content_type: [subject] - [reason]`, `serp_feature: [subject] - [reason]`, `serp_structure: [subject] - [reason]`, `competitor_gap: [subject] - [reason]`, or `cta: [subject] - [reason]`]
+- **Proof status**: [SERP observation source and confirmation that public claims still require approved proof]
 
 ## Meta Elements
 - **Title Options**:
@@ -425,41 +472,22 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
   | Source | Claim Supported | Anchor Text | Target Section |
   |--------|-----------------|-------------|----------------|
   | [URL] | [claim] | [natural contextual phrase] | [section] |
-- **Metric Proof Pack**:
-  - **Metric requirement**: required / not applicable
-  - **Search log**: [public pages and local proof artifacts checked for source-visible numbers]
-  - **Approved metric**: [metric claim, public proof URL or local proof artifact, source-visible Evidence, Status: approved, intended Use]
-  - **Rejected metrics**: [candidate metric, source checked, reason excluded]
-- **E-E-A-T Proof Map**: [Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, public-facing source links, claims excluded because proof is missing]
-- **Customer Proof Pack**:
-  - **Pack status**: ready / partial / blocked
-  - **Selection governance**: automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`; choose the most relevant approved proof, not the easiest mapped case study, after the generated `Customer Proof Slate` is written to the validation sidecar.
-  - **Customer Proof Slate**: [generated selector command plus metric, quote, theme, and experience_story role rows; story usage optional]
-  - **Topic or page fit**: [topic, audience, region, trade, funnel stage]
-  - **Quote Matrix candidates**: [customer, trade, region, theme, exact quote or summary, source row/link, approval status]
-  - **Case-study proof paths**: [customer, public URL, supported non-numeric theme]
-  - **Review-site experience evidence**: [platform, URL, date checked, product/competitor, experience pattern, evidence summary, exact quote/rating approval status]
-  - **Customer Proof Selection Decision**: [selector command, selected proof IDs, rejected stronger candidates, final use in copy]
-  - **Reuse reason**: [source-specific; required when customer-proof-usage-ledger.json marks the selected proof as recently used or overused; must prove no stronger underused approved proof fits the same role]
-  - **Approved quotes**: [exact quote/testimonial, customer/brand/reviewer, source type, public proof URL, Evidence, approval status]
-  - **Approved metrics**: [named customer metric, customer/brand, public proof URL, Evidence, approval status]
-  - **Use in copy**: [exact quote / paraphrased theme / named metric / omit]
-  - **Claims excluded**: [claim and missing proof reason]
+- **Proof Sidecar**: [research/validation-[topic-slug]-[YYYY-MM-DD].md; ready / partial / blocked]
 - **Schema Notes**: BlogPosting, BreadcrumbList, and FAQPage for standard blog posts with FAQs; nest Person as author, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Keep the Author frontmatter field mapped to Person. Add VideoObject only if video is embedded.
 - **AEO/GEO Score Target**: 90/100 or higher
 
 ### 1. Introduction
 - **Type**: intro
-- **Word Target**: 200
+- **Word Target**: [positive target supplied from the Reader Contract and available evidence]
 - **Hook Strategy**: [question / scenario / statistic / bold statement]
 - **APP Elements**: [Agree point, Promise, Preview]
-- **Proof-Backed POV**: [Optional actual person or business POV, sidecar-mapped]
-- **CTA**: soft (within first 500 words)
+- **Editorial Scene**: [Optional unnamed workflow scene; named people or businesses require approved proof]
+- **Next Action**: [intent-appropriate next action when planned; a commercial CTA only when the funnel stage calls for one]
 - **Unique Data**: [Insight from social research to include]
 
 ### 2. [H2 Title]
 - **Type**: body-explanation
-- **Word Target**: 300
+- **Word Target**: [positive intent/evidence-complete section target]
 - **Strategic Angle**: [What unique perspective]
 - **Knowledge Gap**: [Which competitor gap this fills]
 - **Internal Links**: [your brand page to link]
@@ -467,16 +495,16 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 
 ### 3. [H2 Title]
 - **Type**: body-how-to
-- **Word Target**: 400
+- **Word Target**: [positive intent/evidence-complete section target]
 - **Strategic Angle**: [Unique angle]
 - **Knowledge Gap**: [Gap being filled]
-- **Proof-Backed POV**: [Optional actual person or business POV, sidecar-mapped]
+- **Editorial Scene**: [Optional unnamed workflow scene; named people or businesses require approved proof]
 
 [Continue for all sections...]
 
 ### N. FAQ
 - **Type**: faq
-- **Word Target**: 200
+- **Word Target**: [positive target based on selected questions and required evidence]
 - **Questions from Research**:
   1. [Real question from Reddit]
   2. [Another real question]
@@ -486,18 +514,17 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 
 ### N+1. Conclusion
 - **Type**: conclusion
-- **Word Target**: 200
-- **CTA**: strong
-- **Proof-Backed POV**: [Optional actual person or business story, sidecar-mapped]
+- **Word Target**: [positive intent/evidence-complete section target]
+- **Next Action**: [intent-appropriate action; commercial CTA only when the funnel stage calls for one]
+- **Editorial Scene**: [Optional unnamed workflow scene; named people or businesses require approved proof]
 
 ## Engagement Map
 
 | Element | Location |
 |---------|----------|
 | Optional proof-backed customer/review POV | Section where it improves the objective |
-| CTA (soft) | Section 1 or 2 |
-| CTA (medium) | Section [X] |
-| CTA (strong) | Conclusion |
+| 0-2 editorial scenes | Sections where they materially improve understanding |
+| intent-sensitive CTA | ToFu: 0-1 soft resource/action CTA; MoFu: one educational next step plus one contextual product CTA; BoFu: 2-3 contextual commercial CTAs; Thought leadership: discussion, reflection, or evidence resource |
 
 ## Gap-to-Section Mapping
 
@@ -505,6 +532,14 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 |----------------|----------------------|
 | [Gap 1] | Section [X] |
 | [Gap 2] | Section [Y] |
+
+## Continuity Pass
+- [ ] Every section must advance the headline promise from the Reader Contract.
+- [ ] Each section answers a question created by the previous section.
+- [ ] No section restarts the article, repeats the introduction, or creates repeated resets.
+- [ ] Transitions explain a logical relationship, not just a transition word.
+- [ ] The conclusion must complete the introduction, resolve open loops, and add a useful next action.
+- [ ] remove or justify any section that does not increase the promised payoff.
 
 ## Social Insight Mapping
 
@@ -535,7 +570,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - APP Formula: Agree, Promise, Preview
 - Primary keyword in first 100 words
 - Trust signal
-- 150-250 words
+- Use the section Word Target from the article plan without padding
 
 **Do NOT open with:**
 - "[Product category] is..."
@@ -546,7 +581,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 #### Key Takeaways Block (After Introduction, Before First H2)
 **Requirements:**
 - 3-5 bullet points summarizing the article's actual conclusions
-- Each bullet is a standalone claim with specifics (numbers, names, outcomes)
+- Each bullet is a standalone claim with approved proof-backed specifics or concrete workflow detail; never invent numbers, names, or outcomes
 - NOT a table of contents — these are the conclusions up front
 - Format as blockquote with bold "Key Takeaways" header
 - Written after full article is drafted, then placed here
@@ -557,7 +592,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - Each step actionable and specific
 - Time estimates where helpful
 - Common mistakes to avoid
-- 250-400 words per section
+- Use the section Word Target from the article plan without padding
 
 #### Body: Comparison
 **Requirements:**
@@ -565,15 +600,15 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - Data tables for key metrics
 - Specific prices/features
 - "Best for" recommendations
-- 300-400 words per section
+- Use the section Word Target from the article plan without padding
 
 #### Body: Explanation
 **Requirements:**
 - Progressive complexity (simple → advanced)
 - Analogies for complex concepts
 - Examples with specifics
-- Embed at least one relevant YouTube video in a body section where it adds context (prefer your own channel, then authoritative third-party)
-- 250-400 words per section
+- Evaluate selected video evidence. Embed a relevant, public, embeddable video only when it materially supports the section; otherwise document that no eligible video was selected and omit the embed.
+- Use the section Word Target from the article plan without padding
 
 #### FAQ
 **Requirements:**
@@ -588,16 +623,16 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
 - Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error` before scoring or optimization; `/publish-readiness` runs it as a blocking gate.
 - PAA provenance is required for every FAQ question: include `PAA/FAQ Provenance` with Source, Artifact, and exact Selected questions from AnswerSocrates, SERP, Reddit, YouTube, or a user PAA/FAQ CSV.
 - FAQ headings must be complete natural-language questions. Do not use AnswerSocrates keyword fragments or query modifiers such as `plumbing job sheet template pdf` as FAQ headings.
-- 200-300 words total
+- Use the FAQ section Word Target from the article plan; preserve the 40-60-word first-paragraph rule for each answer
 
 #### Conclusion
 **Requirements:**
 - NOT just a summary - add value
-- 3-5 key takeaways as actionable items
-- Clear next steps ("This week:", "This month:")
-- Strong CTA with risk reversal
+- Close the headline and introduction loops with only the takeaways needed for the promised payoff
+- Intent-appropriate next action that matches the Reader Contract
+- Include an intent-appropriate next action; add a commercial CTA only when the Reader Contract funnel stage calls for one
 - Empowering, forward-looking close
-- 150-250 words
+- Use the section Word Target from the article plan without padding
 
 ### Writing Process Per Section
 
@@ -611,7 +646,7 @@ For each section in the plan:
 
 2. **Edit Pass**
    - Remove AI phrases ("In today's", "It's important to note", "When it comes to")
-   - Replace vague words with specifics ("many" → "73%")
+   - Replace vague words with proof-safe specifics: approved numbers when evidence supports them, or concrete workflow detail when it does not
    - Check paragraph length (max 4 sentences)
    - Vary sentence rhythm (mix 5-10 word + 15-25 word)
    - Add conversational devices (contractions, questions, parenthetical asides)
@@ -620,7 +655,7 @@ For each section in the plan:
 3. **Verify Requirements**
    - Section-specific criteria met
    - Planned insights included
-   - Word target within ±10%
+   - Section is complete without padding; document any material variance from the planned target
 
 ### Assembly
 
@@ -628,9 +663,9 @@ After all sections are written and edited:
 
 1. **Combine Sections**
    - Assemble in planned order
-   - Check transitions between sections
+   - Run the Continuity Pass: every section must advance the headline promise, answer a question created by the previous section, avoid repeated resets, express a logical relationship in transitions, complete the introduction in the conclusion, and remove or justify sections that do not increase the payoff
    - Verify internal link placement
-   - Confirm CTA distribution
+   - Confirm intent-sensitive CTA placement
 
 2. **Add Meta Elements**
    ```markdown
@@ -653,19 +688,19 @@ After all sections are written and edited:
    **SEO Checklist:**
    - [ ] Primary keyword in H1
    - [ ] Primary keyword in first 100 words
-   - [ ] Primary keyword in 2+ H2 headings
-   - [ ] Keyword density 1-2%
+   - [ ] Primary keyword in at least one relevant H2 where natural; semantic variations used elsewhere without a quota
+   - [ ] Natural terminology coverage, semantic variations, and keyword-stuffing detection checked
    - [ ] 3-5+ internal links
    - [ ] 2-3 external authority links
    - [ ] Meta title 50-60 chars ending with `| Brand`
    - [ ] Meta description 150-160 chars
-   - [ ] 2000+ words
+   - [ ] Word count fits the Reader Contract, search intent, and available evidence
 
    **AI Search Optimization Checklist:**
    - [ ] Direct answer in first 1-2 sentences (not buried behind narrative)
    - [ ] Key Takeaways block with 3-5 specific bullet points after introduction
    - [ ] Meta description directly answers the target query
-   - [ ] At least one relevant YouTube video embedded
+   - [ ] Video eligibility evaluated; an eligible selected video is embedded when it materially supports the article, otherwise the embed is omitted
    - [ ] FAQ questions written in natural prompt language, not keyword fragments from AnswerSocrates
    - [ ] One idea per section (each H2/H3 focuses on single concept)
    - [ ] Author attribution in frontmatter
@@ -682,17 +717,18 @@ After all sections are written and edited:
    - [ ] Hook (not generic opening)
    - [ ] APP Formula in intro
    - [ ] Optional proof-backed customer/review POV is used only when it fits the objective and is sidecar-mapped
-   - [ ] 2-3 contextual CTAs
-   - [ ] First CTA within 500 words
+   - [ ] 0-2 editorial scenes when they materially improve understanding
+   - [ ] Named people or businesses require approved proof; Unnamed workflow scenarios are explanatory only; invented names, dates, metrics, quotes, and outcomes are prohibited
+   - [ ] intent-sensitive CTA count and type match ToFu / MoFu / BoFu / thought leadership
    - [ ] No paragraphs > 4 sentences
    - [ ] Varied sentence rhythm
 
    **Research Integration Checklist:**
-   - [ ] Addresses 3+ competitor gaps
-   - [ ] Includes 5+ social research insights
+   - [ ] Evaluates competitor gaps and includes only those that improve reader payoff, evidence completeness, or task usefulness
+   - [ ] Includes only source-bound social insights that materially improve reader payoff, evidence, or task usefulness
    - [ ] Uses real user language
    - [ ] Answers questions from Reddit/YouTube
-   - [ ] Updates outdated info with 2025 data
+   - [ ] Replaces relevant outdated information with current, source-verified evidence
 
 ### Output
 Save to: `drafts/[topic-slug]-[YYYY-MM-DD].md`
@@ -711,7 +747,7 @@ Removes invisible Unicode marks, em dashes, and whitespace artifacts.
 
 ### 2. Publish Readiness
 
-Save proof-only blocks to a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`. The article draft must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan as public copy.
+Proof infrastructure belongs only in the validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`; article plans and drafts retain only its sidecar path and status. The article draft must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan as public copy. Use VideoObject only when a video is embedded.
 
 Preferred publish readiness command:
 ```bash
@@ -806,19 +842,19 @@ Before writing, review these context files:
 - Social insights synthesized
 
 ### Content Standards
-- 2000-3000+ words
+- Intent/evidence-complete word target from the Reader Contract, search intent, and available evidence
 - Proper H1/H2/H3 hierarchy
 - 3-5 internal links
 - 2-3 external authority links
 - Compelling hook (not generic)
 - Optional proof-backed customer/review POV when it improves the objective
-- 2-3 contextual CTAs
+- intent-sensitive CTA count and type based on funnel stage
 - FAQ with real user questions
 - General content quality score 85/100+
 - AEO/GEO score 90/100+
 
 ### Differentiation Standards
-- Addresses 3+ competitor gaps
+- Evaluates competitor gaps and includes only those that improve reader payoff, evidence completeness, or task usefulness
 - Includes 5+ unique social insights
 - Uses real user language (not SEO-speak)
 - Updates outdated competitor info

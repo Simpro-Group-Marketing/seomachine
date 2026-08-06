@@ -9,7 +9,7 @@ Publishes a draft article from this project to WordPress as a Draft, with all SE
 
 **Create a blog post (default):**
 ```
-/publish-draft drafts/content-marketing-guide-2025-12-10.md --proof-sidecar research/validation-content-marketing-guide-2025-12-10.md
+/publish-draft drafts/content-marketing-guide-[YYYY-MM-DD].md --proof-sidecar research/validation-content-marketing-guide-[YYYY-MM-DD].md
 ```
 
 **Create a page:**

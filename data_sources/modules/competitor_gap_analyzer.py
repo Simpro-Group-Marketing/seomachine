@@ -3,14 +3,14 @@ Competitor Gap Analyzer
 
 Analyzes competitor content to identify knowledge gaps, thin sections,
 unsupported claims, missing perspectives, and outdated information.
-Builds a "beat them" blueprint for content creation.
+Builds a context blueprint for Reader Contract planning.
 
 Used by the /article command during SERP analysis phase.
 """
 
 import re
 from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Enum
 from datetime import datetime
 
@@ -40,15 +40,37 @@ class ContentGap:
     competitor_url: str
     priority: GapPriority
     opportunity: str  # How your content can address this gap
+    reader_critical: bool = False
+    evidence_available: bool = False
 
-    def to_dict(self) -> Dict[str, str]:
+    def __post_init__(self) -> None:
+        if not isinstance(self.gap_type, GapType):
+            raise ValueError("gap_type must be a GapType value")
+        if not isinstance(self.priority, GapPriority):
+            raise ValueError("priority must be a GapPriority value")
+        for field_name in (
+            "description",
+            "location",
+            "competitor_url",
+            "opportunity",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{field_name} must be a non-empty string")
+        for field_name in ("reader_critical", "evidence_available"):
+            if not isinstance(getattr(self, field_name), bool):
+                raise ValueError(f"{field_name} must be a boolean")
+
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "type": self.gap_type.value,
             "description": self.description,
             "location": self.location,
             "url": self.competitor_url,
             "priority": self.priority.value,
-            "opportunity": self.opportunity
+            "opportunity": self.opportunity,
+            "reader_critical": self.reader_critical,
+            "evidence_available": self.evidence_available,
         }
 
 
@@ -62,6 +84,28 @@ class CompetitorAnalysis:
     strengths: List[str]
     gaps: List[ContentGap]
     outdated_items: List[str]
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.url, str) or not self.url.strip():
+            raise ValueError("url must be a non-empty string")
+        if not isinstance(self.title, str):
+            raise ValueError("title must be a string")
+        if (
+            isinstance(self.word_count, bool)
+            or not isinstance(self.word_count, int)
+            or self.word_count < 0
+        ):
+            raise ValueError("word_count must be a non-negative integer")
+        for field_name in ("structure", "strengths", "outdated_items"):
+            values = getattr(self, field_name)
+            if not isinstance(values, list) or any(
+                not isinstance(item, str) or not item.strip() for item in values
+            ):
+                raise ValueError(f"{field_name} must be a list of non-empty strings")
+        if not isinstance(self.gaps, list) or any(
+            not isinstance(gap, ContentGap) for gap in self.gaps
+        ):
+            raise ValueError("gaps must be a list of ContentGap values")
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -77,12 +121,13 @@ class CompetitorAnalysis:
 
 @dataclass
 class GapBlueprint:
-    """The 'beat them' blueprint for content creation."""
-    must_fill_gaps: List[ContentGap]  # Gaps found in 3+ competitors
+    """Observed competitor context for Reader Contract planning."""
+    must_fill_gaps: List[ContentGap]  # Compatibility field: qualified must-fill gaps
     differentiation_opportunities: List[str]  # Unique angles
     data_needed: List[str]  # Specific data to gather
-    outdated_to_update: List[str]  # Old info to replace with 2025 data
-    structure_to_match: List[str]  # Common H2s that Google expects
+    outdated_to_update: List[str]  # Old information to evaluate for sourced replacement
+    structure_to_match: List[str]  # Compatibility field: recurring H2s to evaluate
+    qualification_required_gaps: List[ContentGap] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -90,7 +135,10 @@ class GapBlueprint:
             "differentiation_opportunities": self.differentiation_opportunities,
             "data_needed": self.data_needed,
             "outdated_to_update": self.outdated_to_update,
-            "structure_to_match": self.structure_to_match
+            "structure_to_match": self.structure_to_match,
+            "qualification_required_gaps": [
+                gap.to_dict() for gap in self.qualification_required_gaps
+            ],
         }
 
 
@@ -115,21 +163,8 @@ class CompetitorGapAnalyzer:
         r'\baccording\s+to\s+(?:experts?|studies)\b(?!\s*[\[\(])',
     ]
 
-    # Year patterns for detecting outdated info
-    YEAR_PATTERN = r'\b(201[0-9]|202[0-3])\b'  # Pre-2024 years
-
-    # Minimum words for a section to be considered "substantial"
-    MIN_SECTION_WORDS = 150
-
-    # Structural elements to check for
-    EXPECTED_STRUCTURE = [
-        'faq',
-        'conclusion',
-        'introduction',
-        'comparison',
-        'how to',
-        'steps',
-    ]
+    # Year patterns identify references that may require a freshness review.
+    YEAR_PATTERN = r'\b(19\d{2}|20\d{2})\b'
 
     def analyze_content(
         self,
@@ -148,6 +183,12 @@ class CompetitorGapAnalyzer:
         Returns:
             CompetitorAnalysis with identified gaps and structure
         """
+        if not isinstance(content, str):
+            raise ValueError("content must be a string")
+        if not isinstance(url, str) or not url.strip():
+            raise ValueError("url must be a non-empty string")
+        if not isinstance(title, str):
+            raise ValueError("title must be a string")
         sections = self._extract_sections(content)
         gaps = []
         outdated = []
@@ -166,10 +207,6 @@ class CompetitorGapAnalyzer:
             outdated_items = self._find_outdated_info(section['content'])
             outdated.extend(outdated_items)
 
-        # Check structural gaps
-        structural_gaps = self._find_structural_gaps(content, sections, url)
-        gaps.extend(structural_gaps)
-
         return CompetitorAnalysis(
             url=url,
             title=title,
@@ -182,10 +219,12 @@ class CompetitorGapAnalyzer:
 
     def create_blueprint(
         self,
-        analyses: List[CompetitorAnalysis]
+        analyses: List[CompetitorAnalysis],
+        reader_critical_gaps: Optional[List[str]] = None,
+        evidence_supported_gaps: Optional[List[str]] = None,
     ) -> GapBlueprint:
         """
-        Create a 'beat them' blueprint from multiple competitor analyses.
+        Create a context blueprint from multiple competitor analyses.
 
         Args:
             analyses: List of CompetitorAnalysis from analyzing competitors
@@ -193,24 +232,93 @@ class CompetitorGapAnalyzer:
         Returns:
             GapBlueprint with prioritized opportunities
         """
-        # Collect all gaps
-        all_gaps = []
+        if not isinstance(analyses, list) or any(
+            not isinstance(analysis, CompetitorAnalysis) for analysis in analyses
+        ):
+            raise ValueError("analyses must be a list of CompetitorAnalysis values")
+
+        for name, values in (
+            ("reader_critical_gaps", reader_critical_gaps),
+            ("evidence_supported_gaps", evidence_supported_gaps),
+        ):
+            if values is not None and (
+                not isinstance(values, list)
+                or any(not isinstance(item, str) or not item.strip() for item in values)
+            ):
+                raise ValueError(f"{name} must be a list of non-empty strings")
+
+        reader_critical = {
+            item.strip().casefold() for item in (reader_critical_gaps or [])
+        }
+        evidence_supported = {
+            item.strip().casefold() for item in (evidence_supported_gaps or [])
+        }
+
+        # Count recurrence across distinct competitor analyses, not duplicate rows.
+        gap_counts: Dict[str, Dict[str, Any]] = {}
         for analysis in analyses:
-            all_gaps.extend(analysis.gaps)
+            for gap in analysis.gaps:
+                key = f"{gap.gap_type.value}:{gap.description.strip().casefold()}"
+                if key not in gap_counts:
+                    gap_counts[key] = {"gaps": [], "competitor_urls": set()}
+                gap_counts[key]["gaps"].append(gap)
+                gap_counts[key]["competitor_urls"].add(analysis.url)
 
-        # Find gaps that appear in multiple competitors
-        gap_counts = {}
-        for gap in all_gaps:
-            key = f"{gap.gap_type.value}:{gap.description[:50]}"
-            if key not in gap_counts:
-                gap_counts[key] = {"gap": gap, "count": 0}
-            gap_counts[key]["count"] += 1
+        known_gap_descriptions = {
+            group["gaps"][0].description.strip().casefold()
+            for group in gap_counts.values()
+        }
+        for name, supplied in (
+            ("reader_critical_gaps", reader_critical),
+            ("evidence_supported_gaps", evidence_supported),
+        ):
+            unknown = supplied - known_gap_descriptions
+            if unknown:
+                raise ValueError(
+                    f"{name} contains an unknown gap description: {sorted(unknown)[0]}"
+                )
 
-        # Must-fill gaps appear in 3+ competitors
-        must_fill = [
-            g["gap"] for g in gap_counts.values()
-            if g["count"] >= 3
-        ]
+        # A gap is must-fill only when recurrence, reader value, and evidence align.
+        must_fill = []
+        unqualified_recurring_gaps = []
+        for group in gap_counts.values():
+            representative = group["gaps"][0]
+            description_key = representative.description.strip().casefold()
+            is_recurring = len(group["competitor_urls"]) >= 3
+            reader_qualification_known = (
+                reader_critical_gaps is not None
+                or any(gap.reader_critical for gap in group["gaps"])
+            )
+            evidence_qualification_known = (
+                evidence_supported_gaps is not None
+                or any(gap.evidence_available for gap in group["gaps"])
+            )
+            if (
+                is_recurring
+                and (not reader_qualification_known or not evidence_qualification_known)
+            ):
+                unqualified_recurring_gaps.append(representative)
+                continue
+            is_reader_critical = (
+                any(gap.reader_critical for gap in group["gaps"])
+                or description_key in reader_critical
+            )
+            has_evidence = (
+                any(gap.evidence_available for gap in group["gaps"])
+                or description_key in evidence_supported
+            )
+            if (
+                is_recurring
+                and is_reader_critical
+                and has_evidence
+            ):
+                must_fill.append(
+                    replace(
+                        representative,
+                        reader_critical=True,
+                        evidence_available=True,
+                    )
+                )
 
         # Collect all outdated items
         all_outdated = []
@@ -218,26 +326,26 @@ class CompetitorGapAnalyzer:
             all_outdated.extend(analysis.outdated_items)
 
         # Find common structure (appears in 3+ competitors)
-        all_structures = []
+        structure_urls: Dict[str, set] = {}
         for analysis in analyses:
-            all_structures.extend(analysis.structure)
+            for heading in analysis.structure:
+                normalized = heading.lower().strip()
+                if not normalized:
+                    continue
+                structure_urls.setdefault(normalized, set()).add(analysis.url)
 
-        structure_counts = {}
-        for heading in all_structures:
-            normalized = heading.lower().strip()
-            structure_counts[normalized] = structure_counts.get(normalized, 0) + 1
-
-        common_structure = [
-            h for h, count in structure_counts.items()
-            if count >= 3
-        ]
+        common_structure = sorted(
+            heading for heading, urls in structure_urls.items()
+            if len(urls) >= 3
+        )
 
         return GapBlueprint(
             must_fill_gaps=must_fill,
             differentiation_opportunities=[],  # Filled during analysis
             data_needed=[],  # Filled during analysis
-            outdated_to_update=list(set(all_outdated)),
-            structure_to_match=common_structure
+            outdated_to_update=sorted(set(all_outdated)),
+            structure_to_match=common_structure,
+            qualification_required_gaps=unqualified_recurring_gaps,
         )
 
     def _extract_sections(self, content: str) -> List[Dict]:
@@ -272,22 +380,22 @@ class CompetitorGapAnalyzer:
         section: Dict,
         url: str
     ) -> List[ContentGap]:
-        """Identify sections that lack depth."""
+        """Identify sections that lack a reader-payoff, evidence, or task gap."""
         gaps = []
-        word_count = len(section['content'].split())
+        content = section['content'].strip().lower()
 
-        # H2 sections should have substantial content
-        if section['level'] == 2 and word_count < self.MIN_SECTION_WORDS:
-            priority = GapPriority.HIGH if word_count < 75 else GapPriority.MEDIUM
-
+        if section['level'] == 2 and re.search(r'\b(todo|placeholder|tbd)\b', content):
             gaps.append(ContentGap(
                 gap_type=GapType.THIN_SECTION,
-                description=f"Section '{section['header']}' only has {word_count} words",
+                description=f"Section '{section['header']}' has unresolved placeholder content",
                 location=section['header'],
                 competitor_url=url,
-                priority=priority,
-                opportunity=f"Provide comprehensive coverage of '{section['header']}' "
-                           f"with 250-400 words, specific examples, and actionable steps"
+                priority=GapPriority.HIGH,
+                opportunity=(
+                    f"Replace placeholder content in '{section['header']}' with the "
+                    "specific reader payoff, required evidence, or task guidance this "
+                    "section must provide"
+                )
             ))
 
         return gaps
@@ -311,87 +419,45 @@ class CompetitorGapAnalyzer:
                     location=section['header'],
                     competitor_url=url,
                     priority=GapPriority.MEDIUM,
-                    opportunity="Replace vague claims with specific data: percentages, "
-                               "dollar amounts, cited statistics, or named examples"
+                    opportunity=(
+                        "Replace vague claims with approved proof or concrete workflow "
+                        "detail; do not invent percentages, dollar amounts, statistics, "
+                        "names, quotes, or outcomes"
+                    )
                 ))
                 break  # One gap per section is enough
 
         return gaps
 
     def _find_outdated_info(self, content: str) -> List[str]:
-        """Identify outdated statistics, years, or references."""
-        outdated = []
+        """Identify date-sensitive references that require a freshness review."""
+        review_candidates = []
         current_year = datetime.now().year
 
-        # Find old years
+        # A year is an observation, not proof that the surrounding claim is outdated.
         old_years = re.findall(self.YEAR_PATTERN, content)
         for year in set(old_years):
             if int(year) < current_year - 1:  # More than 1 year old
-                outdated.append(f"Reference to {year} - likely outdated")
+                review_candidates.append(
+                    f"Reference to {year} - evaluate whether current evidence is needed"
+                )
 
-        return outdated
-
-    def _find_structural_gaps(
-        self,
-        content: str,
-        sections: List[Dict],
-        url: str
-    ) -> List[ContentGap]:
-        """Find missing structural elements."""
-        gaps = []
-        content_lower = content.lower()
-        section_headers_lower = [s['header'].lower() for s in sections]
-
-        # Check for FAQ section
-        has_faq = any(
-            'faq' in h or 'frequently asked' in h or 'questions' in h
-            for h in section_headers_lower
-        )
-        if not has_faq:
-            gaps.append(ContentGap(
-                gap_type=GapType.STRUCTURAL_GAP,
-                description="No FAQ section for featured snippet opportunity",
-                location="Article structure",
-                competitor_url=url,
-                priority=GapPriority.HIGH,
-                opportunity="Add FAQ section with 4-6 real user questions "
-                           "from Reddit/YouTube targeting featured snippets"
-            ))
-
-        # Check for weak/missing conclusion
-        has_conclusion = any(
-            'conclusion' in h or 'summary' in h or 'final' in h or 'next step' in h
-            for h in section_headers_lower
-        )
-        if not has_conclusion:
-            gaps.append(ContentGap(
-                gap_type=GapType.STRUCTURAL_GAP,
-                description="No clear conclusion section",
-                location="Article structure",
-                competitor_url=url,
-                priority=GapPriority.MEDIUM,
-                opportunity="Add conclusion with actionable takeaways, "
-                           "specific next steps, and strong CTA"
-            ))
-
-        return gaps
+        return review_candidates
 
     def _identify_strengths(self, sections: List[Dict]) -> List[str]:
         """Identify what the competitor does well."""
         strengths = []
 
         for section in sections:
-            word_count = len(section['content'].split())
-
-            # Deep sections are a strength
-            if word_count > 400:
-                strengths.append(f"Comprehensive coverage of '{section['header']}'")
-
             # Check for specific data patterns
-            if re.search(r'\d+%|\$\d+|\d{4}', section['content']):
-                strengths.append(f"Uses specific data in '{section['header']}'")
+            if re.search(
+                r'\$\d+|\b\d+(?:\.\d+)?\s*(?:%|hours?|days?|users?|jobs?|teams?|businesses?)\b',
+                section['content'],
+                re.IGNORECASE,
+            ):
+                strengths.append(f"Contains numeric detail in '{section['header']}'")
 
-        return list(set(strengths))[:5]  # Limit to top 5
+        return sorted(set(strengths))[:5]  # Limit to top 5
 
 
 def format_gap_report(
@@ -431,11 +497,11 @@ def format_gap_report(
 
     report += """---
 
-## Google-Validated Structure
+## SERP Structure Context
 
-Based on what's ranking, these sections appear essential:
+Common ranking sections to evaluate against the Reader Contract:
 """
-    for heading in blueprint.structure_to_match[:7]:
+    for heading in blueprint.structure_to_match:
         report += f"- {heading.title()}\n"
 
     report += """
@@ -443,22 +509,37 @@ Based on what's ranking, these sections appear essential:
 
 ## Competitor Gap Blueprint
 
-### MUST-FILL GAPS (found in 3+ competitors)
+### MUST-FILL GAPS
+
+These gaps are recurring, reader-critical, and evidence-supported. Include each
+one by default or document a Reader Contract exception.
 """
     if blueprint.must_fill_gaps:
         for gap in blueprint.must_fill_gaps:
             report += f"- **{gap.description}**\n  - Opportunity: {gap.opportunity}\n"
     else:
-        report += "- No universal gaps found across all competitors\n"
+        report += "- No qualified must-fill gaps identified\n"
 
     report += """
-### OUTDATED INFO TO UPDATE
+### QUALIFICATION REQUIRED
+
+These recurring gap candidates are not must-fill until reader importance and evidence
+availability are resolved. Qualify each against the Reader Contract before inclusion.
+"""
+    if blueprint.qualification_required_gaps:
+        for gap in blueprint.qualification_required_gaps:
+            report += f"- **{gap.description}**\n  - Decision: {gap.opportunity}\n"
+    else:
+        report += "- No recurring gap candidates awaiting qualification\n"
+
+    report += """
+### DATE-SENSITIVE REFERENCES TO EVALUATE
 """
     if blueprint.outdated_to_update:
-        for item in blueprint.outdated_to_update[:5]:
+        for item in blueprint.outdated_to_update:
             report += f"- {item}\n"
     else:
-        report += "- No outdated information identified\n"
+        report += "- No date-sensitive references identified\n"
 
     return report
 

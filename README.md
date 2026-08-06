@@ -49,7 +49,7 @@ SEO Machine is built on Claude Code and provides:
 - **Marketing Skills**: 26+ marketing skills for copywriting, CRO, A/B testing, email sequences, pricing strategy, and more
 - **AEO/GEO Workflow**: Capsule Method structure, PAA/FAQ integration, source mapping, E-E-A-T Proof Map checks, and `aeo_geo_rater` scoring (90+ target) via `context/aeo-geo-blog-strategy.md`
 - **Source-Proof Guardrails**: Metric-sensitive articles require a Metric Proof Pack before writing or publish readiness, including a Search log and at least one Approved metric with public URL or local proof artifact, source-visible Evidence, Status: approved, and intended Use. Every metric, statistic, or numeric business claim must be supported by a public URL or local proof artifact through the body link, Source Map, or Customer Proof Pack. FAQ answers must lead with a concrete extractable answer and include at least 1 authoritative non-owned public evidence link in visible copy; a Source Map or FAQ Proof Map can document but cannot replace that link. PAA provenance requires every FAQ question to match a saved source artifact from AnswerSocrates, SERP, Reddit, YouTube, or a user PAA/FAQ CSV. The source support guard requires strict proof rows with source-visible Evidence. The 403 replacement rule requires blocked 401, 403, or `manual_review` public research/source URLs to be replaced with an equivalent resolved public source link in public copy or the supported claim removed; Source Map notes must document the rejected 403 URL and replacement URL. Exact quotes/testimonials must be approved in Customer Proof Pack Approved quotes, and any named customer metric must be approved in Customer Proof Pack Approved metrics. Review-derived public E-E-A-T stories require identity-backed `Review Story Selection`, a public review URL, and a same paragraph article link. experience_story consideration is required and E-E-A-T story usage is optional when customer proof appears; use a proof-backed customer/review POV only when it improves the article objective. Fictional named personas are prohibited. Capterra review themes may use `Review Site Theme Selection` with `Source row ref: Capterra tab row [n]`, `Public review-site URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/`, and `Status: approved for paraphrased review-theme use`; public copy must link the Capterra review-site URL in the same paragraph and use no exact quote, reviewer-name claim, rating, ranking, or metric unless separately approved. Full policy lives in `context/aeo-geo-blog-strategy.md`.
-- **Advanced SEO Analysis**: Search intent detection, keyword density & clustering, content length comparison, readability scoring, SEO quality rating (0-100)
+- **Advanced SEO Analysis**: Search intent detection, keyword distribution and clustering, content scope comparison, readability scoring, SEO quality rating (0-100)
 - **Data Integrations**: GA4 and GSC via project MCP servers; DataForSEO, Ahrefs, and Semrush context in keyword/competitor files; PEEC AI citation tracking
 - **Simpro Context Pack**: Obsidian-vault-first context with repo-local mirror/fallback files for brand voice, style guide, features, 40+ competitor battlecards, writing examples, internal links, target keywords, AI citation register, Reddit strategy, and scoped Lightning positioning overlay
 - **Workflow Organization**: Structured directories for topics, research, drafts, audits, and published content
@@ -143,7 +143,7 @@ claude-code .
 ```
 
 **What it does**:
-- Creates 2000-3000+ word SEO-optimized article
+- Creates a complete SEO-optimized article sized to the Reader Contract, search intent, and available evidence
 - Applies `context/aeo-geo-blog-strategy.md` (Capsule Method, PAA/FAQ, source mapping, schema notes)
 - Maintains Simpro brand voice from the vault first; `context/brand-voice.md` and `lightning-positioning.md` are fallback mirrors when the vault is unavailable
 - Integrates keywords from `context/target-keywords.md`
@@ -248,7 +248,7 @@ Comprehensive keyword and competitive research for new content.
 ---
 
 ### `/write [topic]`
-Create long-form SEO-optimized blog post (2000-3000+ words).
+Create an SEO-optimized blog post with scope set by reader intent, evidence, and source depth.
 
 **Output**: Article in `/drafts/[topic]-[date].md`
 
@@ -369,8 +369,8 @@ Specialized agents that automatically analyze content and provide expert recomme
 
 **Analyzes**:
 - Search intent classification (informational/navigational/transactional/commercial)
-- Keyword density and clustering with topic detection
-- Content length comparison vs top SERP competitors
+- Keyword distribution, terminology coverage, and clustering with topic detection
+- Content scope comparison vs top SERP competitors
 - Readability scoring (Flesch Reading Ease, Flesch-Kincaid Grade Level)
 - SEO quality rating (0-100 score with category breakdowns)
 - Keyword stuffing risk detection
@@ -382,11 +382,11 @@ Specialized agents that automatically analyze content and provide expert recomme
 - Priority action plan (critical/high priority/optimization)
 - Competitive positioning analysis
 - Detailed recommendations for each analysis area
-- Exact metrics and benchmarks for improvements
+- Observed metrics and context-bound benchmarks for improvements
 
 **Powered by**:
 - `search_intent_analyzer.py` - Search intent detection
-- `keyword_analyzer.py` - Keyword density, clustering, LSI keywords
+- `keyword_analyzer.py` - Keyword distribution, stuffing-risk checks, clustering, LSI keywords
 - `content_length_comparator.py` - SERP competitor analysis
 - `readability_scorer.py` - Multiple readability metrics
 - `seo_quality_rater.py` - Comprehensive SEO scoring
@@ -440,7 +440,7 @@ Specialized agents that automatically analyze content and provide expert recomme
 **Purpose**: Keyword placement and integration analysis
 
 **Analyzes**:
-- Keyword density and distribution
+- Keyword distribution and stuffing-risk checks
 - Critical placement checklist
 - Natural language integration quality
 - LSI keyword coverage
@@ -583,7 +583,7 @@ SEO Machine includes 5 specialized Python modules for comprehensive content anal
 - Provides confidence scores and content alignment recommendations
 
 **Keyword Analyzer** (`keyword_analyzer.py`):
-- Calculates exact keyword density and distribution
+- Reports exact keyword density for context and analyzes distribution
 - Detects keyword stuffing risk with warnings
 - Performs topic clustering using TF-IDF and K-means
 - Generates distribution heatmap by section
@@ -597,9 +597,9 @@ SEO Machine includes 5 specialized Python modules for comprehensive content anal
 
 **Content Length Comparator** (`content_length_comparator.py`):
 - Fetches and analyzes top 10-20 SERP competitor word counts
-- Calculates median, 75th percentile, and optimal length
-- Shows competitive positioning and gap to target
-- Provides data-driven expansion recommendations
+- Reports median, 75th percentile, and range as context without setting the article target
+- Shows observed positioning and the difference from an optional caller-supplied target
+- Leaves the target unresolved when Reader Contract planning has not supplied one; expansion still requires a reader-payoff, evidence, or task gap
 
 **Readability Scorer** (`readability_scorer.py`):
 - Flesch Reading Ease and Flesch-Kincaid Grade Level
@@ -762,7 +762,7 @@ Blog quality depends on the Obsidian vault first. These `context/` files are dow
 Every Simpro blog post should meet these requirements:
 
 ### Content
-- [ ] Minimum 2,000 words (2,500-3,000+ preferred for pillar posts)
+- [ ] Word count fits the Reader Contract, search intent, and available evidence
 - [ ] Unique angle vs. ServiceTitan, Jobber, Housecall Pro, and listicle competitors
 - [ ] Factually accurate — verify stats, customer names, and product claims
 - [ ] Metric Proof Pack passes for metric-sensitive topics: Search log complete, at least one Approved metric included, and each metric has public URL or local proof artifact plus source-visible Evidence
@@ -774,13 +774,13 @@ Every Simpro blog post should meet these requirements:
 - [ ] Simpro voice: authoritative, trades-focused, outcomes-driven from the vault first (`brand-voice.md` is fallback mirror context only)
 
 ### SEO
-- [ ] Primary keyword density ~1-2% per `seo-guidelines.md`
-- [ ] Keyword in H1, first 100 words, 2-3 H2s, conclusion, meta, and slug
+- [ ] Natural terminology coverage, semantic variations, and keyword-stuffing detection checked per `seo-guidelines.md`
+- [ ] Keyword in H1, first 100 words, at least one relevant H2 where natural, conclusion, meta, and slug
 - [ ] 3-5 internal links from `internal-links-map.md` (performance-prioritized pages where relevant)
 - [ ] At least 1 down-funnel internal link to `https://www.simprogroup.com/industries`, `/industries/...`, `/solutions/...`, or `/features/...`; Anchor text must match the destination keyword
 - [ ] 2-3 credible external sources with natural in-sentence attribution
 - [ ] Meta title 50-60 characters with `| Simpro` when space allows
-- [ ] Meta description 150-160 characters with a clear CTA
+- [ ] Meta description 150-160 characters with accurate value or action language suited to search intent
 - [ ] Proper H1 ? H2 ? H3 hierarchy
 
 ### AEO / GEO (generative engines)
@@ -797,11 +797,11 @@ Every Simpro blog post should meet these requirements:
 ### Readability
 - [ ] 8th-10th grade reading level (trades audience)
 - [ ] Short sentences; active voice; no vendor cliches (`style-guide.md` avoid list)
-- [ ] Subheadings every 300-400 words; scannable lists
+- [ ] Subheadings follow topic and reader-question changes; lists remain scannable
 
 ### Structure
 - [ ] Hook ? problem ? promise intro
-- [ ] Demo- or trial-aligned CTA matched to funnel stage
+- [ ] Intent-appropriate next action matched to the Reader Contract and funnel stage; no CTA added when none is called for
 - [ ] Lightning topics only: also pass `lightning-positioning.md` naming rules
 
 ## Best Practices
@@ -846,8 +846,8 @@ Use a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md` f
 1. **`/analyze-existing`** on the live simprogroup.com URL or `published/` file
 2. **Confirm AEO/GEO inputs**: main answer target, PAA/FAQ provenance, source map, E-E-A-T Proof Map, schema notes, and missing strategy inputs
 3. **Run the quality loop**: `/scrub`, `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`, `/optimize`, then rerun `/publish-readiness`
-4. **Refresh metrics** in intro/CTA if GSC/GA4 shows new quick-win queries
-5. **Preserve strong sections**; expand thin H2s vs. SERP leaders
+4. **Refresh supported metrics** where GSC/GA4 identifies a relevant reader or task opportunity
+5. **Preserve strong sections**; expand an H2 only when reader payoff, evidence, or task coverage is missing
 6. **Re-check AI citations** if the post targets AI-intent queries
 
 URL validation confirms destinations resolve; it does not prove the page supports the claim, so Source Map and E-E-A-T proof review still verify claim support.
@@ -918,7 +918,8 @@ Customer proof diversity guard confirms proof selection is not defaulting to rec
 
 ### Maximizing Blog Quality
 - **Read `writing-examples.md`** before each session — match rhythm and proof density
-- **Lead with outcomes**: margin, time-to-paid, named customers (Shaffer Beacon, Foster Plumbing, etc.)
+- **Lead with reader payoff**: prefer relevant approved named customer proof over generic examples when it materially supports the objective; if no approved proof fits, use an unnamed explanatory scene or omit the story
+- **Use strong SERP defaults**: match the dominant observed content type, target every applicable SERP feature, and fill recurring reader-critical evidence-supported gaps unless the Reader Contract documents an exception
 - **Capsule answers**: Put the direct answer in the first 50-60 words under each major H2
 - **PAA coverage**: Pull questions from AnswerSocrates, SERP, `reddit-strategy.md` monitoring queries, YouTube, or a user CSV; do not invent missing questions
 

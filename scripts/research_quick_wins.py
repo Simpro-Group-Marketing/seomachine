@@ -333,7 +333,9 @@ def generate_recommendation(kw):
 
     # Content actions
     if position > 15:
-        recommendations.append("Consider: Add 500+ words, update examples, add visuals")
+        recommendations.append(
+            "Consider: close reader-payoff or evidence gaps, update examples, add visuals"
+        )
     else:
         recommendations.append(
             "Consider: Refresh intro, update stats, improve formatting"
@@ -423,7 +425,7 @@ def write_markdown_report(opportunities):
             f.write(f"- [ ] Analyze current content on ranking page\n")
             f.write(f"- [ ] Review top 5 ranking competitors for this keyword\n")
             f.write(f"- [ ] Identify content gaps to fill\n")
-            f.write(f"- [ ] Optimize for keyword density and semantic relevance\n")
+            f.write(f"- [ ] Review reported keyword density, semantic coverage, and critical placement\n")
             f.write(f"- [ ] Improve internal linking to this page\n")
             f.write(f"- [ ] Update title tag and meta description\n")
             f.write(f"- [ ] Add/update visuals (images, videos, infographics)\n")

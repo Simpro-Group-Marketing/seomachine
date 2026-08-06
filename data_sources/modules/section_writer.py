@@ -7,7 +7,7 @@ Routes sections to specialized approaches based on their type.
 Used by the /article command during the section-by-section writing phase.
 """
 
-from typing import Dict, List, Optional
+from typing import List
 from dataclasses import dataclass
 from enum import Enum
 
@@ -68,25 +68,25 @@ class SectionWriter:
         "To summarize",  # Unless in actual conclusion
     ]
 
-    # Vague words to replace with specifics
+    # Vague words to replace with proof-safe specificity.
     VAGUE_WORDS = {
-        "many": "specific number or percentage",
-        "some": "specific count",
-        "various": "list specific examples",
-        "numerous": "specific number",
-        "significant": "specific percentage or amount",
-        "substantial": "specific quantity",
-        "a lot of": "specific number",
-        "several": "exact count",
-        "often": "specific frequency",
-        "usually": "percentage of time",
-        "sometimes": "specific scenarios",
-        "things": "specific items",
-        "stuff": "specific items",
-        "good": "specific benefit",
-        "bad": "specific drawback",
-        "nice": "specific quality",
-        "great": "specific advantage",
+        "many": "approved proof-backed quantity or concrete workflow detail",
+        "some": "scoped group or concrete workflow subset",
+        "various": "workflow-specific examples",
+        "numerous": "approved proof-backed quantity or softer wording",
+        "significant": "supported consequence or softer wording",
+        "substantial": "supported quantity or material consequence",
+        "a lot of": "concrete workflow detail or approved proof",
+        "several": "scoped count only when proof supports it",
+        "often": "supported frequency or contextual wording",
+        "usually": "supported frequency or scoped qualifier",
+        "sometimes": "concrete workflow scenario",
+        "things": "specific items or workflow details",
+        "stuff": "specific items or workflow details",
+        "good": "specific benefit supported by the section evidence",
+        "bad": "specific drawback supported by the section evidence",
+        "nice": "specific quality supported by the section evidence",
+        "great": "specific advantage supported by the section evidence",
     }
 
     def get_writing_guidelines(
@@ -129,7 +129,7 @@ class SectionWriter:
         """
         universal = [
             "Remove AI phrases from the removal list",
-            "Replace vague words with specific data/examples",
+            "Replace vague words with approved proof-backed detail or concrete workflow detail",
             "Ensure no paragraph exceeds 4 sentences",
             "Mix short sentences (5-10 words) with longer ones (15-25 words)",
             "Add contractions for natural voice",
@@ -150,7 +150,7 @@ class SectionWriter:
         return WritingGuidelines(
             section_type=SectionType.INTRO,
             requirements=[
-                "150-250 words",
+                "Use the caller-supplied section word target without padding",
                 "Compelling hook in first 1-2 sentences",
                 "APP Formula: Agree, Promise, Preview",
                 "Primary keyword in first 100 words",
@@ -158,8 +158,8 @@ class SectionWriter:
             ],
             dos=[
                 "Open with a provocative question",
-                "Start with a specific scenario (named person)",
-                "Lead with a surprising statistic",
+                "Use a proof-safe operational scene when it materially improves understanding",
+                "Lead with a proof-approved statistic only when it materially advances the reader promise",
                 "Make a bold/counterintuitive statement",
                 "Acknowledge reader's situation (Agree)",
                 "Promise clear value (Promise)",
@@ -186,7 +186,7 @@ class SectionWriter:
         return WritingGuidelines(
             section_type=SectionType.BODY_HOW_TO,
             requirements=[
-                "300-400 words",
+                "Use the caller-supplied section word target without padding",
                 "Numbered steps for sequential processes",
                 "Each step must be actionable",
                 "Include expected outcomes",
@@ -219,16 +219,16 @@ class SectionWriter:
         return WritingGuidelines(
             section_type=SectionType.BODY_COMPARISON,
             requirements=[
-                "350-450 words",
+                "Use the caller-supplied section word target without padding",
                 "Balanced perspective (fair to competitors)",
-                "Specific data points (prices, features)",
+                "Proof-approved comparison details, or concrete workflow distinctions when proof is unavailable",
                 "'Best for' recommendations",
                 "Comparison table if 3+ items",
             ],
             dos=[
-                "Use data tables for key metrics",
+                "Use tables for proof-approved metrics or clearly scoped feature/workflow distinctions",
                 "Acknowledge competitor strengths",
-                "Be specific about prices and features",
+                "Be specific about prices and features only when approved proof supports them",
                 "Explain WHY your product excels where it does",
                 "Include 'Best for X' recommendations",
                 "Cite sources for competitor info",
@@ -242,7 +242,7 @@ class SectionWriter:
             ],
             quality_checks=[
                 "Comparison feels fair and balanced",
-                "Specific numbers are included",
+                "Approved proof supports any numeric comparison",
                 "Reader can make informed decision",
                 "Product advantages are clear but not pushy",
             ]
@@ -253,7 +253,7 @@ class SectionWriter:
         return WritingGuidelines(
             section_type=SectionType.BODY_EXPLANATION,
             requirements=[
-                "250-350 words",
+                "Use the caller-supplied section word target without padding",
                 "Progressive complexity (simple to advanced)",
                 "Concrete examples",
                 "Analogies for complex concepts",
@@ -284,7 +284,7 @@ class SectionWriter:
         return WritingGuidelines(
             section_type=SectionType.BODY_LIST,
             requirements=[
-                "350-500 words",
+                "Use the caller-supplied section word target without padding",
                 "Clear numbering or bullets",
                 "Brief explanation for each item",
                 "Consistent format across items",
@@ -315,7 +315,7 @@ class SectionWriter:
         return WritingGuidelines(
             section_type=SectionType.FAQ,
             requirements=[
-                "200-300 words total",
+                "Use the caller-supplied section word target without padding",
                 "4-6 questions",
                 "40-60 word answers (featured snippet optimized)",
                 "Questions from real user research",
@@ -346,30 +346,29 @@ class SectionWriter:
         return WritingGuidelines(
             section_type=SectionType.CONCLUSION,
             requirements=[
-                "150-250 words",
                 "NOT just a summary - add value",
-                "3-5 actionable takeaways",
-                "Clear next steps",
-                "Strong CTA with risk reversal",
+                "Close the Reader Contract promise",
+                "Conclusion includes an intent-appropriate next action",
             ],
             dos=[
-                "Provide specific action items",
-                "Use time-based structure ('This week:', 'This month:')",
+                "Use the next action style implied by funnel stage and section plan",
+                "Offer reflection, discussion, evidence resources, or practical follow-up when commercial action is not appropriate",
                 "End on empowering, forward-looking note",
-                "Include strong CTA with risk reversal",
+                "Follow the supplied CTA plan; do not add a CTA when none is specified",
                 "Add primary keyword naturally",
             ],
             donts=[
                 "Simply restate the introduction",
                 "Introduce new information",
                 "End with generic 'good luck'",
+                "Add a commercial CTA when the supplied plan does not call for one",
                 "Make the CTA feel forced",
-                "Forget to include next steps",
+                "Turn every conclusion into a task list",
             ],
             quality_checks=[
-                "Reader knows exactly what to do next",
+                "Reader has a useful next action that matches intent",
                 "Takeaways are actionable, not platitudes",
-                "CTA feels natural and valuable",
+                "Any planned CTA feels natural and valuable",
                 "Tone is empowering, not preachy",
             ]
         )
@@ -394,7 +393,7 @@ class SectionWriter:
             ],
             SectionType.BODY_COMPARISON: [
                 "Comparison is fair",
-                "Specific data points present",
+                "Approved proof supports any numeric comparison",
                 "'Best for' recommendations included",
                 "Not overly promotional",
             ],
@@ -415,8 +414,8 @@ class SectionWriter:
             ],
             SectionType.CONCLUSION: [
                 "More than summary",
-                "Specific action items",
-                "Strong CTA present",
+                "Closes the Reader Contract promise",
+                "Conclusion includes an intent-appropriate next action",
                 "Empowering tone",
             ],
         }
@@ -473,17 +472,33 @@ def format_writing_prompt(
 
     if has_mini_story:
         prompt += """
-### Optional Proof-Backed POV
-Use an actual person or business POV only when it improves this section and is source-backed in the validation sidecar.
-If no proof-backed customer or review story fits, omit the story.
-Unnamed workflow scenarios are allowed for explanation only and do not count as E-E-A-T proof.
+### Optional Editorial Scene
+Unnamed workflow scenes are allowed only when they materially improve understanding; they are explanatory and do not count as E-E-A-T proof.
+Named people or businesses require approved proof in the validation sidecar and a source-backed reason to include them.
+Omit the scene when it does not improve this section.
 Do not invent names, companies, dates, metrics, quotes, outcomes, or testimonial wording.
 """
 
     if has_cta:
-        prompt += f"""
-### CTA Required ({has_cta})
-Include a {has_cta} call-to-action that feels natural in context.
+        cta_labels = {
+            "soft_resource_action": "soft resource/action",
+            "educational_next_step": "educational next step",
+            "contextual_product": "contextual product",
+            "commercial_contextual": "contextual commercial",
+            "commercial_comparison": "commercial comparison",
+            "commercial_conversion": "commercial conversion",
+            "thought_leadership_next_action": "thought leadership next action",
+        }
+        cta_label = cta_labels.get(has_cta, has_cta.replace("_", " "))
+        if has_cta == "thought_leadership_next_action":
+            prompt += f"""
+### Next Action Required ({cta_label})
+Close with a reflection, discussion, evidence resource, or other useful next action that fits the article's thought-leadership intent.
+"""
+        else:
+            prompt += f"""
+### CTA Required ({cta_label})
+Include a {cta_label} call-to-action that feels natural in context.
 """
 
     prompt += """

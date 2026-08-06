@@ -41,7 +41,7 @@ class RedditInsight:
     insight_type: InsightType
     content: str
     engagement: EngagementLevel
-    quotable: Optional[str] = None  # Direct quote that could be used
+    quotable: Optional[str] = None  # Research lead; public use requires source approval
     context: Optional[str] = None  # Additional context
 
     def to_dict(self) -> Dict[str, Any]:
@@ -133,7 +133,7 @@ class SocialResearchSynthesis:
     unique_insights: List[str]  # Insights not in SEO content
     real_user_language: List[str]  # Terminology to use
     questions_to_answer: List[str]  # Content opportunities
-    story_seeds: List[str]  # Mini-story opportunities
+    story_seeds: List[str]  # Editorial scene candidates
     contrarian_views: List[str]  # Different perspectives
     expert_quotes: List[str]  # Notable quotes
 
@@ -200,7 +200,7 @@ class SocialResearchAggregator:
             ],
             "youtube": [
                 f'site:youtube.com {topic} tutorial',
-                f'site:youtube.com {topic} review 2025',
+                f'site:youtube.com {topic} review {datetime.now().year}',
                 f'site:youtube.com {topic} tips',
                 f'site:youtube.com how to {topic}',
                 f'site:youtube.com {topic} guide',
@@ -227,7 +227,7 @@ class SocialResearchAggregator:
         if any(word in text_lower for word in self.PAIN_INDICATORS):
             return InsightType.PAIN_POINT
 
-        # Check for success stories
+        # Check for experience patterns that may support editorial scene candidates
         if any(word in text_lower for word in self.SUCCESS_INDICATORS):
             return InsightType.SUCCESS_STORY
 
@@ -266,8 +266,8 @@ class SocialResearchAggregator:
         questions.extend(reddit_research.questions[:5])
         questions.extend(youtube_research.comment_questions[:3])
 
-        # Extract story seeds from success stories
-        story_seeds = reddit_research.success_stories[:3]
+        # Extract up to two scene candidates; named use still requires approved proof.
+        story_seeds = reddit_research.success_stories[:2]
 
         return SocialResearchSynthesis(
             unique_insights=unique_insights[:10],
@@ -312,7 +312,10 @@ def format_social_research_report(
 - **Key Insight**: {insight.content}
 """
         if insight.quotable:
-            report += f'- **Quotable**: "{insight.quotable}"\n'
+            report += (
+                f'- **Quote research lead**: "{insight.quotable}" '
+                f'(Source: {insight.thread_url}; not approved for public use)\n'
+            )
         report += "\n"
 
     # Add pain points
@@ -325,10 +328,45 @@ def format_social_research_report(
     for question in reddit_research.questions[:5]:
         report += f"- {question}\n"
 
-    # Add success stories
+    # Preserve sourced success-story leads without approving public proof use.
     report += "\n### Success Stories Found\n"
+    success_insights = [
+        insight
+        for insight in reddit_research.insights
+        if insight.insight_type == InsightType.SUCCESS_STORY
+    ]
+    lead_by_content = {
+        insight.content.strip(): insight
+        for insight in success_insights
+        if insight.content.strip()
+    }
+    reported_story_content = set()
     for story in reddit_research.success_stories[:3]:
-        report += f"- {story}\n"
+        normalized_story = story.strip()
+        lead = lead_by_content.get(normalized_story)
+        reported_story_content.add(normalized_story)
+        if lead:
+            report += (
+                f"- {story} (Source: {lead.thread_url}; research lead only)\n"
+            )
+        else:
+            report += (
+                f"- {story} (Source URL unresolved; research lead only and not "
+                "eligible for public use)\n"
+            )
+    for lead in success_insights:
+        if lead.content.strip() in reported_story_content:
+            continue
+        report += (
+            f"- {lead.content} (Source: {lead.thread_url}; research lead only)\n"
+        )
+        reported_story_content.add(lead.content.strip())
+        if len(reported_story_content) >= 3:
+            break
+    report += (
+        "- Research status: preserve source URLs; names, quotes, metrics, and outcomes "
+        "require customer-proof approval before public use.\n"
+    )
 
     # Add real language
     report += "\n### Real User Language\n"
@@ -379,9 +417,22 @@ def format_social_research_report(
     for question in synthesis.questions_to_answer[:6]:
         report += f"- {question}\n"
 
-    report += "\n### Proof-Backed POV Opportunities\n"
-    for seed in synthesis.story_seeds[:3]:
-        report += f"- {seed}\n"
+    report += "\n### Editorial Scene Opportunities\n"
+    report += (
+        "Use these only as explanatory, unnamed workflow scenarios unless "
+        "separate approved proof supports a named person or business.\n"
+    )
+    for seed in synthesis.story_seeds[:2]:
+        lead = lead_by_content.get(seed.strip())
+        if lead:
+            report += (
+                f"- {seed} (Source: {lead.thread_url}; research lead only)\n"
+            )
+        else:
+            report += (
+                f"- {seed} (Source URL unresolved; research lead only and not "
+                "eligible for public use)\n"
+            )
 
     report += "\n### Language to Use\n"
     for phrase in synthesis.real_user_language[:5]:

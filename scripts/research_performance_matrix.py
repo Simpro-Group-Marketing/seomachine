@@ -404,7 +404,7 @@ def write_markdown_report(
                 f.write(f"- OR complete rewrite if topic is still valuable\n")
             else:
                 f.write(f"- Update all statistics and examples to current year\n")
-                f.write(f"- Add 500+ words of new content\n")
+                f.write(f"- Add content only for identified reader-payoff, evidence, or task gaps\n")
                 f.write(f"- Refresh images and add new visuals\n")
                 f.write(f"- Improve keyword targeting\n")
                 f.write(f"- Strengthen internal linking\n")

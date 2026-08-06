@@ -423,7 +423,7 @@ def write_markdown_report(gaps: List[Dict[str, Any]], total_found: int):
             f.write(f"1. Analyze top 10 ranking content for '{gap['keyword']}'\n")
             f.write(f"2. Identify content gaps and unique angles\n")
             f.write(f"3. Create detailed content outline\n")
-            f.write(f"4. Write comprehensive, 2000+ word {gap.get('content_type', 'article').lower()}\n")
+            f.write(f"4. Write an intent/evidence-complete {gap.get('content_type', 'article').lower()}\n")
             f.write(f"5. Optimize for target keyword and related terms\n")
             f.write(f"6. Build internal linking strategy\n\n")
 

@@ -365,7 +365,7 @@ def write_markdown_report(trends: List[Dict]):
             if trend['position'] <= 30:
                 f.write(f"   - Quick win: Update existing content (position {trend['position']:.0f})\n")
             else:
-                f.write(f"   - New content needed: 2000+ word comprehensive guide\n")
+                f.write(f"   - New content needed: Reader Contract-led comprehensive guide\n")
             f.write(f"\n")
 
         f.write(f"### Week 2-3: High Urgency Trends\n")

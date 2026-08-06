@@ -216,6 +216,95 @@ No. PPC is a pricing model for ad clicks.
         self.assertNotIn("Missing meta title", [issue["issue"] for issue in result["issues"]])
         self.assertNotIn("Missing meta description", [issue["issue"] for issue in result["issues"]])
 
+    def test_score_seo_records_word_count_without_short_content_issue(self):
+        scorer = ContentScorer()
+        content = """---
+meta_title: HVAC Scheduling Software for Contractors | Simpro
+meta_description: HVAC scheduling software helps contractors assign jobs, avoid double-booking, and keep technicians moving from one real-time calendar.
+primary_keyword: hvac scheduling software
+---
+
+# HVAC Scheduling Software for Contractors
+
+HVAC scheduling software helps contractors assign technicians, avoid double-booking, and keep customers updated from one real-time calendar.
+
+## HVAC scheduling software workflow
+
+Dispatchers need technician availability, job status, and customer commitments in one practical view.
+
+## Connected scheduling decisions
+
+The strongest workflow connects quoting, inventory, invoicing, and reporting instead of stopping at the calendar.
+"""
+
+        result = scorer._score_seo(content, {})
+        issues = [issue["issue"] for issue in result["issues"]]
+
+        self.assertLess(result["details"]["word_count"], 2000)
+        self.assertFalse(any(issue.startswith("Content too short") for issue in issues))
+
+    def test_specificity_scores_concrete_workflow_detail_without_forcing_numbers(self):
+        scorer = ContentScorer()
+        content = (
+            "Dispatchers sort urgent callouts, technician skills, parts availability, "
+            "travel windows, customer access notes, and invoice readiness before they "
+            "move a job on the schedule. The workflow explains who decides, what "
+            "changes, and which handoff prevents office teams from rekeying the same "
+            "job details after field work is complete."
+        )
+
+        result = scorer._score_specificity(content)
+        issues = [issue["issue"] for issue in result["issues"]]
+
+        self.assertGreaterEqual(result["score"], 70)
+        self.assertNotIn("Lacks specific numbers and data", issues)
+        self.assertGreater(result["details"]["concrete_workflow_terms_per_1000"], 0)
+
+    def test_specificity_reports_proof_sensitive_details_without_scoring_them_as_proof(self):
+        scorer = ContentScorer()
+        content = (
+            'In 2026, Sarah said "This saved 73% of our time and $500 a month" '
+            "in a claim about 200 businesses dated March 12. The passage contains "
+            "numbers, a named attribution, a date, and an outcome without source "
+            "proof in this scoring context."
+        )
+
+        result = scorer._score_specificity(content)
+        issues = [issue["issue"] for issue in result["issues"]]
+
+        self.assertEqual(result["score"], 70)
+        self.assertNotIn("Unsupported specifics require proof context", issues)
+        self.assertGreater(result["details"]["proof_sensitive_specifics_per_1000"], 0)
+
+    def test_specificity_does_not_assume_named_details_are_unsupported_before_proof_gates(self):
+        scorer = ContentScorer()
+        content = (
+            "Sarah at Acme Mechanical moved dispatch handoffs into the job workflow "
+            "and helped 24,000 trade businesses avoid delayed invoices. The scene "
+            "names a person, a company, a business count, and an outcome without "
+            "approved proof in this scoring context."
+        )
+
+        result = scorer._score_specificity(content)
+        issues = [issue["issue"] for issue in result["issues"]]
+
+        self.assertNotIn("Unsupported specifics require proof context", issues)
+        self.assertGreaterEqual(result["details"]["proof_sensitive_specifics_count"], 3)
+
+    def test_specificity_does_not_penalize_proof_sensitive_details_with_public_context(self):
+        scorer = ContentScorer()
+        content = (
+            'Sarah at Acme Mechanical said "The approved workflow reduced invoice '
+            'delays by 25% in 2026." The public case study documents the customer, '
+            "quote, metric, date, and outcome."
+        )
+
+        result = scorer._score_specificity(content)
+        issues = [issue["issue"] for issue in result["issues"]]
+
+        self.assertNotIn("Unsupported specifics require proof context", issues)
+        self.assertGreater(result["details"]["proof_sensitive_specifics_count"], 0)
+
     def test_content_quality_can_pass_while_aeo_geo_gate_fails(self):
         scorer = ContentScorer()
         content = COMPLIANT_ARTICLE.replace(

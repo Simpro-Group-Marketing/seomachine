@@ -1,8 +1,8 @@
 """
 Content Length Comparator
 
-Fetches top SERP results for a keyword and analyzes their content length
-to determine optimal word count for ranking competitively.
+Fetches top SERP results for a keyword and reports their observed content
+length as context. Article targets remain caller supplied.
 """
 
 import re
@@ -23,27 +23,70 @@ class ContentLengthComparator:
     def analyze(
         self,
         keyword: str,
-        your_word_count: Optional[int] = None,
+        observed_word_count: Optional[int] = None,
         serp_results: Optional[List[Dict[str, str]]] = None,
-        fetch_content: bool = True
+        fetch_content: bool = True,
+        word_target: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
         Analyze content length compared to SERP competitors
 
         Args:
             keyword: Search keyword to analyze
-            your_word_count: Your content's word count
+            observed_word_count: Observed content word count
             serp_results: SERP results from DataForSEO (list of {'url', 'title', 'domain'})
             fetch_content: Whether to fetch and analyze competitor content
+            word_target: Optional caller-supplied intent/evidence-complete target
 
         Returns:
-            Dict with length comparison, recommendations, and statistics
+            Dict with observed length context and statistics
         """
+        if not isinstance(keyword, str) or not keyword.strip():
+            raise ValueError("keyword must be a non-empty string")
+        if (
+            observed_word_count is not None
+            and (
+                not isinstance(observed_word_count, int)
+                or isinstance(observed_word_count, bool)
+                or observed_word_count < 0
+            )
+        ):
+            raise ValueError("observed_word_count must be a non-negative integer or None")
+        if (
+            word_target is not None
+            and (
+                not isinstance(word_target, int)
+                or isinstance(word_target, bool)
+                or word_target <= 0
+            )
+        ):
+            raise ValueError("word_target must be a positive integer or None")
+        if not isinstance(fetch_content, bool):
+            raise ValueError("fetch_content must be a boolean")
+        if serp_results is not None:
+            if not isinstance(serp_results, list):
+                raise ValueError("serp_results must be a list of result dictionaries or None")
+            for result in serp_results:
+                if not isinstance(result, dict):
+                    raise ValueError("serp_results must contain result dictionaries")
+                url = result.get('url')
+                if not isinstance(url, str) or not url.strip():
+                    raise ValueError("serp_results must contain result dictionaries with non-empty url values")
+                for optional_key in ('title', 'domain'):
+                    value = result.get(optional_key)
+                    if value is not None and not isinstance(value, str):
+                        raise ValueError(
+                            f"serp_results {optional_key} values must be strings or None"
+                        )
+
         if not serp_results:
-            return {
-                'error': 'No SERP results provided',
-                'recommendation': 'Use DataForSEO to get SERP data first'
-            }
+            return self._build_result(
+                keyword=keyword,
+                observed_word_count=observed_word_count,
+                word_target=word_target,
+                competitor_lengths=[],
+                unavailable_reason='No SERP results provided',
+            )
 
         # Analyze competitor content lengths
         competitor_lengths = []
@@ -52,55 +95,89 @@ class ContentLengthComparator:
             for i, result in enumerate(serp_results[:10]):  # Top 10 only
                 url = result.get('url')
                 if url:
-                    word_count = self._fetch_word_count(url)
+                    word_count = self.fetch_word_count(url)
                     if word_count:
                         competitor_lengths.append({
                             'position': i + 1,
                             'url': url,
-                            'domain': result.get('domain', ''),
-                            'title': result.get('title', '')[:100],
+                            'domain': result.get('domain') or '',
+                            'title': (result.get('title') or '')[:100],
                             'word_count': word_count
                         })
+        else:
+            return self._build_result(
+                keyword=keyword,
+                observed_word_count=observed_word_count,
+                word_target=word_target,
+                competitor_lengths=[],
+                unavailable_reason='Competitor content was not fetched',
+            )
 
         if not competitor_lengths:
-            return {
-                'error': 'Could not fetch competitor content',
-                'recommendation': 'Manually check top ranking pages for word count'
-            }
+            return self._build_result(
+                keyword=keyword,
+                observed_word_count=observed_word_count,
+                word_target=word_target,
+                competitor_lengths=[],
+                unavailable_reason='Could not fetch competitor content',
+            )
 
-        # Calculate statistics
+        return self._build_result(
+            keyword=keyword,
+            observed_word_count=observed_word_count,
+            word_target=word_target,
+            competitor_lengths=competitor_lengths,
+        )
+
+    def _build_result(
+        self,
+        keyword: str,
+        observed_word_count: Optional[int],
+        word_target: Optional[int],
+        competitor_lengths: List[Dict[str, Any]],
+        unavailable_reason: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Build the clean context-only result shape for all outcomes."""
         counts = [comp['word_count'] for comp in competitor_lengths]
         stats = self._calculate_statistics(counts)
 
-        # Determine recommended length
-        recommendation = self._get_recommendation(
+        length_context = self._build_length_context(
             stats,
-            your_word_count
+            observed_word_count,
+            word_target,
+            unavailable_reason,
         )
 
-        # Position your content
         your_position = self._get_position_in_range(
-            your_word_count,
+            observed_word_count,
             competitor_lengths
-        ) if your_word_count else None
+        ) if observed_word_count is not None and competitor_lengths else None
 
         return {
             'keyword': keyword,
             'competitors_analyzed': len(competitor_lengths),
-            'your_word_count': your_word_count,
+            'observed_word_count': observed_word_count,
+            'word_target': word_target,
             'statistics': stats,
             'competitor_lengths': competitor_lengths,
-            'your_position': your_position,
-            'recommendation': recommendation,
+            'observed_position': your_position,
+            'length_context': length_context,
             'competitive_analysis': self._analyze_competition(
-                your_word_count,
+                observed_word_count,
                 competitor_lengths,
-                stats
             )
         }
 
-    def _fetch_word_count(self, url: str) -> Optional[int]:
-        """Fetch and count words from a URL"""
+    def fetch_word_count(self, url: str) -> Optional[int]:
+        """Fetch and count words from a URL."""
+        return self.fetch_content_context(url).get('word_count')
+
+    def fetch_content_context(self, url: str) -> Dict[str, Any]:
+        """Fetch observed word count and H2 headings from one page request."""
+        context: Dict[str, Any] = {
+            'word_count': None,
+            'h2_headings': [],
+        }
         try:
             response = requests.get(url, headers=self.headers, timeout=10)
             response.raise_for_status()
@@ -124,15 +201,23 @@ class ContentLengthComparator:
 
             if main_content:
                 text = main_content.get_text(separator=' ', strip=True)
-                # Clean and count words
                 words = re.findall(r'\b[a-zA-Z]{2,}\b', text)
-                return len(words)
+                headings = []
+                for heading in main_content.find_all('h2'):
+                    heading_text = re.sub(
+                        r'\s+',
+                        ' ',
+                        heading.get_text(separator=' ', strip=True),
+                    ).strip()
+                    if heading_text and heading_text not in headings:
+                        headings.append(heading_text)
+                context['word_count'] = len(words)
+                context['h2_headings'] = headings
 
-        except Exception as e:
-            # Silently fail for individual URLs
+        except Exception:
             pass
 
-        return None
+        return context
 
     def _calculate_statistics(self, counts: List[int]) -> Dict[str, Any]:
         """Calculate statistical measures"""
@@ -150,111 +235,101 @@ class ContentLengthComparator:
             'percentile_75': round(statistics.quantiles(counts, n=4)[2]) if len(counts) > 3 else max(counts)
         }
 
-    def _get_recommendation(
+    def _build_length_context(
         self,
         stats: Dict[str, Any],
-        your_count: Optional[int]
+        observed_word_count: Optional[int],
+        word_target: Optional[int],
+        unavailable_reason: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Generate content length recommendation"""
-        if not stats:
-            return {'error': 'Insufficient data'}
+        """Describe observed length without deriving a target from competitors."""
+        difference = None
+        if observed_word_count is not None and word_target is not None:
+            difference = observed_word_count - word_target
 
-        # Target: 75th percentile or median + 20%, whichever is higher
-        target_median = stats['median']
-        target_75th = stats['percentile_75']
-
-        # Recommended range
-        recommended_min = target_median
-        recommended_optimal = max(target_75th, int(target_median * 1.2))
-        recommended_max = int(recommended_optimal * 1.2)
-
-        status = None
-        message = None
-
-        if your_count:
-            if your_count < recommended_min * 0.8:
-                status = "too_short"
-                message = f"Your content is significantly shorter than competitors. Add {recommended_optimal - your_count} more words."
-            elif your_count < recommended_min:
-                status = "short"
-                message = f"Your content is shorter than most competitors. Consider adding {recommended_optimal - your_count} more words."
-            elif your_count < recommended_optimal:
-                status = "good"
-                message = f"Your content length is competitive. Add {recommended_optimal - your_count} more words to match top performers."
-            elif your_count <= recommended_max:
-                status = "optimal"
-                message = "Your content length is optimal - matches or exceeds top competitors."
+        if word_target is None:
+            target_source = "unresolved"
+            if unavailable_reason:
+                message = (
+                    f"{unavailable_reason}. Word target is unresolved until Reader Contract "
+                    "planning identifies the intent, payoff, and required evidence."
+                )
             else:
-                status = "long"
-                message = "Your content is longer than competitors. Ensure all content adds value."
+                message = (
+                    "Competitor word counts are context only. Word target is unresolved until "
+                    "Reader Contract planning identifies the intent, payoff, and required evidence."
+                )
+        else:
+            target_source = "caller_supplied"
+            if unavailable_reason:
+                message = (
+                    f"{unavailable_reason}. Evaluate completeness against the caller-supplied "
+                    "target, Reader Contract, and available evidence without padding."
+                )
+            else:
+                message = (
+                    "Competitor word counts are context only. Evaluate completeness against the "
+                    "caller-supplied target, Reader Contract, and available evidence without padding."
+                )
 
         return {
-            'recommended_min': recommended_min,
-            'recommended_optimal': recommended_optimal,
-            'recommended_max': recommended_max,
-            'your_status': status,
+            'status': 'reported',
+            'target_source': target_source,
+            'difference_from_target': difference,
             'message': message,
-            'reasoning': f"Based on median ({target_median}) and 75th percentile ({target_75th}) of top 10 results"
         }
 
     def _get_position_in_range(
         self,
-        your_count: int,
+        observed_word_count: int,
         competitors: List[Dict[str, Any]]
     ) -> str:
         """Determine where your content falls in the competitor range"""
         counts = [c['word_count'] for c in competitors]
         counts.sort()
 
-        if your_count < counts[0]:
+        if observed_word_count < counts[0]:
             return f"Below all competitors (shortest is {counts[0]})"
-        elif your_count > counts[-1]:
+        elif observed_word_count > counts[-1]:
             return f"Above all competitors (longest is {counts[-1]})"
         else:
             # Find position
-            for i, count in enumerate(counts):
-                if your_count <= count:
-                    return f"Between position {i} and {i+1} competitors"
+            for i, count in enumerate(counts, 1):
+                if observed_word_count <= count:
+                    if i == 1:
+                        return f"At shortest competitor length ({count})"
+                    return f"Between position {i - 1} and {i} competitors"
 
         return "Within competitive range"
 
     def _analyze_competition(
         self,
-        your_count: Optional[int],
+        observed_word_count: Optional[int],
         competitors: List[Dict[str, Any]],
-        stats: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Provide competitive analysis"""
         analysis = {
             'total_competitors': len(competitors),
             'length_distribution': self._categorize_lengths(competitors),
+            'comparison': None,
         }
 
-        if your_count and stats:
+        if observed_word_count is not None and competitors:
             # How many competitors you're longer than
-            shorter_than_you = len([c for c in competitors if c['word_count'] < your_count])
-            longer_than_you = len([c for c in competitors if c['word_count'] > your_count])
+            shorter_than_you = len([
+                c for c in competitors
+                if c['word_count'] < observed_word_count
+            ])
+            longer_than_you = len([
+                c for c in competitors
+                if c['word_count'] > observed_word_count
+            ])
 
             analysis['comparison'] = {
                 'shorter_than_you': shorter_than_you,
                 'longer_than_you': longer_than_you,
-                'percentile': round((shorter_than_you / len(competitors)) * 100) if competitors else 0
+                'percentile': round((shorter_than_you / len(competitors)) * 100)
             }
-
-            # Gap analysis
-            if your_count < stats['median']:
-                gap = stats['median'] - your_count
-                analysis['gap_to_median'] = {
-                    'words': gap,
-                    'percentage': round((gap / your_count) * 100)
-                }
-
-            if your_count < stats['percentile_75']:
-                gap = stats['percentile_75'] - your_count
-                analysis['gap_to_75th_percentile'] = {
-                    'words': gap,
-                    'percentage': round((gap / your_count) * 100) if your_count > 0 else 0
-                }
 
         return analysis
 
@@ -290,73 +365,29 @@ class ContentLengthComparator:
 # Convenience function
 def compare_content_length(
     keyword: str,
-    your_word_count: Optional[int] = None,
+    observed_word_count: Optional[int] = None,
     serp_results: Optional[List[Dict[str, str]]] = None,
-    fetch_content: bool = True
+    fetch_content: bool = True,
+    word_target: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
     Compare content length against SERP competitors
 
     Args:
         keyword: Target keyword
-        your_word_count: Your content's word count
+        observed_word_count: Observed content word count
         serp_results: SERP results from DataForSEO
         fetch_content: Whether to fetch competitor content
+        word_target: Optional caller-supplied intent/evidence-complete target
 
     Returns:
-        Content length comparison and recommendations
+        Observed content length comparison and caller-target context
     """
     comparator = ContentLengthComparator()
-    return comparator.analyze(keyword, your_word_count, serp_results, fetch_content)
-
-
-# Example usage
-if __name__ == "__main__":
-    # Example with mock SERP data
-    mock_serp = [
-        {'url': 'https://example1.com/podcast-guide', 'domain': 'example1.com', 'title': 'How to Start a Podcast'},
-        {'url': 'https://example2.com/podcast-tutorial', 'domain': 'example2.com', 'title': 'Podcast Tutorial'},
-        {'url': 'https://example3.com/podcasting-101', 'domain': 'example3.com', 'title': 'Podcasting 101'},
-    ]
-
-    # Note: In real usage, this would fetch actual content
-    # For demo, we'll create mock data
-    print("=== Content Length Comparison ===")
-    print("\nNote: In production, this would fetch real competitor content.")
-    print("Example output structure:")
-
-    example_output = {
-        'keyword': 'how to start a podcast',
-        'competitors_analyzed': 10,
-        'your_word_count': 2200,
-        'statistics': {
-            'min': 1800,
-            'max': 4500,
-            'mean': 2650,
-            'median': 2500,
-            'percentile_75': 3200
-        },
-        'recommendation': {
-            'recommended_min': 2500,
-            'recommended_optimal': 3200,
-            'recommended_max': 3840,
-            'your_status': 'short',
-            'message': 'Consider adding 1000 more words to match top performers.',
-            'reasoning': 'Based on median (2500) and 75th percentile (3200) of top 10 results'
-        },
-        'competitive_analysis': {
-            'total_competitors': 10,
-            'comparison': {
-                'shorter_than_you': 3,
-                'longer_than_you': 7,
-                'percentile': 30
-            },
-            'gap_to_median': {
-                'words': 300,
-                'percentage': 14
-            }
-        }
-    }
-
-    import json
-    print(json.dumps(example_output, indent=2))
+    return comparator.analyze(
+        keyword,
+        observed_word_count,
+        serp_results,
+        fetch_content,
+        word_target,
+    )

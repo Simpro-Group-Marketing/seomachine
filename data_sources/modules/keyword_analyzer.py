@@ -1,15 +1,23 @@
 """
 Keyword Analyzer
 
-Calculates keyword density, analyzes distribution, and performs semantic clustering
-to identify keyword usage patterns and topic clusters within content.
+Reports keyword density, analyzes distribution, detects stuffing risk, and performs
+semantic clustering to identify terminology coverage and topic clusters.
 """
 
 import argparse
+from collections import Counter
+import math
 import re
 import sys
-from typing import Dict, List, Tuple, Optional, Any
-from collections import Counter
+from typing import Any, Dict, List, Optional
+
+
+def _positive_finite_float(value: str) -> float:
+    parsed = float(value)
+    if not math.isfinite(parsed) or parsed <= 0:
+        raise argparse.ArgumentTypeError("must be a finite positive number")
+    return parsed
 
 try:
     from sklearn.feature_extraction.text import TfidfVectorizer
@@ -36,7 +44,7 @@ class KeywordAnalyzer:
         content: str,
         primary_keyword: str,
         secondary_keywords: Optional[List[str]] = None,
-        target_density: float = 1.5
+        target_density: Optional[float] = None
     ) -> Dict[str, Any]:
         """
         Comprehensive keyword analysis
@@ -45,12 +53,41 @@ class KeywordAnalyzer:
             content: Article content to analyze
             primary_keyword: Main target keyword
             secondary_keywords: List of secondary keywords
-            target_density: Target keyword density percentage (default 1.5%)
+            target_density: Optional target keyword density percentage. When omitted,
+                density is reported without low-density prompting.
 
         Returns:
             Dict with density metrics, distribution map, and recommendations
         """
-        secondary_keywords = secondary_keywords or []
+        if not isinstance(content, str):
+            raise ValueError("content must be a string")
+        if not isinstance(primary_keyword, str) or not primary_keyword.strip():
+            raise ValueError("primary_keyword must be a non-empty string")
+        primary_keyword = primary_keyword.strip()
+        if secondary_keywords is not None and (
+            not isinstance(secondary_keywords, list)
+            or any(
+                not isinstance(keyword, str) or not keyword.strip()
+                for keyword in secondary_keywords
+            )
+        ):
+            raise ValueError(
+                "secondary_keywords must be a list of non-empty strings or None"
+            )
+        if (
+            target_density is not None
+            and (
+                isinstance(target_density, bool)
+                or not isinstance(target_density, (int, float))
+                or not math.isfinite(target_density)
+                or target_density <= 0
+            )
+        ):
+            raise ValueError("target_density must be a finite positive number or None")
+
+        secondary_keywords = [
+            keyword.strip() for keyword in (secondary_keywords or [])
+        ]
 
         # Clean and prepare content
         word_count = len(content.split())
@@ -73,7 +110,7 @@ class KeywordAnalyzer:
                 keyword,
                 word_count,
                 sections,
-                target_density * 0.5  # Lower target for secondary
+                target_density * 0.5 if target_density is not None else None
             )
             secondary_analysis.append(analysis)
 
@@ -121,25 +158,11 @@ class KeywordAnalyzer:
         keyword: str,
         word_count: int,
         sections: List[Dict],
-        target_density: float
+        target_density: Optional[float]
     ) -> Dict[str, Any]:
-        """Analyze a single keyword"""
-        content_lower = content.lower()
-        keyword_lower = keyword.lower()
-
-        # Count exact matches
-        exact_count = content_lower.count(keyword_lower)
-
-        # Count variations (word order doesn't matter for multi-word keywords)
-        variation_count = 0
-        keyword_words = keyword_lower.split()
-        if len(keyword_words) > 1:
-            # Look for variations like "podcast hosting" -> "hosting podcast" or "hosting your podcast"
-            variation_pattern = r'\b(?:' + '|'.join(keyword_words) + r')\b'
-            matches = re.finditer(variation_pattern, content_lower)
-            variation_count = len(list(matches)) - (exact_count * len(keyword_words))
-
-        total_count = exact_count + (variation_count // len(keyword_words) if len(keyword_words) > 1 else 0)
+        """Analyze a single keyword using bounded exact-phrase matches."""
+        exact_count = self._count_keyword_matches(content, keyword)
+        total_count = exact_count
 
         # Calculate density
         density = (total_count / word_count * 100) if word_count > 0 else 0
@@ -171,6 +194,26 @@ class KeywordAnalyzer:
             'critical_placements': critical_placements,
             'section_distribution': section_distribution
         }
+
+    @staticmethod
+    def _keyword_pattern(keyword: str) -> re.Pattern[str]:
+        """Compile a case-insensitive phrase pattern with word boundaries."""
+        escaped_phrase = r'\s+'.join(
+            re.escape(part)
+            for part in keyword.strip().split()
+        )
+        return re.compile(
+            rf'(?<!\w){escaped_phrase}(?!\w)',
+            re.IGNORECASE,
+        )
+
+    def _count_keyword_matches(self, text: str, keyword: str) -> int:
+        """Count bounded exact-phrase matches in text."""
+        return sum(1 for _ in self._keyword_pattern(keyword).finditer(text))
+
+    def _contains_keyword(self, text: str, keyword: str) -> bool:
+        """Return whether text contains a bounded exact-phrase match."""
+        return self._keyword_pattern(keyword).search(text) is not None
 
     def _extract_sections(self, content: str) -> List[Dict]:
         """Extract sections with headers from content"""
@@ -224,19 +267,7 @@ class KeywordAnalyzer:
 
     def _find_keyword_positions(self, content: str, keyword: str) -> List[int]:
         """Find all positions where keyword appears"""
-        positions = []
-        content_lower = content.lower()
-        keyword_lower = keyword.lower()
-
-        start = 0
-        while True:
-            pos = content_lower.find(keyword_lower, start)
-            if pos == -1:
-                break
-            positions.append(pos)
-            start = pos + 1
-
-        return positions
+        return [match.start() for match in self._keyword_pattern(keyword).finditer(content)]
 
     def _check_critical_placements(
         self,
@@ -245,22 +276,19 @@ class KeywordAnalyzer:
         keyword: str
     ) -> Dict[str, bool]:
         """Check if keyword appears in critical locations"""
-        content_lower = content.lower()
-        keyword_lower = keyword.lower()
-
         # First 100 words
-        first_100 = ' '.join(content.split()[:100]).lower()
-        in_first_100 = keyword_lower in first_100
+        first_100 = ' '.join(content.split()[:100])
+        in_first_100 = self._contains_keyword(first_100, keyword)
 
         # Last paragraph (conclusion)
-        last_para = content.split('\n\n')[-1].lower() if '\n\n' in content else content[-500:].lower()
-        in_conclusion = keyword_lower in last_para
+        last_para = content.split('\n\n')[-1] if '\n\n' in content else content[-500:]
+        in_conclusion = self._contains_keyword(last_para, keyword)
 
         # H1 (first heading)
         in_h1 = False
         h1_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
         if h1_match:
-            in_h1 = keyword_lower in h1_match.group(1).lower()
+            in_h1 = self._contains_keyword(h1_match.group(1), keyword)
 
         # H2 headings
         h2_count = 0
@@ -268,7 +296,7 @@ class KeywordAnalyzer:
         for section in sections:
             if section['type'] == 'h2':
                 h2_count += 1
-                if keyword_lower in section['header'].lower():
+                if self._contains_keyword(section['header'], keyword):
                     h2_with_keyword += 1
 
         return {
@@ -285,12 +313,11 @@ class KeywordAnalyzer:
         keyword: str
     ) -> List[Dict]:
         """Analyze how keyword is distributed across sections"""
-        keyword_lower = keyword.lower()
         distribution = []
 
         for i, section in enumerate(sections):
-            section_text = (section['header'] + ' ' + section['content']).lower()
-            count = section_text.count(keyword_lower)
+            section_text = section['header'] + ' ' + section['content']
+            count = self._count_keyword_matches(section_text, keyword)
             word_count = len(section_text.split())
 
             distribution.append({
@@ -304,8 +331,10 @@ class KeywordAnalyzer:
 
         return distribution
 
-    def _get_density_status(self, actual: float, target: float) -> str:
+    def _get_density_status(self, actual: float, target: Optional[float]) -> str:
         """Determine if density is appropriate"""
+        if target is None:
+            return "reported"
         if actual < target * 0.5:
             return "too_low"
         elif actual < target * 0.8:
@@ -324,7 +353,6 @@ class KeywordAnalyzer:
         density: float
     ) -> Dict[str, Any]:
         """Detect potential keyword stuffing"""
-        keyword_lower = keyword.lower()
         risk_level = "none"
         warnings = []
 
@@ -339,12 +367,12 @@ class KeywordAnalyzer:
         # Check for keyword clustering (multiple instances in same paragraph)
         paragraphs = content.split('\n\n')
         for i, para in enumerate(paragraphs):
-            count = para.lower().count(keyword_lower)
+            count = self._count_keyword_matches(para, keyword)
             words = len(para.split())
             if words > 0:
                 para_density = (count / words * 100)
                 if para_density > 5:
-                    risk_level = "high" if risk_level == "medium" else risk_level
+                    risk_level = "high"
                     warnings.append(f"Paragraph {i+1} has very high keyword density ({para_density:.1f}%)")
 
         # Check for unnatural repetition (keyword appears in consecutive sentences)
@@ -352,7 +380,7 @@ class KeywordAnalyzer:
         consecutive = 0
         max_consecutive = 0
         for sentence in sentences:
-            if keyword_lower in sentence.lower():
+            if self._contains_keyword(sentence, keyword):
                 consecutive += 1
                 max_consecutive = max(max_consecutive, consecutive)
             else:
@@ -469,12 +497,11 @@ class KeywordAnalyzer:
         sections: List[Dict]
     ) -> List[Dict[str, Any]]:
         """Create a visual representation of keyword distribution"""
-        keyword_lower = keyword.lower()
         heatmap = []
 
         for i, section in enumerate(sections):
-            section_text = (section['header'] + ' ' + section['content']).lower()
-            count = section_text.count(keyword_lower)
+            section_text = section['header'] + ' ' + section['content']
+            count = self._count_keyword_matches(section_text, keyword)
             word_count = len(section_text.split())
 
             # Calculate heat level (0-5)
@@ -545,7 +572,7 @@ class KeywordAnalyzer:
 
             return lsi_keywords[:15]
 
-        except Exception as e:
+        except Exception:
             return []
 
     def _generate_recommendations(
@@ -553,14 +580,19 @@ class KeywordAnalyzer:
         primary_analysis: Dict,
         secondary_analysis: List[Dict],
         stuffing_risk: Dict,
-        target_density: float
+        target_density: Optional[float]
     ) -> List[str]:
         """Generate actionable recommendations"""
         recommendations = []
 
         # Primary keyword density
         status = primary_analysis['density_status']
-        if status == "too_low":
+        if target_density is None:
+            recommendations.append(
+                "INFO: Keyword density is reported for context only. Evaluate critical placement, "
+                "semantic variations, and stuffing risk instead of chasing an exact-match target."
+            )
+        elif status == "too_low":
             recommendations.append(
                 f"WARNING: Primary keyword density is too low ({primary_analysis['density']}%). "
                 f"Target is {target_density}%. Add {primary_analysis['keyword']} naturally in more paragraphs."
@@ -589,14 +621,14 @@ class KeywordAnalyzer:
         if not placements['in_h1']:
             recommendations.append("WARNING: Primary keyword missing from H1 headline - include it in the title")
 
-        if placements['h2_keyword_ratio'] < 0.33:  # Less than 1/3 of H2s
+        if (
+            placements['in_h2_headings'] != "0/0"
+            and placements['in_h2_headings'].startswith("0/")
+        ):
             recommendations.append(
-                f"INFO: Primary keyword appears in only {placements['in_h2_headings']} H2 headings. "
-                "Aim for 2-3 H2s with keyword variations."
+                "INFO: Primary keyword is missing from H2 headings. Add it to one "
+                "relevant H2 where the exact phrase is natural, then use semantic variations."
             )
-
-        if not placements['in_conclusion']:
-            recommendations.append("INFO: Consider mentioning primary keyword in the conclusion for better optimization")
 
         # Keyword stuffing
         if not stuffing_risk['safe']:
@@ -620,7 +652,7 @@ def analyze_keywords(
     content: str,
     primary_keyword: str,
     secondary_keywords: Optional[List[str]] = None,
-    target_density: float = 1.5
+    target_density: Optional[float] = None
 ) -> Dict[str, Any]:
     """
     Analyze keyword usage in content
@@ -629,7 +661,8 @@ def analyze_keywords(
         content: Article text
         primary_keyword: Main target keyword
         secondary_keywords: List of secondary keywords
-        target_density: Target density percentage
+        target_density: Optional target density percentage. When omitted, density is
+            reported without low-density prompting.
 
     Returns:
         Comprehensive keyword analysis
@@ -702,11 +735,16 @@ def _format_report(result: Dict[str, Any]) -> str:
 
 
 def main(argv: Optional[List[str]] = None) -> int:
-    parser = argparse.ArgumentParser(description="Analyze keyword density and distribution for markdown content.")
+    parser = argparse.ArgumentParser(description="Analyze keyword distribution, terminology coverage, and stuffing risk for markdown content.")
     parser.add_argument("path", nargs="?", help="Markdown file to analyze. If omitted, runs the built-in sample.")
     parser.add_argument("--primary-keyword", help="Primary keyword to analyze.")
     parser.add_argument("--secondary-keywords", help="Comma-separated secondary keywords.")
-    parser.add_argument("--target-density", type=float, default=1.5, help="Target primary keyword density percentage.")
+    parser.add_argument(
+        "--target-density",
+        type=_positive_finite_float,
+        default=None,
+        help="Optional primary keyword density percentage for legacy density-audit mode.",
+    )
 
     args = parser.parse_args(argv)
 

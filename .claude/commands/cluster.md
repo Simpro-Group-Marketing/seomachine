@@ -116,14 +116,14 @@ Define the pillar page:
 | **Primary Keyword** | [Highest-volume broad term] |
 | **Secondary Keywords** | [3-5 related terms] |
 | **Search Intent** | [Informational / Commercial Investigation] |
-| **Target Word Count** | 3,000-5,000 words |
+| **Word Target** | Caller-supplied, intent/evidence-complete target derived from the Reader Contract |
 | **Differentiation Angle** | [What makes ours uniquely valuable] |
 
 **Pillar Page Outline:**
 - Create full H2/H3 outline
 - Each H2 should map to a supporting article topic
-- Include sections that competitors cover (Google-validated structure)
-- Add sections that fill identified gaps
+- Evaluate competitor-covered sections as context against the Reader Contract
+- Add sections only when they improve reader payoff, evidence completeness, or task usefulness
 - Note where each supporting article will be linked from
 
 ### Step 5: Define Supporting Articles (8-12)
@@ -140,7 +140,7 @@ For each supporting article, specify:
 | **Search Intent** | [Informational / How-to / Commercial / Comparison] |
 | **Content Angle** | [Specific perspective or approach] |
 | **Pillar Relationship** | [Which pillar H2 section this expands on] |
-| **Word Count Target** | [1,500-3,000] |
+| **Word Target** | [Caller-supplied, intent/evidence-complete target] |
 | **Priority Score** | [0-100 using prioritization framework] |
 
 **Prioritization Framework:**
@@ -254,7 +254,7 @@ Save to: `research/cluster-strategy-[topic-slug]-[YYYY-MM-DD].md`
 | Primary Keyword | [keyword] |
 | Secondary Keywords | [keywords] |
 | Search Intent | [intent] |
-| Word Count Target | [3,000-5,000] |
+| Word Target | [Caller-supplied, intent/evidence-complete target] |
 | Differentiation | [angle] |
 
 ### Competitive Analysis
@@ -280,7 +280,7 @@ Save to: `research/cluster-strategy-[topic-slug]-[YYYY-MM-DD].md`
 | Search Intent | [intent] |
 | Content Angle | [angle] |
 | Pillar Relationship | Expands on H2: [section] |
-| Word Count Target | [count] |
+| Word Target | [Caller-supplied intent/evidence-complete target] |
 | Priority Score | [score]/100 |
 
 ### Article 2: [Title]

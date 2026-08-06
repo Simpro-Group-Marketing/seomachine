@@ -12,31 +12,30 @@
 
 This document outlines SEO best practices and requirements for all Simpro blog content to maximize organic search visibility and rankings.
 
-## Content Length Requirements
+## Content Scope Requirements
 
-### Target Word Counts
-- **Standard Blog Post**: 1,500-3,000 words (target: 2,000-2,500)
-- **Pillar Content / Comprehensive Guides**: 3,000-5,000 words maximum
-- **How-To Guides**: 1,500-2,500 words
-- **News / Updates**: 800-1,200 words (exception to standard)
+### Target Scope
+- **Standard Blog Post**: cover the search intent and reader task without filler
+- **Pillar Content / Comprehensive Guides**: cover the full decision, workflow, or cluster when evidence supports that depth
+- **How-To Guides**: include every step, artifact, caveat, and proof source needed for the task
+- **News / Updates**: stay concise and source-bound
 
-### Important Length Guidelines
-- **Maximum for most articles**: 3,000 words
-- **Maximum for pillar content**: 5,000 words
-- If a topic requires more than the maximum, break it into a series of related articles
-- Aim for the lower end of ranges when possible—concise, focused content often performs better
+### Important Scope Guidelines
+- Set an intent/evidence-complete word target from the Reader Contract, search intent, and available proof
+- Use competitor word counts as context, not a target
+- If a topic requires more depth than one useful article can hold, break it into a series of related articles
+- Aim for concise, focused content when it delivers the promised payoff
 
-### Why Length Matters
-- Longer content typically ranks higher in search results
-- More words = more opportunities for keyword integration and topic coverage
-- Comprehensive content earns more backlinks and engagement
-- Depth signals expertise and authority to search engines
+### Why Scope Matters
+- Search engines and readers reward complete answers to the query, not filler
+- Useful scope creates room for source-backed explanation, examples, links, and artifacts
+- Depth signals expertise only when it adds evidence, decisions, or workflow clarity
 
 ### Quality Over Quantity
 - Don't add fluff just to hit word counts
 - Every section should provide genuine value
-- Better to have 2,000 valuable words than 3,000 padded words
-- **Stay within the maximum word counts**—overly long articles hurt user experience
+- Better to have a complete focused article than a padded one
+- Overly long articles hurt user experience when sections stop advancing the promised payoff
 
 ## Keyword Optimization
 
@@ -48,18 +47,18 @@ Before writing any article:
 4. Identify 3-5 secondary/related keywords
 5. List LSI (Latent Semantic Indexing) keywords
 
-### Keyword Density Guidelines
-- **Primary Keyword**: 1-2% density
-  - Example: In a 2,000-word article, use keyword 20-40 times
-  - Natural integration is critical—never force keywords
-- **Secondary Keywords**: 0.5-1% density each
-- **LSI Keywords**: Sprinkle throughout naturally
+### Terminology Coverage Guidelines
+- **Primary Keyword**: place naturally in critical reader-visible locations
+- **Natural Integration**: never force exact-match phrases
+- **Secondary Keywords**: use where they reflect real subtopics or searcher language
+- **Semantic Variations**: use related terms that clarify the topic and reduce repetition
+- **Stuffing Risk**: remove clustered or repetitive exact-match phrasing
 
 ### Critical Keyword Placement
 Primary keyword MUST appear in:
 - [ ] H1 headline (preferably near the beginning)
 - [ ] First 100 words of article
-- [ ] At least 2-3 H2 subheadings
+- [ ] At least one relevant H2 where the exact phrase is natural
 - [ ] Last paragraph / conclusion
 - [ ] Meta title (within first 60 characters)
 - [ ] Meta description
@@ -91,8 +90,8 @@ Primary keyword MUST appear in:
 - Should answer: "What will I learn/gain from this?"
 
 #### H2 (Main Sections)
-- **4-7 H2 sections** for standard articles
-- At least **2-3 should include keyword variations**
+- Use one H2 per distinct reader question, decision, or task change; do not add sections to hit a quota
+- Use the primary term in at least one relevant H2 where natural, then prefer semantic variations over repeated exact matches
 - Descriptive and keyword-rich
 - Logical progression through topic
 - Can be standalone (readers should understand flow from H2s alone)
@@ -108,7 +107,7 @@ Primary keyword MUST appear in:
 ```markdown
 # [H1: Compelling Title with Primary Keyword]
 
-## Introduction (150-250 words)
+## Introduction (use the planned section target)
 - Hook: Attention-grabbing opening
 - Problem: What challenge does this address?
 - Promise: What will reader learn/achieve?
@@ -135,10 +134,10 @@ Primary keyword MUST appear in:
 ## [H2: Main Section 4]
 [Continue with 4-7 total H2 sections]
 
-## Conclusion (150-250 words)
-- Recap key points (3-5 takeaways)
+## Conclusion (use the planned section target)
+- Recap only the points needed to close the headline and introduction promise
 - Include keyword
-- Clear call-to-action
+- Intent-appropriate next action based on the Reader Contract and funnel stage
 - Next steps for reader
 ```
 
@@ -171,19 +170,19 @@ Primary keyword MUST appear in:
 - **Length**: 150-160 characters
 - **Primary keyword**: Include naturally
 - **Value proposition**: Clear benefit to reader
-- **Call-to-action**: Action phrase (Learn, Discover, Find out, Get, etc.)
+- **Search intent**: Accurate value or action language when it improves the result snippet
 - **Complete**: Must not cut off mid-sentence
 - **Compelling**: Should drive clicks from SERP
 
 **Formula**:
 ```
-[Problem/Question]? [Solution/Benefit]. [Unique angle]. [CTA].
+[Problem/Question]? [Solution/Benefit]. [Unique angle]. [Optional intent-matched next step].
 ```
 
 **Examples**:
 - ✅ "Discover how Simpro's field service management software helps trades contractors schedule jobs, manage inventory and get paid faster. Get a demo." (155 chars)
 - ✅ "Compare the 12 best FSM software platforms for HVAC, electrical and plumbing contractors. Features, pricing, and pros/cons. Updated 2026." (148 chars)
-- ❌ "This is a blog post about field service software where we discuss many software-related topics." (vague, no value prop, no CTA)
+- ❌ "This is a blog post about field service software where we discuss many software-related topics." (vague and no reader value)
 
 ### URL Slug
 **Requirements**:
@@ -211,14 +210,14 @@ Primary keyword MUST appear in:
 ### Requirements
 - **Minimum**: 3 internal links per article
 - **Optimal**: 4-5 internal links
-- **Maximum**: 7 internal links (unless 3,000+ word article)
+- **Maximum**: 7 internal links unless the Reader Contract, article scope, and available proof justify additional contextual links
 
 ### Link Types to Include
 
 #### 1. Pillar Content (1-2 links)
 - Link to main comprehensive guides on related topics
 - Builds topic cluster authority
-- Usually 2,000+ word cornerstone content
+- Usually cornerstone content that fully covers a broad cluster or decision path
 
 #### 2. Related Blog Posts (2-3 links)
 - Link to articles on related subtopics
@@ -304,7 +303,7 @@ Primary keyword MUST appear in:
 - **Mobile-friendly**: Short paragraphs scan better on phones
 
 ### Formatting for Scannability
-- **Subheadings**: Every 300-400 words
+- **Subheadings**: Add when the topic or reader question changes
 - **Lists**: Use bullets/numbers for sequential or multiple items
 - **Bold**: Emphasize key concepts or takeaways
 - **Short paragraphs**: Easier to digest
@@ -333,7 +332,7 @@ Use transition words to improve flow (target: one per paragraph):
 - Reference industry data and trends
 - Include expert quotes when relevant
 - Leverage Simpro's position as leading FSM software for trades contractors
-- Use named customer proof: Nikki Schembri (Tequa), Jacqui Sheriff (O'Brien Electrical), Lorene Maher (RCR Infrastructure), Todd Rankin (AlarmQuest)
+- Use approved named customer proof: prefer the most relevant selector-approved source when it materially improves the article objective; if none fits, use an unnamed explanatory scene or omit the story, and keep all public details within the proof gates
 
 #### Trustworthiness
 - Be transparent and honest
@@ -589,7 +588,7 @@ Every article should include a TL;DR block near the top (after the introduction,
 **Rules:**
 - 3-5 bullet points maximum
 - Each bullet is a complete, standalone claim (not a teaser)
-- Use specific numbers, names, or outcomes — not vague summaries
+- Use approved proof-backed numbers, names, or outcomes when relevant; otherwise use concrete workflow detail rather than a vague summary
 - This is NOT a table of contents — it's the article's actual conclusions up front
 
 ### Authority Signaling for AI
@@ -619,7 +618,7 @@ AI models (especially Perplexity and Gemini) reference YouTube videos alongside 
 - Increases time on page (Google signal)
 - Adds a content format AI can independently verify
 
-**Rule:** Embed at least one relevant YouTube video per article where it adds context. Prefer Simpro's own videos, then authoritative third-party videos.
+**Rule:** Evaluate selected video evidence for each article. Embed a relevant, public, embeddable video only when it materially supports the section. Prefer Simpro's own eligible videos, then authoritative third-party videos. When no eligible video fits, document the decision and omit the embed.
 
 ### FAQ Sections as Prompt Targets
 
@@ -663,9 +662,9 @@ For competitive topics, audit which sources AI actually cites. See `context/ai-c
 Before publishing, verify:
 
 ### Content
-- [ ] 2,000+ words (or appropriate for content type)
+- [ ] Word count fits the Reader Contract, search intent, and available evidence
 - [ ] Primary keyword identified
-- [ ] Keyword density 1-2%
+- [ ] Natural terminology coverage, semantic variations, and keyword-stuffing detection checked
 - [ ] 3-5 secondary keywords included
 - [ ] LSI keywords naturally integrated
 - [ ] Provides unique value vs. competitors
@@ -673,8 +672,8 @@ Before publishing, verify:
 
 ### Structure
 - [ ] One H1 with primary keyword
-- [ ] 4-7 H2 sections
-- [ ] 2-3 H2s include keyword variations
+- [ ] Each H2 advances a distinct reader question, decision, or task change
+- [ ] Primary terminology and semantic variations appear naturally in relevant H2s without a quota
 - [ ] Proper H1>H2>H3 hierarchy
 - [ ] Keyword in first 100 words
 - [ ] Keyword in conclusion
@@ -688,7 +687,7 @@ Before publishing, verify:
 
 ### Meta Elements
 - [ ] Meta title 50-60 characters with keyword
-- [ ] Meta description 150-160 characters with keyword & CTA
+- [ ] Meta description 150-160 characters with accurate value or action language suited to search intent
 - [ ] URL slug includes primary keyword
 - [ ] All meta elements are unique
 
@@ -703,7 +702,7 @@ Before publishing, verify:
 - [ ] 8th-10th grade reading level
 - [ ] Average sentence length 15-20 words
 - [ ] Paragraphs 2-4 sentences
-- [ ] Subheadings every 300-400 words
+- [ ] Subheadings follow topic and reader-question changes
 - [ ] Lists used for scannability
 - [ ] Active voice predominantly
 
@@ -718,7 +717,7 @@ Before publishing, verify:
 - [ ] TL;DR / Key Takeaways block after introduction
 - [ ] Meta description directly answers the target query
 - [ ] FAQ questions written in natural prompt language
-- [ ] At least one embedded YouTube video
+- [ ] Video eligibility evaluated; embed only an eligible selected video that materially supports the article
 - [ ] Author attribution (named, not generic "Team")
 - [ ] Last updated date included
 - [ ] Year included in title for time-sensitive topics
@@ -729,7 +728,7 @@ Before publishing, verify:
 - [ ] Sources cited
 - [ ] Brand voice maintained
 - [ ] Provides actionable value
-- [ ] Clear call-to-action
+- [ ] Intent-appropriate next action; no CTA added when the Reader Contract does not call for one
 
 ## SEO Tools & Resources
 

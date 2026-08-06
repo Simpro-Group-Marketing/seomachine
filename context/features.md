@@ -334,11 +334,11 @@ See `competitor-analysis.md → ## ServiceTitan` for the full battlecard (Last U
 
 When writing about Simpro features:
 
-1. **Lead with the customer's win, not the feature**: Don't say "Simpro has job costing" — say "Shaffer Beacon Mechanical lifted profit margin 60% with real-time job costing."
-2. **Quantify everything possible**: Named customer + specific number > generic claim every time.
+1. **Lead with the customer's win when approved proof fits, not the feature alone**: Use a named outcome only when the Customer Proof Pack approves the exact customer, metric, evidence, and public URL. Otherwise explain the concrete workflow value.
+2. **Quantify only from approved proof**: Prefer a relevant approved named customer and number over a generic impact claim. Never invent or generalize a metric to force specificity.
 3. **Match feature to segment**: Multi-Company is the lead for roll-ups. Offline mobile is the lead for field-heavy operators. Real-time job costing is the lead for margin-focused owners.
 4. **Address adoption concerns proactively**: Trades buyers have been burned by software before. Mention implementation timeline, support, and eLearning.
-5. **Clear CTAs**: Always know the funnel stage. Book a demo (BoFu), Calculate ROI (MoFu), Read the customer story (ToFu).
+5. **Intent-appropriate next action**: Follow the Reader Contract. ToFu may use zero or one soft resource/action CTA, MoFu may pair an educational next step with one contextual product CTA, BoFu may use contextual commercial CTAs, and thought leadership may close with reflection, discussion, or an evidence resource instead of a commercial CTA.
 6. **Emphasize uniqueness vs. category**: "AI-first," "built for the trades," "service + projects + PM native," "scales SMB to enterprise on one platform."
 7. **Don't oversell residential-only or commercial-only**: Simpro spans both. Acknowledge the audience first, then lean into the right capabilities.
 

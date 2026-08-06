@@ -235,7 +235,10 @@ def generate_unified_roadmap(results: Dict[str, str]) -> Dict[str, Any]:
         {
             'source': 'Competitor Gaps',
             'action': 'Create content for remaining gap opportunities',
-            'description': 'Fill all identified content gaps systematically',
+            'description': (
+                'Fill recurring, reader-critical, evidence-supported gaps and '
+                'document justified exclusions'
+            ),
             'effort': 'Very High',
             'impact': 'High',
             'time_sensitive': False
@@ -326,7 +329,7 @@ def write_roadmap_report(roadmap: Dict[str, Any], results: Dict[str, str]):
                 f.write(f"2. Identify CRITICAL urgency trends\n")
                 f.write(f"3. For each trend:\n")
                 f.write(f"   - If position ≤30: Update existing content immediately\n")
-                f.write(f"   - If position >30: Create new 2000+ word comprehensive guide\n")
+                f.write(f"   - If position >30: Create a Reader Contract-led comprehensive guide\n")
                 f.write(f"4. Publish within 3-7 days\n")
 
             elif item['source'] == 'Performance Matrix':
@@ -344,7 +347,7 @@ def write_roadmap_report(roadmap: Dict[str, Any], results: Dict[str, str]):
                 f.write(f"3. For each keyword:\n")
                 f.write(f"   - Run `/research-serp [keyword]` for content requirements\n")
                 f.write(f"   - Update content following SERP analysis brief\n")
-                f.write(f"   - Add 300-500 words minimum\n")
+                f.write(f"   - Add content only for identified reader-payoff, evidence, or task gaps\n")
                 f.write(f"   - Improve keyword placement in H2/H3\n")
                 f.write(f"   - Optimize title/meta\n")
 
@@ -368,9 +371,9 @@ def write_roadmap_report(roadmap: Dict[str, Any], results: Dict[str, str]):
                     f.write(f"2. Select top 5 gaps (Priority: CRITICAL/HIGH)\n")
                     f.write(f"3. For each gap:\n")
                     f.write(f"   - Run `/research-serp [keyword]` for content brief\n")
-                    f.write(f"   - Create 2000-3000 word comprehensive content\n")
-                    f.write(f"   - Follow recommended content structure\n")
-                    f.write(f"   - Target all identified SERP features\n")
+                    f.write(f"   - Create comprehensive content sized by Reader Contract, evidence, and task completeness\n")
+                    f.write(f"   - Follow the recommended content structure by default; document the Reader Contract exception when another structure is justified\n")
+                    f.write(f"   - Evaluate all identified SERP features; target every applicable feature supported by intent, format, reader value, and verified inputs\n")
                     f.write(f"4. Schedule 1-2 gap articles per week\n")
                 else:
                     f.write(f"**Note:** Competitor gap analysis was skipped. Run manually:\n")
@@ -385,7 +388,7 @@ def write_roadmap_report(roadmap: Dict[str, Any], results: Dict[str, str]):
                 f.write(f"3. Identify 'Stars' that are declining\n")
                 f.write(f"4. For each:\n")
                 f.write(f"   - Update all statistics to current year\n")
-                f.write(f"   - Add 500+ words of new content\n")
+                f.write(f"   - Add content only for identified reader-payoff, evidence, or task gaps\n")
                 f.write(f"   - Refresh images and examples\n")
                 f.write(f"   - Improve internal linking\n")
 
@@ -407,9 +410,9 @@ def write_roadmap_report(roadmap: Dict[str, Any], results: Dict[str, str]):
                 f.write(f"1. Open research/topic-clusters-{date_str}.md\n")
                 f.write(f"2. Select top 2-3 weak clusters with high demand\n")
                 f.write(f"3. For each cluster:\n")
-                f.write(f"   - Create comprehensive pillar page (3000+ words)\n")
+                f.write(f"   - Create comprehensive pillar page sized by Reader Contract, evidence, and task completeness\n")
                 f.write(f"   - Create 8-12 supporting cluster articles\n")
-                f.write(f"   - Target all identified coverage gaps\n")
+                f.write(f"   - Evaluate all identified coverage gaps; treat recurring, reader-critical, evidence-supported gaps as must-fill and document the Reader Contract exception for any qualified gap omitted\n")
                 f.write(f"   - Internal link all cluster content to pillar\n")
                 f.write(f"4. Publish 1-2 cluster articles per week\n")
 

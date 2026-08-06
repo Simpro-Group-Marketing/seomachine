@@ -7,6 +7,7 @@ Provides scoring (0-100) and specific recommendations for improvement.
 
 import argparse
 from functools import lru_cache
+import math
 import re
 import sys
 from pathlib import Path
@@ -80,6 +81,13 @@ OWNED_INTERNAL_DOMAINS = {
 META_TITLE_BRAND_SUFFIX_RE = re.compile(r"\|\s*[A-Za-z][A-Za-z0-9 .&-]{1,40}$")
 
 
+def _non_negative_finite_float(value: str) -> float:
+    parsed = float(value)
+    if not math.isfinite(parsed) or parsed < 0:
+        raise argparse.ArgumentTypeError("must be a finite non-negative number")
+    return parsed
+
+
 def _has_meta_title_brand_suffix(meta_title: str) -> bool:
     return bool(META_TITLE_BRAND_SUFFIX_RE.search(meta_title.strip()))
 
@@ -94,16 +102,160 @@ class SEOQualityRater:
         Args:
             guidelines: Custom SEO guidelines (defaults to standard best practices)
         """
-        self.guidelines = guidelines or self._default_guidelines()
+        supplied_guidelines = dict(guidelines or {})
+        self._explicit_guideline_keys = set(supplied_guidelines)
+        self.guidelines = {
+            **self._default_guidelines(),
+            **supplied_guidelines,
+        }
+        self._validate_word_count_guidelines()
+        self._validate_h2_guidelines()
+        self._validate_density_guidelines()
+        (
+            self._keyword_high_density_warning,
+            self._keyword_stuffing_density,
+        ) = self._resolve_density_thresholds()
+
+    def _validate_word_count_guidelines(self) -> None:
+        word_count_keys = (
+            'min_word_count',
+            'optimal_word_count',
+            'max_word_count',
+        )
+        for key in word_count_keys:
+            value = self.guidelines.get(key)
+            if value is None:
+                continue
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, int)
+                or value <= 0
+            ):
+                raise ValueError(f"{key} must be a positive integer or None")
+
+        minimum = self.guidelines.get('min_word_count')
+        optimal = self.guidelines.get('optimal_word_count')
+        maximum = self.guidelines.get('max_word_count')
+        if minimum is not None and optimal is not None and minimum > optimal:
+            raise ValueError(
+                "word_count rules require min_word_count <= optimal_word_count"
+            )
+        if optimal is not None and maximum is not None and optimal > maximum:
+            raise ValueError(
+                "word_count rules require optimal_word_count <= max_word_count"
+            )
+        if minimum is not None and maximum is not None and minimum > maximum:
+            raise ValueError(
+                "word_count rules require min_word_count <= max_word_count"
+            )
+
+    def _validate_density_guidelines(self) -> None:
+        density_keys = (
+            'primary_keyword_density_min',
+            'primary_keyword_density_max',
+            'keyword_high_density_warning',
+            'keyword_stuffing_density',
+        )
+        for key in density_keys:
+            value = self.guidelines.get(key)
+            if value is None:
+                continue
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(value)
+                or value <= 0
+            ):
+                raise ValueError(f"{key} must be a finite positive number or None")
+
+        warning, stuffing = self._resolve_density_thresholds()
+        if stuffing < warning:
+            raise ValueError(
+                "keyword_stuffing_density must be greater than or equal to "
+                "keyword_high_density_warning"
+            )
+        minimum = self.guidelines.get('primary_keyword_density_min')
+        legacy_maximum = self.guidelines.get('primary_keyword_density_max')
+        if (
+            minimum is not None
+            and legacy_maximum is not None
+            and minimum > legacy_maximum
+        ):
+            raise ValueError(
+                "keyword density rules require primary_keyword_density_min <= "
+                "primary_keyword_density_max"
+            )
+
+    def _validate_h2_guidelines(self) -> None:
+        for key in ("min_h2_sections", "optimal_h2_sections"):
+            value = self.guidelines.get(key)
+            if value is None:
+                continue
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, int)
+                or value <= 0
+            ):
+                raise ValueError(f"{key} must be a positive integer or None")
+
+        min_h2 = self.guidelines.get("min_h2_sections")
+        optimal_h2 = self.guidelines.get("optimal_h2_sections")
+        if min_h2 is not None and optimal_h2 is not None and min_h2 > optimal_h2:
+            raise ValueError(
+                "min_h2_sections must be less than or equal to optimal_h2_sections"
+            )
+
+        ratio = self.guidelines.get("h2_with_keyword_ratio")
+        if ratio is not None and (
+            isinstance(ratio, bool)
+            or not isinstance(ratio, (int, float))
+            or not math.isfinite(ratio)
+            or ratio <= 0
+            or ratio > 1
+        ):
+            raise ValueError(
+                "h2_with_keyword_ratio must be a finite number from 0 to 1 or None"
+            )
+
+    def _resolve_density_thresholds(self) -> Tuple[float, float]:
+        legacy_max = self.guidelines.get('primary_keyword_density_max')
+        legacy_is_explicit = (
+            'primary_keyword_density_max' in self._explicit_guideline_keys
+            and legacy_max is not None
+        )
+
+        if (
+            'keyword_high_density_warning' in self._explicit_guideline_keys
+            and self.guidelines.get('keyword_high_density_warning') is not None
+        ):
+            warning = self.guidelines['keyword_high_density_warning']
+        elif legacy_is_explicit:
+            warning = legacy_max
+        else:
+            warning = 2.5
+
+        if (
+            'keyword_stuffing_density' in self._explicit_guideline_keys
+            and self.guidelines.get('keyword_stuffing_density') is not None
+        ):
+            stuffing = self.guidelines['keyword_stuffing_density']
+        elif legacy_is_explicit:
+            stuffing = legacy_max * 1.5
+        else:
+            stuffing = 3.0
+
+        return float(warning), float(stuffing)
 
     def _default_guidelines(self) -> Dict[str, Any]:
-        """Default SEO guidelines based on industry standards"""
+        """Default SEO guidelines for proof-sensitive, intent-led blog quality."""
         return {
-            'min_word_count': 2000,
-            'optimal_word_count': 2500,
-            'max_word_count': 3000,
-            'primary_keyword_density_min': 1.0,
-            'primary_keyword_density_max': 2.0,
+            'min_word_count': None,
+            'optimal_word_count': None,
+            'max_word_count': None,
+            'primary_keyword_density_min': None,
+            'primary_keyword_density_max': None,
+            'keyword_high_density_warning': 2.5,
+            'keyword_stuffing_density': 3.0,
             'secondary_keyword_density': 0.5,
             'min_internal_links': 3,
             'optimal_internal_links': 5,
@@ -113,9 +265,9 @@ class SEOQualityRater:
             'meta_title_length_max': 60,
             'meta_description_length_min': 150,
             'meta_description_length_max': 160,
-            'min_h2_sections': 4,
-            'optimal_h2_sections': 6,
-            'h2_with_keyword_ratio': 0.33,  # At least 1/3 of H2s should have keyword
+            'min_h2_sections': None,
+            'optimal_h2_sections': None,
+            'h2_with_keyword_ratio': None,
             'max_sentence_length': 25,
             'target_reading_level_min': 8,
             'target_reading_level_max': 10,
@@ -155,6 +307,49 @@ class SEOQualityRater:
         Returns:
             Dict with overall score, category scores, and recommendations
         """
+        if not isinstance(content, str):
+            raise ValueError("content must be a string")
+        for field_name, value in (
+            ("meta_title", meta_title),
+            ("meta_description", meta_description),
+            ("primary_keyword", primary_keyword),
+        ):
+            if value is not None and not isinstance(value, str):
+                raise ValueError(f"{field_name} must be a string or None")
+        if secondary_keywords is not None and (
+            not isinstance(secondary_keywords, list)
+            or any(
+                not isinstance(keyword, str) or not keyword.strip()
+                for keyword in secondary_keywords
+            )
+        ):
+            raise ValueError(
+                "secondary_keywords must be a list of non-empty strings or None"
+            )
+        for field_name, value in (
+            ("internal_link_count", internal_link_count),
+            ("external_link_count", external_link_count),
+        ):
+            if value is not None and (
+                isinstance(value, bool)
+                or not isinstance(value, int)
+                or value < 0
+            ):
+                raise ValueError(
+                    f"{field_name} must be a non-negative integer or None"
+                )
+        if not isinstance(validate_urls, bool):
+            raise ValueError("validate_urls must be a boolean")
+        if keyword_density is not None and (
+            isinstance(keyword_density, bool)
+            or not isinstance(keyword_density, (int, float))
+            or not math.isfinite(keyword_density)
+            or keyword_density < 0
+        ):
+            raise ValueError(
+                "keyword_density must be a finite non-negative number or None"
+            )
+
         # Extract structure
         structure = self._analyze_structure(content, primary_keyword)
 
@@ -339,14 +534,15 @@ class SEOQualityRater:
         optimal_words = self.guidelines['optimal_word_count']
         max_words = self.guidelines['max_word_count']
 
-        # Word count scoring
-        if word_count < min_words:
+        # Word count is context, not a default quality proxy. Custom guidelines
+        # can still opt into explicit length targets when a workflow needs them.
+        if min_words is not None and word_count < min_words:
             score -= 30
             critical.append(f"Content is too short ({word_count} words). Minimum is {min_words} words.")
-        elif word_count < optimal_words:
+        elif optimal_words is not None and word_count < optimal_words:
             score -= 10
             warnings.append(f"Content could be longer ({word_count} words). Optimal is {optimal_words}+ words.")
-        elif word_count > max_words:
+        elif max_words is not None and word_count > max_words:
             score -= 5
             suggestions.append(f"Content is quite long ({word_count} words). Consider breaking into multiple articles if over {max_words} words.")
 
@@ -402,39 +598,49 @@ class SEOQualityRater:
         h2_count = structure['h2_count']
         h2_with_kw = structure['h2_with_keyword']
         if h2_count > 0:
-            ratio = h2_with_kw / h2_count
             target_ratio = self.guidelines['h2_with_keyword_ratio']
-            if ratio < target_ratio:
+            if target_ratio is None and h2_with_kw == 0:
+                score -= 10
+                warnings.append(
+                    "Primary keyword is missing from H2 headings. Add it to one "
+                    "relevant H2 where the wording is natural."
+                )
+            elif target_ratio is not None and h2_with_kw / h2_count < target_ratio:
                 score -= 10
                 warnings.append(
                     f"Keyword appears in only {h2_with_kw}/{h2_count} H2 headings. "
-                    f"Target is at least {int(target_ratio * 100)}% (2-3 H2s)"
+                    f"The caller-supplied target is at least {int(target_ratio * 100)}%."
                 )
 
         # Keyword density
         if keyword_density is not None:
-            min_density = self.guidelines['primary_keyword_density_min']
-            max_density = self.guidelines['primary_keyword_density_max']
+            min_density = self.guidelines.get('primary_keyword_density_min')
+            max_density = self.guidelines.get('primary_keyword_density_max')
+            high_density = self._keyword_high_density_warning
+            stuffing_density = self._keyword_stuffing_density
 
-            if keyword_density < min_density:
-                score -= 15
-                warnings.append(
-                    f"Keyword density is too low ({keyword_density}%). "
-                    f"Target is {min_density}-{max_density}%"
-                )
-            elif keyword_density > max_density * 1.5:
+            if keyword_density > stuffing_density:
                 score -= 20
                 critical.append(
                     f"Keyword density is too high ({keyword_density}%). "
-                    f"Risk of keyword stuffing. Target is {min_density}-{max_density}%"
+                    "Risk of keyword stuffing. Use semantic variations and remove forced repetition."
                 )
-            elif keyword_density > max_density:
+            elif keyword_density > high_density:
                 score -= 10
                 warnings.append(
                     f"Keyword density is slightly high ({keyword_density}%). "
-                    f"Target is {min_density}-{max_density}%"
+                    "Use semantic variations and check whether repeated exact matches feel forced."
                 )
-
+            elif min_density is not None and keyword_density < min_density:
+                score -= 15
+                if max_density is not None:
+                    target_message = f"Target is {min_density}-{max_density}%"
+                else:
+                    target_message = f"Minimum is {min_density}%"
+                warnings.append(
+                    f"Keyword density is too low ({keyword_density}%). "
+                    f"{target_message}"
+                )
         # Secondary keywords
         if secondary_keywords:
             content_lower = content.lower()
@@ -533,12 +739,19 @@ class SEOQualityRater:
         min_h2 = self.guidelines['min_h2_sections']
         optimal_h2 = self.guidelines['optimal_h2_sections']
 
-        if h2_count < min_h2:
+        if min_h2 is not None and h2_count < min_h2:
             score -= 15
-            warnings.append(f"Too few H2 sections ({h2_count}). Add more main sections (target: {optimal_h2}).")
-        elif h2_count < optimal_h2:
+            target = optimal_h2 if optimal_h2 is not None else min_h2
+            warnings.append(
+                f"Too few H2 sections ({h2_count}) for the caller-supplied rule "
+                f"(target: {target})."
+            )
+        elif optimal_h2 is not None and h2_count < optimal_h2:
             score -= 5
-            suggestions.append(f"Could use more H2 sections ({h2_count}). Optimal is {optimal_h2} sections.")
+            suggestions.append(
+                f"H2 count ({h2_count}) is below the caller-supplied optimal "
+                f"of {optimal_h2} sections."
+            )
 
         return {
             'score': max(0, score),
@@ -1115,7 +1328,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--meta-description", help="Override or provide meta description.")
     parser.add_argument("--primary-keyword", help="Override or provide primary keyword.")
     parser.add_argument("--secondary-keywords", help="Comma-separated secondary keywords.")
-    parser.add_argument("--keyword-density", type=float, help="Pre-calculated primary keyword density percentage.")
+    parser.add_argument(
+        "--keyword-density",
+        type=_non_negative_finite_float,
+        help="Pre-calculated primary keyword density percentage.",
+    )
     parser.add_argument(
         "--validate-urls",
         action="store_true",

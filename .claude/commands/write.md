@@ -8,7 +8,7 @@ For every Simpro blog, read `wiki/messaging/Voice and Tone.md` and `wiki/messagi
 `/write [topic or research brief]`
 
 ## What This Command Does
-1. Creates complete, well-structured long-form articles (2000-3000+ words)
+1. Creates complete, well-structured articles sized to the reader intent, evidence, and topic scope
 2. Optimizes content for target keywords and SEO best practices
 3. Maintains your brand voice and messaging throughout
 4. Integrates internal and external links strategically
@@ -71,6 +71,26 @@ Every draft must include at least 1 contextual down-funnel internal link to `/in
 
 Feature and solution links must use function-bearing anchor text that explains the workflow, category, or outcome behind the destination. A feature or solution name alone is not enough. Use anchors like "field service payments," "accounts receivable follow-up with Fast Cash," or "field service management software" instead of "Simpro Payments," "Fast Cash," or "Simpro Premium."
 
+### Reader Contract
+
+Before drafting the outline, write a `Reader Contract` block. This is an editorial contract, not public proof infrastructure:
+
+- **Primary reader**: the role, business type, region, or maturity level the article is written for.
+- **Sophistication level**: beginner, intermediate, expert, or mixed, with one sentence explaining what the reader already understands.
+- **Trigger problem**: the moment, decision, or operational pressure that brought the reader to the article.
+- **Existing belief**: what the reader likely already believes, worries about, or has tried.
+- **Decision or task helped**: the decision, task, or understanding the article will help them complete.
+- **Distinctive angle**: why this article deserves to exist beyond matching the SERP.
+- **Promised payoff**: the concrete reader payoff the headline and intro must deliver.
+- **Funnel stage**: ToFu, MoFu, BoFu, or thought leadership.
+- **Exclusions**: what the article intentionally will not cover, rank, quantify, or claim.
+
+Use the contract to set an intent/evidence-complete word target, natural terminology coverage, critical keyword placement, semantic variations, and keyword-stuffing detection. Do not expand a complete article to satisfy a universal length target or add exact-match phrases to chase density.
+
+## SERP Strategy Decision
+
+After the Reader Contract, record the verified SERP observation source, dominant observed content type, every observed feature, recurring extracted structure, and qualified must-fill gaps. Match the dominant observed content type and target every applicable feature by default. Any deviation requires a documented Reader Contract exception. If verified SERP context is unavailable, mark the decision unresolved and do not invent observations or silently waive the handoff.
+
 ### Content Structure
 
 #### 1. Headline (H1)
@@ -79,7 +99,7 @@ Feature and solution links must use function-bearing anchor text that explains t
 - Keep under 60 characters for SERP display
 - Promise clear value to reader
 
-#### 2. Introduction (150-250 words)
+#### 2. Introduction (use the planned section target)
 
 **CRITICAL: Direct Answer First (AI Search Optimization)**
 
@@ -94,9 +114,9 @@ After the direct answer, use a hook to keep human readers engaged.
 
 | Hook Type | Example | Best For |
 |-----------|---------|----------|
-| **Provocative Question** | "What if the 'free' plan is actually costing you $500/month in lost opportunities?" | Challenging assumptions |
-| **Specific Scenario** | "Last Tuesday, Sarah checked her dashboard and discovered something alarming: her site had been invisible to Google for three weeks." | Creating emotional connection |
-| **Surprising Statistic** | "73% of SaaS users who switch platforms do so within 18 months, and most cite the same three reasons." | Data-driven topics |
+| **Provocative Question** | "What does the 'free' plan still make your team handle manually?" | Challenging assumptions |
+| **Proof-Safe Operational Scene** | "A dispatcher opens the schedule and sees three urgent jobs competing for the same technician." | Making the reader's work pressure concrete |
+| **Surprising Statistic** | Use a sourced statistic only when approved proof supports the number and the section needs it. | Data-driven topics |
 | **Bold Statement** | "Your current tool is lying to you about your numbers." | Controversial takes |
 | **Counterintuitive Claim** | "The cheapest option might be the most expensive decision you make this year." | Comparison content |
 
@@ -125,7 +145,7 @@ This gets pulled into AI-generated summaries and helps both AI and human readers
 
 **Rules:**
 - 3-5 bullet points
-- Each bullet is a standalone claim with specifics (numbers, names, outcomes)
+- Each bullet is a standalone claim with approved proof-backed specifics or concrete workflow detail; never invent numbers, names, or outcomes
 - NOT a table of contents — these are the article's actual conclusions
 - Written after the full article is drafted (so the takeaways are accurate)
 
@@ -156,15 +176,15 @@ Apply these requirements from @context/aeo-geo-blog-strategy.md:
 - **Customer Proof Pack**: Use the brief's Customer Proof Pack before placing direct quotes, named customer proof, approved metrics, or review-derived Experience patterns. If the pack is partial or blocked, omit unsupported claims.
 - **Schema notes**: For standard blog posts with FAQs, include BlogPosting, BreadcrumbList, and FAQPage. Nest Person as author, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Keep the Author frontmatter field mapped to Person. Use VideoObject only when a video is embedded.
 
-#### 4. Main Body (1800-2500+ words)
+#### 4. Main Body (use caller-supplied, intent/evidence-complete section targets)
 - **Logical Flow**: Organize sections in clear, progressive order
-- **H2 Sections**: 4-7 main sections covering comprehensive topic scope
+- **H2 Sections**: Use only the main sections needed to complete the Reader Contract and verified applicable coverage
 - **H3 Subsections**: Break complex sections into digestible pieces
-- **Keyword Integration**: Use primary keyword 1-2% density, variations throughout
+- **Keyword Integration**: Use natural terminology coverage, critical keyword placement, semantic variations, and keyword-stuffing detection
 - **Depth**: Provide thorough, actionable information at each point
 - **Data**: Reference statistics and studies to support claims
 - **Visuals**: Note where images, screenshots, or graphics enhance understanding
-- **YouTube Embed**: Include at least one relevant YouTube video (prefer your own channel, then authoritative third-party) — AI models cross-reference video and article content
+- **YouTube Embed**: Evaluate selected video evidence. Embed a relevant, public, embeddable video only when it materially supports the section; otherwise document that no eligible video was selected and omit the embed.
 - **Lists**: Use bulleted or numbered lists for scannability
 - **Formatting**: Bold key concepts, use short paragraphs (2-4 sentences MAX)
 
@@ -180,27 +200,26 @@ Not allowed:
 - Fictional named personas or invented company stories.
 - Invented dates, metrics, quotes, outcomes, or testimonial wording.
 
-**REQUIRED: Contextual CTAs (2-3 per article)**
+**REQUIRED: Intent-Sensitive CTA Plan**
 
-Don't just put one CTA at the end. Embedded CTAs get 121% more conversions than end-only CTAs.
+Give the reader a useful next action that fits the Reader Contract and funnel stage:
 
-**CTA Placement Strategy:**
-| Location | CTA Type | Example |
-|----------|----------|---------|
-| After first major value section | Soft CTA (learn more) | "Want to see how this works in practice? [Explore our features →]" |
-| After comparison/proof section | Medium CTA (try it) | "**Ready to test the difference?** Start a free trial, no credit card required." |
-| End of article | Strong CTA (convert) | "**[Start Your Free Trial →]**" with supporting text |
+| Funnel stage | intent-sensitive CTA default |
+|--------------|------------------------------|
+| ToFu | ToFu: 0-1 soft resource/action CTA |
+| MoFu | MoFu: one educational next step plus one contextual product CTA |
+| BoFu | BoFu: 2-3 contextual commercial CTAs |
+| Thought leadership | Thought leadership: discussion, reflection, or evidence resource |
 
 **CTA Rules:**
-- Make CTAs contextual (relate to the section content)
-- Vary the format (inline text, bold callout, button-style)
-- First CTA should appear within the first 500 words
-- Never use generic "Click here" text
+- Make each CTA contextual to the surrounding section and earned by the article's proof.
+- Use a commercial CTA only when the reader has enough decision context.
+- Never use generic "Click here" text.
 
-#### 5. Conclusion (150-200 words)
-- **Recap**: Summarize 3-5 key takeaways
-- **Action**: Provide clear next steps for reader
-- **CTA**: Include relevant call-to-action (free trial, resource download, etc.)
+#### 5. Conclusion (use the planned section target)
+- **Recap**: Close the Reader Contract promise without adding new claims
+- **Action**: Provide a useful next action matched to funnel stage and reader intent
+- **Next Action**: Use an intent-appropriate next action; include a commercial CTA only when the Reader Contract funnel stage calls for one
 - **Encouragement**: End on empowering, forward-looking note
 
 ### SEO Optimization
@@ -208,8 +227,8 @@ Don't just put one CTA at the end. Embedded CTAs get 121% more conversions than 
 #### Keyword Placement
 - H1 headline
 - First paragraph (within first 100 words)
-- At least 2-3 H2 headings
-- Naturally throughout body (1-2% density)
+- At least one relevant H2 where the exact phrase is natural; use semantic variations elsewhere without a quota
+- Naturally throughout the body using reader language, related terms, and stuffing checks
 - Meta title and description
 - URL slug
 
@@ -232,7 +251,7 @@ Don't just put one CTA at the end. Embedded CTAs get 121% more conversions than 
 - Vary sentence length for rhythm
 - Write at 8th-10th grade reading level
 - Use active voice predominantly
-- Break up text with subheadings every 300-400 words
+- Add subheadings when the topic or reader question changes
 
 ### Target Audience Focus
 - **Audience Perspective**: Write for the target audience from the vault route; @context/brand-voice.md is fallback mirror context only
@@ -257,7 +276,7 @@ Full markdown-formatted article with:
 - H1 headline
 - Introduction
 - Body sections with H2/H3 structure
-- Conclusion with CTA
+- Conclusion with an intent-appropriate next action
 - Proper formatting and styling
 
 ### 2. Meta Elements
@@ -277,13 +296,13 @@ Word Count: [actual word count]
 ### 3. SEO Checklist
 - [ ] Primary keyword in H1
 - [ ] Primary keyword in first 100 words
-- [ ] Primary keyword in 2+ H2 headings
-- [ ] Keyword density 1-2%
+- [ ] Primary keyword in at least one relevant H2 where natural; semantic variations used elsewhere without a quota
+- [ ] Natural terminology coverage, semantic variations, and keyword-stuffing detection checked
 - [ ] 3-5+ internal links included
 - [ ] 2-3 external authority links
 - [ ] Meta title 50-60 characters
 - [ ] Meta description 150-160 characters
-- [ ] Article 2000+ words
+- [ ] Word count fits the Reader Contract, search intent, and available evidence
 - [ ] Proper H2/H3 hierarchy
 - [ ] Readability optimized
 
@@ -292,7 +311,7 @@ Word Count: [actual word count]
 - [ ] **Direct answer**: First 1-2 sentences directly answer the target query
 - [ ] **Key Takeaways**: TL;DR block with 3-5 specific bullet points after introduction
 - [ ] **Meta description**: Directly answers the query (not just a teaser)
-- [ ] **YouTube embed**: At least one relevant video embedded
+- [ ] **YouTube embed**: Video eligibility evaluated; an eligible selected video is embedded when it materially supports the article, otherwise the embed is omitted
 - [ ] **FAQ prompts**: Questions written in natural language people would type into ChatGPT, not keyword fragments from AnswerSocrates
 - [ ] **One idea per section**: Each H2/H3 focuses on a single clear concept
 - [ ] **Author attribution**: Named author in frontmatter
@@ -307,11 +326,19 @@ Word Count: [actual word count]
 ### 5. Engagement Checklist
 - [ ] **Hook**: Opens with question, scenario, statistic, or bold statement (NOT generic definition)
 - [ ] **APP Formula**: Introduction includes Agree, Promise, Preview elements
-- [ ] **Mini-stories**: 2-3 specific scenarios with names, details, and outcomes
-- [ ] **Contextual CTAs**: 2-3 CTAs placed throughout (not just at end)
-- [ ] **First CTA**: Appears within first 500 words
+- [ ] **Editorial scenes**: 0-2 editorial scenes when they materially improve understanding
+- [ ] **Proof-safe story boundary**: Named people or businesses require approved proof; Unnamed workflow scenarios are explanatory only; invented names, dates, metrics, quotes, and outcomes are prohibited
+- [ ] **Intent-sensitive CTA**: CTA count and type match the Reader Contract funnel stage
 - [ ] **Paragraph length**: No paragraphs exceed 4 sentences
 - [ ] **Sentence rhythm**: Mix of short (5-10 words) and longer sentences (15-25 words)
+
+### 6. Continuity Pass
+- [ ] Every section must advance the headline promise from the Reader Contract.
+- [ ] Each section answers a question created by the previous section.
+- [ ] No section restarts the article, repeats the introduction, or creates repeated resets.
+- [ ] Transitions explain a logical relationship, not just a transition word.
+- [ ] The conclusion must complete the introduction, resolve open loops, and add a useful next action.
+- [ ] remove or justify any section that does not increase the promised payoff.
 
 ## File Management
 After completing the article, automatically save to:
@@ -323,7 +350,7 @@ Example: `drafts/content-marketing-strategies-2025-10-15.md`
 
 ## Validation Sidecar
 
-Save non-public proof infrastructure to a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`. Do not put an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan in the publishable blog draft.
+Proof infrastructure belongs only in the validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`; the draft records only its sidecar path and status. Do not put an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan in the publishable blog draft. Use VideoObject only when a video is embedded.
 
 Preferred publish readiness command:
 ```bash
@@ -410,12 +437,12 @@ After saving, scrubbing, linting, and passing the quality loop, execute optimiza
 ### 1. Content Analyzer Agent (NEW!)
 - **Agent**: `content-analyzer`
 - **Input**: Full article, meta elements, keywords, SERP data (if available)
-- **Output**: Comprehensive analysis covering search intent, keyword density, content length comparison, readability score, and SEO quality rating
+- **Output**: Comprehensive analysis covering search intent, keyword distribution, content scope comparison, readability score, and SEO quality rating
 - **File**: `drafts/content-analysis-[topic-slug]-[YYYY-MM-DD].md`
 
 This new agent uses 5 specialized analysis modules:
 - Search intent analysis
-- Keyword density & clustering
+- Keyword distribution, terminology coverage, and clustering
 - Content length vs competitors
 - Readability scoring (Flesch scores)
 - SEO quality rating (0-100)
@@ -489,8 +516,8 @@ If content quality is below 85/100 or AEO/GEO is below 90/100:
 Articles that fail quality threshold after 2 revision attempts go to `review-required/`:
 ```
 review-required/
-├── article-name-2025-12-10.md
-└── article-name-2025-12-10_REVIEW_NOTES.md
+├── article-name-[YYYY-MM-DD].md
+└── article-name-[YYYY-MM-DD]_REVIEW_NOTES.md
 ```
 
 The `_REVIEW_NOTES.md` file contains:
@@ -503,7 +530,7 @@ The `_REVIEW_NOTES.md` file contains:
 Every article must meet these requirements:
 
 ### Content Requirements
-- Minimum 2000 words (2500-3000+ preferred)
+- Intent/evidence-complete word target based on the Reader Contract, search intent, and proof available
 - Proper H1/H2/H3 hierarchy
 - Primary keyword naturally integrated
 - 3-5 internal links to your site content
@@ -517,8 +544,7 @@ Every article must meet these requirements:
 ### Engagement Requirements
 - **Compelling hook** in first 1-2 sentences (no generic openings)
 - Optional proof-backed customer/review POV when it improves the objective
-- **2-3 contextual CTAs** distributed throughout (not just at end)
-- **First CTA within 500 words**
+- **Intent-sensitive CTA** count and type based on funnel stage
 - **Usable artifact within first 300 words**
 - **No paragraphs longer than 4 sentences**
 - **Varied sentence rhythm** (mix short punchy + longer flowing)

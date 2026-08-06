@@ -332,7 +332,7 @@ Opportunities fall into quadrants:
 - **Recommended Actions**:
   1. Run `/analyze-existing [URL]` to identify specific issues
   2. Update statistics and examples
-  3. Add 500-800 words covering [new subtopic]
+  3. Add content for [new subtopic] only when it closes an identified reader-payoff, evidence, or task gap
   4. Refresh meta description
   5. Add internal links to newer content
 

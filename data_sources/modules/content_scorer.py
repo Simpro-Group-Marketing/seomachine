@@ -5,7 +5,7 @@ Multi-dimensional content quality scoring system that evaluates:
 - Humanity/Voice (30%): Human tone, personality, conversational devices
 - Specificity (25%): Concrete examples vs vague generalizations
 - Structure Balance (20%): Prose-to-list ratio (target 50-75%)
-- SEO Compliance (15%): Keyword density, meta, structure
+- SEO Compliance (15%): Keyword placement, meta, structure
 - Readability (10%): Flesch score, sentence rhythm, paragraph length
 
 Readability now includes:
@@ -93,15 +93,28 @@ class ContentScorer:
         r'\bcrucial\b',
     ]
 
-    # Specificity indicators (boost specificity score)
-    SPECIFICITY_PATTERNS = [
+    # Proof-sensitive specifics. These are reported as needing proof context;
+    # they do not automatically improve the score.
+    PROOF_SENSITIVE_SPECIFICITY_PATTERNS = [
         r'\b\d{1,3}%\b',  # Percentages
         r'\$[\d,]+(?:\.\d{2})?\b',  # Dollar amounts
         r'\b\d{4}\b',  # Years
         r'\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}',  # Dates
-        r'\b\d+(?:,\d{3})*\s*(?:downloads?|listeners?|subscribers?|episodes?|users?|customers?)\b',  # Counts
+        r'\b\d+(?:,\d{3})*\s*(?:downloads?|listeners?|subscribers?|episodes?|users?|customers?|businesses|companies|teams?|contractors?|trades?)\b',  # Counts
         r'(?:[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+(?:said|says|explained|noted|mentioned)',  # Quotes with names
         r'\"[^\"]{10,}\"',  # Quoted text
+        r'\b[A-Z][a-z]+\s+at\s+[A-Z][A-Za-z0-9&.-]*(?:\s+[A-Z][A-Za-z0-9&.-]*){0,3}\b',  # Named person at business
+        r'\b[A-Z][A-Za-z0-9&.-]*(?:\s+[A-Z][A-Za-z0-9&.-]*){1,3}\s+(?:Inc|LLC|Ltd|Group|Mechanical|Electrical|Plumbing|Services|Contractors|Construction)\b',  # Named business
+        r'\b(?:saved|increased|reduced|improved|helped|avoided|prevented|cut|grew|won|switched|delivered)\b[^.]{0,120}\b(?:time|money|costs?|revenue|profit|invoices?|customers?|businesses|outcomes?)\b',  # Outcome claims
+    ]
+
+    # Concrete workflow detail that can improve usefulness without inventing
+    # claims, metrics, names, or quotes.
+    WORKFLOW_SPECIFICITY_PATTERNS = [
+        r'\b(?:dispatcher|dispatchers|technician|technicians|manager|managers|office teams?|field teams?|customer|customers)\b',
+        r'\b(?:workflow|handoff|job card|invoice|invoicing|quote|quoting|schedule|scheduling|parts|inventory|customer access|job status)\b',
+        r'\b(?:assign|prioritize|route|update|approve|review|rekey|sync|close|escalate|track|handoff)\w*\b',
+        r'\b(?:before|after|when|if)\s+(?:the|a|an|teams?|dispatchers?|technicians?|customers?)\b',
     ]
 
     # Conversational devices (boost humanity score)
@@ -727,13 +740,27 @@ class ContentScorer:
         details['vague_words_per_1000'] = round(vague_density, 1)
         details['vague_words_found'] = list(set(vague_found))[:5]
 
-        # Count specificity indicators
-        specific_count = 0
-        for pattern in self.SPECIFICITY_PATTERNS:
-            specific_count += len(re.findall(pattern, content))
+        # Count proof-sensitive specifics without treating them as proof.
+        proof_sensitive_specific_count = 0
+        for pattern in self.PROOF_SENSITIVE_SPECIFICITY_PATTERNS:
+            proof_sensitive_specific_count += len(re.findall(pattern, content))
 
+        workflow_specific_count = 0
+        for pattern in self.WORKFLOW_SPECIFICITY_PATTERNS:
+            workflow_specific_count += len(re.findall(pattern, content, re.IGNORECASE))
+
+        specific_count = workflow_specific_count
         specific_density = (specific_count / max(word_count, 1)) * 1000
+        proof_sensitive_specific_density = (
+            proof_sensitive_specific_count / max(word_count, 1)
+        ) * 1000
         details['specifics_per_1000'] = round(specific_density, 1)
+        details['concrete_workflow_terms_per_1000'] = round(specific_density, 1)
+        details['proof_sensitive_specifics_per_1000'] = round(
+            proof_sensitive_specific_density,
+            1,
+        )
+        details['proof_sensitive_specifics_count'] = proof_sensitive_specific_count
 
         # Count numbers and data points
         numbers = re.findall(r'\b\d+(?:,\d{3})*(?:\.\d+)?\b', content)
@@ -753,20 +780,10 @@ class ContentScorer:
                 'severity': 'high' if vague_density > 25 else 'medium'
             })
 
-        # Reward specificity indicators (up to +30)
+        # Reward concrete workflow specificity (up to +25)
         if specific_density > 2:
-            bonus = min(30, specific_density * 5)
+            bonus = min(25, specific_density * 3)
             score += bonus
-
-        # Penalize lack of numbers/data (up to -15)
-        if number_density < 3:
-            penalty = min(15, (3 - number_density) * 5)
-            score -= penalty
-            issues.append({
-                'issue': 'Lacks specific numbers and data',
-                'fix': 'Add percentages, dollar amounts, dates, or counts',
-                'severity': 'medium'
-            })
 
         return {
             'score': max(0, min(100, round(score))),
@@ -965,16 +982,10 @@ class ContentScorer:
                 'severity': 'medium'
             })
 
-        # Word count
+        # Word count is reported for editorial context. It is not a default SEO
+        # failure because completeness depends on intent, evidence, and scope.
         word_count = len(clean_content.split())
         details['word_count'] = word_count
-        if word_count < 2000:
-            score -= 15
-            issues.append({
-                'issue': f'Content too short ({word_count} words)',
-                'fix': 'Expand to at least 2,000 words',
-                'severity': 'high'
-            })
 
         return {
             'score': max(0, min(100, round(score))),

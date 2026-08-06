@@ -79,9 +79,9 @@ Example: "Content Marketing"
 
 ### Priority 1: Build Weak Clusters
 - Select top 2-3 weak clusters with highest demand
-- Create comprehensive pillar page (3000+ words)
+- Create a comprehensive pillar page with a Reader Contract-led, evidence-complete word target
 - Create 8-12 supporting cluster articles
-- Target all identified coverage gaps
+- Evaluate all identified coverage gaps; treat recurring, reader-critical, evidence-supported gaps as must-fill and document the Reader Contract exception for any qualified gap omitted
 - Internal link everything to pillar
 
 ### Priority 2: Maintain Strong Clusters

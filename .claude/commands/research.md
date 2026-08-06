@@ -44,7 +44,7 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
 
 ### Competitive Analysis
 - **Top 10 SERP Review**: Analyze the top 10 ranking articles for target keyword
-- **Content Length**: Note word count of top-performing articles (benchmark target)
+- **Content Length**: Note competitor word counts as context only; do not derive the article target from them
 - **Common Themes**: What topics/sections do all top articles cover?
 - **Content Gaps**: What's missing from competitor coverage?
 - **Unique Angles**: What perspectives or insights are underexplored?
@@ -84,8 +84,8 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
 - **Pain points**: Anchor recommendations in margin visibility, cash flow, admin reduction, field adoption, recurring maintenance, asset compliance, quoting speed, inventory, and scaling without chaos.
 
 ### Content Planning
-- **Recommended Structure**: Outline H2 and H3 headings based on research
-- **Content Depth**: Determine target word count (typically 2000-3000+ for SEO)
+- **Reader-Guided Structure Context**: Outline H2 and H3 headings from the Reader Contract, verified research, and reader-payoff gaps
+- **Content Depth**: Determine an intent/evidence-complete word target from search intent, SERP context, and proof depth
 - **Supporting Evidence**: Identify statistics, studies, or data to include
 - **Expert Sources**: Find industry experts or quotes to reference
 - **Visual Opportunities**: Suggest images, screenshots, or graphics needed
@@ -112,7 +112,7 @@ Provides a comprehensive research brief with:
 ### 1. SEO Foundation
 - **Primary Keyword**: [keyword] (volume, difficulty)
 - **Secondary Keywords**: 3-5 related keywords and variations
-- **Target Word Count**: Minimum words needed to compete
+- **Target Word Count**: Caller-supplied intent/evidence-complete target derived from the Reader Contract
 - **Featured Snippet Opportunity**: Yes/No, format (paragraph, list, table)
 - **AEO/GEO Variables**: topic, audience, main_question, related_questions, tone, expertise, length
 - **PAA/FAQ Questions**: 3-5 closest questions with intent labels and article section mapping

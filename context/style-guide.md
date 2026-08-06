@@ -159,7 +159,7 @@ This is a deliberate compression of the older 6-word descriptor set (Inspiration
 
 - **Authoritative**: We have the right to lead — 24,000+ businesses, 450,000+ users, 20+ years. Speak from operating knowledge, not theory.
 - **Bold**: Take a position. "Double trades business profitability" is a claim with stakes. We don't hedge.
-- **Confident**: Conviction without arrogance. We back claims with named customers and named numbers.
+- **Confident**: Conviction without arrogance. Support material claims with approved evidence; use named customers or metrics only when verified and useful.
 - **Visionary**: We're not selling software; we're building "a future where the trades are respected, recognized, and fully rewarded for the work that powers the world." Frame product capabilities against that horizon.
 
 ### The brand pillars (Simpro Group, FY26): Profits · AI-first · Productivity · Trades Champion
@@ -377,7 +377,7 @@ Examples:
 
 **Oxford Comma**: **Yes** — use the Oxford comma ("scheduling, dispatch, and inventory tracking"). Consistent with US English convention used in the FY26 Message House.
 
-**Because Comma**: Always put a comma before "because" in Simpro web/blog copy.
+**Because Comma**: Decide comma placement from grammar and sentence meaning. Omit the comma when the because clause is essential. Use it when the clause is nonessential, contrastive, or needed to prevent misreading.
 
 **No Source/Proof Meta-Commentary**: Do not explain why a case study, source, statistic, or example is useful for the topic, draft, article, or section. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 
@@ -533,7 +533,7 @@ Examples:
 ## Content Structure
 
 ### Article Introduction
-**Standard Structure** (150–250 words):
+**Standard Structure** (use the caller-supplied intent/evidence-complete section target):
 1. **Hook** (1–2 sentences): A specific question, statistic, or contrarian statement. Avoid "In today's competitive market..."
 2. **Problem** (2–3 sentences): The challenge a trades operator faces around this topic.
 3. **Promise** (2–3 sentences): What the reader will learn or be able to do.
@@ -544,15 +544,15 @@ Examples:
 - Natural integration only — never force
 
 ### Section Length
-- **Minimum**: 150 words per H2 section
-- **Maximum**: 500 words per H2 (split into H3 subsections if longer)
-- **Ideal**: 250–350 words per main section
+- Use the caller-supplied section target derived from the Reader Contract and available evidence.
+- Split a section into H3 subsections when the reader's question or logical topic changes.
+- Do not pad a complete section or truncate evidence to satisfy a universal range.
 
 ### Conclusion
-**Standard Structure** (150–250 words):
+**Standard Structure** (use the planned section target):
 1. **Recap** (3–5 bullets or short paragraph): Key takeaways
 2. **Action** (1–2 sentences): What the reader should do next
-3. **CTA** (1–2 sentences): Specific Simpro CTA matched to funnel stage
+3. **Next action** (when appropriate): Reflection, evidence, education, or a contextual commercial CTA matched to funnel stage
 4. **Forward-looking** (optional, 1 sentence): The bigger possibility this unlocks
 
 ---
@@ -568,7 +568,7 @@ Examples:
 ### Meta Descriptions
 - 150–160 characters including spaces
 - Include primary keyword
-- Include a verb-driven CTA ("See how," "Learn why," "Discover")
+- Use accurate value or action language when it improves the result snippet
 - End with a complete thought, not mid-sentence
 
 ### URL Slugs
@@ -703,13 +703,13 @@ Approach: **Name competitors directly when relevant, focus on differentiation, n
 2. Ambitious — we push the trades to think bigger
 3. Trades-focused — we speak the industry's language
 4. Practical — outcomes over features
-5. Outcomes-driven — every claim ties to a number or a customer
+5. Outcomes-driven: every claim ties to a reader-relevant operational consequence; numbers and named customers require approved proof
 
 ### Tone Variations
 - **How-to content**: Instructive, step-by-step, encouraging
-- **Strategic content**: Authoritative, decisive, named-numbers
+- **Strategic content**: Authoritative, decisive, proof-backed where evidence exists, and concrete about operational decisions
 - **Industry news / AI commentary**: Insightful, plain-spoken, forward-looking
-- **Product / feature content**: Benefit-focused, named-outcome, proof-led
+- **Product / feature content**: Benefit-focused and proof-led; use named outcomes only when approved proof fits, otherwise explain concrete workflow value
 
 ---
 
@@ -720,7 +720,7 @@ Before publishing any content:
 **Grammar & Mechanics**:
 - [ ] Spelling checked (US English for simpro.com / simpro.ai; regional for AU/NZ/UK sites)
 - [ ] Oxford comma used consistently
-- [ ] Em dashes (—) not hyphens with spaces
+- [ ] No em dashes; use a period, comma, colon, or parentheses when the grammar supports it
 - [ ] Numbers formatted consistently (450K vs. 450,000 — pick one per section)
 - [ ] Product and AI feature names capitalized correctly (Simpro, Multi-Company, AI Mobile Work Notes)
 
@@ -735,13 +735,13 @@ Before publishing any content:
 - [ ] Strong intro (hook, problem, promise)
 - [ ] Logical H2 / H3 flow
 - [ ] No skipped heading levels
-- [ ] Conclusion with clear CTA matched to funnel stage
-- [ ] Section length within 150–500 words per H2
+- [ ] Conclusion uses an intent-appropriate next action; no CTA is added when the Reader Contract does not call for one
+- [ ] Section length follows the caller-supplied intent/evidence-complete target without padding
 
 **SEO**:
-- [ ] Primary keyword in H1, first 100 words, at least 2 H2s, conclusion, meta title, meta description, URL slug
+- [ ] Primary keyword in H1, first 100 words, at least one relevant H2 where natural, conclusion, meta title, meta description, URL slug
 - [ ] Meta title 50–60 chars and ending with the owning brand suffix, such as " | Simpro" or " | ClockShark"
-- [ ] Meta description 150–160 chars with CTA
+- [ ] Meta description 150–160 chars with accurate value or action language suited to search intent
 - [ ] Internal links to relevant Simpro pages (see `internal-links-map.md`)
 - [ ] External links open in new tab with `rel="noopener noreferrer"`
 - [ ] All images have alt text (descriptive, ≤125 chars)
@@ -749,9 +749,9 @@ Before publishing any content:
 
 **Voice & Quality**:
 - [ ] Sounds Simpro (authoritative, ambitious, trades-focused, practical, outcomes-driven)
-- [ ] At least one named customer or named number per major section
+- [ ] Specificity comes from approved proof, named customer evidence, or concrete workflow detail; no section is forced to add unsupported names or numbers
 - [ ] Competitor references frame around differentiation, not disparagement
-- [ ] CTA matches funnel stage (read/watch → compare/calculate → demo/trial)
+- [ ] Next action matches the Reader Contract and funnel stage; no CTA is added when none is called for
 
 ---
 

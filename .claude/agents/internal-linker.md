@@ -141,7 +141,7 @@ Feature and solution links must use function-bearing anchor text that explains t
 #### Target Range: 3-5 Internal Links per Article
 - **Minimum**: 3 links (feel helpful, not isolated)
 - **Optimal**: 4-5 links (strong connectivity without spam)
-- **Maximum**: 7 links (only if article is 3000+ words)
+- **Maximum**: 7 links (only when the article's evidence-complete scope supports that many genuinely useful links)
 
 #### Distribution
 - **Pillar Content**: 1-2 links (high priority pages)

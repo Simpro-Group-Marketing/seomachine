@@ -75,17 +75,18 @@ Each item should show:
 For EXISTING CONTENT updates, provide:
 - [ ] Current ranking URL
 - [ ] Review top 5 competitor articles
-- [ ] Identify content gaps to fill
+- [ ] Treat recurring, reader-critical, evidence-supported competitor gaps as must-fill; document Reader Contract exceptions
 - [ ] Update statistics and examples
-- [ ] Improve keyword density and placement
+- [ ] Review reported keyword density, semantic coverage, and critical placement
 - [ ] Add/improve internal links
 - [ ] Refresh meta title and description
 - [ ] Target position: 5-7 (page 1)
 
 For NEW CONTENT creation, provide:
 - [ ] Research top 10 ranking competitors
-- [ ] Create comprehensive outline covering all angles
-- [ ] Target word count based on competitor analysis
+- [ ] Create a Reader Contract-led outline covering the necessary decision or task
+- [ ] Match the dominant observed content type and target every applicable SERP feature unless the Reader Contract documents a justified exception
+- [ ] Use a Reader Contract-led word target; treat competitor length as context only
 - [ ] Ensure proper keyword integration
 - [ ] Build strong internal linking strategy
 - [ ] Create compelling meta elements
@@ -132,7 +133,7 @@ Present results as:
 
 **Why it matters**: High search volume, solid impressions despite no strong ranking. Gap in our content portfolio.
 
-**Action**: Create comprehensive 2500+ word guide targeting this keyword
+**Action**: Create an intent/evidence-complete guide targeting this keyword, with the word target resolved through the Reader Contract
 
 ---
 

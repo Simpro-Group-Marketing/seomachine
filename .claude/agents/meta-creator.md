@@ -67,7 +67,7 @@ Generate 5 variations testing different approaches:
 ### Technical Requirements
 - **Length**: 150-160 characters (Google displays ~150-160 on desktop, ~120 on mobile)
 - **Primary Keyword**: Include naturally if possible
-- **Call-to-Action**: Include action phrase (learn, discover, find out, etc.)
+- **Search Intent**: Use accurate value or action language when it improves the result snippet
 - **Completeness**: Must end with complete thought, not cut off
 - **Accuracy**: Must accurately summarize page content
 
@@ -77,31 +77,31 @@ Generate 5 variations testing different approaches:
 1. **Problem/Pain Point**: Acknowledge reader's challenge (1-2 words)
 2. **Solution/Benefit**: Promise what they'll achieve (primary focus)
 3. **Differentiation**: Why this article vs. competitors (unique angle)
-4. **Call-to-Action**: Direct reader to click (learn, discover, get, find)
+4. **Intent Fit**: Use specific value or action language only when it accurately reflects the page
 
 #### Description Formulas
 
-**Formula 1: Problem-Solution-CTA**
+**Formula 1: Problem-Solution-Value**
 ```
-[Problem/Challenge]? [Solution/Benefit]. [Unique angle/differentiator]. [CTA with benefit].
+[Problem/Challenge]? [Solution/Benefit]. [Unique angle/differentiator]. [Accurate value or action language when useful].
 ```
 Example: "Struggling to grow your podcast audience? Learn 12 proven strategies top podcasters use. Expert insights and actionable tips. Start growing today."
 
-**Formula 2: Benefit-Method-CTA**
+**Formula 2: Benefit-Method-Next Step**
 ```
-[Primary Benefit] with [Method/How]. [Supporting benefit]. [CTA].
+[Primary Benefit] with [Method/How]. [Supporting benefit]. [Optional intent-matched next step].
 ```
 Example: "Monetize your podcast with 7 proven strategies. Turn listeners into revenue. Step-by-step guidance for podcast creators. Learn how now."
 
-**Formula 3: Question-Answer-CTA**
+**Formula 3: Question-Answer-Payoff**
 ```
-[Question]? [Answer preview]. [Benefit/What they'll learn]. [CTA].
+[Question]? [Answer preview]. [Benefit/What they'll learn]. [Optional intent-matched next step].
 ```
 Example: "What is podcast hosting? Everything you need to know about storing, distributing, and growing your show. Complete beginner's guide. Start here."
 
 **Formula 4: How-to-Benefit**
 ```
-Discover how to [achieve goal]. [Specific benefit]. [Qualifier]. [CTA].
+Discover how to [achieve goal]. [Specific benefit]. [Qualifier]. [Optional intent-matched next step].
 ```
 Example: "Discover how to edit podcasts like a pro. Save time, improve quality, and engage listeners. Tools and techniques for every skill level."
 

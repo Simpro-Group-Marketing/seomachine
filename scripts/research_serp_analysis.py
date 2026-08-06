@@ -2,13 +2,15 @@
 """
 Research SERP Analysis
 
-Deep analysis of what Google wants for a specific keyword.
+Evidence-bound analysis to understand what Google wants for a specific keyword
+from verified visible SERP context.
 DataForSEO is the primary source. When DataForSEO is unavailable, the script
 falls back to a Playwright CLI capture of browser-visible Google SERP facts.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import re
@@ -30,19 +32,43 @@ load_dotenv()
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "data_sources"))
 
-from modules.content_length_comparator import ContentLengthComparator
-from modules.dataforseo import DataForSEO
-from modules.search_intent_analyzer import SearchIntentAnalyzer
+from modules.content_length_comparator import ContentLengthComparator  # noqa: E402
+from modules.dataforseo import DataForSEO  # noqa: E402
+from modules.search_intent_analyzer import SearchIntentAnalyzer  # noqa: E402
+
+
+def _positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("word target must be a positive integer")
+    return parsed
+
+
+def parse_cli_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Report SERP patterns and observed competitor length context."
+    )
+    parser.add_argument("keyword", nargs="?", help="Keyword phrase to research")
+    parser.add_argument(
+        "--word-target",
+        type=_positive_int,
+        default=None,
+        help="Optional caller-supplied intent/evidence-complete article target",
+    )
+    return parser.parse_args(argv)
 
 
 def main() -> None:
     """CLI entry point."""
-    if len(sys.argv) < 2:
+    args = parse_cli_args()
+    if not args.keyword:
         print('Usage: python scripts/research_serp_analysis.py "keyword phrase"')
-        print('\nExample: python scripts/research_serp_analysis.py "your target keyword"')
+        print(
+            '\nExample: python scripts/research_serp_analysis.py '
+            '"your target keyword" --word-target 1600'
+        )
         return
-
-    run_serp_analysis(sys.argv[1])
+    run_serp_analysis(args.keyword, word_target=args.word_target)
 
 
 def run_serp_analysis(
@@ -54,8 +80,22 @@ def run_serp_analysis(
     intent_analyzer_factory: Callable[[], Any] = SearchIntentAnalyzer,
     content_comparator_factory: Callable[[], Any] = ContentLengthComparator,
     print_fn: Callable[[str], None] = print,
+    word_target: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Run SERP analysis with DataForSEO first and Playwright fallback second."""
+    if not isinstance(keyword, str) or not keyword.strip():
+        raise ValueError("keyword must be a non-empty string")
+    keyword = keyword.strip()
+    if (
+        word_target is not None
+        and (
+            not isinstance(word_target, int)
+            or isinstance(word_target, bool)
+            or word_target <= 0
+        )
+    ):
+        raise ValueError("word_target must be a positive integer or None")
+
     now = now or datetime.now()
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -65,7 +105,10 @@ def run_serp_analysis(
     print_fn(f"SERP ANALYSIS: {keyword}")
     print_fn("=" * 80)
     print_fn(f"Date: {now.strftime('%Y-%m-%d %H:%M')}")
-    print_fn("Strategy: Understand what Google wants before creating content")
+    print_fn(
+        "Strategy: Use verified SERP observations as strong defaults, with "
+        "documented Reader Contract exceptions"
+    )
     print_fn("=" * 80)
 
     print_fn("\n1. Initializing analysis tools...")
@@ -120,6 +163,7 @@ def run_serp_analysis(
 
     analysis: Dict[str, Any] = {
         "keyword": keyword,
+        "word_target": word_target,
         "analyzed_date": now.strftime("%Y-%m-%d"),
         "top_results": organic_results,
         "serp_features": serp_data.get("features", []),
@@ -133,10 +177,13 @@ def run_serp_analysis(
         "content_types": [],
         "title_patterns": [],
         "word_counts": [],
+        "word_count_by_position": {},
+        "competitor_lengths": [],
         "domains": [],
         "domain_authority": [],
         "freshness_signals": [],
         "common_h2_topics": [],
+        "heading_observations": [],
         "competitive_difficulty": "unknown",
     }
 
@@ -155,14 +202,50 @@ def run_serp_analysis(
             analysis["freshness_signals"].append(index)
 
         try:
-            word_count = content_comparator.fetch_word_count(url)
+            fetch_context = getattr(content_comparator, "fetch_content_context", None)
+            if callable(fetch_context):
+                page_context = fetch_context(url)
+                if not isinstance(page_context, dict):
+                    page_context = {}
+                word_count = page_context.get("word_count")
+                headings = page_context.get("h2_headings") or []
+                if isinstance(headings, list):
+                    verified_headings = [
+                        heading.strip()
+                        for heading in headings
+                        if isinstance(heading, str) and heading.strip()
+                    ]
+                    if verified_headings:
+                        analysis["heading_observations"].append(
+                            {
+                                "position": index,
+                                "url": url,
+                                "headings": verified_headings,
+                            }
+                        )
+            else:
+                word_count = content_comparator.fetch_word_count(url)
             if word_count and word_count > 100:
                 analysis["word_counts"].append(word_count)
+                analysis["word_count_by_position"][index] = word_count
+                analysis["competitor_lengths"].append(
+                    {
+                        "position": index,
+                        "title": title,
+                        "url": url,
+                        "domain": domain,
+                        "word_count": word_count,
+                    }
+                )
                 print_fn(f"   [{index}] {domain} - {word_count:,} words - {content_type}")
             else:
                 print_fn(f"   [{index}] {domain} - Word count unavailable - {content_type}")
         except Exception:
             print_fn(f"   [{index}] {domain} - Word count unavailable - {content_type}")
+
+    analysis["common_h2_topics"] = identify_recurring_h2_topics(
+        analysis["heading_observations"]
+    )
 
     calculate_content_requirements(analysis, organic_results, print_fn)
     analyze_search_intent(keyword, analysis, organic_results, intent_analyzer, print_fn)
@@ -184,10 +267,16 @@ def run_serp_analysis(
     print_fn("\nNext steps:")
     if organic_results:
         print_fn(f"1. Review detailed report: {report_path}")
-        print_fn("2. Use the content brief to create your article")
-        print_fn("3. Ensure your content meets/exceeds the recommended word count")
-        print_fn("4. Match the dominant content type identified")
-        print_fn("5. Target the SERP features present (PAA, featured snippet, etc.)")
+        print_fn("2. Use verified visible observations to understand what Google wants")
+        print_fn("3. Resolve or apply the caller-supplied Reader Contract word target")
+        print_fn(
+            "4. Match the dominant content type by default; document a Reader "
+            "Contract exception when another format is justified"
+        )
+        print_fn(
+            "5. Target the SERP features present when applicable to intent, format, "
+            "reader value, and verified inputs"
+        )
     else:
         print_fn(f"1. Review blocker details in: {report_path}")
         print_fn("2. Provide a SERP/PAA export or rerun after Google automation access is available")
@@ -203,7 +292,7 @@ def calculate_content_requirements(
     print_fn: Callable[[str], None],
 ) -> None:
     """Calculate content type, word count, freshness, and SERP feature summaries."""
-    print_fn("\n4. Calculating content requirements...")
+    print_fn("\n4. Summarizing observed SERP context...")
 
     if analysis["content_types"]:
         type_counts = Counter(analysis["content_types"])
@@ -223,12 +312,14 @@ def calculate_content_requirements(
         analysis["median_word_count"] = int(median_words)
         analysis["min_word_count"] = min_words
         analysis["max_word_count"] = max_words
-        analysis["recommended_word_count"] = int(avg_words * 1.1)
-
+        if analysis.get("word_target") is not None:
+            analysis["difference_from_observed_average"] = (
+                analysis["word_target"] - analysis["avg_word_count"]
+            )
         print_fn(f"   Average Word Count: {avg_words:,.0f}")
         print_fn(f"   Median Word Count: {median_words:,.0f}")
         print_fn(f"   Range: {min_words:,} - {max_words:,}")
-        print_fn(f"   Recommended: {analysis['recommended_word_count']:,}+ words")
+        print_fn("   Competitor word counts are context only")
 
     freshness_ratio = (
         len(analysis["freshness_signals"]) / len(organic_results)
@@ -236,15 +327,15 @@ def calculate_content_requirements(
         else 0
     )
     analysis["freshness_important"] = freshness_ratio >= 0.6
-    freshness_label = "IMPORTANT" if analysis["freshness_important"] else "Normal"
+    freshness_label = "Prevalent" if analysis["freshness_important"] else "Not prevalent"
     print_fn(
-        f"   Freshness: {freshness_label} "
-        f"({len(analysis['freshness_signals'])}/{len(organic_results)} results mention year)"
+        f"   Observed Freshness Signals: {freshness_label} "
+        f"({len(analysis['freshness_signals'])}/{len(organic_results)} result titles)"
     )
 
     print_fn("\n   SERP Features Present:")
     if analysis["serp_features"]:
-        for feature in analysis["serp_features"][:5]:
+        for feature in analysis["serp_features"]:
             print_fn(f"   - {feature}")
     else:
         print_fn("   - None detected")
@@ -428,8 +519,122 @@ def run_playwright_cli_serp_capture(keyword: str) -> str:
         )
 
 
+def build_playwright_serp_feature_extraction_code() -> str:
+    """Return browser JavaScript for structurally verified SERP features and PAA."""
+    return r"""() => {
+    const cleanText = value => (value || '').replace(/\s+/g, ' ').trim();
+    const nodeText = node => cleanText(
+      node.getAttribute('aria-label') || node.innerText || node.textContent || ''
+    );
+    const featureEvidenceNodes = Array.from(document.querySelectorAll(
+      'h1, h2, h3, [role="heading"]'
+    ));
+    const evidenceText = node => nodeText(node).toLowerCase();
+    const isVerifiedFeatureHeading = node => !node.closest(
+      'a, nav, [role="navigation"], div.MjjYud, div.g, div[data-sokoban-container]'
+    );
+    const verifiedFeatureHeadings = featureEvidenceNodes.filter(
+      isVerifiedFeatureHeading
+    );
+    const evidenceLabels = new Set(
+      verifiedFeatureHeadings.map(evidenceText).filter(Boolean)
+    );
+    const featureLabels = [
+      ['ai_overview', ['ai overview']],
+      ['featured_snippet', ['featured snippet', 'about featured snippets']],
+      ['people_also_ask', ['people also ask']],
+      ['video', ['video', 'videos']],
+      ['image_pack', ['image', 'images']],
+      ['ads', ['sponsored', 'ads']],
+      ['discussions_and_forums', ['discussions and forums', 'forums']],
+      ['shopping', ['shopping']]
+    ];
+    const features = featureLabels
+      .filter(([, labels]) => labels.some(label => evidenceLabels.has(label)))
+      .map(([feature]) => feature);
+
+    const peopleAlsoAskHeading = verifiedFeatureHeadings.find(
+      node => evidenceText(node) === 'people also ask'
+    );
+    const peopleAlsoAskRoot = peopleAlsoAskHeading
+      ? peopleAlsoAskHeading.closest('section, div[data-hveid], div[jscontroller]')
+      : null;
+    const paaQuestions = peopleAlsoAskRoot
+      ? Array.from(new Set(
+          Array.from(peopleAlsoAskRoot.querySelectorAll('button, [role="button"]'))
+            .map(nodeText)
+            .filter(text => text.endsWith('?') && text.length >= 12 && text.length <= 140)
+        )).slice(0, 12)
+      : [];
+
+    return { features, paaQuestions };
+  }"""
+
+
+def build_playwright_serp_organic_extraction_code() -> str:
+    """Return browser JavaScript for verified organic result containers."""
+    return r"""() => {
+    const blockedHosts = new Set([
+      'www.google.com',
+      'google.com',
+      'accounts.google.com',
+      'support.google.com',
+      'policies.google.com',
+      'maps.google.com',
+      'translate.google.com'
+    ]);
+    const normalizeHref = href => {
+      try {
+        const parsed = new URL(href);
+        if (parsed.hostname.endsWith('google.com') && parsed.pathname === '/url') {
+          return parsed.searchParams.get('q') || parsed.searchParams.get('url') || href;
+        }
+        return href;
+      } catch (error) {
+        return href;
+      }
+    };
+    const cleanText = value => (value || '').replace(/\s+/g, ' ').trim();
+    const results = [];
+    const seen = new Set();
+    const resultContainerSelectors = 'div.MjjYud, div.g, div[data-sokoban-container]';
+    for (const anchor of Array.from(document.querySelectorAll('a'))) {
+      const h3 = anchor.querySelector('h3');
+      const title = cleanText(h3 ? h3.innerText : '');
+      if (!title) continue;
+      const container = anchor.closest(resultContainerSelectors);
+      if (!container) continue;
+      const normalizedUrl = normalizeHref(anchor.href || '');
+      let parsed;
+      try {
+        parsed = new URL(normalizedUrl);
+      } catch (error) {
+        continue;
+      }
+      if (!['http:', 'https:'].includes(parsed.protocol)) continue;
+      if (
+        blockedHosts.has(parsed.hostname) ||
+        parsed.hostname.endsWith('.google.com')
+      ) continue;
+      if (seen.has(normalizedUrl)) continue;
+      seen.add(normalizedUrl);
+      const containerText = cleanText(container.innerText || '');
+      const lines = containerText
+        .split('\n')
+        .map(cleanText)
+        .filter(line => line && line !== title && !line.startsWith('http'));
+      const description = lines.slice(0, 3).join(' ');
+      results.push({ title, url: normalizedUrl, description });
+      if (results.length >= 10) break;
+    }
+    return results;
+  }"""
+
+
 def build_playwright_serp_extraction_code(search_url: str) -> str:
     """Return JavaScript function source for Playwright CLI run-code."""
+    feature_code = build_playwright_serp_feature_extraction_code()
+    organic_code = build_playwright_serp_organic_extraction_code()
     return f"""async page => {{
   const searchUrl = {json.dumps(search_url)};
   await page.goto(searchUrl, {{ waitUntil: 'domcontentloaded', timeout: 30000 }});
@@ -447,79 +652,11 @@ def build_playwright_serp_extraction_code(search_url: str) -> str:
     blocker = 'captcha_or_consent_or_unusual_traffic';
   }}
 
-  const features = [];
-  const featureChecks = [
-    ['ai_overview', /ai overview/i],
-    ['featured_snippet', /featured snippet|about featured snippets/i],
-    ['people_also_ask', /people also ask/i],
-    ['video', /videos?/i],
-    ['image_pack', /images?/i],
-    ['ads', /sponsored|ad\\s/i],
-    ['discussions_and_forums', /discussions and forums|forums?/i],
-    ['shopping', /shopping/i]
-  ];
-  for (const [feature, pattern] of featureChecks) {{
-    if (pattern.test(bodyText)) features.push(feature);
-  }}
+  const featurePayload = await page.evaluate({feature_code});
+  const features = featurePayload.features;
+  const organicResults = await page.evaluate({organic_code});
 
-  const organicResults = await page.evaluate(() => {{
-    const blockedHosts = new Set([
-      'www.google.com',
-      'google.com',
-      'accounts.google.com',
-      'support.google.com',
-      'policies.google.com',
-      'maps.google.com',
-      'translate.google.com'
-    ]);
-    const normalizeHref = href => {{
-      try {{
-        const parsed = new URL(href);
-        if (parsed.hostname.endsWith('google.com') && parsed.pathname === '/url') {{
-          return parsed.searchParams.get('q') || parsed.searchParams.get('url') || href;
-        }}
-        return href;
-      }} catch (error) {{
-        return href;
-      }}
-    }};
-    const cleanText = value => (value || '').replace(/\\s+/g, ' ').trim();
-    const results = [];
-    const seen = new Set();
-    for (const anchor of Array.from(document.querySelectorAll('a'))) {{
-      const h3 = anchor.querySelector('h3');
-      const title = cleanText(h3 ? h3.innerText : '');
-      if (!title) continue;
-      const normalizedUrl = normalizeHref(anchor.href || '');
-      let parsed;
-      try {{
-        parsed = new URL(normalizedUrl);
-      }} catch (error) {{
-        continue;
-      }}
-      if (!['http:', 'https:'].includes(parsed.protocol)) continue;
-      if (blockedHosts.has(parsed.hostname)) continue;
-      if (seen.has(normalizedUrl)) continue;
-      seen.add(normalizedUrl);
-      const container = anchor.closest('div.MjjYud, div.g, div[data-sokoban-container], div[jscontroller]') || anchor.parentElement;
-      const containerText = cleanText(container ? container.innerText : '');
-      const lines = containerText
-        .split('\\n')
-        .map(cleanText)
-        .filter(line => line && line !== title && !line.startsWith('http'));
-      const description = lines.slice(0, 3).join(' ');
-      results.push({{ title, url: normalizedUrl, description }});
-      if (results.length >= 10) break;
-    }}
-    return results;
-  }});
-
-  const paaQuestions = Array.from(new Set(
-    bodyText
-      .split('\\n')
-      .map(line => line.replace(/\\s+/g, ' ').trim())
-      .filter(line => line.endsWith('?') && line.length >= 12 && line.length <= 140)
-  )).slice(0, 12);
+  const paaQuestions = featurePayload.paaQuestions;
 
   return JSON.stringify({{
     search_url: searchUrl,
@@ -639,54 +776,46 @@ def has_freshness_signal(title: str, now: Optional[datetime] = None) -> bool:
     current_year = now.year
     last_year = current_year - 1
 
-    freshness_patterns = [
-        str(current_year),
-        str(last_year),
-        "updated",
-        "latest",
-        "new",
-    ]
+    freshness_pattern = re.compile(
+        rf"\b(?:{current_year}|{last_year}|updated|latest|new)\b",
+        re.IGNORECASE,
+    )
+    return bool(freshness_pattern.search(title))
 
-    return any(pattern in title.lower() for pattern in freshness_patterns)
+
+def identify_recurring_h2_topics(
+    heading_observations: List[Dict[str, Any]],
+    minimum_distinct_urls: int = 3,
+) -> List[str]:
+    """Return exact normalized H2s observed on at least three distinct URLs."""
+    urls_by_heading: Dict[str, set[str]] = {}
+    display_by_heading: Dict[str, str] = {}
+    for observation in heading_observations:
+        url = observation.get("url")
+        headings = observation.get("headings")
+        if not isinstance(url, str) or not url.strip() or not isinstance(headings, list):
+            continue
+        for heading in headings:
+            if not isinstance(heading, str) or not heading.strip():
+                continue
+            display = re.sub(r"\s+", " ", heading).strip()
+            normalized = display.casefold()
+            display_by_heading.setdefault(normalized, display)
+            urls_by_heading.setdefault(normalized, set()).add(url.strip())
+
+    recurring = [
+        display_by_heading[normalized]
+        for normalized, urls in urls_by_heading.items()
+        if len(urls) >= minimum_distinct_urls
+    ]
+    return sorted(recurring, key=str.casefold)
 
 
 def assess_difficulty(domains: List[str]) -> str:
-    """Assess competitive difficulty based on domains."""
+    """Keep difficulty unresolved when only observed ranking domains are available."""
     if not domains:
         return "unknown"
-
-    high_authority = [
-        "youtube.com",
-        "wikipedia.org",
-        "forbes.com",
-        "nytimes.com",
-        "washingtonpost.com",
-        "cnn.com",
-        "bbc.com",
-        "techcrunch.com",
-        "wired.com",
-        "theverge.com",
-        "reddit.com",
-        "hubspot.com",
-    ]
-
-    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config", "competitors.json")
-    medium_authority = []
-    if os.path.exists(config_path):
-        with open(config_path, encoding="utf-8") as config_file:
-            config = json.load(config_file)
-        medium_authority = config.get("direct_competitors", []) + config.get("content_competitors", [])
-
-    high_count = sum(1 for domain in domains if any(authority in domain for authority in high_authority))
-    medium_count = sum(1 for domain in domains if any(authority in domain for authority in medium_authority))
-
-    if high_count >= 6:
-        return "very high"
-    if high_count >= 4:
-        return "high"
-    if medium_count >= 5:
-        return "medium"
-    return "low"
+    return "unresolved"
 
 
 def generate_content_brief(
@@ -694,116 +823,92 @@ def generate_content_brief(
     analysis: Dict[str, Any],
     now: Optional[datetime] = None,
 ) -> Dict[str, Any]:
-    """Generate a comprehensive content brief."""
-    now = now or datetime.now()
+    """Generate an evidence-bound SERP context block for Reader Contract planning."""
     if not analysis.get("top_results"):
         return {
             "target_keyword": keyword,
+            "word_target": analysis.get("word_target"),
+            "recommended_word_count": None,
             "serp_brief_available": False,
             "blocker": analysis.get("fallback_blocker") or "No organic results captured",
             "search_intent": analysis.get("search_intent", "unknown"),
+            "observed_elements": [],
+            "serp_features_to_evaluate": [],
+            "structure_patterns": [],
+            "must_have_elements": [],
+            "serp_features_to_target": [],
+            "structure_recommendations": [],
         }
 
     brief = {
         "target_keyword": keyword,
-        "content_type": analysis.get("dominant_content_type", "Guide"),
-        "recommended_word_count": analysis.get("recommended_word_count", 2000),
+        "content_type": analysis.get("dominant_content_type") or "Unknown",
+        "word_target": analysis.get("word_target"),
+        "recommended_word_count": None,
         "search_intent": analysis.get("search_intent", "informational"),
         "tone": determine_tone(analysis.get("search_intent", "informational")),
-        "must_have_elements": [],
-        "serp_features_to_target": [],
-        "structure_recommendations": [],
+        "observed_elements": [],
+        "serp_features_to_evaluate": [],
+        "structure_patterns": [],
     }
 
-    content_type = brief["content_type"]
-
-    if "Listicle" in content_type:
-        brief["must_have_elements"] = [
-            "Numbered list format",
-            "Comparison table",
-            "Pros and cons for each item",
-            "Clear introduction explaining criteria",
-            "Summary/conclusion with top recommendation",
-        ]
-        brief["structure_recommendations"] = [
-            "Introduction (what, why, how to choose)",
-            f"Item 1-{extract_number_from_titles(analysis.get('title_patterns', []))} (each with description, pros/cons)",
-            "Comparison table",
-            "FAQs",
-            "Conclusion with top pick",
-        ]
-
-    elif "How-To" in content_type:
-        brief["must_have_elements"] = [
-            "Step-by-step instructions",
-            "Visual aids (screenshots, diagrams)",
-            "Prerequisites section",
-            "Time estimate",
-            "Troubleshooting tips",
-        ]
-        brief["structure_recommendations"] = [
-            "Introduction (what you'll learn)",
-            "Prerequisites/Requirements",
-            "Step-by-step instructions",
-            "Common mistakes to avoid",
-            "FAQs",
-            "Conclusion/Next steps",
-        ]
-
-    elif "Definition" in content_type:
-        brief["must_have_elements"] = [
-            "Clear, concise definition upfront",
-            "Examples",
-            "History/etymology if relevant",
-            "Related concepts",
-            "Practical applications",
-        ]
-        brief["structure_recommendations"] = [
-            "Quick definition (target featured snippet)",
-            "Detailed explanation",
-            "Examples",
-            "Related terms/concepts",
-            "Practical applications",
-            "FAQs",
-        ]
-
-    else:
-        brief["must_have_elements"] = [
-            "Comprehensive coverage",
-            "Expert insights",
-            "Real examples",
-            "Data and statistics",
-        ]
-        brief["structure_recommendations"] = [
-            "Introduction",
-            "Main sections (3-5)",
-            "Examples and case studies",
-            "FAQs",
-            "Conclusion",
-        ]
-
-    serp_features = analysis.get("serp_features", [])
-    serp_feature_text = str(serp_features).lower()
-
-    if "featured_snippet" in serp_feature_text:
-        brief["serp_features_to_target"].append(
-            "Featured Snippet - Add concise definition/answer in first 100 words"
+    freshness_signals = analysis.get("freshness_signals") or []
+    top_result_count = len(analysis.get("top_results") or [])
+    if freshness_signals and top_result_count:
+        brief["observed_elements"].append(
+            f"{len(freshness_signals)} of {top_result_count} result titles contain a freshness signal"
         )
 
-    if "people_also_ask" in serp_feature_text:
-        brief["serp_features_to_target"].append(
-            "People Also Ask - Add FAQ section answering related questions"
+    common_h2_topics = analysis.get("common_h2_topics") or []
+    brief["structure_patterns"] = [
+        str(topic).strip()
+        for topic in common_h2_topics
+        if isinstance(topic, str) and topic.strip()
+    ]
+
+    feature_guidance = {
+        "featured_snippet": (
+            "Featured Snippet - evaluate whether a concise direct answer fits the "
+            "Reader Contract"
+        ),
+        "people_also_ask": (
+            "People Also Ask - evaluate whether sourced FAQ answers fit the article"
+        ),
+        "video": (
+            "Video - evaluate only if a relevant, approved video supports the article"
+        ),
+        "images": (
+            "Images - evaluate whether useful images improve reader understanding"
+        ),
+        "image_pack": (
+            "Image Pack - evaluate whether useful images improve reader understanding"
+        ),
+    }
+    observed_feature_names = []
+    for feature in analysis.get("serp_features", []):
+        if isinstance(feature, dict):
+            raw_name = feature.get("type") or feature.get("name") or feature.get("feature")
+        else:
+            raw_name = feature
+        if not isinstance(raw_name, str) or not raw_name.strip():
+            continue
+        normalized = re.sub(r"[\s-]+", "_", raw_name.strip().lower())
+        if normalized in observed_feature_names:
+            continue
+        observed_feature_names.append(normalized)
+        brief["serp_features_to_evaluate"].append(
+            feature_guidance.get(
+                normalized,
+                f"{normalized.replace('_', ' ').title()} - evaluate applicability "
+                "against intent, format, reader value, and verified inputs",
+            )
         )
 
-    if "video" in serp_feature_text:
-        brief["serp_features_to_target"].append("Video - Consider embedding relevant video or creating one")
-
-    if "images" in serp_feature_text or "image_pack" in serp_feature_text:
-        brief["serp_features_to_target"].append("Images - Include high-quality images with alt text")
-
-    if analysis.get("freshness_important"):
-        brief["must_have_elements"].append(f"Current year ({now.year}) in title and content")
-        brief["must_have_elements"].append("Latest statistics and examples")
+    # Transitional aliases preserve existing brief consumers without restoring
+    # heuristic recommendations or a SERP-derived word target.
+    brief["must_have_elements"] = list(brief["observed_elements"])
+    brief["serp_features_to_target"] = list(brief["serp_features_to_evaluate"])
+    brief["structure_recommendations"] = list(brief["structure_patterns"])
 
     return brief
 
@@ -857,7 +962,10 @@ def write_markdown_report(
     with filename.open("w", encoding="utf-8") as report:
         report.write(f"# SERP Analysis: {keyword}\n\n")
         report.write(f"**Generated:** {now.strftime('%Y-%m-%d %H:%M')}\n\n")
-        report.write("**Purpose:** Understand what Google wants for this keyword before creating content\n\n")
+        report.write(
+            "**Purpose:** Use verified visible SERP observations as strong editorial "
+            "defaults, with documented Reader Contract exceptions.\n\n"
+        )
         report.write("---\n\n")
 
         if analysis.get("fallback_used"):
@@ -867,16 +975,49 @@ def write_markdown_report(
         report.write(f"- **Target Keyword:** {keyword}\n")
         report.write(f"- **Search Intent:** {analysis.get('search_intent', 'unknown')}\n")
         report.write(f"- **Dominant Content Type:** {analysis.get('dominant_content_type', 'Unknown')}\n")
-        report.write(f"- **Competitive Difficulty:** {analysis.get('competitive_difficulty', 'medium').upper()}\n")
-        report.write(f"- **Freshness Important:** {'Yes' if analysis.get('freshness_important') else 'No'}\n\n")
+        report.write(f"- **Competitive Difficulty:** {analysis.get('competitive_difficulty', 'unknown').upper()}\n")
+        report.write(
+            "- **Year Signals Prevalent:** "
+            f"{'Yes' if analysis.get('freshness_important') else 'No'} "
+            "(observed context only)\n\n"
+        )
 
-        report.write("## Content Requirements\n\n")
+        report.write("## Content Context\n\n")
         if analysis.get("avg_word_count"):
             report.write("### Word Count\n\n")
             report.write(f"- **Average:** {analysis['avg_word_count']:,} words\n")
             report.write(f"- **Median:** {analysis.get('median_word_count', 0):,} words\n")
             report.write(f"- **Range:** {analysis.get('min_word_count', 0):,} - {analysis.get('max_word_count', 0):,} words\n")
-            report.write(f"- **Recommended:** {analysis.get('recommended_word_count', 2000):,}+ words (exceed average by 10%)\n\n")
+            report.write("- **Use:** Competitor word counts are context only; they do not set the article target.\n")
+        if analysis.get("word_target") is not None:
+            report.write(
+                f"- **Caller-Supplied Word Target:** {analysis['word_target']:,} words\n\n"
+            )
+            if analysis.get("difference_from_observed_average") is not None:
+                difference = analysis["difference_from_observed_average"]
+                report.write(
+                    "- **Difference From Observed Competitor Average:** "
+                    f"{difference:+,} words (reported as context only)\n\n"
+                )
+        else:
+            report.write(
+                "- **Word Target:** Unresolved until Reader Contract planning identifies intent, payoff, and required evidence.\n\n"
+            )
+
+        if analysis.get("competitor_lengths"):
+            report.write("### Individual Competitor Counts\n\n")
+            report.write("| Position | Page | Domain | Observed Words |\n")
+            report.write("|----------|------|--------|----------------|\n")
+            for competitor in analysis["competitor_lengths"]:
+                title = str(competitor.get("title", "Untitled")).replace("|", "\\|")
+                url = competitor.get("url", "")
+                domain = competitor.get("domain", "")
+                count = competitor.get("word_count", 0)
+                report.write(
+                    f"| {competitor.get('position', '')} | [{title}]({url}) | "
+                    f"{domain} | {count:,} |\n"
+                )
+            report.write("\n")
 
         report.write("### Content Type Distribution\n\n")
         if analysis.get("content_type_distribution"):
@@ -885,9 +1026,9 @@ def write_markdown_report(
                 key=lambda item: item[1],
                 reverse=True,
             ):
-                report.write(f"- {content_type}: {count}/10 results\n")
+                report.write(f"- {content_type}: {count}/{len(analysis.get('top_results', []))} results\n")
             report.write(
-                f"\n**Recommendation:** Your content should be a **{analysis.get('dominant_content_type', 'Guide')}**\n\n"
+                f"\n**Observed Content Pattern:** {analysis.get('dominant_content_type', 'Guide')}\n\n"
             )
         else:
             report.write("- No content type distribution available because no organic results were captured.\n\n")
@@ -910,10 +1051,21 @@ def write_markdown_report(
         report.write("## Top 10 Ranking Analysis\n\n")
         report.write("| Position | Domain | Content Type | Word Count |\n")
         report.write("|----------|--------|--------------|------------|\n")
+        word_count_by_position = {
+            int(item["position"]): item["word_count"]
+            for item in analysis.get("competitor_lengths", [])
+            if item.get("position") is not None and item.get("word_count") is not None
+        }
+        word_count_by_position.update(
+            {
+                int(position): count
+                for position, count in analysis.get("word_count_by_position", {}).items()
+            }
+        )
         for index, result in enumerate(analysis["top_results"], 1):
             domain = extract_domain(result.get("url", ""))
             content_type = analysis["content_types"][index - 1] if index <= len(analysis["content_types"]) else "Unknown"
-            word_count: Any = analysis["word_counts"][index - 1] if index <= len(analysis["word_counts"]) else "N/A"
+            word_count: Any = word_count_by_position.get(index, "N/A")
             if isinstance(word_count, int):
                 word_count = f"{word_count:,}"
             report.write(f"| {index} | {domain[:30]} | {content_type} | {word_count} |\n")
@@ -967,31 +1119,86 @@ def write_content_brief_section(report: Any, analysis: Dict[str, Any]) -> None:
         report.write(
             "SERP-derived content brief unavailable because no organic results were captured. "
             "Use a user-provided SERP/PAA export, verified Asana brief, GSC, live page evidence, "
-            "and public sources before making competitor-derived content requirements.\n\n"
+            "and public sources before making any competitor-informed editorial decisions.\n\n"
         )
         return
 
-    report.write("### Target Specifications\n\n")
+    report.write("### Article Context\n\n")
     report.write(f"- **Primary Keyword:** {brief.get('target_keyword')}\n")
-    report.write(f"- **Content Type:** {brief.get('content_type')}\n")
-    report.write(f"- **Target Word Count:** {brief.get('recommended_word_count', 2000):,}+ words\n")
+    report.write(f"- **Observed Content Pattern:** {brief.get('content_type')}\n")
+    if brief.get("word_target") is not None:
+        report.write(
+            f"- **Caller-Supplied Word Target:** {brief['word_target']:,} words\n"
+        )
+    else:
+        report.write("- **Word Target:** Unresolved until Reader Contract planning\n")
     report.write(f"- **Search Intent:** {brief.get('search_intent')}\n")
     report.write(f"- **Tone:** {brief.get('tone')}\n\n")
 
-    report.write("### Must-Have Elements\n\n")
-    for element in brief.get("must_have_elements", []):
-        report.write(f"- [ ] {element}\n")
+    report.write("### Observation and Proof Status\n\n")
+    observation_source = (
+        "Playwright browser-visible capture"
+        if analysis.get("fallback_used")
+        else "DataForSEO structured SERP results"
+    )
+    report.write(f"- **Observation source:** {observation_source}\n")
+    report.write(
+        "- **Observation rule:** Only captured titles, URLs, snippets, feature labels, "
+        "PAA text, extracted structure, and fetched word counts may be labeled observed.\n"
+    )
+    report.write(
+        "- **Public-claim proof status:** SERP observations guide editorial strategy but "
+        "do not approve customer claims, quotes, metrics, rankings, or outcomes.\n\n"
+    )
+
+    report.write("### Default Recommendation and Exception Rule\n\n")
+    observed_content_type = brief.get('content_type')
+    if observed_content_type and observed_content_type != "Unknown":
+        report.write(
+            f"- Match the dominant observed content type, **{observed_content_type}**, "
+            "by default.\n"
+        )
+    else:
+        report.write(
+            "- Dominant content type is unresolved; do not infer a format without "
+            "verified SERP evidence.\n"
+        )
+    report.write(
+        "- Evaluate every identified SERP feature and target every applicable feature "
+        "supported by search intent, article format, reader value, and verified inputs.\n"
+    )
+    report.write(
+        "- A different format or an excluded applicable pattern requires a documented "
+        "Reader Contract exception with the reader, intent, evidence, or business reason.\n\n"
+    )
+
+    observed_elements = brief.get("observed_elements", [])
+    report.write("### Observed Elements To Evaluate\n\n")
+    for element in observed_elements:
+        report.write(f"- {element}\n")
     report.write("\n")
 
-    if brief.get("serp_features_to_target"):
-        report.write("### SERP Features to Target\n\n")
-        for feature in brief["serp_features_to_target"]:
-            report.write(f"- [ ] {feature}\n")
-        report.write("\n")
+    serp_features_to_evaluate = brief.get("serp_features_to_evaluate", [])
+    report.write("### SERP Features To Evaluate\n\n")
+    if serp_features_to_evaluate:
+        for feature in serp_features_to_evaluate:
+            report.write(f"- {feature}\n")
+    else:
+        report.write("- No SERP feature action is implied by this run.\n")
+    report.write("\n")
 
-    report.write("### Recommended Structure\n\n")
-    for index, section in enumerate(brief.get("structure_recommendations", []), 1):
-        report.write(f"{index}. {section}\n")
+    structure_patterns = brief.get("structure_patterns", [])
+    report.write("### Observed Structure Patterns\n\n")
+    if structure_patterns:
+        for index, section in enumerate(structure_patterns, 1):
+            report.write(f"{index}. {section}\n")
+    else:
+        report.write("- No H2 topic recurred across at least three fetched competitor pages.\n")
+    if analysis.get("heading_observations"):
+        report.write("\n**Heading observation provenance:**\n")
+        for observation in analysis["heading_observations"]:
+            headings = "; ".join(observation.get("headings", []))
+            report.write(f"- {observation.get('url')}: {headings}\n")
     report.write("\n")
 
 
@@ -1008,32 +1215,19 @@ def write_competitive_insights_section(report: Any, analysis: Dict[str, Any]) ->
     else:
         report.write("- No ranking domains captured.\n")
 
-    report.write(f"\n### Competitive Difficulty: {analysis.get('competitive_difficulty', 'medium').upper()}\n\n")
-    difficulty = analysis.get("competitive_difficulty", "medium")
-    if difficulty in ["very high", "high"]:
-        report.write("High competition - Major authority sites dominate. You'll need:\n")
-        report.write("- Exceptional content quality\n")
-        report.write("- Strong backlink profile\n")
-        report.write("- Unique angle or superior depth\n")
-        report.write("- Time to build authority (6-12 months)\n\n")
-    elif difficulty == "medium":
-        report.write("Moderate competition - Mix of authority and niche sites. You can rank with:\n")
-        report.write("- Comprehensive, well-researched content\n")
-        report.write("- Better formatting and user experience\n")
-        report.write("- Some quality backlinks\n")
-        report.write("- Expected timeline: 3-6 months\n\n")
-    else:
-        if difficulty == "unknown":
-            report.write(
-                "Competitive difficulty unavailable because no organic results were captured. "
-                "Do not use SERP competitor metrics from this run.\n\n"
-            )
-            return
-        report.write("Low competition - Opportunity for quick rankings. Focus on:\n")
-        report.write("- Quality content exceeding current results\n")
-        report.write("- Proper on-page SEO\n")
-        report.write("- Internal linking\n")
-        report.write("- Expected timeline: 1-3 months\n\n")
+    difficulty = analysis.get("competitive_difficulty", "unknown")
+    report.write(f"\n### Competitive Difficulty: {difficulty.upper()}\n\n")
+    if difficulty == "unknown":
+        report.write(
+            "Competitive difficulty unavailable because no organic results were captured. "
+            "Do not use SERP competitor metrics from this run.\n\n"
+        )
+        return
+    report.write(
+        "Competitive difficulty is unresolved because observed ranking domains alone "
+        "do not establish keyword difficulty. Use a verified difficulty source before "
+        "making a difficulty claim.\n\n"
+    )
 
 
 def write_action_plan_section(report: Any, keyword: str, analysis: Dict[str, Any]) -> None:
@@ -1047,27 +1241,31 @@ def write_action_plan_section(report: Any, keyword: str, analysis: Dict[str, Any
         return
 
     report.write("### Step 1: Research (1-2 hours)\n")
-    report.write("- [ ] Read all top 10 ranking articles\n")
-    report.write("- [ ] Identify common topics covered\n")
-    report.write("- [ ] Find gaps they missed\n")
-    report.write("- [ ] Collect statistics and examples\n\n")
+    report.write("- [ ] Verify the visible observations against the captured ranking pages\n")
+    report.write("- [ ] Identify must-have topics supported by verified recurrence, reader importance, and evidence\n")
+    report.write("- [ ] Classify recurring, reader-critical, evidence-supported gaps as must-fill\n")
+    report.write("- [ ] Collect only the approved evidence and examples the Reader Contract needs\n\n")
 
     report.write("### Step 2: Outline (30 minutes)\n")
-    report.write("- [ ] Create detailed outline following recommended structure\n")
-    report.write("- [ ] Plan unique angles or superior depth\n")
-    report.write("- [ ] List all H2 and H3 headings\n\n")
+    report.write("- [ ] Create detailed outline from the Reader Contract first\n")
+    report.write("- [ ] Match the dominant observed content type unless the Reader Contract documents a justified exception\n")
+    report.write("- [ ] Include must-fill gaps unless a Reader Contract exception records irrelevance, redundancy, or missing evidence\n")
+    report.write("- [ ] Define only the H2 and H3 headings needed for continuity and payoff\n\n")
 
     report.write("### Step 3: Write (3-4 hours)\n")
-    report.write("- [ ] Write to the recommended word count\n")
-    report.write("- [ ] Include all must-have elements\n")
-    report.write("- [ ] Target SERP features (featured snippet, PAA)\n")
-    report.write("- [ ] Add visuals/screenshots\n\n")
+    if analysis.get("word_target") is not None:
+        report.write("- [ ] Write to the caller-supplied target without padding\n")
+    else:
+        report.write("- [ ] Resolve the Reader Contract word target before drafting\n")
+    report.write("- [ ] Include must-have observed elements unless a Reader Contract exception is documented\n")
+    report.write("- [ ] Evaluate every identified SERP feature and target each applicable feature without inventing answers\n")
+    report.write("- [ ] Add visuals or screenshots only when they improve reader understanding\n\n")
 
     report.write("### Step 4: Optimize (30 minutes)\n")
     report.write(f"- [ ] Optimize title tag (include '{keyword}')\n")
     report.write("- [ ] Write compelling meta description\n")
     report.write("- [ ] Add internal links to related content\n")
-    report.write("- [ ] Add FAQ schema markup\n")
+    report.write("- [ ] Add FAQ schema markup only when approved FAQs are present\n")
     report.write("- [ ] Optimize images with alt text\n\n")
 
     report.write("### Step 5: Publish & Promote\n")

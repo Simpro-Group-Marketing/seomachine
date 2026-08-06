@@ -58,17 +58,24 @@ Before drafting, complete AEO/GEO variable resolution from the analysis report, 
 - **Permitted FAQ evidence**: regulators, standards bodies, universities, trade associations, independent research/editorial, and non-competing experts. Simpro-owned links are optional reader resources, not proof.
 - **Vendor-specific FAQs**: remove or reframe the question when compliant evidence is unavailable and leave vendor evidence in comparison or vendor-specific body copy.
 - `expertise`
-- `length`
+- `length`: set an intent/evidence-complete word target from the Reader Contract, search intent, source depth, and useful competitor context
 
 Required rewrite inputs:
 - **PAA/FAQ provenance**: Cite the source for selected questions: AnswerSocrates, SERP, Reddit, YouTube, or a user PAA/FAQ CSV. If using AnswerSocrates, save or cite `research/paa-questions-[topic-slug]-[YYYY-MM-DD].md`. If no sourced question set exists, collect one or record the blocker before writing.
 - **Question selection**: Select 3-5 closest questions, label intent, write an insight summary, write a suggested blog focus, and assign each question to an H2, H3, or FAQ answer format.
+- **FAQ quality gate**: Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error`; `/publish-readiness` runs it automatically.
+- **FAQ answer quality**: Each visible answer starts with a 40-60 word direct-answer paragraph and includes at least 1 authoritative non-owned public evidence link. A Source Map or FAQ Proof Map can document the same evidence but cannot replace that reader-facing link.
 - **Source Map**: Document each external source, the claim it supports, the natural anchor text, and the target section.
 - **E-E-A-T Proof Map**: Resolve E-E-A-T proof details, Experience, Expertise, and Authority/Trust before drafting. Experience includes customer case studies, customer outcomes, review-site experience evidence / VoC themes, implementation/support themes, user pain, and field workflow examples. Review narratives count as first-hand customer experience when reviewers describe product use, implementation, support, switching, pains, outcomes, or workflows. Expertise includes product/feature knowledge, source-backed workflow explanations, expert quotes, author/reviewer metadata, and Simpro workflow specificity. Authority/Trust includes public research, case-study URLs, review-site/source links, limitations, caveats, and no invented proof.
 - **Fallback context proof routing**: After Vault Context Read Path, pull case-study URLs from @context/internal-links-map.md, approved metrics/proof candidates from @context/features.md, and review-site experience evidence / VoC or competitor experience themes from @context/competitor-analysis.md or future review-context files only as repo-local mirror/fallback inputs. For review-site evidence, capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved. Use review-derived stories as paraphrased, source-backed experience patterns by default. Exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, and category claims require current source verification and brief-level approval. Context-backed metrics are valid only when paired with public-facing source links in the article body.
 - **403 replacement rule**: If a DOL, Capterra, G2, Trustpilot, Google Play, or other public research/source URL returns 401, 403, or `manual_review`, do not remove the citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. Source Map notes must document both the rejected 403 URL and the replacement URL. Full policy and the `public_research_link_guard.py` gate live in `context/aeo-geo-blog-strategy.md`.
 - **Review proof routing**: For review-derived E-E-A-T stories, automatically run `customer_proof_selector.py` with `--slate --roles experience_story --require-eeat-story`, then run the review story identity gate from the required stack below. Use `context/aeo-geo-blog-strategy.md` for Review Story Selection, Review Site Theme Selection, Capterra theme use, exact-quote, rating, and metric boundaries.
-- **Optional proof-backed customer/review POV**: Use a proof-backed customer/review POV only when it improves the rewrite objective. If no actual person or business POV fits, omit the story. Fictional named personas are prohibited; unnamed workflow scenarios are explanatory only and do not count as E-E-A-T.
+- **Reader Contract**: Before rewrite planning, document Primary reader, Sophistication level, Trigger problem, Existing belief, Decision or task helped, Distinctive angle, Promised payoff, Funnel stage, and Exclusions. Use it to set an intent/evidence-complete word target, natural terminology coverage, critical keyword placement, semantic variations, keyword-stuffing detection, CTA treatment, and section order.
+
+## SERP Strategy Decision
+
+After the Reader Contract, record the verified SERP observation source, dominant observed content type, every observed feature, recurring extracted structure, and qualified must-fill gaps. Match the dominant observed content type and target every applicable feature by default. Any deviation requires a documented Reader Contract exception. If verified SERP context is unavailable, mark the decision unresolved and do not invent observations or silently waive the handoff.
+- **Optional proof-backed customer/review POV**: Use a proof-backed customer/review POV only when it improves the rewrite objective. Editorial scenes: 0-2 editorial scenes when they materially improve understanding. Named people or businesses require approved proof; Unnamed workflow scenarios are explanatory only; invented names, dates, metrics, quotes, and outcomes are prohibited.
 - **Customer proof selection governance**: Before selecting or drafting proof, resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and write the generated selector-first `Customer Proof Slate` to the validation sidecar. If inputs are missing, resolve them from the brief/context or stop before drafting customer proof. If the selector fails, write the blocker into the sidecar and do not invent proof. experience_story consideration is required and E-E-A-T story usage is optional. If no story fits, use `Selected: [none]` with section-specific rejection reasons. Full policy lives in `context/aeo-geo-blog-strategy.md`.
 - **Fred Voccola authority evaluation**: Resolve `topic`, `title`, and `objective`, then automatically run `python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --limit 5` and write the complete `Fred Voccola Authority Selection` block from `context/aeo-geo-blog-strategy.md` to the validation sidecar. Evaluation is mandatory and public use is optional. The selector defaults to `Selected: none`; select a source explicitly only after reviewing it and confirming direct topical support. If the selector, vault, manifest, or inventories fail, record `Evaluation status: blocked` and the blocker; do not invent Fred evidence or continue to Fred public use.
 - **Recent-use proof diversity**: Treat any `recent_uses_90d` value above 0 as a proof-diversity warning, not only sources marked `overused`. Before claiming a proof source is underused, inspect the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the proof ID, public URL, and customer name. If the live repo scan finds public-copy usage missing from the ledger, backfill `context/customer-proof-usage-ledger.json`, rerun proof health and selector checks, and document the backfill in the validation sidecar. Prefer an approved zero-recent-use source when one fits the same role, or document why no stronger underused approved proof fits. If a recently used or overused proof source is still selected, document why no stronger underused approved proof fits.
@@ -76,6 +83,7 @@ Required rewrite inputs:
 - **Proof-index health**: Run `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` before adding proof candidates, and review both recently used and overused proof rows.
 - **Proof-index intake**: Add new proof candidates through `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates.
 - **Customer Proof Pack**: Resolve selected proof, approved quotes/metrics, and excluded claims before placing customer proof. If the pack is partial or blocked, omit unsupported claims.
+- **Proof routing**: Proof infrastructure belongs only in the validation sidecar. The rewrite and change summary record only the sidecar path and status so there is one authoritative proof state.
 - **down-funnel internal link**: Every rewrite must include at least 1 contextual body link to `/industries`, `/industries/...`, `/solutions/...`, or `/features/...` from @context/internal-links-map.md. Prefer the specific industry page when industry intent is clear, the `https://www.simprogroup.com/industries` hub for broad trades or general industry topics, the relevant solution page for category/workflow topics, and the relevant feature page for feature/workflow topics. Anchor text must match the destination keyword or an approved anchor example from @context/internal-links-map.md.
 - **Functional feature/solution anchors**: Feature and solution links must use function-bearing anchor text that explains the workflow, category, or outcome behind the destination. A feature or solution name alone is not enough. Use anchors like "field service payments," "accounts receivable follow-up with Fast Cash," or "field service management software" instead of "Simpro Payments," "Fast Cash," or "Simpro Premium."
 - **Simpro web copy rules**: Use numerals for cardinal numbers, including 1-9. Do not block source-visible metric wording when a public proof source spells out the number; preserve the supported claim wording and rely on Metric Proof Pack, numeric claim source guard, and source support guard for proof. Because comma decisions are grammar/context dependent. No comma when the because clause is essential to the sentence meaning. Use a comma when the because clause is nonessential, contrastive, or needed to prevent misreading. Review negative constructions carefully because comma placement can change meaning. Only 1 link per paragraph. Move the second link to a separate paragraph or remove it. Do not write source/proof meta-commentary such as "that case study is useful for this topic" or "this source is relevant for the article." Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
@@ -108,11 +116,11 @@ Based on analysis, classify the rewrite level:
 - Insufficient internal links
 
 #### What to Add
-- New sections to fill competitive content gaps
+- New sections only where competitive research exposes a reader-payoff, evidence, or task-completion gap
 - Recent industry trends or developments
 - Additional examples or use cases
 - Better introduction hook if current one is weak
-- Stronger conclusion and CTA
+- Conclusion that closes the Reader Contract with an intent-appropriate next action
 - Missing SEO elements (keywords, links, structure)
 
 #### What to Remove
@@ -139,28 +147,42 @@ Follow same structure as `/write` command:
 
 #### 3. Improved Body
 - **Maintain**: Keep effective sections that are still accurate
-- **Expand**: Deepen shallow sections with more detail
+- **Expand**: Deepen shallow sections only where more detail improves reader payoff, evidence support, or task completion
 - **Add**: Insert new sections to cover content gaps
 - **Update**: Refresh stats, examples, and references throughout
 - **Restructure**: Reorganize if flow can be improved
-- **Optimize**: Integrate keywords more naturally if needed
+- **Optimize**: Integrate natural terminology coverage, critical keyword placement, semantic variations, and keyword-stuffing detection
 - **AEO/GEO**: Add 50-60 word direct-answer capsules below the H1 and at least 60% of major H2s
 - **Early usable artifact**: Place a filled data table, download link, checklist deliverable, or calculator reference within the first 300 words of body copy, or document a not-applicable reason in the sidecar; policy in `context/aeo-geo-blog-strategy.md`
 - **Concrete answers**: If the target query implies a number, range, or template, supply a concrete version with disclaimers as needed; placeholder table scaffolds block publish
 
 #### 4. Strengthened Conclusion
 - Update takeaways to reflect new/expanded content
-- Refresh CTA to align with current business priorities
+- Re-evaluate the next action using intent-sensitive CTA rules from the Reader Contract; do not add a CTA when none is called for
 - End with forward-looking perspective
 
 ### SEO Enhancement
 
 #### Keyword Optimization
-- **Primary Keyword**: Ensure 1-2% density throughout
+- **Primary Keyword**: Confirm natural placement in key reader-visible locations
 - **Keyword Placement**: Add to H2s if missing
 - **Semantic Variations**: Use related keywords naturally
 - **First 100 Words**: Confirm primary keyword appears early
 - **Natural Integration**: Never force keywords unnaturally
+
+#### Intent-Sensitive CTA Plan
+- **ToFu**: ToFu: 0-1 soft resource/action CTA
+- **MoFu**: MoFu: one educational next step plus one contextual product CTA
+- **BoFu**: BoFu: 2-3 contextual commercial CTAs
+- **Thought leadership**: Thought leadership: discussion, reflection, or evidence resource
+
+#### Continuity Pass
+- Every section must advance the headline promise from the Reader Contract.
+- Each section answers a question created by the previous section.
+- No section restarts the article, repeats the introduction, or creates repeated resets.
+- Transitions explain a logical relationship, not just a transition word.
+- The conclusion must complete the introduction, resolve open loops, and add a useful next action.
+- remove or justify any section that does not increase the promised payoff.
 
 #### Internal Linking
 - **Review Existing**: Ensure all internal links still work and are relevant
@@ -227,13 +249,32 @@ Word Count Change: [original count] → [new count]
 Primary Keyword: [keyword]
 SEO Score Improvement: [estimated improvement]
 
+Reader Contract:
+- Primary reader: [role, business type, region, or maturity level]
+- Sophistication level: [beginner / intermediate / expert / mixed, plus what the reader already understands]
+- Trigger problem: [moment, decision, or operational pressure]
+- Existing belief: [what they already believe, worry about, or tried]
+- Decision or task helped: [decision, task, or understanding the rewrite helps complete]
+- Distinctive angle: [why this rewrite exists beyond matching the SERP]
+- Promised payoff: [concrete reader payoff the headline and intro must deliver]
+- Funnel stage: [ToFu / MoFu / BoFu / thought leadership]
+- Exclusions: [what the rewrite will not cover, rank, quantify, or claim]
+
+Continuity Pass:
+- Every section advances the headline promise.
+- Each section answers a question created by the previous section.
+- Repeated resets were removed.
+- Transitions explain a logical relationship.
+- The conclusion completes the introduction.
+- remove or justify any weak section that does not increase the promised payoff.
+
 Major Changes:
 - [Summary of significant updates]
 - [New sections added]
 - [Content removed/consolidated]
 
 SEO Improvements:
-- [Keyword optimization details]
+- [Natural terminology coverage, semantic variations, critical keyword placement, and stuffing checks]
 - [Internal links added]
 - [Meta element updates]
 
@@ -242,30 +283,11 @@ Content Updates:
 - [Examples updated]
 - [New industry trends added]
 
-AEO/GEO Inputs:
-- PAA/FAQ provenance: [AnswerSocrates / SERP / Reddit / YouTube / user CSV / blocker]
+Validation and AEO/GEO Status:
+- Validation sidecar path and status: [research/validation-[topic-slug]-[YYYY-MM-DD].md; ready / partial / blocked]
 - PAA artifact path: [research/paa-questions-[topic-slug]-[YYYY-MM-DD].md or not available]
-- Selected questions: [3-5 closest questions with intent labels]
-- FAQ answer quality: [each FAQ uses a 40-60 word first paragraph, leads with a supported number/range, named recommendation, definition, concrete action, or explained yes/no response, and moves limitations after the direct answer]
-- FAQ proof: [each FAQ answer contains at least 1 authoritative non-owned public evidence link in visible copy; a Source Map or FAQ Proof Map can document the same evidence but cannot replace that link]
-- FAQ quality gate: [run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error`; `/publish-readiness` runs it automatically]
-- Suggested blog focus: [1-2 sentence focus statement]
-- Source Map: [source, claim, anchor text, target section]
-- E-E-A-T Proof Map: [Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, review-site experience evidence candidates, claims excluded because proof is missing]
-- Customer Proof Pack:
-  - Pack status: [ready / partial / blocked]
-  - Customer Proof Slate: [selector command plus metric, quote, theme, and experience_story role rows; story usage optional]
-  - Quote Matrix candidates: [customer, trade, region, theme, exact quote or summary, source row/link, approval status]
-  - Case-study proof paths: [customer, public URL, supported non-numeric theme]
-  - Review-site experience evidence: [platform, URL, date checked, product/competitor, experience pattern, evidence summary, exact quote/rating approval status]
-  - Customer Proof Selection Decision: [selector command, selected proof IDs, rejected stronger candidates, final use in copy]
-  - Reuse reason: [source-specific; required when customer-proof-usage-ledger.json marks the selected proof as recently used or overused; must prove no stronger underused approved proof fits the same role]
-  - Approved quotes: [exact quote/testimonial, customer/brand/reviewer, source type, public proof URL, Evidence, approval status]
-  - Approved metrics: [named customer metric, customer/brand, public proof URL, Evidence, approval status]
-  - Use in copy: [exact quote / paraphrased theme / named metric / omit]
-  - Claims excluded: [claim and missing proof reason]
-- Context-backed metrics with public-facing source links: [metric, proof path, public URL]
-- Schema notes: [BlogPosting, BreadcrumbList, FAQPage, Person as author, Question and Answer inside FAQPage, ImageObject for the featured image or logo, Organization as publisher reference only, not a separate full schema block, VideoObject if relevant]
+- FAQ quality gate: [pass / blocked]
+- Schema notes: [present in public frontmatter; VideoObject only when a video is embedded]
 ---
 ```
 
@@ -274,7 +296,7 @@ For major changes, note key differences:
 - Original headline vs. new headline
 - Original intro vs. new intro
 - Sections added or removed
-- Word count expansion
+- Sections completed to their caller-supplied intent/evidence targets without padding
 - SEO element improvements
 
 ## File Management
@@ -290,7 +312,7 @@ Also save the change summary separately:
 
 ## Validation Sidecar
 
-Save non-public proof infrastructure to a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`. Do not put an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan in the publishable rewrite.
+Proof infrastructure belongs only in the validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`; the rewrite and change summary retain only its sidecar path and status. Do not put an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan in the publishable rewrite.
 
 Preferred publish readiness command:
 ```bash
@@ -395,7 +417,7 @@ After saving, scrubbing, linting, scoring, and optimizing the rewritten article,
 
 ### 4. Keyword Mapper Agent
 - Verify keyword integration improvements
-- Confirm optimal keyword placement and density
+- Confirm critical keyword placement, semantic coverage, reported density, and stuffing risk
 
 ## Next Steps
 After rewrite completion:

@@ -160,60 +160,60 @@ For every statement, ask "Okay, so what?" If the copy doesn't answer that questi
 
 **Specificity upgrades:**
 
-| Vague | Specific |
-|-------|----------|
-| Save time | Save 4 hours every week |
-| Many customers | 2,847 teams |
-| Fast results | Results in 14 days |
-| Improve your workflow | Cut your reporting time in half |
-| Great support | Response within 2 hours |
+| Vague | Proof-safe specific |
+|-------|---------------------|
+| Save time | Remove duplicate entry between the job and invoice records |
+| Many customers | Name the affected role and the workflow problem |
+| Fast results | State the next observable workflow change |
+| Improve your workflow | Move approval from email into the job record |
+| Great support | Name the support channel and escalation path |
 
 **Common specificity issues:**
 - Adjectives doing the work nouns should do
-- Benefits without quantification
-- Outcomes without timeframes
+- Benefits without a concrete operational effect
+- Outcomes without supported timeframes
 - Claims without concrete examples
 
 **Process:**
 1. Highlight vague words and phrases
 2. Ask "Can this be more specific?"
-3. Add numbers, timeframes, or examples
-4. Remove content that can't be made specific (it's probably filler)
+3. Add numbers, timeframes, or examples only when approved proof supports them; otherwise soften or omit
+4. Use an unnamed workflow scene for explanation when it makes the task clearer and does not assert a real outcome
+5. Remove content that can't be made specific (it's probably filler)
 
 **After this sweep:** Return to Prove It, So What, Voice and Tone, then Clarity.
 
 ---
 
-### Sweep 6: Heightened Emotion
+### Sweep 6: Stakes and Relevance
 
-**Focus:** Does the copy make the reader feel something?
+**Focus:** Does the copy make the operational consequence clear without exaggerating the problem?
 
 **What to check:**
-- Flat, informational language
-- Missing emotional triggers
-- Pain points mentioned but not felt
-- Aspirations stated but not evoked
+- Consequences named without showing who they affect
+- Operational pressure described too abstractly
+- Decisions or tradeoffs left unstated
+- Product urgency manufactured without proof
 
-**Emotional dimensions to consider:**
-- Pain of the current state
-- Frustration with alternatives
-- Fear of missing out
-- Desire for transformation
-- Pride in making smart choices
-- Relief from solving the problem
+**Stakes dimensions to consider:**
+- Operational consequence of the current state
+- affected role, team, customer, or workflow
+- decision pressure created by delay, uncertainty, or manual work
+- Proof-safe author/customer experience that makes the stakes concrete
+- Limits, caveats, or conditions that prevent overclaiming
 
-**Techniques for heightening emotion:**
-- Paint the "before" state vividly
-- Use sensory language
-- Tell micro-stories
-- Reference shared experiences
-- Ask questions that prompt reflection
+**Techniques for clarifying stakes:**
+- Name the workflow consequence in plain language
+- Show who has to make the decision and what information they need
+- Use 0-2 editorial scenes when they materially improve understanding
+- Use proof-safe author/customer experience only when supported
+- Prefer recognizable work pressure over fear language
 
 **Process:**
-1. Read for emotional impact—does it move you?
-2. Identify flat sections that should resonate
-3. Add emotional texture while staying authentic
-4. Ensure emotion serves the message (not manipulation)
+1. Read for consequence: does the reader know what changes if they act?
+2. Identify flat sections where stakes are unclear
+3. Add operational context while staying proof-safe
+4. Remove fear, FOMO, or urgency that is not source-supported
 
 **After this sweep:** Return to Specificity, Prove It, So What, Voice and Tone, then Clarity.
 
@@ -224,34 +224,34 @@ For every statement, ask "Okay, so what?" If the copy doesn't answer that questi
 **Focus:** Have we removed every barrier to action?
 
 **What to check:**
-- Friction near CTAs
-- Unanswered objections
+- Friction near planned CTAs
+- Unanswered objections when a planned CTA or decision point raises them
 - Missing trust signals
 - Unclear next steps
 - Hidden costs or surprises
 
 **Risk reducers to look for:**
-- Money-back guarantees
-- Free trials
+- Money-back guarantees when the offer actually includes them
+- Free trials when the offer actually includes them
 - "No credit card required"
 - "Cancel anytime"
-- Social proof near CTA
+- Social proof near planned CTA
 - Clear expectations of what happens next
 - Privacy assurances
 
 **Common risk issues:**
-- CTA asks for commitment without earning trust
+- Planned CTA asks for commitment without earning trust
 - Objections raised but not addressed
 - Fine print that creates doubt
 - Vague "Contact us" instead of clear next step
 
 **Process:**
-1. Focus on sections near CTAs
+1. Focus on sections near planned CTAs or next actions
 2. List every reason someone might hesitate
 3. Check if the copy addresses each concern
-4. Add risk reversals or trust signals as needed
+4. Add trust signals or supported risk reducers as needed
 
-**After this sweep:** Return through all previous sweeps one final time: Heightened Emotion, Specificity, Prove It, So What, Voice and Tone, Clarity.
+**After this sweep:** Return through all previous sweeps one final time: Stakes and Relevance, Specificity, Prove It, So What, Voice and Tone, Clarity.
 
 ---
 
@@ -338,21 +338,21 @@ Use these for faster reviews when a full seven-sweep process isn't needed.
 
 ### Specificity (Sweep 5)
 - [ ] Vague words replaced with concrete ones
-- [ ] Numbers and timeframes included
+- [ ] Numbers and timeframes have approved proof, or are softened or omitted
 - [ ] Generic statements made specific
 - [ ] Filler content removed
 
-### Heightened Emotion (Sweep 6)
-- [ ] Copy evokes feeling, not just information
-- [ ] Pain points feel real
-- [ ] Aspirations feel achievable
-- [ ] Emotion serves the message authentically
+### Stakes and Relevance (Sweep 6)
+- [ ] Operational consequence is clear
+- [ ] affected role or workflow is named
+- [ ] decision pressure is realistic
+- [ ] proof-safe author/customer experience is used only when supported
 
 ### Zero Risk (Sweep 7)
-- [ ] Objections addressed near CTA
+- [ ] Objections are addressed near planned commercial CTAs when applicable
 - [ ] Trust signals present
 - [ ] Next steps are crystal clear
-- [ ] Risk reversals stated (guarantee, trial, etc.)
+- [ ] Supported risk reducers are included only when the offer and funnel intent call for them
 
 ### Final Checks
 - [ ] No typos or grammatical errors
@@ -376,9 +376,9 @@ Use these for faster reviews when a full seven-sweep process isn't needed.
 **Symptom:** Starting with company history or vague statements
 **Fix:** Lead with the reader's problem or desired outcome
 
-### Problem: Buried CTA
-**Symptom:** The ask comes after too much buildup, or isn't clear
-**Fix:** Make the CTA obvious, early, and repeated
+### Problem: Planned Next Action Is Unclear
+**Symptom:** A next action required by the Reader Contract is hard to find or disconnected from the surrounding section
+**Fix:** Clarify the planned next action in its assigned location. Do not add or repeat a CTA when the plan does not call for one
 
 ### Problem: No Proof
 **Symptom:** "Customers love us" with no evidence
