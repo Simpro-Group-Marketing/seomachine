@@ -7,21 +7,21 @@ For every Simpro blog, retrieve current voice and tone guidance through the vaul
 ## Usage
 
 ```text
-/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json
+/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json
 ```
 
 Examples:
 
 ```text
-/publish-readiness rewrites/hvac-ppc-rewrite-2026-06-17.md --proof-sidecar research/validation-hvac-ppc-2026-06-17.md --context-request research/context-request-hvac-ppc.json --context-pack research/context-pack-hvac-ppc.json --context-receipt research/context-receipt-hvac-ppc.json
-/publish-readiness published/best-job-quoting-and-invoicing-software-for-field-service-businesses-2026-06-12.md --proof-sidecar research/validation-best-job-quoting-and-invoicing-software-for-field-service-businesses-2026-06-12.md --context-request research/context-request-best-job-quoting-and-invoicing-software-for-field-service-businesses.json --context-pack research/context-pack-best-job-quoting-and-invoicing-software-for-field-service-businesses.json --context-receipt research/context-receipt-best-job-quoting-and-invoicing-software-for-field-service-businesses.json
+/publish-readiness rewrites/hvac-ppc-rewrite-2026-06-17.md --proof-sidecar research/validation-hvac-ppc-2026-06-17.md --context-request research/context-request-hvac-ppc.json --context-pack research/context-pack-hvac-ppc.json --context-receipt research/context-receipt-hvac-ppc.json --assembly-bom research/blog-assembly-bom-hvac-ppc-2026-06-17.json
+/publish-readiness published/best-job-quoting-and-invoicing-software-for-field-service-businesses-2026-06-12.md --proof-sidecar research/validation-best-job-quoting-and-invoicing-software-for-field-service-businesses-2026-06-12.md --context-request research/context-request-best-job-quoting-and-invoicing-software-for-field-service-businesses.json --context-pack research/context-pack-best-job-quoting-and-invoicing-software-for-field-service-businesses.json --context-receipt research/context-receipt-best-job-quoting-and-invoicing-software-for-field-service-businesses.json --assembly-bom research/blog-assembly-bom-best-job-quoting-and-invoicing-software-for-field-service-businesses-2026-06-12.json
 ```
 
 ## Command Contract
 
 This is the user-facing publish gate command. The agent executing `/publish-readiness` must run the repo publish-readiness runner internally and report the gate summary, content score, AEO/GEO score, and priority fixes. Do not ask the user to call the Python runner manually.
 
-Context Binding is the first `/publish-readiness` gate for Simpro artifacts. Missing, stale, tampered, unsupported, or mismatched request, pack, receipt, and sidecar bindings stop readiness before downstream proof gates or scoring. Explicit non-Simpro artifacts with no Simpro claims or URLs do not require a Simpro context pack.
+Context Binding is the first `/publish-readiness` gate for Simpro artifacts. Blog Assembly BOM validation runs immediately after Context Binding. Missing, stale, tampered, unsupported, or mismatched request, pack, receipt, sidecar bindings, BOM inventory, author policy, schema policy, or hard-coded vault topology strings stop readiness before downstream proof gates or scoring. Explicit non-Simpro artifacts with no Simpro claims or URLs do not require a Simpro context pack.
 
 Use this command before `/optimize`, after `/optimize`, before an Asana intake handoff, and before moving an article into `published/`.
 
@@ -30,6 +30,7 @@ Use this command before `/optimize`, after `/optimize`, before an Asana intake h
 - Article artifact path
 - Validation sidecar path
 - Current context request, `simpro-product-context-pack/v2`, and `simpro-context-receipt/v1` paths for Simpro artifacts
+- Blog assembly BOM path, `simpro-blog-assembly-bom/v1`, for Simpro blog assembly runs
 
 Vault product-language gate: When the article uses Simpro product, feature, add-on, solution, industry, or related Simpro product URL language, `/publish-readiness` runs `vault_brand_language_guard.py`. The validation sidecar must contain `Vault Brand Language Alignment` with connector evidence, `context_pack_hash`, `receipt_hash`, relevant `resource_id` values, feature-specific `resource_id` evidence when named features/add-ons appear, solution or vertical `resource_id` evidence when solution/industry language appears, any required `claim_id` values, language applied, fallback context use, source-verification boundary, and `Status: aligned`. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
 
@@ -48,24 +49,25 @@ research/validation-[topic-slug]-[YYYY-MM-DD].md
 The command runs the complete publish-readiness stack:
 
 1. `context_binding_guard`
-2. `public_artifact_guard`
-3. `ai_copy_linter`
-4. `url_validator`
-5. `public_research_link_guard`
-6. `metric_proof_pack_guard`
-7. `numeric_claim_source_guard`
-8. `faq_answer_quality_guard.py`
-9. `faq_proof_guard`
-10. `paa_provenance_guard`
-11. `source_support_guard`
-12. `customer_proof_diversity_guard`
-13. `review_story_identity_guard`
-14. `early_artifact_guard`
-15. `answer_withholding_guard`
-16. `vault_brand_language_guard`
-17. `named_feature_status` via `named_feature_status_guard.py`
-18. `fred_authority` via `fred_authority_guard.py`
-19. `content_scorer` for consolidated quality and AEO/GEO scoring; URL and source-support gates are reused rather than requested twice
+2. `blog_assembly_bom_guard`
+3. `public_artifact_guard`
+4. `ai_copy_linter`
+5. `url_validator`
+6. `public_research_link_guard`
+7. `metric_proof_pack_guard`
+8. `numeric_claim_source_guard`
+9. `faq_answer_quality_guard.py`
+10. `faq_proof_guard`
+11. `paa_provenance_guard`
+12. `source_support_guard`
+13. `customer_proof_diversity_guard`
+14. `review_story_identity_guard`
+15. `early_artifact_guard`
+16. `answer_withholding_guard`
+17. `vault_brand_language_guard`
+18. `named_feature_status` via `named_feature_status_guard.py`
+19. `fred_authority` via `fred_authority_guard.py`
+20. `content_scorer` for consolidated quality and AEO/GEO scoring; URL and source-support gates are reused rather than requested twice
 
 The blocking `fred_authority` gate passes the validation sidecar to `fred_authority_guard.py`. It requires a complete `Fred Voccola Authority Selection` evaluation for every new or changed Simpro blog and for existing content when next rewritten, optimized, or passed through publish readiness. A selector or vault failure remains blocked; public Fred use is optional and receives no AEO/E-E-A-T credit merely because the internal block exists.
 
@@ -84,7 +86,7 @@ An AEO/GEO score below 90/100 is a repair trigger, not a reporting endpoint. Unl
 2. Classify each failure as a public-copy gap, validation-sidecar/proof gap, or scorer or parser false negative.
 3. If the article visibly satisfies the written requirement but scoring misses it, add a regression test and fix the scorer or parser false negative. Do not distort accurate, brief-approved copy to satisfy brittle matching.
 4. Apply the top 3-5 fixes that address root causes. Do not invent PAA questions, claims, proof, metrics, quotes, or customer experience to gain points.
-5. Rerun `/scrub`, the AI copy linter, URL validation, and `/publish-readiness [file] --proof-sidecar [sidecar] --context-request [request] --context-pack [pack] --context-receipt [receipt]`.
+5. Rerun `/scrub`, the AI copy linter, URL validation, regenerate Context Binding with `context_binding_generator.py`, update the blog assembly BOM, and rerun `/publish-readiness [file] --proof-sidecar [sidecar] --context-request [request] --context-pack [pack] --context-receipt [receipt] --assembly-bom [bom]`.
 6. Repeat once if needed. If AEO/GEO remains below 90/100 after 2 iterations, route the artifact to `review-required/` with the score, failed checks, attempted fixes, and any external evidence or authority blocker.
 
 `/optimize` is allowed inside this recovery loop when all proof, source, URL, and public-artifact gates pass but content quality or AEO/GEO does not. Final handoff still requires content quality of at least 85/100, AEO/GEO of at least 90/100, and every blocking gate to pass.

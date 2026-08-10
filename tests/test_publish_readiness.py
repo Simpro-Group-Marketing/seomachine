@@ -7,6 +7,10 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from data_sources.modules.blog_assembly_bom import (
+    build_blog_assembly_bom,
+    write_blog_assembly_bom,
+)
 from data_sources.modules import publish_readiness
 from data_sources.modules.url_validator import UrlValidationResult, UrlValidationSummary
 
@@ -322,6 +326,122 @@ def test_context_artifacts_are_forwarded_to_claim_sensitive_gates(files):
         assert call_kwargs["context_receipt"] == str(receipt)
     assert mocks["named_feature_status"].call_args.kwargs["vault_root"] == article.parent
     assert mocks["fred_authority"].call_args.kwargs["vault_root"] == article.parent
+
+
+def _write_assembly_bom(tmp_path, article, sidecar, request, pack, receipt):
+    request_payload = {
+        "task": "Assemble a Simpro blog.",
+        "scope": {
+            "artifact_type": "blog",
+            "brand": "Simpro",
+            "title": "AI field service guide",
+            "objective": "Explain AI field service software boundaries.",
+            "audience": "field service leaders",
+            "region": "US",
+            "intended_public_use_modes": ["public_paraphrase"],
+        },
+    }
+    revisions = {
+        "approval_policy_revision": "policy-1",
+        "claim_registry_revision": "claims-1",
+        "content_revision": "content-1",
+        "contract_revision": "contract-1",
+        "inventory_revision": "inventory-1",
+        "manifest_revision": "manifest-1",
+    }
+    pack_payload = {
+        "schema": "simpro-product-context-pack/v2",
+        "revisions": revisions,
+        "sections": {
+            "Discovery Trace": {
+                "selected_resource_ids": ["res-voice"],
+                "selected_resource_purposes": {"res-voice": "guidance"},
+            },
+            "Approved Claim Evidence": [],
+        },
+    }
+    receipt_payload = {
+        "schema": "simpro-context-receipt/v1",
+        "pack_sha256": "pack-hash",
+        "receipt_sha256": "receipt-hash",
+        "revisions": revisions,
+        "claim_decisions": [],
+    }
+    bom = build_blog_assembly_bom(
+        topic_slug="ai-field-service-guide",
+        article_path=article,
+        validation_sidecar_path=sidecar,
+        context_request_path=request,
+        context_pack_path=pack,
+        context_receipt_path=receipt,
+        request=request_payload,
+        pack=pack_payload,
+        receipt=receipt_payload,
+        author=None,
+        schema_notes=[
+            "BlogPosting",
+            "BreadcrumbList",
+            "FAQPage",
+            "ImageObject",
+            "Organization publisher reference",
+        ],
+        stages=["draft", "scrub", "context_binding", "publish_readiness"],
+    )
+    bom_path = tmp_path / "blog-assembly-bom-ai-field-service-guide.json"
+    write_blog_assembly_bom(bom_path, bom)
+    return bom_path, bom
+
+
+def test_assembly_bom_gate_runs_after_context_binding(files, tmp_path):
+    article, sidecar = files
+    request = tmp_path / "context-request.json"
+    pack = tmp_path / "context-pack.json"
+    receipt = tmp_path / "context-receipt.json"
+    bom_path, _ = _write_assembly_bom(tmp_path, article, sidecar, request, pack, receipt)
+
+    result, order, _, _ = run_with_patches(
+        article,
+        sidecar,
+        context_request=request,
+        context_pack=pack,
+        context_receipt=receipt,
+        assembly_bom=bom_path,
+    )
+
+    gate_names = [gate["name"] for gate in result["gates"]]
+    assert result["passed"] is True
+    assert gate_names[0:2] == ["context_binding", "blog_assembly_bom"]
+    assert order[0] == "context_binding"
+    assert "public_artifact" in order
+
+
+def test_assembly_bom_mismatch_blocks_before_downstream_gates(files, tmp_path):
+    article, sidecar = files
+    request = tmp_path / "context-request.json"
+    pack = tmp_path / "context-pack.json"
+    receipt = tmp_path / "context-receipt.json"
+    bom_path, bom = _write_assembly_bom(tmp_path, article, sidecar, request, pack, receipt)
+    bom["files"]["context_receipt"] = str(tmp_path / "stale-context-receipt.json")
+    write_blog_assembly_bom(bom_path, bom)
+
+    result, order, mocks, scorer = run_with_patches(
+        article,
+        sidecar,
+        context_request=request,
+        context_pack=pack,
+        context_receipt=receipt,
+        assembly_bom=bom_path,
+    )
+
+    gate_names = [gate["name"] for gate in result["gates"]]
+    bom_gate = next(gate for gate in result["gates"] if gate["name"] == "blog_assembly_bom")
+    assert result["passed"] is False
+    assert gate_names == ["context_binding", "blog_assembly_bom"]
+    assert order == ["context_binding"]
+    assert bom_gate["errors"] == 1
+    assert bom_gate["findings"][0]["rule_id"] == "bom_context_receipt_mismatch"
+    mocks["public_artifact"].assert_not_called()
+    scorer.score.assert_not_called()
 
 
 def test_json_output_has_stable_scoring_keys(files):

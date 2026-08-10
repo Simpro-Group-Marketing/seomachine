@@ -10,6 +10,10 @@ python data_sources/modules/context_binding_generator.py "$FILE_PATH" --proof-si
 
 Run this again after every scrub, optimization, or editorial change that modifies public copy. A stale article hash blocks handoff.
 
+### After Optimization Mutations
+
+All optimizer outputs and manual edits are content mutations. After optimization mutations, rerun `/scrub`, regenerate Context Binding with `context_binding_generator.py`, update `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`, then rerun `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`.
+
 A unified content creation pipeline that produces comprehensive, SEO-optimized articles through mandatory research, strategic planning, and section-by-section writing.
 
 For every Simpro blog, retrieve current voice and tone guidance through the vault connector by semantic search and `resource_id` reads. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Em dashes are prohibited. Product pages and landing pages retain their existing restrained channel treatment.
@@ -484,7 +488,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
   |--------|-----------------|-------------|----------------|
   | [URL] | [claim] | [natural contextual phrase] | [section] |
 - **Proof Sidecar**: [research/validation-[topic-slug]-[YYYY-MM-DD].md; ready / partial / blocked]
-- **Schema Notes**: BlogPosting, BreadcrumbList, and FAQPage for standard blog posts with FAQs; nest Person as author, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Keep the Author frontmatter field mapped to Person. Add VideoObject only if video is embedded.
+- **Schema Notes**: BlogPosting, BreadcrumbList, and FAQPage for standard blog posts with FAQs; nest Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. If a named author is present, include `author` in frontmatter and map it to `Person as author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization` as publisher reference only, and record the no-author decision in the blog assembly BOM and validation sidecar. Add VideoObject only if video is embedded.
 - **AEO/GEO Score Target**: 90/100 or higher
 
 ### 1. Introduction
@@ -681,6 +685,14 @@ After all sections are written and edited:
 2. **Add Meta Elements**
    ```markdown
    ---
+   artifact_type: blog
+   brand: [Brand]
+   title: [Article title]
+   objective: [Reader/job objective]
+   audience: [Audience]
+   region: [Region]
+   author: [Named author only when available; omit this field when no named author exists]
+   schema_notes: [BlogPosting, BreadcrumbList, FAQPage, Question and Answer inside FAQPage, ImageObject, Organization publisher reference; add Person as author only when author exists; add VideoObject only when video is embedded]
    Meta Title: [50-60 chars ending with | Brand]
    Meta Description: [150-160 chars]
    Primary Keyword: [keyword]
@@ -714,14 +726,14 @@ After all sections are written and edited:
    - [ ] Video eligibility evaluated; an eligible selected video is embedded when it materially supports the article, otherwise the embed is omitted
    - [ ] FAQ questions written in natural prompt language, not keyword fragments from AnswerSocrates
    - [ ] One idea per section (each H2/H3 focuses on single concept)
-   - [ ] Author attribution in frontmatter
+   - [ ] Author policy recorded: named author mapped to Person schema when available; otherwise `author` and `Person as author` omitted
    - [ ] AnswerSocrates PAA artifact exists at `research/paa-questions-[topic-slug]-[YYYY-MM-DD].md`
    - [ ] Capsule Method applied to H1 and 60%+ major H2s
    - [ ] AEO/GEO Map complete with selected PAA, source mapping, and E-E-A-T proof
    - [ ] Metric Proof Pack checked using the post-writing gate stack
    - [ ] FAQ proof checked using the post-writing gate stack
    - [ ] PAA provenance checked using the post-writing gate stack
-   - [ ] Schema notes included for BlogPosting, BreadcrumbList, FAQPage, Person as author, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. VideoObject is included only when relevant.
+   - [ ] Schema notes included for BlogPosting, BreadcrumbList, FAQPage, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. Person as author is included only when a named author exists. VideoObject is included only when relevant.
    - [ ] Public article body does not mention "repo context," context file paths, Source Maps, PAA artifacts, change summaries, or internal proof-path notes
 
    **Engagement Checklist:**
@@ -762,8 +774,8 @@ Proof infrastructure belongs only in the validation sidecar at `research/validat
 
 Preferred publish readiness command:
 ```bash
-/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json
-/publish-readiness drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json
+/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json
+/publish-readiness drafts/[filename].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json
 ```
 
 The command runs AI copy linting, URL validation, public artifact checks, Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, content score, and AEO/GEO gates internally.
@@ -808,9 +820,24 @@ After passing quality threshold:
 - `internal-linker` agent
 - `keyword-mapper` agent
 
+Treat those optimizer outputs as content mutations when they change the article. Update the BOM workflow stages with `post_optimization_scrub`, `post_optimization_context_binding`, and `final_publish_readiness` before final handoff.
+
 ---
 
 ## Complete Output Structure
+
+The complete connector-backed output inventory for each Simpro blog assembly run includes:
+
+- Article artifact: `drafts/[topic-slug]-[YYYY-MM-DD].md` or `rewrites/[topic-slug]-rewrite-[YYYY-MM-DD].md`
+- Validation sidecar: `research/validation-[topic-slug]-[YYYY-MM-DD].md`
+- Context request: `research/context-request-[topic-slug].json`
+- Context pack: `research/context-pack-[topic-slug].json`
+- Context receipt: `research/context-receipt-[topic-slug].json`
+- Blog assembly BOM: `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`
+- Customer proof selector evidence: `research/customer-proof-selector-evidence-[topic-slug].json`
+- Fred authority selection: `research/fred-authority-selection-[topic-slug].md`
+
+The validation sidecar must include current `Context Binding` and `Context Claim Use Map` sections generated from connector artifacts. The BOM JSON records the same article, sidecar, context request, context pack, context receipt, author policy, schema policy, and workflow stage inventory for the assembly run.
 
 ```
 research/

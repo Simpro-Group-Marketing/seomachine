@@ -158,7 +158,10 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "BlogPosting",
             "BreadcrumbList",
             "FAQPage",
-            "Person as author",
+            "If a named author is present",
+            "If no named author is available",
+            "omit `author`",
+            "omit `Person as author`",
             "Question and Answer inside FAQPage",
             "ImageObject for the featured image or logo",
             "Organization as publisher reference only",
@@ -1382,6 +1385,59 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
+    def test_blog_assembly_bom_output_inventory_is_complete(self):
+        article = (ROOT / ".claude" / "commands" / "article.md").read_text(
+            encoding="utf-8"
+        )
+        required = [
+            "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json",
+            "research/validation-[topic-slug]-[YYYY-MM-DD].md",
+            "research/context-request-[topic-slug].json",
+            "research/context-pack-[topic-slug].json",
+            "research/context-receipt-[topic-slug].json",
+            "research/customer-proof-selector-evidence-[topic-slug].json",
+            "Context Binding",
+            "Context Claim Use Map",
+            "--assembly-bom",
+        ]
+        for text in required:
+            self.assertIn(text, article)
+
+    def test_blog_schema_author_is_conditional_not_universal(self):
+        docs = [
+            ROOT / "AGENTS.md",
+            ROOT / "CLAUDE.md",
+            ROOT / "README.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".agents" / "rules" / "blog-schema.md",
+            ROOT / ".claude" / "rules" / "blog-schema.md",
+            ROOT / ".cursor" / "rules" / "blog-schema.mdc",
+        ]
+        required = [
+            "If a named author is present",
+            "If no named author is available",
+            "omit `author`",
+            "omit `Person as author`",
+            "Organization as publisher reference only",
+        ]
+        forbidden = [
+            "Author attribution in frontmatter",
+            "Named author in frontmatter",
+        ]
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+            for text in forbidden:
+                self.assertNotIn(
+                    text,
+                    content,
+                    f"{path.name} still makes author universal",
+                )
+
     def test_publish_docs_and_agents_reference_publish_readiness(self):
         docs = [
             ROOT / ".claude" / "commands" / "publish-draft.md",
@@ -1416,6 +1472,31 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("### 12. Run Optimization Agents", article)
+
+    def test_blog_workflows_rerun_binding_and_readiness_after_optimization_mutations(self):
+        workflow_paths = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+        ]
+        for path in workflow_paths:
+            content = path.read_text(encoding="utf-8").casefold()
+            marker = "after optimization mutations"
+            self.assertIn(marker, content, f"{path.name} missing post-optimization section")
+            post = content[content.index(marker):]
+            binding_index = post.find("context_binding_generator.py")
+            readiness_index = post.find("/publish-readiness")
+            self.assertGreaterEqual(
+                binding_index,
+                0,
+                f"{path.name} missing post-optimization binding regeneration",
+            )
+            self.assertGreater(
+                readiness_index,
+                binding_index,
+                f"{path.name} must rerun readiness after regenerated binding",
+            )
 
     def test_research_performance_is_slash_command_first(self):
         research_performance = (

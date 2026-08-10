@@ -10,6 +10,10 @@ python data_sources/modules/context_binding_generator.py "$FILE_PATH" --proof-si
 
 Run this again after every scrub, optimization, or editorial change that modifies public copy. A stale article hash blocks handoff.
 
+### After Optimization Mutations
+
+All optimizer outputs and manual edits are content mutations. After optimization mutations, rerun `/scrub`, regenerate Context Binding with `context_binding_generator.py`, update `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`, then rerun `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`.
+
 Use this command to update and improve existing blog posts based on analysis findings.
 
 For every Simpro blog, retrieve current voice and tone guidance through the vault connector by semantic search and `resource_id` reads. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Em dashes are prohibited. Product pages and landing pages retain their existing restrained channel treatment.
@@ -97,7 +101,7 @@ After the Reader Contract, record the verified SERP observation source, dominant
 - **down-funnel internal link**: Every rewrite must include at least 1 contextual body link to `/industries`, `/industries/...`, `/solutions/...`, or `/features/...` from @context/internal-links-map.md. Prefer the specific industry page when industry intent is clear, the `https://www.simprogroup.com/industries` hub for broad trades or general industry topics, the relevant solution page for category/workflow topics, and the relevant feature page for feature/workflow topics. Anchor text must match the destination keyword or an approved anchor example from @context/internal-links-map.md.
 - **Functional feature/solution anchors**: Feature and solution links must use function-bearing anchor text that explains the workflow, category, or outcome behind the destination. A feature or solution name alone is not enough. Use anchors like "field service payments," "accounts receivable follow-up with Fast Cash," or "field service management software" instead of "Simpro Payments," "Fast Cash," or "Simpro Premium."
 - **Simpro web copy rules**: Use numerals for cardinal numbers, including 1-9. Do not block source-visible metric wording when a public proof source spells out the number; preserve the supported claim wording and rely on Metric Proof Pack, numeric claim source guard, and source support guard for proof. Because comma decisions are grammar/context dependent. No comma when the because clause is essential to the sentence meaning. Use a comma when the because clause is nonessential, contrastive, or needed to prevent misreading. Review negative constructions carefully because comma placement can change meaning. Only 1 link per paragraph. Move the second link to a separate paragraph or remove it. Do not write source/proof meta-commentary such as "that case study is useful for this topic" or "this source is relevant for the article." Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
-- **Schema notes**: For standard blog posts with FAQs, include BlogPosting, BreadcrumbList, and FAQPage. Nest Person as author, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Keep the Author frontmatter field mapped to Person. Use VideoObject only when a video is embedded.
+- **Schema notes**: For standard blog posts with FAQs, include BlogPosting, BreadcrumbList, and FAQPage. Nest Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. If a named author is present, include `author` in frontmatter and map it to `Person as author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization` as publisher reference only, and record the no-author decision in the blog assembly BOM and validation sidecar. Use VideoObject only when a video is embedded.
 
 Do not invent PAA questions, customer proof, author names, reviewer names, search volume, ranking data, or source-backed claims. If proof is missing, mark it as missing and keep the claim out of the rewrite.
 
@@ -326,10 +330,10 @@ Proof infrastructure belongs only in the validation sidecar at `research/validat
 
 Preferred publish readiness command:
 ```bash
-/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json
+/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json
 ```
 
-Run `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json` to confirm the rewrite is clean and all proof, Context Binding, URL validation, source support, content score, and AEO/GEO gates pass. The command reads the validation sidecar without exposing proof infrastructure in public copy.
+Run `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json` to confirm the rewrite is clean and all proof, Context Binding, BOM, URL validation, source support, content score, and AEO/GEO gates pass. The command reads the validation sidecar without exposing proof infrastructure in public copy.
 
 ## Automatic Scrub, Publish Readiness, And Optimize
 
@@ -340,7 +344,7 @@ AI-generated content often contains invisible Unicode marks and characteristic p
 
 ### Scrub, Publish Readiness, And Optimize Process
 1. **Invoke Scrubber**: Run `/scrub [file-path]` on the saved rewritten article file
-2. **Invoke Publish Readiness**: Run `/publish-readiness [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json`
+2. **Invoke Publish Readiness**: Run `/publish-readiness [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`
 3. **Check Gates**: General content quality must be 85/100 or higher, AEO/GEO must be 90/100 or higher, and all blocking gates must pass
 4. **Invoke Optimizer**: Run `/optimize [file-path]` after all non-scoring gates pass. If content quality or AEO/GEO fails, use `/optimize` inside the AEO/GEO Recovery Loop and rerun `/publish-readiness`.
 5. **Automatic Execution**: This should happen automatically, not require user action
@@ -357,7 +361,7 @@ An AEO/GEO score below 90/100 is a repair trigger, not a reporting endpoint. Unl
 2. Classify each failure as a public-copy gap, validation-sidecar/proof gap, or scorer or parser false negative.
 3. If the article visibly satisfies the written requirement but scoring misses it, add a regression test and fix the scorer or parser false negative. Do not distort accurate, brief-approved copy to satisfy brittle matching.
 4. Apply the top 3-5 fixes that address root causes. Do not invent PAA questions, claims, proof, metrics, quotes, or customer experience to gain points.
-5. Rerun `/scrub`, the AI copy linter, URL validation, and `/publish-readiness [file] --proof-sidecar [sidecar] --context-request [request] --context-pack [pack] --context-receipt [receipt]`.
+5. Rerun `/scrub`, the AI copy linter, URL validation, regenerate Context Binding with `context_binding_generator.py`, update the blog assembly BOM, and rerun `/publish-readiness [file] --proof-sidecar [sidecar] --context-request [request] --context-pack [pack] --context-receipt [receipt] --assembly-bom [bom]`.
 6. Repeat once if needed. If AEO/GEO remains below 90/100 after 2 iterations, route the artifact to `review-required/` with the score, failed checks, attempted fixes, and any external evidence or authority blocker.
 
 `/optimize` is allowed inside this recovery loop when all proof, source, URL, and public-artifact gates pass but content quality or AEO/GEO does not. Final handoff still requires content quality of at least 85/100, AEO/GEO of at least 90/100, and every blocking gate to pass.
@@ -415,7 +419,7 @@ URL validation confirms destinations resolve; it does not prove the page support
 
 ### Example Workflow
 1. Rewrite article and save to `rewrites/article-name-rewrite-2025-10-31.md`.
-2. Run `/scrub`, then `/publish-readiness rewrites/article-name-rewrite-2025-10-31.md --proof-sidecar research/validation-article-name-2025-10-31.md --context-request research/context-request-article-name.json --context-pack research/context-pack-article-name.json --context-receipt research/context-receipt-article-name.json`.
+2. Run `/scrub`, then `/publish-readiness rewrites/article-name-rewrite-2025-10-31.md --proof-sidecar research/validation-article-name-2025-10-31.md --context-request research/context-request-article-name.json --context-pack research/context-pack-article-name.json --context-receipt research/context-receipt-article-name.json --assembly-bom research/blog-assembly-bom-article-name-2025-10-31.json`.
 3. Confirm 85/100 general content quality, 90/100 AEO/GEO, and passing proof gates.
 4. Then run `/optimize rewrites/article-name-rewrite-2025-10-31.md`.
 5. If blockers remain, revise once, review `because` grammar in context, and rerun the same stack.

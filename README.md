@@ -790,8 +790,8 @@ Every Simpro blog post should meet these requirements:
 - [ ] FAQ proof passes: every FAQ answer contains at least 1 authoritative non-owned public evidence link in visible copy. A Source Map or FAQ Proof Map cannot replace the link.
 - [ ] PAA provenance passes: every FAQ question appears exactly in the selected questions and saved source artifact
 - [ ] E-E-A-T Proof Map resolved with Experience proof and Expertise proof, including review-site experience evidence when reviews show first-hand customer experience
-- [ ] Named author, last-updated date, and customer or expert proof where applicable
-- [ ] Schema notes: BlogPosting, BreadcrumbList, and FAQPage for standard blog posts with FAQs; nested Person as author; Question and Answer inside FAQPage; ImageObject for the featured image or logo; Organization as publisher reference only, not a separate full schema block; for public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters; VideoObject only if embedded
+- [ ] Author policy: If a named author is present, include `author` and map it to `Person as author`; If no named author is available, omit `author`, omit `Person as author`, and record the no-author decision in the blog assembly BOM and validation sidecar
+- [ ] Schema notes: BlogPosting, BreadcrumbList, and FAQPage for standard blog posts with FAQs; Question and Answer inside FAQPage; ImageObject for the featured image or logo; Organization as publisher reference only, not a separate full schema block; for public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters; VideoObject only if embedded
 - [ ] Target **90+** on `aeo_geo_rater` when run through `content_scorer`
 
 ### Readability
@@ -833,19 +833,19 @@ Every Simpro blog post should meet these requirements:
 ### After Writing
 1. **Agent passes**: SEO Optimizer, Meta Creator, Internal Linker, Keyword Mapper
 2. **Scrub punctuation artifacts**: `/scrub` or `content_scrubber.py` before human review
-3. **Preferred publish readiness command**: `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`
-4. **Optimize or repair**: Run `/optimize` after all non-scoring gates pass. If content quality is below 85/100 or AEO/GEO is below 90/100, use it inside the AEO/GEO Recovery Loop, then rerun `/scrub` and `/publish-readiness`.
-5. **Final readiness**: Rerun `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`
+3. **Preferred publish readiness command**: `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`
+4. **Optimize or repair**: Run `/optimize` after all non-scoring gates pass. If content quality is below 85/100 or AEO/GEO is below 90/100, use it inside the AEO/GEO Recovery Loop. After optimization mutations, rerun `/scrub`, regenerate Context Binding with `context_binding_generator.py`, update the BOM, then rerun `/publish-readiness`.
+5. **Final readiness**: Rerun `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`
 6. **Publish**: `/publish-draft` to WordPress when approved
 
-The `/publish-readiness` command runs the public artifact, AI copy, URL, FAQ answer quality, FAQ proof, source support, customer proof, review story, early artifact, answer withholding, vault brand language, content score, and AEO/GEO gates internally. Use individual Python guard modules only when debugging a specific failed gate from the canonical policy in `context/aeo-geo-blog-strategy.md`.
+The `/publish-readiness` command runs Context Binding, blog assembly BOM, public artifact, AI copy, URL, FAQ answer quality, FAQ proof, source support, customer proof, review story, early artifact, answer withholding, vault brand language, content score, and AEO/GEO gates internally. Use individual Python guard modules only when debugging a specific failed gate from the canonical policy in `context/aeo-geo-blog-strategy.md`.
 
 Use a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md` for non-public proof blocks. Blog copy must not contain an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan.
 
 ### For Blog Rewrites
 1. **`/analyze-existing`** on the live simprogroup.com URL or `published/` file
 2. **Confirm AEO/GEO inputs**: main answer target, PAA/FAQ provenance, source map, E-E-A-T Proof Map, schema notes, and missing strategy inputs
-3. **Run the quality loop**: `/scrub`, `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`, `/optimize`, then rerun `/publish-readiness`
+3. **Run the quality loop**: `/scrub`, `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`, `/optimize`, then rerun `/scrub`, `context_binding_generator.py`, BOM update, and final `/publish-readiness`
 4. **Refresh supported metrics** where GSC/GA4 identifies a relevant reader or task opportunity
 5. **Preserve strong sections**; expand an H2 only when reader payoff, evidence, or task coverage is missing
 6. **Re-check AI citations** if the post targets AI-intent queries
@@ -971,7 +971,7 @@ Customer proof diversity guard confirms proof selection is not defaulting to rec
 ### "AEO/GEO score below 90"
 - Treat the result as a repair trigger, not a reporting endpoint. Review `aeo_geo.checks`, classify each failure as a copy gap, proof/sidecar gap, or scorer or parser false negative, and apply the top 3-5 fixes.
 - Fix a scorer or parser false negative with regression coverage instead of changing accurate copy to satisfy brittle matching.
-- Rerun `/scrub`, AI copy lint, URL validation, and `/publish-readiness`; repeat once if needed, then route to `review-required/` if the score remains below 90/100 after 2 iterations.
+- Rerun `/scrub`, AI copy lint, URL validation, regenerate Context Binding with `context_binding_generator.py`, update the blog assembly BOM, and rerun `/publish-readiness`; repeat once if needed, then route to `review-required/` if the score remains below 90/100 after 2 iterations.
 
 ### "MCP / GSC / GA4 not connecting"
 - Confirm `.mcp.json` paths match your machine (from `.mcp.json.template`)

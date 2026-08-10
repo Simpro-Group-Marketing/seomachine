@@ -10,6 +10,10 @@ python data_sources/modules/context_binding_generator.py "$FILE_PATH" --proof-si
 
 Run this again after every scrub, optimization, or editorial change that modifies public copy. A stale article hash blocks handoff.
 
+### After Optimization Mutations
+
+All optimizer outputs and manual edits are content mutations. After optimization mutations, rerun `/scrub`, regenerate Context Binding with `context_binding_generator.py`, update `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`, then rerun `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`.
+
 Use this command to create comprehensive, SEO-optimized long-form blog content.
 
 For every Simpro blog, retrieve current voice and tone guidance through the vault connector by semantic search and `resource_id` reads. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Em dashes are prohibited. Product pages and landing pages retain their existing restrained channel treatment.
@@ -184,7 +188,7 @@ Apply these requirements from @context/aeo-geo-blog-strategy.md:
 - **Proof-index intake**: Add new proof candidates through `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates.
 - **Review proof routing**: For review-derived E-E-A-T stories, automatically run `customer_proof_selector.py` with `--slate --roles experience_story --require-eeat-story`, then run the review story identity gate from the required stack below. Use `context/aeo-geo-blog-strategy.md` for Review Story Selection, Review Site Theme Selection, Capterra theme use, exact-quote, rating, and metric boundaries.
 - **Customer Proof Pack**: Use the brief's Customer Proof Pack before placing direct quotes, named customer proof, approved metrics, or review-derived Experience patterns. If the pack is partial or blocked, omit unsupported claims.
-- **Schema notes**: For standard blog posts with FAQs, include BlogPosting, BreadcrumbList, and FAQPage. Nest Person as author, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Keep the Author frontmatter field mapped to Person. Use VideoObject only when a video is embedded.
+- **Schema notes**: For standard blog posts with FAQs, include BlogPosting, BreadcrumbList, and FAQPage. Nest Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. If a named author is present, include `author` in frontmatter and map it to `Person as author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization` as publisher reference only, and record the no-author decision in the blog assembly BOM and validation sidecar. Use VideoObject only when a video is embedded.
 
 #### 4. Main Body (use caller-supplied, intent/evidence-complete section targets)
 - **Logical Flow**: Organize sections in clear, progressive order
@@ -324,14 +328,14 @@ Word Count: [actual word count]
 - [ ] **YouTube embed**: Video eligibility evaluated; an eligible selected video is embedded when it materially supports the article, otherwise the embed is omitted
 - [ ] **FAQ prompts**: Questions written in natural language people would type into ChatGPT, not keyword fragments from AnswerSocrates
 - [ ] **One idea per section**: Each H2/H3 focuses on a single clear concept
-- [ ] **Author attribution**: Named author in frontmatter
+- [ ] **Author policy**: Named author mapped to Person schema when available; otherwise `author` and `Person as author` omitted
 - [ ] **Capsule Method**: H1 and 60%+ major H2s include 50-60 word direct-answer capsules
 - [ ] **Early usable artifact**: A filled data table, download link, checklist deliverable, or calculator reference starts within the first 300 words of body copy, or the sidecar documents a not-applicable reason
 - [ ] **Concrete answers**: Number/range/template queries get a concrete answer; no placeholder table scaffolds
 - [ ] **PAA**: 3-5 selected PAA/FAQ questions are answered in the draft
 - [ ] **source mapping**: At least three source-backed claims use natural contextual links
 - [ ] **Customer Proof Pack**: Selector automatically run, selected proof mined with `Selected Customer Proof Mining`, recent-use or overuse reason added when needed, and approved quotes/metrics mapped before use. Full proof boundaries live in `context/aeo-geo-blog-strategy.md`.
-- [ ] **Schema**: BlogPosting, BreadcrumbList, FAQPage, Person as author, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. VideoObject is included only when relevant.
+- [ ] **Schema**: BlogPosting, BreadcrumbList, FAQPage, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. Person as author is included only when a named author exists. VideoObject is included only when relevant.
 
 ### 5. Engagement Checklist
 - [ ] **Hook**: Opens with question, scenario, statistic, or bold statement (NOT generic definition)
@@ -364,12 +368,12 @@ Proof infrastructure belongs only in the validation sidecar at `research/validat
 
 Preferred publish readiness command:
 ```bash
-/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json
+/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json
 ```
 
 Meta titles must always end with the owning brand suffix in pipe format, for example `Construction Draw Schedule Explained | ClockShark`.
 
-Run `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json` to confirm the article is clean and all proof, Context Binding, URL validation, source support, content score, and AEO/GEO gates pass. The command reads the validation sidecar without exposing proof infrastructure in public copy.
+Run `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json` to confirm the article is clean and all proof, Context Binding, BOM, URL validation, source support, content score, and AEO/GEO gates pass. The command reads the validation sidecar without exposing proof infrastructure in public copy.
 
 ## Automatic Scrub And Publish Readiness
 
@@ -380,7 +384,7 @@ AI-generated content often contains invisible Unicode marks and characteristic p
 
 ### Scrub And Publish Readiness Process
 1. **Invoke Scrubber**: Run `/scrub [file-path]` on the saved article file
-2. **Invoke Publish Readiness**: Run `/publish-readiness [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json`
+2. **Invoke Publish Readiness**: Run `/publish-readiness [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`
 3. **Automatic Execution**: This should happen automatically, not require user action
 4. **Timing**: Must occur immediately after file save, before scoring or agent processing
 5. **Scope**: Scrub and publish-readiness checks apply to the main article file only; proof maps live in the validation sidecar.
@@ -494,7 +498,7 @@ Run the scrubber before publish readiness:
 ### Step 2: Confirm Publish Readiness
 Run the command-system gate:
 ```bash
-/publish-readiness drafts/[article-file].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json
+/publish-readiness drafts/[article-file].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json
 ```
 
 The draft must have zero non-scoring blocking findings before `/optimize`. When content quality is below 85/100 or AEO/GEO is below 90/100, `/optimize` may run inside the AEO/GEO Recovery Loop to repair the score. Final handoff still requires both score thresholds and every blocking gate to pass.

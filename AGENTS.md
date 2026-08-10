@@ -78,7 +78,7 @@ Proof-only infrastructure belongs in `research/validation-[topic-slug]-[YYYY-MM-
 Preferred publish readiness command:
 
 ```powershell
-/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
+/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json
 ```
 
 The customer proof diversity gate is mandatory before scoring or publish readiness and runs inside `/publish-readiness`.
@@ -109,4 +109,4 @@ Use `context/aeo-geo-blog-strategy.md` as the canonical policy for Review Story 
 
 ## Blog Schema Notes
 
-For standard blog posts with FAQs, schema notes must list `BlogPosting`, `BreadcrumbList`, and `FAQPage`; nested entities must be `Person as author`, `Question and Answer inside FAQPage`, `ImageObject for the featured image or logo`, and `Organization as publisher reference only, not a separate full schema block`. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Use `VideoObject` only when a video is embedded. Keep this aligned with `context/aeo-geo-blog-strategy.md`.
+For standard blog posts with FAQs, schema notes must list `BlogPosting`, `BreadcrumbList`, and `FAQPage`; nested entities must include `Question and Answer inside FAQPage`, `ImageObject for the featured image or logo`, and `Organization as publisher reference only, not a separate full schema block`. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. If a named author is present, include `author` in frontmatter and map it to `Person as author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization` as publisher reference only, and record the no-author decision in the blog assembly BOM and validation sidecar. Use `VideoObject` only when a video is embedded. Keep this aligned with `context/aeo-geo-blog-strategy.md`.

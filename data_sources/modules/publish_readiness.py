@@ -16,6 +16,7 @@ try:
     from . import (
         ai_copy_linter,
         answer_withholding_guard,
+        blog_assembly_bom_guard,
         context_binding_guard,
         customer_proof_diversity_guard,
         early_artifact_guard,
@@ -40,6 +41,7 @@ try:
 except ImportError:  # pragma: no cover - supports direct script execution.
     import ai_copy_linter
     import answer_withholding_guard
+    import blog_assembly_bom_guard
     import context_binding_guard
     import customer_proof_diversity_guard
     import early_artifact_guard
@@ -148,6 +150,7 @@ def run_publish_readiness(
     context_request: str | Path | None = None,
     context_pack: str | Path | None = None,
     context_receipt: str | Path | None = None,
+    assembly_bom: str | Path | None = None,
     vault_root: str | Path | None = None,
     ai_profile: str = "simpro-web",
 ) -> ReadinessResult:
@@ -157,6 +160,7 @@ def run_publish_readiness(
     context_request_path = str(context_request) if context_request is not None else None
     context_pack_path = str(context_pack) if context_pack is not None else None
     context_receipt_path = str(context_receipt) if context_receipt is not None else None
+    assembly_bom_path = str(assembly_bom) if assembly_bom is not None else None
     try:
         article = read_publishable_markdown(article_path)
     except FrontmatterError as exc:
@@ -178,6 +182,7 @@ def run_publish_readiness(
             "context_request": context_request_path,
             "context_pack": context_pack_path,
             "context_receipt": context_receipt_path,
+            "assembly_bom": assembly_bom_path,
             "passed": False,
             "artifact_kind": None,
             "gates": [gate],
@@ -217,6 +222,7 @@ def run_publish_readiness(
             "context_request": context_request_path,
             "context_pack": context_pack_path,
             "context_receipt": context_receipt_path,
+            "assembly_bom": assembly_bom_path,
             "passed": False,
             "artifact_kind": artifact_kind,
             "gates": gates,
@@ -231,6 +237,43 @@ def run_publish_readiness(
                 for blocker in context_gate.get("blockers", [])
             ],
         }
+
+    if assembly_bom_path is not None:
+        bom_gate = _gate_from_findings(
+            "blog_assembly_bom",
+            "Blog Assembly BOM",
+            blog_assembly_bom_guard.check_bom_file(
+                assembly_bom_path,
+                article_path=article_path,
+                validation_sidecar_path=proof_sidecar_path or "",
+                context_request_path=context_request_path or "",
+                context_pack_path=context_pack_path or "",
+                context_receipt_path=context_receipt_path or "",
+            ),
+        )
+        gates.append(bom_gate)
+        if not bom_gate["passed"]:
+            return {
+                "file": str(article_path),
+                "proof_sidecar": proof_sidecar_path,
+                "context_request": context_request_path,
+                "context_pack": context_pack_path,
+                "context_receipt": context_receipt_path,
+                "assembly_bom": assembly_bom_path,
+                "passed": False,
+                "artifact_kind": artifact_kind,
+                "gates": gates,
+                "score": None,
+                "score_threshold": score_threshold,
+                "aeo_geo": {"score": None, "threshold": 90, "passed": False},
+                "priority_fixes": [
+                    {
+                        "dimension": "blog_assembly_bom",
+                        "issue": blocker,
+                    }
+                    for blocker in bom_gate.get("blockers", [])
+                ],
+            }
 
     gates.append(
         _gate_from_findings(
@@ -314,6 +357,7 @@ def run_publish_readiness(
         "context_request": context_request_path,
         "context_pack": context_pack_path,
         "context_receipt": context_receipt_path,
+        "assembly_bom": assembly_bom_path,
         "passed": passed,
         "artifact_kind": artifact_kind,
         "gates": gates,
@@ -334,6 +378,7 @@ def format_text_report(result: ReadinessResult) -> str:
         f"Context request: {result.get('context_request') or 'not required/provided'}",
         f"Context pack: {result.get('context_pack') or 'not required/provided'}",
         f"Context receipt: {result.get('context_receipt') or 'not required/provided'}",
+        f"Assembly BOM: {result.get('assembly_bom') or 'not required/provided'}",
         f"Overall: {'PASS' if result['passed'] else 'FAIL'}",
         "",
         "Gates:",
@@ -404,6 +449,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--context-request", help="Current Simpro context request JSON.")
     parser.add_argument("--context-pack", help="Current Simpro v2 context pack JSON.")
     parser.add_argument("--context-receipt", help="Current Simpro context receipt JSON.")
+    parser.add_argument("--assembly-bom", help="Current blog assembly BOM JSON.")
     parser.add_argument("--vault-root", help="Configured Simpro vault root override.")
     parser.add_argument(
         "--json",
@@ -418,6 +464,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         context_request=args.context_request,
         context_pack=args.context_pack,
         context_receipt=args.context_receipt,
+        assembly_bom=args.assembly_bom,
         vault_root=args.vault_root,
         ai_profile=args.profile,
     )
