@@ -17,7 +17,6 @@ from typing import List, Optional
 
 try:
     from .artifact_detection import (
-        body_word_offsets,
         countable_words,
         extract_bullet_block,
         extract_frontmatter,
@@ -34,7 +33,6 @@ try:
     from .proof_sidecar import compose_with_sidecar, load_sidecar_content
 except ImportError:  # pragma: no cover - supports direct script execution.
     from artifact_detection import (
-        body_word_offsets,
         countable_words,
         extract_bullet_block,
         extract_frontmatter,

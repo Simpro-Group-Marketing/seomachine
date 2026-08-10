@@ -7,7 +7,7 @@ Flesch-Kincaid Grade Level, and other readability indicators.
 
 import re
 import textstat
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 
 
 class ReadabilityScorer:
@@ -488,18 +488,18 @@ Don't worry about being perfect. Just hit record and start talking. Your first e
     print(f"Grade: {result['grade']}")
     print(f"Reading Level: Grade {result['reading_level']}")
 
-    print(f"\nKey Metrics:")
+    print("\nKey Metrics:")
     print(f"  Flesch Reading Ease: {result['readability_metrics']['flesch_reading_ease']}")
     print(f"  Flesch-Kincaid Grade: {result['readability_metrics']['flesch_kincaid_grade']}")
 
-    print(f"\nStructure:")
+    print("\nStructure:")
     print(f"  Avg Sentence Length: {result['structure_analysis']['avg_sentence_length']} words")
     print(f"  Avg Sentences per Paragraph: {result['structure_analysis']['avg_sentences_per_paragraph']}")
 
-    print(f"\nComplexity:")
+    print("\nComplexity:")
     print(f"  Passive Voice: {result['complexity_analysis']['passive_sentence_ratio']}%")
     print(f"  Complex Words: {result['complexity_analysis']['complex_word_ratio']}%")
 
-    print(f"\nRecommendations:")
+    print("\nRecommendations:")
     for rec in result['recommendations']:
         print(f"  {rec}")

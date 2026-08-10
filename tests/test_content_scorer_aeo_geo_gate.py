@@ -403,7 +403,7 @@ The strongest workflow connects quoting, inventory, invoicing, and reporting ins
         self.assertTrue(result["quality_gates"]["aeo_geo"]["passed"])
         self.assertTrue(result["quality_gates"]["metric_proof_pack"]["passed"])
 
-    def test_proof_blocks_can_live_in_sidecar_for_scoring(self):
+    def test_sidecar_customer_proof_without_hash_bound_evidence_blocks_scoring(self):
         scorer = ContentScorer()
         content = COMPLIANT_ARTICLE.replace(METRIC_PROOF_BLOCK, "").replace(
             PAA_PROVENANCE_BLOCK,
@@ -442,10 +442,15 @@ The strongest workflow connects quoting, inventory, invoicing, and reporting ins
                 proof_sidecar=sidecar_path,
             )
 
-        self.assertTrue(result["passed"])
+        self.assertFalse(result["passed"])
         self.assertTrue(result["quality_gates"]["paa_provenance"]["passed"])
         self.assertTrue(result["quality_gates"]["metric_proof_pack"]["passed"])
-        self.assertTrue(result["quality_gates"]["customer_proof_diversity"]["passed"])
+        customer_gate = result["quality_gates"]["customer_proof_diversity"]
+        self.assertFalse(customer_gate["passed"])
+        self.assertEqual(
+            customer_gate["findings"][0]["rule_id"],
+            "customer_proof_selector_evidence_unverified",
+        )
 
     def test_review_story_identity_failure_blocks_content_scorer(self):
         scorer = ContentScorer()
@@ -488,6 +493,82 @@ The strongest workflow connects quoting, inventory, invoicing, and reporting ins
         self.assertIn("review_story_identity", result["quality_gates"])
         self.assertFalse(result["quality_gates"]["review_story_identity"]["passed"])
         self.assertIn("Review story identity blockers detected", result["priority_fixes"][0]["issue"])
+
+    def test_quality_gate_passes_resolved_proof_sidecar_path_to_aeo_rater(self):
+        scorer = ContentScorer()
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            article = root / "drafts" / "article.md"
+            sidecar = root / "research" / "validation-article.md"
+            article.parent.mkdir(parents=True)
+            sidecar.parent.mkdir(parents=True)
+            article.write_text("# Article\n", encoding="utf-8")
+            sidecar.write_text("# Validation\n", encoding="utf-8")
+            with patch(
+                "data_sources.modules.content_scorer.rate_aeo_geo",
+                return_value={"passed": True, "checks": {}},
+            ) as rate, patch(
+                "data_sources.modules.content_scorer.check_metric_proof_pack",
+                return_value=[],
+            ), patch(
+                "data_sources.modules.content_scorer.check_customer_proof_diversity",
+                return_value=[],
+            ), patch(
+                "data_sources.modules.content_scorer.check_review_story_identity",
+                return_value=[],
+            ):
+                scorer._run_quality_gates(
+                    "# Article\n",
+                    {},
+                    validate_urls=False,
+                    validate_source_support=False,
+                    source_path=str(article),
+                    proof_sidecar=str(sidecar),
+                )
+
+        self.assertEqual(
+            rate.call_args.kwargs["proof_sidecar_path"],
+            str(sidecar.resolve()),
+        )
+
+    def test_quality_gate_passes_resolved_proof_sidecar_path_to_customer_proof_guard(
+        self,
+    ):
+        scorer = ContentScorer()
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            article = root / "drafts" / "article.md"
+            sidecar = root / "research" / "validation-article.md"
+            article.parent.mkdir(parents=True)
+            sidecar.parent.mkdir(parents=True)
+            article.write_text("# Article\n", encoding="utf-8")
+            sidecar.write_text("# Validation\n", encoding="utf-8")
+            with patch(
+                "data_sources.modules.content_scorer.rate_aeo_geo",
+                return_value={"passed": True, "checks": {}},
+            ), patch(
+                "data_sources.modules.content_scorer.check_metric_proof_pack",
+                return_value=[],
+            ), patch(
+                "data_sources.modules.content_scorer.check_customer_proof_diversity",
+                return_value=[],
+            ) as check_customer_proof, patch(
+                "data_sources.modules.content_scorer.check_review_story_identity",
+                return_value=[],
+            ):
+                scorer._run_quality_gates(
+                    "# Article\n",
+                    {},
+                    validate_urls=False,
+                    validate_source_support=False,
+                    source_path=str(article),
+                    proof_sidecar=str(sidecar),
+                )
+
+        self.assertEqual(
+            check_customer_proof.call_args.kwargs["proof_sidecar_path"],
+            str(sidecar.resolve()),
+        )
 
     def test_url_validation_failure_blocks_content_scorer_when_enabled(self):
         scorer = ContentScorer()

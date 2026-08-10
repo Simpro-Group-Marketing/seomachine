@@ -1,38 +1,28 @@
 import hashlib
 import json
+import os
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from data_sources.modules.customer_proof_selector import (
+    CustomerProofDataError,
     _main,
+    build_customer_proof_slate,
     select_customer_proofs as _select_customer_proofs,
 )
-
-
-def canonical_json(value):
-    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-
-
-def sha256_json(value):
-    return hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()
+from tests.vault_context_fixture import (
+    load_validated_claim_set_for_unit_test,
+    write_connector_context_fixture,
+)
 
 
 def write_context_receipt_fixture(root: Path, index_path: Path) -> tuple[Path, Path]:
     index = json.loads(index_path.read_text(encoding="utf-8"))
-    request = {"topic": "customer proof selector fixture"}
-    revisions = {
-        "content_revision": "content-1",
-        "contract_revision": "contract-1",
-        "inventory_revision": "inventory-1",
-        "manifest_revision": "manifest-1",
-        "claim_registry_revision": "claims-1",
-        "approval_policy_revision": "policy-1",
-    }
     evidence = []
-    decisions = []
     for candidate in index.get("proof", []):
         proof_id = str(candidate.get("proof_id") or "").strip()
         public_url = str(candidate.get("public_url") or "").strip()
@@ -48,7 +38,9 @@ def write_context_receipt_fixture(root: Path, index_path: Path) -> tuple[Path, P
             row = {
                 "claim_id": f"claim-customer-proof-{proof_id}-{mode}",
                 "selector_id": proof_id,
-                "assertion": str(candidate.get("evidence") or candidate.get("customer") or proof_id),
+                "assertion": str(
+                    candidate.get("evidence") or candidate.get("customer") or proof_id
+                ),
                 "use_mode": mode,
                 "brand_scope": ["Simpro"],
                 "source_hash": source_hash,
@@ -57,38 +49,7 @@ def write_context_receipt_fixture(root: Path, index_path: Path) -> tuple[Path, P
                 "approval_source": "connector_claim_result",
             }
             evidence.append(row)
-            decisions.append(
-                {
-                    "claim_id": row["claim_id"],
-                    "selector_id": row["selector_id"],
-                    "assertion": row["assertion"],
-                    "requested_use_mode": row["use_mode"],
-                    "brand_scope": row["brand_scope"],
-                    "source_hash": row["source_hash"],
-                    "public_url": row["public_url"],
-                    "approval_source": row["approval_source"],
-                    "decision": "approved",
-                }
-            )
-    pack = {
-        "schema": "simpro-product-context-pack/v2",
-        "request": request,
-        "revisions": revisions,
-        "approved_claim_evidence": evidence,
-    }
-    receipt = {
-        "schema": "simpro-context-receipt/v1",
-        "request_sha256": sha256_json(request),
-        "pack_sha256": sha256_json(pack),
-        "revisions": revisions,
-        "claim_decisions": decisions,
-        "canonical_receipt_sha256": "customer-proof-receipt-fixture",
-    }
-    pack_path = root / "context-pack.json"
-    receipt_path = root / "context-receipt.json"
-    pack_path.write_text(json.dumps(pack, indent=2), encoding="utf-8")
-    receipt_path.write_text(json.dumps(receipt, indent=2), encoding="utf-8")
-    return pack_path, receipt_path
+    return write_connector_context_fixture(root, evidence)
 
 
 def select_customer_proofs(*args, **kwargs):
@@ -149,7 +110,11 @@ def write_selector_fixture(root: Path) -> tuple[Path, Path]:
                         "customer": "Capterra owner review with QBO integration",
                         "source_type": "review_site",
                         "workflow_fit": ["service jobs", "quoting", "invoicing", "QBO"],
-                        "themes": ["quotes", "invoices", "QuickBooks Online integration"],
+                        "themes": [
+                            "quotes",
+                            "invoices",
+                            "QuickBooks Online integration",
+                        ],
                         "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
                         "approval_status": "ready",
                         "public_copy_allowed": True,
@@ -175,20 +140,475 @@ def write_selector_fixture(root: Path) -> tuple[Path, Path]:
 
 
 class CustomerProofSelectorTests(unittest.TestCase):
+    def setUp(self):
+        validation_patch = patch(
+            "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+            new=load_validated_claim_set_for_unit_test,
+        )
+        validation_patch.start()
+        self.addCleanup(validation_patch.stop)
+
     def test_public_customer_proof_requires_context_receipt(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             index_path, ledger_path = write_selector_fixture(root)
 
-            results = _select_customer_proofs(
-                "best job quoting and invoicing software",
-                index_path=index_path,
-                ledger_path=ledger_path,
-                proof_role="metric",
-                limit=1,
-            )
+            with self.assertRaisesRegex(
+                RuntimeError,
+                "context receipt is unavailable.*context pack and receipt are required",
+            ):
+                _select_customer_proofs(
+                    "best job quoting and invoicing software",
+                    index_path=index_path,
+                    ledger_path=ledger_path,
+                    proof_role="metric",
+                    limit=1,
+                )
 
-        self.assertEqual(results, [])
+    def test_selector_fails_closed_when_receipt_has_no_customer_inventory_bindings(
+        self,
+    ):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path, ledger_path = write_selector_fixture(root)
+            pack_path, receipt_path = write_connector_context_fixture(root, [])
+
+            with self.assertRaisesRegex(
+                RuntimeError,
+                "no approved claims bound to the customer proof inventory",
+            ):
+                _select_customer_proofs(
+                    "best job quoting and invoicing software",
+                    index_path=index_path,
+                    ledger_path=ledger_path,
+                    context_pack=pack_path,
+                    context_receipt=receipt_path,
+                    proof_role="experience_story",
+                    require_eeat_story=True,
+                    limit=10,
+                )
+
+    def test_selector_fails_closed_when_usage_ledger_is_missing(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path, ledger_path = write_selector_fixture(root)
+            ledger_path.unlink()
+            pack_path, receipt_path = write_context_receipt_fixture(root, index_path)
+
+            with self.assertRaisesRegex(
+                RuntimeError,
+                "customer proof ledger is unavailable",
+            ):
+                _select_customer_proofs(
+                    "field service proof",
+                    index_path=index_path,
+                    ledger_path=ledger_path,
+                    context_pack=pack_path,
+                    context_receipt=receipt_path,
+                    proof_role="experience_story",
+                    require_eeat_story=True,
+                )
+
+    def test_selector_fails_closed_when_public_customer_inventory_is_empty(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            ledger_path = root / "customer-proof-usage-ledger.json"
+            index_path.write_text(
+                json.dumps({"version": 1, "proof": []}),
+                encoding="utf-8",
+            )
+            ledger_path.write_text(
+                json.dumps({"version": 1, "uses": []}),
+                encoding="utf-8",
+            )
+            pack_path, receipt_path = write_connector_context_fixture(root, [])
+
+            with self.assertRaisesRegex(
+                RuntimeError,
+                "no usable public customer proof inventory",
+            ):
+                _select_customer_proofs(
+                    "field service proof",
+                    index_path=index_path,
+                    ledger_path=ledger_path,
+                    context_pack=pack_path,
+                    context_receipt=receipt_path,
+                    proof_role="experience_story",
+                    require_eeat_story=True,
+                )
+
+    def test_selector_rejects_missing_non_file_and_invalid_index(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            valid_index, ledger_path = write_selector_fixture(root)
+            pack_path, receipt_path = write_context_receipt_fixture(root, valid_index)
+            missing_index = root / "missing-index.json"
+            directory_index = root / "index-directory"
+            directory_index.mkdir()
+            malformed_index = root / "malformed-index.json"
+            malformed_index.write_text("{not-json", encoding="utf-8")
+            non_object_index = root / "non-object-index.json"
+            non_object_index.write_text("[]", encoding="utf-8")
+
+            cases = (
+                (missing_index, "customer proof index is unavailable"),
+                (directory_index, "customer proof index is not a regular file"),
+                (malformed_index, "customer proof index is invalid JSON"),
+                (non_object_index, "customer proof index is invalid JSON object"),
+            )
+            for index_path, message in cases:
+                with (
+                    self.subTest(index_path=index_path),
+                    self.assertRaisesRegex(
+                        CustomerProofDataError,
+                        message,
+                    ),
+                ):
+                    _select_customer_proofs(
+                        "field service proof",
+                        index_path=index_path,
+                        ledger_path=ledger_path,
+                        context_pack=pack_path,
+                        context_receipt=receipt_path,
+                    )
+
+    def test_selector_rejects_missing_non_file_and_invalid_ledger(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path, _valid_ledger = write_selector_fixture(root)
+            pack_path, receipt_path = write_context_receipt_fixture(root, index_path)
+            missing_ledger = root / "missing-ledger.json"
+            directory_ledger = root / "ledger-directory"
+            directory_ledger.mkdir()
+            malformed_ledger = root / "malformed-ledger.json"
+            malformed_ledger.write_text("[not-an-object]", encoding="utf-8")
+            non_object_ledger = root / "non-object-ledger.json"
+            non_object_ledger.write_text("[]", encoding="utf-8")
+
+            cases = (
+                (missing_ledger, "customer proof ledger is unavailable"),
+                (directory_ledger, "customer proof ledger is not a regular file"),
+                (malformed_ledger, "customer proof ledger is invalid JSON"),
+                (non_object_ledger, "customer proof ledger is invalid JSON object"),
+            )
+            for ledger_path, message in cases:
+                with (
+                    self.subTest(ledger_path=ledger_path),
+                    self.assertRaisesRegex(
+                        CustomerProofDataError,
+                        message,
+                    ),
+                ):
+                    _select_customer_proofs(
+                        "field service proof",
+                        index_path=index_path,
+                        ledger_path=ledger_path,
+                        context_pack=pack_path,
+                        context_receipt=receipt_path,
+                    )
+
+    def test_cli_returns_nonzero_when_context_receipt_is_missing(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path, ledger_path = write_selector_fixture(root)
+            stdout = StringIO()
+            stderr = StringIO()
+
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                exit_code = _main(
+                    [
+                        "best job quoting and invoicing software",
+                        "--index",
+                        str(index_path),
+                        "--ledger",
+                        str(ledger_path),
+                        "--proof-role",
+                        "metric",
+                        "--limit",
+                        "1",
+                    ]
+                )
+
+        self.assertEqual(exit_code, 1)
+        self.assertEqual(stdout.getvalue(), "")
+        self.assertIn(
+            "ERROR: Customer proof context receipt is unavailable", stderr.getvalue()
+        )
+
+    def test_slate_rejects_selected_override_outside_verified_candidates(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path, ledger_path = write_selector_fixture(root)
+            pack_path, receipt_path = write_context_receipt_fixture(root, index_path)
+
+            with self.assertRaisesRegex(
+                RuntimeError,
+                "Selected customer proof ID is not in the verified metric candidate slate",
+            ):
+                build_customer_proof_slate(
+                    "best job quoting and invoicing software",
+                    index_path=index_path,
+                    ledger_path=ledger_path,
+                    context_pack=pack_path,
+                    context_receipt=receipt_path,
+                    roles=("metric",),
+                    selected_overrides={"metric": "unapproved-proof"},
+                )
+
+    def test_cli_writes_hash_bound_selector_evidence_and_references_it_in_slate(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path, ledger_path = write_selector_fixture(root)
+            pack_path, receipt_path = write_context_receipt_fixture(root, index_path)
+            evidence_path = root / "selector-evidence.json"
+            stdout = StringIO()
+            stderr = StringIO()
+
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                exit_code = _main(
+                    [
+                        "job quoting and invoicing",
+                        "--index",
+                        str(index_path),
+                        "--ledger",
+                        str(ledger_path),
+                        "--context-pack",
+                        str(pack_path),
+                        "--context-receipt",
+                        str(receipt_path),
+                        "--title",
+                        "Job quoting proof",
+                        "--objective",
+                        "Evaluate customer experience fit",
+                        "--slate",
+                        "--roles",
+                        "experience_story",
+                        "--require-eeat-story",
+                        "--limit",
+                        "10",
+                        "--evidence-output",
+                        str(evidence_path),
+                    ]
+                )
+
+            evidence_bytes = evidence_path.read_bytes()
+            evidence = json.loads(evidence_bytes)
+            digest = hashlib.sha256(evidence_bytes).hexdigest()
+            expected_artifacts = {
+                key: {
+                    "path": str(path.resolve()),
+                    "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                }
+                for key, path in {
+                    "index": index_path,
+                    "ledger": ledger_path,
+                    "context_pack": pack_path,
+                    "context_receipt": receipt_path,
+                }.items()
+            }
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(stderr.getvalue(), "")
+        self.assertEqual(
+            evidence["schema"],
+            "simpro-customer-proof-selector-evidence/v1",
+        )
+        self.assertEqual(evidence["inputs"]["roles"], ["experience_story"])
+        self.assertEqual(
+            evidence["roles"][0]["candidate_ids"],
+            ["review-capterra-qbo-service-jobs-quotes-invoices"],
+        )
+        self.assertIn(
+            f"- Selector evidence: {evidence_path} | SHA-256: {digest}",
+            stdout.getvalue(),
+        )
+        self.assertEqual(evidence["artifacts"], expected_artifacts)
+
+    def test_cli_fails_closed_if_input_changes_after_ranking_before_evidence_write(
+        self,
+    ):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path, ledger_path = write_selector_fixture(root)
+            pack_path, receipt_path = write_context_receipt_fixture(root, index_path)
+            evidence_path = root / "selector-evidence.json"
+            stdout = StringIO()
+            stderr = StringIO()
+            real_build = build_customer_proof_slate
+
+            def mutate_after_ranking(*args, **kwargs):
+                slate = real_build(*args, **kwargs)
+                index_path.unlink()
+                return slate
+
+            with (
+                patch(
+                    "data_sources.modules.customer_proof_selector.build_customer_proof_slate",
+                    side_effect=mutate_after_ranking,
+                ),
+                redirect_stdout(stdout),
+                redirect_stderr(stderr),
+            ):
+                exit_code = _main(
+                    [
+                        "job quoting and invoicing",
+                        "--index",
+                        str(index_path),
+                        "--ledger",
+                        str(ledger_path),
+                        "--context-pack",
+                        str(pack_path),
+                        "--context-receipt",
+                        str(receipt_path),
+                        "--slate",
+                        "--roles",
+                        "experience_story",
+                        "--evidence-output",
+                        str(evidence_path),
+                    ]
+                )
+
+        self.assertEqual(exit_code, 1)
+        self.assertEqual(stdout.getvalue(), "")
+        self.assertIn(
+            "Selector evidence input changed during selection", stderr.getvalue()
+        )
+        self.assertFalse(evidence_path.exists())
+
+    def test_cli_removes_evidence_if_input_changes_during_atomic_write(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path, ledger_path = write_selector_fixture(root)
+            pack_path, receipt_path = write_context_receipt_fixture(root, index_path)
+            evidence_path = root / "selector-evidence.json"
+            stdout = StringIO()
+            stderr = StringIO()
+            real_write_bytes = Path.write_bytes
+
+            def mutate_during_write(path, payload):
+                written = real_write_bytes(path, payload)
+                if path.name == f"{evidence_path.name}.tmp":
+                    ledger_path.write_text(
+                        json.dumps(
+                            {
+                                "version": 1,
+                                "uses": [{"proof_id": "unexpected-post-selection-use"}],
+                            }
+                        ),
+                        encoding="utf-8",
+                    )
+                return written
+
+            with (
+                patch.object(Path, "write_bytes", new=mutate_during_write),
+                redirect_stdout(stdout),
+                redirect_stderr(stderr),
+            ):
+                exit_code = _main(
+                    [
+                        "job quoting and invoicing",
+                        "--index",
+                        str(index_path),
+                        "--ledger",
+                        str(ledger_path),
+                        "--context-pack",
+                        str(pack_path),
+                        "--context-receipt",
+                        str(receipt_path),
+                        "--slate",
+                        "--roles",
+                        "experience_story",
+                        "--evidence-output",
+                        str(evidence_path),
+                    ]
+                )
+
+        self.assertEqual(exit_code, 1)
+        self.assertEqual(stdout.getvalue(), "")
+        self.assertIn(
+            "Selector evidence input changed during selection", stderr.getvalue()
+        )
+        self.assertFalse(evidence_path.exists())
+
+    def test_cli_rejects_output_and_temp_aliases_without_modifying_any_input(self):
+        artifact_names = ("index", "ledger", "context_pack", "context_receipt")
+        alias_modes = ("direct", "hardlink", "temp_hardlink")
+
+        for artifact_name in artifact_names:
+            for alias_mode in alias_modes:
+                with self.subTest(artifact=artifact_name, alias_mode=alias_mode):
+                    with TemporaryDirectory() as temp_dir:
+                        root = Path(temp_dir)
+                        index_path, ledger_path = write_selector_fixture(root)
+                        pack_path, receipt_path = write_context_receipt_fixture(
+                            root, index_path
+                        )
+                        artifacts = {
+                            "index": index_path,
+                            "ledger": ledger_path,
+                            "context_pack": pack_path,
+                            "context_receipt": receipt_path,
+                        }
+                        original_bytes = {
+                            name: path.read_bytes() for name, path in artifacts.items()
+                        }
+                        target = artifacts[artifact_name]
+                        if alias_mode == "direct":
+                            evidence_path = target
+                        else:
+                            evidence_path = root / "selector-evidence.json"
+                            alias_path = (
+                                evidence_path
+                                if alias_mode == "hardlink"
+                                else evidence_path.with_name(f"{evidence_path.name}.tmp")
+                            )
+                            os.link(target, alias_path)
+
+                        stdout = StringIO()
+                        stderr = StringIO()
+                        with redirect_stdout(stdout), redirect_stderr(stderr):
+                            exit_code = _main(
+                                [
+                                    "job quoting and invoicing",
+                                    "--index",
+                                    str(index_path),
+                                    "--ledger",
+                                    str(ledger_path),
+                                    "--context-pack",
+                                    str(pack_path),
+                                    "--context-receipt",
+                                    str(receipt_path),
+                                    "--slate",
+                                    "--roles",
+                                    "experience_story",
+                                    "--evidence-output",
+                                    str(evidence_path),
+                                ]
+                            )
+
+                        self.assertEqual(exit_code, 1)
+                        self.assertEqual(stdout.getvalue(), "")
+                        self.assertIn(
+                            "Selector evidence output aliases selector input",
+                            stderr.getvalue(),
+                        )
+                        self.assertEqual(
+                            {
+                                name: path.read_bytes()
+                                for name, path in artifacts.items()
+                            },
+                            original_bytes,
+                        )
+    def test_evidence_output_requires_slate_mode(self):
+        with TemporaryDirectory() as temp_dir:
+            evidence_path = Path(temp_dir) / "selector-evidence.json"
+            stderr = StringIO()
+
+            with self.assertRaises(SystemExit), redirect_stderr(stderr):
+                _main(["topic", "--evidence-output", str(evidence_path)])
+
+        self.assertIn("--evidence-output requires --slate", stderr.getvalue())
 
     def test_underused_matching_reference_beats_overused_case_study(self):
         with TemporaryDirectory() as temp_dir:
@@ -218,8 +638,16 @@ class CustomerProofSelectorTests(unittest.TestCase):
                                 "customer": "AlarmQuest",
                                 "source_type": "reference",
                                 "industry": ["security", "alarms"],
-                                "workflow_fit": ["quoting", "invoicing", "field service"],
-                                "themes": ["quote-to-cash", "small trade business", "invoice generation"],
+                                "workflow_fit": [
+                                    "quoting",
+                                    "invoicing",
+                                    "field service",
+                                ],
+                                "themes": [
+                                    "quote-to-cash",
+                                    "small trade business",
+                                    "invoice generation",
+                                ],
                                 "internal_source_ref": "References sheet 1tWlR0WNDRRnvA5b-2fdBdjC7rwaQQs1CYCc48pD62HE",
                                 "public_url": "https://www.simprogroup.com/references/alarmquest",
                                 "approval_status": "approved",
@@ -342,24 +770,52 @@ class CustomerProofSelectorTests(unittest.TestCase):
                                 "customer": "Kiely Plumbing",
                                 "source_type": "quote_matrix",
                                 "industry": ["plumbing"],
-                                "workflow_fit": ["estimating", "invoicing", "scheduling", "admin reduction"],
-                                "themes": ["estimate speed", "invoicing speed", "admin reduction"],
+                                "workflow_fit": [
+                                    "estimating",
+                                    "invoicing",
+                                    "scheduling",
+                                    "admin reduction",
+                                ],
+                                "themes": [
+                                    "estimate speed",
+                                    "invoicing speed",
+                                    "admin reduction",
+                                ],
                                 "public_url": "https://www.simprogroup.com/case-studies/kiely-plumbing",
                                 "approval_status": "approved",
                                 "public_copy_allowed": True,
-                                "approved_metrics": [{"claim": "10x faster estimates", "status": "approved"}],
+                                "approved_metrics": [
+                                    {
+                                        "claim": "10x faster estimates",
+                                        "status": "approved",
+                                    }
+                                ],
                             },
                             {
                                 "proof_id": "quote-matrix-bop-plumbing-multibranch-invoicing",
                                 "customer": "BOP Plumbing and Gas",
                                 "source_type": "quote_matrix",
                                 "industry": ["plumbing", "gas"],
-                                "workflow_fit": ["invoicing", "scheduling", "job tracking", "mobile job data"],
-                                "themes": ["invoice speed", "centralized operations", "mobile job closeout"],
+                                "workflow_fit": [
+                                    "invoicing",
+                                    "scheduling",
+                                    "job tracking",
+                                    "mobile job data",
+                                ],
+                                "themes": [
+                                    "invoice speed",
+                                    "centralized operations",
+                                    "mobile job closeout",
+                                ],
                                 "public_url": "https://www.simprogroup.com/case-studies/bop-plumbing-and-gas",
                                 "approval_status": "approved",
                                 "public_copy_allowed": True,
-                                "approved_metrics": [{"claim": "invoices within 24 hours", "status": "approved"}],
+                                "approved_metrics": [
+                                    {
+                                        "claim": "invoices within 24 hours",
+                                        "status": "approved",
+                                    }
+                                ],
                             },
                         ],
                     }
@@ -395,9 +851,13 @@ class CustomerProofSelectorTests(unittest.TestCase):
                 limit=2,
             )
 
-        self.assertEqual("quote-matrix-bop-plumbing-multibranch-invoicing", results[0]["proof_id"])
+        self.assertEqual(
+            "quote-matrix-bop-plumbing-multibranch-invoicing", results[0]["proof_id"]
+        )
         self.assertEqual(0, results[0]["recent_uses_90d"])
-        self.assertEqual("quote-matrix-kiely-plumbing-estimates-invoicing", results[1]["proof_id"])
+        self.assertEqual(
+            "quote-matrix-kiely-plumbing-estimates-invoicing", results[1]["proof_id"]
+        )
         self.assertEqual(1, results[1]["recent_uses_90d"])
 
     def test_selector_uses_overuse_baseline_when_ledger_rows_are_removed(self):
@@ -463,7 +923,11 @@ class CustomerProofSelectorTests(unittest.TestCase):
                 limit=2,
             )
 
-        bge = next(result for result in results if result["proof_id"] == "case-study-bge-digital")
+        bge = next(
+            result
+            for result in results
+            if result["proof_id"] == "case-study-bge-digital"
+        )
         self.assertEqual(bge["recent_uses_90d"], 3)
         self.assertEqual(bge["total_uses"], 3)
         self.assertEqual(bge["baseline_recent_uses_90d"], 3)
@@ -484,8 +948,15 @@ class CustomerProofSelectorTests(unittest.TestCase):
                                 "customer": "Small Trade Case",
                                 "source_type": "quote_matrix",
                                 "industry": ["electrical", "small business"],
-                                "workflow_fit": ["quoting", "invoicing", "small trade business"],
-                                "themes": ["quote-to-invoice workflow", "customer review story"],
+                                "workflow_fit": [
+                                    "quoting",
+                                    "invoicing",
+                                    "small trade business",
+                                ],
+                                "themes": [
+                                    "quote-to-invoice workflow",
+                                    "customer review story",
+                                ],
                                 "public_url": "https://www.simprogroup.com/case-studies/small-trade-case",
                                 "approval_status": "approved",
                                 "public_copy_allowed": True,
@@ -496,8 +967,15 @@ class CustomerProofSelectorTests(unittest.TestCase):
                                 "customer": "G2 small trade review",
                                 "source_type": "review_site",
                                 "industry": ["electrical", "small business"],
-                                "workflow_fit": ["quoting", "invoicing", "small trade business"],
-                                "themes": ["quote-to-invoice workflow", "customer review story"],
+                                "workflow_fit": [
+                                    "quoting",
+                                    "invoicing",
+                                    "small trade business",
+                                ],
+                                "themes": [
+                                    "quote-to-invoice workflow",
+                                    "customer review story",
+                                ],
                                 "public_url": "https://www.g2.com/products/simpro/reviews/small-trade",
                                 "approval_status": "approved",
                                 "public_copy_allowed": True,
@@ -508,7 +986,9 @@ class CustomerProofSelectorTests(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
-            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+            ledger_path.write_text(
+                json.dumps({"version": 1, "uses": []}), encoding="utf-8"
+            )
 
             results = select_customer_proofs(
                 "best job quoting and invoicing software customer review story",
@@ -534,7 +1014,11 @@ class CustomerProofSelectorTests(unittest.TestCase):
                                 "proof_id": "review-g2-role-only-quote-invoice",
                                 "customer": "G2 electrical administrator review",
                                 "source_type": "review_site",
-                                "workflow_fit": ["quoting", "invoicing", "small trade business"],
+                                "workflow_fit": [
+                                    "quoting",
+                                    "invoicing",
+                                    "small trade business",
+                                ],
                                 "themes": ["quote-to-invoice workflow"],
                                 "public_url": "https://www.g2.com/products/simpro/reviews/example",
                                 "approval_status": "approved",
@@ -559,7 +1043,12 @@ class CustomerProofSelectorTests(unittest.TestCase):
                                 "proof_id": "review-capterra-megan-qbo-quotes",
                                 "customer": "Capterra owner review with QBO integration",
                                 "source_type": "review_site",
-                                "workflow_fit": ["quoting", "invoicing", "QBO", "small trade business"],
+                                "workflow_fit": [
+                                    "quoting",
+                                    "invoicing",
+                                    "QBO",
+                                    "small trade business",
+                                ],
                                 "themes": ["service jobs", "quotes", "invoices"],
                                 "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
                                 "approval_status": "ready",
@@ -575,7 +1064,10 @@ class CustomerProofSelectorTests(unittest.TestCase):
                                     "source_row_ref": "Capterra row 50",
                                     "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
                                     "workflow_story": "Owner describes service jobs, recurring jobs, quotes, invoices, and QBO integration.",
-                                    "objective_fit": ["quote-to-cash", "small trade business"],
+                                    "objective_fit": [
+                                        "quote-to-cash",
+                                        "small trade business",
+                                    ],
                                     "copy_use": "paraphrased E-E-A-T story with same-paragraph source link",
                                     "verification_status": "brand-captured public review source",
                                 },
@@ -585,7 +1077,9 @@ class CustomerProofSelectorTests(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
-            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+            ledger_path.write_text(
+                json.dumps({"version": 1, "uses": []}), encoding="utf-8"
+            )
 
             results = select_customer_proofs(
                 "customer review story for quote and invoice workflow",
@@ -595,9 +1089,12 @@ class CustomerProofSelectorTests(unittest.TestCase):
                 require_eeat_story=True,
             )
 
-        self.assertEqual([result["proof_id"] for result in results], ["review-capterra-megan-qbo-quotes"])
+        self.assertEqual(
+            [result["proof_id"] for result in results],
+            ["review-capterra-megan-qbo-quotes"],
+        )
 
-    def test_require_eeat_story_excludes_review_rows_without_public_url(self):
+    def test_require_eeat_story_blocks_inventory_with_only_missing_public_urls(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             index_path = root / "customer-proof-index.json"
@@ -637,17 +1134,21 @@ class CustomerProofSelectorTests(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
-            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
-
-            results = select_customer_proofs(
-                "Google review story quote invoice",
-                index_path=index_path,
-                ledger_path=ledger_path,
-                limit=5,
-                require_eeat_story=True,
+            ledger_path.write_text(
+                json.dumps({"version": 1, "uses": []}), encoding="utf-8"
             )
 
-        self.assertEqual(results, [])
+            with self.assertRaisesRegex(
+                RuntimeError,
+                "no usable public customer proof inventory",
+            ):
+                select_customer_proofs(
+                    "Google review story quote invoice",
+                    index_path=index_path,
+                    ledger_path=ledger_path,
+                    limit=5,
+                    require_eeat_story=True,
+                )
 
     def test_capterra_theme_row_ranks_for_quoting_invoicing_objective(self):
         with TemporaryDirectory() as temp_dir:
@@ -674,8 +1175,19 @@ class CustomerProofSelectorTests(unittest.TestCase):
                                 "proof_id": "review-capterra-qbo-service-jobs-quotes-invoices",
                                 "customer": "Capterra owner review with QBO integration",
                                 "source_type": "review_site",
-                                "workflow_fit": ["service jobs", "recurring jobs", "quoting", "invoicing", "QBO"],
-                                "themes": ["service jobs", "quotes", "invoices", "QuickBooks Online integration"],
+                                "workflow_fit": [
+                                    "service jobs",
+                                    "recurring jobs",
+                                    "quoting",
+                                    "invoicing",
+                                    "QBO",
+                                ],
+                                "themes": [
+                                    "service jobs",
+                                    "quotes",
+                                    "invoices",
+                                    "QuickBooks Online integration",
+                                ],
                                 "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
                                 "approval_status": "ready",
                                 "public_copy_allowed": True,
@@ -691,7 +1203,10 @@ class CustomerProofSelectorTests(unittest.TestCase):
                                     "source_row_ref": "Capterra tab row 50",
                                     "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
                                     "workflow_story": "Owner describes service jobs, recurring jobs, quotes, invoices, and QBO integration.",
-                                    "objective_fit": ["quote-to-cash", "small trade business"],
+                                    "objective_fit": [
+                                        "quote-to-cash",
+                                        "small trade business",
+                                    ],
                                     "copy_use": "paraphrased theme or E-E-A-T story with same-paragraph source link",
                                     "verification_status": "brand-captured public review source",
                                 },
@@ -701,7 +1216,9 @@ class CustomerProofSelectorTests(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
-            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+            ledger_path.write_text(
+                json.dumps({"version": 1, "uses": []}), encoding="utf-8"
+            )
 
             results = select_customer_proofs(
                 "best job quoting and invoicing software",
@@ -713,7 +1230,9 @@ class CustomerProofSelectorTests(unittest.TestCase):
                 limit=2,
             )
 
-        self.assertEqual(results[0]["proof_id"], "review-capterra-qbo-service-jobs-quotes-invoices")
+        self.assertEqual(
+            results[0]["proof_id"], "review-capterra-qbo-service-jobs-quotes-invoices"
+        )
         self.assertEqual(results[0]["source_type"], "review_site")
 
     def test_cli_json_output_remains_default_without_slate_flag(self):
@@ -746,7 +1265,10 @@ class CustomerProofSelectorTests(unittest.TestCase):
 
         self.assertEqual(exit_code, 0)
         self.assertEqual(payload["topic"], "best job quoting and invoicing software")
-        self.assertEqual(payload["results"][0]["proof_id"], "quote-matrix-zebra-plumbing-onsite-quoting")
+        self.assertEqual(
+            payload["results"][0]["proof_id"],
+            "quote-matrix-zebra-plumbing-onsite-quoting",
+        )
 
     def test_cli_slate_output_emits_customer_proof_slate_for_roles(self):
         with TemporaryDirectory() as temp_dir:
@@ -843,14 +1365,18 @@ class CustomerProofSelectorTests(unittest.TestCase):
             "- Role: theme | Top candidates: [quote-matrix-zebra-plumbing-onsite-quoting, review-capterra-qbo-service-jobs-quotes-invoices",
             output,
         )
-        self.assertIn("Selected: [review-capterra-qbo-service-jobs-quotes-invoices]", output)
+        self.assertIn(
+            "Selected: [review-capterra-qbo-service-jobs-quotes-invoices]", output
+        )
         self.assertIn(
             "Rejected stronger candidates: [quote-matrix-zebra-plumbing-onsite-quoting: metric proof fits a different section]",
             output,
         )
 
     def test_default_index_contains_only_public_web_url_proof_routes(self):
-        index = json.loads(Path("context/customer-proof-index.json").read_text(encoding="utf-8"))
+        index = json.loads(
+            Path("context/customer-proof-index.json").read_text(encoding="utf-8")
+        )
         deleted_internal_ids = {
             "quote-matrix-alarmquest-positive-feedback",
             "customer-stories-source-register",
@@ -878,13 +1404,17 @@ class CustomerProofSelectorTests(unittest.TestCase):
         self.assertGreaterEqual(len(reference_ids), 8)
         self.assertIn("reference-excel-refrigeration-hvac-operations", reference_ids)
         self.assertTrue(proof_by_id["case-study-alarmquest"]["public_copy_allowed"])
-        self.assertTrue(proof_by_id["case-study-norberg-electric"]["public_copy_allowed"])
+        self.assertTrue(
+            proof_by_id["case-study-norberg-electric"]["public_copy_allowed"]
+        )
         self.assertTrue(proof_by_id["review-site-simpro-g2"]["public_copy_allowed"])
 
     def test_default_index_ranks_topic_fit_reference_for_reference_intent(self):
         with TemporaryDirectory() as temp_dir:
             ledger_path = Path(temp_dir) / "customer-proof-usage-ledger.json"
-            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+            ledger_path.write_text(
+                json.dumps({"version": 1, "uses": []}), encoding="utf-8"
+            )
 
             results = select_customer_proofs(
                 "hvac refrigeration reference field service operations",
@@ -896,7 +1426,9 @@ class CustomerProofSelectorTests(unittest.TestCase):
                 limit=5,
             )
 
-        self.assertEqual("reference-excel-refrigeration-hvac-operations", results[0]["proof_id"])
+        self.assertEqual(
+            "reference-excel-refrigeration-hvac-operations", results[0]["proof_id"]
+        )
         self.assertEqual("reference", results[0]["source_type"])
 
 

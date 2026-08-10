@@ -6,19 +6,27 @@ length as context. Article targets remain caller supplied.
 """
 
 import re
+import socket
 import requests
 from typing import Dict, List, Optional, Any
 from bs4 import BeautifulSoup
 import statistics
 
+try:
+    from .public_url_safety import request_public_url
+except ImportError:  # pragma: no cover - supports direct script execution.
+    from public_url_safety import request_public_url
+
 
 class ContentLengthComparator:
     """Compares content length against top SERP competitors"""
 
-    def __init__(self):
+    def __init__(self, *, session=None, resolver=socket.getaddrinfo):
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
+        self.session = session or requests.Session()
+        self.resolver = resolver
 
     def analyze(
         self,
@@ -179,7 +187,14 @@ class ContentLengthComparator:
             'h2_headings': [],
         }
         try:
-            response = requests.get(url, headers=self.headers, timeout=10)
+            response = request_public_url(
+                self.session,
+                'GET',
+                url,
+                headers=self.headers,
+                timeout=10,
+                resolver=self.resolver,
+            )
             response.raise_for_status()
 
             soup = BeautifulSoup(response.content, 'html.parser')

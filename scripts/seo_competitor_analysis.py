@@ -17,7 +17,8 @@ load_dotenv('data_sources/config/.env')
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'data_sources', 'modules'))
 
-from dataforseo import DataForSEO
+from dataforseo import DataForSEO  # noqa: E402 - path bootstrap must run first.
+from domain_identity import hostnames_equal  # noqa: E402 - path bootstrap must run first.
 
 
 def load_config():
@@ -28,6 +29,18 @@ def load_config():
             return json.load(f)
     print("WARNING: config/competitors.json not found. See config/competitors.example.json")
     return {}
+
+
+def collect_competitor_rankings(organic_results, competitors):
+    """Map configured competitor names to exact-host organic positions."""
+    rankings = {}
+    for result in organic_results:
+        result_domain = result.get('domain', '')
+        for competitor_domain, competitor_name in competitors.items():
+            if hostnames_equal(competitor_domain, result_domain):
+                rankings.setdefault(competitor_name, result.get('position'))
+                break
+    return rankings
 
 
 def main():
@@ -74,22 +87,21 @@ def main():
             volume = serp.get('search_volume')
             print(f"    Search Volume: {volume:,}" if volume else "    Search Volume: N/A")
 
-            for result in serp.get('organic_results', []):
-                domain = result.get('domain', '')
-                for comp_domain, comp_name in competitors.items():
-                    if comp_domain in domain:
-                        pos = result.get('position')
-                        all_rankings[keyword][comp_name] = pos
-                        break
+            all_rankings[keyword].update(
+                collect_competitor_rankings(
+                    serp.get('organic_results', []),
+                    competitors,
+                )
+            )
 
-            print(f"    Rankings:")
+            print("    Rankings:")
             for comp_name in comp_names:
                 pos = all_rankings[keyword].get(comp_name, '-')
                 if pos != '-':
-                    status = "✅" if pos <= 10 else "📈" if pos <= 20 else "❌"
+                    status = "[P1]" if pos <= 10 else "[P2]" if pos <= 20 else "[P3+]"
                     print(f"      {status} {comp_name:12s}: #{pos}")
                 else:
-                    print(f"      ⚫ {comp_name:12s}: Not in top 100")
+                    print(f"      [MISS] {comp_name:12s}: Not in top 100")
 
         except Exception as e:
             print(f"    Error: {e}")
@@ -254,12 +266,12 @@ def main():
             try:
                 serp = dfs.get_serp_data(keyword, limit=50)
 
-                for result in serp.get('organic_results', []):
-                    domain = result.get('domain', '')
-                    for comp_domain, comp_name in competitors.items():
-                        if comp_domain in domain:
-                            mofu_rankings[keyword][comp_name] = result.get('position')
-                            break
+                mofu_rankings[keyword].update(
+                    collect_competitor_rankings(
+                        serp.get('organic_results', []),
+                        competitors,
+                    )
+                )
 
                 for comp_name in comp_names:
                     pos = mofu_rankings[keyword].get(comp_name)

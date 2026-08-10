@@ -476,7 +476,7 @@ class TrustSignalAnalyzer:
         if results['testimonials']['has_strong']:
             strengths.append("Strong testimonials with specific results")
         if results['social_proof']['has_customer_count']:
-            strengths.append(f"Customer count displayed")
+            strengths.append("Customer count displayed")
         if results['risk_reversals']['is_strong']:
             strengths.append("Strong risk reversal (multiple elements)")
         if results['authority']['count'] >= 2:
@@ -549,19 +549,19 @@ Since 2017, we've helped creators launch successfully.
     print(f"\nOverall Score: {result['overall_score']}/100")
     print(f"Grade: {result['grade']}")
 
-    print(f"\nSummary:")
+    print("\nSummary:")
     for key, value in result['summary'].items():
         print(f"  {key}: {value}")
 
-    print(f"\nStrengths:")
+    print("\nStrengths:")
     for s in result['strengths']:
         print(f"  ✓ {s}")
 
-    print(f"\nWeaknesses:")
+    print("\nWeaknesses:")
     for w in result['weaknesses']:
         print(f"  ✗ {w}")
 
     if result['recommendations']:
-        print(f"\nRecommendations:")
+        print("\nRecommendations:")
         for rec in result['recommendations'][:3]:
             print(f"  [{rec['priority'].upper()}] {rec['recommendation']}")

@@ -9,7 +9,7 @@ Analyzes Call-to-Action elements in landing pages:
 """
 
 import re
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 
 
 class CTAAnalyzer:
@@ -208,16 +208,16 @@ class CTAAnalyzer:
             if any(verb in text for verb in verbs):
                 if strength == 'strongest':
                     score += 30
-                    factors.append(f"+30: Strong action verb")
+                    factors.append("+30: Strong action verb")
                 elif strength == 'strong':
                     score += 25
-                    factors.append(f"+25: Good action verb")
+                    factors.append("+25: Good action verb")
                 elif strength == 'moderate':
                     score += 15
-                    factors.append(f"+15: Moderate action verb")
+                    factors.append("+15: Moderate action verb")
                 else:
                     score += 5
-                    factors.append(f"+5: Weak action verb")
+                    factors.append("+5: Weak action verb")
                 break
         else:
             factors.append("-10: No clear action verb")
@@ -363,7 +363,7 @@ class CTAAnalyzer:
             strengths.append(f"Strong primary goal alignment ({primary_matches} matches)")
         elif primary_matches == 1:
             score = 80
-            strengths.append(f"Good primary goal alignment")
+            strengths.append("Good primary goal alignment")
             issues.append("Consider adding more goal-aligned CTAs")
         elif secondary_matches >= 2:
             score = 60
@@ -525,14 +525,14 @@ Questions? [Book a demo](/demo) with our team.
     result = analyze_ctas(sample_content, conversion_goal='trial')
 
     print("=== CTA Analysis Report ===")
-    print(f"\nSummary:")
+    print("\nSummary:")
     print(f"  Total CTAs: {result['summary']['total_ctas']}")
     print(f"  Average Quality: {result['summary']['average_quality_score']}/100")
     print(f"  Distribution Score: {result['summary']['distribution_score']}/100")
     print(f"  Goal Alignment: {result['summary']['goal_alignment_score']}/100")
     print(f"  Overall Effectiveness: {result['summary']['overall_effectiveness']}/100")
 
-    print(f"\nCTAs Found:")
+    print("\nCTAs Found:")
     for cta in result['ctas']:
         print(f"  [{cta['position_pct']:.0f}%] \"{cta['text']}\" (Score: {cta['quality_score']})")
 
@@ -545,6 +545,6 @@ Questions? [Book a demo](/demo) with our team.
     print(f"  Secondary matches: {result['goal_alignment']['secondary_matches']}")
 
     if result['recommendations']:
-        print(f"\nTop Recommendations:")
+        print("\nTop Recommendations:")
         for rec in result['recommendations'][:3]:
             print(f"  [{rec['priority'].upper()}] {rec['recommendation']}")

@@ -16,8 +16,9 @@ load_dotenv('data_sources/config/.env')
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'data_sources', 'modules'))
 
-from dataforseo import DataForSEO
-from google_search_console import GoogleSearchConsole
+from dataforseo import DataForSEO  # noqa: E402
+from domain_identity import hostnames_equal  # noqa: E402
+from google_search_console import GoogleSearchConsole  # noqa: E402
 
 
 def load_config():
@@ -28,6 +29,14 @@ def load_config():
             return json.load(f)
     print("WARNING: config/competitors.json not found. See config/competitors.example.json")
     return {}
+
+
+def find_domain_ranking(organic_results, target_domain):
+    """Return the first organic result for the exact normalized target host."""
+    for result in organic_results:
+        if hostnames_equal(target_domain, result.get('domain', '')):
+            return result
+    return None
 
 
 def main():
@@ -63,22 +72,21 @@ def main():
             print(f"    Competition: {serp.get('competition', 'N/A')}")
 
             # Find our site in results
-            our_pos = None
-            our_url = None
-            for result in serp.get('organic_results', []):
-                if site_domain in result.get('domain', ''):
-                    our_pos = result.get('position')
-                    our_url = result.get('url')
-                    break
+            owned_result = find_domain_ranking(
+                serp.get('organic_results', []),
+                site_domain,
+            )
+            our_pos = owned_result.get('position') if owned_result else None
+            our_url = owned_result.get('url') if owned_result else None
 
             if our_pos:
-                print(f"    ✓ RANKING: #{our_pos}")
+                print(f"    [OK] RANKING: #{our_pos}")
                 print(f"      URL: {our_url}")
             else:
-                print(f"    ✗ NOT IN TOP 50")
+                print("    [MISS] NOT IN TOP 50")
 
             # Show top 5 results
-            print(f"    Top 5 Results:")
+            print("    Top 5 Results:")
             for result in serp.get('organic_results', [])[:5]:
                 print(f"      #{result['position']:2d}. {result['domain']}")
 
@@ -99,18 +107,18 @@ def main():
 
                 print(f"    Search Volume: {serp.get('search_volume', 'N/A'):,}" if serp.get('search_volume') else "    Search Volume: N/A")
 
-                our_pos = None
-                for result in serp.get('organic_results', []):
-                    if site_domain in result.get('domain', ''):
-                        our_pos = result.get('position')
-                        break
+                owned_result = find_domain_ranking(
+                    serp.get('organic_results', []),
+                    site_domain,
+                )
+                our_pos = owned_result.get('position') if owned_result else None
 
                 if our_pos:
-                    print(f"    ✓ RANKING: #{our_pos}")
+                    print(f"    [OK] RANKING: #{our_pos}")
                 else:
-                    print(f"    ✗ NOT IN TOP 30")
+                    print("    [MISS] NOT IN TOP 30")
 
-                print(f"    Top 3 Results:")
+                print("    Top 3 Results:")
                 for result in serp.get('organic_results', [])[:3]:
                     print(f"      #{result['position']:2d}. {result['domain']}")
 
@@ -150,17 +158,17 @@ def main():
 
     print(f"Page 1: {len(page_1)} | Page 2: {len(page_2)} | Page 3+: {len(page_3_plus)}")
 
-    print(f"\n🏆 PAGE 1 KEYWORDS:")
+    print("\nPAGE 1 KEYWORDS:")
     for kw in page_1[:30]:
         ctr = kw['ctr'] * 100
         print(f"  #{kw['position']:<5.1f} | {kw['keyword'][:55]:<55} | {kw['impressions']:>5,} imp | {kw['clicks']:>3} clicks | {ctr:.1f}% CTR")
 
-    print(f"\n📈 PAGE 2 QUICK WINS:")
+    print("\nPAGE 2 QUICK WINS:")
     for kw in page_2[:20]:
         ctr = kw['ctr'] * 100
         print(f"  #{kw['position']:<5.1f} | {kw['keyword'][:55]:<55} | {kw['impressions']:>5,} imp | {kw['clicks']:>3} clicks | {ctr:.1f}% CTR")
 
-    print(f"\n❌ PAGE 3+ (Need Work):")
+    print("\nPAGE 3+ (Need Work):")
     for kw in page_3_plus[:15]:
         ctr = kw['ctr'] * 100
         print(f"  #{kw['position']:<5.1f} | {kw['keyword'][:55]:<55} | {kw['impressions']:>5,} imp | {kw['clicks']:>3} clicks | {ctr:.1f}% CTR")

@@ -1,8 +1,18 @@
 # Optimize Command
 
+## Context Binding Regeneration (MANDATORY)
+
+After the final content mutation, regenerate the machine-owned binding before `/publish-readiness`:
+
+```bash
+python data_sources/modules/context_binding_generator.py "$FILE_PATH" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT"
+```
+
+Run this again after every optimization or editorial change that modifies public copy. A stale article hash blocks handoff.
+
 Use this command to perform a final SEO optimization pass on completed articles before publishing.
 
-For every Simpro blog, read `wiki/messaging/Voice and Tone.md` and `wiki/messaging/Tone Voice and Localization Rules.md` from the vault. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Em dashes are prohibited. Product pages and landing pages retain their existing restrained channel treatment.
+For every Simpro blog, retrieve current voice and tone guidance through the vault connector by semantic search and `resource_id` reads. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Em dashes are prohibited. Product pages and landing pages retain their existing restrained channel treatment.
 
 ## Usage
 `/optimize [article file]`
@@ -16,16 +26,18 @@ For every Simpro blog, read `wiki/messaging/Voice and Tone.md` and `wiki/messagi
 
 ## Process
 
+Use the Simpro vault connector as the primary source for every blog, SEO, AEO, competitor, proof, product, audience, and workflow decision. Run vault health, describe available roles/topics/entities, use semantic search in the task's natural language, read and expand results by `resource_id`, query approved claims for public proof-sensitive language, then build and validate the context pack and receipt. Repo-local context is fallback only when the vault is unavailable: record the explicit vault-unavailable blocker in the validation sidecar, and do not treat fallback files as public-claim approval authority.
+
 ### Validation Sidecar And Publish Readiness
 
 Before returning `Ready`, confirm proof-only infrastructure lives in a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in the blog copy. The article file must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, `Vault Brand Language Alignment`, or structured data plan.
 
-For every Simpro optimization, resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --limit 5`, and write the complete `Fred Voccola Authority Selection` block from `context/aeo-geo-blog-strategy.md` to the validation sidecar. Evaluation is mandatory and public use is optional. The selector defaults to `Selected: none`; select a source explicitly only after reviewing it and confirming direct topical support. If the selector, vault, manifest, or inventories fail, record `Evaluation status: blocked` and the blocker; do not invent Fred evidence, change public Fred content, or return `Ready`.
+For every Simpro optimization, resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --slate --limit 5`, and write the complete `Fred Voccola Authority Selection` block from `context/aeo-geo-blog-strategy.md` to the validation sidecar. Evaluation is mandatory and public use is optional. The selector defaults to `Selected: none`; select a source explicitly only after reviewing it and confirming direct topical support. If the selector, connector, context pack, or receipt validation fails, record `Evaluation status: blocked` and the blocker; do not invent Fred evidence, change public Fred content, or return `Ready`.
 
-Vault product-language check: If the article uses Simpro product, feature, add-on, solution, industry, or related Simpro product URL language, confirm the validation sidecar contains `Vault Brand Language Alignment` with `wiki/messaging/Simpro Core Messaging Repository.md`, `wiki/messaging/Message House.md`, `wiki/messaging/Core Value Pillars.md`, `wiki/product/Product Positioning.md`, `wiki/features/Feature Library.md`, any needed `wiki/features/source-docs/` route, `wiki/verticals/Vertical Profile Library.md` for solution/industry language, and `Status: aligned`. The `vault_brand_language_guard.py` publish gate runs inside `/publish-readiness`. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
+Vault product-language check: If the article uses Simpro product, feature, add-on, solution, industry, or related Simpro product URL language, confirm the validation sidecar contains `Vault Brand Language Alignment` with connector evidence, `context_pack_hash`, `receipt_hash`, relevant `resource_id` values, feature-specific `resource_id` evidence when named features/add-ons appear, solution or vertical `resource_id` evidence when solution/industry language appears, any required `claim_id` values, language applied, fallback context use, source-verification boundary, and `Status: aligned`. The `vault_brand_language_guard.py` publish gate runs inside `/publish-readiness`. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
 Preferred publish readiness command:
 ```bash
-/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
+/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json
 ```
 
 Before returning `Ready`, run `/publish-readiness`. It runs URL validation, public artifact checks, AI copy linting, public research link checks, Metric Proof Pack, numeric claim, FAQ answer quality, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, vault brand language, Named Feature Status, content score, and AEO/GEO gates internally.
@@ -46,6 +58,19 @@ Use `context/aeo-geo-blog-strategy.md` for the full proof policy and individual 
 If selected customer proof appears in public copy, confirm the validation sidecar has `Selected Customer Proof Mining`. Selector chooses candidates; proof mining reads the selected public URL before the writer decides quote, metric, POV/story, theme, or omit use.
 
 If customer proof appears in public copy, experience_story consideration is required and E-E-A-T story usage is optional. Confirm the `Customer Proof Slate` includes an `experience_story` row with a selected proof-backed story or `Selected: [none]` plus section-specific rejection reasons. Full policy lives in `context/aeo-geo-blog-strategy.md`.
+
+## AEO/GEO Recovery Loop
+
+An AEO/GEO score below 90/100 is a repair trigger, not a reporting endpoint. Unless the user explicitly requested a read-only audit, the LLM must continue in the same workflow:
+
+1. Review every failed check in `aeo_geo.checks` and the scorer's `priority_fixes`.
+2. Classify each failure as a public-copy gap, validation-sidecar/proof gap, or scorer or parser false negative.
+3. If the article visibly satisfies the written requirement but scoring misses it, add a regression test and fix the scorer or parser false negative. Do not distort accurate, brief-approved copy to satisfy brittle matching.
+4. Apply the top 3-5 fixes that address root causes. Do not invent PAA questions, claims, proof, metrics, quotes, or customer experience to gain points.
+5. Rerun `/scrub`, the AI copy linter, URL validation, and `/publish-readiness [file] --proof-sidecar [sidecar] --context-request [request] --context-pack [pack] --context-receipt [receipt]`.
+6. Repeat once if needed. If AEO/GEO remains below 90/100 after 2 iterations, route the artifact to `review-required/` with the score, failed checks, attempted fixes, and any external evidence or authority blocker.
+
+`/optimize` is allowed inside this recovery loop when all proof, source, URL, and public-artifact gates pass but content quality or AEO/GEO does not. Final handoff still requires content quality of at least 85/100, AEO/GEO of at least 90/100, and every blocking gate to pass.
 
 ### Content Audit
 
@@ -170,8 +195,8 @@ If customer proof appears in public copy, experience_story consideration is requ
 ### Brand & Voice
 
 #### your company Alignment
-- **Brand Voice**: Verify alignment with the vault messaging routes first; use @context/brand-voice.md only as a fallback mirror when the vault is unavailable
-- **Style Guide**: Check vault terminology first; use @context/style-guide.md only as a fallback mirror when the vault is unavailable
+- **Brand Voice**: Verify alignment through connector semantic search and current `resource_id` reads; use @context/brand-voice.md only as a fallback mirror when the connector is unavailable
+- **Style Guide**: Check connector semantic search and current `resource_id` reads first; use @context/style-guide.md only as a fallback mirror when the vault is unavailable and the validation sidecar records the vault-unavailable blocker
 - **Messaging**: Ensure messaging reflects your company positioning
 - **Product Mentions**: Natural integration of your company features
 - **Next Action**: Matches the Reader Contract and funnel stage; no CTA is added when none is called for

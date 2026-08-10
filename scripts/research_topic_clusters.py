@@ -9,10 +9,9 @@ Identifies which topics you dominate and where you have gaps.
 import os
 import sys
 from datetime import datetime
-from typing import List, Dict, Any, Set
+from typing import List, Dict
 from collections import Counter, defaultdict
 from dotenv import load_dotenv
-import re
 
 # Load environment variables
 load_dotenv()
@@ -20,8 +19,8 @@ load_dotenv()
 # Add data_sources to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'data_sources'))
 
-from modules.google_search_console import GoogleSearchConsole
-from modules.dataforseo import DataForSEO
+from modules.google_search_console import GoogleSearchConsole  # noqa: E402
+from modules.dataforseo import DataForSEO  # noqa: E402
 
 # Try to import sklearn for clustering (optional)
 try:
@@ -38,7 +37,7 @@ def main():
     print("TOPIC CLUSTER ANALYSIS")
     print("=" * 80)
     print(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    print(f"Strategy: Identify topical authority gaps and cluster building opportunities")
+    print("Strategy: Identify topical authority gaps and cluster building opportunities")
     print("=" * 80)
 
     # Initialize
@@ -72,7 +71,7 @@ def main():
         return
 
     # Cluster keywords
-    print(f"\n3. Clustering keywords into topics...")
+    print("\n3. Clustering keywords into topics...")
 
     if SKLEARN_AVAILABLE and len(all_keywords) >= 20:
         clusters = cluster_keywords_ml(all_keywords)
@@ -82,7 +81,7 @@ def main():
         print(f"   ✓ Created {len(clusters)} topic clusters using keyword matching")
 
     # Analyze each cluster
-    print(f"\n4. Analyzing topic authority for each cluster...")
+    print("\n4. Analyzing topic authority for each cluster...")
     cluster_analysis = []
 
     for cluster_id, cluster_data in clusters.items():
@@ -110,8 +109,8 @@ def main():
                 # Get related keywords we might be missing
                 seed_keyword = keywords_in_cluster[0]['keyword']
                 coverage_gaps = find_cluster_gaps(seed_keyword, keywords_in_cluster, dfs)
-            except:
-                pass
+            except Exception as exc:
+                print(f"WARNING: cluster gap enrichment failed for {seed_keyword!r}: {exc}", file=sys.stderr)
 
         cluster_analysis.append({
             'topic': topic_name,
@@ -133,7 +132,7 @@ def main():
     print("TOPIC AUTHORITY SUMMARY")
     print("=" * 80)
 
-    print(f"\n📊 Cluster Distribution:")
+    print("\n📊 Cluster Distribution:")
     print(f"   Total Topics: {len(cluster_analysis)}")
 
     authority_levels = Counter(c['authority_level'] for c in cluster_analysis)
@@ -143,7 +142,7 @@ def main():
     print(f"   Minimal Authority: {authority_levels.get('Minimal', 0)}")
 
     # Show top opportunities (weakest clusters with demand)
-    print(f"\n🎯 TOP 5 TOPIC CLUSTER OPPORTUNITIES (Build These!)")
+    print("\n🎯 TOP 5 TOPIC CLUSTER OPPORTUNITIES (Build These!)")
     print("-" * 80)
 
     weak_clusters = [c for c in cluster_analysis if c['authority_level'] in ['Weak', 'Minimal']]
@@ -159,13 +158,13 @@ def main():
 
         if cluster['coverage_gaps']:
             print(f"   Coverage Gaps Found: {len(cluster['coverage_gaps'])}")
-            print(f"   Top Gaps:")
+            print("   Top Gaps:")
             for gap in cluster['coverage_gaps'][:3]:
                 vol = gap.get('search_volume', 'Unknown')
                 print(f"     - {gap['keyword']} ({vol} searches/mo)")
 
     # Show strong clusters
-    print(f"\n\n⭐ TOP 5 STRONG TOPIC CLUSTERS (Maintain These!)")
+    print("\n\n⭐ TOP 5 STRONG TOPIC CLUSTERS (Maintain These!)")
     print("-" * 80)
 
     strong_clusters = [c for c in cluster_analysis if c['authority_level'] == 'Strong']
@@ -185,12 +184,12 @@ def main():
     print("\n" + "=" * 80)
     print("✅ TOPIC CLUSTER ANALYSIS COMPLETE")
     print("=" * 80)
-    print(f"\nNext steps:")
+    print("\nNext steps:")
     print(f"1. Review detailed report: research/topic-clusters-{datetime.now().strftime('%Y-%m-%d')}.md")
-    print(f"2. Focus on weak clusters with high demand")
-    print(f"3. Create content for identified coverage gaps")
-    print(f"4. Build comprehensive topic clusters around weak areas")
-    print(f"5. Maintain and expand strong clusters")
+    print("2. Focus on weak clusters with high demand")
+    print("3. Create content for identified coverage gaps")
+    print("4. Build comprehensive topic clusters around weak areas")
+    print("5. Maintain and expand strong clusters")
 
 
 def cluster_keywords_ml(keywords: List[Dict]) -> Dict[int, Dict]:
@@ -415,7 +414,7 @@ def find_cluster_gaps(
 
         return gaps[:limit]
 
-    except Exception as e:
+    except Exception:
         return []
 
 
@@ -425,9 +424,9 @@ def write_markdown_report(clusters: List[Dict]):
     filename = f"research/topic-clusters-{date_str}.md"
 
     with open(filename, 'w') as f:
-        f.write(f"# Topic Cluster Analysis\n\n")
+        f.write("# Topic Cluster Analysis\n\n")
         f.write(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n")
-        f.write(f"**Strategy:** Build topical authority by identifying and filling cluster gaps\n\n")
+        f.write("**Strategy:** Build topical authority by identifying and filling cluster gaps\n\n")
         f.write(f"**Total Topics:** {len(clusters)}\n\n")
         f.write("---\n\n")
 
@@ -437,17 +436,17 @@ def write_markdown_report(clusters: List[Dict]):
         weak = [c for c in clusters if c['authority_level'] == 'Weak']
         minimal = [c for c in clusters if c['authority_level'] == 'Minimal']
 
-        f.write(f"## Authority Distribution\n\n")
-        f.write(f"| Level | Count | Strategy |\n")
-        f.write(f"|-------|-------|----------|\n")
+        f.write("## Authority Distribution\n\n")
+        f.write("| Level | Count | Strategy |\n")
+        f.write("|-------|-------|----------|\n")
         f.write(f"| ⭐ Strong | {len(strong)} | Maintain and expand |\n")
         f.write(f"| ✅ Moderate | {len(moderate)} | Strengthen coverage |\n")
         f.write(f"| ⚠️ Weak | {len(weak)} | Build comprehensive cluster |\n")
         f.write(f"| 🔴 Minimal | {len(minimal)} | Major opportunity or ignore |\n\n")
 
         # Weak clusters (opportunities)
-        f.write(f"## 🎯 WEAK AUTHORITY TOPICS (Build These!)\n\n")
-        f.write(f"These topics have demand but you lack comprehensive coverage. Build topic clusters here.\n\n")
+        f.write("## 🎯 WEAK AUTHORITY TOPICS (Build These!)\n\n")
+        f.write("These topics have demand but you lack comprehensive coverage. Build topic clusters here.\n\n")
 
         weak_and_minimal = weak + minimal
         # Sort by total impressions (demand)
@@ -461,10 +460,10 @@ def write_markdown_report(clusters: List[Dict]):
             f.write(f"- **Total Impressions:** {cluster['total_impressions']:,}/month\n")
             f.write(f"- **Total Clicks:** {cluster['total_clicks']}/month\n\n")
 
-            f.write(f"**Current Top Keywords:**\n")
+            f.write("**Current Top Keywords:**\n")
             for kw in cluster['top_keywords'][:5]:
                 f.write(f"- {kw['keyword']} (position {kw['position']:.1f}, {kw['impressions']:,} impressions)\n")
-            f.write(f"\n")
+            f.write("\n")
 
             if cluster['coverage_gaps']:
                 f.write(f"**Coverage Gaps** ({len(cluster['coverage_gaps'])} opportunities):\n")
@@ -472,23 +471,23 @@ def write_markdown_report(clusters: List[Dict]):
                     vol = gap.get('search_volume', 'Unknown')
                     diff = gap.get('difficulty', 'Unknown')
                     f.write(f"- {gap['keyword']} - Volume: {vol}, Difficulty: {diff}\n")
-                f.write(f"\n")
+                f.write("\n")
 
-            f.write(f"**Recommended Action:**\n")
+            f.write("**Recommended Action:**\n")
             if cluster['keyword_count'] < 5:
-                f.write(f"- Create 8-12 comprehensive articles covering this topic cluster\n")
-                f.write(f"- Build pillar page linking to all cluster content\n")
-                f.write(f"- Target the coverage gaps identified above\n")
+                f.write("- Create 8-12 comprehensive articles covering this topic cluster\n")
+                f.write("- Build pillar page linking to all cluster content\n")
+                f.write("- Target the coverage gaps identified above\n")
             else:
-                f.write(f"- Expand existing content to cover identified gaps\n")
+                f.write("- Expand existing content to cover identified gaps\n")
                 f.write(f"- Improve rankings for current keywords (avg position {cluster['avg_position']})\n")
-                f.write(f"- Create pillar page if you don't have one\n")
+                f.write("- Create pillar page if you don't have one\n")
 
-            f.write(f"\n---\n\n")
+            f.write("\n---\n\n")
 
         # Strong clusters
-        f.write(f"## ⭐ STRONG AUTHORITY TOPICS (Maintain These!)\n\n")
-        f.write(f"These topics are your strengths. Keep content updated and expand strategically.\n\n")
+        f.write("## ⭐ STRONG AUTHORITY TOPICS (Maintain These!)\n\n")
+        f.write("These topics are your strengths. Keep content updated and expand strategically.\n\n")
 
         strong_sorted = sorted(strong, key=lambda x: x['authority_score'], reverse=True)
 
@@ -499,29 +498,29 @@ def write_markdown_report(clusters: List[Dict]):
             f.write(f"- **Average Position:** {cluster['avg_position']}\n")
             f.write(f"- **Total Clicks:** {cluster['total_clicks']:,}/month\n\n")
 
-            f.write(f"**Top Performing Keywords:**\n")
+            f.write("**Top Performing Keywords:**\n")
             for kw in cluster['top_keywords'][:5]:
                 f.write(f"- {kw['keyword']} (position {kw['position']:.1f}, {kw['clicks']} clicks/mo)\n")
-            f.write(f"\n")
+            f.write("\n")
 
             if cluster['coverage_gaps']:
-                f.write(f"**Expansion Opportunities:**\n")
+                f.write("**Expansion Opportunities:**\n")
                 for gap in cluster['coverage_gaps'][:5]:
                     vol = gap.get('search_volume', 'Unknown')
                     f.write(f"- {gap['keyword']} ({vol} searches/mo)\n")
-                f.write(f"\n")
+                f.write("\n")
 
-            f.write(f"**Recommended Action:**\n")
-            f.write(f"- Keep content fresh with regular updates\n")
-            f.write(f"- Expand to cover expansion opportunities\n")
-            f.write(f"- Build supporting cluster content\n")
-            f.write(f"- Consider creating advanced/niche content in this area\n\n")
+            f.write("**Recommended Action:**\n")
+            f.write("- Keep content fresh with regular updates\n")
+            f.write("- Expand to cover expansion opportunities\n")
+            f.write("- Build supporting cluster content\n")
+            f.write("- Consider creating advanced/niche content in this area\n\n")
 
-            f.write(f"---\n\n")
+            f.write("---\n\n")
 
         # Moderate clusters
         if moderate:
-            f.write(f"## ✅ MODERATE AUTHORITY TOPICS\n\n")
+            f.write("## ✅ MODERATE AUTHORITY TOPICS\n\n")
 
             moderate_sorted = sorted(moderate, key=lambda x: x['total_impressions'], reverse=True)
 
@@ -529,35 +528,35 @@ def write_markdown_report(clusters: List[Dict]):
                 f.write(f"### {cluster['topic']}\n\n")
                 f.write(f"- Authority Score: {cluster['authority_score']}/100\n")
                 f.write(f"- Keywords: {cluster['keyword_count']} | Avg Position: {cluster['avg_position']} | Clicks: {cluster['total_clicks']}/mo\n")
-                f.write(f"- **Action:** Strengthen with 3-5 more articles to build strong authority\n\n")
+                f.write("- **Action:** Strengthen with 3-5 more articles to build strong authority\n\n")
 
         # Strategy recommendations
-        f.write(f"## Strategy Recommendations\n\n")
+        f.write("## Strategy Recommendations\n\n")
 
-        f.write(f"### Priority 1: Build Weak Clusters\n\n")
-        f.write(f"Focus on weak clusters with high demand (impressions):\n\n")
+        f.write("### Priority 1: Build Weak Clusters\n\n")
+        f.write("Focus on weak clusters with high demand (impressions):\n\n")
 
         top_weak = sorted(weak_sorted, key=lambda x: x['total_impressions'], reverse=True)[:5]
         for i, cluster in enumerate(top_weak, 1):
             f.write(f"{i}. **{cluster['topic']}** - {cluster['total_impressions']:,} impressions/mo, {cluster['keyword_count']} keywords\n")
             f.write(f"   - Create {max(8, 15 - cluster['keyword_count'])} new articles\n")
-            f.write(f"   - Target identified coverage gaps\n\n")
+            f.write("   - Target identified coverage gaps\n\n")
 
-        f.write(f"### Priority 2: Maintain Strong Clusters\n\n")
-        f.write(f"Keep your strong topics fresh and expand:\n\n")
+        f.write("### Priority 2: Maintain Strong Clusters\n\n")
+        f.write("Keep your strong topics fresh and expand:\n\n")
 
         for i, cluster in enumerate(strong_sorted[:3], 1):
             f.write(f"{i}. **{cluster['topic']}** - {cluster['total_clicks']:,} clicks/mo\n")
-            f.write(f"   - Regular content updates\n")
-            f.write(f"   - Expand with advanced topics\n\n")
+            f.write("   - Regular content updates\n")
+            f.write("   - Expand with advanced topics\n\n")
 
-        f.write(f"### Priority 3: Improve Moderate Clusters\n\n")
-        f.write(f"Strengthen moderate topics to strong authority:\n\n")
+        f.write("### Priority 3: Improve Moderate Clusters\n\n")
+        f.write("Strengthen moderate topics to strong authority:\n\n")
 
         for i, cluster in enumerate(moderate_sorted[:3], 1):
             f.write(f"{i}. **{cluster['topic']}**\n")
-            f.write(f"   - Add 3-5 comprehensive articles\n")
-            f.write(f"   - Improve rankings for existing content\n\n")
+            f.write("   - Add 3-5 comprehensive articles\n")
+            f.write("   - Improve rankings for existing content\n\n")
 
     print(f"   ✓ Report saved: {filename}")
 

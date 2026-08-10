@@ -27,6 +27,13 @@ BANNED_HEADINGS = (
     "Metric Proof Pack",
     "Source Map",
     "Customer Proof Pack",
+    "Customer Proof Slate",
+    "Selected Customer Proof Mining",
+    "Customer Proof Selection Decision",
+    "Review Story Selection",
+    "Review Site Theme Selection",
+    "Competitive Shortlist Decision",
+    "Named Feature/Add-On Link Check",
     "E-E-A-T Proof Map",
     "FAQ Proof Map",
     "Structured data plan",
@@ -64,6 +71,19 @@ CONTEXT_INTERNAL_HEADING_RE = re.compile(
     r"(?:resource )?inventory|recovery report))\s*:?\s*$",
     re.IGNORECASE,
 )
+CONNECTOR_SCHEMA_RE = re.compile(
+    r"\b(?:seomachine-context-binding|simpro-product-context-pack|"
+    r"simpro-context-receipt)/v\d+\b",
+    re.IGNORECASE,
+)
+CONNECTOR_FIELD_RE = re.compile(
+    r"(?<![A-Za-z0-9_])(?:[\"'`])?"
+    r"(?:context_pack_hash|receipt_hash|resource_id|claim_id|manifest_revision|"
+    r"claim_registry_revision|approval_policy_revision|receipt_sha256|pack_sha256|"
+    r"request_sha256|support_resource_hashes)"
+    r"(?:[\"'`])?\s*(?::|=)",
+    re.IGNORECASE,
+)
 
 
 def check_content(content: str) -> List[Finding]:
@@ -73,6 +93,21 @@ def check_content(content: str) -> List[Finding]:
     for line_number, line in enumerate(content.splitlines(), start=1):
         stripped = line.strip()
         normalized_heading = _normalize_heading(stripped)
+
+        connector_match = CONNECTOR_SCHEMA_RE.search(line) or CONNECTOR_FIELD_RE.search(
+            line
+        )
+        if connector_match:
+            findings.append(
+                make_finding(
+                    "internal_connector_artifact",
+                    "error",
+                    line_number,
+                    match=connector_match.group(0),
+                    message="Public article copy contains internal connector binding data.",
+                    suggestion="Move connector schemas, hashes, resource IDs, claim IDs, and revisions to the validation sidecar.",
+                )
+            )
         matched_heading = False
         for heading in BANNED_HEADINGS:
             if normalized_heading.casefold() == heading.casefold():
@@ -94,7 +129,9 @@ def check_content(content: str) -> List[Finding]:
                 )
                 matched_heading = True
                 break
-        if not matched_heading and CONTEXT_INTERNAL_HEADING_RE.match(normalized_heading):
+        if not matched_heading and CONTEXT_INTERNAL_HEADING_RE.match(
+            normalized_heading
+        ):
             findings.append(
                 make_finding(
                     "internal_validation_artifact",
@@ -109,10 +146,12 @@ def check_content(content: str) -> List[Finding]:
         if stripped.startswith("```") or stripped.startswith("~~~"):
             in_fence = not in_fence
             continue
-        if in_fence or _is_quoted_source_line(stripped):
+        if in_fence:
             continue
 
-        if EDITORIAL_REVIEW_SYMBOL_RE.search(line) or EDITORIAL_REVIEW_LABEL_RE.search(line):
+        if EDITORIAL_REVIEW_SYMBOL_RE.search(line) or EDITORIAL_REVIEW_LABEL_RE.search(
+            line
+        ):
             findings.append(
                 make_finding(
                     "editorial_review_marker",
@@ -123,6 +162,10 @@ def check_content(content: str) -> List[Finding]:
                     suggestion="Resolve the note in the validation sidecar and remove it from public copy.",
                 )
             )
+
+        if _is_quoted_source_line(stripped):
+            continue
+
         if PUBLICATION_CONFIRMATION_RE.search(line):
             findings.append(
                 make_finding(
@@ -178,23 +221,52 @@ def _normalize_heading(line: str) -> str:
     value = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", value)
     value = re.sub(r"<[^>]+>", " ", value)
     value = html.unescape(value)
+    for _ in range(4):
+        undecorated = value
+        for pattern in (
+            r"\*\*(.+?)\*\*",
+            r"__(.+?)__",
+            r"~~(.+?)~~",
+            r"`+(.+?)`+",
+            r"(?<!\w)\*(.+?)\*(?!\w)",
+            r"(?<!\w)_(.+?)_(?!\w)",
+        ):
+            value = re.sub(pattern, r"\1", value)
+        if value == undecorated:
+            break
     value = value.rstrip(":").strip()
-    pairs = (("**", "**"), ("__", "__"), ("~~", "~~"), ("`", "`"), ("*", "*"), ("_", "_"))
+    pairs = (
+        ("**", "**"),
+        ("__", "__"),
+        ("~~", "~~"),
+        ("`", "`"),
+        ("*", "*"),
+        ("_", "_"),
+    )
     changed = True
     while changed:
         changed = False
         for opening, closing in pairs:
-            if value.startswith(opening) and value.endswith(closing) and len(value) > len(opening) + len(closing):
-                value = value[len(opening):-len(closing)].strip()
+            if (
+                value.startswith(opening)
+                and value.endswith(closing)
+                and len(value) > len(opening) + len(closing)
+            ):
+                value = value[len(opening) : -len(closing)].strip()
                 changed = True
                 break
+    value = re.sub(r"\s+", " ", value)
     return value.rstrip(":").strip()
 
 
 def _is_quoted_source_line(stripped: str) -> bool:
     if stripped.startswith(">"):
         return True
-    quote_pairs = (('"', '"'), ("'", "'"), ("\N{LEFT DOUBLE QUOTATION MARK}", "\N{RIGHT DOUBLE QUOTATION MARK}"))
+    quote_pairs = (
+        ('"', '"'),
+        ("'", "'"),
+        ("\N{LEFT DOUBLE QUOTATION MARK}", "\N{RIGHT DOUBLE QUOTATION MARK}"),
+    )
     return any(
         stripped.startswith(opening) and stripped.endswith(closing)
         for opening, closing in quote_pairs

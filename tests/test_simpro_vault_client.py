@@ -32,6 +32,54 @@ class SimproVaultClientTests(unittest.TestCase):
         (plugin / "scripts" / "vault_cli.py").write_text("", encoding="utf-8")
         return plugin
 
+    def test_root_resolution_prefers_explicit_then_plugin_config_then_environment(self):
+        explicit = self.root / "explicit-vault"
+        configured = self.root / "configured-vault"
+        environment = self.root / "environment-vault"
+        for candidate in (explicit, configured, environment):
+            candidate.mkdir()
+        settings = self.root / "settings.json"
+        settings.write_text(
+            json.dumps(
+                {
+                    "pluginConfigs": {
+                        "simpro-context@simpro": {
+                            "options": {"authority_root": str(configured)}
+                        }
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        with patch.dict(
+            "os.environ",
+            {"SIMPRO_VAULT_ROOT": str(environment)},
+            clear=False,
+        ):
+            self.assertEqual(
+                SimproVaultClient(
+                    vault_root=explicit,
+                    settings_path=settings,
+                ).vault_root,
+                explicit.resolve(),
+            )
+            self.assertEqual(
+                SimproVaultClient(settings_path=settings).vault_root,
+                configured.resolve(),
+            )
+
+        settings.write_text("{}", encoding="utf-8")
+        with patch.dict(
+            "os.environ",
+            {"SIMPRO_VAULT_ROOT": str(environment)},
+            clear=False,
+        ):
+            self.assertEqual(
+                SimproVaultClient(settings_path=settings).vault_root,
+                environment.resolve(),
+            )
+
     def test_discovery_prefers_canonical_simpro_plugin_and_ignores_other_projects(self):
         canonical = self._plugin("canonical")
         other = self._plugin("other-project")
@@ -40,14 +88,14 @@ class SimproVaultClientTests(unittest.TestCase):
                 {
                     "id": "simpro-context@simpro",
                     "enabled": False,
-                    "version": "1.2.5",
+                    "version": "1.2.10",
                     "installPath": str(other),
                     "projectPath": str(self.root / "other-worktree"),
                 },
                 {
                     "id": "simpro-context@simpro",
                     "enabled": True,
-                    "version": "1.2.5",
+                    "version": "1.2.10",
                     "installPath": str(canonical),
                     "projectPath": str(Path.cwd()),
                 },
@@ -61,6 +109,51 @@ class SimproVaultClientTests(unittest.TestCase):
 
         self.assertEqual(discovered, canonical.resolve() / "scripts" / "vault_cli.py")
 
+    def test_discovery_uses_owning_repo_when_called_from_nested_directory(self):
+        canonical = self._plugin("canonical-nested")
+        repo_root = Path(__file__).resolve().parents[1]
+        nested = repo_root / "data_sources" / "modules"
+        inventory = json.dumps(
+            [
+                {
+                    "id": "simpro-context@simpro",
+                    "enabled": True,
+                    "version": "1.2.10",
+                    "installPath": str(canonical),
+                    "projectPath": str(repo_root),
+                }
+            ]
+        )
+        with patch(
+            "data_sources.modules.simpro_vault_client.subprocess.run",
+            return_value=Completed(stdout=inventory),
+        ), patch("pathlib.Path.cwd", return_value=nested):
+            discovered = discover_plugin()
+
+        self.assertEqual(discovered, canonical.resolve() / "scripts" / "vault_cli.py")
+    def test_discovery_rejects_single_canonical_plugin_scoped_to_other_project(self):
+        foreign = self._plugin("foreign-project")
+        inventory = json.dumps(
+            [
+                {
+                    "id": "simpro-context@simpro",
+                    "enabled": True,
+                    "version": "1.2.10",
+                    "installPath": str(foreign),
+                    "projectPath": str(self.root / "other-worktree"),
+                }
+            ]
+        )
+
+        with patch(
+            "data_sources.modules.simpro_vault_client.subprocess.run",
+            return_value=Completed(stdout=inventory),
+        ):
+            with self.assertRaises(VaultClientError) as raised:
+                discover_plugin()
+
+        self.assertEqual(raised.exception.code, "plugin_missing")
+
     def test_discovery_rejects_disabled_canonical_plugin_even_when_legacy_exists(self):
         canonical = self._plugin("canonical")
         legacy = self._plugin("legacy")
@@ -69,7 +162,7 @@ class SimproVaultClientTests(unittest.TestCase):
                 {
                     "id": "simpro-context@simpro",
                     "enabled": False,
-                    "version": "1.2.5",
+                    "version": "1.2.10",
                     "installPath": str(canonical),
                     "projectPath": str(Path.cwd()),
                 },
@@ -98,7 +191,7 @@ class SimproVaultClientTests(unittest.TestCase):
                 {
                     "id": "simpro-context@simpro",
                     "enabled": False,
-                    "version": "1.2.5",
+                    "version": "1.2.10",
                     "installPath": str(self.root / "plugin"),
                     "projectPath": str(Path.cwd()),
                 }
@@ -134,7 +227,7 @@ class SimproVaultClientTests(unittest.TestCase):
         self.assertEqual(kwargs["errors"], "strict")
         self.assertGreater(kwargs["timeout"], 0)
 
-    def test_discovery_rejects_canonical_1_2_4_even_when_legacy_is_valid(self):
+    def test_discovery_rejects_canonical_1_2_5_even_when_legacy_is_valid(self):
         plugin = self._plugin("plugin")
         legacy = self._plugin("legacy")
         inventory = json.dumps(
@@ -142,7 +235,7 @@ class SimproVaultClientTests(unittest.TestCase):
                 {
                     "id": "simpro-context@simpro",
                     "enabled": True,
-                    "version": "1.2.4",
+                    "version": "1.2.5",
                     "installPath": str(plugin),
                     "projectPath": str(Path.cwd()),
                 },
@@ -164,14 +257,100 @@ class SimproVaultClientTests(unittest.TestCase):
 
         self.assertEqual(raised.exception.code, "plugin_outdated")
 
-    def test_discovery_accepts_canonical_1_2_5(self):
+    def test_discovery_rejects_canonical_1_2_6(self):
         plugin = self._plugin("plugin")
         inventory = json.dumps(
             [
                 {
                     "id": "simpro-context@simpro",
                     "enabled": True,
-                    "version": "1.2.5",
+                    "version": "1.2.6",
+                    "installPath": str(plugin),
+                    "projectPath": str(Path.cwd()),
+                }
+            ]
+        )
+        with patch(
+            "data_sources.modules.simpro_vault_client.subprocess.run",
+            return_value=Completed(stdout=inventory),
+        ):
+            with self.assertRaises(VaultClientError) as raised:
+                discover_plugin()
+
+        self.assertEqual(raised.exception.code, "plugin_outdated")
+
+    def test_discovery_rejects_canonical_1_2_7(self):
+        plugin = self._plugin("plugin")
+        inventory = json.dumps(
+            [
+                {
+                    "id": "simpro-context@simpro",
+                    "enabled": True,
+                    "version": "1.2.7",
+                    "installPath": str(plugin),
+                    "projectPath": str(Path.cwd()),
+                }
+            ]
+        )
+        with patch(
+            "data_sources.modules.simpro_vault_client.subprocess.run",
+            return_value=Completed(stdout=inventory),
+        ):
+            with self.assertRaises(VaultClientError) as raised:
+                discover_plugin()
+
+        self.assertEqual(raised.exception.code, "plugin_outdated")
+
+    def test_discovery_rejects_canonical_1_2_8(self):
+        plugin = self._plugin("plugin-1-2-8")
+        inventory = json.dumps(
+            [
+                {
+                    "id": "simpro-context@simpro",
+                    "enabled": True,
+                    "version": "1.2.8",
+                    "installPath": str(plugin),
+                    "projectPath": str(Path.cwd()),
+                }
+            ]
+        )
+        with patch(
+            "data_sources.modules.simpro_vault_client.subprocess.run",
+            return_value=Completed(stdout=inventory),
+        ):
+            with self.assertRaises(VaultClientError) as raised:
+                discover_plugin()
+
+        self.assertEqual(raised.exception.code, "plugin_outdated")
+    def test_discovery_rejects_canonical_1_2_9(self):
+        plugin = self._plugin("plugin-1-2-9")
+        inventory = json.dumps(
+            [
+                {
+                    "id": "simpro-context@simpro",
+                    "enabled": True,
+                    "version": "1.2.9",
+                    "installPath": str(plugin),
+                    "projectPath": str(Path.cwd()),
+                }
+            ]
+        )
+        with patch(
+            "data_sources.modules.simpro_vault_client.subprocess.run",
+            return_value=Completed(stdout=inventory),
+        ):
+            with self.assertRaises(VaultClientError) as raised:
+                discover_plugin()
+
+        self.assertEqual(raised.exception.code, "plugin_outdated")
+    def test_discovery_accepts_canonical_1_2_10(self):
+        plugin = self._plugin("plugin")
+        inventory = json.dumps(
+            [
+                {
+                    "id": "simpro-context@simpro",
+                    "enabled": True,
+                    "version": "1.2.10",
                     "installPath": str(plugin),
                     "projectPath": str(Path.cwd()),
                 }
@@ -209,6 +388,63 @@ class SimproVaultClientTests(unittest.TestCase):
 
         self.assertEqual(raised.exception.code, "plugin_unhealthy")
 
+    def _ready_status(self):
+        return {
+            "status": "ready",
+            "root_configured": True,
+            "revisions": {
+                "approval_policy_revision": "policy",
+                "claim_registry_revision": "claims",
+                "content_revision": "content",
+                "contract_revision": "contract",
+                "inventory_revision": "inventory",
+                "manifest_revision": "manifest",
+            },
+            "claim_health": {
+                "claim_count": 12,
+                "proof_retrieval_state": "available",
+                "approved_brand_scope_counts": {"Simpro": 4},
+            },
+            "resource_access": {
+                "manifest_resources": 10,
+                "searchable_resources": 10,
+                "indexed_resources": 9,
+                "declared_unindexed_resources": 1,
+                "context_readable_resources": 10,
+            },
+        }
+
+    def test_status_rejects_zero_approved_simpro_claims(self):
+        vault = self.root / "vault-zero-claims"
+        vault.mkdir()
+        status = self._ready_status()
+        status["claim_health"]["approved_brand_scope_counts"]["Simpro"] = 0
+        client = SimproVaultClient(vault_root=vault)
+        with patch.object(client, "dispatch", return_value=status):
+            with self.assertRaises(VaultClientError) as raised:
+                client.status()
+
+        self.assertEqual(raised.exception.code, "vault_claims_unavailable")
+
+    def test_status_rejects_partial_manifest_discovery(self):
+        vault = self.root / "vault-partial-search"
+        vault.mkdir()
+        status = self._ready_status()
+        status["resource_access"]["searchable_resources"] = 9
+        client = SimproVaultClient(vault_root=vault)
+        with patch.object(client, "dispatch", return_value=status):
+            with self.assertRaises(VaultClientError) as raised:
+                client.status()
+
+        self.assertEqual(raised.exception.code, "vault_discovery_incomplete")
+
+    def test_status_accepts_complete_discovery_and_claim_health(self):
+        vault = self.root / "vault-healthy"
+        vault.mkdir()
+        status = self._ready_status()
+        client = SimproVaultClient(vault_root=vault)
+        with patch.object(client, "dispatch", return_value=status):
+            self.assertIs(client.status(), status)
     def test_recoverable_dispatch_returns_stable_hint_instead_of_raising(self):
         vault = self.root / "vault"
         vault.mkdir()
@@ -256,7 +492,7 @@ print(json.dumps({"ok": True, "result": {
                 {
                     "id": "simpro-context@simpro",
                     "enabled": True,
-                    "version": "1.2.5",
+                    "version": "1.2.10",
                     "installPath": str(plugin),
                     "projectPath": str(Path.cwd()),
                 }
@@ -273,10 +509,16 @@ print(json.dumps({"ok": True, "result": {
             "data_sources.modules.simpro_vault_client.subprocess.run",
             side_effect=run,
         ):
-            result = SimproVaultClient(
+            client = SimproVaultClient(
                 vault_root=vault,
                 python_executable=sys.executable,
-            ).search("field service scheduling", limit=4)
+            )
+            result = client.search("field service scheduling", limit=4)
+            expanded = client.expand(
+                "res-alpha",
+                relation_types=["links_to"],
+                purpose="context",
+            )
 
         self.assertEqual(result["operation"], "vault_search")
         self.assertEqual(
@@ -284,6 +526,15 @@ print(json.dumps({"ok": True, "result": {
             {"query": "field service scheduling", "limit": 4},
         )
         self.assertEqual(Path(result["vault_root"]).resolve(), vault.resolve())
+        self.assertEqual(expanded["operation"], "vault_expand")
+        self.assertEqual(
+            expanded["payload"],
+            {
+                "resource_id": "res-alpha",
+                "relation_types": ["links_to"],
+                "purpose": "context",
+            },
+        )
 
     def test_dispatch_preserves_connector_error_code(self):
         plugin = self.root / "plugin"
@@ -306,7 +557,7 @@ raise SystemExit(1)
                 {
                     "id": "simpro-context@simpro",
                     "enabled": True,
-                    "version": "1.2.5",
+                    "version": "1.2.10",
                     "installPath": str(plugin),
                     "projectPath": str(Path.cwd()),
                 }

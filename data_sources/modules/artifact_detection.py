@@ -11,8 +11,12 @@ import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Pattern, Tuple
 
+try:
+    from .frontmatter import split_frontmatter
+except ImportError:  # pragma: no cover - supports direct script execution.
+    from frontmatter import split_frontmatter
 
-FRONTMATTER_RE = re.compile(r"\A---\s*\n(.*?)\n---\s*\n?", re.DOTALL)
+
 HEADING_LINE_RE = re.compile(r"^\s{0,3}#{1,6}\s")
 BLOCKQUOTE_LINE_RE = re.compile(r"^\s*>")
 IMAGE_ONLY_LINE_RE = re.compile(r"^\s*!\[[^\]]*\]\([^)]*\)\s*$")
@@ -63,33 +67,26 @@ class BulletBlock:
 
 def strip_frontmatter(content: str) -> Tuple[str, int]:
     """Return (body, 1-based line number where the body starts)."""
-    match = FRONTMATTER_RE.match(content)
-    if not match:
-        return content, 1
-    consumed = content[: match.end()]
-    return content[match.end() :], consumed.count("\n") + 1
+    _, body, body_start_line = split_frontmatter(content)
+    return body, body_start_line
 
 
 def extract_frontmatter(content: str) -> Dict[str, str]:
-    """Return normalized frontmatter key/value pairs."""
-    values = extract_frontmatter_values(content)
-    return {key: entries[-1] for key, entries in values.items()}
+    """Return strict normalized frontmatter values for guard text matching."""
+    metadata, _, _ = split_frontmatter(content)
+    return {
+        key: ", ".join(value) if isinstance(value, list) else value
+        for key, value in metadata.items()
+    }
 
 
 def extract_frontmatter_values(content: str) -> Dict[str, List[str]]:
-    """Return all normalized frontmatter key/value pairs in source order."""
-    match = re.match(r"\A---\s*\n(.*?)\n---\s*", content, re.DOTALL)
-    if not match:
-        return {}
-
-    values: Dict[str, List[str]] = {}
-    for line in match.group(1).splitlines():
-        if ":" not in line:
-            continue
-        key, value = line.split(":", 1)
-        normalized_key = key.strip().lower().replace("-", "_").replace(" ", "_")
-        values.setdefault(normalized_key, []).append(value.strip().strip('"').strip("'"))
-    return values
+    """Return strict normalized values using the legacy list-valued interface."""
+    metadata, _, _ = split_frontmatter(content)
+    return {
+        key: list(value) if isinstance(value, list) else [value]
+        for key, value in metadata.items()
+    }
 
 
 def countable_words(line: str) -> int:

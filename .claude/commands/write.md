@@ -1,8 +1,18 @@
 # Write Command
 
+## Context Binding Regeneration (MANDATORY)
+
+After the final content mutation, regenerate the machine-owned binding before `/publish-readiness`:
+
+```bash
+python data_sources/modules/context_binding_generator.py "$FILE_PATH" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT"
+```
+
+Run this again after every scrub, optimization, or editorial change that modifies public copy. A stale article hash blocks handoff.
+
 Use this command to create comprehensive, SEO-optimized long-form blog content.
 
-For every Simpro blog, read `wiki/messaging/Voice and Tone.md` and `wiki/messaging/Tone Voice and Localization Rules.md` from the vault. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Em dashes are prohibited. Product pages and landing pages retain their existing restrained channel treatment.
+For every Simpro blog, retrieve current voice and tone guidance through the vault connector by semantic search and `resource_id` reads. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Em dashes are prohibited. Product pages and landing pages retain their existing restrained channel treatment.
 
 ## Usage
 `/write [topic or research brief]`
@@ -18,43 +28,43 @@ For every Simpro blog, read `wiki/messaging/Voice and Tone.md` and `wiki/messagi
 
 ### Obsidian Vault Source Rule
 
-For every blog, SEO, AEO, competitor, proof, product, audience, partner, or workflow decision, use the Obsidian vault as the active context source: `C:\Users\patrick.grueschow\Desktop\Obsidian\Simpro Brand Context`.
+For every blog, SEO, AEO, competitor, proof, product, audience, partner, or workflow decision, use the Simpro vault connector as the active context source. The only configured content location is the vault root; do not prescribe vault hubs, filenames, or internal directories.
 
-Required read order: `AGENTS.md -> wiki/cache/hot.md -> wiki/Brand Graph Index.md -> smallest relevant wiki/source/raw pages`.
+Required connector workflow: run vault health first, describe available roles/topics/entities, search in the task's natural language, read and expand results by `resource_id`, query approved claims only when public proof-sensitive language is needed, then build and validate a context pack.
 
-Do not use Google Workspace or old marketing-portal URLs as the active read path. Use them only as historical provenance when the vault already exposes a local source route.
+Do not use Google Workspace or old marketing-portal URLs as the active read path. Use them only as historical provenance when the vault connector exposes them as source evidence.
 
-The repo-local context files are downstream mirrors/fallbacks only and cannot override the vault when the vault is available. If a repo-local fallback is used because the vault is unavailable, document that in `Vault Context Read Path` in the validation sidecar.
+The repo-local context files are downstream mirrors or operational state only. They cannot override the vault connector when the vault is available. If fallback is used because the vault is unavailable, document the explicit vault-unavailable blocker in the validation sidecar.
 
-Required validation sidecar sections: `Vault Context Read Path` for every workflow; `Vault Brand Language Alignment` when product, feature, add-on, solution, industry, or related Simpro product URL language appears; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. Missing required sections block `/publish-readiness`, `/optimize`, and dev-ready handoff until documented.
+Required validation sidecar evidence: generated vault context binding for every workflow; `Vault Brand Language Alignment` when product, feature, add-on, solution, industry, or related Simpro product URL language appears; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. These sections must cite connector `context_pack_hash`, `receipt_hash`, `resource_id`, `claim_id`, use mode, public URL when required, and relevant revisions. Missing required evidence blocks `/publish-readiness`, `/optimize`, and dev-ready handoff.
 
 ### Vault-Backed Competitor and Feature Guardrails
 
-- `Competitive Shortlist Decision`: competitor-aware posts must document selected competitors, rejected competitors, `wiki/competitors/Competitive Context.md`, `wiki/sources/simpro-battlecards-direct-competitors-1bzgf9r8.md`, and linked source/raw files in the validation sidecar, plus why the shortlist fits the article objective.
+- `Competitive Shortlist Decision`: competitor-aware posts must document selected competitors, rejected competitors, connector-discovered competitive-context resources, approved claim IDs where public proof is used, and why the shortlist fits the article objective.
 - Public competitor pages may shape SERP/article format, but cannot decide named competitors for Simpro public copy.
-- `Hindsight Boundary`: Hindsight/deal intelligence can inform internal strategy, but cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified. Route Hindsight context through `wiki/sources/hindsight-copy-of-simpro-battlecards-1elcobgn.md` and keep raw deal counts out of public copy.
-- `Named Feature/Add-On Link Check`: first meaningful mentions of Simpro features/add-ons must be checked against vault product routes before link decisions. Start with `wiki/concepts/payments-and-add-ons.md` and `wiki/features/Feature Library`; document each vault route checked, link decision, and reason in the validation sidecar.
-- `Vault Brand Language Alignment`: product, feature, add-on, solution, and industry language must be drafted from the vault first. Read `wiki/messaging/Simpro Core Messaging Repository.md`, `wiki/messaging/Message House.md`, `wiki/messaging/Core Value Pillars.md`, `wiki/product/Product Positioning.md`, and `wiki/features/Feature Library.md`; when a named feature/add-on appears, add the relevant `wiki/features/source-docs/` route or specific source/raw route; when solution/industry language is used, also read `wiki/verticals/Vertical Profile Library.md` and the relevant vertical/source page. Document routes checked, language applied, fallback context use, source-verification boundary, and `Status: aligned` in `Vault Brand Language Alignment`. The `vault_brand_language_guard.py` publish gate runs inside `/publish-readiness`; keep this block in the validation sidecar, not public copy. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
+- `Hindsight Boundary`: Hindsight/deal intelligence can inform internal strategy, but cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified through the claim registry. Keep raw deal counts out of public copy.
+- `Named Feature/Add-On Link Check`: first meaningful mentions of Simpro features/add-ons must be checked through connector-discovered product and feature resources before link decisions. Document the selected `resource_id` values, link decision, and reason in the validation sidecar.
+- `Vault Brand Language Alignment`: product, feature, add-on, solution, and industry language must be drafted from connector-discovered vault guidance first. Use semantic search/read/expand for messaging, positioning, feature, solution, and vertical context. When a named feature/add-on appears, include feature-specific `resource_id` evidence; when solution/industry language is used, include solution or vertical `resource_id` evidence. Document connector evidence, language applied, fallback context use, source-verification boundary, and `Status: aligned` in `Vault Brand Language Alignment`. The `vault_brand_language_guard.py` publish gate runs inside `/publish-readiness`; keep this block in the validation sidecar, not public copy. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
 
 ### Pre-Writing Review
 - **Research Brief**: Review research brief from `/research` command if available
-- **Brand Voice**: Use the vault messaging routes first; @context/brand-voice.md is a fallback mirror only when the vault is unavailable
+- **Brand Voice**: Use connector-discovered vault messaging guidance first; @context/brand-voice.md is a fallback mirror only when the vault is unavailable
 - **Writing Examples**: Study @context/writing-examples.md for style consistency
-- **Style Guide**: Use vault terminology first; @context/style-guide.md is a fallback mirror only when the vault is unavailable
+- **Style Guide**: Use connector-discovered vault terminology first; @context/style-guide.md is a fallback mirror only when the vault is unavailable
 - **SEO Guidelines**: Apply requirements from @context/seo-guidelines.md
 - **AEO/GEO Strategy**: Apply @context/aeo-geo-blog-strategy.md for Generative Engine Optimization
 - **Target Keywords**: Integrate keywords from @context/target-keywords.md naturally
-- **Lightning Overlay**: If the topic or research brief mentions Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, also load @context/lightning-positioning.md and treat it as a scoped overlay.
+- **Lightning Overlay**: If the topic or research brief mentions Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, search the vault connector in the task's natural language, read and expand the selected Lightning `resource_id` values, and apply that guidance as a scoped overlay. Use @context/lightning-positioning.md only as a fallback mirror when the connector is unavailable and the sidecar records the blocker.
 
 ### AEO/GEO Variable Resolution
-Resolve `topic`, `audience`, `main_question`, `related_questions`, `tone`, `expertise`, and `length` from the research brief, Vault Context Read Path, repo context fallback, target keyword, and existing PAA artifact before writing. `/write` may skip live AnswerSocrates only when the supplied brief already includes PAA questions. If PAA questions are missing, ask for a PAA/FAQ CSV or run `/article` for full AnswerSocrates collection.
+Resolve `topic`, `audience`, `main_question`, `related_questions`, `tone`, `expertise`, and `length` from the research brief, generated vault context binding, repo context fallback, target keyword, and existing PAA artifact before writing. `/write` may skip live AnswerSocrates only when the supplied brief already includes PAA questions. If PAA questions are missing, ask for a PAA/FAQ CSV or run `/article` for full AnswerSocrates collection.
 
 ### E-E-A-T Proof Map Inputs
 Before drafting, resolve an E-E-A-T Proof Map:
 - **Experience**: Customer case studies, customer outcomes, review-site experience evidence / VoC themes, implementation/support themes, user pain, and field workflow examples.
 - **Expertise**: Product/feature knowledge, source-backed workflow explanations, expert quotes, author/reviewer metadata, and Simpro workflow specificity.
 - **Authority/Trust**: Public research, case-study URLs, review-site/source links, limitations/caveats, and no invented proof.
-- **Fallback context sources**: After Vault Context Read Path, pull case-study URLs from @context/internal-links-map.md, approved metrics/proof candidates from @context/features.md, and review-site experience evidence / VoC or competitor experience themes from @context/competitor-analysis.md or future review-context files only as repo-local mirror/fallback inputs.
+- **Fallback context sources**: Only when the connector is unavailable and the sidecar records the blocker, use case-study URLs from @context/internal-links-map.md, metric or proof candidates from @context/features.md, and review-site experience evidence, VoC, or competitor experience themes from @context/competitor-analysis.md or future review-context files as repo-local mirror inputs. These files cannot approve public claims.
 - **Public-copy rule**: Context-backed metrics are valid only when the article body uses public-facing source links, such as the public case-study URL, review-site URL, or public research source.
 - **403 replacement rule**: If a DOL, Capterra, G2, Trustpilot, Google Play, or other public research/source URL returns 401, 403, or `manual_review`, do not remove the citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. Source Map notes must document both the rejected 403 URL and the replacement URL. Full policy and the `public_research_link_guard.py` gate live in `context/aeo-geo-blog-strategy.md`.
 
@@ -165,9 +175,9 @@ Apply these requirements from @context/aeo-geo-blog-strategy.md:
 - **FAQ quality gate**: Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error` before scoring or optimization; `/publish-readiness` runs it automatically.
 - **E-E-A-T Proof Map**: Include named author, last-updated date, reviewer if available, Experience proof, Expertise proof, Authority/Trust proof, named customer proof or expert quote, and honest limitations where relevant.
 - **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, keywords, product framing, internal links, approved claims, proof candidates, and approved metrics only when the Obsidian vault is unavailable; otherwise treat them as repo-local mirrors/fallbacks. Public copy may use public sources and context-backed proof, but must not mention "repo context," context file paths, Source Maps, PAA artifacts, change summaries, or internal proof-path notes.
-- **Customer proof routing**: When citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
-- **Customer proof selection governance**: Before selecting or drafting proof, resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and write the generated selector-first `Customer Proof Slate` to the validation sidecar. If inputs are missing, resolve them from the brief/context or stop before drafting customer proof. If the selector fails, write the blocker into the sidecar and do not invent proof. experience_story consideration is required and E-E-A-T story usage is optional. If no story fits, use `Selected: [none]` with section-specific rejection reasons. Full policy lives in `context/aeo-geo-blog-strategy.md`.
-- **Fred Voccola authority evaluation**: Resolve `topic`, `title`, and `objective`, then automatically run `python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --limit 5` and write the complete `Fred Voccola Authority Selection` block from `context/aeo-geo-blog-strategy.md` to the validation sidecar. Evaluation is mandatory and public use is optional. The selector defaults to `Selected: none`; select a source explicitly only after reviewing it and confirming direct topical support. If the selector, vault, manifest, or inventories fail, record `Evaluation status: blocked` and the blocker; do not invent Fred evidence or continue to Fred public use.
+- **Customer proof routing**: After the customer-proof selector identifies candidates, query the vault connector for approved claims in the intended public use mode, read the supporting `resource_id` values, and bind any public metric, quote, or theme to its `claim_id` and public URL. Use @context/internal-links-map.md and @context/features.md only as downstream fallback mirrors when the connector is unavailable; never publish a metric or quote solely because it appears in those files.
+- **Customer proof selection governance**: Before selecting or drafting proof, resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and write the generated selector-first `Customer Proof Slate` to the validation sidecar. If inputs are missing, resolve them from the brief/context or stop before drafting customer proof. If the selector fails, write the blocker into the sidecar and do not invent proof. experience_story consideration is required and E-E-A-T story usage is optional. If no story fits, use `Selected: [none]` with section-specific rejection reasons. Full policy lives in `context/aeo-geo-blog-strategy.md`.
+- **Fred Voccola authority evaluation**: Resolve `topic`, `title`, and `objective`, then automatically run `python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --slate --limit 5` and write the complete `Fred Voccola Authority Selection` block from `context/aeo-geo-blog-strategy.md` to the validation sidecar. Evaluation is mandatory and public use is optional. The selector defaults to `Selected: none`; select a source explicitly only after reviewing it and confirming direct topical support. If the selector, connector, context pack, or receipt validation fails, record `Evaluation status: blocked` and the blocker; do not invent Fred evidence or continue to Fred public use.
 - **Recent-use proof diversity**: Treat any `recent_uses_90d` value above 0 as a proof-diversity warning, not only sources marked `overused`. Before claiming a proof source is underused, inspect the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the proof ID, public URL, and customer name. If the live repo scan finds public-copy usage missing from the ledger, backfill `context/customer-proof-usage-ledger.json`, rerun proof health and selector checks, and document the backfill in the validation sidecar. Prefer an approved zero-recent-use source when one fits the same role, or document why no stronger underused approved proof fits. If a recently used or overused proof source is still selected, document why no stronger underused approved proof fits.
 - **Selected customer proof mining**: When selected customer proof appears in public copy, add `Selected Customer Proof Mining` to the validation sidecar. Selector chooses candidates; proof mining reads the selected public URL before the writer decides quote, metric, POV/story, theme, or omit use. Full policy lives in `context/aeo-geo-blog-strategy.md`.
 - **Proof-index health**: Run `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` before adding proof candidates, and review both recently used and overused proof rows.
@@ -254,9 +264,9 @@ Give the reader a useful next action that fits the Reader Contract and funnel st
 - Add subheadings when the topic or reader question changes
 
 ### Target Audience Focus
-- **Audience Perspective**: Write for the target audience from the vault route; @context/brand-voice.md is fallback mirror context only
+- **Audience Perspective**: Write for the target audience retrieved through connector semantic search and `resource_id` reads; @context/brand-voice.md is fallback mirror context only when the connector is unavailable
 - **Practical Application**: Show how information applies to their specific challenges
-- **Product Integration**: Naturally mention how your features solve problems (reference @context/features.md)
+- **Product Integration**: Naturally mention how relevant features solve problems using connector-discovered product and feature guidance from current `resource_id` reads. Use @context/features.md only as a fallback mirror when the connector is unavailable and the sidecar records the blocker.
 - **Industry Context**: Reference relevant trends and best practices
 - **Technical Accuracy**: Ensure terminology and processes are correct for your industry
 
@@ -266,7 +276,7 @@ Give the reader a useful next action that fits the Reader Contract and funnel st
 - Use messaging framework from your context files
 - Apply terminology preferences consistently
 - Match tone to content type (how-to, strategy, news, etc.)
-- For Lightning-specific content, apply @context/lightning-positioning.md: use required brand prefixes, keep JustAsk as the interface, Cooper as the brain, exact agent names, field service trades first-reference wording, and verified Lightning proof claims.
+- For Lightning-specific content, apply the connector-discovered Lightning resources first: use required brand prefixes, keep JustAsk as the interface, Cooper as the brain, use exact agent names and field-service-trades first-reference wording, and publish only receipt-approved Lightning claims. Use @context/lightning-positioning.md only as a documented fallback mirror when the connector is unavailable.
 
 ## Output
 Provides a complete, publish-ready article including:
@@ -354,12 +364,12 @@ Proof infrastructure belongs only in the validation sidecar at `research/validat
 
 Preferred publish readiness command:
 ```bash
-/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
+/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json
 ```
 
 Meta titles must always end with the owning brand suffix in pipe format, for example `Construction Draw Schedule Explained | ClockShark`.
 
-Run `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` to confirm the article is clean and all proof, URL validation, source support, content score, and AEO/GEO gates pass. The command reads the validation sidecar without exposing proof infrastructure in public copy.
+Run `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json` to confirm the article is clean and all proof, Context Binding, URL validation, source support, content score, and AEO/GEO gates pass. The command reads the validation sidecar without exposing proof infrastructure in public copy.
 
 ## Automatic Scrub And Publish Readiness
 
@@ -370,7 +380,7 @@ AI-generated content often contains invisible Unicode marks and characteristic p
 
 ### Scrub And Publish Readiness Process
 1. **Invoke Scrubber**: Run `/scrub [file-path]` on the saved article file
-2. **Invoke Publish Readiness**: Run `/publish-readiness [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`
+2. **Invoke Publish Readiness**: Run `/publish-readiness [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json`
 3. **Automatic Execution**: This should happen automatically, not require user action
 4. **Timing**: Must occur immediately after file save, before scoring or agent processing
 5. **Scope**: Scrub and publish-readiness checks apply to the main article file only; proof maps live in the validation sidecar.
@@ -484,10 +494,10 @@ Run the scrubber before publish readiness:
 ### Step 2: Confirm Publish Readiness
 Run the command-system gate:
 ```bash
-/publish-readiness drafts/[article-file].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
+/publish-readiness drafts/[article-file].md --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json
 ```
 
-The draft must have zero blocking findings, general content quality at 85/100 or higher, and AEO/GEO at 90/100 or higher before `/optimize`.
+The draft must have zero non-scoring blocking findings before `/optimize`. When content quality is below 85/100 or AEO/GEO is below 90/100, `/optimize` may run inside the AEO/GEO Recovery Loop to repair the score. Final handoff still requires both score thresholds and every blocking gate to pass.
 
 ### Step 3: Evaluate Score
 The publish-readiness command includes 5 content-quality dimensions plus the required AEO/GEO gate:
@@ -503,10 +513,12 @@ The publish-readiness command includes 5 content-quality dimensions plus the req
 ### Step 4: Auto-Revise if Needed
 If content quality is below 85/100 or AEO/GEO is below 90/100:
 1. Review the `priority_fixes` from `/publish-readiness`
-2. Apply the top 3-5 fixes automatically
-3. Rerun `/scrub`
-4. Review `because` grammar in context, then rerun `/publish-readiness`
-5. Repeat once more if still below threshold
+2. Review every failed check in `aeo_geo.checks`
+3. Classify each failure as a copy gap, proof/sidecar gap, or scorer or parser false negative; fix false negatives in the scorer with regression coverage instead of distorting accurate copy
+4. Apply the top 3-5 fixes automatically
+5. Rerun `/scrub`
+6. Review `because` grammar in context, then rerun `/publish-readiness`
+7. Repeat once more if still below threshold, for a maximum of 2 iterations
 
 ### Step 5: Route Based on Final Score
 - **General content quality score >= 85/100 and AEO/GEO score >= 90/100**: Save to `drafts/` and proceed to optimization agents

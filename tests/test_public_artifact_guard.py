@@ -202,6 +202,146 @@ Concrete Answer Check
             },
         )
 
+    def test_all_sidecar_only_proof_and_decision_headings_cannot_leak(self):
+        headings = (
+            "Customer Proof Slate",
+            "Selected Customer Proof Mining",
+            "Customer Proof Selection Decision",
+            "Review Story Selection",
+            "Review Site Theme Selection",
+            "Competitive Shortlist Decision",
+            "Named Feature/Add-On Link Check",
+        )
+
+        for heading in headings:
+            with self.subTest(heading=heading):
+                findings = check_content(
+                    f"# Article\n\n## {heading}\n\n- Status: approved\n"
+                )
+
+                self.assertEqual(len(findings), 1)
+                self.assertEqual(findings[0]["rule_id"], "internal_validation_artifact")
+                self.assertEqual(findings[0]["match"], f"## {heading}")
+
+    def test_inline_markdown_cannot_disguise_internal_headings(self):
+        content = """# Article
+
+## Customer **Proof Pack**
+## Context **Binding**
+## Customer `Proof Slate`
+## Review ~~Story~~ Selection
+## Named Feature/Add-On _Link Check_
+"""
+
+        findings = check_content(content)
+
+        self.assertEqual(
+            [finding["match"] for finding in findings],
+            [
+                "## Customer **Proof Pack**",
+                "## Context **Binding**",
+                "## Customer `Proof Slate`",
+                "## Review ~~Story~~ Selection",
+                "## Named Feature/Add-On _Link Check_",
+            ],
+        )
+
+    def test_inline_html_cannot_disguise_internal_headings(self):
+        content = """# Article
+
+## Customer <strong>Proof Pack</strong>
+## Context <em>Binding</em>
+"""
+
+        findings = check_content(content)
+
+        self.assertEqual(
+            [finding["match"] for finding in findings],
+            [
+                "## Customer <strong>Proof Pack</strong>",
+                "## Context <em>Binding</em>",
+            ],
+        )
+
+    def test_raw_connector_schemas_and_fields_cannot_leak(self):
+        content = """# Article
+
+simpro-product-context-pack/v2
+simpro-context-receipt/v1
+seomachine-context-binding/v1
+context_pack_hash: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+receipt_hash=sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+"resource_id": "simpro.product.positioning"
+claim_id: simpro.claim.example
+manifest_revision = manifest-2026-08-10
+"""
+
+        findings = check_content(content)
+
+        self.assertEqual(
+            [finding["rule_id"] for finding in findings],
+            ["internal_connector_artifact"] * 8,
+        )
+        self.assertEqual(
+            [finding["line"] for finding in findings],
+            [3, 4, 5, 6, 7, 8, 9, 10],
+        )
+
+    def test_raw_connector_schemas_and_fields_in_frontmatter_fail(self):
+        content = """---
+context_pack_hash: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+receipt_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+connector_schema: simpro-product-context-pack/v2
+---
+# Article
+
+This is public article copy.
+"""
+
+        findings = check_content(content)
+        self.assertEqual(
+            [finding["rule_id"] for finding in findings],
+            ["internal_connector_artifact"] * 3,
+        )
+
+    def test_all_receipt_and_revision_hash_fields_cannot_leak(self):
+        content = """# Article
+
+claim_registry_revision: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+approval_policy_revision: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+receipt_sha256: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+pack_sha256: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+request_sha256: eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+support_resource_hashes: {"res-proof": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"}
+"""
+
+        findings = check_content(content)
+
+        self.assertEqual(
+            [finding["rule_id"] for finding in findings],
+            ["internal_connector_artifact"] * 6,
+        )
+
+    def test_raw_connector_schemas_and_fields_in_fenced_blocks_fail(self):
+        content = """# Article
+
+```json
+{"schema": "simpro-product-context-pack/v2"}
+{"context_pack_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+```
+
+~~~text
+simpro-context-receipt/v1
+resource_id: simpro.product.positioning
+~~~
+"""
+
+        findings = check_content(content)
+        self.assertEqual(
+            [finding["rule_id"] for finding in findings],
+            ["internal_connector_artifact"] * 4,
+        )
+
     def test_cod_editorial_review_notes_fail(self):
         content = """# Article
 
@@ -236,6 +376,31 @@ TK
         self.assertEqual(rule_ids.count("editorial_review_marker"), 3)
         self.assertEqual(rule_ids.count("draft_placeholder_note"), 3)
 
+    def test_blockquotes_cannot_hide_explicit_internal_review_markers(self):
+        content = """# Article
+
+> [PMM REVIEW: Confirm this claim]
+> [COD NOTE] Recheck packaging.
+> [NEEDS REVIEW]
+> 🔍 Confirm commercial treatment.
+"""
+
+        findings = check_content(content)
+
+        self.assertEqual(
+            [finding["rule_id"] for finding in findings],
+            ["editorial_review_marker"] * 4,
+        )
+
+    def test_ordinary_prose_about_review_and_proof_sections_passes(self):
+        content = """# Article
+
+The editor reviewed the customer proof slate before drafting this public explanation.
+This paragraph compares review-story selection methods without exposing an internal block.
+"""
+
+        self.assertEqual(check_content(content), [])
+
     def test_reader_instructions_image_placeholders_and_examples_pass(self):
         content = """# Article
 
@@ -261,7 +426,9 @@ This is public article copy with a useful customer-facing explanation.
         self.assertEqual(check_content(content), [])
 
     def test_check_file_and_failure_threshold(self):
-        with NamedTemporaryFile("w", encoding="utf-8", suffix=".md", delete=False) as temp_file:
+        with NamedTemporaryFile(
+            "w", encoding="utf-8", suffix=".md", delete=False
+        ) as temp_file:
             temp_file.write("# Article\n\nSource Map\n")
             temp_path = temp_file.name
 

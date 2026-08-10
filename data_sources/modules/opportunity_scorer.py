@@ -496,7 +496,7 @@ if __name__ == "__main__":
     print(f"Final Score: {result['final_score']}/100")
     print(f"Priority: {result['priority']}")
     print(f"Primary Factor: {result['primary_factor']}")
-    print(f"\nScore Breakdown:")
+    print("\nScore Breakdown:")
     for factor, score in result['score_breakdown'].items():
         print(f"  {factor}: {score}/100")
     print(f"\nExplanation: {result['score_explanation']}")
@@ -509,7 +509,7 @@ if __name__ == "__main__":
         current_clicks=keyword_data['clicks']
     )
 
-    print(f"\nTraffic Potential:")
+    print("\nTraffic Potential:")
     print(f"  Current: {traffic['current_clicks']} clicks/month (position {traffic['current_position']})")
     print(f"  Potential: {traffic['potential_clicks']} clicks/month (position {traffic['target_position']})")
     print(f"  Gain: +{traffic['additional_clicks']} clicks (+{traffic['percent_increase']}%)")

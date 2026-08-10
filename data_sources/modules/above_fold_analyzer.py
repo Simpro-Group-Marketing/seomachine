@@ -13,7 +13,7 @@ Checks for:
 """
 
 import re
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 
 
 class AboveFoldAnalyzer:
@@ -162,7 +162,7 @@ class AboveFoldAnalyzer:
         for pattern in self.WEAK_HEADLINE_PATTERNS:
             if re.search(pattern, h1_text, re.IGNORECASE):
                 score -= 30
-                issues.append(f'Weak headline pattern detected')
+                issues.append('Weak headline pattern detected')
                 break
 
         # Check for strong patterns
@@ -478,35 +478,35 @@ Our platform makes everything simple...
     print(f"Grade: {result['grade']}")
     print(f"Passes 5-Second Test: {result['passes_5_second_test']}")
 
-    print(f"\nElement Scores:")
+    print("\nElement Scores:")
     for element, score in result['element_scores'].items():
         print(f"  {element}: {score}/100")
 
     print(f"\nHeadline: {result['headline']['text']}")
     print(f"  Quality: {result['headline']['quality']}")
 
-    print(f"\nValue Proposition:")
+    print("\nValue Proposition:")
     print(f"  Clarity: {result['value_proposition']['clarity']}")
 
-    print(f"\nCTA:")
+    print("\nCTA:")
     if result['cta']['present']:
         print(f"  Text: {result['cta']['first_cta']}")
     else:
-        print(f"  NOT FOUND")
+        print("  NOT FOUND")
 
-    print(f"\nTrust Signal:")
+    print("\nTrust Signal:")
     if result['trust_signal']['present']:
         print(f"  Found: {result['trust_signal']['signals']}")
     else:
-        print(f"  NOT FOUND")
+        print("  NOT FOUND")
 
     if result['issues']:
-        print(f"\nIssues:")
+        print("\nIssues:")
         for issue in result['issues']:
             severity = {'critical': '❌', 'warning': '⚠️', 'suggestion': '💡'}
             print(f"  {severity[issue['severity']]} {issue['issue']}")
 
     if result['recommendations']:
-        print(f"\nRecommendations:")
+        print("\nRecommendations:")
         for rec in result['recommendations']:
             print(f"  → {rec}")

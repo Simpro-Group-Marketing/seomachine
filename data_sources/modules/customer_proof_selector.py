@@ -9,12 +9,17 @@ to whichever case study is easiest to cite.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
 import re
 import sys
+from contextlib import contextmanager, nullcontext
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Sequence
+from tempfile import TemporaryDirectory
+from typing import Any, Dict, Iterable, Iterator, List, Mapping, Optional, Sequence
 
 try:
     from .proof_usage import count_customer_proof_usage, usage_matches_candidate
@@ -32,6 +37,33 @@ DEFAULT_LEDGER_PATH = Path("context/customer-proof-usage-ledger.json")
 
 FindingDict = Dict[str, Any]
 SLATE_ROLES = {"experience_story", "metric", "quote", "theme"}
+
+
+class CustomerProofDataError(RuntimeError):
+    """Raised when receipt-backed customer proof cannot be verified."""
+
+
+@dataclass(frozen=True)
+class _ArtifactSnapshot:
+    label: str
+    path: Path
+    content: bytes
+    sha256: str
+    json_object: FindingDict | None = None
+
+    def evidence_record(self) -> FindingDict:
+        return {"path": str(self.path), "sha256": self.sha256}
+
+
+@dataclass(frozen=True)
+class _SelectorInputSnapshot:
+    artifacts: Mapping[str, _ArtifactSnapshot]
+    index: FindingDict
+    ledger: FindingDict
+    context_pack_path: Path
+    context_receipt_path: Path
+    receipt_claims: Any
+
 
 SOURCE_TYPE_WEIGHT = {
     "quote_matrix": 18,
@@ -109,20 +141,48 @@ def select_customer_proofs(
     proof_role: str = "any",
     limit: int = 8,
     reference_date: Optional[date] = None,
+    _input_snapshot: Optional[_SelectorInputSnapshot] = None,
 ) -> List[FindingDict]:
     """Return ranked customer proof candidates for a topic."""
     reference = reference_date or date.today()
-    index = _load_json(index_path, default={"proof": []})
-    ledger = _load_json(ledger_path, default={"uses": []})
-    try:
-        receipt_claims = load_validated_claim_set(context_pack, context_receipt)
-    except VaultClaimReceiptError as exc:
-        raise ValueError(f"Customer proof context receipt is invalid: {exc}") from exc
+    if _input_snapshot is None:
+        index = _load_json(index_path, "customer proof index")
+        ledger = _load_json(ledger_path, "customer proof ledger")
+        receipt_claims = _load_receipt_claims(context_pack, context_receipt)
+    else:
+        index = _input_snapshot.index
+        ledger = _input_snapshot.ledger
+        receipt_claims = _input_snapshot.receipt_claims
+    proof_rows = [
+        candidate
+        for candidate in index.get("proof", [])
+        if isinstance(candidate, dict)
+        and str(candidate.get("proof_id") or "").strip()
+        and str(candidate.get("public_url") or "")
+        .strip()
+        .startswith(("http://", "https://"))
+    ]
+    if not proof_rows:
+        raise CustomerProofDataError(
+            "Customer proof index has no usable public customer proof inventory rows."
+        )
+    inventory_ids = {str(candidate["proof_id"]).strip() for candidate in proof_rows}
+    receipt_selector_ids = {
+        claim.selector_id
+        for claim in receipt_claims.approved_claims()
+        if claim.selector_id
+    }
+    if inventory_ids and not inventory_ids.intersection(receipt_selector_ids):
+        raise CustomerProofDataError(
+            "Customer proof context receipt has no approved claims bound to the "
+            "customer proof inventory; rebuild the vault-owned selector bindings "
+            "and context artifacts."
+        )
     search_text = " ".join(part for part in (topic, title, objective) if part)
     topic_tokens = _tokens(search_text)
 
     scored = []
-    for candidate in index.get("proof", []):
+    for candidate in proof_rows:
         if not isinstance(candidate, dict):
             continue
         if require_eeat_story and not _is_review_story_eligible(candidate):
@@ -193,11 +253,15 @@ def build_customer_proof_slate(
     selected_overrides: Optional[Dict[str, str]] = None,
     rejected_overrides: Optional[Dict[str, Dict[str, str]]] = None,
     reference_date: Optional[date] = None,
+    _role_evidence: Optional[List[FindingDict]] = None,
+    _input_snapshot: Optional[_SelectorInputSnapshot] = None,
 ) -> str:
     """Return a sidecar-ready Customer Proof Slate block."""
     selected = selected_overrides or {}
     rejected = rejected_overrides or {}
-    normalized_roles = _parse_roles(",".join(roles) if not isinstance(roles, str) else roles)
+    normalized_roles = _parse_roles(
+        ",".join(roles) if not isinstance(roles, str) else roles
+    )
     command = _slate_selector_command(
         topic,
         title=title,
@@ -228,9 +292,18 @@ def build_customer_proof_slate(
             proof_role=role,
             limit=limit,
             reference_date=reference_date,
+            _input_snapshot=_input_snapshot,
         )
-        top_candidates = [str(result.get("proof_id", "")) for result in results if result.get("proof_id")]
-        claim_ids = [str(result.get("claim_id", "")) for result in results if result.get("claim_id")]
+        top_candidates = [
+            str(result.get("proof_id", ""))
+            for result in results
+            if result.get("proof_id")
+        ]
+        claim_ids = [
+            str(result.get("claim_id", ""))
+            for result in results
+            if result.get("claim_id")
+        ]
         receipt_revision = next(
             (
                 str(result.get("context_receipt_revision", ""))
@@ -239,7 +312,19 @@ def build_customer_proof_slate(
             ),
             "not available",
         )
-        selected_id = selected.get(role) or (top_candidates[0] if top_candidates else "none")
+        selected_override = str(selected.get(role) or "").strip()
+        if (
+            selected_override
+            and selected_override.casefold() != "none"
+            and selected_override not in top_candidates
+        ):
+            raise CustomerProofDataError(
+                "Selected customer proof ID is not in the verified "
+                f"{role} candidate slate: {selected_override}"
+            )
+        selected_id = selected_override or (
+            top_candidates[0] if top_candidates else "none"
+        )
         rejected_text = _format_rejected_candidates(rejected.get(role, {}))
         lines.append(
             "- Role: "
@@ -247,6 +332,16 @@ def build_customer_proof_slate(
             f"| Selected: [{selected_id}] | Claim IDs: [{', '.join(claim_ids) if claim_ids else 'none'}] "
             f"| Receipt revision: {receipt_revision} | Rejected stronger candidates: [{rejected_text}]"
         )
+        if _role_evidence is not None:
+            _role_evidence.append(
+                {
+                    "role": role,
+                    "candidate_ids": top_candidates,
+                    "claim_ids": claim_ids,
+                    "receipt_revision": receipt_revision,
+                    "selected_id": selected_id,
+                }
+            )
     return "\n".join(lines)
 
 
@@ -329,11 +424,118 @@ def _quote_command_value(value: str) -> str:
     return f'"{escaped}"'
 
 
-def _load_json(path: str | Path, default: FindingDict) -> FindingDict:
-    candidate = Path(path)
-    if not candidate.exists():
-        return dict(default)
-    return json.loads(candidate.read_text(encoding="utf-8"))
+def _capture_artifact(
+    path_value: str | Path | None,
+    label: str,
+    *,
+    parse_json_object: bool = False,
+) -> _ArtifactSnapshot:
+    if path_value is None or not str(path_value).strip():
+        raise CustomerProofDataError(f"{label} is required for selector evidence")
+    path = Path(path_value).expanduser().resolve()
+    try:
+        if not path.exists():
+            raise CustomerProofDataError(f"{label} is unavailable: {path}")
+        if not path.is_file():
+            raise CustomerProofDataError(f"{label} is not a regular file: {path}")
+        content = path.read_bytes()
+    except CustomerProofDataError:
+        raise
+    except OSError as exc:
+        raise CustomerProofDataError(f"{label} is unreadable: {path}: {exc}") from exc
+
+    json_object = None
+    if parse_json_object:
+        try:
+            decoded = content.decode("utf-8-sig")
+            parsed = json.loads(decoded)
+        except (UnicodeError, json.JSONDecodeError) as exc:
+            raise CustomerProofDataError(
+                f"{label} is invalid JSON: {path}: {exc}"
+            ) from exc
+        if not isinstance(parsed, dict):
+            raise CustomerProofDataError(f"{label} is invalid JSON object: {path}")
+        json_object = parsed
+    return _ArtifactSnapshot(
+        label=label,
+        path=path,
+        content=content,
+        sha256=hashlib.sha256(content).hexdigest(),
+        json_object=json_object,
+    )
+
+
+def _load_json(path: str | Path, label: str) -> FindingDict:
+    snapshot = _capture_artifact(path, label, parse_json_object=True)
+    if snapshot.json_object is None:  # pragma: no cover - constructor invariant.
+        raise CustomerProofDataError(f"{label} is invalid JSON object: {snapshot.path}")
+    return snapshot.json_object
+
+
+def _load_receipt_claims(
+    context_pack: str | Path | None,
+    context_receipt: str | Path | None,
+) -> Any:
+    try:
+        receipt_claims = load_validated_claim_set(context_pack, context_receipt)
+    except VaultClaimReceiptError as exc:
+        raise CustomerProofDataError(
+            f"Customer proof context receipt is invalid: {exc}"
+        ) from exc
+    if not receipt_claims.available:
+        raise CustomerProofDataError(
+            f"Customer proof context receipt is unavailable: {receipt_claims.blocker}"
+        )
+    return receipt_claims
+
+
+@contextmanager
+def _selector_input_snapshot(
+    *,
+    index_path: str | Path,
+    ledger_path: str | Path,
+    context_pack: str | Path | None,
+    context_receipt: str | Path | None,
+) -> Iterator[_SelectorInputSnapshot]:
+    artifacts = {
+        "index": _capture_artifact(
+            index_path,
+            "customer proof index",
+            parse_json_object=True,
+        ),
+        "ledger": _capture_artifact(
+            ledger_path,
+            "customer proof ledger",
+            parse_json_object=True,
+        ),
+        "context_pack": _capture_artifact(context_pack, "context pack"),
+        "context_receipt": _capture_artifact(context_receipt, "context receipt"),
+    }
+    changed_input = _selector_artifacts_unchanged(artifacts)
+    if changed_input is not None:
+        raise CustomerProofDataError(
+            f"Selector evidence input changed during snapshot: {changed_input}"
+        )
+
+    with TemporaryDirectory(prefix="simpro-customer-proof-") as temp_dir:
+        snapshot_root = Path(temp_dir)
+        snapshot_pack = snapshot_root / "context-pack.json"
+        snapshot_receipt = snapshot_root / "context-receipt.json"
+        snapshot_pack.write_bytes(artifacts["context_pack"].content)
+        snapshot_receipt.write_bytes(artifacts["context_receipt"].content)
+        receipt_claims = _load_receipt_claims(snapshot_pack, snapshot_receipt)
+        index = artifacts["index"].json_object
+        ledger = artifacts["ledger"].json_object
+        if index is None or ledger is None:  # pragma: no cover - capture invariant.
+            raise CustomerProofDataError("Selector JSON snapshot is unavailable")
+        yield _SelectorInputSnapshot(
+            artifacts=artifacts,
+            index=index,
+            ledger=ledger,
+            context_pack_path=snapshot_pack,
+            context_receipt_path=snapshot_receipt,
+            receipt_claims=receipt_claims,
+        )
 
 
 def _relevance_score(topic_tokens: set[str], candidate: FindingDict) -> int:
@@ -348,7 +550,11 @@ def _relevance_score(topic_tokens: set[str], candidate: FindingDict) -> int:
         phrase_bonus += 8
     if "small trade" in text or "small trades" in text:
         phrase_bonus += 6
-    if "quoting" in topic_tokens and "invoicing" in topic_tokens and {"quoting", "invoicing"}.issubset(candidate_tokens):
+    if (
+        "quoting" in topic_tokens
+        and "invoicing" in topic_tokens
+        and {"quoting", "invoicing"}.issubset(candidate_tokens)
+    ):
         phrase_bonus += 10
     if topic and topic in text:
         phrase_bonus += 5
@@ -366,14 +572,20 @@ def _score_candidate(candidate: FindingDict) -> int:
         score += 8
     score += int(candidate.get("source_intent_score", 0))
     score -= int(candidate.get("recent_uses_90d", 0)) * RECENT_USE_SCORE_PENALTY
-    score -= max(
-        int(candidate.get("total_uses", 0)) - int(candidate.get("recent_uses_90d", 0)),
-        0,
-    ) * HISTORICAL_USE_SCORE_PENALTY
+    score -= (
+        max(
+            int(candidate.get("total_uses", 0))
+            - int(candidate.get("recent_uses_90d", 0)),
+            0,
+        )
+        * HISTORICAL_USE_SCORE_PENALTY
+    )
     return score
 
 
-def _used_in_article(candidate: FindingDict, uses: Iterable[FindingDict], article_slug: str) -> bool:
+def _used_in_article(
+    candidate: FindingDict, uses: Iterable[FindingDict], article_slug: str
+) -> bool:
     for usage in uses:
         if str(usage.get("article_slug", "")) != article_slug:
             continue
@@ -427,21 +639,27 @@ def _matches_proof_role(candidate: FindingDict, proof_role: str) -> bool:
         source_type = str(candidate.get("source_type", "")).strip().lower()
         if _is_review_story_eligible(candidate):
             return True
-        return (
-            source_type in {"case_study", "customer_story", "reference"}
-            and bool(candidate.get("public_copy_allowed", False))
+        return source_type in {"case_study", "customer_story", "reference"} and bool(
+            candidate.get("public_copy_allowed", False)
         )
     if role == "metric":
         return bool(candidate.get("approved_metrics") or [])
     if role == "quote":
         for row in candidate.get("approved_quotes", []) or []:
-            if isinstance(row, dict) and str(row.get("status", "")).strip().lower() == "approved":
+            if (
+                isinstance(row, dict)
+                and str(row.get("status", "")).strip().lower() == "approved"
+            ):
                 return True
             if isinstance(row, str) and "status: approved" in row.lower():
                 return True
         return False
     if role == "theme":
-        return bool(candidate.get("themes") or candidate.get("evidence") or candidate.get("workflow_fit"))
+        return bool(
+            candidate.get("themes")
+            or candidate.get("evidence")
+            or candidate.get("workflow_fit")
+        )
     return True
 
 
@@ -472,7 +690,9 @@ def _is_review_story_eligible(candidate: FindingDict) -> bool:
     )
     if not identity:
         return False
-    public_url = str(story.get("public_url") or candidate.get("public_url") or "").strip()
+    public_url = str(
+        story.get("public_url") or candidate.get("public_url") or ""
+    ).strip()
     return public_url.startswith(("http://", "https://"))
 
 
@@ -527,16 +747,159 @@ def _normalize_space(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def _selector_artifacts_unchanged(
+    artifacts: Mapping[str, _ArtifactSnapshot],
+) -> Optional[Path]:
+    for artifact in artifacts.values():
+        try:
+            current_content = artifact.path.read_bytes()
+        except OSError:
+            return artifact.path
+        if current_content != artifact.content:
+            return artifact.path
+    return None
+
+
+def _raise_if_selector_inputs_changed(
+    artifacts: Mapping[str, _ArtifactSnapshot],
+) -> None:
+    changed_input = _selector_artifacts_unchanged(artifacts)
+    if changed_input is not None:
+        raise CustomerProofDataError(
+            f"Selector evidence input changed during selection: {changed_input}"
+        )
+
+
+def _paths_alias(left: Path, right: Path) -> bool:
+    """Return whether two paths name the same file, including hard links."""
+    try:
+        left_normalized = os.path.normcase(str(left.resolve(strict=False)))
+        right_normalized = os.path.normcase(str(right.resolve(strict=False)))
+    except OSError:
+        left_normalized = os.path.normcase(os.path.abspath(str(left)))
+        right_normalized = os.path.normcase(os.path.abspath(str(right)))
+    if left_normalized == right_normalized:
+        return True
+    try:
+        return left.exists() and right.exists() and os.path.samefile(left, right)
+    except OSError:
+        return False
+
+
+def _validate_evidence_output_paths(
+    output: Path,
+    temporary_output: Path,
+    artifacts: Mapping[str, _ArtifactSnapshot],
+) -> None:
+    for candidate in (output, temporary_output):
+        for artifact in artifacts.values():
+            if _paths_alias(candidate, artifact.path):
+                raise CustomerProofDataError(
+                    "Selector evidence output aliases selector input: "
+                    f"{candidate} -> {artifact.path}"
+                )
+
+
+def _write_selector_evidence(
+    output_path: str | Path,
+    *,
+    topic: str,
+    title: str,
+    objective: str,
+    article_slug: str,
+    roles: Sequence[str],
+    require_eeat_story: bool,
+    limit: int,
+    reference_date: date,
+    selected_overrides: Mapping[str, str],
+    rejected_overrides: Mapping[str, Mapping[str, str]],
+    role_evidence: Sequence[FindingDict],
+    input_snapshot: _SelectorInputSnapshot,
+) -> tuple[str, str]:
+    artifacts = input_snapshot.artifacts
+    evidence = {
+        "schema": "simpro-customer-proof-selector-evidence/v1",
+        "inputs": {
+            "topic": topic,
+            "title": title,
+            "objective": objective,
+            "article_slug": article_slug,
+            "roles": list(roles),
+            "require_eeat_story": require_eeat_story,
+            "limit": limit,
+            "reference_date": reference_date.isoformat(),
+            "selected_overrides": dict(selected_overrides),
+            "rejected_overrides": {
+                role: dict(rows) for role, rows in rejected_overrides.items()
+            },
+        },
+        "artifacts": {
+            name: artifact.evidence_record() for name, artifact in artifacts.items()
+        },
+        "roles": list(role_evidence),
+    }
+    output = Path(output_path).expanduser()
+    temporary_output = output.with_name(f"{output.name}.tmp")
+    _validate_evidence_output_paths(output, temporary_output, artifacts)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    payload = (
+        json.dumps(evidence, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    ).encode("utf-8")
+    published = False
+    original_output = output.read_bytes() if output.is_file() else None
+    _raise_if_selector_inputs_changed(artifacts)
+    try:
+        temporary_output.write_bytes(payload)
+        _raise_if_selector_inputs_changed(artifacts)
+        temporary_output.replace(output)
+        published = True
+        _raise_if_selector_inputs_changed(artifacts)
+    except Exception:
+        temporary_output.unlink(missing_ok=True)
+        if published:
+            if original_output is None:
+                output.unlink(missing_ok=True)
+            else:
+                temporary_output.write_bytes(original_output)
+                temporary_output.replace(output)
+        raise
+    return str(output), hashlib.sha256(payload).hexdigest()
+
+
 def _main(argv: Optional[Sequence[str]] = None) -> int:
-    parser = argparse.ArgumentParser(description="Rank customer proof candidates for a topic.")
+    parser = argparse.ArgumentParser(
+        description="Rank customer proof candidates for a topic."
+    )
     parser.add_argument("topic", help="Topic or keyword to rank proof against.")
-    parser.add_argument("--index", default=str(DEFAULT_INDEX_PATH), help="Customer proof index JSON path.")
-    parser.add_argument("--ledger", default=str(DEFAULT_LEDGER_PATH), help="Customer proof usage ledger JSON path.")
-    parser.add_argument("--context-pack", help="simpro-product-context-pack/v2 JSON path.")
-    parser.add_argument("--context-receipt", help="simpro-context-receipt/v1 JSON path.")
-    parser.add_argument("--article-slug", default="", help="Optional current article slug to avoid same-article repeats.")
-    parser.add_argument("--title", default="", help="Optional article title for proof fit scoring.")
-    parser.add_argument("--objective", default="", help="Optional content objective for proof fit scoring.")
+    parser.add_argument(
+        "--index",
+        default=str(DEFAULT_INDEX_PATH),
+        help="Customer proof index JSON path.",
+    )
+    parser.add_argument(
+        "--ledger",
+        default=str(DEFAULT_LEDGER_PATH),
+        help="Customer proof usage ledger JSON path.",
+    )
+    parser.add_argument(
+        "--context-pack", help="simpro-product-context-pack/v2 JSON path."
+    )
+    parser.add_argument(
+        "--context-receipt", help="simpro-context-receipt/v1 JSON path."
+    )
+    parser.add_argument(
+        "--article-slug",
+        default="",
+        help="Optional current article slug to avoid same-article repeats.",
+    )
+    parser.add_argument(
+        "--title", default="", help="Optional article title for proof fit scoring."
+    )
+    parser.add_argument(
+        "--objective",
+        default="",
+        help="Optional content objective for proof fit scoring.",
+    )
     parser.add_argument(
         "--require-eeat-story",
         action="store_true",
@@ -548,7 +911,9 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
         default="any",
         help="Desired proof role for this selection pass.",
     )
-    parser.add_argument("--limit", type=int, default=8, help="Maximum number of candidates to return.")
+    parser.add_argument(
+        "--limit", type=int, default=8, help="Maximum number of candidates to return."
+    )
     parser.add_argument(
         "--slate",
         action="store_true",
@@ -571,17 +936,82 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
         default=[],
         help="Document a rejected stronger candidate, e.g. metric=proof_id:section-specific reason. Repeatable.",
     )
+    parser.add_argument(
+        "--evidence-output",
+        help="Write a hash-bound JSON record of selector inputs and verified candidates.",
+    )
     args = parser.parse_args(argv)
+    if args.evidence_output and not args.slate:
+        parser.error("--evidence-output requires --slate")
 
-    if args.slate:
-        try:
-            roles = _parse_roles(args.roles)
-            selected_overrides = _parse_selected_overrides(args.selected)
-            rejected_overrides = _parse_rejected_overrides(args.reject)
-        except ValueError as exc:
-            parser.error(str(exc))
-        print(
-            build_customer_proof_slate(
+    try:
+        if args.slate:
+            try:
+                roles = _parse_roles(args.roles)
+                selected_overrides = _parse_selected_overrides(args.selected)
+                rejected_overrides = _parse_rejected_overrides(args.reject)
+            except ValueError as exc:
+                parser.error(str(exc))
+            reference_date = date.today()
+            snapshot_context = (
+                _selector_input_snapshot(
+                    index_path=args.index,
+                    ledger_path=args.ledger,
+                    context_pack=args.context_pack,
+                    context_receipt=args.context_receipt,
+                )
+                if args.evidence_output
+                else nullcontext(None)
+            )
+            with snapshot_context as input_snapshot:
+                role_evidence: List[FindingDict] = []
+                slate = build_customer_proof_slate(
+                    args.topic,
+                    index_path=args.index,
+                    ledger_path=args.ledger,
+                    context_pack=args.context_pack,
+                    context_receipt=args.context_receipt,
+                    article_slug=args.article_slug,
+                    title=args.title,
+                    objective=args.objective,
+                    require_eeat_story=args.require_eeat_story,
+                    roles=roles,
+                    limit=args.limit,
+                    selected_overrides=selected_overrides,
+                    rejected_overrides=rejected_overrides,
+                    reference_date=reference_date,
+                    _role_evidence=role_evidence,
+                    _input_snapshot=input_snapshot,
+                )
+                if args.evidence_output:
+                    if input_snapshot is None:  # pragma: no cover - context invariant.
+                        raise CustomerProofDataError(
+                            "Selector evidence input snapshot is unavailable"
+                        )
+                    evidence_path, evidence_hash = _write_selector_evidence(
+                        args.evidence_output,
+                        topic=args.topic,
+                        title=args.title,
+                        objective=args.objective,
+                        article_slug=args.article_slug,
+                        roles=roles,
+                        require_eeat_story=args.require_eeat_story,
+                        limit=args.limit,
+                        reference_date=reference_date,
+                        selected_overrides=selected_overrides,
+                        rejected_overrides=rejected_overrides,
+                        role_evidence=role_evidence,
+                        input_snapshot=input_snapshot,
+                    )
+                    slate_lines = slate.splitlines()
+                    slate_lines.insert(
+                        2,
+                        f"- Selector evidence: {evidence_path} | SHA-256: {evidence_hash}",
+                    )
+                    slate = "\n".join(slate_lines)
+            print(slate)
+        else:
+            results = select_customer_proofs(
                 args.topic,
                 index_path=args.index,
                 ledger_path=args.ledger,
@@ -591,28 +1021,13 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
                 title=args.title,
                 objective=args.objective,
                 require_eeat_story=args.require_eeat_story,
-                roles=roles,
+                proof_role=args.proof_role,
                 limit=args.limit,
-                selected_overrides=selected_overrides,
-                rejected_overrides=rejected_overrides,
             )
-        )
-        return 0
-
-    results = select_customer_proofs(
-        args.topic,
-        index_path=args.index,
-        ledger_path=args.ledger,
-        context_pack=args.context_pack,
-        context_receipt=args.context_receipt,
-        article_slug=args.article_slug,
-        title=args.title,
-        objective=args.objective,
-        require_eeat_story=args.require_eeat_story,
-        proof_role=args.proof_role,
-        limit=args.limit,
-    )
-    print(json.dumps({"topic": args.topic, "results": results}, indent=2))
+            print(json.dumps({"topic": args.topic, "results": results}, indent=2))
+    except CustomerProofDataError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
     return 0
 
 

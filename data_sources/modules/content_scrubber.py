@@ -296,7 +296,7 @@ def scrub_content(content: str, verbose: bool = False) -> str:
     cleaned_content, stats = scrubber.scrub(content)
 
     if verbose:
-        print(f"Content Scrubbing Complete:")
+        print("Content Scrubbing Complete:")
         print(f"  - Unicode watermarks removed: {stats['unicode_removed']}")
         print(f"  - Format-control chars removed: {stats['format_control_removed']}")
         print(f"  - Em-dashes replaced: {stats['emdashes_replaced']}")

@@ -1,97 +1,95 @@
-import csv
 import hashlib
 import json
-import os
-import unittest
-from contextlib import redirect_stdout
-from io import StringIO
 from pathlib import Path
-from tempfile import TemporaryDirectory
+from typing import Any, Iterable, Mapping
 from unittest.mock import patch
+
+import pytest
 
 from data_sources.modules.fred_authority_selector import (
     FredAuthorityDataError,
     _main,
-    _resolve_vault_root,
     build_fred_authority_slate,
     select_fred_authority,
 )
+from data_sources.modules.vault_claim_receipts import load_validated_claim_set
 
 
-INVENTORY_FIELDS = [
-    "inventory_id",
-    "media_type",
-    "authority_id",
-    "source_layer",
-    "outlet",
-    "title",
-    "url_or_locator",
-    "date",
-    "recommended_brand",
-    "evidence_status",
-    "public_use_status",
-    "include_in_hub",
-    "notes",
-]
-
-AUTHORITY_FIELDS = [
-    "authority_id",
-    "cluster",
-    "outlet",
-    "headline",
-    "canonical_url",
-    "date",
-    "country",
-    "recommended_brand",
-    "total_placements",
-    "also_covered_by",
-    "eeat_dimension",
-    "evidence_status",
-    "allowed_use",
-    "public_use_status",
-    "source_node",
-    "raw_file",
-    "notes",
-]
+ARTICLE_URL = "https://example.com/skilled-trades"
+FINANCE_URL = "https://example.com/private-equity"
+VIDEO_URL = "https://www.youtube.com/watch?v=abc123XYZ00"
 
 
-def _write_csv(path: Path, fields: list[str], rows: list[dict[str, str]]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def _canonical_json(value) -> str:
+def _canonical_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
-def _sha256_json(value) -> str:
+def _sha256_json(value: Any) -> str:
     return hashlib.sha256(_canonical_json(value).encode("utf-8")).hexdigest()
+
+
+def fred_claim(
+    selector_id: str,
+    assertion: str,
+    public_url: str,
+    *,
+    claim_type: str = "fred-authority-joined-v2",
+    authority_resource_id: str | None = None,
+    claim_id: str | None = None,
+    use_mode: str = "authority_support",
+) -> dict[str, str]:
+    return {
+        "claim_id": claim_id or f"claim-fred-{selector_id}",
+        "selector_id": selector_id,
+        "assertion": assertion,
+        "public_url": public_url,
+        "claim_type": claim_type,
+        "authority_resource_id": authority_resource_id or f"res-fred-{selector_id.lower()}",
+        "use_mode": use_mode,
+    }
+
+
+def default_fred_claims() -> list[dict[str, str]]:
+    return [
+        fred_claim(
+            "FVMI-001",
+            "Why skilled trades need better workforce technology",
+            ARTICLE_URL,
+        ),
+        fred_claim(
+            "FVMI-002",
+            "Private equity market conditions and investment strategy",
+            FINANCE_URL,
+        ),
+        fred_claim(
+            "FVMI-003",
+            "Fred Voccola on field service leadership",
+            VIDEO_URL,
+        ),
+    ]
 
 
 def write_context_receipt_fixture(
     root: Path,
-    selector_ids: tuple[str, ...] = ("FVMI-001", "FVMI-002", "FVMI-003"),
-    url_overrides: dict[str, str] | None = None,
-) -> tuple[Path, Path]:
-    urls = {
-        "FVMI-001": "https://example.com/skilled-trades",
-        "FVMI-002": "https://example.com/finance",
-        "FVMI-003": "https://www.youtube.com/watch?v=abc123XYZ00",
+    claims: Iterable[Mapping[str, str]] | None = None,
+) -> tuple[Path, Path, str]:
+    """Write a canonical six-section context pack and its bound receipt."""
+    sources = list(claims if claims is not None else default_fred_claims())
+    requested_use_modes = sorted(
+        {str(source.get("use_mode") or "authority_support") for source in sources}
+    )
+    request = {
+        "task": "Select Fred Voccola authority evidence for a Simpro blog.",
+        "scope": {
+            "artifact_type": "blog",
+            "brand": "Simpro",
+            "title": "Workforce technology",
+            "objective": "Evaluate relevant authority support.",
+            "audience": "field service leaders",
+            "region": "US",
+            "intended_public_use_modes": requested_use_modes,
+        },
     }
-    urls.update(url_overrides or {})
-    titles = {
-        "FVMI-001": "Why skilled trades need better workforce technology",
-        "FVMI-002": "Private equity market conditions",
-        "FVMI-003": "Fred Voccola on field service leadership",
-    }
-    request = {"topic": "fred authority fixture"}
     revisions = {
         "content_revision": "content-1",
         "contract_revision": "contract-1",
@@ -100,544 +98,297 @@ def write_context_receipt_fixture(
         "claim_registry_revision": "claims-1",
         "approval_policy_revision": "policy-1",
     }
-    evidence = []
+    evidence_rows = []
     decisions = []
-    for selector_id in selector_ids:
-        source_hash = f"hash-{selector_id}"
-        row = {
-            "claim_id": f"claim-fred-{selector_id}",
-            "selector_id": selector_id,
-            "assertion": titles[selector_id],
-            "use_mode": "authority_support",
-            "brand_scope": ["Simpro"],
-            "source_hash": source_hash,
-            "support_resource_hashes": {f"res-{selector_id}": source_hash},
-            "public_url": urls[selector_id],
-            "approval_source": "connector_claim_result",
-        }
-        evidence.append(row)
-        decisions.append(
+    resource_ids = []
+    resource_hashes = {}
+    for source in sources:
+        claim_id = str(source["claim_id"])
+        resource_id = str(source.get("authority_resource_id") or "")
+        use_mode = str(source.get("use_mode") or "authority_support")
+        source_hash = hashlib.sha256(resource_id.encode("utf-8")).hexdigest()
+        resource_hashes[resource_id] = source_hash
+        evidence_rows.append(
             {
-                "claim_id": row["claim_id"],
-                "selector_id": row["selector_id"],
-                "assertion": row["assertion"],
-                "requested_use_mode": row["use_mode"],
-                "brand_scope": row["brand_scope"],
-                "source_hash": row["source_hash"],
-                "public_url": row["public_url"],
-                "approval_source": row["approval_source"],
-                "decision": "approved",
+                "claim_id": claim_id,
+                "selector_id": str(source["selector_id"]),
+                "assertion": str(source["assertion"]),
+                "claim_type": str(source.get("claim_type") or ""),
+                "authority_resource_id": resource_id,
+                "evidence_anchor": f"never-a-locator#{claim_id}",
+                "public_url": str(source["public_url"]),
+                "source_hash": source_hash,
+                "support_resource_ids": [resource_id],
+                "support_resource_hashes": {resource_id: source_hash},
+                "use_mode": use_mode,
+                "brand_scope": "Simpro",
+                "authority_date": "2026-08-10",
             }
         )
+        decisions.append(
+            {
+                "claim_id": claim_id,
+                "query": "Fred Voccola authority evidence",
+                "approved": True,
+                "use_mode": use_mode,
+                "brand_scope": "Simpro",
+                "authority_date": "2026-08-10",
+            }
+        )
+        if resource_id not in resource_ids:
+            resource_ids.append(resource_id)
     pack = {
         "schema": "simpro-product-context-pack/v2",
-        "request": request,
         "revisions": revisions,
-        "approved_claim_evidence": evidence,
+        "claim_registry_revision": "claims-1",
+        "sections": {
+            "Task and Scope": {
+                "task": request["task"],
+                "scope": request["scope"],
+                "task_satisfaction": "satisfied",
+            },
+            "Discovery Trace": {
+                "entries": [],
+                "selected_resource_ids": resource_ids,
+                "selected_resource_purposes": {
+                    resource_id: "authority_support" for resource_id in resource_ids
+                },
+            },
+            "Retrieved Guidance": [],
+            "Approved Claim Evidence": evidence_rows,
+            "Constraints and Unresolved Gaps": {
+                "constraints": [],
+                "unresolved_gaps": [],
+            },
+            "Selected Resource Inventory": [
+                {
+                    "resource_id": resource_id,
+                    "purpose": "authority_support",
+                    "resource_hash": resource_hashes[resource_id],
+                }
+                for resource_id in resource_ids
+            ],
+        },
     }
     receipt = {
         "schema": "simpro-context-receipt/v1",
         "request_sha256": _sha256_json(request),
         "pack_sha256": _sha256_json(pack),
         "revisions": revisions,
+        "claim_registry_revision": "claims-1",
+        "resources": resource_ids,
+        "resource_purposes": {
+            resource_id: "authority_support" for resource_id in resource_ids
+        },
         "claim_decisions": decisions,
-        "canonical_receipt_sha256": "fred-receipt-fixture",
+        "search_queries": ["Fred Voccola authority evidence"],
+        "discovery_trace": [],
+        "constraints": [],
+        "unresolved_gaps": [],
+        "task_satisfaction": "satisfied",
+        "validation_time": "2026-08-10T12:00:00Z",
+        "errors": [],
     }
+    receipt["receipt_sha256"] = _sha256_json(receipt)
     pack_path = root / "context-pack.json"
     receipt_path = root / "context-receipt.json"
     pack_path.write_text(json.dumps(pack, indent=2), encoding="utf-8")
     receipt_path.write_text(json.dumps(receipt, indent=2), encoding="utf-8")
-    return pack_path, receipt_path
+    return pack_path, receipt_path, str(receipt["receipt_sha256"])
 
 
-def write_vault_fixture(root: Path) -> Path:
-    inventory_path = root / "indexes" / "fred-voccola-media-inventory.csv"
-    authority_path = root / "indexes" / "authority-signal-matrix.csv"
-    manifest_path = root / "indexes" / "agent-retrieval-manifest.jsonl"
+class AcceptingContextClient:
+    def validate_context(self, request, pack, receipt):
+        return {"valid": True, "errors": []}
 
-    _write_csv(
-        inventory_path,
-        INVENTORY_FIELDS,
-        [
-            {
-                "inventory_id": "FVMI-001",
-                "media_type": "article",
-                "authority_id": "AUTH-001",
-                "source_layer": "public_pr",
-                "outlet": "Field Service News",
-                "title": "Why skilled trades need better workforce technology",
-                "url_or_locator": "https://example.com/skilled-trades",
-                "date": "2026-01-01",
-                "recommended_brand": "Simpro",
-                "evidence_status": "source_visible",
-                "public_use_status": "usable_for_eeat_authority_support",
-                "include_in_hub": "yes",
-                "notes": "",
-            },
-            {
-                "inventory_id": "FVMI-002",
-                "media_type": "article",
-                "authority_id": "AUTH-002",
-                "source_layer": "public_pr",
-                "outlet": "Finance Daily",
-                "title": "Private equity market conditions",
-                "url_or_locator": "https://example.com/finance",
-                "date": "2026-01-02",
-                "recommended_brand": "Simpro",
-                "evidence_status": "source_visible",
-                "public_use_status": "usable_for_eeat_authority_support",
-                "include_in_hub": "yes",
-                "notes": "",
-            },
-            {
-                "inventory_id": "FVMI-003",
-                "media_type": "video",
-                "authority_id": "",
-                "source_layer": "youtube_playlist",
-                "outlet": "YouTube",
-                "title": "Fred Voccola on field service leadership",
-                "url_or_locator": "https://www.youtube.com/watch?v=abc123XYZ00",
-                "date": "2026-01-03",
-                "recommended_brand": "Simpro",
-                "evidence_status": "playlist_verified_public",
-                "public_use_status": "public_curated_playlist_asset",
-                "include_in_hub": "yes",
-                "notes": "Public and embeddable",
-            },
-            {
-                "inventory_id": "FVMI-004",
-                "media_type": "article",
-                "authority_id": "AUTH-004",
-                "source_layer": "internal",
-                "outlet": "Internal",
-                "title": "Internal workforce memo",
-                "url_or_locator": "raw/internal.md",
-                "date": "2026-01-04",
-                "recommended_brand": "Simpro",
-                "evidence_status": "internal_only",
-                "public_use_status": "blocked",
-                "include_in_hub": "no",
-                "notes": "",
-            },
-            {
-                "inventory_id": "FVMI-005",
-                "media_type": "article",
-                "authority_id": "AUTH-005",
-                "source_layer": "syndicated",
-                "outlet": "Syndication Wire",
-                "title": "Syndicated skilled trades placement",
-                "url_or_locator": "https://example.com/syndicated",
-                "date": "2026-01-05",
-                "recommended_brand": "Simpro",
-                "evidence_status": "placement_only",
-                "public_use_status": "syndicated_placement_only",
-                "include_in_hub": "yes",
-                "notes": "",
-            },
-            {
-                "inventory_id": "FVMI-006",
-                "media_type": "article",
-                "authority_id": "AUTH-006",
-                "source_layer": "public_pr",
-                "outlet": "Trade News",
-                "title": "Skilled trades operations",
-                "url_or_locator": "https://example.com/other-brand",
-                "date": "2026-01-06",
-                "recommended_brand": "BigChange",
-                "evidence_status": "source_visible",
-                "public_use_status": "usable_for_eeat_authority_support",
-                "include_in_hub": "yes",
-                "notes": "",
-            },
-        ],
+
+def load_validated_claim_set_for_unit_test(
+    context_pack,
+    context_receipt,
+    *,
+    vault_root=None,
+):
+    return load_validated_claim_set(
+        context_pack,
+        context_receipt,
+        vault_root=vault_root,
+        client=AcceptingContextClient(),
     )
-    _write_csv(
-        authority_path,
-        AUTHORITY_FIELDS,
-        [
-            {
-                "authority_id": "AUTH-001",
-                "cluster": "skilled trades workforce technology",
-                "outlet": "Field Service News",
-                "headline": "Why skilled trades need better workforce technology",
-                "canonical_url": "https://example.com/skilled-trades",
-                "date": "2026-01-01",
-                "country": "US",
-                "recommended_brand": "Simpro",
-                "total_placements": "1",
-                "also_covered_by": "",
-                "eeat_dimension": "Expertise; Authority",
-                "evidence_status": "source_visible",
-                "allowed_use": "Industry observation with contextual citation",
-                "public_use_status": "usable_for_eeat_authority_support",
-                "source_node": "wiki/source.md",
-                "raw_file": "raw/source.md",
-                "notes": "",
-            },
-            {
-                "authority_id": "AUTH-002",
-                "cluster": "finance and investment",
-                "outlet": "Finance Daily",
-                "headline": "Private equity market conditions",
-                "canonical_url": "https://example.com/finance",
-                "date": "2026-01-02",
-                "country": "US",
-                "recommended_brand": "Simpro",
-                "total_placements": "1",
-                "also_covered_by": "",
-                "eeat_dimension": "Authority",
-                "evidence_status": "source_visible",
-                "allowed_use": "Industry observation with contextual citation",
-                "public_use_status": "usable_for_eeat_authority_support",
-                "source_node": "wiki/finance.md",
-                "raw_file": "raw/finance.md",
-                "notes": "",
-            },
-            {
-                "authority_id": "AUTH-004",
-                "cluster": "workforce",
-                "outlet": "Internal",
-                "headline": "Internal workforce memo",
-                "canonical_url": "",
-                "date": "2026-01-04",
-                "country": "US",
-                "recommended_brand": "Simpro",
-                "total_placements": "0",
-                "also_covered_by": "",
-                "eeat_dimension": "Expertise",
-                "evidence_status": "internal_only",
-                "allowed_use": "internal only",
-                "public_use_status": "blocked",
-                "source_node": "wiki/internal.md",
-                "raw_file": "raw/internal.md",
-                "notes": "",
-            },
-            {
-                "authority_id": "AUTH-005",
-                "cluster": "skilled trades",
-                "outlet": "Syndication Wire",
-                "headline": "Syndicated skilled trades placement",
-                "canonical_url": "https://example.com/syndicated",
-                "date": "2026-01-05",
-                "country": "US",
-                "recommended_brand": "Simpro",
-                "total_placements": "20",
-                "also_covered_by": "",
-                "eeat_dimension": "Authority",
-                "evidence_status": "placement_only",
-                "allowed_use": "syndicated placement only",
-                "public_use_status": "syndicated_placement_only",
-                "source_node": "wiki/syndicated.md",
-                "raw_file": "raw/syndicated.md",
-                "notes": "",
-            },
-            {
-                "authority_id": "AUTH-006",
-                "cluster": "skilled trades",
-                "outlet": "Trade News",
-                "headline": "Skilled trades operations",
-                "canonical_url": "https://example.com/other-brand",
-                "date": "2026-01-06",
-                "country": "UK",
-                "recommended_brand": "BigChange",
-                "total_placements": "1",
-                "also_covered_by": "",
-                "eeat_dimension": "Authority",
-                "evidence_status": "source_visible",
-                "allowed_use": "Industry observation with contextual citation",
-                "public_use_status": "usable_for_eeat_authority_support",
-                "source_node": "wiki/other.md",
-                "raw_file": "raw/other.md",
-                "notes": "",
-            },
-        ],
+
+
+@pytest.fixture(autouse=True)
+def _mock_live_validator():
+    with patch(
+        "data_sources.modules.fred_authority_selector.load_validated_claim_set",
+        new=load_validated_claim_set_for_unit_test,
+    ):
+        yield
+
+
+def test_public_fred_authority_requires_context_receipt():
+    with pytest.raises(FredAuthorityDataError, match="context pack and receipt are required"):
+        select_fred_authority("skilled trades")
+
+
+def test_topic_fit_ranks_relevant_receipt_claim_first(tmp_path):
+    pack, receipt, _ = write_context_receipt_fixture(tmp_path)
+
+    results = select_fred_authority(
+        "skilled trades workforce",
+        title="How workforce technology supports field service teams",
+        objective="Explain labor challenges in the trades",
+        context_pack=pack,
+        context_receipt=receipt,
     )
-    manifest_path.write_text(
-        json.dumps(
-            {
-                "record_type": "manifest",
-                "schema": "simpro-agent-retrieval-manifest/v1",
-                "control_inputs": [
-                    {
-                        "path": "indexes/fred-voccola-media-inventory.csv",
-                        "sha256": _sha256(inventory_path),
-                    },
-                    {
-                        "path": "indexes/authority-signal-matrix.csv",
-                        "sha256": _sha256(authority_path),
-                    },
-                ],
-            }
+
+    assert results[0]["inventory_id"] == "FVMI-001"
+    assert results[0]["authority_id"] == "res-fred-fvmi-001"
+    assert results[0]["score"] > results[1]["score"]
+
+
+def test_selector_filters_non_fred_receipt_claims(tmp_path):
+    claims = default_fred_claims() + [
+        fred_claim(
+            "OTHER-001",
+            "Skilled trades workforce technology",
+            "https://example.com/not-fred",
+            claim_type="named-feature-status-v1",
         )
-        + "\n",
-        encoding="utf-8",
+    ]
+    pack, receipt, _ = write_context_receipt_fixture(tmp_path, claims)
+
+    results = select_fred_authority(
+        "skilled trades workforce",
+        context_pack=pack,
+        context_receipt=receipt,
+        limit=10,
     )
-    return root
+
+    assert {item["inventory_id"] for item in results} == {
+        "FVMI-001",
+        "FVMI-002",
+        "FVMI-003",
+    }
 
 
+def test_youtube_watch_claim_is_embed_eligible_not_playlist_only(tmp_path):
+    pack, receipt, _ = write_context_receipt_fixture(tmp_path)
 
-def refresh_manifest(vault: Path) -> None:
-    manifest_path = vault / "indexes" / "agent-retrieval-manifest.jsonl"
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8").splitlines()[0])
-    for item in manifest["control_inputs"]:
-        item["sha256"] = _sha256(vault / item["path"])
-    manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
-class FredAuthoritySelectorTests(unittest.TestCase):
-    def test_public_fred_authority_requires_context_receipt(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            results = select_fred_authority("skilled trades", vault_root=vault)
+    result = next(
+        item
+        for item in select_fred_authority(
+            "field service leadership",
+            context_pack=pack,
+            context_receipt=receipt,
+        )
+        if item["inventory_id"] == "FVMI-003"
+    )
 
-        self.assertEqual(results, [])
-
-    def test_topic_fit_ranks_relevant_authority_first(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            pack_path, receipt_path = write_context_receipt_fixture(Path(temp_dir))
-            results = select_fred_authority(
-                "skilled trades workforce",
-                title="How workforce technology supports field service teams",
-                objective="Explain labor challenges in the trades",
-                vault_root=vault,
-                context_pack=pack_path,
-                context_receipt=receipt_path,
-                limit=5,
-            )
-
-        self.assertEqual(results[0]["inventory_id"], "FVMI-001")
-        self.assertEqual(results[0]["authority_id"], "AUTH-001")
-        self.assertGreater(results[0]["score"], results[1]["score"])
-
-    def test_slate_defaults_to_explicit_no_selection(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            pack_path, receipt_path = write_context_receipt_fixture(Path(temp_dir))
-            slate = build_fred_authority_slate(
-                "skilled trades workforce",
-                title="Workforce technology",
-                objective="Explain labor challenges",
-                vault_root=vault,
-                context_pack=pack_path,
-                context_receipt=receipt_path,
-                limit=3,
-            )
-
-        self.assertIn("## Fred Voccola Authority Selection", slate)
-        self.assertIn("- Evaluation status: completed", slate)
-        self.assertIn("- Selected: [none]", slate)
-        self.assertIn("- Intended use: none", slate)
-
-    def test_status_brand_and_syndication_filters_fail_closed(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            pack_path, receipt_path = write_context_receipt_fixture(Path(temp_dir))
-            results = select_fred_authority(
-                "skilled trades",
-                vault_root=vault,
-                context_pack=pack_path,
-                context_receipt=receipt_path,
-                limit=10,
-            )
-
-        ids = {result["inventory_id"] for result in results}
-        self.assertEqual(ids, {"FVMI-001", "FVMI-002", "FVMI-003"})
-
-    def test_public_playlist_asset_is_discovery_only_without_authority_join(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            pack_path, receipt_path = write_context_receipt_fixture(Path(temp_dir))
-            result = next(
-                item
-                for item in select_fred_authority(
-                    "field service leadership",
-                    vault_root=vault,
-                    context_pack=pack_path,
-                    context_receipt=receipt_path,
-                    limit=5,
-                )
-                if item["inventory_id"] == "FVMI-003"
-            )
-
-        self.assertTrue(result["playlist_only"])
-        self.assertEqual(result["authority_id"], "")
-        self.assertEqual(result["authority_kind"], "discovery_or_embed_only")
-
-    def test_stale_manifest_hash_raises(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            inventory = vault / "indexes" / "fred-voccola-media-inventory.csv"
-            inventory.write_text(inventory.read_text(encoding="utf-8") + "\n", encoding="utf-8")
-
-            with self.assertRaisesRegex(FredAuthorityDataError, "stale"):
-                select_fred_authority("field service", vault_root=vault)
-
-    def test_missing_manifest_raises(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            (vault / "indexes" / "agent-retrieval-manifest.jsonl").unlink()
-
-            with self.assertRaisesRegex(FredAuthorityDataError, "manifest"):
-                select_fred_authority("field service", vault_root=vault)
-
-    def test_vault_path_precedence_is_explicit_then_env_then_default(self):
-        explicit = Path("C:/explicit-vault")
-        with patch.dict(
-            os.environ,
-            {"SIMPRO_BRAND_CONTEXT_VAULT": "C:/environment-vault"},
-            clear=False,
-        ):
-            self.assertEqual(_resolve_vault_root(explicit), explicit)
-            self.assertEqual(
-                _resolve_vault_root(None),
-                Path("C:/environment-vault"),
-            )
-
-        with patch.dict(os.environ, {}, clear=True):
-            self.assertEqual(
-                _resolve_vault_root(None),
-                Path(
-                    "C:/Users/patrick.grueschow/Desktop/Obsidian/"
-                    "Simpro Brand Context"
-                ),
-            )
-
-    def test_cli_slate_keeps_selection_none_without_selected_id(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            pack_path, receipt_path = write_context_receipt_fixture(Path(temp_dir))
-            output = StringIO()
-            with redirect_stdout(output):
-                exit_code = _main(
-                    [
-                        "skilled trades",
-                        "--title",
-                        "Workforce technology",
-                        "--objective",
-                        "Explain labor challenges",
-                        "--vault-root",
-                        str(vault),
-                        "--context-pack",
-                        str(pack_path),
-                        "--context-receipt",
-                        str(receipt_path),
-                        "--slate",
-                        "--limit",
-                        "2",
-                    ]
-                )
-
-        self.assertEqual(exit_code, 0)
-        self.assertIn("- Selected: [none]", output.getvalue())
+    assert result["playlist_only"] is False
+    assert result["authority_kind"] == "earned_media_authority"
 
 
-    def test_live_vault_include_flags_and_playlist_collection_are_eligible(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            inventory_path = vault / "indexes" / "fred-voccola-media-inventory.csv"
-            with inventory_path.open("r", encoding="utf-8", newline="") as handle:
-                rows = list(csv.DictReader(handle))
-            for row in rows:
-                if row["inventory_id"] == "FVMI-001":
-                    row["include_in_hub"] = "yes_fred_media"
-                    row["media_type"] = "article_authority"
-                if row["inventory_id"] == "FVMI-003":
-                    row["include_in_hub"] = "yes_playlist"
-                    row["media_type"] = "curated_playlist"
-                    row["url_or_locator"] = "https://www.youtube.com/playlist?list=PL123"
-            _write_csv(inventory_path, INVENTORY_FIELDS, rows)
-            manifest_path = vault / "indexes" / "agent-retrieval-manifest.jsonl"
-            manifest = json.loads(manifest_path.read_text(encoding="utf-8").splitlines()[0])
-            for item in manifest["control_inputs"]:
-                item["sha256"] = _sha256(vault / item["path"])
-            manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+def test_slate_defaults_to_no_public_selection_and_binds_receipt(tmp_path):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
 
-            pack_path, receipt_path = write_context_receipt_fixture(
-                Path(temp_dir),
-                url_overrides={"FVMI-003": "https://www.youtube.com/playlist?list=PL123"},
-            )
-            results = select_fred_authority(
-                "workforce technology",
-                vault_root=vault,
-                context_pack=pack_path,
-                context_receipt=receipt_path,
-                limit=10,
-            )
+    slate = build_fred_authority_slate(
+        "skilled trades workforce",
+        context_pack=pack,
+        context_receipt=receipt,
+        limit=3,
+    )
 
-        ids = {result["inventory_id"] for result in results}
-        self.assertIn("FVMI-001", ids)
-        self.assertIn("FVMI-003", ids)
-        playlist = next(result for result in results if result["inventory_id"] == "FVMI-003")
-        self.assertTrue(playlist["playlist_only"])
+    assert "- Evaluation status: completed" in slate
+    assert "- Selected: [none]" in slate
+    assert "- Intended use: none" in slate
+    assert f"- Receipt revision: {revision}" in slate
+    assert "- Claim IDs: [claim-fred-FVMI-001" in slate
 
-    def test_blank_authority_join_metadata_excludes_candidate(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            authority_path = vault / "indexes" / "authority-signal-matrix.csv"
-            with authority_path.open("r", encoding="utf-8", newline="") as handle:
-                rows = list(csv.DictReader(handle))
-            for row in rows:
-                if row["authority_id"] == "AUTH-001":
-                    row["headline"] = ""
-            _write_csv(authority_path, AUTHORITY_FIELDS, rows)
-            refresh_manifest(vault)
-            pack_path, receipt_path = write_context_receipt_fixture(Path(temp_dir))
 
-            results = select_fred_authority(
-                "skilled trades workforce technology",
-                vault_root=vault,
-                context_pack=pack_path,
-                context_receipt=receipt_path,
-                limit=10,
-            )
+def test_slate_records_selected_resource_id_and_approved_url(tmp_path):
+    pack, receipt, _ = write_context_receipt_fixture(tmp_path)
 
-        self.assertNotIn(
-            "FVMI-001",
-            {result["inventory_id"] for result in results},
+    slate = build_fred_authority_slate(
+        "skilled trades workforce technology",
+        context_pack=pack,
+        context_receipt=receipt,
+        selected_id="FVMI-001",
+    )
+
+    assert "- Selected: [FVMI-001]" in slate
+    assert "- Authority row: [res-fred-fvmi-001]" in slate
+    assert f"- Public URL: {ARTICLE_URL}" in slate
+    assert "- Evidence status: receipt_approved" in slate
+
+
+def test_slate_rejects_selection_outside_limited_candidate_set(tmp_path):
+    pack, receipt, _ = write_context_receipt_fixture(tmp_path)
+
+    with pytest.raises(FredAuthorityDataError, match="not in the verified candidate slate"):
+        build_fred_authority_slate(
+            "skilled trades workforce",
+            context_pack=pack,
+            context_receipt=receipt,
+            limit=1,
+            selected_id="FVMI-002",
         )
 
 
-    def test_duplicate_inventory_or_authority_ids_fail_closed(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            inventory_path = vault / "indexes" / "fred-voccola-media-inventory.csv"
-            with inventory_path.open("r", encoding="utf-8", newline="") as handle:
-                inventory_rows = list(csv.DictReader(handle))
-            _write_csv(
-                inventory_path,
-                INVENTORY_FIELDS,
-                [*inventory_rows, dict(inventory_rows[0])],
-            )
-            refresh_manifest(vault)
-            with self.assertRaisesRegex(FredAuthorityDataError, "duplicate inventory_id"):
-                select_fred_authority("workforce", vault_root=vault)
+def test_tampered_pack_fails_closed(tmp_path):
+    pack, receipt, _ = write_context_receipt_fixture(tmp_path)
+    payload = json.loads(pack.read_text(encoding="utf-8"))
+    payload["sections"]["Task and Scope"]["task"] = "tampered task"
+    pack.write_text(json.dumps(payload), encoding="utf-8")
 
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            authority_path = vault / "indexes" / "authority-signal-matrix.csv"
-            with authority_path.open("r", encoding="utf-8", newline="") as handle:
-                authority_rows = list(csv.DictReader(handle))
-            _write_csv(
-                authority_path,
-                AUTHORITY_FIELDS,
-                [*authority_rows, dict(authority_rows[0])],
-            )
-            refresh_manifest(vault)
-            with self.assertRaisesRegex(FredAuthorityDataError, "duplicate authority_id"):
-                select_fred_authority("workforce", vault_root=vault)
+    with pytest.raises(FredAuthorityDataError, match="request hash does not match"):
+        select_fred_authority(
+            "workforce",
+            context_pack=pack,
+            context_receipt=receipt,
+        )
 
-    def test_missing_required_csv_column_fails_closed(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            authority_path = vault / "indexes" / "authority-signal-matrix.csv"
-            with authority_path.open("r", encoding="utf-8", newline="") as handle:
-                authority_rows = list(csv.DictReader(handle))
-            fields = [field for field in AUTHORITY_FIELDS if field != "allowed_use"]
-            projected = [{field: row[field] for field in fields} for row in authority_rows]
-            _write_csv(authority_path, fields, projected)
-            refresh_manifest(vault)
 
-            with self.assertRaisesRegex(FredAuthorityDataError, "missing required columns"):
-                select_fred_authority("workforce", vault_root=vault)
+def test_cli_prints_receipt_ranked_json(tmp_path, capsys):
+    pack, receipt, _ = write_context_receipt_fixture(tmp_path)
 
-if __name__ == "__main__":
-    unittest.main()
+    exit_code = _main(
+        [
+            "skilled trades workforce",
+            "--context-pack",
+            str(pack),
+            "--context-receipt",
+            str(receipt),
+            "--limit",
+            "1",
+        ]
+    )
+    output = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert len(output) == 1
+    assert output[0]["inventory_id"] == "FVMI-001"
+
+
+def test_cli_slate_output_preserves_selector_command(tmp_path, capsys):
+    pack, receipt, _ = write_context_receipt_fixture(tmp_path)
+
+    exit_code = _main(
+        [
+            "workforce technology",
+            "--title",
+            "Workforce technology",
+            "--objective",
+            "Explain workforce challenges",
+            "--context-pack",
+            str(pack),
+            "--context-receipt",
+            str(receipt),
+            "--slate",
+        ]
+    )
+    output = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "## Fred Voccola Authority Selection" in output
+    assert "--context-pack" in output
+    assert "--context-receipt" in output

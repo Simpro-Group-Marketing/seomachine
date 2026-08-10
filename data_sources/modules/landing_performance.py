@@ -11,9 +11,7 @@ Metrics tracked:
 - SEO (for SEO landing pages via GSC)
 """
 
-import os
 from typing import Dict, List, Any, Optional
-from datetime import datetime, timedelta
 
 # Try to import GA4 module (may not be available in all environments)
 try:
@@ -270,7 +268,7 @@ class LandingPagePerformance:
 
         if total > 0:
             paid_pct = by_source.get('paid', 0) / total * 100 if total else 0
-            organic_pct = by_source.get('organic', 0) / total * 100 if total else 0
+            by_source.get('organic', 0) / total * 100 if total else 0
 
             if paid_pct > 80:
                 recommendations.append({
@@ -475,12 +473,12 @@ if __name__ == "__main__":
         print(f"Data Available: {result['data_available']}")
 
         if result.get('grades'):
-            print(f"\nGrades:")
+            print("\nGrades:")
             for category, grade in result['grades'].items():
                 print(f"  {category}: {grade}")
 
         if result.get('recommendations'):
-            print(f"\nRecommendations:")
+            print("\nRecommendations:")
             for rec in result['recommendations'][:3]:
                 print(f"  [{rec['priority'].upper()}] {rec['recommendation']}")
     else:

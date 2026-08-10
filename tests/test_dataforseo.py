@@ -15,7 +15,7 @@ load_dotenv()
 # Add data_sources to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'data_sources'))
 
-from modules.dataforseo import DataForSEO
+from modules.dataforseo import DataForSEO  # noqa: E402 - test path bootstrap must run first.
 
 def test_connection():
     """Test basic connection to DataForSEO API"""
@@ -27,7 +27,7 @@ def test_connection():
     login = os.getenv('DATAFORSEO_LOGIN')
     password = os.getenv('DATAFORSEO_PASSWORD')
 
-    print(f"\nCredentials loaded:")
+    print("\nCredentials loaded:")
     print(f"  Login: {login}")
     print(f"  Password: {'*' * len(password) if password else 'NOT SET'}")
 
@@ -50,7 +50,7 @@ def test_connection():
 
         if rankings:
             rank_data = rankings[0]
-            print(f"   ✓ API request successful")
+            print("   ✓ API request successful")
             print(f"   Keyword: {rank_data['keyword']}")
             print(f"   Position: {rank_data['position'] or 'Not in top 100'}")
             print(f"   Search Volume: {rank_data['search_volume']:,}" if rank_data['search_volume'] else "   Search Volume: N/A")
@@ -64,7 +64,7 @@ def test_connection():
 
         if ideas:
             print(f"   ✓ Found {len(ideas)} keyword ideas")
-            print(f"   Top suggestions:")
+            print("   Top suggestions:")
             for i, idea in enumerate(ideas[:3], 1):
                 vol = f"{idea['search_volume']:,}" if idea['search_volume'] else "N/A"
                 print(f"   {i}. {idea['keyword']} (Volume: {vol})")
@@ -77,7 +77,7 @@ def test_connection():
 
         if questions:
             print(f"   ✓ Found {len(questions)} questions")
-            print(f"   Top questions:")
+            print("   Top questions:")
             for i, q in enumerate(questions[:3], 1):
                 vol = f"{q['search_volume']:,}" if q['search_volume'] else "N/A"
                 print(f"   {i}. {q['question']} (Volume: {vol})")

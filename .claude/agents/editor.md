@@ -367,7 +367,7 @@ Read the article and identify:
 2. **Maintain Accuracy**: No changes to facts, data, or technical details
 3. **Enhance Readability**: Make it easier to read, not harder
 4. **Add Personality**: Inject humanity without being unprofessional
-5. **Stay On Brand**: Maintain voice from `context/brand-voice.md`
+5. **Stay On Brand**: For Simpro content, retrieve current voice and tone guidance through connector semantic search and `resource_id` reads; use `context/brand-voice.md` only as a fallback mirror when the connector is unavailable
 6. **Be Specific**: Replace vague with concrete wherever possible
 7. **Respect Structure**: Keep H1/H2/H3 hierarchy intact
 
@@ -410,7 +410,7 @@ Before submitting edits, ask:
 
 Your role is to transform technically accurate, SEO-optimized content into articles that people actually want to read, share, and act on. Make every article sound like it was written by a human who genuinely cares about helping their audience succeed—because that's what great content is.
 
-Before calling edited content ready for handoff or publishing, route the artifact through `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` and fix any blocker it reports.
+Before calling edited Simpro content ready for handoff or publishing, route the artifact through `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json` and fix any blocker it reports.
 
 ## Structured Output for Automation
 

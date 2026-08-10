@@ -13,11 +13,13 @@ from pathlib import Path
 from typing import Any, Dict, FrozenSet, List, Optional, Tuple
 
 try:
+    from .customer_proof_evidence import verify_selector_evidence_roles
     from .faq_answer_quality_guard import check_content as check_faq_answer_quality
     from .faq_proof_guard import check_content as check_faq_proof
     from .image_placeholder import is_production_image_placeholder_line
     from .paa_provenance_guard import check_content as check_paa_provenance_content
 except ImportError:
+    from customer_proof_evidence import verify_selector_evidence_roles
     from faq_answer_quality_guard import check_content as check_faq_answer_quality
     from faq_proof_guard import check_content as check_faq_proof
     from image_placeholder import is_production_image_placeholder_line
@@ -32,6 +34,7 @@ def rate_aeo_geo(
     metadata: Optional[Dict[str, Any]] = None,
     source_path: Optional[str] = None,
     proof_sidecar_content: Optional[str] = None,
+    proof_sidecar_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Rate content against AEO/GEO publishing requirements.
@@ -58,7 +61,13 @@ def rate_aeo_geo(
         "faq_answer_quality": _check_faq_answer_quality(content),
         "external_sources": _check_external_sources(content),
         "metadata": _check_metadata(merged_metadata),
-        "eeat_proof": _check_eeat_proof(content, body, merged_metadata, proof_sidecar_content),
+        "eeat_proof": _check_eeat_proof(
+            content,
+            body,
+            merged_metadata,
+            proof_sidecar_content,
+            proof_sidecar_path,
+        ),
         "faq_proof": _check_faq_proof(content, proof_sidecar_content),
         "paa_provenance": _check_paa_provenance(
             content,
@@ -81,8 +90,7 @@ def rate_aeo_geo(
     }
 
     score = sum(
-        weight if checks[name]["passed"] else 0
-        for name, weight in weights.items()
+        weight if checks[name]["passed"] else 0 for name, weight in weights.items()
     )
     issues = []
     for name, check in checks.items():
@@ -114,8 +122,12 @@ def rate_aeo_geo(
             "h2_count": checks["capsule_coverage"]["details"]["h2_count"],
             "capsule_count": checks["capsule_coverage"]["details"]["capsule_count"],
             "faq_question_count": checks["faq_questions"]["details"]["question_count"],
-            "faq_answer_quality_findings": checks["faq_answer_quality"]["details"]["findings"],
-            "external_link_count": checks["external_sources"]["details"]["external_link_count"],
+            "faq_answer_quality_findings": checks["faq_answer_quality"]["details"][
+                "findings"
+            ],
+            "external_link_count": checks["external_sources"]["details"][
+                "external_link_count"
+            ],
             "case_study_links": checks["eeat_proof"]["details"]["case_study_links"],
             "review_site_links": checks["eeat_proof"]["details"]["review_site_links"],
             "experience_signals": checks["eeat_proof"]["details"]["experience_signals"],
@@ -190,7 +202,11 @@ def _first_body_paragraph(body: str) -> str:
             continue
         if is_production_image_placeholder_line(stripped):
             continue
-        if stripped.startswith("#") or stripped.startswith(">") or stripped.startswith("- "):
+        if (
+            stripped.startswith("#")
+            or stripped.startswith(">")
+            or stripped.startswith("- ")
+        ):
             continue
         current.append(stripped)
 
@@ -203,13 +219,25 @@ def _first_body_paragraph(body: str) -> str:
 def _check_direct_answer(body: str, metadata: Dict[str, Any]) -> Dict[str, Any]:
     paragraph = _first_body_paragraph(body)
     first_two = " ".join(_sentences(paragraph)[:2])
-    text_lower = first_two.lower()
+    text_lower = _plain_text(first_two).lower().strip()
     primary_keyword = str(metadata.get("primary_keyword", "")).lower().strip()
     main_question = str(metadata.get("main_question", "")).lower().strip()
     topic = str(metadata.get("topic", "")).lower().strip()
-    targets = [target for target in [primary_keyword, main_question, topic] if target]
+    targets = []
+    declarative_targets = []
+    for target in [primary_keyword, main_question, topic]:
+        if not target:
+            continue
+        targets.append(target)
+        definition_match = re.fullmatch(r"what\s+(is|are)\s+(.+?)\??", target)
+        if definition_match:
+            verb, subject = definition_match.groups()
+            declarative_targets.append(f"{subject.strip()} {verb}")
 
-    includes_target = any(target in text_lower for target in targets)
+    includes_target = any(target in text_lower for target in targets) or any(
+        re.match(rf"^{re.escape(target)}\b", text_lower)
+        for target in declarative_targets
+    )
     concise = 12 <= _word_count(first_two) <= 90
     answer_like = bool(
         re.search(
@@ -254,7 +282,11 @@ def _first_paragraph(section_body: str) -> str:
             if current:
                 break
             continue
-        if stripped.startswith("#") or stripped.startswith(">") or stripped.startswith("- "):
+        if (
+            stripped.startswith("#")
+            or stripped.startswith(">")
+            or stripped.startswith("- ")
+        ):
             continue
         current.append(stripped)
 
@@ -276,7 +308,9 @@ def _check_capsule_coverage(body: str) -> Dict[str, Any]:
         if "frequently asked" not in heading.lower() and heading.lower() != "faq"
     ]
     h2_count = len(sections)
-    capsule_count = sum(1 for _, section in sections if _is_capsule(_first_paragraph(section)))
+    capsule_count = sum(
+        1 for _, section in sections if _is_capsule(_first_paragraph(section))
+    )
     coverage = capsule_count / h2_count if h2_count else 0
     passed = h2_count > 0 and coverage >= 0.60
 
@@ -295,7 +329,7 @@ def _check_capsule_coverage(body: str) -> Dict[str, Any]:
 
 def _extract_faq_questions(body: str) -> List[Tuple[str, str]]:
     faq_match = re.search(
-        r"^##\s+(?:Frequently Asked Questions|FAQ)\s*$",
+        r"^##\s+(?:Frequently Asked Questions(?:\s+(?:about|on|for)\s+.+)?|FAQ)\s*$",
         body,
         re.IGNORECASE | re.MULTILINE,
     )
@@ -472,16 +506,13 @@ def _check_eeat_proof(
     body: str,
     metadata: Dict[str, Any],
     proof_sidecar_content: Optional[str] = None,
+    proof_sidecar_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     links = _extract_markdown_links(content)
     normalized = {_normalize_key(str(key)): value for key, value in metadata.items()}
 
-    case_study_links = [
-        url for _, url in links if _is_case_study_link(url)
-    ]
-    review_site_links = [
-        url for _, url in links if _is_review_site_link(url)
-    ]
+    case_study_links = [url for _, url in links if _is_case_study_link(url)]
+    review_site_links = [url for _, url in links if _is_review_site_link(url)]
     simpro_product_links = [
         url for _, url in links if _is_simpro_product_or_workflow_link(url)
     ]
@@ -492,13 +523,16 @@ def _check_eeat_proof(
     experience_signals = []
     if case_study_links:
         experience_signals.append("case_study_link")
-    has_review_story_selection = _has_valid_review_story_selection(content, proof_sidecar_content)
+    has_review_story_selection = _has_valid_review_story_selection(
+        content, proof_sidecar_content
+    )
     if has_review_story_selection:
         experience_signals.append("review_story_selection")
     if _has_sidecar_experience_proof(proof_sidecar_content):
         experience_signals.append("sidecar_experience_proof")
     has_documented_no_fit_boundary = _has_documented_no_fit_experience_boundary(
-        proof_sidecar_content
+        proof_sidecar_content,
+        proof_sidecar_path=proof_sidecar_path,
     )
     if has_documented_no_fit_boundary:
         experience_signals.append("documented_no_fit_experience_boundary")
@@ -574,8 +608,7 @@ def _is_review_site_link(url: str) -> bool:
 def _is_case_study_link(url: str) -> bool:
     lower = url.lower()
     return bool(
-        re.search(r"/case-stud(?:y|ies)/", lower)
-        or "/resources/case-study-" in lower
+        re.search(r"/case-stud(?:y|ies)/", lower) or "/resources/case-study-" in lower
     )
 
 
@@ -669,12 +702,15 @@ def _is_explicit_first_hand_evidence(proof_description: str) -> bool:
             "first party workflow evidence",
         }
 
-    return re.search(
-        r"\bThe rewrite uses first[- ]party ClockShark workflow evidence from\s+"
-        r"https?://(?:www\.)?clockshark\.com/(?:blog|tour|industries)/",
-        proof_description,
-        re.IGNORECASE,
-    ) is not None
+    return (
+        re.search(
+            r"\bThe rewrite uses first[- ]party ClockShark workflow evidence from\s+"
+            r"https?://(?:www\.)?clockshark\.com/(?:blog|tour|industries)/",
+            proof_description,
+            re.IGNORECASE,
+        )
+        is not None
+    )
 
 
 def _has_approved_experience_proof_status(proof_description: str) -> bool:
@@ -695,14 +731,43 @@ def _has_approved_experience_proof_status(proof_description: str) -> bool:
     }
 
 
+def _verified_selector_roles(
+    proof_sidecar_content: str,
+    proof_sidecar_path: Optional[str],
+) -> Optional[Dict[str, Dict[str, Any]]]:
+    return verify_selector_evidence_roles(
+        proof_sidecar_content,
+        proof_sidecar_path,
+    )
+
+
 def _has_documented_no_fit_experience_boundary(
     proof_sidecar_content: Optional[str],
+    *,
+    proof_sidecar_path: Optional[str] = None,
 ) -> bool:
     if not proof_sidecar_content:
         return False
+    verified_roles = _verified_selector_roles(
+        proof_sidecar_content,
+        proof_sidecar_path,
+    )
+    if not verified_roles or "experience_story" not in verified_roles:
+        return False
+    verified_story = verified_roles["experience_story"]
+    if str(verified_story.get("selected_id", "")).casefold() != "none":
+        return False
+    expected_candidates = [
+        str(candidate).casefold()
+        for candidate in verified_story.get("candidate_ids", [])
+    ]
+    expected_rejections = {
+        str(candidate).casefold(): str(reason)
+        for candidate, reason in verified_story.get("rejected_overrides", {}).items()
+    }
 
     has_substantive_decision = False
-    has_rejected_story_reason = False
+    has_verified_rejections = False
     in_eeat_map = False
     in_customer_slate = False
 
@@ -724,7 +789,7 @@ def _has_documented_no_fit_experience_boundary(
             in_eeat_map = False
             in_customer_slate = True
             continue
-        if stripped.startswith("```") or re.match(r"^#{1,6}\s+", stripped):
+        if stripped.startswith(chr(96) * 3) or re.match(r"^#{1,6}\s+", stripped):
             in_eeat_map = False
             in_customer_slate = False
             continue
@@ -773,48 +838,57 @@ def _has_documented_no_fit_experience_boundary(
             stripped,
             re.IGNORECASE,
         )
-        if not top_candidates_match:
-            continue
-        top_candidates = {
-            candidate.strip().strip("`\"'").lower()
-            for candidate in top_candidates_match.group(1).split(",")
-            if candidate.strip()
-        }
-        valid_proof_ids = _customer_proof_ids()
-        top_candidates = {
-            candidate
-            for candidate in top_candidates
-            if candidate in valid_proof_ids
-        }
-        if not top_candidates:
-            continue
-        rejected = re.search(
+        rejected_match = re.search(
             r"\|\s*Rejected stronger candidates:\s*\[([^\]]*)\]",
             stripped,
             re.IGNORECASE,
         )
-        if not rejected:
+        if not top_candidates_match or not rejected_match:
             continue
-        for rejected_candidate in rejected.group(1).split(","):
-            candidate, separator, reason = rejected_candidate.partition(":")
-            if (
-                separator
-                and candidate.strip().strip("`\"'").lower() in top_candidates
-                and _has_section_specific_story_rejection_reason(reason)
-            ):
-                has_rejected_story_reason = True
-                break
+        raw_candidates = [
+            candidate.strip().strip("\"'").casefold()
+            for candidate in top_candidates_match.group(1).split(",")
+            if candidate.strip()
+        ]
+        sidecar_candidates = [] if raw_candidates == ["none"] else raw_candidates
+        if sidecar_candidates != expected_candidates:
+            continue
 
-    return has_substantive_decision and has_rejected_story_reason
+        sidecar_rejections: Dict[str, str] = {}
+        malformed_rejection = False
+        for raw_rejection in rejected_match.group(1).split(","):
+            candidate, separator, reason = raw_rejection.partition(":")
+            candidate_key = candidate.strip().strip("\"'").casefold()
+            reason = reason.strip()
+            if not separator or not candidate_key or not reason:
+                malformed_rejection = True
+                break
+            sidecar_rejections[candidate_key] = reason
+        if malformed_rejection or sidecar_rejections != expected_rejections:
+            continue
+        if expected_candidates:
+            has_verified_rejections = set(sidecar_rejections) == set(
+                expected_candidates
+            ) and all(
+                _has_section_specific_story_rejection_reason(reason)
+                for reason in sidecar_rejections.values()
+            )
+        else:
+            empty_reason = sidecar_rejections.get("none", "")
+            has_verified_rejections = (
+                set(sidecar_rejections) == {"none"}
+                and "no eligible candidate exists" in _normalize_text(empty_reason)
+                and _has_section_specific_story_rejection_reason(empty_reason)
+            )
+
+    return has_substantive_decision and has_verified_rejections
 
 
 @lru_cache(maxsize=1)
 def _customer_proof_ids() -> FrozenSet[str]:
     """Load approved, public, story-eligible proof IDs; fail closed on error."""
     index_path = (
-        Path(__file__).resolve().parents[2]
-        / "context"
-        / "customer-proof-index.json"
+        Path(__file__).resolve().parents[2] / "context" / "customer-proof-index.json"
     )
     try:
         payload = json.loads(index_path.read_text(encoding="utf-8"))
@@ -888,7 +962,9 @@ def _has_review_site_theme(body: str) -> bool:
     )
 
 
-def _has_valid_review_story_selection(content: str, proof_sidecar_content: Optional[str]) -> bool:
+def _has_valid_review_story_selection(
+    content: str, proof_sidecar_content: Optional[str]
+) -> bool:
     if not proof_sidecar_content:
         return False
     selected = _extract_review_story_selected_line(proof_sidecar_content)
@@ -911,7 +987,9 @@ def _extract_review_story_selected_line(content: str) -> Dict[str, str]:
     in_block = False
     for line in content.splitlines():
         stripped = line.strip()
-        if re.match(r"^(?:#{1,6}\s+)?Review Story Selection:?\s*$", stripped, re.IGNORECASE):
+        if re.match(
+            r"^(?:#{1,6}\s+)?Review Story Selection:?\s*$", stripped, re.IGNORECASE
+        ):
             in_block = True
             continue
         if not in_block:
@@ -925,7 +1003,9 @@ def _extract_review_story_selected_line(content: str) -> Dict[str, str]:
             re.IGNORECASE,
         ):
             break
-        match = re.match(r"^\s*[-*+]\s*Selected story:\s*(.+?)\s*$", line, re.IGNORECASE)
+        match = re.match(
+            r"^\s*[-*+]\s*Selected story:\s*(.+?)\s*$", line, re.IGNORECASE
+        )
         if not match:
             continue
         parts = [part.strip() for part in match.group(1).split("|")]
@@ -962,8 +1042,12 @@ def _normalize_text(value: str) -> str:
 
 
 def _has_expert_quote(body: str) -> bool:
-    quote_pattern = r'"[^"]{20,240}"\s*(?:,?\s*(?:said|says|according to|explained|wrote)\b)'
-    attribution_pattern = r'(?:said|says|according to|explained|wrote)\s+[^.]{3,80}:\s*"[^"]{20,240}"'
+    quote_pattern = (
+        r'"[^"]{20,240}"\s*(?:,?\s*(?:said|says|according to|explained|wrote)\b)'
+    )
+    attribution_pattern = (
+        r'(?:said|says|according to|explained|wrote)\s+[^.]{3,80}:\s*"[^"]{20,240}"'
+    )
     return bool(
         re.search(quote_pattern, body, re.IGNORECASE)
         or re.search(attribution_pattern, body, re.IGNORECASE)

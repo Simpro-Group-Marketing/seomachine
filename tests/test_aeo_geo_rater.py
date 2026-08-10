@@ -1,9 +1,26 @@
+import hashlib
+import json
+import re
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from datetime import date, timedelta
+from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from data_sources.modules.aeo_geo_rater import _check_faq_questions, rate_aeo_geo
+from data_sources.modules.aeo_geo_rater import (
+    _check_direct_answer,
+    _check_faq_questions,
+    _has_documented_no_fit_experience_boundary,
+    rate_aeo_geo,
+)
+from data_sources.modules.customer_proof_selector import _main as run_customer_proof_selector
+from tests.test_customer_proof_selector import (
+    write_context_receipt_fixture,
+    write_selector_fixture,
+)
+from tests.vault_context_fixture import load_validated_claim_set_for_unit_test
 
 
 PAA_ARTIFACT = "research/paa-questions-hvac-scheduling-2026-05-22.md"
@@ -117,6 +134,290 @@ def write_paa_fixture(test_case: unittest.TestCase, content: str) -> str:
 
 
 class AeoGeoRaterTests(unittest.TestCase):
+    def test_what_is_query_accepts_equivalent_declarative_definition(self):
+        result = _check_direct_answer(
+            "A job sheet is a working record for a job or site visit. "
+            "It captures the task, work, time, materials, evidence and sign-off.",
+            {"primary_keyword": "what is a job sheet"},
+        )
+
+        self.assertTrue(result["passed"])
+        self.assertTrue(result["details"]["includes_target"])
+
+    def test_topic_qualified_frequently_asked_questions_heading_is_recognized(self):
+        result = _check_faq_questions(
+            """## Frequently asked questions about job sheets
+
+### Do job sheets need to be signed by the customer?
+
+This answer has enough detail for the question parser.
+
+### Can a job sheet be used as proof of work?
+
+This answer has enough detail for the question parser.
+
+### When should a job sheet be completed?
+
+This answer has enough detail for the question parser.
+"""
+        )
+
+        self.assertTrue(result["passed"])
+        self.assertEqual(result["details"]["question_count"], 3)
+
+    def write_no_fit_selector_evidence(
+        self,
+        root: Path,
+        *,
+        empty_story_slate: bool = False,
+    ) -> tuple[str, Path, Path]:
+        index_path, ledger_path = write_selector_fixture(root)
+        if empty_story_slate:
+            index = json.loads(index_path.read_text(encoding="utf-8"))
+            index["proof"] = [
+                row for row in index["proof"] if not row.get("review_story")
+            ]
+            index_path.write_text(json.dumps(index), encoding="utf-8")
+        pack_path, receipt_path = write_context_receipt_fixture(root, index_path)
+        evidence_path = root / "selector-evidence.json"
+        story_id = (
+            "none"
+            if empty_story_slate
+            else "review-capterra-qbo-service-jobs-quotes-invoices"
+        )
+        stdout = StringIO()
+        stderr = StringIO()
+        with patch(
+            "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+            new=load_validated_claim_set_for_unit_test,
+        ), redirect_stdout(stdout), redirect_stderr(stderr):
+            exit_code = run_customer_proof_selector(
+                [
+                    "job sheets for UK field service teams",
+                    "--index",
+                    str(index_path),
+                    "--ledger",
+                    str(ledger_path),
+                    "--context-pack",
+                    str(pack_path),
+                    "--context-receipt",
+                    str(receipt_path),
+                    "--title",
+                    "What is a job sheet?",
+                    "--objective",
+                    "Define job sheets",
+                    "--slate",
+                    "--roles",
+                    "experience_story",
+                    "--require-eeat-story",
+                    "--limit",
+                    "10",
+                    "--selected",
+                    "experience_story=none",
+                    "--reject",
+                    (
+                        f"experience_story={story_id}:"
+                        + (
+                            "no eligible candidate exists because the approved proof inventory "
+                            "has no identity-backed story for this article objective"
+                            if empty_story_slate
+                            else (
+                                "omitted because this software-user story does not substantiate "
+                                "the article's job-sheet definition objective"
+                            )
+                        )
+                    ),
+                    "--evidence-output",
+                    str(evidence_path),
+                ]
+            )
+        self.assertEqual(exit_code, 0, stderr.getvalue())
+        sidecar = """## E-E-A-T Proof Map
+- First-hand evidence decision: Selected: [none] because no approved customer story in the selector slate substantiates this article objective.
+
+## """ + stdout.getvalue()
+        sidecar_path = root / "validation-job-sheets.md"
+        sidecar_path.write_text(sidecar, encoding="utf-8")
+        return sidecar, sidecar_path, index_path
+
+    def test_no_fit_boundary_accepts_current_rerun_verified_selector_evidence(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            sidecar, sidecar_path, _index_path = self.write_no_fit_selector_evidence(root)
+            with patch(
+                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                new=load_validated_claim_set_for_unit_test,
+            ):
+                result = _has_documented_no_fit_experience_boundary(
+                    sidecar,
+                    proof_sidecar_path=str(sidecar_path),
+                )
+
+        self.assertTrue(result)
+
+    def test_no_fit_boundary_accepts_rerun_verified_empty_story_slate(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            sidecar, sidecar_path, _index_path = self.write_no_fit_selector_evidence(
+                root,
+                empty_story_slate=True,
+            )
+            with patch(
+                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                new=load_validated_claim_set_for_unit_test,
+            ):
+                result = _has_documented_no_fit_experience_boundary(
+                    sidecar,
+                    proof_sidecar_path=str(sidecar_path),
+                )
+
+        self.assertTrue(result)
+    def test_no_fit_boundary_rejects_selector_evidence_when_an_input_changes(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            sidecar, sidecar_path, index_path = self.write_no_fit_selector_evidence(root)
+            index = json.loads(index_path.read_text(encoding="utf-8"))
+            index["version"] = 2
+            index_path.write_text(json.dumps(index), encoding="utf-8")
+            with patch(
+                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                new=load_validated_claim_set_for_unit_test,
+            ):
+                result = _has_documented_no_fit_experience_boundary(
+                    sidecar,
+                    proof_sidecar_path=str(sidecar_path),
+                )
+
+        self.assertFalse(result)
+
+    def test_no_fit_boundary_rejects_rehashed_evidence_with_forged_candidates(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            sidecar, sidecar_path, _index_path = self.write_no_fit_selector_evidence(root)
+            evidence_path = root / "selector-evidence.json"
+            evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+            evidence["roles"][0]["candidate_ids"] = ["invented-proof"]
+            evidence_bytes = (
+                json.dumps(evidence, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+            ).encode("utf-8")
+            evidence_path.write_bytes(evidence_bytes)
+            digest = hashlib.sha256(evidence_bytes).hexdigest()
+            sidecar = re.sub(
+                r"(?im)(^- Selector evidence: .*? \| SHA-256: )[0-9a-f]{64}$",
+                rf"\g<1>{digest}",
+                sidecar,
+            )
+            sidecar_path.write_text(sidecar, encoding="utf-8")
+            with patch(
+                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                new=load_validated_claim_set_for_unit_test,
+            ):
+                result = _has_documented_no_fit_experience_boundary(
+                    sidecar,
+                    proof_sidecar_path=str(sidecar_path),
+                )
+
+        self.assertFalse(result)
+    def test_no_fit_boundary_rejects_stale_selector_reference_date(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            sidecar, sidecar_path, _index_path = self.write_no_fit_selector_evidence(root)
+            evidence_path = root / "selector-evidence.json"
+            evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+            evidence["inputs"]["reference_date"] = (
+                date.today() - timedelta(days=1)
+            ).isoformat()
+            evidence_bytes = (
+                json.dumps(evidence, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+            ).encode("utf-8")
+            evidence_path.write_bytes(evidence_bytes)
+            digest = hashlib.sha256(evidence_bytes).hexdigest()
+            sidecar = re.sub(
+                r"(?im)(^- Selector evidence: .*? \| SHA-256: )[0-9a-f]{64}$",
+                rf"\g<1>{digest}",
+                sidecar,
+            )
+            sidecar_path.write_text(sidecar, encoding="utf-8")
+            with patch(
+                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                new=load_validated_claim_set_for_unit_test,
+            ):
+                result = _has_documented_no_fit_experience_boundary(
+                    sidecar,
+                    proof_sidecar_path=str(sidecar_path),
+                )
+
+        self.assertFalse(result)
+    def test_no_fit_boundary_rejects_malformed_evidence_without_crashing(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            sidecar, sidecar_path, _index_path = self.write_no_fit_selector_evidence(root)
+            evidence_path = root / "selector-evidence.json"
+            evidence_bytes = b"[]\n"
+            evidence_path.write_bytes(evidence_bytes)
+            digest = hashlib.sha256(evidence_bytes).hexdigest()
+            sidecar = re.sub(
+                r"(?im)(^- Selector evidence: .*? \| SHA-256: )[0-9a-f]{64}$",
+                rf"\g<1>{digest}",
+                sidecar,
+            )
+            sidecar_path.write_text(sidecar, encoding="utf-8")
+
+            self.assertFalse(
+                _has_documented_no_fit_experience_boundary(
+                    sidecar,
+                    proof_sidecar_path=str(sidecar_path),
+                )
+            )
+
+    def test_no_fit_boundary_rejects_sidecar_candidate_list_mismatch(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            sidecar, sidecar_path, _index_path = self.write_no_fit_selector_evidence(root)
+            sidecar = sidecar.replace(
+                "Top candidates: [review-capterra-qbo-service-jobs-quotes-invoices]",
+                "Top candidates: [invented-proof]",
+            )
+            sidecar_path.write_text(sidecar, encoding="utf-8")
+            with patch(
+                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                new=load_validated_claim_set_for_unit_test,
+            ):
+                result = _has_documented_no_fit_experience_boundary(
+                    sidecar,
+                    proof_sidecar_path=str(sidecar_path),
+                )
+
+        self.assertFalse(result)
+    def test_no_fit_boundary_rejects_unverifiable_typed_hash(self):
+        sidecar = """## Customer proof selector
+
+- Selector command: python data_sources/modules/customer_proof_selector.py "job sheets for UK field service teams" --title "What is a job sheet?" --objective "Define job sheets" --require-eeat-story --slate --roles metric,quote,theme,experience_story --limit 10
+- Selector execution: completed | Exit code: 0 | Output SHA-256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+## E-E-A-T Proof Map
+- First-hand evidence decision: Selected: [none] because no approved, brand-appropriate customer story supports this article objective.
+
+## Customer Proof Slate
+- Role: experience_story | Top candidates: [none] | Selected: [none] | Rejected stronger candidates: [none: no eligible candidate exists because the proof index has no brand-appropriate story for this article]
+"""
+
+        self.assertFalse(_has_documented_no_fit_experience_boundary(sidecar))
+
+    def test_no_fit_boundary_rejects_a_copied_selector_command_without_receipt(self):
+        sidecar = """## Customer proof selector
+
+- Selector command: python data_sources/modules/customer_proof_selector.py "job sheets for UK field service teams" --title "What is a job sheet?" --objective "Define job sheets" --require-eeat-story --slate --roles metric,quote,theme,experience_story --limit 10
+
+## E-E-A-T Proof Map
+- First-hand evidence decision: Selected: [none] because no approved, brand-appropriate customer story supports this article objective.
+
+## Customer Proof Slate
+- Role: experience_story | Top candidates: [none] | Selected: [none] | Rejected stronger candidates: [none: no eligible candidate exists because the proof index has no brand-appropriate story for this article]
+"""
+
+        self.assertFalse(_has_documented_no_fit_experience_boundary(sidecar))
+
     def rate(self, content: str = COMPLIANT_ARTICLE):
         return rate_aeo_geo(
             content,
@@ -390,7 +691,7 @@ E-E-A-T Proof Map
         self.assertIn("sidecar_experience_proof", details["experience_signals"])
         self.assertIn("clockshark_product_or_workflow_link", details["expertise_signals"])
 
-    def test_documented_no_fit_experience_boundary_satisfies_eeat(self):
+    def test_handwritten_no_fit_boundary_without_selector_evidence_fails_closed(self):
         result = self.rate_without_customer_experience(
             """
 ```text
@@ -406,8 +707,8 @@ Customer Proof Slate
         )
         details = result["checks"]["eeat_proof"]["details"]
 
-        self.assertTrue(result["checks"]["eeat_proof"]["passed"])
-        self.assertIn(
+        self.assertFalse(result["checks"]["eeat_proof"]["passed"])
+        self.assertNotIn(
             "documented_no_fit_experience_boundary",
             details["experience_signals"],
         )

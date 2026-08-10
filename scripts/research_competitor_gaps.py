@@ -10,7 +10,7 @@ import os
 import sys
 import json
 from datetime import datetime
-from typing import List, Dict, Any, Set
+from typing import List, Dict, Any
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -19,10 +19,10 @@ load_dotenv()
 # Add data_sources to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'data_sources'))
 
-from modules.google_search_console import GoogleSearchConsole
-from modules.dataforseo import DataForSEO
-from modules.opportunity_scorer import OpportunityScorer, OpportunityType
-from modules.search_intent_analyzer import SearchIntentAnalyzer
+from modules.google_search_console import GoogleSearchConsole  # noqa: E402
+from modules.dataforseo import DataForSEO  # noqa: E402
+from modules.opportunity_scorer import OpportunityScorer, OpportunityType  # noqa: E402
+from modules.search_intent_analyzer import SearchIntentAnalyzer  # noqa: E402
 
 
 def load_competitors():
@@ -44,7 +44,7 @@ def main():
     print("COMPETITOR CONTENT GAP ANALYSIS")
     print("=" * 80)
     print(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    print(f"Strategy: Find keywords competitors rank for that we don't")
+    print("Strategy: Find keywords competitors rank for that we don't")
     print("=" * 80)
 
     # Initialize clients
@@ -163,8 +163,8 @@ def main():
                 if serp_data and 'features' in serp_data:
                     serp_features = serp_data.get('features', [])
                     gap['serp_features'] = serp_features
-            except:
-                pass
+            except Exception as exc:
+                print(f"WARNING: SERP feature enrichment failed for {gap['keyword']!r}: {exc}", file=sys.stderr)
 
             # Analyze search intent
             intent_result = intent_analyzer.analyze(
@@ -218,7 +218,7 @@ def main():
     # Filter to top opportunities (skip low priority)
     top_gaps = [g for g in enriched_gaps if g['priority'] not in ['SKIP', 'LOW']]
 
-    print(f"\n   ✓ Analysis complete")
+    print("\n   ✓ Analysis complete")
     print(f"   Total gaps found: {len(competitor_gaps)}")
     print(f"   High-value opportunities: {len(top_gaps)}")
 
@@ -245,11 +245,11 @@ def main():
     print("\n" + "=" * 80)
     print("✅ COMPETITOR GAP ANALYSIS COMPLETE")
     print("=" * 80)
-    print(f"\nNext steps:")
+    print("\nNext steps:")
     print(f"1. Review detailed report: research/competitor-gaps-{datetime.now().strftime('%Y-%m-%d')}.md")
-    print(f"2. Prioritize top 5-10 gaps based on your content strategy")
-    print(f"3. Create comprehensive content for each gap")
-    print(f"4. Use /write [keyword] command to generate content briefs")
+    print("2. Prioritize top 5-10 gaps based on your content strategy")
+    print("3. Create comprehensive content for each gap")
+    print("4. Use /write [keyword] command to generate content briefs")
 
 
 def is_branded_keyword(keyword: str, domain: str) -> bool:
@@ -369,9 +369,9 @@ def write_markdown_report(gaps: List[Dict[str, Any]], total_found: int):
     filename = f"research/competitor-gaps-{date_str}.md"
 
     with open(filename, 'w') as f:
-        f.write(f"# Competitor Content Gap Analysis\n\n")
+        f.write("# Competitor Content Gap Analysis\n\n")
         f.write(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n")
-        f.write(f"**Strategy:** Identify proven demand areas where competitors rank but we don't\n\n")
+        f.write("**Strategy:** Identify proven demand areas where competitors rank but we don't\n\n")
         f.write(f"**Total Gaps Found:** {total_found}\n")
         f.write(f"**High-Value Opportunities:** {len(gaps)}\n\n")
         f.write("---\n\n")
@@ -381,14 +381,14 @@ def write_markdown_report(gaps: List[Dict[str, Any]], total_found: int):
         high = [g for g in gaps if g['priority'] == 'HIGH']
         medium = [g for g in gaps if g['priority'] == 'MEDIUM']
 
-        f.write(f"## Summary by Priority\n\n")
+        f.write("## Summary by Priority\n\n")
         f.write(f"- **CRITICAL:** {len(critical)} opportunities\n")
         f.write(f"- **HIGH:** {len(high)} opportunities\n")
         f.write(f"- **MEDIUM:** {len(medium)} opportunities\n\n")
         f.write("---\n\n")
 
         # Top 20 opportunities
-        f.write(f"## Top 20 Content Gap Opportunities\n\n")
+        f.write("## Top 20 Content Gap Opportunities\n\n")
 
         for i, gap in enumerate(gaps[:20], 1):
             f.write(f"### {i}. {gap['keyword']}\n\n")
@@ -396,12 +396,12 @@ def write_markdown_report(gaps: List[Dict[str, Any]], total_found: int):
             f.write(f"**Priority:** {gap['priority']}  \n")
             f.write(f"**Opportunity Score:** {gap['opportunity_score']:.2f}/100\n\n")
 
-            f.write(f"#### Competitor Intel\n\n")
+            f.write("#### Competitor Intel\n\n")
             f.write(f"- **Ranking Competitor:** {gap['competitor']} ({gap['competitor_type']})\n")
             f.write(f"- **Their Position:** {gap['competitor_position']}\n")
-            f.write(f"- **Your Position:** Not ranking (top 100)\n\n")
+            f.write("- **Your Position:** Not ranking (top 100)\n\n")
 
-            f.write(f"#### Keyword Metrics\n\n")
+            f.write("#### Keyword Metrics\n\n")
             f.write(f"- **Search Volume:** {gap.get('search_volume', 'Unknown')}/month\n")
             f.write(f"- **SEO Difficulty:** {gap.get('difficulty', 'Unknown')}/100\n")
             if gap.get('cpc'):
@@ -410,22 +410,22 @@ def write_markdown_report(gaps: List[Dict[str, Any]], total_found: int):
             f.write(f"- **Content Type Needed:** {gap.get('content_type', 'Guide')}\n\n")
 
             if gap.get('score_breakdown'):
-                f.write(f"#### Opportunity Analysis\n\n")
+                f.write("#### Opportunity Analysis\n\n")
                 breakdown = gap['score_breakdown']
                 f.write(f"- Volume Score: {breakdown.get('volume_score', 0):.0f}/100\n")
                 f.write(f"- Competition Score: {breakdown.get('competition_score', 0):.0f}/100\n")
                 f.write(f"- Intent Score: {breakdown.get('intent_score', 0):.0f}/100\n\n")
 
-            f.write(f"#### Recommended Action\n\n")
+            f.write("#### Recommended Action\n\n")
             f.write(f"Create comprehensive {gap.get('content_type', 'guide').lower()} targeting this keyword.\n\n")
 
-            f.write(f"**Next Steps:**\n")
+            f.write("**Next Steps:**\n")
             f.write(f"1. Analyze top 10 ranking content for '{gap['keyword']}'\n")
-            f.write(f"2. Identify content gaps and unique angles\n")
-            f.write(f"3. Create detailed content outline\n")
+            f.write("2. Identify content gaps and unique angles\n")
+            f.write("3. Create detailed content outline\n")
             f.write(f"4. Write an intent/evidence-complete {gap.get('content_type', 'article').lower()}\n")
-            f.write(f"5. Optimize for target keyword and related terms\n")
-            f.write(f"6. Build internal linking strategy\n\n")
+            f.write("5. Optimize for target keyword and related terms\n")
+            f.write("6. Build internal linking strategy\n\n")
 
             if gap.get('serp_features'):
                 f.write(f"**SERP Features Present:** {', '.join(gap['serp_features'][:5])}\n\n")
@@ -433,25 +433,25 @@ def write_markdown_report(gaps: List[Dict[str, Any]], total_found: int):
             f.write("---\n\n")
 
         # Summary recommendations
-        f.write(f"## Implementation Strategy\n\n")
-        f.write(f"### Phase 1: Quick Wins (Weeks 1-2)\n")
-        f.write(f"Focus on CRITICAL priority gaps with lower difficulty:\n\n")
+        f.write("## Implementation Strategy\n\n")
+        f.write("### Phase 1: Quick Wins (Weeks 1-2)\n")
+        f.write("Focus on CRITICAL priority gaps with lower difficulty:\n\n")
 
         quick_wins = [g for g in critical if g.get('difficulty', 100) < 50][:5]
         for i, gap in enumerate(quick_wins, 1):
             f.write(f"{i}. **{gap['keyword']}** - Difficulty: {gap.get('difficulty', 'Unknown')}, Volume: {gap.get('search_volume', 'Unknown')}\n")
 
-        f.write(f"\n### Phase 2: High-Value Targets (Weeks 3-6)\n")
-        f.write(f"Target HIGH priority gaps with strong search volume:\n\n")
+        f.write("\n### Phase 2: High-Value Targets (Weeks 3-6)\n")
+        f.write("Target HIGH priority gaps with strong search volume:\n\n")
 
         high_value = [g for g in high if g.get('search_volume', 0) > 500][:5]
         for i, gap in enumerate(high_value, 1):
             f.write(f"{i}. **{gap['keyword']}** - Volume: {gap.get('search_volume', 'Unknown')}, Difficulty: {gap.get('difficulty', 'Unknown')}\n")
 
-        f.write(f"\n### Phase 3: Content Clusters (Weeks 7+)\n")
-        f.write(f"Build topical authority by creating content clusters around related gaps.\n\n")
+        f.write("\n### Phase 3: Content Clusters (Weeks 7+)\n")
+        f.write("Build topical authority by creating content clusters around related gaps.\n\n")
 
-        f.write(f"## Key Insights\n\n")
+        f.write("## Key Insights\n\n")
 
         # Analyze patterns
         total_volume = sum(g.get('search_volume', 0) for g in gaps if g.get('search_volume'))
@@ -466,7 +466,7 @@ def write_markdown_report(gaps: List[Dict[str, Any]], total_found: int):
             ct = gap.get('content_type', 'Unknown')
             content_types[ct] = content_types.get(ct, 0) + 1
 
-        f.write(f"\n**Content Types Needed:**\n")
+        f.write("\n**Content Types Needed:**\n")
         for ct, count in sorted(content_types.items(), key=lambda x: x[1], reverse=True):
             f.write(f"- {ct}: {count} articles\n")
 
@@ -476,7 +476,7 @@ def write_markdown_report(gaps: List[Dict[str, Any]], total_found: int):
             comp = gap['competitor']
             competitor_counts[comp] = competitor_counts.get(comp, 0) + 1
 
-        f.write(f"\n**Top Competitors to Learn From:**\n")
+        f.write("\n**Top Competitors to Learn From:**\n")
         for comp, count in sorted(competitor_counts.items(), key=lambda x: x[1], reverse=True)[:5]:
             f.write(f"- {comp}: {count} gap opportunities\n")
 

@@ -13,7 +13,7 @@ import json
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence
 from urllib.parse import urlparse
 
 try:  # pragma: no cover - import fallback for direct script execution

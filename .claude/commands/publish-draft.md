@@ -1,5 +1,15 @@
 # Publish Draft to WordPress
 
+## Context Binding Regeneration (MANDATORY)
+
+After the final content mutation, regenerate the machine-owned binding before `/publish-readiness` and before any WordPress API call:
+
+```bash
+python data_sources/modules/context_binding_generator.py "$FILE_PATH" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT"
+```
+
+If the article changes after this command, stop and regenerate the binding again.
+
 Publishes a draft article from this project to WordPress as a Draft, with all SEO metadata auto-populated.
 
 ## Usage
@@ -29,7 +39,7 @@ Publishes a draft article from this project to WordPress as a Draft, with all SE
 
 ## What This Command Does
 
-1. **Runs publish readiness preflight** - Executes `/publish-readiness [file] --proof-sidecar [sidecar]` before any WordPress API call
+1. **Runs publish readiness preflight** - Executes `/publish-readiness [file] --proof-sidecar [sidecar] --context-request [request] --context-pack [pack] --context-receipt [receipt]` before any WordPress API call
 2. **Parses the draft file** - Extracts all metadata from frontmatter
 3. **Converts Markdown to HTML** - Formats content for WordPress
 4. **Creates WordPress draft** - Posts via REST API with status "draft"
@@ -82,7 +92,7 @@ When you run this command:
 ### Step 2: Run Publish Readiness
 Run the full command-system gate before any WordPress request:
 ```bash
-/publish-readiness "$FILE_PATH" --proof-sidecar "$PROOF_SIDECAR"
+/publish-readiness "$FILE_PATH" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT"
 ```
 
 The WordPress publisher also enforces this preflight internally. If readiness fails, fix the highest-severity blocker and rerun; do not create a WordPress draft.
@@ -91,7 +101,7 @@ The WordPress publisher also enforces this preflight internally. If readiness fa
 Run the WordPress publisher:
 ```bash
 cd /path/to/seomachine
-python data_sources/modules/wordpress_publisher.py "$FILE_PATH" --type "$POST_TYPE" --proof-sidecar "$PROOF_SIDECAR"
+python data_sources/modules/wordpress_publisher.py "$FILE_PATH" --type "$POST_TYPE" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT"
 ```
 
 Where `$POST_TYPE` is `post`, `page`, or a custom post type.

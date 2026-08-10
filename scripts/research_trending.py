@@ -8,8 +8,8 @@ These are time-sensitive opportunities - strike while the trend is hot!
 
 import os
 import sys
-from datetime import datetime, timedelta
-from typing import List, Dict, Any
+from datetime import datetime
+from typing import List, Dict
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -18,9 +18,9 @@ load_dotenv()
 # Add data_sources to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'data_sources'))
 
-from modules.google_search_console import GoogleSearchConsole
-from modules.dataforseo import DataForSEO
-from modules.search_intent_analyzer import SearchIntentAnalyzer
+from modules.google_search_console import GoogleSearchConsole  # noqa: E402
+from modules.dataforseo import DataForSEO  # noqa: E402
+from modules.search_intent_analyzer import SearchIntentAnalyzer  # noqa: E402
 
 
 def main():
@@ -28,7 +28,7 @@ def main():
     print("TRENDING TOPIC OPPORTUNITIES")
     print("=" * 80)
     print(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    print(f"Strategy: Identify rising search trends for time-sensitive content")
+    print("Strategy: Identify rising search trends for time-sensitive content")
     print("=" * 80)
 
     # Initialize
@@ -70,7 +70,7 @@ def main():
         return
 
     # Enrich with additional data
-    print(f"\n3. Enriching trend data...")
+    print("\n3. Enriching trend data...")
     enriched_trends = []
 
     for i, trend in enumerate(trending_queries[:30], 1):  # Top 30
@@ -92,8 +92,8 @@ def main():
                     search_volume = keyword_data[0].get('search_volume')
                     difficulty = keyword_data[0].get('difficulty')
                     cpc = keyword_data[0].get('cpc')
-            except:
-                pass
+            except Exception as exc:
+                print(f"WARNING: keyword enrichment failed for {query!r}: {exc}", file=sys.stderr)
 
         # Analyze intent
         try:
@@ -102,7 +102,8 @@ def main():
             if hasattr(primary_intent, 'value'):
                 primary_intent = primary_intent.value
             search_intent = str(primary_intent)
-        except:
+        except Exception as exc:
+            print(f"WARNING: intent analysis failed for {query!r}: {exc}", file=sys.stderr)
             search_intent = 'unknown'
 
         # Calculate opportunity score
@@ -155,11 +156,11 @@ def main():
     print("\n" + "=" * 80)
     print("✅ TRENDING ANALYSIS COMPLETE")
     print("=" * 80)
-    print(f"\nNext steps:")
+    print("\nNext steps:")
     print(f"1. Review detailed report: research/trending-{datetime.now().strftime('%Y-%m-%d')}.md")
-    print(f"2. Act quickly on CRITICAL urgency trends (within 1 week)")
-    print(f"3. Create time-sensitive content for top trends")
-    print(f"4. Monitor trend continuation over next few weeks")
+    print("2. Act quickly on CRITICAL urgency trends (within 1 week)")
+    print("3. Create time-sensitive content for top trends")
+    print("4. Monitor trend continuation over next few weeks")
 
 
 def calculate_trend_opportunity_score(
@@ -248,11 +249,11 @@ def write_markdown_report(trends: List[Dict]):
     filename = f"research/trending-{date_str}.md"
 
     with open(filename, 'w') as f:
-        f.write(f"# Trending Topic Opportunities\n\n")
+        f.write("# Trending Topic Opportunities\n\n")
         f.write(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n")
-        f.write(f"**Strategy:** Capitalize on rising search trends with time-sensitive content\n\n")
+        f.write("**Strategy:** Capitalize on rising search trends with time-sensitive content\n\n")
         f.write(f"**Trends Identified:** {len(trends)}\n\n")
-        f.write(f"⏰ **TIME-SENSITIVE:** These trends are hot NOW. Act quickly before they cool or competition increases.\n\n")
+        f.write("⏰ **TIME-SENSITIVE:** These trends are hot NOW. Act quickly before they cool or competition increases.\n\n")
         f.write("---\n\n")
 
         # Group by urgency
@@ -260,7 +261,7 @@ def write_markdown_report(trends: List[Dict]):
         high = [t for t in trends if 'HIGH' in t['urgency']]
         moderate = [t for t in trends if 'MODERATE' in t['urgency']]
 
-        f.write(f"## Urgency Distribution\n\n")
+        f.write("## Urgency Distribution\n\n")
         f.write(f"- 🔥 CRITICAL (Act within 1 week): {len(critical)}\n")
         f.write(f"- ⚡ HIGH (Act within 2 weeks): {len(high)}\n")
         f.write(f"- ⏳ MODERATE (Act within 1 month): {len(moderate)}\n\n")
@@ -268,8 +269,8 @@ def write_markdown_report(trends: List[Dict]):
 
         # Critical urgency trends
         if critical:
-            f.write(f"## 🔥 CRITICAL URGENCY TRENDS\n\n")
-            f.write(f"**These topics are exploding NOW. Create content immediately!**\n\n")
+            f.write("## 🔥 CRITICAL URGENCY TRENDS\n\n")
+            f.write("**These topics are exploding NOW. Create content immediately!**\n\n")
 
             for i, trend in enumerate(critical[:10], 1):
                 f.write(f"### {i}. {trend['query']}\n\n")
@@ -286,39 +287,39 @@ def write_markdown_report(trends: List[Dict]):
                 f.write(f"- **Opportunity Score:** {trend['opportunity_score']:.2f}/100\n")
                 f.write(f"- **Urgency:** {trend['urgency']}\n\n")
 
-                f.write(f"**Why It's Hot:**\n")
+                f.write("**Why It's Hot:**\n")
                 if trend['growth_percent'] >= 200:
-                    f.write(f"- Massive growth spike (3x+ increase)\n")
+                    f.write("- Massive growth spike (3x+ increase)\n")
                 elif trend['growth_percent'] >= 100:
-                    f.write(f"- Strong growth (2x+ increase)\n")
+                    f.write("- Strong growth (2x+ increase)\n")
 
                 if trend['position'] <= 20:
                     f.write(f"- You already have visibility (position {trend['position']:.0f})\n")
-                    f.write(f"- Small optimization could drive significant traffic\n")
+                    f.write("- Small optimization could drive significant traffic\n")
 
                 if trend['recent_impressions'] > 500:
                     f.write(f"- High immediate demand ({trend['recent_impressions']} impressions last week)\n")
 
-                f.write(f"\n**Recommended Action:**\n")
+                f.write("\n**Recommended Action:**\n")
 
                 if trend['position'] <= 30:
-                    f.write(f"1. Update existing ranking content immediately\n")
-                    f.write(f"2. Add trending angle/section\n")
-                    f.write(f"3. Update title to include current year\n")
-                    f.write(f"4. Optimize for this trending query\n")
+                    f.write("1. Update existing ranking content immediately\n")
+                    f.write("2. Add trending angle/section\n")
+                    f.write("3. Update title to include current year\n")
+                    f.write("4. Optimize for this trending query\n")
                 else:
-                    f.write(f"1. Create comprehensive content targeting this query\n")
-                    f.write(f"2. Publish within 3-5 days (trend is hot!)\n")
-                    f.write(f"3. Promote on social media immediately\n")
-                    f.write(f"4. Consider paid promotion to accelerate visibility\n")
+                    f.write("1. Create comprehensive content targeting this query\n")
+                    f.write("2. Publish within 3-5 days (trend is hot!)\n")
+                    f.write("3. Promote on social media immediately\n")
+                    f.write("4. Consider paid promotion to accelerate visibility\n")
 
-                f.write(f"\n**Timeline:** Complete within 7 days\n\n")
+                f.write("\n**Timeline:** Complete within 7 days\n\n")
                 f.write("---\n\n")
 
         # High urgency trends
         if high:
-            f.write(f"## ⚡ HIGH URGENCY TRENDS\n\n")
-            f.write(f"**Strong upward trends. Act within 2 weeks.**\n\n")
+            f.write("## ⚡ HIGH URGENCY TRENDS\n\n")
+            f.write("**Strong upward trends. Act within 2 weeks.**\n\n")
 
             for i, trend in enumerate(high[:10], 1):
                 f.write(f"### {i}. {trend['query']}\n\n")
@@ -331,18 +332,18 @@ def write_markdown_report(trends: List[Dict]):
                 f.write(f"- Opportunity Score: {trend['opportunity_score']:.2f}/100\n")
                 f.write(f"- Urgency: {trend['urgency']}\n\n")
 
-                f.write(f"**Action:** ")
+                f.write("**Action:** ")
                 if trend['position'] <= 30:
-                    f.write(f"Update existing content within 2 weeks\n")
+                    f.write("Update existing content within 2 weeks\n")
                 else:
-                    f.write(f"Create new comprehensive content within 2 weeks\n")
+                    f.write("Create new comprehensive content within 2 weeks\n")
 
-                f.write(f"\n---\n\n")
+                f.write("\n---\n\n")
 
         # Moderate urgency trends
         if moderate:
-            f.write(f"## ⏳ MODERATE URGENCY TRENDS\n\n")
-            f.write(f"**Steady growth. Monitor and act within 1 month.**\n\n")
+            f.write("## ⏳ MODERATE URGENCY TRENDS\n\n")
+            f.write("**Steady growth. Monitor and act within 1 month.**\n\n")
 
             for i, trend in enumerate(moderate[:15], 1):
                 f.write(f"### {i}. {trend['query']}\n")
@@ -355,32 +356,32 @@ def write_markdown_report(trends: List[Dict]):
                 f.write(f"- Score: {trend['opportunity_score']:.2f}/100\n\n")
 
         # Strategy recommendations
-        f.write(f"## Implementation Strategy\n\n")
+        f.write("## Implementation Strategy\n\n")
 
-        f.write(f"### Week 1: Critical Trends\n")
-        f.write(f"Focus all resources on critical urgency trends:\n\n")
+        f.write("### Week 1: Critical Trends\n")
+        f.write("Focus all resources on critical urgency trends:\n\n")
 
         for i, trend in enumerate(critical[:3], 1):
             f.write(f"{i}. **{trend['query']}** - +{trend['growth_percent']:.0f}% growth\n")
             if trend['position'] <= 30:
                 f.write(f"   - Quick win: Update existing content (position {trend['position']:.0f})\n")
             else:
-                f.write(f"   - New content needed: Reader Contract-led comprehensive guide\n")
-            f.write(f"\n")
+                f.write("   - New content needed: Reader Contract-led comprehensive guide\n")
+            f.write("\n")
 
-        f.write(f"### Week 2-3: High Urgency Trends\n")
-        f.write(f"Build on critical work with high urgency items:\n\n")
+        f.write("### Week 2-3: High Urgency Trends\n")
+        f.write("Build on critical work with high urgency items:\n\n")
 
         for i, trend in enumerate(high[:3], 1):
             f.write(f"{i}. **{trend['query']}**\n")
 
-        f.write(f"\n### Week 4: Monitor & Moderate Trends\n")
-        f.write(f"- Review if critical trends maintained momentum\n")
-        f.write(f"- Begin work on moderate urgency items\n")
-        f.write(f"- Track which trends are continuing vs fading\n\n")
+        f.write("\n### Week 4: Monitor & Moderate Trends\n")
+        f.write("- Review if critical trends maintained momentum\n")
+        f.write("- Begin work on moderate urgency items\n")
+        f.write("- Track which trends are continuing vs fading\n\n")
 
         # Insights
-        f.write(f"## Key Insights\n\n")
+        f.write("## Key Insights\n\n")
 
         avg_growth = sum(t['growth_percent'] for t in trends) / len(trends) if trends else 0
         highest_growth = max(trends, key=lambda x: x['growth_percent']) if trends else None
@@ -394,11 +395,11 @@ def write_markdown_report(trends: List[Dict]):
         f.write(f"- **Already Ranking (Position ≤30):** {len(already_ranking)} trends\n")
         f.write(f"- **Quick Win Potential:** {len([t for t in already_ranking if t['priority'] in ['CRITICAL', 'HIGH']])} high-priority items where you already rank\n\n")
 
-        f.write(f"## Trend Monitoring\n\n")
-        f.write(f"- **Run this analysis weekly** to catch new trends early\n")
-        f.write(f"- **Track trend continuation** - Some spikes are temporary, others sustain\n")
-        f.write(f"- **Monitor your position changes** for trending queries you target\n")
-        f.write(f"- **Analyze traffic impact** 2-4 weeks after publishing trend content\n\n")
+        f.write("## Trend Monitoring\n\n")
+        f.write("- **Run this analysis weekly** to catch new trends early\n")
+        f.write("- **Track trend continuation** - Some spikes are temporary, others sustain\n")
+        f.write("- **Monitor your position changes** for trending queries you target\n")
+        f.write("- **Analyze traffic impact** 2-4 weeks after publishing trend content\n\n")
 
     print(f"   ✓ Report saved: {filename}")
 

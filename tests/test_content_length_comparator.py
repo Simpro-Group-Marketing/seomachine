@@ -1,4 +1,5 @@
 import unittest
+import socket
 from unittest.mock import Mock, patch
 
 from data_sources.modules.content_length_comparator import (
@@ -130,8 +131,8 @@ class ContentLengthComparatorTests(unittest.TestCase):
         self.assertTrue(callable(ContentLengthComparator().fetch_word_count))
         self.assertTrue(callable(ContentLengthComparator().fetch_content_context))
 
-    @patch("data_sources.modules.content_length_comparator.requests.get")
-    def test_public_content_context_fetches_word_count_and_h2_headings_once(self, get):
+    @patch("data_sources.modules.content_length_comparator.request_public_url")
+    def test_public_content_context_fetches_word_count_and_h2_headings_once(self, request):
         response = Mock()
         response.content = b"""
             <html><body><article>
@@ -142,7 +143,7 @@ class ContentLengthComparatorTests(unittest.TestCase):
             </article></body></html>
         """
         response.raise_for_status.return_value = None
-        get.return_value = response
+        request.return_value = response
 
         context = ContentLengthComparator().fetch_content_context(
             "https://example.com/guide"
@@ -153,7 +154,18 @@ class ContentLengthComparatorTests(unittest.TestCase):
             ["Plan the dispatch rules", "Review scheduling exceptions"],
         )
         self.assertGreater(context["word_count"], 0)
-        get.assert_called_once()
+        request.assert_called_once()
+
+    def test_public_content_context_blocks_private_destination(self):
+        def resolver(host, port, *, type=socket.SOCK_STREAM):
+            return [(socket.AF_INET, type, 6, "", ("10.0.0.8", port))]
+
+        context = ContentLengthComparator(resolver=resolver).fetch_content_context(
+            "http://internal.example/report"
+        )
+
+        self.assertIsNone(context["word_count"])
+        self.assertEqual(context["h2_headings"], [])
 
     def test_observed_position_never_uses_zero_based_competitor_label(self):
         result = StubContentLengthComparator().analyze(

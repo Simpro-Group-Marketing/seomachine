@@ -381,7 +381,7 @@ Examples:
 
 **No Source/Proof Meta-Commentary**: Do not explain why a case study, source, statistic, or example is useful for the topic, draft, article, or section. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 
-**Author-Led Blog Voice**: For every Simpro blog, read `wiki/messaging/Voice and Tone.md` and `wiki/messaging/Tone Voice and Localization Rules.md` from the vault. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Product pages and landing pages retain their existing restrained channel treatment.
+**Author-Led Blog Voice**: For every Simpro blog, retrieve current voice and tone guidance through the vault connector by semantic search and `resource_id` reads. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Product pages and landing pages retain their existing restrained channel treatment.
 
 **Em Dashes**: Em dashes are prohibited. Use a period, comma, colon, or parentheses when the grammar supports it. The scrubber and linter enforce this rule.
 

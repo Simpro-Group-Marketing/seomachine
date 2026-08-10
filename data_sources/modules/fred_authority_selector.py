@@ -3,69 +3,31 @@
 from __future__ import annotations
 
 import argparse
-import csv
-import hashlib
 import json
-import os
 import re
 import shlex
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence
+from typing import List, Optional, Sequence
 
 try:
     from .vault_claim_receipts import (
+        ApprovedClaim,
+        ValidatedClaimSet,
         VaultClaimReceiptError,
         load_validated_claim_set,
     )
 except ImportError:  # pragma: no cover - supports direct script execution.
-    from vault_claim_receipts import VaultClaimReceiptError, load_validated_claim_set
+    from vault_claim_receipts import (
+        ApprovedClaim,
+        ValidatedClaimSet,
+        VaultClaimReceiptError,
+        load_validated_claim_set,
+    )
 
 
-DEFAULT_VAULT_ROOT = Path(
-    "C:/Users/patrick.grueschow/Desktop/Obsidian/Simpro Brand Context"
-)
-INVENTORY_RELATIVE_PATH = Path("indexes/fred-voccola-media-inventory.csv")
-AUTHORITY_RELATIVE_PATH = Path("indexes/authority-signal-matrix.csv")
-MANIFEST_RELATIVE_PATH = Path("indexes/agent-retrieval-manifest.jsonl")
-
-USABLE_AUTHORITY_STATUS = "usable_for_eeat_authority_support"
-PUBLIC_PLAYLIST_STATUS = "public_curated_playlist_asset"
-SIMPRO_BRAND = "simpro"
-INVENTORY_REQUIRED_COLUMNS = {
-    "inventory_id",
-    "media_type",
-    "authority_id",
-    "source_layer",
-    "outlet",
-    "title",
-    "url_or_locator",
-    "date",
-    "recommended_brand",
-    "evidence_status",
-    "public_use_status",
-    "include_in_hub",
-    "notes",
-}
-AUTHORITY_REQUIRED_COLUMNS = {
-    "authority_id",
-    "cluster",
-    "outlet",
-    "headline",
-    "canonical_url",
-    "date",
-    "country",
-    "recommended_brand",
-    "total_placements",
-    "also_covered_by",
-    "eeat_dimension",
-    "evidence_status",
-    "allowed_use",
-    "public_use_status",
-    "source_node",
-    "raw_file",
-    "notes",
-}
+FRED_AUTHORITY_CLAIM_TYPE = "fred-authority-joined-v2"
+RECEIPT_APPROVED_STATUS = "receipt_approved"
 
 STOPWORDS = {
     "a",
@@ -111,81 +73,26 @@ def select_fred_authority(
     limit: int = 5,
 ) -> List[dict]:
     """Return ranked, vault-verified Fred Voccola authority candidates."""
-    root = _resolve_vault_root(vault_root)
-    inventory_rows, authority_rows = _load_verified_rows(root)
     try:
-        receipt_claims = load_validated_claim_set(context_pack, context_receipt)
+        receipt_claims = load_validated_claim_set(
+            context_pack,
+            context_receipt,
+            vault_root=vault_root,
+        )
     except VaultClaimReceiptError as exc:
         raise FredAuthorityDataError(f"Fred authority context receipt is invalid: {exc}") from exc
-    authority_by_id = {
-        row.get("authority_id", "").strip(): row
-        for row in authority_rows
-        if row.get("authority_id", "").strip()
-    }
+    if not receipt_claims.available:
+        raise FredAuthorityDataError(
+            f"Fred authority context receipt is unavailable: {receipt_claims.blocker}"
+        )
     query_tokens = _tokens(" ".join((topic, title, objective)))
     candidates: List[dict] = []
 
-    for inventory in inventory_rows:
-        public_status = inventory.get("public_use_status", "").strip()
-        if not _is_simpro_row(inventory):
-            continue
-        if not _is_included_in_hub(inventory):
-            continue
-
-        playlist_only = public_status == PUBLIC_PLAYLIST_STATUS
-        if public_status != USABLE_AUTHORITY_STATUS and not playlist_only:
-            continue
-        if playlist_only and not _is_public_youtube_asset_url(
-            inventory.get("url_or_locator", "")
-        ):
-            continue
-        approved_claim = receipt_claims.require_selector_claim(
-            inventory.get("inventory_id", ""),
-            use_modes={"authority_support"},
-            public_url=inventory.get("url_or_locator", ""),
-        )
-        if approved_claim is None:
-            continue
-
-        authority_id = inventory.get("authority_id", "").strip()
-        authority: Dict[str, str] = {}
-        if not playlist_only:
-            authority = authority_by_id.get(authority_id, {})
-            if not authority:
-                continue
-            if not _is_usable_authority_row(authority):
-                continue
-            if not _authority_matches_inventory(inventory, authority):
-                continue
-
-        candidate = dict(inventory)
-        playlist_collection = playlist_only and bool(
-            re.search(r"youtube\.com/playlist\?", inventory.get("url_or_locator", ""), re.IGNORECASE)
-        )
-        candidate.update(
-            {
-                "authority_cluster": authority.get("cluster", ""),
-                "authority_allowed_use": authority.get("allowed_use", ""),
-                "authority_evidence_status": authority.get("evidence_status", ""),
-                "authority_public_use_status": authority.get(
-                    "public_use_status", ""
-                ),
-                "authority_canonical_url": authority.get("canonical_url", ""),
-                "authority_kind": (
-                    "discovery_or_embed_only"
-                    if playlist_only
-                    else "earned_media_authority"
-                ),
-                "claim_id": approved_claim.claim_id,
-                "approval_source": approved_claim.approval_source,
-                "context_receipt_revision": approved_claim.receipt_revision,
-                "playlist_only": playlist_only,
-                "playlist_collection": playlist_collection,
-            }
-        )
+    for approved_claim in _fred_authority_claims(receipt_claims):
+        candidate = _candidate_from_claim(approved_claim)
         candidate["relevance_score"] = _relevance_score(query_tokens, candidate)
-        authority_bonus = 8 if not playlist_only else 0
-        collection_penalty = 4 if playlist_collection else 0
+        authority_bonus = 8 if not candidate["playlist_only"] else 0
+        collection_penalty = 4 if candidate["playlist_collection"] else 0
         candidate["score"] = candidate["relevance_score"] + authority_bonus - collection_penalty
         candidates.append(candidate)
 
@@ -306,159 +213,56 @@ def build_fred_authority_slate(
     )
 
 
-def _resolve_vault_root(vault_root: str | Path | None) -> Path:
-    if vault_root is not None and str(vault_root).strip():
-        return Path(vault_root)
-    configured = os.environ.get("SIMPRO_BRAND_CONTEXT_VAULT", "").strip()
-    if configured:
-        return Path(configured)
-    return DEFAULT_VAULT_ROOT
+def _fred_authority_claims(claims: ValidatedClaimSet) -> tuple[ApprovedClaim, ...]:
+    """Return complete receipt-approved Fred claims without resolving raw locators."""
+    return tuple(
+        claim
+        for claim in claims.approved_claims()
+        if claim.claim_type == FRED_AUTHORITY_CLAIM_TYPE
+        and claim.use_mode == "authority_support"
+        and bool(claim.selector_id)
+        and bool(claim.authority_resource_id)
+        and bool(claim.assertion)
+        and claim.public_url.startswith(("http://", "https://"))
+    )
 
 
-def _load_verified_rows(root: Path) -> tuple[List[dict], List[dict]]:
-    if not root.is_dir():
-        raise FredAuthorityDataError(f"Fred authority vault is unavailable: {root}")
-
-    inventory_path = root / INVENTORY_RELATIVE_PATH
-    authority_path = root / AUTHORITY_RELATIVE_PATH
-    manifest_path = root / MANIFEST_RELATIVE_PATH
-    for path in (inventory_path, authority_path, manifest_path):
-        if not path.is_file():
-            raise FredAuthorityDataError(
-                f"Fred authority vault manifest or required index is unavailable: {path}"
-            )
-
-    manifest = _load_manifest(manifest_path)
-    expected_hashes = {
-        str(item.get("path", "")).replace("\\", "/"): str(
-            item.get("sha256", "")
-        ).lower()
-        for item in manifest.get("control_inputs", [])
-        if isinstance(item, dict)
-    }
-    for relative_path, path in (
-        (INVENTORY_RELATIVE_PATH, inventory_path),
-        (AUTHORITY_RELATIVE_PATH, authority_path),
-    ):
-        key = relative_path.as_posix()
-        expected = expected_hashes.get(key, "")
-        if not expected:
-            raise FredAuthorityDataError(
-                f"Fred authority manifest does not control required index: {key}"
-            )
-        actual = hashlib.sha256(path.read_bytes()).hexdigest()
-        if actual != expected:
-            raise FredAuthorityDataError(
-                f"Fred authority manifest is stale for {key}: "
-                f"expected {expected}, found {actual}"
-            )
-
-    return (
-        _read_csv(
-            inventory_path,
-            required_columns=INVENTORY_REQUIRED_COLUMNS,
-            id_field="inventory_id",
-            label="Fred authority inventory",
+def _candidate_from_claim(claim: ApprovedClaim) -> dict:
+    """Project validated connector claim metadata into the selector contract."""
+    playlist_collection = bool(
+        re.search(r"youtube\.com/playlist\?", claim.public_url, re.IGNORECASE)
+    )
+    return {
+        "inventory_id": claim.selector_id,
+        "authority_id": claim.authority_resource_id,
+        "authority_resource_id": claim.authority_resource_id,
+        "title": claim.assertion,
+        "url_or_locator": claim.public_url,
+        "evidence_status": RECEIPT_APPROVED_STATUS,
+        "public_use_status": RECEIPT_APPROVED_STATUS,
+        "authority_cluster": "",
+        "authority_allowed_use": claim.use_mode,
+        "authority_evidence_status": RECEIPT_APPROVED_STATUS,
+        "authority_public_use_status": RECEIPT_APPROVED_STATUS,
+        "authority_canonical_url": claim.public_url,
+        "authority_kind": (
+            "discovery_or_embed_only"
+            if playlist_collection
+            else "earned_media_authority"
         ),
-        _read_csv(
-            authority_path,
-            required_columns=AUTHORITY_REQUIRED_COLUMNS,
-            id_field="authority_id",
-            label="Fred authority matrix",
-        ),
-    )
-
-
-def _load_manifest(path: Path) -> dict:
-    try:
-        with path.open("r", encoding="utf-8-sig") as handle:
-            for line in handle:
-                if not line.strip():
-                    continue
-                record = json.loads(line)
-                if record.get("record_type") == "manifest":
-                    return record
-    except (OSError, json.JSONDecodeError) as exc:
-        raise FredAuthorityDataError(
-            f"Fred authority manifest is unreadable: {path}: {exc}"
-        ) from exc
-    raise FredAuthorityDataError(f"Fred authority manifest record is unavailable: {path}")
-
-
-def _read_csv(
-    path: Path,
-    *,
-    required_columns: set[str],
-    id_field: str,
-    label: str,
-) -> List[dict]:
-    try:
-        with path.open("r", encoding="utf-8-sig", newline="") as handle:
-            reader = csv.DictReader(handle)
-            fieldnames = set(reader.fieldnames or [])
-            missing = sorted(required_columns - fieldnames)
-            if missing:
-                raise FredAuthorityDataError(
-                    f"{label} is missing required columns: {', '.join(missing)}"
-                )
-            rows = [dict(row) for row in reader]
-    except (OSError, csv.Error) as exc:
-        raise FredAuthorityDataError(
-            f"Fred authority index is unreadable: {path}: {exc}"
-        ) from exc
-
-    seen: set[str] = set()
-    for row in rows:
-        identifier = row.get(id_field, "").strip()
-        if not identifier:
-            raise FredAuthorityDataError(f"{label} has blank {id_field}")
-        if identifier in seen:
-            raise FredAuthorityDataError(
-                f"{label} has duplicate {id_field}: {identifier}"
-            )
-        seen.add(identifier)
-    return rows
-
-
-def _is_simpro_row(row: dict) -> bool:
-    brands = {
-        token
-        for token in re.split(
-            r"[^a-z0-9]+",
-            row.get("recommended_brand", "").strip().lower(),
-        )
-        if token
+        "claim_id": claim.claim_id,
+        "approval_source": claim.approval_source,
+        "context_receipt_revision": claim.receipt_revision,
+        "playlist_only": playlist_collection,
+        "playlist_collection": playlist_collection,
     }
-    return SIMPRO_BRAND in brands
 
 
-def _is_usable_authority_row(row: dict) -> bool:
-    return (
-        _is_simpro_row(row)
-        and row.get("public_use_status", "").strip() == USABLE_AUTHORITY_STATUS
-        and bool(row.get("canonical_url", "").strip())
-        and bool(row.get("allowed_use", "").strip())
-    )
-
-
-def _authority_matches_inventory(inventory: dict, authority: dict) -> bool:
-    return all(
-        (
-            bool(inventory.get(field, "").strip())
-            and bool(authority.get(authority_field, "").strip())
-            and inventory.get(field, "").strip() == authority.get(
-                authority_field, ""
-            ).strip()
-        )
-        for field, authority_field in (
-            ("authority_id", "authority_id"),
-            ("title", "headline"),
-            ("url_or_locator", "canonical_url"),
-            ("recommended_brand", "recommended_brand"),
-            ("evidence_status", "evidence_status"),
-            ("public_use_status", "public_use_status"),
-        )
-    )
+def _resolve_vault_root(vault_root: str | Path | None) -> Path | None:
+    """Normalize an explicit root for legacy callers without hidden fallbacks."""
+    if vault_root is None or not str(vault_root).strip():
+        return None
+    return Path(vault_root)
 
 
 def _is_public_youtube_url(url: str) -> bool:
@@ -471,33 +275,6 @@ def _is_public_youtube_url(url: str) -> bool:
         )
     )
 
-
-def _is_public_youtube_asset_url(url: str) -> bool:
-    if _is_public_youtube_url(url):
-        return True
-    return bool(
-        re.fullmatch(
-            r"https://(?:www\.)?youtube\.com/playlist\?list=[A-Za-z0-9_-]+(?:[&#].*)?",
-            url.strip(),
-            flags=re.IGNORECASE,
-        )
-    )
-
-
-def _is_included_in_hub(row: dict) -> bool:
-    value = row.get("include_in_hub", "").strip().lower()
-    return value in {"yes", "true", "1"} or value.startswith("yes_")
-
-
-def _media_family(value: str) -> str:
-    normalized = value.strip().lower()
-    if "video" in normalized:
-        return "video"
-    if "audio" in normalized or "podcast" in normalized:
-        return "audio"
-    if "article" in normalized:
-        return "article"
-    return normalized
 
 def _tokens(value: str) -> set[str]:
     return {

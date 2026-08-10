@@ -20,8 +20,8 @@ load_dotenv('data_sources/config/.env')
 # Add data_sources to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'data_sources', 'modules'))
 
-from dataforseo import DataForSEO
-from google_search_console import GoogleSearchConsole
+from dataforseo import DataForSEO  # noqa: E402 - path bootstrap must run first.
+from google_search_console import GoogleSearchConsole  # noqa: E402 - path bootstrap must run first.
 
 
 def load_config():
@@ -217,7 +217,7 @@ def main():
             page_2 = [k for k in high_intent_keywords if 10 < k['position'] <= 20]
             page_3_plus = [k for k in high_intent_keywords if k['position'] > 20]
 
-            print(f"📊 DISTRIBUTION:")
+            print("📊 DISTRIBUTION:")
             print(f"  Page 1 (positions 1-10): {len(page_1)} keywords")
             print(f"  Page 2 (positions 11-20): {len(page_2)} keywords")
             print(f"  Page 3+ (positions 21+): {len(page_3_plus)} keywords")
@@ -230,13 +230,13 @@ def main():
             print(f"\n  Page 1 Performance: {total_impressions_p1:,} impressions, {total_clicks_p1:,} clicks")
             print(f"  Page 2 Opportunity: {total_impressions_p2:,} impressions, {total_clicks_p2:,} clicks")
 
-            print(f"\n🏆 TOP PAGE 1 KEYWORDS (by impressions):")
+            print("\n🏆 TOP PAGE 1 KEYWORDS (by impressions):")
             print("-" * 70)
             for kw in page_1[:25]:
                 ctr_pct = kw['ctr'] * 100
                 print(f"  #{kw['position']:<5.1f} | {kw['keyword'][:50]:<50} | {kw['impressions']:>6,} imp | {kw['clicks']:>4} clicks | {ctr_pct:.1f}% CTR")
 
-            print(f"\n📈 TOP QUICK WIN OPPORTUNITIES (Page 2 - Position 11-20):")
+            print("\n📈 TOP QUICK WIN OPPORTUNITIES (Page 2 - Position 11-20):")
             print("-" * 70)
             for kw in page_2[:25]:
                 ctr_pct = kw['ctr'] * 100
@@ -259,16 +259,16 @@ def main():
             commercial_inv = [w for w in filtered_wins if w.get('commercial_intent_category') == 'Commercial Investigation']
             informational_rel = [w for w in filtered_wins if w.get('commercial_intent_category') == 'Informational (Relevant)']
 
-            print(f"\nQuick Win Breakdown by Commercial Intent:")
+            print("\nQuick Win Breakdown by Commercial Intent:")
             print(f"  Transactional (Ready to Buy): {len(transactional)}")
             print(f"  Commercial Investigation: {len(commercial_inv)}")
             print(f"  Informational (Relevant): {len(informational_rel)}")
 
-            print(f"\nTop 20 TRANSACTIONAL Quick Wins:")
+            print("\nTop 20 TRANSACTIONAL Quick Wins:")
             for i, qw in enumerate(transactional[:20], 1):
                 print(f"  {i:2d}. #{qw['position']:.1f} | {qw['keyword'][:45]:<45} | {qw['impressions']:,} imp | Score: {qw['opportunity_score']:.0f}")
 
-            print(f"\nTop 20 COMMERCIAL INVESTIGATION Quick Wins:")
+            print("\nTop 20 COMMERCIAL INVESTIGATION Quick Wins:")
             for i, qw in enumerate(commercial_inv[:20], 1):
                 print(f"  {i:2d}. #{qw['position']:.1f} | {qw['keyword'][:45]:<45} | {qw['impressions']:,} imp | Score: {qw['opportunity_score']:.0f}")
 

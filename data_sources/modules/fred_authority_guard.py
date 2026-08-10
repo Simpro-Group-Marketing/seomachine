@@ -7,42 +7,44 @@ import json
 import re
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse, urlsplit, urlunsplit
+
+from bs4 import BeautifulSoup
 
 try:
     from .fred_authority_selector import (
-        PUBLIC_PLAYLIST_STATUS,
-        USABLE_AUTHORITY_STATUS,
-        FredAuthorityDataError,
-        _authority_matches_inventory,
-        _is_included_in_hub,
-        _is_public_youtube_asset_url,
-        _media_family,
+        FRED_AUTHORITY_CLAIM_TYPE,
+        _candidate_from_claim,
+        _fred_authority_claims,
         _is_public_youtube_url,
-        _is_simpro_row,
-        _is_usable_authority_row,
-        _load_verified_rows,
-        _resolve_vault_root,
     )
+    from .artifact_detection import extract_frontmatter
+    from .context_binding_guard import visible_public_content
+    from .frontmatter import FrontmatterError
     from .guard_common import Finding, make_finding, should_fail, summarize_findings
     from .proof_sidecar import load_sidecar_content
+    from .vault_claim_receipts import (
+        ValidatedClaimSet,
+        VaultClaimReceiptError,
+        load_validated_claim_set,
+    )
 except ImportError:  # pragma: no cover - supports direct script execution.
     from fred_authority_selector import (
-        PUBLIC_PLAYLIST_STATUS,
-        USABLE_AUTHORITY_STATUS,
-        FredAuthorityDataError,
-        _authority_matches_inventory,
-        _is_included_in_hub,
-        _is_public_youtube_asset_url,
-        _media_family,
+        FRED_AUTHORITY_CLAIM_TYPE,
+        _candidate_from_claim,
+        _fred_authority_claims,
         _is_public_youtube_url,
-        _is_simpro_row,
-        _is_usable_authority_row,
-        _load_verified_rows,
-        _resolve_vault_root,
     )
+    from artifact_detection import extract_frontmatter
+    from context_binding_guard import visible_public_content
+    from frontmatter import FrontmatterError
     from guard_common import Finding, make_finding, should_fail, summarize_findings
     from proof_sidecar import load_sidecar_content
+    from vault_claim_receipts import (
+        ValidatedClaimSet,
+        VaultClaimReceiptError,
+        load_validated_claim_set,
+    )
 
 
 HEADING_RE = re.compile(
@@ -56,12 +58,22 @@ ATTR_RE = re.compile(
     r"(?P<name>[A-Za-z_:][-A-Za-z0-9_:.]*)\s*=\s*(?P<quote>['\"])(?P<value>.*?)(?P=quote)",
     re.DOTALL,
 )
+PUBLIC_URL_RE = re.compile(r"https?://[^\s<>\"']+", re.IGNORECASE)
+MARKDOWN_LINK_RE = re.compile(
+    r"\[[^\]]+\]\(\s*(?:<(?P<angle>https?://[^>]+)>|(?P<plain>https?://[^\s)]+))"
+    r"(?:\s+['\"][^'\"]*['\"])?\s*\)",
+    re.IGNORECASE,
+)
 
 REQUIRED_FIELDS = (
     "selector command",
     "evaluation status",
     "top candidates",
     "selected",
+    "context receipt",
+    "claim ids",
+    "receipt revision",
+    "approval source",
     "fit decision",
     "intended use",
     "target section",
@@ -104,13 +116,43 @@ NONE_REASONS = (
 NA_VALUES = {"", "none", "not applicable", "not_applicable", "n/a", "na"}
 
 
+def _authority_review_state(content: str) -> tuple[bool, str]:
+    try:
+        brand = str(extract_frontmatter(content).get("brand") or "").strip()
+    except FrontmatterError as error:
+        return True, str(error)
+    if not brand or brand.casefold() == "simpro":
+        return True, ""
+    return _public_fred_signal(content), ""
+
+
+def requires_authority_review(content: str) -> bool:
+    """Fail closed when Simpro scope or valid frontmatter cannot be established."""
+    required, _ = _authority_review_state(content)
+    return required
+
+
 def check_content(
     content: str,
     *,
     proof_content: Optional[str] = None,
     vault_root: str | Path | None = None,
+    context_pack: str | Path | None = None,
+    context_receipt: str | Path | None = None,
 ) -> List[Finding]:
     """Return findings for the mandatory Fred authority evaluation contract."""
+    review_required, frontmatter_error = _authority_review_state(content)
+    if frontmatter_error:
+        return [
+            _finding(
+                "fred_authority_frontmatter_invalid",
+                1,
+                f"Fred authority scope cannot be determined because frontmatter is invalid: {frontmatter_error}",
+                "Correct the article frontmatter before running Fred authority validation.",
+            )
+        ]
+    if not review_required:
+        return []
     block = _extract_selection_block(proof_content or "")
     if block is None:
         return [
@@ -188,25 +230,43 @@ def check_content(
         )
 
     try:
-        root = _resolve_vault_root(vault_root)
-        inventory_rows, authority_rows = _load_verified_rows(root)
-    except FredAuthorityDataError as exc:
+        receipt_claims = load_validated_claim_set(
+            context_pack,
+            context_receipt,
+            vault_root=vault_root,
+        )
+    except VaultClaimReceiptError as exc:
         findings.append(
             _finding(
-                "fred_authority_vault_unavailable",
+                "fred_authority_receipt_unavailable",
                 line,
-                f"Fred authority vault verification failed: {exc}",
-                "Restore the vault and regenerate its retrieval manifest before publishing.",
+                f"Fred authority context receipt verification failed: {exc}",
+                "Restore connector validation and regenerate the context pack and receipt.",
             )
         )
         return _sorted(findings)
+    if not receipt_claims.available:
+        findings.append(
+            _finding(
+                "fred_authority_receipt_unavailable",
+                line,
+                f"Fred authority context receipt is unavailable: {receipt_claims.blocker}",
+                "Supply a live-validated context pack and receipt before publishing.",
+            )
+        )
+        return _sorted(findings)
+
+    candidates = [
+        _candidate_from_claim(claim)
+        for claim in _fred_authority_claims(receipt_claims)
+    ]
 
     if selected_id.lower() == "none":
         findings.extend(_none_selection_findings(content, fields, line))
         return _sorted(findings)
 
     inventory = next(
-        (row for row in inventory_rows if row.get("inventory_id", "").strip() == selected_id),
+        (row for row in candidates if row.get("inventory_id", "").strip() == selected_id),
         None,
     )
     if inventory is None:
@@ -214,34 +274,24 @@ def check_content(
             _finding(
                 "fred_authority_id_unknown",
                 line,
-                f"Selected Fred authority ID is not present in the current vault: {selected_id}",
-                "Choose an FVMI ID from the current selector output.",
+                f"Selected Fred authority ID is not approved by the current receipt: {selected_id}",
+                "Choose an FVMI ID from the current receipt-validated selector output.",
                 match=selected_id,
             )
         )
         return _sorted(findings)
 
-    authority_by_id = {
-        row.get("authority_id", "").strip(): row
-        for row in authority_rows
-        if row.get("authority_id", "").strip()
-    }
-    authority = authority_by_id.get(inventory.get("authority_id", "").strip())
-    playlist_only = inventory.get("public_use_status", "").strip() == PUBLIC_PLAYLIST_STATUS
-    usable = _inventory_is_usable(inventory, authority, playlist_only)
-    if not usable:
-        findings.append(
-            _finding(
-                "fred_authority_not_usable",
-                line,
-                "Selected Fred authority evidence is blocked, internal, placement-only, non-Simpro, or otherwise unusable.",
-                "Select a usable authority row or verified public playlist asset from the current slate.",
-                match=selected_id,
-            )
+    playlist_only = bool(inventory.get("playlist_only"))
+    findings.extend(_receipt_match_findings(fields, inventory, line))
+    findings.extend(
+        _public_use_authorization_findings(
+            fields,
+            inventory,
+            receipt_claims,
+            intended,
+            line,
         )
-
-    findings.extend(_vault_match_findings(fields, inventory, authority, playlist_only, line))
-
+    )
     if intended == "none":
         findings.append(
             _finding(
@@ -272,7 +322,7 @@ def check_content(
         )
 
     if _uses_quote(intended):
-        findings.extend(_quote_findings(content, fields, inventory, line))
+        findings.extend(_quote_findings(content, fields, line))
     if _uses_paraphrase(intended):
         findings.extend(_paraphrase_findings(content, fields, line))
     if intended == "inline_citation":
@@ -310,6 +360,8 @@ def check_file(
     fail_on: str = "error",
     proof_sidecar: Optional[str] = None,
     vault_root: str | Path | None = None,
+    context_pack: str | Path | None = None,
+    context_receipt: str | Path | None = None,
 ) -> List[Finding]:
     """Check a public article file plus its validation sidecar."""
     if fail_on not in {"error", "warning", "none"}:
@@ -319,6 +371,8 @@ def check_file(
         file_path.read_text(encoding="utf-8"),
         proof_content=load_sidecar_content(file_path, proof_sidecar),
         vault_root=vault_root,
+        context_pack=context_pack,
+        context_receipt=context_receipt,
     )
 
 
@@ -367,26 +421,9 @@ def _none_selection_findings(content: str, fields: Dict[str, str], line: int) ->
     return findings
 
 
-def _inventory_is_usable(inventory: dict, authority: Optional[dict], playlist_only: bool) -> bool:
-    if not _is_simpro_row(inventory):
-        return False
-    if not _is_included_in_hub(inventory):
-        return False
-    if playlist_only:
-        return _is_public_youtube_asset_url(inventory.get("url_or_locator", ""))
-    return bool(
-        inventory.get("public_use_status", "").strip() == USABLE_AUTHORITY_STATUS
-        and authority
-        and _is_usable_authority_row(authority)
-        and _authority_matches_inventory(inventory, authority)
-    )
-
-
-def _vault_match_findings(
+def _receipt_match_findings(
     fields: Dict[str, str],
     inventory: dict,
-    authority: Optional[dict],
-    playlist_only: bool,
     line: int,
 ) -> List[Finding]:
     findings: List[Finding] = []
@@ -396,8 +433,8 @@ def _vault_match_findings(
             _finding(
                 "fred_authority_row_mismatch",
                 line,
-                "Sidecar Authority row does not match the current Fred inventory.",
-                "Regenerate the slate from the current vault.",
+                "Sidecar Authority row does not match the receipt-bound resource ID.",
+                "Regenerate the slate from the current context receipt.",
                 match=fields["authority row"],
             )
         )
@@ -406,8 +443,8 @@ def _vault_match_findings(
             _finding(
                 "fred_authority_url_mismatch",
                 line,
-                "Sidecar Public URL does not match the current Fred inventory.",
-                "Use the current vault URL exactly.",
+                "Sidecar Public URL does not match the receipt-approved public URL.",
+                "Use the receipt-approved public URL exactly.",
                 match=fields["public url"],
             )
         )
@@ -416,50 +453,121 @@ def _vault_match_findings(
             _finding(
                 "fred_authority_status_mismatch",
                 line,
-                "Sidecar Evidence status does not match the current Fred inventory.",
-                "Regenerate the slate and reverify the source.",
+                "Sidecar Evidence status does not record receipt approval.",
+                "Regenerate the slate from the validated context receipt.",
                 match=fields["evidence status"],
             )
         )
-    if not inventory.get("title", "").strip() or not inventory.get("outlet", "").strip():
+    claim_ids = {
+        value.strip()
+        for value in _unwrap(fields["claim ids"]).split(",")
+        if value.strip() and value.strip().lower() != "none"
+    }
+    if inventory.get("claim_id", "") not in claim_ids:
         findings.append(
             _finding(
-                "fred_authority_metadata_incomplete",
+                "fred_authority_claim_id_mismatch",
                 line,
-                "The current vault row lacks a source title or outlet.",
-                "Repair the vault inventory before using this source.",
+                "The selected Fred source claim ID is absent from the sidecar claim list.",
+                "Regenerate the slate from the validated context receipt.",
             )
         )
-    if not playlist_only and authority:
-        if authority.get("public_use_status", "").strip() != USABLE_AUTHORITY_STATUS:
-            findings.append(
-                _finding(
-                    "fred_authority_allowed_status_invalid",
-                    line,
-                    "The linked authority row is not approved for E-E-A-T authority support.",
-                    "Choose a currently usable authority row.",
-                )
+    if fields["receipt revision"].strip() != inventory.get("context_receipt_revision", ""):
+        findings.append(
+            _finding(
+                "fred_authority_receipt_revision_mismatch",
+                line,
+                "Sidecar Receipt revision does not match the validated receipt.",
+                "Regenerate the slate from the current context receipt.",
+                match=fields["receipt revision"],
             )
-        if not authority.get("allowed_use", "").strip():
-            findings.append(
-                _finding(
-                    "fred_authority_allowed_use_missing",
-                    line,
-                    "The linked authority row has no allowed-use context.",
-                    "Repair the authority matrix before public use.",
-                )
+        )
+    if fields["approval source"].strip() != inventory.get("approval_source", ""):
+        findings.append(
+            _finding(
+                "fred_authority_approval_source_mismatch",
+                line,
+                "Sidecar Approval source does not match connector claim approval.",
+                "Regenerate the slate from the current context receipt.",
+                match=fields["approval source"],
             )
+        )
     return findings
 
 
-def _quote_findings(content: str, fields: Dict[str, str], inventory: dict, line: int) -> List[Finding]:
+def _public_use_authorization_findings(
+    fields: Dict[str, str],
+    inventory: dict,
+    receipt_claims: ValidatedClaimSet,
+    intended: str,
+    line: int,
+) -> List[Finding]:
+    required_mode = _required_public_use_mode(intended)
+    if not required_mode:
+        return []
+
+    selector_id = str(inventory.get("inventory_id") or "").strip()
+    authority_resource_id = str(inventory.get("authority_resource_id") or "").strip()
+    public_url = _normalize_url(str(inventory.get("url_or_locator") or ""))
+    authorizing_claims = [
+        claim
+        for claim in receipt_claims.approved_claims()
+        if claim.claim_type == FRED_AUTHORITY_CLAIM_TYPE
+        and claim.selector_id == selector_id
+        and claim.authority_resource_id == authority_resource_id
+        and _normalize_url(claim.public_url) == public_url
+        and claim.use_mode == required_mode
+    ]
+    if not authorizing_claims:
+        return [
+            _finding(
+                "fred_authority_public_use_unapproved",
+                line,
+                (
+                    f"The selected Fred source is not receipt-approved for {required_mode}; "
+                    "authority_support approval does not authorize quotations or paraphrases."
+                ),
+                "Query an approved claim for the intended use or remove the public use.",
+                match=selector_id,
+            )
+        ]
+
+    sidecar_claim_ids = {
+        value.strip()
+        for value in _unwrap(fields["claim ids"]).split(",")
+        if value.strip() and value.strip().lower() != "none"
+    }
+    if not any(claim.claim_id in sidecar_claim_ids for claim in authorizing_claims):
+        return [
+            _finding(
+                "fred_authority_public_use_claim_id_mismatch",
+                line,
+                (
+                    "The sidecar claim list does not identify the receipt-approved "
+                    f"{required_mode} claim for the selected Fred source."
+                ),
+                "Regenerate the sidecar from the current receipt and bind the authorizing claim ID.",
+                match=selector_id,
+            )
+        ]
+    return []
+
+
+def _required_public_use_mode(intended: str) -> str:
+    if _uses_quote(intended):
+        return "exact_quote"
+    if _uses_paraphrase(intended):
+        return "public_paraphrase"
+    return ""
+
+def _quote_findings(content: str, fields: Dict[str, str], line: int) -> List[Finding]:
     quote = fields["exact quote"].strip()
     findings = _public_link_findings(content, fields["public url"], line, required_text=quote)
     excerpt = fields["evidence excerpt"].strip()
     locator = fields["timestamp or locator"].strip()
     method = fields["verification method"].strip().lower()
-    media_type = _media_family(inventory.get("media_type", ""))
-    if _is_na(quote) or quote not in content:
+    is_audio_video = _is_public_youtube_url(fields["public url"])
+    if _is_na(quote) or quote not in visible_public_content(content):
         findings.append(
             _finding(
                 "fred_authority_exact_quote_missing",
@@ -486,7 +594,16 @@ def _quote_findings(content: str, fields: Dict[str, str], inventory: dict, line:
                 "Add a timestamp for audio/video or a visible article locator.",
             )
         )
-    if media_type in {"video", "audio", "podcast"}:
+    if is_audio_video:
+        if method != "transcript_and_playback":
+            findings.append(
+                _finding(
+                    "fred_authority_transcript_required",
+                    line,
+                    "Exact audio/video wording lacks transcript-and-playback verification.",
+                    "Use transcript_and_playback with source-visible captions/transcript, or paraphrase.",
+                )
+            )
         if not _is_valid_av_timestamp(locator):
             findings.append(
                 _finding(
@@ -495,15 +612,6 @@ def _quote_findings(content: str, fields: Dict[str, str], inventory: dict, line:
                     "Exact audio/video evidence lacks a valid MM:SS or HH:MM:SS timestamp.",
                     "Record the verified playback timestamp as MM:SS or HH:MM:SS.",
                     match=locator,
-                )
-            )
-        if method != "transcript_and_playback":
-            findings.append(
-                _finding(
-                    "fred_authority_transcript_required",
-                    line,
-                    "Exact audio/video wording lacks transcript-and-playback verification.",
-                    "Use transcript_and_playback with source-visible captions/transcript, or paraphrase.",
                 )
             )
         if fields["playback verified"].strip().lower() != "yes":
@@ -589,7 +697,7 @@ def _embed_findings(content: str, fields: Dict[str, str], inventory: dict, line:
             )
         )
     public_url = inventory.get("url_or_locator", "").strip()
-    if _media_family(inventory.get("media_type", "")) != "video" or not _is_public_youtube_url(public_url):
+    if not _is_public_youtube_url(public_url):
         findings.append(
             _finding(
                 "fred_authority_embed_source_invalid",
@@ -601,7 +709,8 @@ def _embed_findings(content: str, fields: Dict[str, str], inventory: dict, line:
         return findings
 
     video_id = _youtube_video_id(public_url)
-    iframe_matches = list(IFRAME_RE.finditer(content))
+    visible_content = visible_public_content(content)
+    iframe_matches = list(IFRAME_RE.finditer(visible_content))
     if not iframe_matches:
         findings.append(_finding("fred_authority_embed_missing", line, "Embed decision is yes but no iframe is present.", "Add the responsive privacy-enhanced YouTube handoff."))
         return findings
@@ -629,14 +738,14 @@ def _embed_findings(content: str, fields: Dict[str, str], inventory: dict, line:
         findings.append(_finding("fred_authority_embed_title_invalid", line, "Fred video iframe lacks a descriptive title.", "Add a descriptive iframe title naming Fred and the video subject."))
     if "allowfullscreen" not in match.group("attrs").lower():
         findings.append(_finding("fred_authority_embed_fullscreen_missing", line, "Fred video iframe does not allow fullscreen.", "Add allowfullscreen to the iframe."))
-    if not _has_responsive_wrapper(content, match):
+    if not _has_responsive_wrapper(visible_content, match):
         findings.append(_finding("fred_authority_embed_responsive_missing", line, "Fred video handoff does not declare responsive 16:9 dimensions.", "Wrap the iframe in a responsive 16:9 container."))
     if not _visible_fallback_link(content, public_url):
         findings.append(_finding("fred_authority_embed_fallback_missing", line, "Fred video embed lacks a visible fallback link.", "Add a visible link to the selected public YouTube URL."))
     if not _frontmatter_has_video_object(content):
         findings.append(_finding("fred_authority_video_object_missing", 1, "Embedded Fred video lacks VideoObject in frontmatter schema notes.", "Add VideoObject to schema_notes."))
     target = fields["target section"].strip()
-    before_iframe = content[: match.start()]
+    before_iframe = visible_content[: match.start()]
     target_match = re.search(rf"^\s*#{{1,6}}\s+{re.escape(target)}\s*$", before_iframe, re.IGNORECASE | re.MULTILINE)
     target_body = before_iframe[target_match.end() :] if target_match else ""
     if target_match is None or len(re.sub(r"[#<>{}\[\]()*_]", " ", target_body).strip()) < 20:
@@ -671,12 +780,13 @@ def _frontmatter_has_video_object(content: str) -> bool:
 
 
 def _has_video_embed(content: str) -> bool:
-    if re.search(r"<video\b", content, re.IGNORECASE):
+    visible_content = visible_public_content(content)
+    if re.search(r"<video\b", visible_content, re.IGNORECASE):
         return True
     providers = ("youtube", "youtu.be", "vimeo", "wistia", "vidyard")
     return any(
         any(provider in match.group("attrs").lower() for provider in providers)
-        for match in IFRAME_RE.finditer(content)
+        for match in IFRAME_RE.finditer(visible_content)
     )
 
 
@@ -730,22 +840,57 @@ def _is_valid_av_timestamp(value: str) -> bool:
 
 
 def _visible_fallback_link(content: str, url: str) -> bool:
-    return bool(
-        re.search(rf"\[[^\]]+\]\({re.escape(url)}(?:\s+['\"][^'\"]+['\"])?\)", content, re.IGNORECASE)
-        or re.search(rf"<a\b[^>]*href=['\"]{re.escape(url)}['\"][^>]*>[^<]+</a>", content, re.IGNORECASE)
+    target = _normalize_url(url)
+    if not target:
+        return False
+    visible_content = visible_public_content(content)
+    for match in MARKDOWN_LINK_RE.finditer(visible_content):
+        candidate = match.group("angle") or match.group("plain") or ""
+        if _normalize_url(candidate) == target:
+            return True
+    soup = BeautifulSoup(visible_content, "html.parser")
+    return any(
+        _normalize_url(str(anchor.get("href") or "")) == target
+        for anchor in soup.find_all("a", href=True)
     )
 
 
 def _paragraph_with_url(content: str, url: str) -> Optional[str]:
-    normalized = _normalize_url(url)
-    for paragraph in re.split(r"\n\s*\n", content):
-        if normalized and normalized in _normalize_url(paragraph):
+    target = _normalize_url(url)
+    if not target:
+        return None
+    for paragraph in re.split(r"\n\s*\n", visible_public_content(content)):
+        if any(_normalize_url(candidate) == target for candidate in _public_urls(paragraph)):
             return paragraph
     return None
 
 
+def _public_urls(content: str) -> list[str]:
+    urls = [
+        str(anchor.get("href") or "")
+        for anchor in BeautifulSoup(content, "html.parser").find_all("a", href=True)
+    ]
+    for match in MARKDOWN_LINK_RE.finditer(content):
+        urls.append(match.group("angle") or match.group("plain") or "")
+    urls.extend(_trim_url_candidate(match.group(0)) for match in PUBLIC_URL_RE.finditer(content))
+    return [url for url in urls if url]
+
+
+def _trim_url_candidate(value: str) -> str:
+    candidate = value.rstrip(".,;|]}")
+    while candidate.endswith(")") and candidate.count(")") > candidate.count("("):
+        candidate = candidate[:-1]
+    return candidate
+
+
 def _public_fred_signal(content: str) -> bool:
-    return bool(re.search(r"\bFred\s+Voccola\b", content, re.IGNORECASE))
+    return bool(
+        re.search(
+            r"\bFred\s+Voccola\b",
+            visible_public_content(content),
+            re.IGNORECASE,
+        )
+    )
 
 
 def _uses_quote(intended: str) -> bool:
@@ -773,7 +918,47 @@ def _normalize_key(value: str) -> str:
 
 
 def _normalize_url(value: str) -> str:
-    return value.strip().rstrip("/).,|").lower()
+    """Canonicalize URL identity without changing path or query semantics.
+
+    Scheme and hostname casing are normalized and HTTP(S) default ports are
+    removed. An empty HTTP(S) root path is treated as ``/``. Non-root trailing
+    slashes remain significant, and path, query, and fragment casing is
+    preserved exactly.
+    """
+    candidate = value.strip()
+    if not candidate:
+        return ""
+    try:
+        parsed = urlsplit(candidate)
+        port = parsed.port
+    except ValueError:
+        return candidate
+    scheme = parsed.scheme.casefold()
+    hostname = parsed.hostname
+    if not scheme or hostname is None:
+        return candidate
+
+    normalized_host = hostname.casefold()
+    if ":" in normalized_host and not normalized_host.startswith("["):
+        normalized_host = f"[{normalized_host}]"
+    default_port = (scheme == "http" and port == 80) or (
+        scheme == "https" and port == 443
+    )
+    if port is not None and not default_port:
+        normalized_host = f"{normalized_host}:{port}"
+    userinfo = parsed.netloc.rsplit("@", 1)[0] + "@" if "@" in parsed.netloc else ""
+    path = parsed.path
+    if scheme in {"http", "https"} and not path:
+        path = "/"
+    return urlunsplit(
+        (
+            scheme,
+            f"{userinfo}{normalized_host}",
+            path,
+            parsed.query,
+            parsed.fragment,
+        )
+    )
 
 
 def _finding(rule_id: str, line: int, message: str, suggestion: str, *, match: str = "") -> Finding:
@@ -789,6 +974,8 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("file_path")
     parser.add_argument("--proof-sidecar")
     parser.add_argument("--vault-root")
+    parser.add_argument("--context-pack")
+    parser.add_argument("--context-receipt")
     parser.add_argument("--json", action="store_true")
     parser.add_argument(
         "--fail-on",
@@ -797,7 +984,13 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
         help="Finding severity that should produce a nonzero exit code.",
     )
     args = parser.parse_args(argv)
-    findings = check_file(args.file_path, proof_sidecar=args.proof_sidecar, vault_root=args.vault_root)
+    findings = check_file(
+        args.file_path,
+        proof_sidecar=args.proof_sidecar,
+        vault_root=args.vault_root,
+        context_pack=args.context_pack,
+        context_receipt=args.context_receipt,
+    )
     if args.json:
         print(json.dumps({"findings": findings, "summary": summarize_findings(findings)}, indent=2))
     else:

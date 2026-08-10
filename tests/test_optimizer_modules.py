@@ -681,6 +681,18 @@ class OptimizerModuleTests(unittest.TestCase):
         self.assertTrue(result["publishing_ready"], result)
         self.assertNotIn("down-funnel", "\n".join(result["critical_issues"]))
 
+    def test_seo_quality_rater_accepts_features_hub_down_funnel_link(self):
+        result = rate_article_with_links(
+            "[job management software for field service teams]"
+            "(https://www.bigchange.com/features)\n"
+            "[job sheet app](https://www.bigchange.com/job-sheet-app)\n"
+            "[job sheet software guide]"
+            "(https://www.bigchange.com/blog/job-sheet-software)\n"
+        )
+
+        self.assertTrue(result["publishing_ready"], result)
+        self.assertNotIn("down-funnel", "\n".join(result["critical_issues"]))
+
     def test_seo_quality_rater_accepts_feature_down_funnel_link(self):
         result = rate_article_with_links(
             "[field service payments](https://www.simprogroup.com/features/payments)\n"

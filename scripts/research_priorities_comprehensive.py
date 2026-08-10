@@ -1,465 +1,217 @@
 #!/usr/bin/env python3
-"""
-Comprehensive Priorities Research
+"""Run source-backed research modules and inventory their verified artifacts."""
 
-Orchestrates all research modules to provide a unified, actionable content roadmap.
-Combines: Quick wins, competitor gaps, performance matrix, topic clusters, and trending.
-"""
+from __future__ import annotations
 
-import os
-import sys
+import hashlib
+import importlib
 from datetime import datetime
-from typing import List, Dict, Any
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
-
-# Add data_sources to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'data_sources'))
-
-from modules.google_search_console import GoogleSearchConsole
-from modules.dataforseo import DataForSEO
-from modules.google_analytics import GoogleAnalytics
+from pathlib import Path
+from typing import Any, Callable, Dict, Iterable, Mapping, Optional
 
 
-def main():
+RESEARCH_MODULES: Dict[str, Dict[str, str]] = {
+    "quick_wins": {
+        "module": "scripts.research_quick_wins",
+        "artifact": "quick-wins-{date}.md",
+    },
+    "competitor_gaps": {
+        "module": "scripts.research_competitor_gaps",
+        "artifact": "competitor-gaps-{date}.md",
+    },
+    "performance_matrix": {
+        "module": "scripts.research_performance_matrix",
+        "artifact": "performance-matrix-{date}.md",
+    },
+    "topic_clusters": {
+        "module": "scripts.research_topic_clusters",
+        "artifact": "topic-clusters-{date}.md",
+    },
+    "trending": {
+        "module": "scripts.research_trending",
+        "artifact": "trending-{date}.md",
+    },
+}
+
+REVIEW_GUIDANCE = (
+    "Evaluate all identified SERP features and target every applicable feature only "
+    "when the verified report supports it. Evaluate all identified coverage gaps; "
+    "treat recurring, reader-critical, evidence-supported gaps as candidates and "
+    "document the Reader Contract exception for justified exclusions."
+)
+
+
+def _default_runner(module_path: str) -> Callable[[], Any]:
+    def run() -> Any:
+        module = importlib.import_module(module_path)
+        module_main = getattr(module, "main", None)
+        if not callable(module_main):
+            raise RuntimeError(f"{module_path} does not expose a callable main()")
+        return module_main()
+
+    return run
+
+
+def _sha256(path: Path) -> Optional[str]:
+    if not path.is_file():
+        return None
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def run_research_modules(
+    *,
+    output_dir: str | Path = "research",
+    now: Optional[datetime] = None,
+    module_runners: Optional[Mapping[str, Callable[[], Any]]] = None,
+    module_names: Optional[Iterable[str]] = None,
+    include_competitor_gaps: bool = False,
+    print_fn: Callable[..., None] = print,
+) -> Dict[str, Dict[str, str]]:
+    """Run requested modules and mark completion only after artifact readback."""
+    now = now or datetime.now()
+    date_text = now.strftime("%Y-%m-%d")
+    output_root = Path(output_dir)
+    output_root.mkdir(parents=True, exist_ok=True)
+    requested_names = list(module_names or RESEARCH_MODULES)
+    supplied_runners = dict(module_runners or {})
+    results: Dict[str, Dict[str, str]] = {}
+
+    for name in requested_names:
+        if name not in RESEARCH_MODULES:
+            raise ValueError(f"Unknown research module: {name}")
+        if name == "competitor_gaps" and not include_competitor_gaps:
+            results[name] = {"status": "skipped"}
+            print_fn("SKIP competitor_gaps: not requested")
+            continue
+
+        spec = RESEARCH_MODULES[name]
+        artifact = output_root / spec["artifact"].format(date=date_text)
+        before_hash = _sha256(artifact)
+        runner = supplied_runners.get(name) or _default_runner(spec["module"])
+        print_fn(f"RUN  {name}")
+        try:
+            runner()
+            after_hash = _sha256(artifact)
+            if after_hash is None:
+                raise RuntimeError(f"Expected artifact was not written: {artifact}")
+            if before_hash is not None and after_hash == before_hash:
+                raise RuntimeError(f"Expected artifact was not refreshed: {artifact}")
+        except Exception as exc:
+            results[name] = {"status": "failed", "error": str(exc)}
+            print_fn(f"FAIL {name}: {exc}")
+            continue
+
+        results[name] = {
+            "status": "completed",
+            "artifact": str(artifact),
+            "artifact_sha256": after_hash,
+        }
+        print_fn(f"PASS {name}: {artifact}")
+
+    return results
+
+
+def generate_unified_roadmap(
+    results: Mapping[str, Mapping[str, str]],
+    *,
+    now: Optional[datetime] = None,
+) -> Dict[str, Any]:
+    """Build a review queue containing only verified completed artifacts."""
+    now = now or datetime.now()
+    completed_artifacts = []
+    actions = []
+    for name in RESEARCH_MODULES:
+        result = results.get(name, {})
+        if result.get("status") != "completed" or not result.get("artifact"):
+            continue
+        artifact = result["artifact"]
+        label = name.replace("_", " ").title()
+        completed_artifacts.append(artifact)
+        actions.append(
+            {
+                "source": label,
+                "artifact": artifact,
+                "action": (
+                    f"Review the verified {label} report and select supported priorities."
+                ),
+            }
+        )
+
+    return {
+        "generated": now.strftime("%Y-%m-%d %H:%M"),
+        "completed_artifacts": completed_artifacts,
+        "actions": actions,
+        "review_guidance": REVIEW_GUIDANCE,
+    }
+
+
+def write_roadmap_report(
+    roadmap: Mapping[str, Any],
+    results: Mapping[str, Mapping[str, str]],
+    *,
+    output_dir: str | Path = "research",
+    now: Optional[datetime] = None,
+) -> Path:
+    """Write an evidence-bound roadmap inventory and return its path."""
+    now = now or datetime.now()
+    output_root = Path(output_dir)
+    output_root.mkdir(parents=True, exist_ok=True)
+    output_path = output_root / f"ROADMAP-{now.strftime('%Y-%m-%d')}.md"
+    lines = [
+        "# Content Strategy Roadmap",
+        "",
+        f"**Generated:** {roadmap['generated']}",
+        "",
+        "## Research execution status",
+        "",
+    ]
+    for name in RESEARCH_MODULES:
+        result = results.get(name, {"status": "not_run"})
+        line = f"- {name.replace('_', ' ').title()}: {result.get('status', 'not_run')}"
+        if result.get("artifact"):
+            line += f" | `{result['artifact']}` | SHA-256 `{result['artifact_sha256']}`"
+        if result.get("error"):
+            line += f" | blocker: {result['error']}"
+        lines.append(line)
+
+    lines.extend(["", "## Verified report review queue", ""])
+    actions = list(roadmap.get("actions", []))
+    if actions:
+        for action in actions:
+            lines.append(f"- [{action['source']}]({Path(action['artifact']).as_posix()}): {action['action']}")
+    else:
+        lines.append("No verified research artifacts were produced; no priorities were generated.")
+    lines.extend(["", "## Review boundary", "", str(roadmap["review_guidance"]), ""])
+    output_path.write_text("\n".join(lines), encoding="utf-8")
+    return output_path
+
+
+def main() -> int:
     print("=" * 80)
     print("COMPREHENSIVE CONTENT PRIORITIES")
     print("=" * 80)
-    print(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    print(f"Strategy: Multi-angle analysis for complete content roadmap")
-    print("=" * 80)
-
-    # Initialize
-    print("\n📊 Initializing comprehensive research...")
-    print("\nThis will run 5 research modules:")
-    print("  1. Quick Wins (positions 11-20)")
-    print("  2. Competitor Gaps (what they rank for, you don't)")
-    print("  3. Content Performance (categorize all content)")
-    print("  4. Topic Clusters (topical authority gaps)")
-    print("  5. Trending Topics (rising search trends)")
-    print("\nEstimated time: 5-10 minutes")
-    print("\nPress Ctrl+C to cancel, or Enter to continue...")
-
     try:
-        input()
+        input("Press Enter to run, or Ctrl+C to cancel: ")
+        include_gaps = input("Run paid competitor-gap analysis? (y/N): ").strip().lower() == "y"
     except KeyboardInterrupt:
-        print("\n\nCancelled by user")
-        return
+        print("\nCancelled by user")
+        return 130
 
-    results = {}
+    now = datetime.now()
+    results = run_research_modules(
+        now=now,
+        include_competitor_gaps=include_gaps,
+    )
+    failed = [name for name, result in results.items() if result["status"] == "failed"]
+    if failed:
+        print(f"Research failed; roadmap not written. Failed modules: {', '.join(failed)}")
+        return 1
 
-    # 1. Quick Wins
-    print("\n" + "=" * 80)
-    print("1/5: QUICK WINS ANALYSIS")
-    print("=" * 80)
-    try:
-        from research_quick_wins import main as quick_wins_main
-        # Capture quick wins data (would need to modify research_quick_wins to return data)
-        print("Running quick wins research...")
-        # For now, indicate it's running
-        print("✓ Quick wins analysis complete (see research/quick-wins-YYYY-MM-DD.md)")
-        results['quick_wins'] = 'completed'
-    except Exception as e:
-        print(f"⚠ Quick wins analysis failed: {e}")
-        results['quick_wins'] = 'failed'
-
-    # 2. Competitor Gaps (optional - requires API credits)
-    print("\n" + "=" * 80)
-    print("2/5: COMPETITOR GAP ANALYSIS")
-    print("=" * 80)
-    print("\n⚠️  Note: This uses DataForSEO API credits (~$1-3)")
-    print("Skip competitor gap analysis? (y/N): ", end='')
-
-    try:
-        skip = input().strip().lower()
-        if skip == 'y':
-            print("Skipping competitor gap analysis")
-            results['competitor_gaps'] = 'skipped'
-        else:
-            print("Running competitor gap analysis...")
-            # Would run competitor gaps
-            print("✓ Competitor gaps analysis complete (see research/competitor-gaps-YYYY-MM-DD.md)")
-            results['competitor_gaps'] = 'completed'
-    except KeyboardInterrupt:
-        print("\nSkipping competitor gap analysis")
-        results['competitor_gaps'] = 'skipped'
-    except Exception as e:
-        print(f"⚠ Competitor gaps analysis failed: {e}")
-        results['competitor_gaps'] = 'failed'
-
-    # 3. Performance Matrix
-    print("\n" + "=" * 80)
-    print("3/5: CONTENT PERFORMANCE MATRIX")
-    print("=" * 80)
-    try:
-        print("Running performance matrix analysis...")
-        print("✓ Performance matrix complete (see research/performance-matrix-YYYY-MM-DD.md)")
-        results['performance_matrix'] = 'completed'
-    except Exception as e:
-        print(f"⚠ Performance matrix failed: {e}")
-        results['performance_matrix'] = 'failed'
-
-    # 4. Topic Clusters
-    print("\n" + "=" * 80)
-    print("4/5: TOPIC CLUSTER ANALYSIS")
-    print("=" * 80)
-    try:
-        print("Running topic cluster analysis...")
-        print("✓ Topic clusters complete (see research/topic-clusters-YYYY-MM-DD.md)")
-        results['topic_clusters'] = 'completed'
-    except Exception as e:
-        print(f"⚠ Topic clusters failed: {e}")
-        results['topic_clusters'] = 'failed'
-
-    # 5. Trending
-    print("\n" + "=" * 80)
-    print("5/5: TRENDING TOPICS ANALYSIS")
-    print("=" * 80)
-    try:
-        print("Running trending analysis...")
-        print("✓ Trending topics complete (see research/trending-YYYY-MM-DD.md)")
-        results['trending'] = 'completed'
-    except Exception as e:
-        print(f"⚠ Trending analysis failed: {e}")
-        results['trending'] = 'failed'
-
-    # Generate unified roadmap
-    print("\n" + "=" * 80)
-    print("GENERATING UNIFIED ROADMAP")
-    print("=" * 80)
-
-    roadmap = generate_unified_roadmap(results)
-    write_roadmap_report(roadmap, results)
-
-    print("\n" + "=" * 80)
-    print("✅ COMPREHENSIVE RESEARCH COMPLETE")
-    print("=" * 80)
-    print(f"\n📁 Reports Generated:")
-    print(f"   - research/quick-wins-{datetime.now().strftime('%Y-%m-%d')}.md")
-
-    if results.get('competitor_gaps') == 'completed':
-        print(f"   - research/competitor-gaps-{datetime.now().strftime('%Y-%m-%d')}.md")
-
-    print(f"   - research/performance-matrix-{datetime.now().strftime('%Y-%m-%d')}.md")
-    print(f"   - research/topic-clusters-{datetime.now().strftime('%Y-%m-%d')}.md")
-    print(f"   - research/trending-{datetime.now().strftime('%Y-%m-%d')}.md")
-    print(f"   - research/ROADMAP-{datetime.now().strftime('%Y-%m-%d')}.md (★ START HERE)")
-
-    print(f"\n🎯 Next Steps:")
-    print(f"   1. Open research/ROADMAP-{datetime.now().strftime('%Y-%m-%d')}.md")
-    print(f"   2. Review prioritized action plan")
-    print(f"   3. Start with Week 1 priorities")
-    print(f"   4. Use /write or /analyze-existing for each item")
-
-
-def generate_unified_roadmap(results: Dict[str, str]) -> Dict[str, Any]:
-    """Generate unified roadmap from all research results"""
-
-    roadmap = {
-        'generated': datetime.now().strftime('%Y-%m-%d %H:%M'),
-        'week_1': [],
-        'week_2_3': [],
-        'week_4_plus': [],
-        'ongoing': [],
-        'summary': {}
-    }
-
-    # Week 1: Immediate actions (Critical priority items)
-    roadmap['week_1'] = [
-        {
-            'source': 'Trending',
-            'action': 'Create/update content for critical urgency trends',
-            'description': 'Topics experiencing rapid growth - strike while hot',
-            'effort': 'High',
-            'impact': 'High',
-            'time_sensitive': True
-        },
-        {
-            'source': 'Performance Matrix',
-            'action': 'Fix underperformer titles/meta descriptions',
-            'description': 'High rankings but low CTR - quick wins with title optimization',
-            'effort': 'Low',
-            'impact': 'Medium-High',
-            'time_sensitive': False
-        },
-        {
-            'source': 'Quick Wins',
-            'action': 'Optimize top 3 quick win keywords',
-            'description': 'Position 11-13 keywords - very close to page 1',
-            'effort': 'Medium',
-            'impact': 'High',
-            'time_sensitive': False
-        }
-    ]
-
-    # Week 2-3: High-value opportunities
-    roadmap['week_2_3'] = [
-        {
-            'source': 'Competitor Gaps',
-            'action': 'Create content for top 5 competitor gaps',
-            'description': 'Proven demand topics where you have zero content',
-            'effort': 'High',
-            'impact': 'Very High',
-            'time_sensitive': False
-        },
-        {
-            'source': 'Performance Matrix',
-            'action': 'Refresh declining star content',
-            'description': 'Previously successful content losing traction',
-            'effort': 'Medium',
-            'impact': 'High',
-            'time_sensitive': True
-        },
-        {
-            'source': 'Quick Wins',
-            'action': 'Optimize positions 14-17 keywords',
-            'description': 'Close to page 1, need moderate work',
-            'effort': 'Medium-High',
-            'impact': 'Medium-High',
-            'time_sensitive': False
-        }
-    ]
-
-    # Week 4+: Strategic initiatives
-    roadmap['week_4_plus'] = [
-        {
-            'source': 'Topic Clusters',
-            'action': 'Build comprehensive clusters for weak topics',
-            'description': 'Create 8-12 articles to establish topical authority',
-            'effort': 'Very High',
-            'impact': 'Very High',
-            'time_sensitive': False
-        },
-        {
-            'source': 'Competitor Gaps',
-            'action': 'Create content for remaining gap opportunities',
-            'description': (
-                'Fill recurring, reader-critical, evidence-supported gaps and '
-                'document justified exclusions'
-            ),
-            'effort': 'Very High',
-            'impact': 'High',
-            'time_sensitive': False
-        },
-        {
-            'source': 'Performance Matrix',
-            'action': 'Expand star content with supporting articles',
-            'description': 'Build clusters around your top performers',
-            'effort': 'High',
-            'impact': 'Medium',
-            'time_sensitive': False
-        }
-    ]
-
-    # Ongoing maintenance
-    roadmap['ongoing'] = [
-        {
-            'source': 'Trending',
-            'action': 'Weekly trend monitoring',
-            'description': 'Run /research-trending weekly to catch new opportunities',
-            'frequency': 'Weekly'
-        },
-        {
-            'source': 'Performance Matrix',
-            'action': 'Monthly content health check',
-            'description': 'Monitor for new declining content or underperformers',
-            'frequency': 'Monthly'
-        },
-        {
-            'source': 'Quick Wins',
-            'action': 'Bi-weekly quick wins review',
-            'description': 'Check for new keywords entering page 2',
-            'frequency': 'Bi-weekly'
-        }
-    ]
-
-    return roadmap
-
-
-def write_roadmap_report(roadmap: Dict[str, Any], results: Dict[str, str]):
-    """Write unified roadmap report"""
-    date_str = datetime.now().strftime('%Y-%m-%d')
-    filename = f"research/ROADMAP-{date_str}.md"
-
-    with open(filename, 'w') as f:
-        f.write(f"# Content Strategy Roadmap\n\n")
-        f.write(f"**Generated:** {roadmap['generated']}\n\n")
-        f.write(f"**Purpose:** Unified, actionable content roadmap from comprehensive SEO research\n\n")
-        f.write("---\n\n")
-
-        # Research summary
-        f.write(f"## Research Modules Completed\n\n")
-        for module, status in results.items():
-            icon = '✅' if status == 'completed' else '⏭️' if status == 'skipped' else '❌'
-            f.write(f"- {icon} {module.replace('_', ' ').title()}\n")
-        f.write(f"\n")
-
-        # Executive summary
-        f.write(f"## Executive Summary\n\n")
-        f.write(f"This roadmap synthesizes insights from {len([s for s in results.values() if s == 'completed'])} research modules to provide a prioritized action plan.\n\n")
-
-        f.write(f"**Key Insights:**\n")
-        f.write(f"- **Week 1 Focus:** Time-sensitive opportunities and quick wins\n")
-        f.write(f"- **Weeks 2-3 Focus:** High-value new content and content rescue\n")
-        f.write(f"- **Weeks 4+ Focus:** Strategic topic authority building\n")
-        f.write(f"- **Ongoing:** Regular monitoring and maintenance\n\n")
-
-        f.write("---\n\n")
-
-        # Week 1
-        f.write(f"## 🎯 WEEK 1: Immediate Priorities\n\n")
-        f.write(f"**Focus:** Time-sensitive and high-ROI quick wins\n\n")
-
-        for i, item in enumerate(roadmap['week_1'], 1):
-            f.write(f"### {i}. {item['action']}\n\n")
-            f.write(f"- **Source:** {item['source']}\n")
-            f.write(f"- **Description:** {item['description']}\n")
-            f.write(f"- **Effort:** {item['effort']}\n")
-            f.write(f"- **Impact:** {item['impact']}\n")
-
-            if item.get('time_sensitive'):
-                f.write(f"- **⏰ Time-Sensitive:** YES\n")
-
-            f.write(f"\n**Action Steps:**\n")
-
-            if item['source'] == 'Trending':
-                f.write(f"1. Open research/trending-{date_str}.md\n")
-                f.write(f"2. Identify CRITICAL urgency trends\n")
-                f.write(f"3. For each trend:\n")
-                f.write(f"   - If position ≤30: Update existing content immediately\n")
-                f.write(f"   - If position >30: Create a Reader Contract-led comprehensive guide\n")
-                f.write(f"4. Publish within 3-7 days\n")
-
-            elif item['source'] == 'Performance Matrix':
-                f.write(f"1. Open research/performance-matrix-{date_str}.md\n")
-                f.write(f"2. Go to 'Underperformers' section\n")
-                f.write(f"3. For each underperformer:\n")
-                f.write(f"   - Rewrite title tag (add year, numbers, power words)\n")
-                f.write(f"   - Rewrite meta description (clear value prop)\n")
-                f.write(f"   - Add FAQ schema if relevant\n")
-                f.write(f"4. Monitor CTR improvement after 2 weeks\n")
-
-            elif item['source'] == 'Quick Wins':
-                f.write(f"1. Open research/quick-wins-{date_str}.md\n")
-                f.write(f"2. Select top 3 keywords (priority: CRITICAL)\n")
-                f.write(f"3. For each keyword:\n")
-                f.write(f"   - Run `/research-serp [keyword]` for content requirements\n")
-                f.write(f"   - Update content following SERP analysis brief\n")
-                f.write(f"   - Add content only for identified reader-payoff, evidence, or task gaps\n")
-                f.write(f"   - Improve keyword placement in H2/H3\n")
-                f.write(f"   - Optimize title/meta\n")
-
-            f.write(f"\n---\n\n")
-
-        # Week 2-3
-        f.write(f"## 📈 WEEKS 2-3: High-Value Opportunities\n\n")
-        f.write(f"**Focus:** New content creation and content rescue\n\n")
-
-        for i, item in enumerate(roadmap['week_2_3'], 1):
-            f.write(f"### {i}. {item['action']}\n\n")
-            f.write(f"- **Source:** {item['source']}\n")
-            f.write(f"- **Description:** {item['description']}\n")
-            f.write(f"- **Effort:** {item['effort']}\n")
-            f.write(f"- **Impact:** {item['impact']}\n\n")
-
-            if item['source'] == 'Competitor Gaps':
-                if results.get('competitor_gaps') == 'completed':
-                    f.write(f"**Action Steps:**\n")
-                    f.write(f"1. Open research/competitor-gaps-{date_str}.md\n")
-                    f.write(f"2. Select top 5 gaps (Priority: CRITICAL/HIGH)\n")
-                    f.write(f"3. For each gap:\n")
-                    f.write(f"   - Run `/research-serp [keyword]` for content brief\n")
-                    f.write(f"   - Create comprehensive content sized by Reader Contract, evidence, and task completeness\n")
-                    f.write(f"   - Follow the recommended content structure by default; document the Reader Contract exception when another structure is justified\n")
-                    f.write(f"   - Evaluate all identified SERP features; target every applicable feature supported by intent, format, reader value, and verified inputs\n")
-                    f.write(f"4. Schedule 1-2 gap articles per week\n")
-                else:
-                    f.write(f"**Note:** Competitor gap analysis was skipped. Run manually:\n")
-                    f.write(f"```bash\n")
-                    f.write(f"python3 scripts/research_competitor_gaps.py\n")
-                    f.write(f"```\n")
-
-            elif item['source'] == 'Performance Matrix':
-                f.write(f"**Action Steps:**\n")
-                f.write(f"1. Open research/performance-matrix-{date_str}.md\n")
-                f.write(f"2. Go to 'Declining' section\n")
-                f.write(f"3. Identify 'Stars' that are declining\n")
-                f.write(f"4. For each:\n")
-                f.write(f"   - Update all statistics to current year\n")
-                f.write(f"   - Add content only for identified reader-payoff, evidence, or task gaps\n")
-                f.write(f"   - Refresh images and examples\n")
-                f.write(f"   - Improve internal linking\n")
-
-            f.write(f"\n---\n\n")
-
-        # Week 4+
-        f.write(f"## 🏗️ WEEKS 4+: Strategic Initiatives\n\n")
-        f.write(f"**Focus:** Long-term topical authority building\n\n")
-
-        for i, item in enumerate(roadmap['week_4_plus'], 1):
-            f.write(f"### {i}. {item['action']}\n\n")
-            f.write(f"- **Source:** {item['source']}\n")
-            f.write(f"- **Description:** {item['description']}\n")
-            f.write(f"- **Effort:** {item['effort']}\n")
-            f.write(f"- **Impact:** {item['impact']}\n\n")
-
-            if item['source'] == 'Topic Clusters':
-                f.write(f"**Action Steps:**\n")
-                f.write(f"1. Open research/topic-clusters-{date_str}.md\n")
-                f.write(f"2. Select top 2-3 weak clusters with high demand\n")
-                f.write(f"3. For each cluster:\n")
-                f.write(f"   - Create comprehensive pillar page sized by Reader Contract, evidence, and task completeness\n")
-                f.write(f"   - Create 8-12 supporting cluster articles\n")
-                f.write(f"   - Evaluate all identified coverage gaps; treat recurring, reader-critical, evidence-supported gaps as must-fill and document the Reader Contract exception for any qualified gap omitted\n")
-                f.write(f"   - Internal link all cluster content to pillar\n")
-                f.write(f"4. Publish 1-2 cluster articles per week\n")
-
-            f.write(f"\n---\n\n")
-
-        # Ongoing
-        f.write(f"## 🔄 Ongoing Maintenance\n\n")
-        f.write(f"**Focus:** Continuous monitoring and optimization\n\n")
-
-        for i, item in enumerate(roadmap['ongoing'], 1):
-            f.write(f"### {i}. {item['action']} ({item['frequency']})\n\n")
-            f.write(f"- **Source:** {item['source']}\n")
-            f.write(f"- **Description:** {item['description']}\n\n")
-
-        # Implementation tips
-        f.write(f"---\n\n")
-        f.write(f"## 💡 Implementation Tips\n\n")
-
-        f.write(f"### Resource Allocation\n\n")
-        f.write(f"**If you have:**\n")
-        f.write(f"- **1-2 hours/week:** Focus on Week 1 quick wins only\n")
-        f.write(f"- **5-10 hours/week:** Complete Week 1, start Week 2-3 initiatives\n")
-        f.write(f"- **20+ hours/week:** Full roadmap execution\n\n")
-
-        f.write(f"### Tools Integration\n\n")
-        f.write(f"For each content item:\n")
-        f.write(f"1. **Research:** `/research-serp [keyword]` - Get content requirements\n")
-        f.write(f"2. **Create:** `/write [keyword]` - Generate content brief/outline\n")
-        f.write(f"3. **Analyze:** `/analyze-existing [URL]` - For content updates\n")
-        f.write(f"4. **Optimize:** `/optimize [file]` - Before publishing\n\n")
-
-        f.write(f"### Success Metrics\n\n")
-        f.write(f"Track these metrics weekly:\n")
-        f.write(f"- **Quick wins:** Position changes for targeted keywords\n")
-        f.write(f"- **Underperformers:** CTR improvements\n")
-        f.write(f"- **New content:** Impressions and position after 2-4 weeks\n")
-        f.write(f"- **Topic clusters:** Average position for cluster keywords\n")
-        f.write(f"- **Overall:** Total organic clicks month-over-month\n\n")
-
-        f.write(f"### When to Re-run This Analysis\n\n")
-        f.write(f"- **Full comprehensive:** Monthly\n")
-        f.write(f"- **Quick wins only:** Bi-weekly\n")
-        f.write(f"- **Trending only:** Weekly\n")
-        f.write(f"- **Performance matrix:** Monthly\n\n")
-
-    print(f"   ✓ Roadmap saved: {filename}")
+    roadmap = generate_unified_roadmap(results, now=now)
+    output_path = write_roadmap_report(roadmap, results, now=now)
+    print(f"PASS roadmap written: {output_path}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

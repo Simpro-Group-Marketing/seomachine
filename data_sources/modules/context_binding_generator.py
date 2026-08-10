@@ -86,7 +86,11 @@ def generate_and_install(
             "binding_input_invalid",
             f"Article input is invalid: {error}",
         ) from error
-    request_findings = validate_request_article(request, article_content)
+    request_findings = validate_request_article(
+        request,
+        article_content,
+        article_path=article,
+    )
     if request_findings:
         first = request_findings[0]
         raise ContextBindingGenerationError(first["rule_id"], first["message"])

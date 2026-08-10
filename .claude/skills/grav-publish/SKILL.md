@@ -1,7 +1,6 @@
 ---
 name: grav-publish
-version: 1.0.0
-description: When the user wants to publish or push a finished blog article to Grav CMS via GitHub — committing blogs/<slug>/article.en.md to the dev branch. Also use when the user mentions "publish to Grav," "push to Grav dev," "Grav CMS," "article.en.md," or "publish the rewrite/draft to the blog repo." For WordPress publishing, use the /publish-draft command instead.
+description: When the user wants to publish or push a finished blog article to Grav CMS via GitHub, committing the slug-specific article.en.md to the dev branch. Also use when the user mentions "publish to Grav," "push to Grav dev," "Grav CMS," "article.en.md," or "publish the rewrite/draft to the blog repo." For WordPress publishing, use the /publish-draft command instead.
 ---
 
 # Grav Publish
@@ -55,7 +54,7 @@ If `GRAV_REPO` is unset, the publisher automatically runs in dry-run mode (no pu
 2. Run the full publish-readiness preflight before any Grav push:
 
    ```bash
-   /publish-readiness <path-to-draft-or-rewrite> --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
+   /publish-readiness <path-to-draft-or-rewrite> --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json
    ```
 
    The Grav publisher also enforces this preflight internally before committing to GitHub. If readiness fails, fix the highest-severity blocker and rerun; do not push.
@@ -71,7 +70,7 @@ If `GRAV_REPO` is unset, the publisher automatically runs in dry-run mode (no pu
 4. After the user confirms the frontmatter and slug look right (and `GRAV_REPO` is set), push:
 
    ```bash
-   python data_sources/modules/grav_publisher.py <path-to-draft-or-rewrite> --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
+   python data_sources/modules/grav_publisher.py <path-to-draft-or-rewrite> --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json
    ```
 
 5. Report the slug, the `blogs/<slug>/article.en.md` path, and the returned commit URL.

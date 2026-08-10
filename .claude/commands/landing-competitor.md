@@ -18,6 +18,12 @@ Use this command to analyze a specific competitor's landing page in depth.
 4. Provides actionable insights for [YOUR COMPANY] pages
 5. Saves analysis for reference
 
+## Connector Context Contract
+
+For Simpro positioning, shortlist, product, feature, audience, Lightning, or proof decisions, run vault health and discovery first, search in the task's natural language, then read and expand the smallest relevant results by `resource_id`. Query approved claims for every proof-sensitive public statement. Build the context pack and validate its receipt before recommending publishable Simpro copy; bind the validation sidecar to `context_pack_hash`, `receipt_hash`, supporting `resource_id` values, approved `claim_id` values, use modes, public URLs when required, and current revisions.
+
+The competitor page is primary evidence for its own current wording and page structure, but it cannot select Simpro's competitive shortlist or approve Simpro claims. If the connector is unavailable, document the exact blocker in the validation sidecar. Only then may repo-local context or configuration files be used as fallback mirrors, and unsupported public claims must be omitted.
+
 ## Analysis Framework
 
 ### 1. Page Overview
@@ -272,9 +278,9 @@ Save competitor analyses to:
 
 ### Lightning-Specific Competitor Work
 
-If the competitor page or planned response involves Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, load @context/lightning-positioning.md before writing the analysis.
+If the competitor page or planned response involves Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, use connector semantic search, `resource_id` reads, and expansion to retrieve current Lightning positioning before writing the analysis. Query approved claims for every proposed public statement. @context/lightning-positioning.md is an unavailable-connector fallback mirror only.
 
-For external or publishable competitor claims, verify the current competitor state in the same run. Lightning battle-card language may guide the angle, but do not treat older pricing, bundle, AI, or roadmap claims as current without verification.
+For external or publishable competitor claims, verify the current competitor state from public evidence in the same run and require approved claims for Simpro proof-sensitive language. Connector-discovered competitive context may guide the angle, but do not treat older pricing, bundle, AI, commercial-treatment, or roadmap statements as current without verification.
 
 ### What to Focus On
 
@@ -325,7 +331,7 @@ For external or publishable competitor claims, verify the current competitor sta
 
 ## Competitors to Consider
 
-Refer to your `config/competitors.json` for your configured competitor list.
+Use connector semantic search, `resource_id` reads, and expansion of current competitive-context resources to determine the Simpro shortlist. Public competitor pages may inform format and current competitor-page observations, but they cannot decide which named competitors Simpro should include. Use `config/competitors.json` only as an unavailable-connector fallback mirror and record that fallback in the validation sidecar.
 
 For specific features:
 - Analyze competitors who excel in each feature area

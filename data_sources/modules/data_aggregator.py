@@ -4,20 +4,28 @@ Data Aggregator
 Combines data from multiple sources (GA4, GSC, DataForSEO) for comprehensive analysis.
 """
 
+import importlib
 import os
-from typing import Dict, List, Optional, Any
+from pathlib import Path
+from typing import Callable, Dict, List, Mapping, Optional, Any
 from datetime import datetime
 from dotenv import load_dotenv
 
-try:
-    from .google_analytics import GoogleAnalytics
-    from .google_search_console import GoogleSearchConsole
-    from .dataforseo import DataForSEO
-except ImportError:
-    # Fallback for direct execution
-    from google_analytics import GoogleAnalytics
-    from google_search_console import GoogleSearchConsole
-    from dataforseo import DataForSEO
+
+CLIENT_IMPORTS = {
+    "ga": ("google_analytics", "GoogleAnalytics"),
+    "gsc": ("google_search_console", "GoogleSearchConsole"),
+    "dfs": ("dataforseo", "DataForSEO"),
+}
+
+
+def _client_factory(module_name: str, class_name: str) -> Callable[[], Any]:
+    if __package__:
+        module = importlib.import_module(f".{module_name}", package=__package__)
+    else:  # pragma: no cover - supports direct script execution.
+        module = importlib.import_module(module_name)
+    client_class = getattr(module, class_name)
+    return client_class
 
 
 class DataAggregator:
@@ -25,27 +33,35 @@ class DataAggregator:
     Aggregates data from multiple sources for comprehensive content analysis
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        *,
+        client_factories: Optional[Mapping[str, Callable[[], Any]]] = None,
+        env_path: str | Path | None = None,
+        print_fn: Callable[..., None] = print,
+    ):
         """Initialize all data source clients"""
-        load_dotenv('data_sources/config/.env')
+        resolved_env_path = (
+            Path(env_path)
+            if env_path is not None
+            else Path(__file__).resolve().parents[1] / "config" / ".env"
+        )
+        load_dotenv(resolved_env_path)
+        supplied_factories = dict(client_factories or {})
+        self.source_errors: Dict[str, str] = {}
 
-        try:
-            self.ga = GoogleAnalytics()
-        except Exception as e:
-            print(f"Warning: Google Analytics not configured: {e}")
-            self.ga = None
-
-        try:
-            self.gsc = GoogleSearchConsole()
-        except Exception as e:
-            print(f"Warning: Google Search Console not configured: {e}")
-            self.gsc = None
-
-        try:
-            self.dfs = DataForSEO()
-        except Exception as e:
-            print(f"Warning: DataForSEO not configured: {e}")
-            self.dfs = None
+        for name, (module_name, class_name) in CLIENT_IMPORTS.items():
+            try:
+                factory = supplied_factories.get(name) or _client_factory(
+                    module_name,
+                    class_name,
+                )
+                client = factory()
+            except Exception as exc:
+                self.source_errors[name] = str(exc)
+                print_fn(f"Warning: {class_name} not configured: {exc}")
+                client = None
+            setattr(self, name, client)
 
     def get_comprehensive_page_performance(
         self,
@@ -248,7 +264,7 @@ class DataAggregator:
                 'priority': 'high',
                 'type': 'update',
                 'action': f"Update declining article: {worst_decline['title']}",
-                'reason': f"Traffic down {abs(worst_decline['change_percent']):.1f}% ({worst_decline['previous_pageviews']:,} → {worst_decline['pageviews']:,} pageviews). Needs refresh.",
+                'reason': f"Traffic down {abs(worst_decline['change_percent']):.1f}% ({worst_decline['previous_pageviews']:,} to {worst_decline['pageviews']:,} pageviews). Needs refresh.",
                 'url': worst_decline['path'],
                 'change_percent': worst_decline['change_percent']
             })
@@ -318,7 +334,7 @@ if __name__ == "__main__":
 
     # Summary
     if report['summary']:
-        print("\n📊 SUMMARY")
+        print("\nSUMMARY")
         print("-" * 80)
         if 'total_pageviews' in report['summary']:
             print(f"Total Pageviews: {report['summary']['total_pageviews']:,}")
@@ -331,7 +347,7 @@ if __name__ == "__main__":
 
     # Top performers
     if report.get('top_performers'):
-        print("\n🏆 TOP 10 PERFORMERS")
+        print("\nTOP 10 PERFORMERS")
         print("-" * 80)
         for i, page in enumerate(report['top_performers'][:10], 1):
             print(f"{i}. {page['title']}")
@@ -339,7 +355,7 @@ if __name__ == "__main__":
 
     # Recommendations
     if report.get('recommendations'):
-        print("\n✅ TOP RECOMMENDATIONS")
+        print("\nTOP RECOMMENDATIONS")
         print("-" * 80)
         for i, rec in enumerate(report['recommendations'][:5], 1):
             print(f"\n{i}. [{rec['priority'].upper()}] {rec['action']}")

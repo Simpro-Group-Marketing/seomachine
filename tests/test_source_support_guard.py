@@ -1,4 +1,5 @@
 import os
+import socket
 import tempfile
 import unittest
 from pathlib import Path
@@ -42,7 +43,7 @@ class SourceSupportGuardTests(unittest.TestCase):
             try:
                 request = Mock(return_value=FakeResponse())
                 with patch("data_sources.modules.source_support_guard.Cache", None), patch(
-                    "data_sources.modules.source_support_guard.requests.get",
+                    "data_sources.modules.source_support_guard.request_public_url",
                     request,
                 ):
                     first = fetch_source_text("https://example.com/source")
@@ -53,6 +54,16 @@ class SourceSupportGuardTests(unittest.TestCase):
                 self.assertEqual(request.call_count, 1)
             finally:
                 os.chdir(old_cwd)
+
+    def test_fetch_source_text_blocks_private_destination_before_request(self):
+        def resolver(host, port, *, type=socket.SOCK_STREAM):
+            return [(socket.AF_INET, type, 6, "", ("169.254.169.254", port))]
+
+        with self.assertRaisesRegex(ValueError, "not public"):
+            fetch_source_text(
+                "http://metadata.example/latest/meta-data",
+                resolver=resolver,
+            )
 
     def test_contextual_case_study_link_passes_with_case_study_proof_path(self):
         content = f"""---

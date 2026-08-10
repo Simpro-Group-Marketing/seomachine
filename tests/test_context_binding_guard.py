@@ -160,8 +160,315 @@ class ContextBindingGuardTests(unittest.TestCase):
             encoding="utf-8",
         )
 
+    def write_resource_only_context(self, article_text, legacy_sidecar):
+        self.article.write_text(f"# Simpro draft\n\n{article_text}\n", encoding="utf-8")
+        pack = json.loads(self.pack.read_text(encoding="utf-8"))
+        receipt = json.loads(self.receipt.read_text(encoding="utf-8"))
+        pack["sections"]["Approved Claim Evidence"] = []
+        receipt["claim_decisions"] = []
+        self.pack.write_text(json.dumps(pack), encoding="utf-8")
+        self.receipt.write_text(json.dumps(receipt), encoding="utf-8")
+        binding = context_binding_guard.build_binding(
+            self.article,
+            self.request,
+            self.pack,
+            self.receipt,
+            repo_context=[],
+        )
+        generated = context_binding_guard.render_generated_blocks(binding, [])
+        self.sidecar.write_text(f"{legacy_sidecar.strip()}\n\n{generated}", encoding="utf-8")
+
+    def write_typed_claim_context(self, article_text, use_mode, *, verbatim=None):
+        self.article.write_text(f"# Simpro draft\n\n{article_text}\n", encoding="utf-8")
+        pack = json.loads(self.pack.read_text(encoding="utf-8"))
+        receipt = json.loads(self.receipt.read_text(encoding="utf-8"))
+        evidence = pack["sections"]["Approved Claim Evidence"][0]
+        evidence.update(
+            {
+                "use_mode": use_mode,
+                "assertion": article_text,
+                "public_url": "https://www.simprogroup.com/customers/example/",
+            }
+        )
+        if verbatim is not None:
+            evidence["verbatim_evidence"] = {
+                "text": verbatim,
+                "text_sha256": sha256_text(verbatim),
+                "resource_id": "res-guidance",
+                "public_url": evidence["public_url"],
+            }
+        receipt["claim_decisions"][0]["use_mode"] = use_mode
+        self.pack.write_text(json.dumps(pack), encoding="utf-8")
+        self.receipt.write_text(json.dumps(receipt), encoding="utf-8")
+        public_text = verbatim if use_mode == "exact_quote" else article_text
+        self.write_current_sidecar(
+            [
+                {
+                    "claim_id": "claim-simpro-work",
+                    "use_mode": use_mode,
+                    "brand_scope": "simpro",
+                    "public_url": evidence["public_url"],
+                    "public_text": public_text,
+                    "public_text_sha256": sha256_text(public_text),
+                }
+            ]
+        )
     def test_valid_current_binding_and_claim_map_pass(self):
         self.assertEqual(self.check(), [])
+
+    def test_resource_only_pack_cannot_authorize_metric_with_legacy_approved_status(self):
+        article_text = "Simpro customers reduced administrative time by 25%."
+        self.write_resource_only_context(
+            article_text,
+            """
+## Metric Proof Pack
+
+- Metric requirement: required
+- Search log: legacy proof reviewed
+- Approved metric: Simpro customers reduced administrative time by 25%. | URL: https://www.simprogroup.com/customers/example/ | Evidence: reduced administrative time by 25% | Status: approved | Use: public metric
+""",
+        )
+
+        findings = self.check()
+
+        self.assertTrue(
+            any(
+                finding["rule_id"] == "context_proof_claim_unbound"
+                and finding.get("proof_kind") == "metric"
+                for finding in findings
+            )
+        )
+
+    def test_hidden_html_proof_does_not_create_public_proof_obligation(self):
+        self.write_resource_only_context(
+            '<div style="display:none">Simpro customers reduced administrative time by 25%.</div>\n'
+            "Visible editorial guidance.",
+            "",
+        )
+
+        findings = self.check()
+
+        self.assertFalse(
+            any(finding["rule_id"] == "context_proof_claim_unbound" for finding in findings),
+            findings,
+        )
+
+    def test_resource_only_pack_cannot_authorize_exact_quote_with_legacy_approved_status(self):
+        quote = "Simpro gives our technicians one place to work from."
+        article_text = f'A customer said, "{quote}"'
+        self.write_resource_only_context(
+            article_text,
+            f"""
+## Customer Proof Pack
+
+- Approved quote: {quote} | Customer/brand: Example Customer | URL: https://www.simprogroup.com/customers/example/ | Evidence: {quote} | Status: approved | Use: exact quote
+""",
+        )
+
+        findings = self.check()
+
+        self.assertTrue(
+            any(
+                finding["rule_id"] == "context_proof_claim_unbound"
+                and finding.get("proof_kind") == "exact_quote"
+                for finding in findings
+            )
+        )
+
+    def test_resource_only_pack_cannot_authorize_unattributed_exact_quote(self):
+        quote = "Simpro gives our technicians one place to work from."
+        self.write_resource_only_context(
+            f'"{quote}"',
+            f"""
+## Customer Proof Pack
+
+- Approved quote: {quote} | Customer/brand: Example Customer | URL: https://www.simprogroup.com/customers/example/ | Evidence: {quote} | Status: approved | Use: exact quote
+""",
+        )
+
+        findings = self.check()
+
+        self.assertTrue(
+            any(
+                finding["rule_id"] == "context_proof_claim_unbound"
+                and finding.get("proof_kind") == "exact_quote"
+                for finding in findings
+            )
+        )
+    def test_resource_only_pack_cannot_authorize_review_theme_with_legacy_approved_status(self):
+        article_text = "Capterra reviewers describe Simpro as making scheduling easier."
+        self.write_resource_only_context(
+            article_text,
+            """
+## Review Site Theme Selection
+
+- Platform: Capterra
+- Workflow theme: easier scheduling
+- URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/
+- Status: approved for paraphrased review-theme use
+""",
+        )
+
+        findings = self.check()
+
+        self.assertTrue(
+            any(
+                finding["rule_id"] == "context_proof_claim_unbound"
+                and finding.get("proof_kind") == "review_theme"
+                for finding in findings
+            )
+        )
+
+    def test_resource_only_pack_cannot_authorize_customer_proof_with_legacy_approved_status(self):
+        article_text = (
+            "[Example Customer](https://www.simprogroup.com/customers/example/) "
+            "reduced administrative work with Simpro."
+        )
+        self.write_resource_only_context(
+            article_text,
+            """
+## Customer Proof Pack
+
+- Claim: Example Customer reduced administrative work with Simpro. | URL: https://www.simprogroup.com/customers/example/ | Evidence: reduced administrative work | Status: approved | Use: customer proof
+""",
+        )
+
+        findings = self.check()
+
+        self.assertTrue(
+            any(
+                finding["rule_id"] == "context_proof_claim_unbound"
+                and finding.get("proof_kind") == "customer_proof"
+                for finding in findings
+            )
+        )
+
+    def test_resource_only_pack_cannot_authorize_commercial_claim_with_legacy_approved_status(self):
+        article_text = "Simpro helps field service businesses reduce administrative work."
+        self.write_resource_only_context(
+            article_text,
+            """
+## Source Map
+
+- Claim: Simpro helps field service businesses reduce administrative work. | URL: https://www.simprogroup.com/ | Evidence: product guidance | Status: approved | Use: commercial proof
+""",
+        )
+
+        findings = self.check()
+
+        self.assertTrue(
+            any(
+                finding["rule_id"] == "context_proof_claim_unbound"
+                and finding.get("proof_kind") == "commercial_claim"
+                for finding in findings
+            )
+        )
+
+    def test_typed_receipt_claims_authorize_matching_proof_obligations(self):
+        cases = (
+            (
+                "metric",
+                "Simpro customers reduced administrative time by 25%.",
+                "public_metric",
+                None,
+            ),
+            (
+                "exact_quote",
+                'A customer said, "Simpro gives our technicians one place to work from."',
+                "exact_quote",
+                "Simpro gives our technicians one place to work from.",
+            ),
+            (
+                "review_theme",
+                "Capterra reviewers describe Simpro as making scheduling easier.",
+                "public_paraphrase",
+                None,
+            ),
+            (
+                "customer_proof",
+                "Example Customer case study shows Simpro reduced administrative work.",
+                "public_paraphrase",
+                None,
+            ),
+            (
+                "commercial_claim",
+                "Simpro helps field service businesses reduce administrative work.",
+                "public_claim",
+                None,
+            ),
+        )
+        for proof_kind, article_text, use_mode, verbatim in cases:
+            with self.subTest(proof_kind=proof_kind):
+                self.write_typed_claim_context(article_text, use_mode, verbatim=verbatim)
+
+                findings = self.check()
+
+                self.assertFalse(
+                    any(
+                        finding["rule_id"] == "context_proof_claim_unbound"
+                        and finding.get("proof_kind") == proof_kind
+                        for finding in findings
+                    ),
+                    findings,
+                )
+    def test_typed_receipt_claim_with_incompatible_use_mode_does_not_authorize_passage(self):
+        article_text = "Simpro customers reduced administrative time by 25%."
+        self.write_typed_claim_context(article_text, "public_claim")
+
+        findings = self.check()
+
+        self.assertTrue(
+            any(
+                finding["rule_id"] == "context_proof_claim_unbound"
+                and finding.get("proof_kind") == "metric"
+                and finding.get("required_use_modes") == ["public_metric"]
+                for finding in findings
+            )
+        )
+    def test_explicit_non_simpro_article_with_simpro_copy_requires_context(self):
+        self.article.write_text(
+            "---\nbrand: BigChange\nartifact_type: blog\ntitle: Simpro comparison\n---\n"
+            "# Simpro comparison\n\nBigChange comparison copy mentions Simpro.\n",
+            encoding="utf-8",
+        )
+
+        findings = context_binding_guard.check_file(self.article)
+
+        self.assertTrue(
+            any(finding["rule_id"] == "context_request_missing" for finding in findings)
+        )
+
+    def test_explicit_non_simpro_article_without_simpro_copy_is_exempt(self):
+        self.article.write_text(
+            "---\nbrand: BigChange\nartifact_type: blog\ntitle: Job management\n---\n"
+            "# Job management\n\nBigChange workflow copy.\n",
+            encoding="utf-8",
+        )
+
+        self.assertEqual(context_binding_guard.check_file(self.article), [])
+
+    def test_unbranded_article_fails_safe_into_context_workflow(self):
+        self.article.write_text("# Generic workflow article\n\nField service guidance.\n", encoding="utf-8")
+
+        findings = context_binding_guard.check_file(self.article)
+
+        self.assertTrue(
+            any(finding["rule_id"] == "context_request_missing" for finding in findings)
+        )
+
+    def test_landing_page_request_is_a_supported_context_artifact(self):
+        request = json.loads(self.request.read_text(encoding="utf-8"))
+        request["scope"]["artifact_type"] = "landing_page"
+        request["scope"]["title"] = "Simpro landing page"
+        article = (
+            "---\nbrand: Simpro\nartifact_type: landing_page\ntitle: Simpro landing page\n---\n"
+            "# Simpro landing page\n"
+        )
+
+        self.assertEqual(
+            context_binding_guard.validate_request_article(request, article),
+            [],
+        )
 
     def test_binding_exposes_current_approval_policy_revision(self):
         binding = context_binding_guard.build_binding(
@@ -388,7 +695,24 @@ class ContextBindingGuardTests(unittest.TestCase):
             {finding["rule_id"] for finding in findings},
         )
 
-    def test_request_brand_must_match_article_frontmatter(self):
+    def test_cross_brand_article_accepts_simpro_authority_scope_with_matching_artifact_brand(self):
+        self.article.write_text(
+            "---\nbrand: BigChange\nartifact_type: blog\ntitle: Simpro draft\n---\n"
+            "# Simpro draft\n\nSimpro helps teams coordinate work.\n",
+            encoding="utf-8",
+        )
+        request = json.loads(self.request.read_text(encoding="utf-8"))
+        request["scope"]["artifact_brand"] = "BigChange"
+        self.request.write_text(json.dumps(request), encoding="utf-8")
+
+        findings = self.check()
+
+        self.assertNotIn(
+            "context_request_article_mismatch",
+            {finding["rule_id"] for finding in findings},
+        )
+
+    def test_cross_brand_article_requires_explicit_artifact_brand(self):
         self.article.write_text(
             "---\nbrand: BigChange\nartifact_type: blog\ntitle: Simpro draft\n---\n"
             "# Simpro draft\n\nSimpro helps teams coordinate work.\n",
@@ -402,6 +726,22 @@ class ContextBindingGuardTests(unittest.TestCase):
             {finding["rule_id"] for finding in findings},
         )
 
+    def test_cross_brand_article_rejects_mismatched_artifact_brand(self):
+        self.article.write_text(
+            "---\nbrand: ClockShark\nartifact_type: blog\ntitle: Simpro draft\n---\n"
+            "# Simpro draft\n\nSimpro helps teams coordinate work.\n",
+            encoding="utf-8",
+        )
+        request = json.loads(self.request.read_text(encoding="utf-8"))
+        request["scope"]["artifact_brand"] = "AroFlo"
+        self.request.write_text(json.dumps(request), encoding="utf-8")
+
+        findings = self.check()
+
+        self.assertIn(
+            "context_request_article_mismatch",
+            {finding["rule_id"] for finding in findings},
+        )
     def test_request_artifact_type_must_match_article_frontmatter(self):
         self.article.write_text(
             "---\nbrand: Simpro\nartifact_type: landing_page\ntitle: Simpro draft\n---\n"
@@ -414,6 +754,22 @@ class ContextBindingGuardTests(unittest.TestCase):
         self.assertIn(
             "context_request_article_mismatch",
             {finding["rule_id"] for finding in findings},
+        )
+
+    def test_article_must_declare_artifact_type_before_binding(self):
+        request = json.loads(self.request.read_text(encoding="utf-8"))
+        findings = context_binding_guard.validate_request_article(
+            request,
+            "---\nbrand: Simpro\ntitle: Simpro draft\n---\n"
+            "# Simpro draft\n\nSimpro helps teams coordinate work.\n",
+        )
+
+        self.assertIn(
+            "context_request_article_mismatch",
+            {finding["rule_id"] for finding in findings},
+        )
+        self.assertTrue(
+            any("artifact type" in finding["message"].lower() for finding in findings)
         )
 
     def test_request_contradictory_artifact_fields_return_scope_mismatch(self):
@@ -585,6 +941,18 @@ class ContextBindingGuardTests(unittest.TestCase):
                 "aria-hidden",
                 "---\ntitle: Simpro draft\n---\n# Simpro draft\n\n"
                 f"<p aria-hidden=\"true\">{public_text}</p>\n"
+                "Body.\n",
+            ),
+            (
+                "display-none",
+                "---\ntitle: Simpro draft\n---\n# Simpro draft\n\n"
+                f"<div style=\"color: red; display : none !important\">{public_text}</div>\n"
+                "Body.\n",
+            ),
+            (
+                "visibility-hidden",
+                "---\ntitle: Simpro draft\n---\n# Simpro draft\n\n"
+                f"<section style=\"visibility:hidden\"><strong>{public_text}</strong></section>\n"
                 "Body.\n",
             ),
             (

@@ -37,6 +37,11 @@ from modules.dataforseo import DataForSEO  # noqa: E402
 from modules.search_intent_analyzer import SearchIntentAnalyzer  # noqa: E402
 
 
+PLAYWRIGHT_OPEN_TIMEOUT_SECONDS = 30
+PLAYWRIGHT_RUN_TIMEOUT_SECONDS = 60
+PLAYWRIGHT_CLOSE_TIMEOUT_SECONDS = 15
+
+
 def _positive_int(value: str) -> int:
     parsed = int(value)
     if parsed <= 0:
@@ -549,26 +554,39 @@ def run_playwright_cli_serp_capture(keyword: str) -> str:
         raise RuntimeError("npx unavailable; install Node/npm or provide a SERP/PAA export.")
     command_prefix = [npx_path, "--yes", "--package", "@playwright/cli", "playwright-cli"]
 
-    subprocess.run(
-        command_prefix + ["open", "about:blank"],
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=True,
-    )
+    try:
+        subprocess.run(
+            command_prefix + ["open", "about:blank"],
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+            timeout=PLAYWRIGHT_OPEN_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(
+            f"Playwright open timed out after {PLAYWRIGHT_OPEN_TIMEOUT_SECONDS} seconds"
+        ) from exc
     try:
         with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".js", delete=False) as temp_file:
             temp_file.write(code)
             code_path = temp_file.name
         try:
-            completed = subprocess.run(
-                command_prefix + ["run-code", "--filename", code_path, "--raw"],
-                text=True,
-                encoding="utf-8",
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=False,
-            )
+            try:
+                completed = subprocess.run(
+                    command_prefix + ["run-code", "--filename", code_path, "--raw"],
+                    text=True,
+                    encoding="utf-8",
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=False,
+                    timeout=PLAYWRIGHT_RUN_TIMEOUT_SECONDS,
+                )
+            except subprocess.TimeoutExpired as exc:
+                raise RuntimeError(
+                    "Playwright run-code timed out after "
+                    f"{PLAYWRIGHT_RUN_TIMEOUT_SECONDS} seconds"
+                ) from exc
             if completed.returncode != 0:
                 raise RuntimeError((completed.stderr or completed.stdout).strip())
             return completed.stdout.strip()
@@ -578,13 +596,17 @@ def run_playwright_cli_serp_capture(keyword: str) -> str:
             except OSError:
                 pass
     finally:
-        subprocess.run(
-            command_prefix + ["close"],
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=False,
-        )
+        try:
+            subprocess.run(
+                command_prefix + ["close"],
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+                timeout=PLAYWRIGHT_CLOSE_TIMEOUT_SECONDS,
+            )
+        except subprocess.TimeoutExpired:
+            pass
 
 
 def build_playwright_serp_feature_extraction_code() -> str:

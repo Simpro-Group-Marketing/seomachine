@@ -16,7 +16,7 @@ Categories:
 """
 
 import re
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 
 
 class CROChecker:
@@ -635,21 +635,21 @@ No credit card required. Cancel anytime. Set up in under 5 minutes.
     print(f"Grade: {result['grade']}")
     print(f"Passes Audit: {result['passes_audit']}")
 
-    print(f"\nSummary:")
+    print("\nSummary:")
     print(f"  Passed: {result['summary']['passed']}/{result['summary']['total_checks']}")
     print(f"  Critical Failures: {result['summary']['critical_failures']}")
     print(f"  Warnings: {result['summary']['warnings']}")
 
     if result['critical_failures']:
-        print(f"\n❌ Critical Failures:")
+        print("\n❌ Critical Failures:")
         for failure in result['critical_failures']:
             print(f"  - {failure}")
 
-    print(f"\nCategory Scores:")
+    print("\nCategory Scores:")
     for category, data in result['categories'].items():
         print(f"  {category}: {data['score']}%")
 
     if result['recommendations'][:5]:
-        print(f"\nTop Recommendations:")
+        print("\nTop Recommendations:")
         for rec in result['recommendations'][:5]:
             print(f"  [{rec['priority'].upper()}] {rec['category']}: {rec['recommendation']}")

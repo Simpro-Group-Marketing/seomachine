@@ -11,8 +11,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
-import sys
+import socket
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,6 +21,11 @@ from typing import Iterable, List, Optional
 from urllib.parse import urljoin, urlparse
 
 import requests
+
+try:
+    from .public_url_safety import PublicUrlSafetyError, request_public_url
+except ImportError:  # pragma: no cover - supports direct script execution.
+    from public_url_safety import PublicUrlSafetyError, request_public_url
 
 
 DEFAULT_BASE_URL = "https://www.simprogroup.com"
@@ -30,6 +36,7 @@ DEFAULT_USER_AGENT = (
     "Chrome/125.0 Safari/537.36 SEO-Machine-URL-Validator/1.0"
 )
 RESOLUTION_CACHE_SECONDS = 60 * 60 * 24
+RESOLUTION_CACHE_FUTURE_SKEW_SECONDS = 60
 RATE_LIMIT_RETRY_SECONDS = 1.0
 
 MARKDOWN_LINK_RE = re.compile(r"(?<!!)\[([^\]]+)\]\(([^)]+)\)")
@@ -111,6 +118,8 @@ class UrlValidator:
         user_agent: str = DEFAULT_USER_AGENT,
         cache_dir: Optional[Path] = None,
         rate_limit_retry_seconds: float = RATE_LIMIT_RETRY_SECONDS,
+        resolver=socket.getaddrinfo,
+        requester=request_public_url,
     ):
         self.session = session or requests.Session()
         self.timeout = timeout
@@ -120,6 +129,8 @@ class UrlValidator:
         else:
             self.cache = _UrlResolutionCache(cache_dir or Path(".cache") / "url_validator")
         self.rate_limit_retry_seconds = rate_limit_retry_seconds
+        self.resolver = resolver
+        self.requester = requester
 
     def validate_url(
         self,
@@ -181,24 +192,26 @@ class UrlValidator:
 
     def _request(self, method: str, url: str):
         try:
-            response = self.session.request(
+            response = self.requester(
+                self.session,
                 method,
                 url,
-                allow_redirects=True,
                 timeout=self.timeout,
                 headers=self.headers,
+                resolver=self.resolver,
             )
             if getattr(response, "status_code", None) == 429:
                 self._sleep_after_rate_limit(response)
-                response = self.session.request(
+                response = self.requester(
+                    self.session,
                     method,
                     url,
-                    allow_redirects=True,
                     timeout=self.timeout,
                     headers=self.headers,
+                    resolver=self.resolver,
                 )
             return response
-        except requests.exceptions.RequestException as exc:
+        except (requests.exceptions.RequestException, PublicUrlSafetyError) as exc:
             return UrlValidationResult(
                 url=url,
                 status="unresolved",
@@ -381,15 +394,23 @@ class _UrlResolutionCache:
         path = self._path(url)
         if not path.exists():
             return None
-        if time.time() - path.stat().st_mtime > self.expire_seconds:
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return None
+        checked_at = payload.get("checked_at")
+        now = time.time()
+        if (
+            isinstance(checked_at, bool)
+            or not isinstance(checked_at, (int, float))
+            or not math.isfinite(checked_at)
+            or checked_at > now + RESOLUTION_CACHE_FUTURE_SKEW_SECONDS
+            or now - checked_at > self.expire_seconds
+        ):
             try:
                 path.unlink()
             except OSError:
                 pass
-            return None
-        try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
             return None
         if payload.get("status") != "resolved":
             return None
@@ -411,8 +432,12 @@ class _UrlResolutionCache:
             "status_code": result.status_code,
             "reason": result.reason,
             "final_url": result.final_url or result.url,
+            "checked_at": time.time(),
         }
-        self._path(result.url).write_text(json.dumps(payload, sort_keys=True), encoding="utf-8")
+        path = self._path(result.url)
+        temporary = path.with_suffix(".tmp")
+        temporary.write_text(json.dumps(payload, sort_keys=True), encoding="utf-8")
+        temporary.replace(path)
 
     def _path(self, url: str) -> Path:
         key = hashlib.sha256(url.encode("utf-8")).hexdigest()

@@ -13,7 +13,7 @@ Categories (weights):
 """
 
 import re
-from typing import Dict, List, Optional, Any
+from typing import Dict, Optional, Any
 
 
 class LandingPageScorer:
@@ -762,21 +762,21 @@ Still have questions? [Book a quick demo](/demo) with our team.
     print(f"Grade: {result['grade']}")
     print(f"Publishing Ready: {result['publishing_ready']}")
 
-    print(f"\nCategory Scores:")
+    print("\nCategory Scores:")
     for category, score in result['category_scores'].items():
         print(f"  {category}: {score}")
 
     if result['critical_issues']:
-        print(f"\nCritical Issues:")
+        print("\nCritical Issues:")
         for issue in result['critical_issues']:
             print(f"  ❌ {issue}")
 
     if result['warnings']:
-        print(f"\nWarnings:")
+        print("\nWarnings:")
         for warning in result['warnings']:
             print(f"  ⚠️  {warning}")
 
     if result['suggestions']:
-        print(f"\nSuggestions:")
+        print("\nSuggestions:")
         for suggestion in result['suggestions'][:3]:
             print(f"  💡 {suggestion}")

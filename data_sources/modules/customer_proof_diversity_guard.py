@@ -18,14 +18,24 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 try:
+    from .customer_proof_evidence import verify_selector_evidence_roles
     from .guard_common import Finding, should_fail, summarize_findings
-    from .customer_proof_selector import select_customer_proofs
-    from .proof_sidecar import compose_with_sidecar, load_sidecar_content
+    from .customer_proof_selector import CustomerProofDataError, select_customer_proofs
+    from .proof_sidecar import (
+        compose_with_sidecar,
+        load_sidecar_content,
+        resolve_sidecar_path,
+    )
     from .proof_usage import count_customer_proof_usage
 except ImportError:  # pragma: no cover - supports direct script execution.
+    from customer_proof_evidence import verify_selector_evidence_roles
     from guard_common import Finding, should_fail, summarize_findings
-    from customer_proof_selector import select_customer_proofs
-    from proof_sidecar import compose_with_sidecar, load_sidecar_content
+    from customer_proof_selector import CustomerProofDataError, select_customer_proofs
+    from proof_sidecar import (
+        compose_with_sidecar,
+        load_sidecar_content,
+        resolve_sidecar_path,
+    )
     from proof_usage import count_customer_proof_usage
 
 
@@ -122,6 +132,7 @@ def check_content(
     content: str,
     *,
     proof_content: Optional[str] = None,
+    proof_sidecar_path: str | Path | None = None,
     source_path: str | Path | None = None,
     ledger_path: str | Path = DEFAULT_LEDGER_PATH,
     proof_index_path: str | Path = DEFAULT_INDEX_PATH,
@@ -142,7 +153,9 @@ def check_content(
     if pack is None:
         return _missing_pack_findings(content, article_case_study_urls)
 
-    all_case_study_urls = sorted(set(article_case_study_urls + _case_study_urls("\n".join(pack["lines"]))))
+    all_case_study_urls = sorted(
+        set(article_case_study_urls + _case_study_urls("\n".join(pack["lines"])))
+    )
     all_customer_proof_urls = sorted(set(all_case_study_urls + proof_urls))
     findings.extend(
         _pack_selection_findings(
@@ -162,6 +175,18 @@ def check_content(
             all_customer_proof_urls=all_customer_proof_urls,
         )
     )
+    if (
+        proof_sidecar_path
+        and slate is not None
+        and (all_customer_proof_urls or _has_customer_quote_claim(content))
+    ):
+        findings.extend(
+            _selector_evidence_findings(
+                slate,
+                proof_content or "",
+                proof_sidecar_path,
+            )
+        )
     findings.extend(
         _proof_mining_findings(
             content,
@@ -197,7 +222,14 @@ def check_content(
             )
         )
 
-    return sorted(findings, key=lambda finding: (finding["severity"] != "error", finding["line"], finding["rule_id"]))
+    return sorted(
+        findings,
+        key=lambda finding: (
+            finding["severity"] != "error",
+            finding["line"],
+            finding["rule_id"],
+        ),
+    )
 
 
 def check_file(
@@ -214,10 +246,16 @@ def check_file(
     if fail_on not in {"error", "warning", "none"}:
         raise ValueError("fail_on must be one of: error, warning, none")
     file_path = Path(path)
+    sidecar_path = resolve_sidecar_path(file_path, proof_sidecar)
     proof_content = load_sidecar_content(file_path, proof_sidecar)
     return check_content(
         file_path.read_text(encoding="utf-8"),
         proof_content=proof_content,
+        proof_sidecar_path=(
+            str(sidecar_path.resolve())
+            if sidecar_path is not None and sidecar_path.is_file()
+            else None
+        ),
         source_path=file_path,
         ledger_path=ledger_path,
         proof_index_path=proof_index_path,
@@ -227,22 +265,30 @@ def check_file(
 
 
 def _extract_customer_proof_pack(content: str) -> Optional[Dict[str, object]]:
-    return _extract_bullet_block(content, CUSTOMER_PROOF_HEADING_RE, NEXT_PROOF_HEADING_RE)
+    return _extract_bullet_block(
+        content, CUSTOMER_PROOF_HEADING_RE, NEXT_PROOF_HEADING_RE
+    )
 
 
 def _extract_selection_decision(content: str) -> Optional[Dict[str, object]]:
-    return _extract_bullet_block(content, SELECTION_DECISION_HEADING_RE, NEXT_DECISION_HEADING_RE)
+    return _extract_bullet_block(
+        content, SELECTION_DECISION_HEADING_RE, NEXT_DECISION_HEADING_RE
+    )
 
 
 def _extract_customer_proof_slate(content: str) -> Optional[Dict[str, object]]:
-    slate = _extract_bullet_block(content, CUSTOMER_PROOF_SLATE_HEADING_RE, NEXT_SLATE_HEADING_RE)
+    slate = _extract_bullet_block(
+        content, CUSTOMER_PROOF_SLATE_HEADING_RE, NEXT_SLATE_HEADING_RE
+    )
     if slate is None:
         return None
     slate["roles"] = _parse_slate_roles(slate)
     return slate
 
 
-def _extract_selected_customer_proof_mining(content: str) -> Optional[Dict[str, object]]:
+def _extract_selected_customer_proof_mining(
+    content: str,
+) -> Optional[Dict[str, object]]:
     return _extract_bullet_block(
         content,
         SELECTED_CUSTOMER_PROOF_MINING_HEADING_RE,
@@ -267,7 +313,11 @@ def _extract_bullet_block(
                 break
             if next_heading_re.match(stripped):
                 break
-            if stripped and not stripped.startswith(("-", "*", "+")) and re.match(r"^\s*(?:#{1,6}\s+)?[A-Za-z].*$", stripped):
+            if (
+                stripped
+                and not stripped.startswith(("-", "*", "+"))
+                and re.match(r"^\s*(?:#{1,6}\s+)?[A-Za-z].*$", stripped)
+            ):
                 break
             if not stripped:
                 if pack_lines:
@@ -352,7 +402,9 @@ def _slate_findings(
             )
         )
     else:
-        findings.extend(_experience_story_consideration_findings(roles["experience_story"]))
+        findings.extend(
+            _experience_story_consideration_findings(roles["experience_story"])
+        )
 
     selected_ids = _selected_proof_ids(decision)
     slate_selected_ids = _slate_selected_ids(roles)
@@ -369,6 +421,85 @@ def _slate_findings(
             )
 
     findings.extend(_stronger_slate_candidate_findings(slate))
+    return findings
+
+
+def _selector_evidence_findings(
+    slate: Dict[str, object],
+    proof_sidecar_content: str,
+    proof_sidecar_path: str | Path,
+) -> List[Finding]:
+    verified = verify_selector_evidence_roles(
+        proof_sidecar_content,
+        str(proof_sidecar_path),
+    )
+    if not verified:
+        return [
+            _finding(
+                "customer_proof_selector_evidence_unverified",
+                int(slate["line"]),
+                "Customer Proof Slate is not bound to current, hash-verified selector evidence.",
+                (
+                    "Rerun customer_proof_selector.py with --evidence-output and keep the "
+                    "generated Selector evidence path and SHA-256 line in the validation sidecar."
+                ),
+            )
+        ]
+
+    roles = slate.get("roles", {})
+    if not isinstance(roles, dict):
+        roles = {}
+    findings: List[Finding] = []
+    if set(roles) != set(verified):
+        findings.append(
+            _finding(
+                "customer_proof_selector_evidence_slate_mismatch",
+                int(slate["line"]),
+                "Customer Proof Slate roles do not match the verified selector evidence roles.",
+                "Use the complete generated slate from the hash-bound selector run.",
+            )
+        )
+
+    for role in sorted(set(roles).intersection(verified)):
+        details = roles[role]
+        expected = verified[role]
+        if not isinstance(details, dict):
+            continue
+        expected_selected_id = str(expected.get("selected_id", "")).strip()
+        expected_selected = (
+            []
+            if expected_selected_id.casefold() in EMPTY_SELECTION_VALUES
+            else [expected_selected_id]
+        )
+        actual_candidates = [str(value) for value in details.get("top_candidates", [])]
+        actual_selected = [str(value) for value in details.get("selected", [])]
+        actual_rejected = {
+            str(candidate): str(reason)
+            for candidate, reason in dict(details.get("rejected", {})).items()
+        }
+        expected_candidates = [
+            str(value) for value in expected.get("candidate_ids", [])
+        ]
+        expected_rejected = {
+            str(candidate): str(reason)
+            for candidate, reason in dict(
+                expected.get("rejected_overrides", {})
+            ).items()
+        }
+        if (
+            actual_candidates != expected_candidates
+            or actual_selected != expected_selected
+            or actual_rejected != expected_rejected
+        ):
+            findings.append(
+                _finding(
+                    "customer_proof_selector_evidence_slate_mismatch",
+                    int(details.get("line", slate["line"])),
+                    f"Customer Proof Slate {role} row differs from verified selector evidence.",
+                    "Use the generated candidates, selection, and rejection reasons without alteration.",
+                    match=role,
+                )
+            )
     return findings
 
 
@@ -396,7 +527,12 @@ def _proof_mining_findings(
         ]
 
     findings: List[Finding] = []
-    for required_key in ("checked for", "recommended use", "final use in copy", "status"):
+    for required_key in (
+        "checked for",
+        "recommended use",
+        "final use in copy",
+        "status",
+    ):
         if not _first_field_value(mining, required_key):
             findings.append(
                 _finding(
@@ -503,7 +639,11 @@ def _mining_value_indicates_usable_proof(value: str) -> bool:
     normalized = _normalize_space(value)
     if not normalized or NONE_RESULT_RE.match(normalized):
         return False
-    if "none found" in normalized or "no usable" in normalized or "not found" in normalized:
+    if (
+        "none found" in normalized
+        or "no usable" in normalized
+        or "not found" in normalized
+    ):
         return False
     return True
 
@@ -512,10 +652,23 @@ def _has_specific_excluded_proof_reason(value: str, proof_type: str) -> bool:
     normalized = _normalize_space(value)
     if not normalized or NONE_RESULT_RE.match(normalized):
         return False
-    if proof_type.lower().split("/", 1)[0] not in normalized and "proof" not in normalized:
+    if (
+        proof_type.lower().split("/", 1)[0] not in normalized
+        and "proof" not in normalized
+    ):
         return False
-    reason_signals = ("because", "current", "section", "omitted", "excluded", "does not", "not relevant")
-    return len(normalized.split()) >= 8 and any(signal in normalized for signal in reason_signals)
+    reason_signals = (
+        "because",
+        "current",
+        "section",
+        "omitted",
+        "excluded",
+        "does not",
+        "not relevant",
+    )
+    return len(normalized.split()) >= 8 and any(
+        signal in normalized for signal in reason_signals
+    )
 
 
 def _parse_slate_roles(slate: Dict[str, object]) -> Dict[str, Dict[str, object]]:
@@ -560,7 +713,11 @@ def _parse_proof_id_list(value: str) -> List[str]:
     proof_ids: List[str] = []
     for raw_item in cleaned.split(","):
         item = _clean_proof_id(raw_item)
-        if not item or item.lower() in EMPTY_SELECTION_VALUES or " or none" in item.lower():
+        if (
+            not item
+            or item.lower() in EMPTY_SELECTION_VALUES
+            or " or none" in item.lower()
+        ):
             continue
         proof_ids.append(item)
     return proof_ids
@@ -612,14 +769,35 @@ def _stronger_slate_candidate_findings(slate: Dict[str, object]) -> List[Finding
     for role, details in roles.items():
         if not isinstance(details, dict):
             continue
-        top_candidates = [str(candidate) for candidate in details.get("top_candidates", [])]
+        top_candidates = [
+            str(candidate) for candidate in details.get("top_candidates", [])
+        ]
         selected = {str(candidate) for candidate in details.get("selected", [])}
         rejected = details.get("rejected", {})
         rejected_ids = set(rejected.keys()) if isinstance(rejected, dict) else set()
         if not top_candidates or not selected:
             continue
+        unverified_selected = sorted(selected.difference(top_candidates))
+        for proof_id in unverified_selected:
+            findings.append(
+                _finding(
+                    "customer_proof_slate_selected_not_in_top_candidates",
+                    int(details.get("line", slate["line"])),
+                    (
+                        "Customer Proof Slate selected a proof that is not in the "
+                        f"receipt-verified {role} candidate list: {proof_id}."
+                    ),
+                    (
+                        "Choose a proof from Top candidates or rerun the receipt-backed "
+                        "selector so the proof is verified before selection."
+                    ),
+                    match=proof_id,
+                )
+            )
         selected_indexes = [
-            index for index, candidate in enumerate(top_candidates) if candidate in selected
+            index
+            for index, candidate in enumerate(top_candidates)
+            if candidate in selected
         ]
         if not selected_indexes:
             continue
@@ -646,12 +824,16 @@ def _stronger_slate_candidate_findings(slate: Dict[str, object]) -> List[Finding
     return findings
 
 
-def _experience_story_consideration_findings(role_details: Dict[str, object]) -> List[Finding]:
+def _experience_story_consideration_findings(
+    role_details: Dict[str, object],
+) -> List[Finding]:
     selected = {str(candidate) for candidate in role_details.get("selected", [])}
     if selected:
         return []
 
-    top_candidates = [str(candidate) for candidate in role_details.get("top_candidates", [])]
+    top_candidates = [
+        str(candidate) for candidate in role_details.get("top_candidates", [])
+    ]
     if not top_candidates:
         return [
             _finding(
@@ -670,7 +852,9 @@ def _experience_story_consideration_findings(role_details: Dict[str, object]) ->
         rejected = {}
 
     for candidate, reason in rejected.items():
-        if candidate in top_candidates and _has_section_specific_story_rejection_reason(str(reason)):
+        if candidate in top_candidates and _has_section_specific_story_rejection_reason(
+            str(reason)
+        ):
             return []
 
     return [
@@ -705,7 +889,9 @@ def _has_section_specific_story_rejection_reason(reason: str) -> bool:
         "instead",
         "while",
     )
-    return len(normalized.split()) >= 8 and any(signal in normalized for signal in reason_signals)
+    return len(normalized.split()) >= 8 and any(
+        signal in normalized for signal in reason_signals
+    )
 
 
 def _needs_experience_story_slate_role(content: str, proof_source: str) -> bool:
@@ -868,16 +1054,30 @@ def _stronger_underused_candidate_findings(
 
     selector_query = _selector_query(decision)
     proof_role = _selector_proof_role(decision)
-    ranked = select_customer_proofs(
-        selector_query,
-        index_path=proof_index_path,
-        ledger_path=ledger_path,
-        context_pack=context_pack,
-        context_receipt=context_receipt,
-        proof_role=proof_role,
-        limit=25,
-        reference_date=reference,
-    )
+    try:
+        ranked = select_customer_proofs(
+            selector_query,
+            index_path=proof_index_path,
+            ledger_path=ledger_path,
+            context_pack=context_pack,
+            context_receipt=context_receipt,
+            proof_role=proof_role,
+            limit=25,
+            reference_date=reference,
+        )
+    except CustomerProofDataError as exc:
+        return [
+            _finding(
+                "customer_proof_selector_context_unavailable",
+                pack["line"],
+                f"Receipt-backed customer proof comparison is unavailable: {exc}",
+                (
+                    "Provide the validated context pack and receipt, then rerun the "
+                    "customer proof diversity guard."
+                ),
+                match=str(exc),
+            )
+        ]
     findings: List[Finding] = []
     for source in overused_sources:
         url = str(source.get("url", ""))
@@ -1000,7 +1200,9 @@ def _index_candidate_for_url(url: str, index: Dict[str, Any]) -> Dict[str, Any]:
     return {}
 
 
-def _is_stronger_underused_candidate(candidate: Dict[str, Any], selected_score: int, selected_url: str) -> bool:
+def _is_stronger_underused_candidate(
+    candidate: Dict[str, Any], selected_score: int, selected_url: str
+) -> bool:
     if str(candidate.get("public_url", "")) == selected_url:
         return False
     if str(candidate.get("proof_id", "")) == _proof_id_from_url(selected_url):
@@ -1014,7 +1216,9 @@ def _is_stronger_underused_candidate(candidate: Dict[str, Any], selected_score: 
     return int(candidate.get("score", 0)) >= selected_score
 
 
-def _decision_rejects_candidate(candidate: Dict[str, Any], decision: Optional[Dict[str, object]]) -> bool:
+def _decision_rejects_candidate(
+    candidate: Dict[str, Any], decision: Optional[Dict[str, object]]
+) -> bool:
     if decision is None:
         return False
     identifiers = [
@@ -1088,7 +1292,10 @@ def _source_specific_reuse_reason(
                 continue
             value = str(field.get("value", "")).strip()
             normalized_value = _normalize_text(value)
-            if value and any(identifier and identifier in normalized_value for identifier in identifiers):
+            if value and any(
+                identifier and identifier in normalized_value
+                for identifier in identifiers
+            ):
                 return value
     return ""
 
@@ -1123,14 +1330,22 @@ def _source_identifiers(
     return sorted(identifier for identifier in identifiers if identifier)
 
 
-def _candidate_matches_identifiers(candidate: Dict[str, Any], identifiers: set[str]) -> bool:
+def _candidate_matches_identifiers(
+    candidate: Dict[str, Any], identifiers: set[str]
+) -> bool:
     candidate_identifiers = {
         str(candidate.get("proof_id", "")),
         str(candidate.get("public_url", "")),
         str(candidate.get("customer", "")),
     }
-    normalized_candidate_identifiers = {_normalize_text(identifier) for identifier in candidate_identifiers if identifier}
-    normalized_identifiers = {_normalize_text(identifier) for identifier in identifiers if identifier}
+    normalized_candidate_identifiers = {
+        _normalize_text(identifier)
+        for identifier in candidate_identifiers
+        if identifier
+    }
+    normalized_identifiers = {
+        _normalize_text(identifier) for identifier in identifiers if identifier
+    }
     return bool(normalized_candidate_identifiers.intersection(normalized_identifiers))
 
 
@@ -1148,7 +1363,9 @@ def _has_customer_quote_claim(content: str) -> bool:
     for paragraph in _paragraphs(public_content):
         if not EXACT_QUOTE_RE.search(paragraph):
             continue
-        if QUOTE_CONTEXT_RE.search(paragraph) or ANY_CUSTOMER_PROOF_URL_RE.search(paragraph):
+        if QUOTE_CONTEXT_RE.search(paragraph) or ANY_CUSTOMER_PROOF_URL_RE.search(
+            paragraph
+        ):
             return True
     return False
 
@@ -1162,11 +1379,16 @@ def _first_quote_line(content: str) -> int:
 
 
 def _case_study_urls(content: str) -> List[str]:
-    return [match.group(0).rstrip(".,") for match in CASE_STUDY_URL_RE.finditer(content)]
+    return [
+        match.group(0).rstrip(".,") for match in CASE_STUDY_URL_RE.finditer(content)
+    ]
 
 
 def _customer_proof_urls(content: str) -> List[str]:
-    return [match.group(0).rstrip(".,") for match in ANY_CUSTOMER_PROOF_URL_RE.finditer(content)]
+    return [
+        match.group(0).rstrip(".,")
+        for match in ANY_CUSTOMER_PROOF_URL_RE.finditer(content)
+    ]
 
 
 def _load_ledger(path: str | Path) -> Dict[str, object]:
@@ -1239,7 +1461,9 @@ def _finding(
 
 
 def _main(argv: Optional[Sequence[str]] = None) -> int:
-    parser = argparse.ArgumentParser(description="Check customer proof selection and reuse governance.")
+    parser = argparse.ArgumentParser(
+        description="Check customer proof selection and reuse governance."
+    )
     parser.add_argument("path", help="Markdown file to check")
     parser.add_argument(
         "--fail-on",
@@ -1247,11 +1471,28 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
         default="error",
         help="Finding severity that should produce a nonzero exit code.",
     )
-    parser.add_argument("--proof-sidecar", help="Optional validation sidecar containing Customer Proof Pack rows.")
-    parser.add_argument("--ledger", default=str(DEFAULT_LEDGER_PATH), help="Customer proof usage ledger JSON path.")
-    parser.add_argument("--proof-index", default=str(DEFAULT_INDEX_PATH), help="Customer proof index JSON path.")
-    parser.add_argument("--context-pack", help="simpro-product-context-pack/v2 JSON path for receipt-backed comparison.")
-    parser.add_argument("--context-receipt", help="simpro-context-receipt/v1 JSON path for receipt-backed comparison.")
+    parser.add_argument(
+        "--proof-sidecar",
+        help="Optional validation sidecar containing Customer Proof Pack rows.",
+    )
+    parser.add_argument(
+        "--ledger",
+        default=str(DEFAULT_LEDGER_PATH),
+        help="Customer proof usage ledger JSON path.",
+    )
+    parser.add_argument(
+        "--proof-index",
+        default=str(DEFAULT_INDEX_PATH),
+        help="Customer proof index JSON path.",
+    )
+    parser.add_argument(
+        "--context-pack",
+        help="simpro-product-context-pack/v2 JSON path for receipt-backed comparison.",
+    )
+    parser.add_argument(
+        "--context-receipt",
+        help="simpro-context-receipt/v1 JSON path for receipt-backed comparison.",
+    )
     args = parser.parse_args(argv)
 
     findings = check_file(

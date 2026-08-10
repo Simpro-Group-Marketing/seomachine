@@ -17,11 +17,11 @@ load_dotenv()
 # Add data_sources to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "data_sources"))
 
-from modules.google_search_console import GoogleSearchConsole
-from modules.dataforseo import DataForSEO
-from modules.google_analytics import GoogleAnalytics
-from modules.opportunity_scorer import OpportunityScorer, OpportunityType
-from modules.search_intent_analyzer import SearchIntentAnalyzer
+from modules.google_search_console import GoogleSearchConsole  # noqa: E402
+from modules.dataforseo import DataForSEO  # noqa: E402
+from modules.google_analytics import GoogleAnalytics  # noqa: E402
+from modules.opportunity_scorer import OpportunityScorer, OpportunityType  # noqa: E402
+from modules.search_intent_analyzer import SearchIntentAnalyzer  # noqa: E402
 
 
 def get_first_ranking(rankings):
@@ -47,7 +47,7 @@ def main():
     print("QUICK WIN OPPORTUNITIES RESEARCH")
     print("=" * 80)
     print(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    print(f"Target: Keywords ranking positions 11-20 (page 2 of Google)")
+    print("Target: Keywords ranking positions 11-20 (page 2 of Google)")
     print("=" * 80)
 
     # Initialize clients
@@ -120,7 +120,7 @@ def main():
         difficulty = None
         if dfs:
             try:
-                print(f"\nVerifying with DataForSEO...")
+                print("\nVerifying with DataForSEO...")
                 rankings = dfs.get_rankings(
                     domain=os.getenv("GSC_SITE_URL", "yoursite.com")
                     .replace("https://", "")
@@ -148,7 +148,7 @@ def main():
                     kw["search_volume"] = search_volume
                     kw["difficulty"] = difficulty
                 else:
-                    print(f"  Not found in top 100 (DataForSEO)")
+                    print("  Not found in top 100 (DataForSEO)")
 
                 serp_features = get_serp_features(dfs, keyword)
                 kw["serp_features"] = serp_features
@@ -181,7 +181,7 @@ def main():
                 print(f"  GA4 error: {e}")
 
         # Calculate enhanced opportunity score
-        print(f"\nEnhanced Scoring Analysis...")
+        print("\nEnhanced Scoring Analysis...")
         enhanced_score_result = scorer.calculate_score(
             keyword_data=kw,
             opportunity_type=OpportunityType.QUICK_WIN,
@@ -269,14 +269,14 @@ def main():
     potential_clicks = int(total_impressions * estimated_new_ctr)
     additional_clicks = potential_clicks - total_clicks
 
-    print(f"\nPOTENTIAL IMPACT:")
+    print("\nPOTENTIAL IMPACT:")
     print(f"Current CTR: {current_ctr:.2%}")
     print(f"Target CTR (positions 5-7): {estimated_new_ctr:.2%}")
     print(f"Potential Additional Clicks/Month: +{additional_clicks}")
     print(f"Total Potential Clicks: {potential_clicks}")
 
     # Top priorities
-    print(f"\nTOP 3 PRIORITIES:")
+    print("\nTOP 3 PRIORITIES:")
     for i, kw in enumerate(detailed_opportunities[:3], 1):
         print(f"\n{i}. {kw['keyword']}")
         print(f"   Position {kw['position']} → Target: 5-7")
@@ -295,13 +295,13 @@ def main():
     print("\n" + "=" * 80)
     print("✅ RESEARCH COMPLETE")
     print("=" * 80)
-    print(f"\nNext steps:")
+    print("\nNext steps:")
     print(
         f"1. Review detailed report: research/quick-wins-{datetime.now().strftime('%Y-%m-%d')}.md"
     )
-    print(f"2. Prioritize top 3-5 keywords to target first")
-    print(f"3. Update content-priorities.md with findings")
-    print(f"4. Start content optimization with top priority")
+    print("2. Prioritize top 3-5 keywords to target first")
+    print("3. Update content-priorities.md with findings")
+    print("4. Start content optimization with top priority")
 
 
 def generate_recommendation(kw):
@@ -350,10 +350,10 @@ def write_markdown_report(opportunities):
     filename = f"research/quick-wins-{date_str}.md"
 
     with open(filename, "w") as f:
-        f.write(f"# Quick Win Opportunities\n\n")
+        f.write("# Quick Win Opportunities\n\n")
         f.write(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n")
         f.write(
-            f"**Strategy:** Target keywords ranking positions 11-20 (page 2) to push to page 1\n\n"
+            "**Strategy:** Target keywords ranking positions 11-20 (page 2) to push to page 1\n\n"
         )
         f.write(f"**Opportunities Found:** {len(opportunities)}\n\n")
         f.write("---\n\n")
@@ -361,7 +361,7 @@ def write_markdown_report(opportunities):
         for i, kw in enumerate(opportunities, 1):
             f.write(f"## {i}. {kw['keyword']}\n\n")
 
-            f.write(f"### Current Performance\n\n")
+            f.write("### Current Performance\n\n")
             f.write(f"- **Position:** {kw['position']}\n")
             f.write(f"- **Impressions (30d):** {kw['impressions']:,}\n")
             f.write(f"- **Clicks (30d):** {kw['clicks']}\n")
@@ -373,7 +373,7 @@ def write_markdown_report(opportunities):
                 f.write(
                     f"- **Search Intent:** {kw['search_intent']} ({kw.get('intent_confidence', 0):.0f}% confidence)\n"
                 )
-            f.write(f"\n### Enhanced Opportunity Analysis\n\n")
+            f.write("\n### Enhanced Opportunity Analysis\n\n")
             f.write(
                 f"- **Enhanced Score:** {kw.get('enhanced_score', kw['opportunity_score']):.2f}/100\n"
             )
@@ -383,7 +383,7 @@ def write_markdown_report(opportunities):
             f.write(f"- **Key Factor:** {kw.get('primary_factor', 'volume')}\n\n")
 
             if kw.get("score_breakdown"):
-                f.write(f"**Score Breakdown:**\n")
+                f.write("**Score Breakdown:**\n")
                 breakdown = kw["score_breakdown"]
                 f.write(f"- Volume: {breakdown.get('volume_score', 0):.0f}/100\n")
                 f.write(f"- Position: {breakdown.get('position_score', 0):.0f}/100\n")
@@ -392,11 +392,11 @@ def write_markdown_report(opportunities):
                     f"- Competition: {breakdown.get('competition_score', 0):.0f}/100\n"
                 )
                 f.write(f"- CTR Opportunity: {breakdown.get('ctr_score', 0):.0f}/100\n")
-                f.write(f"\n")
+                f.write("\n")
 
             if kw.get("traffic_potential"):
                 tp = kw["traffic_potential"]
-                f.write(f"### Traffic Potential\n\n")
+                f.write("### Traffic Potential\n\n")
                 f.write(
                     f"- **Current:** {tp['current_clicks']} clicks/month at position {tp['current_position']:.1f}\n"
                 )
@@ -407,7 +407,7 @@ def write_markdown_report(opportunities):
                 )
 
             if kw.get("ranking_url"):
-                f.write(f"### Ranking Page\n\n")
+                f.write("### Ranking Page\n\n")
                 f.write(f"- **URL:** {kw['ranking_url']}\n")
                 if kw.get("dfs_position"):
                     f.write(f"- **DataForSEO Position:** {kw['dfs_position']}\n")
@@ -418,18 +418,18 @@ def write_markdown_report(opportunities):
                     f.write(f"- **Avg. Engagement:** {kw['engagement']:.0f}s\n")
                 f.write("\n")
 
-            f.write(f"### Recommendation\n\n")
+            f.write("### Recommendation\n\n")
             f.write(f"{kw['recommendation']}\n\n")
 
-            f.write(f"### Action Items\n\n")
-            f.write(f"- [ ] Analyze current content on ranking page\n")
-            f.write(f"- [ ] Review top 5 ranking competitors for this keyword\n")
-            f.write(f"- [ ] Identify content gaps to fill\n")
-            f.write(f"- [ ] Review reported keyword density, semantic coverage, and critical placement\n")
-            f.write(f"- [ ] Improve internal linking to this page\n")
-            f.write(f"- [ ] Update title tag and meta description\n")
-            f.write(f"- [ ] Add/update visuals (images, videos, infographics)\n")
-            f.write(f"- [ ] Refresh with current data and examples\n\n")
+            f.write("### Action Items\n\n")
+            f.write("- [ ] Analyze current content on ranking page\n")
+            f.write("- [ ] Review top 5 ranking competitors for this keyword\n")
+            f.write("- [ ] Identify content gaps to fill\n")
+            f.write("- [ ] Review reported keyword density, semantic coverage, and critical placement\n")
+            f.write("- [ ] Improve internal linking to this page\n")
+            f.write("- [ ] Update title tag and meta description\n")
+            f.write("- [ ] Add/update visuals (images, videos, infographics)\n")
+            f.write("- [ ] Refresh with current data and examples\n\n")
 
             f.write("---\n\n")
 
@@ -438,29 +438,29 @@ def write_markdown_report(opportunities):
         total_clicks = sum(k["clicks"] for k in opportunities)
         estimated_potential = int(total_impressions * 0.055)
 
-        f.write(f"## Summary\n\n")
+        f.write("## Summary\n\n")
         f.write(f"**Total Opportunities:** {len(opportunities)}\n\n")
-        f.write(f"**Combined Metrics:**\n")
+        f.write("**Combined Metrics:**\n")
         f.write(f"- Total Impressions: {total_impressions:,}\n")
         f.write(f"- Total Current Clicks: {total_clicks}\n")
         f.write(f"- Current CTR: {(total_clicks / total_impressions * 100):.2f}%\n\n")
-        f.write(f"**Potential Impact:**\n")
-        f.write(f"- Target CTR (page 1): 5.5%\n")
+        f.write("**Potential Impact:**\n")
+        f.write("- Target CTR (page 1): 5.5%\n")
         f.write(f"- Potential Total Clicks: {estimated_potential}\n")
         f.write(f"- Additional Clicks: +{estimated_potential - total_clicks}\n\n")
 
-        f.write(f"## Next Steps\n\n")
+        f.write("## Next Steps\n\n")
         f.write(
-            f"1. **Prioritize:** Start with top 3-5 keywords (highest opportunity score)\n"
+            "1. **Prioritize:** Start with top 3-5 keywords (highest opportunity score)\n"
         )
         f.write(
-            f"2. **Research:** Analyze top-ranking competitor content for each keyword\n"
+            "2. **Research:** Analyze top-ranking competitor content for each keyword\n"
         )
         f.write(
-            f"3. **Optimize:** Update existing content or create comprehensive new content\n"
+            "3. **Optimize:** Update existing content or create comprehensive new content\n"
         )
-        f.write(f"4. **Monitor:** Track position changes weekly\n")
-        f.write(f"5. **Iterate:** Continue with next set of opportunities\n\n")
+        f.write("4. **Monitor:** Track position changes weekly\n")
+        f.write("5. **Iterate:** Continue with next set of opportunities\n\n")
 
     print(f"   ✓ Report saved: {filename}")
 

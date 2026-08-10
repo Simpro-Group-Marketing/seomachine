@@ -1,5 +1,15 @@
 # Landing Page Write Command
 
+## Context Binding Regeneration (MANDATORY)
+
+After the final content mutation, regenerate the machine-owned binding before `/publish-readiness`:
+
+```bash
+python data_sources/modules/context_binding_generator.py "$FILE_PATH" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT"
+```
+
+Run this again after every scrub, optimization, or editorial change that modifies public copy. A landing-page score alone does not authorize handoff.
+
 Use this command to create high-converting landing pages optimized for either organic SEO traffic or paid PPC traffic.
 
 ## Usage
@@ -24,13 +34,20 @@ Use this command to create high-converting landing pages optimized for either or
 
 ## Pre-Writing Review
 
+**Required Connector Workflow:**
+- Run vault health, describe available roles/topics/entities, and search for the landing-page objective in natural language.
+- Read and expand the smallest relevant results by `resource_id` for brand voice, audience, product, feature, solution, industry, Lightning, customer proof, and competitor context.
+- Query approved claims for every proof-sensitive public statement, including product status, commercial treatment, metrics, customer outcomes, comparisons, quotes, pricing, and roadmap language. A context resource alone does not approve a public claim.
+- Build the context pack and validate its receipt before drafting. Bind the validation sidecar to the resulting `context_pack_hash`, `receipt_hash`, supporting `resource_id` values, approved `claim_id` values, use modes, public URLs when required, and current revisions.
+- If the connector is unavailable, document the exact blocker in the validation sidecar. Only then may repo-local context files be used as fallback mirrors, and unsupported public claims must be omitted.
+
 **Required Context:**
-- **CRO Best Practices**: @context/cro-best-practices.md for conversion guidelines
-- **Brand Voice**: @context/brand-voice.md for tone and messaging
-- **Style Guide**: @context/style-guide.md for terminology, formatting, and claim boundaries
-- **Product and Proof Points**: @context/features.md for Simpro capabilities, scale proof, and named customer metrics
-- **Lightning Overlay**: If the page is about Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, also load @context/lightning-positioning.md.
-- **Customer proof routing**: When citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
+- **CRO Best Practices**: Retrieve current conversion guidance through connector semantic search and `resource_id` reads; @context/cro-best-practices.md is an unavailable-connector fallback mirror only.
+- **Brand Voice**: Retrieve current tone and messaging through connector semantic search and `resource_id` reads; @context/brand-voice.md is an unavailable-connector fallback mirror only.
+- **Style Guide**: Retrieve current terminology and claim boundaries through connector semantic search and `resource_id` reads; @context/style-guide.md is an unavailable-connector fallback mirror only.
+- **Product and Proof Points**: Retrieve current product and feature context by `resource_id`, then use approved `claim_id` results for capabilities, scale proof, metrics, commercial treatment, or customer outcomes. @context/features.md is an unavailable-connector fallback mirror and cannot approve public proof.
+- **Lightning Context**: If the page is about Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, search, read, and expand current Lightning resources through the connector and query approved claims for public wording. @context/lightning-positioning.md is an unavailable-connector fallback mirror only.
+- **Customer Proof**: Search customer-proof resources, read the selected evidence by `resource_id`, and query approved claims for the intended use mode. Public copy requires the approved public URL; exact quotes require source-visible quote approval. @context/internal-links-map.md and @context/features.md are unavailable-connector fallback mirrors only and cannot make a claim publishable.
 
 **If Research Brief Available:**
 - Review competitor analysis
@@ -39,10 +56,15 @@ Use this command to create high-converting landing pages optimized for either or
 - Integrate suggested trust signals
 
 **Lightning Landing Pages:**
-- Keep the broad Simpro Message House intact for general Simpro pages; apply @context/lightning-positioning.md only to Lightning-specific claims and copy.
+- Keep connector-discovered core Simpro messaging intact for general Simpro pages; use current connector-discovered Lightning resources only for Lightning-specific claims and copy.
 - Use required brand prefixes in customer-facing copy and do not use Lightning alone as the product name.
-- Include a JustAsk moment and a Price Lock callout when the page is decision-stage, pricing-adjacent, or comparison-oriented.
-- Verify time-sensitive pricing, roadmap, and competitor claims before public publication.
+- Include a JustAsk moment or Price Lock callout only when the validated context pack contains approved claims for the intended public use.
+- Verify time-sensitive pricing, roadmap, commercial-treatment, and competitor claims through current approved claims and public evidence before publication.
+
+**Proof-sensitive template rule:**
+- Any metric, testimonial, customer name, result, rating, logo, trial term, demo duration, risk reversal, or commercial promise must map to a receipt-approved claim with its `claim_id`, permitted use mode, and public URL when required.
+- If no compatible approved claim exists, omit that proof element. Conversion structure never overrides proof approval.
+- Do not invent or leave publishable-looking placeholder metrics, testimonials, identities, outcomes, or commercial terms in the draft.
 
 ---
 
@@ -67,15 +89,15 @@ Use this command to create high-converting landing pages optimized for either or
 
 [HOOK: 2-3 sentences. Start with pain point, surprising stat, or question]
 
-[Trust signal: "Join 24,000+ businesses and 450,000+ users" or named customer results]
+[Optional trust signal from a receipt-approved claim; record its `claim_id`, use mode, and public URL. Omit when none is approved.]
 
-**[Primary CTA Button →]**
+**[Primary CTA Button ->]**
 
 ## [H2: Problem/Pain Point Section]
 
 [2-3 paragraphs acknowledging the reader's struggle]
 
-[Mini-story with specific person and outcome]
+[Optional customer story from a receipt-approved claim and verified identity. Otherwise use an unnamed explanatory workflow scenario that makes no empirical outcome claim.]
 
 ## [H2: Solution Overview]
 
@@ -86,7 +108,7 @@ Use this command to create high-converting landing pages optimized for either or
 - **[Benefit 2]** - [One sentence]
 - **[Benefit 3]** - [One sentence]
 
-**[Secondary CTA →]**
+**[Secondary CTA ->]**
 
 ## [H2: Features That Deliver]
 
@@ -98,19 +120,10 @@ Use this command to create high-converting landing pages optimized for either or
 ### [Feature 2]
 [Continue...]
 
-## [H2: Social Proof]
+## [Optional H2: Approved Customer Proof]
 
-"[Testimonial with specific results]"
-— **[Name], [Product/Company]**
-
-"[Second testimonial]"
-— **[Name], [Product/Company]**
-
-**Results our customers see:**
-- [Specific result with number]
-- [Specific result with number]
-
-**[CTA Button →]**
+[Include only receipt-approved proof. Exact testimonial text requires `exact_quote` permission, verified attribution, a matching `claim_id`, and a same-paragraph public URL. Numeric outcomes require an approved metric use mode. Omit this section when no relevant approved claim exists.]
+**[CTA Button ->]**
 
 ## [H2: How It Works]
 
@@ -132,9 +145,9 @@ Use this command to create high-converting landing pages optimized for either or
 
 [1-2 sentences summarizing the value]
 
-**[Strong CTA Button →]**
+**[Strong CTA Button ->]**
 
-[Risk reversal: "Free trial • No credit card • Cancel anytime"]
+[Optional risk reversal using only current receipt-approved commercial terms; otherwise omit.]
 ```
 
 ---
@@ -160,9 +173,9 @@ Use this command to create high-converting landing pages optimized for either or
 
 [One-sentence value proposition matching the ad]
 
-[Trust signal: "Trusted by 24,000+ businesses and 450,000+ users"]
+[Optional trust signal from a receipt-approved claim; record its `claim_id`, use mode, and public URL. Omit when none is approved.]
 
-**[Primary CTA Button - Large and Prominent →]**
+**[Primary CTA Button - Large and Prominent ->]**
 
 ## [H2: Why [Audience] Choose [YOUR COMPANY]]
 
@@ -170,12 +183,10 @@ Use this command to create high-converting landing pages optimized for either or
 - **[Benefit 2]** - [One sentence max]
 - **[Benefit 3]** - [One sentence max]
 
-## [H2: Proof It Works]
+## [Optional H2: Approved Proof]
 
-"[Short testimonial with specific result]"
-— **[Name]**
-
-**[Primary CTA Button →]**
+[Include only receipt-approved proof with a matching `claim_id`, permitted use mode, verified attribution when applicable, and a same-paragraph public URL. Omit when no relevant approved claim exists.]
+**[Primary CTA Button ->]**
 
 ## [H2: What You Get]
 
@@ -183,12 +194,8 @@ Use this command to create high-converting landing pages optimized for either or
 - [Included item/benefit]
 - [Included item/benefit]
 
-[Risk Reversal Section]
-- Free [X]-day trial
-- No credit card required
-- Cancel anytime
-
-**[Final CTA Button →]**
+[Optional risk-reversal section using only current receipt-approved commercial terms. Omit when none is approved.]
+**[Final CTA Button ->]**
 ```
 
 ---
@@ -198,55 +205,49 @@ Use this command to create high-converting landing pages optimized for either or
 ### Trial Goal (--goal trial)
 
 **Primary CTAs:**
-- "Start Your Free Trial →"
-- "Try Free for 14 Days →"
-- "Get Started Free →"
+- "Start Your Trial"
+- "Explore the Product"
+- [A current receipt-approved trial CTA when commercial terms are stated]
 
-**Supporting Copy Required:**
-- "No credit card required"
-- Trial length mentioned
-- "Cancel anytime"
-- "Set up in minutes"
+**Supporting Copy:**
+- State trial length, cost, setup time, credit-card requirements, cancellation terms, or commitment language only when each term is supported by a current receipt-approved claim.
+- Omit unapproved commercial details.
 
-**Trust Signals to Include:**
-- Producter count
-- Ease of setup
-- No commitment messaging
+**Optional Trust Signals:**
+- Receipt-approved customer or user scale
+- Receipt-approved ease-of-setup evidence
+- Receipt-approved commitment terms
 
 ### Demo Goal (--goal demo)
 
 **Primary CTAs:**
-- "Book Your Demo →"
-- "Schedule a Call →"
-- "See It in Action →"
+- "Book Your Demo ->"
+- "Schedule a Call ->"
+- "See It in Action ->"
 
-**Supporting Copy Required:**
-- Demo length ("15-minute walkthrough")
-- What demo covers
-- "No pressure, no hard sell"
-- Personalization promise
+**Supporting Copy:**
+- Explain what the demo covers.
+- State duration, sales treatment, or personalization promises only when supported by current approved guidance or a receipt-approved claim; otherwise omit them.
 
-**Trust Signals to Include:**
-- Enterprise customer logos
-- Custom solutions mention
-- Expert guidance
+**Optional Trust Signals:**
+- Receipt-approved customer logos
+- Connector-supported solution language
+- Verified expert guidance
 
 ### Lead Goal (--goal lead)
 
 **Primary CTAs:**
-- "Download the Free Guide →"
-- "Get Instant Access →"
-- "Claim Your Copy →"
+- "Download the Guide"
+- "Access the Resource"
+- "Get the Resource"
+**Supporting Copy:**
+- Explain what the reader receives.
+- Include a content preview or teaser.
+- State delivery timing, privacy, or contact-frequency promises only when verified in current approved guidance; otherwise omit them.
 
-**Supporting Copy Required:**
-- What they're getting
-- "Instant download"
-- "No spam, ever"
-- Content preview/teaser
-
-**Trust Signals to Include:**
-- Community/subscriber size
-- Author credibility
+**Optional Trust Signals:**
+- Receipt-approved community or subscriber size
+- Verified author credentials
 - Content preview
 
 ---
@@ -257,17 +258,17 @@ Use this command to create high-converting landing pages optimized for either or
 - [ ] Benefit-focused headline (H1)
 - [ ] Clear value proposition (1-2 sentences)
 - [ ] Primary CTA button (prominent, contrasting)
-- [ ] Trust signal (customer count, rating, or result)
+- [ ] Optional trust signal only when it maps to a receipt-approved claim; omission is valid
 
 ### Trust Signals
-- [ ] At least 2 testimonials with names (SEO pages)
-- [ ] At least 1 testimonial (PPC pages)
-- [ ] Specific results with numbers
-- [ ] Risk reversal near CTAs
+- [ ] Every included proof element maps to a receipt-approved `claim_id` and permitted use mode
+- [ ] Exact quotes and identities have verified attribution and a same-paragraph public URL
+- [ ] Numeric outcomes use approved metric claims
+- [ ] Unapproved testimonials, results, ratings, logos, and risk reversals are omitted
 
 ### CTAs
 - [ ] Action verb in CTA text (Start, Get, Try, Book)
-- [ ] Benefit word in CTA (Free, Instant, Today)
+- [ ] Value-oriented CTA language that does not assert unapproved commercial terms
 - [ ] Goal-aligned CTA copy
 - [ ] First CTA within 20% of page
 - [ ] CTA at end of page
@@ -289,10 +290,9 @@ Use this command to create high-converting landing pages optimized for either or
 - "The [Adjective] Way to [Achieve Outcome]"
 - "Finally, [Solution] for [Audience]"
 
-**Number-Based:**
-- "[Number] [Audience] Trust [Product] to [Benefit]"
-- "Launch Your Product in [Number] Minutes"
-
+**Number-Based (only with a matching receipt-approved metric claim):**
+- "[Approved Number] [Audience] Use [Product]"
+- "[Approved Time] to [Supported Outcome]"
 **Question-Based:**
 - "Ready to [Achieve Outcome]?"
 - "What if You Could [Desired Outcome]?"
@@ -383,27 +383,25 @@ After saving and scrubbing, run these agents:
 ### SEO Landing Pages Must Have:
 - 1500-2500 words
 - 3-5 CTAs distributed throughout
-- 2+ testimonials with specific results
 - 4-6 FAQ questions (featured snippet opportunity)
 - 2-3 internal links
-- Risk reversal statement
 - Proper H2/H3 structure
+- Receipt-approved proof only when relevant approved claims exist; otherwise omit proof sections
 
 ### PPC Landing Pages Must Have:
 - 400-800 words maximum
 - 2-3 prominent CTAs (same goal)
 - Headline matching ad copy
-- At least 1 testimonial
-- Risk reversal statement
 - Minimal navigation/distractions
 - Fast-loading (minimal images)
+- Receipt-approved proof and commercial terms only when relevant approved claims exist; otherwise omit them
 
 ### Both Page Types Need:
-- Score ≥ 75 on landing page scorer
+- Score >= 75 on landing page scorer
 - No critical issues
 - All required above-fold elements
 - Goal-aligned CTA copy
-- Trust signals present
+- Trust signals present only when receipt-approved; omission is valid when no relevant approved claim exists
 - Clear value proposition
 
 ---

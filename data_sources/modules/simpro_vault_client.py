@@ -20,10 +20,11 @@ from typing import Any, Mapping, Optional, Sequence
 CANONICAL_PLUGIN_ID = "simpro-context@simpro"
 LEGACY_PLUGIN_ID = "simpro-context@marketingskills"
 MINIMUM_PLUGIN_VERSIONS = {
-    CANONICAL_PLUGIN_ID: (1, 2, 5),
+    CANONICAL_PLUGIN_ID: (1, 2, 10),
     LEGACY_PLUGIN_ID: (1, 1, 2),
 }
 ROOT_ENVIRONMENT_VARIABLE = "SIMPRO_VAULT_ROOT"
+CLAUDE_SETTINGS_RELATIVE_PATH = Path(".claude") / "settings.json"
 REQUIRED_STATUS_REVISIONS = (
     "approval_policy_revision",
     "claim_registry_revision",
@@ -44,6 +45,7 @@ OPERATIONS = (
 )
 PLUGIN_DISCOVERY_TIMEOUT_SECONDS = 15
 CONNECTOR_TIMEOUT_SECONDS = 45
+OWNING_REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 class VaultClientError(RuntimeError):
@@ -76,6 +78,8 @@ RECOVERY_HINTS = {
     "plugin_outdated": "Run the canonical one-root configure_simpro_context.ps1 -VaultRoot <vault-root> setup to update the plugin, then retry.",
     "plugin_cli_missing": "Run the canonical one-root configure_simpro_context.ps1 -VaultRoot <vault-root> setup to reinstall the plugin, then retry.",
     "plugin_unhealthy": "Run vault_status after rebuilding the vault-owned protocol artifacts.",
+    "vault_claims_unavailable": "Restore approved Simpro claim health, rebuild vault artifacts, and retry vault_status.",
+    "vault_discovery_incomplete": "Rebuild the vault manifest and search index until every manifest resource is discoverable.",
     "root_unset": "Configure only the vault root with --vault-root or SIMPRO_VAULT_ROOT.",
     "root_unavailable": "Restore access to the configured vault root, then retry vault_status.",
     "resource_missing": "Run vault_search again and read a current result by resource ID.",
@@ -150,10 +154,13 @@ def discover_plugin(*, claude_command: str = "claude") -> Path:
 
 def _plugin_matches(inventory: Sequence[Any], plugin_id: str) -> list[dict[str, Any]]:
     matches = [item for item in inventory if isinstance(item, dict) and item.get("id") == plugin_id]
-    if len(matches) <= 1:
-        return matches
     current_project_matches = [
-        item for item in matches if _is_current_project_plugin(item.get("projectPath"))
+        item
+        for item in matches
+        if _is_current_project_plugin(
+            item.get("projectPath"),
+            project_root=OWNING_REPO_ROOT,
+        )
     ]
     if current_project_matches:
         return current_project_matches
@@ -162,16 +169,20 @@ def _plugin_matches(inventory: Sequence[Any], plugin_id: str) -> list[dict[str, 
         for item in matches
         if "projectPath" not in item or not isinstance(item.get("projectPath"), str)
     ]
-    if len(global_matches) == 1:
-        return global_matches
-    return matches
+    return global_matches
 
 
-def _is_current_project_plugin(project_path: Any) -> bool:
+def _is_current_project_plugin(
+    project_path: Any,
+    *,
+    project_root: Path,
+) -> bool:
     if not isinstance(project_path, str) or not project_path.strip():
         return False
     try:
-        return Path(project_path).expanduser().resolve() == Path.cwd().resolve()
+        configured = os.path.normcase(str(Path(project_path).expanduser().resolve()))
+        owning_root = os.path.normcase(str(project_root.resolve()))
+        return configured == owning_root
     except OSError:
         return False
 
@@ -220,10 +231,14 @@ class SimproVaultClient:
         self,
         *,
         vault_root: str | Path | None = None,
+        settings_path: str | Path | None = None,
         claude_command: str = "claude",
         python_executable: str | Path = sys.executable,
     ) -> None:
-        configured = vault_root or os.environ.get(ROOT_ENVIRONMENT_VARIABLE)
+        configured = _configured_vault_root(
+            vault_root,
+            settings_path=settings_path,
+        )
         if configured is None or not str(configured).strip():
             raise VaultClientError(
                 "root_unset",
@@ -319,6 +334,58 @@ class SimproVaultClient:
                 "plugin_unhealthy",
                 "Vault status is not ready with all required protocol revisions",
             )
+        claim_health = result.get("claim_health")
+        approved_scopes = (
+            claim_health.get("approved_brand_scope_counts")
+            if isinstance(claim_health, dict)
+            else None
+        )
+        approved_simpro = (
+            approved_scopes.get("Simpro")
+            if isinstance(approved_scopes, dict)
+            else None
+        )
+        if (
+            not isinstance(claim_health, dict)
+            or claim_health.get("proof_retrieval_state") != "available"
+            or isinstance(approved_simpro, bool)
+            or not isinstance(approved_simpro, int)
+            or approved_simpro <= 0
+        ):
+            raise VaultClientError(
+                "vault_claims_unavailable",
+                "Vault status has no usable approved Simpro claims",
+            )
+        resource_access = result.get("resource_access")
+        required_counts = {
+            "manifest_resources",
+            "searchable_resources",
+            "indexed_resources",
+            "declared_unindexed_resources",
+            "context_readable_resources",
+        }
+        counts = {
+            name: resource_access.get(name)
+            for name in required_counts
+        } if isinstance(resource_access, dict) else {}
+        if (
+            set(counts) != required_counts
+            or any(
+                isinstance(value, bool)
+                or not isinstance(value, int)
+                or value < 0
+                for value in counts.values()
+            )
+            or counts["manifest_resources"] <= 0
+            or counts["searchable_resources"] != counts["manifest_resources"]
+            or counts["context_readable_resources"] != counts["manifest_resources"]
+            or counts["indexed_resources"] + counts["declared_unindexed_resources"]
+            != counts["manifest_resources"]
+        ):
+            raise VaultClientError(
+                "vault_discovery_incomplete",
+                "Vault status does not provide complete manifest discovery coverage",
+            )
         return result
 
     def describe(self) -> Any:
@@ -333,8 +400,14 @@ class SimproVaultClient:
             {"resource_id": resource_id, "purpose": purpose},
         )
 
-    def expand(self, resource_id: str, *, relation_types: Sequence[str] | None = None) -> Any:
-        arguments: dict[str, Any] = {"resource_id": resource_id}
+    def expand(
+        self,
+        resource_id: str,
+        *,
+        relation_types: Sequence[str] | None = None,
+        purpose: str = "guidance",
+    ) -> Any:
+        arguments: dict[str, Any] = {"resource_id": resource_id, "purpose": purpose}
         if relation_types is not None:
             arguments["relation_types"] = list(relation_types)
         return self.dispatch("vault_expand", arguments)
@@ -398,10 +471,15 @@ class SimproVaultClient:
         resource_id: str,
         *,
         relation_types: Sequence[str] | None = None,
+        purpose: str = "guidance",
     ) -> VaultOperationResult:
         return self._try(
             "vault_expand",
-            lambda: self.expand(resource_id, relation_types=relation_types),
+            lambda: self.expand(
+                resource_id,
+                relation_types=relation_types,
+                purpose=purpose,
+            ),
         )
 
     def try_claims(
@@ -487,3 +565,48 @@ def _version_tuple(value: str) -> tuple[int, int, int]:
     numbers = [int(part) for part in parts]
     numbers.extend([0] * (3 - len(numbers)))
     return tuple(numbers[:3])
+
+
+def _configured_vault_root(
+    explicit_root: str | Path | None,
+    *,
+    settings_path: str | Path | None,
+) -> str | Path | None:
+    if explicit_root is not None and str(explicit_root).strip():
+        return explicit_root
+    configured = _plugin_authority_root(settings_path)
+    if configured:
+        return configured
+    return os.environ.get(ROOT_ENVIRONMENT_VARIABLE)
+
+
+def _plugin_authority_root(settings_path: str | Path | None) -> str | None:
+    path = (
+        Path(settings_path).expanduser()
+        if settings_path is not None
+        else Path.home() / CLAUDE_SETTINGS_RELATIVE_PATH
+    )
+    if not path.is_file():
+        return None
+    try:
+        settings = json.loads(path.read_text(encoding="utf-8-sig"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise VaultClientError(
+            "plugin_config_invalid",
+            f"Claude plugin configuration is unreadable: {path}",
+        ) from error
+    if not isinstance(settings, dict):
+        raise VaultClientError(
+            "plugin_config_invalid",
+            "Claude plugin configuration must be a JSON object",
+        )
+    configs = settings.get("pluginConfigs")
+    if not isinstance(configs, dict):
+        return None
+    for plugin_id in (CANONICAL_PLUGIN_ID, LEGACY_PLUGIN_ID):
+        plugin = configs.get(plugin_id)
+        options = plugin.get("options") if isinstance(plugin, dict) else None
+        root = options.get("authority_root") if isinstance(options, dict) else None
+        if isinstance(root, str) and root.strip():
+            return root.strip()
+    return None

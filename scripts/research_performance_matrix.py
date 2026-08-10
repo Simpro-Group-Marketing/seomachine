@@ -12,7 +12,7 @@ Categorizes all content into performance quadrants:
 import os
 import sys
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import List, Dict
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -21,8 +21,8 @@ load_dotenv()
 # Add data_sources to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'data_sources'))
 
-from modules.google_search_console import GoogleSearchConsole
-from modules.google_analytics import GoogleAnalytics
+from modules.google_search_console import GoogleSearchConsole  # noqa: E402
+from modules.google_analytics import GoogleAnalytics  # noqa: E402
 
 
 # Performance thresholds
@@ -35,7 +35,7 @@ def main():
     print("CONTENT PERFORMANCE MATRIX ANALYSIS")
     print("=" * 80)
     print(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    print(f"Strategy: Categorize content by traffic and rankings to prioritize actions")
+    print("Strategy: Categorize content by traffic and rankings to prioritize actions")
     print("=" * 80)
 
     # Initialize clients
@@ -99,7 +99,8 @@ def main():
                 trend = ga.get_page_trends(path, days=180)
                 trend_direction = trend.get('trend_direction', 'stable')
                 trend_percent = trend.get('trend_percent', 0)
-            except:
+            except Exception as exc:
+                print(f"WARNING: trend enrichment failed for {path!r}: {exc}", file=sys.stderr)
                 trend_direction = 'stable'
                 trend_percent = 0
 
@@ -150,13 +151,13 @@ def main():
     print("\n" + "=" * 80)
     print("PERFORMANCE MATRIX SUMMARY")
     print("=" * 80)
-    print(f"\n📊 Content Distribution:")
+    print("\n📊 Content Distribution:")
     print(f"   ⭐ Stars (High Traffic + High Rankings): {len(stars)}")
     print(f"   🚀 Overperformers (High Traffic + Low Rankings): {len(overperformers)}")
     print(f"   ⚠️  Underperformers (Low Traffic + High Rankings): {len(underperformers)}")
     print(f"   📉 Declining (Low Traffic + Low Rankings): {len(declining)}")
 
-    print(f"\n🎯 Priority Actions:")
+    print("\n🎯 Priority Actions:")
     critical = [p for p in performance_matrix if p['priority'] == 'CRITICAL']
     high = [p for p in performance_matrix if p['priority'] == 'HIGH']
     medium = [p for p in performance_matrix if p['priority'] == 'MEDIUM']
@@ -165,11 +166,11 @@ def main():
     print(f"   MEDIUM: {len(medium)}")
 
     # Show top items from each category
-    print(f"\n" + "=" * 80)
+    print("\n" + "=" * 80)
     print("TOP PRIORITIES BY CATEGORY")
     print("=" * 80)
 
-    print(f"\n⭐ STARS - Top Performers (Maintain & Expand)")
+    print("\n⭐ STARS - Top Performers (Maintain & Expand)")
     print("-" * 80)
     for p in sorted(stars, key=lambda x: x['monthly_pageviews'], reverse=True)[:5]:
         print(f"\n{p['title'][:60]}")
@@ -177,7 +178,7 @@ def main():
         print(f"   Trend: {p['trend_direction']} ({p['trend_percent']:+.1f}%)")
         print(f"   Action: {p['action']}")
 
-    print(f"\n\n⚠️  UNDERPERFORMERS - Fix CTR Issues")
+    print("\n\n⚠️  UNDERPERFORMERS - Fix CTR Issues")
     print("-" * 80)
     for p in sorted(underperformers, key=lambda x: x['avg_position'])[:5]:
         expected_traffic = estimate_expected_traffic(p['avg_position'], p['impressions'])
@@ -187,7 +188,7 @@ def main():
         print(f"   Missing: {gap:,} pageviews/mo")
         print(f"   Action: {p['action']}")
 
-    print(f"\n\n📉 DECLINING - Needs Refresh")
+    print("\n\n📉 DECLINING - Needs Refresh")
     print("-" * 80)
     for p in sorted(declining, key=lambda x: x['trend_percent'])[:5]:
         print(f"\n{p['title'][:60]}")
@@ -195,7 +196,7 @@ def main():
         print(f"   Position: {p['avg_position']}")
         print(f"   Action: {p['action']}")
 
-    print(f"\n\n🚀 OVERPERFORMERS - Learn Why")
+    print("\n\n🚀 OVERPERFORMERS - Learn Why")
     print("-" * 80)
     for p in sorted(overperformers, key=lambda x: x['monthly_pageviews'], reverse=True)[:5]:
         print(f"\n{p['title'][:60]}")
@@ -209,12 +210,12 @@ def main():
     print("\n" + "=" * 80)
     print("✅ PERFORMANCE MATRIX ANALYSIS COMPLETE")
     print("=" * 80)
-    print(f"\nNext steps:")
+    print("\nNext steps:")
     print(f"1. Review detailed report: research/performance-matrix-{datetime.now().strftime('%Y-%m-%d')}.md")
-    print(f"2. Start with CRITICAL priority items")
-    print(f"3. Fix underperformer titles/meta descriptions first (quick wins)")
-    print(f"4. Refresh declining content or redirect")
-    print(f"5. Expand star content with related topics")
+    print("2. Start with CRITICAL priority items")
+    print("3. Fix underperformer titles/meta descriptions first (quick wins)")
+    print("4. Refresh declining content or redirect")
+    print("5. Expand star content with related topics")
 
 
 def is_content_page(path: str) -> bool:
@@ -326,16 +327,16 @@ def write_markdown_report(
     filename = f"research/performance-matrix-{date_str}.md"
 
     with open(filename, 'w') as f:
-        f.write(f"# Content Performance Matrix\n\n")
+        f.write("# Content Performance Matrix\n\n")
         f.write(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n")
-        f.write(f"**Strategy:** Categorize content by traffic and rankings to prioritize optimization efforts\n\n")
+        f.write("**Strategy:** Categorize content by traffic and rankings to prioritize optimization efforts\n\n")
         f.write(f"**Total Pages Analyzed:** {len(all_pages)}\n\n")
         f.write("---\n\n")
 
         # Summary
-        f.write(f"## Performance Distribution\n\n")
-        f.write(f"| Category | Count | Description |\n")
-        f.write(f"|----------|-------|-------------|\n")
+        f.write("## Performance Distribution\n\n")
+        f.write("| Category | Count | Description |\n")
+        f.write("|----------|-------|-------------|\n")
         f.write(f"| ⭐ Stars | {len(stars)} | High traffic + High rankings |\n")
         f.write(f"| 🚀 Overperformers | {len(overperformers)} | High traffic + Low rankings |\n")
         f.write(f"| ⚠️ Underperformers | {len(underperformers)} | Low traffic + High rankings |\n")
@@ -343,7 +344,7 @@ def write_markdown_report(
 
         # Stars
         f.write(f"## ⭐ STARS ({len(stars)} pages)\n\n")
-        f.write(f"**Strategy:** Maintain excellence and expand with related content\n\n")
+        f.write("**Strategy:** Maintain excellence and expand with related content\n\n")
 
         for i, page in enumerate(sorted(stars, key=lambda x: x['monthly_pageviews'], reverse=True)[:20], 1):
             f.write(f"### {i}. {page['title']}\n\n")
@@ -353,16 +354,16 @@ def write_markdown_report(
             f.write(f"- **Trend:** {page['trend_direction']} ({page['trend_percent']:+.1f}%)\n")
             f.write(f"- **Priority:** {page['priority']}\n\n")
             f.write(f"**Action:** {page['action']}\n\n")
-            f.write(f"**Specific Steps:**\n")
-            f.write(f"- Keep content updated with latest information\n")
-            f.write(f"- Add new sections addressing related questions\n")
-            f.write(f"- Create supporting cluster content linking to this page\n")
-            f.write(f"- Monitor for ranking changes weekly\n\n")
+            f.write("**Specific Steps:**\n")
+            f.write("- Keep content updated with latest information\n")
+            f.write("- Add new sections addressing related questions\n")
+            f.write("- Create supporting cluster content linking to this page\n")
+            f.write("- Monitor for ranking changes weekly\n\n")
             f.write("---\n\n")
 
         # Underperformers
         f.write(f"## ⚠️ UNDERPERFORMERS ({len(underperformers)} pages)\n\n")
-        f.write(f"**Strategy:** Fix CTR issues - rewrite titles and meta descriptions\n\n")
+        f.write("**Strategy:** Fix CTR issues - rewrite titles and meta descriptions\n\n")
 
         for i, page in enumerate(sorted(underperformers, key=lambda x: x['avg_position'])[:20], 1):
             expected = estimate_expected_traffic(page['avg_position'], page['impressions'])
@@ -377,17 +378,17 @@ def write_markdown_report(
             f.write(f"- **Current CTR:** {page['ctr']*100:.2f}%\n")
             f.write(f"- **Priority:** {page['priority']}\n\n")
             f.write(f"**Action:** {page['action']}\n\n")
-            f.write(f"**Specific Steps:**\n")
-            f.write(f"1. Rewrite title tag to be more compelling\n")
-            f.write(f"2. Add year/numbers/power words to title\n")
-            f.write(f"3. Rewrite meta description with clear value proposition\n")
-            f.write(f"4. Add FAQ schema if relevant\n")
-            f.write(f"5. Test different title variations\n\n")
+            f.write("**Specific Steps:**\n")
+            f.write("1. Rewrite title tag to be more compelling\n")
+            f.write("2. Add year/numbers/power words to title\n")
+            f.write("3. Rewrite meta description with clear value proposition\n")
+            f.write("4. Add FAQ schema if relevant\n")
+            f.write("5. Test different title variations\n\n")
             f.write("---\n\n")
 
         # Declining
         f.write(f"## 📉 DECLINING ({len(declining)} pages)\n\n")
-        f.write(f"**Strategy:** Major refresh or strategic redirect\n\n")
+        f.write("**Strategy:** Major refresh or strategic redirect\n\n")
 
         for i, page in enumerate(sorted(declining, key=lambda x: x['trend_percent'])[:20], 1):
             f.write(f"### {i}. {page['title']}\n\n")
@@ -397,23 +398,23 @@ def write_markdown_report(
             f.write(f"- **Trend:** {page['trend_direction']} ({page['trend_percent']:+.1f}%)\n")
             f.write(f"- **Priority:** {page['priority']}\n\n")
             f.write(f"**Action:** {page['action']}\n\n")
-            f.write(f"**Specific Steps:**\n")
+            f.write("**Specific Steps:**\n")
 
             if page['monthly_pageviews'] < 50:
-                f.write(f"- Consider 301 redirect to related high-performing content\n")
-                f.write(f"- OR complete rewrite if topic is still valuable\n")
+                f.write("- Consider 301 redirect to related high-performing content\n")
+                f.write("- OR complete rewrite if topic is still valuable\n")
             else:
-                f.write(f"- Update all statistics and examples to current year\n")
-                f.write(f"- Add content only for identified reader-payoff, evidence, or task gaps\n")
-                f.write(f"- Refresh images and add new visuals\n")
-                f.write(f"- Improve keyword targeting\n")
-                f.write(f"- Strengthen internal linking\n")
+                f.write("- Update all statistics and examples to current year\n")
+                f.write("- Add content only for identified reader-payoff, evidence, or task gaps\n")
+                f.write("- Refresh images and add new visuals\n")
+                f.write("- Improve keyword targeting\n")
+                f.write("- Strengthen internal linking\n")
 
             f.write("\n---\n\n")
 
         # Overperformers
         f.write(f"## 🚀 OVERPERFORMERS ({len(overperformers)} pages)\n\n")
-        f.write(f"**Strategy:** Analyze why and improve SEO to capture more organic traffic\n\n")
+        f.write("**Strategy:** Analyze why and improve SEO to capture more organic traffic\n\n")
 
         for i, page in enumerate(sorted(overperformers, key=lambda x: x['monthly_pageviews'], reverse=True)[:20], 1):
             f.write(f"### {i}. {page['title']}\n\n")
@@ -423,15 +424,15 @@ def write_markdown_report(
             f.write(f"- **Impressions:** {page['impressions']:,}\n")
             f.write(f"- **Priority:** {page['priority']}\n\n")
             f.write(f"**Action:** {page['action']}\n\n")
-            f.write(f"**Investigation Needed:**\n")
-            f.write(f"- Check Google Analytics for traffic sources (likely referral/social)\n")
-            f.write(f"- Analyze which external sites link to this page\n")
-            f.write(f"- Improve SEO to also capture organic search traffic\n")
-            f.write(f"- Optimize for keywords it's almost ranking for\n\n")
+            f.write("**Investigation Needed:**\n")
+            f.write("- Check Google Analytics for traffic sources (likely referral/social)\n")
+            f.write("- Analyze which external sites link to this page\n")
+            f.write("- Improve SEO to also capture organic search traffic\n")
+            f.write("- Optimize for keywords it's almost ranking for\n\n")
             f.write("---\n\n")
 
         # Summary stats
-        f.write(f"## Key Metrics\n\n")
+        f.write("## Key Metrics\n\n")
         total_traffic = sum(p['monthly_pageviews'] for p in all_pages)
         star_traffic = sum(p['monthly_pageviews'] for p in stars)
         star_percent = (star_traffic / total_traffic * 100) if total_traffic > 0 else 0
@@ -440,23 +441,23 @@ def write_markdown_report(
         f.write(f"- **Star Content Traffic:** {star_traffic:,} ({star_percent:.1f}% of total)\n")
         f.write(f"- **Pages Needing Attention:** {len(underperformers) + len(declining)}\n\n")
 
-        f.write(f"## Recommended Workflow\n\n")
-        f.write(f"### Week 1: Fix Underperformers\n")
-        f.write(f"Focus on rewriting titles and meta descriptions for underperformers. Quick wins!\n\n")
+        f.write("## Recommended Workflow\n\n")
+        f.write("### Week 1: Fix Underperformers\n")
+        f.write("Focus on rewriting titles and meta descriptions for underperformers. Quick wins!\n\n")
 
         critical_under = [p for p in underperformers if p['priority'] == 'CRITICAL'][:5]
         for p in critical_under:
             f.write(f"- {p['title'][:60]} (Position {p['avg_position']}, missing {estimate_expected_traffic(p['avg_position'], p['impressions']) - p['monthly_pageviews']:,} clicks)\n")
 
-        f.write(f"\n### Week 2-3: Refresh Declining Content\n")
-        f.write(f"Update declining content with fresh information and examples.\n\n")
+        f.write("\n### Week 2-3: Refresh Declining Content\n")
+        f.write("Update declining content with fresh information and examples.\n\n")
 
         high_decline = [p for p in declining if p['priority'] == 'HIGH'][:5]
         for p in high_decline:
             f.write(f"- {p['title'][:60]} ({p['trend_percent']:+.1f}% trend)\n")
 
-        f.write(f"\n### Week 4+: Expand Stars\n")
-        f.write(f"Create related content clustering around your top performers.\n\n")
+        f.write("\n### Week 4+: Expand Stars\n")
+        f.write("Create related content clustering around your top performers.\n\n")
 
         top_stars = sorted(stars, key=lambda x: x['monthly_pageviews'], reverse=True)[:3]
         for p in top_stars:

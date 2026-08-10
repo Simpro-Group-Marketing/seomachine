@@ -19,30 +19,28 @@ def load_dataforseo_module():
 
 class DataForSEOResilienceTests(unittest.TestCase):
     def setUp(self) -> None:
-        module = load_dataforseo_module()
-        self.client = object.__new__(module.DataForSEO)
+        self.module = load_dataforseo_module()
+        self.client = object.__new__(self.module.DataForSEO)
 
-    def test_get_serp_data_returns_task_error_when_result_is_missing(self):
+    def test_get_serp_data_raises_contract_error_when_result_is_missing(self):
         self.client._post = lambda endpoint, data: {
             "status_code": 20000,
             "tasks": [{"status_code": 20000, "result": []}],
         }
 
-        result = self.client.get_serp_data("test keyword")
+        with self.assertRaisesRegex(self.module.DataForSEOContractError, "result"):
+            self.client.get_serp_data("test keyword")
 
-        self.assertEqual(result, {"error": "Task returned no results"})
-
-    def test_get_keyword_ideas_returns_empty_list_when_result_is_missing(self):
+    def test_get_keyword_ideas_raises_contract_error_when_result_is_missing(self):
         self.client._post = lambda endpoint, data: {
             "status_code": 20000,
             "tasks": [{"status_code": 20000, "result": []}],
         }
 
-        result = self.client.get_keyword_ideas("seed keyword")
+        with self.assertRaisesRegex(self.module.DataForSEOContractError, "result"):
+            self.client.get_keyword_ideas("seed keyword")
 
-        self.assertEqual(result, [])
-
-    def test_analyze_competitor_handles_missing_result_without_crashing(self):
+    def test_analyze_competitor_raises_contract_error_for_missing_result(self):
         self.client._post = lambda endpoint, data: {
             "status_code": 20000,
             "tasks": [
@@ -54,11 +52,10 @@ class DataForSEOResilienceTests(unittest.TestCase):
             ],
         }
 
-        result = self.client.analyze_competitor(
-            "competitor.com", ["keyword one"], your_domain="example.com"
-        )
-
-        self.assertEqual(result["comparison"], [])
+        with self.assertRaisesRegex(self.module.DataForSEOContractError, "result"):
+            self.client.analyze_competitor(
+                "competitor.com", ["keyword one"], your_domain="example.com"
+            )
 
 
 if __name__ == "__main__":

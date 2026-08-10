@@ -12,6 +12,7 @@ import argparse
 import hashlib
 import json
 import re
+import socket
 import sys
 import time
 from dataclasses import dataclass
@@ -28,6 +29,7 @@ except ImportError:  # pragma: no cover - dependency is declared, fallback is de
 
 try:
     from .guard_common import Finding, should_fail, summarize_findings
+    from .public_url_safety import request_public_url
     from .proof_sidecar import compose_with_sidecar, load_sidecar_content
     from .numeric_claim_source_guard import (
         MARKDOWN_LINK_RE,
@@ -41,6 +43,7 @@ try:
     )
 except ImportError:  # pragma: no cover - supports direct script execution.
     from guard_common import Finding, should_fail, summarize_findings
+    from public_url_safety import request_public_url
     from proof_sidecar import compose_with_sidecar, load_sidecar_content
     from numeric_claim_source_guard import (
         MARKDOWN_LINK_RE,
@@ -336,17 +339,20 @@ def format_findings(findings: Sequence[Finding]) -> str:
     return "\n".join(lines)
 
 
-def fetch_source_text(url: str) -> str:
+def fetch_source_text(url: str, *, resolver=socket.getaddrinfo) -> str:
     """Fetch and normalize visible source text from an HTML URL."""
     cache = _cache()
     cache_key = _cache_key(url)
     if cache is not None and cache_key in cache:
         return str(cache[cache_key])
 
-    response = requests.get(
+    response = request_public_url(
+        requests.Session(),
+        "GET",
         url,
         headers={"User-Agent": DEFAULT_USER_AGENT},
         timeout=DEFAULT_TIMEOUT_SECONDS,
+        resolver=resolver,
     )
     response.raise_for_status()
     text = _extract_visible_text(response.text)

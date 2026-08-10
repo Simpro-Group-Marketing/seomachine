@@ -1,95 +1,51 @@
-import csv
-import hashlib
 import json
-import unittest
-from pathlib import Path
-from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
-from data_sources.modules.fred_authority_guard import check_content, should_fail
+import pytest
+
+from data_sources.modules.fred_authority_guard import (
+    _main,
+    _normalize_url,
+    check_content,
+    requires_authority_review,
+    should_fail,
+)
 from tests.test_fred_authority_selector import (
-    AUTHORITY_FIELDS,
-    INVENTORY_FIELDS,
-    write_vault_fixture,
+    ARTICLE_URL,
+    VIDEO_URL,
+    default_fred_claims,
+    fred_claim,
+    load_validated_claim_set_for_unit_test,
+    write_context_receipt_fixture,
 )
 
 
-ARTICLE_URL = "https://example.com/skilled-trades"
-PLAYLIST_URL = "https://www.youtube.com/watch?v=abc123XYZ00"
-VIDEO_URL = "https://www.youtube.com/watch?v=videoABC123"
-ARTICLE_QUOTE = "Trade businesses need connected workforce technology."
-VIDEO_QUOTE = "Technicians need useful context before they arrive on site."
+ARTICLE_RESOURCE_ID = "res-fred-fvmi-001"
+VIDEO_RESOURCE_ID = "res-fred-fvmi-003"
+ARTICLE_QUOTE = "Connected workforce technology helps skilled trades teams coordinate work."
+VIDEO_QUOTE = "Field service leaders need operating visibility across every team."
 
 
-def _refresh_manifest(vault: Path) -> None:
-    manifest_path = vault / "indexes" / "agent-retrieval-manifest.jsonl"
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8").splitlines()[0])
-    for item in manifest["control_inputs"]:
-        controlled = vault / item["path"]
-        item["sha256"] = hashlib.sha256(controlled.read_bytes()).hexdigest()
-    manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
-
-
-def _append_csv_row(path: Path, fields: list[str], row: dict[str, str]) -> None:
-    with path.open("a", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields)
-        writer.writerow(row)
-
-
-def add_verified_video(vault: Path) -> None:
-    _append_csv_row(
-        vault / "indexes" / "fred-voccola-media-inventory.csv",
-        INVENTORY_FIELDS,
-        {
-            "inventory_id": "FVMI-007",
-            "media_type": "video",
-            "authority_id": "AUTH-007",
-            "source_layer": "public_interview",
-            "outlet": "Field Service Today",
-            "title": "Fred Voccola on technician productivity",
-            "url_or_locator": VIDEO_URL,
-            "date": "2026-01-07",
-            "recommended_brand": "Simpro",
-            "evidence_status": "source_checked_usable_authority_signal",
-            "public_use_status": "usable_for_eeat_authority_support",
-            "include_in_hub": "yes",
-            "notes": "Public and embeddable interview",
-        },
-    )
-    _append_csv_row(
-        vault / "indexes" / "authority-signal-matrix.csv",
-        AUTHORITY_FIELDS,
-        {
-            "authority_id": "AUTH-007",
-            "cluster": "field service technician productivity",
-            "outlet": "Field Service Today",
-            "headline": "Fred Voccola on technician productivity",
-            "canonical_url": VIDEO_URL,
-            "date": "2026-01-07",
-            "country": "US",
-            "recommended_brand": "Simpro",
-            "total_placements": "1",
-            "also_covered_by": "",
-            "eeat_dimension": "Expertise; Authority",
-            "evidence_status": "source_checked_usable_authority_signal",
-            "allowed_use": "Interview observations with transcript evidence",
-            "public_use_status": "usable_for_eeat_authority_support",
-            "source_node": "wiki/video.md",
-            "raw_file": "raw/video.md",
-            "notes": "",
-        },
-    )
-    _refresh_manifest(vault)
+@pytest.fixture(autouse=True)
+def _mock_live_validator():
+    with patch(
+        "data_sources.modules.fred_authority_guard.load_validated_claim_set",
+        new=load_validated_claim_set_for_unit_test,
+    ):
+        yield
 
 
 def selection_block(
+    revision: str,
     *,
     selected: str = "none",
-    fit: str = "No candidate directly supports this article's narrow tax compliance topic.",
+    claim_ids: str = "claim-fred-FVMI-001, claim-fred-FVMI-002, claim-fred-FVMI-003",
+    fit: str | None = None,
     intended_use: str = "none",
     target: str = "not applicable",
-    authority_id: str = "none",
-    url: str = "not applicable",
-    evidence_status: str = "not applicable",
+    authority_id: str | None = None,
+    url: str | None = None,
+    evidence_status: str | None = None,
     method: str = "not_applicable",
     excerpt: str = "not applicable",
     locator: str = "not applicable",
@@ -97,475 +53,747 @@ def selection_block(
     exact_quote: str = "not applicable",
     embed: str = "no",
     video_object: str = "not applicable",
-    evaluation: str = "completed",
+    approval_source: str = "connector_claim_result",
 ) -> str:
-    return f"""## Fred Voccola Authority Selection
-- Selector command: python data_sources/modules/fred_authority_selector.py "topic" --title "Title" --objective "Objective" --slate --limit 5
-- Evaluation status: {evaluation}
-- Top candidates: [FVMI-001, FVMI-003]
-- Selected: [{selected}]
-- Fit decision: {fit}
-- Intended use: {intended_use}
-- Target section: {target}
-- Authority row: [{authority_id}]
-- Public URL: {url}
-- Evidence status: {evidence_status}
-- Verification method: {method}
-- Evidence excerpt: {excerpt}
-- Timestamp or locator: {locator}
-- Playback verified: {playback}
-- Exact quote: {exact_quote}
-- Embed decision: {embed}
-- VideoObject: {video_object}
-"""
+    selected_values = {
+        "FVMI-001": (ARTICLE_RESOURCE_ID, ARTICLE_URL),
+        "FVMI-003": (VIDEO_RESOURCE_ID, VIDEO_URL),
+    }
+    selected_resource, selected_url = selected_values.get(
+        selected,
+        ("none", "not applicable"),
+    )
+    if fit is None:
+        fit = (
+            "No candidate directly supports the article's tax compliance objective, so public use is rejected."
+            if selected == "none"
+            else "The selected source directly supports the named article section and intended public use."
+        )
+    fields = [
+        ("Selector command", "python data_sources/modules/fred_authority_selector.py topic --slate"),
+        ("Evaluation status", "completed"),
+        ("Top candidates", "[FVMI-001, FVMI-002, FVMI-003]"),
+        ("Selected", f"[{selected}]"),
+        ("Context receipt", "context-receipt.json"),
+        ("Claim IDs", f"[{claim_ids}]"),
+        ("Receipt revision", revision),
+        ("Approval source", approval_source),
+        ("Fit decision", fit),
+        ("Intended use", intended_use),
+        ("Target section", target),
+        ("Authority row", f"[{authority_id or selected_resource}]"),
+        ("Public URL", url or selected_url),
+        ("Evidence status", evidence_status or ("receipt_approved" if selected != "none" else "not applicable")),
+        ("Verification method", method),
+        ("Evidence excerpt", excerpt),
+        ("Timestamp or locator", locator),
+        ("Playback verified", playback),
+        ("Exact quote", exact_quote),
+        ("Embed decision", embed),
+        ("VideoObject", video_object),
+    ]
+    return "## Fred Voccola Authority Selection\n" + "\n".join(
+        f"- {key}: {value}" for key, value in fields
+    )
 
 
-def article_quote_block(**overrides: str) -> str:
+def article_quote_block(revision: str, **overrides: str) -> str:
     values = {
         "selected": "FVMI-001",
-        "fit": "The source directly supports the workforce technology section.",
         "intended_use": "exact_quote",
-        "target": "Why workforce technology matters",
-        "authority_id": "AUTH-001",
-        "url": ARTICLE_URL,
-        "evidence_status": "source_visible",
+        "target": "Workforce technology",
         "method": "source_visible_article_text",
-        "excerpt": ARTICLE_QUOTE,
+        "excerpt": f"Source text states: {ARTICLE_QUOTE}",
         "locator": "Article paragraph 4",
         "exact_quote": ARTICLE_QUOTE,
     }
     values.update(overrides)
-    return selection_block(**values)
+    return selection_block(revision, **values)
 
 
-def video_quote_block(**overrides: str) -> str:
+def video_quote_block(revision: str, **overrides: str) -> str:
     values = {
-        "selected": "FVMI-007",
-        "fit": "The interview directly supports the technician productivity section.",
+        "selected": "FVMI-003",
         "intended_use": "exact_quote",
-        "target": "Technician productivity",
-        "authority_id": "AUTH-007",
-        "url": VIDEO_URL,
-        "evidence_status": "source_checked_usable_authority_signal",
+        "target": "Field service leadership",
         "method": "transcript_and_playback",
-        "excerpt": VIDEO_QUOTE,
-        "locator": "00:04:12",
+        "excerpt": f"Transcript states: {VIDEO_QUOTE}",
+        "locator": "01:23",
         "playback": "yes",
         "exact_quote": VIDEO_QUOTE,
     }
     values.update(overrides)
-    return selection_block(**values)
+    return selection_block(revision, **values)
 
 
-def embedded_article(*, autoplay: bool = False, schema: bool = True) -> str:
+def embedded_article(
+    *,
+    provider: str = "www.youtube-nocookie.com",
+    video_id: str = "abc123XYZ00",
+    autoplay: bool = False,
+    schema: bool = True,
+    responsive: bool = True,
+) -> str:
     schema_line = "  - VideoObject\n" if schema else ""
-    autoplay_suffix = "?autoplay=1" if autoplay else ""
-    return f"""---
-schema_notes:
-  - BlogPosting
-{schema_line}---
-# Article
+    wrapper = ' style="aspect-ratio: 16 / 9; width: 100%;"' if responsive else ""
+    autoplay_query = "?autoplay=1" if autoplay else ""
+    return (
+        "---\n"
+        "schema_notes:\n"
+        "  - BlogPosting\n"
+        f"{schema_line}"
+        "---\n"
+        "# Article\n\n"
+        "## Field service leadership\n\n"
+        "This discussion explains why operating visibility matters before presenting the supporting video.\n\n"
+        f"<div class=\"video-embed\"{wrapper}>\n"
+        f"<iframe src=\"https://{provider}/embed/{video_id}{autoplay_query}\" "
+        "title=\"Fred Voccola on field service leadership\" loading=\"lazy\" "
+        "allowfullscreen></iframe>\n"
+        "</div>\n\n"
+        f"[Watch Fred Voccola discuss field service leadership]({VIDEO_URL}).\n"
+    )
 
-## Field service leadership
 
-Fred Voccola discusses field service leadership in this interview.
-
-<div class="video-embed" style="aspect-ratio: 16 / 9; width: 100%;">
-  <iframe src="https://www.youtube-nocookie.com/embed/abc123XYZ00{autoplay_suffix}" title="Fred Voccola on field service leadership" loading="lazy" allowfullscreen></iframe>
-</div>
-
-[Watch Fred Voccola on field service leadership]({PLAYLIST_URL}).
-"""
+def guard_check(article: str, proof: str, pack, receipt):
+    return check_content(
+        article,
+        proof_content=proof,
+        context_pack=pack,
+        context_receipt=receipt,
+    )
 
 
-class FredAuthorityGuardTests(unittest.TestCase):
-    def test_missing_selection_block_fails(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            findings = check_content("# Article\n\nBody.", vault_root=vault)
+def test_missing_selection_block_fails():
+    findings = check_content("# Article\n\nBody.", proof_content="# Validation")
 
-        self.assertTrue(any(item["rule_id"] == "fred_authority_selection_missing" for item in findings))
+    assert should_fail(findings)
+    assert {item["rule_id"] for item in findings} == {"fred_authority_selection_missing"}
 
-    def test_selected_none_with_substantive_fit_reason_passes(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            findings = check_content(
-                "# Article\n\nTax compliance details.",
-                proof_content=selection_block(),
-                vault_root=vault,
-            )
 
-        self.assertEqual(findings, [])
+def test_malformed_frontmatter_requires_review_without_raising():
+    malformed = "---\nbrand: [broken\n---\n# Article\n\nBody."
 
-    def test_selected_none_with_generic_reason_fails(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            findings = check_content(
-                "# Article\n\nBody.",
-                proof_content=selection_block(fit="Not used."),
-                vault_root=vault,
-            )
+    assert requires_authority_review(malformed) is True
 
-        self.assertTrue(any(item["rule_id"] == "fred_authority_none_reason_weak" for item in findings))
 
-    def test_unknown_selected_id_and_stale_manifest_fail(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            unknown = check_content(
-                "# Article\n\nBody.",
-                proof_content=article_quote_block(selected="FVMI-999"),
-                vault_root=vault,
-            )
-            inventory = vault / "indexes" / "fred-voccola-media-inventory.csv"
-            inventory.write_text(inventory.read_text(encoding="utf-8") + "\n", encoding="utf-8")
-            stale = check_content(
-                "# Article\n\nBody.",
-                proof_content=selection_block(),
-                vault_root=vault,
-            )
+def test_malformed_frontmatter_returns_stable_fail_closed_finding():
+    malformed = "---\nbrand: [broken\n---\n# Article\n\nBody."
 
-        self.assertTrue(any(item["rule_id"] == "fred_authority_id_unknown" for item in unknown))
-        self.assertTrue(any(item["rule_id"] == "fred_authority_vault_unavailable" for item in stale))
+    findings = check_content(malformed, proof_content="# Validation")
 
-    def test_current_vault_fields_must_match_sidecar(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            content = f'# Article\n\n[Fred Voccola]({ARTICLE_URL}) said, "{ARTICLE_QUOTE}"'
-            findings = check_content(
-                content,
-                proof_content=article_quote_block(
-                    authority_id="AUTH-WRONG",
-                    url="https://example.com/wrong",
-                    evidence_status="wrong_status",
-                ),
-                vault_root=vault,
-            )
+    assert {finding["rule_id"] for finding in findings} == {
+        "fred_authority_frontmatter_invalid"
+    }
 
-        rules = {item["rule_id"] for item in findings}
-        self.assertIn("fred_authority_row_mismatch", rules)
-        self.assertIn("fred_authority_url_mismatch", rules)
-        self.assertIn("fred_authority_status_mismatch", rules)
 
-    def test_syndicated_placement_cannot_be_selected(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            findings = check_content(
-                "# Article\n\nBody.",
-                proof_content=article_quote_block(
-                    selected="FVMI-005",
-                    authority_id="AUTH-005",
-                    url="https://example.com/syndicated",
-                    evidence_status="placement_only",
-                ),
-                vault_root=vault,
-            )
+def test_malformed_frontmatter_cli_returns_finding_instead_of_crashing(tmp_path, capsys):
+    article = tmp_path / "malformed.md"
+    article.write_text("---\nbrand: [broken\n---\n# Article\n\nBody.", encoding="utf-8")
 
-        self.assertTrue(any(item["rule_id"] == "fred_authority_not_usable" for item in findings))
+    exit_code = _main([str(article), "--json"])
+    payload = json.loads(capsys.readouterr().out)
 
-    def test_unavailable_vault_fails_closed(self):
-        with TemporaryDirectory() as temp_dir:
-            missing = Path(temp_dir) / "missing-vault"
-            findings = check_content(
-                "# Article\n\nBody.",
-                proof_content=selection_block(),
-                vault_root=missing,
-            )
+    assert exit_code == 1
+    assert {finding["rule_id"] for finding in payload["findings"]} == {
+        "fred_authority_frontmatter_invalid"
+    }
 
-        self.assertTrue(should_fail(findings))
-        self.assertTrue(any(item["rule_id"] == "fred_authority_vault_unavailable" for item in findings))
 
-    def test_exact_article_quote_with_visible_text_evidence_passes(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            content = f'# Article\n\n[Fred Voccola]({ARTICLE_URL}) said, "{ARTICLE_QUOTE}"'
-            findings = check_content(
-                content,
-                proof_content=article_quote_block(),
-                vault_root=vault,
-            )
+def test_explicit_non_simpro_article_without_fred_use_is_exempt():
+    article = (
+        "---\nbrand: BigChange\nartifact_type: blog\ntitle: Job management\n---\n"
+        "# Job management\n\nBigChange helps teams coordinate field work."
+    )
 
-        self.assertEqual(findings, [])
+    assert check_content(article, proof_content="# Validation") == []
 
-    def test_exact_quote_and_source_link_in_different_paragraphs_fails(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            content = (
-                f'# Article\n\nFred Voccola said, "{ARTICLE_QUOTE}"\n\n'
-                f'[Read the source]({ARTICLE_URL}).'
-            )
-            findings = check_content(
-                content,
-                proof_content=article_quote_block(),
-                vault_root=vault,
-            )
 
-        self.assertTrue(
-            any(
-                item["rule_id"] == "fred_authority_public_link_missing"
-                for item in findings
-            )
+def test_cross_brand_simpro_product_mention_without_fred_use_is_exempt():
+    article = (
+        "---\nbrand: ClockShark\nartifact_type: blog\ntitle: Simpro comparison\n---\n"
+        "# Simpro comparison\n\nThis comparison discusses Simpro product workflows."
+    )
+
+    assert check_content(article, proof_content="# Validation") == []
+
+
+def test_cross_brand_public_fred_use_still_requires_selection():
+    article = (
+        "---\nbrand: AroFlo\nartifact_type: blog\ntitle: Industry view\n---\n"
+        "# Industry view\n\nFred Voccola discusses field service operations at Simpro."
+    )
+
+    findings = check_content(article, proof_content="# Validation")
+
+    assert {item["rule_id"] for item in findings} == {"fred_authority_selection_missing"}
+
+
+@pytest.mark.parametrize(
+    "hidden_markup",
+    [
+        '<div hidden>Fred Voccola discusses field service operations.</div>',
+        '<div aria-hidden="true">Fred Voccola discusses field service operations.</div>',
+        '<div style="display: none">Fred Voccola discusses field service operations.</div>',
+        '<div style="color:red; visibility : hidden !important">Fred Voccola discusses field service operations.</div>',
+    ],
+)
+def test_cross_brand_hidden_fred_text_does_not_trigger_authority_review(hidden_markup):
+    article = (
+        "---\nbrand: AroFlo\nartifact_type: blog\ntitle: Industry view\n---\n"
+        f"# Industry view\n\n{hidden_markup}\n\nVisible AroFlo guidance."
+    )
+
+    assert check_content(article, proof_content="# Validation") == []
+
+
+def test_simpro_article_without_public_fred_use_still_requires_evaluation():
+    article = (
+        "---\nbrand: Simpro\nartifact_type: blog\ntitle: Field service\n---\n"
+        "# Field service\n\nOperational guidance."
+    )
+
+    findings = check_content(article, proof_content="# Validation")
+
+    assert {item["rule_id"] for item in findings} == {"fred_authority_selection_missing"}
+
+def test_valid_none_selection_passes_with_valid_receipt(tmp_path):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
+
+    findings = guard_check(
+        "# Article\n\nTax compliance details.",
+        selection_block(revision),
+        pack,
+        receipt,
+    )
+
+    assert findings == []
+
+
+def test_none_selection_requires_substantive_rejection_reason(tmp_path):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
+
+    findings = guard_check(
+        "# Article\n\nBody.",
+        selection_block(revision, fit="Not used."),
+        pack,
+        receipt,
+    )
+
+    assert any(item["rule_id"] == "fred_authority_none_reason_weak" for item in findings)
+
+
+def test_none_selection_rejects_public_fred_use(tmp_path):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
+
+    findings = guard_check(
+        f'# Article\n\nFred Voccola said, "{ARTICLE_QUOTE}"',
+        selection_block(revision),
+        pack,
+        receipt,
+    )
+
+    assert any(
+        item["rule_id"] == "fred_authority_public_use_without_selection"
+        for item in findings
+    )
+
+
+def test_missing_receipt_fails_closed(tmp_path):
+    _, _, revision = write_context_receipt_fixture(tmp_path)
+
+    findings = check_content(
+        "# Article\n\nBody.",
+        proof_content=selection_block(revision),
+    )
+
+    assert should_fail(findings)
+    assert any(item["rule_id"] == "fred_authority_receipt_unavailable" for item in findings)
+
+
+def test_unknown_selected_id_fails_receipt_approval(tmp_path):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
+
+    findings = guard_check(
+        "# Article\n\nBody.",
+        selection_block(
+            revision,
+            selected="FVMI-999",
+            intended_use="inline_citation",
+            target="Workforce technology",
+            authority_id="res-unknown",
+            url="https://example.com/unknown",
+            evidence_status="receipt_approved",
+        ),
+        pack,
+        receipt,
+    )
+
+    assert any(item["rule_id"] == "fred_authority_id_unknown" for item in findings)
+
+
+def test_selected_claim_metadata_must_match_receipt(tmp_path):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
+
+    findings = guard_check(
+        f'# Article\n\n[Fred Voccola]({ARTICLE_URL}) said, "{ARTICLE_QUOTE}"',
+        article_quote_block(
+            revision,
+            authority_id="res-wrong",
+            url="https://example.com/wrong",
+            evidence_status="wrong_status",
+            claim_ids="claim-fred-FVMI-003",
+            approval_source="manual",
+        ),
+        pack,
+        receipt,
+    )
+    rules = {item["rule_id"] for item in findings}
+
+    assert "fred_authority_row_mismatch" in rules
+    assert "fred_authority_url_mismatch" in rules
+    assert "fred_authority_status_mismatch" in rules
+    assert "fred_authority_claim_id_mismatch" in rules
+    assert "fred_authority_approval_source_mismatch" in rules
+
+
+def test_authority_support_receipt_does_not_authorize_exact_article_quote(tmp_path):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
+    article = f'# Article\n\n[Fred Voccola]({ARTICLE_URL}) said, "{ARTICLE_QUOTE}"'
+
+    findings = guard_check(article, article_quote_block(revision), pack, receipt)
+
+    assert any(
+        item["rule_id"] == "fred_authority_public_use_unapproved"
+        for item in findings
+    )
+
+
+def test_receipt_approved_exact_article_quote_passes(tmp_path):
+    claims = default_fred_claims() + [
+        fred_claim(
+            "FVMI-001",
+            ARTICLE_QUOTE,
+            ARTICLE_URL,
+            authority_resource_id=ARTICLE_RESOURCE_ID,
+            claim_id="claim-fred-FVMI-001-exact",
+            use_mode="exact_quote",
         )
+    ]
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path, claims)
+    article = f'# Article\n\n[Fred Voccola]({ARTICLE_URL}) said, "{ARTICLE_QUOTE}"'
+    proof = article_quote_block(
+        revision,
+        claim_ids="claim-fred-FVMI-001, claim-fred-FVMI-001-exact",
+    )
 
-    def test_video_quote_requires_transcript_timestamp_and_playback(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            add_verified_video(vault)
-            content = f'# Article\n\n[Fred Voccola]({VIDEO_URL}) said, "{VIDEO_QUOTE}"'
-            cases = {
-                "method": video_quote_block(method="paraphrase_evidence"),
-                "locator": video_quote_block(locator="not applicable"),
-                "playback": video_quote_block(playback="not_applicable"),
-                "excerpt": video_quote_block(excerpt="not applicable"),
-            }
-            for label, proof in cases.items():
-                with self.subTest(label=label):
-                    findings = check_content(content, proof_content=proof, vault_root=vault)
-                    self.assertTrue(should_fail(findings))
+    findings = guard_check(article, proof, pack, receipt)
 
-    def test_verified_video_quote_passes(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            add_verified_video(vault)
-            content = f'# Article\n\n[Fred Voccola]({VIDEO_URL}) said, "{VIDEO_QUOTE}"'
-            findings = check_content(
-                content,
-                proof_content=video_quote_block(),
-                vault_root=vault,
-            )
+    assert findings == []
 
-        self.assertEqual(findings, [])
 
-    def test_linked_supported_paraphrase_passes(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            content = f"# Article\n\n[Fred Voccola argues]({ARTICLE_URL}) that connected workforce tools can help skilled trades teams coordinate work."
-            proof = article_quote_block(
-                intended_use="paraphrased_industry_observation",
-                method="paraphrase_evidence",
-                excerpt="Connected tools help skilled trades businesses coordinate their workforce.",
-                locator="Article paragraph 4",
-                exact_quote="not applicable",
-            )
-            findings = check_content(content, proof_content=proof, vault_root=vault)
-
-        self.assertEqual(findings, [])
-
-    def test_unlinked_or_unsupported_paraphrase_fails(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            content = "# Article\n\nFred Voccola argues that connected workforce tools improve coordination."
-            findings = check_content(
-                content,
-                proof_content=article_quote_block(
-                    intended_use="paraphrased_industry_observation",
-                    method="paraphrase_evidence",
-                    excerpt="not applicable",
-                    exact_quote="not applicable",
-                ),
-                vault_root=vault,
-            )
-
-        rules = {item["rule_id"] for item in findings}
-        self.assertIn("fred_authority_public_link_missing", rules)
-        self.assertIn("fred_authority_paraphrase_evidence_missing", rules)
-
-    def test_content_first_playlist_embed_with_video_object_passes(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            proof = selection_block(
-                selected="FVMI-003",
-                fit="The video directly supports the field service leadership section.",
-                intended_use="embed",
-                target="Field service leadership",
-                url=PLAYLIST_URL,
-                evidence_status="playlist_verified_public",
-                embed="yes",
-                video_object="required",
-            )
-            findings = check_content(
-                embedded_article(),
-                proof_content=proof,
-                vault_root=vault,
-            )
-
-        self.assertEqual(findings, [])
-
-    def test_embed_rejects_autoplay_missing_schema_and_wrong_provider(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            proof = selection_block(
-                selected="FVMI-003",
-                fit="The video directly supports the field service leadership section.",
-                intended_use="embed",
-                target="Field service leadership",
-                url=PLAYLIST_URL,
-                evidence_status="playlist_verified_public",
-                embed="yes",
-                video_object="required",
-            )
-            autoplay = check_content(
-                embedded_article(autoplay=True),
-                proof_content=proof,
-                vault_root=vault,
-            )
-            no_schema = check_content(
-                embedded_article(schema=False),
-                proof_content=proof,
-                vault_root=vault,
-            )
-            wrong_provider = check_content(
-                embedded_article().replace("youtube-nocookie.com", "player.vimeo.com"),
-                proof_content=proof,
-                vault_root=vault,
-            )
-
-        self.assertTrue(
-            any(item["rule_id"] == "fred_authority_embed_autoplay" for item in autoplay)
+@pytest.mark.parametrize(
+    "hidden_attribute",
+    [
+        "hidden",
+        'aria-hidden="true"',
+        'style="display:none"',
+        'style="visibility: hidden !important"',
+    ],
+)
+def test_hidden_html_link_does_not_satisfy_public_quote_link(tmp_path, hidden_attribute):
+    claims = default_fred_claims() + [
+        fred_claim(
+            "FVMI-001",
+            ARTICLE_QUOTE,
+            ARTICLE_URL,
+            authority_resource_id=ARTICLE_RESOURCE_ID,
+            claim_id="claim-fred-FVMI-001-exact",
+            use_mode="exact_quote",
         )
-        self.assertTrue(
-            any(
-                item["rule_id"] == "fred_authority_video_object_missing"
-                for item in no_schema
-            )
+    ]
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path, claims)
+    article = (
+        f'# Article\n\nFred Voccola said, "{ARTICLE_QUOTE}" '
+        f'<span {hidden_attribute}><a href="{ARTICLE_URL}">Source</a></span>'
+    )
+    proof = article_quote_block(
+        revision,
+        claim_ids="claim-fred-FVMI-001, claim-fred-FVMI-001-exact",
+    )
+
+    findings = guard_check(article, proof, pack, receipt)
+
+    assert any(item["rule_id"] == "fred_authority_public_link_missing" for item in findings)
+
+
+def test_hidden_exact_quote_does_not_satisfy_public_quote_use(tmp_path):
+    claims = default_fred_claims() + [
+        fred_claim(
+            "FVMI-001",
+            ARTICLE_QUOTE,
+            ARTICLE_URL,
+            authority_resource_id=ARTICLE_RESOURCE_ID,
+            claim_id="claim-fred-FVMI-001-exact",
+            use_mode="exact_quote",
         )
-        self.assertTrue(
-            any(
-                item["rule_id"] == "fred_authority_embed_provider_invalid"
-                for item in wrong_provider
-            )
+    ]
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path, claims)
+    article = (
+        f'# Article\n\n[Read the source]({ARTICLE_URL}). '
+        f'<span style="display:none">Fred Voccola said, "{ARTICLE_QUOTE}"</span>'
+    )
+    proof = article_quote_block(
+        revision,
+        claim_ids="claim-fred-FVMI-001, claim-fred-FVMI-001-exact",
+    )
+
+    findings = guard_check(article, proof, pack, receipt)
+
+    assert any(item["rule_id"] == "fred_authority_exact_quote_missing" for item in findings)
+
+
+def test_url_equality_normalizes_scheme_host_and_default_port_only():
+    assert _normalize_url("HTTPS://EXAMPLE.COM:443/skilled-trades?View=Full") == _normalize_url(
+        "https://example.com/skilled-trades?View=Full"
+    )
+    assert _normalize_url("http://EXAMPLE.COM:80/") == _normalize_url("http://example.com")
+    assert _normalize_url("https://example.com/Skilled-trades?View=Full") != _normalize_url(
+        "https://example.com/skilled-trades?View=Full"
+    )
+    assert _normalize_url("https://example.com/skilled-trades?View=Full") != _normalize_url(
+        "https://example.com/skilled-trades?view=Full"
+    )
+
+
+def test_default_port_and_authority_case_variants_join_to_receipt_url(tmp_path):
+    claims = default_fred_claims() + [
+        fred_claim(
+            "FVMI-001",
+            ARTICLE_QUOTE,
+            ARTICLE_URL,
+            authority_resource_id=ARTICLE_RESOURCE_ID,
+            claim_id="claim-fred-FVMI-001-exact",
+            use_mode="exact_quote",
         )
+    ]
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path, claims)
+    equivalent_url = "HTTPS://EXAMPLE.COM:443/skilled-trades"
+    article = f'# Article\n\n[Fred Voccola]({equivalent_url}) said, "{ARTICLE_QUOTE}"'
+    proof = article_quote_block(
+        revision,
+        url=equivalent_url,
+        claim_ids="claim-fred-FVMI-001, claim-fred-FVMI-001-exact",
+    )
 
-    def test_video_object_is_prohibited_without_video_embed(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            content = (
-                "---\nschema_notes:\n  - BlogPosting\n  - VideoObject\n---\n"
-                "# Article\n\nBody."
-            )
-            findings = check_content(
-                content,
-                proof_content=selection_block(),
-                vault_root=vault,
-            )
+    assert guard_check(article, proof, pack, receipt) == []
 
-        self.assertTrue(
-            any(
-                item["rule_id"] == "fred_authority_video_object_without_embed"
-                for item in findings
-            )
+
+def test_url_equality_preserves_non_root_trailing_slash():
+    assert _normalize_url("https://example.com/skilled-trades/") != _normalize_url(
+        "https://example.com/skilled-trades"
+    )
+
+
+def test_exact_quote_and_link_in_different_paragraphs_fails(tmp_path):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
+    article = (
+        f'# Article\n\nFred Voccola said, "{ARTICLE_QUOTE}"\n\n'
+        f"[Read the source]({ARTICLE_URL})."
+    )
+
+    findings = guard_check(article, article_quote_block(revision), pack, receipt)
+
+    assert any(item["rule_id"] == "fred_authority_public_link_missing" for item in findings)
+
+
+def test_authority_support_receipt_does_not_authorize_paraphrase(tmp_path):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
+    article = (
+        f"# Article\n\n[Fred Voccola argues]({ARTICLE_URL}) that connected workforce "
+        "tools can help skilled trades teams coordinate work."
+    )
+    proof = selection_block(
+        revision,
+        selected="FVMI-001",
+        intended_use="paraphrased_industry_observation",
+        target="Workforce technology",
+        method="paraphrase_evidence",
+        excerpt="Connected tools help skilled trades businesses coordinate their workforce.",
+        locator="Article paragraph 4",
+    )
+
+    findings = guard_check(article, proof, pack, receipt)
+
+    assert any(
+        item["rule_id"] == "fred_authority_public_use_unapproved"
+        for item in findings
+    )
+
+
+def test_receipt_approved_attributed_paraphrase_passes(tmp_path):
+    approved_paraphrase = (
+        "Connected tools help skilled trades businesses coordinate their workforce."
+    )
+    claims = default_fred_claims() + [
+        fred_claim(
+            "FVMI-001",
+            approved_paraphrase,
+            ARTICLE_URL,
+            authority_resource_id=ARTICLE_RESOURCE_ID,
+            claim_id="claim-fred-FVMI-001-paraphrase",
+            use_mode="public_paraphrase",
         )
+    ]
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path, claims)
+    article = (
+        f"# Article\n\n[Fred Voccola argues]({ARTICLE_URL}) that connected workforce "
+        "tools can help skilled trades teams coordinate work."
+    )
+    proof = selection_block(
+        revision,
+        selected="FVMI-001",
+        claim_ids="claim-fred-FVMI-001, claim-fred-FVMI-001-paraphrase",
+        intended_use="paraphrased_industry_observation",
+        target="Workforce technology",
+        method="paraphrase_evidence",
+        excerpt=approved_paraphrase,
+        locator="Article paragraph 4",
+    )
+
+    findings = guard_check(article, proof, pack, receipt)
+
+    assert findings == []
 
 
-    def test_video_object_with_non_fred_video_embed_is_not_treated_as_orphaned(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            content = (
-                "---\nschema_notes:\n  - BlogPosting\n  - VideoObject\n---\n"
-                "# Article\n\n"
-                '<iframe src="https://player.vimeo.com/video/123456" '
-                'title="Independent field service training video"></iframe>'
-            )
-            findings = check_content(
-                content,
-                proof_content=selection_block(),
-                vault_root=vault,
-            )
+def test_unlinked_or_unsupported_paraphrase_fails(tmp_path):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
+    proof = selection_block(
+        revision,
+        selected="FVMI-001",
+        intended_use="paraphrased_industry_observation",
+        target="Workforce technology",
+        method="paraphrase_evidence",
+        excerpt="not applicable",
+    )
 
-        self.assertFalse(
-            any(
-                item["rule_id"] == "fred_authority_video_object_without_embed"
-                for item in findings
-            )
+    findings = guard_check(
+        "# Article\n\nFred Voccola argues that connected workforce tools improve coordination.",
+        proof,
+        pack,
+        receipt,
+    )
+    rules = {item["rule_id"] for item in findings}
+
+    assert "fred_authority_public_link_missing" in rules
+    assert "fred_authority_paraphrase_evidence_missing" in rules
+
+
+def test_authority_support_receipt_does_not_authorize_video_quote(tmp_path):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
+    article = f'# Article\n\n[Fred Voccola]({VIDEO_URL}) said, "{VIDEO_QUOTE}"'
+
+    findings = guard_check(article, video_quote_block(revision), pack, receipt)
+
+    assert any(
+        item["rule_id"] == "fred_authority_public_use_unapproved"
+        for item in findings
+    )
+
+
+def test_receipt_approved_video_quote_passes(tmp_path):
+    claims = default_fred_claims() + [
+        fred_claim(
+            "FVMI-003",
+            VIDEO_QUOTE,
+            VIDEO_URL,
+            authority_resource_id=VIDEO_RESOURCE_ID,
+            claim_id="claim-fred-FVMI-003-exact",
+            use_mode="exact_quote",
         )
+    ]
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path, claims)
+    article = f'# Article\n\n[Fred Voccola]({VIDEO_URL}) said, "{VIDEO_QUOTE}"'
+    proof = video_quote_block(
+        revision,
+        claim_ids="claim-fred-FVMI-003, claim-fred-FVMI-003-exact",
+    )
 
-    def test_selected_none_rejects_unlinked_public_fred_quote(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            content = f'# Article\n\nFred Voccola said, "{ARTICLE_QUOTE}"'
-            findings = check_content(
-                content,
-                proof_content=selection_block(),
-                vault_root=vault,
-            )
+    findings = guard_check(article, proof, pack, receipt)
 
-        self.assertTrue(
-            any(
-                item["rule_id"] == "fred_authority_public_use_without_selection"
-                for item in findings
-            )
+    assert findings == []
+
+
+def test_public_use_claim_must_be_listed_in_sidecar(tmp_path):
+    claims = default_fred_claims() + [
+        fred_claim(
+            "FVMI-001",
+            ARTICLE_QUOTE,
+            ARTICLE_URL,
+            authority_resource_id=ARTICLE_RESOURCE_ID,
+            claim_id="claim-fred-FVMI-001-exact",
+            use_mode="exact_quote",
         )
+    ]
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path, claims)
+    article = f'# Article\n\n[Fred Voccola]({ARTICLE_URL}) said, "{ARTICLE_QUOTE}"'
 
-    def test_video_quote_requires_well_formed_timestamp(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            add_verified_video(vault)
-            content = f'# Article\n\n[Fred Voccola]({VIDEO_URL}) said, "{VIDEO_QUOTE}"'
-            for locator in ("article paragraph 4", "00:61", "1:02:75"):
-                with self.subTest(locator=locator):
-                    findings = check_content(
-                        content,
-                        proof_content=video_quote_block(locator=locator),
-                        vault_root=vault,
-                    )
-                    self.assertTrue(
-                        any(
-                            item["rule_id"] == "fred_authority_video_timestamp_invalid"
-                            for item in findings
-                        )
-                    )
+    findings = guard_check(article, article_quote_block(revision), pack, receipt)
 
-    def test_embed_video_id_requires_exact_path_match(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            proof = selection_block(
-                selected="FVMI-003",
-                fit="The video directly supports the field service leadership section.",
-                intended_use="embed",
-                target="Field service leadership",
-                url=PLAYLIST_URL,
-                evidence_status="playlist_verified_public",
-                embed="yes",
-                video_object="required",
-            )
-            content = embedded_article().replace(
-                "/embed/abc123XYZ00",
-                "/embed/abc123XYZ00extra",
-            )
-            findings = check_content(content, proof_content=proof, vault_root=vault)
+    assert any(
+        item["rule_id"] == "fred_authority_public_use_claim_id_mismatch"
+        for item in findings
+    )
 
-        self.assertTrue(
-            any(
-                item["rule_id"] == "fred_authority_embed_video_mismatch"
-                for item in findings
-            )
+
+@pytest.mark.parametrize(
+    ("selector_id", "authority_resource_id", "public_url"),
+    [
+        ("FVMI-002", ARTICLE_RESOURCE_ID, ARTICLE_URL),
+        ("FVMI-001", "res-fred-other-source", ARTICLE_URL),
+        ("FVMI-001", ARTICLE_RESOURCE_ID, "https://example.com/different-source"),
+    ],
+)
+def test_public_use_authorization_must_match_claim_source_and_url(
+    tmp_path,
+    selector_id,
+    authority_resource_id,
+    public_url,
+):
+    claims = default_fred_claims() + [
+        fred_claim(
+            selector_id,
+            ARTICLE_QUOTE,
+            public_url,
+            authority_resource_id=authority_resource_id,
+            claim_id="claim-fred-mismatched-exact",
+            use_mode="exact_quote",
         )
+    ]
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path, claims)
+    article = f'# Article\n\n[Fred Voccola]({ARTICLE_URL}) said, "{ARTICLE_QUOTE}"'
+    proof = article_quote_block(
+        revision,
+        claim_ids="claim-fred-FVMI-001, claim-fred-mismatched-exact",
+    )
 
-    def test_selected_embed_requires_its_own_responsive_wrapper(self):
-        with TemporaryDirectory() as temp_dir:
-            vault = write_vault_fixture(Path(temp_dir))
-            proof = selection_block(
-                selected="FVMI-003",
-                fit="The video directly supports the field service leadership section.",
-                intended_use="embed",
-                target="Field service leadership",
-                url=PLAYLIST_URL,
-                evidence_status="playlist_verified_public",
-                embed="yes",
-                video_object="required",
-            )
-            content = embedded_article().replace(
-                '<div class="video-embed" style="aspect-ratio: 16 / 9; width: 100%;">',
-                '<div class="video-embed">',
-            )
-            content += '\n<div style="aspect-ratio: 16 / 9;">Unrelated media</div>\n'
-            findings = check_content(content, proof_content=proof, vault_root=vault)
+    findings = guard_check(article, proof, pack, receipt)
 
-        self.assertTrue(
-            any(
-                item["rule_id"] == "fred_authority_embed_responsive_missing"
-                for item in findings
-            )
-        )
+    assert any(
+        item["rule_id"] == "fred_authority_public_use_unapproved"
+        for item in findings
+    )
 
-if __name__ == "__main__":
-    unittest.main()
+def test_video_quote_cannot_claim_article_text_verification(tmp_path):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
+    article = f'# Article\n\n[Fred Voccola]({VIDEO_URL}) said, "{VIDEO_QUOTE}"'
+    proof = video_quote_block(revision).replace(
+        "Verification method: transcript_and_playback",
+        "Verification method: source_visible_article_text",
+    ).replace("Playback verified: yes", "Playback verified: no")
+
+    findings = guard_check(article, proof, pack, receipt)
+    rules = {item["rule_id"] for item in findings}
+
+    assert "fred_authority_transcript_required" in rules
+    assert "fred_authority_playback_required" in rules
+
+
+@pytest.mark.parametrize("locator", ["article paragraph 4", "00:61", "1:02:75"])
+def test_video_quote_requires_well_formed_timestamp(tmp_path, locator):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
+    article = f'# Article\n\n[Fred Voccola]({VIDEO_URL}) said, "{VIDEO_QUOTE}"'
+
+    findings = guard_check(
+        article,
+        video_quote_block(revision, locator=locator),
+        pack,
+        receipt,
+    )
+
+    assert any(item["rule_id"] == "fred_authority_video_timestamp_invalid" for item in findings)
+
+
+def test_content_first_youtube_embed_with_video_object_passes(tmp_path):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
+    proof = selection_block(
+        revision,
+        selected="FVMI-003",
+        intended_use="embed",
+        target="Field service leadership",
+        embed="yes",
+        video_object="required",
+    )
+
+    findings = guard_check(embedded_article(), proof, pack, receipt)
+
+    assert findings == []
+
+
+@pytest.mark.parametrize(
+    ("article", "rule_id"),
+    [
+        (embedded_article(autoplay=True), "fred_authority_embed_autoplay"),
+        (embedded_article(schema=False), "fred_authority_video_object_missing"),
+        (
+            embedded_article(provider="player.vimeo.com"),
+            "fred_authority_embed_provider_invalid",
+        ),
+        (
+            embedded_article(video_id="abc123XYZ00extra"),
+            "fred_authority_embed_video_mismatch",
+        ),
+        (
+            embedded_article(responsive=False),
+            "fred_authority_embed_responsive_missing",
+        ),
+    ],
+)
+def test_youtube_embed_contract_fails_closed(tmp_path, article, rule_id):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
+    proof = selection_block(
+        revision,
+        selected="FVMI-003",
+        intended_use="embed",
+        target="Field service leadership",
+        embed="yes",
+        video_object="required",
+    )
+
+    findings = guard_check(article, proof, pack, receipt)
+
+    assert any(item["rule_id"] == rule_id for item in findings)
+
+
+def test_hidden_youtube_iframe_does_not_satisfy_public_embed(tmp_path):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
+    proof = selection_block(
+        revision,
+        selected="FVMI-003",
+        intended_use="embed",
+        target="Field service leadership",
+        embed="yes",
+        video_object="required",
+    )
+    article = embedded_article().replace(
+        'class="video-embed"',
+        'class="video-embed" hidden',
+    )
+
+    findings = guard_check(article, proof, pack, receipt)
+    rules = {item["rule_id"] for item in findings}
+
+    assert "fred_authority_embed_missing" in rules
+    assert "fred_authority_video_object_without_embed" in rules
+
+
+def test_video_object_without_embed_is_rejected(tmp_path):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
+    article = "---\nschema_notes:\n  - BlogPosting\n  - VideoObject\n---\n# Article\n\nBody."
+
+    findings = guard_check(article, selection_block(revision), pack, receipt)
+
+    assert any(
+        item["rule_id"] == "fred_authority_video_object_without_embed"
+        for item in findings
+    )

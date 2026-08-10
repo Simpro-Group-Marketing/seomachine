@@ -27,7 +27,7 @@ try:
     from .ai_copy_linter import lint_content
     from .customer_proof_diversity_guard import check_content as check_customer_proof_diversity
     from .metric_proof_pack_guard import check_content as check_metric_proof_pack
-    from .proof_sidecar import load_sidecar_content
+    from .proof_sidecar import load_sidecar_content, resolve_sidecar_path
     from .readability_scorer import ReadabilityScorer
     from .review_story_identity_guard import check_content as check_review_story_identity
     from .seo_quality_rater import SEOQualityRater
@@ -39,7 +39,7 @@ except ImportError:
     from ai_copy_linter import lint_content
     from customer_proof_diversity_guard import check_content as check_customer_proof_diversity
     from metric_proof_pack_guard import check_content as check_metric_proof_pack
-    from proof_sidecar import load_sidecar_content
+    from proof_sidecar import load_sidecar_content, resolve_sidecar_path
     from readability_scorer import ReadabilityScorer
     from review_story_identity_guard import check_content as check_review_story_identity
     from seo_quality_rater import SEOQualityRater
@@ -278,11 +278,18 @@ class ContentScorer:
     ) -> Dict[str, Any]:
         """Run proof-aware quality gates and keep scorer orchestration local."""
         proof_sidecar_content = load_sidecar_content(source_path, proof_sidecar)
+        resolved_sidecar = resolve_sidecar_path(source_path, proof_sidecar)
+        proof_sidecar_path = (
+            str(resolved_sidecar.resolve())
+            if resolved_sidecar is not None and resolved_sidecar.is_file()
+            else None
+        )
         aeo_geo = rate_aeo_geo(
             content,
             metadata,
             source_path=source_path,
             proof_sidecar_content=proof_sidecar_content,
+            proof_sidecar_path=proof_sidecar_path,
         )
         faq_proof_check = aeo_geo.get('checks', {}).get('faq_proof', {})
         paa_provenance_check = aeo_geo.get('checks', {}).get('paa_provenance', {})
@@ -295,6 +302,7 @@ class ContentScorer:
             content,
             source_path=source_path,
             proof_content=proof_sidecar_content,
+            proof_sidecar_path=proof_sidecar_path,
         )
         review_story_findings = check_review_story_identity(
             content,

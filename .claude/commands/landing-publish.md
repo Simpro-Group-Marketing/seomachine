@@ -1,5 +1,15 @@
 # Landing Page Publish Command
 
+## Context Binding Regeneration (MANDATORY)
+
+After the final content mutation, regenerate the machine-owned binding before `/publish-readiness` and before any WordPress API call:
+
+```bash
+python data_sources/modules/context_binding_generator.py "$FILE_PATH" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT"
+```
+
+If the landing page changes after this command, stop and regenerate the binding again.
+
 Use this command to publish landing pages to WordPress as pages (not blog posts).
 
 ## Usage
@@ -17,7 +27,7 @@ Use this command to publish landing pages to WordPress as pages (not blog posts)
 ## What This Command Does
 
 1. Validates the landing page file
-2. Checks landing page score (must be ≥75)
+2. Runs the full publish-readiness stack with current connector context artifacts
 3. Parses markdown and metadata
 4. Creates WordPress page via REST API
 5. Sets Yoast SEO fields
@@ -26,7 +36,7 @@ Use this command to publish landing pages to WordPress as pages (not blog posts)
 ## Prerequisites
 
 Before publishing, ensure:
-1. Landing page score is ≥75 (run `/landing-audit` first)
+1. Full publish readiness passes with the current context request, pack, and receipt
 2. No critical issues remain
 3. All required metadata is present
 4. Content has been scrubbed for AI watermarks
@@ -62,20 +72,14 @@ Check file exists and contains required fields:
 - Conversion Goal
 - URL Slug
 
-### Step 2: Score Check
+### Step 2: Publish Readiness
 
-Run landing page scorer:
-```python
-from data_sources.modules.landing_page_scorer import score_landing_page
-
-score = score_landing_page(content, page_type, goal, meta_title, meta_description, keyword)
-
-if score['overall_score'] < 75:
-    print("Score too low. Fix issues before publishing.")
-    print(f"Current score: {score['overall_score']}")
-    print(f"Critical issues: {score['critical_issues']}")
-    # Abort publishing
+Run the same fail-closed gate stack used by blog publishing:
+```bash
+/publish-readiness "$FILE_PATH" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT"
 ```
+
+Context Binding must pass before downstream proof, URL, quality, or handoff gates. A landing-page score alone never authorizes a WordPress API call.
 
 ### Step 3: Content Preparation
 
@@ -93,35 +97,24 @@ from data_sources.modules.wordpress_publisher import WordPressPublisher
 
 publisher = WordPressPublisher()
 
-result = publisher.create_page(
-    title=headline,
-    content=html_content,
-    slug=url_slug,
-    status='draft',  # Always create as draft first
-    meta={
-        'yoast_wpseo_title': meta_title,
-        'yoast_wpseo_metadesc': meta_description,
-        'yoast_wpseo_focuskw': target_keyword,
-    }
+result = publisher.publish_draft(
+    file_path,
+    post_type="page",
+    noindex=noindex,
+    template=template_slug,
+    proof_sidecar=proof_sidecar,
+    context_request=context_request,
+    context_pack=context_pack,
+    context_receipt=context_receipt,
 )
 ```
 
 ### Step 5: Additional Settings
 
-**For PPC Pages (--noindex):**
-```python
-# Set noindex via Yoast
-meta['yoast_wpseo_meta-robots-noindex'] = '1'
-```
-
-**For Page Templates:**
-```python
-# Set page template
-result = publisher.update_page(
-    page_id=page_id,
-    template=template_slug
-)
-```
+`WordPressPublisher.publish_draft` sends `template` in the page-creation payload and
+`robots_noindex` in the registered `yoast_seo` REST field. It verifies the returned
+Yoast values. A metadata failure after page creation returns a partial-publish error
+containing the existing page ID and edit URL so the workflow does not create a duplicate.
 
 ## Output
 
@@ -164,7 +157,7 @@ Run `/landing-audit landing-pages/[file].md` for full analysis.
 |--------|----------------------|--------------------------|
 | WordPress Type | Post | Page |
 | Categories/Tags | Yes | No |
-| Score Required | Full publish-readiness stack PASS | Landing page score >=75 |
+| Score Required | Full publish-readiness stack PASS | Full publish-readiness stack PASS |
 | noindex Option | No | Yes (for PPC) |
 | Template Option | No | Yes |
 | Output Directory | drafts/ | landing-pages/ |
@@ -190,7 +183,7 @@ Before running this command, verify:
 
 ### Technical
 - [ ] Content scrubbed for AI watermarks
-- [ ] Landing page score ≥75
+- [ ] Full publish-readiness stack passed with current context request, pack, and receipt
 - [ ] No critical issues
 - [ ] Proper markdown formatting
 

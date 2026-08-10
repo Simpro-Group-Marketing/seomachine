@@ -26,6 +26,7 @@ DOWN_FUNNEL_PATH_PREFIXES = (
     "/solutions/",
 )
 DOWN_FUNNEL_EXACT_PATHS = {
+    "/features",
     "/industries",
 }
 GENERIC_LINK_ANCHORS = {
@@ -1101,6 +1102,12 @@ def _anchor_matches_down_funnel_target(anchor: str, path: str) -> bool:
         return any(
             term in normalized_anchor
             for term in ("industry", "industries", "trade", "trades")
+        )
+
+    if path == "/features":
+        return (
+            len(normalized_anchor.split()) >= 2
+            and _has_functional_anchor_context(normalized_anchor)
         )
 
     destination_phrase = path.rsplit("/", 1)[-1].replace("-", " ")

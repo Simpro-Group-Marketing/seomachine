@@ -7,6 +7,80 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class AeoGeoWorkflowDocsTests(unittest.TestCase):
+    def test_public_workflows_regenerate_context_binding_after_final_mutation(self):
+        workflow_paths = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "publish-draft.md",
+            ROOT / ".claude" / "commands" / "landing-write.md",
+            ROOT / ".claude" / "commands" / "landing-publish.md",
+        ]
+        required = [
+            "python data_sources/modules/context_binding_generator.py",
+            "--proof-sidecar",
+            "--context-request",
+            "--context-pack",
+            "--context-receipt",
+            "after the final content mutation",
+            "before `/publish-readiness`",
+        ]
+
+        for path in workflow_paths:
+            content = path.read_text(encoding="utf-8")
+            for marker in required:
+                with self.subTest(path=path.name, marker=marker):
+                    self.assertIn(marker.casefold(), content.casefold())
+
+    def test_landing_write_requires_receipt_approved_proof_or_omission(self):
+        landing_write = (ROOT / ".claude" / "commands" / "landing-write.md").read_text(
+            encoding="utf-8"
+        )
+
+        for unsafe_template in (
+            "Join 24,000+ businesses and 450,000+ users",
+            "Trusted by 24,000+ businesses and 450,000+ users",
+            "[Testimonial with specific results]",
+            "[Second testimonial]",
+            "[Short testimonial with specific result]",
+            "At least 2 testimonials with names",
+            "At least 1 testimonial",
+        ):
+            self.assertNotIn(unsafe_template, landing_write)
+
+        normalized = landing_write.casefold()
+        for requirement in (
+            "receipt-approved claim",
+            "claim_id",
+            "public url",
+            "omit",
+            "do not invent",
+        ):
+            self.assertIn(requirement, normalized)
+    def test_sub_90_aeo_geo_score_triggers_automatic_repair_loop(self):
+        required = [
+            "AEO/GEO Recovery Loop",
+            "below 90/100",
+            "aeo_geo.checks",
+            "top 3-5 fixes",
+            "scorer or parser false negative",
+            "2 iterations",
+            "/scrub",
+            "/publish-readiness",
+        ]
+        docs = [
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "publish-readiness.md",
+        ]
+
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for text in required:
+                self.assertIn(text, content, f"{path.name} missing {text}")
+
     def test_faq_answer_quality_and_inline_evidence_rule_is_mirrored(self):
         required = [
             "faq_answer_quality_guard.py",
@@ -169,7 +243,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "Expertise",
             "Do not invent",
             "repo context",
-            "internal source of truth",
+            "connector-unavailable blocker",
+            "never becomes public-claim approval authority",
             "public-facing source links",
             "suggested blog focus",
             "/publish-readiness",
@@ -186,9 +261,10 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             encoding="utf-8"
         )
         detailed_required = [
-            "context/internal-links-map.md",
-            "context/features.md",
-            "context/competitor-analysis.md",
+            "context_pack_hash",
+            "receipt_hash",
+            "resource_id",
+            "claim_id",
             "public-facing source links",
         ]
         for text in detailed_required:
@@ -205,6 +281,9 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "Experience",
             "Expertise",
             "context/aeo-geo-blog-strategy.md",
+            "resource_id",
+            "approved claim",
+            "receipt_hash",
         ]
 
         for path in command_paths:
@@ -212,7 +291,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
-    def test_docs_allow_context_backed_metrics_only_with_public_links(self):
+    def test_docs_require_receipt_backed_metrics_with_public_links(self):
         docs = [
             ROOT / "context" / "aeo-geo-blog-strategy.md",
             ROOT / ".claude" / "commands" / "article.md",
@@ -224,11 +303,11 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
 
         for path in docs:
             content = path.read_text(encoding="utf-8")
-            self.assertIn("context-backed", content, f"{path.name} missing context-backed")
-            self.assertIn(
-                "public-facing source links",
-                content,
-                f"{path.name} missing public-facing source links",
+            self.assertIn("receipt_hash", content, f"{path.name} missing receipt binding")
+            self.assertIn("claim_id", content, f"{path.name} missing approved claim ID")
+            self.assertTrue(
+                "public-facing source link" in content or "public URL" in content,
+                f"{path.name} missing public evidence link requirement",
             )
 
     def test_blog_writing_commands_document_numeric_and_because_reasoning_rules(self):
@@ -1137,6 +1216,31 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                     f"{path.name} missing context/aeo-geo-blog-strategy.md",
                 )
 
+    def test_mandatory_customer_proof_selector_commands_include_context_artifacts(self):
+        docs = [
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / ".claude" / "commands" / "research.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "rules" / "customer-proof.md",
+            ROOT / "README.md",
+            ROOT / "CLAUDE.md",
+            ROOT / "AGENTS.md",
+        ]
+        required_flags = ("--context-pack", "--context-receipt")
+
+        for path in docs:
+            for line_number, line in enumerate(
+                path.read_text(encoding="utf-8").splitlines(), start=1
+            ):
+                if (
+                    "python data_sources/modules/customer_proof_selector.py" not in line
+                    or "--slate" not in line
+                ):
+                    continue
+                for flag in required_flags:
+                    self.assertIn(flag, line, f"{path}:{line_number} missing {flag}")
+
     def test_selected_customer_proof_mining_is_documented(self):
         canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
             encoding="utf-8"
@@ -1290,11 +1394,20 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             content = path.read_text(encoding="utf-8")
             self.assertIn("/publish-readiness", content, f"{path.name} missing /publish-readiness")
 
+        for path in docs[:2]:
+            content = path.read_text(encoding="utf-8")
+            for argument in ("--context-request", "--context-pack", "--context-receipt"):
+                self.assertIn(argument, content, f"{path.name} missing {argument}")
+
         landing_publish = (ROOT / ".claude" / "commands" / "landing-publish.md").read_text(
             encoding="utf-8"
         )
-        self.assertNotIn("Content score ≥70", landing_publish)
+        self.assertNotIn("Content score Ã¢â€°Â¥70", landing_publish)
         self.assertIn("Full publish-readiness stack", landing_publish)
+        self.assertIn("publisher.publish_draft(", landing_publish)
+        self.assertNotIn("publisher.create_page(", landing_publish)
+        for argument in ("context_request", "context_pack", "context_receipt"):
+            self.assertIn(argument, landing_publish)
 
         claude = (ROOT / "CLAUDE.md").read_text(encoding="utf-8")
         self.assertNotIn("C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main", claude)
@@ -1754,7 +1867,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertNotIn("Always put a comma before because", style)
-        self.assertNotIn("Em dashes (—) not hyphens with spaces", style)
+        self.assertNotIn("Em dashes (Ã¢â‚¬â€) not hyphens with spaces", style)
         self.assertIn("grammar and sentence meaning", style)
         self.assertNotIn("number, named scenario", linter)
         self.assertIn("approved proof", linter)
@@ -1763,7 +1876,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             brand_voice,
         )
         self.assertNotIn(
-            "Round numbers, named customers, specific outcomes — always",
+            "Round numbers, named customers, specific outcomes Ã¢â‚¬â€ always",
             brand_voice,
         )
         self.assertIn("approved named customers", brand_voice)
@@ -1961,12 +2074,15 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         ]
         required = [
             "Obsidian Vault Source Rule",
-            r"C:\Users\patrick.grueschow\Desktop\Obsidian\Simpro Brand Context",
-            "AGENTS.md -> wiki/cache/hot.md -> wiki/Brand Graph Index.md -> smallest relevant wiki/source/raw pages",
-            "repo-local context files are downstream mirrors/fallbacks only",
-            "cannot override the vault when the vault is available",
+            "Simpro vault connector as the active context source",
+            "The only configured content location is the vault root",
+            "Required connector workflow",
+            "search in the task's natural language",
+            "read and expand results by `resource_id`",
+            "repo-local context files are downstream mirrors or operational state only",
+            "cannot override the vault connector when the vault is available",
             "Do not use Google Workspace or old marketing-portal URLs as the active read path",
-            "Vault Context Read Path",
+            "generated vault context binding",
         ]
 
         for path in docs:
@@ -1989,9 +2105,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "Competitive Shortlist Decision",
             "selected competitors",
             "rejected competitors",
-            "wiki/competitors/Competitive Context.md",
-            "wiki/sources/simpro-battlecards-direct-competitors-1bzgf9r8.md",
-            "linked source/raw files",
+            "connector-discovered competitive-context resources",
+            "approved claim IDs where public proof is used",
             "Public competitor pages may shape SERP/article format, but cannot decide named competitors for Simpro public copy",
         ]
 
@@ -2014,8 +2129,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         required = [
             "Hindsight Boundary",
             "Hindsight/deal intelligence can inform internal strategy",
-            "cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified",
-            "wiki/sources/hindsight-copy-of-simpro-battlecards-1elcobgn.md",
+            "cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified through the claim registry",
+            "Keep raw deal counts out of public copy",
         ]
 
         for path in docs:
@@ -2036,9 +2151,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         required = [
             "Named Feature/Add-On Link Check",
             "first meaningful mentions of Simpro features/add-ons",
-            "wiki/concepts/payments-and-add-ons.md",
-            "wiki/features/Feature Library",
-            "vault route checked",
+            "connector-discovered product and feature resources",
+            "`resource_id` values",
             "link decision",
         ]
 
@@ -2064,13 +2178,11 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         required = [
             "Vault Brand Language Alignment",
             "vault_brand_language_guard.py",
-            "wiki/messaging/Simpro Core Messaging Repository.md",
-            "wiki/messaging/Message House.md",
-            "wiki/messaging/Core Value Pillars.md",
-            "wiki/product/Product Positioning.md",
-            "wiki/features/Feature Library.md",
-            "wiki/features/source-docs/",
-            "wiki/verticals/Vertical Profile Library.md",
+            "connector evidence",
+            "context_pack_hash",
+            "receipt_hash",
+            "feature-specific `resource_id` evidence",
+            "solution or vertical `resource_id` evidence",
             "repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors",
             "Status: aligned",
             "/publish-readiness",
@@ -2081,7 +2193,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
-    def test_source_routing_decision_is_documented(self):
+    def test_source_routing_policy_uses_context_binding_and_claim_gates(self):
         source_routing_map = (ROOT / "context" / "source-routing-map.md").read_text(
             encoding="utf-8"
         )
@@ -2092,22 +2204,59 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             encoding="utf-8"
         )
 
-        required = [
-            "Source Routing Decision",
-            "source_routing_guard.py",
+        for text in [
+            "Routing Matrix",
+            "Context Binding",
+            "claim-specific gates",
             "Brand voice, audience, ICP, message pillars, tone",
             "SEO mechanics, AEO/GEO workflow, schema notes, publish gates",
             "Customer proof, quotes, metrics, review stories, approval status",
-            "Status: aligned",
-        ]
+        ]:
+            self.assertIn(text, source_routing_map, f"source-routing-map.md missing {text}")
+
+        self.assertIn("generated vault context binding", canonical)
+        self.assertIn("claim-specific gates", canonical)
+        self.assertIn("Context Binding is the first", publish_readiness)
+        self.assertIn("claim-specific gates", publish_readiness)
 
         for content, name in [
             (source_routing_map, "source-routing-map.md"),
             (canonical, "aeo-geo-blog-strategy.md"),
             (publish_readiness, "publish-readiness.md"),
         ]:
-            for text in required:
-                self.assertIn(text, content, f"{name} missing {text}")
+            self.assertNotIn("Source Routing Decision", content, name)
+            self.assertNotIn("Vault Context Read Path", content, name)
+            self.assertNotIn("source_routing_guard.py", content, name)
+
+    def test_simpro_publish_readiness_examples_include_context_binding_inputs(self):
+        paths = [
+            *sorted((ROOT / ".claude" / "commands").glob("*.md")),
+            ROOT / ".claude" / "agents" / "editor.md",
+            ROOT / ".claude" / "skills" / "grav-publish" / "SKILL.md",
+        ]
+        required_flags = ("--context-request", "--context-pack", "--context-receipt")
+
+        for path in paths:
+            for line_number, line in enumerate(
+                path.read_text(encoding="utf-8").splitlines(), start=1
+            ):
+                if "/publish-readiness" not in line or "--proof-sidecar" not in line:
+                    continue
+                for flag in required_flags:
+                    self.assertIn(flag, line, f"{path}:{line_number} missing {flag}")
+
+    def test_editor_and_lightning_skill_use_connector_resources(self):
+        editor = (ROOT / ".claude" / "agents" / "editor.md").read_text(
+            encoding="utf-8"
+        )
+        competitor_skill = (
+            ROOT / ".claude" / "skills" / "competitor-alternatives" / "SKILL.md"
+        ).read_text(encoding="utf-8")
+
+        for text in ("semantic search", "resource_id", "fallback mirror"):
+            self.assertIn(text, editor)
+        for text in ("semantic search", "resource_id", "approved claims"):
+            self.assertIn(text, competitor_skill)
 
     def test_pmm_qa_rule_is_not_part_of_repo_guardrail_update(self):
         docs = [
@@ -2135,9 +2284,9 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
 
 
     def test_fred_authority_workflow_is_mandatory_and_source_bounded(self):
-        selector_command = (
+        selector_command_prefix = (
             'python data_sources/modules/fred_authority_selector.py "[topic]" '
-            '--title "[title]" --objective "[objective]" --slate --limit 5'
+            '--title "[title]" --objective "[objective]"'
         )
         workflow_paths = [
             ROOT / ".claude" / "commands" / "research.md",
@@ -2148,7 +2297,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             ROOT / ".claude" / "commands" / "optimize.md",
         ]
         workflow_required = [
-            selector_command,
+            selector_command_prefix,
             "Fred Voccola Authority Selection",
             "Evaluation is mandatory",
             "public use is optional",
@@ -2159,6 +2308,23 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in workflow_required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
+        receipt_bound_workflows = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "analyze-existing.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+        ]
+        receipt_flags = (
+            '--context-pack "research/context-pack-[topic-slug].json"',
+            '--context-receipt "research/context-receipt-[topic-slug].json"',
+        )
+        for path in receipt_bound_workflows:
+            content = path.read_text(encoding="utf-8")
+            command_line = next(
+                line for line in content.splitlines() if "fred_authority_selector.py" in line
+            )
+            for flag in receipt_flags:
+                self.assertIn(flag, command_line, f"{path.name} Fred command missing {flag}")
+
         canonical_paths = [
             ROOT / "AGENTS.md",
             ROOT / "CLAUDE.md",
@@ -2166,8 +2332,10 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             ROOT / "context" / "aeo-geo-blog-strategy.md",
         ]
         canonical_required = [
-            "fred-voccola-media-inventory.csv",
-            "authority-signal-matrix.csv",
+            "vault connector and claim registry are the sole eligibility source",
+            "current connector revisions",
+            "resource hashes",
+            "claim decisions",
             "same paragraph",
             "source_visible_article_text",
             "transcript_and_playback",
@@ -2184,9 +2352,46 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         ]
         for path in canonical_paths:
             content = path.read_text(encoding="utf-8")
-            self.assertIn(selector_command, content, f"{path.name} missing selector command")
+            self.assertIn(
+                selector_command_prefix,
+                content,
+                f"{path.name} missing selector command",
+            )
+            for flag in receipt_flags:
+                self.assertIn(flag, content, f"{path.name} missing {flag}")
             for text in canonical_required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
+
+    def test_article_analysis_and_optimization_use_connector_authority(self):
+        paths = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "analyze-existing.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+        ]
+        prohibited = (
+            "wiki/",
+            r"C:\Users\patrick.grueschow\Desktop\Obsidian",
+            "fred-voccola-media-inventory.csv",
+            "authority-signal-matrix.csv",
+            "| `expertise` | Use @context/features.md",
+            "metric/proof point from @context/features.md",
+            "@context/features.md - your brand product information",
+        )
+
+        for path in paths:
+            content = path.read_text(encoding="utf-8")
+            self.assertIn("semantic search", content, path.name)
+            self.assertIn("`resource_id`", content, path.name)
+            self.assertIn("vault-unavailable blocker", content, path.name)
+            for text in prohibited:
+                self.assertNotIn(text, content, f"{path.name} contains legacy authority: {text}")
+
+        article = paths[0].read_text(encoding="utf-8")
+        customer_proof_line = next(
+            line for line in article.splitlines() if "customer_proof_selector.py" in line
+        )
+        for flag in ("--context-pack", "--context-receipt"):
+            self.assertIn(flag, customer_proof_line)
 
         strategy = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
             encoding="utf-8"
@@ -2260,8 +2465,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             ROOT / ".claude" / "commands" / "publish-readiness.md",
         ]
         required = [
-            "wiki/messaging/Voice and Tone.md",
-            "wiki/messaging/Tone Voice and Localization Rules.md",
+            "retrieve current voice and tone guidance through the vault connector",
+            "`resource_id` reads",
             "Named-author Simpro blogs and thought leadership",
             "first-person judgment",
             "Author opinion must remain distinguishable from empirical fact",

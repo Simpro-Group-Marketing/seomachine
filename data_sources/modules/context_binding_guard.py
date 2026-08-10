@@ -16,13 +16,17 @@ from bs4 import BeautifulSoup
 
 try:
     from .artifact_detection import extract_frontmatter, strip_frontmatter
+    from .frontmatter import FrontmatterError
     from .guard_common import Finding, make_finding, should_fail, summarize_findings
     from .proof_sidecar import load_sidecar_content
+    from .proof_claim_binding_guard import validate_proof_claim_bindings
     from .simpro_vault_client import SimproVaultClient, VaultClientError
 except ImportError:  # pragma: no cover - supports direct script execution.
     from artifact_detection import extract_frontmatter, strip_frontmatter
+    from frontmatter import FrontmatterError
     from guard_common import Finding, make_finding, should_fail, summarize_findings
     from proof_sidecar import load_sidecar_content
+    from proof_claim_binding_guard import validate_proof_claim_bindings
     from simpro_vault_client import SimproVaultClient, VaultClientError
 
 
@@ -74,9 +78,20 @@ PUBLIC_CLAIM_USE_MODES = frozenset(
 def requires_context(content: str) -> bool:
     """Return whether an article workflow requires Simpro vault context.
 
-    Blog classification is the security boundary.  Literal product tokens are
-    useful search input, but can never be an opt-out switch for vault context.
+    Simpro names and URLs always require connector context, including on
+    comparison pages owned by another brand. Explicit non-Simpro frontmatter
+    exempts only content with no Simpro signal. Missing brand metadata fails
+    safely into the connector-backed workflow.
     """
+    try:
+        frontmatter = extract_frontmatter(content)
+    except FrontmatterError:
+        return True
+    brand = str(frontmatter.get("brand") or "").strip()
+    if SIMPRO_ARTICLE_RE.search(content):
+        return True
+    if brand:
+        return brand.casefold() == "simpro"
     return True
 
 
@@ -169,13 +184,13 @@ def check_file(
         raise ValueError("fail_on must be one of: error, warning, none")
     article = Path(path)
     content = article.read_text(encoding="utf-8")
-    if not requires_context(content):
-        return []
     supplied = {
         "request": context_request,
         "pack": context_pack,
         "receipt": context_receipt,
     }
+    if not requires_context(content) and not any(value is not None for value in supplied.values()):
+        return []
     findings: List[Finding] = []
     for label, value in supplied.items():
         if value is None:
@@ -196,7 +211,7 @@ def check_file(
         receipt = _read_json(receipt_path)
     except (OSError, json.JSONDecodeError, ValueError) as error:
         return [_finding("context_artifact_invalid", f"Context artifact is invalid: {error}")]
-    findings.extend(validate_request_article(request, content))
+    findings.extend(validate_request_article(request, content, article_path=article))
     pack_revisions = pack.get("revisions")
     receipt_revisions = receipt.get("revisions")
     if (
@@ -350,6 +365,14 @@ def validate_claim_map(
                             f"Claim {claim_id} public passage must equal its approved evidence assertion.",
                         )
                     )
+    findings.extend(
+        validate_proof_claim_bindings(
+            visible_public_content(article_content),
+            evidence_rows,
+            decisions,
+            claim_map,
+        )
+    )
     extra = set(mapped) - {decision.get("claim_id") for decision in decisions if isinstance(decision, dict)}
     for claim_id in sorted(extra):
         findings.append(_finding("context_claim_not_in_receipt", f"Claim map references a claim outside the receipt: {claim_id}"))
@@ -380,13 +403,22 @@ def _read_json(path: Path) -> dict[str, Any]:
 def validate_request_article(
     request: Mapping[str, Any],
     article_content: str,
+    *,
+    article_path: str | Path | None = None,
 ) -> List[Finding]:
     """Validate the exact request scope against the article before mutation."""
     findings: List[Finding] = []
     request_rule, request_error = _request_error(request)
     if request_error:
         findings.append(_finding(request_rule or "context_request_scope_invalid", request_error))
-    article_scope_error = _request_article_error(request, article_content)
+    try:
+        article_scope_error = _request_article_error(
+            request,
+            article_content,
+            article_path=article_path,
+        )
+    except FrontmatterError as error:
+        article_scope_error = f"Article frontmatter is invalid: {error}"
     if article_scope_error:
         findings.append(_finding("context_request_article_mismatch", article_scope_error))
     return findings
@@ -405,8 +437,11 @@ def _request_error(request: Mapping[str, Any]) -> tuple[str | None, str | None]:
         return "context_request_scope_invalid", f"Context request {kind_error}"
     if len(set(request_kinds)) > 1:
         return "context_request_scope_mismatch", "Context request artifact_type and artifact_kind conflict."
-    if not request_kinds or request_kinds[0] != "blog":
-        return "context_request_scope_invalid", "Context request artifact type must identify a blog."
+    if not request_kinds or request_kinds[0] not in {"blog", "landing_page"}:
+        return (
+            "context_request_scope_invalid",
+            "Context request artifact type must identify a blog or landing page.",
+        )
     if str(scope.get("brand")).strip().casefold() != "simpro":
         return "context_request_scope_invalid", "Context request brand scope must be Simpro."
     use_modes = scope.get("intended_public_use_modes")
@@ -417,7 +452,12 @@ def _request_error(request: Mapping[str, Any]) -> tuple[str | None, str | None]:
     return None, None
 
 
-def _request_article_error(request: Mapping[str, Any], content: str) -> str | None:
+def _request_article_error(
+    request: Mapping[str, Any],
+    content: str,
+    *,
+    article_path: str | Path | None = None,
+) -> str | None:
     scope = request.get("scope")
     if not isinstance(scope, Mapping):
         return None
@@ -431,14 +471,35 @@ def _request_article_error(request: Mapping[str, Any], content: str) -> str | No
     if _normalize_public_text(article_title).casefold() != _normalize_public_text(request_title).casefold():
         return "Context request title does not match the article title."
     article_brand = frontmatter.get("brand", "").strip()
-    request_brand = str(scope.get("brand", "")).strip()
-    if article_brand and article_brand.casefold() != request_brand.casefold():
-        return "Context request brand does not match article frontmatter."
+    authority_brand = str(scope.get("brand", "")).strip()
+    artifact_brand_value = scope.get("artifact_brand")
+    artifact_brand = (
+        str(artifact_brand_value).strip()
+        if artifact_brand_value is not None
+        else ""
+    )
+    if article_brand:
+        if article_brand.casefold() == authority_brand.casefold():
+            if artifact_brand and artifact_brand.casefold() != article_brand.casefold():
+                return "Context request artifact_brand does not match article frontmatter."
+        elif not artifact_brand:
+            return (
+                "Cross-brand context requests require artifact_brand so artifact ownership "
+                "is separate from the Simpro authority scope."
+            )
+        elif artifact_brand.casefold() != article_brand.casefold():
+            return "Context request artifact_brand does not match article frontmatter."
     article_kinds, article_kind_error = _mapping_artifact_kinds(frontmatter)
     if article_kind_error:
         return f"Article {article_kind_error}"
     if len(set(article_kinds)) > 1:
         return "Article artifact_type and artifact_kind conflict."
+    if not article_kinds:
+        inferred_kind = _artifact_kind_from_path(article_path)
+        if inferred_kind:
+            article_kinds = [inferred_kind]
+        else:
+            return "Article requires an explicit blog or landing-page artifact type in frontmatter."
     request_kinds, request_kind_error = _mapping_artifact_kinds(scope)
     if request_kind_error or len(set(request_kinds)) > 1:
         return None
@@ -468,6 +529,43 @@ def _normalize_artifact_kind(value: str) -> str | None:
         return "landing_page"
     if normalized in {"blog", "landing_page"}:
         return normalized
+    return None
+
+
+def resolve_artifact_kind(
+    content: str,
+    *,
+    article_path: str | Path | None = None,
+) -> str | None:
+    """Resolve a non-ambiguous public artifact kind from metadata or path."""
+    try:
+        frontmatter = extract_frontmatter(content)
+    except FrontmatterError:
+        return None
+    kinds, error = _mapping_artifact_kinds(frontmatter)
+    if error or len(set(kinds)) > 1:
+        return None
+    if kinds:
+        return kinds[0]
+    return _artifact_kind_from_path(article_path)
+
+
+def _artifact_kind_from_path(path: str | Path | None) -> str | None:
+    if path is None:
+        return None
+    candidate = Path(path)
+    parts = {part.casefold().replace("_", "-") for part in candidate.parts}
+    stem_tokens = {
+        token
+        for token in re.split(r"[^a-z0-9]+", candidate.stem.casefold())
+        if token
+    }
+    if parts.intersection({"landing-pages", "landing-page"}) or "landing" in stem_tokens:
+        return "landing_page"
+    if parts.intersection({"drafts", "rewrites", "published", "review-required"}) or stem_tokens.intersection(
+        {"article", "blog", "draft", "rewrite", "post"}
+    ):
+        return "blog"
     return None
 
 
@@ -509,23 +607,51 @@ def normalize_public_text(value: str) -> str:
     return re.sub(r"\s+", " ", unicodedata.normalize("NFKC", value).strip())
 
 
-def normalize_public_body(content: str) -> str:
-    """Return searchable visible Markdown body text without internal metadata."""
+def visible_public_content(content: str) -> str:
+    """Return public-facing source with metadata and non-rendered HTML removed.
+
+    Inline CSS is intentionally limited to the two declarations that make an
+    element non-visible: ``display: none`` and ``visibility: hidden``. Hidden
+    ancestors are removed with their descendants before any proof check.
+    """
     body, _ = strip_frontmatter(content)
     body = re.sub(r"<!--.*?-->", " ", body, flags=re.DOTALL)
     body = re.sub(r"^(?:```|~~~).*?^(?:```|~~~)\s*$", " ", body, flags=re.MULTILINE | re.DOTALL)
-    if "<" in body and ">" in body:
-        soup = BeautifulSoup(body, "html.parser")
-        for tag in soup(["script", "style", "template", "noscript", "head", "title", "meta"]):
+    if "<" not in body or ">" not in body:
+        return body
+
+    soup = BeautifulSoup(body, "html.parser")
+    for tag in soup(["script", "style", "template", "noscript", "head", "title", "meta"]):
+        tag.decompose()
+    for tag in soup.find_all(True):
+        if tag.attrs is None:
+            continue
+        hidden = "hidden" in tag.attrs
+        aria_hidden = str(tag.attrs.get("aria-hidden", "")).strip().casefold() == "true"
+        style_hidden = _inline_style_is_hidden(tag.attrs.get("style", ""))
+        if hidden or aria_hidden or style_hidden:
             tag.decompose()
-        for tag in soup.find_all(True):
-            if tag.attrs is None:
-                continue
-            hidden = "hidden" in tag.attrs
-            aria_hidden = str(tag.attrs.get("aria-hidden", "")).strip().casefold() == "true"
-            if hidden or aria_hidden:
-                tag.decompose()
-        body = str(soup)
+    return str(soup)
+
+
+def _inline_style_is_hidden(value: object) -> bool:
+    style = str(value)
+    for declaration in style.split(";"):
+        property_name, separator, property_value = declaration.partition(":")
+        if not separator:
+            continue
+        name = property_name.strip().casefold()
+        normalized_value = property_value.split("!", 1)[0].strip().casefold()
+        if (name == "display" and normalized_value == "none") or (
+            name == "visibility" and normalized_value == "hidden"
+        ):
+            return True
+    return False
+
+
+def normalize_public_body(content: str) -> str:
+    """Return searchable visible Markdown body text without internal metadata."""
+    body = visible_public_content(content)
     body = re.sub(
         r"<(?:script|style|template|noscript|head|title)\b[^>]*>.*?</(?:script|style|template|noscript|head|title)>",
         " ",
@@ -533,18 +659,6 @@ def normalize_public_body(content: str) -> str:
         flags=re.IGNORECASE | re.DOTALL,
     )
     body = re.sub(r"<meta\b[^>]*>", " ", body, flags=re.IGNORECASE | re.DOTALL)
-    body = re.sub(
-        r"<([a-z][a-z0-9:-]*)\b(?=[^>]*(?:\bhidden\b|\baria-hidden\s*=\s*['\"]?true['\"]?))[^>]*>.*?</\1>",
-        " ",
-        body,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    body = re.sub(
-        r"<[a-z][a-z0-9:-]*\b(?=[^>]*(?:\bhidden\b|\baria-hidden\s*=\s*['\"]?true['\"]?))[^>]*/?>",
-        " ",
-        body,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
     body = re.sub(r"!\[[^\]]*\]\([^)]*\)", " ", body)
     body = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", body)
     body = re.sub(r"<[^>]+>", " ", body)
