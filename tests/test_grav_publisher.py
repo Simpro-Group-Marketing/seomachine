@@ -64,6 +64,12 @@ def passing_readiness():
     }
 
 
+def _write_bom(tmpdir: str) -> str:
+    path = Path(tmpdir) / "blog-assembly-bom.json"
+    path.write_text('{"schema":"simpro-blog-assembly-bom/v1"}', encoding="utf-8")
+    return str(path)
+
+
 def failing_readiness():
     return {
         "passed": False,
@@ -322,6 +328,7 @@ class PublishPreflightTests(unittest.TestCase):
             request = _write(tmp, "context-request.json", "{}")
             pack = _write(tmp, "context-pack.json", "{}")
             receipt = _write(tmp, "context-receipt.json", "{}")
+            bom = _write_bom(tmp)
             with (
                 patch(
                     "data_sources.modules.grav_publisher.run_publish_readiness",
@@ -337,6 +344,7 @@ class PublishPreflightTests(unittest.TestCase):
                         context_request=request,
                         context_pack=pack,
                         context_receipt=receipt,
+                        assembly_bom=bom,
                         vault_root=Path(tmp),
                     )
 
@@ -346,6 +354,7 @@ class PublishPreflightTests(unittest.TestCase):
             context_request=request,
             context_pack=pack,
             context_receipt=receipt,
+            assembly_bom=bom,
             vault_root=Path(tmp),
         )
         push_article.assert_not_called()
@@ -382,6 +391,48 @@ class PublishPreflightTests(unittest.TestCase):
 
         self.assertEqual(calls, ["readiness", "push_article"])
         self.assertFalse(result["dry_run"])
+
+    def test_publish_forwards_bom_and_reports_bom_hash(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write(tmp, "post.md", DRAFT_WITH_SLUG)
+            sidecar = _write(tmp, "validation.md", "Metric Proof Pack\n")
+            bom = _write_bom(tmp)
+            bom_hash = hashlib.sha256(Path(bom).read_bytes()).hexdigest()
+
+            with (
+                patch(
+                    "data_sources.modules.grav_publisher.run_publish_readiness",
+                    return_value=passing_readiness(),
+                ) as readiness,
+                patch.object(
+                    self.pub,
+                    "push_article",
+                    return_value={
+                        "action": "created",
+                        "commit_url": "https://github.example/commit",
+                    },
+                ),
+            ):
+                result = self.pub.publish(
+                    path,
+                    dry_run=False,
+                    proof_sidecar=sidecar,
+                    assembly_bom=bom,
+                )
+
+        readiness.assert_called_once_with(
+            path,
+            proof_sidecar=sidecar,
+            context_request=None,
+            context_pack=None,
+            context_receipt=None,
+            assembly_bom=bom,
+            vault_root=None,
+        )
+        self.assertEqual(
+            result["publish_input_sha256"]["assembly_bom"],
+            bom_hash,
+        )
 
     def test_publish_rejects_article_changed_during_readiness(self):
         with tempfile.TemporaryDirectory() as tmp:

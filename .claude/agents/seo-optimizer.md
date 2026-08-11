@@ -29,7 +29,7 @@ Analyze completed articles and provide actionable recommendations to improve qua
   - Meta elements
 
 #### Semantic Keyword Analysis
-- Identify semantic variations and LSI keywords
+- Identify semantic variations and related terms
 - Verify natural language and conversational keyword usage
 - Check for keyword variations that capture different search intents
 - Ensure no keyword stuffing or over-optimization

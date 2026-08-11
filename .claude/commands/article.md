@@ -197,11 +197,11 @@ Required validation sidecar evidence: generated vault context binding for every 
 1. **Search the Target Keyword**
    Use WebSearch to find what's currently ranking:
    ```
-   WebSearch: "[topic] industry" OR "[topic] industrying"
+   WebSearch: "[topic] industry" OR another natural-language query that reflects the article objective
    ```
 
-2. **Analyze Top 5 Ranking Articles**
-   For each top-ranking article, use WebFetch and document:
+2. **Analyze the Relevant Ranking Articles**
+   Review enough top-ranking articles to understand the SERP pattern for the article objective. Use WebFetch and document:
 
    | Element | What to Capture |
    |---------|-----------------|
@@ -241,7 +241,7 @@ Save to: `research/serp-analysis-[topic-slug]-[YYYY-MM-DD].md`
 - Gaps: [what they miss]
 - Outdated: [old info found]
 
-[Repeat for top 5]
+[Repeat for each relevant ranking article reviewed]
 
 ## SERP Structure Context
 Common ranking sections to evaluate against the Reader Contract:
@@ -281,7 +281,7 @@ Common ranking sections to evaluate against the Reader Contract:
 1. **Search Reddit**
    ```
    WebSearch: site:reddit.com [topic] industry
-   WebSearch: site:reddit.com r/industrying [topic]
+   WebSearch: site:reddit.com [topic] field service discussion
    ```
 
 2. **Visit 5 Promising Threads**
@@ -488,7 +488,7 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
   |--------|-----------------|-------------|----------------|
   | [URL] | [claim] | [natural contextual phrase] | [section] |
 - **Proof Sidecar**: [research/validation-[topic-slug]-[YYYY-MM-DD].md; ready / partial / blocked]
-- **Schema Notes**: BlogPosting, BreadcrumbList, and FAQPage for standard blog posts with FAQs; nest Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. If a named author is present, include `author` in frontmatter and map it to `Person as author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization` as publisher reference only, and record the no-author decision in the blog assembly BOM and validation sidecar. Add VideoObject only if video is embedded.
+- **Schema Notes**: BlogPosting and BreadcrumbList for standard blog posts; add FAQPage and nested Question and Answer inside FAQPage only when visible FAQs exist. Include ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. If a named author is present, include `author` in frontmatter and map it to `Person as author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization` as publisher reference only, and record the no-author decision in the blog assembly BOM and validation sidecar. Add VideoObject only if video is embedded.
 - **AEO/GEO Score Target**: 90/100 or higher
 
 ### 1. Introduction
@@ -836,8 +836,10 @@ The complete connector-backed output inventory for each Simpro blog assembly run
 - Blog assembly BOM: `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`
 - Customer proof selector evidence: `research/customer-proof-selector-evidence-[topic-slug].json`
 - Fred authority selection: `research/fred-authority-selection-[topic-slug].md`
+- Optimizer evidence: `research/optimizer-[topic-slug]-[YYYY-MM-DD].json` when optimization mutates content
+- Publish readiness output: `research/publish-readiness-[topic-slug]-[YYYY-MM-DD].json`
 
-The validation sidecar must include current `Context Binding` and `Context Claim Use Map` sections generated from connector artifacts. The BOM JSON records the same article, sidecar, context request, context pack, context receipt, author policy, schema policy, and workflow stage inventory for the assembly run.
+The validation sidecar must include current `Context Binding` and `Context Claim Use Map` sections generated from connector artifacts. The BOM JSON records the same article, sidecar, context request, context pack, context receipt, selector evidence, Fred authority selection, optimizer outputs, readiness output, author policy, schema policy, and workflow stage inventory for the assembly run.
 
 ```
 research/
@@ -875,15 +877,15 @@ Before writing, review these context files:
 
 ### Research Standards
 - Top 5 competitor articles analyzed
-- 5 Reddit threads visited (actual pages, not snippets)
-- 5 YouTube videos analyzed
+- Relevant Reddit threads visited when discussion evidence is useful (actual pages, not snippets)
+- Relevant YouTube videos analyzed when video evidence or embed decisions are useful
 - Competitor gaps documented
 - Social insights synthesized
 
 ### Content Standards
 - Intent/evidence-complete word target from the Reader Contract, search intent, and available evidence
 - Proper H1/H2/H3 hierarchy
-- 3-5 internal links
+- Intent-appropriate internal links
 - 2-3 external authority links
 - Compelling hook (not generic)
 - Optional proof-backed customer/review POV when it improves the objective

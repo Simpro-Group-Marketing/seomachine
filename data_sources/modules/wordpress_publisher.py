@@ -617,6 +617,7 @@ class WordPressPublisher:
         context_request: Optional[str] = None,
         context_pack: Optional[str] = None,
         context_receipt: Optional[str] = None,
+        assembly_bom: Optional[str] = None,
         vault_root: Optional[str | Path] = None,
         noindex: bool = False,
         template: str = '',
@@ -631,6 +632,7 @@ class WordPressPublisher:
             context_request: Connector context request JSON path.
             context_pack: Connector context pack JSON path.
             context_receipt: Connector validation receipt JSON path.
+            assembly_bom: Blog assembly BOM JSON path.
             vault_root: Optional configured vault-root override.
 
         Returns:
@@ -659,6 +661,7 @@ class WordPressPublisher:
             "context_request": context_request,
             "context_pack": context_pack,
             "context_receipt": context_receipt,
+            "assembly_bom": assembly_bom,
         }
         before_readiness_inputs = capture_file_snapshots(readiness_input_paths)
 
@@ -669,6 +672,7 @@ class WordPressPublisher:
             context_request=context_request,
             context_pack=context_pack,
             context_receipt=context_receipt,
+            assembly_bom=assembly_bom,
             vault_root=vault_root,
         )
         sealed_snapshot = read_publishable_markdown(file_path)
@@ -963,6 +967,7 @@ def _require_publish_readiness(
     context_request: Optional[str] = None,
     context_pack: Optional[str] = None,
     context_receipt: Optional[str] = None,
+    assembly_bom: Optional[str] = None,
     vault_root: Optional[str | Path] = None,
 ) -> Dict:
     result = run_publish_readiness(
@@ -971,6 +976,7 @@ def _require_publish_readiness(
         context_request=context_request,
         context_pack=context_pack,
         context_receipt=context_receipt,
+        assembly_bom=assembly_bom,
         vault_root=vault_root,
     )
     if result.get("passed"):
@@ -1022,6 +1028,7 @@ def main():
     parser.add_argument('--context-request', help='Connector context request JSON path')
     parser.add_argument('--context-pack', help='Connector context pack JSON path')
     parser.add_argument('--context-receipt', help='Connector validation receipt JSON path')
+    parser.add_argument('--assembly-bom', help='Blog assembly BOM JSON path')
     parser.add_argument('--vault-root', help='Configured Simpro vault root override')
     parser.add_argument('--noindex', action='store_true', help='Request Yoast noindex metadata')
     parser.add_argument('--template', default='', help='WordPress page template slug')
@@ -1036,6 +1043,7 @@ def main():
             context_request=args.context_request,
             context_pack=args.context_pack,
             context_receipt=args.context_receipt,
+            assembly_bom=args.assembly_bom,
             vault_root=args.vault_root,
             noindex=args.noindex,
             template=args.template,

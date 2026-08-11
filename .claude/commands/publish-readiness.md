@@ -30,7 +30,7 @@ Use this command before `/optimize`, after `/optimize`, before an Asana intake h
 - Article artifact path
 - Validation sidecar path
 - Current context request, `simpro-product-context-pack/v2`, and `simpro-context-receipt/v1` paths for Simpro artifacts
-- Blog assembly BOM path, `simpro-blog-assembly-bom/v1`, for Simpro blog assembly runs
+- Blog assembly BOM path, `simpro-blog-assembly-bom/v1`, for every blog artifact
 
 Vault product-language gate: When the article uses Simpro product, feature, add-on, solution, industry, or related Simpro product URL language, `/publish-readiness` runs `vault_brand_language_guard.py`. The validation sidecar must contain `Vault Brand Language Alignment` with connector evidence, `context_pack_hash`, `receipt_hash`, relevant `resource_id` values, feature-specific `resource_id` evidence when named features/add-ons appear, solution or vertical `resource_id` evidence when solution/industry language appears, any required `claim_id` values, language applied, fallback context use, source-verification boundary, and `Status: aligned`. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
 

@@ -238,6 +238,36 @@ def run_publish_readiness(
             ],
         }
 
+    bom_required = artifact_kind == "blog"
+    if bom_required and assembly_bom_path is None:
+        bom_gate = _gate_from_findings(
+            "blog_assembly_bom",
+            "Blog Assembly BOM",
+            [blog_assembly_bom_guard.missing_bom_finding()],
+        )
+        gates.append(bom_gate)
+        return {
+            "file": str(article_path),
+            "proof_sidecar": proof_sidecar_path,
+            "context_request": context_request_path,
+            "context_pack": context_pack_path,
+            "context_receipt": context_receipt_path,
+            "assembly_bom": assembly_bom_path,
+            "passed": False,
+            "artifact_kind": artifact_kind,
+            "gates": gates,
+            "score": None,
+            "score_threshold": score_threshold,
+            "aeo_geo": {"score": None, "threshold": 90, "passed": False},
+            "priority_fixes": [
+                {
+                    "dimension": "blog_assembly_bom",
+                    "issue": blocker,
+                }
+                for blocker in bom_gate.get("blockers", [])
+            ],
+        }
+
     if assembly_bom_path is not None:
         bom_gate = _gate_from_findings(
             "blog_assembly_bom",
@@ -347,6 +377,7 @@ def run_publish_readiness(
         article_path,
         proof_sidecar_path,
         artifact_kind=artifact_kind or "blog",
+        assembly_bom=assembly_bom_path,
     )
     gates.append(_gate_from_score(scorer_result))
 
@@ -540,6 +571,7 @@ def _score_content(
     proof_sidecar: Optional[str],
     *,
     artifact_kind: str = "blog",
+    assembly_bom: Optional[str] = None,
 ) -> Dict[str, Any]:
     content = article_path.read_text(encoding="utf-8")
     if artifact_kind == "landing_page":
@@ -601,13 +633,33 @@ def _score_content(
             "landing_page": result,
         }
     scorer = ContentScorer()
+    metadata: Dict[str, Any] = {}
+    if assembly_bom:
+        metadata.update(_scoring_metadata_from_bom(assembly_bom))
     return scorer.score(
         content,
+        metadata=metadata,
         validate_urls=False,
         validate_source_support=False,
         source_path=str(article_path),
         proof_sidecar=proof_sidecar,
     )
+
+
+def _scoring_metadata_from_bom(assembly_bom: str | Path) -> Dict[str, Any]:
+    try:
+        bom = json.loads(Path(assembly_bom).read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return {}
+    if not isinstance(bom, dict):
+        return {}
+    policy = bom.get("author_policy")
+    if not isinstance(policy, dict):
+        return {}
+    status = policy.get("status")
+    if status not in {"named_author", "not_provided"}:
+        return {}
+    return {"author_policy_status": status}
 
 
 def _content_score(score_result: Dict[str, Any]) -> Any:

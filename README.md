@@ -386,7 +386,7 @@ Specialized agents that automatically analyze content and provide expert recomme
 
 **Powered by**:
 - `search_intent_analyzer.py` - Search intent detection
-- `keyword_analyzer.py` - Keyword distribution, stuffing-risk checks, clustering, LSI keywords
+- `keyword_analyzer.py` - Keyword distribution, stuffing-risk checks, clustering, and semantic terminology coverage
 - `content_length_comparator.py` - SERP competitor analysis
 - `readability_scorer.py` - Multiple readability metrics
 - `seo_quality_rater.py` - Comprehensive SEO scoring
@@ -443,7 +443,7 @@ Specialized agents that automatically analyze content and provide expert recomme
 - Keyword distribution and stuffing-risk checks
 - Critical placement checklist
 - Natural language integration quality
-- LSI keyword coverage
+- Semantic terminology coverage
 - Cannibalization risk
 
 **Output**: Distribution map, gap analysis, specific revision suggestions
@@ -587,7 +587,7 @@ SEO Machine includes 5 specialized Python modules for comprehensive content anal
 - Detects keyword stuffing risk with warnings
 - Performs topic clustering using TF-IDF and K-means
 - Generates distribution heatmap by section
-- Identifies LSI (semantically related) keywords
+- Identifies semantically related terms
 
 **SEO Quality Rater** (`seo_quality_rater.py`):
 - Rates content against SEO best practices (0-100 score)
@@ -776,7 +776,7 @@ Every Simpro blog post should meet these requirements:
 ### SEO
 - [ ] Natural terminology coverage, semantic variations, and keyword-stuffing detection checked per `seo-guidelines.md`
 - [ ] Keyword in H1, first 100 words, at least one relevant H2 where natural, conclusion, meta, and slug
-- [ ] 3-5 internal links from `internal-links-map.md` (performance-prioritized pages where relevant)
+- [ ] Intent-appropriate internal links from `internal-links-map.md` (performance-prioritized pages where relevant)
 - [ ] At least 1 down-funnel internal link to `https://www.simprogroup.com/industries`, `/industries/...`, `/solutions/...`, or `/features/...`; Anchor text must match the destination keyword
 - [ ] 2-3 credible external sources with natural in-sentence attribution
 - [ ] Meta title 50-60 characters with `| Simpro` when space allows
@@ -791,7 +791,7 @@ Every Simpro blog post should meet these requirements:
 - [ ] PAA provenance passes: every FAQ question appears exactly in the selected questions and saved source artifact
 - [ ] E-E-A-T Proof Map resolved with Experience proof and Expertise proof, including review-site experience evidence when reviews show first-hand customer experience
 - [ ] Author policy: If a named author is present, include `author` and map it to `Person as author`; If no named author is available, omit `author`, omit `Person as author`, and record the no-author decision in the blog assembly BOM and validation sidecar
-- [ ] Schema notes: BlogPosting, BreadcrumbList, and FAQPage for standard blog posts with FAQs; Question and Answer inside FAQPage; ImageObject for the featured image or logo; Organization as publisher reference only, not a separate full schema block; for public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters; VideoObject only if embedded
+- [ ] Schema notes: BlogPosting and BreadcrumbList for standard blog posts; add FAQPage and Question and Answer inside FAQPage only when visible FAQs exist; ImageObject for the featured image or logo; Organization as publisher reference only, not a separate full schema block; for public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters; VideoObject only if embedded
 - [ ] Target **90+** on `aeo_geo_rater` when run through `content_scorer`
 
 ### Readability

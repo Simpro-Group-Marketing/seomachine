@@ -10,7 +10,7 @@ Map where keywords appear throughout an article, evaluate integration quality, a
 - Semantic keyword relationships
 - Natural language processing patterns
 - Search intent matching
-- LSI (Latent Semantic Indexing) keyword usage
+- Semantic terminology usage
 - Keyword cannibalization prevention
 
 ## Analysis Framework
@@ -28,7 +28,7 @@ Map where keywords appear throughout an article, evaluate integration quality, a
 - Note long-tail variations (3-5 word phrases)
 - Map semantic relationships to primary keyword
 
-#### LSI Keywords
+#### Semantic Terms
 - Identify topically related terms that support primary keyword
 - Common terms that appear in top-ranking content
 - Natural language variations searchers use
@@ -55,7 +55,7 @@ Map presence of primary keyword in:
   - Calculation: (instances / total words) × 100
 
 - **Secondary Keyword Distribution**: [where related terms appear naturally]
-- **LSI Keyword Coverage**: [X terms found]
+- **Semantic Term Coverage**: [X terms found]
 
 #### Distribution Pattern
 Map keyword appearances by section:
@@ -117,14 +117,14 @@ For each gap, provide:
 
 ### 5. Semantic Keyword Enhancement
 
-#### LSI Opportunity Analysis
+#### Semantic Term Opportunity Analysis
 Identify missing topically related terms that would strengthen relevance:
 - Terms that appear in top 10 SERP results but not in this article
 - Natural variations that would enhance topical coverage
 - Related concepts that support main keyword
 
-#### Recommended LSI Additions
-- **Term**: [LSI keyword]
+#### Recommended Semantic Term Additions
+- **Term**: [semantic term]
 - **Where to Add**: [Section suggestion]
 - **Why**: [How it enhances topical authority]
 - **Example Usage**: [Sentence showing natural integration]
@@ -156,7 +156,7 @@ Identify missing topically related terms that would strengthen relevance:
 **Secondary Keywords**: [keyword1, keyword2, keyword3]
 - Current Coverage: [X/3 well-integrated]
 
-**LSI Keywords Found**: [list 5-7 supporting terms]
+**Semantic Terms Found**: [list 5-7 supporting terms]
 
 ### Keyword Placement Map
 
@@ -229,8 +229,8 @@ Total: density is reported for context; recommendations focus on reader clarity,
    - Suggestion: "Understanding your target **podcast audience** helps you create content that resonates and drives growth."
 
 #### Strategic Enhancements (Better Long-term)
-1. **LSI Keyword Integration**
-   - Add "listener growth" (appears in top 5 SERP results)
+1. **Semantic Term Integration**
+   - Add "listener growth" (appears in relevant SERP results)
    - Add "podcast downloads" (related success metric)
    - Add "audience engagement" (quality over quantity theme)
 
@@ -291,7 +291,7 @@ If all recommendations implemented:
 - [ ] Natural terminology coverage, semantic variations, and keyword-stuffing detection checked
 - [ ] Even distribution across article
 - [ ] Natural variations used
-- [ ] LSI keywords present
+- [ ] Semantic terms present where useful
 - [ ] No keyword stuffing
 - [ ] Meta elements optimized
 - [ ] URL slug includes keyword

@@ -487,16 +487,19 @@ def _check_metadata(metadata: Dict[str, Any]) -> Dict[str, Any]:
         or normalized.get("updated")
         or normalized.get("date_updated")
     )
-    passed = has_author and has_last_updated
+    author_policy_status = str(normalized.get("author_policy_status") or "").strip()
+    author_requirement_satisfied = has_author or author_policy_status == "not_provided"
+    passed = author_requirement_satisfied and has_last_updated
 
     return {
         "passed": passed,
-        "issue": "The draft is missing named author or last-updated metadata.",
-        "fix": "Add Author and Last Updated fields to the article frontmatter.",
+        "issue": "The draft is missing required author policy or last-updated metadata.",
+        "fix": "Add Last Updated and either a named author or a BOM author_policy.status of not_provided.",
         "severity": "medium",
         "details": {
             "has_author": has_author,
             "has_last_updated": has_last_updated,
+            "author_policy_status": author_policy_status,
         },
     }
 

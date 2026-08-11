@@ -89,7 +89,7 @@ An AEO/GEO score below 90/100 is a repair trigger, not a reporting endpoint. Unl
   - [ ] In URL slug
 - **Semantic Variations**: Verify related keywords are used naturally
 - **Keyword Stuffing**: Ensure no over-optimization or unnatural usage
-- **LSI Keywords**: Confirm latent semantic keywords are present
+- **Semantic Terms**: Confirm related terminology is present where it improves clarity and coverage
 
 #### Heading Structure
 - **H1**: Only one H1, includes primary keyword

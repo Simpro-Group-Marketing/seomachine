@@ -45,7 +45,7 @@ Before writing any article:
 2. Research search volume and difficulty
 3. Analyze top 10 ranking competitors
 4. Identify 3-5 secondary/related keywords
-5. List LSI (Latent Semantic Indexing) keywords
+5. List semantic terms and related reader vocabulary
 
 ### Terminology Coverage Guidelines
 - **Primary Keyword**: place naturally in critical reader-visible locations
@@ -666,7 +666,7 @@ Before publishing, verify:
 - [ ] Primary keyword identified
 - [ ] Natural terminology coverage, semantic variations, and keyword-stuffing detection checked
 - [ ] 3-5 secondary keywords included
-- [ ] LSI keywords naturally integrated
+- [ ] Semantic terms naturally integrated where they improve clarity
 - [ ] Provides unique value vs. competitors
 - [ ] Factually accurate and current
 
@@ -692,7 +692,7 @@ Before publishing, verify:
 - [ ] All meta elements are unique
 
 ### Links
-- [ ] 3-5 internal links included
+- [ ] Intent-appropriate internal links included
 - [ ] Internal links use descriptive anchor text
 - [ ] 2-3 external authority links
 - [ ] All links functional (no broken links)

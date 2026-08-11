@@ -188,7 +188,7 @@ Apply these requirements from @context/aeo-geo-blog-strategy.md:
 - **Proof-index intake**: Add new proof candidates through `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates.
 - **Review proof routing**: For review-derived E-E-A-T stories, automatically run `customer_proof_selector.py` with `--slate --roles experience_story --require-eeat-story`, then run the review story identity gate from the required stack below. Use `context/aeo-geo-blog-strategy.md` for Review Story Selection, Review Site Theme Selection, Capterra theme use, exact-quote, rating, and metric boundaries.
 - **Customer Proof Pack**: Use the brief's Customer Proof Pack before placing direct quotes, named customer proof, approved metrics, or review-derived Experience patterns. If the pack is partial or blocked, omit unsupported claims.
-- **Schema notes**: For standard blog posts with FAQs, include BlogPosting, BreadcrumbList, and FAQPage. Nest Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. If a named author is present, include `author` in frontmatter and map it to `Person as author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization` as publisher reference only, and record the no-author decision in the blog assembly BOM and validation sidecar. Use VideoObject only when a video is embedded.
+- **Schema notes**: For standard blog posts, include BlogPosting and BreadcrumbList. Add FAQPage and nested Question and Answer inside FAQPage only when visible FAQs exist. Include ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. If a named author is present, include `author` in frontmatter and map it to `Person as author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization` as publisher reference only, and record the no-author decision in the blog assembly BOM and validation sidecar. Use VideoObject only when a video is embedded.
 
 #### 4. Main Body (use caller-supplied, intent/evidence-complete section targets)
 - **Logical Flow**: Organize sections in clear, progressive order
@@ -549,7 +549,7 @@ Every article must meet these requirements:
 - Intent/evidence-complete word target based on the Reader Contract, search intent, and proof available
 - Proper H1/H2/H3 hierarchy
 - Primary keyword naturally integrated
-- 3-5 internal links to your site content
+- Intent-appropriate internal links to your site content
 - 2-3 external authoritative links
 - Compelling meta title and description
 - Clear introduction and conclusion

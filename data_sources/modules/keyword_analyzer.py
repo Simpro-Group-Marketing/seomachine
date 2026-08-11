@@ -134,7 +134,7 @@ class KeywordAnalyzer:
             sections
         )
 
-        # LSI/semantic keyword suggestions
+        # Semantic terminology suggestions. Keep the lsi_keywords key for compatibility.
         lsi_keywords = self._find_lsi_keywords(content, primary_keyword)
 
         return {
@@ -537,7 +537,7 @@ class KeywordAnalyzer:
         return heatmap
 
     def _find_lsi_keywords(self, content: str, primary_keyword: str) -> List[str]:
-        """Find LSI (Latent Semantic Indexing) keywords - semantically related terms"""
+        """Find semantically related terms."""
         try:
             # Extract common phrases and terms
             words = re.findall(r'\b[a-z]{4,}\b', content.lower())

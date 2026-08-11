@@ -13,13 +13,13 @@ If the article changes after this command, stop and regenerate the binding again
 Publishes a draft article from this project to WordPress as a Draft, with all SEO metadata auto-populated.
 
 ## Usage
-`/publish-draft [filename] [--type post|page|custom] [--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md]`
+`/publish-draft [filename] [--type post|page] [--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md] [--assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json]`
 
 ### Examples
 
 **Create a blog post (default):**
 ```
-/publish-draft drafts/content-marketing-guide-[YYYY-MM-DD].md --proof-sidecar research/validation-content-marketing-guide-[YYYY-MM-DD].md
+/publish-draft drafts/content-marketing-guide-[YYYY-MM-DD].md --proof-sidecar research/validation-content-marketing-guide-[YYYY-MM-DD].md --assembly-bom research/blog-assembly-bom-content-marketing-guide-[YYYY-MM-DD].json
 ```
 
 **Create a page:**
@@ -39,7 +39,7 @@ Publishes a draft article from this project to WordPress as a Draft, with all SE
 
 ## What This Command Does
 
-1. **Runs publish readiness preflight** - Executes `/publish-readiness [file] --proof-sidecar [sidecar] --context-request [request] --context-pack [pack] --context-receipt [receipt]` before any WordPress API call
+1. **Runs publish readiness preflight** - Executes `/publish-readiness [file] --proof-sidecar [sidecar] --context-request [request] --context-pack [pack] --context-receipt [receipt] --assembly-bom [bom]` before any WordPress API call
 2. **Parses the draft file** - Extracts all metadata from frontmatter
 3. **Converts Markdown to HTML** - Formats content for WordPress
 4. **Creates WordPress draft** - Posts via REST API with status "draft"
@@ -92,7 +92,7 @@ When you run this command:
 ### Step 2: Run Publish Readiness
 Run the full command-system gate before any WordPress request:
 ```bash
-/publish-readiness "$FILE_PATH" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT"
+/publish-readiness "$FILE_PATH" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT" --assembly-bom "$ASSEMBLY_BOM"
 ```
 
 The WordPress publisher also enforces this preflight internally. If readiness fails, fix the highest-severity blocker and rerun; do not create a WordPress draft.
@@ -101,7 +101,7 @@ The WordPress publisher also enforces this preflight internally. If readiness fa
 Run the WordPress publisher:
 ```bash
 cd /path/to/seomachine
-python data_sources/modules/wordpress_publisher.py "$FILE_PATH" --type "$POST_TYPE" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT"
+python data_sources/modules/wordpress_publisher.py "$FILE_PATH" --type "$POST_TYPE" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT" --assembly-bom "$ASSEMBLY_BOM"
 ```
 
 Where `$POST_TYPE` is `post`, `page`, or a custom post type.

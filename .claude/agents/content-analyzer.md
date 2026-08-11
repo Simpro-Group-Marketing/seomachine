@@ -141,7 +141,7 @@ Combine all analysis results into a comprehensive report.
 **Topic Clusters Detected**: [X clusters]
 [Brief description of main topic clusters]
 
-**LSI Keywords Found**: [list of semantically related terms]
+**Semantic Terms Found**: [list of semantically related terms]
 
 **Recommendations**:
 1. [Priority fix]
@@ -277,7 +277,7 @@ Use this checklist before publishing:
 ### SEO
 - [ ] Natural terminology coverage, semantic variations, and keyword-stuffing detection checked
 - [ ] Keyword in H1, first 100 words, and at least one relevant H2 where natural
-- [ ] 3-5 internal links with descriptive anchors
+- [ ] Intent-appropriate internal links with descriptive anchors
 - [ ] 2-3 external authority links
 - [ ] Meta title 50-60 characters with keyword
 - [ ] Meta description 150-160 characters with accurate value or action language suited to search intent

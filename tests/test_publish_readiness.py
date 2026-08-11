@@ -9,6 +9,7 @@ import pytest
 
 from data_sources.modules.blog_assembly_bom import (
     build_blog_assembly_bom,
+    build_blog_assembly_bom_from_files,
     write_blog_assembly_bom,
 )
 from data_sources.modules import publish_readiness
@@ -43,9 +44,15 @@ def score(passed=True):
 @pytest.fixture
 def files(tmp_path):
     article = tmp_path / "draft.md"
-    article.write_text("# Draft\n\nBody copy.", encoding="utf-8")
+    article.write_text(
+        "---\nartifact_type: blog\nbrand: Simpro\ntitle: Draft\nlast_updated: 2026-08-10\nschema_notes:\n  - BlogPosting\n  - BreadcrumbList\n  - ImageObject\n  - Organization publisher reference\n---\n# Draft\n\nBody copy.",
+        encoding="utf-8",
+    )
     sidecar = tmp_path / "validation-draft.md"
-    sidecar.write_text("Metric Proof Pack\n", encoding="utf-8")
+    sidecar.write_text(
+        "Metric Proof Pack\nAuthor policy: not_provided\nNo named author available.\n",
+        encoding="utf-8",
+    )
     return article, sidecar
 
 
@@ -70,8 +77,23 @@ CURRENT_GATES = [
 ]
 
 
-def run_with_patches(article, sidecar, *, overrides=None, score_passed=True, **kwargs):
+def _write_non_connector_bom(article, sidecar):
+    bom_path = article.parent / "blog-assembly-bom-draft.json"
+    bom = build_blog_assembly_bom_from_files(
+        article_path=article,
+        validation_sidecar_path=sidecar,
+        connector_binding_status="not_applicable",
+        connector_not_applicable_reason="Unit test article has no connector-bound claims.",
+        stage_names=["draft", "scrub", "context_binding", "publish_readiness"],
+    )
+    write_blog_assembly_bom(bom_path, bom)
+    return bom_path
+
+
+def run_with_patches(article, sidecar, *, overrides=None, score_passed=True, include_bom=True, **kwargs):
     overrides = overrides or {}
+    if include_bom and "assembly_bom" not in kwargs:
+        kwargs["assembly_bom"] = _write_non_connector_bom(article, sidecar)
     order = []
     mocks = {}
 
@@ -119,7 +141,7 @@ def run_with_patches(article, sidecar, *, overrides=None, score_passed=True, **k
 def test_all_gates_pass_in_required_order(files):
     article, sidecar = files
     result, order, _, _ = run_with_patches(article, sidecar)
-    expected = [
+    expected_order = [
         "context_binding", "public_artifact", "ai_copy_linter", "url_validator", "public_research_links",
         "metric_proof_pack", "numeric_claim_source", "faq_answer_quality", "faq_proof",
         "paa_provenance", "source_support", "customer_proof_diversity",
@@ -127,9 +149,33 @@ def test_all_gates_pass_in_required_order(files):
         "vault_brand_language", "named_feature_status",
         "fred_authority", "content_scorer",
     ]
+    expected_gates = [
+        "context_binding",
+        "blog_assembly_bom",
+        *expected_order[1:],
+    ]
     assert result["passed"] is True
-    assert order == expected
-    assert [gate["name"] for gate in result["gates"]] == expected
+    assert order == expected_order
+    assert [gate["name"] for gate in result["gates"]] == expected_gates
+
+
+def test_blog_without_assembly_bom_fails_before_downstream_gates(files):
+    article, sidecar = files
+
+    result, order, mocks, scorer = run_with_patches(
+        article,
+        sidecar,
+        include_bom=False,
+    )
+
+    gate_names = [gate["name"] for gate in result["gates"]]
+    assert result["passed"] is False
+    assert gate_names == ["context_binding", "blog_assembly_bom"]
+    assert order == ["context_binding"]
+    bom_gate = result["gates"][1]
+    assert bom_gate["findings"][0]["rule_id"] == "bom_missing"
+    mocks["public_artifact"].assert_not_called()
+    scorer.score.assert_not_called()
 
 
 def test_non_simpro_article_skips_simpro_only_publish_gates(files):
@@ -367,25 +413,17 @@ def _write_assembly_bom(tmp_path, article, sidecar, request, pack, receipt):
         "revisions": revisions,
         "claim_decisions": [],
     }
-    bom = build_blog_assembly_bom(
-        topic_slug="ai-field-service-guide",
+    request.write_text(json.dumps(request_payload), encoding="utf-8")
+    pack.write_text(json.dumps(pack_payload), encoding="utf-8")
+    receipt.write_text(json.dumps(receipt_payload), encoding="utf-8")
+    bom = build_blog_assembly_bom_from_files(
         article_path=article,
         validation_sidecar_path=sidecar,
         context_request_path=request,
         context_pack_path=pack,
         context_receipt_path=receipt,
-        request=request_payload,
-        pack=pack_payload,
-        receipt=receipt_payload,
-        author=None,
-        schema_notes=[
-            "BlogPosting",
-            "BreadcrumbList",
-            "FAQPage",
-            "ImageObject",
-            "Organization publisher reference",
-        ],
-        stages=["draft", "scrub", "context_binding", "publish_readiness"],
+        topic_slug="ai-field-service-guide",
+        stage_names=["draft", "scrub", "context_binding", "publish_readiness"],
     )
     bom_path = tmp_path / "blog-assembly-bom-ai-field-service-guide.json"
     write_blog_assembly_bom(bom_path, bom)
@@ -438,8 +476,10 @@ def test_assembly_bom_mismatch_blocks_before_downstream_gates(files, tmp_path):
     assert result["passed"] is False
     assert gate_names == ["context_binding", "blog_assembly_bom"]
     assert order == ["context_binding"]
-    assert bom_gate["errors"] == 1
-    assert bom_gate["findings"][0]["rule_id"] == "bom_context_receipt_mismatch"
+    assert any(
+        finding["rule_id"] == "bom_context_receipt_mismatch"
+        for finding in bom_gate["findings"]
+    )
     mocks["public_artifact"].assert_not_called()
     scorer.score.assert_not_called()
 

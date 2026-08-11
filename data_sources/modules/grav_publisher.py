@@ -576,6 +576,7 @@ class GravPublisher:
         context_request: Optional[str] = None,
         context_pack: Optional[str] = None,
         context_receipt: Optional[str] = None,
+        assembly_bom: Optional[str] = None,
         vault_root: Optional[str | Path] = None,
     ) -> Dict:
         """
@@ -608,6 +609,7 @@ class GravPublisher:
             "context_request": context_request,
             "context_pack": context_pack,
             "context_receipt": context_receipt,
+            "assembly_bom": assembly_bom,
         }
         before_readiness_inputs = (
             capture_file_snapshots(readiness_input_paths)
@@ -622,6 +624,7 @@ class GravPublisher:
                 context_request=context_request,
                 context_pack=context_pack,
                 context_receipt=context_receipt,
+                assembly_bom=assembly_bom,
                 vault_root=vault_root,
             )
             sealed_snapshot = read_publishable_markdown(file_path)
@@ -760,6 +763,7 @@ def _require_publish_readiness(
     context_request: Optional[str] = None,
     context_pack: Optional[str] = None,
     context_receipt: Optional[str] = None,
+    assembly_bom: Optional[str] = None,
     vault_root: Optional[str | Path] = None,
 ) -> Dict:
     result = run_publish_readiness(
@@ -768,6 +772,7 @@ def _require_publish_readiness(
         context_request=context_request,
         context_pack=context_pack,
         context_receipt=context_receipt,
+        assembly_bom=assembly_bom,
         vault_root=vault_root,
     )
     if result.get("passed"):
@@ -831,6 +836,7 @@ def main():
     parser.add_argument(
         "--context-receipt", help="Connector validation receipt JSON path"
     )
+    parser.add_argument("--assembly-bom", help="Blog assembly BOM JSON path")
     parser.add_argument("--vault-root", help="Configured Simpro vault root override")
     args = parser.parse_args()
 
@@ -844,6 +850,7 @@ def main():
             context_request=args.context_request,
             context_pack=args.context_pack,
             context_receipt=args.context_receipt,
+            assembly_bom=args.assembly_bom,
             vault_root=args.vault_root,
         )
 

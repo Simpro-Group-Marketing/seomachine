@@ -418,10 +418,13 @@ This answer has enough detail for the question parser.
 
         self.assertFalse(_has_documented_no_fit_experience_boundary(sidecar))
 
-    def rate(self, content: str = COMPLIANT_ARTICLE):
+    def rate(self, content: str = COMPLIANT_ARTICLE, metadata=None):
+        merged_metadata = {"primary_keyword": "hvac scheduling software"}
+        if metadata:
+            merged_metadata.update(metadata)
         return rate_aeo_geo(
             content,
-            {"primary_keyword": "hvac scheduling software"},
+            merged_metadata,
             source_path=write_paa_fixture(self, content),
         )
 
@@ -1071,6 +1074,26 @@ E-E-A-T Proof Map
         self.assertFalse(result["checks"]["external_sources"]["passed"])
         self.assertFalse(result["checks"]["metadata"]["passed"])
         self.assertLess(result["score"], 90)
+
+    def test_no_author_policy_satisfies_metadata_when_last_updated_exists(self):
+        content = COMPLIANT_ARTICLE.replace("Author: Jordan Lee\n", "")
+
+        result = self.rate(content, metadata={"author_policy_status": "not_provided"})
+
+        metadata_check = result["checks"]["metadata"]
+        self.assertTrue(metadata_check["passed"])
+        self.assertFalse(metadata_check["details"]["has_author"])
+        self.assertEqual(
+            metadata_check["details"]["author_policy_status"],
+            "not_provided",
+        )
+
+    def test_missing_author_without_no_author_policy_still_fails_metadata(self):
+        content = COMPLIANT_ARTICLE.replace("Author: Jordan Lee\n", "")
+
+        result = self.rate(content)
+
+        self.assertFalse(result["checks"]["metadata"]["passed"])
 
     def test_faq_without_linked_proof_blocks_aeo_geo_gate(self):
         content = COMPLIANT_ARTICLE.replace(
