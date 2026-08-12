@@ -103,31 +103,63 @@ def _normalized_markdown(content: str) -> str:
     )
 
 
-def _selector_contracts(content: str) -> dict[str, list[dict[str, str | None]]]:
-    contracts: dict[str, list[dict[str, str | None]]] = {}
+def _selector_contracts(content: str) -> list[tuple[str | None, list[tuple[str, str | None]], bool]]:
+    contracts: list[tuple[str | None, list[tuple[str, str | None]], bool]] = []
     for line in content.splitlines():
         stripped = line.strip()
         if not stripped.startswith(f"python {SELECTOR} "):
             continue
-        tokens = shlex.split(stripped, posix=True)
-        options: dict[str, str | None] = {}
-        for index, token in enumerate(tokens):
+        try:
+            tokens = shlex.split(stripped, posix=True)
+        except ValueError:
+            contracts.append((None, [], True))
+            continue
+        options: list[tuple[str, str | None]] = []
+        invalid = len(tokens) < 3 or tokens[2].startswith("--")
+        index = 3
+        while index < len(tokens):
+            token = tokens[index]
             if not token.startswith("--"):
+                invalid = True
+                index += 1
                 continue
             if token in SELECTOR_VALUE_FLAGS:
                 value = tokens[index + 1] if index + 1 < len(tokens) else None
-                options[token] = None if value is None or value.startswith("--") else value
+                if value is None or value.startswith("--"):
+                    options.append((token, None))
+                    index += 1
+                else:
+                    options.append((token, value))
+                    index += 2
             else:
-                options[token] = "present"
-        role = options.get("--roles")
-        if role:
-            contracts.setdefault(role, []).append(options)
+                options.append((token, "present"))
+                index += 1
+        role_values = [value for flag, value in options if flag == "--roles"]
+        contracts.append((role_values[0] if role_values else None, options, invalid))
     return contracts
 
 
-def _selector_contract_is_valid(contract: dict[str, str | None]) -> bool:
-    return set(contract) == REQUIRED_SELECTOR_FLAGS and all(
-        contract[flag] for flag in SELECTOR_VALUE_FLAGS
+def _contracts_by_role(
+    contracts: list[tuple[str | None, list[tuple[str, str | None]], bool]]
+) -> dict[str, list[tuple[str | None, list[tuple[str, str | None]], bool]]]:
+    contracts_by_role: dict[
+        str, list[tuple[str | None, list[tuple[str, str | None]], bool]]
+    ] = {}
+    for contract in contracts:
+        role, _, _ = contract
+        if role is not None:
+            contracts_by_role.setdefault(role, []).append(contract)
+    return contracts_by_role
+
+
+def _selector_contract_is_valid(contract: tuple[str | None, list[tuple[str, str | None]], bool]) -> bool:
+    _, options, has_stray_positionals = contract
+    flags = [flag for flag, _ in options]
+    return (
+        not has_stray_positionals
+        and len(flags) == len(set(flags))
+        and set(flags) == REQUIRED_SELECTOR_FLAGS
+        and all(value for flag, value in options if flag in SELECTOR_VALUE_FLAGS)
     )
 
 
@@ -179,28 +211,42 @@ def _bom_build_research_input_sets(content: str) -> list[frozenset[str]]:
 
 
 def _route_capability_references(content: str) -> dict[str, set[str]]:
-    return {
-        "command": set(
-            re.findall(
-                r"(?:Running|Run|rerun|invoke|before|after|Executes)\s+`/([a-z][a-z0-9-]*)",
-                content,
-            )
-        ),
-        "agent": set(
-            re.findall(r"\*\*Agent\*\*:\s*`([a-z][a-z0-9-]*)`", content)
-        ),
-        "skill": set(
-            re.findall(r"\*\*Skill\*\*:\s*`([a-z][a-z0-9-]*)`", content)
-        ),
-    }
+    references = {"command": set(), "agent": set(), "skill": set(), "tool": set()}
+    available_commands = _repository_capabilities()["command"]
+
+    for match in re.finditer(
+        r"(?<![A-Za-z0-9_:/.-])/([a-z][a-z0-9-]*)(?![A-Za-z0-9_./-])",
+        content,
+    ):
+        identifier = match.group(1)
+        if identifier in available_commands or "-" in identifier:
+            references["command"].add(identifier)
+
+    for match in re.finditer(
+        r"(?im)^\s*(?:[-*]\s+)?(?:\*\*)?(Command|Agent|Skill|Tool)(?:\*\*)?\s*:\s*`?/?([a-z][a-z0-9-]*)`?",
+        content,
+    ):
+        kind, identifier = match.groups()
+        references[kind.lower()].add(identifier)
+
+    for match in re.finditer(
+        r"(?i)\b(?:use|using|run|invoke)\s+(?:the\s+)?(agent|skill|tool)\s+`?([a-z][a-z0-9-]*)`?",
+        content,
+    ):
+        kind, identifier = match.groups()
+        references[kind.lower()].add(identifier)
+
+    return references
 
 
 def _repository_capabilities() -> dict[str, set[str]]:
-    return {
+    capabilities = {
         "command": {path.stem for path in (ROOT / ".claude" / "commands").glob("*.md")},
         "agent": {path.stem for path in (ROOT / ".claude" / "agents").glob("*.md")},
         "skill": {path.name for path in (ROOT / ".claude" / "skills").glob("*") if path.is_dir()},
     }
+    capabilities["tool"] = set().union(*capabilities.values())
+    return capabilities
 
 
 class BlogAgencyArchitectureTests(unittest.TestCase):
@@ -294,11 +340,11 @@ class BlogAgencyArchitectureTests(unittest.TestCase):
         }
         for path, body in zip(CUSTOMER_PROOF_RULE_PATHS, bodies.values()):
             with self.subTest(path=path.name):
-                contracts = _selector_contracts(body)
-                self.assertSetEqual(expected_roles, set(contracts))
+                contracts_by_role = _contracts_by_role(_selector_contracts(body))
+                self.assertSetEqual(expected_roles, set(contracts_by_role))
                 for role in expected_roles:
-                    self.assertEqual(1, len(contracts[role]))
-                    self.assertTrue(_selector_contract_is_valid(contracts[role][0]))
+                    self.assertEqual(1, len(contracts_by_role[role]))
+                    self.assertTrue(_selector_contract_is_valid(contracts_by_role[role][0]))
                 sections = {
                     line.strip()
                     for line in body.splitlines()
@@ -314,9 +360,10 @@ class BlogAgencyArchitectureTests(unittest.TestCase):
             ]
         )
         contracts = _selector_contracts(malformed_then_valid)
-        self.assertEqual(2, len(contracts["experience_story"]))
-        self.assertFalse(_selector_contract_is_valid(contracts["experience_story"][0]))
-        self.assertTrue(_selector_contract_is_valid(contracts["experience_story"][1]))
+        contracts_by_role = _contracts_by_role(contracts)
+        self.assertEqual(2, len(contracts_by_role["experience_story"]))
+        self.assertFalse(_selector_contract_is_valid(contracts_by_role["experience_story"][0]))
+        self.assertTrue(_selector_contract_is_valid(contracts_by_role["experience_story"][1]))
 
     def test_selector_contracts_reject_required_flags_without_values(self):
         missing_title_value = (
@@ -325,9 +372,55 @@ class BlogAgencyArchitectureTests(unittest.TestCase):
             '--evidence-output "evidence" --slate --roles experience_story '
             '--require-eeat-story --limit 10'
         )
-        contract = _selector_contracts(missing_title_value)["experience_story"][0]
-        self.assertIsNone(contract["--title"])
+        contract = _selector_contracts(missing_title_value)[0]
+        self.assertIn(("--title", None), contract[1])
         self.assertFalse(_selector_contract_is_valid(contract))
+
+    def test_selector_contracts_reject_duplicate_flags_stray_values_and_missing_values(self):
+        required_suffix = (
+            '--objective "[objective]" '
+            '--context-pack "pack" --context-receipt "receipt" '
+            '--evidence-output "evidence" --slate --roles experience_story '
+            '--require-eeat-story --limit 10'
+        )
+        valid_prefix = f'python {SELECTOR} "[topic]" --title "ok" '
+        cases = {
+            "duplicate-title-with-missing-first-value": (
+                f'python {SELECTOR} "[topic]" --title --title "ok" {required_suffix}'
+            ),
+            "stray-positional": (
+                f'python {SELECTOR} "[topic]" --title "one" "stray" {required_suffix}'
+            ),
+            "missing-limit-value": f'{valid_prefix}{required_suffix.rsplit(" ", 1)[0]}',
+            "duplicate-role": f'{valid_prefix}{required_suffix} --roles metric',
+        }
+        for name, command in cases.items():
+            with self.subTest(name=name):
+                contracts = _selector_contracts(command)
+                self.assertEqual(1, len(contracts))
+                role, options, has_stray_positionals = contracts[0]
+                self.assertEqual("experience_story", role)
+                if name == "duplicate-title-with-missing-first-value":
+                    self.assertEqual(2, [flag for flag, _ in options].count("--title"))
+                    self.assertIn(("--title", None), options)
+                elif name == "stray-positional":
+                    self.assertTrue(has_stray_positionals)
+                elif name == "missing-limit-value":
+                    self.assertIn(("--limit", None), options)
+                else:
+                    self.assertEqual(2, [flag for flag, _ in options].count("--roles"))
+                self.assertFalse(_selector_contract_is_valid(contracts[0]))
+
+        malformed_then_valid = "\n".join(
+            [
+                f'python {SELECTOR} "[topic]" --title {required_suffix}',
+                f'{valid_prefix}{required_suffix}',
+            ]
+        )
+        contracts = _selector_contracts(malformed_then_valid)
+        self.assertEqual(2, len(contracts))
+        self.assertFalse(_selector_contract_is_valid(contracts[0]))
+        self.assertTrue(_selector_contract_is_valid(contracts[1]))
 
     def test_customer_proof_rules_limit_row_edits_to_editorial_judgment(self):
         required = "Edit selected/rejected rows only when editorial judgment requires it."
@@ -386,10 +479,33 @@ python ./data_sources/modules/publish_readiness.py "article.md" ^
                     self.assertTrue(values <= capabilities[kind])
 
         external = _route_capability_references(
-            "Run `/external-orchestrator`\n**Agent**: `external-reviewer`\n**Skill**: `external-skill`"
+            "Use /external-orchestrator\n- Agent: external-reviewer\nUse skill external-skill"
         )
-        for kind, values in external.items():
-            self.assertFalse(values <= capabilities[kind])
+        for kind in ("command", "agent", "skill"):
+            self.assertFalse(external[kind] <= capabilities[kind])
+        self.assertSetEqual(set(), external["tool"])
+
+    def test_route_capability_parser_finds_syntax_variants_without_url_or_path_false_positives(self):
+        references = _route_capability_references(
+            "Use /external-orchestrator\n"
+            "**Agent**: `external-reviewer`\n"
+            "Use skill external-skill\n"
+            "Command: `/external-command`\n"
+            "Tool: `external-tool`\n"
+            "https://example.com/write\n"
+            "`drafts/[topic]/write.md`\n"
+            "`/features/...`\n"
+        )
+        self.assertSetEqual({"external-orchestrator", "external-command"}, references["command"])
+        self.assertSetEqual({"external-reviewer"}, references["agent"])
+        self.assertSetEqual({"external-skill"}, references["skill"])
+        self.assertSetEqual({"external-tool"}, references["tool"])
+
+        article_references = _route_capability_references(
+            (ROOT / ".claude" / "commands" / "article.md").read_text(encoding="utf-8")
+        )
+        self.assertTrue({"article", "write", "scrub", "optimize", "publish-readiness"} <= article_references["command"])
+        self.assertFalse({"industries", "draft-state"} & article_references["command"])
 
     def test_publish_readiness_declares_route_specific_build_variants(self):
         content = SEAL_OWNER.read_text(encoding="utf-8")

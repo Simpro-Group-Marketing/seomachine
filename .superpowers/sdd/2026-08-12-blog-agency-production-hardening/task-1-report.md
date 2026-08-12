@@ -170,3 +170,40 @@ Output summary:
 ```text
 117 passed, 143 subtests passed in 1.30s
 ```
+
+## Final Parser Remediation
+
+- Replaced prose-phrase-only route capability extraction with syntax-level slash-command parsing, explicit `Command`/`Agent`/`Skill`/`Tool` declarations, and common `Use ... agent|skill|tool` forms. Slash parsing excludes URL and file-path boundaries, while route capability validation remains derived from the repository's command, agent, and skill definitions.
+- Added adversarial capability cases for `Use /external-orchestrator`, plain `Agent: external-reviewer`, and `Use skill external-skill`, plus explicit command/tool labels and URL/path false positives. Existing route documentation is asserted to retain its expected command delegations without treating `/industries` or receipt filenames as commands.
+- Reworked selector parsing to retain an ordered list of every flag occurrence until validation. Validation now rejects duplicate flags, missing values, stray positional arguments, malformed shell quoting, and a malformed command followed by a valid command without allowing either to overwrite the other.
+- Added exact regressions for `--title --title "ok"`, `--title "one" "stray"`, a missing `--limit` value, duplicate `--roles`, and malformed-then-valid selector commands.
+
+### Final Parser RED Evidence
+
+Command:
+
+```powershell
+python -m pytest tests/test_blog_agency_architecture.py -q
+```
+
+Output summary:
+
+```text
+5 failed, 10 passed, 79 subtests passed in 0.14s
+```
+
+The initial failures proved the former parser could not resolve the added syntax variants and that the prior selector contract dictionary API could not preserve the malformed occurrence alongside a valid command. A subsequent assertion correction narrowed the external-resolution check to the three external forms supplied by the regression; `tool` was intentionally absent from that input.
+
+### Final Parser GREEN Evidence
+
+Command:
+
+```powershell
+python -m pytest tests/test_blog_agency_architecture.py tests/test_aeo_geo_workflow_docs.py -q
+```
+
+Output summary:
+
+```text
+119 passed, 156 subtests passed in 1.06s
+```
