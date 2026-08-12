@@ -579,6 +579,7 @@ This answer has enough detail for the question parser.
         kwargs.setdefault('paa_workflow_mode', 'new')
         kwargs.setdefault('paa_expected_query', PAA_QUERY)
         kwargs.setdefault('paa_expected_collection_date', ASSEMBLY_DATE)
+        kwargs.setdefault('paa_expected_run_id', 'aeo-rater-fixture')
         return rate_aeo_geo(
             content,
             merged_metadata,
@@ -604,6 +605,7 @@ This answer has enough detail for the question parser.
         kwargs.setdefault("paa_workflow_mode", "new")
         kwargs.setdefault("paa_expected_query", PAA_QUERY)
         kwargs.setdefault("paa_expected_collection_date", ASSEMBLY_DATE)
+        kwargs.setdefault("paa_expected_run_id", "aeo-rater-fixture")
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             proof_sidecar, proof_sidecar_path = (
@@ -634,6 +636,9 @@ This answer has enough detail for the question parser.
             {"primary_keyword": "hvac scheduling software"},
             source_path=write_paa_fixture(self, content),
             proof_sidecar_content=PAA_PROVENANCE_BLOCK + proof_sidecar,
+            paa_expected_query=PAA_QUERY,
+            paa_expected_collection_date=ASSEMBLY_DATE,
+            paa_expected_run_id="aeo-rater-fixture",
         )
 
     def test_compliant_article_passes_90_point_gate(self):

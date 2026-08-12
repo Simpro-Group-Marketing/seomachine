@@ -35,7 +35,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "data_sources")
 from modules.content_length_comparator import ContentLengthComparator  # noqa: E402
 from modules.dataforseo import DataForSEO  # noqa: E402
 from modules.blog_assembly_contract import atomic_write_json  # noqa: E402
-from modules.editorial_plan_guard import build_serp_evidence  # noqa: E402
+from modules.editorial_plan_guard import (  # noqa: E402
+    build_serp_evidence,
+    load_normalized_serp_raw_capture,
+)
 from modules.execution_attestation import attest_mapping  # noqa: E402
 from modules.search_intent_analyzer import SearchIntentAnalyzer  # noqa: E402
 
@@ -149,14 +152,12 @@ def run_serp_analysis(
     if dfs is not None:
         print_fn(f"\n2. Fetching SERP data for '{keyword}'...")
         try:
-            capture_method = getattr(dfs, "get_serp_capture", None)
-            if callable(capture_method):
-                raw_dataforseo_response, normalized_dataforseo_response = (
-                    capture_method(keyword, limit=20)
+            raw_method = getattr(dfs, "get_serp_raw_response", None)
+            if not callable(raw_method):
+                raise RuntimeError(
+                    "DataForSEO client lacks the exact raw-response method"
                 )
-            else:
-                raw_dataforseo_response = dfs.get_serp_data(keyword, limit=20)
-                normalized_dataforseo_response = raw_dataforseo_response
+            raw_dataforseo_response = raw_method(keyword, limit=20)
             raw_capture_path = write_serp_raw_capture(
                 output_dir=output_dir,
                 workspace_root=workspace_root,
@@ -167,6 +168,10 @@ def run_serp_analysis(
                 request_url="dataforseo://serp/google/organic/live/advanced",
                 locale={"language_code": "en", "location_code": 2840},
                 raw_response=raw_dataforseo_response,
+            )
+            normalized_dataforseo_response = load_normalized_serp_raw_capture(
+                raw_capture_path,
+                workspace_root=workspace_root,
             )
             serp_data = normalize_serp_payload(
                 normalized_dataforseo_response,
@@ -563,10 +568,25 @@ def run_playwright_serp_fallback(
         ))
         return result
 
+    raw_capture_path: Path | None = None
     try:
         raw_output = (cli_runner or run_playwright_cli_serp_capture)(keyword)
+        raw_capture_path = write_serp_raw_capture(
+            output_dir=output_dir,
+            workspace_root=Path(workspace_root),
+            keyword=keyword,
+            run_id=run_id,
+            now=now,
+            collector_source="playwright",
+            request_url=search_url,
+            locale={"hl": "en", "gl": "us", "pws": "0"},
+            raw_response=raw_output,
+        )
         payload = normalize_serp_payload(
-            parse_playwright_cli_payload(raw_output),
+            load_normalized_serp_raw_capture(
+                raw_capture_path,
+                workspace_root=workspace_root,
+            ),
             source="Playwright",
             require_paa=True,
         )
@@ -579,20 +599,23 @@ def run_playwright_serp_fallback(
             now,
             f"Playwright SERP fallback failed: {exc}",
         )
-        result["raw_capture_path"] = str(write_serp_raw_capture(
-            output_dir=output_dir,
-            workspace_root=Path(workspace_root),
-            keyword=keyword,
-            run_id=run_id,
-            now=now,
-            collector_source="playwright",
-            request_url=search_url,
-            locale=result["locale"],
-            raw_response=json.dumps({
-                "organic_results": [], "features": [],
-                "blocker": result["fallback_blocker"],
-            }),
-        ))
+        result["raw_capture_path"] = str(
+            raw_capture_path
+            or write_serp_raw_capture(
+                output_dir=output_dir,
+                workspace_root=Path(workspace_root),
+                keyword=keyword,
+                run_id=run_id,
+                now=now,
+                collector_source="playwright",
+                request_url=search_url,
+                locale=result["locale"],
+                raw_response=json.dumps({
+                    "organic_results": [], "features": [],
+                    "blocker": result["fallback_blocker"],
+                }),
+            )
+        )
         return result
 
     organic_results = []
@@ -623,17 +646,7 @@ def run_playwright_serp_fallback(
         "paa_questions": [] if blocker else dedupe_questions(payload.get("paa_questions", [])),
         "limitations": fallback_limitations(),
     }
-    normalized["raw_capture_path"] = str(write_serp_raw_capture(
-        output_dir=output_dir,
-        workspace_root=Path(workspace_root),
-        keyword=keyword,
-        run_id=run_id,
-        now=now,
-        collector_source="playwright",
-        request_url=normalized["search_url"],
-        locale=normalized["locale"],
-        raw_response=raw_output,
-    ))
+    normalized["raw_capture_path"] = str(raw_capture_path)
     return normalized
 
 

@@ -186,6 +186,7 @@ class ContentScorer:
         paa_answersocrates_blocker: Optional[str] = None,
         paa_expected_query: Optional[str] = None,
         paa_expected_collection_date: Optional[str] = None,
+        paa_expected_run_id: Optional[str] = None,
         paa_artifact: Optional[str] = None,
         prevalidated_gate_findings: Optional[
             Mapping[str, Sequence[Mapping[str, Any]]]
@@ -262,6 +263,7 @@ class ContentScorer:
             paa_answersocrates_blocker=paa_answersocrates_blocker,
             paa_expected_query=paa_expected_query,
             paa_expected_collection_date=paa_expected_collection_date,
+            paa_expected_run_id=paa_expected_run_id,
             paa_artifact=paa_artifact,
             prevalidated_gate_findings=prevalidated_gate_findings,
             readiness_gate_context=readiness_gate_context,
@@ -354,6 +356,7 @@ class ContentScorer:
         paa_answersocrates_blocker: Optional[str] = None,
         paa_expected_query: Optional[str] = None,
         paa_expected_collection_date: Optional[str] = None,
+        paa_expected_run_id: Optional[str] = None,
         paa_artifact: Optional[str] = None,
         prevalidated_gate_findings: Optional[
             Mapping[str, Sequence[Mapping[str, Any]]]
@@ -379,6 +382,7 @@ class ContentScorer:
             "paa_answersocrates_blocker": paa_answersocrates_blocker,
             "paa_expected_query": paa_expected_query,
             "paa_expected_collection_date": paa_expected_collection_date,
+            "paa_expected_run_id": paa_expected_run_id,
             "paa_artifact": paa_artifact,
         }
         if readiness_gate_context is not None:

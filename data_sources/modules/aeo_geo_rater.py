@@ -77,6 +77,7 @@ def rate_aeo_geo(
     paa_answersocrates_blocker: Optional[str] = None,
     paa_expected_query: Optional[str] = None,
     paa_expected_collection_date: Optional[str] = None,
+    paa_expected_run_id: Optional[str] = None,
     paa_artifact: Optional[str] = None,
     prevalidated_gate_findings: Optional[
         Mapping[str, Sequence[Mapping[str, Any]]]
@@ -196,6 +197,11 @@ def rate_aeo_geo(
         expected_collection_date=(
             paa_expected_collection_date
             or str(merged_metadata.get('paa_expected_collection_date') or '').strip()
+            or None
+        ),
+        expected_run_id=(
+            paa_expected_run_id
+            or str(merged_metadata.get('paa_expected_run_id') or '').strip()
             or None
         ),
         paa_artifact=(
@@ -598,6 +604,7 @@ def _check_bound_paa_provenance(
     answersocrates_blocker: Optional[str],
     expected_query: Optional[str],
     expected_collection_date: Optional[str],
+    expected_run_id: Optional[str],
     paa_artifact: Optional[str],
     prevalidated_findings: Optional[Sequence[Mapping[str, Any]]] = None,
 ) -> Dict[str, Any]:
@@ -613,6 +620,7 @@ def _check_bound_paa_provenance(
             answersocrates_blocker=answersocrates_blocker,
             expected_query=expected_query,
             expected_collection_date=expected_collection_date,
+            expected_run_id=expected_run_id,
             paa_artifact=paa_artifact,
         )
     )
@@ -985,6 +993,7 @@ def _check_paa_provenance(
     answersocrates_blocker: Optional[str] = None,
     expected_query: Optional[str] = None,
     expected_collection_date: Optional[str] = None,
+    expected_run_id: Optional[str] = None,
     paa_artifact: Optional[str] = None,
 ) -> Dict[str, Any]:
     return _check_bound_paa_provenance(
@@ -996,6 +1005,7 @@ def _check_paa_provenance(
         answersocrates_blocker=answersocrates_blocker,
         expected_query=expected_query,
         expected_collection_date=expected_collection_date,
+        expected_run_id=expected_run_id,
         paa_artifact=paa_artifact,
     )
 

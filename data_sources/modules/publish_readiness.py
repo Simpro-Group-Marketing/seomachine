@@ -701,6 +701,7 @@ def _run_publish_readiness(
                     article_path=article_path,
                     serp_evidence_path=runtime_policy.get("serp_evidence"),
                     assembly_date=runtime_policy.get("assembly_date"),
+                    expected_run_id=runtime_policy.get("run_id"),
                 )
                 if editorial_path
                 else [{
@@ -1566,6 +1567,7 @@ def _bom_runtime_policy(
         "editorial_plan": None,
         "serp_evidence": None,
         "assembly_date": None,
+        "run_id": None,
         "assembly_bom": None,
         "faq_policy_status": "",
         "scoring_metadata": {},
@@ -1640,6 +1642,7 @@ def _bom_runtime_policy(
         "editorial_plan": editorial_plan_path,
         "serp_evidence": artifact_path("serp_evidence"),
         "assembly_date": str(bom.get("assembly_date") or ""),
+        "run_id": _canonical_bom_run_id(bom),
         "assembly_bom": bom,
         "faq_policy_status": str(faq_policy.get("status") or ""),
         "scoring_metadata": scoring_metadata,
@@ -1650,8 +1653,19 @@ def _bom_runtime_policy(
             "answersocrates_blocker": artifact_path("answersocrates_blocker"),
             "expected_query": str(paa_policy.get("query") or ""),
             "expected_collection_date": str(bom.get("assembly_date") or ""),
+            "expected_run_id": _canonical_bom_run_id(bom),
         },
     }
+
+
+def _canonical_bom_run_id(bom: Mapping[str, Any]) -> str:
+    workflow = bom.get("workflow")
+    receipts = workflow.get("stage_receipts") if isinstance(workflow, Mapping) else None
+    if isinstance(receipts, list) and receipts and isinstance(receipts[0], Mapping):
+        run_id = receipts[0].get("run_id")
+        if isinstance(run_id, str) and run_id.strip():
+            return run_id.strip()
+    return ""
 
 
 def format_text_report(result: ReadinessResult) -> str:
@@ -1964,6 +1978,7 @@ def _score_content(
         paa_expected_collection_date=(
             str(paa.get("expected_collection_date") or "") or None
         ),
+        paa_expected_run_id=str(paa.get("expected_run_id") or "") or None,
         paa_artifact=str(paa.get("paa_artifact") or "") or None,
         readiness_gate_context=readiness_gate_context,
     )

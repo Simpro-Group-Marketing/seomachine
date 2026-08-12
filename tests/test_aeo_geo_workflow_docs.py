@@ -222,7 +222,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
 
         required = [
             "AnswerSocrates",
-            "Playwright MCP",
+            "answersocrates_playwright_collector",
+            "version `1.0.0`",
             "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json",
             "AEO/GEO Map",
             "85/100",
@@ -1734,10 +1735,10 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                 path.name,
             )
             for option in (
-                "--raw-capture",
-                "--expected-query",
-                "--expected-collection-date",
-                "--expected-run-id",
+                "--query",
+                "--collection-date",
+                "--run-id",
+                "--raw-capture-output",
                 "--workspace-root",
                 "--output",
             ):
@@ -1748,6 +1749,10 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             self.assertIn("simpro-answersocrates-artifact/v1", content)
             self.assertIn("simpro-answersocrates-run-receipt/v1", content)
             self.assertIn("repository-approved Playwright collector", content)
+            self.assertIn("answersocrates_playwright_collector", content)
+            self.assertIn("version `1.0.0`", content)
+            self.assertIn("tracked by Git", content)
+            self.assertIn("`HEAD` blob", content)
             self.assertIn("Handwritten labels", content)
 
             blocked = _fenced_block_after(
@@ -1765,8 +1770,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                 path.name,
             )
             for option in (
-                "--raw-capture", "--expected-query", "--expected-collection-date",
-                "--expected-run-id", "--workspace-root", "--output",
+                "--query", "--collection-date", "--run-id",
+                "--raw-capture-output", "--workspace-root", "--output",
             ):
                 self.assertIn(option, blocked_command, f"{path.name} missing {option}")
             for removed in ("--status", "--blocker", "--blocker-reason"):
@@ -3358,12 +3363,12 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             ):
                 self.assertNotIn(removed, content)
             for required in (
-                "--raw-capture", "--expected-query", "--expected-collection-date",
-                "--expected-run-id", "--workspace-root",
+                "--query", "--collection-date", "--run-id",
+                "--raw-capture-output", "--workspace-root",
             ):
                 self.assertIn(required, content)
             self.assertIn("approved repository decision path", content)
-            self.assertIn("callers cannot override `source_class` or `publisher_relationship`", content)
+            self.assertIn("cannot override `source_class` or `publisher_relationship`", content)
         commands = [
             shlex.split(line.strip(), posix=True)
             for line in serp.splitlines()
@@ -3372,6 +3377,20 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         self.assertTrue(commands)
         for command in commands:
             self.assertIn("--run-id", command)
+
+    def test_article_runs_fixed_answersocrates_producer_without_caller_capture_route(self):
+        article = (ROOT / ".claude" / "commands" / "article.md").read_text(encoding="utf-8")
+        policy = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(encoding="utf-8")
+        combined = article + "\n" + policy
+
+        self.assertIn("answersocrates_playwright_collector", combined)
+        self.assertIn("--query", article)
+        self.assertIn("--collection-date", article)
+        self.assertIn("--run-id", article)
+        self.assertIn("--raw-capture-output", article)
+        self.assertNotIn("--raw-capture ", combined)
+        self.assertNotIn("--eligible-question", combined)
+        self.assertNotIn("--blocker-reason", combined)
 
 if __name__ == "__main__":
     unittest.main()

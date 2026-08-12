@@ -57,8 +57,96 @@ class FakeDataForSEO:
     def get_serp_data(self, keyword, limit=20):
         return self.serp_data
 
+    def get_serp_raw_response(self, keyword, limit=20):
+        items = [
+            {"type": "organic", **row}
+            for row in self.serp_data.get("organic_results", [])
+        ] + [
+            {"type": feature} for feature in self.serp_data.get("features", [])
+        ]
+        return {"tasks": [{"result": [{"items": items}]}]}
+
 
 class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
+    def test_production_serp_path_requires_raw_response_method_and_never_labels_normalized_compat_data_raw(self):
+        module = load_research_serp_module()
+
+        class CompatibilityOnlyClient:
+            called = False
+
+            def get_serp_data(self, keyword, limit=20):
+                self.called = True
+                return {"organic_results": [{
+                    "title": "Writer-normalized row",
+                    "url": "https://example.com/not-raw",
+                    "description": "",
+                }], "features": []}
+
+        client = CompatibilityOnlyClient()
+
+        def blocked_fallback(keyword, output_dir, now, **kwargs):
+            return {
+                "fallback_used": True,
+                "fallback_blocker": "no exact provider response method",
+                "organic_results": [],
+                "features": [],
+                "paa_questions": [],
+            }
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            module.run_serp_analysis(
+                "field service scheduling",
+                run_id="agency-run-raw-required",
+                output_dir=temp_dir,
+                now=datetime(2026, 8, 11, 14, 30),
+                dataforseo_factory=lambda: client,
+                fallback_runner=blocked_fallback,
+                intent_analyzer_factory=FakeIntentAnalyzer,
+                content_comparator_factory=FakeContentLengthComparator,
+                print_fn=lambda message="": None,
+            )
+
+        self.assertFalse(client.called)
+
+    def test_production_serp_path_uses_raw_response_method_not_combined_capture_method(self):
+        module = load_research_serp_module()
+        raw_response = {
+            "tasks": [{"result": [{"items": [{
+                "type": "organic",
+                "rank_absolute": 1,
+                "title": "Raw provider row",
+                "url": "https://example.com/raw",
+                "description": "",
+            }]}]}],
+        }
+
+        class RawClient:
+            def get_serp_raw_response(self, keyword, limit=20):
+                return raw_response
+
+            def get_serp_capture(self, keyword, limit=20):
+                raise AssertionError("combined pre-normalization method is not production authority")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output = Path(temp_dir)
+            module.run_serp_analysis(
+                "field service scheduling",
+                run_id="agency-run-raw-first",
+                output_dir=output,
+                now=datetime(2026, 8, 11, 14, 30),
+                dataforseo_factory=RawClient,
+                fallback_runner=lambda *args, **kwargs: {},
+                intent_analyzer_factory=FakeIntentAnalyzer,
+                content_comparator_factory=FakeContentLengthComparator,
+                print_fn=lambda message="": None,
+            )
+            evidence = json.loads((
+                output / "serp-evidence-field-service-scheduling-2026-08-11.json"
+            ).read_text(encoding="utf-8"))
+            capture = json.loads((output / evidence["raw_capture"]["path"]).read_text(encoding="utf-8"))
+
+        self.assertEqual(capture["raw_response"], raw_response)
+
     def test_cli_requires_explicit_agency_run_id(self):
         module = load_research_serp_module()
 
@@ -99,8 +187,8 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
         }
 
         class CaptureDataForSEO:
-            def get_serp_capture(self, keyword, limit=20):
-                return raw_response, normalized_response
+            def get_serp_raw_response(self, keyword, limit=20):
+                return raw_response
 
         with tempfile.TemporaryDirectory() as temp_dir:
             output_dir = Path(temp_dir)
@@ -132,6 +220,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
                     evidence_path,
                     expected_query="field service scheduling",
                     assembly_date="2026-08-11",
+                    expected_run_id="agency-run-123",
                     workspace_root=output_dir,
                 ),
                 [],
@@ -144,6 +233,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
                     evidence_path,
                     expected_query="field service scheduling",
                     assembly_date="2026-08-11",
+                    expected_run_id="agency-run-123",
                     workspace_root=output_dir,
                 )
             }
@@ -234,6 +324,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
                     evidence_path,
                     expected_query="field service scheduling",
                     assembly_date="2026-08-11",
+                    expected_run_id="agency-run-success",
                 ),
                 [],
             )
@@ -714,7 +805,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
                 npx_checker=lambda: True,
             )
 
-        self.assertIn("features must be a list", result["fallback_blocker"])
+        self.assertIn("organic_results and features lists", result["fallback_blocker"])
         self.assertEqual(result["organic_results"], [])
         self.assertEqual(result["features"], [])
 

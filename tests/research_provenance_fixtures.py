@@ -32,10 +32,16 @@ def build_answersocrates_fixture(
             "completed_at": f"{collection_date}T14:01:00Z",
             "page_url": "https://answersocrates.com/paa-extractor",
             "raw_response": {
-                "visible_sections": [
-                    {"heading": "People Also Ask", "items": list(questions)}
-                ],
-                "blocker_output": "",
+                "stdout": json.dumps({
+                    "page_url": "https://answersocrates.com/paa-extractor",
+                    "page_title": "People Also Ask Extractor",
+                    "body_text": "People Also Ask",
+                    "sections": [
+                        {"heading": "People Also Ask", "items": list(questions)}
+                    ],
+                }),
+                "stderr": "",
+                "returncode": 0,
             },
         },
         purpose="simpro-answersocrates-playwright-capture/v1",

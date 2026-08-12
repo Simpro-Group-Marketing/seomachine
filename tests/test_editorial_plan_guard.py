@@ -56,6 +56,76 @@ def _bound_serp_evidence(
     )
 
 
+def test_serp_raw_capture_rejects_wrong_approved_collector_version(tmp_path: Path):
+    raw_path = tmp_path / 'research' / 'wrong-version.json'
+    capture = attest_mapping({
+        'schema': 'simpro-serp-raw-capture/v1',
+        'collector': {
+            'name': 'research_serp_analysis:dataforseo',
+            'version': '9.9.9',
+        },
+        'query': 'field service scheduling',
+        'collected_at': '2026-08-11T14:30:00Z',
+        'run_id': 'agency-run-123',
+        'request': {
+            'url': 'dataforseo://serp/google/organic/live/advanced',
+            'locale': {'language_code': 'en', 'location_code': 2840},
+        },
+        'raw_response': {
+            'organic_results': [{
+                'title': 'Guide', 'url': 'https://example.com/guide',
+                'description': '',
+            }],
+            'features': [],
+        },
+    }, purpose='simpro-serp-raw-capture/v1', workspace_root=tmp_path)
+    atomic_write_json(raw_path, capture)
+
+    try:
+        build_serp_evidence(
+            raw_capture_path=raw_path,
+            workspace_root=tmp_path,
+            must_have_sections=[],
+            competitor_gaps=[],
+        )
+    except ValueError as error:
+        assert 'collector' in str(error).casefold()
+    else:
+        raise AssertionError('wrong collector version must fail closed')
+
+
+def test_editorial_serp_validation_requires_and_matches_expected_run_id(tmp_path: Path):
+    plan_path = tmp_path / 'article-plan.json'
+    plan_path.write_text(article_planner.serialize_article_plan(article_plan()), encoding='utf-8')
+    evidence = _bound_serp_evidence(
+        tmp_path,
+        query='field service scheduling',
+        collected_at='2026-08-11T14:30:00Z',
+        run_id='agency-run-123',
+        title='Guide',
+        url='https://example.com/guide',
+        features=[],
+        must_have_sections=[],
+    )
+    evidence_path = tmp_path / 'research' / 'serp.json'
+    atomic_write_json(evidence_path, evidence)
+
+    missing = _guard().check_file(
+        plan_path,
+        serp_evidence_path=evidence_path,
+        assembly_date='2026-08-11',
+    )
+    wrong = _guard().check_file(
+        plan_path,
+        serp_evidence_path=evidence_path,
+        assembly_date='2026-08-11',
+        expected_run_id='different-run',
+    )
+
+    assert 'serp_evidence_run_expectation_missing' in _rule_ids(missing)
+    assert 'serp_evidence_run_mismatch' in _rule_ids(wrong)
+
+
 def test_guard_accepts_serialized_article_plan(tmp_path: Path):
     output = tmp_path / 'article-plan.json'
     output.write_text(
@@ -227,6 +297,7 @@ def test_guard_validates_serp_evidence_and_final_article_mapping(tmp_path: Path)
         article_path=article_path,
         serp_evidence_path=serp_path,
         assembly_date='2026-08-05',
+        expected_run_id='serp-test-run',
     ) == []
 
     article_path.write_text(
@@ -238,6 +309,7 @@ def test_guard_validates_serp_evidence_and_final_article_mapping(tmp_path: Path)
         article_path=article_path,
         serp_evidence_path=serp_path,
         assembly_date='2026-08-05',
+        expected_run_id='serp-test-run',
     )
 
     rules = _rule_ids(findings)
@@ -264,6 +336,7 @@ def test_guard_rejects_stale_or_unverified_serp_evidence(tmp_path: Path):
         serp_path,
         expected_query='field service scheduling',
         assembly_date='2026-08-05',
+        expected_run_id='run-123',
     )
 
     rules = _rule_ids(findings)
@@ -287,6 +360,7 @@ def test_metadata_only_verified_serp_evidence_is_blocking(tmp_path: Path):
         serp_path,
         expected_query='field service scheduling',
         assembly_date='2026-08-05',
+        expected_run_id='run-123',
     ))
 
     assert 'serp_evidence_shape_invalid' in rules
@@ -315,6 +389,7 @@ def test_plain_rehashed_serp_json_cannot_mint_verified_collection(tmp_path: Path
         path,
         expected_query='field service scheduling',
         assembly_date='2026-08-11',
+        expected_run_id='agency-run-123',
     ))
 
     assert 'serp_evidence_execution_attestation_invalid' in rules
@@ -479,6 +554,7 @@ def test_serp_timestamp_requires_extended_rfc3339_utc(tmp_path: Path):
             serp_path,
             expected_query='field service scheduling',
             assembly_date='2026-08-05',
+            expected_run_id='run-123',
         )
 
         assert any(

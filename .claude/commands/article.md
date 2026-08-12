@@ -80,7 +80,7 @@ This prevents the "AI knows everything" trap that produces generic content match
 
 ## STEP 0: AEO/GEO Setup (MANDATORY)
 
-**Every new `/article` run MUST collect AnswerSocrates PAA questions with Playwright MCP before planning.**
+**Every new `/article` run MUST collect AnswerSocrates PAA questions with the repository-owned `answersocrates_playwright_collector` version `1.0.0` before planning.**
 
 ### Variable Resolution
 
@@ -113,7 +113,7 @@ Before planning or drafting, resolve an E-E-A-T Proof Map:
 
 ### General Source Support Classes
 
-Use only these exact general source-map classes: `primary_authority`, `independent_research`, `non_competing_expert`, `owned_product`, `customer_proof`, `review_platform`, and `competitor`. General causal, comparative, definitional, process, and recommendation claims need an exact claim-fit row with `Claim`, `Claim type`, `Evidence relation: directly_supports`, `Source class`, `Classification artifact`, `Classification hash`, `URL`, source-visible `Evidence`, and `Status: approved`. The hash-bound classification must use `simpro-source-classification/v1` and derive from one exact approved repository decision path, hash, revision, decision ID, URL, and hostname; callers cannot override `source_class` or `publisher_relationship`. Writer-supplied class labels do not qualify. PDF extraction or unreachable-HTML fallback additionally requires `Capture receipt` and `Capture receipt hash` from `simpro-source-capture-receipt/v1`. Multiple copies of the same weak link do not create authority.
+Use only these exact general source-map classes: `primary_authority`, `independent_research`, `non_competing_expert`, `owned_product`, `customer_proof`, `review_platform`, and `competitor`. General causal, comparative, definitional, process, and recommendation claims need an exact claim-fit row with `Claim`, `Claim type`, `Evidence relation: directly_supports`, `Source class`, `Classification artifact`, `Classification hash`, `URL`, source-visible `Evidence`, and `Status: approved`. The hash-bound classification must use `simpro-source-classification/v1` and derive from one exact approved repository decision path, hash, revision, decision ID, URL, and hostname. The canonical registry must be tracked by Git, and its current bytes must exactly match the `HEAD` blob before either classification emission or validation. Callers cannot override `source_class` or `publisher_relationship`. Writer-supplied class labels do not qualify. PDF extraction or unreachable-HTML fallback additionally requires `Capture receipt` and `Capture receipt hash` from `simpro-source-capture-receipt/v1`. Multiple copies of the same weak link do not create authority.
 
 Proof infrastructure belongs only in the validation sidecar. The article plan records only the validation sidecar path and status so there is one authoritative proof state.
 
@@ -158,33 +158,33 @@ PAA provenance is strict and separate from general research:
 - SERP, Reddit, and YouTube are supplemental research and cannot satisfy PAA provenance.
 - Query fragments and questions outside the artifact's eligible question section cannot become selected questions or FAQ headings.
 
-Use Playwright MCP on `https://answersocrates.com`:
+The fixed repository-owned `answersocrates_playwright_collector` version `1.0.0` runs the bounded Playwright CLI flow against exactly `https://answersocrates.com/paa-extractor`:
 
-1. `browser_navigate` to AnswerSocrates.
-2. `browser_snapshot` to identify the query input and submit control.
-3. Enter `main_question`; if missing, enter `topic`.
-4. Submit using snapshot-derived targets only. Do not hard-code selectors.
-5. Wait for results and extract visible complete natural-language questions with `browser_evaluate`.
+1. Open the fixed page URL.
+2. Resolve the query input and submit control from the observed DOM.
+3. Enter the mandatory `--query` value.
+4. Submit and wait within the repository's fixed timeout bounds.
+5. Emit exact JSON to stdout containing only observed page URL, title, body text, section headings, and section items.
 6. Immediately record the observed run as `research/paa-questions-[topic-slug]-[YYYY-MM-DD].json` with the recorder below. Do not hand-author the JSON or its hashes.
 
 If AnswerSocrates shows keyword fragments or query modifiers instead of complete questions, save them as query-fragment notes only and do not use them as FAQ headings or selected questions. Run a corrected AnswerSocrates query before adding FAQ copy. If AnswerSocrates records a genuine blocked state, bind that blocked artifact before using a user PAA/FAQ CSV export. Do not invent replacement questions.
 
 ### Collected AnswerSocrates Artifact Template
 
-After the fixed repository-approved Playwright collector finishes, save its locally attested raw capture. The recorder parses only the capture's visible People Also Ask section and closed blocker output; expected values compare against capture facts and cannot populate missing facts.
+The `record` command runs the fixed repository-approved Playwright collector, `answersocrates_playwright_collector`, itself. It persists exact bounded Playwright CLI stdout before interpretation, then parses only observed page headings/items and a closed blocker mapping.
 
 ```powershell
-python data_sources/modules/paa_provenance_guard.py record --raw-capture "research/answersocrates-playwright-raw-[topic-slug]-[YYYY-MM-DD].json" --expected-query "[main question or topic]" --expected-collection-date "[YYYY-MM-DD matching the assembly date]" --expected-run-id "[agency run ID]" --workspace-root "." --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
+python data_sources/modules/paa_provenance_guard.py record --query "[main question or topic]" --collection-date "[YYYY-MM-DD matching the assembly date]" --run-id "[canonical agency article run ID]" --raw-capture-output "research/answersocrates-playwright-raw-[topic-slug]-[YYYY-MM-DD].json" --workspace-root "." --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
 ```
 
-The recorder emits `simpro-answersocrates-artifact/v1` with a nested `simpro-answersocrates-run-receipt/v1`, fixed `playwright_mcp` tool identity, payload SHA-256, and receipt SHA-256. Handwritten labels, Markdown templates, and self-described browser blockers are invalid provenance.
+The recorder emits `simpro-answersocrates-artifact/v1` with a nested `simpro-answersocrates-run-receipt/v1`, fixed `answersocrates_playwright_collector` version `1.0.0`, payload SHA-256, and receipt SHA-256. Handwritten labels, caller-authored captures, Markdown templates, and self-described browser blockers are invalid provenance.
 
 ### Blocked AnswerSocrates Artifact Template
 
 Save a blocked artifact before accepting a user CSV. The blocker enum and reason must reflect the observed browser failure:
 
 ```powershell
-python data_sources/modules/paa_provenance_guard.py record --raw-capture "research/answersocrates-playwright-raw-[topic-slug]-[YYYY-MM-DD].json" --expected-query "[main question or topic]" --expected-collection-date "[YYYY-MM-DD matching the assembly date]" --expected-run-id "[agency run ID]" --workspace-root "." --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
+python data_sources/modules/paa_provenance_guard.py record --query "[main question or topic]" --collection-date "[YYYY-MM-DD matching the assembly date]" --run-id "[canonical agency article run ID]" --raw-capture-output "research/answersocrates-playwright-raw-[topic-slug]-[YYYY-MM-DD].json" --workspace-root "." --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
 ```
 
 For the blocked fallback, bind both files in the BOM build with `--user-paa-csv "[user-csv]" --answersocrates-blocker "[blocked-answersocrates-artifact]"`. When debugging provenance directly, pass the CSV to `paa_provenance_guard.py` as `--paa-artifact "[user-csv]"` and pass the same blocker with `--answersocrates-blocker`.

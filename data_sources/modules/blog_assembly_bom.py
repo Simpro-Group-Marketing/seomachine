@@ -17,6 +17,7 @@ try:
         blog_identity_guard,
         context_binding_guard,
         editorial_plan_guard,
+        paa_provenance_guard,
     )
     from .blog_assembly_contract import (
         artifact_inventory_snapshots,
@@ -49,6 +50,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import blog_identity_guard
     import context_binding_guard
     import editorial_plan_guard
+    import paa_provenance_guard
     from blog_assembly_contract import (
         artifact_inventory_snapshots,
         atomic_write_json,
@@ -167,6 +169,11 @@ def build_blog_assembly_bom_from_files(
     assembled = _iso_date(assembly_date, "assembly_date")
     article = read_publishable_markdown(article_path)
     _validate_article_identity(article, assembled)
+    canonical_run_id = canonical_article_run_id(
+        article_path,
+        workspace_root=root,
+        assembly_date=assembled,
+    )
     plan_snapshot = load_json_object_snapshot(
         editorial_plan_path,
         field="editorial_plan",
@@ -190,6 +197,7 @@ def build_blog_assembly_bom_from_files(
         article_path=article_path,
         serp_evidence_path=serp_evidence_path,
         assembly_date=assembled.isoformat(),
+        expected_run_id=canonical_run_id,
     )
     if plan_findings:
         rule_ids = ", ".join(
@@ -252,6 +260,30 @@ def build_blog_assembly_bom_from_files(
         raise ValueError(
             "paa_policy.selected_questions must exactly match visible FAQ headings in order"
         )
+    if paa_policy["source_kind"] == "brief_paa":
+        bound_paa_artifact = content_brief_path
+    elif paa_policy["source_kind"] == "user_csv":
+        bound_paa_artifact = user_paa_csv_path
+    else:
+        bound_paa_artifact = paa_artifact_path
+    paa_findings = paa_provenance_guard.check_file(
+        str(article_path),
+        proof_sidecar=str(validation_sidecar_path),
+        workflow_mode=mode,
+        content_brief=(str(content_brief_path) if content_brief_path else None),
+        answersocrates_blocker=(
+            str(answersocrates_blocker_path) if answersocrates_blocker_path else None
+        ),
+        expected_query=str(paa_policy["query"]),
+        expected_collection_date=assembled.isoformat(),
+        expected_run_id=canonical_run_id,
+        paa_artifact=(str(bound_paa_artifact) if bound_paa_artifact else None),
+    )
+    if paa_findings:
+        rules = ", ".join(
+            sorted({str(row.get("rule_id")) for row in paa_findings})
+        )
+        raise ValueError(f"PAA provenance is invalid: {rules}")
     artifacts = {
         "article": canonical_artifact_identity(
             article.path,
@@ -326,11 +358,7 @@ def build_blog_assembly_bom_from_files(
     connector_reason = None if connector_required else NON_CONNECTOR_REASON
     _validate_provisional_stage_receipts(
         stage_receipts,
-        expected_run_id=canonical_article_run_id(
-            article_path,
-            workspace_root=root,
-            assembly_date=assembled,
-        ),
+        expected_run_id=canonical_run_id,
         assembly_date=assembled,
         article_sha256=artifacts["article"]["sha256"],
         optimizer_outputs=artifacts["optimizer_outputs"],

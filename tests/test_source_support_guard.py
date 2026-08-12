@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 import socket
+import subprocess
 import tempfile
 import unittest
 from datetime import datetime, timezone
@@ -41,7 +42,9 @@ def _utc_now():
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
-def write_source_decisions(directory, url, source_class, relationship, *, status="approved"):
+def write_source_decisions(
+    directory, url, source_class, relationship, *, status="approved", committed=True
+):
     path = Path(directory) / "context" / "source-classification-decisions.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps({
@@ -56,7 +59,23 @@ def write_source_decisions(directory, url, source_class, relationship, *, status
             "publisher_relationship": relationship,
         }],
     }, sort_keys=True), encoding="utf-8")
+    if committed:
+        root = Path(directory)
+        subprocess.run(["git", "init", "-q", str(root)], check=True)
+        subprocess.run(["git", "-C", str(root), "config", "user.email", "tests@example.com"], check=True)
+        subprocess.run(["git", "-C", str(root), "config", "user.name", "Tests"], check=True)
+        subprocess.run(["git", "-C", str(root), "add", "context/source-classification-decisions.json"], check=True)
+        subprocess.run([
+            "git", "-C", str(root), "commit", "--allow-empty", "-qm",
+            "approve source decisions",
+        ], check=True)
     return path
+
+
+def commit_source_decisions(directory, url, source_class, relationship, *, status="approved"):
+    return write_source_decisions(
+        directory, url, source_class, relationship, status=status, committed=True
+    )
 
 
 def write_source_classification(directory, url, source_class, relationship):
@@ -143,6 +162,40 @@ def write_plain_capture_receipt(directory, url, artifact_name, *, method):
 
 
 class SourceSupportGuardTests(unittest.TestCase):
+    def test_source_classification_rejects_untracked_canonical_registry(self):
+        url = "https://example.com/scheduling-guidance"
+        with tempfile.TemporaryDirectory() as tmp:
+            subprocess.run(["git", "init", "-q", tmp], check=True)
+            decision = write_source_decisions(
+                tmp, url, "non_competing_expert", "independent", committed=False,
+            )
+            with self.assertRaisesRegex(ValueError, "committed HEAD"):
+                source_support_guard.write_source_classification_artifact(
+                    Path(tmp) / "classification.json",
+                    source_url=url,
+                    decision_id="source:test-record",
+                    decision_path=decision,
+                    workspace_root=tmp,
+                )
+
+    def test_source_classification_rejects_worktree_registry_modified_after_commit(self):
+        url = "https://example.com/scheduling-guidance"
+        with tempfile.TemporaryDirectory() as tmp:
+            decision = commit_source_decisions(
+                tmp, url, "non_competing_expert", "independent",
+            )
+            registry = json.loads(decision.read_text(encoding="utf-8"))
+            registry["revision"] = "self-approved-working-tree-revision"
+            decision.write_text(json.dumps(registry, sort_keys=True), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "committed HEAD"):
+                source_support_guard.write_source_classification_artifact(
+                    Path(tmp) / "classification.json",
+                    source_url=url,
+                    decision_id="source:test-record",
+                    decision_path=decision,
+                    workspace_root=tmp,
+                )
+
     def test_source_classification_is_derived_from_exact_approved_decision(self):
         url = "https://example.com/scheduling-guidance"
         with tempfile.TemporaryDirectory() as tmp:

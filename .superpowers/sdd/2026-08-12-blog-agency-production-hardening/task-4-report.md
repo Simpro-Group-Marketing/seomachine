@@ -67,3 +67,57 @@ Implemented Task 4 only. The existing `/article`, `/research` to `/write`, and `
 - Exact raw capture plus local attestation proves repository-local integrity and derivation, not external truthfulness.
 - Existing weak PAA/SERP/classification artifacts must be regenerated through the hardened paths.
 - The approved repository source-decision file is canonical but intentionally not synthesized or prepopulated in this task; classification remains fail closed in its absence.
+
+## Fix Round 1: Independent Review Remediation
+
+This section supersedes the earlier implementation descriptions where they conflict. The independent review found that the first implementation still allowed caller-prepared PAA captures, used a permissive SERP compatibility fallback, and treated any current canonical-registry bytes as authoritative even when they were not the Git `HEAD` blob.
+
+### RED evidence
+
+- The original report retained the exact baseline command and exact first RED result, but it did not retain the first RED node invocation. That missing command is not reconstructed or invented here. The retained first RED result remains `11 failed, 2 passed, 4 subtests passed`.
+- Exact Fix Round 1 RED command:
+
+```powershell
+python -m pytest tests/test_paa_provenance_guard.py::StrictPaaSourceTests::test_record_runs_fixed_collector_and_persists_exact_stdout_before_parsing tests/test_paa_provenance_guard.py::StrictPaaSourceTests::test_record_rejects_caller_supplied_capture_and_requires_canonical_inputs tests/test_paa_provenance_guard.py::StrictPaaSourceTests::test_answersocrates_builder_requires_query_date_and_run_expectations tests/test_research_serp_playwright_fallback.py::ResearchSerpPlaywrightFallbackTests::test_production_serp_path_requires_raw_response_method_and_never_labels_normalized_compat_data_raw tests/test_research_serp_playwright_fallback.py::ResearchSerpPlaywrightFallbackTests::test_production_serp_path_uses_raw_response_method_not_combined_capture_method tests/test_editorial_plan_guard.py::test_serp_raw_capture_rejects_wrong_approved_collector_version tests/test_editorial_plan_guard.py::test_editorial_serp_validation_requires_and_matches_expected_run_id tests/test_source_support_guard.py::SourceSupportGuardTests::test_source_classification_rejects_untracked_canonical_registry tests/test_source_support_guard.py::SourceSupportGuardTests::test_source_classification_rejects_worktree_registry_modified_after_commit tests/test_aeo_geo_workflow_docs.py::AeoGeoWorkflowDocsTests::test_article_runs_fixed_answersocrates_producer_without_caller_capture_route -q
+```
+
+- Exact result: `10 failed, 1 passed, 1 subtests passed in 1.86s`.
+- Exact failing contracts:
+  - the PAA module did not own a fixed collector subprocess and accepted the old caller-supplied `--raw-capture` route;
+  - the AnswerSocrates builder did not require query, collection-date, and run expectations;
+  - production SERP collection called normalized or combined compatibility methods instead of an exact raw-response method;
+  - a wrong but non-empty collector version passed;
+  - editorial validation had no canonical expected-run parameter;
+  - untracked and worktree-modified decision registries were accepted;
+  - workflow documentation did not name the exact fixed producer inputs and identity.
+
+### Remediation
+
+- PAA `record` now owns the bounded repository collector. It requires `--query`, `--collection-date`, `--run-id`, `--raw-capture-output`, `--workspace-root`, and `--output`; invokes fixed `answersocrates_playwright_collector` version `1.0.0` against the fixed AnswerSocrates URL; persists exact subprocess stdout, stderr, and return code before interpretation; then reopens the attested capture and derives questions or a closed blocker. Tests fake only executable lookup and `subprocess.run`.
+- AnswerSocrates build and validation require exact query, date, and canonical run ID. The BOM builder, independent BOM guard, readiness gates, content scorer, and AEO/GEO rater all forward or independently derive the same canonical article run. Added builder regressions reject both cross-run PAA and cross-run SERP evidence.
+- DataForSEO production collection requires `get_serp_raw_response()`. The raw provider object is written first, strictly reopened, and only then normalized. Production no longer falls back to `get_serp_data()` or the combined compatibility seam. Playwright stdout follows the same persist-before-parse sequence.
+- Approved SERP collectors are exact name/version pairs. Both raw capture and evidence validation reject any other version.
+- Repository source decisions are authoritative only when `context/source-classification-decisions.json` is Git tracked and its current bytes exactly equal the committed `HEAD` blob. Both classification emission and later validation enforce this independently. Temp-Git regressions cover untracked and post-commit worktree changes while existing cases retain unapproved, URL/hostname mismatch, arbitrary path, and tamper coverage.
+- Existing article and strategy documentation now names the fixed PAA producer, exact version and URL, mandatory producer arguments, exact raw-before-interpretation behavior, canonical run binding, and Git `HEAD` byte requirement.
+- The review's Minor request to add the emitter version to each classification registry binding was explicitly deferred and is not addressed in this round.
+
+### GREEN evidence
+
+- The exact Fix Round 1 RED command above became GREEN: `10 passed, 2 subtests passed in 2.04s`.
+- Expanded focused regression command, adding the blocked producer and both BOM cross-run cases: `13 passed, 2 subtests passed in 3.50s`.
+- Direct scorer/rater migration and production-blocker set: `110 passed, 26 subtests passed in 9.71s`.
+- BOM builder, independent BOM guard, and readiness: `161 passed in 60.36s`.
+- PAA, SERP, DataForSEO, editorial, source support, workflow docs, scorer, rater, and architecture: `403 passed, 262 subtests passed in 22.91s`.
+- One complete repository suite after all remediation:
+  - `python -m pytest -q`
+  - `1572 passed, 3 skipped, 479 subtests passed in 102.65s`.
+- `python -m compileall -q data_sources/modules/aeo_geo_rater.py data_sources/modules/blog_assembly_bom.py data_sources/modules/blog_assembly_bom_guard.py data_sources/modules/content_scorer.py data_sources/modules/dataforseo.py data_sources/modules/editorial_plan_guard.py data_sources/modules/paa_provenance_guard.py data_sources/modules/publish_readiness.py data_sources/modules/source_support_guard.py scripts/research_serp_analysis.py`: exit 0.
+- `git diff --check`: exit 0. Line-ending notices are informational Windows checkout warnings; no whitespace errors were reported.
+
+### Final self-review
+
+- No live collector, network publication, external write, alternate SERP emitter, slash command, reviewer role, or BOM schema change was introduced.
+- Raw evidence is persisted before normalization or eligibility interpretation on every production path changed in this round.
+- The canonical run is independently recomputed at BOM build/guard boundaries; readiness consumes the already guard-validated receipt run and forwards it through editorial, PAA, scorer, and AEO checks.
+- Local execution attestation and Git `HEAD` equality establish repository-local integrity only. They do not establish that an external page or provider response is truthful.
+- Historical weak or cross-run PAA, SERP, and classification artifacts fail closed and must be regenerated.

@@ -574,10 +574,11 @@ def test_editorial_plan_escape_is_rejected_before_any_read(tmp_path: Path):
     }
     try:
         with patch.object(Path, "read_text", side_effect=AssertionError("unsafe read")):
-            findings = blog_assembly_bom_guard._check_editorial_plan(
+            findings = blog_assembly_bom_guard._check_research_provenance(
                 {},
                 artifacts,
                 tmp_path,
+                tmp_path / "drafts" / "article.md",
             )
     finally:
         outside.unlink(missing_ok=True)

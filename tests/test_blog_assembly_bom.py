@@ -305,7 +305,7 @@ def _fixture(
             tmp_path,
             query="field service scheduling guide",
             collection_date="2026-08-11",
-            run_id="serp-fixture-run",
+            run_id=_run_id(article),
             results=[{
                 "url": "https://example.com/scheduling-guide",
                 "title": "Field service scheduling guide",
@@ -323,7 +323,7 @@ def _fixture(
                 query="field service scheduling guide",
                 collection_date="2026-08-11",
                 questions=(question,),
-                run_id="answersocrates-fixture-run",
+                run_id=_run_id(article),
             ),
             indent=2,
             sort_keys=True,
@@ -498,6 +498,58 @@ def _build(tmp_path: Path, paths: dict[str, object], **overrides):
         )
         write_stage_receipt(paths["stage_receipts"][2], binding_receipt)
     return build_blog_assembly_bom_from_files(**kwargs)
+
+
+def test_builder_rejects_answersocrates_artifact_from_another_article_run(
+    tmp_path: Path,
+):
+    paths = _fixture(tmp_path)
+    paths["paa"].write_text(
+        json.dumps(
+            build_answersocrates_fixture(
+                tmp_path,
+                query="field service scheduling guide",
+                collection_date="2026-08-11",
+                questions=("What is field service scheduling?",),
+                run_id="another-article-run",
+            ),
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="paa_answersocrates_run_mismatch"):
+        _build(tmp_path, paths)
+
+
+def test_builder_rejects_serp_evidence_from_another_article_run(tmp_path: Path):
+    paths = _fixture(tmp_path)
+    paths["serp"].write_text(
+        json.dumps(
+            build_serp_fixture(
+                tmp_path,
+                query="field service scheduling guide",
+                collection_date="2026-08-11",
+                run_id="another-article-run",
+                results=[{
+                    "url": "https://example.com/scheduling-guide",
+                    "title": "Field service scheduling guide",
+                    "description": "Scheduling guide.",
+                }],
+                features=["featured snippet"],
+                must_have_sections=["scheduling guide"],
+            ),
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="serp_evidence_run_mismatch"):
+        _build(tmp_path, paths)
 
 
 def _refresh_normal_stage_receipts(paths: dict[str, object]) -> None:

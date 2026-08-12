@@ -489,6 +489,7 @@ HVAC scheduling software gives dispatchers a connected scheduling workflow.
                 content,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=write_paa_fixture(self, content),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertFalse(result["passed"])
@@ -559,6 +560,7 @@ HVAC scheduling software gives dispatchers a connected scheduling workflow.
                     content,
                     {"primary_keyword": "hvac scheduling software"},
                     source_path=write_paa_fixture(self, content),
+                    paa_expected_run_id="content-scorer-fixture",
                     proof_sidecar=str(proof_sidecar_path),
                 )
 
@@ -606,6 +608,7 @@ HVAC scheduling software gives dispatchers a connected scheduling workflow.
                 COMPLIANT_ARTICLE,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertGreaterEqual(result["content_quality_score"], 85)
@@ -648,6 +651,7 @@ HVAC scheduling software gives dispatchers a connected scheduling workflow.
                 content,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=article_path,
+                paa_expected_run_id="content-scorer-fixture",
                 proof_sidecar=sidecar_path,
             )
 
@@ -695,6 +699,7 @@ HVAC scheduling software gives dispatchers a connected scheduling workflow.
                 content,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=article_path,
+                paa_expected_run_id="content-scorer-fixture",
                 proof_sidecar=sidecar_path,
             )
 
@@ -781,6 +786,7 @@ HVAC scheduling software gives dispatchers a connected scheduling workflow.
                 paa_answersocrates_blocker="collection unavailable",
                 paa_expected_query="field service scheduling",
                 paa_expected_collection_date="2026-05-21",
+                paa_expected_run_id="article-run-123",
                 paa_artifact="research/paa-questions-article-2026-05-21.md",
             )
 
@@ -797,6 +803,7 @@ HVAC scheduling software gives dispatchers a connected scheduling workflow.
             paa_answersocrates_blocker="collection unavailable",
             paa_expected_query="field service scheduling",
             paa_expected_collection_date="2026-05-21",
+            paa_expected_run_id="article-run-123",
             paa_artifact="research/paa-questions-article-2026-05-21.md",
         )
 
@@ -879,6 +886,7 @@ HVAC scheduling software gives dispatchers a connected scheduling workflow.
                 {"primary_keyword": "hvac scheduling software"},
                 validate_urls=True,
                 source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertFalse(result["passed"])
@@ -924,6 +932,7 @@ HVAC scheduling software gives dispatchers a connected scheduling workflow.
                 content,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=write_paa_fixture(self, content),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertFalse(result["passed"])
@@ -973,6 +982,7 @@ HVAC scheduling software gives dispatchers a connected scheduling workflow.
                 {"primary_keyword": "hvac scheduling software"},
                 validate_source_support=True,
                 source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertFalse(result["passed"])
@@ -1032,6 +1042,7 @@ HVAC scheduling software gives dispatchers a connected scheduling workflow.
                 validate_urls=True,
                 validate_source_support=True,
                 source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertTrue(result["quality_gates"]["source_support"]["passed"])
@@ -1067,6 +1078,7 @@ HVAC scheduling software gives dispatchers a connected scheduling workflow.
                 content,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=write_paa_fixture(self, content),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertFalse(result["passed"])
@@ -1103,6 +1115,7 @@ HVAC scheduling software gives dispatchers a connected scheduling workflow.
                 content,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=write_paa_fixture(self, content),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertFalse(result["passed"])
@@ -1139,6 +1152,7 @@ HVAC scheduling software gives dispatchers a connected scheduling workflow.
                 content,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=write_paa_fixture(self, content),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertFalse(result["passed"])
@@ -1174,6 +1188,7 @@ HVAC scheduling software gives dispatchers a connected scheduling workflow.
                 COMPLIANT_ARTICLE,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+                paa_expected_run_id="content-scorer-fixture",
                 prevalidated_gate_findings={
                     "metric_proof_pack": (),
                     "customer_proof_diversity": (),
@@ -1205,6 +1220,7 @@ HVAC scheduling software gives dispatchers a connected scheduling workflow.
                 COMPLIANT_ARTICLE,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+                paa_expected_run_id="content-scorer-fixture",
                 prevalidated_gate_findings={"metric_proof_pack": ()},
             )
 

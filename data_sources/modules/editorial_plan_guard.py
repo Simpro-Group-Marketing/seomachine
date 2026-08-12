@@ -148,8 +148,8 @@ SERP_RAW_CAPTURE_FIELDS = frozenset({
     'raw_response', 'execution_attestation',
 })
 SERP_APPROVED_COLLECTORS = frozenset({
-    'research_serp_analysis:dataforseo',
-    'research_serp_analysis:playwright',
+    ('research_serp_analysis:dataforseo', '1.0.0'),
+    ('research_serp_analysis:playwright', '1.0.0'),
 })
 SERP_RESULT_FIELDS = frozenset({'position', 'url', 'title', 'result_type'})
 SERP_OBSERVATION_FIELDS = frozenset(
@@ -223,6 +223,7 @@ def build_serp_evidence(
     findings = _check_serp_evidence_payload(
         attested,
         expected_query=str(capture['query']),
+        expected_run_id=str(capture['run_id']),
         assembly_date=(
             capture['collected_at'][:10]
             if isinstance(capture['collected_at'], str) and len(capture['collected_at']) >= 10
@@ -262,6 +263,19 @@ def _load_valid_serp_raw_capture(
     return snapshot, capture, normalized
 
 
+def load_normalized_serp_raw_capture(
+    path: str | Path,
+    *,
+    workspace_root: str | Path,
+) -> dict[str, Any]:
+    """Reopen, validate, and normalize one exact persisted raw capture."""
+    _, _, normalized = _load_valid_serp_raw_capture(
+        path,
+        workspace_root=workspace_root,
+    )
+    return dict(normalized)
+
+
 def _validate_serp_raw_snapshot(
     snapshot: Any,
     *,
@@ -277,9 +291,8 @@ def _validate_serp_raw_snapshot(
     if (
         not isinstance(collector, Mapping)
         or set(collector) != {'name', 'version'}
-        or collector.get('name') not in SERP_APPROVED_COLLECTORS
-        or not isinstance(collector.get('version'), str)
-        or not collector.get('version')
+        or (collector.get('name'), collector.get('version'))
+        not in SERP_APPROVED_COLLECTORS
     ):
         raise ValueError('SERP raw capture collector is not approved')
     if not verify_mapping_attestation(
@@ -522,6 +535,7 @@ def check_file(
     article_path: str | Path | None = None,
     serp_evidence_path: str | Path | None = None,
     assembly_date: str | None = None,
+    expected_run_id: str | None = None,
 ) -> list[Finding]:
     '''Return blocking findings for one editorial-plan JSON file.'''
     source = Path(path)
@@ -544,6 +558,7 @@ def check_file(
         article_path=article_path,
         serp_evidence_path=serp_evidence_path,
         assembly_date=assembly_date,
+        expected_run_id=expected_run_id,
     )
 
 
@@ -553,6 +568,7 @@ def _check_loaded_plan(
     article_path: str | Path | None,
     serp_evidence_path: str | Path | None,
     assembly_date: str | None,
+    expected_run_id: str | None = None,
 ) -> list[Finding]:
     """Validate one plan payload already parsed from its bound immutable bytes."""
     findings = check_plan(payload)
@@ -565,6 +581,7 @@ def _check_loaded_plan(
                 serp_evidence_path,
                 expected_query=expected_query,
                 assembly_date=assembly_date,
+                expected_run_id=expected_run_id,
             )
         )
         strategy = payload.get('serp_strategy')
@@ -604,6 +621,7 @@ def check_serp_evidence_file(
     *,
     expected_query: str,
     assembly_date: str | None,
+    expected_run_id: str | None = None,
     workspace_root: str | Path | None = None,
 ) -> list[Finding]:
     '''Validate the exact SERP evidence metadata bound to an editorial plan.'''
@@ -629,6 +647,7 @@ def check_serp_evidence_file(
         payload,
         expected_query=expected_query,
         assembly_date=assembly_date,
+        expected_run_id=expected_run_id,
         workspace_root=root,
     )
 
@@ -638,6 +657,7 @@ def _check_serp_evidence_payload(
     *,
     expected_query: str,
     assembly_date: str | None,
+    expected_run_id: str | None,
     workspace_root: str | Path | None = None,
 ) -> list[Finding]:
     findings: list[Finding] = []
@@ -714,17 +734,30 @@ def _check_serp_evidence_payload(
     if (
         not isinstance(collector, Mapping)
         or set(collector) != {'name', 'version'}
-        or not isinstance(collector.get('name'), str)
-        or not str(collector.get('name')).strip()
-        or not isinstance(collector.get('version'), str)
-        or not str(collector.get('version')).strip()
+        or (collector.get('name'), collector.get('version'))
+        not in SERP_APPROVED_COLLECTORS
     ):
         findings.append(_invalid_serp_field(
             '/collector',
             'must identify the collection tool and version',
         ))
-    if not isinstance(payload.get('run_id'), str) or not str(payload.get('run_id')).strip():
+    run_id = payload.get('run_id')
+    if not isinstance(run_id, str) or not run_id.strip():
         findings.append(_invalid_serp_field('/run_id', 'must be a non-empty string'))
+    if not isinstance(expected_run_id, str) or not expected_run_id.strip():
+        findings.append(_finding(
+            'serp_evidence_run_expectation_missing',
+            'SERP evidence validation requires the canonical article run ID.',
+            '/run_id',
+            'Pass the canonical BOM run ID into editorial-plan validation.',
+        ))
+    elif isinstance(run_id, str) and run_id != expected_run_id:
+        findings.append(_finding(
+            'serp_evidence_run_mismatch',
+            'SERP evidence run ID must equal the canonical article run ID.',
+            '/run_id',
+            'Rerun SERP research within the current article assembly run.',
+        ))
     results = payload.get('results')
     if not isinstance(results, list) or not results:
         findings.append(_invalid_serp_field('/results', 'must contain collected SERP results'))

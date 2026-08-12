@@ -10,11 +10,15 @@ import argparse
 import csv
 import hashlib
 import json
+import os
 import re
+import shutil
+import subprocess
 import sys
+import tempfile
 import unicodedata
 from dataclasses import dataclass, replace
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, List, Mapping, Optional
 
@@ -69,7 +73,14 @@ ANSWERSOCRATES_RAW_CAPTURE_FIELDS = frozenset({
     "schema", "collector", "query", "run_id", "started_at", "completed_at",
     "page_url", "raw_response", "execution_attestation",
 })
-ANSWERSOCRATES_RAW_RESPONSE_FIELDS = frozenset({"visible_sections", "blocker_output"})
+ANSWERSOCRATES_RAW_RESPONSE_FIELDS = frozenset({"stdout", "stderr", "returncode"})
+ANSWERSOCRATES_BROWSER_OUTPUT_FIELDS = frozenset({
+    "page_url", "page_title", "body_text", "sections",
+})
+ANSWERSOCRATES_PAGE_URL = "https://answersocrates.com/paa-extractor"
+ANSWERSOCRATES_OPEN_TIMEOUT_SECONDS = 30
+ANSWERSOCRATES_RUN_TIMEOUT_SECONDS = 90
+ANSWERSOCRATES_CLOSE_TIMEOUT_SECONDS = 15
 ANSWERSOCRATES_BLOCKER_PATTERNS = (
     ("login", re.compile(r"\b(?:log\s*in|sign\s*in|authentication required)\b", re.I)),
     ("captcha", re.compile(r"\b(?:captcha|not a robot|unusual traffic)\b", re.I)),
@@ -109,6 +120,7 @@ class QuestionArtifact:
     status: str
     query: str
     collection_date: str
+    run_id: str
     eligible_questions: tuple[str, ...]
     ineligible_fragments: tuple[str, ...]
     eligible_section_present: bool
@@ -131,6 +143,7 @@ class PaaProvenanceResult:
     answersocrates_blocker_sha256: str
     expected_query: str
     expected_collection_date: str
+    expected_run_id: str
     faq_questions: tuple[str, ...]
     selected_questions: tuple[str, ...]
     findings: tuple[Finding, ...]
@@ -154,6 +167,7 @@ class PaaProvenanceResult:
             "answersocrates_blocker_sha256": self.answersocrates_blocker_sha256,
             "expected_query": self.expected_query,
             "expected_collection_date": self.expected_collection_date,
+            "expected_run_id": self.expected_run_id,
             "faq_questions": list(self.faq_questions),
             "selected_questions": list(self.selected_questions),
             "passed": self.passed,
@@ -169,12 +183,18 @@ def build_answersocrates_artifact(
     *,
     raw_capture_path: str | Path,
     workspace_root: str | Path,
-    expected_query: str | None = None,
-    expected_collection_date: str | None = None,
-    expected_run_id: str | None = None,
+    expected_query: str,
+    expected_collection_date: str,
+    expected_run_id: str,
 ) -> dict:
     """Derive a canonical record from one fixed-collector raw browser capture."""
     root = Path(workspace_root).resolve()
+    if not isinstance(expected_query, str) or not expected_query.strip():
+        raise ValueError("expected_query is required")
+    if _parse_iso_date(str(expected_collection_date or "")) is None:
+        raise ValueError("expected_collection_date is required as an ISO date")
+    if not isinstance(expected_run_id, str) or not expected_run_id.strip():
+        raise ValueError("expected_run_id is required")
     snapshot = load_json_object_snapshot(
         raw_capture_path,
         field="AnswerSocrates raw Playwright capture",
@@ -199,7 +219,7 @@ def build_answersocrates_artifact(
         raise ValueError("AnswerSocrates raw capture query is invalid")
     if not isinstance(run_id, str) or not run_id.strip() or run_id != run_id.strip():
         raise ValueError("AnswerSocrates raw capture run_id is invalid")
-    if page_url != "https://answersocrates.com/paa-extractor":
+    if page_url != ANSWERSOCRATES_PAGE_URL:
         raise ValueError("AnswerSocrates raw capture page URL is invalid")
     started_at = capture.get("started_at")
     completed_at = capture.get("completed_at")
@@ -210,13 +230,12 @@ def build_answersocrates_artifact(
     if completed > datetime.now(timezone.utc):
         raise ValueError("AnswerSocrates raw capture timestamp is in the future")
     collection_date = completed.date().isoformat()
-    if expected_query is not None and query != str(expected_query).strip():
+    if query != str(expected_query).strip():
         raise ValueError("AnswerSocrates raw capture query does not match expectation")
-    if expected_run_id is not None and run_id != str(expected_run_id).strip():
+    if run_id != str(expected_run_id).strip():
         raise ValueError("AnswerSocrates raw capture run_id does not match expectation")
     if (
-        expected_collection_date is not None
-        and collection_date != str(expected_collection_date).strip()
+        collection_date != str(expected_collection_date).strip()
     ):
         raise ValueError("AnswerSocrates raw capture date does not match expectation")
     questions, fragments, blocker_payload = _derive_answersocrates_observations(
@@ -255,16 +274,44 @@ def _derive_answersocrates_observations(
 ) -> tuple[list[str], list[str], dict[str, str] | None]:
     if not isinstance(raw_response, Mapping) or set(raw_response) != ANSWERSOCRATES_RAW_RESPONSE_FIELDS:
         raise ValueError("AnswerSocrates raw visible response shape is invalid")
-    blocker_output = raw_response.get("blocker_output")
-    if not isinstance(blocker_output, str):
-        raise ValueError("AnswerSocrates blocker output must be visible text")
+    stdout = raw_response.get("stdout")
+    stderr = raw_response.get("stderr")
+    returncode = raw_response.get("returncode")
+    if not isinstance(stdout, str) or not isinstance(stderr, str):
+        raise ValueError("AnswerSocrates raw stdout and stderr must be text")
+    if not isinstance(returncode, int) or isinstance(returncode, bool):
+        raise ValueError("AnswerSocrates raw returncode must be an integer")
+    try:
+        browser_output = json.loads(stdout) if stdout.strip() else None
+    except json.JSONDecodeError:
+        browser_output = None
+    if browser_output is not None and (
+        not isinstance(browser_output, Mapping)
+        or set(browser_output) != ANSWERSOCRATES_BROWSER_OUTPUT_FIELDS
+    ):
+        raise ValueError("AnswerSocrates browser stdout shape is invalid")
+    if isinstance(browser_output, Mapping):
+        if browser_output.get("page_url") != ANSWERSOCRATES_PAGE_URL:
+            raise ValueError("AnswerSocrates browser stdout page URL is invalid")
+        if not isinstance(browser_output.get("page_title"), str):
+            raise ValueError("AnswerSocrates browser stdout title is invalid")
+        if not isinstance(browser_output.get("body_text"), str):
+            raise ValueError("AnswerSocrates browser stdout body text is invalid")
+    blocker_output = "\n".join(filter(None, (
+        str(browser_output.get("body_text") or "") if isinstance(browser_output, Mapping) else "",
+        stderr,
+        stdout if browser_output is None else "",
+    ))).strip()
     blocker_payload = None
-    if blocker_output.strip():
-        matches = [kind for kind, pattern in ANSWERSOCRATES_BLOCKER_PATTERNS if pattern.search(blocker_output)]
+    matches = [
+        kind for kind, pattern in ANSWERSOCRATES_BLOCKER_PATTERNS
+        if pattern.search(blocker_output)
+    ]
+    if matches or returncode != 0:
         if len(matches) != 1:
             raise ValueError("AnswerSocrates blocker output does not map to one approved blocker")
         blocker_payload = {"kind": matches[0], "reason": blocker_output.strip()}
-    sections = raw_response.get("visible_sections")
+    sections = browser_output.get("sections") if isinstance(browser_output, Mapping) else []
     if not isinstance(sections, list):
         raise ValueError("AnswerSocrates visible sections must be a list")
     eligible: list[str] = []
@@ -293,6 +340,121 @@ def _derive_answersocrates_observations(
     return eligible, ineligible, blocker_payload
 
 
+def find_npx_executable() -> str | None:
+    """Return the fixed Playwright CLI launcher when installed."""
+    return shutil.which("npx.cmd" if os.name == "nt" else "npx")
+
+
+def _answersocrates_extraction_code(query: str) -> str:
+    """Return fixed browser code that emits unclassified visible DOM facts."""
+    return f"""async (page) => {{
+  const clean = value => (value || '').replace(/\\s+/g, ' ').trim();
+  await page.goto({json.dumps(ANSWERSOCRATES_PAGE_URL)}, {{ waitUntil: 'domcontentloaded' }});
+  const input = page.locator('input[type="search"], input[type="text"], textarea').first();
+  await input.fill({json.dumps(query)});
+  const submit = page.getByRole('button', {{ name: /search|extract|submit|get questions/i }}).first();
+  await submit.click();
+  await page.waitForTimeout(3000);
+  const observed = await page.evaluate(() => {{
+    const clean = value => (value || '').replace(/\\s+/g, ' ').trim();
+    const headings = Array.from(document.querySelectorAll('h1,h2,h3,[role="heading"]'));
+    const sections = headings.map(heading => {{
+      const container = heading.closest('section, article, div') || heading.parentElement;
+      const items = container ? Array.from(container.querySelectorAll('li,button,[role="button"]'))
+        .map(node => clean(node.innerText || node.textContent || node.getAttribute('aria-label')))
+        .filter(Boolean) : [];
+      return {{ heading: clean(heading.innerText || heading.textContent), items: Array.from(new Set(items)) }};
+    }}).filter(section => section.heading);
+    return {{
+      page_url: window.location.href,
+      page_title: document.title,
+      body_text: clean(document.body ? document.body.innerText : ''),
+      sections,
+    }};
+  }});
+  return JSON.stringify(observed);
+}}"""
+
+
+def collect_answersocrates_raw_capture(
+    *,
+    query: str,
+    run_id: str,
+    raw_capture_output: str | Path,
+    workspace_root: str | Path,
+) -> Path:
+    """Run the fixed bounded collector and persist exact subprocess output."""
+    root = Path(workspace_root).resolve()
+    npx_path = find_npx_executable()
+    started_at = datetime.now(timezone.utc)
+    stdout = ""
+    stderr = "npx unavailable; AnswerSocrates collector failed"
+    returncode = 127
+    if npx_path:
+        prefix = [npx_path, "--yes", "--package", "@playwright/cli", "playwright-cli"]
+        try:
+            subprocess.run(
+                prefix + ["open", "about:blank"],
+                text=True, encoding="utf-8", stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE, check=True,
+                timeout=ANSWERSOCRATES_OPEN_TIMEOUT_SECONDS,
+            )
+            with tempfile.NamedTemporaryFile(
+                "w", encoding="utf-8", suffix=".js", delete=False
+            ) as handle:
+                handle.write(_answersocrates_extraction_code(query))
+                code_path = handle.name
+            try:
+                completed = subprocess.run(
+                    prefix + ["run-code", "--filename", code_path, "--raw"],
+                    text=True, encoding="utf-8", stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE, check=False,
+                    timeout=ANSWERSOCRATES_RUN_TIMEOUT_SECONDS,
+                )
+                stdout = completed.stdout
+                stderr = completed.stderr
+                returncode = completed.returncode
+            finally:
+                Path(code_path).unlink(missing_ok=True)
+        except (subprocess.SubprocessError, OSError) as error:
+            stderr = str(error)
+            returncode = 1
+        finally:
+            try:
+                subprocess.run(
+                    prefix + ["close"], text=True, encoding="utf-8",
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    check=False, timeout=ANSWERSOCRATES_CLOSE_TIMEOUT_SECONDS,
+                )
+            except (subprocess.SubprocessError, OSError):
+                pass
+    completed_at = datetime.now(timezone.utc)
+    if completed_at <= started_at:
+        completed_at = started_at + timedelta(microseconds=1)
+    payload = {
+        "schema": ANSWERSOCRATES_RAW_CAPTURE_SCHEMA,
+        "collector": dict(ANSWERSOCRATES_TOOL),
+        "query": query,
+        "run_id": run_id,
+        "started_at": started_at.isoformat().replace("+00:00", "Z"),
+        "completed_at": completed_at.isoformat().replace("+00:00", "Z"),
+        "page_url": ANSWERSOCRATES_PAGE_URL,
+        "raw_response": {
+            "stdout": stdout,
+            "stderr": stderr,
+            "returncode": returncode,
+        },
+    }
+    attested = attest_mapping(
+        payload,
+        purpose=ANSWERSOCRATES_RAW_CAPTURE_PURPOSE,
+        workspace_root=root,
+    )
+    destination = Path(raw_capture_output)
+    atomic_write_json(destination, attested)
+    return destination
+
+
 def write_answersocrates_artifact(
     path: str | Path,
     artifact: dict,
@@ -316,6 +478,7 @@ def check_content(
     answersocrates_blocker: Optional[str] = None,
     expected_query: Optional[str] = None,
     expected_collection_date: Optional[str] = None,
+    expected_run_id: Optional[str] = None,
     paa_artifact: Optional[str] = None,
 ) -> List[Finding]:
     """
@@ -493,6 +656,7 @@ def check_content(
             line=provenance.line,
             expected_query=expected_query,
             expected_collection_date=expected_collection_date,
+            expected_run_id=expected_run_id,
         )
         if blocker_finding is not None:
             return [blocker_finding]
@@ -576,6 +740,7 @@ def check_content(
             required_status="collected",
             expected_query=expected_query,
             expected_collection_date=expected_collection_date,
+            expected_run_id=expected_run_id,
             line=provenance.line,
             artifact=provenance.artifact,
             require_eligible_section=True,
@@ -687,6 +852,7 @@ def evaluate_content(
     answersocrates_blocker: Optional[str] = None,
     expected_query: Optional[str] = None,
     expected_collection_date: Optional[str] = None,
+    expected_run_id: Optional[str] = None,
     paa_artifact: Optional[str] = None,
 ) -> PaaProvenanceResult:
     """Return reusable PAA provenance state and findings for article content."""
@@ -746,6 +912,7 @@ def evaluate_content(
         answersocrates_blocker=answersocrates_blocker,
         expected_query=expected_query,
         expected_collection_date=expected_collection_date,
+        expected_run_id=expected_run_id,
         paa_artifact=paa_artifact,
     )
     return PaaProvenanceResult(
@@ -765,6 +932,7 @@ def evaluate_content(
         ),
         expected_query=str(expected_query or ""),
         expected_collection_date=str(expected_collection_date or ""),
+        expected_run_id=str(expected_run_id or ""),
         faq_questions=faq_questions,
         selected_questions=selected_questions,
         findings=tuple(findings),
@@ -781,6 +949,7 @@ def evaluate_file(
     answersocrates_blocker: Optional[str] = None,
     expected_query: Optional[str] = None,
     expected_collection_date: Optional[str] = None,
+    expected_run_id: Optional[str] = None,
     paa_artifact: Optional[str] = None,
 ) -> PaaProvenanceResult:
     """Return reusable PAA provenance state and findings for a Markdown file."""
@@ -798,6 +967,7 @@ def evaluate_file(
         answersocrates_blocker=answersocrates_blocker,
         expected_query=expected_query,
         expected_collection_date=expected_collection_date,
+        expected_run_id=expected_run_id,
         paa_artifact=paa_artifact,
     )
     if paa_artifact:
@@ -861,6 +1031,7 @@ def check_file(
     answersocrates_blocker: Optional[str] = None,
     expected_query: Optional[str] = None,
     expected_collection_date: Optional[str] = None,
+    expected_run_id: Optional[str] = None,
     paa_artifact: Optional[str] = None,
 ) -> List[Finding]:
     """
@@ -882,6 +1053,7 @@ def check_file(
         answersocrates_blocker=answersocrates_blocker,
         expected_query=expected_query,
         expected_collection_date=expected_collection_date,
+        expected_run_id=expected_run_id,
         paa_artifact=paa_artifact,
     )
     return list(result.findings)
@@ -1082,6 +1254,7 @@ def _answersocrates_blocker_finding(
     line: int,
     expected_query: Optional[str],
     expected_collection_date: Optional[str],
+    expected_run_id: Optional[str],
 ) -> Optional[Finding]:
     if not blocker_artifact:
         return _finding(
@@ -1115,6 +1288,7 @@ def _answersocrates_blocker_finding(
         required_status="blocked",
         expected_query=expected_query,
         expected_collection_date=expected_collection_date,
+        expected_run_id=expected_run_id,
         line=line,
         artifact=str(blocker_artifact),
         require_eligible_section=False,
@@ -1128,6 +1302,7 @@ def _answersocrates_record_finding(
     required_status: str,
     expected_query: Optional[str],
     expected_collection_date: Optional[str],
+    expected_run_id: Optional[str],
     line: int,
     artifact: str,
     require_eligible_section: bool,
@@ -1167,13 +1342,17 @@ def _answersocrates_record_finding(
         )
 
     expected_date = _parse_iso_date(str(expected_collection_date or ""))
-    if not str(expected_query or "").strip() or expected_date is None:
+    if (
+        not str(expected_query or "").strip()
+        or expected_date is None
+        or not str(expected_run_id or "").strip()
+    ):
         return _finding(
             "paa_answersocrates_expectation_missing",
             line,
             None,
-            "AnswerSocrates validation requires the expected query and collection date.",
-            "Pass expected_query and an ISO expected_collection_date from the bound plan and assembly date.",
+            "AnswerSocrates validation requires expected query, collection date, and canonical run ID.",
+            "Pass expected_query, expected_collection_date, and expected_run_id from the bound plan and BOM.",
             match=artifact,
         )
 
@@ -1186,6 +1365,16 @@ def _answersocrates_record_finding(
             "AnswerSocrates artifact query does not match the bound expected query.",
             "Recollect with the bound query or supply the matching artifact.",
             match=record.query,
+        )
+
+    if record.run_id != str(expected_run_id).strip():
+        return _finding(
+            "paa_answersocrates_run_mismatch",
+            line,
+            None,
+            "AnswerSocrates artifact run ID does not match the canonical article run.",
+            "Recollect within the current article assembly run.",
+            match=record.run_id,
         )
 
     if record.collection_date != expected_date.isoformat():
@@ -1313,6 +1502,7 @@ def _parse_question_artifact(
         status=str(status),
         query=str(value["query"]),
         collection_date=str(value["collection_date"]),
+        run_id=str(receipt.get("run_id") if isinstance(receipt, Mapping) else ""),
         eligible_questions=eligible,
         ineligible_fragments=ineligible,
         eligible_section_present=True,
@@ -1670,6 +1860,10 @@ def _main(argv: Optional[List[str]] = None) -> int:
         "--expected-collection-date",
         help="Exact ISO date required in a structured AnswerSocrates artifact.",
     )
+    parser.add_argument(
+        "--expected-run-id",
+        help="Canonical article run ID required in a structured AnswerSocrates artifact.",
+    )
     args = parser.parse_args(raw_argv)
 
     result = evaluate_file(
@@ -1681,6 +1875,7 @@ def _main(argv: Optional[List[str]] = None) -> int:
         answersocrates_blocker=args.answersocrates_blocker,
         expected_query=args.expected_query,
         expected_collection_date=args.expected_collection_date,
+        expected_run_id=args.expected_run_id,
         paa_artifact=args.paa_artifact,
     )
     findings = list(result.findings)
@@ -1699,19 +1894,25 @@ def _record_main(argv: List[str]) -> int:
     parser = argparse.ArgumentParser(
         description="Record one browser-collected AnswerSocrates run."
     )
-    parser.add_argument("--raw-capture", required=True)
-    parser.add_argument("--expected-query")
-    parser.add_argument("--expected-collection-date")
-    parser.add_argument("--expected-run-id")
-    parser.add_argument("--workspace-root", default=str(Path.cwd()))
+    parser.add_argument("--query", required=True)
+    parser.add_argument("--collection-date", required=True)
+    parser.add_argument("--run-id", required=True)
+    parser.add_argument("--raw-capture-output", required=True)
+    parser.add_argument("--workspace-root", required=True)
     parser.add_argument("--output", required=True)
     args = parser.parse_args(argv)
-    artifact = build_answersocrates_artifact(
-        raw_capture_path=args.raw_capture,
+    capture_path = collect_answersocrates_raw_capture(
+        query=args.query,
+        run_id=args.run_id,
+        raw_capture_output=args.raw_capture_output,
         workspace_root=args.workspace_root,
-        expected_query=args.expected_query,
-        expected_collection_date=args.expected_collection_date,
-        expected_run_id=args.expected_run_id,
+    )
+    artifact = build_answersocrates_artifact(
+        raw_capture_path=capture_path,
+        workspace_root=args.workspace_root,
+        expected_query=args.query,
+        expected_collection_date=args.collection_date,
+        expected_run_id=args.run_id,
     )
     write_answersocrates_artifact(
         args.output,

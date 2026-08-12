@@ -323,8 +323,16 @@ def test_all_gates_pass_in_required_order(files):
 
 def test_scorer_receives_guard_validated_bom_and_paa_policy(files):
     article, sidecar = files
+    bom_path = _attach_normal_stage_chain(
+        article,
+        _write_non_connector_bom(article, sidecar),
+    )
 
-    result, _, _, scorer = run_with_patches(article, sidecar)
+    result, _, _, scorer = run_with_patches(
+        article,
+        sidecar,
+        assembly_bom=bom_path,
+    )
 
     assert result["passed"] is True
     call = scorer.score.call_args
@@ -336,6 +344,7 @@ def test_scorer_receives_guard_validated_bom_and_paa_policy(files):
     assert call.kwargs["paa_workflow_mode"] == "new"
     assert call.kwargs["paa_expected_query"] == "test query"
     assert call.kwargs["paa_expected_collection_date"] == CURRENT_DATE
+    assert call.kwargs["paa_expected_run_id"] == "run-1"
     assert "prevalidated_gate_findings" not in call.kwargs
     readiness_context = call.kwargs["readiness_gate_context"]
     assert not isinstance(readiness_context, dict)

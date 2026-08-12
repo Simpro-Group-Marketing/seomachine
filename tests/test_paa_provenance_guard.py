@@ -2,9 +2,12 @@ import hashlib
 import io
 import json
 import os
+import re
+import subprocess
 import tempfile
 import unittest
 from contextlib import redirect_stdout
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
@@ -14,7 +17,7 @@ from data_sources.modules.execution_attestation import attest_mapping
 from data_sources.modules.paa_provenance_guard import (
     build_answersocrates_artifact,
     check_content,
-    check_file,
+    check_file as production_check_file,
     should_fail,
 )
 from tests.research_provenance_fixtures import build_answersocrates_fixture
@@ -26,6 +29,33 @@ FAQ_QUESTIONS = (
 )
 PAA_QUERY = 'hvac technician scheduling'
 COLLECTION_DATE = '2026-08-11'
+
+
+def check_file(path, *args, **kwargs):
+    """Supply the real fixture artifact run ID to legacy behavioral cases."""
+    if "expected_run_id" not in kwargs:
+        content = Path(path).read_text(encoding="utf-8")
+        proof = kwargs.get("proof_sidecar")
+        if proof:
+            content += "\n" + Path(proof).read_text(encoding="utf-8")
+        artifact_value = kwargs.get("paa_artifact")
+        if not artifact_value:
+            match = re.search(r"(?im)^-\s*Artifact:\s*`?([^`\s]+)", content)
+            artifact_value = match.group(1) if match else None
+        if artifact_value:
+            artifact_path = Path(artifact_value)
+            if not artifact_path.is_absolute():
+                article = Path(path).resolve()
+                root = article.parent.parent if article.parent.name == "drafts" else article.parent
+                artifact_path = root / artifact_path
+            try:
+                payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+                run_id = payload.get("run_receipt", {}).get("run_id")
+            except (OSError, json.JSONDecodeError):
+                run_id = None
+            if isinstance(run_id, str) and run_id:
+                kwargs["expected_run_id"] = run_id
+    return production_check_file(path, *args, **kwargs)
 
 
 def strict_provenance_block(source_kind: str, artifact: str) -> str:
@@ -116,6 +146,102 @@ def dedicated_brief_paa(questions=FAQ_QUESTIONS) -> str:
 
 
 class StrictPaaSourceTests(unittest.TestCase):
+    def test_record_runs_fixed_collector_and_persists_exact_stdout_before_parsing(self):
+        collection_date = datetime.now(timezone.utc).date().isoformat()
+        exact_stdout = json.dumps({
+            "page_url": "https://answersocrates.com/paa-extractor",
+            "page_title": "People Also Ask Extractor",
+            "body_text": "People Also Ask",
+            "sections": [
+                {"heading": "People Also Ask", "items": list(FAQ_QUESTIONS)},
+                {"heading": "Search suggestions", "items": ["hvac scheduling"]},
+            ],
+        })
+
+        def completed(command, **kwargs):
+            stdout = exact_stdout if "run-code" in command else ""
+            return subprocess.CompletedProcess(command, 0, stdout=stdout, stderr="")
+
+        with tempfile.TemporaryDirectory() as temp_dir, patch.object(
+            paa_provenance_guard, "find_npx_executable", return_value="npx"
+        ), patch.object(paa_provenance_guard.subprocess, "run", side_effect=completed):
+            root = Path(temp_dir)
+            raw_path = root / "research" / "answersocrates-raw.json"
+            output_path = root / "research" / "paa.json"
+            exit_code = paa_provenance_guard._main([
+                "record",
+                "--query", PAA_QUERY,
+                "--collection-date", collection_date,
+                "--run-id", "agency-run-123",
+                "--raw-capture-output", str(raw_path),
+                "--workspace-root", str(root),
+                "--output", str(output_path),
+            ])
+            capture = json.loads(raw_path.read_text(encoding="utf-8"))
+            artifact = json.loads(output_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(capture["raw_response"]["stdout"], exact_stdout)
+        self.assertEqual(capture["raw_response"]["stderr"], "")
+        self.assertEqual(capture["raw_response"]["returncode"], 0)
+        self.assertEqual(artifact["eligible_questions"], list(FAQ_QUESTIONS))
+        self.assertEqual(artifact["ineligible_fragments"], ["hvac scheduling"])
+
+    def test_record_derives_blocker_only_from_exact_persisted_collector_stdout(self):
+        collection_date = datetime.now(timezone.utc).date().isoformat()
+        exact_stdout = json.dumps({
+            "page_url": "https://answersocrates.com/paa-extractor",
+            "page_title": "People Also Ask Extractor",
+            "body_text": "You have already used your free search quota.",
+            "sections": [],
+        })
+
+        def completed(command, **kwargs):
+            stdout = exact_stdout if "run-code" in command else ""
+            return subprocess.CompletedProcess(command, 0, stdout=stdout, stderr="")
+
+        with tempfile.TemporaryDirectory() as temp_dir, patch.object(
+            paa_provenance_guard, "find_npx_executable", return_value="npx"
+        ), patch.object(paa_provenance_guard.subprocess, "run", side_effect=completed):
+            root = Path(temp_dir)
+            raw_path = root / "research" / "answersocrates-raw.json"
+            output_path = root / "research" / "paa.json"
+            exit_code = paa_provenance_guard._main([
+                "record",
+                "--query", PAA_QUERY,
+                "--collection-date", collection_date,
+                "--run-id", "agency-run-blocked",
+                "--raw-capture-output", str(raw_path),
+                "--workspace-root", str(root),
+                "--output", str(output_path),
+            ])
+            capture = json.loads(raw_path.read_text(encoding="utf-8"))
+            artifact = json.loads(output_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(capture["raw_response"]["stdout"], exact_stdout)
+        self.assertEqual(artifact["status"], "blocked")
+        self.assertEqual(artifact["blocker"]["kind"], "quota")
+        self.assertEqual(artifact["eligible_questions"], [])
+
+    def test_record_rejects_caller_supplied_capture_and_requires_canonical_inputs(self):
+        for argv in (
+            ["record", "--raw-capture", "writer.json", "--output", "paa.json"],
+            ["record", "--query", PAA_QUERY, "--output", "paa.json"],
+        ):
+            with self.subTest(argv=argv), self.assertRaises(SystemExit):
+                paa_provenance_guard._main(argv)
+
+    def test_answersocrates_builder_requires_query_date_and_run_expectations(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            capture = self._write_raw_capture(root)
+            with self.assertRaisesRegex(TypeError, "expected_query"):
+                build_answersocrates_artifact(
+                    raw_capture_path=capture,
+                    workspace_root=root,
+                )
+
     def _write_raw_capture(
         self,
         root: Path,
@@ -127,6 +253,18 @@ class StrictPaaSourceTests(unittest.TestCase):
         collector_name: str = "answersocrates_playwright_collector",
         raw_response: object | None = None,
     ) -> Path:
+        if isinstance(raw_response, dict) and set(raw_response) == {"visible_sections", "blocker_output"}:
+            blocker_output = str(raw_response.get("blocker_output") or "")
+            raw_response = {
+                "stdout": json.dumps({
+                    "page_url": "https://answersocrates.com/paa-extractor",
+                    "page_title": "People Also Ask Extractor",
+                    "body_text": blocker_output or "People Also Ask",
+                    "sections": raw_response.get("visible_sections", []),
+                }),
+                "stderr": "",
+                "returncode": 0,
+            }
         payload = {
             "schema": "simpro-answersocrates-playwright-capture/v1",
             "collector": {"name": collector_name, "version": "1.0.0"},
@@ -136,14 +274,20 @@ class StrictPaaSourceTests(unittest.TestCase):
             "completed_at": completed_at,
             "page_url": "https://answersocrates.com/paa-extractor",
             "raw_response": raw_response if raw_response is not None else {
-                "visible_sections": [
-                    {
-                        "heading": "People Also Ask",
-                        "items": [FAQ_QUESTIONS[0], FAQ_QUESTIONS[1]],
-                    },
-                    {"heading": "Search suggestions", "items": ["hvac scheduling"]},
-                ],
-                "blocker_output": "",
+                "stdout": json.dumps({
+                    "page_url": "https://answersocrates.com/paa-extractor",
+                    "page_title": "People Also Ask Extractor",
+                    "body_text": "People Also Ask",
+                    "sections": [
+                        {
+                            "heading": "People Also Ask",
+                            "items": [FAQ_QUESTIONS[0], FAQ_QUESTIONS[1]],
+                        },
+                        {"heading": "Search suggestions", "items": ["hvac scheduling"]},
+                    ],
+                }),
+                "stderr": "",
+                "returncode": 0,
             },
         }
         capture = attest_mapping(
@@ -154,122 +298,6 @@ class StrictPaaSourceTests(unittest.TestCase):
         path = root / "research" / "answersocrates-playwright-raw.json"
         atomic_write_json(path, capture)
         return path
-
-    def test_record_derives_questions_from_attested_raw_capture(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            root = Path(temp_dir)
-            capture = self._write_raw_capture(root)
-            capture_sha256 = hashlib.sha256(capture.read_bytes()).hexdigest()
-            output_path = root / "research" / "paa.json"
-
-            exit_code = paa_provenance_guard._main([
-                "record",
-                "--raw-capture", str(capture),
-                "--expected-query", PAA_QUERY,
-                "--expected-collection-date", COLLECTION_DATE,
-                "--expected-run-id", "browser-run-123",
-                "--workspace-root", str(root),
-                "--output", str(output_path),
-            ])
-            artifact = json.loads(output_path.read_text(encoding="utf-8"))
-
-        self.assertEqual(exit_code, 0)
-        self.assertEqual(artifact["eligible_questions"], list(FAQ_QUESTIONS))
-        self.assertEqual(artifact["ineligible_fragments"], ["hvac scheduling"])
-        self.assertEqual(
-            artifact["raw_capture"],
-            {
-                "path": "research/answersocrates-playwright-raw.json",
-                "sha256": capture_sha256,
-            },
-        )
-        self.assertEqual(artifact["run_receipt"]["raw_capture"], artifact["raw_capture"])
-
-    def test_record_rejects_removed_caller_authored_question_and_blocker_flags(self):
-        for flag, value in (
-            ("--eligible-question", FAQ_QUESTIONS[0]),
-            ("--ineligible-fragment", "hvac scheduling"),
-            ("--blocker", "quota"),
-            ("--blocker-reason", "caller says blocked"),
-        ):
-            with self.subTest(flag=flag), self.assertRaises(SystemExit):
-                paa_provenance_guard._main([
-                    "record", "--raw-capture", "capture.json", flag, value,
-                    "--output", "paa.json",
-                ])
-
-    def test_record_derives_closed_blocker_from_raw_visible_output(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            root = Path(temp_dir)
-            capture = self._write_raw_capture(
-                root,
-                raw_response={
-                    "visible_sections": [],
-                    "blocker_output": "You have already used your free search quota.",
-                },
-            )
-            output = root / "research" / "blocked.json"
-            paa_provenance_guard._main([
-                "record", "--raw-capture", str(capture),
-                "--workspace-root", str(root), "--output", str(output),
-            ])
-            artifact = json.loads(output.read_text(encoding="utf-8"))
-
-        self.assertEqual(artifact["status"], "blocked")
-        self.assertEqual(artifact["blocker"]["kind"], "quota")
-        self.assertIn("free search quota", artifact["blocker"]["reason"].lower())
-
-    def test_record_rejects_unsigned_tampered_or_mismatched_raw_capture(self):
-        mutations = {
-            "unsigned": lambda payload: payload.pop("execution_attestation"),
-            "wrong_collector": lambda payload: payload["collector"].update(name="writer"),
-            "query_mismatch": lambda payload: payload.update(query="different query"),
-            "run_mismatch": lambda payload: payload.update(run_id="different-run"),
-            "future": lambda payload: payload.update(
-                started_at="2999-08-11T14:00:00Z",
-                completed_at="2999-08-11T14:01:00Z",
-            ),
-        }
-        for name, mutate in mutations.items():
-            with self.subTest(name=name), tempfile.TemporaryDirectory() as temp_dir:
-                root = Path(temp_dir)
-                capture = self._write_raw_capture(root)
-                payload = json.loads(capture.read_text(encoding="utf-8"))
-                mutate(payload)
-                atomic_write_json(capture, payload)
-                args = [
-                    "record", "--raw-capture", str(capture),
-                    "--expected-query", PAA_QUERY,
-                    "--expected-run-id", "browser-run-123",
-                    "--workspace-root", str(root),
-                    "--output", str(root / "research" / "paa.json"),
-                ]
-                with self.assertRaises(ValueError):
-                    paa_provenance_guard._main(args)
-
-    def test_record_cli_emits_a_receipt_bound_answersocrates_artifact(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            root = Path(temp_dir)
-            capture = self._write_raw_capture(root)
-            output_path = Path(temp_dir) / "paa.json"
-            exit_code = paa_provenance_guard._main(
-                [
-                    "record",
-                    "--raw-capture", str(capture),
-                    "--workspace-root", str(root),
-                    "--output",
-                    str(output_path),
-                ]
-            )
-
-            record = paa_provenance_guard._parse_question_artifact(
-                output_path.read_text(encoding="utf-8")
-            )
-
-        self.assertEqual(exit_code, 0)
-        self.assertIsNotNone(record)
-        self.assertTrue(record.run_receipt_valid)
-        self.assertEqual(record.eligible_questions, FAQ_QUESTIONS)
 
     def _write_family(
         self,
@@ -326,6 +354,9 @@ class StrictPaaSourceTests(unittest.TestCase):
             artifact_content = json.dumps(build_answersocrates_artifact(
                 raw_capture_path=capture,
                 workspace_root=root,
+                expected_query=requested.get("query", PAA_QUERY),
+                expected_collection_date=requested.get("collection_date", COLLECTION_DATE),
+                expected_run_id="answersocrates-test-run",
             ))
         artifact.write_text(artifact_content, encoding='utf-8')
         article = root / 'drafts' / 'hvac-scheduling.md'
@@ -366,6 +397,9 @@ class StrictPaaSourceTests(unittest.TestCase):
         artifact = build_answersocrates_artifact(
             raw_capture_path=capture,
             workspace_root=root,
+            expected_query=PAA_QUERY,
+            expected_collection_date=COLLECTION_DATE,
+            expected_run_id="browser-run-123",
         )
         path.write_text(json.dumps(artifact), encoding="utf-8")
 
@@ -672,6 +706,7 @@ class StrictPaaSourceTests(unittest.TestCase):
                     content_brief=str(brief),
                     expected_query=PAA_QUERY,
                     expected_collection_date=COLLECTION_DATE,
+                    expected_run_id='answersocrates-test-run',
                 )
 
             self.assertTrue(result.passed, result.findings)
@@ -738,13 +773,21 @@ class StrictPaaSourceTests(unittest.TestCase):
     def test_answersocrates_rejects_empty_normalized_question_keys(self):
         with self.assertRaisesRegex(ValueError, 'normalization'):
             paa_provenance_guard._derive_answersocrates_observations(
-                {"visible_sections": [{"heading": "People Also Ask", "items": ["???"]}], "blocker_output": ""}
+                {"stdout": json.dumps({
+                    "page_url": "https://answersocrates.com/paa-extractor",
+                    "page_title": "PAA", "body_text": "People Also Ask",
+                    "sections": [{"heading": "People Also Ask", "items": ["???"]}],
+                }), "stderr": "", "returncode": 0}
             )
 
     def test_answersocrates_rejects_colliding_normalized_question_keys(self):
         with self.assertRaisesRegex(ValueError, 'normalization'):
             paa_provenance_guard._derive_answersocrates_observations(
-                {"visible_sections": [{"heading": "People Also Ask", "items": ["What's HVAC?", "What’s HVAC?"]}], "blocker_output": ""}
+                {"stdout": json.dumps({
+                    "page_url": "https://answersocrates.com/paa-extractor",
+                    "page_title": "PAA", "body_text": "People Also Ask",
+                    "sections": [{"heading": "People Also Ask", "items": ["What's HVAC?", "What’s HVAC?"]}],
+                }), "stderr": "", "returncode": 0}
             )
 
     def test_rewrite_content_brief_passes_and_binds_hash_and_questions(self):
@@ -840,6 +883,7 @@ class StrictPaaSourceTests(unittest.TestCase):
                 workflow_mode='rewrite',
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
+                expected_run_id='answersocrates-test-run',
             )
 
         self.assertTrue(result.passed)
@@ -866,6 +910,7 @@ class StrictPaaSourceTests(unittest.TestCase):
                 content_brief=str(brief),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
+                expected_run_id='answersocrates-test-run',
             )
 
         self.assertTrue(result.passed)
@@ -1003,6 +1048,7 @@ class StrictPaaSourceTests(unittest.TestCase):
                 workflow_mode='new',
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
+                expected_run_id='answersocrates-test-run',
             )
             expected_hash = hashlib.sha256(artifact.read_bytes()).hexdigest()
 
@@ -1042,6 +1088,7 @@ class StrictPaaSourceTests(unittest.TestCase):
                 answersocrates_blocker=str(blocker),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
+                expected_run_id='browser-run-123',
             )
             expected_blocker_hash = hashlib.sha256(
                 blocker.read_bytes()
@@ -1076,6 +1123,7 @@ class StrictPaaSourceTests(unittest.TestCase):
                 workflow_mode='new',
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
+                expected_run_id='answersocrates-test-run',
             )
 
         self.assertTrue(result.passed)
@@ -1127,8 +1175,10 @@ class StrictPaaSourceTests(unittest.TestCase):
                         'new',
                         '--expected-query',
                         PAA_QUERY,
-                        '--expected-collection-date',
-                        COLLECTION_DATE,
+                '--expected-collection-date',
+                COLLECTION_DATE,
+                '--expected-run-id',
+                'answersocrates-test-run',
                     ]
                 )
 
@@ -1205,6 +1255,7 @@ class PaaProvenanceGuardTests(unittest.TestCase):
                 paa_artifact=str(artifact),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
+                expected_run_id='no-faq-run',
             )
 
         self.assertEqual(findings, [])
@@ -1228,6 +1279,7 @@ class PaaProvenanceGuardTests(unittest.TestCase):
                 paa_artifact=str(artifact),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
+                expected_run_id='answersocrates-test-run',
             )
 
         self.assertIn(
@@ -1344,6 +1396,7 @@ HVAC scheduling software helps teams coordinate dispatch, job updates, and invoi
                     paa_artifact=str(artifact),
                     expected_query=PAA_QUERY,
                     expected_collection_date=COLLECTION_DATE,
+                    expected_run_id='answersocrates-test-run',
                 )
 
         self.assertIn(
@@ -1476,6 +1529,7 @@ PAA/FAQ Provenance
                 str(article),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
+                expected_run_id='missing-question-run',
             )
 
         self.assertEqual(len(findings), 1)
@@ -1573,6 +1627,7 @@ class ExplicitPaaBindingTests(unittest.TestCase):
                 paa_artifact=str(artifact),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
+                expected_run_id='explicit-run',
             )
 
         self.assertEqual(findings, [])
@@ -1600,6 +1655,7 @@ class ExplicitPaaBindingTests(unittest.TestCase):
                 paa_artifact=str(bound),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
+                expected_run_id='browser-run-123',
             )
 
         self.assertIn(

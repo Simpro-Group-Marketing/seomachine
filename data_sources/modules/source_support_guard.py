@@ -17,6 +17,7 @@ import json
 import math
 import re
 import socket
+import subprocess
 import sys
 import time
 from dataclasses import dataclass
@@ -317,6 +318,7 @@ def write_source_classification_artifact(
         decision_path,
         field="source classification decision registry",
     )
+    _require_registry_matches_committed_head(snapshot, workspace_root=root)
     registry = snapshot.payload
     if set(registry) != {"schema", "revision", "decisions"}:
         raise ValueError("source classification decision registry shape is invalid")
@@ -1142,6 +1144,13 @@ def _validate_classification_decision(
         return "source_classification_decision_tampered"
     if registry.get("decision_path") != SOURCE_DECISIONS_PATH:
         return "source_classification_authority_unsupported"
+    try:
+        _require_registry_matches_committed_head(
+            snapshot,
+            workspace_root=workspace_root,
+        )
+    except ValueError:
+        return "source_classification_decision_tampered"
     decision_registry = snapshot.payload
     if (
         set(decision_registry) != {"schema", "revision", "decisions"}
@@ -1167,6 +1176,51 @@ def _validate_classification_decision(
     if any(decision.get(key) != value for key, value in expected.items()):
         return "source_classification_decision_mismatch"
     return None
+
+
+def _require_registry_matches_committed_head(
+    snapshot: object,
+    *,
+    workspace_root: str | Path,
+) -> None:
+    """Require canonical registry bytes to equal the Git-tracked HEAD blob."""
+    root = Path(workspace_root).resolve()
+    path = getattr(snapshot, "path", None)
+    data = getattr(snapshot, "data", None)
+    if not isinstance(path, Path) or not isinstance(data, bytes):
+        raise ValueError("source decision registry snapshot is invalid")
+    expected_path = (root / SOURCE_DECISIONS_PATH).resolve()
+    if path != expected_path:
+        raise ValueError(
+            f"source classification decisions must use {SOURCE_DECISIONS_PATH}"
+        )
+    try:
+        top = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--show-toplevel"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            timeout=10,
+        )
+        blob = subprocess.run(
+            ["git", "-C", str(root), "show", f"HEAD:{SOURCE_DECISIONS_PATH}"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError) as error:
+        raise ValueError(
+            "source classification registry must match its committed HEAD blob"
+        ) from error
+    try:
+        top_path = Path(top.stdout.decode("utf-8").strip()).resolve()
+    except (UnicodeDecodeError, OSError):
+        top_path = Path()
+    if top.returncode != 0 or top_path != root or blob.returncode != 0 or blob.stdout != data:
+        raise ValueError(
+            "source classification registry must match its committed HEAD blob"
+        )
 
 
 def _validate_capture_receipt(

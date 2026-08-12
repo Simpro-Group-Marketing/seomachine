@@ -17,6 +17,7 @@ try:
         blog_identity_guard,
         context_binding_guard,
         editorial_plan_guard,
+        paa_provenance_guard,
     )
     from .blog_assembly_bom import (
         BOM_SCHEMA,
@@ -57,6 +58,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import blog_assembly_stage_receipt
     import context_binding_guard
     import editorial_plan_guard
+    import paa_provenance_guard
     from blog_assembly_bom import (
         BOM_SCHEMA,
         EDITORIAL_PLAN_SCHEMA,
@@ -338,7 +340,7 @@ def check_bom(
         ),
     ):
         findings.append(_finding(rule_id, message))
-    findings.extend(_check_editorial_plan(bom, artifacts, root))
+    findings.extend(_check_research_provenance(bom, artifacts, root, article_path))
     findings.extend(_check_workflow(bom, artifacts, root))
     findings.extend(_check_preflight(bom, artifacts, root))
     return _sorted(findings)
@@ -740,10 +742,11 @@ def _check_connector(
     return findings
 
 
-def _check_editorial_plan(
+def _check_research_provenance(
     bom: Mapping[str, Any],
     artifacts: Mapping[str, Any],
     root: Path,
+    article_path: str | Path,
 ) -> list[Finding]:
     row = artifacts.get("editorial_plan")
     if not isinstance(row, Mapping) or not isinstance(row.get("path"), str):
@@ -773,6 +776,14 @@ def _check_editorial_plan(
         )
     except ValueError:
         return []
+    assembled = _parse_date(bom.get("assembly_date"))
+    if assembled is None:
+        return [_finding("bom_assembly_date_invalid", "BOM assembly date is invalid.")]
+    canonical_run_id = canonical_article_run_id(
+        article_path,
+        workspace_root=root,
+        assembly_date=assembled,
+    )
     plan_findings = editorial_plan_guard._check_loaded_plan(
         plan,
         article_path=article_path,
@@ -782,6 +793,7 @@ def _check_editorial_plan(
             if isinstance(bom.get("assembly_date"), str)
             else None
         ),
+        expected_run_id=canonical_run_id,
     )
     if plan_findings:
         return [
@@ -804,6 +816,43 @@ def _check_editorial_plan(
                 "bom_faq_policy_mismatch",
                 "BOM faq_policy must exactly match the bound editorial plan.",
             )
+        )
+    paa_policy = bom.get("paa_policy")
+    if isinstance(paa_policy, Mapping):
+        artifact_label = {
+            "answersocrates": "paa_artifact",
+            "brief_paa": "content_brief",
+            "user_csv": "user_paa_csv",
+        }.get(str(paa_policy.get("source_kind") or ""))
+
+        def bound_path(label: str) -> str | None:
+            artifact = artifacts.get(label)
+            if not isinstance(artifact, Mapping):
+                return None
+            try:
+                return str(verify_artifact(
+                    artifact, workspace_root=root, field=f"artifacts.{label}"
+                ))
+            except ValueError:
+                return None
+
+        paa_findings = paa_provenance_guard.check_file(
+            str(article_path),
+            proof_sidecar=bound_path("validation_sidecar"),
+            workflow_mode=str(bom.get("workflow_mode") or ""),
+            content_brief=bound_path("content_brief"),
+            answersocrates_blocker=bound_path("answersocrates_blocker"),
+            expected_query=str(paa_policy.get("query") or ""),
+            expected_collection_date=assembled.isoformat(),
+            expected_run_id=canonical_run_id,
+            paa_artifact=bound_path(artifact_label) if artifact_label else None,
+        )
+        findings.extend(
+            _finding(
+                f"bom_{finding.get('rule_id')}",
+                str(finding.get("message") or "PAA provenance is invalid."),
+            )
+            for finding in paa_findings
         )
     ownership = plan.get("query_ownership")
     if isinstance(ownership, Mapping) and ownership.get("decision") == "blocked":
