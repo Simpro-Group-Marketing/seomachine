@@ -48,9 +48,9 @@ Required validation sidecar evidence: generated vault context binding for every 
 - **Keyword Coverage & Clustering** (NEW!): Report density as context, assess distribution and semantic coverage, and detect keyword stuffing. Apply density-audit labels only when the caller supplies an explicit target.
 - **Keyword Placement**: Check H1, H2, first 100 words, meta title/description
 - **Heading Structure**: Evaluate H1-H6 hierarchy and keyword integration
-- **Content Length Context** (NEW!): Report the article and top 10-20 SERP competitor word counts as observed context. Do not derive the article target from competitor length.
+- **Content Length Context** (NEW!): Report the article and an intent-representative SERP sample's word counts as observed context. Do not derive the article target from competitor length.
 - **Meta Elements**: Review meta title (50-60 chars) and description (150-160 chars)
-- **Internal Links**: Count and evaluate quality of internal links (aim for 3-5+)
+- **Internal Links**: Evaluate whether each link advances the Reader Contract and includes the required contextual down-funnel destination; do not target a fixed total
 - **External Links**: Check for authoritative external sources
 - **Readability Score** (NEW!): Calculate Flesch Reading Ease, Flesch-Kincaid Grade Level, passive voice ratio, sentence complexity
 - **SEO Quality Rating** (NEW!): Overall score (0-100) with category breakdowns for content, keywords, meta, structure, links, and readability
@@ -58,17 +58,17 @@ Required validation sidecar evidence: generated vault context binding for every 
 ### AEO/GEO Rewrite Readiness
 - **AEO/GEO readiness audit**: Check direct-answer intro, Key Takeaways, Capsule Method coverage, FAQ/PAA structure, schema notes, source-backed claims, named metadata, and one-idea-per-section structure.
 - **Missing strategy inputs**: Identify missing `topic`, `audience`, `main_question`, `related_questions`, `tone`, `expertise`, and `length` inputs from @context/aeo-geo-blog-strategy.md.
-- **PAA/FAQ provenance**: Record whether selected questions come from AnswerSocrates, SERP, Reddit, YouTube, or a user PAA/FAQ CSV. If no sourced questions exist, mark the rewrite blocked until the artifact or export is available.
-- **Required PAA/source/proof artifacts**: List required `research/paa-questions-[topic-slug]-[YYYY-MM-DD].md`, source map, customer-proof source, author/reviewer source, and blocker notes before `/rewrite`.
+- **PAA/FAQ provenance**: First inspect the rewrite brief for a dedicated pre-picked PAA section; it takes precedence and its exact questions must remain visible FAQ headings. Otherwise require a structured AnswerSocrates artifact. A user CSV requires a bound genuine blocked-state artifact. SERP, Reddit, and YouTube are supplemental only.
+- **Required PAA/source/proof artifacts**: List required `research/paa-questions-[topic-slug]-[YYYY-MM-DD].json`, source map, customer-proof source, author/reviewer source, and blocker notes before `/rewrite`.
 - **Source map**: Identify external sources, supported claims, natural anchor text, and target sections needed for the rewrite.
 - **E-E-A-T Proof Map**: Identify Experience, Expertise, Authority/Trust, customer proof candidates, review-site candidates, and proof gaps. Use `context/aeo-geo-blog-strategy.md` for review, quote, rating, and metric boundaries.
 - **Customer Proof Pack**: Audit whether safe customer proof exists for the rewrite. Record selected proof, approved quotes/metrics, excluded claims, and missing inputs before `/rewrite`.
-- **Fred Voccola authority evaluation**: Resolve the rewrite `topic`, `title`, and `objective`, then automatically run `python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --slate --limit 5` and write the complete `Fred Voccola Authority Selection` block from `context/aeo-geo-blog-strategy.md` to the validation sidecar. Evaluation is mandatory and public use is optional. The selector defaults to `Selected: none`; select a source explicitly only after reviewing it and confirming direct topical support. If the selector, connector, context pack, or receipt validation fails, record `Evaluation status: blocked` and the blocker; do not invent Fred evidence or recommend Fred public use.
+- **Fred Voccola authority evaluation**: Resolve the rewrite `topic`, `title`, and `objective`, then automatically run `python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --slate --limit 5 --output "research/fred-authority-selection-[topic-slug].md"` and copy that exact generated `Fred Voccola Authority Selection` block into the validation sidecar. Evaluation is mandatory and public use is optional. The selector defaults to `Selected: none`; select a source explicitly only after reviewing it and confirming direct topical support. If the selector, connector, context pack, or receipt validation fails, record `Evaluation status: blocked` and the blocker; do not invent Fred evidence or recommend Fred public use.
 - **Claims excluded for missing proof**: List claims that must stay out of the rewrite because no public-facing source link, approved metric, case-study URL, review-site source, expert quote, or author/reviewer support exists.
 
 ### Competitive Context
 - **SERP Position**: Research current ranking for target keywords (if known)
-- **Top Competitors**: Identify top 3-5 ranking articles for same keywords
+- **Relevant Competitors**: Identify ranking articles until intent, recurring structure, and meaningful gaps are clear; document why the evidence set is sufficient
 - **Dominant format default**: Match the dominant observed content type unless the Reader Contract documents a justified exception
 - **SERP feature default**: Evaluate every identified feature and target every applicable feature supported by intent, format, reader value, and verified inputs
 - **Content Gaps**: Treat recurring, reader-critical, evidence-supported gaps as must-fill; document any Reader Contract exception
@@ -125,7 +125,7 @@ The new Content Analyzer agent provides:
 - **Estimated Effort**: Light edit / Moderate update / Major rewrite / Complete refresh
 - **Expected Impact**: State the evidence-bound expected direction for reader value, task completion, or search alignment, plus uncertainty; do not forecast traffic or rankings without validated forecast inputs
 - **Specific improvements needed**: Reader Contract target fit, critical keyword placement, semantic coverage, stuffing risk, and readability fixes
-- **Rewrite-specific AEO/GEO acceptance checklist**: Required direct-answer intro, 3-5 sourced FAQ/PAA questions, Source Map, E-E-A-T Proof Map, schema notes, AI copy linter zero errors, content quality 85/100+, and AEO/GEO 90/100+
+- **Rewrite-specific AEO/GEO acceptance checklist**: Required direct-answer intro; intent-driven FAQ policy; exact brief-selected or AnswerSocrates PAA provenance; Source Map; E-E-A-T Proof Map; conditional schema notes; AI copy linter zero errors; content quality 85/100+; and AEO/GEO 90/100+
 
 ### 6. Research Brief
 If a rewrite is recommended, provide initial research brief including:
@@ -137,7 +137,7 @@ If a rewrite is recommended, provide initial research brief including:
 - Caller-supplied content target from Reader Contract planning, or an unresolved status when no target exists
 - Internal linking opportunities
 - Main answer target and AEO/GEO variable resolution
-- PAA/FAQ provenance and selected 3-5 closest questions with intent labels
+- PAA/FAQ provenance and the exact intent-relevant selected questions, with rewrite-brief questions taking precedence
 - Insight summary and suggested blog focus
 - Source map with source, claim, anchor text, and target section
 - E-E-A-T Proof Map with Experience proof present/missing, Expertise proof present/missing, case-study proof candidates, Review-site VoC candidates, review-site experience evidence candidates, Authority/Trust proof, and any proof gaps that must remain out of the rewrite

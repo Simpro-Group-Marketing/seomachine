@@ -3,45 +3,62 @@ PAA Provenance Guard
 
 Deterministic guardrail for FAQ question provenance. It does not prove FAQ
 answers; faq_proof_guard owns answer proof. This guard verifies that every FAQ
-question in a draft appears in a saved PAA/FAQ source artifact from an allowed
-source such as AnswerSocrates, SERP, Reddit, YouTube, or a user CSV.
+question in a draft appears in a saved, structured primary-source artifact.
 """
 
 import argparse
+import csv
+import hashlib
 import json
 import re
 import sys
-from dataclasses import dataclass
+import unicodedata
+from dataclasses import dataclass, replace
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import List, Optional
 
 try:
+    from .blog_assembly_contract import atomic_write_json, canonical_json_sha256
+    from .execution_attestation import attest_mapping, verify_mapping_attestation
+    from .faq_structure import detect_faq_structure
     from .guard_common import Finding, should_fail, summarize_findings
     from .proof_sidecar import compose_with_sidecar, load_sidecar_content
 except ImportError:  # pragma: no cover - supports direct script execution.
+    from blog_assembly_contract import atomic_write_json, canonical_json_sha256
+    from execution_attestation import attest_mapping, verify_mapping_attestation
+    from faq_structure import detect_faq_structure
     from guard_common import Finding, should_fail, summarize_findings
     from proof_sidecar import compose_with_sidecar, load_sidecar_content
 
 
-FAQ_H2_RE = re.compile(r"^##\s+(?:Frequently Asked Questions|FAQ)\s*$", re.IGNORECASE)
-H2_RE = re.compile(r"^##\s+")
-FAQ_QUESTION_RE = re.compile(r"^###\s+(.+\?)\s*$")
 PROVENANCE_HEADING_RE = re.compile(r"^(?:#{1,6}\s+)?PAA/FAQ Provenance\s*$", re.IGNORECASE)
 SOURCE_RE = re.compile(r"^-\s*Source:\s*(.+?)\s*$", re.IGNORECASE)
 ARTIFACT_RE = re.compile(r"^-\s*Artifact:\s*`?([^`\s]+)`?\s*$", re.IGNORECASE)
 SELECTED_RE = re.compile(r"^-\s*Selected questions:\s*$", re.IGNORECASE)
 BULLET_RE = re.compile(r"^\s*-\s+(.+?)\s*$")
 
-ALLOWED_SOURCE_PATTERNS = (
-    "answersocrates",
-    "answer socrates",
-    "serp",
-    "reddit",
-    "youtube",
-    "user paa/faq csv",
-    "user csv",
-    "paa/faq csv",
+PRIMARY_SOURCE_KINDS = frozenset({'answersocrates', 'brief_paa', 'user_csv'})
+SUPPLEMENTAL_SOURCE_KINDS = frozenset({'serp', 'reddit', 'youtube'})
+WORKFLOW_MODES = frozenset({'new', 'rewrite'})
+ANSWERSOCRATES_BLOCKER_STATES = frozenset(
+    {'login', 'captcha', 'quota', 'unavailability'}
 )
+ANSWERSOCRATES_ARTIFACT_SCHEMA = "simpro-answersocrates-artifact/v1"
+ANSWERSOCRATES_RECEIPT_SCHEMA = "simpro-answersocrates-run-receipt/v1"
+ANSWERSOCRATES_RECEIPT_ATTESTATION_PURPOSE = ANSWERSOCRATES_RECEIPT_SCHEMA
+ANSWERSOCRATES_TOOL = {"name": "playwright_mcp", "version": "1.0.0"}
+ELIGIBLE_HEADING_RE = re.compile(r'^##\s+Eligible Questions\s*$', re.IGNORECASE)
+INELIGIBLE_HEADING_RE = re.compile(r'^##\s+Ineligible Fragments\s*$', re.IGNORECASE)
+BRIEF_PAA_HEADING_RE = re.compile(r'^## Pre-picked PAA Questions$')
+ANY_H2_RE = re.compile(r'^##\s+')
+ARTIFACT_SOURCE_RE = re.compile(r'^Source kind:\s*(\S+)\s*$', re.IGNORECASE)
+ARTIFACT_STATUS_RE = re.compile(r'^Status:\s*(\S+)\s*$', re.IGNORECASE)
+ARTIFACT_QUERY_RE = re.compile(r'^Query:\s*(.+?)\s*$', re.IGNORECASE)
+ARTIFACT_DATE_RE = re.compile(r'^Date:\s*(\S+)\s*$', re.IGNORECASE)
+ARTIFACT_BLOCKER_RE = re.compile(r'^Blocker:\s*(.+?)\s*$', re.IGNORECASE)
+QUESTION_LIST_ITEM_RE = re.compile(r'^\s*(?:[-*]|\d+[.)])\s+(.+?\?)\s*$')
+FENCE_OPEN_RE = re.compile(r'^\s*(`{3,}|~{3,})')
 
 
 @dataclass
@@ -58,10 +75,158 @@ class ProvenanceBlock:
     line: int
 
 
+@dataclass(frozen=True)
+class QuestionArtifact:
+    source_kind: str
+    status: str
+    query: str
+    collection_date: str
+    eligible_questions: tuple[str, ...]
+    ineligible_fragments: tuple[str, ...]
+    eligible_section_present: bool
+    blocker: str = ''
+    run_receipt_valid: bool = False
+
+
+@dataclass(frozen=True)
+class PaaProvenanceResult:
+    workflow_mode: str
+    source_kind: str
+    artifact: str
+    artifact_sha256: str
+    artifact_questions: tuple[str, ...]
+    artifact_query: str
+    artifact_collection_date: str
+    content_brief: str
+    content_brief_sha256: str
+    answersocrates_blocker: str
+    answersocrates_blocker_sha256: str
+    expected_query: str
+    expected_collection_date: str
+    faq_questions: tuple[str, ...]
+    selected_questions: tuple[str, ...]
+    findings: tuple[Finding, ...]
+
+    @property
+    def passed(self) -> bool:
+        return not self.findings
+
+    def to_dict(self) -> dict:
+        return {
+            "workflow_mode": self.workflow_mode,
+            "source_kind": self.source_kind,
+            "artifact": self.artifact,
+            "artifact_sha256": self.artifact_sha256,
+            "artifact_questions": list(self.artifact_questions),
+            "artifact_query": self.artifact_query,
+            "artifact_collection_date": self.artifact_collection_date,
+            "content_brief": self.content_brief,
+            "content_brief_sha256": self.content_brief_sha256,
+            "answersocrates_blocker": self.answersocrates_blocker,
+            "answersocrates_blocker_sha256": self.answersocrates_blocker_sha256,
+            "expected_query": self.expected_query,
+            "expected_collection_date": self.expected_collection_date,
+            "faq_questions": list(self.faq_questions),
+            "selected_questions": list(self.selected_questions),
+            "passed": self.passed,
+            "findings": [dict(finding) for finding in self.findings],
+        }
+
+
+class _DuplicateBriefPaaSectionsError(ValueError):
+    """Raised when a brief contains more than one visible dedicated PAA section."""
+
+
+def build_answersocrates_artifact(
+    *,
+    query: str,
+    collection_date: str,
+    eligible_questions: List[str] | tuple[str, ...] = (),
+    ineligible_fragments: List[str] | tuple[str, ...] = (),
+    status: str = "collected",
+    blocker: str = "",
+    blocker_reason: str = "",
+    run_id: str,
+    started_at: str,
+    completed_at: str,
+) -> dict:
+    """Build a canonical, receipt-bound record after an actual browser collection run."""
+    normalized_query = str(query).strip()
+    normalized_date = _parse_iso_date(str(collection_date))
+    if not normalized_query or normalized_date is None:
+        raise ValueError("query and collection_date are required")
+    if status not in {"collected", "blocked"}:
+        raise ValueError("status must be collected or blocked")
+    if not isinstance(run_id, str) or not run_id.strip():
+        raise ValueError("run_id must be a non-empty string")
+    started = _parse_utc_timestamp(started_at)
+    completed = _parse_utc_timestamp(completed_at)
+    if started is None or completed is None or completed <= started:
+        raise ValueError("run timestamps must be monotonic RFC 3339 UTC values")
+    questions = _strict_question_list(eligible_questions, field="eligible_questions")
+    fragments = _strict_text_list(ineligible_fragments, field="ineligible_fragments")
+    blocker_payload: dict | None
+    if status == "blocked":
+        normalized_blocker = str(blocker).strip().casefold()
+        normalized_reason = str(blocker_reason).strip()
+        if (
+            normalized_blocker not in ANSWERSOCRATES_BLOCKER_STATES
+            or not normalized_reason
+        ):
+            raise ValueError("blocked runs require an allowed blocker and a reason")
+        if questions:
+            raise ValueError("blocked runs cannot contain eligible questions")
+        blocker_payload = {
+            "kind": normalized_blocker,
+            "reason": normalized_reason,
+        }
+    else:
+        if str(blocker).strip() or str(blocker_reason).strip():
+            raise ValueError("collected runs cannot declare a blocker")
+        blocker_payload = None
+    payload = {
+        "schema": ANSWERSOCRATES_ARTIFACT_SCHEMA,
+        "source_kind": "answersocrates",
+        "status": status,
+        "query": normalized_query,
+        "collection_date": normalized_date.isoformat(),
+        "eligible_question_section": "people_also_ask",
+        "eligible_questions": list(questions),
+        "ineligible_fragments": list(fragments),
+        "blocker": blocker_payload,
+    }
+    receipt = attest_mapping({
+        "schema": ANSWERSOCRATES_RECEIPT_SCHEMA,
+        "run_id": run_id.strip(),
+        "tool": dict(ANSWERSOCRATES_TOOL),
+        "started_at": started_at,
+        "completed_at": completed_at,
+        "status": status,
+        "payload_sha256": canonical_json_sha256(payload),
+    }, purpose=ANSWERSOCRATES_RECEIPT_ATTESTATION_PURPOSE)
+    receipt["receipt_hash"] = canonical_json_sha256(receipt)
+    return {**payload, "run_receipt": receipt}
+
+
+def write_answersocrates_artifact(path: str | Path, artifact: dict) -> None:
+    """Atomically persist an already validated AnswerSocrates run artifact."""
+    parsed = _parse_question_artifact(json.dumps(artifact))
+    if parsed is None or not parsed.run_receipt_valid:
+        raise ValueError("AnswerSocrates artifact contract is invalid")
+    atomic_write_json(path, artifact)
+
+
 def check_content(
     content: str,
     source_path: Optional[str] = None,
     proof_content: Optional[str] = None,
+    *,
+    workflow_mode: str = "new",
+    content_brief: Optional[str] = None,
+    answersocrates_blocker: Optional[str] = None,
+    expected_query: Optional[str] = None,
+    expected_collection_date: Optional[str] = None,
+    paa_artifact: Optional[str] = None,
 ) -> List[Finding]:
     """
     Check FAQ questions against a saved PAA/FAQ provenance artifact.
@@ -69,22 +234,66 @@ def check_content(
     Args:
         content: Markdown article or rewrite content.
         source_path: Optional markdown file path used to resolve relative artifact paths.
+        proof_content: Optional validation-sidecar content.
+        workflow_mode: Exact workflow mode: new or rewrite.
+        content_brief: Bound content brief with a dedicated rewrite PAA section.
+        answersocrates_blocker: Structured blocked-run record required
+            when user_csv is the primary source.
+        expected_query: Exact query expected in an AnswerSocrates record.
+        expected_collection_date: Exact ISO date expected in an
+            AnswerSocrates record.
 
     Returns:
         Structured findings for missing, invalid, or unsupported PAA provenance.
     """
+    faq_structure = detect_faq_structure(content)
+    if faq_structure.unsupported_lines:
+        return [
+            _finding(
+                "paa_faq_structure_unsupported",
+                faq_structure.unsupported_lines[0],
+                None,
+                "FAQ-like question markup uses an unsupported structure.",
+                "Use a recognized FAQ H2 followed by H3-H5 question headings so provenance can be verified.",
+            )
+        ]
     faq_questions = _extract_faq_questions(content)
-    if not faq_questions:
+    if not faq_questions and not paa_artifact:
+        if workflow_mode == "new":
+            return [
+                _finding(
+                    "paa_new_answersocrates_required",
+                    1,
+                    None,
+                    "A new blog requires a structured AnswerSocrates artifact even when no FAQ is selected.",
+                    "Collect and bind the AnswerSocrates artifact, recording an empty selected-question decision when FAQ is not applicable.",
+                )
+            ]
+        if workflow_mode == "rewrite":
+            return [
+                _finding(
+                    "paa_rewrite_answersocrates_required",
+                    1,
+                    None,
+                    "A rewrite without bound pre-picked brief PAA requires a structured AnswerSocrates artifact.",
+                    "Bind the dedicated brief PAA artifact when it exists; otherwise collect and bind AnswerSocrates.",
+                )
+            ]
         return []
 
     proof_source = compose_with_sidecar(content, proof_content)
-    provenance = _extract_provenance_block(proof_source)
+    provenance = _provenance_or_bound_artifact(
+        proof_source,
+        paa_artifact=paa_artifact,
+        content_brief=content_brief,
+    )
     if provenance is None:
+        first = faq_questions[0]
         return [
             _finding(
                 "paa_provenance_missing",
-                faq_questions[0].line,
-                faq_questions[0].question,
+                first.line,
+                first.question,
                 "FAQ section exists, but no PAA/FAQ Provenance block was found.",
                 (
                     "Add a PAA/FAQ Provenance block with Source, Artifact, and "
@@ -93,20 +302,52 @@ def check_content(
             )
         ]
 
-    if not _is_allowed_source(provenance.source):
+    source_kind = provenance.source.strip()
+    if source_kind in SUPPLEMENTAL_SOURCE_KINDS:
+        return [
+            _finding(
+                "paa_supplemental_source_cannot_qualify",
+                provenance.line,
+                None,
+                f"Supplemental PAA source cannot qualify as primary provenance: {source_kind}",
+                "Use AnswerSocrates, dedicated brief PAA, or a blocker-backed user CSV.",
+                match=source_kind,
+            )
+        ]
+
+    if source_kind not in PRIMARY_SOURCE_KINDS:
         return [
             _finding(
                 "paa_source_unsupported",
                 provenance.line,
                 None,
                 f"PAA/FAQ source is not allowed: {provenance.source}",
-                (
-                    "Use AnswerSocrates, SERP, Reddit, YouTube, or a user "
-                    "PAA/FAQ CSV as the provenance source."
-                ),
+                "Use the exact source kind answersocrates, brief_paa, or user_csv.",
                 match=provenance.source,
             )
         ]
+
+    if workflow_mode not in WORKFLOW_MODES:
+        return [
+            _finding(
+                "paa_workflow_mode_invalid",
+                provenance.line,
+                None,
+                f"PAA workflow mode is not supported: {workflow_mode}",
+                "Use the exact workflow mode new or rewrite.",
+                match=workflow_mode,
+            )
+        ]
+
+    policy_finding = _workflow_policy_finding(
+        workflow_mode=workflow_mode,
+        source_kind=source_kind,
+        provenance=provenance,
+        source_path=source_path,
+        content_brief=content_brief,
+    )
+    if policy_finding is not None:
+        return [policy_finding]
 
     if not provenance.artifact:
         return [
@@ -120,7 +361,7 @@ def check_content(
         ]
 
     artifact_path = _resolve_artifact_path(provenance.artifact, source_path)
-    if artifact_path is None or not artifact_path.exists():
+    if artifact_path is None or not artifact_path.is_file():
         return [
             _finding(
                 "paa_artifact_missing",
@@ -132,7 +373,7 @@ def check_content(
             )
         ]
 
-    if not provenance.selected_questions:
+    if faq_questions and not provenance.selected_questions:
         return [
             _finding(
                 "paa_selected_questions_missing",
@@ -143,15 +384,152 @@ def check_content(
             )
         ]
 
-    artifact_text = artifact_path.read_text(encoding="utf-8")
+    if source_kind == "user_csv":
+        if artifact_path.suffix.lower() != ".csv":
+            return [
+                _finding(
+                    "paa_user_csv_invalid",
+                    provenance.line,
+                    None,
+                    "The user_csv primary artifact is not a .csv file.",
+                    "Save the supplied questions as a CSV and reference that exact file.",
+                    match=provenance.artifact,
+                )
+            ]
+
+        blocker_finding = _answersocrates_blocker_finding(
+            answersocrates_blocker,
+            source_path=source_path,
+            line=provenance.line,
+            expected_query=expected_query,
+            expected_collection_date=expected_collection_date,
+        )
+        if blocker_finding is not None:
+            return [blocker_finding]
+
+        try:
+            eligible_questions = _extract_csv_questions(artifact_path)
+        except (OSError, UnicodeError, csv.Error):
+            eligible_questions = ()
+        if not eligible_questions:
+            return [
+                _finding(
+                    "paa_user_csv_invalid",
+                    provenance.line,
+                    None,
+                    "The user CSV does not contain any complete question cells.",
+                    "Add exact, complete questions ending in a question mark to the CSV.",
+                    match=provenance.artifact,
+                )
+            ]
+        ineligible_fragments: tuple[str, ...] = ()
+    elif source_kind == "brief_paa":
+        try:
+            artifact_text = artifact_path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError):
+            return [
+                _finding(
+                    "paa_artifact_unreadable",
+                    provenance.line,
+                    None,
+                    "The bound PAA artifact cannot be read as a UTF-8 file.",
+                    "Restore a readable UTF-8 PAA artifact and rerun provenance validation.",
+                    match=provenance.artifact,
+                )
+            ]
+        try:
+            brief_questions = _extract_brief_paa_questions(artifact_text)
+        except _DuplicateBriefPaaSectionsError:
+            return [
+                _finding(
+                    "paa_brief_sections_duplicate",
+                    provenance.line,
+                    None,
+                    "The bound content brief contains duplicate visible Pre-picked PAA Questions sections.",
+                    "Keep exactly one visible ## Pre-picked PAA Questions section in the rewrite brief.",
+                    match=provenance.artifact,
+                )
+            ]
+        if not brief_questions:
+            return [
+                _finding(
+                    "paa_brief_questions_missing",
+                    provenance.line,
+                    None,
+                    "The bound content brief has no dedicated Pre-picked PAA Questions.",
+                    "Add complete questions under the exact ## Pre-picked PAA Questions heading.",
+                    match=provenance.artifact,
+                )
+            ]
+        eligible_questions = brief_questions
+        ineligible_fragments = ()
+    else:
+        try:
+            artifact_text = artifact_path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError):
+            return [
+                _finding(
+                    "paa_artifact_unreadable",
+                    provenance.line,
+                    None,
+                    "The bound PAA artifact cannot be read as a UTF-8 file.",
+                    "Restore a readable UTF-8 PAA artifact and rerun provenance validation.",
+                    match=provenance.artifact,
+                )
+            ]
+        artifact_record = _parse_question_artifact(artifact_text)
+        record_finding = _answersocrates_record_finding(
+            artifact_record,
+            required_status="collected",
+            expected_query=expected_query,
+            expected_collection_date=expected_collection_date,
+            line=provenance.line,
+            artifact=provenance.artifact,
+            require_eligible_section=True,
+        )
+        if record_finding is not None:
+            return [record_finding]
+        assert artifact_record is not None
+        eligible_questions = artifact_record.eligible_questions
+        ineligible_fragments = artifact_record.ineligible_fragments
+
+    try:
+        _validate_question_match_keys(
+            provenance.selected_questions,
+            field="selected questions",
+        )
+        _validate_question_match_keys(
+            eligible_questions,
+            field="eligible questions",
+        )
+        _validate_question_match_keys(
+            (question.question for question in faq_questions),
+            field="visible FAQ questions",
+        )
+    except ValueError as error:
+        return [
+            _finding(
+                "paa_question_normalization_invalid",
+                provenance.line,
+                None,
+                str(error),
+                "Use distinct complete questions that retain a non-empty Unicode-aware match key.",
+            )
+        ]
+
+    exact_match = source_kind == "brief_paa"
+    match_key = _exact_match if exact_match else _normalize_for_match
     selected_normalized = {
-        _normalize_for_match(question) for question in provenance.selected_questions
+        match_key(question) for question in provenance.selected_questions
     }
-    artifact_normalized = _normalize_for_match(artifact_text)
+    eligible_normalized = {match_key(question) for question in eligible_questions}
+    ineligible_normalized = {
+        match_key(question) for question in ineligible_fragments
+    }
     findings: List[Finding] = []
 
     for faq_question in faq_questions:
-        normalized_question = _normalize_for_match(faq_question.question)
+        normalized_question = match_key(faq_question.question)
 
         if normalized_question not in selected_normalized:
             findings.append(
@@ -165,7 +543,19 @@ def check_content(
             )
             continue
 
-        if normalized_question not in artifact_normalized:
+        if normalized_question in ineligible_normalized:
+            findings.append(
+                _finding(
+                    "paa_question_ineligible_fragment",
+                    faq_question.line,
+                    faq_question.question,
+                    "FAQ question appears in the artifact's ineligible fragment section.",
+                    "Use an exact complete question from ## Eligible Questions.",
+                )
+            )
+            continue
+
+        if normalized_question not in eligible_normalized:
             findings.append(
                 _finding(
                     "paa_question_missing_from_artifact",
@@ -176,13 +566,206 @@ def check_content(
                 )
             )
 
+    if source_kind == "brief_paa":
+        visible_questions = {question.question for question in faq_questions}
+        for brief_question in eligible_questions:
+            if brief_question in visible_questions:
+                continue
+            findings.append(
+                _finding(
+                    "paa_brief_question_missing_from_faq",
+                    provenance.line,
+                    brief_question,
+                    "A pre-picked content-brief PAA question is not an exact visible FAQ heading.",
+                    "Use every pre-picked question verbatim as a visible FAQ heading.",
+                )
+            )
+
     return findings
+
+
+def evaluate_content(
+    content: str,
+    source_path: Optional[str] = None,
+    proof_content: Optional[str] = None,
+    *,
+    workflow_mode: str = "new",
+    content_brief: Optional[str] = None,
+    answersocrates_blocker: Optional[str] = None,
+    expected_query: Optional[str] = None,
+    expected_collection_date: Optional[str] = None,
+    paa_artifact: Optional[str] = None,
+) -> PaaProvenanceResult:
+    """Return reusable PAA provenance state and findings for article content."""
+    faq_questions = tuple(
+        question.question for question in _extract_faq_questions(content)
+    )
+    proof_source = compose_with_sidecar(content, proof_content)
+    provenance = _provenance_or_bound_artifact(
+        proof_source,
+        paa_artifact=paa_artifact,
+        content_brief=content_brief,
+    )
+    source_kind = provenance.source.strip() if provenance is not None else ""
+    artifact = provenance.artifact if provenance is not None else ""
+    selected_questions = (
+        tuple(provenance.selected_questions) if provenance is not None else ()
+    )
+    artifact_sha256 = ""
+    artifact_questions: tuple[str, ...] = ()
+    artifact_query = ""
+    artifact_collection_date = ""
+    artifact_path = _resolve_artifact_path(artifact, source_path) if artifact else None
+    if artifact_path is not None and artifact_path.is_file():
+        try:
+            artifact_sha256 = _file_sha256(artifact_path)
+            if source_kind == "user_csv":
+                artifact_questions = _extract_csv_questions(artifact_path)
+            else:
+                artifact_text = artifact_path.read_text(encoding="utf-8")
+                if source_kind == "brief_paa":
+                    artifact_questions = (
+                        _extract_brief_paa_questions(artifact_text) or ()
+                    )
+                elif source_kind == "answersocrates":
+                    artifact_record = _parse_question_artifact(artifact_text)
+                    if artifact_record is not None:
+                        artifact_questions = artifact_record.eligible_questions
+                        artifact_query = artifact_record.query
+                        artifact_collection_date = artifact_record.collection_date
+        except (
+            OSError,
+            UnicodeError,
+            csv.Error,
+            _DuplicateBriefPaaSectionsError,
+        ):
+            artifact_questions = ()
+
+    findings = check_content(
+        content,
+        source_path=source_path,
+        proof_content=proof_content,
+        workflow_mode=workflow_mode,
+        content_brief=content_brief,
+        answersocrates_blocker=answersocrates_blocker,
+        expected_query=expected_query,
+        expected_collection_date=expected_collection_date,
+        paa_artifact=paa_artifact,
+    )
+    return PaaProvenanceResult(
+        workflow_mode=workflow_mode,
+        source_kind=source_kind,
+        artifact=artifact,
+        artifact_sha256=artifact_sha256,
+        artifact_questions=artifact_questions,
+        artifact_query=artifact_query,
+        artifact_collection_date=artifact_collection_date,
+        content_brief=str(content_brief or ""),
+        content_brief_sha256=_resolved_file_sha256(content_brief, source_path),
+        answersocrates_blocker=str(answersocrates_blocker or ""),
+        answersocrates_blocker_sha256=_resolved_file_sha256(
+            answersocrates_blocker,
+            source_path,
+        ),
+        expected_query=str(expected_query or ""),
+        expected_collection_date=str(expected_collection_date or ""),
+        faq_questions=faq_questions,
+        selected_questions=selected_questions,
+        findings=tuple(findings),
+    )
+
+
+def evaluate_file(
+    path: str,
+    fail_on: str = "error",
+    proof_sidecar: Optional[str] = None,
+    *,
+    workflow_mode: str = "new",
+    content_brief: Optional[str] = None,
+    answersocrates_blocker: Optional[str] = None,
+    expected_query: Optional[str] = None,
+    expected_collection_date: Optional[str] = None,
+    paa_artifact: Optional[str] = None,
+) -> PaaProvenanceResult:
+    """Return reusable PAA provenance state and findings for a Markdown file."""
+    if fail_on not in {"error", "warning", "none"}:
+        raise ValueError("fail_on must be one of: error, warning, none")
+
+    content = Path(path).read_text(encoding="utf-8")
+    proof_content = load_sidecar_content(path, proof_sidecar)
+    result = evaluate_content(
+        content,
+        source_path=path,
+        proof_content=proof_content,
+        workflow_mode=workflow_mode,
+        content_brief=content_brief,
+        answersocrates_blocker=answersocrates_blocker,
+        expected_query=expected_query,
+        expected_collection_date=expected_collection_date,
+        paa_artifact=paa_artifact,
+    )
+    if paa_artifact:
+        expected_path = Path(paa_artifact).resolve()
+        actual_path = _resolve_artifact_path(result.artifact, path)
+        mismatch = actual_path is None or actual_path.resolve() != expected_path
+        artifact_hash_unreadable = False
+        try:
+            hash_mismatch = bool(
+                expected_path.is_file()
+                and result.artifact_sha256
+                and _file_sha256(expected_path) != result.artifact_sha256
+            )
+        except OSError:
+            artifact_hash_unreadable = True
+            hash_mismatch = False
+        extra: list[Finding] = []
+        if mismatch:
+            extra.append(
+                _finding(
+                    "paa_artifact_binding_mismatch",
+                    1,
+                    None,
+                    "PAA provenance does not reference the exact BOM-bound artifact.",
+                    "Regenerate provenance from the exact bound PAA artifact.",
+                )
+            )
+        elif artifact_hash_unreadable:
+            extra.append(
+                _finding(
+                    "paa_artifact_unreadable",
+                    1,
+                    None,
+                    "The BOM-bound PAA artifact disappeared during validation.",
+                    "Restore the exact artifact and rerun PAA provenance validation.",
+                    match=str(paa_artifact),
+                )
+            )
+        elif hash_mismatch:
+            extra.append(
+                _finding(
+                    "paa_artifact_hash_mismatch",
+                    1,
+                    None,
+                    "The BOM-bound PAA artifact changed after provenance was recorded.",
+                    "Regenerate the PAA binding from current artifact bytes.",
+                )
+            )
+        if extra:
+            result = replace(result, findings=tuple([*result.findings, *extra]))
+    return result
 
 
 def check_file(
     path: str,
     fail_on: str = "error",
     proof_sidecar: Optional[str] = None,
+    *,
+    workflow_mode: str = "new",
+    content_brief: Optional[str] = None,
+    answersocrates_blocker: Optional[str] = None,
+    expected_query: Optional[str] = None,
+    expected_collection_date: Optional[str] = None,
+    paa_artifact: Optional[str] = None,
 ) -> List[Finding]:
     """
     Check a Markdown file for FAQ/PAA provenance.
@@ -194,39 +777,25 @@ def check_file(
     Returns:
         Structured findings.
     """
-    if fail_on not in {"error", "warning", "none"}:
-        raise ValueError("fail_on must be one of: error, warning, none")
-
-    content = Path(path).read_text(encoding="utf-8")
-    proof_content = load_sidecar_content(path, proof_sidecar)
-    return check_content(content, source_path=path, proof_content=proof_content)
+    result = evaluate_file(
+        path,
+        fail_on=fail_on,
+        proof_sidecar=proof_sidecar,
+        workflow_mode=workflow_mode,
+        content_brief=content_brief,
+        answersocrates_blocker=answersocrates_blocker,
+        expected_query=expected_query,
+        expected_collection_date=expected_collection_date,
+        paa_artifact=paa_artifact,
+    )
+    return list(result.findings)
 
 
 def _extract_faq_questions(content: str) -> List[FaqQuestion]:
-    lines = content.splitlines()
-    faq_start_index: Optional[int] = None
-
-    for index, line in enumerate(lines):
-        if FAQ_H2_RE.match(line.strip()):
-            faq_start_index = index + 1
-            break
-
-    if faq_start_index is None:
-        return []
-
-    faq_end_index = len(lines)
-    for index in range(faq_start_index, len(lines)):
-        if H2_RE.match(lines[index].strip()):
-            faq_end_index = index
-            break
-
-    questions: List[FaqQuestion] = []
-    for index in range(faq_start_index, faq_end_index):
-        match = FAQ_QUESTION_RE.match(lines[index].strip())
-        if match:
-            questions.append(FaqQuestion(question=match.group(1).strip(), line=index + 1))
-
-    return questions
+    return [
+        FaqQuestion(question=entry.question, line=entry.line)
+        for entry in detect_faq_structure(content).entries
+    ]
 
 
 def _extract_provenance_block(content: str) -> Optional[ProvenanceBlock]:
@@ -287,9 +856,493 @@ def _extract_provenance_block(content: str) -> Optional[ProvenanceBlock]:
     return None
 
 
-def _is_allowed_source(source: str) -> bool:
-    normalized_source = source.lower()
-    return any(pattern in normalized_source for pattern in ALLOWED_SOURCE_PATTERNS)
+def _provenance_or_bound_artifact(
+    content: str,
+    *,
+    paa_artifact: Optional[str],
+    content_brief: Optional[str],
+) -> Optional[ProvenanceBlock]:
+    provenance = _extract_provenance_block(content)
+    if provenance is not None or not paa_artifact:
+        return provenance
+    artifact_path = Path(paa_artifact)
+    source_kind = "answersocrates"
+    if artifact_path.suffix.casefold() == ".csv":
+        source_kind = "user_csv"
+    elif content_brief:
+        try:
+            if artifact_path.resolve() == Path(content_brief).resolve():
+                source_kind = "brief_paa"
+        except OSError:
+            pass
+    return ProvenanceBlock(
+        source=source_kind,
+        artifact=str(paa_artifact),
+        selected_questions=[
+            question.question for question in _extract_faq_questions(content)
+        ],
+        line=1,
+    )
+
+
+def _workflow_policy_finding(
+    *,
+    workflow_mode: str,
+    source_kind: str,
+    provenance: ProvenanceBlock,
+    source_path: Optional[str],
+    content_brief: Optional[str],
+) -> Optional[Finding]:
+    if workflow_mode == "new" and source_kind == "brief_paa":
+        return _finding(
+            "paa_new_answersocrates_required",
+            provenance.line,
+            None,
+            "A new blog cannot use dedicated brief PAA as its primary source.",
+            "Collect structured AnswerSocrates questions or document its blocker before using user_csv.",
+            match=source_kind,
+        )
+
+    if workflow_mode != "rewrite":
+        return None
+
+    if not content_brief:
+        if source_kind == "brief_paa":
+            return _finding(
+                "paa_rewrite_answersocrates_required",
+                provenance.line,
+                None,
+                "This rewrite has no bound content brief with dedicated PAA questions.",
+                "Use structured AnswerSocrates questions or a blocker-backed user CSV.",
+                match=source_kind,
+            )
+        return None
+
+    provenance_path = _resolve_artifact_path(provenance.artifact, source_path)
+    brief_path = _resolve_artifact_path(str(content_brief), source_path)
+    if brief_path is None or not brief_path.is_file():
+        return _finding(
+            "paa_content_brief_unreadable",
+            provenance.line,
+            None,
+            "The bound rewrite content brief cannot be read.",
+            "Bind the current readable content brief before evaluating PAA precedence.",
+            match=str(content_brief),
+        )
+    try:
+        pre_picked_questions = _extract_brief_paa_questions(
+            brief_path.read_text(encoding="utf-8")
+        )
+    except _DuplicateBriefPaaSectionsError:
+        return _finding(
+            "paa_brief_sections_duplicate",
+            provenance.line,
+            None,
+            "The bound content brief contains duplicate visible Pre-picked PAA Questions sections.",
+            "Keep exactly one visible ## Pre-picked PAA Questions section in the rewrite brief.",
+            match=str(content_brief),
+        )
+    except (OSError, UnicodeError):
+        return _finding(
+            "paa_content_brief_unreadable",
+            provenance.line,
+            None,
+            "The bound rewrite content brief cannot be read as UTF-8.",
+            "Save a valid UTF-8 content brief before evaluating PAA precedence.",
+            match=str(content_brief),
+        )
+    if not pre_picked_questions:
+        if source_kind == "brief_paa":
+            return _finding(
+                "paa_rewrite_answersocrates_required",
+                provenance.line,
+                None,
+                "The rewrite brief does not contain non-empty pre-picked PAA questions.",
+                "Use structured AnswerSocrates questions or a blocker-backed user CSV.",
+                match=source_kind,
+            )
+        return None
+    if (
+        source_kind != "brief_paa"
+        or provenance_path is None
+        or brief_path is None
+        or provenance_path.resolve() != brief_path.resolve()
+    ):
+        return _finding(
+            "paa_rewrite_brief_precedence_violation",
+            provenance.line,
+            None,
+            "A rewrite with pre-picked brief PAA must use the bound content brief as primary provenance.",
+            "Set Source to brief_paa and Artifact to the supplied content brief file.",
+            match=source_kind,
+        )
+    return None
+
+
+def _answersocrates_blocker_finding(
+    blocker_artifact: Optional[str],
+    *,
+    source_path: Optional[str],
+    line: int,
+    expected_query: Optional[str],
+    expected_collection_date: Optional[str],
+) -> Optional[Finding]:
+    if not blocker_artifact:
+        return _finding(
+            "paa_user_csv_blocker_missing",
+            line,
+            None,
+            "user_csv is allowed only when a structured AnswerSocrates blocker artifact is supplied.",
+            "Supply the blocked AnswerSocrates artifact with Source kind, Status, and Blocker fields.",
+        )
+
+    blocker_path = _resolve_artifact_path(str(blocker_artifact), source_path)
+    if blocker_path is None or not blocker_path.exists():
+        return _finding(
+            "paa_user_csv_blocker_missing",
+            line,
+            None,
+            f"AnswerSocrates blocker artifact does not resolve: {blocker_artifact}",
+            "Save the blocked AnswerSocrates record and supply its path.",
+            match=str(blocker_artifact),
+        )
+
+    try:
+        blocker_record = _parse_question_artifact(
+            blocker_path.read_text(encoding="utf-8")
+        )
+    except (OSError, UnicodeError):
+        blocker_record = None
+    return _answersocrates_record_finding(
+        blocker_record,
+        required_status="blocked",
+        expected_query=expected_query,
+        expected_collection_date=expected_collection_date,
+        line=line,
+        artifact=str(blocker_artifact),
+        require_eligible_section=False,
+        invalid_rule="paa_answersocrates_blocker_invalid",
+    )
+
+
+def _answersocrates_record_finding(
+    record: Optional[QuestionArtifact],
+    *,
+    required_status: str,
+    expected_query: Optional[str],
+    expected_collection_date: Optional[str],
+    line: int,
+    artifact: str,
+    require_eligible_section: bool,
+    invalid_rule: str = "paa_answersocrates_artifact_unstructured",
+) -> Optional[Finding]:
+    invalid = (
+        record is None
+        or record.source_kind != "answersocrates"
+        or record.status != required_status
+        or not record.query
+        or _parse_iso_date(record.collection_date) is None
+        or (require_eligible_section and not record.eligible_section_present)
+        or not record.run_receipt_valid
+        or (
+            required_status == "blocked"
+            and record.blocker.casefold() not in ANSWERSOCRATES_BLOCKER_STATES
+        )
+    )
+    if invalid:
+        return _finding(
+            invalid_rule,
+            line,
+            None,
+            f"The AnswerSocrates artifact is not a structured {required_status} record.",
+            (
+                "Use the receipt-bound simpro-answersocrates-artifact/v1 JSON contract"
+                + (
+                    " with an eligible People Also Ask question section."
+                    if require_eligible_section
+                    else (
+                        " with an exact blocker state and non-empty reason: login, "
+                        "captcha, quota, or unavailability."
+                    )
+                )
+            ),
+            match=artifact,
+        )
+
+    expected_date = _parse_iso_date(str(expected_collection_date or ""))
+    if not str(expected_query or "").strip() or expected_date is None:
+        return _finding(
+            "paa_answersocrates_expectation_missing",
+            line,
+            None,
+            "AnswerSocrates validation requires the expected query and collection date.",
+            "Pass expected_query and an ISO expected_collection_date from the bound plan and assembly date.",
+            match=artifact,
+        )
+
+    assert record is not None
+    if record.query != str(expected_query).strip():
+        return _finding(
+            "paa_answersocrates_query_mismatch",
+            line,
+            None,
+            "AnswerSocrates artifact query does not match the bound expected query.",
+            "Recollect with the bound query or supply the matching artifact.",
+            match=record.query,
+        )
+
+    if record.collection_date != expected_date.isoformat():
+        return _finding(
+            "paa_answersocrates_date_mismatch",
+            line,
+            None,
+            "AnswerSocrates artifact date does not match the expected collection date.",
+            "Collect a current artifact for the bound assembly date.",
+            match=record.collection_date,
+        )
+    return None
+
+
+def _extract_csv_questions(path: Path) -> tuple[str, ...]:
+    questions: List[str] = []
+    seen = set()
+    with path.open("r", encoding="utf-8-sig", newline="") as csv_file:
+        for row in csv.reader(csv_file):
+            for cell in row:
+                question = cell.strip()
+                if not question.endswith("?") or question in seen:
+                    continue
+                questions.append(question)
+                seen.add(question)
+    return tuple(questions)
+
+
+def _parse_question_artifact(content: str) -> Optional[QuestionArtifact]:
+    try:
+        value = json.loads(content)
+    except (TypeError, json.JSONDecodeError):
+        return None
+    if not isinstance(value, dict) or set(value) != {
+        "schema",
+        "source_kind",
+        "status",
+        "query",
+        "collection_date",
+        "eligible_question_section",
+        "eligible_questions",
+        "ineligible_fragments",
+        "blocker",
+        "run_receipt",
+    }:
+        return None
+    status = value.get("status")
+    blocker_value = value.get("blocker")
+    blocker = ""
+    blocker_valid = blocker_value is None
+    if status == "blocked" and isinstance(blocker_value, dict):
+        blocker_valid = set(blocker_value) == {"kind", "reason"}
+        blocker_kind = blocker_value.get("kind")
+        blocker_reason = blocker_value.get("reason")
+        blocker_valid = bool(
+            blocker_valid
+            and isinstance(blocker_kind, str)
+            and blocker_kind.casefold() in ANSWERSOCRATES_BLOCKER_STATES
+            and isinstance(blocker_reason, str)
+            and blocker_reason.strip()
+        )
+        if blocker_valid:
+            blocker = str(blocker_kind).casefold()
+    try:
+        eligible = _strict_question_list(
+            value.get("eligible_questions"),
+            field="eligible_questions",
+        )
+        ineligible = _strict_text_list(
+            value.get("ineligible_fragments"),
+            field="ineligible_fragments",
+        )
+    except ValueError:
+        return None
+    payload = {
+        key: value[key]
+        for key in (
+            "schema",
+            "source_kind",
+            "status",
+            "query",
+            "collection_date",
+            "eligible_question_section",
+            "eligible_questions",
+            "ineligible_fragments",
+            "blocker",
+        )
+    }
+    receipt = value.get("run_receipt")
+    receipt_valid = _valid_answersocrates_receipt(receipt, payload=payload)
+    structural = bool(
+        value.get("schema") == ANSWERSOCRATES_ARTIFACT_SCHEMA
+        and value.get("source_kind") == "answersocrates"
+        and status in {"collected", "blocked"}
+        and isinstance(value.get("query"), str)
+        and str(value.get("query")).strip() == value.get("query")
+        and _parse_iso_date(str(value.get("collection_date") or "")) is not None
+        and value.get("eligible_question_section") == "people_also_ask"
+        and blocker_valid
+        and (status != "blocked" or not eligible)
+        and (status != "collected" or blocker_value is None)
+    )
+    if not structural:
+        return None
+    return QuestionArtifact(
+        source_kind="answersocrates",
+        status=str(status),
+        query=str(value["query"]),
+        collection_date=str(value["collection_date"]),
+        eligible_questions=eligible,
+        ineligible_fragments=ineligible,
+        eligible_section_present=True,
+        blocker=blocker,
+        run_receipt_valid=receipt_valid,
+    )
+
+
+def _valid_answersocrates_receipt(value: object, *, payload: dict) -> bool:
+    if not isinstance(value, dict) or set(value) != {
+        "schema",
+        "run_id",
+        "tool",
+        "started_at",
+        "completed_at",
+        "status",
+        "payload_sha256",
+        "execution_attestation",
+        "receipt_hash",
+    }:
+        return False
+    tool = value.get("tool")
+    if tool != ANSWERSOCRATES_TOOL:
+        return False
+    started = _parse_utc_timestamp(value.get("started_at"))
+    completed = _parse_utc_timestamp(value.get("completed_at"))
+    if started is None or completed is None or completed <= started:
+        return False
+    if (
+        value.get("schema") != ANSWERSOCRATES_RECEIPT_SCHEMA
+        or not isinstance(value.get("run_id"), str)
+        or not str(value.get("run_id")).strip()
+        or value.get("status") != payload.get("status")
+        or value.get("payload_sha256") != canonical_json_sha256(payload)
+    ):
+        return False
+    receipt_without_hash = dict(value)
+    stored_hash = receipt_without_hash.pop("receipt_hash", None)
+    hash_valid = (
+        isinstance(stored_hash, str)
+        and re.fullmatch(r"[0-9a-f]{64}", stored_hash) is not None
+        and stored_hash == canonical_json_sha256(receipt_without_hash)
+    )
+    return hash_valid and verify_mapping_attestation(
+        value,
+        purpose=ANSWERSOCRATES_RECEIPT_ATTESTATION_PURPOSE,
+        excluded_fields=("receipt_hash",),
+    )
+
+
+def _strict_question_list(value: object, *, field: str) -> tuple[str, ...]:
+    items = _strict_text_list(value, field=field)
+    if any(not item.endswith("?") for item in items):
+        raise ValueError(f"{field} entries must be complete questions")
+    _validate_question_match_keys(items, field=field)
+    return items
+
+
+def _strict_text_list(value: object, *, field: str) -> tuple[str, ...]:
+    if not isinstance(value, (list, tuple)):
+        raise ValueError(f"{field} must be a list")
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for item in value:
+        if not isinstance(item, str) or not item.strip() or item != item.strip():
+            raise ValueError(f"{field} entries must be non-empty trimmed strings")
+        key = item.casefold()
+        if key in seen:
+            raise ValueError(f"{field} cannot contain duplicates")
+        seen.add(key)
+        normalized.append(item)
+    return tuple(normalized)
+
+
+def _parse_utc_timestamp(value: object) -> Optional[datetime]:
+    if not isinstance(value, str) or not value.endswith("Z"):
+        return None
+    try:
+        parsed = datetime.fromisoformat(value[:-1] + "+00:00")
+    except ValueError:
+        return None
+    if parsed.tzinfo is None or parsed.utcoffset() != timezone.utc.utcoffset(parsed):
+        return None
+    return parsed
+
+
+def _extract_brief_paa_questions(content: str) -> Optional[tuple[str, ...]]:
+    return _extract_artifact_section(
+        _lines_outside_fences(content.splitlines()),
+        BRIEF_PAA_HEADING_RE,
+    )
+
+
+def _extract_artifact_section(
+    lines: List[str],
+    heading_re: re.Pattern[str],
+) -> Optional[tuple[str, ...]]:
+    heading_indexes = [
+        index
+        for index, line in enumerate(lines)
+        if heading_re.fullmatch(line.strip())
+    ]
+    if not heading_indexes:
+        return None
+    if len(heading_indexes) > 1:
+        raise _DuplicateBriefPaaSectionsError(
+            "content brief contains duplicate visible dedicated PAA sections"
+        )
+    start = heading_indexes[0] + 1
+
+    questions: List[str] = []
+    for line in lines[start:]:
+        stripped = line.strip()
+        if ANY_H2_RE.match(stripped):
+            break
+        match = QUESTION_LIST_ITEM_RE.match(stripped)
+        if match:
+            questions.append(match.group(1).strip())
+    return tuple(questions)
+
+
+def _lines_outside_fences(lines: List[str]) -> List[str]:
+    """Return visible Markdown lines while preserving section order."""
+    visible: List[str] = []
+    fence_character = ""
+    fence_length = 0
+    for line in lines:
+        if fence_character:
+            closing = line.strip()
+            if (
+                closing
+                and set(closing) == {fence_character}
+                and len(closing) >= fence_length
+            ):
+                fence_character = ""
+                fence_length = 0
+            continue
+        match = FENCE_OPEN_RE.match(line)
+        if match is not None:
+            marker = match.group(1)
+            fence_character = marker[0]
+            fence_length = len(marker)
+            continue
+        visible.append(line)
+    return visible
 
 
 def _resolve_artifact_path(artifact: str, source_path: Optional[str]) -> Optional[Path]:
@@ -311,8 +1364,63 @@ def _resolve_artifact_path(artifact: str, source_path: Optional[str]) -> Optiona
     return candidates[0] if candidates else None
 
 
+def _resolved_file_sha256(
+    artifact: Optional[str],
+    source_path: Optional[str],
+) -> str:
+    if not artifact:
+        return ""
+    path = _resolve_artifact_path(str(artifact), source_path)
+    if path is None or not path.is_file():
+        return ""
+    try:
+        return _file_sha256(path)
+    except OSError:
+        return ""
+
+
+def _file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _parse_iso_date(value: str) -> Optional[date]:
+    try:
+        parsed = date.fromisoformat(value)
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed.isoformat() == value else None
+
+
+def _exact_match(text: str) -> str:
+    return text.strip()
+
+
 def _normalize_for_match(text: str) -> str:
-    return re.sub(r"[^a-z0-9]+", " ", text.lower()).strip()
+    normalized = unicodedata.normalize("NFKC", text).casefold()
+    return " ".join(
+        "".join(character if character.isalnum() else " " for character in normalized).split()
+    )
+
+
+def _validate_question_match_keys(
+    questions,
+    *,
+    field: str,
+) -> None:
+    """Reject empty or ambiguous Unicode-aware question identities."""
+    seen: dict[str, str] = {}
+    for question in questions:
+        key = _normalize_for_match(question)
+        if not key:
+            raise ValueError(
+                f"{field} contains a question with an empty normalization key"
+            )
+        previous = seen.get(key)
+        if previous is not None:
+            raise ValueError(
+                f"{field} contains questions that collide after normalization"
+            )
+        seen[key] = question
 
 
 def _finding(
@@ -339,6 +1447,9 @@ def _finding(
 
 
 def _main(argv: Optional[List[str]] = None) -> int:
+    raw_argv = list(sys.argv[1:] if argv is None else argv)
+    if raw_argv and raw_argv[0] == "record":
+        return _record_main(raw_argv[1:])
     parser = argparse.ArgumentParser(description="Check FAQ questions for PAA provenance.")
     parser.add_argument("path", help="Markdown file to check")
     parser.add_argument(
@@ -351,17 +1462,106 @@ def _main(argv: Optional[List[str]] = None) -> int:
         "--proof-sidecar",
         help="Optional validation sidecar containing PAA/FAQ provenance.",
     )
-    args = parser.parse_args(argv)
+    parser.add_argument(
+        "--workflow-mode",
+        default="new",
+        choices=sorted(WORKFLOW_MODES),
+        help="PAA source policy to apply.",
+    )
+    parser.add_argument(
+        "--paa-artifact",
+        help="Exact BOM-bound AnswerSocrates, brief, or user CSV artifact.",
+    )
+    parser.add_argument(
+        "--content-brief",
+        help="Bound content brief; its pre-picked PAA takes precedence for rewrites.",
+    )
+    parser.add_argument(
+        "--answersocrates-blocker",
+        help="Structured blocked AnswerSocrates run required for user_csv fallback.",
+    )
+    parser.add_argument(
+        "--expected-query",
+        help="Exact query required in a structured AnswerSocrates artifact.",
+    )
+    parser.add_argument(
+        "--expected-collection-date",
+        help="Exact ISO date required in a structured AnswerSocrates artifact.",
+    )
+    args = parser.parse_args(raw_argv)
 
-    findings = check_file(args.path, fail_on=args.fail_on, proof_sidecar=args.proof_sidecar)
+    result = evaluate_file(
+        args.path,
+        fail_on=args.fail_on,
+        proof_sidecar=args.proof_sidecar,
+        workflow_mode=args.workflow_mode,
+        content_brief=args.content_brief,
+        answersocrates_blocker=args.answersocrates_blocker,
+        expected_query=args.expected_query,
+        expected_collection_date=args.expected_collection_date,
+        paa_artifact=args.paa_artifact,
+    )
+    findings = list(result.findings)
     payload = {
         "path": args.path,
         "fail_on": args.fail_on,
         "summary": summarize_findings(findings),
         "findings": findings,
+        "result": result.to_dict(),
     }
     print(json.dumps(payload, indent=2))
     return 1 if should_fail(findings, fail_on=args.fail_on) else 0
+
+
+def _record_main(argv: List[str]) -> int:
+    parser = argparse.ArgumentParser(
+        description="Record one browser-collected AnswerSocrates run."
+    )
+    parser.add_argument("--query", required=True)
+    parser.add_argument("--collection-date", required=True)
+    parser.add_argument("--run-id", required=True)
+    parser.add_argument("--started-at", required=True)
+    parser.add_argument("--completed-at", required=True)
+    parser.add_argument(
+        "--status",
+        choices=["collected", "blocked"],
+        default="collected",
+    )
+    parser.add_argument("--eligible-question", action="append", default=[])
+    parser.add_argument("--ineligible-fragment", action="append", default=[])
+    parser.add_argument(
+        "--blocker",
+        choices=sorted(ANSWERSOCRATES_BLOCKER_STATES),
+        default="",
+    )
+    parser.add_argument("--blocker-reason", default="")
+    parser.add_argument("--output", required=True)
+    args = parser.parse_args(argv)
+    artifact = build_answersocrates_artifact(
+        query=args.query,
+        collection_date=args.collection_date,
+        eligible_questions=args.eligible_question,
+        ineligible_fragments=args.ineligible_fragment,
+        status=args.status,
+        blocker=args.blocker,
+        blocker_reason=args.blocker_reason,
+        run_id=args.run_id,
+        started_at=args.started_at,
+        completed_at=args.completed_at,
+    )
+    write_answersocrates_artifact(args.output, artifact)
+    print(
+        json.dumps(
+            {
+                "schema": ANSWERSOCRATES_ARTIFACT_SCHEMA,
+                "status": artifact["status"],
+                "output": str(Path(args.output)),
+                "receipt_hash": artifact["run_receipt"]["receipt_hash"],
+            },
+            indent=2,
+        )
+    )
+    return 0
 
 
 if __name__ == "__main__":

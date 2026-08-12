@@ -162,7 +162,7 @@ Combine all analysis results into a comprehensive report.
 
 **Difference From Target**: [signed difference when a target exists, otherwise not applicable]
 
-**Observed Position**: [percentile among top 10 competitors, reported as context only]
+**Observed Position**: [percentile within the verified, intent-relevant SERP evidence set, reported as context only]
 
 **Completion Status**: [missing evidence or reader payoff / complete / padded]
 
@@ -278,7 +278,7 @@ Use this checklist before publishing:
 - [ ] Natural terminology coverage, semantic variations, and keyword-stuffing detection checked
 - [ ] Keyword in H1, first 100 words, and at least one relevant H2 where natural
 - [ ] Intent-appropriate internal links with descriptive anchors
-- [ ] 2-3 external authority links
+- [ ] Claim-fit external authority links support every material external claim
 - [ ] Meta title 50-60 characters with keyword
 - [ ] Meta description 150-160 characters with accurate value or action language suited to search intent
 

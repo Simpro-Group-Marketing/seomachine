@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shlex
 import sys
+import tempfile
 from pathlib import Path
 from typing import List, Optional, Sequence
 
@@ -118,6 +120,7 @@ def build_fred_authority_slate(
     context_receipt: str | Path | None = None,
     limit: int = 5,
     selected_id: Optional[str] = None,
+    output_path: str | Path | None = None,
 ) -> str:
     """Return a sidecar-ready Fred Voccola Authority Selection block."""
     results = select_fred_authority(
@@ -145,6 +148,7 @@ def build_fred_authority_slate(
         context_pack=context_pack,
         context_receipt=context_receipt,
         limit=limit,
+        output_path=output_path,
     )
     top_candidates = [
         str(result["inventory_id"])
@@ -306,6 +310,7 @@ def _selector_command(
     context_pack: str | Path | None,
     context_receipt: str | Path | None,
     limit: int,
+    output_path: str | Path | None,
 ) -> str:
     parts = [
         "python",
@@ -321,6 +326,8 @@ def _selector_command(
     if context_receipt:
         parts.extend(("--context-receipt", str(context_receipt)))
     parts.extend(("--slate", "--limit", str(limit)))
+    if output_path:
+        parts.extend(("--output", str(output_path)))
     return " ".join(shlex.quote(part) for part in parts)
 
 
@@ -344,25 +351,40 @@ def _build_parser() -> argparse.ArgumentParser:
         "--selected-id",
         help="Explicitly record one verified candidate in slate output.",
     )
+    parser.add_argument(
+        "--output",
+        help="Atomically save the exact sidecar-ready slate as BOM evidence.",
+    )
     return parser
 
 
 def _main(argv: Optional[Sequence[str]] = None) -> int:
-    args = _build_parser().parse_args(argv)
+    parser = _build_parser()
+    args = parser.parse_args(argv)
+    if args.output and not args.slate:
+        parser.error("--output requires --slate")
     try:
         if args.slate:
-            print(
-                build_fred_authority_slate(
-                    args.topic,
-                    title=args.title,
-                    objective=args.objective,
-                    vault_root=args.vault_root,
+            if args.output:
+                _reject_evidence_output_collision(
+                    args.output,
                     context_pack=args.context_pack,
                     context_receipt=args.context_receipt,
-                    limit=args.limit,
-                    selected_id=args.selected_id,
                 )
+            slate = build_fred_authority_slate(
+                args.topic,
+                title=args.title,
+                objective=args.objective,
+                vault_root=args.vault_root,
+                context_pack=args.context_pack,
+                context_receipt=args.context_receipt,
+                limit=args.limit,
+                selected_id=args.selected_id,
+                output_path=args.output,
             )
+            if args.output:
+                _atomic_write_text(args.output, slate + "\n")
+            print(slate)
         else:
             print(
                 json.dumps(
@@ -378,10 +400,52 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
                     indent=2,
                 )
             )
-    except FredAuthorityDataError as exc:
+    except (FredAuthorityDataError, OSError, UnicodeError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
     return 0
+
+
+def _reject_evidence_output_collision(
+    output_path: str | Path,
+    *,
+    context_pack: str | Path | None,
+    context_receipt: str | Path | None,
+) -> None:
+    output_identity = os.path.normcase(str(Path(output_path).resolve()))
+    for label, value in (
+        ("context pack", context_pack),
+        ("context receipt", context_receipt),
+    ):
+        if value and output_identity == os.path.normcase(str(Path(value).resolve())):
+            raise FredAuthorityDataError(
+                f"Fred evidence output cannot overwrite the {label} input"
+            )
+
+
+def _atomic_write_text(path: str | Path, content: str) -> None:
+    destination = Path(path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temp_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            newline="\n",
+            dir=destination.parent,
+            prefix=f".{destination.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            temp_path = Path(handle.name)
+            handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temp_path, destination)
+        temp_path = None
+    finally:
+        if temp_path is not None:
+            temp_path.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

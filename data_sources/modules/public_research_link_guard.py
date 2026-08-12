@@ -19,10 +19,12 @@ from typing import Iterable, List, Optional, Sequence
 from urllib.parse import urlparse
 
 try:
+    from .faq_structure import detect_faq_structure
     from .guard_common import Finding, make_finding, should_fail, summarize_findings
     from .proof_sidecar import load_sidecar_content
     from .url_validator import UrlValidationSummary, extract_urls, validate_file_urls
 except ImportError:  # pragma: no cover - supports direct script execution.
+    from faq_structure import detect_faq_structure
     from guard_common import Finding, make_finding, should_fail, summarize_findings
     from proof_sidecar import load_sidecar_content
     from url_validator import UrlValidationSummary, extract_urls, validate_file_urls
@@ -71,8 +73,6 @@ SOURCE_SECTION_HEADING_RE = re.compile(
 )
 ANY_HEADING_RE = re.compile(r"^\s*#{1,6}\s+")
 H2_RE = re.compile(r"^##\s+(.+?)\s*$")
-H3_RE = re.compile(r"^###\s+(.+?)\s*$")
-FAQ_H2_RE = re.compile(r"^##\s+(?:Frequently Asked Questions|FAQ)\s*$", re.IGNORECASE)
 FRONTMATTER_RE = re.compile(r"\A---\s*\n.*?\n---\s*", re.DOTALL)
 FENCED_CODE_RE = re.compile(r"```.*?```", re.DOTALL)
 INLINE_CODE_RE = re.compile(r"`[^`\n]*`")
@@ -308,11 +308,14 @@ def _iter_article_sections(content: str) -> Iterable[ArticleSection]:
     prepared = _strip_frontmatter_preserve_lines(content)
     prepared = _blank_fenced_code(prepared)
     lines = prepared.splitlines()
+    faq_questions_by_line = {
+        entry.line: entry.question
+        for entry in detect_faq_structure(prepared).entries
+    }
 
     current_heading = "intro"
     current_start = 1
     current_lines: List[str] = []
-    in_faq_section = False
     current_is_faq_answer = False
 
     def flush() -> Optional[ArticleSection]:
@@ -327,9 +330,8 @@ def _iter_article_sections(content: str) -> Iterable[ArticleSection]:
 
     for index, line in enumerate(lines, start=1):
         h2 = H2_RE.match(line)
-        h3 = H3_RE.match(line)
         starts_new_h2 = h2 is not None
-        starts_new_faq_answer = h3 is not None and in_faq_section
+        starts_new_faq_answer = index in faq_questions_by_line
 
         if starts_new_h2 or starts_new_faq_answer:
             section = flush()
@@ -339,10 +341,9 @@ def _iter_article_sections(content: str) -> Iterable[ArticleSection]:
             current_start = index
             if starts_new_h2 and h2 is not None:
                 current_heading = h2.group(1).strip()
-                in_faq_section = bool(FAQ_H2_RE.match(line))
                 current_is_faq_answer = False
-            elif h3 is not None:
-                current_heading = h3.group(1).strip()
+            else:
+                current_heading = faq_questions_by_line[index]
                 current_is_faq_answer = True
             continue
 

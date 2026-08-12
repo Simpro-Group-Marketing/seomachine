@@ -73,7 +73,7 @@ Located in `data_sources/modules/`. The Content Analyzer chains:
 8. `numeric_claim_source_guard.py` - Metric/stat proof guardrail for public numeric business claims
 9. `faq_answer_quality_guard.py` - Blocking answer-first FAQ guardrail for generic deflections, missing answers, and unexplained binary responses
 10. `faq_proof_guard.py` - FAQ proof guardrail requiring an authoritative non-owned public evidence link inside every visible FAQ answer; sidecar-only proof does not pass
-11. `paa_provenance_guard.py` - PAA provenance guardrail requiring FAQ questions to match saved AnswerSocrates, SERP, Reddit, YouTube, or user PAA/FAQ CSV artifacts
+11. `paa_provenance_guard.py` - PAA provenance guardrail requiring FAQ questions to match a structured AnswerSocrates artifact or, for rewrites, the dedicated pre-picked brief section; user CSV fallback requires a bound genuine AnswerSocrates blocker, while SERP, Reddit, and YouTube remain supplemental only
 12. `source_support_guard.py` - Strict source support guard requiring approved proof rows with source-visible Evidence snippets
 13. `customer_proof_selector.py` - Customer proof selector automatically run by slash workflows with `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10` to choose the most relevant approved proof
 14. `customer_proof_index_health.py` - Read-only proof inventory health report for source mix, approvals, overuse, and public-copy gaps

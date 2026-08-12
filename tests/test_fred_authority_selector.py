@@ -392,3 +392,76 @@ def test_cli_slate_output_preserves_selector_command(tmp_path, capsys):
     assert "## Fred Voccola Authority Selection" in output
     assert "--context-pack" in output
     assert "--context-receipt" in output
+
+
+def test_cli_slate_atomically_writes_the_bom_evidence_artifact(tmp_path, capsys):
+    pack, receipt, _ = write_context_receipt_fixture(tmp_path)
+    output_path = tmp_path / "research" / "fred-authority-selection.md"
+
+    exit_code = _main(
+        [
+            "workforce technology",
+            "--title",
+            "Workforce technology",
+            "--objective",
+            "Explain workforce challenges",
+            "--context-pack",
+            str(pack),
+            "--context-receipt",
+            str(receipt),
+            "--slate",
+            "--output",
+            str(output_path),
+        ]
+    )
+    stdout = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert output_path.read_text(encoding="utf-8") == stdout
+    assert f"--output '{output_path}'" in stdout or f"--output {output_path}" in stdout
+    assert not any(path.name.endswith(".tmp") for path in output_path.parent.iterdir())
+
+
+@pytest.mark.parametrize("collision", ("pack", "receipt"))
+def test_cli_evidence_output_cannot_overwrite_connector_input(
+    tmp_path,
+    capsys,
+    collision,
+):
+    pack, receipt, _ = write_context_receipt_fixture(tmp_path)
+    destination = pack if collision == "pack" else receipt
+    original = destination.read_bytes()
+
+    exit_code = _main(
+        [
+            "workforce technology",
+            "--context-pack",
+            str(pack),
+            "--context-receipt",
+            str(receipt),
+            "--slate",
+            "--output",
+            str(destination),
+        ]
+    )
+
+    assert exit_code == 1
+    assert "cannot overwrite" in capsys.readouterr().err
+    assert destination.read_bytes() == original
+
+
+def test_cli_rejects_output_without_slate(tmp_path):
+    pack, receipt, _ = write_context_receipt_fixture(tmp_path)
+
+    with pytest.raises(SystemExit):
+        _main(
+            [
+                "workforce technology",
+                "--context-pack",
+                str(pack),
+                "--context-receipt",
+                str(receipt),
+                "--output",
+                str(tmp_path / "fred.json"),
+            ]
+        )

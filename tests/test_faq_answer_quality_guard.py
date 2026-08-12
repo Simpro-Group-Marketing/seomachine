@@ -50,6 +50,38 @@ def article_with_answer(question, answer):
 
 
 @pytest.mark.parametrize(
+    "heading",
+    ["FAQs", "Common questions", "Questions and answers"],
+)
+def test_supported_faq_heading_variants_are_checked(heading):
+    content = article_with_answer(
+        "What is the best option?",
+        "It depends on the work you prefer and the training available nearby.",
+    ).replace("## Frequently Asked Questions", f"## {heading}")
+
+    findings = check_content(content)
+
+    assert [finding["rule_id"] for finding in findings] == [
+        "faq_answer_generic_opener"
+    ]
+
+
+@pytest.mark.parametrize(
+    "markup",
+    [
+        "<details><summary>What is the best option?</summary>Use evidence.</details>",
+        "**What is the best option?**\n\nUse evidence.",
+    ],
+)
+def test_unsupported_faq_markup_is_blocked(markup):
+    findings = check_content(f"# Article\n\n{markup}\n")
+
+    assert [finding["rule_id"] for finding in findings] == [
+        "faq_structure_unsupported"
+    ]
+
+
+@pytest.mark.parametrize(
     "answer",
     [
         "No universal trade is best for every woman. Compare local options.",

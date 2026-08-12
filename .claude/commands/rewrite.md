@@ -1,22 +1,45 @@
 # Rewrite Command
 
-## Context Binding Regeneration (MANDATORY)
+## Blog Assembly Seal (MANDATORY)
 
-After the final content mutation, regenerate the machine-owned binding before `/publish-readiness`:
+Create the rewrite scaffold first. Then record the rewrite mutation before changing public copy and close it after saving:
 
-```bash
-python data_sources/modules/context_binding_generator.py "$FILE_PATH" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT"
+```powershell
+python data_sources/modules/blog_assembly_mutation_recorder.py start --article "rewrites/[topic-slug]-rewrite-[YYYY-MM-DD].md" --state "research/stage-receipts/[topic-slug]/draft-state.json" --run-id "[run-id]" --stage draft --tool-name "rewrite-command" --tool-version "1" --input "editorial_plan=research/editorial-plan-[topic-slug]-[YYYY-MM-DD].json"
+# Rewrite and save the article here.
+python data_sources/modules/blog_assembly_mutation_recorder.py finish --article "rewrites/[topic-slug]-rewrite-[YYYY-MM-DD].md" --state "research/stage-receipts/[topic-slug]/draft-state.json" --receipt "research/stage-receipts/[topic-slug]/draft.json" --evidence "serp_evidence=research/serp-evidence-[topic-slug]-[YYYY-MM-DD].json"
+python data_sources/modules/content_scrubber.py "rewrites/[topic-slug]-rewrite-[YYYY-MM-DD].md" --stage scrub --run-id "[run-id]" --previous-receipt "research/stage-receipts/[topic-slug]/draft.json" --stage-receipt-output "research/stage-receipts/[topic-slug]/scrub.json"
+python data_sources/modules/context_binding_generator.py "rewrites/[topic-slug]-rewrite-[YYYY-MM-DD].md" --proof-sidecar "research/validation-[topic-slug]-[YYYY-MM-DD].md" --context-request "research/context-request-[topic-slug].json" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --stage context_binding --run-id "[run-id]" --previous-receipt "research/stage-receipts/[topic-slug]/scrub.json" --stage-receipt-output "research/stage-receipts/[topic-slug]/context-binding.json"
 ```
 
-Run this again after every scrub, optimization, or editorial change that modifies public copy. A stale article hash blocks handoff.
+Non-connector branch: replace that command with `python data_sources/modules/context_binding_generator.py "rewrites/[topic-slug]-rewrite-[YYYY-MM-DD].md" --proof-sidecar "research/validation-[topic-slug]-[YYYY-MM-DD].md" --not-applicable-reason "Final article contains no Simpro brand, URL, or connector-sensitive language." --stage context_binding --run-id "[run-id]" --previous-receipt "research/stage-receipts/[topic-slug]/scrub.json" --stage-receipt-output "research/stage-receipts/[topic-slug]/context-binding.json"`. Omit context request/pack/receipt, selector, and Fred arguments from BOM build and context arguments from readiness. The builder rejects this branch when the final article contains any Simpro signal.
+
+These commands preserve the real before/after article hashes and chain each receipt with `--previous-receipt`. Rerun the applicable sequence after every optimization or editorial change that modifies public copy. A stale article hash blocks handoff.
+
+Tool-emitted machine artifacts carry an `execution_attestation`, a keyed local execution-integrity attestation. Require it on every `simpro-blog-stage-receipt/v1`, verified `simpro-serp-evidence/v1`, nested `simpro-answersocrates-run-receipt/v1`, `simpro-source-classification/v1`, and `simpro-source-capture-receipt/v1`. Readiness verifies the attestation and canonical hash; a handwritten or merely rehashed replacement does not qualify. This local control does not provide a remote/provider signature and does not prove that external observations are true, so source metadata, visible evidence, freshness, PAA eligibility, and semantic claim fit still require validation. The dedicated pre-picked PAA brief section remains path/hash-bound and takes precedence over AnswerSocrates.
+
+Use this exact non-circular two-phase sequence. If the rewrite brief has a dedicated pre-picked PAA section, pass `--content-brief` as shown. Otherwise replace it with `--paa-artifact` for the structured AnswerSocrates artifact.
+
+```powershell
+python data_sources/modules/blog_assembly_bom.py build "rewrites/[topic-slug]-rewrite-[YYYY-MM-DD].md" --validation-sidecar "research/validation-[topic-slug]-[YYYY-MM-DD].md" --editorial-plan "research/editorial-plan-[topic-slug]-[YYYY-MM-DD].json" --serp-evidence "research/serp-evidence-[topic-slug]-[YYYY-MM-DD].json" --content-brief "research/brief-[topic-slug]-[YYYY-MM-DD].md" --context-request "research/context-request-[topic-slug].json" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --customer-proof-selector-evidence "research/customer-proof-selector-evidence-[topic-slug].json" --fred-authority-evidence "research/fred-authority-selection-[topic-slug].md" --stage-receipt "research/stage-receipts/[topic-slug]/draft.json" --stage-receipt "research/stage-receipts/[topic-slug]/scrub.json" --stage-receipt "research/stage-receipts/[topic-slug]/context-binding.json" --workflow-mode rewrite --assembly-date "[YYYY-MM-DD]" --output "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json"
+python data_sources/modules/publish_readiness.py "rewrites/[topic-slug]-rewrite-[YYYY-MM-DD].md" --proof-sidecar "research/validation-[topic-slug]-[YYYY-MM-DD].md" --context-request "research/context-request-[topic-slug].json" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --assembly-bom "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json" --phase preflight --output "research/preflight-readiness-[topic-slug]-[YYYY-MM-DD].json"
+python data_sources/modules/blog_assembly_bom.py finalize --bom "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json" --preflight-readiness "research/preflight-readiness-[topic-slug]-[YYYY-MM-DD].json" --output "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-final.json"
+python data_sources/modules/publish_readiness.py "rewrites/[topic-slug]-rewrite-[YYYY-MM-DD].md" --proof-sidecar "research/validation-[topic-slug]-[YYYY-MM-DD].md" --context-request "research/context-request-[topic-slug].json" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --assembly-bom "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-final.json" --phase final --output "research/final-readiness-attestation-[topic-slug]-[YYYY-MM-DD].json" --stage-receipt-output "research/stage-receipts/[topic-slug]/final-readiness-attestation.json"
+```
+
+The preflight result must pass before finalization. Final readiness reruns every source-artifact gate and writes a detached final-readiness attestation keyed to the final BOM hash and every final input hash. The attestation is not hashed back into the BOM. Both readiness outputs declare `verification_scope: source_artifact`; they do not verify a CMS payload or rendered page.
+
+A passed preflight automatically writes `research/preflight-readiness-[topic-slug]-[YYYY-MM-DD]-stage-receipt.json`. Do not invent or rename this deterministic companion receipt.
 
 ### After Optimization Mutations
 
-All optimizer outputs and manual edits are content mutations. After optimization mutations, rerun `/scrub`, regenerate Context Binding with `context_binding_generator.py`, update `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`, then rerun `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`.
+All optimizer outputs and manual edits are content mutations. The **Closed post-optimization receipt sequence** is `optimization` -> `post_optimization_scrub` -> `post_optimization_context_binding` -> `final_preflight_readiness`. Capture the before/after hashes with `blog_assembly_mutation_recorder.py start` and `blog_assembly_mutation_recorder.py finish`, run `content_scrubber.py --stage post_optimization_scrub`, and run `context_binding_generator.py --stage post_optimization_context_binding`. Rebuild a provisional BOM with optimizer evidence, every receipt, and `--prior-preflight-readiness "research/preflight-readiness-[topic-slug]-[YYYY-MM-DD].json"`; write it to `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-post-optimization.json`, rerun preflight, finalize it out of place to `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-post-optimization-final.json`, and run final readiness against that final BOM. Do not overwrite the BOM referenced by the prior preflight. Preflight-bound provisional BOMs are immutable. Any mutation after finalization invalidates the BOM and detached attestation and restarts this sequence with new versioned paths.
 
 Use this command to update and improve existing blog posts based on analysis findings.
 
 For every Simpro blog, retrieve current voice and tone guidance through the vault connector by semantic search and `resource_id` reads. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Em dashes are prohibited. Product pages and landing pages retain their existing restrained channel treatment.
+
+When `author_policy.status` is `not_provided`, first-person singular author judgment outside quotes is prohibited.
 
 ## Usage
 `/rewrite [topic or analysis file]`
@@ -62,6 +85,23 @@ Required validation sidecar evidence: generated vault context binding for every 
 
 ### AEO/GEO Rewrite Requirements
 
+PAA provenance is strict and separate from general research:
+
+- Every new article requires a structured AnswerSocrates artifact, including when the editorial decision is `FAQ policy: required | not_applicable` and the result is `not_applicable` with a non-empty rationale.
+- For rewrites, PAA pre-picked in a dedicated brief section takes precedence. Bind that brief path and hash, do not rerun AnswerSocrates, and use those exact questions as visible FAQ headings.
+- A rewrite without pre-picked brief PAA requires a structured AnswerSocrates artifact.
+- A user CSV is allowed only when a saved AnswerSocrates artifact records a genuine blocked state: login, CAPTCHA, quota, or unavailability.
+- SERP, Reddit, and YouTube are supplemental research and cannot satisfy PAA provenance.
+- Query fragments and questions outside the eligible question section cannot become selected questions or FAQ headings.
+- Run FAQ answer-quality, proof, schema, and scoring checks only when visible FAQs exist.
+
+The rewrite-only dedicated brief section must use this exact heading and complete questions:
+
+```markdown
+## Pre-picked PAA Questions
+- [Exact complete question?]
+```
+
 Before drafting, complete AEO/GEO variable resolution from the analysis report, current article, generated vault context binding, repo context fallback, target keyword, and sourced research:
 - `topic`
 - `audience`
@@ -75,23 +115,28 @@ Before drafting, complete AEO/GEO variable resolution from the analysis report, 
 - `length`: set an intent/evidence-complete word target from the Reader Contract, search intent, source depth, and useful competitor context
 
 Required rewrite inputs:
-- **PAA/FAQ provenance**: Cite the source for selected questions: AnswerSocrates, SERP, Reddit, YouTube, or a user PAA/FAQ CSV. If using AnswerSocrates, save or cite `research/paa-questions-[topic-slug]-[YYYY-MM-DD].md`. If no sourced question set exists, collect one or record the blocker before writing.
-- **Question selection**: Select 3-5 closest questions, label intent, write an insight summary, write a suggested blog focus, and assign each question to an H2, H3, or FAQ answer format.
+- **PAA/FAQ provenance**: Bind either the dedicated pre-picked brief section or `research/paa-questions-[topic-slug]-[YYYY-MM-DD].json`. The selected questions must match the eligible source section exactly. If no valid source exists, record the blocker and do not add FAQ copy.
+- **Question selection**: Use every dedicated brief-selected PAA question verbatim; otherwise select only the AnswerSocrates questions that materially serve intent, label intent, and assign each selected question to an eligible visible FAQ heading.
 - **FAQ quality gate**: Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error`; `/publish-readiness` runs it automatically.
 - **FAQ answer quality**: Each visible answer starts with a 40-60 word direct-answer paragraph and includes at least 1 authoritative non-owned public evidence link. A Source Map or FAQ Proof Map can document the same evidence but cannot replace that reader-facing link.
 - **Source Map**: Document each external source, the claim it supports, the natural anchor text, and the target section.
 - **E-E-A-T Proof Map**: Resolve E-E-A-T proof details, Experience, Expertise, and Authority/Trust before drafting. Experience includes customer case studies, customer outcomes, review-site experience evidence / VoC themes, implementation/support themes, user pain, and field workflow examples. Review narratives count as first-hand customer experience when reviewers describe product use, implementation, support, switching, pains, outcomes, or workflows. Expertise includes product/feature knowledge, source-backed workflow explanations, expert quotes, author/reviewer metadata, and Simpro workflow specificity. Authority/Trust includes public research, case-study URLs, review-site/source links, limitations, caveats, and no invented proof.
 - **Proof routing**: Start with connector-approved claims for the intended public use mode and read the supporting `resource_id` values. Bind public metrics, quotes, and proof themes to their `claim_id` and public URL. Receipt-bound context-backed metrics are valid only when public copy uses public-facing source links. Use @context/internal-links-map.md, @context/features.md, @context/competitor-analysis.md, or future review-context files only as downstream fallback mirrors when the connector is unavailable and the sidecar records the blocker. For review-site evidence, capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote or rating claim was approved. Use review-derived stories as paraphrased, source-backed experience patterns by default. Exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, and category claims require current source verification and claim-level approval. Never publish a metric or quote solely because it appears in a repo-local file.
 - **403 replacement rule**: If a DOL, Capterra, G2, Trustpilot, Google Play, or other public research/source URL returns 401, 403, or `manual_review`, do not remove the citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. Source Map notes must document both the rejected 403 URL and the replacement URL. Full policy and the `public_research_link_guard.py` gate live in `context/aeo-geo-blog-strategy.md`.
+- **General Source Support Classes**: Use only `primary_authority`, `independent_research`, `non_competing_expert`, `owned_product`, `customer_proof`, `review_platform`, and `competitor` for general source-map rows. General causal, comparative, definitional, process, and recommendation claims require an exact row with `Claim`, `Claim type`, `Evidence relation: directly_supports`, `Source class`, `Classification artifact`, `Classification hash`, `URL`, source-visible `Evidence`, and `Status: approved`. The classification must be a hash-bound `simpro-source-classification/v1` registry export. PDF extraction or unreachable-HTML fallback also requires `Capture receipt` and `Capture receipt hash` from `simpro-source-capture-receipt/v1`; duplicate or weak links do not gain authority through repetition.
 - **Review proof routing**: For review-derived E-E-A-T stories, automatically run `customer_proof_selector.py` with `--slate --roles experience_story --require-eeat-story`, then run the review story identity gate from the required stack below. Use `context/aeo-geo-blog-strategy.md` for Review Story Selection, Review Site Theme Selection, Capterra theme use, exact-quote, rating, and metric boundaries.
 - **Reader Contract**: Before rewrite planning, document Primary reader, Sophistication level, Trigger problem, Existing belief, Decision or task helped, Distinctive angle, Promised payoff, Funnel stage, and Exclusions. Use it to set an intent/evidence-complete word target, natural terminology coverage, critical keyword placement, semantic variations, keyword-stuffing detection, CTA treatment, and section order.
 
 ## SERP Strategy Decision
 
 After the Reader Contract, record the verified SERP observation source, dominant observed content type, every observed feature, recurring extracted structure, and qualified must-fill gaps. Match the dominant observed content type and target every applicable feature by default. Any deviation requires a documented Reader Contract exception. If verified SERP context is unavailable, mark the decision unresolved and do not invent observations or silently waive the handoff.
+
+### Mandatory Editorial Plan Artifact
+
+Extend the existing `ArticlePlan`; `serialize_article_plan(plan)` emits the `simpro-blog-editorial-plan/v1` schema and deterministic JSON. Save that result at `research/editorial-plan-[topic-slug]-[YYYY-MM-DD].json`. Every changed blog requires this artifact. It must include the complete Reader Contract; verified intent and SERP decisions bound to `simpro-serp-evidence/v1`; an **Original Contribution Map** with at least 1 original contribution mapped to a visible final section and a substantive exact `visible_evidence` excerpt that appears there; an **Entity Map** for primary and supporting entity coverage without density targets; a **Query Ownership and Cannibalization Decision** of `clear | differentiated | blocked`, where `blocked` prevents readiness; an **Internal-Link Plan** with the required contextual down-funnel link and no fixed count; and an **FAQ and PAA Policy** with `FAQ policy: required | not_applicable`, a non-empty rationale, and the PAA source/binding/selected-question decision. Include the suggested blog focus from the brief when it remains supported by current intent and evidence.
 - **Optional proof-backed customer/review POV**: Use a proof-backed customer/review POV only when it improves the rewrite objective. Editorial scenes: 0-2 editorial scenes when they materially improve understanding. Named people or businesses require approved proof; Unnamed workflow scenarios are explanatory only; invented names, dates, metrics, quotes, and outcomes are prohibited.
 - **Customer proof selection governance**: Before selecting or drafting proof, resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and write the generated selector-first `Customer Proof Slate` to the validation sidecar. If inputs are missing, resolve them from the brief/context or stop before drafting customer proof. If the selector fails, write the blocker into the sidecar and do not invent proof. experience_story consideration is required and E-E-A-T story usage is optional. If no story fits, use `Selected: [none]` with section-specific rejection reasons. Full policy lives in `context/aeo-geo-blog-strategy.md`.
-- **Fred Voccola authority evaluation**: Resolve `topic`, `title`, and `objective`, then automatically run `python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --slate --limit 5` and write the complete `Fred Voccola Authority Selection` block from `context/aeo-geo-blog-strategy.md` to the validation sidecar. Evaluation is mandatory and public use is optional. The selector defaults to `Selected: none`; select a source explicitly only after reviewing it and confirming direct topical support. If the selector, connector, context pack, or receipt validation fails, record `Evaluation status: blocked` and the blocker; do not invent Fred evidence or continue to Fred public use.
+- **Fred Voccola authority evaluation**: Resolve `topic`, `title`, and `objective`, then automatically run `python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --slate --limit 5 --output "research/fred-authority-selection-[topic-slug].md"` and copy that exact generated `Fred Voccola Authority Selection` block into the validation sidecar. Evaluation is mandatory and public use is optional. The selector defaults to `Selected: none`; select a source explicitly only after reviewing it and confirming direct topical support. If the selector, connector, context pack, or receipt validation fails, record `Evaluation status: blocked` and the blocker; do not invent Fred evidence or continue to Fred public use.
 - **Recent-use proof diversity**: Treat any `recent_uses_90d` value above 0 as a proof-diversity warning, not only sources marked `overused`. Before claiming a proof source is underused, inspect the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the proof ID, public URL, and customer name. If the live repo scan finds public-copy usage missing from the ledger, backfill `context/customer-proof-usage-ledger.json`, rerun proof health and selector checks, and document the backfill in the validation sidecar. Prefer an approved zero-recent-use source when one fits the same role, or document why no stronger underused approved proof fits. If a recently used or overused proof source is still selected, document why no stronger underused approved proof fits.
 - **Selected customer proof mining**: When selected customer proof appears in public copy, add `Selected Customer Proof Mining` to the validation sidecar. Selector chooses candidates; proof mining reads the selected public URL before the writer decides quote, metric, POV/story, theme, or omit use. Full policy lives in `context/aeo-geo-blog-strategy.md`.
 - **Proof-index health**: Run `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` before adding proof candidates, and review both recently used and overused proof rows.
@@ -100,8 +145,8 @@ After the Reader Contract, record the verified SERP observation source, dominant
 - **Proof routing**: Proof infrastructure belongs only in the validation sidecar. The rewrite and change summary record only the sidecar path and status so there is one authoritative proof state.
 - **down-funnel internal link**: Every rewrite must include at least 1 contextual body link to `/industries`, `/industries/...`, `/solutions/...`, or `/features/...` from @context/internal-links-map.md. Prefer the specific industry page when industry intent is clear, the `https://www.simprogroup.com/industries` hub for broad trades or general industry topics, the relevant solution page for category/workflow topics, and the relevant feature page for feature/workflow topics. Anchor text must match the destination keyword or an approved anchor example from @context/internal-links-map.md.
 - **Functional feature/solution anchors**: Feature and solution links must use function-bearing anchor text that explains the workflow, category, or outcome behind the destination. A feature or solution name alone is not enough. Use anchors like "field service payments," "accounts receivable follow-up with Fast Cash," or "field service management software" instead of "Simpro Payments," "Fast Cash," or "Simpro Premium."
-- **Simpro web copy rules**: Use numerals for cardinal numbers, including 1-9. Do not block source-visible metric wording when a public proof source spells out the number; preserve the supported claim wording and rely on Metric Proof Pack, numeric claim source guard, and source support guard for proof. Because comma decisions are grammar/context dependent. No comma when the because clause is essential to the sentence meaning. Use a comma when the because clause is nonessential, contrastive, or needed to prevent misreading. Review negative constructions carefully because comma placement can change meaning. Only 1 link per paragraph. Move the second link to a separate paragraph or remove it. Do not write source/proof meta-commentary such as "that case study is useful for this topic" or "this source is relevant for the article." Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
-- **Schema notes**: For standard blog posts, include BlogPosting and BreadcrumbList. Add FAQPage and nested Question and Answer inside FAQPage only when visible FAQs exist. Include ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. If a named author is present, include `author` in frontmatter and map it to `Person as author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization` as publisher reference only, and record the no-author decision in the blog assembly BOM and validation sidecar. Use VideoObject only when a video is embedded.
+- **Simpro web copy rules**: Use numerals for cardinal numbers, including 1-9. Do not block source-visible metric wording when a public proof source spells out the number; preserve the supported claim wording and rely on Metric Proof Pack, numeric claim source guard, and source support guard for proof. Because comma decisions are grammar/context dependent. No comma when the because clause is essential to the sentence meaning. Use a comma when the because clause is nonessential, contrastive, or needed to prevent misreading. Review negative constructions carefully because comma placement can change meaning. Place each link where it directly supports the sentence and reader task; do not enforce a per-paragraph quota. Do not write source/proof meta-commentary such as "that case study is useful for this topic" or "this source is relevant for the article." Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
+- **Schema notes**: Always include BlogPosting, BreadcrumbList, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. `FAQPage` and `Question and Answer inside FAQPage` are required only when visible FAQs exist. `Person as author` is required only when a named author exists. Require `VideoObject` if and only if a verified video embed exists. For public Markdown blog artifacts, place `schema_notes` in the top YAML frontmatter block between the opening and closing --- delimiters. If a named author is present, include `author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization` as publisher reference only, and record the no-author decision in the BOM and validation sidecar.
 
 Do not invent PAA questions, customer proof, author names, reviewer names, search volume, ranking data, or source-backed claims. If proof is missing, mark it as missing and keep the claim out of the rewrite.
 
@@ -203,7 +248,7 @@ Follow same structure as `/write` command:
 - **Add New Links**: Reference newer content published since original
 - **Strategic Placement**: Link to pillar content and related articles
 - **Anchor Text**: Use keyword-rich, descriptive anchor text
-- **Quantity**: Aim for 3-5+ quality internal links
+- **Quantity**: Add only intent-appropriate internal links, including the required contextual down-funnel link, without a fixed total
 
 #### External Linking
 - **Update Broken Links**: Replace any dead external links
@@ -226,7 +271,7 @@ Follow same structure as `/write` command:
 - Confirm examples reflect current industry landscape
 - Check that product references are up-to-date
 - Confirm the public rewrite body does not mention "repo context," context file paths, Source Maps, PAA artifacts, change summaries, or internal proof-path notes. Repo-local context remains editorial fallback or operational state only when the connector is unavailable; it never becomes public-claim approval authority. Record the connector-unavailable blocker and omit unsupported public claims.
-- Confirm PAA/FAQ provenance, Source Map, E-E-A-T Proof Map, direct-answer capsules, and schema notes are present for moderate, major, and complete rewrites
+- Confirm PAA provenance, Source Map, E-E-A-T Proof Map, direct-answer capsules, and conditional schema notes are present for moderate, major, and complete rewrites; FAQ-specific blocks are required only when visible FAQs exist
 - Confirm every context-backed metric uses a public-facing source link, such as a case-study URL, review-site URL, or public research source.
 
 #### Brand Alignment
@@ -252,6 +297,28 @@ Complete markdown article with all improvements:
 - Improved and expanded body sections
 - Strengthened conclusion
 - All new meta elements
+
+Start the public rewrite with this strict identity block. Placeholder values such as `Unknown` and `Not provided` are invalid. Include `author` only when a named author exists:
+
+```yaml
+---
+artifact_type: blog
+brand: [Brand]
+title: [Article title]
+objective: [Reader or business objective]
+audience: [Audience]
+region: [Region]
+last_updated: [YYYY-MM-DD matching the assembly date]
+author: [Named author only when available; omit this field when no named author exists]
+schema_notes:
+  - BlogPosting
+  - BreadcrumbList
+  - ImageObject for the featured image or logo
+  - "Organization as publisher reference only, not a separate full schema block"
+# Add FAQPage plus Question and Answer inside FAQPage only for visible FAQs.
+# Add Person as author only for a named author. Add VideoObject only for a verified embed.
+---
+```
 
 ### 2. Change Summary
 ```
@@ -299,9 +366,9 @@ Content Updates:
 
 Validation and AEO/GEO Status:
 - Validation sidecar path and status: [research/validation-[topic-slug]-[YYYY-MM-DD].md; ready / partial / blocked]
-- PAA artifact path: [research/paa-questions-[topic-slug]-[YYYY-MM-DD].md or not available]
+- PAA artifact path: [research/paa-questions-[topic-slug]-[YYYY-MM-DD].json or not available]
 - FAQ quality gate: [pass / blocked]
-- Schema notes: [present in public frontmatter; VideoObject only when a video is embedded]
+- Schema notes: [present in public frontmatter; VideoObject if and only if a verified video embed exists]
 ---
 ```
 
@@ -328,30 +395,24 @@ Also save the change summary separately:
 
 Proof infrastructure belongs only in the validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`; the rewrite and change summary retain only its sidecar path and status. Do not put an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan in the publishable rewrite.
 
-Preferred publish readiness command:
-```bash
-/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json
-```
-
-Run `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json` to confirm the rewrite is clean and all proof, Context Binding, BOM, URL validation, source support, content score, and AEO/GEO gates pass. The command reads the validation sidecar without exposing proof infrastructure in public copy.
+Run the exact build -> preflight -> finalize -> final sequence under **Blog Assembly Seal (MANDATORY)**. A one-pass readiness invocation cannot confirm a blog rewrite. The detached final-readiness attestation confirms that the rewrite, BOM, proof, Context Binding, URL validation, source support, content score, and AEO/GEO inputs agree without exposing proof infrastructure in public copy.
 
 ## Automatic Scrub, Publish Readiness, And Optimize
 
-**CRITICAL**: Immediately after saving the rewritten article file, automatically invoke the content scrubber, run `/publish-readiness`, then run `/optimize`.
+**CRITICAL**: Immediately after saving the rewritten article file, close the draft receipt, run the receipt-emitting scrubber and Context Binding generator, and complete the two-phase seal. Run optimization only within the mutation/reseal cycle.
 
 ### Why This Matters
 AI-generated content often contains invisible Unicode marks and characteristic punctuation patterns. Scrubbing handles cleanup. The linter handles AI-writing detection and Simpro style enforcement.
 
 ### Scrub, Publish Readiness, And Optimize Process
-1. **Invoke Scrubber**: Run `/scrub [file-path]` on the saved rewritten article file
-2. **Invoke Publish Readiness**: Run `/publish-readiness [file-path] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`
-3. **Check Gates**: General content quality must be 85/100 or higher, AEO/GEO must be 90/100 or higher, and all blocking gates must pass
-4. **Invoke Optimizer**: Run `/optimize [file-path]` after all non-scoring gates pass. If content quality or AEO/GEO fails, use `/optimize` inside the AEO/GEO Recovery Loop and rerun `/publish-readiness`.
-5. **Automatic Execution**: This should happen automatically, not require user action
-6. **Timing**: Must occur immediately after file save, before optimization agents
-7. **Scope**: Scrub and publish-readiness checks apply to the main rewritten article file only; proof maps live in the validation sidecar.
-8. **Error Handling**: If `/publish-readiness` fails, fix the highest-severity gate it reports. Use `context/aeo-geo-blog-strategy.md` for proof policy and individual module debugging. Review `because` grammar in context during each revision loop, fix the sentence when comma placement changes or clarifies meaning, and rerun `/scrub` plus `/publish-readiness`. If score gates fail after 2 iterations, route to `review-required/` with scoring details.
-9. **AI copy avoid-rule errors**: Fix copy avoid-rule errors before `/optimize` or handoff. The linter blocks modal verbs, passive voice, repeated starts, vague generalizations, filler words, and long sentences in Simpro web copy.
+1. **Close the draft receipt** after saving the complete rewrite.
+2. **Run the receipt-emitting scrub and Context Binding commands** under **Blog Assembly Seal (MANDATORY)**.
+3. **Run build -> preflight -> finalize -> final** and require content quality of 85/100 or higher, AEO/GEO of 90/100 or higher, and no blocking findings.
+4. **Invoke optimizer only as a recorded mutation** when repair or improvement is needed, then run the closed post-optimization sequence and reseal.
+5. **Automatic execution**: do not ask the user to run these commands.
+6. **Scope**: readiness verifies source artifacts only; proof maps remain in the validation sidecar.
+7. **Error handling**: fix the highest-severity gate, review `because` grammar in context, regenerate every affected receipt, and rerun the complete two-phase seal. Route unresolved score failures after 2 iterations to `review-required/`.
+8. **AI copy avoid-rule errors**: fix copy avoid-rule errors before optimization or handoff. These blocking errors include modal verbs, passive voice, repeated starts, vague generalizations, filler words, and long sentences.
 
 ## AEO/GEO Recovery Loop
 
@@ -361,7 +422,7 @@ An AEO/GEO score below 90/100 is a repair trigger, not a reporting endpoint. Unl
 2. Classify each failure as a public-copy gap, validation-sidecar/proof gap, or scorer or parser false negative.
 3. If the article visibly satisfies the written requirement but scoring misses it, add a regression test and fix the scorer or parser false negative. Do not distort accurate, brief-approved copy to satisfy brittle matching.
 4. Apply the top 3-5 fixes that address root causes. Do not invent PAA questions, claims, proof, metrics, quotes, or customer experience to gain points.
-5. Rerun `/scrub`, the AI copy linter, URL validation, regenerate Context Binding with `context_binding_generator.py`, update the blog assembly BOM, and rerun `/publish-readiness [file] --proof-sidecar [sidecar] --context-request [request] --context-pack [pack] --context-receipt [receipt] --assembly-bom [bom]`.
+5. Record the mutation, run the post-optimization scrub and Context Binding receipt stages, rebuild the provisional BOM with `--prior-preflight-readiness`, and rerun preflight -> finalize -> final.
 6. Repeat once if needed. If AEO/GEO remains below 90/100 after 2 iterations, route the artifact to `review-required/` with the score, failed checks, attempted fixes, and any external evidence or authority blocker.
 
 `/optimize` is allowed inside this recovery loop when all proof, source, URL, and public-artifact gates pass but content quality or AEO/GEO does not. Final handoff still requires content quality of at least 85/100, AEO/GEO of at least 90/100, and every blocking gate to pass.
@@ -419,10 +480,10 @@ URL validation confirms destinations resolve; it does not prove the page support
 
 ### Example Workflow
 1. Rewrite article and save to `rewrites/article-name-rewrite-2025-10-31.md`.
-2. Run `/scrub`, then `/publish-readiness rewrites/article-name-rewrite-2025-10-31.md --proof-sidecar research/validation-article-name-2025-10-31.md --context-request research/context-request-article-name.json --context-pack research/context-pack-article-name.json --context-receipt research/context-receipt-article-name.json --assembly-bom research/blog-assembly-bom-article-name-2025-10-31.json`.
-3. Confirm 85/100 general content quality, 90/100 AEO/GEO, and passing proof gates.
-4. Then run `/optimize rewrites/article-name-rewrite-2025-10-31.md`.
-5. If blockers remain, revise once, review `because` grammar in context, and rerun the same stack.
+2. Close the draft receipt and run the receipt-emitting scrub and Context Binding commands.
+3. Run build -> preflight -> finalize -> final and confirm 85/100 general content quality, 90/100 AEO/GEO, and passing proof gates.
+4. If optimization is needed, record it as a mutation and execute the closed post-optimization sequence.
+5. If blockers remain, revise once, review `because` grammar in context, and reseal from the new mutation receipt.
 
 This keeps cleanup separate from AI copy detection and scoring before optimization.
 

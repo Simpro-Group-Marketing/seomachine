@@ -28,6 +28,8 @@ Required validation evidence: generated vault context binding and `Fred Voccola 
 
 For every Simpro blog, retrieve current voice and tone guidance through the vault connector by semantic search and `resource_id` reads. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Em dashes are prohibited. Product pages and landing pages retain their existing restrained channel treatment.
 
+When `author_policy.status` is `not_provided`, first-person singular author judgment outside quotes is prohibited.
+
 ## Named Feature Status And Commercial Treatment
 
 When public copy names Lightning, RAIN, a current role agent, Intelligent AI Scheduler, or a roadmap specialist, the validation sidecar must contain exactly one row per detected name under `Named Feature Status and Commercial Treatment`.
@@ -71,6 +73,77 @@ This block validates vault language alignment only. It does not approve claims, 
 
 Use this file for blog workflows only. It supports `/research`, `/research-serp`, `/article`, `/write`, `/analyze-existing`, and `/rewrite`; it does not replace marketing skills.
 
+## Blog Assembly BOM and Two-Phase Seal
+
+Every new or changed blog requires a strict `simpro-blog-assembly-bom/v1`. The vault remains the knowledge graph and active evidence source. The JSON BOM is the per-article execution record; it binds source artifacts and receipts without prescribing vault paths or topology.
+
+The complete inventory is the final article, validation sidecar, context request/pack/receipt plus customer-proof selector and Fred authority evidence when connector-bound, `simpro-blog-editorial-plan/v1`, verified SERP evidence, the bound PAA artifact or rewrite brief (and CSV/blocker evidence when applicable), every `simpro-blog-stage-receipt/v1`, conditional optimizer evidence, provisional/final BOM, passed preflight output, and detached final-readiness attestation.
+
+Tool-emitted machine artifacts carry an `execution_attestation`, a keyed local execution-integrity attestation. It is required on every `simpro-blog-stage-receipt/v1`, verified `simpro-serp-evidence/v1`, nested `simpro-answersocrates-run-receipt/v1`, `simpro-source-classification/v1`, and `simpro-source-capture-receipt/v1`. Readiness verifies the attestation and canonical hash; a handwritten or merely rehashed replacement does not qualify.
+
+This local control binds the exact payload to the configured repository emitter. It does not provide a remote/provider signature and does not prove that external observations are true. Source metadata, visible evidence, freshness, eligible PAA questions, and semantic claim fit remain separate validation requirements. For rewrites, a dedicated pre-picked PAA brief section still takes precedence and remains bound by its exact path and hash; it is not recast as AnswerSocrates output.
+
+Trust-key operations are part of the workflow. On a developer workstation, the emitter creates the ignored local key at `.cache/seomachine-execution-attestation.key`. Managed runners must configure the same secret for emission and validation through `SEOMACHINE_ARTIFACT_ATTESTATION_KEY`; use at least 32 UTF-8 bytes and keep it outside the repository. Losing or rotating either trust source invalidates existing attestations, so regenerate the affected machine artifacts before readiness.
+
+Receipts must come from the tools that perform the work. Create the article scaffold, start the mutation recorder before drafting, finish it only after the article is saved, then run the receipt-emitting deterministic stages:
+
+```powershell
+python data_sources/modules/blog_assembly_mutation_recorder.py start --article "[article]" --state "research/stage-receipts/[topic-slug]/draft-state.json" --run-id "[run-id]" --stage draft --tool-name "[draft-tool]" --tool-version "[version]" --input "editorial_plan=research/editorial-plan-[topic-slug]-[YYYY-MM-DD].json"
+# Draft and save the article here.
+python data_sources/modules/blog_assembly_mutation_recorder.py finish --article "[article]" --state "research/stage-receipts/[topic-slug]/draft-state.json" --receipt "research/stage-receipts/[topic-slug]/draft.json" --evidence "serp_evidence=research/serp-evidence-[topic-slug]-[YYYY-MM-DD].json"
+python data_sources/modules/content_scrubber.py "[article]" --stage scrub --run-id "[run-id]" --previous-receipt "research/stage-receipts/[topic-slug]/draft.json" --stage-receipt-output "research/stage-receipts/[topic-slug]/scrub.json"
+python data_sources/modules/context_binding_generator.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --stage context_binding --run-id "[run-id]" --previous-receipt "research/stage-receipts/[topic-slug]/scrub.json" --stage-receipt-output "research/stage-receipts/[topic-slug]/context-binding.json"
+```
+
+For a final article with no Simpro brand, official or schemeless Simpro URL, or connector-sensitive language, generate the non-connector receipt with the shared applicability decision:
+
+```powershell
+python data_sources/modules/context_binding_generator.py "[article]" --proof-sidecar "[sidecar]" --not-applicable-reason "Final article contains no Simpro brand, URL, or connector-sensitive language." --stage context_binding --run-id "[run-id]" --previous-receipt "research/stage-receipts/[topic-slug]/scrub.json" --stage-receipt-output "research/stage-receipts/[topic-slug]/context-binding.json"
+```
+
+For that branch only, omit context request/pack/receipt, customer-proof selector, and Fred evidence arguments from BOM build, and omit context request/pack/receipt from readiness. The builder derives applicability from the final article; callers cannot declare a Simpro or proof-sensitive article `not_applicable`.
+
+Use this exact non-circular sequence. Add the applicable artifact arguments and repeat `--stage-receipt` for every closed stage:
+
+```powershell
+python data_sources/modules/blog_assembly_bom.py build "[article]" --validation-sidecar "[sidecar]" --editorial-plan "[editorial-plan]" --serp-evidence "[serp-evidence]" --paa-artifact "[paa-artifact]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --customer-proof-selector-evidence "[selector-evidence]" --fred-authority-evidence "[fred-evidence]" --stage-receipt "[closed-stage-receipt]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output "[provisional-bom]"
+python data_sources/modules/publish_readiness.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --assembly-bom "[provisional-bom]" --phase preflight --output "[preflight-readiness]"
+python data_sources/modules/blog_assembly_bom.py finalize --bom "[provisional-bom]" --preflight-readiness "[preflight-readiness]" --output "[final-bom]"
+python data_sources/modules/publish_readiness.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --assembly-bom "[final-bom]" --phase final --output "[final-readiness-attestation]" --stage-receipt-output "[final-readiness-stage-receipt]"
+```
+
+Preflight accepts only a provisional BOM and must pass before finalization. Final readiness accepts only a final BOM and reruns every gate. It writes a detached final-readiness attestation that includes the final BOM hash and every final input hash; the attestation is not hashed back into the BOM. Readiness outputs declare `verification_scope: source_artifact` and do not imply CMS/rendered-page acceptance.
+
+For `--output "research/preflight-readiness-[topic-slug]-[YYYY-MM-DD].json"`, preflight automatically writes `research/preflight-readiness-[topic-slug]-[YYYY-MM-DD]-stage-receipt.json`. Do not create or name this companion receipt manually.
+
+Normal closed receipts are `draft` -> `scrub` -> `context_binding` -> `preflight_readiness`. Preserve the initial provisional BOM at `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`; finalize it out of place to `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-final.json`. The **Closed post-optimization receipt sequence** is `optimization` -> `post_optimization_scrub` -> `post_optimization_context_binding` -> `final_preflight_readiness`, appended after the normal draft/scrub/binding stages. Start and finish the optimization recorder around the edit, use the post-optimization stage names for the scrubber and Context Binding generator, and rebuild with optimizer evidence, all receipts, plus `--prior-preflight-readiness "research/preflight-readiness-[topic-slug]-[YYYY-MM-DD].json"`. Write that rebuilt provisional BOM to `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-post-optimization.json` and finalize it out of place to `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-post-optimization-final.json`. Do not overwrite the BOM referenced by the prior preflight. Preflight-bound provisional BOMs and readiness results are immutable history. Any mutation after finalization invalidates the BOM and attestation, so resume from a mutation receipt and rebuild the seal with new versioned paths.
+
+## PAA Provenance and Intent-Driven FAQ Policy
+
+- Every new article requires a structured AnswerSocrates artifact, even when no FAQ is useful.
+- For a rewrite, PAA pre-picked in a dedicated brief section takes precedence. Bind the brief path and hash, do not rerun AnswerSocrates, and use those exact questions as visible FAQ headings.
+- A rewrite without pre-picked brief PAA requires a structured AnswerSocrates artifact.
+- A user CSV is allowed only when a saved AnswerSocrates artifact records a genuine blocked state: login, CAPTCHA, quota, or unavailability.
+- SERP, Reddit, and YouTube are supplemental research and cannot satisfy PAA provenance.
+- Match source kinds exactly. Reject stale artifacts, mismatched queries or dates, keyword fragments, and questions found only outside the eligible question section.
+- Record `FAQ policy: required | not_applicable`. `required` applies when a rewrite brief pre-picks PAA or the editorial plan selects a useful FAQ. `not_applicable` requires a non-empty rationale.
+- Run FAQ answer-quality, proof, `FAQPage`/`Question`/`Answer` schema, and FAQ scoring only when visible FAQs exist.
+
+## Editorial Plan Contract
+
+Every new or changed blog requires `simpro-blog-editorial-plan/v1`, serialized from the existing ArticlePlan workflow rather than a parallel planning system. It must contain:
+
+- the complete Reader Contract;
+- verified intent and SERP decisions bound to `simpro-serp-evidence/v1`, including exact result observations, collection metadata, evidence path, canonical evidence hash, and observed features/structure; metadata-only verified labels do not qualify;
+- at least 1 original contribution mapped to an exact visible final section with a substantive exact `visible_evidence` excerpt that appears there;
+- primary and supporting entity coverage mapped to sections without density targets;
+- a query ownership/cannibalization decision of `clear | differentiated | blocked`, where `blocked` prevents readiness;
+- intent-appropriate internal links, including the required contextual down-funnel link, without a fixed total;
+- `FAQ policy: required | not_applicable` with its rationale; and
+- the PAA source/binding/selected-question decision required by the workflow mode.
+
+The BOM binds the final serialized plan path/hash. Publish readiness validates the plan against the final article rather than accepting marker-only planning text.
+
 ## Required Variable Resolution
 
 Before drafting with `/article`, `/write`, or `/rewrite`, resolve these variables from the user prompt, research brief, generated vault context binding, and repo context files only as fallback/mirror inputs. `/analyze-existing` must audit which inputs are present, missing, or blocked before a rewrite proceeds.
@@ -80,10 +153,10 @@ Before drafting with `/article`, `/write`, or `/rewrite`, resolve these variable
 | `topic` | User prompt or topic file | Ask the user |
 | `audience` | Connector-discovered messaging and vertical resources | `context/brand-voice.md` fallback mirror if the vault is unavailable |
 | `main_question` | SERP/PAA intent, title, or brief | Ask if no clear primary question exists |
-| `related_questions` | AnswerSocrates PAA artifact, SERP, Reddit, YouTube | Ask for PAA/FAQ CSV if AnswerSocrates is blocked |
+| `related_questions` | Structured AnswerSocrates artifact; for rewrites, the dedicated pre-picked brief section takes precedence | User PAA/FAQ CSV only with a bound AnswerSocrates genuine blocked-state artifact |
 | `tone` | Connector semantic search and `resource_id` reads for current messaging and style guidance | `context/brand-voice.md` and `context/style-guide.md` fallback mirrors if the connector is unavailable |
 | `expertise` | Connector-discovered product/workflow resources and approved claims, plus verified expert sources | Ask if a named author/reviewer is required and missing |
-| `length` | SERP/content brief | Default to competitive length from `/research-serp` |
+| `length` | Complete Reader Contract, verified intent, and available evidence | Keep the scope intent-complete without competitor-derived or universal word targets |
 
 Do not synthesize facts, search volume, PAA questions, customer claims, or expert quotes. If the repo and live research do not provide an input, ask for it or mark it as missing.
 
@@ -91,7 +164,7 @@ Do not synthesize facts, search volume, PAA questions, customer claims, or exper
 
 For `/analyze-existing`, audit whether the current post has the strategy inputs needed for a safe rewrite: main answer target, related-question provenance, source-backed claims, Source Map, E-E-A-T proof, direct-answer opportunities, capsule opportunities, schema notes, and quality-gate risks.
 
-For `/rewrite`, resolve the same variables before drafting. Reuse existing strategy artifacts only when they match the post topic and current rewrite direction. If the rewrite brief lacks sourced questions, source-backed claims, or proof, collect them or mark the blocker before writing.
+For `/rewrite`, resolve the same variables before drafting. Reuse existing strategy artifacts only when they match the post topic and current rewrite direction. If the rewrite brief contains pre-picked PAA in its dedicated section, preserve those exact visible FAQ headings and bind the brief path/hash. If it does not, collect a current structured AnswerSocrates artifact. If source-backed claims or proof are missing, collect them or mark the blocker before writing.
 
 Do not invent replacement questions, customer proof, author names, reviewer names, search-volume data, ranking data, or external claims to fill rewrite gaps.
 
@@ -112,7 +185,7 @@ Required proof sources:
 - Context-backed metrics are valid only when the context pack carries an approved claim, permitted use mode, public proof URL, and source-visible evidence anchor. Public copy must link to the public case study, review site, or source URL, not to internal context files.
 - Metric-sensitive topics must include a Metric Proof Pack before drafting or publish readiness. The pack requires a Search log, each Approved metric, public proof URL or local proof artifact, source-visible Evidence, Status: approved, intended Use, and rejected candidates.
 - The source support guard requires each high-risk claim to map to a strict proof row with Claim, URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact.
-- The PAA provenance guard requires each FAQ question to map to a saved AnswerSocrates, SERP, Reddit, YouTube, or user PAA/FAQ CSV artifact. Proof links alone do not prove question provenance.
+- The PAA provenance guard requires each visible FAQ question to map exactly to the bound structured AnswerSocrates artifact or, for a rewrite, the dedicated pre-picked brief section. A user CSV requires a bound AnswerSocrates genuine blocked-state artifact. Proof links and supplemental SERP, Reddit, or YouTube research do not prove PAA provenance.
 - Do not write source/proof meta-commentary in public copy, such as "that case study is useful for this topic" or "this source is relevant for the article." Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 
 ## Metric Proof Pack
@@ -262,7 +335,7 @@ Case-study proof paths and Review-site experience evidence may support non-numer
 Every `/research`, `/article`, `/write`, `/rewrite`, `/analyze-existing`, and `/optimize` workflow for a new or changed Simpro blog must resolve `topic`, `title`, and `objective`, automatically run:
 
 ```powershell
-python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --slate --limit 5
+python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --slate --limit 5 --output "research/fred-authority-selection-[topic-slug].md"
 ```
 
 Write the complete selector evaluation to `research/validation-[topic-slug]-[YYYY-MM-DD].md` before drafting or changing public Fred content. Evaluation is mandatory; public use is optional and must materially support the article subject and target section. The selector defaults to `Selected: none`; selection requires an explicit editorial decision after the source is reviewed. If the selector, vault, manifest, or required inventory is unavailable or stale, set `Evaluation status: blocked`, document the blocker, and do not invent, infer, quote, paraphrase, cite, or embed Fred evidence.
@@ -317,48 +390,48 @@ Required browser flow:
 3. Enter the inferred `main_question`; if no main question exists, enter `topic`.
 4. Submit with snapshot-derived targets only. Do not hard-code selectors.
 5. Wait for results and extract visible questions with `browser_evaluate`.
-6. Save the result to `research/paa-questions-[topic-slug]-[YYYY-MM-DD].md`.
+6. Immediately record the observed run as `research/paa-questions-[topic-slug]-[YYYY-MM-DD].json` with the recorder below. Do not hand-author the JSON or its hashes.
 
-If AnswerSocrates is blocked, unavailable, or requires login/CAPTCHA, record the blocker in the artifact and ask the user for a PAA/FAQ CSV export. Do not invent replacement questions.
+If AnswerSocrates records a genuine blocked state such as login, CAPTCHA, quota, or unavailability, preserve that structured blocker artifact before asking for a PAA/FAQ CSV export. Do not invent replacement questions.
 
-For `/rewrite`, an existing AnswerSocrates artifact, SERP PAA set, Reddit/YouTube question set, or user PAA/FAQ CSV may satisfy this requirement if the artifact is cited in the analysis or change summary. If none exists, collect a new artifact or record the blocker.
+For `/rewrite`, first inspect the brief for a dedicated pre-picked PAA section. It takes precedence over all other sources and its exact questions must remain visible FAQ headings. Without that section, collect a current structured AnswerSocrates artifact. SERP, Reddit, and YouTube stay supplemental and never satisfy PAA provenance.
 
-## PAA Artifact Format
+The rewrite-only brief section must use this exact heading:
 
 ```markdown
-# PAA Questions: [Topic]
-
-**Date:** [YYYY-MM-DD]
-**Source:** AnswerSocrates via Playwright MCP
-**Query Used:** [main_question or topic]
-**Status:** [collected / blocked / user-export-needed]
-
-## Raw Questions
-- [question]
-
-## Closest Related Questions
-1. [question]
-2. [question]
-3. [question]
-
-## Intent Breakdown
-- [How-to / Understanding / Comparative / Future-Trends / Commercial]: [brief note]
-
-## Insight Summary
-[2-3 sentences explaining what these questions reveal about user intent.]
-
-## Suggested Blog Focus
-[1-2 sentences that should guide the article.]
-
-## Section Assignment
-| Question | Intent | Article Section | Answer Format |
-|---|---|---|---|
-| [question] | [intent] | [H2/FAQ] | [capsule/list/table/FAQ] |
+## Pre-picked PAA Questions
+- [Exact complete question?]
 ```
+
+### Collected AnswerSocrates Artifact Template
+
+After the Playwright run finishes, execute this recorder command with the actual browser run ID, UTC timestamps, and every observed eligible question. Repeat `--eligible-question` and `--ineligible-fragment` as needed; omit either repeatable flag when its observed list is empty.
+
+```powershell
+python data_sources/modules/paa_provenance_guard.py record --query "[main question or topic]" --collection-date "[YYYY-MM-DD matching the assembly date]" --run-id "[Playwright run ID]" --started-at "[RFC 3339 UTC start]" --completed-at "[RFC 3339 UTC completion]" --eligible-question "[complete eligible question?]" --ineligible-fragment "[observed keyword fragment]" --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
+```
+
+The recorder emits `simpro-answersocrates-artifact/v1` with a nested `simpro-answersocrates-run-receipt/v1`, fixed `playwright_mcp` tool identity, payload SHA-256, and receipt SHA-256. Handwritten labels, Markdown templates, and self-described browser blockers are invalid provenance.
+
+### Blocked AnswerSocrates Artifact Template
+
+Save the observed blocker before accepting a user CSV. The blocker reason must describe what the browser actually showed.
+
+```powershell
+python data_sources/modules/paa_provenance_guard.py record --query "[main question or topic]" --collection-date "[YYYY-MM-DD matching the assembly date]" --run-id "[Playwright run ID]" --started-at "[RFC 3339 UTC start]" --completed-at "[RFC 3339 UTC completion]" --status blocked --blocker "[login | captcha | quota | unavailability]" --blocker-reason "[observed browser evidence]" --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
+```
+
+For the blocked fallback, the BOM builder must receive `--user-paa-csv "[user-csv]" --answersocrates-blocker "[blocked-answersocrates-artifact]"`. Direct provenance debugging passes the CSV as `paa_provenance_guard.py --paa-artifact "[user-csv]" --answersocrates-blocker "[blocked-answersocrates-artifact]"`. Readiness reruns the semantic guard against those exact BOM-bound hashes.
 
 ## Question Relevance Selection
 
-When a PAA/FAQ CSV or raw question set is available, select the 3-5 closest questions to the main concept. Group them by search intent such as How-to, Understanding, Comparative, Future-Trends, or Commercial. Summarize what the questions reveal about user intent, write a suggested blog focus, and assign each selected question to an article section and answer format.
+Select only the complete eligible questions that materially support the main concept and planned FAQ. Do not target a fixed count. Group selected questions by search intent such as How-to, Understanding, Comparative, Future-Trends, or Commercial. Summarize what they reveal, write the suggested blog focus, and assign each selected question to an article section and answer format.
+
+## General Source Support Classes
+
+Use only these exact general source-map classes: `primary_authority`, `independent_research`, `non_competing_expert`, `owned_product`, `customer_proof`, `review_platform`, and `competitor`. General causal, comparative, definitional, process, and recommendation claims require an exact claim-fit source-map row with `Claim`, `Claim type`, `Evidence relation: directly_supports`, `Source class`, `Classification artifact`, `Classification hash`, `URL`, source-visible `Evidence`, and `Status: approved`. The classification artifact must be a hash-bound `simpro-source-classification/v1` registry export; a writer-supplied source-class label is not evidence. Owned product sources support product facts; connector claims govern proof-sensitive Simpro language; customer and review proof retain their specialist gates. Duplicate or weak links cannot create authority by increasing link count.
+
+When a PDF extraction or unreachable HTML fallback is necessary, also bind `Capture receipt` and `Capture receipt hash` from `simpro-source-capture-receipt/v1`. That receipt must identify the source URL, retrieval time, source and output hashes, extraction method, and exact capture tool. A locally authored evidence file without this receipt blocks readiness.
 
 ## Drafting Rules
 
@@ -368,17 +441,17 @@ When a PAA/FAQ CSV or raw question set is available, select the 3-5 closest ques
 - Place a usable artifact within the first 300 words of body copy: a filled data table, a download link (PDF, Excel, Doc, or template), a checklist deliverable, or a calculator/tool reference. Key Takeaways bullets, plain lists, and image placeholders do not count. If no artifact fits the topic, mark `Early artifact requirement: not applicable` with a Reason in the `Early Artifact Plan` block of the validation sidecar.
 - If the target query implies a number, range, or template, supply a concrete version in the article with disclaimers as needed. Placeholder-only table cells such as `Enter lender-approved value`, `TBD`, or `varies` withhold the answer and block publish; fill tables with concrete sourced values or delete them. Non-scaffold exemptions go in the `Concrete Answer Check` block of the validation sidecar with a Reason.
 - Use one clear idea per H2/H3 section.
-- Integrate at least three credible external sources naturally inside sentences.
-- Use only 1 link per paragraph. Move the second link to a separate paragraph or remove it.
+- Integrate claim-fit credible external sources naturally inside sentences; evidence needs determine the count.
+- Place each link where it directly supports the sentence and reader task. Do not impose a per-paragraph quota.
 - Feature and solution links must use function-bearing anchor text that explains the workflow, category, or outcome behind the destination. A feature or solution name alone is not enough.
 - Context files are an internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics only when the Obsidian vault is unavailable; otherwise they are repo-local mirrors/fallbacks. Use public sources and context-backed proof when available, but do not write phrases like "repo context," "context/features.md," "Source Map," "PAA artifact," "change summary," or internal proof-path notes in the public article body.
 - Use context-backed metrics only with public-facing source links, such as case-study URLs, review-site URLs, or public research sources.
 - 403 replacement rule: if a source URL returns 401, 403, or `manual_review`, do not remove the public citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. DOL, Capterra, G2, Trustpilot, Google Play, and other review or authority-site 403s are URL-validity blockers, not permission to hide the source in the validation sidecar. Source Map notes must document the rejected 403 URL and the replacement URL.
 - Include a Metric Proof Pack when the topic calls for metrics, with a Search log and at least one Approved metric carrying source-visible Evidence before numeric claims are placed in the draft.
-- Include 3-5 selected PAA/FAQ questions from research.
-- Write FAQ answers as 40-60 word direct answers before any supporting context.
-- FAQ answer quality is mandatory: use a 40-60 word first visible paragraph and lead with a supported number or range, named recommendation, definition, concrete action, or explained yes/no response. Do not open with `There is no`, `It depends`, `Pricing depends`, `Costs vary`, `We do not know`, `It is unclear`, `No source ranks`, or an equivalent deflection. Put limitations after the direct answer. Replace or remove a question when no defensible answer exists. Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error` before scoring or `/optimize`.
-- FAQ proof is required for every answer: include at least 1 authoritative non-owned public evidence link inside the visible answer. A question-specific Source Map / FAQ Proof Map row may document the same evidence but cannot replace the reader-facing link. Context file paths and owned product links alone do not count. Run `python data_sources/modules/faq_proof_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error` before scoring or `/optimize`.
+- Include a visible FAQ only when `FAQ policy: required`; otherwise record `not_applicable` with a non-empty rationale and omit FAQ schema.
+- When visible FAQs exist, write each answer as a 40-60 word direct answer before supporting context.
+- FAQ answer quality is mandatory when visible FAQs exist: lead with a supported number or range, named recommendation, definition, concrete action, or explained yes/no response. Do not open with `There is no`, `It depends`, `Pricing depends`, `Costs vary`, `We do not know`, `It is unclear`, `No source ranks`, or an equivalent deflection. Put limitations after the direct answer. Replace or remove a question when no defensible answer exists. Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error` before scoring or `/optimize`.
+- FAQ proof is required for every visible answer: include at least 1 authoritative non-owned public evidence link inside the answer. A question-specific Source Map / FAQ Proof Map row may document the same evidence but cannot replace the reader-facing link. Context file paths and owned product links alone do not count. Run `python data_sources/modules/faq_proof_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error` before scoring or `/optimize`.
 - **FAQ Source Policy**: Every visible non-owned FAQ URL needs one exact `FAQ Proof Map` row with `FAQ`, `URL`, `Source class`, `Competitor check`, and source-grounded `Support`.
   - Allowed source classes: neutral, non_competing_expert.
   - Competitor-owned FAQ sources: prohibited.
@@ -388,7 +461,7 @@ When a PAA/FAQ CSV or raw question set is available, select the 3-5 closest ques
   - Add `- Status: aligned.` in the `FAQ Source Policy` sidecar block.
 
 - PAA provenance is required for each FAQ question: include `PAA/FAQ Provenance` with Source, Artifact, and exact Selected questions. Run `python data_sources/modules/paa_provenance_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error` before scoring or `/optimize`.
-- Add schema notes for standard blog posts: primary schemas are `BlogPosting` and `BreadcrumbList`; add `FAQPage` and nested `Question and Answer inside FAQPage` only when visible FAQs exist. Include `ImageObject for the featured image or logo` and `Organization as publisher reference only, not a separate full schema block`. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. If a named author is present, include `author` in frontmatter and map it to `Person as author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization` as publisher reference only, and record the no-author decision in the blog assembly BOM and validation sidecar. Use `VideoObject` only when a video is embedded.
+- Add schema notes for standard blog posts: always require `BlogPosting`, `BreadcrumbList`, `ImageObject for the featured image or logo`, and `Organization as publisher reference only, not a separate full schema block`. `FAQPage` and `Question and Answer inside FAQPage` are required only when visible FAQs exist. `Person as author` is required only when a named author exists. Require `VideoObject` if and only if a verified video embed exists. For public Markdown blog artifacts, place `schema_notes` in the top YAML frontmatter block between the opening and closing --- delimiters. If a named author is present, include `author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization` as publisher reference only, and record the no-author decision in the BOM and validation sidecar.
 - Evaluate Fred authority evidence for every new or changed Simpro blog, but add Fred content only when a selected source directly supports the section. Keep `Fred Voccola Authority Selection` in the validation sidecar, not public copy.
 
 ## AEO/GEO Map
@@ -399,8 +472,8 @@ Every `/article` plan and every moderate, major, or complete `/rewrite` plan mus
 |---|---|
 | Main answer target | The core question the article answers |
 | Capsule targets | H1 plus 60%+ major H2s |
-| Selected PAA questions | 3-5 questions from AnswerSocrates or user export |
-| PAA/FAQ provenance | Source label, artifact path, and exact selected questions from a saved source artifact |
+| Selected PAA questions | Complete eligible questions selected by intent, without a fixed count; rewrite brief questions take precedence |
+| PAA/FAQ provenance | Exact source kind, artifact or brief path/hash, query, date, status, eligible section, and selected questions |
 | Source map | Source, claim, anchor text, target section |
 | Metric Proof Pack | Metric requirement, Search log, Approved metric rows, public URL or local proof artifact, source-visible Evidence, Status: approved, intended Use, rejected candidates |
 | E-E-A-T Proof Map | Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, omitted unsupported claims |
@@ -420,15 +493,15 @@ A draft is publish-ready only when both gates pass:
 - AEO/GEO score: 90/100 or higher.
 - Validation sidecar: proof-only blocks must live in `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in public copy. Public artifacts must pass `data_sources/modules/public_artifact_guard.py --fail-on error` and must not contain an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, `Fred Voccola Authority Selection`, `Named Feature Status and Commercial Treatment`, `Vault Brand Language Alignment`, `Early Artifact Plan`, `Concrete Answer Check`, bracketed editorial labels, publication confirmation notes, unresolved availability notes, standalone TODO/TBD/TK markers, or structured data plan. Fenced examples, quoted source text, production image placeholders, and reader instructions remain allowed.
 - AI copy linting: `data_sources/modules/ai_copy_linter.py --profile simpro-web --fail-on error` blocks copy avoid-rule errors before publish readiness. Copy avoid-rule errors include modal verbs, passive voice, repeated starts, vague generalizations, filler words, and long sentences.
-- Publish readiness runner: use `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json` as the default execution command. Use the individual gates below for debugging and policy-specific failures.
+- Publish readiness runner: use the build -> preflight -> finalize -> final sequence in **Blog Assembly BOM and Two-Phase Seal**. A one-pass readiness call is invalid for blogs. Use the individual gates below only for debugging and policy-specific failures.
 - URL validation gate: `data_sources/modules/url_validator.py --fail-on unresolved` must pass before scoring, `/optimize`, handoff, or publish. URL validation confirms destinations resolve; it does not prove the page supports the claim.
 - Public research link guard: `data_sources/modules/public_research_link_guard.py --fail-on error` must pass before scoring or `/optimize`. It blocks sidecar-only handling of public research, compliance, legal, regulatory, or statistical proof, treats `manual_review` URLs as replacement-rule blockers, and requires visible resolved non-owned public research links in the relevant article section or FAQ answer.
-- Optimization scoring expectation: `seo_quality_rater.py --validate-urls` and `/optimize` require at least 2 resolved non-owned public research links unless the validation sidecar marks `External research requirement: not applicable` with a reason. Owned Simpro and ClockShark product links do not count as external research links.
+- Optimization scoring expectation: `seo_quality_rater.py --validate-urls` and `/optimize` require claim-fit, resolved non-owned public research for general sourced claims. Evidence completeness, not a fixed link count, controls acceptance. Owned product links do not count as independent research.
 - Metric Proof Pack guard: `data_sources/modules/metric_proof_pack_guard.py --fail-on error` must pass before scoring or `/optimize`. Required topics need a Search log and at least one Approved metric with public URL or local proof artifact, source-visible Evidence, Status: approved, and intended Use.
 - Numeric claim source guard: `data_sources/modules/numeric_claim_source_guard.py --fail-on error` must pass before scoring or `/optimize`. In addition to numeric claims, it blocks unsupported source-sensitive verbal quantities and comparisons such as single-digit or double-digit performance, number-word business sizes, average/most/majority business claims, and operator-group performance comparisons. A visible public evidence link or matching Source Map row with the claim phrase and a public URL is required.
 - FAQ answer quality gate: `data_sources/modules/faq_answer_quality_guard.py --fail-on error` must pass when FAQ answers are present. The first visible paragraph must answer the question directly; generic deflections, missing answers, and unexplained binary answers block publish readiness. This is a mandatory AEO/GEO condition but does not reweight the existing 100-point score.
 - FAQ proof gate: `data_sources/modules/faq_proof_guard.py --fail-on error` must pass when FAQ answers are present. Every FAQ answer needs an authoritative non-owned public evidence link in visible copy. A Source Map or FAQ Proof Map can document the same evidence but cannot replace the inline link.
-- PAA provenance guard: `data_sources/modules/paa_provenance_guard.py --fail-on error` must pass when FAQ questions are present. Each FAQ question must match the `PAA/FAQ Provenance` selected-question list and saved source artifact.
+- PAA provenance guard: `data_sources/modules/paa_provenance_guard.py --workflow-mode new|rewrite --paa-artifact [artifact] [--content-brief [brief]] [--answersocrates-blocker [artifact]] --fail-on error` always runs for blogs. Each visible FAQ question must match the bound eligible selected-question set exactly.
 - Source support guard: `data_sources/modules/source_support_guard.py --fail-on error` must pass before scoring or `/optimize`. Evidence snippets must be visible in the cited source, and named customer metric claims must be approved in Customer Proof Pack Approved metrics.
 - Customer proof diversity guard: `data_sources/modules/customer_proof_diversity_guard.py --fail-on error` must pass before scoring or `/optimize`. It verifies that case-study proof is not the only checked source route, that recently used or overused customer proof has a source-specific `Reuse reason`, that the sidecar includes `Customer Proof Selection Decision`, and that `customer_proof_selector.py` inputs from `customer-proof-index.json` and `customer-proof-usage-ledger.json` were respected, including selector-backed proof that no stronger underused approved proof fits the same role.
 - Selected customer proof mining: the customer proof diversity guard also requires `Selected Customer Proof Mining` whenever public copy uses customer proof, so selected proof is mined for quotes, metrics, POV/story, and workflow themes before final use is documented.
@@ -451,7 +524,7 @@ An AEO/GEO score below 90/100 is a repair trigger, not a reporting endpoint. Unl
 2. Classify each failure as a public-copy gap, validation-sidecar/proof gap, or scorer or parser false negative.
 3. If the article visibly satisfies the written requirement but scoring misses it, add a regression test and fix the scorer or parser false negative. Do not distort accurate, brief-approved copy to satisfy brittle matching.
 4. Apply the top 3-5 fixes that address root causes. Do not invent PAA questions, claims, proof, metrics, quotes, or customer experience to gain points.
-5. Rerun `/scrub`, the AI copy linter, URL validation, regenerate Context Binding with `context_binding_generator.py`, update the blog assembly BOM, and rerun `/publish-readiness [file] --proof-sidecar [sidecar] --context-request [request] --context-pack [pack] --context-receipt [receipt] --assembly-bom [bom]`.
+5. Treat every edit as a mutation. Rerun `/scrub` and Context Binding, rebuild the provisional BOM, run preflight, finalize only after it passes, then run detached final readiness using the Blog Assembly BOM and Two-Phase Seal sequence.
 6. Repeat once if needed. If AEO/GEO remains below 90/100 after 2 iterations, route the artifact to `review-required/` with the score, failed checks, attempted fixes, and any external evidence or authority blocker.
 
 `/optimize` is allowed inside this recovery loop when all proof, source, URL, and public-artifact gates pass but content quality or AEO/GEO does not. Final handoff still requires content quality of at least 85/100, AEO/GEO of at least 90/100, and every blocking gate to pass.

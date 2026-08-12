@@ -8,25 +8,60 @@ before they are treated as publish-ready for AEO/GEO.
 
 import json
 import re
+from collections.abc import Mapping, Sequence
+from datetime import date
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, FrozenSet, List, Optional, Tuple
 
 try:
+    from . import blog_assembly_contract
     from .customer_proof_evidence import verify_selector_evidence_roles
     from .faq_answer_quality_guard import check_content as check_faq_answer_quality
     from .faq_proof_guard import check_content as check_faq_proof
+    from .faq_structure import detect_faq_structure, is_faq_h2
+    from .frontmatter import FrontmatterError, split_frontmatter
     from .image_placeholder import is_production_image_placeholder_line
     from .paa_provenance_guard import check_content as check_paa_provenance_content
+    from .readiness_gate_context import trusted_readiness_findings
+    from .video_embed import inspect_video_embeds
 except ImportError:
+    import blog_assembly_contract
     from customer_proof_evidence import verify_selector_evidence_roles
     from faq_answer_quality_guard import check_content as check_faq_answer_quality
     from faq_proof_guard import check_content as check_faq_proof
+    from faq_structure import detect_faq_structure, is_faq_h2
+    from frontmatter import FrontmatterError, split_frontmatter
     from image_placeholder import is_production_image_placeholder_line
     from paa_provenance_guard import check_content as check_paa_provenance_content
+    from readiness_gate_context import trusted_readiness_findings
+    from video_embed import inspect_video_embeds
 
 
 PASS_THRESHOLD = 90
+
+
+def _prevalidated_findings(
+    readiness_gate_context: object,
+    gate_name: str,
+    *,
+    article_content: str,
+    proof_sidecar_content: Optional[str],
+) -> Optional[List[Dict[str, Any]]]:
+    """Read findings only from a sealed capability issued by readiness."""
+    return trusted_readiness_findings(
+        readiness_gate_context,
+        gate_name,
+        article_content=article_content,
+        proof_sidecar_content=proof_sidecar_content,
+    )
+
+
+def _findings_passed(findings: Sequence[Mapping[str, Any]]) -> bool:
+    return not any(
+        str(finding.get("severity", "error")).casefold() == "error"
+        for finding in findings
+    )
 
 
 def rate_aeo_geo(
@@ -35,6 +70,18 @@ def rate_aeo_geo(
     source_path: Optional[str] = None,
     proof_sidecar_content: Optional[str] = None,
     proof_sidecar_path: Optional[str] = None,
+    finalized_bom: Optional[Mapping[str, Any]] = None,
+    assembly_date: Optional[str] = None,
+    paa_workflow_mode: Optional[str] = None,
+    paa_content_brief: Optional[str] = None,
+    paa_answersocrates_blocker: Optional[str] = None,
+    paa_expected_query: Optional[str] = None,
+    paa_expected_collection_date: Optional[str] = None,
+    paa_artifact: Optional[str] = None,
+    prevalidated_gate_findings: Optional[
+        Mapping[str, Sequence[Mapping[str, Any]]]
+    ] = None,
+    readiness_gate_context: object = None,
 ) -> Dict[str, Any]:
     """
     Rate content against AEO/GEO publishing requirements.
@@ -50,17 +97,49 @@ def rate_aeo_geo(
     """
     metadata = metadata or {}
     frontmatter = _extract_frontmatter(content)
+    frontmatter.update(_extract_structured_frontmatter(content))
     merged_metadata = {**frontmatter, **metadata}
     body = _strip_frontmatter(content)
+    faq_policy_status = str(
+        merged_metadata.get('faq_policy_status') or ''
+    ).strip().casefold()
+    faq_structure = detect_faq_structure(body)
+    visible_faq = faq_structure.visible
+
+    faq_answer_findings = _prevalidated_findings(
+        readiness_gate_context,
+        "faq_answer_quality",
+        article_content=content,
+        proof_sidecar_content=proof_sidecar_content,
+    )
+    faq_proof_findings = _prevalidated_findings(
+        readiness_gate_context,
+        "faq_proof",
+        article_content=content,
+        proof_sidecar_content=proof_sidecar_content,
+    )
+    paa_findings = _prevalidated_findings(
+        readiness_gate_context,
+        "paa_provenance",
+        article_content=content,
+        proof_sidecar_content=proof_sidecar_content,
+    )
 
     checks = {
         "direct_answer": _check_direct_answer(body, merged_metadata),
         "capsule_coverage": _check_capsule_coverage(body),
         "faq_questions": _check_faq_questions(body),
         "faq_answer_length": _check_faq_answer_lengths(body),
-        "faq_answer_quality": _check_faq_answer_quality(content),
-        "external_sources": _check_external_sources(content),
-        "metadata": _check_metadata(merged_metadata),
+        "faq_answer_quality": _check_faq_answer_quality(
+            content,
+            prevalidated_findings=faq_answer_findings,
+        ),
+        "external_sources": _check_external_source_diagnostic(content),
+        "metadata": _check_metadata_quality(
+            merged_metadata,
+            finalized_bom=finalized_bom,
+            assembly_date=assembly_date,
+        ),
         "eeat_proof": _check_eeat_proof(
             content,
             body,
@@ -68,29 +147,107 @@ def rate_aeo_geo(
             proof_sidecar_content,
             proof_sidecar_path,
         ),
-        "faq_proof": _check_faq_proof(content, proof_sidecar_content),
-        "paa_provenance": _check_paa_provenance(
+        "faq_proof": _check_faq_proof(
             content,
-            source_path,
             proof_sidecar_content,
+            prevalidated_findings=faq_proof_findings,
         ),
+        "faq_structure": _check_faq_structure(body),
     }
+    checks['author_voice'] = _check_author_voice(
+        body,
+        merged_metadata,
+        finalized_bom=finalized_bom,
+    )
+    checks['schema'] = _check_schema(
+        content,
+        merged_metadata,
+        visible_faq=visible_faq,
+        finalized_bom=finalized_bom,
+    )
+    checks['faq_policy'] = _check_faq_policy(
+        faq_policy_status,
+        visible_faq=visible_faq,
+    )
+    checks['paa_provenance'] = _check_bound_paa_provenance(
+        content,
+        source_path,
+        proof_sidecar_content,
+        workflow_mode=(
+            paa_workflow_mode
+            or str(merged_metadata.get('paa_workflow_mode') or '').strip()
+            or 'new'
+        ),
+        content_brief=(
+            paa_content_brief
+            or str(merged_metadata.get('paa_content_brief') or '').strip()
+            or None
+        ),
+        answersocrates_blocker=(
+            paa_answersocrates_blocker
+            or str(merged_metadata.get('paa_answersocrates_blocker') or '').strip()
+            or None
+        ),
+        expected_query=(
+            paa_expected_query
+            or str(merged_metadata.get('paa_expected_query') or '').strip()
+            or None
+        ),
+        expected_collection_date=(
+            paa_expected_collection_date
+            or str(merged_metadata.get('paa_expected_collection_date') or '').strip()
+            or None
+        ),
+        paa_artifact=(
+            paa_artifact
+            or str(merged_metadata.get('paa_artifact') or '').strip()
+            or None
+        ),
+        prevalidated_findings=paa_findings,
+    )
+    if not visible_faq:
+        for check_name in (
+            'faq_questions',
+            'faq_answer_length',
+            'faq_answer_quality',
+            'faq_proof',
+        ):
+            checks[check_name] = _not_applicable_check(
+                checks[check_name],
+                'No visible FAQ exists, so FAQ-only scoring is not applicable.',
+            )
+    for check in checks.values():
+        check.setdefault('applicable', True)
+        check.setdefault('status', 'passed' if check.get('passed') else 'failed')
     section_clarity = _check_section_clarity(body)
 
     weights = {
-        "direct_answer": 20,
-        "capsule_coverage": 20,
-        "faq_questions": 10,
-        "faq_answer_length": 10,
-        "external_sources": 5,
-        "metadata": 5,
-        "eeat_proof": 10,
-        "faq_proof": 10,
-        "paa_provenance": 10,
+        'direct_answer': 18,
+        'capsule_coverage': 18,
+        'faq_questions': 8,
+        'faq_answer_length': 8,
+        'faq_answer_quality': 8,
+        'metadata': 8,
+        'author_voice': 4,
+        'schema': 8,
+        'eeat_proof': 10,
+        'faq_proof': 5,
+        'paa_provenance': 5,
     }
-
-    score = sum(
-        weight if checks[name]["passed"] else 0 for name, weight in weights.items()
+    possible_weight = sum(
+        weight
+        for name, weight in weights.items()
+        if checks[name].get('applicable', True)
+    )
+    earned_weight = sum(
+        weight
+        for name, weight in weights.items()
+        if checks[name].get('applicable', True) and checks[name].get('passed')
+    )
+    score = round(100 * earned_weight / possible_weight) if possible_weight else 0
+    hard_gate_passed = all(
+        not check.get('applicable', True) or bool(check.get('passed'))
+        for check in checks.values()
     )
     issues = []
     for name, check in checks.items():
@@ -107,7 +264,8 @@ def rate_aeo_geo(
     return {
         "score": score,
         "passed": (
-            score >= PASS_THRESHOLD
+            hard_gate_passed
+            and score >= PASS_THRESHOLD
             and checks["faq_questions"]["passed"]
             and checks["faq_answer_length"]["passed"]
             and checks["faq_answer_quality"]["passed"]
@@ -137,6 +295,373 @@ def rate_aeo_geo(
             "section_clarity": section_clarity,
         },
     }
+
+
+CANONICAL_SCHEMA_ENTITIES = frozenset(
+    {
+        'BlogPosting',
+        'BreadcrumbList',
+        'FAQPage',
+        'Question and Answer inside FAQPage',
+        'ImageObject for the featured image or logo',
+        'Organization as publisher reference only, not a separate full schema block',
+        'Person as author',
+        'VideoObject',
+    }
+)
+
+
+def _extract_structured_frontmatter(content: str) -> Dict[str, Any]:
+    try:
+        metadata, _body, _line = split_frontmatter(content)
+    except FrontmatterError:
+        return {}
+    return dict(metadata)
+
+
+def _check_metadata_quality(
+    metadata: Dict[str, Any],
+    *,
+    finalized_bom: Optional[Mapping[str, Any]],
+    assembly_date: Optional[str],
+) -> Dict[str, Any]:
+    normalized = {_normalize_key(str(key)): value for key, value in metadata.items()}
+    has_author = bool(str(normalized.get('author') or '').strip())
+    author_policy_status = _validated_bom_author_policy(finalized_bom)
+    author_requirement_satisfied = has_author or author_policy_status == 'not_provided'
+    raw_updated = str(
+        normalized.get('last_updated')
+        or normalized.get('updated')
+        or normalized.get('date_updated')
+        or ''
+    ).strip()
+    bound_assembly_date = str(
+        assembly_date or normalized.get('assembly_date') or ''
+    ).strip()
+    parsed_updated = _parse_canonical_iso_date(raw_updated)
+    parsed_assembly = (
+        _parse_canonical_iso_date(bound_assembly_date)
+        if bound_assembly_date
+        else None
+    )
+    if not raw_updated:
+        freshness_status = 'missing'
+    elif parsed_updated is None:
+        freshness_status = 'invalid'
+    elif bound_assembly_date and parsed_assembly is None:
+        freshness_status = 'assembly_date_invalid'
+    elif (
+        parsed_assembly is not None
+        and parsed_assembly != blog_assembly_contract.current_utc_date()
+    ):
+        freshness_status = 'assembly_date_not_current'
+    elif parsed_assembly is not None and parsed_updated != parsed_assembly:
+        freshness_status = 'assembly_date_mismatch'
+    elif parsed_assembly is None and parsed_updated > date.today():
+        freshness_status = 'future'
+    else:
+        freshness_status = 'valid'
+    passed = author_requirement_satisfied and freshness_status == 'valid'
+    return {
+        'passed': passed,
+        'issue': 'The draft is missing a verified author policy or valid freshness metadata.',
+        'fix': (
+            'Use a canonical YYYY-MM-DD last_updated value matching the bound '
+            'assembly date. Provide a named author, or inject a guard-validated '
+            'finalized BOM whose author_policy.status is not_provided.'
+        ),
+        'severity': 'high',
+        'details': {
+            'has_author': has_author,
+            'has_last_updated': bool(raw_updated),
+            'last_updated': raw_updated,
+            'assembly_date': bound_assembly_date,
+            'freshness_status': freshness_status,
+            'author_policy_status': author_policy_status,
+        },
+    }
+
+
+def _parse_canonical_iso_date(value: str) -> Optional[date]:
+    if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', value):
+        return None
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError:
+        return None
+    return parsed if parsed.isoformat() == value else None
+
+
+def _validated_bom_author_policy(
+    finalized_bom: Optional[Mapping[str, Any]],
+) -> str:
+    """Return the exact author state from a guard-validated strict BOM.
+
+    Publish readiness calls this only after the BOM guard succeeds. Both
+    provisional and final lifecycle states are accepted because preflight must
+    score an optional-author article before the BOM can be finalized.
+    """
+    if not isinstance(finalized_bom, Mapping):
+        return ''
+    if finalized_bom.get('schema') != 'simpro-blog-assembly-bom/v1':
+        return ''
+    if finalized_bom.get('lifecycle_state') not in {'provisional', 'final'}:
+        return ''
+    policy = finalized_bom.get('author_policy')
+    if not isinstance(policy, Mapping):
+        return ''
+    required_keys = {
+        'status',
+        'name',
+        'frontmatter_author_required',
+        'schema_person_required',
+        'named_author_voice_allowed',
+    }
+    if set(policy) != required_keys:
+        return ''
+    status = policy.get('status')
+    if status not in {'named_author', 'not_provided'}:
+        return ''
+    named_author = status == 'named_author'
+    name = str(policy.get('name') or '').strip()
+    if named_author != bool(name):
+        return ''
+    for key in (
+        'frontmatter_author_required',
+        'schema_person_required',
+        'named_author_voice_allowed',
+    ):
+        if policy.get(key) is not named_author:
+            return ''
+    return str(status)
+
+
+def _check_author_voice(
+    body: str,
+    metadata: Dict[str, Any],
+    *,
+    finalized_bom: Optional[Mapping[str, Any]],
+) -> Dict[str, Any]:
+    normalized = {_normalize_key(str(key)): value for key, value in metadata.items()}
+    has_author = bool(str(normalized.get('author') or '').strip())
+    policy_status = _validated_bom_author_policy(finalized_bom)
+    searchable = re.sub(r'```.*?```', ' ', body, flags=re.DOTALL)
+    visible_lines: List[str] = []
+    for line in searchable.splitlines():
+        stripped = line.lstrip()
+        if stripped.startswith('>'):
+            continue
+        if stripped.startswith('#'):
+            heading = re.sub(r'^#{1,6}\s*', '', stripped).strip()
+            if heading.endswith('?'):
+                continue
+            visible_lines.append(heading)
+            continue
+        visible_lines.append(line)
+    searchable = '\n'.join(visible_lines)
+    searchable = re.sub(r'<blockquote\b.*?</blockquote>', ' ', searchable, flags=re.DOTALL | re.IGNORECASE)
+    searchable = re.sub(r'\x22[^\x22]*\x22', ' ', searchable)
+    searchable = re.sub(r'“[^”]*”|‘[^’]*’', ' ', searchable, flags=re.DOTALL)
+    term_pattern = re.compile(
+        r'\b(?:I|me|my|mine|myself)\b|\bI(?:\x27m|\x27ve|\x27d|\x27ll)\b',
+        flags=re.IGNORECASE,
+    )
+    first_person_terms = list(dict.fromkeys(term_pattern.findall(searchable)))
+    passed = has_author or not first_person_terms
+    return {
+        'passed': passed,
+        'issue': 'First-person singular author judgment appears without a named author.',
+        'fix': (
+            'Add a source-bound named author or rewrite first-person singular '
+            'judgment in an attributed or neutral channel voice. Quoted source '
+            'language may remain quoted.'
+        ),
+        'severity': 'high',
+        'details': {
+            'has_author': has_author,
+            'author_policy_status': policy_status,
+            'first_person_terms': first_person_terms,
+        },
+    }
+
+
+def _check_schema(
+    content: str,
+    metadata: Dict[str, Any],
+    *,
+    visible_faq: bool,
+    finalized_bom: Optional[Mapping[str, Any]],
+) -> Dict[str, Any]:
+    raw_entities = metadata.get('schema_notes')
+    if isinstance(raw_entities, list):
+        supplied = [str(value).strip() for value in raw_entities if str(value).strip()]
+    elif isinstance(raw_entities, str) and raw_entities.strip():
+        supplied = [
+            value.strip()
+            for value in raw_entities.split(';')
+            if value.strip()
+        ]
+    else:
+        supplied = []
+    entities = set(supplied)
+    required = {
+        'BlogPosting',
+        'BreadcrumbList',
+        'ImageObject for the featured image or logo',
+        'Organization as publisher reference only, not a separate full schema block',
+    }
+    unexpected: set[str] = set()
+    normalized = {_normalize_key(str(key)): value for key, value in metadata.items()}
+    has_author = bool(str(normalized.get('author') or '').strip())
+    if has_author:
+        required.add('Person as author')
+    elif 'Person as author' in entities:
+        unexpected.add('Person as author')
+    if visible_faq:
+        required.update({'FAQPage', 'Question and Answer inside FAQPage'})
+    else:
+        unexpected.update(entities.intersection({'FAQPage', 'Question and Answer inside FAQPage'}))
+    video_inspection = inspect_video_embeds(content)
+    has_supported_video_embed = video_inspection.has_supported_embed
+    if has_supported_video_embed:
+        required.add('VideoObject')
+    elif 'VideoObject' in entities:
+        unexpected.add('VideoObject')
+    missing = sorted(required - entities)
+    unknown = sorted(entities - CANONICAL_SCHEMA_ENTITIES)
+    passed = (
+        not missing
+        and not unexpected
+        and not unknown
+        and not video_inspection.errors
+    )
+    return {
+        'passed': passed,
+        'issue': 'Schema notes do not match the exact conditional blog entity contract.',
+        'fix': (
+            'Use exact canonical schema entity names. Include FAQPage and its '
+            'Question and Answer entity only with a visible FAQ, Person only '
+            'with a named author, and VideoObject only with a supported embed.'
+        ),
+        'severity': 'high',
+        'details': {
+            'entities': sorted(entities),
+            'missing_entities': missing,
+            'unexpected_entities': sorted(unexpected),
+            'unknown_entities': unknown,
+            'has_supported_video_embed': has_supported_video_embed,
+            'video_embed_errors': list(video_inspection.errors),
+            'author_policy_status': _validated_bom_author_policy(finalized_bom),
+        },
+    }
+
+
+def _has_supported_video_embed(content: str) -> bool:
+    return inspect_video_embeds(content).has_supported_embed
+
+
+def _check_faq_policy(status: str, *, visible_faq: bool) -> Dict[str, Any]:
+    if status == 'not_applicable':
+        passed = not visible_faq
+        effective_status = status
+    elif status == 'required':
+        passed = visible_faq
+        effective_status = status
+    elif not status and visible_faq:
+        passed = True
+        effective_status = 'inferred_required'
+    else:
+        passed = False
+        effective_status = status or 'missing'
+    return {
+        'passed': passed,
+        'issue': 'The bound FAQ policy does not match visible FAQ content.',
+        'fix': (
+            'Use required when a visible FAQ is planned. Use not_applicable '
+            'with a rationale only when the final article has no visible FAQ.'
+        ),
+        'severity': 'high',
+        'details': {
+            'policy_status': effective_status,
+            'visible_faq': visible_faq,
+        },
+    }
+
+
+def _check_bound_paa_provenance(
+    content: str,
+    source_path: Optional[str],
+    proof_sidecar_content: Optional[str],
+    *,
+    workflow_mode: str,
+    content_brief: Optional[str],
+    answersocrates_blocker: Optional[str],
+    expected_query: Optional[str],
+    expected_collection_date: Optional[str],
+    paa_artifact: Optional[str],
+    prevalidated_findings: Optional[Sequence[Mapping[str, Any]]] = None,
+) -> Dict[str, Any]:
+    findings = (
+        [dict(finding) for finding in prevalidated_findings]
+        if prevalidated_findings is not None
+        else check_paa_provenance_content(
+            content,
+            source_path=source_path,
+            proof_content=proof_sidecar_content,
+            workflow_mode=workflow_mode,
+            content_brief=content_brief,
+            answersocrates_blocker=answersocrates_blocker,
+            expected_query=expected_query,
+            expected_collection_date=expected_collection_date,
+            paa_artifact=paa_artifact,
+        )
+    )
+    return {
+        'passed': _findings_passed(findings),
+        'issue': 'PAA provenance does not match the bound workflow, query, or date.',
+        'fix': (
+            'Pass the BOM-bound workflow mode, exact query, assembly collection '
+            'date, and primary PAA artifact into the AEO rater.'
+        ),
+        'severity': 'high',
+        'details': {
+            'finding_count': len(findings),
+            'findings': findings,
+            'prevalidated': prevalidated_findings is not None,
+        },
+    }
+
+
+def _check_external_source_diagnostic(content: str) -> Dict[str, Any]:
+    links = re.findall(r'\[[^\]]+\]\((https?://[^)]+)\)', content)
+    return {
+        'passed': True,
+        'applicable': False,
+        'status': 'not_applicable',
+        'issue': 'External link totals are not a quality criterion.',
+        'fix': 'Use claim-level source-support and source-quality gates instead.',
+        'severity': 'info',
+        'details': {
+            'external_link_count': len(links),
+            'external_links': links,
+            'reason': 'Fixed source-count scoring is disabled.',
+        },
+    }
+
+
+def _not_applicable_check(check: Dict[str, Any], reason: str) -> Dict[str, Any]:
+    result = dict(check)
+    details = dict(result.get('details') or {})
+    details['not_applicable_reason'] = reason
+    result.update(
+        {
+            'passed': True,
+            'applicable': False,
+            'status': 'not_applicable',
+            'details': details,
+        }
+    )
+    return result
 
 
 def _extract_frontmatter(content: str) -> Dict[str, str]:
@@ -305,7 +830,7 @@ def _check_capsule_coverage(body: str) -> Dict[str, Any]:
     sections = [
         (heading, section)
         for heading, section in _extract_h2_sections(body)
-        if "frequently asked" not in heading.lower() and heading.lower() != "faq"
+        if not is_faq_h2(f"## {heading}")
     ]
     h2_count = len(sections)
     capsule_count = sum(
@@ -328,38 +853,36 @@ def _check_capsule_coverage(body: str) -> Dict[str, Any]:
 
 
 def _extract_faq_questions(body: str) -> List[Tuple[str, str]]:
-    faq_match = re.search(
-        r"^##\s+(?:Frequently Asked Questions(?:\s+(?:about|on|for)\s+.+)?|FAQ)\s*$",
-        body,
-        re.IGNORECASE | re.MULTILINE,
-    )
-    if not faq_match:
-        return []
+    return [
+        (entry.question, entry.answer)
+        for entry in detect_faq_structure(body).entries
+    ]
 
-    faq_body = body[faq_match.end() :]
-    next_h2 = re.search(r"^##\s+", faq_body, re.MULTILINE)
-    if next_h2:
-        faq_body = faq_body[: next_h2.start()]
 
-    matches = list(re.finditer(r"^###\s+(.+\?)\s*$", faq_body, re.MULTILINE))
-    questions = []
-    for index, match in enumerate(matches):
-        start = match.end()
-        end = matches[index + 1].start() if index + 1 < len(matches) else len(faq_body)
-        questions.append((match.group(1).strip(), faq_body[start:end].strip()))
-
-    return questions
+def _check_faq_structure(body: str) -> Dict[str, Any]:
+    structure = detect_faq_structure(body)
+    passed = not structure.unsupported_lines
+    return {
+        "passed": passed,
+        "issue": "FAQ-like question markup uses an unsupported structure.",
+        "fix": "Use a recognized FAQ H2 followed by H3-H5 question headings.",
+        "severity": "high",
+        "details": {
+            "heading_present": structure.heading_present,
+            "unsupported_lines": list(structure.unsupported_lines),
+        },
+    }
 
 
 def _check_faq_questions(body: str) -> Dict[str, Any]:
     questions = _extract_faq_questions(body)
     question_count = len(questions)
-    passed = 3 <= question_count <= 6
+    passed = question_count > 0
 
     return {
         "passed": passed,
-        "issue": "The FAQ/PAA section does not include 3-6 natural-language questions.",
-        "fix": "Use AnswerSocrates or a PAA export to select 3-6 relevant user questions for the FAQ.",
+        "issue": "The selected FAQ/PAA section has no natural-language question headings.",
+        "fix": "Use the useful complete questions selected by the bound PAA policy, without a fixed count.",
         "severity": "high",
         "details": {
             "question_count": question_count,
@@ -393,9 +916,17 @@ def _check_faq_answer_lengths(body: str) -> Dict[str, Any]:
     }
 
 
-def _check_faq_answer_quality(content: str) -> Dict[str, Any]:
-    findings = check_faq_answer_quality(content)
-    passed = not findings
+def _check_faq_answer_quality(
+    content: str,
+    *,
+    prevalidated_findings: Optional[Sequence[Mapping[str, Any]]] = None,
+) -> Dict[str, Any]:
+    findings = (
+        [dict(finding) for finding in prevalidated_findings]
+        if prevalidated_findings is not None
+        else check_faq_answer_quality(content)
+    )
+    passed = _findings_passed(findings)
 
     return {
         "passed": passed,
@@ -409,6 +940,7 @@ def _check_faq_answer_quality(content: str) -> Dict[str, Any]:
         "details": {
             "finding_count": len(findings),
             "findings": findings,
+            "prevalidated": prevalidated_findings is not None,
         },
     }
 
@@ -416,9 +948,15 @@ def _check_faq_answer_quality(content: str) -> Dict[str, Any]:
 def _check_faq_proof(
     content: str,
     proof_sidecar_content: Optional[str],
+    *,
+    prevalidated_findings: Optional[Sequence[Mapping[str, Any]]] = None,
 ) -> Dict[str, Any]:
-    findings = check_faq_proof(content, proof_content=proof_sidecar_content or None)
-    passed = not findings
+    findings = (
+        [dict(finding) for finding in prevalidated_findings]
+        if prevalidated_findings is not None
+        else check_faq_proof(content, proof_content=proof_sidecar_content or None)
+    )
+    passed = _findings_passed(findings)
 
     return {
         "passed": passed,
@@ -432,6 +970,7 @@ def _check_faq_proof(
         "details": {
             "finding_count": len(findings),
             "findings": findings,
+            "prevalidated": prevalidated_findings is not None,
         },
     }
 
@@ -440,68 +979,42 @@ def _check_paa_provenance(
     content: str,
     source_path: Optional[str],
     proof_sidecar_content: Optional[str],
+    *,
+    workflow_mode: str = "new",
+    content_brief: Optional[str] = None,
+    answersocrates_blocker: Optional[str] = None,
+    expected_query: Optional[str] = None,
+    expected_collection_date: Optional[str] = None,
+    paa_artifact: Optional[str] = None,
 ) -> Dict[str, Any]:
-    findings = check_paa_provenance_content(
+    return _check_bound_paa_provenance(
         content,
-        source_path=source_path,
-        proof_content=proof_sidecar_content,
+        source_path,
+        proof_sidecar_content,
+        workflow_mode=workflow_mode,
+        content_brief=content_brief,
+        answersocrates_blocker=answersocrates_blocker,
+        expected_query=expected_query,
+        expected_collection_date=expected_collection_date,
+        paa_artifact=paa_artifact,
     )
-    passed = not findings
-
-    return {
-        "passed": passed,
-        "issue": "One or more FAQ questions lacks saved PAA/FAQ source provenance.",
-        "fix": (
-            "Add a PAA/FAQ Provenance block with an allowed source label, a "
-            "real artifact path, and exact selected FAQ questions that appear "
-            "in the artifact. Proof links alone do not prove question provenance."
-        ),
-        "severity": "high",
-        "details": {
-            "finding_count": len(findings),
-            "findings": findings,
-        },
-    }
 
 
 def _check_external_sources(content: str) -> Dict[str, Any]:
-    links = re.findall(r"\[[^\]]+\]\((https?://[^)]+)\)", content)
-    passed = len(links) >= 3
-    return {
-        "passed": passed,
-        "issue": "The article has fewer than three external source-backed links.",
-        "fix": "Integrate at least three credible external sources naturally inside supporting sentences.",
-        "severity": "medium",
-        "details": {
-            "external_link_count": len(links),
-            "external_links": links,
-        },
-    }
+    return _check_external_source_diagnostic(content)
 
 
-def _check_metadata(metadata: Dict[str, Any]) -> Dict[str, Any]:
-    normalized = {_normalize_key(str(key)): value for key, value in metadata.items()}
-    has_author = bool(normalized.get("author"))
-    has_last_updated = bool(
-        normalized.get("last_updated")
-        or normalized.get("updated")
-        or normalized.get("date_updated")
+def _check_metadata(
+    metadata: Dict[str, Any],
+    *,
+    finalized_bom: Optional[Mapping[str, Any]] = None,
+    assembly_date: Optional[str] = None,
+) -> Dict[str, Any]:
+    return _check_metadata_quality(
+        metadata,
+        finalized_bom=finalized_bom,
+        assembly_date=assembly_date,
     )
-    author_policy_status = str(normalized.get("author_policy_status") or "").strip()
-    author_requirement_satisfied = has_author or author_policy_status == "not_provided"
-    passed = author_requirement_satisfied and has_last_updated
-
-    return {
-        "passed": passed,
-        "issue": "The draft is missing required author policy or last-updated metadata.",
-        "fix": "Add Last Updated and either a named author or a BOM author_policy.status of not_provided.",
-        "severity": "medium",
-        "details": {
-            "has_author": has_author,
-            "has_last_updated": has_last_updated,
-            "author_policy_status": author_policy_status,
-        },
-    }
 
 
 def _check_eeat_proof(
@@ -524,15 +1037,13 @@ def _check_eeat_proof(
     ]
 
     experience_signals = []
-    if case_study_links:
-        experience_signals.append("case_study_link")
-    has_review_story_selection = _has_valid_review_story_selection(
-        content, proof_sidecar_content
+    validated_customer_experience = _validated_customer_experience_binding(
+        content,
+        proof_sidecar_content,
+        proof_sidecar_path,
     )
-    if has_review_story_selection:
-        experience_signals.append("review_story_selection")
-    if _has_sidecar_experience_proof(proof_sidecar_content):
-        experience_signals.append("sidecar_experience_proof")
+    if validated_customer_experience:
+        experience_signals.append("validated_customer_experience")
     has_documented_no_fit_boundary = _has_documented_no_fit_experience_boundary(
         proof_sidecar_content,
         proof_sidecar_path=proof_sidecar_path,
@@ -543,16 +1054,6 @@ def _check_eeat_proof(
     expertise_signals = []
     if normalized.get("author"):
         expertise_signals.append("author_metadata")
-    if (
-        normalized.get("reviewer")
-        or normalized.get("reviewed_by")
-        or normalized.get("expert_reviewer")
-    ):
-        expertise_signals.append("reviewer_metadata")
-    if simpro_product_links:
-        expertise_signals.append("simpro_product_or_workflow_link")
-    if clockshark_workflow_links:
-        expertise_signals.append("clockshark_product_or_workflow_link")
     if _has_expert_quote(body):
         expertise_signals.append("expert_quote")
 
@@ -564,16 +1065,17 @@ def _check_eeat_proof(
         "passed": passed,
         "issue": "The draft is missing required E-E-A-T proof for both experience and expertise.",
         "fix": (
-            "Add at least one customer-experience signal such as a public case "
-            "study or an identity-backed Review Story Selection with the public "
-            "review URL linked in the same paragraph as the paraphrase "
-            "(review_story_selection). If no story fits, document a substantive "
+            "Use a hash-verified customer-proof selector experience_story binding, "
+            "an approved Selected Customer Proof Mining record, and the selected "
+            "identity and public URL in the same visible article paragraph. A bare "
+            "case-study link or self-asserted proof label does not establish Experience. "
+            "If no story fits, document a substantive "
             "First-hand evidence decision with Selected: [none] in the E-E-A-T "
             "Proof Map and a matching experience_story slate row with rejected-"
             "candidate reasons. Generic review-site experience evidence "
-            "and VoC themes are research inputs, not E-E-A-T story proof. Add at least one expertise "
-            "signal such as author/reviewer metadata, Simpro product/workflow "
-            "links, expert quote, or source-backed workflow explanation."
+            "and VoC themes are research inputs, not E-E-A-T story proof. Add a "
+            "validated named author or an attributable expert source. A bare owned "
+            "product link does not establish Expertise."
         ),
         "severity": "high",
         "details": {
@@ -585,7 +1087,8 @@ def _check_eeat_proof(
             "expertise_signals": expertise_signals,
             "has_experience": has_experience,
             "has_expertise": has_expertise,
-            "has_review_story_selection": has_review_story_selection,
+            "has_review_story_selection": False,
+            "validated_customer_experience": validated_customer_experience,
             "has_documented_no_fit_boundary": has_documented_no_fit_boundary,
         },
     }
@@ -742,6 +1245,152 @@ def _verified_selector_roles(
         proof_sidecar_content,
         proof_sidecar_path,
     )
+
+
+def _validated_customer_experience_binding(
+    content: str,
+    proof_sidecar_content: Optional[str],
+    proof_sidecar_path: Optional[str],
+) -> Optional[Dict[str, str]]:
+    if not proof_sidecar_content or not proof_sidecar_path:
+        return None
+    verified_roles = _verified_selector_roles(
+        proof_sidecar_content,
+        proof_sidecar_path,
+    )
+    if not verified_roles:
+        return None
+    experience_role = verified_roles.get("experience_story")
+    if not isinstance(experience_role, Mapping):
+        return None
+    selected = experience_role.get("selected_candidate")
+    if not isinstance(selected, Mapping):
+        return None
+    selected_id = str(selected.get("proof_id", "")).strip()
+    claim_id = str(selected.get("claim_id", "")).strip()
+    identity = str(selected.get("identity", "")).strip()
+    public_url = str(selected.get("public_url", "")).strip()
+    story = str(selected.get("story", "")).strip()
+    if not all((selected_id, claim_id, identity, public_url, story)):
+        return None
+
+    mining = _extract_selected_customer_proof_mining(proof_sidecar_content)
+    if mining is None:
+        return None
+    proof = _parse_mined_proof(str(mining.get("proof", "")))
+    if str(proof.get("proof_id", "")).strip() != selected_id:
+        return None
+    if _normalize_url(str(proof.get("url", ""))) != _normalize_url(public_url):
+        return None
+    if str(mining.get("status", "")).strip().casefold() != "approved":
+        return None
+    usable_story = str(mining.get("usable_pov/story_found", "")).strip()
+    final_use = str(mining.get("final_use_in_copy", "")).strip()
+    if not _is_substantive_experience_text(usable_story):
+        return None
+    if not _is_substantive_experience_text(final_use) or not re.search(
+        r"\b(?:experience|pov|story)\b",
+        final_use,
+        re.IGNORECASE,
+    ):
+        return None
+    if not _visible_story_mapping(content, public_url, identity, story):
+        return None
+    return {
+        "proof_id": selected_id,
+        "claim_id": claim_id,
+        "identity": identity,
+        "public_url": public_url,
+    }
+
+
+def _extract_selected_customer_proof_mining(
+    proof_sidecar_content: str,
+) -> Optional[Dict[str, str]]:
+    in_block = False
+    fields: Dict[str, str] = {}
+    for line in proof_sidecar_content.splitlines():
+        stripped = line.strip()
+        if re.match(
+            r"^(?:#{1,6}\s+)?Selected Customer Proof Mining:?\s*$",
+            stripped,
+            re.IGNORECASE,
+        ):
+            in_block = True
+            continue
+        if not in_block:
+            continue
+        if stripped.startswith("```") or re.match(r"^#{1,6}\s+", stripped):
+            break
+        match = re.match(r"^[-*+]\s*([^:]+):\s*(.+?)\s*$", stripped)
+        if match:
+            fields[_normalize_key(match.group(1))] = match.group(2).strip()
+    return fields or None
+
+
+def _parse_mined_proof(value: str) -> Dict[str, str]:
+    parts = [part.strip() for part in value.split("|")]
+    parsed = {"proof_id": parts[0] if parts else ""}
+    for part in parts[1:]:
+        if ":" not in part:
+            continue
+        key, item_value = part.split(":", 1)
+        parsed[_normalize_key(key)] = item_value.strip()
+    return parsed
+
+
+def _is_substantive_experience_text(value: str) -> bool:
+    normalized = _normalize_text(value)
+    if not normalized or normalized in {
+        "none",
+        "none found",
+        "not used",
+        "not applicable",
+        "n a",
+    }:
+        return False
+    return len(re.findall(r"[a-z0-9]+", normalized)) >= 4
+
+
+def _visible_story_mapping(
+    content: str,
+    public_url: str,
+    identity: str,
+    story: str,
+) -> bool:
+    normalized_url = _normalize_url(public_url)
+    normalized_identity = _normalize_text(identity)
+    story_tokens = _story_tokens(story)
+    if not normalized_url or not normalized_identity or len(story_tokens) < 2:
+        return False
+    for paragraph in re.split(r"\n\s*\n", content):
+        if normalized_url not in _normalize_url(paragraph):
+            continue
+        if normalized_identity not in _normalize_text(paragraph):
+            continue
+        if len(story_tokens.intersection(_story_tokens(paragraph))) >= 2:
+            return True
+    return False
+
+
+def _story_tokens(value: str) -> set[str]:
+    stopwords = {
+        "and",
+        "describes",
+        "from",
+        "into",
+        "owner",
+        "that",
+        "the",
+        "their",
+        "using",
+        "with",
+    }
+    return {
+        token
+        for token in re.findall(r"[a-z0-9]+", value.casefold())
+        if len(token) >= 3 and token not in stopwords
+    }
 
 
 def _has_documented_no_fit_experience_boundary(

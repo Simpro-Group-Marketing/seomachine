@@ -45,6 +45,27 @@ def faq_sidecar(question, rows, include_policy=True):
 
 class FaqProofGuardTests(unittest.TestCase):
 
+    def test_common_questions_heading_is_checked(self):
+        content = faq_content(
+            "What does field service software do?",
+            [],
+        ).replace("## Frequently Asked Questions", "## Common questions")
+
+        findings = check_content(content)
+
+        self.assertEqual(findings[0]["rule_id"], "faq_answer_missing_inline_proof")
+
+    def test_unsupported_details_markup_is_blocked(self):
+        content = (
+            "# Guide\n\n"
+            "<details><summary>What does field service software do?</summary>"
+            "It coordinates work.</details>\n"
+        )
+
+        findings = check_content(content)
+
+        self.assertEqual(findings[0]["rule_id"], "faq_structure_unsupported")
+
 
     def test_faq_answer_without_linked_proof_fails(self):
 

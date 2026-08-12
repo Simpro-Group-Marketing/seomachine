@@ -69,13 +69,13 @@ Feature and solution links must use function-bearing anchor text that explains t
 **2. Introduction Links** (Use Sparingly)
 - Link to pillar content when article is subtopic of larger guide
 - Reference prerequisite knowledge readers may need
-- One strategic link maximum in introduction
+- Include an introduction link only when it supports prerequisite context or the immediate reader task
 
 **3. Conclusion Links** (Next Steps)
 - "Related reading" or "next steps" suggestions
 - Link to logical follow-up content
 - Product/tool pages as solutions to problems discussed
-- 1-2 links maximum in conclusion
+- Include only the conclusion links that support the planned next step; do not impose a fixed maximum
 
 **4. List Items** (Natural Fit)
 - When listing tools, features, or strategies with dedicated pages
@@ -136,24 +136,17 @@ Feature and solution links must use function-bearing anchor text that explains t
 ❌ Bad: Linking "software" (too broad/vague)
 ✅ Good: Linking "field service payments" (specific, descriptive)
 
-### Link Quantity Guidelines
+### Link Selection Guidelines
 
-#### Target Range: 3-5 Internal Links per Article
-- **Minimum**: 3 links (feel helpful, not isolated)
-- **Optimal**: 4-5 links (strong connectivity without spam)
-- **Maximum**: 7 links (only when the article's evidence-complete scope supports that many genuinely useful links)
-
-#### Distribution
-- **Pillar Content**: 1-2 links (high priority pages)
-- **Blog Posts**: 2-3 links (related articles)
-- **Product/Tools**: 1 link (only if contextually relevant)
-- **Resources**: 0-1 link (templates, checklists if mentioned)
+- Select links from reader intent, article objective, query ownership, and the final section plan, without a minimum, optimum, or maximum count.
+- Include the required contextual down-funnel link with destination-matched anchor text.
+- Add pillar, related-blog, product, tool, or resource links only when they help the reader take the next relevant action.
 
 ### Topic Cluster Awareness
 
 #### Pillar-Cluster Relationship
 - If this article is cluster content → MUST link to pillar page
-- If this article is pillar content → link to 2-3 cluster articles
+- If this article is pillar content → link to the relevant cluster articles that materially extend the reader journey
 - Strengthen topic authority through consistent interlinking
 
 #### Related Content Network

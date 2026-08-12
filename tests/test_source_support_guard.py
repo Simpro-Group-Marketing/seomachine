@@ -1,10 +1,14 @@
+import hashlib
+import json
 import os
 import socket
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+from data_sources.modules import source_support_guard
 from data_sources.modules.source_support_guard import (
     check_content,
     check_file,
@@ -29,7 +33,630 @@ def fetcher_with(source_text_by_url):
     return fetcher
 
 
+def _sha256(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def _utc_now():
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def write_source_classification(directory, url, source_class, relationship):
+    path = Path(directory) / "source-classification.json"
+    source_support_guard.write_source_classification_artifact(
+        path,
+        source_url=url,
+        source_class=source_class,
+        publisher_relationship=relationship,
+        record_id="source:test-record",
+        revision="test-revision-1",
+        workspace_root=directory,
+    )
+    return path.name, _sha256(path)
+
+
+def write_plain_source_classification(directory, url, source_class, relationship):
+    path = Path(directory) / "plain-source-classification.json"
+    payload = {
+        "schema": "simpro-source-classification/v1",
+        "source_url": url,
+        "source_class": source_class,
+        "classified_at": _utc_now(),
+        "publisher": {
+            "hostname": url.split("/", 3)[2],
+            "relationship": relationship,
+        },
+        "registry": {
+            "record_id": "source:caller-authored",
+            "revision": "caller-authored-revision",
+        },
+        "emitter": {
+            "name": "source_registry_export",
+            "version": "1.0.0",
+        },
+    }
+    path.write_text(json.dumps(payload, sort_keys=True), encoding="utf-8")
+    return path.name, _sha256(path)
+
+
+def write_capture_receipt(directory, url, artifact_name, *, method):
+    artifact_path = Path(directory) / artifact_name
+    source_content_path = Path(directory) / "captured-source-input.bin"
+    source_content_path.write_bytes(f"captured bytes for {url}".encode("utf-8"))
+    path = Path(directory) / "source-capture-receipt.json"
+    source_support_guard.write_source_capture_receipt(
+        path,
+        source_url=url,
+        source_content_path=source_content_path,
+        artifact_path=artifact_path,
+        artifact_reference=artifact_name,
+        method=method,
+        workspace_root=directory,
+    )
+    return path.name, _sha256(path)
+
+
+def write_plain_capture_receipt(directory, url, artifact_name, *, method):
+    artifact_path = Path(directory) / artifact_name
+    artifact_hash = _sha256(artifact_path)
+    path = Path(directory) / "plain-source-capture-receipt.json"
+    payload = {
+        "schema": "simpro-source-capture-receipt/v1",
+        "source_url": url,
+        "retrieved_at": _utc_now(),
+        "source_content_sha256": "a" * 64,
+        "artifact": {
+            "path": artifact_name,
+            "sha256": artifact_hash,
+        },
+        "extraction": {
+            "method": method,
+            "tool_name": "source_support_capture",
+            "tool_version": "1.0.0",
+            "input_sha256": "a" * 64,
+            "output_sha256": artifact_hash,
+        },
+        "emitter": {
+            "name": "source_support_capture",
+            "version": "1.0.0",
+        },
+    }
+    path.write_text(json.dumps(payload, sort_keys=True), encoding="utf-8")
+    return path.name, _sha256(path)
+
+
 class SourceSupportGuardTests(unittest.TestCase):
+    def test_general_claim_detection_covers_unmistakable_assertion_forms(self):
+        claims = (
+            "A shared dispatch board helps teams reduce assignment conflicts.",
+            "A standardized intake form streamlines handoffs between dispatch and field teams.",
+            "Unlike manual boards, scheduling software updates assignments in one shared view.",
+            "Manual boards require separate updates, whereas scheduling software keeps one shared queue.",
+            "A work order is a document that authorizes specific field service tasks.",
+            "Dispatching is when a coordinator assigns available technicians to jobs.",
+            "First confirm technician availability, then assign the job, and finally notify the customer.",
+            "The dispatch process moves from triage to assignment to confirmation.",
+            "Review technician capacity before assigning urgent work.",
+            "Do not dispatch a technician until the required license is confirmed.",
+        )
+
+        for claim in claims:
+            with self.subTest(claim=claim):
+                findings = check_content(f"# Scheduling guide\n\n{claim}\n")
+
+                self.assertEqual(
+                    [finding["rule_id"] for finding in findings],
+                    ["general_claim_source_missing"],
+                )
+
+    def test_general_claim_detection_does_not_sweep_navigation_or_descriptive_prose(self):
+        ordinary_sentences = (
+            "This guide helps readers navigate the scheduling examples below.",
+            "Unlike the previous section, this section covers invoice timing.",
+            "First, this article explains scheduling; then, it introduces invoicing.",
+            "Review the next section for implementation details.",
+            "Dispatchers review capacity during the morning meeting.",
+            "The example is a document excerpt used for discussion.",
+        )
+
+        for sentence in ordinary_sentences:
+            with self.subTest(sentence=sentence):
+                self.assertEqual(
+                    check_content(f"# Scheduling guide\n\n{sentence}\n"),
+                    [],
+                )
+
+    def test_all_planned_general_claim_classes_are_detected(self):
+        claims = (
+            "Capacity planning drives fewer assignment conflicts.",
+            "Automated scheduling produces higher utilization than manual boards.",
+            "A dispatch queue is a prioritized list of jobs.",
+            "The scheduling workflow follows a sequence of assessment, assignment, and confirmation.",
+            "It is advisable to verify technician certifications before dispatch.",
+        )
+
+        for claim in claims:
+            with self.subTest(claim=claim):
+                findings = check_content(f"# Scheduling guide\n\n{claim}\n")
+
+                self.assertEqual(
+                    [finding["rule_id"] for finding in findings],
+                    ["general_claim_source_missing"],
+                )
+
+    def test_general_recommendation_requires_claim_fit_source_map_row(self):
+        content = """# Scheduling guide
+
+Field service leaders should review technician capacity before assigning urgent work.
+"""
+
+        findings = check_content(content, fetcher=fetcher_with({}))
+
+        self.assertIn("general_claim_source_missing", [row["rule_id"] for row in findings])
+
+    def test_general_claim_requires_registry_backed_source_classification(self):
+        url = "https://example.com/scheduling-guidance"
+        claim = "Field service leaders should review technician capacity before assigning urgent work."
+        content = f"""---
+Source Map:
+- Claim: {claim} | Claim type: recommendation | Source class: non_competing_expert | Evidence relation: directly_supports | URL: {url} | Evidence: "review technician capacity before assigning urgent work" | Status: approved
+---
+
+# Scheduling guide
+
+{claim}
+"""
+
+        findings = check_content(
+            content,
+            fetcher=fetcher_with(
+                {url: "Experts should review technician capacity before assigning urgent work."}
+            ),
+        )
+
+        self.assertIn(
+            "source_classification_artifact_missing",
+            [finding["rule_id"] for finding in findings],
+        )
+
+    def test_caller_authored_rehashed_source_classification_is_not_tool_evidence(self):
+        url = "https://example.com/scheduling-guidance"
+        claim = "Field service leaders should review technician capacity before assigning urgent work."
+        evidence = "Field service leaders should review technician capacity before assigning urgent work."
+        with tempfile.TemporaryDirectory() as tmp:
+            classification, classification_hash = write_plain_source_classification(
+                tmp,
+                url,
+                "non_competing_expert",
+                "independent",
+            )
+            content = f"""---
+Source Map:
+- Claim: {claim} | Claim type: recommendation | Source class: non_competing_expert | Evidence relation: directly_supports | Classification artifact: {classification} | Classification hash: {classification_hash} | URL: {url} | Evidence: \"{evidence}\" | Status: approved
+---
+
+# Scheduling guide
+
+{claim}
+"""
+
+            findings = check_content(
+                content,
+                base_path=tmp,
+                fetcher=fetcher_with({url: evidence}),
+            )
+
+        self.assertIn(
+            "source_classification_execution_attestation_invalid",
+            [finding["rule_id"] for finding in findings],
+        )
+
+    def test_source_classification_emitter_writes_atomic_attested_artifact(self):
+        self.assertTrue(
+            hasattr(source_support_guard, "write_source_classification_artifact"),
+            "source classification emitter is missing",
+        )
+        url = "https://example.com/scheduling-guidance"
+        claim = "Field service leaders should review technician capacity before assigning urgent work."
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "source-classification.json"
+            payload = source_support_guard.write_source_classification_artifact(
+                output,
+                source_url=url,
+                source_class="non_competing_expert",
+                publisher_relationship="independent",
+                record_id="source:test-record",
+                revision="test-revision-1",
+                workspace_root=tmp,
+            )
+            stored = json.loads(output.read_text(encoding="utf-8"))
+            content = f"""---
+Source Map:
+- Claim: {claim} | Claim type: recommendation | Source class: non_competing_expert | Evidence relation: directly_supports | Classification artifact: {output.name} | Classification hash: {_sha256(output)} | URL: {url} | Evidence: \"{claim}\" | Status: approved
+---
+
+# Scheduling guide
+
+{claim}
+"""
+            findings = check_content(
+                content,
+                base_path=tmp,
+                fetcher=fetcher_with({url: claim}),
+            )
+
+            self.assertEqual(stored, payload)
+            self.assertIn("execution_attestation", payload)
+            self.assertFalse(any(path.name.endswith(".tmp") for path in Path(tmp).iterdir()))
+            self.assertEqual(findings, [])
+
+    def test_general_claim_rejects_two_word_overlap_instead_of_claim_binding(self):
+        url = "https://example.com/scheduling-guidance"
+        article_claim = "Field service leaders should review technician capacity before assigning urgent work."
+        mapped_claim = "Technician capacity improves profitability."
+        evidence = "Technician capacity improves profitability."
+        with tempfile.TemporaryDirectory() as tmp:
+            classification, classification_hash = write_source_classification(
+                tmp,
+                url,
+                "non_competing_expert",
+                "independent",
+            )
+            content = f"""---
+Source Map:
+- Claim: {mapped_claim} | Claim type: recommendation | Source class: non_competing_expert | Evidence relation: directly_supports | Classification artifact: {classification} | Classification hash: {classification_hash} | URL: {url} | Evidence: "{evidence}" | Status: approved
+---
+
+# Scheduling guide
+
+{article_claim}
+"""
+
+            findings = check_content(
+                content,
+                base_path=tmp,
+                fetcher=fetcher_with({url: evidence}),
+            )
+
+        self.assertIn(
+            "source_claim_binding_mismatch",
+            [finding["rule_id"] for finding in findings],
+        )
+
+    def test_general_claim_rejects_source_evidence_that_contradicts_it(self):
+        url = "https://example.com/dispatch-research"
+        claim = "Digital dispatch improves field coordination."
+        evidence = "Digital dispatch does not improve field coordination."
+        with tempfile.TemporaryDirectory() as tmp:
+            classification, classification_hash = write_source_classification(
+                tmp,
+                url,
+                "independent_research",
+                "independent",
+            )
+            content = f"""---
+Source Map:
+- Claim: {claim} | Claim type: causal | Source class: independent_research | Evidence relation: directly_supports | Classification artifact: {classification} | Classification hash: {classification_hash} | URL: {url} | Evidence: "{evidence}" | Status: approved
+---
+
+# Dispatch research
+
+{claim}
+"""
+
+            findings = check_content(
+                content,
+                base_path=tmp,
+                fetcher=fetcher_with({url: evidence}),
+            )
+
+        self.assertIn(
+            "source_evidence_contradicts_claim",
+            [finding["rule_id"] for finding in findings],
+        )
+
+    def test_general_claim_rejects_relabelled_competitor_classification(self):
+        url = "https://competitor.example/scheduling-guidance"
+        claim = "Field service leaders should review technician capacity before assigning urgent work."
+        evidence = "Leaders should review technician capacity before assigning urgent work."
+        with tempfile.TemporaryDirectory() as tmp:
+            classification, classification_hash = write_source_classification(
+                tmp,
+                url,
+                "competitor",
+                "competitor",
+            )
+            content = f"""---
+Source Map:
+- Claim: {claim} | Claim type: recommendation | Source class: non_competing_expert | Evidence relation: directly_supports | Classification artifact: {classification} | Classification hash: {classification_hash} | URL: {url} | Evidence: "{evidence}" | Status: approved
+---
+
+# Scheduling guide
+
+{claim}
+"""
+
+            findings = check_content(
+                content,
+                base_path=tmp,
+                fetcher=fetcher_with({url: evidence}),
+            )
+
+        self.assertIn(
+            "source_classification_mismatch",
+            [finding["rule_id"] for finding in findings],
+        )
+
+    def test_general_claim_requires_a_public_http_source_url(self):
+        url = "ftp://example.com/scheduling-guidance"
+        claim = "Field service leaders should review technician capacity before assigning urgent work."
+        evidence = "Leaders should review technician capacity before assigning urgent work."
+        with tempfile.TemporaryDirectory() as tmp:
+            classification, classification_hash = write_source_classification(
+                tmp,
+                url,
+                "non_competing_expert",
+                "independent",
+            )
+            content = f"""---
+Source Map:
+- Claim: {claim} | Claim type: recommendation | Source class: non_competing_expert | Evidence relation: directly_supports | Classification artifact: {classification} | Classification hash: {classification_hash} | URL: {url} | Evidence: "{evidence}" | Status: approved
+---
+
+# Scheduling guide
+
+{claim}
+"""
+
+            findings = check_content(
+                content,
+                base_path=tmp,
+                fetcher=fetcher_with({url: evidence}),
+            )
+
+        self.assertIn(
+            "source_url_not_public",
+            [finding["rule_id"] for finding in findings],
+        )
+
+    def test_each_general_claim_sentence_requires_its_own_exact_mapping(self):
+        url = "https://example.com/scheduling-guidance"
+        supported_claim = "Capacity planning drives fewer assignment conflicts."
+        unsupported_claim = "It is advisable to verify technician certifications before dispatch."
+        evidence = "Capacity planning drives fewer assignment conflicts."
+        with tempfile.TemporaryDirectory() as tmp:
+            classification, classification_hash = write_source_classification(
+                tmp,
+                url,
+                "independent_research",
+                "independent",
+            )
+            content = f"""---
+Source Map:
+- Claim: {supported_claim} | Claim type: causal | Source class: independent_research | Evidence relation: directly_supports | Classification artifact: {classification} | Classification hash: {classification_hash} | URL: {url} | Evidence: "{evidence}" | Status: approved
+---
+
+# Scheduling guide
+
+{supported_claim} {unsupported_claim}
+"""
+
+            findings = check_content(
+                content,
+                base_path=tmp,
+                fetcher=fetcher_with({url: evidence}),
+            )
+
+        self.assertEqual(
+            [finding["rule_id"] for finding in findings],
+            ["general_claim_source_missing"],
+        )
+
+    def test_general_claim_passes_with_exact_source_class_and_claim_type(self):
+        url = "https://example.com/scheduling-guidance"
+        with tempfile.TemporaryDirectory() as tmp:
+            classification, classification_hash = write_source_classification(
+                tmp,
+                url,
+                "non_competing_expert",
+                "independent",
+            )
+            content = f"""---
+Source Map:
+- Claim: Field service leaders should review technician capacity before assigning urgent work | Claim type: recommendation | Source class: non_competing_expert | Evidence relation: directly_supports | Classification artifact: {classification} | Classification hash: {classification_hash} | URL: {url} | Evidence: "review technician capacity before assigning urgent work" | Status: approved
+---
+
+# Scheduling guide
+
+Field service leaders should review technician capacity before assigning urgent work.
+"""
+
+            findings = check_content(
+                content,
+                base_path=tmp,
+                fetcher=fetcher_with(
+                    {url: "Experts should review technician capacity before assigning urgent work."}
+                ),
+            )
+
+        self.assertEqual(findings, [])
+
+    def test_general_claim_rejects_unknown_source_class(self):
+        url = "https://example.com/scheduling-guidance"
+        content = f"""---
+Source Map:
+- Claim: Field service leaders should review technician capacity before assigning urgent work | Claim type: recommendation | Source class: blog | URL: {url} | Evidence: "review technician capacity before assigning urgent work" | Status: approved
+---
+
+# Scheduling guide
+
+Field service leaders should review technician capacity before assigning urgent work.
+"""
+
+        findings = check_content(
+            content,
+            fetcher=fetcher_with(
+                {url: "Experts should review technician capacity before assigning urgent work."}
+            ),
+        )
+
+        self.assertIn("source_class_invalid", [row["rule_id"] for row in findings])
+
+    def test_general_claim_rejects_mismatched_claim_type(self):
+        url = "https://example.com/scheduling-guidance"
+        content = f"""---
+Source Map:
+- Claim: Field service leaders should review technician capacity before assigning urgent work | Claim type: definition | Source class: non_competing_expert | URL: {url} | Evidence: "review technician capacity before assigning urgent work" | Status: approved
+---
+
+# Scheduling guide
+
+Field service leaders should review technician capacity before assigning urgent work.
+"""
+
+        findings = check_content(
+            content,
+            fetcher=fetcher_with(
+                {url: "Experts should review technician capacity before assigning urgent work."}
+            ),
+        )
+
+        self.assertIn("source_claim_type_mismatch", [row["rule_id"] for row in findings])
+
+    def test_general_causal_and_process_language_requires_claim_fit_source(self):
+        content = """# Scheduling workflow
+
+Reviewing capacity before dispatch reduces avoidable assignment conflicts.
+
+A constraint-first scheduling process begins with technician availability.
+"""
+
+        findings = check_content(content)
+
+        self.assertEqual(
+            [row["rule_id"] for row in findings],
+            ["general_claim_source_missing", "general_claim_source_missing"],
+        )
+
+    def test_any_claim_fit_row_can_satisfy_claim_when_an_earlier_row_is_weak(self):
+        url = "https://example.org/scheduling"
+        with tempfile.TemporaryDirectory() as tmp:
+            owned_classification, owned_hash = write_source_classification(
+                tmp,
+                url,
+                "owned_product",
+                "owned",
+            )
+            owned_path = Path(tmp) / owned_classification
+            owned_path.rename(Path(tmp) / "owned-classification.json")
+            owned_classification = "owned-classification.json"
+            owned_hash = _sha256(Path(tmp) / owned_classification)
+            classification, classification_hash = write_source_classification(
+                tmp,
+                url,
+                "non_competing_expert",
+                "independent",
+            )
+            content = f"""---
+Source Map:
+- Claim: Field service leaders should review technician capacity before assigning urgent work | Claim type: recommendation | Source class: owned_product | Evidence relation: directly_supports | Classification artifact: {owned_classification} | Classification hash: {owned_hash} | URL: {url} | Evidence: "review technician capacity before assigning urgent work" | Status: approved
+- Claim: Field service leaders should review technician capacity before assigning urgent work | Claim type: recommendation | Source class: non_competing_expert | Evidence relation: directly_supports | Classification artifact: {classification} | Classification hash: {classification_hash} | URL: {url} | Evidence: "review technician capacity before assigning urgent work" | Status: approved
+---
+
+# Scheduling workflow
+
+Field service leaders should review technician capacity before assigning urgent work.
+"""
+
+            findings = check_content(
+                content,
+                base_path=tmp,
+                fetcher=fetcher_with(
+                    {url: "Field service leaders should review technician capacity before assigning urgent work."}
+                ),
+            )
+
+        self.assertEqual(findings, [])
+
+    def test_owned_product_source_cannot_support_general_outcome_or_advice_claims(self):
+        url = "https://www.simprogroup.com/features/scheduling/"
+        cases = (
+            (
+                "causal",
+                "Simpro reduces scheduling conflicts for field service businesses.",
+            ),
+            (
+                "causal",
+                "Simpro improves first-time fix rates for field service businesses.",
+            ),
+            (
+                "recommendation",
+                "Field service businesses should choose Simpro for scheduling.",
+            ),
+            (
+                "comparative",
+                "Simpro is faster than manual scheduling.",
+            ),
+        )
+
+        for claim_type, claim in cases:
+            with self.subTest(claim_type=claim_type, claim=claim):
+                with tempfile.TemporaryDirectory() as tmp:
+                    classification, classification_hash = write_source_classification(
+                        tmp,
+                        url,
+                        "owned_product",
+                        "owned",
+                    )
+                    content = f'''---
+Source Map:
+- Claim: {claim} | Claim type: {claim_type} | Source class: owned_product | Evidence relation: directly_supports | Classification artifact: {classification} | Classification hash: {classification_hash} | URL: {url} | Evidence: "{claim}" | Status: approved
+---
+
+# Scheduling guide
+
+{claim}
+'''
+
+                    findings = check_content(
+                        content,
+                        base_path=tmp,
+                        fetcher=fetcher_with({url: claim}),
+                    )
+
+                self.assertIn(
+                    "source_class_claim_fit_invalid",
+                    [row["rule_id"] for row in findings],
+                )
+
+    def test_owned_product_source_can_support_a_simpro_product_process_fact(self):
+        url = "https://www.simprogroup.com/features/scheduling/"
+        claim = "Simpro works by connecting scheduling and job details in one workflow."
+        with tempfile.TemporaryDirectory() as tmp:
+            classification, classification_hash = write_source_classification(
+                tmp,
+                url,
+                "owned_product",
+                "owned",
+            )
+            content = f'''---
+Source Map:
+- Claim: {claim} | Claim type: process | Source class: owned_product | Evidence relation: directly_supports | Classification artifact: {classification} | Classification hash: {classification_hash} | URL: {url} | Evidence: "{claim}" | Status: approved
+---
+
+# Scheduling guide
+
+{claim}
+'''
+
+            findings = check_content(
+                content,
+                base_path=tmp,
+                fetcher=fetcher_with({url: claim}),
+            )
+
+        self.assertEqual(findings, [])
+
     def test_fetch_source_text_uses_builtin_file_cache_when_diskcache_is_unavailable(self):
         class FakeResponse:
             text = "<html><body>Visible proof text for source support.</body></html>"
@@ -307,7 +934,7 @@ Specialty trade contractors reported adjusted EBITDA margins from 18.1% to 20.4%
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0]["rule_id"], "unsupported_pdf_source")
 
-    def test_pdf_source_with_local_text_artifact_passes(self):
+    def test_pdf_source_with_locally_authored_artifact_but_no_capture_receipt_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
             proof = Path(tmp) / "gf-data-proof.md"
             proof.write_text("Specialty trades adjusted EBITDA margin was 18.1% to 20.4%.", encoding="utf-8")
@@ -323,9 +950,164 @@ Specialty trade contractors reported adjusted EBITDA margins from 18.1% to 20.4%
 
             findings = check_content(content, base_path=tmp, fetcher=fetcher_with({}))
 
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule_id"], "source_capture_receipt_missing")
+
+    def test_caller_authored_rehashed_capture_receipt_is_not_tool_evidence(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            proof = Path(tmp) / "gf-data-proof.md"
+            proof.write_text(
+                "Specialty trades adjusted EBITDA margin was 18.1% to 20.4%.",
+                encoding="utf-8",
+            )
+            receipt, receipt_hash = write_plain_capture_receipt(
+                tmp,
+                PDF_URL,
+                proof.name,
+                method="pdf_text",
+            )
+            content = f"""---
+Source Map:
+- Claim: Specialty trade contractors reported adjusted EBITDA margins from 18.1% to 20.4% | URL: {PDF_URL} | Evidence: "18.1% to 20.4%" | Artifact: {proof.name} | Capture receipt: {receipt} | Capture receipt hash: {receipt_hash} | Status: approved | Use: benchmark
+---
+
+# HVAC profitability
+
+Specialty trade contractors reported adjusted EBITDA margins from 18.1% to 20.4%.
+"""
+
+            findings = check_content(content, base_path=tmp, fetcher=fetcher_with({}))
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(
+            findings[0]["rule_id"],
+            "source_capture_execution_attestation_invalid",
+        )
+
+    def test_source_capture_emitter_writes_atomic_attested_receipt(self):
+        self.assertTrue(
+            hasattr(source_support_guard, "write_source_capture_receipt"),
+            "source capture emitter is missing",
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            source_content = Path(tmp) / "captured-source.pdf"
+            source_content.write_bytes(b"captured source bytes")
+            proof = Path(tmp) / "gf-data-proof.md"
+            proof.write_text(
+                "Specialty trades adjusted EBITDA margin was 18.1% to 20.4%.",
+                encoding="utf-8",
+            )
+            output = Path(tmp) / "source-capture-receipt.json"
+            payload = source_support_guard.write_source_capture_receipt(
+                output,
+                source_url=PDF_URL,
+                source_content_path=source_content,
+                artifact_path=proof,
+                artifact_reference=proof.name,
+                method="pdf_text",
+                workspace_root=tmp,
+            )
+            stored = json.loads(output.read_text(encoding="utf-8"))
+            content = f"""---
+Source Map:
+- Claim: Specialty trade contractors reported adjusted EBITDA margins from 18.1% to 20.4% | URL: {PDF_URL} | Evidence: "18.1% to 20.4%" | Artifact: {proof.name} | Capture receipt: {output.name} | Capture receipt hash: {_sha256(output)} | Status: approved | Use: benchmark
+---
+
+# HVAC profitability
+
+Specialty trade contractors reported adjusted EBITDA margins from 18.1% to 20.4%.
+"""
+            findings = check_content(content, base_path=tmp, fetcher=fetcher_with({}))
+
+            self.assertEqual(stored, payload)
+            self.assertIn("execution_attestation", payload)
+            self.assertFalse(any(path.name.endswith(".tmp") for path in Path(tmp).iterdir()))
+            self.assertEqual(findings, [])
+
+    def test_pdf_source_with_valid_capture_receipt_passes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            proof = Path(tmp) / "gf-data-proof.md"
+            proof.write_text("Specialty trades adjusted EBITDA margin was 18.1% to 20.4%.", encoding="utf-8")
+            receipt, receipt_hash = write_capture_receipt(
+                tmp,
+                PDF_URL,
+                proof.name,
+                method="pdf_text",
+            )
+            content = f"""---
+Source Map:
+- Claim: Specialty trade contractors reported adjusted EBITDA margins from 18.1% to 20.4% | URL: {PDF_URL} | Evidence: "18.1% to 20.4%" | Artifact: {proof.name} | Capture receipt: {receipt} | Capture receipt hash: {receipt_hash} | Status: approved | Use: benchmark
+---
+
+# HVAC profitability
+
+Specialty trade contractors reported adjusted EBITDA margins from 18.1% to 20.4%.
+"""
+
+            findings = check_content(content, base_path=tmp, fetcher=fetcher_with({}))
+
         self.assertEqual(findings, [])
 
-    def test_blocked_html_source_with_local_text_artifact_warns(self):
+    def test_capture_receipt_rejects_tampered_local_artifact(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            proof = Path(tmp) / "gf-data-proof.md"
+            proof.write_text("Specialty trades adjusted EBITDA margin was 18.1% to 20.4%.", encoding="utf-8")
+            receipt, receipt_hash = write_capture_receipt(
+                tmp,
+                PDF_URL,
+                proof.name,
+                method="pdf_text",
+            )
+            proof.write_text("Tampered 18.1% to 20.4% artifact.", encoding="utf-8")
+            content = f"""---
+Source Map:
+- Claim: Specialty trade contractors reported adjusted EBITDA margins from 18.1% to 20.4% | URL: {PDF_URL} | Evidence: "18.1% to 20.4%" | Artifact: {proof.name} | Capture receipt: {receipt} | Capture receipt hash: {receipt_hash} | Status: approved | Use: benchmark
+---
+
+# HVAC profitability
+
+Specialty trade contractors reported adjusted EBITDA margins from 18.1% to 20.4%.
+"""
+
+            findings = check_content(content, base_path=tmp, fetcher=fetcher_with({}))
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule_id"], "source_capture_artifact_hash_mismatch")
+
+    def test_capture_receipt_rejects_future_retrieval_timestamp(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            proof = Path(tmp) / "gf-data-proof.md"
+            proof.write_text("Specialty trades adjusted EBITDA margin was 18.1% to 20.4%.", encoding="utf-8")
+            receipt, _ = write_capture_receipt(
+                tmp,
+                PDF_URL,
+                proof.name,
+                method="pdf_text",
+            )
+            receipt_path = Path(tmp) / receipt
+            payload = json.loads(receipt_path.read_text(encoding="utf-8"))
+            payload["retrieved_at"] = "2999-08-11T12:00:00Z"
+            receipt_path.write_text(json.dumps(payload, sort_keys=True), encoding="utf-8")
+            receipt_hash = _sha256(receipt_path)
+            content = f"""---
+Source Map:
+- Claim: Specialty trade contractors reported adjusted EBITDA margins from 18.1% to 20.4% | URL: {PDF_URL} | Evidence: "18.1% to 20.4%" | Artifact: {proof.name} | Capture receipt: {receipt} | Capture receipt hash: {receipt_hash} | Status: approved | Use: benchmark
+---
+
+# HVAC profitability
+
+Specialty trade contractors reported adjusted EBITDA margins from 18.1% to 20.4%.
+"""
+
+            findings = check_content(content, base_path=tmp, fetcher=fetcher_with({}))
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(
+            findings[0]["rule_id"],
+            "source_capture_execution_attestation_invalid",
+        )
+
+    def test_blocked_html_source_with_locally_authored_artifact_but_no_receipt_fails(self):
         blocked_url = "https://www.capterra.com/p/166811/AroFlo/reviews/"
         with tempfile.TemporaryDirectory() as tmp:
             proof = Path(tmp) / "capterra-aroflo-proof.md"
@@ -349,9 +1131,40 @@ A public [Capterra AroFlo review]({blocked_url}) from Gill M., a business owner,
             findings = check_content(content, base_path=tmp, fetcher=blocked_fetcher)
 
         self.assertEqual(len(findings), 1)
-        self.assertEqual(findings[0]["rule_id"], "source_fetch_artifact_fallback")
-        self.assertEqual(findings[0]["severity"], "warning")
-        self.assertIn("403 forbidden", findings[0]["match"])
+        self.assertEqual(findings[0]["rule_id"], "source_capture_receipt_missing")
+        self.assertEqual(findings[0]["severity"], "error")
+
+    def test_blocked_html_source_with_valid_capture_receipt_passes(self):
+        blocked_url = "https://www.capterra.com/p/166811/AroFlo/reviews/"
+        with tempfile.TemporaryDirectory() as tmp:
+            proof = Path(tmp) / "capterra-aroflo-proof.md"
+            evidence = (
+                "Capterra AroFlo review page, Gill M. review, checked 2026-06-29; "
+                "paraphrased only."
+            )
+            proof.write_text(evidence, encoding="utf-8")
+            receipt, receipt_hash = write_capture_receipt(
+                tmp,
+                blocked_url,
+                proof.name,
+                method="html_visible_text",
+            )
+            content = f"""---
+Source Map:
+- Claim: A public Capterra AroFlo review from Gill M. supports a maintenance plumbing workflow story about scheduling, inventory, integrations, and time-and-material billing accuracy. | URL: {blocked_url} | Evidence: {evidence} | Artifact: {proof.name} | Capture receipt: {receipt} | Capture receipt hash: {receipt_hash} | Status: approved | Use: E-E-A-T review story paragraph
+---
+
+# Plumbing pricing
+
+A public [Capterra AroFlo review]({blocked_url}) from Gill M., a business owner, describes a maintenance plumbing workflow where scheduling, inventory, integrations, and time-and-material billing affect job accuracy.
+"""
+
+            def blocked_fetcher(url):
+                raise RuntimeError("403 forbidden")
+
+            findings = check_content(content, base_path=tmp, fetcher=blocked_fetcher)
+
+        self.assertEqual(findings, [])
 
     def test_unreachable_source_fails_closed(self):
         def failing_fetcher(url):

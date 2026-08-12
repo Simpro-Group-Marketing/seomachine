@@ -1,9 +1,12 @@
 """
 Source Support Guard
 
-Strict source-support validation for high-risk public claims. This guard goes
-beyond link presence: a claim must map to an approved proof row whose evidence
-snippet is visible in the cited source text or local proof artifact.
+Strict source-support validation for high-risk public claims. General claims
+use an exact Claim/Claim type/Evidence relation mapping plus a hash-bound
+``simpro-source-classification/v1`` registry export. Local PDF extractions and
+unreachable-HTML fallbacks are accepted only with a hash-bound
+``simpro-source-capture-receipt/v1`` tool receipt; an authored text file alone
+is never proof.
 """
 
 from __future__ import annotations
@@ -11,13 +14,16 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
 import socket
 import sys
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence
+from urllib.parse import urlsplit
 
 import requests
 from bs4 import BeautifulSoup
@@ -28,6 +34,8 @@ except ImportError:  # pragma: no cover - dependency is declared, fallback is de
     Cache = None
 
 try:
+    from .blog_assembly_contract import atomic_write_json
+    from .execution_attestation import attest_mapping, verify_mapping_attestation
     from .guard_common import Finding, should_fail, summarize_findings
     from .public_url_safety import request_public_url
     from .proof_sidecar import compose_with_sidecar, load_sidecar_content
@@ -42,6 +50,8 @@ try:
         _strip_frontmatter_preserve_lines,
     )
 except ImportError:  # pragma: no cover - supports direct script execution.
+    from blog_assembly_contract import atomic_write_json
+    from execution_attestation import attest_mapping, verify_mapping_attestation
     from guard_common import Finding, should_fail, summarize_findings
     from public_url_safety import request_public_url
     from proof_sidecar import compose_with_sidecar, load_sidecar_content
@@ -69,6 +79,22 @@ DEFAULT_USER_AGENT = (
 SOURCE_TEXT_CACHE_SECONDS = 60 * 60 * 24
 PDF_EXTENSION_RE = re.compile(r"\.pdf(?:$|[?#])", re.IGNORECASE)
 LOCAL_ARTIFACT_EXTENSION_RE = re.compile(r"\.(?:md|txt|csv|tsv|json)$", re.IGNORECASE)
+JSON_ARTIFACT_EXTENSION_RE = re.compile(r"\.json$", re.IGNORECASE)
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+RFC3339_UTC_RE = re.compile(
+    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$"
+)
+SOURCE_CAPTURE_SCHEMA = "simpro-source-capture-receipt/v1"
+SOURCE_CLASSIFICATION_SCHEMA = "simpro-source-classification/v1"
+SOURCE_CAPTURE_EMITTER = "source_support_capture"
+SOURCE_CLASSIFICATION_EMITTER = "source_registry_export"
+SOURCE_CAPTURE_EMITTER_VERSION = "1.0.0"
+SOURCE_CLASSIFICATION_EMITTER_VERSION = "1.0.0"
+SOURCE_CAPTURE_ATTESTATION_PURPOSE = SOURCE_CAPTURE_SCHEMA
+SOURCE_CLASSIFICATION_ATTESTATION_PURPOSE = SOURCE_CLASSIFICATION_SCHEMA
+PUBLISHER_RELATIONSHIPS = frozenset(
+    {"independent", "owned", "competitor", "customer", "review_platform"}
+)
 PROOF_ROW_RE = re.compile(
     r"^\s*(?:[-*+]\s+)?(?P<body>(?:Claim|Approved metric|Approved quote)\s*:.*)$",
     re.IGNORECASE,
@@ -102,6 +128,90 @@ INSUFFICIENT_SOURCE_RE = re.compile(
     r"FDD conventions|no anchor)\b",
     re.IGNORECASE,
 )
+SOURCE_CLASSES = frozenset(
+    {
+        "primary_authority",
+        "independent_research",
+        "non_competing_expert",
+        "owned_product",
+        "customer_proof",
+        "review_platform",
+        "competitor",
+    }
+)
+GENERAL_CLAIM_TYPES = frozenset(
+    {"causal", "comparative", "definitional", "process", "recommendation"}
+)
+GENERAL_CLAIM_PATTERNS = (
+    (
+        "comparative",
+        re.compile(
+            r"\b(?:better|worse|more|less|faster|slower|higher|lower)\b[^.!?]{0,80}\bthan\b|"
+            r"\bcompared (?:with|to)\b|\bversus\b|\boutperform(?:s|ed|ing)?\b|"
+            r"\bUnlike\s+(?!(?:the\s+)?(?:previous|next)\s+(?:section|paragraph|example)\b)"
+            r"[^,]{1,100},\s+(?!this\s+(?:section|article|guide)\b)|"
+            r",\s+whereas\s+",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "causal",
+        re.compile(
+            r"\b(?:causes?|leads? to|results? in|because of|therefore|drives?|"
+            r"contributes? to|improves?|reduces?|increases?|decreases?|prevents?|"
+            r"enables?|boosts?|cuts?|streamlines?)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "definitional",
+        re.compile(
+            r"\b(?:is defined as|refers to|means|describes)\b|"
+            r"\b(?:is|are)\s+(?:a|an|the)\s+(?:type|process|practice|method|"
+            r"system|software|approach|term|measure|metric|workflow|prioritized list)\b|"
+            r"\b(?:is|are)\s+(?:a|an)\s+document\s+(?:that|which|used to)\b|"
+            r"^(?!\s*(?:This|That|It)\b)[^.!?]{1,80}\s+(?:is|are)\s+when\s+"
+            r"(?:a|an|the|you|teams?|workers?|businesses?)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "process",
+        re.compile(
+            r"\b(?:requires?|involves?|consists of|begins? with|starts? with|"
+            r"works? by|follows? a sequence|steps? (?:include|are))\b|"
+            r"^\s*First\s+[^.!?;]{3,100},\s+then\s+[^.!?;]{3,100},\s+"
+            r"(?:and\s+)?finally\s+|"
+            r"\b(?:process|workflow)\s+moves?\s+from\s+[^.!?]{1,80}\s+to\s+"
+            r"[^.!?]{1,80}\s+to\s+[^.!?]{1,80}",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "recommendation",
+        re.compile(
+            r"\b(?:should|must|need to|ought to|avoid|choose|recommend(?:ed|s)?|"
+            r"best practice|is advisable to|is essential to|is important to)\b|"
+            r"^\s*(?:Review|Verify|Confirm|Check)\s+[^.!?]{1,100}\s+"
+            r"(?:before|prior to)\s+|"
+            r"^\s*Do\s+not\s+[^.!?]{1,100}\s+(?:until|before)\s+",
+            re.IGNORECASE,
+        ),
+    ),
+)
+GENERAL_SOURCE_CLASSES = frozenset(
+    {"primary_authority", "independent_research", "non_competing_expert"}
+)
+OWNED_PRODUCT_GENERAL_CLAIM_TYPES = frozenset({"definitional", "process"})
+SOURCE_CLASS_RELATIONSHIPS = {
+    "primary_authority": frozenset({"independent"}),
+    "independent_research": frozenset({"independent"}),
+    "non_competing_expert": frozenset({"independent"}),
+    "owned_product": frozenset({"owned"}),
+    "customer_proof": frozenset({"customer"}),
+    "review_platform": frozenset({"review_platform"}),
+    "competitor": frozenset({"competitor"}),
+}
 
 
 @dataclass(frozen=True)
@@ -113,6 +223,7 @@ class ClaimCandidate:
     customer_names: frozenset[str]
     has_case_study_link: bool
     requires_approved_quote: bool
+    claim_type: str = ""
 
     @property
     def has_numeric_tokens(self) -> bool:
@@ -139,6 +250,13 @@ class ProofEntry:
     customer: str = ""
     artifact: str = ""
     use: str = ""
+    source_class: str = ""
+    claim_type: str = ""
+    evidence_relation: str = ""
+    capture_receipt: str = ""
+    capture_receipt_hash: str = ""
+    classification_artifact: str = ""
+    classification_hash: str = ""
 
     @property
     def is_approved(self) -> bool:
@@ -160,6 +278,115 @@ class ProofEntry:
 
 class SourceSupportError(Exception):
     """Raised when source-support validation blocks publishing."""
+
+
+def write_source_classification_artifact(
+    path: str | Path,
+    *,
+    source_url: str,
+    source_class: str,
+    publisher_relationship: str,
+    record_id: str,
+    revision: str,
+    workspace_root: str | Path | None = None,
+) -> dict:
+    """Atomically emit one workspace-attested source classification."""
+    normalized_url = _required_emitter_text(source_url, "source_url")
+    hostname = (urlsplit(normalized_url).hostname or "").lower()
+    if not hostname:
+        raise ValueError("source_url must contain a hostname")
+    if source_class not in SOURCE_CLASSES:
+        raise ValueError("source_class must use the closed source-class enum")
+    if publisher_relationship not in PUBLISHER_RELATIONSHIPS:
+        raise ValueError("publisher_relationship must use the closed relationship enum")
+    payload = {
+        "schema": SOURCE_CLASSIFICATION_SCHEMA,
+        "source_url": normalized_url,
+        "source_class": source_class,
+        "classified_at": _utc_timestamp_now(),
+        "publisher": {
+            "hostname": hostname,
+            "relationship": publisher_relationship,
+        },
+        "registry": {
+            "record_id": _required_emitter_text(record_id, "record_id"),
+            "revision": _required_emitter_text(revision, "revision"),
+        },
+        "emitter": {
+            "name": SOURCE_CLASSIFICATION_EMITTER,
+            "version": SOURCE_CLASSIFICATION_EMITTER_VERSION,
+        },
+    }
+    attested = attest_mapping(
+        payload,
+        purpose=SOURCE_CLASSIFICATION_ATTESTATION_PURPOSE,
+        workspace_root=workspace_root,
+    )
+    if not _is_strict_classification_payload(attested):
+        raise ValueError("generated source classification does not satisfy the v1 contract")
+    atomic_write_json(path, attested)
+    return attested
+
+
+def write_source_capture_receipt(
+    path: str | Path,
+    *,
+    source_url: str,
+    source_content_path: str | Path,
+    artifact_path: str | Path,
+    artifact_reference: str,
+    method: str,
+    workspace_root: str | Path | None = None,
+) -> dict:
+    """Atomically emit one workspace-attested source capture receipt."""
+    normalized_url = _required_emitter_text(source_url, "source_url")
+    if not (urlsplit(normalized_url).hostname or ""):
+        raise ValueError("source_url must contain a hostname")
+    if method not in {"html_visible_text", "pdf_text"}:
+        raise ValueError("method must be html_visible_text or pdf_text")
+
+    captured_source = Path(source_content_path)
+    extracted_artifact = Path(artifact_path)
+    if not captured_source.is_file():
+        raise ValueError("source_content_path must identify an existing file")
+    if not extracted_artifact.is_file():
+        raise ValueError("artifact_path must identify an existing file")
+
+    source_content_hash = _sha256_file(captured_source)
+    artifact_hash = _sha256_file(extracted_artifact)
+    payload = {
+        "schema": SOURCE_CAPTURE_SCHEMA,
+        "source_url": normalized_url,
+        "retrieved_at": _utc_timestamp_now(),
+        "source_content_sha256": source_content_hash,
+        "artifact": {
+            "path": _required_emitter_text(
+                artifact_reference,
+                "artifact_reference",
+            ),
+            "sha256": artifact_hash,
+        },
+        "extraction": {
+            "method": method,
+            "tool_name": SOURCE_CAPTURE_EMITTER,
+            "tool_version": SOURCE_CAPTURE_EMITTER_VERSION,
+            "input_sha256": source_content_hash,
+            "output_sha256": artifact_hash,
+        },
+        "emitter": {
+            "name": SOURCE_CAPTURE_EMITTER,
+            "version": SOURCE_CAPTURE_EMITTER_VERSION,
+        },
+    }
+    attested = attest_mapping(
+        payload,
+        purpose=SOURCE_CAPTURE_ATTESTATION_PURPOSE,
+        workspace_root=workspace_root,
+    )
+    if not _is_strict_capture_payload(attested):
+        raise ValueError("generated source capture receipt does not satisfy the v1 contract")
+    atomic_write_json(path, attested)
+    return attested
 
 
 def check_content(
@@ -261,22 +488,31 @@ def check_content(
 
         if not matching_proofs:
             findings.append(_finding(
-                "missing_strict_proof",
+                "general_claim_source_missing"
+                if candidate.claim_type in GENERAL_CLAIM_TYPES
+                else "missing_strict_proof",
                 candidate,
-                "High-risk claims need an approved strict proof row with Claim, URL, Evidence, and Status: approved.",
-                "Add a structured proof row with public URL, exact evidence snippet, and approved status.",
+                "General factual claims require a claim-fit approved Source Map row."
+                if candidate.claim_type in GENERAL_CLAIM_TYPES
+                else "High-risk claims need an approved strict proof row with Claim, URL, Evidence, and Status: approved.",
+                "Add Claim type, Source class, public URL, exact evidence, and approved status."
+                if candidate.claim_type in GENERAL_CLAIM_TYPES
+                else "Add a structured proof row with public URL, exact evidence snippet, and approved status.",
             ))
             continue
 
-        selected_proof = matching_proofs[0]
-        proof_finding = _validate_proof_entry(
-            selected_proof,
-            candidate,
-            base_path=base,
-            fetcher=fetcher,
-        )
-        if proof_finding:
-            findings.append(proof_finding)
+        proof_findings = [
+            _validate_proof_entry(
+                proof,
+                candidate,
+                base_path=base,
+                fetcher=fetcher,
+            )
+            for proof in matching_proofs
+        ]
+        if any(finding is None for finding in proof_findings):
+            continue
+        findings.append(next(finding for finding in proof_findings if finding is not None))
 
     return sorted(findings, key=lambda finding: (finding["line"], finding["column"], finding["rule_id"]))
 
@@ -405,6 +641,13 @@ def _extract_proof_entries(content: str) -> List[ProofEntry]:
                     or fields.get("local proof artifact", "")
                 ),
                 use=fields.get("use", ""),
+                source_class=fields.get("source class", ""),
+                claim_type=fields.get("claim type", ""),
+                evidence_relation=fields.get("evidence relation", ""),
+                capture_receipt=fields.get("capture receipt", ""),
+                capture_receipt_hash=fields.get("capture receipt hash", ""),
+                classification_artifact=fields.get("classification artifact", ""),
+                classification_hash=fields.get("classification hash", ""),
             )
         )
 
@@ -443,8 +686,28 @@ def _extract_claim_candidates(
             (has_case_study_link or bool(names))
             and bool(OUTCOME_SIGNAL_RE.search(text_for_detection))
         )
-
-        if not numeric_tokens and not is_named_outcome and not is_quote_claim and not is_review_authority_claim:
+        is_special_claim = bool(
+            numeric_tokens or is_named_outcome or is_quote_claim or is_review_authority_claim
+        )
+        if not is_special_claim:
+            general_candidates = []
+            for sentence in _split_claim_sentences(paragraph.text):
+                claim_type = _general_claim_type(_claim_text_for_detection(sentence))
+                if claim_type:
+                    general_candidates.append(
+                        ClaimCandidate(
+                            text=sentence,
+                            line=paragraph.line,
+                            numeric_tokens=[],
+                            normalized_tokens=frozenset(),
+                            customer_names=frozenset(),
+                            has_case_study_link=False,
+                            requires_approved_quote=False,
+                            claim_type=claim_type,
+                        )
+                    )
+            if general_candidates:
+                candidates.extend(general_candidates)
             continue
 
         candidates.append(
@@ -456,10 +719,19 @@ def _extract_claim_candidates(
                 customer_names=frozenset(names),
                 has_case_study_link=has_case_study_link,
                 requires_approved_quote=is_quote_claim,
+                claim_type="",
             )
         )
 
     return candidates
+
+
+def _split_claim_sentences(text: str) -> List[str]:
+    return [
+        sentence.strip()
+        for sentence in re.split(r"(?<=[.!?])\s+(?=[A-Z0-9\[])", text.strip())
+        if sentence.strip()
+    ]
 
 
 def _matching_proofs(
@@ -489,12 +761,63 @@ def _validate_proof_entry(
     base_path: Path,
     fetcher: Optional[Fetcher],
 ) -> Optional[Finding]:
+    if candidate.claim_type in GENERAL_CLAIM_TYPES:
+        if proof.source_class not in SOURCE_CLASSES:
+            return _finding(
+                "source_class_invalid",
+                candidate,
+                "General claim proof must use one exact supported Source class.",
+                "Use primary_authority, independent_research, non_competing_expert, or another contract class that fits the claim.",
+                proof,
+            )
+        if proof.claim_type != candidate.claim_type:
+            return _finding(
+                "source_claim_type_mismatch",
+                candidate,
+                "Source Map Claim type does not fit the public claim.",
+                f"Set Claim type to {candidate.claim_type} or use a different supporting row.",
+                proof,
+            )
+        contract_finding = _validate_general_claim_contract(proof, candidate)
+        if contract_finding:
+            return contract_finding
+        classification_finding = _validate_source_classification(
+            proof,
+            candidate,
+            base_path,
+        )
+        if classification_finding:
+            return classification_finding
+        allowed = set(GENERAL_SOURCE_CLASSES)
+        if candidate.claim_type == "comparative":
+            allowed.add("competitor")
+        if (
+            candidate.claim_type in OWNED_PRODUCT_GENERAL_CLAIM_TYPES
+            and re.search(r"\bSimpro\b", candidate.text, re.IGNORECASE)
+        ):
+            allowed.add("owned_product")
+        if proof.source_class not in allowed:
+            return _finding(
+                "source_class_claim_fit_invalid",
+                candidate,
+                "The selected Source class cannot support this general claim type.",
+                "Use an authority, independent research, or non-competing expert source with visible claim-fit evidence.",
+                proof,
+            )
     if not proof.url or INSUFFICIENT_SOURCE_RE.search(proof.url):
         return _finding(
             "missing_strict_proof",
             candidate,
             "Strict proof must use a public URL, not an internal context path or placeholder.",
             "Use the public source URL that visibly supports the claim.",
+            proof,
+        )
+    if not proof.is_public_url:
+        return _finding(
+            "source_url_not_public",
+            candidate,
+            "Strict proof must use a public HTTP or HTTPS URL.",
+            "Replace the source with its canonical public HTTP or HTTPS URL.",
             proof,
         )
 
@@ -516,6 +839,14 @@ def _validate_proof_entry(
                 "Create the referenced .md/.txt/.csv/.tsv/.json proof artifact or remove the claim.",
                 proof,
             )
+        capture_finding = _validate_capture_receipt(
+            proof,
+            candidate,
+            base_path,
+            expected_method="pdf_text",
+        )
+        if capture_finding:
+            return capture_finding
     else:
         try:
             source_text = fetcher(proof.url) if fetcher is not None else fetch_source_text(proof.url)
@@ -523,6 +854,14 @@ def _validate_proof_entry(
             if proof.artifact:
                 source_text = _read_artifact_text(proof, base_path)
                 if source_text is not None:
+                    capture_finding = _validate_capture_receipt(
+                        proof,
+                        candidate,
+                        base_path,
+                        expected_method="html_visible_text",
+                    )
+                    if capture_finding:
+                        return capture_finding
                     evidence_finding = _validate_source_text_contains_evidence(
                         source_text,
                         proof,
@@ -530,18 +869,7 @@ def _validate_proof_entry(
                     )
                     if evidence_finding:
                         return evidence_finding
-                    return _finding(
-                        "source_fetch_artifact_fallback",
-                        candidate,
-                        "Cited source could not be fetched live; local artifact was used as fallback.",
-                        (
-                            "Verify the public source manually or replace it with a resolved "
-                            "public URL before final approval."
-                        ),
-                        proof,
-                        severity="warning",
-                        match=str(exc),
-                    )
+                    return None
                 return _finding(
                     "proof_artifact_missing",
                     candidate,
@@ -561,6 +889,11 @@ def _validate_proof_entry(
     if evidence_finding:
         return evidence_finding
 
+    if candidate.claim_type in GENERAL_CLAIM_TYPES:
+        fit_finding = _validate_evidence_claim_fit(proof, candidate)
+        if fit_finding:
+            return fit_finding
+
     if candidate.has_numeric_tokens and not candidate.normalized_tokens.issubset(proof.normalized_numeric_tokens):
         return _finding(
             "evidence_missing_numeric_token",
@@ -571,6 +904,263 @@ def _validate_proof_entry(
         )
 
     return None
+
+
+def _validate_general_claim_contract(
+    proof: ProofEntry,
+    candidate: ClaimCandidate,
+) -> Optional[Finding]:
+    article_claim = _normalize_text(_claim_text_for_detection(candidate.text))
+    mapped_claim = _normalize_text(proof.claim)
+    if article_claim != mapped_claim:
+        return _finding(
+            "source_claim_binding_mismatch",
+            candidate,
+            "The Source Map Claim must exactly bind the public general claim.",
+            "Copy the complete public claim into Claim or use a separate row for each claim.",
+            proof,
+        )
+    if proof.evidence_relation != "directly_supports":
+        return _finding(
+            "source_evidence_relation_invalid",
+            candidate,
+            "General claim proof must declare Evidence relation: directly_supports.",
+            "Use directly_supports only when the source-visible evidence entails the mapped claim.",
+            proof,
+        )
+    return None
+
+
+def _validate_source_classification(
+    proof: ProofEntry,
+    candidate: ClaimCandidate,
+    base_path: Path,
+) -> Optional[Finding]:
+    if not proof.classification_artifact or not proof.classification_hash:
+        return _finding(
+            "source_classification_artifact_missing",
+            candidate,
+            "General claim Source class must be bound to a registry-emitted classification artifact.",
+            "Add Classification artifact and Classification hash from a source_registry_export record.",
+            proof,
+        )
+    classification_path = _resolve_local_artifact(
+        proof.classification_artifact,
+        base_path,
+        JSON_ARTIFACT_EXTENSION_RE,
+    )
+    if classification_path is None:
+        return _finding(
+            "source_classification_artifact_missing",
+            candidate,
+            "The declared source-classification artifact is missing or is not JSON.",
+            "Use an existing registry-emitted JSON classification artifact.",
+            proof,
+        )
+    if not SHA256_RE.fullmatch(proof.classification_hash):
+        return _finding(
+            "source_classification_hash_invalid",
+            candidate,
+            "Classification hash must be a 64-character lowercase SHA-256.",
+            "Record the exact SHA-256 of the classification artifact.",
+            proof,
+        )
+    if _sha256_file(classification_path) != proof.classification_hash:
+        return _finding(
+            "source_classification_hash_mismatch",
+            candidate,
+            "The source-classification artifact hash does not match the Source Map binding.",
+            "Regenerate the classification binding from the unchanged registry artifact.",
+            proof,
+        )
+    payload = _read_json_object(classification_path)
+    if payload is None:
+        return _finding(
+            "source_classification_artifact_invalid",
+            candidate,
+            "The source-classification artifact does not satisfy simpro-source-classification/v1.",
+            "Regenerate it with source_registry_export; do not hand-label the source class.",
+            proof,
+        )
+    if not verify_mapping_attestation(
+        payload,
+        purpose=SOURCE_CLASSIFICATION_ATTESTATION_PURPOSE,
+        workspace_root=_attestation_workspace_root(base_path),
+    ):
+        return _finding(
+            "source_classification_execution_attestation_invalid",
+            candidate,
+            "The source-classification artifact lacks a valid workspace execution attestation.",
+            "Regenerate it with write_source_classification_artifact in this workspace.",
+            proof,
+        )
+    if not _is_strict_classification_payload(payload):
+        return _finding(
+            "source_classification_artifact_invalid",
+            candidate,
+            "The source-classification artifact does not satisfy simpro-source-classification/v1.",
+            "Regenerate it with source_registry_export; do not hand-label the source class.",
+            proof,
+        )
+    if payload["source_url"] != proof.url or payload["source_class"] != proof.source_class:
+        return _finding(
+            "source_classification_mismatch",
+            candidate,
+            "The declared Source class or URL does not match the registry classification artifact.",
+            "Use the registry-declared class for this exact URL.",
+            proof,
+        )
+    hostname = (urlsplit(proof.url).hostname or "").lower()
+    publisher = payload["publisher"]
+    if publisher["hostname"].lower() != hostname:
+        return _finding(
+            "source_classification_hostname_mismatch",
+            candidate,
+            "The registry classification hostname does not match the cited URL.",
+            "Regenerate classification metadata for the exact cited URL.",
+            proof,
+        )
+    relationship = publisher["relationship"]
+    if relationship not in SOURCE_CLASS_RELATIONSHIPS[proof.source_class]:
+        return _finding(
+            "source_classification_relationship_mismatch",
+            candidate,
+            "The publisher relationship cannot support the declared Source class.",
+            "Use the registry-declared ownership or competitor relationship.",
+            proof,
+        )
+    if (hostname == "simprogroup.com" or hostname.endswith(".simprogroup.com")) and proof.source_class != "owned_product":
+        return _finding(
+            "source_classification_owned_domain_mismatch",
+            candidate,
+            "A Simpro-owned hostname cannot be classified as an independent or competitor source.",
+            "Use Source class: owned_product for Simpro-owned product facts.",
+            proof,
+        )
+    return None
+
+
+def _validate_capture_receipt(
+    proof: ProofEntry,
+    candidate: ClaimCandidate,
+    base_path: Path,
+    *,
+    expected_method: str,
+) -> Optional[Finding]:
+    if not proof.capture_receipt or not proof.capture_receipt_hash:
+        return _finding(
+            "source_capture_receipt_missing",
+            candidate,
+            "A local fallback is not evidence unless a tool-emitted capture receipt binds it to the cited source.",
+            "Capture or extract the source with source_support_capture and bind its receipt and SHA-256.",
+            proof,
+        )
+    receipt_path = _resolve_local_artifact(
+        proof.capture_receipt,
+        base_path,
+        JSON_ARTIFACT_EXTENSION_RE,
+    )
+    if receipt_path is None:
+        return _finding(
+            "source_capture_receipt_missing",
+            candidate,
+            "The declared source-capture receipt is missing or is not JSON.",
+            "Use the JSON receipt emitted for this exact captured source.",
+            proof,
+        )
+    if not SHA256_RE.fullmatch(proof.capture_receipt_hash):
+        return _finding(
+            "source_capture_receipt_hash_invalid",
+            candidate,
+            "Capture receipt hash must be a 64-character lowercase SHA-256.",
+            "Record the exact SHA-256 of the capture receipt.",
+            proof,
+        )
+    if _sha256_file(receipt_path) != proof.capture_receipt_hash:
+        return _finding(
+            "source_capture_receipt_hash_mismatch",
+            candidate,
+            "The capture receipt hash does not match its Source Map binding.",
+            "Regenerate the receipt binding from the unchanged capture output.",
+            proof,
+        )
+    payload = _read_json_object(receipt_path)
+    if payload is None:
+        return _finding(
+            "source_capture_receipt_invalid",
+            candidate,
+            "The capture receipt does not satisfy simpro-source-capture-receipt/v1.",
+            "Regenerate the capture and receipt with source_support_capture.",
+            proof,
+        )
+    if not verify_mapping_attestation(
+        payload,
+        purpose=SOURCE_CAPTURE_ATTESTATION_PURPOSE,
+        workspace_root=_attestation_workspace_root(base_path),
+    ):
+        return _finding(
+            "source_capture_execution_attestation_invalid",
+            candidate,
+            "The source-capture receipt lacks a valid workspace execution attestation.",
+            "Regenerate it with write_source_capture_receipt in this workspace.",
+            proof,
+        )
+    artifact_path = _resolve_local_artifact(
+        proof.artifact,
+        base_path,
+        LOCAL_ARTIFACT_EXTENSION_RE,
+    )
+    if artifact_path is None or not _is_strict_capture_payload(payload):
+        return _finding(
+            "source_capture_receipt_invalid",
+            candidate,
+            "The capture receipt does not satisfy simpro-source-capture-receipt/v1.",
+            "Regenerate the capture and receipt with source_support_capture.",
+            proof,
+        )
+    artifact = payload["artifact"]
+    extraction = payload["extraction"]
+    if payload["source_url"] != proof.url or artifact["path"] != proof.artifact:
+        return _finding(
+            "source_capture_binding_mismatch",
+            candidate,
+            "The capture receipt does not bind the cited URL and declared local artifact.",
+            "Use the receipt emitted for this exact URL and artifact path.",
+            proof,
+        )
+    artifact_hash = _sha256_file(artifact_path)
+    if artifact_hash != artifact["sha256"] or artifact_hash != extraction["output_sha256"]:
+        return _finding(
+            "source_capture_artifact_hash_mismatch",
+            candidate,
+            "The local source artifact changed after capture or extraction.",
+            "Recapture the source and regenerate the receipt before using the evidence.",
+            proof,
+        )
+    if extraction["input_sha256"] != payload["source_content_sha256"]:
+        return _finding(
+            "source_capture_input_hash_mismatch",
+            candidate,
+            "The extraction input hash does not match the captured source-content hash.",
+            "Regenerate the tool-emitted capture receipt.",
+            proof,
+        )
+    if extraction["method"] != expected_method:
+        return _finding(
+            "source_capture_method_mismatch",
+            candidate,
+            "The capture extraction method does not fit the cited source type.",
+            f"Use extraction method {expected_method} for this source.",
+            proof,
+        )
+    return None
+
+
+def _general_claim_type(text: str) -> str:
+    for claim_type, pattern in GENERAL_CLAIM_PATTERNS:
+        if pattern.search(text):
+            return claim_type
+    return ""
 
 
 def _validate_source_text_contains_evidence(
@@ -589,8 +1179,83 @@ def _validate_source_text_contains_evidence(
     return None
 
 
+def _validate_evidence_claim_fit(
+    proof: ProofEntry,
+    candidate: ClaimCandidate,
+) -> Optional[Finding]:
+    if _evidence_contradicts_claim(proof.claim, proof.evidence):
+        return _finding(
+            "source_evidence_contradicts_claim",
+            candidate,
+            "The mapped source evidence contradicts the public claim.",
+            "Remove or rewrite the claim so it follows the source-visible evidence.",
+            proof,
+        )
+    claim_words = _significant_words(proof.claim)
+    evidence_words = _significant_words(proof.evidence)
+    minimum_overlap = max(3, math.ceil(len(claim_words) * 0.5))
+    if len(claim_words.intersection(evidence_words)) < minimum_overlap:
+        return _finding(
+            "source_evidence_claim_fit_insufficient",
+            candidate,
+            "The evidence snippet does not directly support enough of the mapped claim.",
+            "Use source-visible evidence that directly entails the complete claim, not a topical fragment.",
+            proof,
+        )
+    return None
+
+
+def _evidence_contradicts_claim(claim: str, evidence: str) -> bool:
+    claim_text = _normalize_text(claim)
+    evidence_text = _normalize_text(evidence)
+    negations = (" no ", " not ", " never ", " cannot ", " without ", " fails to ")
+    padded_claim = f" {claim_text} "
+    padded_evidence = f" {evidence_text} "
+    claim_negated = any(token in padded_claim for token in negations)
+    evidence_negated = any(token in padded_evidence for token in negations)
+    if claim_negated != evidence_negated:
+        return True
+    opposites = (
+        ("increase", "decrease"),
+        ("improve", "worsen"),
+        ("reduce", "increase"),
+        ("higher", "lower"),
+        ("more", "less"),
+        ("faster", "slower"),
+        ("better", "worse"),
+        ("enable", "prevent"),
+    )
+    claim_words = set(claim_text.split())
+    evidence_words = set(evidence_text.split())
+    for left, right in opposites:
+        claim_has_left = any(word.startswith(left) for word in claim_words)
+        claim_has_right = any(word.startswith(right) for word in claim_words)
+        evidence_has_left = any(word.startswith(left) for word in evidence_words)
+        evidence_has_right = any(word.startswith(right) for word in evidence_words)
+        if (claim_has_left and evidence_has_right) or (claim_has_right and evidence_has_left):
+            return True
+    return False
+
+
 def _read_artifact_text(proof: ProofEntry, base_path: Path) -> Optional[str]:
-    artifact_path = Path(proof.artifact)
+    resolved = _resolve_local_artifact(
+        proof.artifact,
+        base_path,
+        LOCAL_ARTIFACT_EXTENSION_RE,
+    )
+    if resolved is None:
+        return None
+    return resolved.read_text(encoding="utf-8")
+
+
+def _resolve_local_artifact(
+    reference: str,
+    base_path: Path,
+    extension_pattern: re.Pattern[str],
+) -> Optional[Path]:
+    if not reference or not extension_pattern.search(Path(reference).name):
+        return None
+    artifact_path = Path(reference)
     candidates = [artifact_path] if artifact_path.is_absolute() else [
         base_path / artifact_path,
         base_path.parent / artifact_path,
@@ -598,13 +1263,154 @@ def _read_artifact_text(proof: ProofEntry, base_path: Path) -> Optional[str]:
     ]
     for candidate in candidates:
         resolved = candidate.resolve()
-        if (
-            resolved.exists()
-            and resolved.is_file()
-            and LOCAL_ARTIFACT_EXTENSION_RE.search(resolved.name)
-        ):
-            return resolved.read_text(encoding="utf-8")
+        if resolved.exists() and resolved.is_file():
+            return resolved
     return None
+
+
+def _sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _read_json_object(path: Path) -> Optional[dict]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
+def _is_strict_classification_payload(payload: dict) -> bool:
+    if set(payload) != {
+        "schema",
+        "source_url",
+        "source_class",
+        "classified_at",
+        "publisher",
+        "registry",
+        "emitter",
+        "execution_attestation",
+    }:
+        return False
+    if payload.get("schema") != SOURCE_CLASSIFICATION_SCHEMA:
+        return False
+    if payload.get("source_class") not in SOURCE_CLASSES:
+        return False
+    if not _is_nonempty_string(payload.get("source_url")):
+        return False
+    if not _is_valid_utc_timestamp(payload.get("classified_at")):
+        return False
+    publisher = payload.get("publisher")
+    registry = payload.get("registry")
+    emitter = payload.get("emitter")
+    if not isinstance(publisher, dict) or set(publisher) != {"hostname", "relationship"}:
+        return False
+    if not _is_nonempty_string(publisher.get("hostname")):
+        return False
+    if publisher.get("relationship") not in PUBLISHER_RELATIONSHIPS:
+        return False
+    if not isinstance(registry, dict) or set(registry) != {"record_id", "revision"}:
+        return False
+    if not all(_is_nonempty_string(registry.get(key)) for key in ("record_id", "revision")):
+        return False
+    if not isinstance(emitter, dict) or set(emitter) != {"name", "version"}:
+        return False
+    return (
+        emitter.get("name") == SOURCE_CLASSIFICATION_EMITTER
+        and _is_nonempty_string(emitter.get("version"))
+    )
+
+
+def _is_strict_capture_payload(payload: dict) -> bool:
+    if set(payload) != {
+        "schema",
+        "source_url",
+        "retrieved_at",
+        "source_content_sha256",
+        "artifact",
+        "extraction",
+        "emitter",
+        "execution_attestation",
+    }:
+        return False
+    if payload.get("schema") != SOURCE_CAPTURE_SCHEMA:
+        return False
+    if not _is_nonempty_string(payload.get("source_url")):
+        return False
+    if not _is_valid_utc_timestamp(payload.get("retrieved_at")):
+        return False
+    if not _is_sha256(payload.get("source_content_sha256")):
+        return False
+    artifact = payload.get("artifact")
+    extraction = payload.get("extraction")
+    emitter = payload.get("emitter")
+    if not isinstance(artifact, dict) or set(artifact) != {"path", "sha256"}:
+        return False
+    if not _is_nonempty_string(artifact.get("path")) or not _is_sha256(artifact.get("sha256")):
+        return False
+    if not isinstance(extraction, dict) or set(extraction) != {
+        "method",
+        "tool_name",
+        "tool_version",
+        "input_sha256",
+        "output_sha256",
+    }:
+        return False
+    if extraction.get("method") not in {"html_visible_text", "pdf_text"}:
+        return False
+    if extraction.get("tool_name") != SOURCE_CAPTURE_EMITTER:
+        return False
+    if not _is_nonempty_string(extraction.get("tool_version")):
+        return False
+    if not _is_sha256(extraction.get("input_sha256")) or not _is_sha256(extraction.get("output_sha256")):
+        return False
+    if not isinstance(emitter, dict) or set(emitter) != {"name", "version"}:
+        return False
+    return (
+        emitter.get("name") == SOURCE_CAPTURE_EMITTER
+        and _is_nonempty_string(emitter.get("version"))
+    )
+
+
+def _is_valid_utc_timestamp(value: object) -> bool:
+    if not isinstance(value, str) or not RFC3339_UTC_RE.fullmatch(value):
+        return False
+    try:
+        parsed = datetime.fromisoformat(value[:-1] + "+00:00")
+    except ValueError:
+        return False
+    return parsed.tzinfo == timezone.utc and parsed <= datetime.now(timezone.utc)
+
+
+def _is_nonempty_string(value: object) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+
+def _is_sha256(value: object) -> bool:
+    return isinstance(value, str) and bool(SHA256_RE.fullmatch(value))
+
+
+def _required_emitter_text(value: object, field: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{field} must be a non-empty string")
+    return value.strip()
+
+
+def _utc_timestamp_now() -> str:
+    return (
+        datetime.now(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
+
+
+def _attestation_workspace_root(base_path: Path) -> Path:
+    resolved = base_path.resolve()
+    for candidate in (resolved, *resolved.parents):
+        if (candidate / ".git").exists():
+            return candidate
+    return resolved
 
 
 def _finding(

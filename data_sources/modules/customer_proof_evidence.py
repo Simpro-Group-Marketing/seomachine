@@ -202,10 +202,23 @@ def verify_selector_evidence_roles(
             role_rejections = rejected_overrides.get(role, {})
             if not isinstance(role_rejections, dict):
                 return None
+            selected_candidate = next(
+                (
+                    result
+                    for result in results
+                    if str(result.get("proof_id", "")) == selected_id
+                ),
+                None,
+            )
             verified[role] = {
                 "candidate_ids": candidate_ids,
                 "claim_ids": claim_ids,
                 "selected_id": selected_id,
+                "selected_candidate": (
+                    _experience_candidate_binding(selected_candidate)
+                    if role == "experience_story" and selected_candidate is not None
+                    else None
+                ),
                 "rejected_overrides": {
                     str(candidate): str(reason)
                     for candidate, reason in role_rejections.items()
@@ -225,3 +238,30 @@ def verify_selector_evidence_roles(
         ValueError,
     ):
         return None
+
+
+def _experience_candidate_binding(candidate: Dict[str, Any]) -> Dict[str, str]:
+    story = candidate.get("review_story")
+    if not isinstance(story, dict):
+        story = {}
+    identity = (
+        str(story.get("identity_display", "")).strip()
+        or str(story.get("person_name", "")).strip()
+        or str(story.get("business_name", "")).strip()
+        or str(candidate.get("customer", "")).strip()
+    )
+    public_url = str(
+        story.get("public_url") or candidate.get("public_url") or ""
+    ).strip()
+    story_text = str(
+        story.get("workflow_story")
+        or candidate.get("evidence")
+        or " ".join(str(value) for value in candidate.get("themes", []) or [])
+    ).strip()
+    return {
+        "proof_id": str(candidate.get("proof_id", "")).strip(),
+        "claim_id": str(candidate.get("claim_id", "")).strip(),
+        "identity": identity,
+        "public_url": public_url,
+        "story": story_text,
+    }

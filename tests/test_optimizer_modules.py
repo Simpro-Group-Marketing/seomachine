@@ -20,7 +20,7 @@ def long_article(primary_keyword="payments for trades businesses"):
         sections.append(
             f"## Section {index} for {primary_keyword}\n\n"
             + (
-                f"{primary_keyword} helps field service teams connect jobs, invoices, "
+                "This workflow helps field service teams connect jobs, invoices, "
                 "customer records, and payment status. "
             )
             * 70
@@ -45,7 +45,7 @@ def article_with_links(links, primary_keyword="payments for trades businesses"):
         + "\n\n".join(
             f"## Section {index} for {primary_keyword}\n\n"
             + (
-                f"{primary_keyword} helps field service teams connect jobs, invoices, "
+                "This workflow helps field service teams connect jobs, invoices, "
                 "customer records, and payment status. "
             )
             * 70
@@ -162,6 +162,44 @@ class OptimizerModuleTests(unittest.TestCase):
         self.assertEqual(result["score"], 100)
         self.assertNotIn("H2 sections", findings)
 
+    def test_seo_quality_rater_default_does_not_require_fixed_link_totals(self):
+        content = (
+            "# Payments for Trades Businesses\n\n"
+            "Payments for trades businesses connect invoice and job status.\n\n"
+            "## Choose the next action\n\n"
+            "Use [field service payments]"
+            "(https://www.simprogroup.com/features/payments) to connect the handoff."
+        )
+
+        result = SEOQualityRater()._score_links(
+            content,
+            internal_count=1,
+            external_count=0,
+        )
+
+        findings = "\n".join(result["warnings"] + result["suggestions"])
+        self.assertEqual(result["score"], 100)
+        self.assertNotIn("Too few internal links", findings)
+        self.assertNotIn("research links", findings)
+
+    def test_seo_quality_rater_preserves_explicit_custom_link_totals(self):
+        result = SEOQualityRater(
+            {
+                "min_internal_links": 2,
+                "optimal_internal_links": 3,
+                "min_external_links": 1,
+                "optimal_external_links": 2,
+            }
+        )._score_links(
+            "[field service payment workflows](https://www.simprogroup.com/features/payments)",
+            internal_count=1,
+            external_count=0,
+        )
+
+        findings = "\n".join(result["warnings"] + result["suggestions"])
+        self.assertIn("Too few internal links", findings)
+        self.assertIn("research links", findings)
+
     def test_seo_quality_rater_preserves_explicit_custom_h2_rules(self):
         result = SEOQualityRater(
             {"min_h2_sections": 4, "optimal_h2_sections": 6}
@@ -218,7 +256,32 @@ class OptimizerModuleTests(unittest.TestCase):
         findings = "\n".join(result["critical_issues"] + result["warnings"])
         self.assertNotIn("density is too low", findings)
 
-    def test_seo_quality_rater_default_density_mode_detects_high_and_stuffed_content(self):
+    def test_seo_quality_rater_uses_only_visible_body_for_analysis(self):
+        body = concise_article_with_links()
+        frontmatter = """---
+review_notes: "payments for trades businesses "
+noise:
+  - "Many various important claims with payments for trades businesses repeated."
+  - "A deliberately long metadata sentence that must never affect readability or content scoring because readers cannot see YAML frontmatter in the published body."
+fake_link: "[metadata only](https://example.com/not-visible)"
+---
+
+"""
+        common = {
+            "meta_title": "Payments for Trades Businesses Guide and Tips | Simpro",
+            "meta_description": (
+                "Payments for trades businesses need online, mobile and field options. "
+                "Learn how to reduce friction and protect cash flow today."
+            ),
+            "primary_keyword": "payments for trades businesses",
+        }
+
+        without_frontmatter = SEOQualityRater().rate(body, **common)
+        with_frontmatter = SEOQualityRater().rate(frontmatter + body, **common)
+
+        self.assertEqual(with_frontmatter, without_frontmatter)
+
+    def test_reported_keyword_density_never_creates_an_arbitrary_score_penalty(self):
         common = {
             "content": concise_article_with_links(),
             "meta_title": "Payments for Trades Businesses Guide and Tips | Simpro",
@@ -229,132 +292,68 @@ class OptimizerModuleTests(unittest.TestCase):
             "primary_keyword": "payments for trades businesses",
         }
 
-        high = SEOQualityRater().rate(keyword_density=2.6, **common)
-        stuffed = SEOQualityRater().rate(keyword_density=3.1, **common)
+        natural = SEOQualityRater().rate(keyword_density=0.5, **common)
+        arbitrary_percentage = SEOQualityRater().rate(keyword_density=99.0, **common)
 
-        self.assertIn("slightly high (2.6%)", "\n".join(high["warnings"]))
-        self.assertIn("stuffing", "\n".join(stuffed["critical_issues"]).lower())
+        self.assertEqual(
+            arbitrary_percentage["category_scores"]["keyword_optimization"],
+            natural["category_scores"]["keyword_optimization"],
+        )
+        self.assertEqual(arbitrary_percentage["overall_score"], natural["overall_score"])
+        findings = "\n".join(
+            arbitrary_percentage["critical_issues"] + arbitrary_percentage["warnings"]
+        ).lower()
+        self.assertNotIn("density", findings)
+        self.assertNotIn("stuffing", findings)
 
-    def test_seo_quality_rater_derives_legacy_thresholds_from_custom_maximum(self):
-        guidelines = SEOQualityRater()._default_guidelines()
-        guidelines.pop("keyword_high_density_warning")
-        guidelines.pop("keyword_stuffing_density")
-        guidelines["primary_keyword_density_min"] = 0.5
-        guidelines["primary_keyword_density_max"] = 1.0
-        result = SEOQualityRater(guidelines).rate(
-            concise_article_with_links(),
-            meta_title="Payments for Trades Businesses Guide and Tips | Simpro",
+    def test_contextual_exact_phrase_repetition_is_a_hard_stuffing_failure(self):
+        keyword = "field service scheduling"
+        repeated = (
+            f"# {keyword.title()}\n\n"
+            f"{keyword} helps dispatchers assign work. "
+            f"{keyword} helps dispatchers assign work. "
+            f"{keyword} helps dispatchers assign work.\n\n"
+            f"## A practical {keyword} workflow\n\n"
+            "Dispatchers review skills, locations, priorities, and customer commitments.\n\n"
+            "- Confirm technician availability.\n"
+            "- Update the job record."
+        )
+
+        result = SEOQualityRater().rate(
+            repeated,
+            meta_title="Field Service Scheduling Guide for Teams | Simpro",
             meta_description=(
-                "Payments for trades businesses need online, mobile and field options. "
-                "Learn how to reduce friction and protect cash flow today."
+                "Field service scheduling helps teams match technicians to jobs, "
+                "coordinate customer commitments, and keep dispatch records current."
             ),
-            primary_keyword="payments for trades businesses",
-            keyword_density=2.0,
+            primary_keyword=keyword,
+            keyword_density=0.1,
+        )
+
+        findings = "\n".join(result["critical_issues"]).lower()
+        self.assertIn("stuffing", findings)
+        self.assertIn("repetition", findings)
+        self.assertFalse(result["publishing_ready"])
+
+    def test_seo_quality_rater_computes_stuffing_risk_when_density_is_not_supplied(self):
+        keyword = "field service scheduling"
+        content = (
+            f"# {keyword.title()}\n\n"
+            + (f"{keyword} improves dispatch. " * 8)
+            + ("Teams review capacity and constraints before assigning jobs. " * 20)
+        )
+
+        result = SEOQualityRater().rate(
+            content,
+            meta_title="Field Service Scheduling Guide for Teams | Simpro",
+            meta_description=(
+                "Field service scheduling guidance for teams reviewing job priority, "
+                "capacity, travel constraints, and customer commitments before dispatch."
+            ),
+            primary_keyword=keyword,
         )
 
         self.assertIn("stuffing", "\n".join(result["critical_issues"]).lower())
-
-    def test_seo_quality_rater_explicit_thresholds_override_legacy_maximum(self):
-        guidelines = SEOQualityRater()._default_guidelines()
-        guidelines["primary_keyword_density_min"] = 0.5
-        guidelines["primary_keyword_density_max"] = 1.0
-        guidelines["keyword_high_density_warning"] = 4.0
-        guidelines["keyword_stuffing_density"] = 5.0
-        result = SEOQualityRater(guidelines).rate(
-            concise_article_with_links(),
-            meta_title="Payments for Trades Businesses Guide and Tips | Simpro",
-            meta_description=(
-                "Payments for trades businesses need online, mobile and field options. "
-                "Learn how to reduce friction and protect cash flow today."
-            ),
-            primary_keyword="payments for trades businesses",
-            keyword_density=2.0,
-        )
-
-        density_findings = [
-            finding
-            for finding in result["critical_issues"] + result["warnings"]
-            if "density" in finding.lower() or "stuffing" in finding.lower()
-        ]
-        self.assertEqual(density_findings, [])
-
-    def test_seo_quality_rater_merges_partial_custom_guidelines(self):
-        result = SEOQualityRater(
-            {"primary_keyword_density_max": 1.0}
-        ).rate(
-            concise_article_with_links(),
-            meta_title="Payments for Trades Businesses Guide and Tips | Simpro",
-            meta_description=(
-                "Payments for trades businesses need online, mobile and field options. "
-                "Learn how to reduce friction and protect cash flow today."
-            ),
-            primary_keyword="payments for trades businesses",
-            keyword_density=1.6,
-        )
-
-        self.assertIn("stuffing", "\n".join(result["critical_issues"]).lower())
-
-    def test_seo_quality_rater_resolves_mixed_new_and_legacy_thresholds_independently(self):
-        rater = SEOQualityRater(
-            {
-                "primary_keyword_density_max": 1.0,
-                "keyword_high_density_warning": 1.2,
-            }
-        )
-        common = {
-            "content": concise_article_with_links(),
-            "meta_title": "Payments for Trades Businesses Guide and Tips | Simpro",
-            "meta_description": (
-                "Payments for trades businesses need online, mobile and field options. "
-                "Learn how to reduce friction and protect cash flow today."
-            ),
-            "primary_keyword": "payments for trades businesses",
-        }
-
-        below_warning = rater.rate(keyword_density=1.1, **common)
-        warned = rater.rate(keyword_density=1.3, **common)
-        stuffed = rater.rate(keyword_density=1.6, **common)
-
-        self.assertNotIn("slightly high", "\n".join(below_warning["warnings"]).lower())
-        self.assertIn("slightly high", "\n".join(warned["warnings"]).lower())
-        self.assertIn("stuffing", "\n".join(stuffed["critical_issues"]).lower())
-
-    def test_seo_quality_rater_density_boundaries_are_strict(self):
-        common = {
-            "content": concise_article_with_links(),
-            "meta_title": "Payments for Trades Businesses Guide and Tips | Simpro",
-            "meta_description": (
-                "Payments for trades businesses need online, mobile and field options. "
-                "Learn how to reduce friction and protect cash flow today."
-            ),
-            "primary_keyword": "payments for trades businesses",
-        }
-
-        warning_boundary = SEOQualityRater().rate(keyword_density=2.5, **common)
-        stuffing_boundary = SEOQualityRater().rate(keyword_density=3.0, **common)
-
-        warning_findings = "\n".join(
-            warning_boundary["critical_issues"] + warning_boundary["warnings"]
-        )
-        self.assertNotIn("density is", warning_findings.lower())
-        self.assertNotIn("stuffing", warning_findings.lower())
-        self.assertIn("slightly high (3.0%)", "\n".join(stuffing_boundary["warnings"]))
-        self.assertNotIn("stuffing", "\n".join(stuffing_boundary["critical_issues"]).lower())
-
-    def test_seo_quality_rater_rejects_invalid_density_thresholds(self):
-        invalid_guidelines = [
-            {"keyword_high_density_warning": 0},
-            {"keyword_stuffing_density": float("nan")},
-            {
-                "keyword_high_density_warning": 4.0,
-                "keyword_stuffing_density": 3.0,
-            },
-        ]
-
-        for guidelines in invalid_guidelines:
-            with self.subTest(guidelines=guidelines):
-                with self.assertRaises(ValueError):
-                    SEOQualityRater(guidelines)
 
     def test_seo_quality_rater_rejects_invalid_runtime_keyword_density(self):
         common = {
@@ -410,15 +409,7 @@ class OptimizerModuleTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "word_count"):
                     SEOQualityRater(guidelines)
 
-    def test_seo_quality_rater_rejects_inverted_legacy_density_range(self):
-        with self.assertRaisesRegex(ValueError, "density"):
-            SEOQualityRater(
-                {
-                    "primary_keyword_density_min": 3.0,
-                    "primary_keyword_density_max": 1.0,
-                }
-            )
-
+    def test_seo_quality_rater_rejects_inverted_word_count_ranges(self):
         for guidelines in [
             {"min_word_count": 1600, "max_word_count": 1200},
             {"min_word_count": 1600, "optimal_word_count": 1200},
@@ -427,41 +418,6 @@ class OptimizerModuleTests(unittest.TestCase):
             with self.subTest(guidelines=guidelines):
                 with self.assertRaisesRegex(ValueError, "word_count"):
                     SEOQualityRater(guidelines)
-
-    def test_seo_quality_rater_low_density_message_does_not_render_none(self):
-        result = SEOQualityRater(
-            {"primary_keyword_density_min": 0.5}
-        ).rate(
-            concise_article_with_links(),
-            meta_title="Payments for Trades Businesses Guide and Tips | Simpro",
-            meta_description=(
-                "Payments for trades businesses need online, mobile and field options. "
-                "Learn how to reduce friction and protect cash flow today."
-            ),
-            primary_keyword="payments for trades businesses",
-            keyword_density=0.1,
-        )
-
-        warning = "\n".join(result["warnings"])
-        self.assertIn("Minimum is 0.5%", warning)
-        self.assertNotIn("None", warning)
-
-    def test_seo_quality_rater_stuffing_protection_precedes_custom_minimum(self):
-        result = SEOQualityRater(
-            {"primary_keyword_density_min": 4.0}
-        ).rate(
-            concise_article_with_links(),
-            meta_title="Payments for Trades Businesses Guide and Tips | Simpro",
-            meta_description=(
-                "Payments for trades businesses need online, mobile and field options. "
-                "Learn how to reduce friction and protect cash flow today."
-            ),
-            primary_keyword="payments for trades businesses",
-            keyword_density=3.1,
-        )
-
-        self.assertIn("stuffing", "\n".join(result["critical_issues"]).lower())
-        self.assertNotIn("too low", "\n".join(result["warnings"]).lower())
 
     def test_keyword_analyzer_rejects_invalid_explicit_density_targets(self):
         analyzer = KeywordAnalyzer()

@@ -43,7 +43,7 @@ Required validation sidecar evidence: generated vault context binding for every 
 - **Topic Cluster**: Identify how this topic fits into your company content clusters
 
 ### Competitive Analysis
-- **Top 10 SERP Review**: Analyze the top 10 ranking articles for target keyword
+- **Intent-Representative SERP Review**: Analyze relevant ranking articles until dominant intent, recurring structure, and meaningful gaps are clear; document why the selected set is sufficient
 - **Content Length**: Note competitor word counts as context only; do not derive the article target from them
 - **Common Themes**: What topics/sections do all top articles cover?
 - **Content Gaps**: What's missing from competitor coverage?
@@ -67,7 +67,7 @@ Required validation sidecar evidence: generated vault context binding for every 
 - **Customer proof routing**: After the customer-proof selector identifies candidates, query connector-approved claims for the intended public use mode and read the supporting `resource_id` values. Bind each public metric, quote, or proof theme to its `claim_id` and public URL. Use @context/internal-links-map.md and @context/features.md only as downstream fallback mirrors when the connector is unavailable; never treat either file as public proof.
 - **Proof-index health**: Run `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` before adding proof candidates or selector slates.
 - **Customer proof selection governance**: Before selecting or drafting proof, resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and write the generated selector-first `Customer Proof Slate` to the validation sidecar. If inputs are missing, resolve them from the brief/context or stop before drafting customer proof. If the selector fails, write the blocker into the sidecar and do not invent proof. experience_story consideration is required and E-E-A-T story usage is optional. If no story fits, use `Selected: [none]` with section-specific rejection reasons. Edit selected/rejected rows only when editorial judgment requires it. Treat any `recent_uses_90d` value above 0 as a proof-diversity warning. Before claiming a proof source is underused, inspect the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the proof ID, public URL, and customer name. If the live repo scan finds public-copy usage missing from the ledger, backfill `context/customer-proof-usage-ledger.json`, rerun proof health and selector checks, and document the backfill in the validation sidecar. If a recently used or overused proof source is still selected, the sidecar needs a selector-backed, source-specific `Reuse reason` proving no stronger underused approved proof fits. Full policy lives in `context/aeo-geo-blog-strategy.md`.
-- **Fred Voccola authority evaluation**: Resolve `topic`, `title`, and `objective`, then automatically run `python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --slate --limit 5` and write the complete `Fred Voccola Authority Selection` block from `context/aeo-geo-blog-strategy.md` to the validation sidecar. Evaluation is mandatory and public use is optional. The selector defaults to `Selected: none`; make any selection explicitly only after reviewing the source and confirming direct topical fit. If the selector, connector, context pack, or receipt validation fails, record `Evaluation status: blocked` and the blocker; do not invent Fred evidence or continue to Fred public use.
+- **Fred Voccola authority evaluation**: Resolve `topic`, `title`, and `objective`, then automatically run `python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --slate --limit 5 --output "research/fred-authority-selection-[topic-slug].md"` and copy that exact generated `Fred Voccola Authority Selection` block into the validation sidecar. Evaluation is mandatory and public use is optional. The selector defaults to `Selected: none`; make any selection explicitly only after reviewing the source and confirming direct topical fit. If the selector, connector, context pack, or receipt validation fails, record `Evaluation status: blocked` and the blocker; do not invent Fred evidence or continue to Fred public use.
 - **Proof-index intake**: Add new proof candidates through `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates.
 - **Customer proof diversity gate**: Plan for `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json` before scoring or `/optimize`. The brief and sidecar must include non-case-study proof search evidence when case studies are selected.
 - **Review proof routing**: For review-site experience evidence, use Playwright MCP for live collection, run the selector with `--require-eeat-story --proof-role experience_story` when Review Story Selection is needed, and let `/publish-readiness` run the review story identity gate before scoring. Keep detailed Review Site Theme Selection, Capterra, exact-quote, rating, and metric boundaries in `context/aeo-geo-blog-strategy.md`.
@@ -90,15 +90,15 @@ Required validation sidecar evidence: generated vault context binding for every 
 - **Expert Sources**: Find industry experts or quotes to reference
 - **Visual Opportunities**: Suggest images, screenshots, or graphics needed
 - **Internal Links**: Map intent-appropriate company pages to link to, based on the article objective, reader journey, and connector-backed product or solution context
-- **External Authority**: Identify 2-3 authoritative external sources to link
+- **External Authority**: Identify the claim-fit authoritative sources needed by the planned assertions, without a fixed count
 - **AEO/GEO Variables**: Resolve `topic`, `audience`, `main_question`, `related_questions`, `tone`, `expertise`, and `length` where possible from connector context binding, repo context fallback, and research evidence
-- **Source Mapping**: For each credible external source, document the claim it supports, the natural anchor phrase, and the target section
+- **Source Mapping**: For each credible external source, document the exact visible claim, one exact claim type (`causal | comparative | definitional | process | recommendation`), `Evidence relation: directly_supports`, the source class, hash-bound `simpro-source-classification/v1` artifact and hash, URL, source-visible evidence, natural anchor phrase, and target section. A PDF extraction or unreachable-HTML fallback additionally requires a matching `simpro-source-capture-receipt/v1` path and hash.
 - **Metric Proof Pack**: For software, comparison, guide, pricing, cost, ROI, KPI, profit, margin, or vs topics, extract usable numbers before writing. Record `Search log`, each `Approved metric`, public proof URL or local proof artifact, source-visible Evidence, Status: approved, and intended Use. Plan for `/publish-readiness` before writing or scoring.
 - **Validation sidecar**: Store proof-only blocks in `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in the public draft. The sidecar can contain `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, and structured data notes. Do not add an `Editorial Validation Appendix` to blog copy. Preferred publish check: `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`.
 - **FAQ Source Policy**: For each visible non-owned FAQ URL, add an exact `FAQ Proof Map` row with `FAQ`, `URL`, `Source class`, `Competitor check`, and `Support`. Allowed classes: `neutral`, `non_competing_expert`. Competitor-owned FAQ sources: prohibited.
 - **FAQ evidence selection**: Use regulators, standards bodies, universities, trade associations, independent research/editorial, or non-competing experts. Simpro-owned links may be additive reader resources only.
 - **Vendor questions**: Reframe or remove an FAQ if compliant evidence is unavailable; preserve vendor evidence for the comparison or vendor-specific body section.
-- **PAA/FAQ Inputs**: If AnswerSocrates or a PAA/FAQ CSV has been used, identify the 3-5 closest questions, intent labels, and suggested article placement
+- **PAA/FAQ Inputs**: Bind the exact dedicated brief questions for rewrites when present; otherwise identify only intent-relevant eligible AnswerSocrates questions and suggested FAQ placement
 
 ### Hook Development
 - **Introduction Angle**: Compelling way to open the article
@@ -115,7 +115,7 @@ Provides a comprehensive research brief with:
 - **Target Word Count**: Caller-supplied intent/evidence-complete target derived from the Reader Contract
 - **Featured Snippet Opportunity**: Yes/No, format (paragraph, list, table)
 - **AEO/GEO Variables**: topic, audience, main_question, related_questions, tone, expertise, length
-- **PAA/FAQ Questions**: 3-5 closest questions with intent labels and article section mapping
+- **PAA/FAQ Questions**: Exact eligible selected questions with intent labels and visible FAQ mapping, or a reasoned not-applicable decision
 - **Source Map**: source, supported claim, anchor text, target section
 - **Metric Proof Pack**:
   - **Metric requirement**: required / not applicable
@@ -137,7 +137,7 @@ Provides a comprehensive research brief with:
   - **Claims excluded**: [claim and missing proof reason]
 
 ### 2. Competitive Landscape
-- **Top 3 Competitor Articles**: URLs and key takeaways from each
+- **Competitor Evidence Set**: Relevant URLs and key takeaways sampled until intent, recurring structure, and meaningful gaps are clear; document why the set is sufficient
 - **Common Sections**: Must-cover topics based on SERP analysis
 - **Content Gaps**: Opportunities to provide unique value
 - **Differentiation Strategy**: How your company can stand out
@@ -164,14 +164,14 @@ Conclusion
 ```
 
 ### 4. Supporting Elements
-- **Statistics to Include**: 5-7 relevant data points with sources
+- **Statistics to Include**: Only relevant, source-visible data points that materially improve the article objective
 - **Expert Quotes**: Potential sources or existing quotes
 - **Examples/Case Studies**: Real Simpro customer outcomes or relevant trade-service scenarios to feature
 - **Visual Suggestions**: Screenshots, charts, or graphics needed
 
 ### 5. Internal Linking Strategy
 - **Pillar Page**: Main your company pillar content to link to
-- **Related Articles**: 2-4 relevant blog posts to link
+- **Related Articles**: intent-appropriate related posts that advance the reader task; do not select to a fixed count
 - **Product Pages**: your company features to naturally mention
 - **Resource Pages**: Tools or guides to reference
 

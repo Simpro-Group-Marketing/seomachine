@@ -9,6 +9,7 @@ import json
 import re
 import sys
 import unicodedata
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, List, Mapping, Optional, Sequence
 
@@ -41,7 +42,12 @@ REQUIRED_REVISIONS = {
     "inventory_revision",
     "manifest_revision",
 }
-SIMPRO_ARTICLE_RE = re.compile(r"\bSimpro\b|https?://(?:www\.)?simprogroup\.com/", re.IGNORECASE)
+SIMPRO_ARTICLE_RE = re.compile(
+    r"\bSimpro\b|(?<![A-Za-z0-9.-])(?:https?://)?"
+    r"(?:[A-Za-z0-9-]+\.)*simprogroup\.com"
+    r"(?::\d+)?(?![A-Za-z0-9.:-])",
+    re.IGNORECASE,
+)
 REPO_CONTEXT_ALLOWLIST = {
     "context/seo-guidelines.md": frozenset({"SEO structure", "Schema rules", "Publish gates"}),
     "context/aeo-geo-blog-strategy.md": frozenset(
@@ -73,6 +79,35 @@ PUBLIC_CLAIM_USE_MODES = frozenset(
         "public_paraphrase",
     }
 )
+
+
+@dataclass(frozen=True)
+class ContextValidationResult:
+    """Structured result shared by readiness and BOM validation."""
+
+    required: bool
+    findings: tuple[Finding, ...]
+    resource_ids: tuple[str, ...] = ()
+    approved_claim_ids: tuple[str, ...] = ()
+    pack_canonical_sha256: str = ""
+    receipt_canonical_sha256: str = ""
+    revisions: tuple[tuple[str, str], ...] = ()
+
+    @property
+    def passed(self) -> bool:
+        return not any(finding.get("severity") == "error" for finding in self.findings)
+
+    def context_summary(self) -> dict[str, Any]:
+        """Return the connector-only fields allowed in an assembly BOM."""
+        return {
+            "pack_schema": PACK_SCHEMA if self.required else "",
+            "receipt_schema": RECEIPT_SCHEMA if self.required else "",
+            "context_pack_hash": self.pack_canonical_sha256,
+            "receipt_hash": self.receipt_canonical_sha256,
+            "revisions": dict(self.revisions),
+            "selected_resource_ids": list(self.resource_ids),
+            "claim_ids": list(self.approved_claim_ids),
+        }
 
 
 def requires_context(content: str) -> bool:
@@ -168,7 +203,7 @@ def render_generated_blocks(
     )
 
 
-def check_file(
+def _check_file_impl(
     path: str | Path,
     *,
     fail_on: str = "error",
@@ -274,6 +309,99 @@ def check_file(
         findings.append(_finding("context_task_unsatisfied", "Context task satisfaction must be satisfied with no unresolved gaps."))
     findings.extend(validate_claim_map(content, pack, receipt, claim_map))
     return findings
+
+
+def validate_context_artifacts(
+    path: str | Path,
+    *,
+    fail_on: str = "error",
+    proof_sidecar: str | Path | None = None,
+    context_request: str | Path | None = None,
+    context_pack: str | Path | None = None,
+    context_receipt: str | Path | None = None,
+    vault_root: str | Path | None = None,
+    client: Any = None,
+) -> ContextValidationResult:
+    """Validate one exact binding and expose its connector-derived summary."""
+    article_content = Path(path).read_text(encoding="utf-8")
+    required = requires_context(article_content) or any(
+        item is not None for item in (context_request, context_pack, context_receipt)
+    )
+    findings = _check_file_impl(
+        path,
+        fail_on=fail_on,
+        proof_sidecar=proof_sidecar,
+        context_request=context_request,
+        context_pack=context_pack,
+        context_receipt=context_receipt,
+        vault_root=vault_root,
+        client=client,
+    )
+    if findings or not required:
+        return ContextValidationResult(required=required, findings=tuple(findings))
+
+    pack = _read_json(Path(str(context_pack)))
+    receipt = _read_json(Path(str(context_receipt)))
+    sections = pack.get("sections")
+    discovery = sections.get("Discovery Trace") if isinstance(sections, Mapping) else None
+    raw_resources = discovery.get("selected_resource_ids") if isinstance(discovery, Mapping) else []
+    resource_ids = tuple(
+        dict.fromkeys(
+            item.strip()
+            for item in raw_resources
+            if isinstance(item, str) and item.strip()
+        )
+    )
+    decisions = receipt.get("claim_decisions")
+    approved_claim_ids = tuple(
+        dict.fromkeys(
+            str(row.get("claim_id")).strip()
+            for row in decisions if isinstance(row, Mapping)
+            and row.get("approved") is True
+            and isinstance(row.get("claim_id"), str)
+            and str(row.get("claim_id")).strip()
+        )
+    ) if isinstance(decisions, list) else ()
+    revisions = receipt.get("revisions")
+    revision_items = tuple(sorted(
+        (str(key), str(value))
+        for key, value in revisions.items()
+    )) if isinstance(revisions, Mapping) else ()
+    return ContextValidationResult(
+        required=True,
+        findings=(),
+        resource_ids=resource_ids,
+        approved_claim_ids=approved_claim_ids,
+        pack_canonical_sha256=str(receipt.get("pack_sha256") or ""),
+        receipt_canonical_sha256=str(receipt.get("receipt_sha256") or ""),
+        revisions=revision_items,
+    )
+
+
+def check_file(
+    path: str | Path,
+    *,
+    fail_on: str = "error",
+    proof_sidecar: str | Path | None = None,
+    context_request: str | Path | None = None,
+    context_pack: str | Path | None = None,
+    context_receipt: str | Path | None = None,
+    vault_root: str | Path | None = None,
+    client: Any = None,
+) -> List[Finding]:
+    """Compatibility wrapper returning the traditional finding list."""
+    return list(
+        validate_context_artifacts(
+            path,
+            fail_on=fail_on,
+            proof_sidecar=proof_sidecar,
+            context_request=context_request,
+            context_pack=context_pack,
+            context_receipt=context_receipt,
+            vault_root=vault_root,
+            client=client,
+        ).findings
+    )
 
 
 def validate_claim_map(
@@ -490,6 +618,7 @@ def _request_article_error(
         elif artifact_brand.casefold() != article_brand.casefold():
             return "Context request artifact_brand does not match article frontmatter."
     article_kinds, article_kind_error = _mapping_artifact_kinds(frontmatter)
+    article_kind_explicit = bool(article_kinds)
     if article_kind_error:
         return f"Article {article_kind_error}"
     if len(set(article_kinds)) > 1:
@@ -505,6 +634,21 @@ def _request_article_error(
         return None
     if article_kinds and request_kinds and article_kinds[0] != request_kinds[0]:
         return "Context request artifact type does not match article frontmatter."
+    for field in ("objective", "audience", "region"):
+        article_value = frontmatter.get(field)
+        if article_kind_explicit and (
+            article_value is None or not str(article_value).strip()
+        ):
+            return f"Article frontmatter requires {field} for context binding."
+        if article_value is None or not str(article_value).strip():
+            continue
+        request_value = scope.get(field)
+        if (
+            not isinstance(request_value, str)
+            or _normalize_public_text(str(article_value)).casefold()
+            != _normalize_public_text(request_value).casefold()
+        ):
+            return f"Context request {field} does not match article frontmatter."
     return None
 
 
@@ -548,6 +692,34 @@ def resolve_artifact_kind(
     if kinds:
         return kinds[0]
     return _artifact_kind_from_path(article_path)
+
+
+def require_artifact_kind(
+    content: str,
+    *,
+    article_path: str | Path | None = None,
+) -> str:
+    """Return an explicit, supported artifact kind or raise a stable error.
+
+    Publish-readiness callers use this strict boundary.  The nullable
+    ``resolve_artifact_kind`` helper intentionally retains filename inference
+    for legacy, non-readiness callers.
+    """
+    try:
+        frontmatter = extract_frontmatter(content)
+    except FrontmatterError as error:
+        raise ValueError(f"Article frontmatter is invalid: {error}") from error
+    kinds, error = _mapping_artifact_kinds(frontmatter)
+    if error:
+        raise ValueError(f"Article {error}")
+    if len(set(kinds)) > 1:
+        raise ValueError("Article artifact_type and artifact_kind conflict.")
+    if not kinds:
+        raise ValueError(
+            "Article requires an explicit artifact_type of blog or landing_page; "
+            "filename inference is not allowed for publish readiness."
+        )
+    return kinds[0]
 
 
 def _artifact_kind_from_path(path: str | Path | None) -> str | None:

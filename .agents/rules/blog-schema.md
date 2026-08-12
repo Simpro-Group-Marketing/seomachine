@@ -1,19 +1,16 @@
 # Blog Schema Rule
 
-Apply this rule to standard blog drafts, rewrites, and published Markdown handoffs with FAQs.
+Apply this rule to every standard blog draft, rewrite, and published Markdown handoff.
 
-For standard blog posts with FAQs, use these primary schema notes:
+Always use these schema notes:
 
 - BlogPosting
 - BreadcrumbList
-- FAQPage
-
-Nested entities:
-
-- Question and Answer inside FAQPage
 - ImageObject for the featured image or logo
 - Organization as publisher reference only, not a separate full schema block
 
+Add `FAQPage` plus `Question and Answer inside FAQPage` if and only if visible FAQs exist. When the FAQ policy is `not_applicable`, omit both.
+
 If a named author is present, include `author` in frontmatter and map it to `Person as author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization` as publisher reference only, and record the no-author decision in the blog assembly BOM and validation sidecar.
 
-For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Use VideoObject only when a video is embedded. Keep public article bodies free of structured-data implementation plans. Canonical policy lives in `context/aeo-geo-blog-strategy.md`.
+For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Require `artifact_type`, `brand`, `title`, `objective`, `audience`, `region`, and a valid ISO `last_updated` matching the assembly date. Use VideoObject only when a verified video is embedded. Keep public article bodies free of structured-data implementation plans. Canonical policy lives in `context/aeo-geo-blog-strategy.md`.

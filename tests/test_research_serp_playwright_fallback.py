@@ -7,6 +7,8 @@ import unittest
 from datetime import datetime
 from pathlib import Path
 
+from data_sources.modules.editorial_plan_guard import check_serp_evidence_file
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = ROOT / "scripts" / "research_serp_analysis.py"
@@ -57,6 +59,152 @@ class FakeDataForSEO:
 
 
 class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
+    def test_successful_run_writes_strict_hashed_serp_evidence(self):
+        module = load_research_serp_module()
+        serp_results = [
+            {
+                "title": "How to Schedule Field Service Work",
+                "url": "https://example.com/scheduling-guide",
+                "description": "A practical scheduling guide.",
+            },
+            {
+                "title": "Field Service Scheduling Calculator",
+                "url": "https://example.com/scheduling-calculator",
+                "description": "A scheduling calculator.",
+            },
+        ]
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_dir = Path(temp_dir)
+            result = module.run_serp_analysis(
+                "field service scheduling",
+                output_dir=output_dir,
+                now=datetime(2026, 8, 11, 14, 30),
+                dataforseo_factory=lambda: FakeDataForSEO(
+                    serp_data={
+                        "organic_results": serp_results,
+                        "features": ["people_also_ask", "video"],
+                    }
+                ),
+                fallback_runner=lambda *args, **kwargs: {},
+                intent_analyzer_factory=FakeIntentAnalyzer,
+                content_comparator_factory=FakeContentLengthComparator,
+                print_fn=lambda message="": None,
+            )
+
+            evidence_path = (
+                output_dir
+                / "serp-evidence-field-service-scheduling-2026-08-11.json"
+            )
+            evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+
+            self.assertEqual(evidence["schema"], "simpro-serp-evidence/v1")
+            self.assertEqual(evidence["status"], "verified")
+            self.assertEqual(evidence["query"], "field service scheduling")
+            self.assertEqual(evidence["collected_at"], "2026-08-11T14:30:00Z")
+            self.assertEqual(
+                evidence["collector"],
+                {
+                    "name": "research_serp_analysis:dataforseo",
+                    "version": "1.0.0",
+                },
+            )
+            self.assertTrue(evidence["run_id"].startswith("serp-field-service-scheduling-"))
+            self.assertEqual(
+                evidence["results"],
+                [
+                    {
+                        "position": 1,
+                        "url": "https://example.com/scheduling-guide",
+                        "title": "How to Schedule Field Service Work",
+                        "result_type": "organic",
+                    },
+                    {
+                        "position": 2,
+                        "url": "https://example.com/scheduling-calculator",
+                        "title": "Field Service Scheduling Calculator",
+                        "result_type": "organic",
+                    },
+                ],
+            )
+            self.assertEqual(
+                evidence["observations"],
+                {
+                    "content_types": ["How-To Guide", "Tool/Resource"],
+                    "serp_features": ["people_also_ask", "video"],
+                    "must_have_sections": [],
+                    "competitor_gaps": [],
+                },
+            )
+            self.assertRegex(evidence["evidence_hash"], r"\A[0-9a-f]{64}\Z")
+            self.assertEqual(
+                check_serp_evidence_file(
+                    evidence_path,
+                    expected_query="field service scheduling",
+                    assembly_date="2026-08-11",
+                ),
+                [],
+            )
+            self.assertEqual(result["top_results"], serp_results)
+            self.assertTrue(
+                (output_dir / "serp-analysis-field-service-scheduling.md").is_file()
+            )
+            self.assertEqual(list(output_dir.glob(".*.tmp")), [])
+
+    def test_blocked_or_empty_run_does_not_mint_verified_serp_evidence(self):
+        module = load_research_serp_module()
+
+        def blocked_fallback(keyword, output_dir, now):
+            return {
+                "fallback_used": True,
+                "fallback_blocker": "captcha_or_consent_or_unusual_traffic",
+                "organic_results": [],
+                "features": [],
+                "paa_questions": [],
+            }
+
+        cases = (
+            (RuntimeError("DataForSEO unavailable"), blocked_fallback),
+            (
+                None,
+                lambda *args, **kwargs: {
+                    "fallback_used": True,
+                    "organic_results": [],
+                    "features": [],
+                    "paa_questions": [],
+                },
+            ),
+        )
+        for provider_error, fallback_runner in cases:
+            with self.subTest(provider_error=provider_error):
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    output_dir = Path(temp_dir)
+                    factory = (
+                        (lambda error=provider_error: FakeDataForSEO(error=error))
+                        if provider_error is not None
+                        else lambda: FakeDataForSEO(
+                            serp_data={"organic_results": [], "features": []}
+                        )
+                    )
+                    module.run_serp_analysis(
+                        "blocked keyword",
+                        output_dir=output_dir,
+                        now=datetime(2026, 8, 11, 14, 30),
+                        dataforseo_factory=factory,
+                        fallback_runner=fallback_runner,
+                        intent_analyzer_factory=FakeIntentAnalyzer,
+                        content_comparator_factory=FakeContentLengthComparator,
+                        print_fn=lambda message="": None,
+                    )
+
+                    self.assertEqual(
+                        list(output_dir.glob("serp-evidence-*.json")),
+                        [],
+                    )
+                    self.assertTrue(
+                        (output_dir / "serp-analysis-blocked-keyword.md").is_file()
+                    )
+
     def test_playwright_capture_uses_structural_serp_evidence_not_generic_page_text(self):
         module = load_research_serp_module()
 
@@ -520,6 +668,17 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
             self.assertIn("Unresolved until Reader Contract planning", report_text)
             self.assertNotIn("Recommended Word Count", report_text)
             self.assertNotIn("2,000+ words", report_text)
+            evidence = json.loads(
+                (
+                    output_dir
+                    / "serp-evidence-labor-burden-rate-calculator-2026-07-07.json"
+                ).read_text(encoding="utf-8")
+            )
+            self.assertEqual(
+                evidence["collector"]["name"],
+                "research_serp_analysis:playwright",
+            )
+            self.assertEqual(evidence["results"][0]["result_type"], "organic")
 
     def test_caller_word_target_is_serialized_without_serp_derived_expansion(self):
         module = load_research_serp_module()

@@ -20,7 +20,7 @@ import subprocess
 import sys
 import tempfile
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 from urllib.parse import quote_plus, urlparse
@@ -34,12 +34,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "data_sources")
 
 from modules.content_length_comparator import ContentLengthComparator  # noqa: E402
 from modules.dataforseo import DataForSEO  # noqa: E402
+from modules.blog_assembly_contract import atomic_write_json  # noqa: E402
+from modules.editorial_plan_guard import build_serp_evidence  # noqa: E402
 from modules.search_intent_analyzer import SearchIntentAnalyzer  # noqa: E402
 
 
 PLAYWRIGHT_OPEN_TIMEOUT_SECONDS = 30
 PLAYWRIGHT_RUN_TIMEOUT_SECONDS = 60
 PLAYWRIGHT_CLOSE_TIMEOUT_SECONDS = 15
+SERP_EVIDENCE_COLLECTOR_VERSION = "1.0.0"
 
 
 def _positive_int(value: str) -> int:
@@ -268,6 +271,15 @@ def run_serp_analysis(
     report_path = output_dir / f"serp-analysis-{sanitize_filename(keyword)}.md"
     print_fn(f"\n8. Writing report to {report_path}...")
     write_markdown_report(keyword, analysis, output_dir=output_dir, now=now)
+    if organic_results:
+        evidence_path = write_verified_serp_evidence(
+            keyword,
+            analysis,
+            output_dir=output_dir,
+            now=now,
+            collector_source=("playwright" if fallback_data else "dataforseo"),
+        )
+        print_fn(f"   Verified SERP evidence saved: {evidence_path}")
 
     print_fn("\n" + "=" * 80)
     print_fn("SERP ANALYSIS COMPLETE")
@@ -805,6 +817,77 @@ def write_json_artifact(path: Path, payload: Dict[str, Any]) -> None:
     """Write raw fallback provenance."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+def write_verified_serp_evidence(
+    keyword: str,
+    analysis: Dict[str, Any],
+    *,
+    output_dir: str | Path,
+    now: datetime,
+    collector_source: str,
+) -> Path:
+    """Build and atomically persist strict evidence from collected organic rows."""
+    collected_at = _rfc3339_utc(now)
+    keyword_slug = sanitize_filename(keyword)
+    results = [
+        {
+            "position": position,
+            "url": str(result.get("url") or "").strip(),
+            "title": str(result.get("title") or "").strip(),
+            "result_type": "organic",
+        }
+        for position, result in enumerate(analysis.get("top_results", []), start=1)
+    ]
+    evidence = build_serp_evidence(
+        query=keyword,
+        collected_at=collected_at,
+        collector_name=f"research_serp_analysis:{collector_source}",
+        collector_version=SERP_EVIDENCE_COLLECTOR_VERSION,
+        run_id=(
+            f"serp-{keyword_slug}-"
+            f"{collected_at.replace('-', '').replace(':', '')}-"
+            f"{collector_source}"
+        ),
+        results=results,
+        content_types=_unique_observed_strings(analysis.get("content_types", [])),
+        serp_features=_unique_observed_strings(analysis.get("serp_features", [])),
+        must_have_sections=_unique_observed_strings(
+            analysis.get("common_h2_topics", [])
+        ),
+        competitor_gaps=[],
+    )
+    destination = Path(output_dir) / (
+        f"serp-evidence-{keyword_slug}-{collected_at[:10]}.json"
+    )
+    atomic_write_json(destination, evidence)
+    return destination
+
+
+def _rfc3339_utc(value: datetime) -> str:
+    """Normalize a run timestamp to seconds-precision RFC 3339 UTC."""
+    aware = value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
+    return (
+        aware.astimezone(timezone.utc)
+        .isoformat(timespec="seconds")
+        .replace("+00:00", "Z")
+    )
+
+
+def _unique_observed_strings(values: List[Any]) -> List[str]:
+    """Return unique non-empty observed strings using case-insensitive identity."""
+    unique: List[str] = []
+    seen: set[str] = set()
+    for value in values:
+        if not isinstance(value, str) or not value.strip():
+            continue
+        normalized = value.strip()
+        identity = normalized.casefold()
+        if identity in seen:
+            continue
+        seen.add(identity)
+        unique.append(normalized)
+    return unique
 
 
 def dedupe_strings(values: List[Any]) -> List[str]:

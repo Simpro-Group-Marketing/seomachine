@@ -18,6 +18,7 @@ AEO/GEO score must be >= 90 to pass the generative-answer publishing gate.
 """
 
 import re
+from collections.abc import Mapping, Sequence
 from typing import Dict, List, Optional, Any, Tuple
 from pathlib import Path
 
@@ -26,9 +27,11 @@ try:
     from .aeo_geo_rater import rate_aeo_geo
     from .ai_copy_linter import lint_content
     from .customer_proof_diversity_guard import check_content as check_customer_proof_diversity
+    from .frontmatter import split_frontmatter
     from .metric_proof_pack_guard import check_content as check_metric_proof_pack
     from .proof_sidecar import load_sidecar_content, resolve_sidecar_path
     from .readability_scorer import ReadabilityScorer
+    from .readiness_gate_context import trusted_readiness_findings
     from .review_story_identity_guard import check_content as check_review_story_identity
     from .seo_quality_rater import SEOQualityRater
     from .source_support_guard import check_content as check_source_support
@@ -38,13 +41,40 @@ except ImportError:
     from aeo_geo_rater import rate_aeo_geo
     from ai_copy_linter import lint_content
     from customer_proof_diversity_guard import check_content as check_customer_proof_diversity
+    from frontmatter import split_frontmatter
     from metric_proof_pack_guard import check_content as check_metric_proof_pack
     from proof_sidecar import load_sidecar_content, resolve_sidecar_path
     from readability_scorer import ReadabilityScorer
+    from readiness_gate_context import trusted_readiness_findings
     from review_story_identity_guard import check_content as check_review_story_identity
     from seo_quality_rater import SEOQualityRater
     from source_support_guard import check_content as check_source_support
     from url_validator import validate_content_urls
+
+
+def _copy_prevalidated_findings(
+    findings_by_gate: Optional[Mapping[str, Sequence[Mapping[str, Any]]]],
+    gate_name: str,
+) -> Optional[List[Dict[str, Any]]]:
+    """Return an isolated copy when readiness already ran a named gate."""
+    if findings_by_gate is None or gate_name not in findings_by_gate:
+        return None
+
+    raw_findings = findings_by_gate[gate_name]
+    if isinstance(raw_findings, (str, bytes)) or not isinstance(
+        raw_findings,
+        Sequence,
+    ):
+        raise TypeError(f"prevalidated findings for {gate_name!r} must be a sequence")
+
+    copied: List[Dict[str, Any]] = []
+    for index, finding in enumerate(raw_findings):
+        if not isinstance(finding, Mapping):
+            raise TypeError(
+                f"prevalidated finding {gate_name}[{index}] must be a mapping"
+            )
+        copied.append(dict(finding))
+    return copied
 
 
 class ContentScorer:
@@ -149,6 +179,18 @@ class ContentScorer:
         validate_source_support: bool = False,
         source_path: Optional[str] = None,
         proof_sidecar: Optional[str] = None,
+        finalized_bom: Optional[Mapping[str, Any]] = None,
+        assembly_date: Optional[str] = None,
+        paa_workflow_mode: Optional[str] = None,
+        paa_content_brief: Optional[str] = None,
+        paa_answersocrates_blocker: Optional[str] = None,
+        paa_expected_query: Optional[str] = None,
+        paa_expected_collection_date: Optional[str] = None,
+        paa_artifact: Optional[str] = None,
+        prevalidated_gate_findings: Optional[
+            Mapping[str, Sequence[Mapping[str, Any]]]
+        ] = None,
+        readiness_gate_context: object = None,
     ) -> Dict[str, Any]:
         """
         Score content across all dimensions
@@ -162,19 +204,35 @@ class ContentScorer:
                 high-risk claims and block the quality gate on failures
             source_path: Optional draft path used to resolve relative PAA/FAQ
                 provenance artifact paths
+            finalized_bom: Guard-validated finalized assembly BOM used for
+                author-policy decisions.
+            assembly_date: Canonical assembly date that freshness metadata must
+                match.
+            paa_workflow_mode: Bound PAA workflow mode.
+            paa_content_brief: Bound content brief path for PAA provenance.
+            paa_answersocrates_blocker: Bound AnswerSocrates blocker, when any.
+            paa_expected_query: Expected PAA collection query.
+            paa_expected_collection_date: Expected PAA collection date.
+            paa_artifact: Bound PAA artifact path.
+            prevalidated_gate_findings: Deprecated compatibility input. Raw
+                mappings are never trusted and standalone guards still run.
+            readiness_gate_context: Opaque input-bound context issued only by
+                publish readiness for same-run finding reuse.
 
         Returns:
             Dict with composite_score, passed, dimensions, and priority_fixes
         """
         metadata = metadata or {}
 
-        # Clean content for analysis
-        clean_content = self._clean_for_analysis(content)
+        _, visible_body, _ = split_frontmatter(content)
+
+        # Reader-facing dimensions are based on visible Markdown body only.
+        clean_content = self._clean_for_analysis(visible_body)
 
         # Score each dimension
         humanity = self._score_humanity(clean_content, lint_source=content)
         specificity = self._score_specificity(clean_content)
-        structure = self._score_structure_balance(content)
+        structure = self._score_structure_balance(visible_body)
         seo = self._score_seo(content, metadata)
         readability = self._score_readability(clean_content)
 
@@ -189,6 +247,7 @@ class ContentScorer:
         composite = round(composite, 1)
 
         content_quality_passed = composite >= self.PASS_THRESHOLD
+        seo_quality_passed = bool(seo.get('passed', True))
         gate_context = self._run_quality_gates(
             content,
             metadata,
@@ -196,11 +255,22 @@ class ContentScorer:
             validate_source_support=validate_source_support,
             source_path=source_path,
             proof_sidecar=proof_sidecar,
+            finalized_bom=finalized_bom,
+            assembly_date=assembly_date,
+            paa_workflow_mode=paa_workflow_mode,
+            paa_content_brief=paa_content_brief,
+            paa_answersocrates_blocker=paa_answersocrates_blocker,
+            paa_expected_query=paa_expected_query,
+            paa_expected_collection_date=paa_expected_collection_date,
+            paa_artifact=paa_artifact,
+            prevalidated_gate_findings=prevalidated_gate_findings,
+            readiness_gate_context=readiness_gate_context,
         )
 
         # Determine if passed
         passed = self._quality_gates_passed(
             content_quality_passed,
+            seo_quality_passed,
             gate_context,
         )
 
@@ -218,6 +288,8 @@ class ContentScorer:
         quality_gates = self._build_quality_gates(
             composite,
             content_quality_passed,
+            seo_quality_passed,
+            seo,
             gate_context,
             include_source_support=validate_source_support,
         )
@@ -275,6 +347,18 @@ class ContentScorer:
         validate_source_support: bool,
         source_path: Optional[str],
         proof_sidecar: Optional[str],
+        finalized_bom: Optional[Mapping[str, Any]] = None,
+        assembly_date: Optional[str] = None,
+        paa_workflow_mode: Optional[str] = None,
+        paa_content_brief: Optional[str] = None,
+        paa_answersocrates_blocker: Optional[str] = None,
+        paa_expected_query: Optional[str] = None,
+        paa_expected_collection_date: Optional[str] = None,
+        paa_artifact: Optional[str] = None,
+        prevalidated_gate_findings: Optional[
+            Mapping[str, Sequence[Mapping[str, Any]]]
+        ] = None,
+        readiness_gate_context: object = None,
     ) -> Dict[str, Any]:
         """Run proof-aware quality gates and keep scorer orchestration local."""
         proof_sidecar_content = load_sidecar_content(source_path, proof_sidecar)
@@ -284,31 +368,61 @@ class ContentScorer:
             if resolved_sidecar is not None and resolved_sidecar.is_file()
             else None
         )
-        aeo_geo = rate_aeo_geo(
-            content,
-            metadata,
-            source_path=source_path,
-            proof_sidecar_content=proof_sidecar_content,
-            proof_sidecar_path=proof_sidecar_path,
-        )
+        aeo_kwargs: Dict[str, Any] = {
+            "source_path": source_path,
+            "proof_sidecar_content": proof_sidecar_content,
+            "proof_sidecar_path": proof_sidecar_path,
+            "finalized_bom": finalized_bom,
+            "assembly_date": assembly_date,
+            "paa_workflow_mode": paa_workflow_mode,
+            "paa_content_brief": paa_content_brief,
+            "paa_answersocrates_blocker": paa_answersocrates_blocker,
+            "paa_expected_query": paa_expected_query,
+            "paa_expected_collection_date": paa_expected_collection_date,
+            "paa_artifact": paa_artifact,
+        }
+        if readiness_gate_context is not None:
+            aeo_kwargs["readiness_gate_context"] = readiness_gate_context
+        aeo_geo = rate_aeo_geo(content, metadata, **aeo_kwargs)
         faq_proof_check = aeo_geo.get('checks', {}).get('faq_proof', {})
         paa_provenance_check = aeo_geo.get('checks', {}).get('paa_provenance', {})
-        metric_proof_pack_findings = check_metric_proof_pack(
-            content,
-            source_path=source_path,
-            proof_content=proof_sidecar_content,
+        metric_proof_pack_findings = trusted_readiness_findings(
+            readiness_gate_context,
+            "metric_proof_pack",
+            article_content=content,
+            proof_sidecar_content=proof_sidecar_content,
         )
-        customer_proof_findings = check_customer_proof_diversity(
-            content,
-            source_path=source_path,
-            proof_content=proof_sidecar_content,
-            proof_sidecar_path=proof_sidecar_path,
+        if metric_proof_pack_findings is None:
+            metric_proof_pack_findings = check_metric_proof_pack(
+                content,
+                source_path=source_path,
+                proof_content=proof_sidecar_content,
+            )
+        customer_proof_findings = trusted_readiness_findings(
+            readiness_gate_context,
+            "customer_proof_diversity",
+            article_content=content,
+            proof_sidecar_content=proof_sidecar_content,
         )
-        review_story_findings = check_review_story_identity(
-            content,
-            source_path=source_path,
-            proof_content=proof_sidecar_content,
+        if customer_proof_findings is None:
+            customer_proof_findings = check_customer_proof_diversity(
+                content,
+                source_path=source_path,
+                proof_content=proof_sidecar_content,
+                proof_sidecar_path=proof_sidecar_path,
+            )
+        review_story_findings = trusted_readiness_findings(
+            readiness_gate_context,
+            "review_story_identity",
+            article_content=content,
+            proof_sidecar_content=proof_sidecar_content,
         )
+        if review_story_findings is None:
+            review_story_findings = check_review_story_identity(
+                content,
+                source_path=source_path,
+                proof_content=proof_sidecar_content,
+            )
 
         source_support_findings = []
         if validate_source_support:
@@ -332,7 +446,9 @@ class ContentScorer:
             'paa_provenance_check': paa_provenance_check,
             'paa_provenance_passed': bool(paa_provenance_check.get('passed', True)),
             'metric_proof_pack_findings': metric_proof_pack_findings,
-            'metric_proof_pack_passed': not metric_proof_pack_findings,
+            'metric_proof_pack_passed': not self._has_error_finding(
+                metric_proof_pack_findings
+            ),
             'customer_proof_findings': customer_proof_findings,
             'customer_proof_passed': not self._has_error_finding(customer_proof_findings),
             'review_story_findings': review_story_findings,
@@ -346,10 +462,12 @@ class ContentScorer:
     def _quality_gates_passed(
         self,
         content_quality_passed: bool,
+        seo_quality_passed: bool,
         gate_context: Dict[str, Any],
     ) -> bool:
         return (
             content_quality_passed
+            and seo_quality_passed
             and gate_context['aeo_geo_passed']
             and gate_context['faq_proof_passed']
             and gate_context['paa_provenance_passed']
@@ -522,6 +640,8 @@ class ContentScorer:
         self,
         composite: float,
         content_quality_passed: bool,
+        seo_quality_passed: bool,
+        seo: Dict[str, Any],
         gate_context: Dict[str, Any],
         *,
         include_source_support: bool,
@@ -537,6 +657,11 @@ class ContentScorer:
                 'score': composite,
                 'threshold': self.PASS_THRESHOLD,
                 'passed': content_quality_passed
+            },
+            'seo_quality': {
+                'score': seo.get('score', 0),
+                'threshold': self.PASS_THRESHOLD,
+                'passed': seo_quality_passed,
             },
             'aeo_geo': {
                 'score': aeo_geo.get('score', 0),
@@ -586,12 +711,15 @@ class ContentScorer:
         return quality_gates
 
     @staticmethod
-    def _has_error_finding(findings: List[Dict[str, Any]]) -> bool:
-        return any(finding.get("severity") == "error" for finding in findings)
+    def _has_error_finding(findings: Sequence[Mapping[str, Any]]) -> bool:
+        return any(
+            str(finding.get("severity", "error")).casefold() == "error"
+            for finding in findings
+        )
 
     def _clean_for_analysis(self, content: str) -> str:
         """Remove markdown formatting for text analysis"""
-        text = content
+        _, text, _ = split_frontmatter(content)
 
         # Remove frontmatter/metadata block
         text = re.sub(r'^\*\*[^*]+\*\*:\s*.+$', '', text, flags=re.MULTILINE)
@@ -808,6 +936,8 @@ class ContentScorer:
         issues = []
         details = {}
 
+        _, content, _ = split_frontmatter(content)
+
         # Remove metadata block
         content = re.sub(r'^\*\*[^*]+\*\*:\s*.+$', '', content, flags=re.MULTILINE)
         content = re.sub(r'^---+\s*$', '', content, flags=re.MULTILINE)
@@ -882,10 +1012,8 @@ class ContentScorer:
         }
 
     def _score_seo(self, content: str, metadata: Dict[str, Any]) -> Dict[str, Any]:
-        """Score content for SEO compliance"""
-        issues = []
-        details = {}
-        frontmatter = self._extract_frontmatter_metadata(content)
+        """Score SEO once through the canonical :class:`SEOQualityRater`."""
+        frontmatter, visible_body, _ = split_frontmatter(content)
 
         meta_title = metadata.get('meta_title', '') or frontmatter.get('meta_title', '') or frontmatter.get('title', '')
         meta_description = metadata.get('meta_description', '') or frontmatter.get('meta_description', '') or frontmatter.get('description', '')
@@ -893,132 +1021,85 @@ class ContentScorer:
 
         # Extract from content if not provided
         if not meta_title:
-            match = re.search(r'\*\*Meta Title\*\*:\s*(.+)', content)
+            match = re.search(r'\*\*Meta Title\*\*:\s*(.+)', visible_body)
             if match:
                 meta_title = match.group(1).strip()
             else:
-                match = re.search(r'^\s*Meta Title:\s*(.+)', content, re.MULTILINE)
+                match = re.search(r'^\s*Meta Title:\s*(.+)', visible_body, re.MULTILINE)
                 if match:
                     meta_title = match.group(1).strip()
 
         if not meta_description:
-            match = re.search(r'\*\*Meta Description\*\*:\s*(.+)', content)
+            match = re.search(r'\*\*Meta Description\*\*:\s*(.+)', visible_body)
             if match:
                 meta_description = match.group(1).strip()
             else:
-                match = re.search(r'^\s*Meta Description:\s*(.+)', content, re.MULTILINE)
+                match = re.search(r'^\s*Meta Description:\s*(.+)', visible_body, re.MULTILINE)
                 if match:
                     meta_description = match.group(1).strip()
 
         if not primary_keyword:
-            match = re.search(r'\*\*(?:Target|Primary) Keyword\*\*:\s*(.+)', content)
+            match = re.search(r'\*\*(?:Target|Primary) Keyword\*\*:\s*(.+)', visible_body)
             if match:
                 primary_keyword = match.group(1).strip()
             else:
-                match = re.search(r'^\s*Primary Keyword:\s*(.+)', content, re.MULTILINE)
+                match = re.search(r'^\s*Primary Keyword:\s*(.+)', visible_body, re.MULTILINE)
                 if match:
                     primary_keyword = match.group(1).strip()
 
-        details['meta_title'] = meta_title
-        details['meta_title_length'] = len(meta_title)
-        details['meta_description'] = meta_description[:100] + '...' if len(meta_description) > 100 else meta_description
-        details['meta_description_length'] = len(meta_description)
-        details['primary_keyword'] = primary_keyword
+        secondary_keywords = metadata.get('secondary_keywords')
+        if not isinstance(secondary_keywords, list):
+            secondary_keywords = None
 
-        score = 100
+        rated = self.seo_rater.rate(
+            visible_body,
+            meta_title=meta_title or None,
+            meta_description=meta_description or None,
+            primary_keyword=primary_keyword or None,
+            secondary_keywords=secondary_keywords,
+        )
 
-        # Check meta title length (50-60)
-        if not meta_title:
-            score -= 15
-            issues.append({
-                'issue': 'Missing meta title',
-                'fix': 'Add a meta title (50-60 characters)',
-                'severity': 'high'
-            })
-        elif len(meta_title) < 50:
-            score -= 5
-            issues.append({
-                'issue': f'Meta title too short ({len(meta_title)} chars)',
-                'fix': 'Expand meta title to 50-60 characters',
-                'severity': 'low'
-            })
-        elif len(meta_title) > 60:
-            score -= 5
-            issues.append({
-                'issue': f'Meta title too long ({len(meta_title)} chars)',
-                'fix': 'Shorten meta title to 50-60 characters',
-                'severity': 'low'
-            })
-
-        # Check meta description length (150-160)
-        if not meta_description:
-            score -= 15
-            issues.append({
-                'issue': 'Missing meta description',
-                'fix': 'Add a meta description (150-160 characters)',
-                'severity': 'high'
-            })
-        elif len(meta_description) < 150:
-            score -= 5
-        elif len(meta_description) > 160:
-            score -= 5
-
-        # Check keyword in H1
-        h1_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
-        if h1_match:
-            h1 = h1_match.group(1).lower()
-            details['h1'] = h1_match.group(1)
-            if primary_keyword and primary_keyword.lower() not in h1:
-                score -= 10
+        issues = []
+        seen = set()
+        finding_groups = (
+            ('critical_issues', 'high'),
+            ('warnings', 'medium'),
+            ('suggestions', 'low'),
+        )
+        for group, severity in finding_groups:
+            for finding in rated.get(group, []):
+                normalized = str(finding).strip()
+                if not normalized or normalized in seen:
+                    continue
+                seen.add(normalized)
                 issues.append({
-                    'issue': 'Primary keyword not in H1',
-                    'fix': f'Include "{primary_keyword}" in the H1 headline',
-                    'severity': 'medium'
+                    'issue': normalized,
+                    'fix': normalized,
+                    'severity': severity,
                 })
-        else:
-            score -= 10
-            issues.append({
-                'issue': 'Missing H1 headline',
-                'fix': 'Add an H1 headline with primary keyword',
-                'severity': 'high'
-            })
 
-        # Check keyword in first 100 words
-        clean_content = self._clean_for_analysis(content)
-        first_100 = ' '.join(clean_content.split()[:100]).lower()
-        if primary_keyword and primary_keyword.lower() not in first_100:
-            score -= 10
-            issues.append({
-                'issue': 'Primary keyword not in first 100 words',
-                'fix': f'Include "{primary_keyword}" in the introduction',
-                'severity': 'medium'
-            })
-
-        # Word count is reported for editorial context. It is not a default SEO
-        # failure because completeness depends on intent, evidence, and scope.
-        word_count = len(clean_content.split())
-        details['word_count'] = word_count
+        details = dict(rated.get('details', {}))
+        details.update({
+            'meta_title': meta_title,
+            'meta_title_length': len(meta_title),
+            'meta_description': (
+                meta_description[:100] + '...'
+                if len(meta_description) > 100
+                else meta_description
+            ),
+            'meta_description_length': len(meta_description),
+            'primary_keyword': primary_keyword,
+            'category_scores': dict(rated.get('category_scores', {})),
+            'grade': rated.get('grade', ''),
+            'publishing_ready': bool(rated.get('publishing_ready', False)),
+        })
 
         return {
-            'score': max(0, min(100, round(score))),
+            'score': max(0, min(100, round(float(rated.get('overall_score', 0))))),
+            'passed': bool(rated.get('publishing_ready', False)),
             'issues': issues,
             'details': details
         }
-
-    def _extract_frontmatter_metadata(self, content: str) -> Dict[str, str]:
-        """Extract simple scalar metadata from YAML-style frontmatter."""
-        match = re.match(r'\A---\s*\n(.*?)\n---\s*', content, re.DOTALL)
-        if not match:
-            return {}
-
-        values: Dict[str, str] = {}
-        for line in match.group(1).splitlines():
-            if ':' not in line:
-                continue
-            key, value = line.split(':', 1)
-            normalized_key = key.strip().lower().replace('-', '_').replace(' ', '_')
-            values[normalized_key] = value.strip().strip('"').strip("'")
-        return values
 
     def _score_readability(self, content: str) -> Dict[str, Any]:
         """Score content for readability, rhythm, and paragraph length"""

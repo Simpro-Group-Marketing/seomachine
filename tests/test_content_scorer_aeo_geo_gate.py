@@ -1,10 +1,14 @@
+import json
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from data_sources.modules.content_scorer import ContentScorer
+from data_sources.modules.paa_provenance_guard import build_answersocrates_artifact
 from data_sources.modules.url_validator import UrlValidationResult, UrlValidationSummary
+from tests.test_aeo_geo_rater import write_bound_experience_story_evidence
+from tests.vault_context_fixture import load_validated_claim_set_for_unit_test
 
 
 PAA_ARTIFACT = "research/paa-questions-hvac-scheduling-2026-05-22.md"
@@ -12,7 +16,7 @@ METRIC_ARTIFACT = "research/metric-proof-hvac-scheduling-2026-05-22.md"
 PAA_PROVENANCE_BLOCK = f"""
 ```text
 PAA/FAQ Provenance
-- Source: AnswerSocrates via Playwright MCP
+- Source: answersocrates
 - Artifact: {PAA_ARTIFACT}
 - Selected questions:
   - What is the best way to schedule HVAC technicians?
@@ -81,6 +85,17 @@ Meta Description: HVAC scheduling software helps contractors assign jobs, avoid 
 Primary Keyword: hvac scheduling software
 Author: Jordan Lee
 Last Updated: 2026-05-22
+PAA Workflow Mode: new
+PAA Expected Query: hvac scheduling software
+PAA Expected Collection Date: 2026-05-22
+schema_notes:
+  - BlogPosting
+  - BreadcrumbList
+  - FAQPage
+  - Question and Answer inside FAQPage
+  - ImageObject for the featured image or logo
+  - Organization as publisher reference only, not a separate full schema block
+  - Person as author
 ---
 
 # HVAC Scheduling Software for Contractors
@@ -156,6 +171,26 @@ def write_paa_fixture(test_case: unittest.TestCase, content: str) -> str:
     article_path = root / "drafts" / "hvac-scheduling-software.md"
     article_path.parent.mkdir(parents=True, exist_ok=True)
     article_path.write_text(content, encoding="utf-8")
+    artifact.write_text(
+        json.dumps(
+            build_answersocrates_artifact(
+                query="hvac scheduling software",
+                collection_date="2026-05-22",
+                eligible_questions=(
+                    "What is the best way to schedule HVAC technicians?",
+                    "How does HVAC scheduling software reduce missed appointments?",
+                    "Should HVAC scheduling connect to invoicing?",
+                ),
+                run_id="content-scorer-fixture",
+                started_at="2026-05-22T14:00:00Z",
+                completed_at="2026-05-22T14:01:00Z",
+            ),
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding='utf-8',
+    )
     return str(article_path)
 
 
@@ -242,6 +277,103 @@ The strongest workflow connects quoting, inventory, invoicing, and reporting ins
 
         self.assertLess(result["details"]["word_count"], 2000)
         self.assertFalse(any(issue.startswith("Content too short") for issue in issues))
+
+    def test_content_dimensions_ignore_arbitrary_yaml_frontmatter(self):
+        scorer = ContentScorer()
+        body = """# HVAC Scheduling Software for Contractors
+
+HVAC scheduling software helps dispatchers assign technicians and keep job records current. Office teams review skills, locations, customer commitments, and parts before updating the schedule.
+
+## HVAC scheduling software workflow
+
+Dispatchers prioritize urgent calls, assign the right technician, and update customers when plans change. Technicians close the job record after field work so invoicing can start without rekeying details.
+
+- Review technician availability.
+- Confirm customer access.
+- Update the job and invoice handoff.
+"""
+        frontmatter = """---
+noise:
+  - "Many various important statements that must not reduce specificity."
+  - "A deliberately complicated metadata sentence containing bureaucratic terminology and excessive subordinate clauses must not change the readability result."
+numbers: "2026 2027 75% $500"
+primary_keyword_noise: "hvac scheduling software hvac scheduling software"
+---
+
+"""
+        metadata = {
+            "meta_title": "HVAC Scheduling Software for Contractors | Simpro",
+            "meta_description": (
+                "HVAC scheduling software helps contractors assign jobs, coordinate "
+                "technicians, and keep customers informed from one dispatch workflow."
+            ),
+            "primary_keyword": "hvac scheduling software",
+        }
+
+        baseline = scorer.score(body, metadata)
+        with_frontmatter = scorer.score(frontmatter + body, metadata)
+
+        for dimension in (
+            "humanity",
+            "specificity",
+            "structure_balance",
+            "seo",
+            "readability",
+        ):
+            with self.subTest(dimension=dimension):
+                self.assertEqual(
+                    with_frontmatter["dimensions"][dimension]["score"],
+                    baseline["dimensions"][dimension]["score"],
+                )
+        self.assertEqual(with_frontmatter["composite_score"], baseline["composite_score"])
+
+    def test_score_seo_delegates_once_to_strengthened_seo_rater(self):
+        scorer = ContentScorer()
+        content = """---
+meta_title: HVAC Scheduling Software for Contractors | Simpro
+meta_description: HVAC scheduling software helps contractors assign jobs, avoid double-booking, and keep technicians moving from one real-time calendar.
+primary_keyword: hvac scheduling software
+---
+
+# HVAC Scheduling Software for Contractors
+
+HVAC scheduling software gives dispatchers a connected scheduling workflow.
+"""
+        rated = {
+            "overall_score": 86.4,
+            "grade": "B (Good)",
+            "category_scores": {"links": 80},
+            "critical_issues": ["Missing down-funnel internal link"],
+            "warnings": ["Keyword use is slightly high"],
+            "suggestions": ["Tighten the meta title"],
+            "publishing_ready": False,
+            "details": {"word_count": 42},
+        }
+
+        with patch.object(scorer.seo_rater, "rate", return_value=rated) as rate:
+            result = scorer._score_seo(content, {})
+
+        _, visible_body = content.split("---\n", 2)[1:]
+        rate.assert_called_once_with(
+            visible_body,
+            meta_title="HVAC Scheduling Software for Contractors | Simpro",
+            meta_description=(
+                "HVAC scheduling software helps contractors assign jobs, avoid "
+                "double-booking, and keep technicians moving from one real-time calendar."
+            ),
+            primary_keyword="hvac scheduling software",
+            secondary_keywords=None,
+        )
+        self.assertEqual(result["score"], 86)
+        self.assertEqual(
+            [item["issue"] for item in result["issues"]],
+            [
+                "Missing down-funnel internal link",
+                "Keyword use is slightly high",
+                "Tighten the meta title",
+            ],
+        )
+        self.assertEqual(result["details"]["category_scores"], {"links": 80})
 
     def test_specificity_scores_concrete_workflow_detail_without_forcing_numbers(self):
         scorer = ContentScorer()
@@ -368,6 +500,78 @@ The strongest workflow connects quoting, inventory, invoicing, and reporting ins
 
     def test_fully_compliant_content_passes_quality_and_aeo_geo_gates(self):
         scorer = ContentScorer()
+        content = COMPLIANT_ARTICLE.replace(CUSTOMER_PROOF_BLOCK, "").replace(
+            "\n[BWE Engineering](https://www.simprogroup.com/case-studies/bwe-engineering) shows how field service teams use connected workflows to improve operational control.\n",
+            "\n[Megan B's Capterra review](https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/) describes using service jobs, quotes, invoices, and QBO integration in one connected workflow.\n",
+        )
+        customer_governance = """
+
+## Customer Proof Pack
+- Pack status: ready
+- Review-site experience evidence: Capterra owner workflow story selected through receipt-bound customer proof evidence.
+- Use in copy: paraphrased identity-backed workflow story with same-paragraph public link.
+- Claims excluded: exact review wording, ratings, rankings, and metrics.
+
+## Customer Proof Selection Decision
+- Selector command: python data_sources/modules/customer_proof_selector.py "hvac scheduling software for contractors" --roles metric,quote,theme,experience_story --require-eeat-story --limit 10
+- Selected proof: review-capterra-qbo-service-jobs-quotes-invoices | Customer: Capterra owner review with QBO integration | URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/ | Use: identity-backed experience story
+
+## Review Story Selection
+- Article title: HVAC Scheduling Software for Contractors
+- Content objective: Explain connected scheduling workflows
+- Selected story: review-capterra-qbo-service-jobs-quotes-invoices | Identity: Megan B | Platform: Capterra | URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/ | Workflow story: owner describes service jobs, recurring jobs, quotes, invoices, and QBO integration | Status: approved | Use: E-E-A-T experience story
+- Article link requirement: same paragraph as review-derived paraphrase must link to the selected public review URL
+"""
+
+        with TemporaryDirectory() as temp_dir:
+            proof_sidecar, proof_sidecar_path = (
+                write_bound_experience_story_evidence(
+                    self,
+                    Path(temp_dir),
+                )
+            )
+            proof_sidecar += FAQ_PROOF_BLOCK + METRIC_PROOF_BLOCK + customer_governance
+            proof_sidecar_path.write_text(proof_sidecar, encoding="utf-8")
+            with patch.object(
+                ContentScorer,
+                "_score_humanity",
+                return_value={"score": 100, "issues": [], "details": {}},
+            ), patch.object(
+                ContentScorer,
+                "_score_specificity",
+                return_value={"score": 100, "issues": [], "details": {}},
+            ), patch.object(
+                ContentScorer,
+                "_score_structure_balance",
+                return_value={"score": 100, "issues": [], "details": {}, "prose_ratio": 0.65},
+            ), patch.object(
+                ContentScorer,
+                "_score_seo",
+                return_value={"score": 100, "issues": [], "details": {}},
+            ), patch.object(
+                ContentScorer,
+                "_score_readability",
+                return_value={"score": 100, "issues": [], "details": {}, "flesch": 68},
+            ), patch(
+                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                new=load_validated_claim_set_for_unit_test,
+            ):
+                result = scorer.score(
+                    content,
+                    {"primary_keyword": "hvac scheduling software"},
+                    source_path=write_paa_fixture(self, content),
+                    proof_sidecar=str(proof_sidecar_path),
+                )
+
+        self.assertTrue(result["passed"])
+        self.assertGreaterEqual(result["content_quality_score"], 85)
+        self.assertGreaterEqual(result["aeo_geo"]["score"], 90)
+        self.assertTrue(result["quality_gates"]["content_quality"]["passed"])
+        self.assertTrue(result["quality_gates"]["aeo_geo"]["passed"])
+        self.assertTrue(result["quality_gates"]["metric_proof_pack"]["passed"])
+
+    def test_strong_composite_cannot_bypass_canonical_seo_blockers(self):
+        scorer = ContentScorer()
 
         with patch.object(
             ContentScorer,
@@ -384,7 +588,16 @@ The strongest workflow connects quoting, inventory, invoicing, and reporting ins
         ), patch.object(
             ContentScorer,
             "_score_seo",
-            return_value={"score": 100, "issues": [], "details": {}},
+            return_value={
+                "score": 100,
+                "passed": False,
+                "issues": [{
+                    "issue": "Missing down-funnel internal link",
+                    "fix": "Add an intent-matched down-funnel link.",
+                    "severity": "high",
+                }],
+                "details": {},
+            },
         ), patch.object(
             ContentScorer,
             "_score_readability",
@@ -396,12 +609,9 @@ The strongest workflow connects quoting, inventory, invoicing, and reporting ins
                 source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
             )
 
-        self.assertTrue(result["passed"])
         self.assertGreaterEqual(result["content_quality_score"], 85)
-        self.assertGreaterEqual(result["aeo_geo"]["score"], 90)
-        self.assertTrue(result["quality_gates"]["content_quality"]["passed"])
-        self.assertTrue(result["quality_gates"]["aeo_geo"]["passed"])
-        self.assertTrue(result["quality_gates"]["metric_proof_pack"]["passed"])
+        self.assertFalse(result["passed"])
+        self.assertFalse(result["quality_gates"]["seo_quality"]["passed"])
 
     def test_sidecar_customer_proof_without_hash_bound_evidence_blocks_scoring(self):
         scorer = ContentScorer()
@@ -529,6 +739,66 @@ The strongest workflow connects quoting, inventory, invoicing, and reporting ins
         self.assertEqual(
             rate.call_args.kwargs["proof_sidecar_path"],
             str(sidecar.resolve()),
+        )
+
+    def test_quality_gate_forwards_bound_bom_and_strict_paa_inputs_to_aeo_rater(self):
+        scorer = ContentScorer()
+        finalized_bom = {
+            "schema": "simpro-blog-assembly-bom/v1",
+            "lifecycle_state": "final",
+            "author_policy": {
+                "status": "not_provided",
+                "name": "",
+                "frontmatter_author_required": False,
+                "schema_person_required": False,
+                "named_author_voice_allowed": False,
+            },
+        }
+
+        with patch(
+            "data_sources.modules.content_scorer.rate_aeo_geo",
+            return_value={"passed": True, "checks": {}},
+        ) as rate, patch(
+            "data_sources.modules.content_scorer.check_metric_proof_pack",
+            return_value=[],
+        ), patch(
+            "data_sources.modules.content_scorer.check_customer_proof_diversity",
+            return_value=[],
+        ), patch(
+            "data_sources.modules.content_scorer.check_review_story_identity",
+            return_value=[],
+        ):
+            scorer._run_quality_gates(
+                "# Article\n",
+                {},
+                validate_urls=False,
+                validate_source_support=False,
+                source_path="drafts/article.md",
+                proof_sidecar=None,
+                finalized_bom=finalized_bom,
+                assembly_date="2026-05-22",
+                paa_workflow_mode="refresh",
+                paa_content_brief="research/content-brief-article.md",
+                paa_answersocrates_blocker="collection unavailable",
+                paa_expected_query="field service scheduling",
+                paa_expected_collection_date="2026-05-21",
+                paa_artifact="research/paa-questions-article-2026-05-21.md",
+            )
+
+        rate.assert_called_once_with(
+            "# Article\n",
+            {},
+            source_path="drafts/article.md",
+            proof_sidecar_content="",
+            proof_sidecar_path=None,
+            finalized_bom=finalized_bom,
+            assembly_date="2026-05-22",
+            paa_workflow_mode="refresh",
+            paa_content_brief="research/content-brief-article.md",
+            paa_answersocrates_blocker="collection unavailable",
+            paa_expected_query="field service scheduling",
+            paa_expected_collection_date="2026-05-21",
+            paa_artifact="research/paa-questions-article-2026-05-21.md",
         )
 
     def test_quality_gate_passes_resolved_proof_sidecar_path_to_customer_proof_guard(
@@ -876,6 +1146,71 @@ The strongest workflow connects quoting, inventory, invoicing, and reporting ins
         self.assertIn("customer_proof_diversity", result["quality_gates"])
         self.assertFalse(result["quality_gates"]["customer_proof_diversity"]["passed"])
         self.assertIn("Customer proof diversity blockers detected", result["priority_fixes"][0]["issue"])
+
+    def test_raw_prevalidated_findings_do_not_suppress_proof_gate_runs(self):
+        scorer = ContentScorer()
+        aeo_result = {
+            "score": 100,
+            "passed": True,
+            "checks": {
+                "faq_proof": {"passed": True, "details": {"findings": []}},
+                "paa_provenance": {"passed": True, "details": {"findings": []}},
+            },
+            "issues": [],
+        }
+        with patch(
+            "data_sources.modules.content_scorer.rate_aeo_geo",
+            return_value=aeo_result,
+        ) as rate, patch(
+            "data_sources.modules.content_scorer.check_metric_proof_pack",
+            return_value=[],
+        ) as metric_gate, patch(
+            "data_sources.modules.content_scorer.check_customer_proof_diversity",
+            return_value=[],
+        ) as diversity_gate, patch(
+            "data_sources.modules.content_scorer.check_review_story_identity",
+            return_value=[],
+        ) as review_gate:
+            scorer.score(
+                COMPLIANT_ARTICLE,
+                {"primary_keyword": "hvac scheduling software"},
+                source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+                prevalidated_gate_findings={
+                    "metric_proof_pack": (),
+                    "customer_proof_diversity": (),
+                    "review_story_identity": (),
+                },
+            )
+
+        metric_gate.assert_called_once()
+        diversity_gate.assert_called_once()
+        review_gate.assert_called_once()
+        self.assertNotIn("prevalidated_gate_findings", rate.call_args.kwargs)
+
+    def test_raw_prevalidated_findings_cannot_bypass_proof_gate_execution(self):
+        scorer = ContentScorer()
+        blocker = {
+            "rule_id": "metric_proof_missing",
+            "severity": "error",
+            "line": 1,
+            "column": 1,
+            "message": "Metric proof is missing.",
+            "suggestion": "Add proof.",
+        }
+
+        with patch(
+            "data_sources.modules.content_scorer.check_metric_proof_pack",
+            return_value=[blocker],
+        ) as metric_gate:
+            result = scorer.score(
+                COMPLIANT_ARTICLE,
+                {"primary_keyword": "hvac scheduling software"},
+                source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+                prevalidated_gate_findings={"metric_proof_pack": ()},
+            )
+
+        metric_gate.assert_called_once()
+        self.assertFalse(result["quality_gates"]["metric_proof_pack"]["passed"])
 
 
 if __name__ == "__main__":

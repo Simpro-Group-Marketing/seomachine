@@ -65,7 +65,7 @@ Analyze completed articles and provide actionable recommendations to improve qua
 
 ### 3. Link Strategy Optimization
 
-#### Internal Linking (Target: 3-5+)
+#### Internal Linking (intent-appropriate; no fixed total)
 - Count current internal links
 - Evaluate link relevance and context
 - Assess anchor text quality (descriptive, keyword-rich)
@@ -80,7 +80,7 @@ Analyze completed articles and provide actionable recommendations to improve qua
 - "In [Section Name], link to [Approved Brand Page] with anchor text '[suggested text]'"
 - Paragraph-specific suggestions with exact placement
 
-#### External Linking (Target: 2-3+)
+#### External Linking (claim-fit evidence; no fixed total)
 - Count authoritative external links
 - Verify credibility of linked sources
 - Check for broken external links
@@ -226,8 +226,8 @@ Specific recommendations with exact placement:
 - [ ] Primary keyword in first 100 words
 - [ ] Primary keyword in at least one relevant H2 where natural; semantic variations used elsewhere without a quota
 - [ ] Natural terminology coverage, semantic variations, and keyword-stuffing detection checked
-- [ ] 3-5+ internal links with good anchor text
-- [ ] 2-3+ external authoritative links
+- [ ] Intent-appropriate internal links with descriptive anchor text, including the required down-funnel link
+- [ ] Claim-fit external authority links for the evidence actually used
 - [ ] Meta title 50-60 characters with keyword
 - [ ] Meta description 150-160 characters with accurate value or action language suited to search intent
 - [ ] Word count fits search intent, evidence depth, and article objective

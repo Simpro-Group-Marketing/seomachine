@@ -16,7 +16,7 @@ Use this command to research a landing page opportunity before creating it. Anal
 ## What This Command Does
 
 1. Researches the target keyword and search intent
-2. Analyzes top competitor landing pages (5-10)
+2. Analyzes the intent-defining competitor pages needed to establish stable patterns and gaps; there is no fixed competitor count
 3. Identifies gaps and opportunities
 4. Recommends headlines, CTAs, and trust signals
 5. Creates a research brief for `/landing-write`
@@ -39,7 +39,7 @@ Use this command to research a landing page opportunity before creating it. Anal
 
 ### Step 2: Competitor Analysis
 
-Analyze top 5-10 competitors for the keyword:
+Analyze the competitor pages that materially define the query intent. Expand the sample only while new evidence changes the observed patterns; there is no fixed competitor count.
 
 **Content Analysis:**
 - Page length (word count)
@@ -124,8 +124,7 @@ Based on research, recommend:
 | Position | URL | Type | Word Count |
 |----------|-----|------|------------|
 | 1 | [url] | [page/post] | [count] |
-| 2 | [url] | [page/post] | [count] |
-| 3 | [url] | [page/post] | [count] |
+| [repeat for each intent-defining result] | [url] | [page/post] | [count] |
 
 ---
 
@@ -139,11 +138,8 @@ Based on research, recommend:
 **Strengths**: [what works]
 **Weaknesses**: [gaps to exploit]
 
-### Competitor 2: [name/url]
-[Same structure]
-
-### Competitor 3: [name/url]
-[Same structure]
+### Additional relevant competitor: [name/url]
+[Repeat the same structure only while the page adds material intent or evidence insight]
 
 ---
 
@@ -256,20 +252,18 @@ Based on competitive analysis and gaps:
 
 **Recommended Word Count**: [range] words
 **Recommended Sections**: [X] H2 sections
-**FAQ Questions to Include**:
-1. [Question 1]
-2. [Question 2]
-3. [Question 3]
-4. [Question 4]
+**FAQ Decision**: [required/not applicable, with rationale]
+**FAQ Questions to Include when useful**:
+- [Question supported by the selected PAA policy and reader intent]
+- [Repeat only for useful, supportable questions]
 
 ---
 
 ## Internal Linking
 
-Based on this topic, link to:
-- [[YOUR COMPANY] page 1] - Anchor: "[suggested anchor]"
-- [[YOUR COMPANY] page 2] - Anchor: "[suggested anchor]"
-- [[YOUR COMPANY] page 3] - Anchor: "[suggested anchor]"
+Select links that serve the reader journey, including an appropriate down-funnel destination when the intent supports one. There is no fixed total:
+- [[YOUR COMPANY] relevant destination] - Anchor: "[suggested anchor]" - Reader purpose: [why this link belongs]
+- [Repeat only for intent-appropriate destinations]
 
 ---
 

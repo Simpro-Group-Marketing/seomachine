@@ -43,7 +43,7 @@ This document outlines SEO best practices and requirements for all Simpro blog c
 Before writing any article:
 1. Identify primary target keyword
 2. Research search volume and difficulty
-3. Analyze top 10 ranking competitors
+3. Analyze an intent-representative competitor sample until recurring structure and meaningful gaps are clear
 4. Identify 3-5 secondary/related keywords
 5. List semantic terms and related reader vocabulary
 
@@ -208,28 +208,28 @@ Primary keyword MUST appear in:
 ## Internal Linking Strategy
 
 ### Requirements
-- **Minimum**: 3 internal links per article
-- **Optimal**: 4-5 internal links
-- **Maximum**: 7 internal links unless the Reader Contract, article scope, and available proof justify additional contextual links
+- Include the contextual internal links that advance the Reader Contract and user journey.
+- Include the required down-funnel industry, solution, or feature link when the blog workflow calls for it.
+- Do not add or remove links to hit a fixed total; relevance and destination intent control the plan.
 
 ### Link Types to Include
 
-#### 1. Pillar Content (1-2 links)
+#### 1. Pillar Content
 - Link to main comprehensive guides on related topics
 - Builds topic cluster authority
 - Usually cornerstone content that fully covers a broad cluster or decision path
 
-#### 2. Related Blog Posts (2-3 links)
+#### 2. Related Blog Posts
 - Link to articles on related subtopics
 - Creates content web
 - Helps readers explore topics comprehensively
 
-#### 3. Product/Feature Pages (0-1 link)
+#### 3. Product/Feature Pages
 - Only when contextually relevant
 - Natural mention of how Simpro solves the problem
 - Never forced or overly promotional
 
-#### 4. Resource Pages (0-1 link)
+#### 4. Resource Pages
 - Templates, tools, checklists
 - When mentioned as solutions in content
 - Provides additional value to reader
@@ -245,7 +245,7 @@ Primary keyword MUST appear in:
 **Placement**:
 - Within body paragraphs (most valuable)
 - Natural context that adds value to reader
-- Never more than 2 links per paragraph
+- Place each link where it directly supports the sentence and reader task; do not impose a per-paragraph quota
 - Distributed throughout article, not clustered
 
 **Reference**:
@@ -256,9 +256,8 @@ Primary keyword MUST appear in:
 ## External Linking Strategy
 
 ### Requirements
-- **Minimum**: 2 external links per article
-- **Optimal**: 3-4 external authority links
-- Purpose: Add credibility, provide sources, support claims
+- Use claim-fit external sources to add credibility and support claims.
+- Evidence needs determine the number of external links; a fixed total does not demonstrate authority.
 
 ### What to Link Externally
 - **Statistics and data sources**: Always cite where numbers come from
@@ -453,7 +452,7 @@ Feature pages live at `/features/[slug]`. Use this section order:
 7. **Feature-to-problem table** — three columns: Feature | What it solves | Outcome
 8. **Customer proof** — named quote + measurable outcome
 9. **Outcomes table** — Before Simpro / After Simpro comparison
-10. **Related links** — 3–5 internal links to related features/industries
+10. **Related links** — intent-appropriate links to related features or industries that advance the reader task
 11. **CTA** — primary: Get Demo; secondary: Pricing
 12. **FAQ** — up to 6 questions, each Capsule-style (direct answer first)
 
@@ -510,12 +509,17 @@ Solar, Elevator Service, Pest Control, Pool Service, Commercial Kitchen Equipmen
 Implement structured data per page type. These are required, not optional.
 
 ### Blog Posts
-- `WebPage` (or `Article` / `BlogPosting`)
+- `BlogPosting`
 - `BreadcrumbList`
-- `Organization` (publisher)
-- `FAQPage` — if FAQ section is present
-- `VideoObject` — if YouTube video is embedded
-- `Author` (named Person entity — not generic "Simpro Team")
+- `ImageObject for the featured image or logo`
+- `Organization as publisher reference only, not a separate full schema block`
+- `FAQPage` plus `Question and Answer inside FAQPage` if and only if visible FAQs exist
+- `VideoObject` if and only if a verified video is embedded
+- `Person as author` only when a named author exists; otherwise omit both the `author` frontmatter field and Person schema
+
+`FAQPage` and `Question and Answer inside FAQPage` are required only when visible FAQs exist. `Person as author` is required only when a named author exists. Require `VideoObject` if and only if a verified video embed exists.
+
+If a named author is present, include `author` in frontmatter and map it to `Person as author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization as publisher reference only`, and record the decision in the BOM and validation sidecar. When `author_policy.status` is `not_provided`, first-person singular author judgment outside quotes is prohibited.
 
 ### Feature Pages
 - `SoftwareApplication` or `Product`
@@ -593,9 +597,9 @@ Every article should include a TL;DR block near the top (after the introduction,
 
 ### Authority Signaling for AI
 
-AI models weight authoritativeness signals when choosing which sources to cite. Include these in every article:
+AI models weigh source and authorship signals when choosing citations. Apply these conditionally and do not invent a person:
 
-- **Author attribution**: Named author, not just "Team" or brand name
+- **Author policy**: Use a named author only when one is actually provided; otherwise omit the author field and Person schema
 - **Reviewer/editor credit**: "Reviewed by [name], [title]" where possible
 - **Last updated date**: Visible on the page, not just in metadata
 - **Expert verification badge**: Where applicable, note content has been expert-reviewed
@@ -622,12 +626,12 @@ AI models (especially Perplexity and Gemini) reference YouTube videos alongside 
 
 ### FAQ Sections as Prompt Targets
 
-FAQ sections serve double duty: they target Google's People Also Ask AND they match the question-answer format that ChatGPT/Perplexity users type as prompts.
+Use an FAQ section only when the editorial plan records `FAQ policy: required`. When the policy is `not_applicable`, record a non-empty rationale and omit FAQ-specific schema and gates.
 
 - Write FAQ questions in natural prompt language (how real people ask, not SEO-speak)
 - Answer each question directly in the first sentence, then expand
-- Include 4-6 questions per article
-- Questions should come from actual user research (Reddit, YouTube comments, search suggestions)
+- Include only the useful complete questions bound to the structured AnswerSocrates artifact or, for a rewrite, its dedicated pre-picked brief section; do not target a fixed count
+- Reddit, YouTube comments, and search suggestions may inform intent but cannot satisfy PAA provenance
 
 ### Content Repurposing for AI Citation Surface
 
@@ -694,7 +698,7 @@ Before publishing, verify:
 ### Links
 - [ ] Intent-appropriate internal links included
 - [ ] Internal links use descriptive anchor text
-- [ ] 2-3 external authority links
+- [ ] Every sourced claim has a claim-fit authority link; no fixed total is used
 - [ ] All links functional (no broken links)
 - [ ] Links add value to reader
 
@@ -718,7 +722,7 @@ Before publishing, verify:
 - [ ] Meta description directly answers the target query
 - [ ] FAQ questions written in natural prompt language
 - [ ] Video eligibility evaluated; embed only an eligible selected video that materially supports the article
-- [ ] Author attribution (named, not generic "Team")
+- [ ] Author policy matches the BOM: named author and Person schema when provided; otherwise both are omitted
 - [ ] Last updated date included
 - [ ] Year included in title for time-sensitive topics
 

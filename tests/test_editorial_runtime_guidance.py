@@ -1,8 +1,10 @@
+import json
 import re
 import unittest
 from dataclasses import replace
 from datetime import datetime
 
+from data_sources.modules import article_planner
 from data_sources.modules.article_planner import (
     ArticlePlan,
     ArticlePlanner,
@@ -94,6 +96,37 @@ def article_plan() -> ArticlePlan:
         gap_to_section_mapping={},
         insight_to_section_mapping={},
         reader_contract=reader_contract(),
+        original_contributions=[
+            {
+                "description": "Constraint-first scheduling checklist",
+                "final_section": "Scheduling constraints",
+                "visible_evidence": "Match urgent work to current technician capacity",
+            }
+        ],
+        entity_map={
+            "primary": ["field service scheduling"],
+            "supporting": ["dispatch workflow"],
+        },
+        query_ownership={
+            "decision": "clear",
+            "rationale": "No existing owned page serves the same reader decision.",
+        },
+        internal_link_plan=[
+            {
+                "target": "/field-service-management-software/",
+                "role": "down_funnel",
+                "rationale": "Gives the reader an intent-appropriate product next step.",
+            }
+        ],
+        faq_policy={
+            "status": "not_applicable",
+            "rationale": "No FAQ adds a useful decision answer for this plan.",
+        },
+        paa_policy={
+            "source_kind": "answersocrates",
+            "query": "field service scheduling",
+            "selected_questions": [],
+        },
     )
 
 
@@ -243,8 +276,12 @@ class ArticlePlannerEditorialContractTests(unittest.TestCase):
         plan = article_plan()
 
         serialized = plan.to_dict()
+        serialized_json = article_planner.serialize_article_plan(plan)
         rendered = format_article_plan(plan)
 
+        self.assertEqual(serialized['schema'], 'simpro-blog-editorial-plan/v1')
+        self.assertEqual(json.loads(serialized_json), serialized)
+        self.assertTrue(serialized_json.endswith('\n'))
         self.assertEqual(
             serialized["serp_strategy"]["status"],
             "unresolved_no_verified_serp_context",
@@ -267,6 +304,12 @@ class ArticlePlannerEditorialContractTests(unittest.TestCase):
         for expected in [
             "## Reader Contract",
             "Field service operations manager",
+            "## Original Contribution",
+            "Constraint-first scheduling checklist",
+            "## Entity Map",
+            "## Query Ownership",
+            "## Internal Link Plan",
+            "## FAQ and PAA Policy",
             "## Continuity Pass",
             "Every section advances the headline promise",
             "Each section answers a question created by the previous section",

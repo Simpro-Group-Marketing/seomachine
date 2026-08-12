@@ -146,6 +146,46 @@ FLSA recordkeeping guidance matters for payroll records. ClockShark has [online 
             " ".join(str(finding.get("suggestion", "")) for finding in findings),
         )
 
+    def test_semantic_faq_heading_uses_shared_h3_to_h5_answer_boundaries(self):
+        url = "https://www.dol.gov/agencies/whd/fact-sheets/21-flsa-recordkeeping"
+        article = f"""# Draft
+
+## Questions field service leaders ask
+
+Read the [Department of Labor overview]({url}) before setting policy.
+
+##### Which FLSA records must covered employers keep?
+
+FLSA recordkeeping rules include hours worked each day and total hours worked each workweek.
+"""
+        summary = UrlValidationSummary([
+            UrlValidationResult(
+                url=url,
+                status="resolved",
+                status_code=200,
+                reason="HTTP 200",
+                line=5,
+                anchor="Department of Labor overview",
+            )
+        ])
+
+        findings = public_research_link_guard.check_content(
+            article,
+            url_summary=summary,
+        )
+
+        missing = [
+            finding
+            for finding in findings
+            if finding["rule_id"] == "public_research_link_missing"
+        ]
+        self.assertEqual(len(missing), 1)
+        self.assertEqual(
+            missing[0]["match"],
+            "Which FLSA records must covered employers keep?",
+        )
+        self.assertIn("FAQ answer", missing[0]["message"])
+
 
 if __name__ == "__main__":
     unittest.main()

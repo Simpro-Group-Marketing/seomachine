@@ -15,8 +15,10 @@ from urllib.parse import urlparse
 from typing import Dict, List, Optional, Any, Tuple
 
 try:
+    from .frontmatter import split_frontmatter
     from .url_validator import validate_content_urls
 except ImportError:
+    from frontmatter import split_frontmatter
     from url_validator import validate_content_urls
 
 
@@ -80,6 +82,7 @@ OWNED_INTERNAL_DOMAINS = {
     "www.bigchange.com",
 }
 META_TITLE_BRAND_SUFFIX_RE = re.compile(r"\|\s*[A-Za-z][A-Za-z0-9 .&-]{1,40}$")
+PUBLISHING_THRESHOLD = 85
 
 
 def _non_negative_finite_float(value: str) -> float:
@@ -104,18 +107,13 @@ class SEOQualityRater:
             guidelines: Custom SEO guidelines (defaults to standard best practices)
         """
         supplied_guidelines = dict(guidelines or {})
-        self._explicit_guideline_keys = set(supplied_guidelines)
         self.guidelines = {
             **self._default_guidelines(),
             **supplied_guidelines,
         }
         self._validate_word_count_guidelines()
         self._validate_h2_guidelines()
-        self._validate_density_guidelines()
-        (
-            self._keyword_high_density_warning,
-            self._keyword_stuffing_density,
-        ) = self._resolve_density_thresholds()
+        self._validate_link_guidelines()
 
     def _validate_word_count_guidelines(self) -> None:
         word_count_keys = (
@@ -150,43 +148,6 @@ class SEOQualityRater:
                 "word_count rules require min_word_count <= max_word_count"
             )
 
-    def _validate_density_guidelines(self) -> None:
-        density_keys = (
-            'primary_keyword_density_min',
-            'primary_keyword_density_max',
-            'keyword_high_density_warning',
-            'keyword_stuffing_density',
-        )
-        for key in density_keys:
-            value = self.guidelines.get(key)
-            if value is None:
-                continue
-            if (
-                isinstance(value, bool)
-                or not isinstance(value, (int, float))
-                or not math.isfinite(value)
-                or value <= 0
-            ):
-                raise ValueError(f"{key} must be a finite positive number or None")
-
-        warning, stuffing = self._resolve_density_thresholds()
-        if stuffing < warning:
-            raise ValueError(
-                "keyword_stuffing_density must be greater than or equal to "
-                "keyword_high_density_warning"
-            )
-        minimum = self.guidelines.get('primary_keyword_density_min')
-        legacy_maximum = self.guidelines.get('primary_keyword_density_max')
-        if (
-            minimum is not None
-            and legacy_maximum is not None
-            and minimum > legacy_maximum
-        ):
-            raise ValueError(
-                "keyword density rules require primary_keyword_density_min <= "
-                "primary_keyword_density_max"
-            )
-
     def _validate_h2_guidelines(self) -> None:
         for key in ("min_h2_sections", "optimal_h2_sections"):
             value = self.guidelines.get(key)
@@ -218,34 +179,29 @@ class SEOQualityRater:
                 "h2_with_keyword_ratio must be a finite number from 0 to 1 or None"
             )
 
-    def _resolve_density_thresholds(self) -> Tuple[float, float]:
-        legacy_max = self.guidelines.get('primary_keyword_density_max')
-        legacy_is_explicit = (
-            'primary_keyword_density_max' in self._explicit_guideline_keys
-            and legacy_max is not None
-        )
-
-        if (
-            'keyword_high_density_warning' in self._explicit_guideline_keys
-            and self.guidelines.get('keyword_high_density_warning') is not None
+    def _validate_link_guidelines(self) -> None:
+        for key in (
+            'min_internal_links',
+            'optimal_internal_links',
+            'min_external_links',
+            'optimal_external_links',
         ):
-            warning = self.guidelines['keyword_high_density_warning']
-        elif legacy_is_explicit:
-            warning = legacy_max
-        else:
-            warning = 2.5
+            value = self.guidelines.get(key)
+            if value is None:
+                continue
+            if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+                raise ValueError(f"{key} must be a non-negative integer or None")
 
-        if (
-            'keyword_stuffing_density' in self._explicit_guideline_keys
-            and self.guidelines.get('keyword_stuffing_density') is not None
+        for minimum_key, optimal_key in (
+            ('min_internal_links', 'optimal_internal_links'),
+            ('min_external_links', 'optimal_external_links'),
         ):
-            stuffing = self.guidelines['keyword_stuffing_density']
-        elif legacy_is_explicit:
-            stuffing = legacy_max * 1.5
-        else:
-            stuffing = 3.0
-
-        return float(warning), float(stuffing)
+            minimum = self.guidelines.get(minimum_key)
+            optimal = self.guidelines.get(optimal_key)
+            if minimum is not None and optimal is not None and minimum > optimal:
+                raise ValueError(
+                    f"{minimum_key} must be less than or equal to {optimal_key}"
+                )
 
     def _default_guidelines(self) -> Dict[str, Any]:
         """Default SEO guidelines for proof-sensitive, intent-led blog quality."""
@@ -253,15 +209,10 @@ class SEOQualityRater:
             'min_word_count': None,
             'optimal_word_count': None,
             'max_word_count': None,
-            'primary_keyword_density_min': None,
-            'primary_keyword_density_max': None,
-            'keyword_high_density_warning': 2.5,
-            'keyword_stuffing_density': 3.0,
-            'secondary_keyword_density': 0.5,
-            'min_internal_links': 3,
-            'optimal_internal_links': 5,
-            'min_external_links': 2,
-            'optimal_external_links': 3,
+            'min_internal_links': None,
+            'optimal_internal_links': None,
+            'min_external_links': None,
+            'optimal_external_links': None,
             'meta_title_length_min': 50,
             'meta_title_length_max': 60,
             'meta_description_length_min': 150,
@@ -297,7 +248,8 @@ class SEOQualityRater:
             meta_description: Meta description tag
             primary_keyword: Target primary keyword
             secondary_keywords: Target secondary keywords
-            keyword_density: Pre-calculated keyword density
+            keyword_density: Deprecated diagnostic input. It is validated for
+                compatibility but never changes the quality score.
             internal_link_count: Number of internal links
             external_link_count: Number of external links
             validate_urls: Resolve URLs and block publishing readiness on
@@ -351,17 +303,19 @@ class SEOQualityRater:
                 "keyword_density must be a finite non-negative number or None"
             )
 
-        # Extract structure
-        structure = self._analyze_structure(content, primary_keyword)
+        _, visible_body, _ = split_frontmatter(content)
+
+        # Extract structure from reader-visible copy only. Frontmatter remains
+        # available to metadata resolution, but it is never article prose.
+        structure = self._analyze_structure(visible_body, primary_keyword)
 
         # Score each category
-        content_score = self._score_content(content, structure)
+        content_score = self._score_content(visible_body, structure)
         keyword_score = self._score_keyword_optimization(
-            content,
+            visible_body,
             structure,
             primary_keyword,
             secondary_keywords,
-            keyword_density
         )
         meta_score = self._score_meta_elements(
             meta_title,
@@ -370,11 +324,11 @@ class SEOQualityRater:
         )
         structure_score = self._score_structure(structure)
         link_score = self._score_links(
-            content,
+            visible_body,
             internal_link_count,
             external_link_count
         )
-        readability_score = self._score_readability(content, structure)
+        readability_score = self._score_readability(visible_body, structure)
 
         # Calculate overall score (weighted average)
         weights = {
@@ -407,7 +361,7 @@ class SEOQualityRater:
 
         url_validation = None
         if validate_urls:
-            url_validation = validate_content_urls(content)
+            url_validation = validate_content_urls(visible_body)
             for result in url_validation.blockers:
                 location = f" on line {result.line}" if result.line else ""
                 code = f"HTTP {result.status_code}" if result.status_code is not None else result.reason
@@ -454,7 +408,10 @@ class SEOQualityRater:
             'critical_issues': critical_issues,
             'warnings': warnings,
             'suggestions': suggestions,
-            'publishing_ready': overall_score >= 80 and len(critical_issues) == 0,
+            'publishing_ready': (
+                overall_score >= PUBLISHING_THRESHOLD
+                and len(critical_issues) == 0
+            ),
             'details': details
         }
 
@@ -569,7 +526,6 @@ class SEOQualityRater:
         structure: Dict,
         primary_keyword: Optional[str],
         secondary_keywords: Optional[List[str]],
-        keyword_density: Optional[float]
     ) -> Dict[str, Any]:
         """Score keyword optimization"""
         score = 100
@@ -613,35 +569,14 @@ class SEOQualityRater:
                     f"The caller-supplied target is at least {int(target_ratio * 100)}%."
                 )
 
-        # Keyword density
-        if keyword_density is not None:
-            min_density = self.guidelines.get('primary_keyword_density_min')
-            max_density = self.guidelines.get('primary_keyword_density_max')
-            high_density = self._keyword_high_density_warning
-            stuffing_density = self._keyword_stuffing_density
-
-            if keyword_density > stuffing_density:
-                score -= 20
-                critical.append(
-                    f"Keyword density is too high ({keyword_density}%). "
-                    "Risk of keyword stuffing. Use semantic variations and remove forced repetition."
-                )
-            elif keyword_density > high_density:
-                score -= 10
-                warnings.append(
-                    f"Keyword density is slightly high ({keyword_density}%). "
-                    "Use semantic variations and check whether repeated exact matches feel forced."
-                )
-            elif min_density is not None and keyword_density < min_density:
-                score -= 15
-                if max_density is not None:
-                    target_message = f"Target is {min_density}-{max_density}%"
-                else:
-                    target_message = f"Minimum is {min_density}%"
-                warnings.append(
-                    f"Keyword density is too low ({keyword_density}%). "
-                    f"{target_message}"
-                )
+        repetition = self._contextual_keyword_repetition(content, primary_keyword)
+        if repetition:
+            score -= 20
+            critical.append(
+                "Contextual keyword stuffing detected: "
+                f"{repetition}. Remove forced exact-phrase repetition and use "
+                "natural terminology where it helps the reader."
+            )
         # Secondary keywords
         if secondary_keywords:
             content_lower = content.lower()
@@ -656,6 +591,50 @@ class SEOQualityRater:
             'warnings': warnings,
             'suggestions': suggestions
         }
+
+    @staticmethod
+    def _contextual_keyword_repetition(
+        content: str,
+        primary_keyword: str,
+    ) -> Optional[str]:
+        """Describe forced exact-phrase repetition in reader-visible prose."""
+        escaped = r"\s+".join(
+            re.escape(part)
+            for part in primary_keyword.strip().split()
+        )
+        keyword_pattern = re.compile(
+            rf"(?<!\w){escaped}(?!\w)",
+            re.IGNORECASE,
+        )
+        prose = "\n".join(
+            line
+            for line in content.splitlines()
+            if not re.match(r"^\s*#", line)
+        )
+        sentences = [
+            sentence.strip()
+            for sentence in re.split(r"[.!?]+(?:\s|$)", prose)
+            if sentence.strip()
+        ]
+
+        consecutive = 0
+        longest_run = 0
+        for sentence in sentences:
+            occurrences = len(keyword_pattern.findall(sentence))
+            if occurrences >= 2:
+                return "the exact primary keyword appears more than once in one sentence"
+            if occurrences == 1:
+                consecutive += 1
+                longest_run = max(longest_run, consecutive)
+            else:
+                consecutive = 0
+
+        if longest_run >= 3:
+            return (
+                "the exact primary keyword appears in "
+                f"{longest_run} consecutive sentences"
+            )
+        return None
 
     def _score_meta_elements(
         self,
@@ -786,13 +765,14 @@ class SEOQualityRater:
         min_internal = self.guidelines['min_internal_links']
         optimal_internal = self.guidelines['optimal_internal_links']
 
-        if internal_count < min_internal:
+        if min_internal is not None and internal_count < min_internal:
             score -= 20
+            target = optimal_internal if optimal_internal is not None else min_internal
             warnings.append(
                 f"Too few internal links ({internal_count}). "
-                f"Add {min_internal - internal_count} more (target: {optimal_internal})."
+                f"Add {min_internal - internal_count} more (target: {target})."
             )
-        elif internal_count < optimal_internal:
+        elif optimal_internal is not None and internal_count < optimal_internal:
             score -= 5
             suggestions.append(f"Could add more internal links ({internal_count}). Optimal is {optimal_internal}.")
 
@@ -830,13 +810,14 @@ class SEOQualityRater:
         min_external = self.guidelines['min_external_links']
         optimal_external = self.guidelines['optimal_external_links']
 
-        if external_count < min_external:
+        if min_external is not None and external_count < min_external:
             score -= 15
+            target = optimal_external if optimal_external is not None else min_external
             warnings.append(
                 f"Too few non-owned public research links ({external_count}). "
-                f"Add authoritative resolved sources (target: {optimal_external})."
+                f"Add authoritative resolved sources (target: {target})."
             )
-        elif external_count < optimal_external:
+        elif optimal_external is not None and external_count < optimal_external:
             score -= 5
             suggestions.append(
                 f"Could add more non-owned public research links ({external_count}). "
@@ -932,7 +913,7 @@ def rate_seo_quality(
         meta_description: Meta description
         primary_keyword: Target keyword
         secondary_keywords: Secondary keywords
-        keyword_density: Pre-calculated density
+        keyword_density: Deprecated diagnostic input retained for compatibility
         internal_link_count: Number of internal links
         external_link_count: Number of external links
         custom_guidelines: Custom SEO guidelines
@@ -989,7 +970,7 @@ def _count_markdown_links(content: str) -> Tuple[int, int]:
 
 def _extract_markdown_links(content: str) -> List[Tuple[str, str]]:
     """Extract non-image markdown links from article body."""
-    body = re.sub(r"\A---\s*\n.*?\n---\s*", "", content, flags=re.DOTALL)
+    _, body, _ = split_frontmatter(content)
     return [
         (anchor.strip(), url.strip())
         for anchor, url in re.findall(r'(?<!!)\[([^\]]+)\]\(([^)]+)\)', body)
@@ -1185,19 +1166,12 @@ def _internal_link_anchor_examples() -> Dict[str, set]:
 
 
 def _extract_frontmatter(content: str) -> Dict[str, str]:
-    match = re.match(r"\A---\s*\n(.*?)\n---\s*", content, re.DOTALL)
-    if not match:
-        return {}
-
-    metadata = {}
-    for line in match.group(1).splitlines():
-        if ":" not in line:
-            continue
-        key, value = line.split(":", 1)
-        normalized_key = key.strip().lower().replace("-", "_").replace(" ", "_")
-        metadata[normalized_key] = value.strip().strip('"')
-
-    return metadata
+    metadata, _, _ = split_frontmatter(content)
+    return {
+        key: value
+        for key, value in metadata.items()
+        if isinstance(value, str)
+    }
 
 
 def _extract_inline_metadata(content: str) -> Dict[str, str]:
@@ -1223,7 +1197,8 @@ def _resolve_metadata(
     primary_keyword: Optional[str],
 ) -> Tuple[Optional[str], Optional[str], Optional[str]]:
     frontmatter = _extract_frontmatter(content)
-    inline = _extract_inline_metadata(content)
+    _, body, _ = split_frontmatter(content)
+    inline = _extract_inline_metadata(body)
 
     resolved_title = (
         meta_title
@@ -1338,7 +1313,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument(
         "--keyword-density",
         type=_non_negative_finite_float,
-        help="Pre-calculated primary keyword density percentage.",
+        help=(
+            "Deprecated diagnostic percentage retained for compatibility; "
+            "it does not change the quality score."
+        ),
     )
     parser.add_argument(
         "--validate-urls",

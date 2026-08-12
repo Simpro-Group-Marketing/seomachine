@@ -74,7 +74,7 @@ Each item should show:
 ### 5. Action Items
 For EXISTING CONTENT updates, provide:
 - [ ] Current ranking URL
-- [ ] Review top 5 competitor articles
+- [ ] Review an intent-representative competitor set and document why it is sufficient
 - [ ] Treat recurring, reader-critical, evidence-supported competitor gaps as must-fill; document Reader Contract exceptions
 - [ ] Update statistics and examples
 - [ ] Review reported keyword density, semantic coverage, and critical placement

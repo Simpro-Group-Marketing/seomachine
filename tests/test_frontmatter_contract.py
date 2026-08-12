@@ -159,7 +159,7 @@ class StrictFrontmatterContractTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            result = run_publish_readiness(path)
+            result = run_publish_readiness(path, workspace_root=Path(tmp))
 
         self.assertFalse(result["passed"])
         self.assertIsNone(result["score"])
@@ -171,7 +171,7 @@ class StrictFrontmatterContractTests(unittest.TestCase):
             path = Path(tmp) / "draft.md"
             path.write_bytes(b"---\nbrand: Simpro\n---\n\xff\n")
 
-            result = run_publish_readiness(path)
+            result = run_publish_readiness(path, workspace_root=Path(tmp))
 
         self.assertFalse(result["passed"])
         self.assertEqual(result["gates"][0]["name"], "frontmatter_metadata")

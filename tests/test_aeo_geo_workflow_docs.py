@@ -1,18 +1,118 @@
 import re
+import shlex
 import unittest
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def _fenced_block_after(content: str, heading: str) -> str:
+    heading_index = content.index(heading)
+    fence_start = content.index("```", heading_index) + 3
+    newline = content.find("\n", fence_start)
+    if newline >= 0 and content[fence_start:newline].strip().casefold() in {
+        "markdown",
+        "text",
+        "powershell",
+    }:
+        fence_start = newline + 1
+    fence_end = content.index("```", fence_start)
+    return content[fence_start:fence_end].strip() + "\n"
+
+
+def _mutation_recorder_commands(content: str) -> list[list[str]]:
+    script = "data_sources/modules/blog_assembly_mutation_recorder.py"
+    commands: list[list[str]] = []
+    for line in content.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith(f"python {script} "):
+            continue
+        tokens = shlex.split(stripped, posix=True)
+        if len(tokens) >= 3 and tokens[1] == script:
+            commands.append(tokens[2:])
+    return commands
+
+
+def _command_option_values(command: list[str], option: str) -> list[str]:
+    return [
+        command[index + 1]
+        for index, token in enumerate(command[:-1])
+        if token == option
+    ]
+
+
 class AeoGeoWorkflowDocsTests(unittest.TestCase):
-    def test_public_workflows_regenerate_context_binding_after_final_mutation(self):
+    def test_blog_workflows_document_the_executable_nonconnector_receipt_branch(self):
         workflow_paths = [
+            ROOT / "README.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
             ROOT / ".claude" / "commands" / "article.md",
             ROOT / ".claude" / "commands" / "write.md",
             ROOT / ".claude" / "commands" / "rewrite.md",
             ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "publish-readiness.md",
+        ]
+        reason = (
+            "Final article contains no Simpro brand, URL, or "
+            "connector-sensitive language."
+        )
+        for path in workflow_paths:
+            content = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.name):
+                self.assertIn("--not-applicable-reason", content)
+                self.assertIn(reason, content)
+                self.assertIn("omit context request/pack/receipt", content.casefold())
+
+    def test_blog_frontmatter_templates_use_block_schema_notes_without_comma_splitting(self):
+        workflow_paths = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+        ]
+        canonical_organization = (
+            '"Organization as publisher reference only, not a separate full schema block"'
+        )
+        for path in workflow_paths:
+            content = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.name):
+                self.assertNotRegex(content, r"(?m)^\s*schema_notes:\s*\[")
+                self.assertRegex(
+                    content,
+                    r"(?m)^\s*schema_notes:\s*$\n\s*- BlogPosting\s*$\n"
+                    r"\s*- BreadcrumbList\s*$\n"
+                    r"\s*- ImageObject for the featured image or logo\s*$",
+                )
+                self.assertIn(canonical_organization, content)
+
+    def test_public_workflows_regenerate_context_binding_after_final_mutation(self):
+        blog_workflow_paths = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+        ]
+        for path in blog_workflow_paths:
+            content = path.read_text(encoding="utf-8")
+            for marker in (
+                "blog_assembly_mutation_recorder.py start",
+                "blog_assembly_mutation_recorder.py finish",
+                "python data_sources/modules/context_binding_generator.py",
+                "--proof-sidecar",
+                "--context-request",
+                "--context-pack",
+                "--context-receipt",
+                "--stage-receipt-output",
+            ):
+                with self.subTest(path=path.name, marker=marker):
+                    self.assertIn(marker.casefold(), content.casefold())
+
+            start = content.find("blog_assembly_mutation_recorder.py start")
+            finish = content.find("blog_assembly_mutation_recorder.py finish")
+            binding = content.find("python data_sources/modules/context_binding_generator.py")
+            self.assertLess(start, finish, path.name)
+            self.assertLess(finish, binding, path.name)
+
+        non_blog_publish_paths = [
             ROOT / ".claude" / "commands" / "publish-draft.md",
             ROOT / ".claude" / "commands" / "landing-write.md",
             ROOT / ".claude" / "commands" / "landing-publish.md",
@@ -24,10 +124,9 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "--context-pack",
             "--context-receipt",
             "after the final content mutation",
-            "before `/publish-readiness`",
         ]
 
-        for path in workflow_paths:
+        for path in non_blog_publish_paths:
             content = path.read_text(encoding="utf-8")
             for marker in required:
                 with self.subTest(path=path.name, marker=marker):
@@ -124,7 +223,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         required = [
             "AnswerSocrates",
             "Playwright MCP",
-            "research/paa-questions-[topic-slug]-[YYYY-MM-DD].md",
+            "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json",
             "AEO/GEO Map",
             "85/100",
             "90/100",
@@ -238,7 +337,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "context/aeo-geo-blog-strategy.md",
             "AEO/GEO variable resolution",
             "PAA/FAQ provenance",
-            "research/paa-questions-[topic-slug]-[YYYY-MM-DD].md",
+            "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json",
             "Source Map",
             "E-E-A-T proof",
             "E-E-A-T Proof Map",
@@ -437,21 +536,24 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
-    def test_blog_writing_commands_limit_links_per_paragraph(self):
+    def test_blog_writing_commands_do_not_impose_per_paragraph_link_quotas(self):
         command_paths = [
             ROOT / ".claude" / "commands" / "article.md",
             ROOT / ".claude" / "commands" / "write.md",
             ROOT / ".claude" / "commands" / "rewrite.md",
         ]
-        required = [
-            "Only 1 link per paragraph",
-            "Move the second link to a separate paragraph",
-        ]
-
         for path in command_paths:
             content = path.read_text(encoding="utf-8")
-            for text in required:
-                self.assertIn(text, content, f"{path.name} missing {text}")
+            self.assertNotRegex(
+                content,
+                re.compile(r"only\s+\d+\s+links?\s+per\s+paragraph", re.IGNORECASE),
+                f"{path.name} contains a fixed per-paragraph link quota",
+            )
+            self.assertIn(
+                "Place each link where it directly supports the sentence and reader task",
+                content,
+                f"{path.name} must document intent-based link placement",
+            )
 
     def test_blog_writing_docs_require_functional_feature_solution_anchors(self):
         docs = [
@@ -693,7 +795,9 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         for text in [
             "PAA provenance",
             "paa_provenance_guard.py",
-            "Proof links alone do not prove question provenance",
+            "structured AnswerSocrates artifact",
+            "dedicated brief section takes precedence",
+            "supplemental research and cannot satisfy PAA provenance",
         ]:
             self.assertIn(text, canonical)
 
@@ -716,29 +820,21 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for text in command_required:
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
-        source_label_docs = [
+        strict_source_docs = [
             ROOT / ".claude" / "commands" / "article.md",
-            ROOT / ".claude" / "commands" / "write.md",
             ROOT / ".claude" / "commands" / "rewrite.md",
             ROOT / "context" / "aeo-geo-blog-strategy.md",
             ROOT / "README.md",
-            ROOT / "CLAUDE.md",
         ]
-        for path in source_label_docs:
+        for path in strict_source_docs:
             content = path.read_text(encoding="utf-8")
-            self.assertIn("AnswerSocrates", content, f"{path.name} missing AnswerSocrates")
-            self.assertTrue(
-                "user PAA/FAQ CSV" in content or "user-provided CSV" in content,
-                f"{path.name} missing user PAA/FAQ CSV or user-provided CSV wording",
-            )
-
-        for path in workflow_docs:
-            content = path.read_text(encoding="utf-8")
-            self.assertNotIn(
-                "Proof links alone do not prove question provenance",
-                content,
-                f"{path.name} should point to canonical PAA policy instead of duplicating it",
-            )
+            for marker in (
+                "structured AnswerSocrates artifact",
+                "dedicated brief section",
+                "genuine blocked state",
+                "cannot satisfy PAA provenance",
+            ):
+                self.assertIn(marker, content, f"{path.name} missing {marker}")
 
     def test_numeric_claim_source_guard_is_documented_globally(self):
         canonical = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
@@ -883,33 +979,50 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                         f"{path.name} scorer command missing --validate-source-support: {line}",
                     )
 
-    def test_publish_readiness_runner_is_documented_as_preferred_command(self):
-        docs = [
-            ROOT / ".claude" / "commands" / "research.md",
-            ROOT / ".claude" / "commands" / "optimize.md",
+    def test_publish_readiness_runner_is_documented_as_two_phase_command(self):
+        lifecycle_docs = [
             ROOT / ".claude" / "commands" / "article.md",
-            ROOT / ".claude" / "commands" / "write.md",
             ROOT / ".claude" / "commands" / "rewrite.md",
             ROOT / "README.md",
+        ]
+        for path in lifecycle_docs:
+            content = path.read_text(encoding="utf-8")
+            for marker in (
+                "python data_sources/modules/publish_readiness.py",
+                "--phase preflight",
+                "--phase final",
+                "--output",
+            ):
+                self.assertIn(marker, content, f"{path.name} missing {marker}")
+
+        reference_docs = [
+            ROOT / ".claude" / "commands" / "research.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "write.md",
             ROOT / "CLAUDE.md",
             ROOT / "AGENTS.md",
             ROOT / ".cursor" / "rules" / "customer-proof.mdc",
         ]
-        preferred_command = "/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md"
-
-        for path in docs:
+        for path in reference_docs:
             content = path.read_text(encoding="utf-8")
-            self.assertIn(
-                preferred_command,
-                content,
-                f"{path.name} must document /publish-readiness as the preferred publish gate command",
-            )
+            self.assertIn("/publish-readiness", content, path.name)
 
-    def test_publish_readiness_slash_command_contract_exists(self):
+    def test_publish_readiness_two_phase_command_contract_exists(self):
         command_path = ROOT / ".claude" / "commands" / "publish-readiness.md"
         content = command_path.read_text(encoding="utf-8")
 
-        self.assertIn(
+        readiness_commands = [
+            line.strip()
+            for line in content.splitlines()
+            if line.strip().startswith("python data_sources/modules/publish_readiness.py")
+        ]
+        self.assertTrue(
+            any("--phase preflight" in line and "--output" in line for line in readiness_commands)
+        )
+        self.assertTrue(
+            any("--phase final" in line and "--output" in line for line in readiness_commands)
+        )
+        self.assertNotIn(
             "/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md",
             content,
         )
@@ -973,7 +1086,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         readiness = (ROOT / ".claude" / "commands" / "publish-readiness.md").read_text(encoding="utf-8")
         self.assertIn("answer_withholding_guard", readiness)
 
-    def test_noncanonical_blog_workflows_do_not_require_manual_publish_gate_scripts(self):
+    def test_noncanonical_blog_workflows_do_not_require_manual_individual_gate_scripts(self):
         docs = [
             ROOT / ".claude" / "commands" / "research.md",
             ROOT / ".claude" / "commands" / "optimize.md",
@@ -1003,13 +1116,14 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "answer_withholding_guard.py",
             "vault_brand_language_guard.py",
             "content_scorer.py",
-            "publish_readiness.py",
         ]
 
         for path in docs:
             content = path.read_text(encoding="utf-8")
             for line in content.splitlines():
                 if "python " not in line:
+                    continue
+                if "paa_provenance_guard.py record" in line:
                     continue
                 self.assertFalse(
                     any(module in line for module in publish_gate_modules),
@@ -1044,6 +1158,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             for line in content.splitlines():
                 if "python " not in line:
                     continue
+                if "paa_provenance_guard.py record" in line:
+                    continue
                 if not any(guard in line for guard in proof_aware_guards):
                     continue
                 self.assertIn(
@@ -1070,7 +1186,6 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         canonical_snippets = [
             "Metric-sensitive topics must include a Metric Proof Pack before drafting or publish readiness",
             "The source support guard requires each high-risk claim to map to a strict proof row",
-            "The PAA provenance guard requires each FAQ question to map",
             "Review narratives are first-hand customer experience",
             "For Capterra rows that fit a blog topic",
             "Every `/research`, `/article`, `/write`, `/analyze-existing`, and `/rewrite` workflow must resolve a task-specific Customer Proof Pack",
@@ -1123,7 +1238,9 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                 command_count = sum(
                     1
                     for line in content.splitlines()
-                    if "python " in line and module in line
+                    if "python " in line
+                    and module in line
+                    and "paa_provenance_guard.py record" not in line
                 )
                 self.assertLessEqual(
                     command_count,
@@ -1397,8 +1514,13 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "research/context-receipt-[topic-slug].json",
             "research/customer-proof-selector-evidence-[topic-slug].json",
             "research/fred-authority-selection-[topic-slug].md",
+            "research/editorial-plan-[topic-slug]-[YYYY-MM-DD].json",
+            "research/serp-evidence-[topic-slug]-[YYYY-MM-DD].json",
+            "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json",
+            "research/stage-receipts/[topic-slug]/",
             "research/optimizer-[topic-slug]-[YYYY-MM-DD].json",
-            "research/publish-readiness-[topic-slug]-[YYYY-MM-DD].json",
+            "research/preflight-readiness-[topic-slug]-[YYYY-MM-DD].json",
+            "research/final-readiness-attestation-[topic-slug]-[YYYY-MM-DD].json",
             "Context Binding",
             "Context Claim Use Map",
             "--assembly-bom",
@@ -1406,12 +1528,649 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         for text in required:
             self.assertIn(text, article)
 
+    def test_blog_workflow_docs_define_non_circular_two_phase_seal(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "publish-readiness.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / "README.md",
+        ]
+        ordered_markers = [
+            "blog_assembly_bom.py build",
+            "--phase preflight",
+            "blog_assembly_bom.py finalize",
+            "--phase final",
+        ]
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            positions = [content.find(marker) for marker in ordered_markers]
+            self.assertTrue(
+                all(position >= 0 for position in positions),
+                f"{path.name} is missing an executable two-phase-seal command",
+            )
+            self.assertEqual(
+                positions,
+                sorted(positions),
+                f"{path.name} documents the seal commands out of order",
+            )
+            self.assertIn("verification_scope: source_artifact", content, path.name)
+            self.assertIn("detached final-readiness attestation", content, path.name)
+            self.assertIn("not hashed back into the BOM", content, path.name)
+
+            readiness_commands = [
+                line.strip()
+                for line in content.splitlines()
+                if "python data_sources/modules/publish_readiness.py" in line
+            ]
+            self.assertGreaterEqual(len(readiness_commands), 2, path.name)
+            self.assertTrue(
+                any("--phase preflight" in line and "--output" in line for line in readiness_commands),
+                f"{path.name} lacks an executable preflight command",
+            )
+            self.assertTrue(
+                any("--phase final" in line and "--output" in line for line in readiness_commands),
+                f"{path.name} lacks an executable final-attestation command",
+            )
+
+    def test_active_blog_docs_do_not_offer_one_pass_readiness_commands(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "publish-readiness.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / "README.md",
+        ]
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            stale = [
+                line
+                for line in content.splitlines()
+                if line.strip().startswith("/publish-readiness ")
+            ]
+            self.assertEqual([], stale, f"{path.name} contains a stale one-pass command")
+
+    def test_docs_show_genuine_receipt_chain_and_deterministic_preflight_companion(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / "README.md",
+        ]
+        required = (
+            "blog_assembly_mutation_recorder.py start",
+            "blog_assembly_mutation_recorder.py finish",
+            "content_scrubber.py",
+            "context_binding_generator.py",
+            "--stage-receipt-output",
+            "--run-id",
+            "--previous-receipt",
+            "preflight-readiness-[topic-slug]-[YYYY-MM-DD]-stage-receipt.json",
+        )
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for marker in required:
+                self.assertIn(marker, content, f"{path.name} missing {marker}")
+
+    def test_documented_mutation_receipts_bind_artifacts_by_contract_role(self):
+        draft_docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / "README.md",
+        ]
+        all_docs = [*draft_docs, ROOT / ".claude" / "commands" / "optimize.md"]
+        labeled_path = re.compile(r"^[a-z][a-z0-9_]*=\S+$")
+
+        for path in all_docs:
+            commands = _mutation_recorder_commands(path.read_text(encoding="utf-8"))
+            self.assertTrue(commands, f"{path.name} has no executable mutation command")
+            for command in commands:
+                for option in ("--input", "--evidence"):
+                    for value in _command_option_values(command, option):
+                        self.assertRegex(
+                            value,
+                            labeled_path,
+                            f"{path.name} documents an unlabeled {option} value: {value}",
+                        )
+
+        for path in draft_docs:
+            commands = _mutation_recorder_commands(path.read_text(encoding="utf-8"))
+            starts = [
+                command
+                for command in commands
+                if command[0] == "start"
+                and _command_option_values(command, "--stage") == ["draft"]
+            ]
+            finishes = [
+                command
+                for command in commands
+                if command[0] == "finish"
+                and any("draft-state.json" in value for value in _command_option_values(command, "--state"))
+            ]
+            self.assertEqual(1, len(starts), f"{path.name} must define one draft start")
+            self.assertEqual(1, len(finishes), f"{path.name} must define one draft finish")
+            self.assertEqual(
+                ["editorial_plan=research/editorial-plan-[topic-slug]-[YYYY-MM-DD].json"],
+                _command_option_values(starts[0], "--input"),
+                f"{path.name} must bind the editorial plan as the draft input",
+            )
+            self.assertEqual(
+                ["serp_evidence=research/serp-evidence-[topic-slug]-[YYYY-MM-DD].json"],
+                _command_option_values(finishes[0], "--evidence"),
+                f"{path.name} must bind verified SERP research as draft evidence",
+            )
+
+        optimize = (ROOT / ".claude" / "commands" / "optimize.md").read_text(
+            encoding="utf-8"
+        )
+        optimization_finishes = [
+            command
+            for command in _mutation_recorder_commands(optimize)
+            if command[0] == "finish"
+            and any(
+                "optimization-state.json" in value
+                for value in _command_option_values(command, "--state")
+            )
+        ]
+        self.assertEqual(1, len(optimization_finishes))
+        self.assertEqual(
+            ["optimizer_output=research/optimizer-[topic-slug]-[YYYY-MM-DD].json"],
+            _command_option_values(optimization_finishes[0], "--evidence"),
+        )
+
+    def test_paa_precedence_and_conditional_faq_policy_are_semantic(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "research-serp.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / "README.md",
+        ]
+        required = [
+            "structured AnswerSocrates artifact",
+            "dedicated brief section",
+            "takes precedence",
+            "exact questions as visible FAQ headings",
+            "genuine blocked state",
+            "login, CAPTCHA, quota, or unavailability",
+            "supplemental research",
+            "cannot satisfy PAA provenance",
+            "FAQ policy: required | not_applicable",
+            "non-empty rationale",
+        ]
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for marker in required:
+                self.assertIn(marker, content, f"{path.name} missing {marker}")
+
+        write = (ROOT / ".claude" / "commands" / "write.md").read_text(encoding="utf-8")
+        self.assertIn("For rewrites only", write)
+        self.assertNotIn("ask for a PAA/FAQ CSV", write)
+        research_serp = (ROOT / ".claude" / "commands" / "research-serp.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn("Feed the PAA questions", research_serp)
+
+    def test_documented_answersocrates_templates_parse_with_exact_contract(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+        ]
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            collected = _fenced_block_after(
+                content,
+                "### Collected AnswerSocrates Artifact Template",
+            )
+            collected_command = shlex.split(collected.strip(), posix=True)
+            self.assertEqual(
+                [
+                    "python",
+                    "data_sources/modules/paa_provenance_guard.py",
+                    "record",
+                ],
+                collected_command[:3],
+                path.name,
+            )
+            for option in (
+                "--query",
+                "--collection-date",
+                "--run-id",
+                "--started-at",
+                "--completed-at",
+                "--eligible-question",
+                "--output",
+            ):
+                self.assertIn(option, collected_command, f"{path.name} missing {option}")
+            self.assertTrue(
+                _command_option_values(collected_command, "--output")[0].endswith(".json")
+            )
+            self.assertIn("simpro-answersocrates-artifact/v1", content)
+            self.assertIn("simpro-answersocrates-run-receipt/v1", content)
+            self.assertIn("playwright_mcp", content)
+            self.assertIn("Handwritten labels", content)
+
+            blocked = _fenced_block_after(
+                content,
+                "### Blocked AnswerSocrates Artifact Template",
+            )
+            blocked_command = shlex.split(blocked.strip(), posix=True)
+            self.assertEqual(
+                [
+                    "python",
+                    "data_sources/modules/paa_provenance_guard.py",
+                    "record",
+                ],
+                blocked_command[:3],
+                path.name,
+            )
+            self.assertEqual(
+                ["blocked"],
+                _command_option_values(blocked_command, "--status"),
+            )
+            for option in ("--blocker", "--blocker-reason", "--output"):
+                self.assertIn(option, blocked_command, f"{path.name} missing {option}")
+
+        rewrite_docs = [
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / "README.md",
+        ]
+        for path in rewrite_docs:
+            self.assertIn(
+                "## Pre-picked PAA Questions",
+                path.read_text(encoding="utf-8"),
+                f"{path.name} omits the exact brief heading consumed by the guard",
+            )
+
+    def test_active_blog_guidance_has_no_fixed_research_or_link_counts(self):
+        docs = [
+            ROOT / "README.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / "context" / "seo-guidelines.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "research.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "analyze-existing.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "research-serp.md",
+            ROOT / ".claude" / "agents" / "seo-optimizer.md",
+            ROOT / ".claude" / "agents" / "internal-linker.md",
+            ROOT / ".claude" / "agents" / "content-analyzer.md",
+        ]
+        forbidden_patterns = [
+            r"top\s+\d+(?:\s*[-\u2013]\s*\d+)?\s+(?:competitor|source|ranking result)",
+            r"visit\s+\d+\s+(?:actual\s+)?(?:threads?|videos?)",
+            r"\d+\s*[-\u2013]\s*\d+\s+(?:external|internal|authority|related)?\s*links?",
+            r"\d+\s*[-\u2013]\s*\d+\s+(?:PAA|FAQ)(?:/FAQ)?\s+questions?",
+            r"at\s+least\s+\d+\s+(?:external|internal|authority|source)\s+links?",
+            r"\d+\s*[-\u2013]\s*\d+\+?\s+(?:quality\s+)?(?:external|internal|authority)\s+links?",
+            r"\d+\s*[-\u2013]\s*\d+\s+(?:closest|selected)\s+(?:PAA|FAQ)(?:/FAQ)?\s+questions?",
+            r"at\s+least\s+(?:\d+|one|two|three|four|five)\s+source-backed\s+claims?",
+            r"target\s+range:\s*\d+\s*[-\u2013]\s*\d+\s+internal\s+links?",
+            r"\d+\s+or\s+more\s+competitors?",
+            r"(?:one|\d+(?:\s*[-\u2013]\s*\d+)?)\s+strategic\s+links?\s+maximum",
+            r"\d+\s*[-\u2013]\s*\d+\s+related\s+(?:articles?|blog posts?)\s+to\s+link",
+        ]
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for pattern in forbidden_patterns:
+                self.assertIsNone(
+                    re.search(pattern, content, flags=re.IGNORECASE),
+                    f"{path.name} contains fixed-count guidance: {pattern}",
+                )
+
+        combined = "\n".join(path.read_text(encoding="utf-8") for path in docs)
+        self.assertNotRegex(combined, re.compile(r"\bLSI\b", re.IGNORECASE))
+        self.assertNotIn("industrying", combined.casefold())
+        self.assertNotRegex(
+            combined,
+            re.compile(r"80\s*[-\u2013]\s*89[^\n]*(?:publishable|ready)", re.IGNORECASE),
+        )
+        self.assertNotIn("default to competitive length", combined.casefold())
+
+    def test_docs_require_observation_bound_serp_and_source_evidence(self):
+        serp_docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "research-serp.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+        ]
+        for path in serp_docs:
+            content = path.read_text(encoding="utf-8")
+            self.assertIn("simpro-serp-evidence/v1", content, path.name)
+            self.assertIn("result", content.casefold(), path.name)
+            self.assertIn("evidence hash", content.casefold(), path.name)
+            self.assertRegex(content, re.compile(r"metadata-only", re.IGNORECASE))
+
+        source_docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+        ]
+        for path in source_docs:
+            content = path.read_text(encoding="utf-8")
+            for marker in (
+                "Evidence relation: directly_supports",
+                "Classification artifact",
+                "Classification hash",
+                "simpro-source-classification/v1",
+                "Capture receipt",
+                "Capture receipt hash",
+                "simpro-source-capture-receipt/v1",
+            ):
+                self.assertIn(marker, content, f"{path.name} missing {marker}")
+
+        contribution_docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+        ]
+        for path in contribution_docs:
+            content = path.read_text(encoding="utf-8")
+            self.assertIn("visible_evidence", content, path.name)
+
+    def test_tool_emitted_artifacts_document_local_execution_attestation_boundary(self):
+        workflow_docs = [
+            ROOT / "README.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "publish-readiness.md",
+        ]
+        required_markers = (
+            "tool-emitted machine artifacts",
+            "`execution_attestation`",
+            "keyed local execution-integrity attestation",
+            "simpro-blog-stage-receipt/v1",
+            "simpro-serp-evidence/v1",
+            "simpro-answersocrates-run-receipt/v1",
+            "simpro-source-classification/v1",
+            "simpro-source-capture-receipt/v1",
+            "does not provide a remote/provider signature",
+            "external observations are true",
+        )
+        for path in workflow_docs:
+            content = path.read_text(encoding="utf-8")
+            for marker in required_markers:
+                self.assertIn(
+                    marker.casefold(),
+                    content.casefold(),
+                    f"{path.name} missing {marker}",
+                )
+
+        research_serp = (
+            ROOT / ".claude" / "commands" / "research-serp.md"
+        ).read_text(encoding="utf-8")
+        for marker in (
+            "`execution_attestation`",
+            "keyed local execution-integrity attestation",
+            "simpro-serp-evidence/v1",
+            "simpro-answersocrates-run-receipt/v1",
+            "does not provide a remote/provider signature",
+        ):
+            self.assertIn(
+                marker.casefold(),
+                research_serp.casefold(),
+                f"research-serp.md missing {marker}",
+            )
+
+    def test_attestation_trust_key_operations_are_documented(self):
+        for path in (
+            ROOT / "README.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+        ):
+            content = path.read_text(encoding="utf-8")
+            for marker in (
+                "SEOMACHINE_ARTIFACT_ATTESTATION_KEY",
+                ".cache/seomachine-execution-attestation.key",
+                "invalidates existing attestations",
+            ):
+                self.assertIn(marker, content, f"{path.name} missing {marker}")
+
+    def test_post_optimization_docs_define_closed_receipt_sequence(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+        ]
+        stages = [
+            "optimization",
+            "post_optimization_scrub",
+            "post_optimization_context_binding",
+            "final_preflight_readiness",
+        ]
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            anchor = content.find("Closed post-optimization receipt sequence")
+            self.assertGreaterEqual(anchor, 0, f"{path.name} missing closed sequence")
+            section = content[anchor:]
+            positions = [section.find(stage) for stage in stages]
+            self.assertTrue(all(position >= 0 for position in positions), path.name)
+            self.assertEqual(positions, sorted(positions), path.name)
+            self.assertIn("--prior-preflight-readiness", section, path.name)
+
+    def test_post_optimization_reseal_preserves_the_prior_bom_identity(self):
+        initial_bom = (
+            "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json"
+        )
+        initial_final_bom = (
+            "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-final.json"
+        )
+        post_optimization_bom = (
+            "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]"
+            "-post-optimization.json"
+        )
+        post_optimization_final_bom = (
+            "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]"
+            "-post-optimization-final.json"
+        )
+        docs = [
+            ROOT / "README.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "publish-readiness.md",
+        ]
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.name):
+                self.assertIn(initial_bom, content)
+                self.assertIn(initial_final_bom, content)
+                self.assertIn(post_optimization_bom, content)
+                self.assertIn(post_optimization_final_bom, content)
+                self.assertIn(
+                    "Do not overwrite the BOM referenced by the prior preflight",
+                    content,
+                )
+
+        for path in docs[2:5]:
+            content = path.read_text(encoding="utf-8")
+            commands = [
+                shlex.split(line.strip(), posix=True)
+                for line in content.splitlines()
+                if line.strip().startswith("python data_sources/modules/")
+            ]
+            initial_finalize = next(
+                command
+                for command in commands
+                if command[1].endswith("blog_assembly_bom.py")
+                and command[2] == "finalize"
+                and "final-preflight-readiness" not in " ".join(command)
+            )
+            initial_final_readiness = next(
+                command
+                for command in commands
+                if command[1].endswith("publish_readiness.py")
+                and _command_option_values(command, "--phase") == ["final"]
+            )
+            with self.subTest(path=path.name, stage="initial-finalization"):
+                self.assertEqual(
+                    [initial_bom],
+                    _command_option_values(initial_finalize, "--bom"),
+                )
+                self.assertEqual(
+                    [initial_final_bom],
+                    _command_option_values(initial_finalize, "--output"),
+                )
+                self.assertEqual(
+                    [initial_final_bom],
+                    _command_option_values(initial_final_readiness, "--assembly-bom"),
+                )
+
+        optimize = (ROOT / ".claude" / "commands" / "optimize.md").read_text(
+            encoding="utf-8"
+        )
+        commands = [
+            shlex.split(line.strip(), posix=True)
+            for line in optimize.splitlines()
+            if line.strip().startswith("python data_sources/modules/")
+        ]
+        optimized_build = next(
+            command
+            for command in commands
+            if command[1].endswith("blog_assembly_bom.py")
+            and command[2] == "build"
+            and "--prior-preflight-readiness" in command
+        )
+        post_preflight = next(
+            command
+            for command in commands
+            if command[1].endswith("publish_readiness.py")
+            and _command_option_values(command, "--phase") == ["preflight"]
+            and "final-preflight-readiness" in " ".join(command)
+        )
+        post_finalize = next(
+            command
+            for command in commands
+            if command[1].endswith("blog_assembly_bom.py")
+            and command[2] == "finalize"
+            and "final-preflight-readiness" in " ".join(command)
+        )
+        final_readiness = next(
+            command
+            for command in commands
+            if command[1].endswith("publish_readiness.py")
+            and _command_option_values(command, "--phase") == ["final"]
+        )
+
+        self.assertEqual(
+            [post_optimization_bom],
+            _command_option_values(optimized_build, "--output"),
+        )
+        self.assertEqual(
+            [initial_bom.replace("blog-assembly-bom", "preflight-readiness")],
+            _command_option_values(optimized_build, "--prior-preflight-readiness"),
+        )
+        self.assertEqual(
+            [post_optimization_bom],
+            _command_option_values(post_preflight, "--assembly-bom"),
+        )
+        self.assertEqual(
+            [post_optimization_bom],
+            _command_option_values(post_finalize, "--bom"),
+        )
+        self.assertEqual(
+            [post_optimization_final_bom],
+            _command_option_values(post_finalize, "--output"),
+        )
+        self.assertEqual(
+            [post_optimization_final_bom],
+            _command_option_values(final_readiness, "--assembly-bom"),
+        )
+
+    def test_editorial_plan_docs_cover_world_class_quality_decisions(self):
+        workflow_paths = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+        ]
+        article = workflow_paths[0].read_text(encoding="utf-8")
+        strategy = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            "simpro-blog-editorial-plan/v1",
+            "complete Reader Contract",
+            "verified intent and SERP decisions",
+            "at least 1 original contribution",
+            "primary and supporting entity coverage",
+            "clear | differentiated | blocked",
+            "required contextual down-funnel link",
+            "FAQ policy: required | not_applicable",
+            "PAA source/binding/selected-question decision",
+        ):
+            self.assertIn(marker, strategy, f"canonical strategy missing {marker}")
+
+        for heading in (
+            "## Reader Contract",
+            "## SERP Strategy Decision",
+            "## Original Contribution Map",
+            "## Entity Map",
+            "## Query Ownership and Cannibalization Decision",
+            "## Internal-Link Plan",
+            "## FAQ and PAA Policy",
+        ):
+            self.assertIn(heading, article)
+
+        self.assertIn("`blocked` prevents readiness", article)
+        self.assertIn("no fixed count", article)
+
+        for path in workflow_paths:
+            content = path.read_text(encoding="utf-8")
+            for marker in (
+                "simpro-blog-editorial-plan/v1",
+                "serialize_article_plan(plan)",
+                "research/editorial-plan-[topic-slug]-[YYYY-MM-DD].json",
+                "Original Contribution Map",
+                "Entity Map",
+                "Query Ownership and Cannibalization Decision",
+                "Internal-Link Plan",
+                "FAQ and PAA Policy",
+            ):
+                self.assertIn(marker, content, f"{path.name} missing {marker}")
+
+    def test_blog_workflow_docs_require_strict_identity_and_current_freshness(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+        ]
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for field in (
+                "artifact_type",
+                "brand",
+                "title",
+                "objective",
+                "audience",
+                "region",
+                "last_updated",
+                "schema_notes",
+            ):
+                self.assertRegex(content, rf"(?m)^\s*{field}:", path.name)
+            self.assertIn("matching the assembly date", content, path.name)
+
     def test_blog_schema_author_is_conditional_not_universal(self):
         docs = [
             ROOT / "AGENTS.md",
             ROOT / "CLAUDE.md",
             ROOT / "README.md",
             ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / "context" / "seo-guidelines.md",
             ROOT / ".claude" / "commands" / "article.md",
             ROOT / ".claude" / "commands" / "write.md",
             ROOT / ".claude" / "commands" / "rewrite.md",
@@ -1429,6 +2188,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         forbidden = [
             "Author attribution in frontmatter",
             "Named author in frontmatter",
+            "Author attribution: Named author",
+            'Author attribution (named, not generic "Team")',
         ]
         for path in docs:
             content = path.read_text(encoding="utf-8")
@@ -1440,6 +2201,77 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                     content,
                     f"{path.name} still makes author universal",
                 )
+
+        active_workflows = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "publish-readiness.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / "context" / "seo-guidelines.md",
+        ]
+        no_author_voice_rule = (
+            "When `author_policy.status` is `not_provided`, first-person singular "
+            "author judgment outside quotes is prohibited."
+        )
+        for path in active_workflows:
+            self.assertIn(
+                no_author_voice_rule,
+                path.read_text(encoding="utf-8"),
+                f"{path.name} omits the no-author voice boundary",
+            )
+
+    def test_schema_conditionals_use_exact_visible_content_contracts(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "publish-readiness.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / "context" / "seo-guidelines.md",
+        ]
+        required = (
+            "`FAQPage` and `Question and Answer inside FAQPage` are required only "
+            "when visible FAQs exist.",
+            "Require `VideoObject` if and only if a verified video embed exists.",
+            "`Person as author` is required only when a named author exists.",
+        )
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            for marker in required:
+                self.assertIn(marker, content, f"{path.name} missing {marker}")
+
+    def test_general_source_support_docs_use_exact_source_classes(self):
+        docs = [
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "publish-readiness.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+        ]
+        source_classes = (
+            "primary_authority",
+            "independent_research",
+            "non_competing_expert",
+            "owned_product",
+            "customer_proof",
+            "review_platform",
+            "competitor",
+        )
+        for path in docs:
+            content = path.read_text(encoding="utf-8")
+            self.assertIn("General Source Support Classes", content, path.name)
+            for source_class in source_classes:
+                self.assertIn(
+                    f"`{source_class}`",
+                    content,
+                    f"{path.name} missing {source_class}",
+                )
+
+    def test_readme_has_no_malformed_workflow_copy(self):
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertNotIn(" ? ", readme)
+        self.assertNotIn("¦", readme)
 
     def test_publish_docs_and_agents_reference_publish_readiness(self):
         docs = [
@@ -1488,18 +2320,15 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             marker = "after optimization mutations"
             self.assertIn(marker, content, f"{path.name} missing post-optimization section")
             post = content[content.index(marker):]
-            binding_index = post.find("context_binding_generator.py")
-            readiness_index = post.find("/publish-readiness")
-            self.assertGreaterEqual(
-                binding_index,
-                0,
-                f"{path.name} missing post-optimization binding regeneration",
+            stages = (
+                "optimization",
+                "post_optimization_scrub",
+                "post_optimization_context_binding",
+                "final_preflight_readiness",
             )
-            self.assertGreater(
-                readiness_index,
-                binding_index,
-                f"{path.name} must rerun readiness after regenerated binding",
-            )
+            positions = [post.find(stage) for stage in stages]
+            self.assertTrue(all(position >= 0 for position in positions), path.name)
+            self.assertEqual(positions, sorted(positions), path.name)
 
     def test_research_performance_is_slash_command_first(self):
         research_performance = (
@@ -1926,7 +2755,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
 
         article = active_docs[0].read_text(encoding="utf-8")
         self.assertIn("omit the embed", article)
-        self.assertIn("VideoObject only when a video is embedded", article)
+        self.assertIn("Require `VideoObject` if and only if a verified video embed exists.", article)
 
     def test_proof_infrastructure_routes_only_to_validation_sidecars(self):
         article = (ROOT / ".claude" / "commands" / "article.md").read_text(
@@ -2300,7 +3129,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
 
         self.assertIn("generated vault context binding", canonical)
         self.assertIn("claim-specific gates", canonical)
-        self.assertIn("Context Binding is the first", publish_readiness)
+        self.assertIn("Strict artifact identity is the first", publish_readiness)
+        self.assertIn("Context Binding follows", publish_readiness)
         self.assertIn("claim-specific gates", publish_readiness)
 
         for content, name in [
@@ -2382,6 +3212,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         ]
         workflow_required = [
             selector_command_prefix,
+            '--output "research/fred-authority-selection-[topic-slug].md"',
             "Fred Voccola Authority Selection",
             "Evaluation is mandatory",
             "public use is optional",
@@ -2611,6 +3442,21 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             ]
             for phrase in legacy_defaults:
                 self.assertNotIn(phrase, content, relative_path)
+
+    def test_research_workflows_do_not_prescribe_fixed_competitor_counts(self):
+        for path in (ROOT / ".claude" / "commands").glob("*research*.md"):
+            content = path.read_text(encoding="utf-8")
+            self.assertNotRegex(
+                content,
+                r"(?i)(?:top|analy[sz]e)\s+\d+(?:\s*-\s*\d+)?\s+competitors",
+                path.name,
+            )
+        landing_research = (
+            ROOT / ".claude" / "commands" / "landing-research.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("there is no fixed competitor count", landing_research)
+        self.assertIn("There is no fixed total", landing_research)
+        self.assertIn("FAQ Decision", landing_research)
 
 if __name__ == "__main__":
     unittest.main()

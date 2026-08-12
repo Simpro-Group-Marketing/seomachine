@@ -22,15 +22,15 @@ from typing import List, Optional
 from urllib.parse import urlparse
 
 try:
+    from .faq_structure import detect_faq_structure
     from .guard_common import Finding, should_fail, summarize_findings
 except ImportError:  # pragma: no cover - supports direct script execution.
+    from faq_structure import detect_faq_structure
     from guard_common import Finding, should_fail, summarize_findings
 
 
-FAQ_H2_RE = re.compile(r"^##\s+(?:Frequently Asked Questions|FAQ)\s*$", re.IGNORECASE)
-H2_RE = re.compile(r"^##\s+")
-FAQ_QUESTION_RE = re.compile(r"^###\s+(.+\?)\s*$")
 PUBLIC_URL_RE = re.compile(r"https?://[^\s)\]|<>\"']+", re.IGNORECASE)
+H2_RE = re.compile(r"^##\s+")
 MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\((https?://[^)]+)\)", re.IGNORECASE)
 OWNED_PROOF_DOMAINS = (
     "simprogroup.com",
@@ -76,6 +76,18 @@ def check_content(
     Returns:
         Structured findings for FAQ answers missing linked proof.
     """
+    structure = detect_faq_structure(content)
+    if structure.unsupported_lines:
+        return [
+            {
+                "rule_id": "faq_structure_unsupported",
+                "severity": "error",
+                "line": structure.unsupported_lines[0],
+                "column": 1,
+                "message": "FAQ-like question markup uses an unsupported structure.",
+                "suggestion": "Use a recognized FAQ H2 followed by H3-H5 question headings.",
+            }
+        ]
     faq_answers = _extract_faq_answers(content)
     if not faq_answers:
         return []
@@ -138,50 +150,14 @@ def check_file(
 
 
 def _extract_faq_answers(content: str) -> List[FaqAnswer]:
-    lines = content.splitlines()
-    faq_start_index: Optional[int] = None
-
-    for index, line in enumerate(lines):
-        if FAQ_H2_RE.match(line.strip()):
-            faq_start_index = index + 1
-            break
-
-    if faq_start_index is None:
-        return []
-
-    faq_end_index = len(lines)
-    for index in range(faq_start_index, len(lines)):
-        if H2_RE.match(lines[index].strip()):
-            faq_end_index = index
-            break
-
-    faq_answers: List[FaqAnswer] = []
-    question_indexes: List[int] = []
-    for index in range(faq_start_index, faq_end_index):
-        if FAQ_QUESTION_RE.match(lines[index].strip()):
-            question_indexes.append(index)
-
-    for position, question_index in enumerate(question_indexes):
-        question_match = FAQ_QUESTION_RE.match(lines[question_index].strip())
-        if question_match is None:
-            continue
-
-        answer_start = question_index + 1
-        answer_end = (
-            question_indexes[position + 1]
-            if position + 1 < len(question_indexes)
-            else faq_end_index
+    return [
+        FaqAnswer(
+            question=entry.question,
+            heading_line=entry.line,
+            answer=entry.answer,
         )
-        answer = "\n".join(lines[answer_start:answer_end]).strip()
-        faq_answers.append(
-            FaqAnswer(
-                question=question_match.group(1).strip(),
-                heading_line=question_index + 1,
-                answer=answer,
-            )
-        )
-
-    return faq_answers
+        for entry in detect_faq_structure(content).entries
+    ]
 
 
 def _check_faq_source_policy(

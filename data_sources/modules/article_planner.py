@@ -8,10 +8,14 @@ a comprehensive writing plan.
 Used by the /article command during the planning phase.
 """
 
+import json
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, field
 from enum import Enum
 import re
+
+
+EDITORIAL_PLAN_SCHEMA = 'simpro-blog-editorial-plan/v1'
 
 
 class SectionType(Enum):
@@ -334,6 +338,12 @@ class ArticlePlan:
     gap_to_section_mapping: Dict[str, int]  # gap description -> section number
     insight_to_section_mapping: Dict[str, int]  # insight -> section number
     reader_contract: ReaderContract
+    original_contributions: List[Dict[str, str]]
+    entity_map: Dict[str, List[str]]
+    query_ownership: Dict[str, str]
+    internal_link_plan: List[Dict[str, str]]
+    faq_policy: Dict[str, Any]
+    paa_policy: Dict[str, Any]
     dominant_content_type: Optional[str] = None
     selected_content_type: Optional[str] = None
     observed_serp_features: Optional[List[str]] = None
@@ -489,6 +499,8 @@ class ArticlePlan:
                     f"{field_name} must map non-empty strings to valid section numbers"
                 )
 
+        self._validate_quality_decisions(valid_section_numbers)
+
         strategy_inputs = (
             self.dominant_content_type,
             self.selected_content_type,
@@ -546,8 +558,141 @@ class ArticlePlan:
             included_must_have_sections=self.included_must_have_sections,
         )
 
+    def _validate_quality_decisions(self, valid_section_numbers: set[int]) -> None:
+        """Validate the mandatory execution decisions serialized into the plan."""
+        if not isinstance(self.original_contributions, list) or not self.original_contributions:
+            raise ValueError("original_contributions must be a non-empty list")
+        planned_headings = {section.heading.casefold() for section in self.sections}
+        for index, contribution in enumerate(self.original_contributions):
+            if not isinstance(contribution, dict) or set(contribution) != {
+                "description",
+                "final_section",
+                "visible_evidence",
+            }:
+                raise ValueError(
+                    f"original_contributions[{index}] must contain description, final_section, and visible_evidence"
+                )
+            for key in ("description", "final_section", "visible_evidence"):
+                value = contribution.get(key)
+                if not isinstance(value, str) or not value.strip():
+                    raise ValueError(
+                        f"original_contributions[{index}].{key} must be a non-empty string"
+                    )
+            if len(contribution["visible_evidence"].split()) < 4:
+                raise ValueError(
+                    f"original_contributions[{index}].visible_evidence must contain at least four words"
+                )
+            if contribution["final_section"].strip().casefold() not in planned_headings:
+                raise ValueError(
+                    f"original_contributions[{index}].final_section must name a planned section"
+                )
+
+        if not isinstance(self.entity_map, dict) or set(self.entity_map) != {
+            "primary",
+            "supporting",
+        }:
+            raise ValueError("entity_map must contain only primary and supporting lists")
+        for role in ("primary", "supporting"):
+            entities = self.entity_map.get(role)
+            if not isinstance(entities, list) or not entities or any(
+                not isinstance(entity, str) or not entity.strip()
+                for entity in entities
+            ):
+                raise ValueError(f"entity_map.{role} must be a non-empty list of strings")
+
+        if not isinstance(self.query_ownership, dict) or set(self.query_ownership) != {
+            "decision",
+            "rationale",
+        }:
+            raise ValueError("query_ownership must contain decision and rationale")
+        if self.query_ownership.get("decision") not in {
+            "clear",
+            "differentiated",
+            "blocked",
+        }:
+            raise ValueError("query_ownership.decision must be clear, differentiated, or blocked")
+        if not isinstance(self.query_ownership.get("rationale"), str) or not self.query_ownership[
+            "rationale"
+        ].strip():
+            raise ValueError("query_ownership.rationale must be a non-empty string")
+
+        if not isinstance(self.internal_link_plan, list) or not self.internal_link_plan:
+            raise ValueError("internal_link_plan must be a non-empty list")
+        for index, link in enumerate(self.internal_link_plan):
+            if not isinstance(link, dict) or set(link) != {
+                "target",
+                "role",
+                "rationale",
+            }:
+                raise ValueError(
+                    f"internal_link_plan[{index}] must contain target, role, and rationale"
+                )
+            for key in ("target", "rationale"):
+                value = link.get(key)
+                if not isinstance(value, str) or not value.strip():
+                    raise ValueError(
+                        f"internal_link_plan[{index}].{key} must be a non-empty string"
+                    )
+            if link.get("role") not in {"supporting", "down_funnel"}:
+                raise ValueError(
+                    f"internal_link_plan[{index}].role must be supporting or down_funnel"
+                )
+        if not any(link["role"] == "down_funnel" for link in self.internal_link_plan):
+            raise ValueError("internal_link_plan requires a down_funnel link")
+
+        if not isinstance(self.faq_policy, dict) or set(self.faq_policy) != {
+            "status",
+            "rationale",
+        }:
+            raise ValueError("faq_policy must contain status and rationale")
+        if self.faq_policy.get("status") not in {"required", "not_applicable"}:
+            raise ValueError("faq_policy.status must be required or not_applicable")
+        if not isinstance(self.faq_policy.get("rationale"), str) or not self.faq_policy[
+            "rationale"
+        ].strip():
+            raise ValueError("faq_policy.rationale must be a non-empty string")
+
+        if not isinstance(self.paa_policy, dict) or set(self.paa_policy) != {
+            "source_kind",
+            "query",
+            "selected_questions",
+        }:
+            raise ValueError(
+                "paa_policy must contain source_kind, query, and selected_questions"
+            )
+        if self.paa_policy.get("source_kind") not in {
+            "answersocrates",
+            "brief_paa",
+            "user_csv",
+        }:
+            raise ValueError("paa_policy.source_kind is unsupported")
+        if not isinstance(self.paa_policy.get("query"), str) or not self.paa_policy[
+            "query"
+        ].strip():
+            raise ValueError("paa_policy.query must be a non-empty string")
+        selected_questions = self.paa_policy.get("selected_questions")
+        if not isinstance(selected_questions, list) or any(
+            not isinstance(question, str)
+            or not question.strip()
+            or not question.strip().endswith("?")
+            for question in selected_questions
+        ):
+            raise ValueError(
+                "paa_policy.selected_questions must be a list of complete questions"
+            )
+        faq_planned = any(
+            section.section_type == SectionType.FAQ for section in self.sections
+        )
+        if self.faq_policy["status"] == "required" and not selected_questions:
+            raise ValueError("faq_policy.required needs selected PAA questions")
+        if self.faq_policy["status"] == "not_applicable" and selected_questions:
+            raise ValueError("faq_policy.not_applicable cannot select PAA questions")
+        if faq_planned != (self.faq_policy["status"] == "required"):
+            raise ValueError("faq_policy must match the planned FAQ section state")
+
     def to_dict(self) -> Dict[str, Any]:
         result = {
+            'schema': EDITORIAL_PLAN_SCHEMA,
             "topic": self.topic,
             "date": self.date,
             "meta": self.meta.to_dict(),
@@ -557,9 +702,27 @@ class ArticlePlan:
             "gap_mapping": self.gap_to_section_mapping,
             "insight_mapping": self.insight_to_section_mapping,
             "reader_contract": self.reader_contract.to_dict(),
+            "original_contributions": self.original_contributions,
+            "entity_map": self.entity_map,
+            "query_ownership": self.query_ownership,
+            "internal_link_plan": self.internal_link_plan,
+            "faq_policy": self.faq_policy,
+            "paa_policy": self.paa_policy,
         }
         result["serp_strategy"] = self.serp_strategy_decisions
         return result
+
+
+def serialize_article_plan(plan: ArticlePlan) -> str:
+    '''Serialize one editorial plan as deterministic UTF-8-ready JSON.'''
+    if not isinstance(plan, ArticlePlan):
+        raise ValueError('plan must be an ArticlePlan value')
+    return json.dumps(
+        plan.to_dict(),
+        ensure_ascii=False,
+        indent=2,
+        sort_keys=True,
+    ) + '\n'
 
 
 class ArticlePlanner:
@@ -652,6 +815,7 @@ class ArticlePlanner:
                 "included_must_have_sections must contain only observed must-have sections"
             )
         decisions: Dict[str, Any] = {
+            "status": "resolved",
             "content_type": {
                 "observed": dominant_content_type,
                 "selected": selected_content_type,
@@ -951,7 +1115,7 @@ class ArticlePlanner:
         elif section_type == SectionType.BODY_COMPARISON:
             return "Start with the key differentiator"
         elif section_type == SectionType.FAQ:
-            return "Use real questions from Reddit/YouTube research"
+            return "Use the exact selected questions from the bound PAA provenance artifact"
         else:
             return "Connect to reader's situation immediately"
 
@@ -1014,6 +1178,34 @@ def format_article_plan(plan: ArticlePlan) -> str:
             "- **Proof status**: SERP observations guide structure only; public "
             "claims still require approved proof.\n"
         )
+
+    report += "\n## Original Contribution\n"
+    for contribution in plan.original_contributions:
+        report += (
+            f"- **{contribution['final_section']}**: "
+            f"{contribution['description']}\n"
+        )
+    report += "\n## Entity Map\n"
+    report += f"- **Primary**: {', '.join(plan.entity_map['primary'])}\n"
+    report += f"- **Supporting**: {', '.join(plan.entity_map['supporting'])}\n"
+    report += "\n## Query Ownership\n"
+    report += f"- **Decision**: {plan.query_ownership['decision']}\n"
+    report += f"- **Rationale**: {plan.query_ownership['rationale']}\n"
+    report += "\n## Internal Link Plan\n"
+    for link in plan.internal_link_plan:
+        report += (
+            f"- **{link['role']}**: {link['target']} - {link['rationale']}\n"
+        )
+    report += "\n## FAQ and PAA Policy\n"
+    report += f"- **FAQ status**: {plan.faq_policy['status']}\n"
+    report += f"- **FAQ rationale**: {plan.faq_policy['rationale']}\n"
+    report += f"- **PAA source**: {plan.paa_policy['source_kind']}\n"
+    report += f"- **PAA query**: {plan.paa_policy['query']}\n"
+    if plan.paa_policy['selected_questions']:
+        for question in plan.paa_policy['selected_questions']:
+            report += f"- **Selected question**: {question}\n"
+    else:
+        report += "- **Selected questions**: None\n"
 
     report += """
 
@@ -1109,7 +1301,7 @@ def format_article_plan(plan: ArticlePlan) -> str:
 """
     if plan.gap_to_section_mapping:
         for gap, section_num in plan.gap_to_section_mapping.items():
-            report += f"- **{gap}** → Section {section_num}\n"
+            report += f"- **{gap}** -> Section {section_num}\n"
     else:
         report += "- No specific gap mappings defined yet\n"
 
@@ -1119,7 +1311,7 @@ def format_article_plan(plan: ArticlePlan) -> str:
 """
     if plan.insight_to_section_mapping:
         for insight, section_num in plan.insight_to_section_mapping.items():
-            report += f"- **{insight[:50]}...** → Section {section_num}\n"
+            report += f"- **{insight[:50]}...** -> Section {section_num}\n"
     else:
         report += "- No specific insight mappings defined yet\n"
 
@@ -1151,7 +1343,6 @@ def create_default_structure(topic: str) -> List[str]:
         f"How to Get Started with {topic}",
         f"Best Practices for {topic}",
         "Common Mistakes to Avoid",
-        "Frequently Asked Questions",
         "Conclusion"
     ]
 

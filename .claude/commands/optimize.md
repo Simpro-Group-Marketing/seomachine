@@ -1,22 +1,41 @@
 # Optimize Command
 
-## Context Binding Regeneration (MANDATORY)
+## Blog Assembly Reseal (MANDATORY)
 
-After the final content mutation, regenerate the machine-owned binding before `/publish-readiness`:
+Start the optimization recorder before changing the article, finish it after saving, and emit the chained post-optimization receipts:
 
-```bash
-python data_sources/modules/context_binding_generator.py "$FILE_PATH" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT"
+```powershell
+python data_sources/modules/blog_assembly_mutation_recorder.py start --article "[file]" --state "research/stage-receipts/[topic-slug]/optimization-state.json" --run-id "[run-id]" --stage optimization --tool-name "optimize-command" --tool-version "1" --previous-receipt-hash "[sha256-of-prior-stage-receipt]"
+# Apply and save the optimization here.
+python data_sources/modules/blog_assembly_mutation_recorder.py finish --article "[file]" --state "research/stage-receipts/[topic-slug]/optimization-state.json" --receipt "research/stage-receipts/[topic-slug]/optimization.json" --evidence "optimizer_output=research/optimizer-[topic-slug]-[YYYY-MM-DD].json"
+python data_sources/modules/content_scrubber.py "[file]" --stage post_optimization_scrub --run-id "[run-id]" --previous-receipt "research/stage-receipts/[topic-slug]/optimization.json" --stage-receipt-output "research/stage-receipts/[topic-slug]/post-optimization-scrub.json"
+python data_sources/modules/context_binding_generator.py "[file]" --proof-sidecar "research/validation-[topic-slug]-[YYYY-MM-DD].md" --context-request "research/context-request-[topic-slug].json" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --stage post_optimization_context_binding --run-id "[run-id]" --previous-receipt "research/stage-receipts/[topic-slug]/post-optimization-scrub.json" --stage-receipt-output "research/stage-receipts/[topic-slug]/post-optimization-context-binding.json"
 ```
 
-Run this again after every optimization or editorial change that modifies public copy. A stale article hash blocks handoff.
+Non-connector branch: replace the post-optimization Context Binding command with `python data_sources/modules/context_binding_generator.py "[file]" --proof-sidecar "research/validation-[topic-slug]-[YYYY-MM-DD].md" --not-applicable-reason "Final article contains no Simpro brand, URL, or connector-sensitive language." --stage post_optimization_context_binding --run-id "[run-id]" --previous-receipt "research/stage-receipts/[topic-slug]/post-optimization-scrub.json" --stage-receipt-output "research/stage-receipts/[topic-slug]/post-optimization-context-binding.json"`. Omit context request/pack/receipt, selector, and Fred arguments from the rebuilt BOM and context arguments from readiness. The builder rejects this branch when the final article contains any Simpro signal.
+
+Tool-emitted machine artifacts carry an `execution_attestation`, a keyed local execution-integrity attestation. Require it on every `simpro-blog-stage-receipt/v1`, verified `simpro-serp-evidence/v1`, nested `simpro-answersocrates-run-receipt/v1`, `simpro-source-classification/v1`, and `simpro-source-capture-receipt/v1`. Readiness verifies the attestation and canonical hash; a handwritten or merely rehashed replacement does not qualify. This local control does not provide a remote/provider signature and does not prove that external observations are true, so source metadata, visible evidence, freshness, PAA eligibility, and semantic claim fit still require validation. A rewrite's dedicated pre-picked PAA brief section remains path/hash-bound and takes precedence over AnswerSocrates.
+
+Then run the exact build -> preflight -> finalize -> final reseal:
+
+```powershell
+python data_sources/modules/blog_assembly_bom.py build "[file]" --validation-sidecar "research/validation-[topic-slug]-[YYYY-MM-DD].md" --editorial-plan "research/editorial-plan-[topic-slug]-[YYYY-MM-DD].json" --serp-evidence "research/serp-evidence-[topic-slug]-[YYYY-MM-DD].json" --paa-artifact "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json" --context-request "research/context-request-[topic-slug].json" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --customer-proof-selector-evidence "research/customer-proof-selector-evidence-[topic-slug].json" --fred-authority-evidence "research/fred-authority-selection-[topic-slug].md" --optimizer-output "research/optimizer-[topic-slug]-[YYYY-MM-DD].json" --prior-preflight-readiness "research/preflight-readiness-[topic-slug]-[YYYY-MM-DD].json" --stage-receipt "research/stage-receipts/[topic-slug]/draft.json" --stage-receipt "research/stage-receipts/[topic-slug]/scrub.json" --stage-receipt "research/stage-receipts/[topic-slug]/context-binding.json" --stage-receipt "research/preflight-readiness-[topic-slug]-[YYYY-MM-DD]-stage-receipt.json" --stage-receipt "research/stage-receipts/[topic-slug]/optimization.json" --stage-receipt "research/stage-receipts/[topic-slug]/post-optimization-scrub.json" --stage-receipt "research/stage-receipts/[topic-slug]/post-optimization-context-binding.json" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-post-optimization.json"
+python data_sources/modules/publish_readiness.py "[file]" --proof-sidecar "research/validation-[topic-slug]-[YYYY-MM-DD].md" --context-request "research/context-request-[topic-slug].json" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --assembly-bom "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-post-optimization.json" --phase preflight --output "research/final-preflight-readiness-[topic-slug]-[YYYY-MM-DD].json"
+python data_sources/modules/blog_assembly_bom.py finalize --bom "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-post-optimization.json" --preflight-readiness "research/final-preflight-readiness-[topic-slug]-[YYYY-MM-DD].json" --output "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-post-optimization-final.json"
+python data_sources/modules/publish_readiness.py "[file]" --proof-sidecar "research/validation-[topic-slug]-[YYYY-MM-DD].md" --context-request "research/context-request-[topic-slug].json" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --assembly-bom "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-post-optimization-final.json" --phase final --output "research/final-readiness-attestation-[topic-slug]-[YYYY-MM-DD].json"
+```
+
+Final readiness writes a detached final-readiness attestation with `verification_scope: source_artifact`; it is not hashed back into the BOM and does not imply CMS-rendered verification.
 
 ### After Optimization Mutations
 
-All optimizer outputs and manual edits are content mutations. After optimization mutations, rerun `/scrub`, regenerate Context Binding with `context_binding_generator.py`, update `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`, then rerun `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`.
+All optimizer outputs and manual edits are content mutations. The closed sequence is `optimization` -> `post_optimization_scrub` -> `post_optimization_context_binding` -> `final_preflight_readiness`. The initial preflight remains bound to the immutable provisional BOM at `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`, whose out-of-place finalized form is `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-final.json`. Use the receipt and reseal commands above for the distinct post-optimization provisional and final BOMs. Do not overwrite the BOM referenced by the prior preflight. Any further mutation invalidates the BOM and detached attestation and requires another versioned provisional/final pair.
 
 Use this command to perform a final SEO optimization pass on completed articles before publishing.
 
 For every Simpro blog, retrieve current voice and tone guidance through the vault connector by semantic search and `resource_id` reads. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Em dashes are prohibited. Product pages and landing pages retain their existing restrained channel treatment.
+
+When `author_policy.status` is `not_provided`, first-person singular author judgment outside quotes is prohibited.
 
 ## Usage
 `/optimize [article file]`
@@ -36,15 +55,11 @@ Use the Simpro vault connector as the primary source for every blog, SEO, AEO, c
 
 Before returning `Ready`, confirm proof-only infrastructure lives in a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in the blog copy. The article file must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, `Vault Brand Language Alignment`, or structured data plan.
 
-For every Simpro optimization, resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --slate --limit 5`, and write the complete `Fred Voccola Authority Selection` block from `context/aeo-geo-blog-strategy.md` to the validation sidecar. Evaluation is mandatory and public use is optional. The selector defaults to `Selected: none`; select a source explicitly only after reviewing it and confirming direct topical support. If the selector, connector, context pack, or receipt validation fails, record `Evaluation status: blocked` and the blocker; do not invent Fred evidence, change public Fred content, or return `Ready`.
+For every Simpro optimization, resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --slate --limit 5 --output "research/fred-authority-selection-[topic-slug].md"`, and copy that exact generated `Fred Voccola Authority Selection` block into the validation sidecar. Evaluation is mandatory and public use is optional. The selector defaults to `Selected: none`; select a source explicitly only after reviewing it and confirming direct topical support. If the selector, connector, context pack, or receipt validation fails, record `Evaluation status: blocked` and the blocker; do not invent Fred evidence, change public Fred content, or return `Ready`.
 
-Vault product-language check: If the article uses Simpro product, feature, add-on, solution, industry, or related Simpro product URL language, confirm the validation sidecar contains `Vault Brand Language Alignment` with connector evidence, `context_pack_hash`, `receipt_hash`, relevant `resource_id` values, feature-specific `resource_id` evidence when named features/add-ons appear, solution or vertical `resource_id` evidence when solution/industry language appears, any required `claim_id` values, language applied, fallback context use, source-verification boundary, and `Status: aligned`. The `vault_brand_language_guard.py` publish gate runs inside `/publish-readiness`. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
-Preferred publish readiness command:
-```bash
-/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json
-```
+Vault product-language check: If the article uses Simpro product, feature, add-on, solution, industry, or related Simpro product URL language, confirm the validation sidecar contains `Vault Brand Language Alignment` with connector evidence, `context_pack_hash`, `receipt_hash`, relevant `resource_id` values, feature-specific `resource_id` evidence when named features/add-ons appear, solution or vertical `resource_id` evidence when solution/industry language appears, any required `claim_id` values, language applied, fallback context use, source-verification boundary, and `Status: aligned`. The `vault_brand_language_guard.py` readiness gate runs inside both phases. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
 
-Before returning `Ready`, run `/publish-readiness`. It runs URL validation, public artifact checks, AI copy linting, public research link checks, Metric Proof Pack, numeric claim, FAQ answer quality, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, vault brand language, Named Feature Status, content score, and AEO/GEO gates internally.
+Before returning `Ready`, run the exact reseal at the top of this command. It runs URL validation, public artifact checks, AI copy linting, public research link checks, Metric Proof Pack, numeric claim, conditional FAQ answer quality and FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, vault brand language, Named Feature Status, content score, and AEO/GEO gates.
 
 FAQ answers must use a 40-60 word first paragraph, lead with a supported number/range, named recommendation, definition, concrete action, or explained yes/no response, and move limitations after the direct answer. Every FAQ answer must contain at least 1 authoritative non-owned public evidence link in visible copy; a Source Map or FAQ Proof Map cannot replace that link.
 
@@ -71,7 +86,7 @@ An AEO/GEO score below 90/100 is a repair trigger, not a reporting endpoint. Unl
 2. Classify each failure as a public-copy gap, validation-sidecar/proof gap, or scorer or parser false negative.
 3. If the article visibly satisfies the written requirement but scoring misses it, add a regression test and fix the scorer or parser false negative. Do not distort accurate, brief-approved copy to satisfy brittle matching.
 4. Apply the top 3-5 fixes that address root causes. Do not invent PAA questions, claims, proof, metrics, quotes, or customer experience to gain points.
-5. Rerun `/scrub`, the AI copy linter, URL validation, regenerate Context Binding with `context_binding_generator.py`, update the blog assembly BOM, and rerun `/publish-readiness [file] --proof-sidecar [sidecar] --context-request [request] --context-pack [pack] --context-receipt [receipt] --assembly-bom [bom]`.
+5. Finish the optimization receipt, run the post-optimization scrub and Context Binding receipt stages, rebuild with `--prior-preflight-readiness`, then run preflight -> finalize -> final.
 6. Repeat once if needed. If AEO/GEO remains below 90/100 after 2 iterations, route the artifact to `review-required/` with the score, failed checks, attempted fixes, and any external evidence or authority blocker.
 
 `/optimize` is allowed inside this recovery loop when all proof, source, URL, and public-artifact gates pass but content quality or AEO/GEO does not. Final handoff still requires content quality of at least 85/100, AEO/GEO of at least 90/100, and every blocking gate to pass.
@@ -110,7 +125,7 @@ An AEO/GEO score below 90/100 is a repair trigger, not a reporting endpoint. Unl
 
 ### Link Optimization
 
-#### Internal Links (3-5+ required)
+#### Internal Links (intent-appropriate; contextual down-funnel link required)
 - **Quantity**: Count current internal links to your company content
 - **Quality**: Verify links are contextually relevant
 - **Anchor Text**: Check for keyword-rich, descriptive anchor text
@@ -124,7 +139,7 @@ An AEO/GEO score below 90/100 is a repair trigger, not a reporting endpoint. Unl
 - Better anchor text for existing links
 - High-priority pages that should be linked
 
-#### External Links (2-3+ required)
+#### External Links (claim-fit evidence required; no fixed total)
 - **Quantity**: Count resolved non-owned public research links; owned Simpro and ClockShark product links do not count as external research links
 - **Authority**: Verify links are to credible, authoritative sources
 - **Relevance**: Ensure external links support content claims
@@ -264,7 +279,7 @@ Visual representation of where primary keyword appears:
 - H1: ✓
 - First 100 words: ✓
 - H2 sections: report relevant exact-match and semantic placements without a heading quota
-- Body paragraphs: 15 instances (1.5% density, reported for context)
+- Body paragraphs: report natural semantic coverage and flag only demonstrable stuffing; do not target a density percentage
 - Conclusion: ✓
 - Meta title: ✓
 - Meta description: ✓
@@ -274,8 +289,8 @@ Visual representation of where primary keyword appears:
 - [ ] Primary keyword in first 100 words
 - [ ] Primary keyword in at least one relevant H2 where natural; semantic variations used elsewhere without a quota
 - [ ] Natural terminology coverage, semantic variations, and keyword-stuffing detection checked
-- [ ] 3-5+ internal links included
-- [ ] 2-3+ external authority links
+- [ ] Intent-appropriate internal links included, including the required contextual down-funnel link
+- [ ] Every material external claim has a claim-fit authority link; no fixed link total is used
 - [ ] Meta title 50-60 characters ending with `| Brand`
 - [ ] Meta description 150-160 characters
 - [ ] Word count fits search intent, evidence depth, and article objective
@@ -323,15 +338,11 @@ The `/optimize` command triggers final review from all agents:
 The optimize command now includes advanced SEO analysis:
 - **Search Intent**: Verify content matches user search intent (informational/commercial/transactional)
 - **Keyword Density & Clustering**: Detailed density analysis, keyword stuffing detection, topic clustering
-- **Content Length Comparison**: Compare word count against top 10 SERP competitors
+- **Content Length Comparison**: Compare word count against an intent-representative SERP sample; use competitor length as context, not a target
 - **Readability Score**: Flesch Reading Ease, Flesch-Kincaid Grade Level, sentence structure analysis
 - **SEO Quality Rating**: Overall score (0-100) with category breakdowns and specific recommendations
 
 ## Publishing Decision
-Based on optimization score:
-- **90-100**: Excellent - publish immediately
-- **80-89**: Good - minor tweaks recommended but publishable
-- **70-79**: Fair - address priority fixes before publishing
-- **Below 70**: Needs work - significant improvements required
+An optimization score alone never authorizes publication. Final handoff requires content quality of at least 85/100, AEO/GEO of at least 90/100, a final BOM, a passed detached final-readiness attestation, and no blocking gate failures. Any lower score or failed gate returns the article to the repair loop or `review-required/`.
 
 This ensures every article meets your company quality standards and SEO best practices before going live.
