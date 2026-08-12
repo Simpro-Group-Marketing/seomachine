@@ -2,7 +2,7 @@
 
 Simpro Marketing's Claude Code workspace for **SEO and AEO/GEO blog posts** — research, write, optimize, and publish long-form articles for field-service and trades audiences, with Simpro-specific brand context, first-party analytics, and generative-engine optimization built in.
 
-Fork of [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/seomachine), customized on branch `custom/local-context` for [simprogroup.com](https://www.simprogroup.com).
+Fork of [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/seomachine), maintained by Simpro Group Marketing for [simprogroup.com](https://www.simprogroup.com).
 
 ## Obsidian Vault Source Rule
 
@@ -127,7 +127,6 @@ For rewrites only, the dedicated brief section must be:
 ```bash
 git clone https://github.com/Simpro-Group-Marketing/seomachine.git
 cd seomachine
-git checkout custom/local-context
 ```
 
 2. Install Python dependencies for analysis modules:
@@ -1062,7 +1061,7 @@ Customer proof diversity guard confirms proof selection is not defaulting to rec
 - [Claude Code documentation](https://docs.claude.com/claude-code)
 
 ### Contributing (Simpro fork)
-- Internal work: branch `custom/local-context` on [Simpro-Group-Marketing/seomachine](https://github.com/Simpro-Group-Marketing/seomachine)
+- Internal work: use feature branches targeting `main` on [Simpro-Group-Marketing/seomachine](https://github.com/Simpro-Group-Marketing/seomachine)
 - Upstream fixes: consider PRs to [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/seomachine) when generic
 
 ## License
@@ -1081,7 +1080,7 @@ Upstream project: [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/
 
 **Upstream example**: `examples/castos/` shows the original Castos template pattern from the open-source repo.
 
-**Contributions**: Internal Simpro Marketing changes go to `custom/local-context`. Upstream improvements may be contributed back to TheCraigHewitt/seomachine where appropriate.
+**Contributions**: Internal Simpro Marketing changes use feature branches targeting `main`. Upstream improvements may be contributed back to TheCraigHewitt/seomachine where appropriate.
 
 ---
 

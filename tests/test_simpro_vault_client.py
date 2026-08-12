@@ -138,3 +138,11 @@ def test_mcp_template_invokes_the_standalone_module() -> None:
     assert "simpro_vault.mcp" in template
     assert "SIMPRO_VAULT_ROOT" in template
     assert "CLAUDE_PLUGIN_ROOT" not in template
+
+
+def test_readme_uses_the_current_default_branch_workflow() -> None:
+    root = Path(__file__).resolve().parents[1]
+    readme = (root / "README.md").read_text(encoding="utf-8")
+
+    assert "custom/local-context" not in readme
+    assert "feature branches targeting `main`" in readme
