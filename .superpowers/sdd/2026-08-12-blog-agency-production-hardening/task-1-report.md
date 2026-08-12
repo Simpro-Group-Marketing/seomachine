@@ -132,3 +132,41 @@ Output summary:
 ```text
 114 passed, 118 subtests passed in 1.87s
 ```
+
+## Final Re-Review Remediation
+
+- Added the third mutually exclusive BOM research-input variant to the central `/publish-readiness` recipe: `--user-paa-csv` with `--answersocrates-blocker`. The optimization reseal instruction now applies to the PAA-artifact, rewrite-brief, and CSV-plus-blocker variants.
+- Replaced marker checks for build variants with semantic parsing that asserts the precise eligible research-input flag sets.
+- Expanded sole-owner scanning to every root Markdown file, all commands, all three rule directories, and the canonical strategy. The scanner dynamically finds future root Markdown steering files and parses `python`, `python.exe`, and `py` launch forms, path separators, optional relative prefixes, and multiline commands.
+- Replaced route marker checks with parsed command-delegation relationships, receipt-driver checks, and a derived repository-capability check for command, agent, and skill references in route surfaces.
+- Strengthened customer-proof selector parsing to retain duplicate role commands and to reject required flags that lack a value.
+
+### Final Re-Review RED Evidence
+
+Command:
+
+```powershell
+python -m pytest tests/test_blog_agency_architecture.py -q
+```
+
+Output summary:
+
+```text
+3 failed, 8 passed, 32 subtests passed in 0.17s
+```
+
+The failures showed the absent CSV-plus-blocker owner variant and an initial scanner bug that allowed the preflight command block to consume a later final phase. The scanner was corrected by splitting at each repository module-launch boundary before classifying operations.
+
+### Final Re-Review GREEN Evidence
+
+Command:
+
+```powershell
+python -m pytest tests/test_blog_agency_architecture.py tests/test_aeo_geo_workflow_docs.py -q
+```
+
+Output summary:
+
+```text
+117 passed, 143 subtests passed in 1.30s
+```

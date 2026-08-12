@@ -55,12 +55,6 @@ CUSTOMER_PROOF_RULE_PATHS = (
 )
 
 SEAL_OWNER = ROOT / ".claude" / "commands" / "publish-readiness.md"
-STEERING_SURFACES = (
-    ROOT / "AGENTS.md",
-    ROOT / "CLAUDE.md",
-    ROOT / "README.md",
-    ROOT / "context" / "aeo-geo-blog-strategy.md",
-)
 
 SELECTOR = "data_sources/modules/customer_proof_selector.py"
 REQUIRED_SELECTOR_FLAGS = frozenset(
@@ -75,6 +69,22 @@ REQUIRED_SELECTOR_FLAGS = frozenset(
         "--require-eeat-story",
         "--limit",
     }
+)
+SELECTOR_VALUE_FLAGS = REQUIRED_SELECTOR_FLAGS - {
+    "--slate",
+    "--require-eeat-story",
+}
+BUILD_RESEARCH_INPUT_FLAGS = frozenset(
+    {
+        "--paa-artifact",
+        "--content-brief",
+        "--user-paa-csv",
+        "--answersocrates-blocker",
+    }
+)
+LAUNCH = r"(?:python(?:\.exe)?|py(?:\.exe)?)(?:\s+-\d+(?:\.\d+)?)?"
+MODULE_PREFIX = (
+    rf"{LAUNCH}\s+(?:\.[\\/])?data_sources[\\/]modules[\\/]"
 )
 
 
@@ -93,54 +103,104 @@ def _normalized_markdown(content: str) -> str:
     )
 
 
-def _selector_contracts(content: str) -> dict[str, list[frozenset[str]]]:
-    contracts: dict[str, list[frozenset[str]]] = {}
+def _selector_contracts(content: str) -> dict[str, list[dict[str, str | None]]]:
+    contracts: dict[str, list[dict[str, str | None]]] = {}
     for line in content.splitlines():
         stripped = line.strip()
         if not stripped.startswith(f"python {SELECTOR} "):
             continue
         tokens = shlex.split(stripped, posix=True)
-        flags = frozenset(token for token in tokens if token.startswith("--"))
-        role_index = tokens.index("--roles")
-        contracts.setdefault(tokens[role_index + 1], []).append(flags)
+        options: dict[str, str | None] = {}
+        for index, token in enumerate(tokens):
+            if not token.startswith("--"):
+                continue
+            if token in SELECTOR_VALUE_FLAGS:
+                value = tokens[index + 1] if index + 1 < len(tokens) else None
+                options[token] = None if value is None or value.startswith("--") else value
+            else:
+                options[token] = "present"
+        role = options.get("--roles")
+        if role:
+            contracts.setdefault(role, []).append(options)
     return contracts
+
+
+def _selector_contract_is_valid(contract: dict[str, str | None]) -> bool:
+    return set(contract) == REQUIRED_SELECTOR_FLAGS and all(
+        contract[flag] for flag in SELECTOR_VALUE_FLAGS
+    )
 
 
 def _seal_surfaces() -> tuple[Path, ...]:
     return (
-        *STEERING_SURFACES,
+        *ROOT.glob("*.md"),
         *(ROOT / ".claude" / "commands").glob("*.md"),
         *(ROOT / ".agents" / "rules").glob("*.md"),
         *(ROOT / ".claude" / "rules").glob("*.md"),
         *(ROOT / ".cursor" / "rules").glob("*.mdc"),
+        ROOT / "context" / "aeo-geo-blog-strategy.md",
     )
+
+
+def _module_command_blocks(content: str) -> list[str]:
+    starts = [
+        match.start()
+        for match in re.finditer(
+            rf"{MODULE_PREFIX}(?:blog_assembly_bom|publish_readiness)\.py\b",
+            content,
+        )
+    ]
+    return [
+        content[start : starts[index + 1] if index + 1 < len(starts) else len(content)]
+        for index, start in enumerate(starts)
+    ]
 
 
 def _seal_steps(content: str) -> list[str]:
     steps: list[str] = []
-    command_blocks = re.findall(
-        r"python\s+data_sources/modules/.*?(?=\n\s*python\s+data_sources/modules/|\Z)",
-        content,
-        flags=re.DOTALL,
-    )
-    for command in command_blocks:
+    for command in _module_command_blocks(content):
         if re.search(r"blog_assembly_bom\.py\s+build\b", command):
             steps.append("build")
-        elif re.search(
-            r"publish_readiness\.py\b.*?--phase\s+preflight\b",
-            command,
-            flags=re.DOTALL,
-        ):
+        elif re.search(r"publish_readiness\.py\b.*?--phase\s+preflight\b", command, re.DOTALL):
             steps.append("preflight")
         elif re.search(r"blog_assembly_bom\.py\s+finalize\b", command):
             steps.append("finalize")
-        elif re.search(
-            r"publish_readiness\.py\b.*?--phase\s+final\b",
-            command,
-            flags=re.DOTALL,
-        ):
+        elif re.search(r"publish_readiness\.py\b.*?--phase\s+final\b", command, re.DOTALL):
             steps.append("final")
     return steps
+
+
+def _bom_build_research_input_sets(content: str) -> list[frozenset[str]]:
+    return [
+        frozenset(re.findall(r"--[a-z-]+", command)) & BUILD_RESEARCH_INPUT_FLAGS
+        for command in _module_command_blocks(content)
+        if re.search(r"blog_assembly_bom\.py\s+build\b", command)
+    ]
+
+
+def _route_capability_references(content: str) -> dict[str, set[str]]:
+    return {
+        "command": set(
+            re.findall(
+                r"(?:Running|Run|rerun|invoke|before|after|Executes)\s+`/([a-z][a-z0-9-]*)",
+                content,
+            )
+        ),
+        "agent": set(
+            re.findall(r"\*\*Agent\*\*:\s*`([a-z][a-z0-9-]*)`", content)
+        ),
+        "skill": set(
+            re.findall(r"\*\*Skill\*\*:\s*`([a-z][a-z0-9-]*)`", content)
+        ),
+    }
+
+
+def _repository_capabilities() -> dict[str, set[str]]:
+    return {
+        "command": {path.stem for path in (ROOT / ".claude" / "commands").glob("*.md")},
+        "agent": {path.stem for path in (ROOT / ".claude" / "agents").glob("*.md")},
+        "skill": {path.name for path in (ROOT / ".claude" / "skills").glob("*") if path.is_dir()},
+    }
 
 
 class BlogAgencyArchitectureTests(unittest.TestCase):
@@ -150,22 +210,39 @@ class BlogAgencyArchitectureTests(unittest.TestCase):
         }
         self.assertSetEqual(CANONICAL_COMMANDS, command_names)
 
-        route_contracts = {
-            "/article": ("article.md", 'tool-name "article-command"', "content_scrubber.py", "/publish-readiness"),
-            "/research -> /write": ("research.md", "Running `/write [topic]`", "/publish-readiness"),
-            "/analyze-existing -> /rewrite": ("analyze-existing.md", "before `/rewrite`", "Running `/rewrite [topic]`"),
-            "cleanup and optional optimize": ("scrub.md", "cleanup step"),
-            "/optimize": ("optimize.md", 'tool-name "optimize-command"', "post_optimization_scrub", "/publish-readiness"),
-            "/publish-readiness": ("publish-readiness.md", "--phase preflight", "--phase final", "gate summary"),
-            "handoff": ("publish-draft.md", "before any WordPress API call", "/publish-readiness"),
+        command_content = {
+            path.stem: path.read_text(encoding="utf-8")
+            for path in (ROOT / ".claude" / "commands").glob("*.md")
         }
-        for route, (command, *markers) in route_contracts.items():
-            with self.subTest(route=route):
-                content = (ROOT / ".claude" / "commands" / command).read_text(
-                    encoding="utf-8"
-                )
-                for marker in markers:
-                    self.assertIn(marker, content)
+        route_references = {
+            name: _route_capability_references(content)["command"]
+            for name, content in command_content.items()
+        }
+        self.assertIn("write", route_references["research"])
+        self.assertIn("rewrite", route_references["analyze-existing"])
+        self.assertIn("scrub", route_references["write"])
+        self.assertIn("publish-readiness", route_references["write"])
+        self.assertIn("publish-readiness", route_references["rewrite"])
+        self.assertIn("scrub", route_references["optimize"])
+        self.assertIn("publish-readiness", route_references["optimize"])
+        self.assertIn("optimize", route_references["publish-readiness"])
+        self.assertIn("publish-readiness", route_references["publish-draft"])
+
+        for command, driver in {
+            "article": "article-command",
+            "write": "write-command",
+            "rewrite": "rewrite-command",
+            "optimize": "optimize-command",
+        }.items():
+            self.assertRegex(
+                command_content[command],
+                rf'blog_assembly_mutation_recorder\.py\s+start.*?--tool-name\s+"{driver}"',
+            )
+        self.assertRegex(command_content["scrub"], r"content_scrubber\.py")
+        self.assertRegex(command_content["optimize"], r"--stage\s+post_optimization_scrub")
+        self.assertRegex(command_content["publish-readiness"], r"--phase\s+preflight")
+        self.assertRegex(command_content["publish-readiness"], r"--phase\s+final")
+        self.assertRegex(command_content["publish-draft"], r"before any WordPress API call")
 
         grav_publish = (ROOT / ".claude" / "skills" / "grav-publish" / "SKILL.md").read_text(
             encoding="utf-8"
@@ -206,10 +283,7 @@ class BlogAgencyArchitectureTests(unittest.TestCase):
         }
         self.assertEqual(1, len(set(normalized_bodies.values())))
 
-        expected_contracts = {
-            "metric,quote,theme,experience_story": [REQUIRED_SELECTOR_FLAGS],
-            "experience_story": [REQUIRED_SELECTOR_FLAGS],
-        }
+        expected_roles = {"metric,quote,theme,experience_story", "experience_story"}
         expected_sections = {
             "# Customer Proof Rule",
             "## Selector-first execution",
@@ -220,7 +294,11 @@ class BlogAgencyArchitectureTests(unittest.TestCase):
         }
         for path, body in zip(CUSTOMER_PROOF_RULE_PATHS, bodies.values()):
             with self.subTest(path=path.name):
-                self.assertDictEqual(expected_contracts, _selector_contracts(body))
+                contracts = _selector_contracts(body)
+                self.assertSetEqual(expected_roles, set(contracts))
+                for role in expected_roles:
+                    self.assertEqual(1, len(contracts[role]))
+                    self.assertTrue(_selector_contract_is_valid(contracts[role][0]))
                 sections = {
                     line.strip()
                     for line in body.splitlines()
@@ -237,8 +315,19 @@ class BlogAgencyArchitectureTests(unittest.TestCase):
         )
         contracts = _selector_contracts(malformed_then_valid)
         self.assertEqual(2, len(contracts["experience_story"]))
-        self.assertNotIn("--evidence-output", contracts["experience_story"][0])
-        self.assertIn("--evidence-output", contracts["experience_story"][1])
+        self.assertFalse(_selector_contract_is_valid(contracts["experience_story"][0]))
+        self.assertTrue(_selector_contract_is_valid(contracts["experience_story"][1]))
+
+    def test_selector_contracts_reject_required_flags_without_values(self):
+        missing_title_value = (
+            f'python {SELECTOR} "[topic]" --title --objective "[objective]" '
+            '--context-pack "pack" --context-receipt "receipt" '
+            '--evidence-output "evidence" --slate --roles experience_story '
+            '--require-eeat-story --limit 10'
+        )
+        contract = _selector_contracts(missing_title_value)["experience_story"][0]
+        self.assertIsNone(contract["--title"])
+        self.assertFalse(_selector_contract_is_valid(contract))
 
     def test_customer_proof_rules_limit_row_edits_to_editorial_judgment(self):
         required = "Edit selected/rejected rows only when editorial judgment requires it."
@@ -258,15 +347,62 @@ class BlogAgencyArchitectureTests(unittest.TestCase):
             with self.subTest(path=path.name):
                 self.assertEqual([], _seal_steps(path.read_text(encoding="utf-8")))
 
+    def test_seal_scanner_detects_multiline_windows_and_portable_duplicate(self):
+        alternate_duplicate = """
+py .\\data_sources\\modules\\blog_assembly_bom.py build ^
+  --output "provisional.json"
+python.exe ./data_sources/modules/publish_readiness.py "article.md" ^
+  --phase preflight
+py -3 data_sources/modules/blog_assembly_bom.py finalize ^
+  --bom "provisional.json"
+python ./data_sources/modules/publish_readiness.py "article.md" ^
+  --phase final
+"""
+        self.assertEqual(
+            ["build", "preflight", "finalize", "final"],
+            _seal_steps(alternate_duplicate),
+        )
+
+    def test_blog_route_capabilities_resolve_to_existing_repository_definitions(self):
+        capabilities = _repository_capabilities()
+        route_paths = [
+            ROOT / ".claude" / "commands" / name
+            for name in (
+                "article.md",
+                "research.md",
+                "write.md",
+                "analyze-existing.md",
+                "rewrite.md",
+                "scrub.md",
+                "optimize.md",
+                "publish-readiness.md",
+                "publish-draft.md",
+            )
+        ]
+        for path in route_paths:
+            references = _route_capability_references(path.read_text(encoding="utf-8"))
+            for kind, values in references.items():
+                with self.subTest(path=path.name, kind=kind):
+                    self.assertTrue(values <= capabilities[kind])
+
+        external = _route_capability_references(
+            "Run `/external-orchestrator`\n**Agent**: `external-reviewer`\n**Skill**: `external-skill`"
+        )
+        for kind, values in external.items():
+            self.assertFalse(values <= capabilities[kind])
+
     def test_publish_readiness_declares_route_specific_build_variants(self):
         content = SEAL_OWNER.read_text(encoding="utf-8")
-        for marker in (
-            "New article or rewrite without a dedicated pre-picked PAA section",
-            "--paa-artifact",
-            "Rewrite with a dedicated pre-picked PAA section",
-            "--content-brief",
-            "Optimization Reseal",
-            "--optimizer-output",
-            "--prior-preflight-readiness",
-        ):
-            self.assertIn(marker, content)
+        self.assertEqual(
+            [
+                frozenset({"--paa-artifact"}),
+                frozenset({"--content-brief"}),
+                frozenset({"--user-paa-csv", "--answersocrates-blocker"}),
+            ],
+            _bom_build_research_input_sets(content),
+        )
+        self.assertRegex(content, r"--optimizer-output\s+\"\[optimizer-output\]\"")
+        self.assertRegex(
+            content,
+            r"--prior-preflight-readiness\s+\"\[prior-preflight-readiness\]\"",
+        )

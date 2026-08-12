@@ -23,6 +23,9 @@ python data_sources/modules/blog_assembly_bom.py build "[article]" --validation-
 # Rewrite with a dedicated pre-picked PAA section
 python data_sources/modules/blog_assembly_bom.py build "[article]" --validation-sidecar "[sidecar]" --editorial-plan "[editorial-plan]" --serp-evidence "[serp-evidence]" --content-brief "[rewrite-brief]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --customer-proof-selector-evidence "[selector-evidence]" --fred-authority-evidence "[fred-evidence]" --stage-receipt "[closed-stage-receipt]" --workflow-mode rewrite --assembly-date "[YYYY-MM-DD]" --output "[provisional-bom]"
 
+# User PAA CSV with a bound AnswerSocrates blocked-state artifact
+python data_sources/modules/blog_assembly_bom.py build "[article]" --validation-sidecar "[sidecar]" --editorial-plan "[editorial-plan]" --serp-evidence "[serp-evidence]" --user-paa-csv "[user-paa-csv]" --answersocrates-blocker "[blocked-answersocrates-artifact]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --customer-proof-selector-evidence "[selector-evidence]" --fred-authority-evidence "[fred-evidence]" --stage-receipt "[closed-stage-receipt]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output "[provisional-bom]"
+
 python data_sources/modules/publish_readiness.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --assembly-bom "[provisional-bom]" --phase preflight --output "[preflight-readiness]"
 python data_sources/modules/blog_assembly_bom.py finalize --bom "[provisional-bom]" --preflight-readiness "[preflight-readiness]" --output "[final-bom]"
 python data_sources/modules/publish_readiness.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --assembly-bom "[final-bom]" --phase final --output "[final-readiness-attestation]" --stage-receipt-output "[final-readiness-stage-receipt]"
@@ -30,7 +33,7 @@ python data_sources/modules/publish_readiness.py "[article]" --proof-sidecar "[s
 
 ### Optimization Reseal
 
-After an optimization mutation, select the same PAA or rewrite-brief build variant and add `--optimizer-output "[optimizer-output]" --prior-preflight-readiness "[prior-preflight-readiness]"`. Use the distinct post-optimization provisional and final BOM output paths described below, then run the same preflight -> finalize -> final steps. Do not add both `--paa-artifact` and `--content-brief`; the selected route determines the one eligible research input.
+After an optimization mutation, select the same PAA artifact, rewrite brief, or user-CSV-plus-AnswerSocrates-blocker build variant and add `--optimizer-output "[optimizer-output]" --prior-preflight-readiness "[prior-preflight-readiness]"`. Use the distinct post-optimization provisional and final BOM output paths described below, then run the same preflight -> finalize -> final steps. Do not combine research-input variants; the selected route determines the eligible input set.
 
 For a blog the shared applicability guard classifies as non-connector, first emit its Context Binding receipt with `context_binding_generator.py --not-applicable-reason "Final article contains no Simpro brand, URL, or connector-sensitive language."`, using the same stage, run ID, predecessor, and output receipt paths as the connector branch. Omit context request/pack/receipt, customer-proof selector, and Fred arguments from BOM build, and omit context request/pack/receipt from both readiness runs. This is derived from the final article and cannot override Simpro branding, official or schemeless Simpro URLs, or connector-sensitive language.
 
