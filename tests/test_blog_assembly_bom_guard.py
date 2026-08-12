@@ -373,6 +373,53 @@ def test_final_bom_rejects_preflight_receipt_not_bound_to_readiness_output(
     )
 
 
+def test_final_guard_rejects_preflight_receipt_with_swapped_agent_outputs(
+    tmp_path: Path,
+):
+    paths = _fixture(tmp_path)
+    provisional = _build(tmp_path, paths)
+    bom_path = tmp_path / "research" / "bom.json"
+    write_blog_assembly_bom(bom_path, provisional)
+    preflight = _preflight(tmp_path, bom_path, provisional)
+    final = _finalize_fixture_bom(
+        bom_path=bom_path,
+        preflight_readiness_path=preflight,
+        workspace_root=tmp_path,
+    )
+    original = final["workflow"]["stage_receipts"][-1]
+    evidence = dict(original["evidence_hashes"])
+    output_labels = [
+        label for label in evidence if label.startswith("agent_output.")
+    ]
+    first, second = output_labels[:2]
+    evidence[first], evidence[second] = evidence[second], evidence[first]
+    replacement = build_stage_receipt(
+        run_id=original["run_id"],
+        stage=original["stage"],
+        tool_name=original["tool"]["name"],
+        tool_version=original["tool"]["version"],
+        started_at=original["started_at"],
+        completed_at=original["completed_at"],
+        mutation=False,
+        input_artifact_hashes=original["input_artifact_hashes"],
+        output_artifact_hashes=original["output_artifact_hashes"],
+        evidence_hashes=evidence,
+        previous_receipt_hash=original["previous_receipt_hash"],
+    )
+    receipt_row = final["artifacts"]["stage_receipts"][-1]
+    receipt_path = tmp_path / receipt_row["path"]
+    write_stage_receipt(receipt_path, replacement)
+    receipt_row["sha256"] = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
+    final["workflow"]["stage_receipts"][-1] = replacement
+
+    assert "bom_preflight_stage_receipt_invalid" in _rules(
+        tmp_path,
+        final,
+        paths,
+        expected_lifecycle_state="final",
+    )
+
+
 def test_lifecycle_state_must_match_readiness_phase(tmp_path: Path):
     paths = _fixture(tmp_path)
     bom = _build(tmp_path, paths)

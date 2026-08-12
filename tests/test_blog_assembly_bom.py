@@ -19,6 +19,7 @@ from data_sources.modules.blog_assembly_bom import (
     build_blog_assembly_bom_from_files,
     finalize_blog_assembly_bom,
     main as bom_main,
+    validate_preflight_stage_receipt_binding,
     write_blog_assembly_bom,
 )
 from data_sources.modules.context_binding_guard import ContextValidationResult
@@ -686,6 +687,67 @@ def test_builder_rejects_historical_draft_receipt_without_definition_bindings(
 
     with pytest.raises(ValueError, match="draft receipt.*command definition"):
         _build(tmp_path, paths)
+
+
+@pytest.mark.parametrize(
+    ("route", "workflow_mode"),
+    (
+        ("article-command", "new"),
+        ("write-command", "new"),
+        ("rewrite-command", "rewrite"),
+    ),
+)
+@pytest.mark.parametrize("mutation", ("missing", "extra", "swapped"))
+def test_preflight_receipt_requires_exact_route_execution_evidence(
+    tmp_path: Path,
+    route: str,
+    workflow_mode: str,
+    mutation: str,
+):
+    paths = _fixture(tmp_path, route=route)
+    bom = _build(tmp_path, paths, workflow_mode=workflow_mode)
+    bom_path = tmp_path / "research" / "bom.json"
+    write_blog_assembly_bom(bom_path, bom)
+    readiness_path = _preflight(tmp_path, bom_path, bom)
+    receipt_path = readiness_path.with_name(
+        f"{readiness_path.stem}-stage-receipt.json"
+    )
+    original = json.loads(receipt_path.read_text(encoding="utf-8"))
+    evidence = dict(original["evidence_hashes"])
+    output_labels = [
+        label for label in evidence if label.startswith("agent_output.")
+    ]
+    if mutation == "missing":
+        evidence.pop(output_labels[0])
+    elif mutation == "extra":
+        evidence["agent_output.external-reviewer"] = "f" * 64
+    else:
+        first, second = output_labels[:2]
+        evidence[first], evidence[second] = evidence[second], evidence[first]
+    receipt = build_stage_receipt(
+        run_id=original["run_id"],
+        stage=original["stage"],
+        tool_name=original["tool"]["name"],
+        tool_version=original["tool"]["version"],
+        started_at=original["started_at"],
+        completed_at=original["completed_at"],
+        mutation=False,
+        input_artifact_hashes=original["input_artifact_hashes"],
+        output_artifact_hashes=original["output_artifact_hashes"],
+        evidence_hashes=evidence,
+        previous_receipt_hash=original["previous_receipt_hash"],
+    )
+
+    with pytest.raises(ValueError, match="evidence hashes do not match readiness"):
+        validate_preflight_stage_receipt_binding(
+            receipt,
+            prior_receipts=bom["workflow"]["stage_receipts"],
+            readiness_path=readiness_path,
+            article_sha256=bom["artifacts"]["article"]["sha256"],
+            article_path=paths["article"],
+            workspace_root=tmp_path,
+            assembly_date=bom["assembly_date"],
+        )
 
 
 def test_schemeless_official_simpro_host_forces_connector_bound_bom(

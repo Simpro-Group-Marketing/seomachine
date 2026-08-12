@@ -711,6 +711,13 @@ def validate_preflight_stage_receipt_binding(
         )
     if receipt.get("input_artifact_hashes") != expected_input_hashes:
         raise ValueError("preflight stage receipt input hashes do not match readiness")
+    expected_evidence_hashes = {
+        label: digest
+        for label, digest in expected_input_hashes.items()
+        if label not in {"article", "assembly_bom"}
+    }
+    if receipt.get("evidence_hashes") != expected_evidence_hashes:
+        raise ValueError("preflight stage receipt evidence hashes do not match readiness")
     if (
         receipt.get("run_id") != readiness.get("run_id")
         or receipt.get("started_at") != readiness.get("started_at")

@@ -136,3 +136,84 @@ Both completed successfully. Git emitted only the repository's normal LF-to-CRLF
 
 - `optimizer_outputs` remains in BOM v1 for compatibility. It is no longer an independent or aggregate evidence channel; strict equality with the ordered `agent_output.*` rows prevents provenance ambiguity.
 - The current registry declares no conditional blog skills. Any `skill_definition.*` row therefore fails closed until a future repository change explicitly adds a skill ID and canonical path.
+
+## Review Round 1 Remediation
+
+- Designated the existing `preflight_readiness` stage receipt as the completion owner for non-optimized diagnostic reports without adding a stage or mutation. `validate_preflight_stage_receipt_binding` now requires `evidence_hashes` to equal every readiness input hash except `article` and `assembly_bom` exactly. This includes all flattened command definitions, agent definitions, route agent outputs, and any future declared skill definitions.
+- The final BOM guard already consumes `validate_preflight_stage_receipt_binding`; a final-BOM regression now proves swapped agent output evidence fails through that guard path.
+- Replaced all five later `write.md` Automatic Agent Execution `drafts/*` destinations with the canonical `research/agent-outputs/<agent-id>-[topic-slug]-[YYYY-MM-DD].md` destinations.
+- Added a semantic route-document regression that extracts both `--agent-output` mappings and agent-associated `File` destinations across article, write, rewrite, and optimize. Each invoked agent must resolve to exactly one canonical destination anywhere in the command.
+
+### Review Round 1 RED Evidence
+
+Receipt-boundary command:
+
+```powershell
+python -m pytest -q tests/test_blog_assembly_bom.py -k "preflight_receipt_requires_exact_route_execution_evidence"
+```
+
+Result before the production fix:
+
+```text
+9 failed, 53 deselected in 7.65s
+```
+
+All article, write, and rewrite missing/extra/swapped cases failed because the validator did not raise.
+
+Final-guard command:
+
+```powershell
+python -m pytest -q tests/test_blog_assembly_bom_guard.py -k "swapped_agent_outputs"
+```
+
+Result before the production fix:
+
+```text
+1 failed, 43 deselected in 6.70s
+```
+
+The final guard returned no finding for a re-attested readiness receipt with two agent output hashes swapped.
+
+Route-document command:
+
+```powershell
+python -m pytest -q tests/test_blog_agency_architecture.py -k "route_agent_output_paths_have_no_conflicting_destinations"
+```
+
+Result before the documentation fix:
+
+```text
+5 failed, 1 passed, 14 deselected, 14 subtests passed in 0.16s
+```
+
+Only the five `write` agent destinations conflicted. Article, rewrite, and optimize were already canonical.
+
+### Review Round 1 GREEN Evidence
+
+Exact regression commands after the fixes:
+
+```powershell
+python -m pytest -q tests/test_blog_assembly_bom.py -k "preflight_receipt_requires_exact_route_execution_evidence"
+python -m pytest -q tests/test_blog_assembly_bom_guard.py -k "swapped_agent_outputs"
+python -m pytest -q tests/test_blog_agency_architecture.py -k "route_agent_output_paths_have_no_conflicting_destinations"
+```
+
+Results:
+
+```text
+9 passed, 53 deselected in 8.36s
+1 passed, 43 deselected in 3.21s
+1 passed, 14 deselected, 19 subtests passed in 0.06s
+```
+
+Focused covering command:
+
+```powershell
+python -m pytest -q tests/test_blog_assembly_bom.py tests/test_blog_assembly_bom_guard.py tests/test_publish_readiness.py tests/test_blog_agency_architecture.py tests/test_aeo_geo_workflow_docs.py
+```
+
+Result:
+
+```text
+280 passed, 199 subtests passed in 67.54s
+```

@@ -592,3 +592,66 @@ python ./data_sources/modules/publish_readiness.py "article.md" ^
             with self.subTest(agent=filename):
                 self.assertIsNone(forbidden.search(content))
                 self.assertIn("diagnostic", content.casefold())
+
+    def test_route_agent_output_paths_have_no_conflicting_destinations(self):
+        route_agents = {
+            "article": (
+                "content-analyzer",
+                "seo-optimizer",
+                "meta-creator",
+                "internal-linker",
+                "keyword-mapper",
+            ),
+            "write": (
+                "content-analyzer",
+                "seo-optimizer",
+                "meta-creator",
+                "internal-linker",
+                "keyword-mapper",
+            ),
+            "rewrite": (
+                "seo-optimizer",
+                "meta-creator",
+                "internal-linker",
+                "keyword-mapper",
+            ),
+            "optimize": (
+                "content-analyzer",
+                "seo-optimizer",
+                "meta-creator",
+                "internal-linker",
+                "keyword-mapper",
+            ),
+        }
+        for route, agent_ids in route_agents.items():
+            content = (ROOT / ".claude" / "commands" / f"{route}.md").read_text(
+                encoding="utf-8"
+            )
+            destinations = {agent_id: set() for agent_id in agent_ids}
+            for agent_id, path in re.findall(
+                r'--agent-output "([a-z][a-z0-9-]*)=([^\"]+)"',
+                content,
+            ):
+                if agent_id in destinations:
+                    destinations[agent_id].add(path)
+            current_agent = None
+            for line in content.splitlines():
+                agent_match = re.match(
+                    r"- \*\*Agent\*\*: `([a-z][a-z0-9-]*)`",
+                    line,
+                )
+                if agent_match:
+                    current_agent = agent_match.group(1)
+                    continue
+                file_match = re.match(r"- \*\*File\*\*: `([^`]+)`", line)
+                if file_match and current_agent in destinations:
+                    destinations[current_agent].add(file_match.group(1))
+            for agent_id, actual_paths in destinations.items():
+                with self.subTest(route=route, agent=agent_id):
+                    self.assertEqual(
+                        {
+                            "research/agent-outputs/"
+                            f"{agent_id}-[topic-slug]-[YYYY-MM-DD].md"
+                        },
+                        actual_paths,
+                    )

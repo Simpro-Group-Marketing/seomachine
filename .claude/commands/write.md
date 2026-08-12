@@ -516,7 +516,7 @@ After saving, scrubbing, linting, and passing the quality loop, execute optimiza
 - **Agent**: `content-analyzer`
 - **Input**: Full article, meta elements, keywords, SERP data (if available)
 - **Output**: Comprehensive analysis covering search intent, keyword distribution, content scope comparison, readability score, and SEO quality rating
-- **File**: `drafts/content-analysis-[topic-slug]-[YYYY-MM-DD].md`
+- **File**: `research/agent-outputs/content-analyzer-[topic-slug]-[YYYY-MM-DD].md`
 
 This new agent uses 5 specialized analysis modules:
 - Search intent analysis
@@ -529,25 +529,25 @@ This new agent uses 5 specialized analysis modules:
 - **Agent**: `seo-optimizer`
 - **Input**: Full article content
 - **Output**: SEO optimization report and suggestions
-- **File**: `drafts/seo-report-[topic-slug]-[YYYY-MM-DD].md`
+- **File**: `research/agent-outputs/seo-optimizer-[topic-slug]-[YYYY-MM-DD].md`
 
 ### 3. Meta Creator Agent
 - **Agent**: `meta-creator`
 - **Input**: Article content and primary keyword
 - **Output**: Multiple meta title/description options
-- **File**: `drafts/meta-options-[topic-slug]-[YYYY-MM-DD].md`
+- **File**: `research/agent-outputs/meta-creator-[topic-slug]-[YYYY-MM-DD].md`
 
 ### 4. Internal Linker Agent
 - **Agent**: `internal-linker`
 - **Input**: Article content
 - **Output**: Specific internal linking recommendations
-- **File**: `drafts/link-suggestions-[topic-slug]-[YYYY-MM-DD].md`
+- **File**: `research/agent-outputs/internal-linker-[topic-slug]-[YYYY-MM-DD].md`
 
 ### 5. Keyword Mapper Agent
 - **Agent**: `keyword-mapper`
 - **Input**: Article and target keywords
 - **Output**: Keyword placement analysis and improvements
-- **File**: `drafts/keyword-analysis-[topic-slug]-[YYYY-MM-DD].md`
+- **File**: `research/agent-outputs/keyword-mapper-[topic-slug]-[YYYY-MM-DD].md`
 
 ## Automatic Quality Loop
 
