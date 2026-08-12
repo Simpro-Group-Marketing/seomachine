@@ -94,3 +94,41 @@ The timeout emitted no test-progress or duration output. Process inspection show
 ## Concerns
 
 - The focused Task 1 suite is green and fast. The later full pytest diagnostic exceeded its 60-second bound under concurrent shared-workspace pytest activity. The earlier full unittest suite passed in 27.679s. A clean, serialized full pytest timing run is still needed to establish a reliable pytest baseline, but is outside this narrowly scoped Task 1 change.
+
+## Review Remediation
+
+- Made `/publish-readiness` decision-complete for the existing research-input variants. The central recipe now has mutually exclusive new/rewrite-without-pre-picked-PAA and rewrite-with-pre-picked-PAA build variants. The optimized reseal specifies `--optimizer-output` and `--prior-preflight-readiness` without duplicating the full recipe in route commands.
+- Expanded route-matrix assertions from file existence to route behavior for article, research-to-write, analysis-to-rewrite, cleanup, optional optimization, readiness, WordPress handoff, and Grav handoff.
+- Expanded sole-owner coverage to all `.claude/commands`, root steering files, canonical strategy, and all three rule directories. The parser recognizes multiline Python seal commands and only rejects a complete four-step recipe outside the owner, leaving route delegation and invocations valid.
+- Restored the identical selected/rejected-row editorial-judgment policy to all three customer-proof rule surfaces.
+- Changed selector parsing to retain every command for a role. A duplicate role can no longer overwrite and hide an earlier malformed selector command.
+
+### Review RED Evidence
+
+Command:
+
+```powershell
+python -m pytest tests/test_blog_agency_architecture.py -q
+```
+
+Output summary:
+
+```text
+26 failed, 7 passed, 27 subtests passed in 0.40s
+```
+
+The initial failures exposed the missing central rewrite/optimization build variants and missing customer-proof row-edit policy. The first expanded surface assertion also showed that unrelated steering rules do not need to mention `/publish-readiness`; that expectation was removed before production changes because it would reject valid non-workflow rules.
+
+### Review GREEN Evidence
+
+Command:
+
+```powershell
+python -m pytest tests/test_blog_agency_architecture.py tests/test_aeo_geo_workflow_docs.py -q
+```
+
+Output summary:
+
+```text
+114 passed, 118 subtests passed in 1.87s
+```

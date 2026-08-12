@@ -55,14 +55,11 @@ CUSTOMER_PROOF_RULE_PATHS = (
 )
 
 SEAL_OWNER = ROOT / ".claude" / "commands" / "publish-readiness.md"
-SEAL_SURFACES = (
+STEERING_SURFACES = (
+    ROOT / "AGENTS.md",
+    ROOT / "CLAUDE.md",
     ROOT / "README.md",
     ROOT / "context" / "aeo-geo-blog-strategy.md",
-    ROOT / ".claude" / "commands" / "article.md",
-    ROOT / ".claude" / "commands" / "write.md",
-    ROOT / ".claude" / "commands" / "rewrite.md",
-    ROOT / ".claude" / "commands" / "optimize.md",
-    SEAL_OWNER,
 )
 
 SELECTOR = "data_sources/modules/customer_proof_selector.py"
@@ -96,8 +93,8 @@ def _normalized_markdown(content: str) -> str:
     )
 
 
-def _selector_contracts(content: str) -> dict[str, frozenset[str]]:
-    contracts: dict[str, frozenset[str]] = {}
+def _selector_contracts(content: str) -> dict[str, list[frozenset[str]]]:
+    contracts: dict[str, list[frozenset[str]]] = {}
     for line in content.splitlines():
         stripped = line.strip()
         if not stripped.startswith(f"python {SELECTOR} "):
@@ -105,23 +102,43 @@ def _selector_contracts(content: str) -> dict[str, frozenset[str]]:
         tokens = shlex.split(stripped, posix=True)
         flags = frozenset(token for token in tokens if token.startswith("--"))
         role_index = tokens.index("--roles")
-        contracts[tokens[role_index + 1]] = flags
+        contracts.setdefault(tokens[role_index + 1], []).append(flags)
     return contracts
+
+
+def _seal_surfaces() -> tuple[Path, ...]:
+    return (
+        *STEERING_SURFACES,
+        *(ROOT / ".claude" / "commands").glob("*.md"),
+        *(ROOT / ".agents" / "rules").glob("*.md"),
+        *(ROOT / ".claude" / "rules").glob("*.md"),
+        *(ROOT / ".cursor" / "rules").glob("*.mdc"),
+    )
 
 
 def _seal_steps(content: str) -> list[str]:
     steps: list[str] = []
-    for line in content.splitlines():
-        normalized = line.strip()
-        if not normalized.startswith("python data_sources/modules/"):
-            continue
-        if "blog_assembly_bom.py build" in normalized:
+    command_blocks = re.findall(
+        r"python\s+data_sources/modules/.*?(?=\n\s*python\s+data_sources/modules/|\Z)",
+        content,
+        flags=re.DOTALL,
+    )
+    for command in command_blocks:
+        if re.search(r"blog_assembly_bom\.py\s+build\b", command):
             steps.append("build")
-        elif "publish_readiness.py" in normalized and "--phase preflight" in normalized:
+        elif re.search(
+            r"publish_readiness\.py\b.*?--phase\s+preflight\b",
+            command,
+            flags=re.DOTALL,
+        ):
             steps.append("preflight")
-        elif "blog_assembly_bom.py finalize" in normalized:
+        elif re.search(r"blog_assembly_bom\.py\s+finalize\b", command):
             steps.append("finalize")
-        elif "publish_readiness.py" in normalized and "--phase final" in normalized:
+        elif re.search(
+            r"publish_readiness\.py\b.*?--phase\s+final\b",
+            command,
+            flags=re.DOTALL,
+        ):
             steps.append("final")
     return steps
 
@@ -133,17 +150,27 @@ class BlogAgencyArchitectureTests(unittest.TestCase):
         }
         self.assertSetEqual(CANONICAL_COMMANDS, command_names)
 
-        for route, command in {
-            "/article": "article.md",
-            "/research -> /write": "research.md",
-            "/analyze-existing -> /rewrite": "analyze-existing.md",
-            "/scrub": "scrub.md",
-            "/optimize": "optimize.md",
-            "/publish-readiness": "publish-readiness.md",
-            "/publish-draft": "publish-draft.md",
-        }.items():
+        route_contracts = {
+            "/article": ("article.md", 'tool-name "article-command"', "content_scrubber.py", "/publish-readiness"),
+            "/research -> /write": ("research.md", "Running `/write [topic]`", "/publish-readiness"),
+            "/analyze-existing -> /rewrite": ("analyze-existing.md", "before `/rewrite`", "Running `/rewrite [topic]`"),
+            "cleanup and optional optimize": ("scrub.md", "cleanup step"),
+            "/optimize": ("optimize.md", 'tool-name "optimize-command"', "post_optimization_scrub", "/publish-readiness"),
+            "/publish-readiness": ("publish-readiness.md", "--phase preflight", "--phase final", "gate summary"),
+            "handoff": ("publish-draft.md", "before any WordPress API call", "/publish-readiness"),
+        }
+        for route, (command, *markers) in route_contracts.items():
             with self.subTest(route=route):
-                self.assertTrue((ROOT / ".claude" / "commands" / command).is_file())
+                content = (ROOT / ".claude" / "commands" / command).read_text(
+                    encoding="utf-8"
+                )
+                for marker in markers:
+                    self.assertIn(marker, content)
+
+        grav_publish = (ROOT / ".claude" / "skills" / "grav-publish" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("must pass `/publish-readiness` before any Grav push", grav_publish)
 
     def test_existing_agent_set_rejects_new_reviewer_roles(self):
         agent_names = {
@@ -180,8 +207,8 @@ class BlogAgencyArchitectureTests(unittest.TestCase):
         self.assertEqual(1, len(set(normalized_bodies.values())))
 
         expected_contracts = {
-            "metric,quote,theme,experience_story": REQUIRED_SELECTOR_FLAGS,
-            "experience_story": REQUIRED_SELECTOR_FLAGS,
+            "metric,quote,theme,experience_story": [REQUIRED_SELECTOR_FLAGS],
+            "experience_story": [REQUIRED_SELECTOR_FLAGS],
         }
         expected_sections = {
             "# Customer Proof Rule",
@@ -201,14 +228,45 @@ class BlogAgencyArchitectureTests(unittest.TestCase):
                 }
                 self.assertSetEqual(expected_sections, sections)
 
+    def test_selector_contracts_preserve_duplicate_roles_for_validation(self):
+        malformed_then_valid = "\n".join(
+            [
+                f'python {SELECTOR} "[topic]" --title "[title]" --objective "[objective]" --context-pack "pack" --context-receipt "receipt" --slate --roles experience_story --require-eeat-story --limit 10',
+                f'python {SELECTOR} "[topic]" --title "[title]" --objective "[objective]" --context-pack "pack" --context-receipt "receipt" --evidence-output "evidence" --slate --roles experience_story --require-eeat-story --limit 10',
+            ]
+        )
+        contracts = _selector_contracts(malformed_then_valid)
+        self.assertEqual(2, len(contracts["experience_story"]))
+        self.assertNotIn("--evidence-output", contracts["experience_story"][0])
+        self.assertIn("--evidence-output", contracts["experience_story"][1])
+
+    def test_customer_proof_rules_limit_row_edits_to_editorial_judgment(self):
+        required = "Edit selected/rejected rows only when editorial judgment requires it."
+        for path in CUSTOMER_PROOF_RULE_PATHS:
+            with self.subTest(path=path.name):
+                self.assertIn(required, _rule_body(path))
+
     def test_publish_readiness_is_the_only_complete_four_step_seal_owner(self):
+        owner_content = SEAL_OWNER.read_text(encoding="utf-8")
         self.assertEqual(
             ["build", "preflight", "finalize", "final"],
-            _seal_steps(SEAL_OWNER.read_text(encoding="utf-8")),
+            list(dict.fromkeys(_seal_steps(owner_content))),
         )
-        for path in SEAL_SURFACES:
+        for path in _seal_surfaces():
             if path == SEAL_OWNER:
                 continue
             with self.subTest(path=path.name):
                 self.assertEqual([], _seal_steps(path.read_text(encoding="utf-8")))
-                self.assertIn("/publish-readiness", path.read_text(encoding="utf-8"))
+
+    def test_publish_readiness_declares_route_specific_build_variants(self):
+        content = SEAL_OWNER.read_text(encoding="utf-8")
+        for marker in (
+            "New article or rewrite without a dedicated pre-picked PAA section",
+            "--paa-artifact",
+            "Rewrite with a dedicated pre-picked PAA section",
+            "--content-brief",
+            "Optimization Reseal",
+            "--optimizer-output",
+            "--prior-preflight-readiness",
+        ):
+            self.assertIn(marker, content)

@@ -12,16 +12,25 @@ Blog readiness is never a one-pass invocation. Use the exact Python build -> pre
 
 ## Two-Phase Blog Seal
 
-For every new or changed blog, use this exact order after final source artifacts and closed stage receipts exist. The `build` command below is schematic: add the applicable connector/proof paths and repeat `--stage-receipt` for every closed stage.
+For every new or changed blog, use this exact order after final source artifacts and closed stage receipts exist. Select exactly 1 build variant below, add the applicable connector/proof paths, and repeat `--stage-receipt` for every closed stage.
 
 Tool-emitted machine artifacts carry an `execution_attestation`, a keyed local execution-integrity attestation. Require it on every `simpro-blog-stage-receipt/v1`, verified `simpro-serp-evidence/v1`, nested `simpro-answersocrates-run-receipt/v1`, `simpro-source-classification/v1`, and `simpro-source-capture-receipt/v1`. Readiness verifies the attestation and canonical hash; a handwritten or merely rehashed replacement does not qualify. This local control does not provide a remote/provider signature and does not prove that external observations are true, so source metadata, visible evidence, freshness, PAA eligibility, and semantic claim fit still require validation. A rewrite's dedicated pre-picked PAA brief section remains path/hash-bound and takes precedence over AnswerSocrates.
 
 ```powershell
+# New article or rewrite without a dedicated pre-picked PAA section
 python data_sources/modules/blog_assembly_bom.py build "[article]" --validation-sidecar "[sidecar]" --editorial-plan "[editorial-plan]" --serp-evidence "[serp-evidence]" --paa-artifact "[paa-artifact]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --customer-proof-selector-evidence "[selector-evidence]" --fred-authority-evidence "[fred-evidence]" --stage-receipt "[closed-stage-receipt]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output "[provisional-bom]"
+
+# Rewrite with a dedicated pre-picked PAA section
+python data_sources/modules/blog_assembly_bom.py build "[article]" --validation-sidecar "[sidecar]" --editorial-plan "[editorial-plan]" --serp-evidence "[serp-evidence]" --content-brief "[rewrite-brief]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --customer-proof-selector-evidence "[selector-evidence]" --fred-authority-evidence "[fred-evidence]" --stage-receipt "[closed-stage-receipt]" --workflow-mode rewrite --assembly-date "[YYYY-MM-DD]" --output "[provisional-bom]"
+
 python data_sources/modules/publish_readiness.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --assembly-bom "[provisional-bom]" --phase preflight --output "[preflight-readiness]"
 python data_sources/modules/blog_assembly_bom.py finalize --bom "[provisional-bom]" --preflight-readiness "[preflight-readiness]" --output "[final-bom]"
 python data_sources/modules/publish_readiness.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --assembly-bom "[final-bom]" --phase final --output "[final-readiness-attestation]" --stage-receipt-output "[final-readiness-stage-receipt]"
 ```
+
+### Optimization Reseal
+
+After an optimization mutation, select the same PAA or rewrite-brief build variant and add `--optimizer-output "[optimizer-output]" --prior-preflight-readiness "[prior-preflight-readiness]"`. Use the distinct post-optimization provisional and final BOM output paths described below, then run the same preflight -> finalize -> final steps. Do not add both `--paa-artifact` and `--content-brief`; the selected route determines the one eligible research input.
 
 For a blog the shared applicability guard classifies as non-connector, first emit its Context Binding receipt with `context_binding_generator.py --not-applicable-reason "Final article contains no Simpro brand, URL, or connector-sensitive language."`, using the same stage, run ID, predecessor, and output receipt paths as the connector branch. Omit context request/pack/receipt, customer-proof selector, and Fred arguments from BOM build, and omit context request/pack/receipt from both readiness runs. This is derived from the final article and cannot override Simpro branding, official or schemeless Simpro URLs, or connector-sensitive language.
 
