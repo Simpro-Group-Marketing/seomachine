@@ -75,7 +75,15 @@ ANSWERSOCRATES_RAW_CAPTURE_FIELDS = frozenset({
 })
 ANSWERSOCRATES_RAW_RESPONSE_FIELDS = frozenset({"stdout", "stderr", "returncode"})
 ANSWERSOCRATES_BROWSER_OUTPUT_FIELDS = frozenset({
-    "page_url", "page_title", "body_text", "sections",
+    "page_url", "page_title", "body_text", "sections", "blocker_observations",
+})
+ANSWERSOCRATES_BLOCKER_SCOPES = frozenset({
+    "role_alert",
+    "aria_live_assertive",
+    "error_container",
+    "authentication_gate",
+    "captcha_container",
+    "quota_container",
 })
 ANSWERSOCRATES_PAGE_URL = "https://answersocrates.com/paa-extractor"
 ANSWERSOCRATES_OPEN_TIMEOUT_SECONDS = 30
@@ -297,20 +305,53 @@ def _derive_answersocrates_observations(
             raise ValueError("AnswerSocrates browser stdout title is invalid")
         if not isinstance(browser_output.get("body_text"), str):
             raise ValueError("AnswerSocrates browser stdout body text is invalid")
-    blocker_output = "\n".join(filter(None, (
-        str(browser_output.get("body_text") or "") if isinstance(browser_output, Mapping) else "",
+    elif returncode == 0:
+        raise ValueError("AnswerSocrates browser stdout is not valid JSON")
+
+    scoped_blocker_texts: list[str] = []
+    if isinstance(browser_output, Mapping):
+        observations = browser_output.get("blocker_observations")
+        if not isinstance(observations, list):
+            raise ValueError("AnswerSocrates blocker observations must be a list")
+        for observation in observations:
+            if not isinstance(observation, Mapping) or set(observation) != {"scope", "text"}:
+                raise ValueError("AnswerSocrates blocker observation shape is invalid")
+            scope = observation.get("scope")
+            text = observation.get("text")
+            if scope not in ANSWERSOCRATES_BLOCKER_SCOPES:
+                raise ValueError("AnswerSocrates blocker observation scope is invalid")
+            if not isinstance(text, str) or not text.strip() or text != text.strip():
+                raise ValueError("AnswerSocrates blocker observation text is invalid")
+            scoped_blocker_texts.append(text)
+
+    process_failure = "\n".join(filter(None, (
         stderr,
         stdout if browser_output is None else "",
     ))).strip()
+    blocker_texts = (
+        scoped_blocker_texts + ([process_failure] if process_failure else [])
+        if returncode != 0
+        else scoped_blocker_texts
+    )
     blocker_payload = None
-    matches = [
-        kind for kind, pattern in ANSWERSOCRATES_BLOCKER_PATTERNS
-        if pattern.search(blocker_output)
-    ]
-    if matches or returncode != 0:
+    matched_kinds: list[str] = []
+    for blocker_text in blocker_texts:
+        matches = [
+            kind for kind, pattern in ANSWERSOCRATES_BLOCKER_PATTERNS
+            if pattern.search(blocker_text)
+        ]
         if len(matches) != 1:
             raise ValueError("AnswerSocrates blocker output does not map to one approved blocker")
-        blocker_payload = {"kind": matches[0], "reason": blocker_output.strip()}
+        matched_kinds.append(matches[0])
+    if returncode != 0 and not blocker_texts:
+        raise ValueError("AnswerSocrates failed collector has no scoped blocker output")
+    if matched_kinds:
+        if len(set(matched_kinds)) != 1:
+            raise ValueError("AnswerSocrates blocker output is ambiguous")
+        blocker_payload = {
+            "kind": matched_kinds[0],
+            "reason": "\n".join(blocker_texts),
+        }
     sections = browser_output.get("sections") if isinstance(browser_output, Mapping) else []
     if not isinstance(sections, list):
         raise ValueError("AnswerSocrates visible sections must be a list")
@@ -365,11 +406,30 @@ def _answersocrates_extraction_code(query: str) -> str:
         .filter(Boolean) : [];
       return {{ heading: clean(heading.innerText || heading.textContent), items: Array.from(new Set(items)) }};
     }}).filter(section => section.heading);
+    const blockerObservations = [];
+    const observe = (scope, nodes) => nodes.forEach(node => {{
+      const text = clean(node.innerText || node.textContent || node.getAttribute('aria-label') || node.getAttribute('title'));
+      if (text) blockerObservations.push({{ scope, text }});
+    }});
+    observe('role_alert', Array.from(document.querySelectorAll('[role="alert"]')));
+    observe('aria_live_assertive', Array.from(document.querySelectorAll('[aria-live="assertive"]')));
+    observe('error_container', Array.from(document.querySelectorAll('[data-testid*="error" i], [data-error], .error-message, .alert-danger')));
+    observe('captcha_container', Array.from(document.querySelectorAll('[data-testid*="captcha" i], .g-recaptcha, iframe[src*="recaptcha" i]')));
+    observe('quota_container', Array.from(document.querySelectorAll('[data-testid*="quota" i], [data-quota-error]')));
+    observe('authentication_gate', Array.from(document.querySelectorAll('main form')).filter(form => form.querySelector('input[type="password"]')));
+    const seenBlockers = new Set();
+    const uniqueBlockers = blockerObservations.filter(observation => {{
+      const key = `${{observation.scope}}\u0000${{observation.text}}`;
+      if (seenBlockers.has(key)) return false;
+      seenBlockers.add(key);
+      return true;
+    }});
     return {{
       page_url: window.location.href,
       page_title: document.title,
       body_text: clean(document.body ? document.body.innerText : ''),
       sections,
+      blocker_observations: uniqueBlockers,
     }};
   }});
   return JSON.stringify(observed);

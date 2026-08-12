@@ -1751,6 +1751,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             self.assertIn("repository-approved Playwright collector", content)
             self.assertIn("answersocrates_playwright_collector", content)
             self.assertIn("version `1.0.0`", content)
+            self.assertIn("general body text never establishes a blocker", content.casefold())
+            self.assertIn("structurally scoped blocker observations", content.casefold())
             self.assertIn("tracked by Git", content)
             self.assertIn("`HEAD` blob", content)
             self.assertIn("Handwritten labels", content)

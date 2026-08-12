@@ -376,7 +376,7 @@ Required fixed collector flow:
 2. Resolve the query input and submit action from the observed DOM.
 3. Enter the mandatory `--query` value.
 4. Submit and wait within the repository's fixed timeout bounds.
-5. Emit exact JSON to stdout containing only observed page URL, title, body text, section headings, and section items.
+5. Emit exact JSON to stdout containing observed page URL, title, diagnostic body text, section headings/items, and structurally scoped blocker observations from the fixed selector set. General body text never establishes a blocker.
 6. Immediately record the observed run as `research/paa-questions-[topic-slug]-[YYYY-MM-DD].json` with the recorder below. Do not hand-author the JSON or its hashes.
 
 If AnswerSocrates records a genuine blocked state such as login, CAPTCHA, quota, or unavailability, preserve that structured blocker artifact before asking for a PAA/FAQ CSV export. Do not invent replacement questions.
@@ -392,7 +392,7 @@ The rewrite-only brief section must use this exact heading:
 
 ### Collected AnswerSocrates Artifact Template
 
-The `record` command runs the fixed repository-approved Playwright collector, `answersocrates_playwright_collector`, itself, persists exact bounded Playwright CLI stdout before interpretation, and parses only observed page headings/items plus a closed blocker mapping.
+The `record` command runs the fixed repository-approved Playwright collector, `answersocrates_playwright_collector`, itself, persists exact bounded Playwright CLI stdout before interpretation, and parses only observed page headings/items plus structurally scoped blocker observations through a closed blocker mapping. General body text never establishes a blocker.
 
 ```powershell
 python data_sources/modules/paa_provenance_guard.py record --query "[main question or topic]" --collection-date "[YYYY-MM-DD matching the assembly date]" --run-id "[canonical agency article run ID]" --raw-capture-output "research/answersocrates-playwright-raw-[topic-slug]-[YYYY-MM-DD].json" --workspace-root "." --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"

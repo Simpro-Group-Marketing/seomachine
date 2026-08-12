@@ -164,14 +164,14 @@ The fixed repository-owned `answersocrates_playwright_collector` version `1.0.0`
 2. Resolve the query input and submit control from the observed DOM.
 3. Enter the mandatory `--query` value.
 4. Submit and wait within the repository's fixed timeout bounds.
-5. Emit exact JSON to stdout containing only observed page URL, title, body text, section headings, and section items.
+5. Emit exact JSON to stdout containing observed page URL, title, diagnostic body text, section headings/items, and structurally scoped blocker observations from the fixed selector set. General body text never establishes a blocker.
 6. Immediately record the observed run as `research/paa-questions-[topic-slug]-[YYYY-MM-DD].json` with the recorder below. Do not hand-author the JSON or its hashes.
 
 If AnswerSocrates shows keyword fragments or query modifiers instead of complete questions, save them as query-fragment notes only and do not use them as FAQ headings or selected questions. Run a corrected AnswerSocrates query before adding FAQ copy. If AnswerSocrates records a genuine blocked state, bind that blocked artifact before using a user PAA/FAQ CSV export. Do not invent replacement questions.
 
 ### Collected AnswerSocrates Artifact Template
 
-The `record` command runs the fixed repository-approved Playwright collector, `answersocrates_playwright_collector`, itself. It persists exact bounded Playwright CLI stdout before interpretation, then parses only observed page headings/items and a closed blocker mapping.
+The `record` command runs the fixed repository-approved Playwright collector, `answersocrates_playwright_collector`, itself. It persists exact bounded Playwright CLI stdout before interpretation, then parses only observed page headings/items and structurally scoped blocker observations through a closed blocker mapping. General body text never establishes a blocker.
 
 ```powershell
 python data_sources/modules/paa_provenance_guard.py record --query "[main question or topic]" --collection-date "[YYYY-MM-DD matching the assembly date]" --run-id "[canonical agency article run ID]" --raw-capture-output "research/answersocrates-playwright-raw-[topic-slug]-[YYYY-MM-DD].json" --workspace-root "." --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"

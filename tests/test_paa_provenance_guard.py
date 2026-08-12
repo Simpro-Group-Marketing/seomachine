@@ -152,6 +152,7 @@ class StrictPaaSourceTests(unittest.TestCase):
             "page_url": "https://answersocrates.com/paa-extractor",
             "page_title": "People Also Ask Extractor",
             "body_text": "People Also Ask",
+            "blocker_observations": [],
             "sections": [
                 {"heading": "People Also Ask", "items": list(FAQ_QUESTIONS)},
                 {"heading": "Search suggestions", "items": ["hvac scheduling"]},
@@ -193,6 +194,10 @@ class StrictPaaSourceTests(unittest.TestCase):
             "page_url": "https://answersocrates.com/paa-extractor",
             "page_title": "People Also Ask Extractor",
             "body_text": "You have already used your free search quota.",
+            "blocker_observations": [{
+                "scope": "quota_container",
+                "text": "You have already used your free search quota.",
+            }],
             "sections": [],
         })
 
@@ -223,6 +228,94 @@ class StrictPaaSourceTests(unittest.TestCase):
         self.assertEqual(artifact["status"], "blocked")
         self.assertEqual(artifact["blocker"]["kind"], "quota")
         self.assertEqual(artifact["eligible_questions"], [])
+
+    def test_record_ignores_sign_in_navigation_when_valid_paa_is_observed(self):
+        collection_date = datetime.now(timezone.utc).date().isoformat()
+        exact_stdout = json.dumps({
+            "page_url": "https://answersocrates.com/paa-extractor",
+            "page_title": "People Also Ask Extractor",
+            "body_text": "Sign in Navigation People Also Ask",
+            "blocker_observations": [],
+            "sections": [
+                {"heading": "People Also Ask", "items": list(FAQ_QUESTIONS)},
+            ],
+        })
+
+        def completed(command, **kwargs):
+            stdout = exact_stdout if "run-code" in command else ""
+            return subprocess.CompletedProcess(command, 0, stdout=stdout, stderr="")
+
+        with tempfile.TemporaryDirectory() as temp_dir, patch.object(
+            paa_provenance_guard, "find_npx_executable", return_value="npx"
+        ), patch.object(paa_provenance_guard.subprocess, "run", side_effect=completed):
+            root = Path(temp_dir)
+            raw_path = root / "research" / "answersocrates-raw.json"
+            output_path = root / "research" / "paa.json"
+            exit_code = paa_provenance_guard._main([
+                "record",
+                "--query", PAA_QUERY,
+                "--collection-date", collection_date,
+                "--run-id", "agency-run-navigation",
+                "--raw-capture-output", str(raw_path),
+                "--workspace-root", str(root),
+                "--output", str(output_path),
+            ])
+            capture = json.loads(raw_path.read_text(encoding="utf-8"))
+            artifact = json.loads(output_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(capture["raw_response"]["stdout"], exact_stdout)
+        self.assertEqual(artifact["status"], "collected")
+        self.assertIsNone(artifact["blocker"])
+        self.assertEqual(artifact["eligible_questions"], list(FAQ_QUESTIONS))
+
+    def test_only_scoped_blocker_observations_establish_closed_blocker_kinds(self):
+        cases = (
+            ("login", "authentication_gate", "Authentication required. Log in to continue."),
+            ("captcha", "captcha_container", "Complete the CAPTCHA. You are not a robot."),
+            ("quota", "quota_container", "You have used your free search quota."),
+            ("unavailability", "error_container", "Service unavailable."),
+        )
+        for expected_kind, scope, blocker_text in cases:
+            with self.subTest(expected_kind=expected_kind):
+                _, _, blocker = paa_provenance_guard._derive_answersocrates_observations({
+                    "stdout": json.dumps({
+                        "page_url": "https://answersocrates.com/paa-extractor",
+                        "page_title": "People Also Ask Extractor",
+                        "body_text": "Sign in Navigation",
+                        "sections": [],
+                        "blocker_observations": [{"scope": scope, "text": blocker_text}],
+                    }),
+                    "stderr": "",
+                    "returncode": 0,
+                })
+
+                self.assertEqual(blocker["kind"], expected_kind)
+                self.assertEqual(blocker["reason"], blocker_text)
+
+    def test_scoped_blocker_observations_fail_closed_when_malformed_or_ambiguous(self):
+        cases = (
+            [{"scope": "navigation", "text": "Sign in"}],
+            [{"scope": "role_alert", "text": ""}],
+            [{"scope": "role_alert", "text": "Something happened."}],
+            [
+                {"scope": "captcha_container", "text": "Complete the CAPTCHA."},
+                {"scope": "quota_container", "text": "Free search quota reached."},
+            ],
+        )
+        for observations in cases:
+            with self.subTest(observations=observations), self.assertRaises(ValueError):
+                paa_provenance_guard._derive_answersocrates_observations({
+                    "stdout": json.dumps({
+                        "page_url": "https://answersocrates.com/paa-extractor",
+                        "page_title": "People Also Ask Extractor",
+                        "body_text": "Sign in Navigation",
+                        "sections": [],
+                        "blocker_observations": observations,
+                    }),
+                    "stderr": "",
+                    "returncode": 0,
+                })
 
     def test_record_rejects_caller_supplied_capture_and_requires_canonical_inputs(self):
         for argv in (
@@ -260,6 +353,10 @@ class StrictPaaSourceTests(unittest.TestCase):
                     "page_url": "https://answersocrates.com/paa-extractor",
                     "page_title": "People Also Ask Extractor",
                     "body_text": blocker_output or "People Also Ask",
+                    "blocker_observations": ([{
+                        "scope": "role_alert",
+                        "text": blocker_output,
+                    }] if blocker_output else []),
                     "sections": raw_response.get("visible_sections", []),
                 }),
                 "stderr": "",
@@ -278,6 +375,7 @@ class StrictPaaSourceTests(unittest.TestCase):
                     "page_url": "https://answersocrates.com/paa-extractor",
                     "page_title": "People Also Ask Extractor",
                     "body_text": "People Also Ask",
+                    "blocker_observations": [],
                     "sections": [
                         {
                             "heading": "People Also Ask",
@@ -776,6 +874,7 @@ class StrictPaaSourceTests(unittest.TestCase):
                 {"stdout": json.dumps({
                     "page_url": "https://answersocrates.com/paa-extractor",
                     "page_title": "PAA", "body_text": "People Also Ask",
+                    "blocker_observations": [],
                     "sections": [{"heading": "People Also Ask", "items": ["???"]}],
                 }), "stderr": "", "returncode": 0}
             )
@@ -786,6 +885,7 @@ class StrictPaaSourceTests(unittest.TestCase):
                 {"stdout": json.dumps({
                     "page_url": "https://answersocrates.com/paa-extractor",
                     "page_title": "PAA", "body_text": "People Also Ask",
+                    "blocker_observations": [],
                     "sections": [{"heading": "People Also Ask", "items": ["What's HVAC?", "What’s HVAC?"]}],
                 }), "stderr": "", "returncode": 0}
             )

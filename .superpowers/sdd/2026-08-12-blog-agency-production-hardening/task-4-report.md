@@ -121,3 +121,49 @@ python -m pytest tests/test_paa_provenance_guard.py::StrictPaaSourceTests::test_
 - The canonical run is independently recomputed at BOM build/guard boundaries; readiness consumes the already guard-validated receipt run and forwards it through editorial, PAA, scorer, and AEO checks.
 - Local execution attestation and Git `HEAD` equality establish repository-local integrity only. They do not establish that an external page or provider response is truthful.
 - Historical weak or cross-run PAA, SERP, and classification artifacts fail closed and must be regenerated.
+
+## Fix Round 2: Scoped AnswerSocrates Blocker Authority
+
+The second independent review confirmed all 7 original findings were addressed and identified 1 new Critical regression: blocker classification scanned the entire page `body_text`. A harmless navigation label such as `Sign in` could therefore suppress genuine People Also Ask results and produce a blocked artifact eligible for the user-CSV fallback.
+
+### RED evidence
+
+Exact command:
+
+```powershell
+python -m pytest tests/test_paa_provenance_guard.py::StrictPaaSourceTests::test_record_ignores_sign_in_navigation_when_valid_paa_is_observed tests/test_paa_provenance_guard.py::StrictPaaSourceTests::test_only_scoped_blocker_observations_establish_closed_blocker_kinds tests/test_paa_provenance_guard.py::StrictPaaSourceTests::test_scoped_blocker_observations_fail_closed_when_malformed_or_ambiguous -q
+```
+
+Exact result: `5 failed, 2 passed, 4 subtests passed in 0.42s`.
+
+- The valid PAA plus harmless `Sign in` navigation case was incorrectly recorded as `blocked` instead of `collected`.
+- Each true scoped login, CAPTCHA, quota, and unavailability observation failed because the browser stdout contract had no structurally scoped blocker field.
+- The malformed and ambiguous cases already failed closed, but only because the old schema rejected the new field rather than because the observations were semantically validated.
+
+### Remediation
+
+- `body_text` remains exact persisted diagnostic evidence but has no blocker authority.
+- The fixed repository collector emits `blocker_observations` only from its exact structural scopes: `role_alert`, `aria_live_assertive`, `error_container`, `authentication_gate`, `captcha_container`, and `quota_container`.
+- Navigation and general body copy are outside those scopes and cannot create a blocker.
+- The parser requires every observation to use the exact `{scope, text}` shape, an approved scope, and non-empty trimmed text. Every observation must map to exactly 1 closed blocker kind; multiple distinct kinds are ambiguous and fail closed.
+- Non-zero collector failures may use exact stderr/unparsed stdout as process-failure evidence, but they still must map to exactly 1 closed blocker kind. Successful collector runs never use stderr or general stdout/body text as blocker authority.
+- Exact stdout remains persisted before any interpretation, and execution attestation remains a local-integrity claim only.
+- The deferred Minor emitter-version pin remains outside this round.
+
+### GREEN evidence
+
+- Exact RED command after implementation: `3 passed, 8 subtests passed in 0.24s`.
+- Complete PAA suite: `61 passed, 15 subtests passed in 2.11s`.
+- Adjacent documentation, BOM builder/guard, readiness, scorer, and AEO/GEO rater suite: `268 passed, 26 subtests passed in 57.80s`.
+- One complete repository suite because the exact capture schema crosses agency boundaries:
+  - `python -m pytest -q`
+  - `1575 passed, 3 skipped, 487 subtests passed in 97.37s`.
+- `python -m compileall -q data_sources/modules/paa_provenance_guard.py tests/research_provenance_fixtures.py tests/test_paa_provenance_guard.py`: exit 0.
+- `git diff --check`: exit 0. Informational Windows line-ending notices were emitted; no whitespace errors were reported.
+
+### Fix Round 2 self-review
+
+- The scoped fix changes only AnswerSocrates observation collection/parsing, its fixtures, and the matching workflow documentation.
+- True login, CAPTCHA, quota, and unavailable blockers remain covered; malformed, unknown-scope, unmapped, and multi-kind observations fail closed.
+- Valid PAA is retained when unrelated navigation says `Sign in`, so that label cannot authorize user-CSV fallback.
+- No live collector, publication, external write, alternate emitter, BOM schema change, or deferred emitter-version work was performed.

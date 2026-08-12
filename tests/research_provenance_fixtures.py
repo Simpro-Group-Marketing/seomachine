@@ -36,6 +36,7 @@ def build_answersocrates_fixture(
                     "page_url": "https://answersocrates.com/paa-extractor",
                     "page_title": "People Also Ask Extractor",
                     "body_text": "People Also Ask",
+                    "blocker_observations": [],
                     "sections": [
                         {"heading": "People Also Ask", "items": list(questions)}
                     ],
