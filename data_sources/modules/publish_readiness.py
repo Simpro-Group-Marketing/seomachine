@@ -48,6 +48,8 @@ try:
         canonical_json_bytes,
         expected_blog_gate_inventory,
         file_sha256,
+        is_json_number,
+        load_json_object_snapshot,
         resolve_artifact,
         validate_sha256,
         verify_artifact,
@@ -91,6 +93,8 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         canonical_json_bytes,
         expected_blog_gate_inventory,
         file_sha256,
+        is_json_number,
+        load_json_object_snapshot,
         resolve_artifact,
         validate_sha256,
         verify_artifact,
@@ -888,8 +892,8 @@ def write_readiness_result(
     prior_receipts: list[Mapping[str, Any]] = []
     if isinstance(bom_path, str) and bom_path:
         try:
-            bom = json.loads(Path(bom_path).read_text(encoding="utf-8"))
-        except (OSError, UnicodeError, json.JSONDecodeError) as error:
+            bom = load_json_object_snapshot(bom_path, field="assembly BOM").payload
+        except ValueError as error:
             raise ValueError(f"readiness BOM is unavailable: {error}") from error
         workflow = bom.get("workflow") if isinstance(bom, Mapping) else None
         receipts = workflow.get("stage_receipts") if isinstance(workflow, Mapping) else None
@@ -1068,8 +1072,10 @@ def validate_passed_readiness_result(
         if not resolved_bom.is_file():
             raise ValueError("passed blog readiness requires the bound assembly BOM")
         try:
-            bom = json.loads(resolved_bom.read_text(encoding="utf-8"))
-        except (OSError, UnicodeError, json.JSONDecodeError) as error:
+            bom = load_json_object_snapshot(
+                resolved_bom, field="assembly BOM"
+            ).payload
+        except ValueError as error:
             raise ValueError(f"passed readiness BOM is unavailable: {error}") from error
         if not isinstance(bom, Mapping):
             raise ValueError("passed readiness BOM must be an object")
@@ -1205,7 +1211,7 @@ def _verify_result_path_bindings(
 
 
 def _is_number(value: Any) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    return is_json_number(value)
 
 
 def _same_path(left: str | Path, right: str | Path) -> bool:
@@ -1248,8 +1254,10 @@ def _restore_file_after_failed_pair_write(
 def _readiness_run_id(assembly_bom: str | None, article_hash: str) -> str:
     if assembly_bom:
         try:
-            bom = json.loads(Path(assembly_bom).read_text(encoding="utf-8"))
-        except (OSError, UnicodeError, json.JSONDecodeError):
+            bom = load_json_object_snapshot(
+                assembly_bom, field="assembly BOM"
+            ).payload
+        except ValueError:
             bom = None
         workflow = bom.get("workflow") if isinstance(bom, Mapping) else None
         receipts = workflow.get("stage_receipts") if isinstance(workflow, Mapping) else None
@@ -1373,7 +1381,9 @@ def _reject_output_input_collision(
     bom_value = result.get("assembly_bom")
     if isinstance(bom_value, str) and bom_value:
         try:
-            bom = json.loads(Path(bom_value).read_text(encoding="utf-8"))
+            bom = load_json_object_snapshot(
+                bom_value, field="assembly BOM"
+            ).payload
             artifacts = bom.get("artifacts") if isinstance(bom, Mapping) else None
             if not isinstance(artifacts, Mapping):
                 raise ValueError("assembly BOM artifacts must be an object")
@@ -1385,7 +1395,7 @@ def _reject_output_input_collision(
                     raise ValueError(
                         f"{output_label} cannot overwrite input {label}"
                     )
-        except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        except ValueError as error:
             raise ValueError(
                 f"{output_label} cannot safely inspect its bound assembly BOM: {error}"
             ) from error
@@ -1455,8 +1465,8 @@ def _complete_readiness_input_hashes(
         field="assembly_bom",
     )
     try:
-        bom = json.loads(bom_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        bom = load_json_object_snapshot(bom_path, field="assembly BOM").payload
+    except ValueError as error:
         raise ValueError(f"assembly BOM changed or became unreadable: {error}") from error
     artifacts = bom.get("artifacts") if isinstance(bom, Mapping) else None
     if not isinstance(artifacts, Mapping):
@@ -1542,8 +1552,8 @@ def _bom_runtime_policy(
     except ValueError:
         return default
     try:
-        bom = json.loads(source.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+        bom = load_json_object_snapshot(source, field="assembly BOM").payload
+    except ValueError:
         return default
     if not isinstance(bom, Mapping):
         return default
@@ -1579,8 +1589,10 @@ def _bom_runtime_policy(
     scoring_metadata: Dict[str, Any] = {}
     if editorial_plan_path:
         try:
-            plan = json.loads(Path(editorial_plan_path).read_text(encoding="utf-8"))
-        except (OSError, UnicodeError, json.JSONDecodeError):
+            plan = load_json_object_snapshot(
+                editorial_plan_path, field="editorial plan"
+            ).payload
+        except ValueError:
             plan = None
         meta = plan.get("meta") if isinstance(plan, Mapping) else None
         if isinstance(meta, Mapping):

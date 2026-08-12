@@ -29,9 +29,14 @@ try:
         StageReceiptError,
         build_stage_receipt,
         load_stage_receipt,
+        stage_evidence_path,
+        write_stage_evidence,
         write_stage_receipt,
     )
-    from .blog_assembly_contract import normalized_text_sha256
+    from .blog_assembly_contract import (
+        load_json_object_snapshot,
+        normalized_text_sha256,
+    )
 except ImportError:  # pragma: no cover - supports direct script execution.
     from context_binding_guard import (
         build_binding,
@@ -47,9 +52,11 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         StageReceiptError,
         build_stage_receipt,
         load_stage_receipt,
+        stage_evidence_path,
+        write_stage_evidence,
         write_stage_receipt,
     )
-    from blog_assembly_contract import normalized_text_sha256
+    from blog_assembly_contract import load_json_object_snapshot, normalized_text_sha256
 
 
 GENERATED_BLOCK_RE = re.compile(
@@ -121,6 +128,7 @@ def generate_and_install(
     }
     if stage_receipt_output is not None:
         path_inputs["stage_receipt"] = stage_receipt_output
+        path_inputs["stage_evidence"] = stage_evidence_path(stage_receipt_output)
     if previous_receipt is not None:
         if stage_receipt_output is None:
             raise StageReceiptError(
@@ -134,11 +142,28 @@ def generate_and_install(
     resolved_previous_receipt = resolved.get("previous_receipt")
     resolved_run_id = ""
     previous_hash = ""
+    try:
+        article_bytes = resolved["article"].read_bytes()
+        article_content = article_bytes.decode("utf-8", errors="strict")
+        request_snapshot = load_json_object_snapshot(
+            resolved["request"], field="context request"
+        )
+        pack_snapshot = load_json_object_snapshot(
+            resolved["pack"], field="context pack"
+        )
+        receipt_snapshot = load_json_object_snapshot(
+            resolved["receipt"], field="context receipt"
+        )
+    except (OSError, UnicodeError, ValueError) as error:
+        raise ContextBindingGenerationError(
+            "binding_input_invalid",
+            f"Context binding inputs are invalid: {error}",
+        ) from error
     receipt_input_hashes = {
-        "article": _file_sha256(resolved["article"]),
-        "context_request": _file_sha256(resolved["request"]),
-        "context_pack": _file_sha256(resolved["pack"]),
-        "context_receipt": _file_sha256(resolved["receipt"]),
+        "article": hashlib.sha256(article_bytes).hexdigest(),
+        "context_request": request_snapshot.sha256,
+        "context_pack": pack_snapshot.sha256,
+        "context_receipt": receipt_snapshot.sha256,
     }
     if resolved_stage_receipt is not None:
         resolved_run_id, previous_hash = _receipt_identity(
@@ -155,16 +180,9 @@ def generate_and_install(
     pack_path = resolved["pack"]
     receipt_path = resolved["receipt"]
     sidecar = resolved["sidecar"]
-    request = _read_object(request_path)
-    pack = _read_object(pack_path)
-    receipt = _read_object(receipt_path)
-    try:
-        article_content = article.read_text(encoding="utf-8")
-    except (OSError, UnicodeError) as error:
-        raise ContextBindingGenerationError(
-            "binding_input_invalid",
-            f"Article input is invalid: {error}",
-        ) from error
+    request = request_snapshot.payload
+    pack = pack_snapshot.payload
+    receipt = receipt_snapshot.payload
     request_findings = validate_request_article(
         request,
         article_content,
@@ -201,6 +219,17 @@ def generate_and_install(
             "binding_input_invalid",
             f"Context binding inputs are invalid: {error}",
         ) from error
+    current_hashes = {
+        "article": _file_sha256(article),
+        "context_request": _file_sha256(request_path),
+        "context_pack": _file_sha256(pack_path),
+        "context_receipt": _file_sha256(receipt_path),
+    }
+    if current_hashes != receipt_input_hashes:
+        raise ContextBindingGenerationError(
+            "binding_input_changed",
+            "Context binding inputs changed during generation.",
+        )
     generated = render_generated_blocks(binding, claim_map).strip()
     try:
         sidecar_existed = sidecar.is_file()
@@ -222,7 +251,16 @@ def generate_and_install(
             separators=(",", ":"),
             sort_keys=True,
         ).encode("utf-8")
+        context_evidence_hash = hashlib.sha256(evidence_payload).hexdigest()
+        evidence_path = stage_evidence_path(resolved_stage_receipt)
+        evidence_written = False
         try:
+            _, evidence_artifact_hash = write_stage_evidence(
+                resolved_stage_receipt,
+                evidence_hashes={"context_binding": context_evidence_hash},
+                payload={"binding": binding, "claim_use_map": claim_map},
+            )
+            evidence_written = True
             stage_receipt = build_stage_receipt(
                 run_id=resolved_run_id,
                 stage=stage,
@@ -235,14 +273,17 @@ def generate_and_install(
                 output_artifact_hashes={
                     "article": _file_sha256(article),
                     "validation_sidecar": _file_sha256(sidecar),
+                    "stage_evidence": evidence_artifact_hash,
                 },
                 evidence_hashes={
-                    "context_binding": hashlib.sha256(evidence_payload).hexdigest(),
+                    "context_binding": context_evidence_hash,
                 },
                 previous_receipt_hash=previous_hash,
             )
             write_stage_receipt(resolved_stage_receipt, stage_receipt)
         except Exception:
+            if evidence_written:
+                evidence_path.unlink(missing_ok=True)
             _restore_file(
                 sidecar,
                 existed=sidecar_existed,
@@ -291,6 +332,7 @@ def generate_not_applicable_receipt(
         "article": article_path,
         "sidecar": sidecar_path,
         "stage_receipt": stage_receipt_output,
+        "stage_evidence": stage_evidence_path(stage_receipt_output),
     }
     if previous_receipt is not None:
         path_inputs["previous_receipt"] = previous_receipt
@@ -336,32 +378,47 @@ def generate_not_applicable_receipt(
         separators=(",", ":"),
         sort_keys=True,
     ).encode("utf-8")
-    stage_receipt = build_stage_receipt(
-        run_id=resolved_run_id,
-        stage=stage,
-        tool_name="context_binding_generator",
-        tool_version="1.0.0",
-        started_at=started_at,
-        completed_at=datetime.now(timezone.utc),
-        mutation=False,
-        input_artifact_hashes={
-            "article": article_hash,
-            "validation_sidecar": sidecar_hash,
-        },
-        output_artifact_hashes={
-            "article": article_hash,
-            "validation_sidecar": sidecar_hash,
-        },
-        evidence_hashes={
-            "context_binding": hashlib.sha256(evidence_payload).hexdigest(),
-            "not_applicable_reason": normalized_text_sha256(
-                normalized_reason,
-                field="not_applicable_reason",
-            ),
-        },
-        previous_receipt_hash=previous_hash,
+    context_evidence_hash = hashlib.sha256(evidence_payload).hexdigest()
+    reason_hash = normalized_text_sha256(
+        normalized_reason,
+        field="not_applicable_reason",
     )
-    write_stage_receipt(receipt_path, stage_receipt)
+    evidence_path, evidence_artifact_hash = write_stage_evidence(
+        receipt_path,
+        evidence_hashes={
+            "context_binding": context_evidence_hash,
+            "not_applicable_reason": reason_hash,
+        },
+        payload=evidence,
+    )
+    try:
+        stage_receipt = build_stage_receipt(
+            run_id=resolved_run_id,
+            stage=stage,
+            tool_name="context_binding_generator",
+            tool_version="1.0.0",
+            started_at=started_at,
+            completed_at=datetime.now(timezone.utc),
+            mutation=False,
+            input_artifact_hashes={
+                "article": article_hash,
+                "validation_sidecar": sidecar_hash,
+            },
+            output_artifact_hashes={
+                "article": article_hash,
+                "validation_sidecar": sidecar_hash,
+                "stage_evidence": evidence_artifact_hash,
+            },
+            evidence_hashes={
+                "context_binding": context_evidence_hash,
+                "not_applicable_reason": reason_hash,
+            },
+            previous_receipt_hash=previous_hash,
+        )
+        write_stage_receipt(receipt_path, stage_receipt)
+    except Exception:
+        evidence_path.unlink(missing_ok=True)
+        raise
     return {
         "connector_binding": {
             "status": "not_applicable",
@@ -490,12 +547,11 @@ def _derive_claim_map(
 
 def _read_object(path: Path) -> dict[str, Any]:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
-        raise ContextBindingGenerationError("context_artifact_invalid", f"Invalid context artifact {path}: {error}") from error
-    if not isinstance(value, dict):
-        raise ContextBindingGenerationError("context_artifact_invalid", f"Context artifact must be an object: {path}")
-    return value
+        return load_json_object_snapshot(path, field="context artifact").payload
+    except ValueError as error:
+        raise ContextBindingGenerationError(
+            "context_artifact_invalid", f"Invalid context artifact {path}: {error}"
+        ) from error
 
 
 def _resolve_distinct_paths(**paths: str | Path) -> dict[str, Path]:

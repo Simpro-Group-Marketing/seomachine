@@ -9,22 +9,27 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
+from uuid import uuid4
 
 try:
     from .blog_assembly_contract import (
         atomic_write_json,
+        canonical_article_run_id,
         canonical_json_bytes,
         canonical_json_sha256,
         file_sha256,
+        load_json_object_snapshot,
         validate_sha256,
     )
     from .blog_assembly_stage_receipt import build_stage_receipt
 except ImportError:  # pragma: no cover - supports direct script execution.
     from blog_assembly_contract import (
         atomic_write_json,
+        canonical_article_run_id,
         canonical_json_bytes,
         canonical_json_sha256,
         file_sha256,
+        load_json_object_snapshot,
         validate_sha256,
     )
     from blog_assembly_stage_receipt import build_stage_receipt
@@ -61,19 +66,32 @@ def start_mutation(
     *,
     article_path: str | Path,
     state_path: str | Path,
-    run_id: str,
+    run_id: str | None,
     stage: str,
     tool_name: str,
     tool_version: str,
     input_artifacts: Mapping[str, str | Path] | None = None,
     previous_receipt_hash: str = "",
     started_at: datetime | str | None = None,
+    workspace_root: str | Path | None = None,
+    assembly_date: str | None = None,
 ) -> dict[str, Any]:
     """Persist the immutable before-state before any mutation can occur."""
     if stage not in MUTATION_STAGES:
         raise ValueError("mutation recorder stage must be draft or optimization")
     article = Path(article_path).resolve()
-    normalized_run_id = _required(run_id, "run_id")
+    if run_id is None:
+        if workspace_root is None or assembly_date is None:
+            raise ValueError(
+                "run_id or both workspace_root and assembly_date are required"
+            )
+        normalized_run_id = canonical_article_run_id(
+            article,
+            workspace_root=workspace_root,
+            assembly_date=assembly_date,
+        )
+    else:
+        normalized_run_id = _required(run_id, "run_id")
     normalized_tool_name = _required(tool_name, "tool_name")
     normalized_tool_version = _required(tool_version, "tool_version")
     normalized_started_at = _time_text(started_at)
@@ -144,11 +162,15 @@ def finish_mutation(
     receipt_path: str | Path,
     evidence_artifacts: Mapping[str, str | Path] | None = None,
     completed_at: datetime | str | None = None,
+    consumed_ledger_path: str | Path | None = None,
 ) -> dict[str, Any]:
     """Close a mutation using the current after-state and write its receipt."""
     try:
-        state = json.loads(Path(state_path).read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        state = load_json_object_snapshot(
+            state_path,
+            field="mutation state",
+        ).payload
+    except ValueError as error:
         raise ValueError(f"mutation state is invalid: {error}") from error
     state = _validate_active_state(state)
     state_source = Path(state_path).resolve()
@@ -188,39 +210,91 @@ def finish_mutation(
     if not isinstance(tool, Mapping):
         raise ValueError("mutation state tool is invalid")
     completed_text = _time_text(completed_at)
-    receipt = build_stage_receipt(
-        run_id=str(state.get("run_id") or ""),
-        stage=str(state.get("stage") or ""),
-        tool_name=str(tool.get("name") or ""),
-        tool_version=str(tool.get("version") or ""),
-        started_at=str(state.get("started_at") or ""),
-        completed_at=completed_text,
-        mutation=True,
-        input_artifact_hashes=dict(input_hashes),
-        output_artifact_hashes={"article": after_hash},
-        evidence_hashes=evidence_hashes,
-        previous_receipt_hash=str(state.get("previous_receipt_hash") or ""),
-    )
-    _exclusive_write_json(
-        receipt_destination,
-        receipt,
-        existing_message="mutation receipt output already exists",
-    )
-    consumed = {
-        "schema": CONSUMED_STATE_SCHEMA,
-        "active_state_hash": str(state["state_hash"]),
-        "receipt_hash": str(receipt["receipt_hash"]),
-        "receipt_sha256": file_sha256(receipt_destination),
-        "consumed_at": completed_text,
-    }
-    if set(consumed) != CONSUMED_STATE_FIELDS:  # pragma: no cover - invariant.
-        raise RuntimeError("consumed mutation state shape drifted")
+    ledger_root = Path(
+        consumed_ledger_path
+        if consumed_ledger_path is not None
+        else Path.cwd() / ".seomachine" / "mutation-consumed"
+    ).resolve()
+    reservation = _reserve_state_hash(ledger_root, str(state["state_hash"]))
+    receipt_written = False
+    state_committed = False
     try:
+        receipt = build_stage_receipt(
+            run_id=str(state.get("run_id") or ""),
+            stage=str(state.get("stage") or ""),
+            tool_name=str(tool.get("name") or ""),
+            tool_version=str(tool.get("version") or ""),
+            started_at=str(state.get("started_at") or ""),
+            completed_at=completed_text,
+            mutation=True,
+            input_artifact_hashes=dict(input_hashes),
+            output_artifact_hashes={"article": after_hash},
+            evidence_hashes=evidence_hashes,
+            previous_receipt_hash=str(state.get("previous_receipt_hash") or ""),
+        )
+        _exclusive_write_json(
+            receipt_destination,
+            receipt,
+            existing_message="mutation receipt output already exists",
+        )
+        receipt_written = True
+        consumed = {
+            "schema": CONSUMED_STATE_SCHEMA,
+            "active_state_hash": str(state["state_hash"]),
+            "receipt_hash": str(receipt["receipt_hash"]),
+            "receipt_sha256": file_sha256(receipt_destination),
+            "consumed_at": completed_text,
+        }
+        if set(consumed) != CONSUMED_STATE_FIELDS:  # pragma: no cover - invariant.
+            raise RuntimeError("consumed mutation state shape drifted")
         atomic_write_json(state_source, consumed)
+        state_committed = True
+        atomic_write_json(
+            reservation,
+            {
+                "schema": CONSUMED_STATE_SCHEMA,
+                "active_state_hash": str(state["state_hash"]),
+                "receipt_hash": str(receipt["receipt_hash"]),
+                "receipt_sha256": file_sha256(receipt_destination),
+                "consumed_at": completed_text,
+                "status": "committed",
+            },
+        )
     except Exception:
-        receipt_destination.unlink(missing_ok=True)
+        if receipt_written and not state_committed:
+            receipt_destination.unlink(missing_ok=True)
+        if not state_committed:
+            reservation.unlink(missing_ok=True)
         raise
     return receipt
+
+
+def mutation_ledger_entry_path(
+    ledger_path: str | Path,
+    state_hash: str,
+) -> Path:
+    """Return the durable replay-lock path for one validated state hash."""
+    digest = validate_sha256(state_hash, field="state_hash")
+    return Path(ledger_path).resolve() / f"{digest}.json"
+
+
+def _reserve_state_hash(ledger_path: Path, state_hash: str) -> Path:
+    entry = mutation_ledger_entry_path(ledger_path, state_hash)
+    entry.parent.mkdir(parents=True, exist_ok=True)
+    reservation = {
+        "schema": "simpro-blog-mutation-state-reservation/v1",
+        "active_state_hash": state_hash,
+        "reservation_id": str(uuid4()),
+        "status": "reserved",
+    }
+    try:
+        with entry.open("xb") as handle:
+            handle.write(canonical_json_bytes(reservation))
+            handle.flush()
+            os.fsync(handle.fileno())
+    except FileExistsError as error:
+        raise ValueError("mutation state was already consumed") from error
+    return entry
 
 
 def _validate_active_state(value: Any) -> dict[str, Any]:
@@ -296,7 +370,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     start = subparsers.add_parser("start")
     start.add_argument("--article", required=True)
     start.add_argument("--state", required=True)
-    start.add_argument("--run-id", required=True)
+    start.add_argument("--run-id")
+    start.add_argument("--assembly-date")
+    start.add_argument("--workspace-root", default=".")
     start.add_argument("--stage", choices=sorted(MUTATION_STAGES), required=True)
     start.add_argument("--tool-name", required=True)
     start.add_argument("--tool-version", required=True)
@@ -319,6 +395,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 tool_version=args.tool_version,
                 input_artifacts=_label_paths(args.input),
                 previous_receipt_hash=args.previous_receipt_hash,
+                workspace_root=args.workspace_root,
+                assembly_date=args.assembly_date,
             )
         else:
             finish_mutation(

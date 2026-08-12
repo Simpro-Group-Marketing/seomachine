@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup
 
 try:
     from .artifact_detection import extract_frontmatter, strip_frontmatter
+    from .blog_assembly_contract import load_json_object_snapshot
     from .frontmatter import FrontmatterError
     from .guard_common import Finding, make_finding, should_fail, summarize_findings
     from .proof_sidecar import load_sidecar_content
@@ -24,6 +25,7 @@ try:
     from .simpro_vault_client import SimproVaultClient, VaultClientError
 except ImportError:  # pragma: no cover - supports direct script execution.
     from artifact_detection import extract_frontmatter, strip_frontmatter
+    from blog_assembly_contract import load_json_object_snapshot
     from frontmatter import FrontmatterError
     from guard_common import Finding, make_finding, should_fail, summarize_findings
     from proof_sidecar import load_sidecar_content
@@ -522,10 +524,7 @@ def _json_block(content: str, heading: str) -> Any:
 
 
 def _read_json(path: Path) -> dict[str, Any]:
-    value = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(value, dict):
-        raise ValueError(f"JSON artifact must contain an object: {path}")
-    return value
+    return load_json_object_snapshot(path, field=f"JSON artifact {path}").payload
 
 
 def validate_request_article(

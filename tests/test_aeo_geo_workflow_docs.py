@@ -1581,7 +1581,8 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "content_scrubber.py",
             "context_binding_generator.py",
             "--stage-receipt-output",
-            "--run-id",
+            "--assembly-date",
+            "--workspace-root",
             "--previous-receipt",
         )
         for path in docs:

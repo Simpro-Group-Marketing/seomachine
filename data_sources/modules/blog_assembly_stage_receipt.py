@@ -5,40 +5,35 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Collection, Mapping, Sequence
 
 try:
-    from .blog_assembly_contract import atomic_write_json, validate_sha256
+    from .blog_assembly_contract import (
+        NORMAL_STAGE_SEQUENCE,
+        OPTIMIZED_STAGE_SEQUENCE,
+        atomic_write_json,
+        load_json_object_snapshot,
+        validate_sha256,
+    )
     from .execution_attestation import attest_mapping, verify_mapping_attestation
     from .guard_common import Finding, make_finding
 except ImportError:  # pragma: no cover - supports direct script execution.
-    from blog_assembly_contract import atomic_write_json, validate_sha256
+    from blog_assembly_contract import (
+        NORMAL_STAGE_SEQUENCE,
+        OPTIMIZED_STAGE_SEQUENCE,
+        atomic_write_json,
+        load_json_object_snapshot,
+        validate_sha256,
+    )
     from execution_attestation import attest_mapping, verify_mapping_attestation
     from guard_common import Finding, make_finding
 
 
 STAGE_RECEIPT_SCHEMA = "simpro-blog-stage-receipt/v1"
+STAGE_EVIDENCE_SCHEMA = "simpro-blog-stage-evidence/v1"
 STAGE_RECEIPT_ATTESTATION_PURPOSE = "simpro-blog-stage-receipt/v1"
-NORMAL_STAGE_SEQUENCE = (
-    "draft",
-    "scrub",
-    "context_binding",
-    "preflight_readiness",
-    "final_readiness_attestation",
-)
-OPTIMIZED_STAGE_SEQUENCE = (
-    "draft",
-    "scrub",
-    "context_binding",
-    "preflight_readiness",
-    "optimization",
-    "post_optimization_scrub",
-    "post_optimization_context_binding",
-    "final_preflight_readiness",
-    "final_readiness_attestation",
-)
 STAGES = tuple(dict.fromkeys((*NORMAL_STAGE_SEQUENCE, *OPTIMIZED_STAGE_SEQUENCE)))
 DETERMINISTIC_TOOLS = {
     "scrub": ("content_scrubber", "1.0.0"),
@@ -89,6 +84,35 @@ class StageReceiptError(ValueError):
     def __init__(self, code: str, message: str):
         super().__init__(message)
         self.code = code
+
+
+def stage_evidence_path(receipt_path: str | Path) -> Path:
+    """Return the deterministic evidence sidecar path for one stage receipt."""
+    receipt = Path(receipt_path)
+    return receipt.with_name(f"{receipt.stem}-evidence.json")
+
+
+def write_stage_evidence(
+    receipt_path: str | Path,
+    *,
+    evidence_hashes: Mapping[str, str],
+    payload: Mapping[str, Any],
+) -> tuple[Path, str]:
+    """Materialize logical stage evidence in a path/hash-bound JSON artifact."""
+    hashes = _hash_mapping(
+        evidence_hashes,
+        code="stage_receipt_evidence_hash_invalid",
+        field="evidence_hashes",
+    )
+    manifest = {
+        "schema": STAGE_EVIDENCE_SCHEMA,
+        "evidence_hashes": hashes,
+        "payload": dict(payload),
+    }
+    destination = stage_evidence_path(receipt_path)
+    atomic_write_json(destination, manifest)
+    digest = hashlib.sha256(destination.read_bytes()).hexdigest()
+    return destination, digest
 
 
 def build_stage_receipt(
@@ -213,11 +237,9 @@ def load_stage_receipt(
 ) -> dict[str, Any]:
     """Load one receipt and reject invalid JSON or contract drift."""
     try:
-        value = json.loads(Path(path).read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        value = load_json_object_snapshot(path, field="stage receipt").payload
+    except ValueError as error:
         raise StageReceiptError("stage_receipt_file_invalid", str(error)) from error
-    if not isinstance(value, dict):
-        raise StageReceiptError("stage_receipt_file_invalid", "receipt must be a JSON object")
     findings = check_stage_receipt(value, workspace_root=workspace_root)
     if findings:
         first = findings[0]
@@ -388,8 +410,8 @@ def check_stage_receipt(
 def check_stage_receipt_file(path: str | Path, **expected: Any) -> list[Finding]:
     """Return findings for one receipt file without leaking raw exceptions."""
     try:
-        value = json.loads(Path(path).read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        value = load_json_object_snapshot(path, field="stage receipt").payload
+    except ValueError as error:
         return [_finding("stage_receipt_file_invalid", str(error))]
     return check_stage_receipt(value, **expected)
 
@@ -398,6 +420,10 @@ def check_receipt_chain(
     receipts: Any,
     *,
     workspace_root: str | Path | None = None,
+    expected_run_id: str | None = None,
+    assembly_date: str | date | None = None,
+    now: datetime | None = None,
+    resolvable_evidence_hashes: Collection[str] | None = None,
 ) -> list[Finding]:
     """Validate global order, time, hash, and article continuity."""
     if not isinstance(receipts, list) or not all(isinstance(item, Mapping) for item in receipts):
@@ -419,7 +445,35 @@ def check_receipt_chain(
     run_ids = {receipt.get("run_id") for receipt in receipts}
     if len(run_ids) != 1:
         findings.append(_finding("stage_receipt_run_id_mismatch", "All receipts in a chain must share one run_id."))
+    if expected_run_id is not None and run_ids != {expected_run_id}:
+        findings.append(_finding("stage_receipt_run_id_mismatch", "Receipt run_id does not match the canonical article run identity."))
+    parsed_assembly_date = _assembly_date(assembly_date)
+    observed_now = _now(now)
     for index, receipt in enumerate(receipts):
+        try:
+            _, started = _timestamp(receipt.get("started_at"), "started_at")
+            _, completed = _timestamp(receipt.get("completed_at"), "completed_at")
+        except StageReceiptError:
+            started = completed = None
+        if completed is not None and observed_now is not None and completed > observed_now:
+            findings.append(_finding("stage_receipt_timestamp_future", "Receipt completion time cannot be in the future."))
+        if (
+            started is not None
+            and parsed_assembly_date is not None
+            and started.date() != parsed_assembly_date
+        ):
+            findings.append(_finding("stage_receipt_stale", "Receipt execution must occur on the BOM assembly date."))
+        if resolvable_evidence_hashes is not None:
+            evidence = receipt.get("evidence_hashes")
+            if isinstance(evidence, Mapping):
+                for label, digest in evidence.items():
+                    if digest not in resolvable_evidence_hashes:
+                        findings.append(
+                            _finding(
+                                "stage_receipt_evidence_unresolved",
+                                f"Receipt evidence {label} does not resolve to a current artifact or repository definition.",
+                            )
+                        )
         previous = str(receipt.get("previous_receipt_hash") or "")
         if index == 0:
             if previous:
@@ -443,6 +497,30 @@ def check_receipt_chain(
         if prior_article and current_article != prior_article:
             findings.append(_finding("stage_receipt_article_chain_broken", "Article hashes are not continuous between stages."))
     return _sorted(findings)
+
+
+def _assembly_date(value: str | date | None) -> date | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return None
+    if isinstance(value, date):
+        return value
+    if not isinstance(value, str):
+        return None
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError:
+        return None
+    return parsed if parsed.isoformat() == value else None
+
+
+def _now(value: datetime | None) -> datetime | None:
+    if value is None:
+        return None
+    if value.tzinfo is None or value.utcoffset() != timezone.utc.utcoffset(value):
+        return None
+    return value.astimezone(timezone.utc)
 
 
 def _hash_mapping(value: Any, *, code: str, field: str) -> dict[str, str]:

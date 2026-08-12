@@ -138,6 +138,7 @@ venv/
 
 # Local agent/tool state
 .cache/
+.seomachine/
 .codex/
 .worktrees/
 .playwright-cli/

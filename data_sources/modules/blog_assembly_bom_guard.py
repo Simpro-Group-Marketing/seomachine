@@ -5,7 +5,7 @@ from __future__ import annotations
 import copy
 import json
 import re
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -23,6 +23,7 @@ try:
         LIFECYCLE_STATES,
         WORKFLOW_MODES,
         _editorial_plan_summary,
+        _resolvable_receipt_evidence_hashes,
         _schema_policy,
         _visible_faq_questions,
         _validate_prior_preflight_readiness,
@@ -31,9 +32,16 @@ try:
     from .blog_assembly_contract import (
         artifact_inventory_snapshots,
         canonical_artifact,
+        canonical_article_run_id,
         canonical_json_sha256,
         expected_blog_gate_inventory,
+        is_json_number,
+        load_json_object_snapshot,
         normalized_text_sha256,
+        NORMAL_FINAL_STAGES,
+        NORMAL_PROVISIONAL_STAGES,
+        OPTIMIZED_FINAL_STAGES,
+        OPTIMIZED_PROVISIONAL_STAGES,
         resolve_artifact,
         sidecar_evidence_binding_errors,
         validate_sha256,
@@ -53,6 +61,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         LIFECYCLE_STATES,
         WORKFLOW_MODES,
         _editorial_plan_summary,
+        _resolvable_receipt_evidence_hashes,
         _schema_policy,
         _visible_faq_questions,
         _validate_prior_preflight_readiness,
@@ -61,9 +70,16 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from blog_assembly_contract import (
         artifact_inventory_snapshots,
         canonical_artifact,
+        canonical_article_run_id,
         canonical_json_sha256,
         expected_blog_gate_inventory,
+        is_json_number,
+        load_json_object_snapshot,
         normalized_text_sha256,
+        NORMAL_FINAL_STAGES,
+        NORMAL_PROVISIONAL_STAGES,
+        OPTIMIZED_FINAL_STAGES,
+        OPTIMIZED_PROVISIONAL_STAGES,
         resolve_artifact,
         sidecar_evidence_binding_errors,
         validate_sha256,
@@ -73,16 +89,6 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from publishable_markdown import FrontmatterError, read_publishable_markdown
 
 
-NORMAL_PROVISIONAL_STAGES = ("draft", "scrub", "context_binding")
-NORMAL_FINAL_STAGES = NORMAL_PROVISIONAL_STAGES + ("preflight_readiness",)
-OPTIMIZED_PROVISIONAL_STAGES = NORMAL_FINAL_STAGES + (
-    "optimization",
-    "post_optimization_scrub",
-    "post_optimization_context_binding",
-)
-OPTIMIZED_FINAL_STAGES = OPTIMIZED_PROVISIONAL_STAGES + (
-    "final_preflight_readiness",
-)
 FORBIDDEN_TOPOLOGY_PATTERNS = (
     "/".join(("obsidian", "simpro brand context", "")),
     "".join(("wi", "ki", "/")),
@@ -108,6 +114,7 @@ REQUIRED_ARTIFACT_FIELDS = (
     "fred_authority_evidence",
     "optimizer_outputs",
     "stage_receipts",
+    "stage_evidence",
     "prior_preflight_readiness",
     "preflight_readiness",
 )
@@ -147,6 +154,7 @@ def check_bom_file(
     context_result: context_binding_guard.ContextValidationResult | None = None,
     context_client: Any = None,
     vault_root: str | Path | None = None,
+    repository_definition_hashes: Mapping[str, str] | None = None,
 ) -> list[Finding]:
     """Read and validate one strict BOM against current workflow files."""
     source = Path(path)
@@ -157,8 +165,8 @@ def check_bom_file(
         except ValueError as error:
             return [_finding("bom_path_invalid", f"Blog assembly BOM path is invalid: {error}")]
     try:
-        payload = json.loads(source.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        payload = load_json_object_snapshot(source, field="blog assembly BOM").payload
+    except ValueError as error:
         return [_finding("bom_invalid", f"Blog assembly BOM is invalid: {error}")]
     if not isinstance(payload, Mapping):
         return [_finding("bom_invalid", "Blog assembly BOM must be a JSON object.")]
@@ -174,6 +182,7 @@ def check_bom_file(
         context_result=context_result,
         context_client=context_client,
         vault_root=vault_root,
+        repository_definition_hashes=repository_definition_hashes,
     )
 
 
@@ -190,6 +199,7 @@ def check_bom(
     context_result: context_binding_guard.ContextValidationResult | None = None,
     context_client: Any = None,
     vault_root: str | Path | None = None,
+    repository_definition_hashes: Mapping[str, str] | None = None,
 ) -> list[Finding]:
     """Return deterministic blocking findings for one BOM object."""
     root = Path(workspace_root or Path.cwd()).resolve()
@@ -329,7 +339,14 @@ def check_bom(
     ):
         findings.append(_finding(rule_id, message))
     findings.extend(_check_editorial_plan(bom, artifacts, root))
-    findings.extend(_check_workflow(bom, artifacts, root))
+    findings.extend(
+        _check_workflow(
+            bom,
+            artifacts,
+            root,
+            repository_definition_hashes=repository_definition_hashes,
+        )
+    )
     findings.extend(_check_preflight(bom, artifacts, root))
     return _sorted(findings)
 
@@ -343,13 +360,14 @@ def _check_artifact_inventory(
     singleton_fields = set(REQUIRED_ARTIFACT_FIELDS) - {
         "optimizer_outputs",
         "stage_receipts",
+        "stage_evidence",
     }
     for field in singleton_fields:
         row = artifacts.get(field)
         if row is None:
             continue
         findings.extend(_verify_row(row, field, root))
-    for field in ("optimizer_outputs", "stage_receipts"):
+    for field in ("optimizer_outputs", "stage_receipts", "stage_evidence"):
         rows = artifacts.get(field)
         if not isinstance(rows, list):
             findings.append(_finding(f"bom_{field}_invalid", f"artifacts.{field} must be a list."))
@@ -780,6 +798,8 @@ def _check_workflow(
     bom: Mapping[str, Any],
     artifacts: Mapping[str, Any],
     root: Path,
+    *,
+    repository_definition_hashes: Mapping[str, str] | None = None,
 ) -> list[Finding]:
     workflow = bom.get("workflow")
     if not isinstance(workflow, Mapping):
@@ -807,7 +827,13 @@ def _check_workflow(
                 workspace_root=root,
                 field=f"artifacts.stage_receipts[{index}]",
             )
-            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            receipt_snapshot = load_json_object_snapshot(
+                receipt_path,
+                field=f"stage receipt {index}",
+            )
+            if receipt_snapshot.sha256 != row.get("sha256"):
+                raise ValueError("stage receipt changed during validation")
+            receipt = receipt_snapshot.payload
         except ValueError:
             continue
         except (OSError, UnicodeError, json.JSONDecodeError) as error:
@@ -834,7 +860,46 @@ def _check_workflow(
         findings.append(_finding("bom_optimizer_evidence_missing", "Optimization stage requires optimizer output evidence."))
     if not optimized and artifacts.get("optimizer_outputs"):
         findings.append(_finding("bom_optimizer_evidence_unexpected", "Optimizer evidence is allowed only when an optimization stage exists."))
-    findings.extend(blog_assembly_stage_receipt.check_receipt_chain(loaded))
+    article_row = artifacts.get("article")
+    try:
+        expected_run_id = canonical_article_run_id(
+            resolve_artifact(
+                article_row.get("path") if isinstance(article_row, Mapping) else None,
+                workspace_root=root,
+            ),
+            workspace_root=root,
+            assembly_date=str(bom.get("assembly_date") or ""),
+        )
+    except ValueError:
+        expected_run_id = None
+    try:
+        resolvable_evidence = _resolvable_receipt_evidence_hashes(
+            loaded,
+            artifacts=artifacts,
+            workspace_root=root,
+            repository_definition_hashes=repository_definition_hashes,
+        )
+    except ValueError as error:
+        findings.append(
+            _finding(
+                "bom_stage_evidence_invalid",
+                f"Stage evidence resolution failed: {error}",
+            )
+        )
+        resolvable_evidence = set()
+    findings.extend(
+        blog_assembly_stage_receipt.check_receipt_chain(
+            loaded,
+            expected_run_id=expected_run_id,
+            assembly_date=(
+                str(bom.get("assembly_date"))
+                if isinstance(bom.get("assembly_date"), str)
+                else None
+            ),
+            now=datetime.now(timezone.utc),
+            resolvable_evidence_hashes=resolvable_evidence,
+        )
+    )
     by_stage = {
         str(receipt.get("stage") or ""): receipt
         for receipt in loaded
@@ -1336,7 +1401,7 @@ def _sorted(findings: Sequence[Finding]) -> list[Finding]:
 
 
 def _is_number(value: Any) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    return is_json_number(value)
 
 
 def _finding(rule_id: str, message: str) -> Finding:
