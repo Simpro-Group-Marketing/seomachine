@@ -84,18 +84,7 @@ python data_sources/modules/context_binding_generator.py "[article]" --proof-sid
 
 In that branch, omit context request/pack/receipt, customer-proof selector, and Fred evidence arguments from the BOM build, and omit context request/pack/receipt arguments from both readiness runs. The builder derives connector applicability from the final article and rejects this branch when Simpro branding, an official Simpro URL (including a schemeless hostname), or connector-sensitive language is present.
 
-Use this exact non-circular order. Add the applicable artifact arguments and repeat `--stage-receipt` for every closed stage:
-
-```powershell
-python data_sources/modules/blog_assembly_bom.py build "[article]" --validation-sidecar "[sidecar]" --editorial-plan "[editorial-plan]" --serp-evidence "[serp-evidence]" --paa-artifact "[paa-artifact]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --customer-proof-selector-evidence "[selector-evidence]" --fred-authority-evidence "[fred-evidence]" --stage-receipt "[closed-stage-receipt]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output "[provisional-bom]"
-python data_sources/modules/publish_readiness.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --assembly-bom "[provisional-bom]" --phase preflight --output "[preflight-readiness]"
-python data_sources/modules/blog_assembly_bom.py finalize --bom "[provisional-bom]" --preflight-readiness "[preflight-readiness]" --output "[final-bom]"
-python data_sources/modules/publish_readiness.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --assembly-bom "[final-bom]" --phase final --output "[final-readiness-attestation]" --stage-receipt-output "[final-readiness-stage-receipt]"
-```
-
-Preflight must pass before finalization. Final readiness reruns every source-artifact gate and writes a detached final-readiness attestation tied to the final BOM and final input hashes. It is not hashed back into the BOM. Both results declare `verification_scope: source_artifact`; CMS payload and rendered-page verification are outside this scope.
-
-When preflight writes `research/preflight-readiness-[topic-slug]-[YYYY-MM-DD].json`, it automatically emits `research/preflight-readiness-[topic-slug]-[YYYY-MM-DD]-stage-receipt.json`. Keep every preflight-bound provisional BOM immutable. Use `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json` for the initial provisional BOM and `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-final.json` for its finalized form. The closed post-optimization sequence is `optimization` -> `post_optimization_scrub` -> `post_optimization_context_binding` -> `final_preflight_readiness`; rebuild to the distinct provisional path `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-post-optimization.json`, then finalize to `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-post-optimization-final.json`. Include every receipt, optimizer evidence, and `--prior-preflight-readiness`. Do not overwrite the BOM referenced by the prior preflight. The guard rejects that collision because it would destroy the historical input seal.
+After route-specific artifacts and receipts are complete, invoke `/publish-readiness`. It is the sole owner of the build -> preflight -> finalize -> final seal recipe, preflight companion receipt, final-readiness attestation, and `verification_scope: source_artifact` boundary. Keep every preflight-bound provisional BOM immutable; any optimization mutation must rerun its route-specific scrub and Context Binding receipts before `/publish-readiness` completes the reseal.
 
 PAA and FAQ policy:
 

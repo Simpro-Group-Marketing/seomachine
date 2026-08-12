@@ -1,0 +1,96 @@
+# Task 1 Report: Agency Ownership and Drift Locks
+
+## Implementation
+
+- Added behavioral architecture coverage for the canonical command matrix, the existing agent set, command-declared repository agents, customer-proof semantic parity, and the exclusive four-step seal owner.
+- Normalized `.agents/rules/customer-proof.md`, `.claude/rules/customer-proof.md`, and `.cursor/rules/customer-proof.mdc` to one rule body. Cursor frontmatter is the only wrapper difference.
+- Added `--context-pack`, `--context-receipt`, and `--evidence-output` to both mandatory customer-proof selector commands on every platform rule.
+- Moved all executable build -> preflight -> finalize -> final recipes out of non-owner command and steering documents. `/publish-readiness` remains the only executable seal owner; other surfaces retain route-specific receipts and reference it for sealing.
+- Replaced affected older workflow-document expectations with owner-focused behavior assertions.
+
+## RED Evidence
+
+Command:
+
+```powershell
+python -m unittest tests.test_blog_agency_architecture
+```
+
+Output summary:
+
+```text
+FAILED (failures=7)
+```
+
+Expected failures:
+
+- Customer-proof rules had two normalized bodies rather than one.
+- `README.md`, `context/aeo-geo-blog-strategy.md`, and `/article`, `/write`, `/rewrite`, and `/optimize` each owned the four-step recipe in addition to `/publish-readiness`.
+
+## GREEN Evidence
+
+Focused command:
+
+```powershell
+python -m pytest tests/test_blog_agency_architecture.py tests/test_aeo_geo_workflow_docs.py -q --durations=10
+```
+
+Output summary:
+
+```text
+111 passed, 81 subtests passed in 1.97s
+```
+
+The slowest focused test was 0.92s. No Task 1 architecture or workflow-document test showed pathological timing.
+
+Full-suite command run before the later pytest diagnostic:
+
+```powershell
+python -m unittest discover -s tests
+```
+
+Output summary:
+
+```text
+Ran 1002 tests in 27.679s
+OK (skipped=1)
+```
+
+Bounded pytest diagnostic command:
+
+```powershell
+python -m pytest -q --durations=20
+```
+
+Output summary:
+
+```text
+command timed out after 63190 milliseconds
+```
+
+The timeout emitted no test-progress or duration output. Process inspection showed concurrent non-Task-1 pytest processes in the shared workspace, including other focused tests and a separate full `python -m pytest -q` process, so this timeout does not identify a Task 1 test regression. No test-performance code change was justified by the focused evidence.
+
+## Files Changed
+
+- `.agents/rules/customer-proof.md`
+- `.claude/rules/customer-proof.md`
+- `.cursor/rules/customer-proof.mdc`
+- `.claude/commands/article.md`
+- `.claude/commands/write.md`
+- `.claude/commands/rewrite.md`
+- `.claude/commands/optimize.md`
+- `README.md`
+- `context/aeo-geo-blog-strategy.md`
+- `tests/test_blog_agency_architecture.py`
+- `tests/test_aeo_geo_workflow_docs.py`
+
+## Self-Review
+
+- The command matrix and agent-set assertions use exact repository definitions, so renamed workflow drivers, replacement commands, reviewer agents, and unresolved declared agent capabilities fail architecture tests.
+- Customer-proof parity compares normalized rule bodies and parsed selector flags/roles, rather than relying on isolated substrings.
+- Only `/publish-readiness` retains all four executable seal operations; route documents retain their mutation, scrub, and Context Binding behavior without duplicating the seal.
+- `git diff --check` completed without whitespace errors before this report was added.
+
+## Concerns
+
+- The focused Task 1 suite is green and fast. The later full pytest diagnostic exceeded its 60-second bound under concurrent shared-workspace pytest activity. The earlier full unittest suite passed in 27.679s. A clean, serialized full pytest timing run is still needed to establish a reliable pytest baseline, but is outside this narrowly scoped Task 1 change.

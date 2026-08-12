@@ -7,38 +7,36 @@ globs:
 alwaysApply: true
 ---
 
-Before selecting customer proof, the command workflow must resolve `topic`, `title`, and `objective`, automatically run:
+# Customer Proof Rule
+
+## Selector-first execution
+
+Apply this selector-first rule to blog drafts, rewrites, and research proof sidecars. Before selecting customer proof, resolve `topic`, `title`, and `objective`, then automatically run:
 
 ```powershell
-python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10
+python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10
 ```
 
-Use `context/customer-proof-index.json` for curated proof routes and `context/customer-proof-usage-ledger.json` for reuse. Before claiming a proof source is underused, inspect `recent_uses_90d` in the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the proof ID, public URL, and customer name. If the live repo scan finds public-copy usage missing from the ledger, backfill `context/customer-proof-usage-ledger.json`, rerun proof health and selector checks, and document the backfill in the validation sidecar. Write the generated selector-first `Customer Proof Slate` to the validation sidecar before drafting customer proof; "consult" means reviewing generated selector output, not skipping execution. If inputs are missing, resolve them from the brief/context or stop before drafting customer proof. If the selector fails, write the blocker into the validation sidecar and do not invent proof. Edit selected/rejected rows only when editorial judgment requires it. experience_story consideration is required and E-E-A-T story usage is optional; if no story fits, use `Selected: [none]` with section-specific rejection reasons. Choose the most relevant approved proof, not the easiest mapped case study. If a recently used or overused source remains the best fit, add a `Customer Proof Selection Decision` and source-specific `Reuse reason` proving no stronger underused approved proof fits the same role.
-
-When selected customer proof appears in public copy, add `Selected Customer Proof Mining` to the validation sidecar. Selector chooses candidates; proof mining reads the selected public URL before the writer decides quote, metric, POV/story, theme, or omit use. Use `context/aeo-geo-blog-strategy.md` as the canonical policy.
-
-Run `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` before adding proof candidates.
-
-Add new proof candidates through `context/customer-proof-intake-template.csv` and validate them with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates.
-
-For review-derived public E-E-A-T stories, the command workflow must automatically run:
+For review-derived public E-E-A-T stories, automatically run:
 
 ```powershell
-python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles experience_story --require-eeat-story --limit 10
+python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles experience_story --require-eeat-story --limit 10
 ```
 
-Review-derived E-E-A-T stories require `Review Story Selection` in the validation sidecar and same-paragraph public review links. Use `context/aeo-geo-blog-strategy.md` for identity and proof boundaries.
+Write the generated selector-first `Customer Proof Slate` to the validation sidecar before drafting customer proof. "Consult" means reviewing generated selector output, not skipping execution. If inputs are missing, resolve them from the brief/context or stop before drafting customer proof. If the selector fails, write the blocker into the validation sidecar and do not invent proof. experience_story consideration is required and E-E-A-T story usage is optional; if no story fits, use `Selected: [none]` with section-specific rejection reasons.
 
-Use a proof-backed customer/review POV only when it improves the article objective. If no actual person or business POV fits, omit the story. Fictional named personas are prohibited; unnamed workflow scenarios are explanatory only and do not count as E-E-A-T.
+## Selection and reuse
 
-Preferred publish readiness command:
+Use `context/customer-proof-index.json` for curated proof routes and `context/customer-proof-usage-ledger.json` for reuse. Choose the most relevant approved proof, not the easiest mapped case study. Treat any `recent_uses_90d` value above 0 as a proof-diversity warning. Before claiming a proof source is underused, inspect the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the proof ID, public URL, and customer name. If the live repo scan finds public-copy usage missing from the ledger, backfill `context/customer-proof-usage-ledger.json`, rerun proof health and selector checks, and document the backfill in the validation sidecar. If a recently used or overused source remains the best fit, add a `Customer Proof Selection Decision` and source-specific `Reuse reason` proving no stronger underused approved proof fits the same role.
 
-```powershell
-/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md
-```
+## Public-copy use
 
-The diversity gate runs inside `/publish-readiness` before scoring or publish readiness.
+When selected customer proof appears in public copy, add `Selected Customer Proof Mining` to the validation sidecar. Selector chooses candidates; proof mining reads the selected public URL before the writer decides quote, metric, POV/story, theme, or omit use. Review-derived E-E-A-T stories require `Review Story Selection` in the validation sidecar and same-paragraph public review links. Use a proof-backed customer/review POV only when it improves the article objective. If no actual person or business POV fits, omit the story. Fictional named personas are prohibited; unnamed workflow scenarios are explanatory only and do not count as E-E-A-T. Use `context/aeo-geo-blog-strategy.md` as the canonical policy.
 
-Case-study proof requires documented Quote Matrix, Reference, Customer Story, or review-site search evidence. Exact quotes, ratings, badges, rankings, named reviewers, and testimonials require approved proof rows with source-visible evidence.
+## Proof inventory
 
-The review story identity gate runs inside `/publish-readiness` when review-derived story copy appears.
+Run `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` before adding proof candidates. Add new proof candidates through `context/customer-proof-intake-template.csv` and validate them with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates.
+
+## Publish handoff
+
+Run `/publish-readiness` before handoff. Its complete gate and seal contract is the only publication-readiness authority.

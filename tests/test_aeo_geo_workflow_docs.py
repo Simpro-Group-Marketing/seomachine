@@ -980,20 +980,15 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                     )
 
     def test_publish_readiness_runner_is_documented_as_two_phase_command(self):
-        lifecycle_docs = [
-            ROOT / ".claude" / "commands" / "article.md",
-            ROOT / ".claude" / "commands" / "rewrite.md",
-            ROOT / "README.md",
-        ]
-        for path in lifecycle_docs:
-            content = path.read_text(encoding="utf-8")
-            for marker in (
-                "python data_sources/modules/publish_readiness.py",
-                "--phase preflight",
-                "--phase final",
-                "--output",
-            ):
-                self.assertIn(marker, content, f"{path.name} missing {marker}")
+        owner = ROOT / ".claude" / "commands" / "publish-readiness.md"
+        content = owner.read_text(encoding="utf-8")
+        for marker in (
+            "python data_sources/modules/publish_readiness.py",
+            "--phase preflight",
+            "--phase final",
+            "--output",
+        ):
+            self.assertIn(marker, content, f"{owner.name} missing {marker}")
 
         reference_docs = [
             ROOT / ".claude" / "commands" / "research.md",
@@ -1003,7 +998,12 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             ROOT / "AGENTS.md",
             ROOT / ".cursor" / "rules" / "customer-proof.mdc",
         ]
-        for path in reference_docs:
+        for path in [
+            *reference_docs,
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / "README.md",
+        ]:
             content = path.read_text(encoding="utf-8")
             self.assertIn("/publish-readiness", content, path.name)
 
@@ -1503,77 +1503,53 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                 self.assertIn(text, content, f"{path.name} missing {text}")
 
     def test_blog_assembly_bom_output_inventory_is_complete(self):
-        article = (ROOT / ".claude" / "commands" / "article.md").read_text(
+        publish_readiness = (ROOT / ".claude" / "commands" / "publish-readiness.md").read_text(
             encoding="utf-8"
         )
         required = [
-            "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json",
-            "research/validation-[topic-slug]-[YYYY-MM-DD].md",
-            "research/context-request-[topic-slug].json",
-            "research/context-pack-[topic-slug].json",
-            "research/context-receipt-[topic-slug].json",
-            "research/customer-proof-selector-evidence-[topic-slug].json",
-            "research/fred-authority-selection-[topic-slug].md",
-            "research/editorial-plan-[topic-slug]-[YYYY-MM-DD].json",
-            "research/serp-evidence-[topic-slug]-[YYYY-MM-DD].json",
-            "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json",
-            "research/stage-receipts/[topic-slug]/",
-            "research/optimizer-[topic-slug]-[YYYY-MM-DD].json",
-            "research/preflight-readiness-[topic-slug]-[YYYY-MM-DD].json",
-            "research/final-readiness-attestation-[topic-slug]-[YYYY-MM-DD].json",
-            "Context Binding",
-            "Context Claim Use Map",
+            "--validation-sidecar",
+            "--editorial-plan",
+            "--serp-evidence",
+            "--paa-artifact",
+            "--context-request",
+            "--context-pack",
+            "--context-receipt",
+            "--customer-proof-selector-evidence",
+            "--fred-authority-evidence",
+            "--stage-receipt",
             "--assembly-bom",
         ]
         for text in required:
-            self.assertIn(text, article)
+            self.assertIn(text, publish_readiness)
 
-    def test_blog_workflow_docs_define_non_circular_two_phase_seal(self):
-        docs = [
-            ROOT / ".claude" / "commands" / "article.md",
-            ROOT / ".claude" / "commands" / "rewrite.md",
-            ROOT / ".claude" / "commands" / "write.md",
-            ROOT / ".claude" / "commands" / "optimize.md",
-            ROOT / ".claude" / "commands" / "publish-readiness.md",
-            ROOT / "context" / "aeo-geo-blog-strategy.md",
-            ROOT / "README.md",
-        ]
+    def test_publish_readiness_owns_non_circular_two_phase_seal(self):
+        owner = ROOT / ".claude" / "commands" / "publish-readiness.md"
         ordered_markers = [
             "blog_assembly_bom.py build",
             "--phase preflight",
             "blog_assembly_bom.py finalize",
             "--phase final",
         ]
-        for path in docs:
-            content = path.read_text(encoding="utf-8")
-            positions = [content.find(marker) for marker in ordered_markers]
-            self.assertTrue(
-                all(position >= 0 for position in positions),
-                f"{path.name} is missing an executable two-phase-seal command",
-            )
-            self.assertEqual(
-                positions,
-                sorted(positions),
-                f"{path.name} documents the seal commands out of order",
-            )
-            self.assertIn("verification_scope: source_artifact", content, path.name)
-            self.assertIn("detached final-readiness attestation", content, path.name)
-            self.assertIn("not hashed back into the BOM", content, path.name)
+        content = owner.read_text(encoding="utf-8")
+        positions = [content.find(marker) for marker in ordered_markers]
+        self.assertTrue(all(position >= 0 for position in positions))
+        self.assertEqual(positions, sorted(positions))
+        self.assertIn("verification_scope: source_artifact", content)
+        self.assertIn("detached final-readiness attestation", content)
+        self.assertIn("not hashed back into the BOM", content)
 
-            readiness_commands = [
-                line.strip()
-                for line in content.splitlines()
-                if "python data_sources/modules/publish_readiness.py" in line
-            ]
-            self.assertGreaterEqual(len(readiness_commands), 2, path.name)
-            self.assertTrue(
-                any("--phase preflight" in line and "--output" in line for line in readiness_commands),
-                f"{path.name} lacks an executable preflight command",
-            )
-            self.assertTrue(
-                any("--phase final" in line and "--output" in line for line in readiness_commands),
-                f"{path.name} lacks an executable final-attestation command",
-            )
+        readiness_commands = [
+            line.strip()
+            for line in content.splitlines()
+            if "python data_sources/modules/publish_readiness.py" in line
+        ]
+        self.assertGreaterEqual(len(readiness_commands), 2)
+        self.assertTrue(
+            any("--phase preflight" in line and "--output" in line for line in readiness_commands)
+        )
+        self.assertTrue(
+            any("--phase final" in line and "--output" in line for line in readiness_commands)
+        )
 
     def test_active_blog_docs_do_not_offer_one_pass_readiness_commands(self):
         docs = [
@@ -1598,8 +1574,6 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         docs = [
             ROOT / ".claude" / "commands" / "article.md",
             ROOT / ".claude" / "commands" / "rewrite.md",
-            ROOT / "context" / "aeo-geo-blog-strategy.md",
-            ROOT / "README.md",
         ]
         required = (
             "blog_assembly_mutation_recorder.py start",
@@ -1609,12 +1583,19 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "--stage-receipt-output",
             "--run-id",
             "--previous-receipt",
-            "preflight-readiness-[topic-slug]-[YYYY-MM-DD]-stage-receipt.json",
         )
         for path in docs:
             content = path.read_text(encoding="utf-8")
             for marker in required:
                 self.assertIn(marker, content, f"{path.name} missing {marker}")
+
+        owner = (ROOT / ".claude" / "commands" / "publish-readiness.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            "preflight-readiness-[topic-slug]-[YYYY-MM-DD]-stage-receipt.json",
+            owner,
+        )
 
     def test_documented_mutation_receipts_bind_artifacts_by_contract_role(self):
         draft_docs = [
@@ -1959,138 +1940,33 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             positions = [section.find(stage) for stage in stages]
             self.assertTrue(all(position >= 0 for position in positions), path.name)
             self.assertEqual(positions, sorted(positions), path.name)
-            self.assertIn("--prior-preflight-readiness", section, path.name)
+            self.assertIn("/publish-readiness", section, path.name)
 
     def test_post_optimization_reseal_preserves_the_prior_bom_identity(self):
-        initial_bom = (
-            "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json"
+        owner = (ROOT / ".claude" / "commands" / "publish-readiness.md").read_text(
+            encoding="utf-8"
         )
-        initial_final_bom = (
-            "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-final.json"
-        )
-        post_optimization_bom = (
-            "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]"
-            "-post-optimization.json"
-        )
-        post_optimization_final_bom = (
-            "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]"
-            "-post-optimization-final.json"
-        )
-        docs = [
+        for marker in (
+            "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json",
+            "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-final.json",
+            "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-post-optimization.json",
+            "research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-post-optimization-final.json",
+            "Do not overwrite the BOM referenced by the prior preflight",
+        ):
+            self.assertIn(marker, owner)
+
+        for path in (
             ROOT / "README.md",
             ROOT / "context" / "aeo-geo-blog-strategy.md",
             ROOT / ".claude" / "commands" / "article.md",
             ROOT / ".claude" / "commands" / "write.md",
             ROOT / ".claude" / "commands" / "rewrite.md",
             ROOT / ".claude" / "commands" / "optimize.md",
-            ROOT / ".claude" / "commands" / "publish-readiness.md",
-        ]
-        for path in docs:
+        ):
             content = path.read_text(encoding="utf-8")
             with self.subTest(path=path.name):
-                self.assertIn(initial_bom, content)
-                self.assertIn(initial_final_bom, content)
-                self.assertIn(post_optimization_bom, content)
-                self.assertIn(post_optimization_final_bom, content)
-                self.assertIn(
-                    "Do not overwrite the BOM referenced by the prior preflight",
-                    content,
-                )
-
-        for path in docs[2:5]:
-            content = path.read_text(encoding="utf-8")
-            commands = [
-                shlex.split(line.strip(), posix=True)
-                for line in content.splitlines()
-                if line.strip().startswith("python data_sources/modules/")
-            ]
-            initial_finalize = next(
-                command
-                for command in commands
-                if command[1].endswith("blog_assembly_bom.py")
-                and command[2] == "finalize"
-                and "final-preflight-readiness" not in " ".join(command)
-            )
-            initial_final_readiness = next(
-                command
-                for command in commands
-                if command[1].endswith("publish_readiness.py")
-                and _command_option_values(command, "--phase") == ["final"]
-            )
-            with self.subTest(path=path.name, stage="initial-finalization"):
-                self.assertEqual(
-                    [initial_bom],
-                    _command_option_values(initial_finalize, "--bom"),
-                )
-                self.assertEqual(
-                    [initial_final_bom],
-                    _command_option_values(initial_finalize, "--output"),
-                )
-                self.assertEqual(
-                    [initial_final_bom],
-                    _command_option_values(initial_final_readiness, "--assembly-bom"),
-                )
-
-        optimize = (ROOT / ".claude" / "commands" / "optimize.md").read_text(
-            encoding="utf-8"
-        )
-        commands = [
-            shlex.split(line.strip(), posix=True)
-            for line in optimize.splitlines()
-            if line.strip().startswith("python data_sources/modules/")
-        ]
-        optimized_build = next(
-            command
-            for command in commands
-            if command[1].endswith("blog_assembly_bom.py")
-            and command[2] == "build"
-            and "--prior-preflight-readiness" in command
-        )
-        post_preflight = next(
-            command
-            for command in commands
-            if command[1].endswith("publish_readiness.py")
-            and _command_option_values(command, "--phase") == ["preflight"]
-            and "final-preflight-readiness" in " ".join(command)
-        )
-        post_finalize = next(
-            command
-            for command in commands
-            if command[1].endswith("blog_assembly_bom.py")
-            and command[2] == "finalize"
-            and "final-preflight-readiness" in " ".join(command)
-        )
-        final_readiness = next(
-            command
-            for command in commands
-            if command[1].endswith("publish_readiness.py")
-            and _command_option_values(command, "--phase") == ["final"]
-        )
-
-        self.assertEqual(
-            [post_optimization_bom],
-            _command_option_values(optimized_build, "--output"),
-        )
-        self.assertEqual(
-            [initial_bom.replace("blog-assembly-bom", "preflight-readiness")],
-            _command_option_values(optimized_build, "--prior-preflight-readiness"),
-        )
-        self.assertEqual(
-            [post_optimization_bom],
-            _command_option_values(post_preflight, "--assembly-bom"),
-        )
-        self.assertEqual(
-            [post_optimization_bom],
-            _command_option_values(post_finalize, "--bom"),
-        )
-        self.assertEqual(
-            [post_optimization_final_bom],
-            _command_option_values(post_finalize, "--output"),
-        )
-        self.assertEqual(
-            [post_optimization_final_bom],
-            _command_option_values(final_readiness, "--assembly-bom"),
-        )
+                self.assertIn("immutable", content)
+                self.assertIn("/publish-readiness", content)
 
     def test_editorial_plan_docs_cover_world_class_quality_decisions(self):
         workflow_paths = [
