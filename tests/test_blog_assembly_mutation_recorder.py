@@ -12,9 +12,18 @@ import pytest
 from data_sources.modules.blog_assembly_mutation_recorder import (
     finish_mutation,
     main,
-    start_mutation,
+    start_mutation as _start_mutation,
 )
 from data_sources.modules.blog_assembly_stage_receipt import load_stage_receipt
+
+
+def start_mutation(**kwargs: object) -> dict[str, object]:
+    """Supply the mandatory canonical workflow boundary for legacy test cases."""
+    state_path = Path(str(kwargs["state_path"]))
+    kwargs["workspace_root"] = state_path.parent
+    kwargs["assembly_date"] = "2026-08-11"
+    kwargs["run_id"] = None
+    return _start_mutation(**kwargs)  # type: ignore[arg-type]
 
 
 def test_optimizer_recorder_captures_real_before_and_after_hashes(tmp_path: Path):
@@ -474,8 +483,10 @@ def test_cli_rejects_duplicate_artifact_labels_with_concise_error(
                 str(article),
                 "--state",
                 str(state),
-                "--run-id",
-                "run-1",
+                "--assembly-date",
+                "2026-08-11",
+                "--workspace-root",
+                str(tmp_path),
                 "--stage",
                 "draft",
                 "--tool-name",
@@ -557,8 +568,10 @@ def test_cli_reports_missing_optimization_article_without_traceback(
                 str(tmp_path / "missing.md"),
                 "--state",
                 str(tmp_path / "state.json"),
-                "--run-id",
-                "run-1",
+                "--assembly-date",
+                "2026-08-11",
+                "--workspace-root",
+                str(tmp_path),
                 "--stage",
                 "optimization",
                 "--tool-name",

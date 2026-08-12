@@ -25,7 +25,9 @@ try:
         file_sha256,
         is_json_number,
         load_json_object_snapshot,
+        NORMAL_PROVISIONAL_STAGES,
         normalized_text_sha256,
+        OPTIMIZED_PROVISIONAL_STAGES,
         resolve_artifact,
         sidecar_evidence_binding_errors,
         validate_current_assembly_date,
@@ -53,7 +55,9 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         file_sha256,
         is_json_number,
         load_json_object_snapshot,
+        NORMAL_PROVISIONAL_STAGES,
         normalized_text_sha256,
+        OPTIMIZED_PROVISIONAL_STAGES,
         resolve_artifact,
         sidecar_evidence_binding_errors,
         validate_current_assembly_date,
@@ -103,7 +107,6 @@ def build_blog_assembly_bom_from_files(
     workspace_root: str | Path | None = None,
     context_client: Any = None,
     vault_root: str | Path | None = None,
-    repository_definition_hashes: Mapping[str, str] | None = None,
 ) -> dict[str, Any]:
     """Build a deterministic provisional BOM from exact current files."""
     for field, value in (
@@ -311,7 +314,6 @@ def build_blog_assembly_bom_from_files(
         prior_preflight_readiness_path=prior_preflight_readiness_path,
         visible_faq=bool(_visible_faq_questions(article.raw)),
         workspace_root=root,
-        repository_definition_hashes=repository_definition_hashes,
     )
 
     bom = {
@@ -379,6 +381,7 @@ def finalize_blog_assembly_bom(
         preflight_receipt,
         bom=bom,
         readiness_path=Path(preflight_readiness_path),
+        workspace_root=root,
     )
     _verify_preflight_execution(
         readiness,
@@ -584,6 +587,7 @@ def _validate_preflight_stage_receipt(
     *,
     bom: Mapping[str, Any],
     readiness_path: Path,
+    workspace_root: Path,
 ) -> None:
     workflow = _required_mapping(bom.get("workflow"), "bom.workflow")
     prior = workflow.get("stage_receipts")
@@ -591,11 +595,18 @@ def _validate_preflight_stage_receipt(
         raise ValueError("bom.workflow.stage_receipts must be a list")
     artifacts = _required_mapping(bom.get("artifacts"), "bom.artifacts")
     article = _required_mapping(artifacts.get("article"), "bom.artifacts.article")
+    article_path = resolve_artifact(
+        article.get("path"),
+        workspace_root=workspace_root,
+    )
     validate_preflight_stage_receipt_binding(
         receipt,
         prior_receipts=prior,
         readiness_path=readiness_path,
         article_sha256=article.get("sha256"),
+        article_path=article_path,
+        workspace_root=workspace_root,
+        assembly_date=bom.get("assembly_date"),
     )
 
 
@@ -605,6 +616,9 @@ def validate_preflight_stage_receipt_binding(
     prior_receipts: Sequence[Mapping[str, Any]],
     readiness_path: str | Path,
     article_sha256: Any,
+    article_path: str | Path,
+    workspace_root: str | Path,
+    assembly_date: str | date,
 ) -> None:
     """Validate one readiness receipt against its exact run, inputs, and outputs."""
     try:
@@ -630,7 +644,18 @@ def validate_preflight_stage_receipt_binding(
         expected_tool_name="publish_readiness",
         expected_tool_version="1.0.0",
     )
-    findings.extend(check_receipt_chain([*prior_receipts, receipt]))
+    expected_run_id = canonical_article_run_id(
+        article_path,
+        workspace_root=workspace_root,
+        assembly_date=assembly_date,
+    )
+    findings.extend(
+        check_receipt_chain(
+            [*prior_receipts, receipt],
+            expected_run_id=expected_run_id,
+            assembly_date=assembly_date,
+        )
+    )
     if findings:
         raise ValueError(
             "preflight stage receipt is invalid: "
@@ -983,7 +1008,6 @@ def _validate_provisional_stage_receipts(
     prior_preflight_readiness_path: str | Path | None,
     visible_faq: bool,
     workspace_root: Path,
-    repository_definition_hashes: Mapping[str, str] | None,
 ) -> None:
     try:
         from .blog_assembly_stage_receipt import check_receipt_chain
@@ -1001,7 +1025,6 @@ def _validate_provisional_stage_receipts(
         receipts,
         artifacts=artifacts,
         workspace_root=workspace_root,
-        repository_definition_hashes=repository_definition_hashes,
     )
     findings = check_receipt_chain(
         receipts,
@@ -1019,17 +1042,9 @@ def _validate_provisional_stage_receipts(
         )
         raise ValueError(f"stage receipt chain is invalid: {rules}: {messages}")
     expected = (
-        (
-            "draft",
-            "scrub",
-            "context_binding",
-            "preflight_readiness",
-            "optimization",
-            "post_optimization_scrub",
-            "post_optimization_context_binding",
-        )
+        OPTIMIZED_PROVISIONAL_STAGES
         if optimized
-        else ("draft", "scrub", "context_binding")
+        else NORMAL_PROVISIONAL_STAGES
     )
     if stages != expected:
         raise ValueError(
@@ -1411,17 +1426,12 @@ def _resolvable_receipt_evidence_hashes(
     *,
     artifacts: Mapping[str, Any],
     workspace_root: Path,
-    repository_definition_hashes: Mapping[str, str] | None,
 ) -> set[str]:
     """Resolve every receipt evidence digest to a current bound source."""
     resolvable = {
         row["sha256"]
         for row in artifact_inventory_snapshots(artifacts).values()
     }
-    for label, digest in (repository_definition_hashes or {}).items():
-        if not isinstance(label, str) or not label.strip():
-            raise ValueError("repository definition labels must be non-empty strings")
-        resolvable.add(validate_sha256(digest, field=f"repository_definition_hashes.{label}"))
     prior_readiness = artifacts.get("prior_preflight_readiness")
     if isinstance(prior_readiness, Mapping):
         prior_path = verify_artifact(

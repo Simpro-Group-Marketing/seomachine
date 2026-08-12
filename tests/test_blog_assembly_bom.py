@@ -916,6 +916,21 @@ def test_last_updated_must_match_assembly_date(
         _build(tmp_path, paths, assembly_date="2026-08-10")
 
 
+def test_builder_uses_shared_provisional_stage_contract(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    paths = _fixture(tmp_path)
+    monkeypatch.setattr(
+        blog_assembly_bom,
+        "NORMAL_PROVISIONAL_STAGES",
+        ("draft",),
+    )
+
+    with pytest.raises(ValueError, match="provisional stage receipt sequence"):
+        _build(tmp_path, paths)
+
+
 def test_builder_rejects_past_or_future_assembly_date_against_utc_today(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

@@ -45,11 +45,13 @@ try:
         artifact_inventory_snapshots,
         atomic_write_json,
         canonical_artifact,
+        canonical_article_run_id,
         canonical_json_bytes,
         expected_blog_gate_inventory,
         file_sha256,
         is_json_number,
         load_json_object_snapshot,
+        order_blog_gate_results,
         resolve_artifact,
         validate_sha256,
         verify_artifact,
@@ -90,11 +92,13 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         artifact_inventory_snapshots,
         atomic_write_json,
         canonical_artifact,
+        canonical_article_run_id,
         canonical_json_bytes,
         expected_blog_gate_inventory,
         file_sha256,
         is_json_number,
         load_json_object_snapshot,
+        order_blog_gate_results,
         resolve_artifact,
         validate_sha256,
         verify_artifact,
@@ -785,12 +789,16 @@ def _run_publish_readiness(
                 seal_findings,
             )
         )
-        expected_inventory = expected_blog_gate_inventory(
-            visible_faq=bool(runtime_policy["visible_faq"]),
-            connector_required=simpro_context_required,
-        )
-        actual_inventory = [gate["name"] for gate in gates]
-        if actual_inventory != expected_inventory:
+        try:
+            gates = [
+                dict(row)
+                for row in order_blog_gate_results(
+                    gates,
+                    visible_faq=bool(runtime_policy["visible_faq"]),
+                    connector_required=simpro_context_required,
+                )
+            ]
+        except ValueError:
             gates.append(
                 _gate_from_findings(
                     "readiness_contract",
@@ -890,12 +898,26 @@ def write_readiness_result(
     previous_hash = ""
     optimized = False
     prior_receipts: list[Mapping[str, Any]] = []
+    bom_assembly_date: str | None = None
+    canonical_run_id: str | None = None
     if isinstance(bom_path, str) and bom_path:
         try:
             bom = load_json_object_snapshot(bom_path, field="assembly BOM").payload
         except ValueError as error:
             raise ValueError(f"readiness BOM is unavailable: {error}") from error
         workflow = bom.get("workflow") if isinstance(bom, Mapping) else None
+        bom_assembly_date = (
+            str(bom.get("assembly_date"))
+            if isinstance(bom, Mapping) and isinstance(bom.get("assembly_date"), str)
+            else None
+        )
+        if bom_assembly_date is None:
+            raise ValueError("readiness BOM requires a canonical assembly_date")
+        canonical_run_id = canonical_article_run_id(
+            str(result.get("file") or ""),
+            workspace_root=root,
+            assembly_date=bom_assembly_date,
+        )
         receipts = workflow.get("stage_receipts") if isinstance(workflow, Mapping) else None
         if isinstance(receipts, list) and receipts:
             if any(not isinstance(row, Mapping) for row in receipts):
@@ -944,7 +966,15 @@ def write_readiness_result(
         previous_receipt_hash=previous_hash,
     )
     if prior_receipts:
-        chain_findings = check_receipt_chain([*prior_receipts, receipt])
+        if canonical_run_id is None or bom_assembly_date is None:
+            raise ValueError(
+                "readiness stage receipt requires canonical workflow identity"
+            )
+        chain_findings = check_receipt_chain(
+            [*prior_receipts, receipt],
+            expected_run_id=canonical_run_id,
+            assembly_date=bom_assembly_date,
+        )
         if chain_findings:
             rules = ", ".join(
                 sorted({str(finding["rule_id"]) for finding in chain_findings})

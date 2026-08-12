@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import inspect
 import json
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timezone
@@ -13,9 +14,11 @@ from data_sources.modules.blog_assembly_contract import (
     canonical_article_run_id,
     is_json_number,
     load_json_object_snapshot,
+    load_json_object_text,
 )
 from data_sources.modules.blog_assembly_mutation_recorder import (
     finish_mutation,
+    main as mutation_main,
     mutation_ledger_entry_path,
     start_mutation,
 )
@@ -23,6 +26,12 @@ from data_sources.modules.blog_assembly_stage_receipt import (
     build_stage_receipt,
     check_receipt_chain,
 )
+from data_sources.modules.blog_assembly_bom import (
+    build_blog_assembly_bom_from_files,
+    validate_preflight_stage_receipt_binding,
+)
+from data_sources.modules.blog_assembly_bom_guard import check_bom, check_bom_file
+from data_sources.modules.context_binding_guard import _json_block
 
 
 H1 = "1" * 64
@@ -85,6 +94,37 @@ def test_valid_json_booleans_survive_but_are_never_numeric(tmp_path: Path):
     assert not is_json_number(payload["enabled"])
 
 
+@pytest.mark.parametrize(
+    "embedded",
+    (
+        '{"schema":"one","schema":"two"}',
+        '{"score":NaN}',
+        '{"score":1e999}',
+    ),
+)
+def test_embedded_json_object_loader_rejects_ambiguous_numbers_and_keys(
+    embedded: str,
+):
+    with pytest.raises(ValueError, match="strict JSON"):
+        load_json_object_text(embedded, field="embedded control block")
+
+
+@pytest.mark.parametrize(
+    "embedded",
+    (
+        '{"schema":"one","schema":"two"}',
+        '{"score":NaN}',
+    ),
+)
+def test_context_binding_sidecar_rejects_permissive_embedded_json(
+    embedded: str,
+):
+    sidecar = f"## Context Binding\n```json\n{embedded}\n```\n"
+
+    with pytest.raises(ValueError, match="strict JSON"):
+        _json_block(sidecar, "Context Binding")
+
+
 def test_canonical_run_id_uses_workspace_relative_article_identity_and_date(
     tmp_path: Path,
 ):
@@ -118,7 +158,29 @@ def test_canonical_run_id_uses_workspace_relative_article_identity_and_date(
     )
 
 
-def test_mutation_start_can_derive_the_canonical_run_id(tmp_path: Path):
+def test_mutation_start_requires_signed_workspace_and_assembly_date(
+    tmp_path: Path,
+):
+    article = tmp_path / "drafts" / "article.md"
+    article.parent.mkdir()
+    article.write_text("Before\n", encoding="utf-8")
+
+    with pytest.raises(
+        ValueError,
+        match="workspace_root and assembly_date are required",
+    ):
+        start_mutation(
+            article_path=article,
+            state_path=tmp_path / "state.json",
+            run_id="caller-selected-run",
+            stage="draft",
+            tool_name="article-command",
+            tool_version="1",
+            started_at="2026-08-11T14:00:00Z",
+        )
+
+
+def test_mutation_start_signs_canonical_workspace_date_and_run_id(tmp_path: Path):
     article = tmp_path / "drafts" / "article.md"
     article.parent.mkdir()
     article.write_text("Before\n", encoding="utf-8")
@@ -140,6 +202,56 @@ def test_mutation_start_can_derive_the_canonical_run_id(tmp_path: Path):
         workspace_root=tmp_path,
         assembly_date="2026-08-11",
     )
+    assert state["workspace_root"] == tmp_path.resolve().as_posix()
+    assert state["assembly_date"] == "2026-08-11"
+
+
+def test_mutation_start_rejects_a_noncanonical_supplied_run_id(tmp_path: Path):
+    article = tmp_path / "article.md"
+    article.write_text("Before\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="canonical article run identity"):
+        start_mutation(
+            article_path=article,
+            state_path=tmp_path / "state.json",
+            run_id="caller-selected-run",
+            workspace_root=tmp_path,
+            assembly_date="2026-08-11",
+            stage="optimization",
+            tool_name="manual_optimizer",
+            tool_version="1.0.0",
+            started_at="2026-08-11T14:00:00Z",
+        )
+
+
+def test_mutation_start_cli_requires_explicit_workspace_and_assembly_date(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+):
+    article = tmp_path / "article.md"
+    article.write_text("Before\n", encoding="utf-8")
+
+    with pytest.raises(SystemExit) as raised:
+        mutation_main(
+            [
+                "start",
+                "--article",
+                str(article),
+                "--state",
+                str(tmp_path / "state.json"),
+                "--assembly-date",
+                "2026-08-11",
+                "--stage",
+                "optimization",
+                "--tool-name",
+                "manual_optimizer",
+                "--tool-version",
+                "1.0.0",
+            ]
+        )
+
+    assert raised.value.code == 2
+    assert "--workspace-root" in capsys.readouterr().err
 
 
 def _receipt(
@@ -229,7 +341,52 @@ def test_receipt_chain_rejects_cross_run_identity_even_for_one_receipt():
     }
 
 
-def test_receipt_evidence_must_resolve_to_current_artifact_or_definition_hash():
+def test_receipt_chain_checks_future_timestamps_with_default_clock():
+    receipt = _receipt(
+        "draft",
+        run_id="canonical-run",
+        started="2999-01-01T14:00:00Z",
+        completed="2999-01-01T14:01:00Z",
+    )
+
+    findings = check_receipt_chain([receipt])
+
+    assert "stage_receipt_timestamp_future" in {
+        finding["rule_id"] for finding in findings
+    }
+
+
+def test_receipt_chain_rejects_an_invalid_injected_clock():
+    receipt = _receipt(
+        "draft",
+        run_id="canonical-run",
+        started="2026-08-11T14:00:00Z",
+        completed="2026-08-11T14:01:00Z",
+    )
+
+    findings = check_receipt_chain(
+        [receipt],
+        now=datetime(2026, 8, 11, 15, 0),
+    )
+
+    assert "stage_receipt_clock_invalid" in {
+        finding["rule_id"] for finding in findings
+    }
+
+
+@pytest.mark.parametrize(
+    "parameter",
+    ("article_path", "workspace_root", "assembly_date"),
+)
+def test_preflight_receipt_boundary_requires_canonical_identity_inputs(
+    parameter: str,
+):
+    signature = inspect.signature(validate_preflight_stage_receipt_binding)
+    assert parameter in signature.parameters
+    assert signature.parameters[parameter].default is inspect.Parameter.empty
+
+
+def test_receipt_evidence_must_resolve_to_an_authorized_current_hash():
     receipt = _receipt(
         "draft",
         run_id="canonical-run",
@@ -255,6 +412,18 @@ def test_receipt_evidence_must_resolve_to_current_artifact_or_definition_hash():
     }
 
 
+@pytest.mark.parametrize(
+    "boundary",
+    (
+        build_blog_assembly_bom_from_files,
+        check_bom,
+        check_bom_file,
+    ),
+)
+def test_bom_boundaries_do_not_accept_caller_definition_hashes(boundary: object):
+    assert "repository_definition_hashes" not in inspect.signature(boundary).parameters
+
+
 def _start_optimization(tmp_path: Path, state_name: str = "state.json") -> tuple[Path, Path]:
     article = tmp_path / "article.md"
     article.write_text("Before\n", encoding="utf-8")
@@ -262,7 +431,9 @@ def _start_optimization(tmp_path: Path, state_name: str = "state.json") -> tuple
     start_mutation(
         article_path=article,
         state_path=state,
-        run_id="run-1",
+        run_id=None,
+        workspace_root=tmp_path,
+        assembly_date="2026-08-11",
         stage="optimization",
         tool_name="manual_optimizer",
         tool_version="1.0.0",
@@ -270,6 +441,53 @@ def _start_optimization(tmp_path: Path, state_name: str = "state.json") -> tuple
     )
     article.write_text("After\n", encoding="utf-8")
     return article, state
+
+
+def test_finish_ledger_is_derived_from_signed_workspace_not_current_directory(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    article, state = _start_optimization(workspace)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    monkeypatch.chdir(outside)
+    active = json.loads(state.read_text(encoding="utf-8"))
+
+    finish_mutation(
+        state_path=state,
+        article_path=article,
+        receipt_path=workspace / "receipt.json",
+        completed_at="2026-08-11T14:01:00Z",
+    )
+
+    expected = mutation_ledger_entry_path(
+        workspace / ".seomachine" / "mutation-consumed",
+        active["state_hash"],
+    )
+    assert expected.is_file()
+    assert not (outside / ".seomachine").exists()
+
+
+def test_finish_has_no_caller_supplied_ledger_override():
+    assert "consumed_ledger_path" not in inspect.signature(finish_mutation).parameters
+
+
+def test_copied_active_state_outside_signed_workspace_is_rejected(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    article, state = _start_optimization(workspace)
+    copied = tmp_path / "copied-state.json"
+    copied.write_bytes(state.read_bytes())
+
+    with pytest.raises(ValueError, match="state.*inside.*workspace"):
+        finish_mutation(
+            state_path=copied,
+            article_path=article,
+            receipt_path=workspace / "receipt.json",
+            completed_at="2026-08-11T14:01:00Z",
+        )
 
 
 def test_copied_or_restored_mutation_state_cannot_replay(tmp_path: Path):
@@ -280,7 +498,6 @@ def test_copied_or_restored_mutation_state_cannot_replay(tmp_path: Path):
         state_path=state,
         article_path=article,
         receipt_path=tmp_path / "receipt.json",
-        consumed_ledger_path=ledger,
         completed_at="2026-08-11T14:01:00Z",
     )
     state.write_bytes(active_bytes)
@@ -290,7 +507,6 @@ def test_copied_or_restored_mutation_state_cannot_replay(tmp_path: Path):
             state_path=state,
             article_path=article,
             receipt_path=tmp_path / "replay.json",
-            consumed_ledger_path=ledger,
             completed_at="2026-08-11T14:02:00Z",
         )
 
@@ -308,7 +524,6 @@ def test_preexisting_ledger_entry_blocks_consumption(tmp_path: Path):
             state_path=state,
             article_path=article,
             receipt_path=tmp_path / "receipt.json",
-            consumed_ledger_path=ledger,
             completed_at="2026-08-11T14:01:00Z",
         )
 
@@ -325,7 +540,6 @@ def test_concurrent_mutation_consumption_has_exactly_one_winner(tmp_path: Path):
                 state_path=first_state if index == 1 else second_state,
                 article_path=article,
                 receipt_path=tmp_path / f"receipt-{index}.json",
-                consumed_ledger_path=ledger,
                 completed_at=f"2026-08-11T14:0{index}:00Z",
             )
         except ValueError as error:
@@ -355,7 +569,6 @@ def test_failed_receipt_write_rolls_back_only_its_uncommitted_reservation(
                 state_path=state,
                 article_path=article,
                 receipt_path=tmp_path / "receipt.json",
-                consumed_ledger_path=ledger,
                 completed_at="2026-08-11T14:01:00Z",
             )
 

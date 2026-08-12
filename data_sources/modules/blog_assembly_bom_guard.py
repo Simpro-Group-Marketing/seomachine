@@ -154,7 +154,6 @@ def check_bom_file(
     context_result: context_binding_guard.ContextValidationResult | None = None,
     context_client: Any = None,
     vault_root: str | Path | None = None,
-    repository_definition_hashes: Mapping[str, str] | None = None,
 ) -> list[Finding]:
     """Read and validate one strict BOM against current workflow files."""
     source = Path(path)
@@ -182,7 +181,6 @@ def check_bom_file(
         context_result=context_result,
         context_client=context_client,
         vault_root=vault_root,
-        repository_definition_hashes=repository_definition_hashes,
     )
 
 
@@ -199,7 +197,6 @@ def check_bom(
     context_result: context_binding_guard.ContextValidationResult | None = None,
     context_client: Any = None,
     vault_root: str | Path | None = None,
-    repository_definition_hashes: Mapping[str, str] | None = None,
 ) -> list[Finding]:
     """Return deterministic blocking findings for one BOM object."""
     root = Path(workspace_root or Path.cwd()).resolve()
@@ -339,14 +336,7 @@ def check_bom(
     ):
         findings.append(_finding(rule_id, message))
     findings.extend(_check_editorial_plan(bom, artifacts, root))
-    findings.extend(
-        _check_workflow(
-            bom,
-            artifacts,
-            root,
-            repository_definition_hashes=repository_definition_hashes,
-        )
-    )
+    findings.extend(_check_workflow(bom, artifacts, root))
     findings.extend(_check_preflight(bom, artifacts, root))
     return _sorted(findings)
 
@@ -439,6 +429,23 @@ def _check_artifact_inventory(
     if lifecycle == "provisional" and artifacts.get("preflight_readiness") is not None:
         findings.append(_finding("bom_provisional_readiness_present", "Provisional BOM cannot bind preflight output before it runs."))
     return findings
+
+
+def _load_bound_json_object(
+    row: Any,
+    *,
+    workspace_root: Path,
+    field: str,
+) -> tuple[Path, dict[str, Any]]:
+    """Hash and parse one bound JSON object from the same immutable bytes."""
+    if not isinstance(row, Mapping):
+        raise ValueError(f"{field} must be a path/hash object")
+    expected = validate_sha256(row.get("sha256"), field=f"{field}.sha256")
+    path = resolve_artifact(row.get("path"), workspace_root=workspace_root)
+    snapshot = load_json_object_snapshot(path, field=field)
+    if snapshot.sha256 != expected:
+        raise ValueError(f"{field}.sha256 does not match current file contents")
+    return path, snapshot.payload
 
 
 def _verify_row(row: Any, field: str, root: Path) -> list[Finding]:
@@ -729,15 +736,12 @@ def _check_editorial_plan(
     if not isinstance(row, Mapping) or not isinstance(row.get("path"), str):
         return []
     try:
-        path = verify_artifact(
+        path, plan = _load_bound_json_object(
             row,
             workspace_root=root,
             field="artifacts.editorial_plan",
         )
-        plan = json.loads(path.read_text(encoding="utf-8"))
-    except ValueError:
-        return []
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+    except ValueError as error:
         return [_finding("bom_editorial_plan_invalid", f"Editorial plan is invalid: {error}")]
     if not isinstance(plan, Mapping) or plan.get("schema") != EDITORIAL_PLAN_SCHEMA:
         return [_finding("bom_editorial_plan_schema_invalid", f"Editorial plan must use {EDITORIAL_PLAN_SCHEMA}.")]
@@ -756,8 +760,8 @@ def _check_editorial_plan(
         )
     except ValueError:
         return []
-    plan_findings = editorial_plan_guard.check_file(
-        path,
+    plan_findings = editorial_plan_guard._check_loaded_plan(
+        plan,
         article_path=article_path,
         serp_evidence_path=serp_path,
         assembly_date=(
@@ -798,8 +802,6 @@ def _check_workflow(
     bom: Mapping[str, Any],
     artifacts: Mapping[str, Any],
     root: Path,
-    *,
-    repository_definition_hashes: Mapping[str, str] | None = None,
 ) -> list[Finding]:
     workflow = bom.get("workflow")
     if not isinstance(workflow, Mapping):
@@ -870,14 +872,19 @@ def _check_workflow(
             workspace_root=root,
             assembly_date=str(bom.get("assembly_date") or ""),
         )
-    except ValueError:
+    except ValueError as error:
+        findings.append(
+            _finding(
+                "bom_stage_canonical_identity_invalid",
+                f"Workflow receipt chain lacks canonical article/date identity: {error}",
+            )
+        )
         expected_run_id = None
     try:
         resolvable_evidence = _resolvable_receipt_evidence_hashes(
             loaded,
             artifacts=artifacts,
             workspace_root=root,
-            repository_definition_hashes=repository_definition_hashes,
         )
     except ValueError as error:
         findings.append(
@@ -1086,13 +1093,12 @@ def _check_preflight(
     if not isinstance(readiness_row, Mapping):
         return []
     try:
-        readiness_path = verify_artifact(
+        readiness_path, readiness = _load_bound_json_object(
             readiness_row,
             workspace_root=root,
             field="artifacts.preflight_readiness",
         )
-        readiness = json.loads(readiness_path.read_text(encoding="utf-8"))
-    except (ValueError, OSError, UnicodeError, json.JSONDecodeError) as error:
+    except ValueError as error:
         return [
             _finding(
                 "bom_preflight_invalid",
@@ -1228,16 +1234,12 @@ def _check_preflight(
             assembly_input.get("sha256"),
             field="input_hashes.assembly_bom.sha256",
         )
-        historical_path = verify_artifact(
+        _, historical_provisional = _load_bound_json_object(
             assembly_input,
             workspace_root=root,
             field="preflight.input_hashes.assembly_bom",
         )
-        historical_value = json.loads(historical_path.read_text(encoding="utf-8"))
-        if not isinstance(historical_value, Mapping):
-            raise ValueError("historical provisional BOM must be an object")
-        historical_provisional = historical_value
-    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as error:
+    except ValueError as error:
         findings.append(
             _finding(
                 "bom_preflight_bom_artifact_invalid",
@@ -1300,6 +1302,12 @@ def _check_preflight(
             prior_receipts=embedded_receipts[:-1],
             readiness_path=readiness_path,
             article_sha256=article_row.get("sha256"),
+            article_path=resolve_artifact(
+                article_row.get("path"),
+                workspace_root=root,
+            ),
+            workspace_root=root,
+            assembly_date=str(bom.get("assembly_date") or ""),
         )
     except (OSError, UnicodeError, ValueError) as error:
         findings.append(

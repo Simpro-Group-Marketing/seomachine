@@ -12,12 +12,12 @@ from urllib.parse import urlparse
 
 try:
     from .article_planner import CTAType, EDITORIAL_PLAN_SCHEMA, FunnelStage, SectionType
-    from .blog_assembly_contract import canonical_json_sha256
+    from .blog_assembly_contract import canonical_json_sha256, load_json_object_snapshot
     from .execution_attestation import attest_mapping, verify_mapping_attestation
     from .frontmatter import FrontmatterError, split_frontmatter
 except ImportError:  # pragma: no cover - supports direct script execution.
     from article_planner import CTAType, EDITORIAL_PLAN_SCHEMA, FunnelStage, SectionType
-    from blog_assembly_contract import canonical_json_sha256
+    from blog_assembly_contract import canonical_json_sha256, load_json_object_snapshot
     from execution_attestation import attest_mapping, verify_mapping_attestation
     from frontmatter import FrontmatterError, split_frontmatter
 
@@ -204,27 +204,35 @@ def check_file(
     '''Return blocking findings for one editorial-plan JSON file.'''
     source = Path(path)
     try:
-        raw = source.read_text(encoding='utf-8')
-    except (OSError, UnicodeError) as error:
-        return [
-            _finding(
-                'editorial_plan_unreadable',
-                f'Editorial plan cannot be read as UTF-8 JSON: {error}',
-                '/',
-                'Regenerate the editorial plan from the current ArticlePlan.',
-            )
-        ]
-    try:
-        payload = json.loads(raw)
-    except json.JSONDecodeError as error:
+        payload: Any = load_json_object_snapshot(
+            source,
+            field='editorial plan',
+        ).payload
+    except ValueError as error:
         return [
             _finding(
                 'editorial_plan_json_invalid',
-                f'Editorial plan contains invalid JSON: {error.msg}.',
+                f'Editorial plan contains invalid JSON: {error}.',
                 '/',
                 'Serialize the plan with serialize_article_plan().',
             )
         ]
+    return _check_loaded_plan(
+        payload,
+        article_path=article_path,
+        serp_evidence_path=serp_evidence_path,
+        assembly_date=assembly_date,
+    )
+
+
+def _check_loaded_plan(
+    payload: Mapping[str, Any],
+    *,
+    article_path: str | Path | None,
+    serp_evidence_path: str | Path | None,
+    assembly_date: str | None,
+) -> list[Finding]:
+    """Validate one plan payload already parsed from its bound immutable bytes."""
     findings = check_plan(payload)
     if isinstance(payload, Mapping):
         findings.extend(_check_plan_assembly_date(payload, assembly_date))

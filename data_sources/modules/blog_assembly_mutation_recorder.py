@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import tempfile
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 from uuid import uuid4
@@ -42,6 +41,8 @@ MUTATION_STATE_FIELDS = frozenset(
     {
         "schema",
         "article_path",
+        "workspace_root",
+        "assembly_date",
         "run_id",
         "stage",
         "tool",
@@ -66,7 +67,7 @@ def start_mutation(
     *,
     article_path: str | Path,
     state_path: str | Path,
-    run_id: str | None,
+    run_id: str | None = None,
     stage: str,
     tool_name: str,
     tool_version: str,
@@ -79,19 +80,21 @@ def start_mutation(
     """Persist the immutable before-state before any mutation can occur."""
     if stage not in MUTATION_STAGES:
         raise ValueError("mutation recorder stage must be draft or optimization")
+    if workspace_root is None or assembly_date is None:
+        raise ValueError("workspace_root and assembly_date are required")
+    root = Path(workspace_root).resolve()
+    if not root.is_dir():
+        raise ValueError("workspace_root must be an existing directory")
     article = Path(article_path).resolve()
-    if run_id is None:
-        if workspace_root is None or assembly_date is None:
-            raise ValueError(
-                "run_id or both workspace_root and assembly_date are required"
-            )
-        normalized_run_id = canonical_article_run_id(
-            article,
-            workspace_root=workspace_root,
-            assembly_date=assembly_date,
-        )
-    else:
-        normalized_run_id = _required(run_id, "run_id")
+    _require_within_workspace(article, root, field="article")
+    normalized_assembly_date = _canonical_assembly_date(assembly_date)
+    normalized_run_id = canonical_article_run_id(
+        article,
+        workspace_root=root,
+        assembly_date=normalized_assembly_date,
+    )
+    if run_id is not None and _required(run_id, "run_id") != normalized_run_id:
+        raise ValueError("run_id must equal the canonical article run identity")
     normalized_tool_name = _required(tool_name, "tool_name")
     normalized_tool_version = _required(tool_version, "tool_version")
     normalized_started_at = _time_text(started_at)
@@ -107,6 +110,7 @@ def start_mutation(
         },
     )
     state_destination = Path(state_path).resolve()
+    _require_within_workspace(state_destination, root, field="mutation state")
     if state_destination.exists():
         raise ValueError("mutation state output already exists")
     inputs = {
@@ -132,6 +136,8 @@ def start_mutation(
         state = {
             "schema": MUTATION_STATE_SCHEMA,
             "article_path": article.as_posix(),
+            "workspace_root": root.as_posix(),
+            "assembly_date": normalized_assembly_date,
             "run_id": normalized_run_id,
             "stage": stage,
             "tool": {
@@ -162,7 +168,6 @@ def finish_mutation(
     receipt_path: str | Path,
     evidence_artifacts: Mapping[str, str | Path] | None = None,
     completed_at: datetime | str | None = None,
-    consumed_ledger_path: str | Path | None = None,
 ) -> dict[str, Any]:
     """Close a mutation using the current after-state and write its receipt."""
     try:
@@ -174,12 +179,30 @@ def finish_mutation(
         raise ValueError(f"mutation state is invalid: {error}") from error
     state = _validate_active_state(state)
     state_source = Path(state_path).resolve()
+    workspace_root = Path(str(state["workspace_root"])).resolve()
+    _require_within_workspace(
+        state_source,
+        workspace_root,
+        field="mutation state",
+    )
     article = Path(article_path).resolve()
     if _path_identity(article) != _path_identity(state.get("article_path")):
         raise ValueError("mutation must finish against the same article identity")
     if not article.is_file():
         raise ValueError("mutation output article is unavailable")
     supplied_evidence = dict(evidence_artifacts or {})
+    receipt_destination = Path(receipt_path).resolve()
+    _require_within_workspace(
+        receipt_destination,
+        workspace_root,
+        field="mutation receipt",
+    )
+    for label, evidence_path in supplied_evidence.items():
+        _require_within_workspace(
+            Path(evidence_path).resolve(),
+            workspace_root,
+            field=f"mutation evidence {label}",
+        )
     _reject_output_collision(
         receipt_path,
         output_label="receipt",
@@ -192,7 +215,6 @@ def finish_mutation(
             },
         },
     )
-    receipt_destination = Path(receipt_path).resolve()
     if receipt_destination.exists():
         raise ValueError("mutation receipt output already exists")
     after_hash = file_sha256(article)
@@ -210,10 +232,8 @@ def finish_mutation(
     if not isinstance(tool, Mapping):
         raise ValueError("mutation state tool is invalid")
     completed_text = _time_text(completed_at)
-    ledger_root = Path(
-        consumed_ledger_path
-        if consumed_ledger_path is not None
-        else Path.cwd() / ".seomachine" / "mutation-consumed"
+    ledger_root = (
+        workspace_root / ".seomachine" / "mutation-consumed"
     ).resolve()
     reservation = _reserve_state_hash(ledger_root, str(state["state_hash"]))
     receipt_written = False
@@ -313,8 +333,30 @@ def _validate_active_state(value: Any) -> dict[str, Any]:
         raise ValueError("mutation state hash is invalid")
     if value.get("stage") not in MUTATION_STAGES:
         raise ValueError("mutation state stage is invalid")
-    for field in ("article_path", "run_id", "started_at"):
+    for field in (
+        "article_path",
+        "workspace_root",
+        "assembly_date",
+        "run_id",
+        "started_at",
+    ):
         _required(value.get(field), f"mutation state {field}")
+    root_text = str(value["workspace_root"])
+    root = Path(root_text).resolve()
+    if root.as_posix() != root_text or not root.is_dir():
+        raise ValueError("mutation state workspace_root is not canonical")
+    article = Path(str(value["article_path"])).resolve()
+    if article.as_posix() != value["article_path"]:
+        raise ValueError("mutation state article_path is not canonical")
+    _require_within_workspace(article, root, field="mutation state article")
+    assembly_date = _canonical_assembly_date(str(value["assembly_date"]))
+    expected_run_id = canonical_article_run_id(
+        article,
+        workspace_root=root,
+        assembly_date=assembly_date,
+    )
+    if value.get("run_id") != expected_run_id:
+        raise ValueError("mutation state run_id is not canonical")
     tool = value.get("tool")
     if not isinstance(tool, Mapping) or set(tool) != {"name", "version"}:
         raise ValueError("mutation state tool must contain exactly name and version")
@@ -371,8 +413,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     start.add_argument("--article", required=True)
     start.add_argument("--state", required=True)
     start.add_argument("--run-id")
-    start.add_argument("--assembly-date")
-    start.add_argument("--workspace-root", default=".")
+    start.add_argument("--assembly-date", required=True)
+    start.add_argument("--workspace-root", required=True)
     start.add_argument("--stage", choices=sorted(MUTATION_STAGES), required=True)
     start.add_argument("--tool-name", required=True)
     start.add_argument("--tool-version", required=True)
@@ -441,6 +483,29 @@ def _path_identity(path: Any) -> str:
     if not isinstance(path, (str, Path)) or not str(path).strip():
         raise ValueError("artifact path must be a non-empty path")
     return os.path.normcase(str(Path(path).resolve(strict=False)))
+
+
+def _require_within_workspace(candidate: Path, root: Path, *, field: str) -> None:
+    candidate_identity = os.path.normcase(str(candidate.resolve(strict=False)))
+    root_identity = os.path.normcase(str(root.resolve(strict=False)))
+    try:
+        within = os.path.commonpath((candidate_identity, root_identity)) == root_identity
+    except ValueError:
+        within = False
+    if not within:
+        raise ValueError(f"{field} must be inside workspace_root")
+
+
+def _canonical_assembly_date(value: str) -> str:
+    if not isinstance(value, str):
+        raise ValueError("assembly_date must be a canonical ISO date")
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError as error:
+        raise ValueError("assembly_date must be a canonical ISO date") from error
+    if parsed.isoformat() != value:
+        raise ValueError("assembly_date must be a canonical ISO date")
+    return value
 
 
 def _required(value: Any, field: str) -> str:

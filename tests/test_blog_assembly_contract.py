@@ -12,6 +12,7 @@ from data_sources.modules.blog_assembly_contract import (
     atomic_write_json,
     canonical_artifact,
     expected_blog_gate_inventory,
+    order_blog_gate_results,
     resolve_artifact,
     validate_current_assembly_date,
     validate_sha256,
@@ -165,3 +166,19 @@ def test_expected_gate_inventory_is_conditional_without_losing_gate_order():
     assert complete.index("faq_answer_quality") < complete.index("paa_provenance")
     assert complete.index("vault_brand_language") < complete.index("fred_authority")
     assert complete[-2:] == ["content_scorer", "input_seal"]
+
+
+def test_shared_gate_descriptors_order_executor_results_and_inventory():
+    expected = expected_blog_gate_inventory(
+        visible_faq=False,
+        connector_required=False,
+    )
+    shuffled = [{"name": name} for name in reversed(expected)]
+
+    ordered = order_blog_gate_results(
+        shuffled,
+        visible_faq=False,
+        connector_required=False,
+    )
+
+    assert [row["name"] for row in ordered] == expected

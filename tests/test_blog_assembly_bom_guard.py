@@ -68,6 +68,20 @@ def test_stale_article_hash_is_blocking(tmp_path: Path):
     assert "bom_article_hash_mismatch" in _rules(tmp_path, bom, paths)
 
 
+def test_workflow_chain_missing_canonical_article_identity_is_blocking(
+    tmp_path: Path,
+):
+    paths = _fixture(tmp_path)
+    bom = _build(tmp_path, paths)
+    bom["assembly_date"] = "not-a-date"
+
+    assert "bom_stage_canonical_identity_invalid" in _rules(
+        tmp_path,
+        bom,
+        paths,
+    )
+
+
 def test_valid_provisional_bom_passes_strict_guard(tmp_path: Path):
     paths = _fixture(tmp_path)
     bom = _build(tmp_path, paths)
@@ -78,6 +92,52 @@ def test_valid_provisional_bom_passes_strict_guard(tmp_path: Path):
         paths,
         expected_lifecycle_state="provisional",
     ) == set()
+
+
+def test_editorial_plan_duplicate_key_is_a_blocker_not_silently_ignored(
+    tmp_path: Path,
+):
+    paths = _fixture(tmp_path)
+    bom = _build(tmp_path, paths)
+    plan_path = paths["editorial_plan"]
+    raw = plan_path.read_text(encoding="utf-8")
+    plan_path.write_text(
+        raw.replace(
+            '"schema": "simpro-blog-editorial-plan/v1",',
+            '"schema": "simpro-blog-editorial-plan/v1",\n'
+            '  "schema": "simpro-blog-editorial-plan/v1",',
+            1,
+        ),
+        encoding="utf-8",
+    )
+    bom["artifacts"]["editorial_plan"]["sha256"] = hashlib.sha256(
+        plan_path.read_bytes()
+    ).hexdigest()
+
+    assert "bom_editorial_plan_invalid" in _rules(tmp_path, bom, paths)
+
+
+def test_editorial_plan_validation_consumes_the_bound_snapshot_bytes(
+    tmp_path: Path,
+):
+    paths = _fixture(tmp_path)
+    bom = _build(tmp_path, paths)
+    real_loader = blog_assembly_bom_guard.load_json_object_snapshot
+
+    def replace_after_snapshot(path: object, *, field: str):
+        snapshot = real_loader(path, field=field)
+        if Path(path).resolve() == paths["editorial_plan"].resolve():
+            paths["editorial_plan"].write_text("{}\n", encoding="utf-8")
+        return snapshot
+
+    with patch.object(
+        blog_assembly_bom_guard,
+        "load_json_object_snapshot",
+        side_effect=replace_after_snapshot,
+    ):
+        rules = _rules(tmp_path, bom, paths)
+
+    assert not any(rule.startswith("bom_editorial_plan_") for rule in rules)
 
 
 def test_non_connector_bom_reason_must_match_context_binding_receipt(
@@ -127,6 +187,91 @@ def test_final_bom_requires_unchanged_historical_provisional_bom(tmp_path: Path)
         bom_path=bom_path,
         preflight_readiness_path=preflight,
         workspace_root=tmp_path,
+    )
+
+
+@pytest.mark.parametrize(
+    ("raw", "strict_error"),
+    (
+        (b'{"schema":"one","schema":"two"}\n', "duplicate key"),
+        (b'{"score":NaN}\n', "non-finite"),
+    ),
+)
+def test_bound_preflight_readiness_rejects_permissive_json(
+    tmp_path: Path,
+    raw: bytes,
+    strict_error: str,
+):
+    paths = _fixture(tmp_path)
+    provisional = _build(tmp_path, paths)
+    bom_path = tmp_path / "research" / "bom.json"
+    write_blog_assembly_bom(bom_path, provisional)
+    preflight = _preflight(tmp_path, bom_path, provisional)
+    final = _finalize_fixture_bom(
+        bom_path=bom_path,
+        preflight_readiness_path=preflight,
+        workspace_root=tmp_path,
+    )
+    preflight.write_bytes(raw)
+    final["artifacts"]["preflight_readiness"]["sha256"] = hashlib.sha256(
+        raw
+    ).hexdigest()
+
+    findings = blog_assembly_bom_guard.check_bom(
+        final,
+        article_path=paths["article"],
+        validation_sidecar_path=paths["sidecar"],
+        workspace_root=tmp_path,
+        expected_lifecycle_state="final",
+    )
+    blockers = [
+        finding
+        for finding in findings
+        if finding["rule_id"] == "bom_preflight_invalid"
+    ]
+    assert blockers
+    assert strict_error in blockers[0]["message"]
+
+
+@pytest.mark.parametrize(
+    "raw",
+    (
+        b'{"schema":"one","schema":"two"}\n',
+        b'{"score":NaN}\n',
+    ),
+)
+def test_historical_provisional_bom_rejects_permissive_json(
+    tmp_path: Path,
+    raw: bytes,
+):
+    paths = _fixture(tmp_path)
+    provisional = _build(tmp_path, paths)
+    bom_path = tmp_path / "research" / "bom.json"
+    write_blog_assembly_bom(bom_path, provisional)
+    preflight = _preflight(tmp_path, bom_path, provisional)
+    final = _finalize_fixture_bom(
+        bom_path=bom_path,
+        preflight_readiness_path=preflight,
+        workspace_root=tmp_path,
+    )
+    bom_path.write_bytes(raw)
+    readiness = json.loads(preflight.read_text(encoding="utf-8"))
+    readiness["input_hashes"]["assembly_bom"]["sha256"] = hashlib.sha256(
+        raw
+    ).hexdigest()
+    preflight.write_text(
+        json.dumps(readiness, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    final["artifacts"]["preflight_readiness"]["sha256"] = hashlib.sha256(
+        preflight.read_bytes()
+    ).hexdigest()
+
+    assert "bom_preflight_bom_artifact_invalid" in _rules(
+        tmp_path,
+        final,
+        paths,
+        expected_lifecycle_state="final",
     )
     bom_path.write_text('{"tampered": true}\n', encoding="utf-8")
 
@@ -355,7 +500,9 @@ def test_editorial_plan_escape_is_rejected_before_any_read(tmp_path: Path):
     finally:
         outside.unlink(missing_ok=True)
 
-    assert findings == []
+    assert {finding["rule_id"] for finding in findings} == {
+        "bom_editorial_plan_invalid"
+    }
 
 
 def test_stage_receipt_escape_is_rejected_before_any_read(tmp_path: Path):

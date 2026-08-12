@@ -11,7 +11,7 @@ import tempfile
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path, PurePosixPath
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -50,6 +50,39 @@ OPTIMIZED_FINAL_STAGES = OPTIMIZED_STAGE_SEQUENCE[:8]
 
 
 @dataclass(frozen=True, slots=True)
+class BlogGateDescriptor:
+    name: str
+    condition: str = "always"
+
+
+BLOG_GATE_DESCRIPTORS = (
+    BlogGateDescriptor("artifact_identity"),
+    BlogGateDescriptor("context_binding"),
+    BlogGateDescriptor("blog_assembly_bom"),
+    BlogGateDescriptor("public_artifact"),
+    BlogGateDescriptor("ai_copy_linter"),
+    BlogGateDescriptor("url_validator"),
+    BlogGateDescriptor("public_research_links"),
+    BlogGateDescriptor("metric_proof_pack"),
+    BlogGateDescriptor("numeric_claim_source"),
+    BlogGateDescriptor("faq_answer_quality", "visible_faq"),
+    BlogGateDescriptor("faq_proof", "visible_faq"),
+    BlogGateDescriptor("paa_provenance"),
+    BlogGateDescriptor("editorial_plan"),
+    BlogGateDescriptor("source_support"),
+    BlogGateDescriptor("customer_proof_diversity"),
+    BlogGateDescriptor("review_story_identity"),
+    BlogGateDescriptor("early_artifact"),
+    BlogGateDescriptor("answer_withholding"),
+    BlogGateDescriptor("vault_brand_language", "connector_required"),
+    BlogGateDescriptor("named_feature_status", "connector_required"),
+    BlogGateDescriptor("fred_authority", "connector_required"),
+    BlogGateDescriptor("content_scorer"),
+    BlogGateDescriptor("input_seal"),
+)
+
+
+@dataclass(frozen=True, slots=True)
 class ArtifactSnapshot:
     """One immutable read used for both a file digest and strict parsing."""
 
@@ -80,15 +113,7 @@ def load_json_object_snapshot(
         text = data.decode("utf-8", errors="strict")
     except UnicodeDecodeError as error:
         raise ValueError(f"{field} must use valid UTF-8: {error}") from error
-    try:
-        payload = json.loads(
-            text,
-            object_pairs_hook=_reject_duplicate_object_keys,
-            parse_constant=_reject_non_finite_constant,
-            parse_float=_finite_float,
-        )
-    except (json.JSONDecodeError, ValueError) as error:
-        raise ValueError(f"{field} must be strict JSON: {error}") from error
+    payload = load_json_text(text, field=field)
     if not isinstance(payload, dict):
         raise ValueError(f"{field} must be a JSON object")
     return ArtifactSnapshot(
@@ -97,6 +122,29 @@ def load_json_object_snapshot(
         sha256=hashlib.sha256(data).hexdigest(),
         payload=payload,
     )
+
+
+def load_json_text(text: str, *, field: str) -> Any:
+    """Parse strict JSON already embedded in an immutable text artifact."""
+    if not isinstance(text, str):
+        raise ValueError(f"{field} must be strict JSON text")
+    try:
+        return json.loads(
+            text,
+            object_pairs_hook=_reject_duplicate_object_keys,
+            parse_constant=_reject_non_finite_constant,
+            parse_float=_finite_float,
+        )
+    except (json.JSONDecodeError, ValueError) as error:
+        raise ValueError(f"{field} must be strict JSON: {error}") from error
+
+
+def load_json_object_text(text: str, *, field: str) -> dict[str, Any]:
+    """Parse one strict embedded JSON object without permissive decoder behavior."""
+    payload = load_json_text(text, field=field)
+    if not isinstance(payload, dict):
+        raise ValueError(f"{field} must be a JSON object")
+    return payload
 
 
 def _reject_duplicate_object_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -194,40 +242,52 @@ def expected_blog_gate_inventory(
     connector_required: bool,
 ) -> list[str]:
     """Return the closed, ordered gate inventory for a passed blog run."""
-    gates = [
-        "artifact_identity",
-        "context_binding",
-        "blog_assembly_bom",
-        "public_artifact",
-        "ai_copy_linter",
-        "url_validator",
-        "public_research_links",
-        "metric_proof_pack",
-        "numeric_claim_source",
+    return [
+        descriptor.name
+        for descriptor in BLOG_GATE_DESCRIPTORS
+        if _gate_descriptor_enabled(
+            descriptor,
+            visible_faq=visible_faq,
+            connector_required=connector_required,
+        )
     ]
-    if visible_faq:
-        gates.extend(("faq_answer_quality", "faq_proof"))
-    gates.extend(
-        (
-            "paa_provenance",
-            "editorial_plan",
-            "source_support",
-            "customer_proof_diversity",
-            "review_story_identity",
-            "early_artifact",
-            "answer_withholding",
-        )
+
+
+def order_blog_gate_results(
+    gates: Sequence[Mapping[str, Any]],
+    *,
+    visible_faq: bool,
+    connector_required: bool,
+) -> list[Mapping[str, Any]]:
+    """Order complete executor results using the canonical conditional descriptors."""
+    expected = expected_blog_gate_inventory(
+        visible_faq=visible_faq,
+        connector_required=connector_required,
     )
-    if connector_required:
-        gates.extend(
-            (
-                "vault_brand_language",
-                "named_feature_status",
-                "fred_authority",
-            )
-        )
-    gates.extend(("content_scorer", "input_seal"))
-    return gates
+    by_name: dict[str, Mapping[str, Any]] = {}
+    for row in gates:
+        name = row.get("name") if isinstance(row, Mapping) else None
+        if not isinstance(name, str) or not name or name in by_name:
+            raise ValueError("blog gate results contain an invalid or duplicate name")
+        by_name[name] = row
+    if set(by_name) != set(expected):
+        raise ValueError("blog gate results do not match the expected conditional inventory")
+    return [by_name[name] for name in expected]
+
+
+def _gate_descriptor_enabled(
+    descriptor: BlogGateDescriptor,
+    *,
+    visible_faq: bool,
+    connector_required: bool,
+) -> bool:
+    if descriptor.condition == "always":
+        return True
+    if descriptor.condition == "visible_faq":
+        return visible_faq
+    if descriptor.condition == "connector_required":
+        return connector_required
+    raise ValueError(f"unsupported blog gate condition: {descriptor.condition}")
 
 
 def file_sha256(path: str | Path) -> str:

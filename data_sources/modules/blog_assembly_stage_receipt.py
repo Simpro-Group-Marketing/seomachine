@@ -449,6 +449,13 @@ def check_receipt_chain(
         findings.append(_finding("stage_receipt_run_id_mismatch", "Receipt run_id does not match the canonical article run identity."))
     parsed_assembly_date = _assembly_date(assembly_date)
     observed_now = _now(now)
+    if observed_now is None:
+        findings.append(
+            _finding(
+                "stage_receipt_clock_invalid",
+                "Injected receipt validation clock must be timezone-aware UTC.",
+            )
+        )
     for index, receipt in enumerate(receipts):
         try:
             _, started = _timestamp(receipt.get("started_at"), "started_at")
@@ -517,7 +524,7 @@ def _assembly_date(value: str | date | None) -> date | None:
 
 def _now(value: datetime | None) -> datetime | None:
     if value is None:
-        return None
+        return datetime.now(timezone.utc)
     if value.tzinfo is None or value.utcoffset() != timezone.utc.utcoffset(value):
         return None
     return value.astimezone(timezone.utc)
