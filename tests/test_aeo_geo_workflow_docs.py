@@ -1607,7 +1607,9 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             ROOT / "README.md",
         ]
         all_docs = [*draft_docs, ROOT / ".claude" / "commands" / "optimize.md"]
-        labeled_path = re.compile(r"^[a-z][a-z0-9_]*=\S+$")
+        labeled_path = re.compile(
+            r"^(?:[a-z][a-z0-9_]*|agent_output\.[a-z][a-z0-9-]*)=\S+$"
+        )
 
         for path in all_docs:
             commands = _mutation_recorder_commands(path.read_text(encoding="utf-8"))
@@ -1662,7 +1664,17 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         ]
         self.assertEqual(1, len(optimization_finishes))
         self.assertEqual(
-            ["optimizer_output=research/optimizer-[topic-slug]-[YYYY-MM-DD].json"],
+            [
+                f"agent_output.{agent_id}=research/agent-outputs/"
+                f"{agent_id}-[topic-slug]-[YYYY-MM-DD].md"
+                for agent_id in (
+                    "content-analyzer",
+                    "seo-optimizer",
+                    "meta-creator",
+                    "internal-linker",
+                    "keyword-mapper",
+                )
+            ],
             _command_option_values(optimization_finishes[0], "--evidence"),
         )
 

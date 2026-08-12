@@ -12,6 +12,7 @@ from typing import Any, Mapping, Sequence
 try:
     from . import (
         blog_assembly_contract,
+        blog_assembly_capabilities,
         blog_assembly_stage_receipt,
         blog_identity_guard,
         context_binding_guard,
@@ -51,6 +52,7 @@ try:
     from .publishable_markdown import FrontmatterError, read_publishable_markdown
 except ImportError:  # pragma: no cover - supports direct script execution.
     import blog_assembly_contract
+    import blog_assembly_capabilities
     import blog_identity_guard
     import blog_assembly_stage_receipt
     import context_binding_guard
@@ -112,6 +114,7 @@ REQUIRED_ARTIFACT_FIELDS = (
     "context_receipt",
     "customer_proof_selector_evidence",
     "fred_authority_evidence",
+    "execution_evidence",
     "optimizer_outputs",
     "stage_receipts",
     "stage_evidence",
@@ -348,6 +351,7 @@ def _check_artifact_inventory(
 ) -> list[Finding]:
     findings: list[Finding] = []
     singleton_fields = set(REQUIRED_ARTIFACT_FIELDS) - {
+        "execution_evidence",
         "optimizer_outputs",
         "stage_receipts",
         "stage_evidence",
@@ -364,6 +368,15 @@ def _check_artifact_inventory(
             continue
         for index, row in enumerate(rows):
             findings.extend(_verify_row(row, f"{field}_{index}", root))
+    execution_evidence = artifacts.get("execution_evidence")
+    workflow = bom.get("workflow")
+    receipts = workflow.get("stage_receipts") if isinstance(workflow, Mapping) else []
+    for rule_id, message in blog_assembly_capabilities.validate_execution_evidence(
+        execution_evidence,
+        receipts=receipts if isinstance(receipts, list) else [],
+        workspace_root=root,
+    ):
+        findings.append(_finding(rule_id, message))
 
     for field in ("article", "validation_sidecar", "editorial_plan", "serp_evidence"):
         if artifacts.get(field) is None:
@@ -963,6 +976,32 @@ def _check_workflow(
             or draft_evidence.get("serp_evidence") != serp_row.get("sha256")
         ):
             findings.append(_finding("bom_draft_serp_unbound", "Draft receipt must bind verified SERP evidence."))
+        try:
+            if not isinstance(execution_evidence := artifacts.get("execution_evidence"), Mapping):
+                raise blog_assembly_capabilities.CapabilityRegistryError(
+                    "execution evidence is unavailable"
+                )
+            expected_draft_evidence = (
+                blog_assembly_capabilities.receipt_definition_hashes(
+                    loaded,
+                    stage="draft",
+                    execution_evidence=execution_evidence,
+                )
+            )
+            if not isinstance(draft_evidence, Mapping) or any(
+                draft_evidence.get(label) != digest
+                for label, digest in expected_draft_evidence.items()
+            ):
+                raise blog_assembly_capabilities.CapabilityRegistryError(
+                    "draft receipt does not bind current route definitions"
+                )
+        except blog_assembly_capabilities.CapabilityRegistryError as error:
+            findings.append(
+                _finding(
+                    "bom_draft_capability_evidence_unbound",
+                    f"Draft capability evidence is invalid: {error}",
+                )
+            )
     for stage_name in ("scrub", "post_optimization_scrub"):
         stage_receipt = by_stage.get(stage_name)
         if not isinstance(stage_receipt, Mapping):
@@ -1051,18 +1090,39 @@ def _check_workflow(
     if isinstance(optimization_receipt, Mapping):
         optimization_evidence = optimization_receipt.get("evidence_hashes")
         optimizer_rows = artifacts.get("optimizer_outputs")
-        expected_hashes = {
-            str(row.get("sha256"))
-            for row in optimizer_rows
-            if isinstance(row, Mapping)
-        } if isinstance(optimizer_rows, list) else set()
-        actual_hashes = (
-            set(optimization_evidence.values())
-            if isinstance(optimization_evidence, Mapping)
-            else set()
-        )
-        if not expected_hashes or not expected_hashes.issubset(actual_hashes):
-            findings.append(_finding("bom_optimizer_evidence_unbound", "Optimization receipt must bind every optimizer output."))
+        try:
+            execution_evidence = artifacts.get("execution_evidence")
+            if not isinstance(execution_evidence, Mapping):
+                raise blog_assembly_capabilities.CapabilityRegistryError(
+                    "execution evidence is unavailable"
+                )
+            expected_evidence = blog_assembly_capabilities.receipt_definition_hashes(
+                loaded,
+                stage="optimization",
+                execution_evidence=execution_evidence,
+            )
+            expected_optimizer_rows = [
+                execution_evidence[f"agent_output.{agent_id}"]
+                for agent_id in blog_assembly_capabilities.expected_agent_ids(loaded)
+            ]
+            if optimizer_rows != expected_optimizer_rows:
+                raise blog_assembly_capabilities.CapabilityRegistryError(
+                    "optimizer outputs do not exactly match distinct agent outputs"
+                )
+            if not isinstance(optimization_evidence, Mapping) or any(
+                optimization_evidence.get(label) != digest
+                for label, digest in expected_evidence.items()
+            ):
+                raise blog_assembly_capabilities.CapabilityRegistryError(
+                    "optimization receipt does not bind definitions and agent outputs"
+                )
+        except (KeyError, blog_assembly_capabilities.CapabilityRegistryError) as error:
+            findings.append(
+                _finding(
+                    "bom_optimizer_evidence_unbound",
+                    f"Optimization capability evidence is invalid: {error}",
+                )
+            )
     article_row = artifacts.get("article")
     if loaded and isinstance(article_row, Mapping):
         outputs = loaded[-1].get("output_artifact_hashes")
@@ -1353,6 +1413,7 @@ def _check_topology(value: Any) -> list[Finding]:
 
 def _is_declared_artifact_path(field_path: tuple[str, ...]) -> bool:
     singleton_fields = set(REQUIRED_ARTIFACT_FIELDS) - {
+        "execution_evidence",
         "optimizer_outputs",
         "stage_receipts",
     }
@@ -1361,6 +1422,12 @@ def _is_declared_artifact_path(field_path: tuple[str, ...]) -> bool:
         and field_path[0] == "artifacts"
         and field_path[1] in singleton_fields
         and field_path[2] == "path"
+    ):
+        return True
+    if (
+        len(field_path) == 4
+        and field_path[:2] == ("artifacts", "execution_evidence")
+        and field_path[3] == "path"
     ):
         return True
     if (
@@ -1384,7 +1451,13 @@ def _is_declared_artifact_path(field_path: tuple[str, ...]) -> bool:
 
 
 def _is_artifact_snapshot_label(label: str) -> bool:
-    if label in set(REQUIRED_ARTIFACT_FIELDS) - {"optimizer_outputs", "stage_receipts"}:
+    if label.startswith(blog_assembly_capabilities.EXECUTION_EVIDENCE_PREFIXES):
+        return True
+    if label in set(REQUIRED_ARTIFACT_FIELDS) - {
+        "execution_evidence",
+        "optimizer_outputs",
+        "stage_receipts",
+    }:
         return True
     return re.fullmatch(r"(?:optimizer_outputs|stage_receipts)\[\d+\]", label) is not None
 

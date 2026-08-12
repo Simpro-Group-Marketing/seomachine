@@ -4,6 +4,7 @@ import hashlib
 import os
 import json
 import subprocess
+import shutil
 import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -34,17 +35,23 @@ from data_sources.modules.blog_assembly_stage_receipt import (
     write_stage_receipt,
 )
 from data_sources.modules.blog_assembly_contract import (
+    artifact_inventory_snapshots,
     canonical_article_run_id,
     expected_blog_gate_inventory,
 )
 from data_sources.modules import blog_assembly_contract
 from data_sources.modules import blog_assembly_bom
+from data_sources.modules.blog_assembly_capabilities import (
+    receipt_definition_hashes,
+    resolve_execution_evidence,
+)
 from data_sources.modules.blog_assembly_bom_guard import check_bom
 
 
 NON_CONNECTOR_REASON_SHA256 = hashlib.sha256(
     NON_CONNECTOR_REASON.encode("utf-8")
 ).hexdigest()
+ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture(autouse=True)
@@ -92,11 +99,28 @@ def _fixture(
     author: str | None = None,
     visible_faq: bool = False,
     brand: str = "BigChange",
-) -> dict[str, Path]:
+    route: str = "article-command",
+    bind_definitions: bool = True,
+) -> dict[str, object]:
     research = tmp_path / "research"
     drafts = tmp_path / "drafts"
     research.mkdir()
     drafts.mkdir()
+    for relative in (
+        ".claude/commands/article.md",
+        ".claude/commands/write.md",
+        ".claude/commands/rewrite.md",
+        ".claude/commands/optimize.md",
+        ".claude/agents/content-analyzer.md",
+        ".claude/agents/seo-optimizer.md",
+        ".claude/agents/meta-creator.md",
+        ".claude/agents/internal-linker.md",
+        ".claude/agents/keyword-mapper.md",
+    ):
+        source = ROOT / relative
+        destination = tmp_path / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination)
     schema = [
         "BlogPosting",
         "BreadcrumbList",
@@ -309,11 +333,57 @@ def _fixture(
         + "\n",
         encoding="utf-8",
     )
+    route_agents = {
+        "article-command": (
+            "content-analyzer",
+            "seo-optimizer",
+            "meta-creator",
+            "internal-linker",
+            "keyword-mapper",
+        ),
+        "write-command": (
+            "content-analyzer",
+            "seo-optimizer",
+            "meta-creator",
+            "internal-linker",
+            "keyword-mapper",
+        ),
+        "rewrite-command": (
+            "seo-optimizer",
+            "meta-creator",
+            "internal-linker",
+            "keyword-mapper",
+        ),
+    }[route]
+    output_dir = research / "agent-outputs"
+    output_dir.mkdir()
+    agent_outputs: dict[str, Path] = {}
+    for agent_id in route_agents:
+        output = output_dir / f"{agent_id}-scheduling-guide-2026-08-11.md"
+        output.write_text(f"# {agent_id} diagnostics\n", encoding="utf-8")
+        agent_outputs[agent_id] = output
+    route_receipts = [
+        {"stage": "draft", "tool": {"name": route, "version": "1"}}
+    ]
+    execution_evidence = resolve_execution_evidence(
+        route_receipts,
+        agent_output_paths=agent_outputs,
+        workspace_root=tmp_path,
+    )
+    draft_evidence = {"serp_evidence": _sha256(serp)}
+    if bind_definitions:
+        draft_evidence.update(
+            receipt_definition_hashes(
+                route_receipts,
+                stage="draft",
+                execution_evidence=execution_evidence,
+            )
+        )
     draft_receipt = build_stage_receipt(
         run_id=_run_id(article),
         stage="draft",
-        tool_name="blog_writer",
-        tool_version="1.0.0",
+        tool_name=route,
+        tool_version="1",
         started_at="2026-08-11T14:00:00Z",
         completed_at="2026-08-11T14:01:00Z",
         mutation=True,
@@ -322,7 +392,7 @@ def _fixture(
             "editorial_plan": _sha256(editorial_plan),
         },
         output_artifact_hashes={"article": _sha256(article)},
-        evidence_hashes={"serp_evidence": _sha256(serp)},
+        evidence_hashes=draft_evidence,
     )
     draft_path = research / "stage-draft.json"
     write_stage_receipt(draft_path, draft_receipt)
@@ -375,10 +445,12 @@ def _fixture(
         "serp": serp,
         "paa": paa,
         "stage_receipts": [draft_path, scrub_path, binding_path],
+        "agent_outputs": agent_outputs,
+        "route": route,
     }
 
 
-def _build(tmp_path: Path, paths: dict[str, Path], **overrides):
+def _build(tmp_path: Path, paths: dict[str, object], **overrides):
     kwargs = {
         "article_path": paths["article"],
         "validation_sidecar_path": paths["sidecar"],
@@ -389,6 +461,7 @@ def _build(tmp_path: Path, paths: dict[str, Path], **overrides):
         "workflow_mode": "new",
         "assembly_date": "2026-08-11",
         "workspace_root": tmp_path,
+        "agent_output_paths": paths["agent_outputs"],
     }
     kwargs.update(overrides)
     context_paths = (
@@ -429,12 +502,29 @@ def _build(tmp_path: Path, paths: dict[str, Path], **overrides):
     return build_blog_assembly_bom_from_files(**kwargs)
 
 
-def _refresh_normal_stage_receipts(paths: dict[str, Path]) -> None:
+def _refresh_normal_stage_receipts(paths: dict[str, object]) -> None:
+    route = str(paths["route"])
+    route_receipts = [
+        {"stage": "draft", "tool": {"name": route, "version": "1"}}
+    ]
+    execution_evidence = resolve_execution_evidence(
+        route_receipts,
+        agent_output_paths=paths["agent_outputs"],
+        workspace_root=Path(paths["article"]).parent.parent,
+    )
+    draft_evidence = {"serp_evidence": _sha256(Path(paths["serp"]))}
+    draft_evidence.update(
+        receipt_definition_hashes(
+            route_receipts,
+            stage="draft",
+            execution_evidence=execution_evidence,
+        )
+    )
     draft_receipt = build_stage_receipt(
         run_id=_run_id(paths["article"]),
         stage="draft",
-        tool_name="blog_writer",
-        tool_version="1.0.0",
+        tool_name=route,
+        tool_version="1",
         started_at="2026-08-11T14:00:00Z",
         completed_at="2026-08-11T14:01:00Z",
         mutation=True,
@@ -443,7 +533,7 @@ def _refresh_normal_stage_receipts(paths: dict[str, Path]) -> None:
             "editorial_plan": _sha256(paths["editorial_plan"]),
         },
         output_artifact_hashes={"article": _sha256(paths["article"])},
-        evidence_hashes={"serp_evidence": _sha256(paths["serp"])},
+        evidence_hashes=draft_evidence,
     )
     write_stage_receipt(paths["stage_receipts"][0], draft_receipt)
     scrub_evidence = {"scrub_statistics": "f" * 64}
@@ -509,6 +599,93 @@ def test_builder_snapshots_actual_files_as_workspace_relative_paths(tmp_path: Pa
     )
     assert bom["connector_binding"]["status"] == "not_applicable"
     assert bom["paa_policy"]["source_kind"] == "answersocrates"
+
+
+def test_builder_generates_strict_execution_evidence_from_route_and_agent_outputs(
+    tmp_path: Path,
+):
+    paths = _fixture(tmp_path)
+
+    bom = _build(tmp_path, paths)
+
+    assert bom["schema"] == "simpro-blog-assembly-bom/v1"
+    assert set(bom["artifacts"]["execution_evidence"]) == {
+        "command_definition.article-command",
+        "agent_definition.content-analyzer",
+        "agent_definition.seo-optimizer",
+        "agent_definition.meta-creator",
+        "agent_definition.internal-linker",
+        "agent_definition.keyword-mapper",
+        "agent_output.content-analyzer",
+        "agent_output.seo-optimizer",
+        "agent_output.meta-creator",
+        "agent_output.internal-linker",
+        "agent_output.keyword-mapper",
+    }
+
+
+@pytest.mark.parametrize(
+    ("route", "workflow_mode", "agents"),
+    (
+        (
+            "article-command",
+            "new",
+            (
+                "content-analyzer",
+                "seo-optimizer",
+                "meta-creator",
+                "internal-linker",
+                "keyword-mapper",
+            ),
+        ),
+        (
+            "write-command",
+            "new",
+            (
+                "content-analyzer",
+                "seo-optimizer",
+                "meta-creator",
+                "internal-linker",
+                "keyword-mapper",
+            ),
+        ),
+        (
+            "rewrite-command",
+            "rewrite",
+            (
+                "seo-optimizer",
+                "meta-creator",
+                "internal-linker",
+                "keyword-mapper",
+            ),
+        ),
+    ),
+)
+def test_builder_uses_the_exact_registered_route_capability_set(
+    tmp_path: Path,
+    route: str,
+    workflow_mode: str,
+    agents: tuple[str, ...],
+):
+    paths = _fixture(tmp_path, route=route)
+
+    bom = _build(tmp_path, paths, workflow_mode=workflow_mode)
+
+    evidence = bom["artifacts"]["execution_evidence"]
+    assert set(evidence) == {
+        f"command_definition.{route}",
+        *(f"agent_definition.{agent_id}" for agent_id in agents),
+        *(f"agent_output.{agent_id}" for agent_id in agents),
+    }
+
+
+def test_builder_rejects_historical_draft_receipt_without_definition_bindings(
+    tmp_path: Path,
+):
+    paths = _fixture(tmp_path, bind_definitions=False)
+
+    with pytest.raises(ValueError, match="draft receipt.*command definition"):
+        _build(tmp_path, paths)
 
 
 def test_schemeless_official_simpro_host_forces_connector_bound_bom(
@@ -1152,15 +1329,7 @@ def _preflight(
     filename: str = "preflight-readiness.json",
 ) -> Path:
     artifacts = bom["artifacts"]
-    input_hashes = {}
-    for label, row in artifacts.items():
-        if row is None:
-            continue
-        if isinstance(row, list):
-            for index, item in enumerate(row):
-                input_hashes[f"{label}[{index}]"] = item
-        else:
-            input_hashes[label] = row
+    input_hashes = artifact_inventory_snapshots(artifacts)
     input_hashes["assembly_bom"] = {
         "path": bom_path.relative_to(tmp_path).as_posix(),
         "sha256": _sha256(bom_path),
@@ -1268,7 +1437,7 @@ def _finalize_fixture_bom(
 def _prepare_optimized_workflow(
     tmp_path: Path,
     paths: dict[str, Path],
-) -> tuple[Path, Path]:
+) -> tuple[Path, list[Path]]:
     initial_bom = _build(tmp_path, paths)
     initial_bom_path = tmp_path / "research" / "initial-bom.json"
     write_blog_assembly_bom(initial_bom_path, initial_bom)
@@ -1285,21 +1454,51 @@ def _prepare_optimized_workflow(
         encoding="utf-8",
     )
     after_hash = _sha256(paths["article"])
-    optimizer = _json(
-        tmp_path / "research" / "optimizer-output.json",
-        {"schema": "simpro-optimizer-output/v1", "status": "completed"},
+    final_agent_outputs = {}
+    for agent_id in paths["agent_outputs"]:
+        output = (
+            tmp_path
+            / "research"
+            / "agent-outputs"
+            / f"{agent_id}-scheduling-guide-post-opt-2026-08-11.md"
+        )
+        output.write_text(
+            f"# {agent_id} final optimization diagnostics\n",
+            encoding="utf-8",
+        )
+        final_agent_outputs[agent_id] = output
+    paths["agent_outputs"] = final_agent_outputs
+    draft_receipt = json.loads(
+        Path(paths["stage_receipts"][0]).read_text(encoding="utf-8")
+    )
+    route_receipts = [
+        draft_receipt,
+        {
+            "stage": "optimization",
+            "tool": {"name": "optimize-command", "version": "1"},
+        },
+    ]
+    execution_evidence = resolve_execution_evidence(
+        route_receipts,
+        agent_output_paths=final_agent_outputs,
+        workspace_root=tmp_path,
+    )
+    optimization_evidence = receipt_definition_hashes(
+        route_receipts,
+        stage="optimization",
+        execution_evidence=execution_evidence,
     )
     optimization = build_stage_receipt(
         run_id=_run_id(paths["article"]),
         stage="optimization",
-        tool_name="manual_optimizer",
-        tool_version="1.0.0",
+        tool_name="optimize-command",
+        tool_version="1",
         started_at="2026-08-11T14:08:00Z",
         completed_at="2026-08-11T14:09:00Z",
         mutation=True,
         input_artifact_hashes={"article": before_hash},
         output_artifact_hashes={"article": after_hash},
-        evidence_hashes={"optimizer_output": _sha256(optimizer)},
+        evidence_hashes=optimization_evidence,
         previous_receipt_hash=prior_receipt["receipt_hash"],
     )
     optimization_path = tmp_path / "research" / "stage-optimization.json"
@@ -1362,17 +1561,17 @@ def _prepare_optimized_workflow(
         post_scrub_path,
         post_binding_path,
     ]
-    return prior_readiness, optimizer
+    return prior_readiness, list(final_agent_outputs.values())
 
 
 def test_optimized_bom_binds_the_earlier_preflight_output(tmp_path: Path):
     paths = _fixture(tmp_path)
-    prior_readiness, optimizer = _prepare_optimized_workflow(tmp_path, paths)
+    prior_readiness, optimizer_outputs = _prepare_optimized_workflow(tmp_path, paths)
 
     bom = _build(
         tmp_path,
         paths,
-        optimizer_output_paths=[optimizer],
+        optimizer_output_paths=optimizer_outputs,
         prior_preflight_readiness_path=prior_readiness,
     )
 
@@ -1394,13 +1593,13 @@ def test_optimized_bom_output_cannot_replace_prior_preflight_bom(
     tmp_path: Path,
 ):
     paths = _fixture(tmp_path)
-    prior_readiness, optimizer = _prepare_optimized_workflow(tmp_path, paths)
+    prior_readiness, optimizer_outputs = _prepare_optimized_workflow(tmp_path, paths)
     prior_bom_path = tmp_path / "research" / "initial-bom.json"
     prior_bom_bytes = prior_bom_path.read_bytes()
     optimized_bom = _build(
         tmp_path,
         paths,
-        optimizer_output_paths=[optimizer],
+        optimizer_output_paths=optimizer_outputs,
         prior_preflight_readiness_path=prior_readiness,
     )
 
@@ -1430,20 +1629,20 @@ def test_optimized_bom_output_cannot_replace_prior_preflight_bom(
 
 def test_optimized_bom_rejects_missing_prior_preflight_artifact(tmp_path: Path):
     paths = _fixture(tmp_path)
-    _, optimizer = _prepare_optimized_workflow(tmp_path, paths)
+    _, optimizer_outputs = _prepare_optimized_workflow(tmp_path, paths)
 
     with pytest.raises(ValueError, match="prior preflight readiness evidence"):
         _build(
             tmp_path,
             paths,
-            optimizer_output_paths=[optimizer],
+            optimizer_output_paths=optimizer_outputs,
             prior_preflight_readiness_path=None,
         )
 
 
 def test_optimized_bom_rejects_changed_prior_provisional_bom(tmp_path: Path):
     paths = _fixture(tmp_path)
-    prior_readiness, optimizer = _prepare_optimized_workflow(tmp_path, paths)
+    prior_readiness, optimizer_outputs = _prepare_optimized_workflow(tmp_path, paths)
     prior_bom = tmp_path / "research" / "initial-bom.json"
     prior_bom.write_text(
         prior_bom.read_text(encoding="utf-8") + "\n",
@@ -1454,18 +1653,18 @@ def test_optimized_bom_rejects_changed_prior_provisional_bom(tmp_path: Path):
         _build(
             tmp_path,
             paths,
-            optimizer_output_paths=[optimizer],
+            optimizer_output_paths=optimizer_outputs,
             prior_preflight_readiness_path=prior_readiness,
         )
 
 
 def test_optimized_bom_finalizes_with_a_distinct_final_preflight(tmp_path: Path):
     paths = _fixture(tmp_path)
-    prior_readiness, optimizer = _prepare_optimized_workflow(tmp_path, paths)
+    prior_readiness, optimizer_outputs = _prepare_optimized_workflow(tmp_path, paths)
     provisional = _build(
         tmp_path,
         paths,
-        optimizer_output_paths=[optimizer],
+        optimizer_output_paths=optimizer_outputs,
         prior_preflight_readiness_path=prior_readiness,
     )
     bom_path = tmp_path / "research" / "optimized-bom.json"
@@ -1616,6 +1815,8 @@ def test_direct_script_build_cli_uses_the_same_strict_contract(tmp_path: Path):
     ]
     for receipt in paths["stage_receipts"]:
         arguments.extend(("--stage-receipt", str(receipt)))
+    for agent_id, agent_output in paths["agent_outputs"].items():
+        arguments.extend(("--agent-output", f"{agent_id}={agent_output}"))
     arguments.extend(
         (
             "--workflow-mode",
@@ -1664,6 +1865,8 @@ def test_build_cli_rejects_output_collision_without_overwriting_article(
     ]
     for receipt in paths["stage_receipts"]:
         arguments.extend(("--stage-receipt", str(receipt)))
+    for agent_id, output in paths["agent_outputs"].items():
+        arguments.extend(("--agent-output", f"{agent_id}={output}"))
     arguments.extend(
         (
             "--workflow-mode",

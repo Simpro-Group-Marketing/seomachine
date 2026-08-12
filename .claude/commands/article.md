@@ -20,6 +20,20 @@ Tool-emitted machine artifacts carry an `execution_attestation`, a keyed local e
 
 After the article, proof, research, and route-specific stage receipts are complete, invoke `/publish-readiness`. It is the sole owner of the build -> preflight -> finalize -> final seal recipe, its deterministic preflight companion receipt, final-readiness attestation, and `verification_scope: source_artifact` boundary.
 
+### Repository Agent Output Contract
+
+Agent reports are diagnostic artifacts, not publication authority. Invoke every route agent named below, save its response to the matching current, distinct path, and pass each ID/path to the BOM builder owned by `/publish-readiness`:
+
+```text
+--agent-output "content-analyzer=research/agent-outputs/content-analyzer-[topic-slug]-[YYYY-MM-DD].md"
+--agent-output "seo-optimizer=research/agent-outputs/seo-optimizer-[topic-slug]-[YYYY-MM-DD].md"
+--agent-output "meta-creator=research/agent-outputs/meta-creator-[topic-slug]-[YYYY-MM-DD].md"
+--agent-output "internal-linker=research/agent-outputs/internal-linker-[topic-slug]-[YYYY-MM-DD].md"
+--agent-output "keyword-mapper=research/agent-outputs/keyword-mapper-[topic-slug]-[YYYY-MM-DD].md"
+```
+
+A report may diagnose the unchanged article without claiming a copy mutation. Any agent-driven public-copy change must be captured by `optimize-command`, then scrubbed, rebound, and resealed through `/publish-readiness`.
+
 ### After Optimization Mutations
 
 All optimizer outputs and manual edits are content mutations. The **Closed post-optimization receipt sequence** is `optimization` -> `post_optimization_scrub` -> `post_optimization_context_binding` -> `final_preflight_readiness`. Capture the article hash before and after the mutation with `blog_assembly_mutation_recorder.py start` and `blog_assembly_mutation_recorder.py finish`, run `content_scrubber.py --stage post_optimization_scrub`, then run `context_binding_generator.py --stage post_optimization_context_binding`. Preserve the prior BOM as immutable, then invoke `/publish-readiness` for the complete reseal. Any mutation after finalization invalidates the BOM and detached attestation and restarts this route-specific receipt sequence.

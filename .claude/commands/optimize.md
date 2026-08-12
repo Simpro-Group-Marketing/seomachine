@@ -7,7 +7,7 @@ Start the optimization recorder before changing the article, finish it after sav
 ```powershell
 python data_sources/modules/blog_assembly_mutation_recorder.py start --article "[file]" --state "research/stage-receipts/[topic-slug]/optimization-state.json" --assembly-date "[YYYY-MM-DD]" --workspace-root "." --stage optimization --tool-name "optimize-command" --tool-version "1" --previous-receipt-hash "[sha256-of-prior-stage-receipt]"
 # Apply and save the optimization here.
-python data_sources/modules/blog_assembly_mutation_recorder.py finish --article "[file]" --state "research/stage-receipts/[topic-slug]/optimization-state.json" --receipt "research/stage-receipts/[topic-slug]/optimization.json" --evidence "optimizer_output=research/optimizer-[topic-slug]-[YYYY-MM-DD].json"
+python data_sources/modules/blog_assembly_mutation_recorder.py finish --article "[file]" --state "research/stage-receipts/[topic-slug]/optimization-state.json" --receipt "research/stage-receipts/[topic-slug]/optimization.json" --evidence "agent_output.content-analyzer=research/agent-outputs/content-analyzer-[topic-slug]-[YYYY-MM-DD].md" --evidence "agent_output.seo-optimizer=research/agent-outputs/seo-optimizer-[topic-slug]-[YYYY-MM-DD].md" --evidence "agent_output.meta-creator=research/agent-outputs/meta-creator-[topic-slug]-[YYYY-MM-DD].md" --evidence "agent_output.internal-linker=research/agent-outputs/internal-linker-[topic-slug]-[YYYY-MM-DD].md" --evidence "agent_output.keyword-mapper=research/agent-outputs/keyword-mapper-[topic-slug]-[YYYY-MM-DD].md"
 python data_sources/modules/content_scrubber.py "[file]" --stage post_optimization_scrub --previous-receipt "research/stage-receipts/[topic-slug]/optimization.json" --stage-receipt-output "research/stage-receipts/[topic-slug]/post-optimization-scrub.json"
 python data_sources/modules/context_binding_generator.py "[file]" --proof-sidecar "research/validation-[topic-slug]-[YYYY-MM-DD].md" --context-request "research/context-request-[topic-slug].json" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --stage post_optimization_context_binding --previous-receipt "research/stage-receipts/[topic-slug]/post-optimization-scrub.json" --stage-receipt-output "research/stage-receipts/[topic-slug]/post-optimization-context-binding.json"
 ```
@@ -17,6 +17,20 @@ Non-connector branch: replace the post-optimization Context Binding command with
 Tool-emitted machine artifacts carry an `execution_attestation`, a keyed local execution-integrity attestation. Require it on every `simpro-blog-stage-receipt/v1`, verified `simpro-serp-evidence/v1`, nested `simpro-answersocrates-run-receipt/v1`, `simpro-source-classification/v1`, and `simpro-source-capture-receipt/v1`. Readiness verifies the attestation and canonical hash; a handwritten or merely rehashed replacement does not qualify. This local control does not provide a remote/provider signature and does not prove that external observations are true, so source metadata, visible evidence, freshness, PAA eligibility, and semantic claim fit still require validation. A rewrite's dedicated pre-picked PAA brief section remains path/hash-bound and takes precedence over AnswerSocrates.
 
 After the route-specific optimization receipts are complete, invoke `/publish-readiness`. It is the sole owner of the build -> preflight -> finalize -> final reseal, final-readiness attestation, and `verification_scope: source_artifact` boundary.
+
+### Repository Agent Output Contract
+
+Agent reports are diagnostic artifacts, not publication authority. Invoke every optimization agent named below, save its response to the matching current, distinct path, and pass each ID/path to the BOM builder owned by `/publish-readiness`:
+
+```text
+--agent-output "content-analyzer=research/agent-outputs/content-analyzer-[topic-slug]-[YYYY-MM-DD].md"
+--agent-output "seo-optimizer=research/agent-outputs/seo-optimizer-[topic-slug]-[YYYY-MM-DD].md"
+--agent-output "meta-creator=research/agent-outputs/meta-creator-[topic-slug]-[YYYY-MM-DD].md"
+--agent-output "internal-linker=research/agent-outputs/internal-linker-[topic-slug]-[YYYY-MM-DD].md"
+--agent-output "keyword-mapper=research/agent-outputs/keyword-mapper-[topic-slug]-[YYYY-MM-DD].md"
+```
+
+A report may diagnose the unchanged article without claiming a copy mutation. Any agent-driven public-copy change must remain inside the recorded `optimize-command` mutation, then be scrubbed, rebound, and resealed through `/publish-readiness`.
 
 ### After Optimization Mutations
 
@@ -297,10 +311,10 @@ Visual representation of where primary keyword appears:
 - [ ] FAQ proof guard passed using the gate command above
 - [ ] PAA provenance guard passed using the gate command above
 - [ ] Source support guard passed using the gate command above
-- [ ] Ready to publish
+- [ ] Diagnostic recommendations recorded; `/publish-readiness` determines handoff
 
-### 8. Publishing Readiness
-**Status**: Ready / Needs Minor Fixes / Needs Revision
+### 8. Diagnostic Status
+**Status**: Meets Diagnostic Threshold / Needs Minor Fixes / Needs Revision
 
 **Estimated Time to Publishing**: [X minutes/hours]
 
@@ -310,12 +324,7 @@ Visual representation of where primary keyword appears:
 3. Move to `/published` folder when complete
 
 ## File Management
-After optimization analysis, save report to:
-- **File Location**: `drafts/optimization-report-[topic-slug]-[YYYY-MM-DD].md`
-- **File Format**: Markdown with scores, checklists, and recommendations
-- **Naming Convention**: Use article slug + "optimization-report" + date
-
-Example: `drafts/optimization-report-podcast-analytics-2025-10-15.md`
+After optimization analysis, save the five distinct diagnostic reports at the `research/agent-outputs/<agent-id>-[topic-slug]-[YYYY-MM-DD].md` paths in the Repository Agent Output Contract. Do not substitute one aggregate report for these five artifacts.
 
 ## Integration with Agents
 The `/optimize` command triggers final review from all agents:

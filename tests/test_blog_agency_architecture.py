@@ -517,8 +517,78 @@ python ./data_sources/modules/publish_readiness.py "article.md" ^
             ],
             _bom_build_research_input_sets(content),
         )
-        self.assertRegex(content, r"--optimizer-output\s+\"\[optimizer-output\]\"")
+        self.assertRegex(content, r"--optimizer-output\s+\"\[agent-output\]\"")
+        self.assertIn("one aggregate report is invalid", content)
         self.assertRegex(
             content,
             r"--prior-preflight-readiness\s+\"\[prior-preflight-readiness\]\"",
         )
+
+    def test_blog_agent_outputs_are_distinct_and_only_readiness_authorizes_handoff(self):
+        route_agents = {
+            "article": (
+                "content-analyzer",
+                "seo-optimizer",
+                "meta-creator",
+                "internal-linker",
+                "keyword-mapper",
+            ),
+            "write": (
+                "content-analyzer",
+                "seo-optimizer",
+                "meta-creator",
+                "internal-linker",
+                "keyword-mapper",
+            ),
+            "rewrite": (
+                "seo-optimizer",
+                "meta-creator",
+                "internal-linker",
+                "keyword-mapper",
+            ),
+            "optimize": (
+                "content-analyzer",
+                "seo-optimizer",
+                "meta-creator",
+                "internal-linker",
+                "keyword-mapper",
+            ),
+        }
+        for route, agent_ids in route_agents.items():
+            content = (ROOT / ".claude" / "commands" / f"{route}.md").read_text(
+                encoding="utf-8"
+            )
+            declared_output_ids = set(
+                re.findall(
+                    r'--agent-output "([a-z][a-z0-9-]*)=',
+                    content,
+                )
+            )
+            self.assertEqual(set(agent_ids), declared_output_ids)
+            for agent_id in agent_ids:
+                with self.subTest(route=route, agent=agent_id):
+                    self.assertIn(
+                        f"research/agent-outputs/{agent_id}-[topic-slug]-[YYYY-MM-DD].md",
+                        content,
+                    )
+                    self.assertIn(f'--agent-output "{agent_id}=', content)
+
+        blog_agents = (
+            "content-analyzer.md",
+            "seo-optimizer.md",
+            "meta-creator.md",
+            "internal-linker.md",
+            "keyword-mapper.md",
+        )
+        forbidden = re.compile(
+            r"Publishing Ready|Ready to Publish|Ready to publish|publish-ready|"
+            r"Publishing Recommendation|Publishing Readiness",
+            re.IGNORECASE,
+        )
+        for filename in blog_agents:
+            content = (ROOT / ".claude" / "agents" / filename).read_text(
+                encoding="utf-8"
+            )
+            with self.subTest(agent=filename):
+                self.assertIsNone(forbidden.search(content))
+                self.assertIn("diagnostic", content.casefold())

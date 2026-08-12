@@ -394,17 +394,38 @@ def artifact_inventory_snapshots(
     if not isinstance(artifacts, Mapping):
         raise ValueError("artifacts must be an object")
     snapshots: dict[str, dict[str, str]] = {}
+
+    def add(label: str, row: Any, *, field: str) -> None:
+        if label in snapshots:
+            raise ValueError(f"duplicate artifact snapshot label: {label}")
+        snapshots[label] = _snapshot_row(row, field=field)
+
     for label, value in artifacts.items():
         if value is None:
             continue
+        if label == "execution_evidence":
+            if not isinstance(value, Mapping):
+                raise ValueError("artifacts.execution_evidence must be an object")
+            for evidence_label, row in value.items():
+                if not isinstance(evidence_label, str) or not evidence_label:
+                    raise ValueError(
+                        "artifacts.execution_evidence labels must be non-empty strings"
+                    )
+                add(
+                    evidence_label,
+                    row,
+                    field=f"artifacts.execution_evidence.{evidence_label}",
+                )
+            continue
         if isinstance(value, list):
             for index, row in enumerate(value):
-                snapshots[f"{label}[{index}]"] = _snapshot_row(
+                add(
+                    f"{label}[{index}]",
                     row,
                     field=f"artifacts.{label}[{index}]",
                 )
             continue
-        snapshots[str(label)] = _snapshot_row(value, field=f"artifacts.{label}")
+        add(str(label), value, field=f"artifacts.{label}")
     return snapshots
 
 

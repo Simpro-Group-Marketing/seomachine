@@ -11,6 +11,7 @@ from typing import Any, Mapping, Sequence
 from uuid import uuid4
 
 try:
+    from . import blog_assembly_capabilities
     from .blog_assembly_contract import (
         atomic_write_json,
         canonical_article_run_id,
@@ -22,6 +23,7 @@ try:
     )
     from .blog_assembly_stage_receipt import build_stage_receipt
 except ImportError:  # pragma: no cover - supports direct script execution.
+    import blog_assembly_capabilities
     from blog_assembly_contract import (
         atomic_write_json,
         canonical_article_run_id,
@@ -97,6 +99,27 @@ def start_mutation(
         raise ValueError("run_id must equal the canonical article run identity")
     normalized_tool_name = _required(tool_name, "tool_name")
     normalized_tool_version = _required(tool_version, "tool_version")
+    tool_receipt = [
+        {
+            "stage": stage,
+            "tool": {
+                "name": normalized_tool_name,
+                "version": normalized_tool_version,
+            },
+        }
+    ]
+    try:
+        if stage == "draft":
+            blog_assembly_capabilities.infer_route(tool_receipt)
+        else:
+            blog_assembly_capabilities.is_optimized(tool_receipt)
+    except blog_assembly_capabilities.CapabilityRegistryError as error:
+        expected = (
+            "registered draft command"
+            if stage == "draft"
+            else "registered optimize command"
+        )
+        raise ValueError(f"mutation tool must be the {expected}: {error}") from error
     normalized_started_at = _time_text(started_at)
     supplied_inputs = dict(input_artifacts or {})
     if "article" in supplied_inputs:
@@ -217,6 +240,45 @@ def finish_mutation(
     )
     if receipt_destination.exists():
         raise ValueError("mutation receipt output already exists")
+    stage = str(state.get("stage") or "")
+    definition_prefixes = (
+        "command_definition.",
+        "agent_definition.",
+        "skill_definition.",
+    )
+    if any(label.startswith(definition_prefixes) for label in supplied_evidence):
+        raise ValueError("repository definition evidence is resolved internally")
+    supplied_agent_ids = {
+        label.removeprefix("agent_output.")
+        for label in supplied_evidence
+        if label.startswith("agent_output.")
+    }
+    non_agent_labels = {
+        label
+        for label in supplied_evidence
+        if not label.startswith("agent_output.")
+    }
+    if stage == "optimization":
+        expected_agent_ids = set(blog_assembly_capabilities.OPTIMIZE_AGENT_IDS)
+        if supplied_agent_ids != expected_agent_ids or non_agent_labels:
+            raise ValueError(
+                "optimization evidence must contain exactly one agent_output.<id> "
+                "artifact for every invoked agent"
+            )
+        try:
+            optimization_output_rows = (
+                blog_assembly_capabilities.resolve_optimization_agent_outputs(
+                    {
+                        label.removeprefix("agent_output."): path
+                        for label, path in supplied_evidence.items()
+                    },
+                    workspace_root=workspace_root,
+                )
+            )
+        except blog_assembly_capabilities.CapabilityRegistryError as error:
+            raise ValueError(f"optimization agent outputs are invalid: {error}") from error
+    elif supplied_agent_ids:
+        raise ValueError("agent output evidence is allowed only on optimization")
     after_hash = file_sha256(article)
     input_hashes = state.get("input_artifact_hashes")
     if not isinstance(input_hashes, Mapping):
@@ -225,12 +287,34 @@ def finish_mutation(
     if before_hash == after_hash:
         raise ValueError("recorded mutation did not change the article")
     evidence_hashes = {
-        label: file_sha256(path)
-        for label, path in sorted(supplied_evidence.items())
+        label: row["sha256"]
+        for label, row in (
+            optimization_output_rows.items()
+            if stage == "optimization"
+            else (
+                (label, {"sha256": file_sha256(path)})
+                for label, path in sorted(supplied_evidence.items())
+            )
+        )
     }
     tool = state.get("tool")
     if not isinstance(tool, Mapping):
         raise ValueError("mutation state tool is invalid")
+    try:
+        definitions = blog_assembly_capabilities.resolve_mutation_definition_evidence(
+            stage=stage,
+            tool_name=str(tool.get("name") or ""),
+            tool_version=str(tool.get("version") or ""),
+            workspace_root=workspace_root,
+        )
+    except blog_assembly_capabilities.CapabilityRegistryError as error:
+        raise ValueError(f"mutation repository definitions are invalid: {error}") from error
+    evidence_hashes.update(
+        {
+            label: row["sha256"]
+            for label, row in definitions.items()
+        }
+    )
     completed_text = _time_text(completed_at)
     ledger_root = (
         workspace_root / ".seomachine" / "mutation-consumed"

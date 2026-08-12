@@ -12,7 +12,12 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 try:
-    from . import blog_identity_guard, context_binding_guard, editorial_plan_guard
+    from . import (
+        blog_assembly_capabilities,
+        blog_identity_guard,
+        context_binding_guard,
+        editorial_plan_guard,
+    )
     from .blog_assembly_contract import (
         artifact_inventory_snapshots,
         atomic_write_json,
@@ -40,6 +45,7 @@ try:
     from .publishable_markdown import PublishableMarkdown, read_publishable_markdown
     from .video_embed import inspect_video_embeds
 except ImportError:  # pragma: no cover - supports direct script execution.
+    import blog_assembly_capabilities
     import blog_identity_guard
     import context_binding_guard
     import editorial_plan_guard
@@ -102,6 +108,7 @@ def build_blog_assembly_bom_from_files(
     context_receipt_path: str | Path | None = None,
     customer_proof_selector_evidence_path: str | Path | None = None,
     fred_authority_evidence_path: str | Path | None = None,
+    agent_output_paths: Mapping[str, str | Path] | None = None,
     optimizer_output_paths: Sequence[str | Path] | None = None,
     prior_preflight_readiness_path: str | Path | None = None,
     workspace_root: str | Path | None = None,
@@ -141,6 +148,16 @@ def build_blog_assembly_bom_from_files(
         optimizer_output_paths or (),
         field="optimizer_output_paths",
     )
+    if agent_output_paths is None:
+        agent_output_paths = {}
+    if not isinstance(agent_output_paths, Mapping):
+        raise ValueError("agent_output_paths must be an ID-to-path object")
+    normalized_agent_output_paths: dict[str, str | Path] = {}
+    for agent_id, output_path in agent_output_paths.items():
+        if not isinstance(agent_id, str) or not agent_id.strip():
+            raise ValueError("agent_output_paths IDs must be non-empty strings")
+        _validate_input_path(output_path, field=f"agent_output_paths.{agent_id}")
+        normalized_agent_output_paths[agent_id] = output_path
     if workspace_root is not None:
         _validate_input_path(workspace_root, field="workspace_root")
     if vault_root is not None:
@@ -159,6 +176,15 @@ def build_blog_assembly_bom_from_files(
         load_json_object_snapshot(path, field=f"stage_receipt[{index}]")
         for index, path in enumerate(stage_receipt_paths)
     ]
+    stage_receipts = [snapshot.payload for snapshot in stage_receipt_snapshots]
+    try:
+        execution_evidence = blog_assembly_capabilities.resolve_execution_evidence(
+            stage_receipts,
+            agent_output_paths=normalized_agent_output_paths,
+            workspace_root=root,
+        )
+    except blog_assembly_capabilities.CapabilityRegistryError as error:
+        raise ValueError(f"repository execution provenance is invalid: {error}") from error
     plan_findings = editorial_plan_guard.check_file(
         editorial_plan_path,
         article_path=article_path,
@@ -259,6 +285,7 @@ def build_blog_assembly_bom_from_files(
             fred_authority_evidence_path,
             root,
         ),
+        "execution_evidence": execution_evidence,
         "optimizer_outputs": [
             canonical_artifact(path, workspace_root=root)
             for path in (optimizer_output_paths or [])
@@ -294,7 +321,6 @@ def build_blog_assembly_bom_from_files(
                 "sidecar evidence bindings are invalid: "
                 + ", ".join(code for code, _ in evidence_errors)
             )
-    stage_receipts = [snapshot.payload for snapshot in stage_receipt_snapshots]
     if not stage_receipts:
         raise ValueError("stage_receipt_paths must contain real tool-emitted receipts")
     connector_reason = None if connector_required else NON_CONNECTOR_REASON
@@ -309,6 +335,7 @@ def build_blog_assembly_bom_from_files(
         article_sha256=artifacts["article"]["sha256"],
         optimizer_outputs=artifacts["optimizer_outputs"],
         artifacts=artifacts,
+        execution_evidence=execution_evidence,
         connector_required=connector_required,
         connector_reason=connector_reason,
         prior_preflight_readiness_path=prior_preflight_readiness_path,
@@ -717,6 +744,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     build.add_argument("--context-receipt")
     build.add_argument("--customer-proof-selector-evidence")
     build.add_argument("--fred-authority-evidence")
+    build.add_argument("--agent-output", action="append", default=[])
     build.add_argument("--optimizer-output", action="append", default=[])
     build.add_argument("--prior-preflight-readiness")
     build.add_argument("--stage-receipt", action="append", required=True)
@@ -750,6 +778,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 context_receipt_path=args.context_receipt,
                 customer_proof_selector_evidence_path=args.customer_proof_selector_evidence,
                 fred_authority_evidence_path=args.fred_authority_evidence,
+                agent_output_paths=_label_paths(args.agent_output),
                 optimizer_output_paths=args.optimizer_output,
                 prior_preflight_readiness_path=args.prior_preflight_readiness,
                 stage_receipt_paths=args.stage_receipt,
@@ -1003,6 +1032,7 @@ def _validate_provisional_stage_receipts(
     article_sha256: str,
     optimizer_outputs: list[dict[str, str]],
     artifacts: Mapping[str, Any],
+    execution_evidence: Mapping[str, Mapping[str, str]],
     connector_required: bool,
     connector_reason: str | None,
     prior_preflight_readiness_path: str | Path | None,
@@ -1024,6 +1054,7 @@ def _validate_provisional_stage_receipts(
     resolvable_evidence = _resolvable_receipt_evidence_hashes(
         receipts,
         artifacts=artifacts,
+        execution_evidence=execution_evidence,
         workspace_root=workspace_root,
     )
     findings = check_receipt_chain(
@@ -1055,6 +1086,15 @@ def _validate_provisional_stage_receipts(
         raise ValueError(
             "optimizer output evidence must be present if and only if the "
             "optimization stage is present"
+        )
+    expected_optimizer_rows = [
+        execution_evidence[f"agent_output.{agent_id}"]
+        for agent_id in blog_assembly_capabilities.expected_agent_ids(receipts)
+    ] if optimized else []
+    if optimizer_outputs != expected_optimizer_rows:
+        raise ValueError(
+            "optimizer outputs must exactly match the ordered, distinct "
+            "agent output artifacts in execution evidence"
         )
     if optimized != bool(prior_preflight_readiness_path):
         raise ValueError(
@@ -1091,6 +1131,22 @@ def _validate_provisional_stage_receipts(
     )
     if draft_evidence.get("serp_evidence") != artifacts["serp_evidence"]["sha256"]:
         raise ValueError("draft stage receipt must bind verified SERP evidence")
+    try:
+        expected_draft_definitions = (
+            blog_assembly_capabilities.receipt_definition_hashes(
+                receipts,
+                stage="draft",
+                execution_evidence=execution_evidence,
+            )
+        )
+    except blog_assembly_capabilities.CapabilityRegistryError as error:
+        raise ValueError(f"draft receipt command definition is invalid: {error}") from error
+    for label, digest in expected_draft_definitions.items():
+        if draft_evidence.get(label) != digest:
+            raise ValueError(
+                "draft receipt must bind command definition and route agent "
+                f"definitions: {label}"
+            )
 
     for stage_name in ("scrub", "post_optimization_scrub"):
         receipt = by_stage.get(stage_name)
@@ -1177,8 +1233,26 @@ def _validate_provisional_stage_receipts(
             optimization.get("evidence_hashes"),
             "optimization.evidence_hashes",
         )
+        try:
+            expected_optimization_evidence = (
+                blog_assembly_capabilities.receipt_definition_hashes(
+                    receipts,
+                    stage="optimization",
+                    execution_evidence=execution_evidence,
+                )
+            )
+        except blog_assembly_capabilities.CapabilityRegistryError as error:
+            raise ValueError(
+                f"optimization execution evidence is invalid: {error}"
+            ) from error
+        for label, digest in expected_optimization_evidence.items():
+            if evidence.get(label) != digest:
+                raise ValueError(
+                    "optimization stage receipt must bind optimize command, agent "
+                    f"definitions, and final agent outputs: {label}"
+                )
         expected_optimizer_hashes = {
-            str(row["sha256"]) for row in optimizer_outputs
+            str(row["sha256"]) for row in expected_optimizer_rows
         }
         if not expected_optimizer_hashes.issubset(set(evidence.values())):
             raise ValueError(
@@ -1414,7 +1488,16 @@ def _verify_bom_artifacts_unchanged(bom: Mapping[str, Any], root: Path) -> None:
     for label, row in artifacts.items():
         if row is None:
             continue
-        if isinstance(row, list):
+        if label == "execution_evidence":
+            if not isinstance(row, Mapping):
+                raise ValueError("artifacts.execution_evidence must be an object")
+            for evidence_label, item in row.items():
+                verify_artifact(
+                    item,
+                    workspace_root=root,
+                    field=f"artifacts.execution_evidence.{evidence_label}",
+                )
+        elif isinstance(row, list):
             for index, item in enumerate(row):
                 verify_artifact(item, workspace_root=root, field=f"artifacts.{label}[{index}]")
         else:
@@ -1425,6 +1508,7 @@ def _resolvable_receipt_evidence_hashes(
     receipts: Sequence[Mapping[str, Any]],
     *,
     artifacts: Mapping[str, Any],
+    execution_evidence: Mapping[str, Mapping[str, str]] | None = None,
     workspace_root: Path,
 ) -> set[str]:
     """Resolve every receipt evidence digest to a current bound source."""
@@ -1432,6 +1516,21 @@ def _resolvable_receipt_evidence_hashes(
         row["sha256"]
         for row in artifact_inventory_snapshots(artifacts).values()
     }
+    registered_evidence = (
+        execution_evidence
+        if execution_evidence is not None
+        else artifacts.get("execution_evidence")
+    )
+    capability_errors = blog_assembly_capabilities.validate_execution_evidence(
+        registered_evidence,
+        receipts=receipts,
+        workspace_root=workspace_root,
+    )
+    if capability_errors:
+        raise ValueError(
+            "repository capability definitions are invalid: "
+            + ", ".join(code for code, _ in capability_errors)
+        )
     prior_readiness = artifacts.get("prior_preflight_readiness")
     if isinstance(prior_readiness, Mapping):
         prior_path = verify_artifact(
@@ -1500,6 +1599,19 @@ def _resolvable_receipt_evidence_hashes(
 
 def _optional_artifact(path: str | Path | None, root: Path) -> dict[str, str] | None:
     return canonical_artifact(path, workspace_root=root) if path is not None else None
+
+
+def _label_paths(values: Sequence[str]) -> dict[str, Path]:
+    result: dict[str, Path] = {}
+    for value in values:
+        if "=" not in value:
+            raise ValueError("agent output arguments must use id=path")
+        label, raw_path = value.split("=", 1)
+        normalized = _required_string(label, "agent_output.id")
+        if normalized in result:
+            raise ValueError(f"duplicate agent output ID: {normalized}")
+        result[normalized] = Path(_required_string(raw_path, "agent_output.path"))
+    return result
 
 
 def _read_json_object(path: str | Path, field: str) -> dict[str, Any]:

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import hashlib
 import os
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
@@ -10,11 +11,15 @@ from unittest.mock import patch
 import pytest
 
 from data_sources.modules.blog_assembly_mutation_recorder import (
-    finish_mutation,
+    finish_mutation as _finish_mutation,
     main,
     start_mutation as _start_mutation,
 )
+from data_sources.modules.blog_assembly_capabilities import OPTIMIZE_AGENT_IDS
 from data_sources.modules.blog_assembly_stage_receipt import load_stage_receipt
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def start_mutation(**kwargs: object) -> dict[str, object]:
@@ -23,7 +28,182 @@ def start_mutation(**kwargs: object) -> dict[str, object]:
     kwargs["workspace_root"] = state_path.parent
     kwargs["assembly_date"] = "2026-08-11"
     kwargs["run_id"] = None
+    if kwargs.get("tool_name") in {"blog_writer", "manual_optimizer"}:
+        kwargs["tool_name"] = (
+            "article-command"
+            if kwargs.get("stage") == "draft"
+            else "optimize-command"
+        )
+        kwargs["tool_version"] = "1"
+    for relative in (
+        ".claude/commands/article.md",
+        ".claude/commands/write.md",
+        ".claude/commands/rewrite.md",
+        ".claude/commands/optimize.md",
+        ".claude/agents/content-analyzer.md",
+        ".claude/agents/seo-optimizer.md",
+        ".claude/agents/meta-creator.md",
+        ".claude/agents/internal-linker.md",
+        ".claude/agents/keyword-mapper.md",
+    ):
+        destination = state_path.parent / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if not destination.exists():
+            shutil.copyfile(ROOT / relative, destination)
     return _start_mutation(**kwargs)  # type: ignore[arg-type]
+
+
+def finish_mutation(**kwargs: object) -> dict[str, object]:
+    """Supply exact optimization diagnostics for legacy mechanics tests."""
+    state_path = Path(str(kwargs["state_path"]))
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    if (
+        state.get("schema") == "simpro-blog-mutation-state/v1"
+        and state.get("stage") == "optimization"
+        and "evidence_artifacts" not in kwargs
+    ):
+        outputs = {}
+        output_dir = state_path.parent / "research" / "agent-outputs"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        for agent_id in OPTIMIZE_AGENT_IDS:
+            path = output_dir / f"{agent_id}-fixture.md"
+            path.write_text(f"# {agent_id} diagnostic\n", encoding="utf-8")
+            outputs[f"agent_output.{agent_id}"] = path
+        kwargs["evidence_artifacts"] = outputs
+    return _finish_mutation(**kwargs)  # type: ignore[arg-type]
+
+
+def test_draft_finish_generates_registered_definition_evidence_internally(
+    tmp_path: Path,
+):
+    article = tmp_path / "article.md"
+    article.write_text("Before\n", encoding="utf-8")
+    state = tmp_path / "state.json"
+    start_mutation(
+        article_path=article,
+        state_path=state,
+        stage="draft",
+        tool_name="article-command",
+        tool_version="1",
+        started_at="2026-08-11T14:00:00Z",
+    )
+    article.write_text("After\n", encoding="utf-8")
+
+    receipt = finish_mutation(
+        state_path=state,
+        article_path=article,
+        receipt_path=tmp_path / "receipt.json",
+        completed_at="2026-08-11T14:01:00Z",
+    )
+
+    assert set(receipt["evidence_hashes"]) >= {
+        "command_definition.article-command",
+        "agent_definition.content-analyzer",
+        "agent_definition.seo-optimizer",
+        "agent_definition.meta-creator",
+        "agent_definition.internal-linker",
+        "agent_definition.keyword-mapper",
+    }
+
+
+def test_start_rejects_unregistered_mutation_tool_identity(tmp_path: Path):
+    article = tmp_path / "article.md"
+    article.write_text("Before\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="registered draft command"):
+        _start_mutation(
+            article_path=article,
+            state_path=tmp_path / "state.json",
+            stage="draft",
+            tool_name="blog-writer",
+            tool_version="1",
+            started_at="2026-08-11T14:00:00Z",
+            workspace_root=tmp_path,
+            assembly_date="2026-08-11",
+        )
+
+
+def test_draft_rejects_agent_outputs_without_optimization_mutation(tmp_path: Path):
+    article = tmp_path / "article.md"
+    article.write_text("Before\n", encoding="utf-8")
+    state = tmp_path / "state.json"
+    output = tmp_path / "diagnostic.md"
+    output.write_text("# diagnostic\n", encoding="utf-8")
+    start_mutation(
+        article_path=article,
+        state_path=state,
+        stage="draft",
+        tool_name="article-command",
+        tool_version="1",
+        started_at="2026-08-11T14:00:00Z",
+    )
+    article.write_text("After\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="only on optimization"):
+        finish_mutation(
+            state_path=state,
+            article_path=article,
+            receipt_path=tmp_path / "receipt.json",
+            evidence_artifacts={"agent_output.seo-optimizer": output},
+            completed_at="2026-08-11T14:01:00Z",
+        )
+
+
+def test_mutation_caller_cannot_supply_repository_definition_evidence(tmp_path: Path):
+    article = tmp_path / "article.md"
+    article.write_text("Before\n", encoding="utf-8")
+    state = tmp_path / "state.json"
+    fake = tmp_path / "fake.md"
+    fake.write_text("fake\n", encoding="utf-8")
+    start_mutation(
+        article_path=article,
+        state_path=state,
+        stage="draft",
+        tool_name="article-command",
+        tool_version="1",
+        started_at="2026-08-11T14:00:00Z",
+    )
+    article.write_text("After\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="resolved internally"):
+        finish_mutation(
+            state_path=state,
+            article_path=article,
+            receipt_path=tmp_path / "receipt.json",
+            evidence_artifacts={"command_definition.article-command": fake},
+            completed_at="2026-08-11T14:01:00Z",
+        )
+
+
+def test_optimization_rejects_agent_output_outside_canonical_report_path(
+    tmp_path: Path,
+):
+    article = tmp_path / "article.md"
+    article.write_text("Before\n", encoding="utf-8")
+    state = tmp_path / "state.json"
+    start_mutation(
+        article_path=article,
+        state_path=state,
+        stage="optimization",
+        tool_name="optimize-command",
+        tool_version="1",
+        started_at="2026-08-11T14:00:00Z",
+    )
+    article.write_text("After\n", encoding="utf-8")
+    outputs = {}
+    for agent_id in OPTIMIZE_AGENT_IDS:
+        output = tmp_path / f"{agent_id}.md"
+        output.write_text(f"# {agent_id}\n", encoding="utf-8")
+        outputs[f"agent_output.{agent_id}"] = output
+
+    with pytest.raises(ValueError, match="research/agent-outputs"):
+        _finish_mutation(
+            state_path=state,
+            article_path=article,
+            receipt_path=tmp_path / "receipt.json",
+            evidence_artifacts=outputs,
+            completed_at="2026-08-11T14:01:00Z",
+        )
 
 
 def test_optimizer_recorder_captures_real_before_and_after_hashes(tmp_path: Path):
@@ -489,10 +669,10 @@ def test_cli_rejects_duplicate_artifact_labels_with_concise_error(
                 str(tmp_path),
                 "--stage",
                 "draft",
-                "--tool-name",
-                "blog_writer",
-                "--tool-version",
-                "1.0.0",
+                    "--tool-name",
+                    "optimize-command",
+                    "--tool-version",
+                    "1",
                 "--input",
                 f"editorial_plan={first}",
                 "--input",
@@ -575,9 +755,9 @@ def test_cli_reports_missing_optimization_article_without_traceback(
                 "--stage",
                 "optimization",
                 "--tool-name",
-                "blog_writer",
+                "optimize-command",
                 "--tool-version",
-                "1.0.0",
+                "1",
             ]
         )
 

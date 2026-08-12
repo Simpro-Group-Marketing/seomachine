@@ -18,6 +18,20 @@ Tool-emitted machine artifacts carry an `execution_attestation`, a keyed local e
 
 After the article, research, proof, and route-specific receipts are complete, invoke `/publish-readiness`. It is the sole owner of the build -> preflight -> finalize -> final seal recipe, its final-readiness attestation, and its `verification_scope: source_artifact` boundary.
 
+### Repository Agent Output Contract
+
+Agent reports are diagnostic artifacts, not publication authority. Invoke every route agent named below, save its response to the matching current, distinct path, and pass each ID/path to the BOM builder owned by `/publish-readiness`:
+
+```text
+--agent-output "content-analyzer=research/agent-outputs/content-analyzer-[topic-slug]-[YYYY-MM-DD].md"
+--agent-output "seo-optimizer=research/agent-outputs/seo-optimizer-[topic-slug]-[YYYY-MM-DD].md"
+--agent-output "meta-creator=research/agent-outputs/meta-creator-[topic-slug]-[YYYY-MM-DD].md"
+--agent-output "internal-linker=research/agent-outputs/internal-linker-[topic-slug]-[YYYY-MM-DD].md"
+--agent-output "keyword-mapper=research/agent-outputs/keyword-mapper-[topic-slug]-[YYYY-MM-DD].md"
+```
+
+A report may diagnose the unchanged article without claiming a copy mutation. Any agent-driven public-copy change must be captured by `optimize-command`, then scrubbed, rebound, and resealed through `/publish-readiness`.
+
 ### After Optimization Mutations
 
 All optimizer outputs and manual edits are content mutations. The closed route-specific sequence is `optimization` -> `post_optimization_scrub` -> `post_optimization_context_binding` -> `final_preflight_readiness`. Record the mutation, run the scrubber and Context Binding generator with their post-optimization stages, preserve the immutable prior BOM, then invoke `/publish-readiness` for the complete reseal.
@@ -320,7 +334,7 @@ Give the reader a useful next action that fits the Reader Contract and funnel st
 - For Lightning-specific content, apply the connector-discovered Lightning resources first: use required brand prefixes, keep JustAsk as the interface, Cooper as the brain, use exact agent names and field-service-trades first-reference wording, and publish only receipt-approved Lightning claims. Use @context/lightning-positioning.md only as a documented fallback mirror when the connector is unavailable.
 
 ## Output
-Provides a complete, publish-ready article including:
+Provides a complete article candidate for `/publish-readiness` including:
 
 ### 1. Article Content
 Full markdown-formatted article with:

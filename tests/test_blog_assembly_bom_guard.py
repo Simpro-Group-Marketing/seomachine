@@ -94,6 +94,41 @@ def test_valid_provisional_bom_passes_strict_guard(tmp_path: Path):
     ) == set()
 
 
+def test_guard_rejects_definition_changed_after_bom_build(tmp_path: Path):
+    paths = _fixture(tmp_path)
+    bom = _build(tmp_path, paths)
+    definition = tmp_path / ".claude" / "commands" / "article.md"
+    definition.write_text(
+        definition.read_text(encoding="utf-8") + "\nRepository change.\n",
+        encoding="utf-8",
+    )
+
+    assert "capability_definition_stale" in _rules(tmp_path, bom, paths)
+
+
+def test_guard_rejects_historical_receipt_without_capability_bindings(
+    tmp_path: Path,
+):
+    paths = _fixture(tmp_path)
+    bom = _build(tmp_path, paths)
+    draft_path = paths["stage_receipts"][0]
+    draft = json.loads(draft_path.read_text(encoding="utf-8"))
+    draft["evidence_hashes"] = {
+        "serp_evidence": draft["evidence_hashes"]["serp_evidence"]
+    }
+    draft_path.write_text(json.dumps(draft, indent=2) + "\n", encoding="utf-8")
+    bom["workflow"]["stage_receipts"][0] = draft
+    bom["artifacts"]["stage_receipts"][0]["sha256"] = hashlib.sha256(
+        draft_path.read_bytes()
+    ).hexdigest()
+
+    assert "bom_draft_capability_evidence_unbound" in _rules(
+        tmp_path,
+        bom,
+        paths,
+    )
+
+
 def test_editorial_plan_duplicate_key_is_a_blocker_not_silently_ignored(
     tmp_path: Path,
 ):
@@ -607,11 +642,11 @@ def test_optimizer_evidence_without_optimization_stage_is_rejected(tmp_path: Pat
 
 def test_valid_optimized_bom_binds_prior_preflight_and_passes_guard(tmp_path: Path):
     paths = _fixture(tmp_path)
-    prior_readiness, optimizer = _prepare_optimized_workflow(tmp_path, paths)
+    prior_readiness, optimizer_outputs = _prepare_optimized_workflow(tmp_path, paths)
     bom = _build(
         tmp_path,
         paths,
-        optimizer_output_paths=[optimizer],
+        optimizer_output_paths=optimizer_outputs,
         prior_preflight_readiness_path=prior_readiness,
     )
 
@@ -625,11 +660,11 @@ def test_valid_optimized_bom_binds_prior_preflight_and_passes_guard(tmp_path: Pa
 
 def test_optimized_bom_without_prior_preflight_is_blocking(tmp_path: Path):
     paths = _fixture(tmp_path)
-    prior_readiness, optimizer = _prepare_optimized_workflow(tmp_path, paths)
+    prior_readiness, optimizer_outputs = _prepare_optimized_workflow(tmp_path, paths)
     bom = _build(
         tmp_path,
         paths,
-        optimizer_output_paths=[optimizer],
+        optimizer_output_paths=optimizer_outputs,
         prior_preflight_readiness_path=prior_readiness,
     )
     bom["artifacts"]["prior_preflight_readiness"] = None
