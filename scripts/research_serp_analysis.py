@@ -36,6 +36,7 @@ from modules.content_length_comparator import ContentLengthComparator  # noqa: E
 from modules.dataforseo import DataForSEO  # noqa: E402
 from modules.blog_assembly_contract import atomic_write_json  # noqa: E402
 from modules.editorial_plan_guard import build_serp_evidence  # noqa: E402
+from modules.execution_attestation import attest_mapping  # noqa: E402
 from modules.search_intent_analyzer import SearchIntentAnalyzer  # noqa: E402
 
 
@@ -63,7 +64,11 @@ def parse_cli_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         default=None,
         help="Optional caller-supplied intent/evidence-complete article target",
     )
-    return parser.parse_args(argv)
+    parser.add_argument("--run-id", help="Explicit blog-agency run identity")
+    args = parser.parse_args(argv)
+    if args.keyword and (not isinstance(args.run_id, str) or not args.run_id.strip()):
+        parser.error("--run-id is required when a keyword is supplied")
+    return args
 
 
 def main() -> None:
@@ -76,7 +81,7 @@ def main() -> None:
             '"your target keyword" --word-target 1600'
         )
         return
-    run_serp_analysis(args.keyword, word_target=args.word_target)
+    run_serp_analysis(args.keyword, run_id=args.run_id, word_target=args.word_target)
 
 
 def run_serp_analysis(
@@ -89,10 +94,13 @@ def run_serp_analysis(
     content_comparator_factory: Callable[[], Any] = ContentLengthComparator,
     print_fn: Callable[[str], None] = print,
     word_target: Optional[int] = None,
+    run_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Run SERP analysis with DataForSEO first and Playwright fallback second."""
     if not isinstance(keyword, str) or not keyword.strip():
         raise ValueError("keyword must be a non-empty string")
+    if not isinstance(run_id, str) or not run_id.strip() or run_id != run_id.strip():
+        raise ValueError("run_id must be an explicit non-empty agency run identity")
     keyword = keyword.strip()
     if (
         word_target is not None
@@ -107,6 +115,7 @@ def run_serp_analysis(
     now = now or datetime.now()
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    workspace_root = _workspace_root_for_output(output_dir)
     fallback_runner = fallback_runner or run_playwright_serp_fallback
 
     print_fn("=" * 80)
@@ -135,12 +144,32 @@ def run_serp_analysis(
 
     serp_data: Dict[str, Any] = {}
     fallback_data: Dict[str, Any] = {}
+    raw_capture_path: Path | None = None
 
     if dfs is not None:
         print_fn(f"\n2. Fetching SERP data for '{keyword}'...")
         try:
+            capture_method = getattr(dfs, "get_serp_capture", None)
+            if callable(capture_method):
+                raw_dataforseo_response, normalized_dataforseo_response = (
+                    capture_method(keyword, limit=20)
+                )
+            else:
+                raw_dataforseo_response = dfs.get_serp_data(keyword, limit=20)
+                normalized_dataforseo_response = raw_dataforseo_response
+            raw_capture_path = write_serp_raw_capture(
+                output_dir=output_dir,
+                workspace_root=workspace_root,
+                keyword=keyword,
+                run_id=run_id,
+                now=now,
+                collector_source="dataforseo",
+                request_url="dataforseo://serp/google/organic/live/advanced",
+                locale={"language_code": "en", "location_code": 2840},
+                raw_response=raw_dataforseo_response,
+            )
             serp_data = normalize_serp_payload(
-                dfs.get_serp_data(keyword, limit=20),
+                normalized_dataforseo_response,
                 source="DataForSEO",
             )
             if not serp_data or "organic_results" not in serp_data:
@@ -156,7 +185,15 @@ def run_serp_analysis(
 
     if not serp_data:
         print_fn("\n2b. Attempting Playwright SERP fallback...")
-        fallback_data = fallback_runner(keyword, output_dir=output_dir, now=now)
+        fallback_data = fallback_runner(
+            keyword,
+            output_dir=output_dir,
+            now=now,
+            run_id=run_id,
+            workspace_root=workspace_root,
+        )
+        fallback_capture = fallback_data.get("raw_capture_path")
+        raw_capture_path = Path(fallback_capture) if fallback_capture else None
         if fallback_data.get("fallback_blocker"):
             print_fn(f"   Playwright fallback blocker: {fallback_data['fallback_blocker']}")
         else:
@@ -185,6 +222,7 @@ def run_serp_analysis(
         "fallback_search_url": fallback_data.get("search_url", ""),
         "fallback_raw_artifact": fallback_data.get("raw_artifact", ""),
         "fallback_captured_at": fallback_data.get("captured_at", now.isoformat()),
+        "raw_capture_path": str(raw_capture_path or ""),
         "content_types": [],
         "title_patterns": [],
         "word_counts": [],
@@ -271,13 +309,16 @@ def run_serp_analysis(
     report_path = output_dir / f"serp-analysis-{sanitize_filename(keyword)}.md"
     print_fn(f"\n8. Writing report to {report_path}...")
     write_markdown_report(keyword, analysis, output_dir=output_dir, now=now)
-    if organic_results:
+    if organic_results and raw_capture_path is not None:
         evidence_path = write_verified_serp_evidence(
             keyword,
             analysis,
             output_dir=output_dir,
             now=now,
             collector_source=("playwright" if fallback_data else "dataforseo"),
+            run_id=run_id,
+            raw_capture_path=raw_capture_path,
+            workspace_root=workspace_root,
         )
         print_fn(f"   Verified SERP evidence saved: {evidence_path}")
 
@@ -481,6 +522,9 @@ def normalize_serp_payload(
 
 def run_playwright_serp_fallback(
     keyword: str,
+    *,
+    run_id: str,
+    workspace_root: str | Path,
     output_dir: str | Path = "research",
     now: Optional[datetime] = None,
     cli_runner: Optional[Callable[[str], str]] = None,
@@ -492,7 +536,7 @@ def run_playwright_serp_fallback(
     output_dir.mkdir(parents=True, exist_ok=True)
     search_url = build_google_search_url(keyword)
     artifact_path = output_dir / (
-        f"serp-playwright-{sanitize_filename(keyword)}-{now.strftime('%Y-%m-%d')}.json"
+        f"serp-raw-{sanitize_filename(keyword)}-{now.strftime('%Y-%m-%d')}-playwright.json"
     )
 
     if not npx_checker():
@@ -503,7 +547,20 @@ def run_playwright_serp_fallback(
             now,
             "npx unavailable; install Node/npm or provide a SERP/PAA export.",
         )
-        write_json_artifact(artifact_path, result)
+        result["raw_capture_path"] = str(write_serp_raw_capture(
+            output_dir=output_dir,
+            workspace_root=Path(workspace_root),
+            keyword=keyword,
+            run_id=run_id,
+            now=now,
+            collector_source="playwright",
+            request_url=search_url,
+            locale=result["locale"],
+            raw_response=json.dumps({
+                "organic_results": [], "features": [],
+                "blocker": result["fallback_blocker"],
+            }),
+        ))
         return result
 
     try:
@@ -522,7 +579,20 @@ def run_playwright_serp_fallback(
             now,
             f"Playwright SERP fallback failed: {exc}",
         )
-        write_json_artifact(artifact_path, result)
+        result["raw_capture_path"] = str(write_serp_raw_capture(
+            output_dir=output_dir,
+            workspace_root=Path(workspace_root),
+            keyword=keyword,
+            run_id=run_id,
+            now=now,
+            collector_source="playwright",
+            request_url=search_url,
+            locale=result["locale"],
+            raw_response=json.dumps({
+                "organic_results": [], "features": [],
+                "blocker": result["fallback_blocker"],
+            }),
+        ))
         return result
 
     organic_results = []
@@ -553,7 +623,17 @@ def run_playwright_serp_fallback(
         "paa_questions": [] if blocker else dedupe_questions(payload.get("paa_questions", [])),
         "limitations": fallback_limitations(),
     }
-    write_json_artifact(artifact_path, normalized)
+    normalized["raw_capture_path"] = str(write_serp_raw_capture(
+        output_dir=output_dir,
+        workspace_root=Path(workspace_root),
+        keyword=keyword,
+        run_id=run_id,
+        now=now,
+        collector_source="playwright",
+        request_url=normalized["search_url"],
+        locale=normalized["locale"],
+        raw_response=raw_output,
+    ))
     return normalized
 
 
@@ -819,6 +899,50 @@ def write_json_artifact(path: Path, payload: Dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
+def _workspace_root_for_output(output_dir: Path) -> Path:
+    """Use the repository parent for its research directory, otherwise the output root."""
+    return output_dir.parent.resolve() if output_dir.name == "research" else output_dir.resolve()
+
+
+def write_serp_raw_capture(
+    *,
+    output_dir: Path,
+    workspace_root: Path,
+    keyword: str,
+    run_id: str,
+    now: datetime,
+    collector_source: str,
+    request_url: str,
+    locale: Dict[str, Any],
+    raw_response: Any,
+) -> Path:
+    """Persist an attested wrapper retaining the exact collector response unchanged."""
+    if collector_source not in {"dataforseo", "playwright"}:
+        raise ValueError("collector_source must be dataforseo or playwright")
+    payload = {
+        "schema": "simpro-serp-raw-capture/v1",
+        "collector": {
+            "name": f"research_serp_analysis:{collector_source}",
+            "version": SERP_EVIDENCE_COLLECTOR_VERSION,
+        },
+        "query": keyword,
+        "collected_at": _rfc3339_utc(now),
+        "run_id": run_id,
+        "request": {"url": request_url, "locale": locale},
+        "raw_response": raw_response,
+    }
+    capture = attest_mapping(
+        payload,
+        purpose="simpro-serp-raw-capture/v1",
+        workspace_root=workspace_root,
+    )
+    destination = output_dir / (
+        f"serp-raw-{sanitize_filename(keyword)}-{_rfc3339_utc(now)[:10]}-{collector_source}.json"
+    )
+    atomic_write_json(destination, capture)
+    return destination
+
+
 def write_verified_serp_evidence(
     keyword: str,
     analysis: Dict[str, Any],
@@ -826,32 +950,16 @@ def write_verified_serp_evidence(
     output_dir: str | Path,
     now: datetime,
     collector_source: str,
+    run_id: str,
+    raw_capture_path: str | Path,
+    workspace_root: str | Path,
 ) -> Path:
     """Build and atomically persist strict evidence from collected organic rows."""
     collected_at = _rfc3339_utc(now)
     keyword_slug = sanitize_filename(keyword)
-    results = [
-        {
-            "position": position,
-            "url": str(result.get("url") or "").strip(),
-            "title": str(result.get("title") or "").strip(),
-            "result_type": "organic",
-        }
-        for position, result in enumerate(analysis.get("top_results", []), start=1)
-    ]
     evidence = build_serp_evidence(
-        query=keyword,
-        collected_at=collected_at,
-        collector_name=f"research_serp_analysis:{collector_source}",
-        collector_version=SERP_EVIDENCE_COLLECTOR_VERSION,
-        run_id=(
-            f"serp-{keyword_slug}-"
-            f"{collected_at.replace('-', '').replace(':', '')}-"
-            f"{collector_source}"
-        ),
-        results=results,
-        content_types=_unique_observed_strings(analysis.get("content_types", [])),
-        serp_features=_unique_observed_strings(analysis.get("serp_features", [])),
+        raw_capture_path=raw_capture_path,
+        workspace_root=workspace_root,
         must_have_sections=_unique_observed_strings(
             analysis.get("common_h2_topics", [])
         ),

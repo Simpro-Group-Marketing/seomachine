@@ -24,8 +24,8 @@ Generates an evidence-bound content brief with explicit observations, strong def
 
 Execute SERP analysis for a keyword:
 ```bash
-python scripts/research_serp_analysis.py "your target keyword"
-python scripts/research_serp_analysis.py "your target keyword" --word-target 1600
+python scripts/research_serp_analysis.py "your target keyword" --run-id "[agency run ID]"
+python scripts/research_serp_analysis.py "your target keyword" --run-id "[agency run ID]" --word-target 1600
 ```
 
 Omit `--word-target` when Reader Contract planning has not resolved an intent- and evidence-complete target. The report will mark the target unresolved rather than inventing one from competitor counts.

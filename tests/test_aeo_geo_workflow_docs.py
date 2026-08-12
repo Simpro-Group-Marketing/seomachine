@@ -1734,12 +1734,11 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                 path.name,
             )
             for option in (
-                "--query",
-                "--collection-date",
-                "--run-id",
-                "--started-at",
-                "--completed-at",
-                "--eligible-question",
+                "--raw-capture",
+                "--expected-query",
+                "--expected-collection-date",
+                "--expected-run-id",
+                "--workspace-root",
                 "--output",
             ):
                 self.assertIn(option, collected_command, f"{path.name} missing {option}")
@@ -1748,7 +1747,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             )
             self.assertIn("simpro-answersocrates-artifact/v1", content)
             self.assertIn("simpro-answersocrates-run-receipt/v1", content)
-            self.assertIn("playwright_mcp", content)
+            self.assertIn("repository-approved Playwright collector", content)
             self.assertIn("Handwritten labels", content)
 
             blocked = _fenced_block_after(
@@ -1765,12 +1764,13 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
                 blocked_command[:3],
                 path.name,
             )
-            self.assertEqual(
-                ["blocked"],
-                _command_option_values(blocked_command, "--status"),
-            )
-            for option in ("--blocker", "--blocker-reason", "--output"):
+            for option in (
+                "--raw-capture", "--expected-query", "--expected-collection-date",
+                "--expected-run-id", "--workspace-root", "--output",
+            ):
                 self.assertIn(option, blocked_command, f"{path.name} missing {option}")
+            for removed in ("--status", "--blocker", "--blocker-reason"):
+                self.assertNotIn(removed, blocked_command, f"{path.name} retains {removed}")
 
         rewrite_docs = [
             ROOT / ".claude" / "commands" / "rewrite.md",
@@ -3346,6 +3346,32 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
         self.assertIn("there is no fixed competitor count", landing_research)
         self.assertIn("There is no fixed total", landing_research)
         self.assertIn("FAQ Decision", landing_research)
+
+    def test_research_provenance_docs_remove_caller_authored_paa_and_bind_run_and_decision(self):
+        article = (ROOT / ".claude" / "commands" / "article.md").read_text(encoding="utf-8")
+        strategy = (ROOT / "context" / "aeo-geo-blog-strategy.md").read_text(encoding="utf-8")
+        serp = (ROOT / ".claude" / "commands" / "research-serp.md").read_text(encoding="utf-8")
+        for content in (article, strategy):
+            for removed in (
+                "--eligible-question", "--ineligible-fragment", "--blocker-reason",
+                "--status blocked", "--blocker \"",
+            ):
+                self.assertNotIn(removed, content)
+            for required in (
+                "--raw-capture", "--expected-query", "--expected-collection-date",
+                "--expected-run-id", "--workspace-root",
+            ):
+                self.assertIn(required, content)
+            self.assertIn("approved repository decision path", content)
+            self.assertIn("callers cannot override `source_class` or `publisher_relationship`", content)
+        commands = [
+            shlex.split(line.strip(), posix=True)
+            for line in serp.splitlines()
+            if line.strip().startswith("python scripts/research_serp_analysis.py ")
+        ]
+        self.assertTrue(commands)
+        for command in commands:
+            self.assertIn("--run-id", command)
 
 if __name__ == "__main__":
     unittest.main()

@@ -41,15 +41,32 @@ def _utc_now():
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def write_source_decisions(directory, url, source_class, relationship, *, status="approved"):
+    path = Path(directory) / "context" / "source-classification-decisions.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({
+        "schema": "simpro-source-classification-decisions/v1",
+        "revision": "test-revision-1",
+        "decisions": [{
+            "decision_id": "source:test-record",
+            "status": status,
+            "source_url": url,
+            "hostname": url.split("/", 3)[2].lower(),
+            "source_class": source_class,
+            "publisher_relationship": relationship,
+        }],
+    }, sort_keys=True), encoding="utf-8")
+    return path
+
+
 def write_source_classification(directory, url, source_class, relationship):
+    decisions = write_source_decisions(directory, url, source_class, relationship)
     path = Path(directory) / "source-classification.json"
     source_support_guard.write_source_classification_artifact(
         path,
         source_url=url,
-        source_class=source_class,
-        publisher_relationship=relationship,
-        record_id="source:test-record",
-        revision="test-revision-1",
+        decision_id="source:test-record",
+        decision_path=decisions,
         workspace_root=directory,
     )
     return path.name, _sha256(path)
@@ -126,6 +143,83 @@ def write_plain_capture_receipt(directory, url, artifact_name, *, method):
 
 
 class SourceSupportGuardTests(unittest.TestCase):
+    def test_source_classification_is_derived_from_exact_approved_decision(self):
+        url = "https://example.com/scheduling-guidance"
+        with tempfile.TemporaryDirectory() as tmp:
+            decision = write_source_decisions(
+                tmp, url, "non_competing_expert", "independent",
+            )
+            output = Path(tmp) / "classification.json"
+            payload = source_support_guard.write_source_classification_artifact(
+                output,
+                source_url=url,
+                decision_id="source:test-record",
+                decision_path=decision,
+                workspace_root=tmp,
+            )
+
+        self.assertEqual(payload["source_class"], "non_competing_expert")
+        self.assertEqual(payload["publisher"]["relationship"], "independent")
+        self.assertEqual(payload["registry"]["authority_mode"], "repository_decision")
+        self.assertEqual(payload["registry"]["decision_path"], "context/source-classification-decisions.json")
+
+    def test_source_classification_rejects_override_missing_unapproved_or_mismatch(self):
+        url = "https://example.com/scheduling-guidance"
+        with tempfile.TemporaryDirectory() as tmp:
+            decision = write_source_decisions(
+                tmp, url, "non_competing_expert", "independent", status="draft",
+            )
+            output = Path(tmp) / "classification.json"
+            with self.assertRaises(ValueError):
+                source_support_guard.write_source_classification_artifact(
+                    output, source_url=url, decision_id="source:test-record",
+                    decision_path=decision, workspace_root=tmp,
+                )
+            with self.assertRaises(ValueError):
+                source_support_guard.write_source_classification_artifact(
+                    output, source_url="https://other.example/guidance",
+                    decision_id="source:test-record", decision_path=decision,
+                    workspace_root=tmp,
+                )
+            with self.assertRaises(TypeError):
+                source_support_guard.write_source_classification_artifact(
+                    output, source_url=url, decision_id="source:test-record",
+                    decision_path=decision, workspace_root=tmp,
+                    source_class="competitor",
+                )
+            approved = write_source_decisions(
+                tmp, url, "non_competing_expert", "independent",
+            )
+            alternate = Path(tmp) / "research" / "caller-decisions.json"
+            alternate.parent.mkdir(parents=True)
+            alternate.write_bytes(approved.read_bytes())
+            with self.assertRaisesRegex(ValueError, "context/source-classification-decisions.json"):
+                source_support_guard.write_source_classification_artifact(
+                    output, source_url=url, decision_id="source:test-record",
+                    decision_path=alternate, workspace_root=tmp,
+                )
+
+    def test_source_classification_validation_rejects_changed_decision_registry(self):
+        url = "https://example.com/scheduling-guidance"
+        with tempfile.TemporaryDirectory() as tmp:
+            decision = write_source_decisions(
+                tmp, url, "non_competing_expert", "independent",
+            )
+            output = Path(tmp) / "classification.json"
+            payload = source_support_guard.write_source_classification_artifact(
+                output, source_url=url, decision_id="source:test-record",
+                decision_path=decision, workspace_root=tmp,
+            )
+            registry = json.loads(decision.read_text(encoding="utf-8"))
+            registry["decisions"][0]["source_class"] = "competitor"
+            decision.write_text(json.dumps(registry), encoding="utf-8")
+
+            rule = source_support_guard._validate_classification_decision(
+                payload, classification_path=output, base_path=Path(tmp),
+            )
+
+        self.assertEqual(rule, "source_classification_decision_tampered")
+
     def test_general_claim_detection_covers_unmistakable_assertion_forms(self):
         claims = (
             "A shared dispatch board helps teams reduce assignment conflicts.",
@@ -259,14 +353,15 @@ Source Map:
         url = "https://example.com/scheduling-guidance"
         claim = "Field service leaders should review technician capacity before assigning urgent work."
         with tempfile.TemporaryDirectory() as tmp:
+            decision = write_source_decisions(
+                tmp, url, "non_competing_expert", "independent",
+            )
             output = Path(tmp) / "source-classification.json"
             payload = source_support_guard.write_source_classification_artifact(
                 output,
                 source_url=url,
-                source_class="non_competing_expert",
-                publisher_relationship="independent",
-                record_id="source:test-record",
-                revision="test-revision-1",
+                decision_id="source:test-record",
+                decision_path=decision,
                 workspace_root=tmp,
             )
             stored = json.loads(output.read_text(encoding="utf-8"))

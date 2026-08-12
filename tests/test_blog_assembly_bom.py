@@ -23,8 +23,10 @@ from data_sources.modules.blog_assembly_bom import (
     write_blog_assembly_bom,
 )
 from data_sources.modules.context_binding_guard import ContextValidationResult
-from data_sources.modules.editorial_plan_guard import build_serp_evidence
-from data_sources.modules.paa_provenance_guard import build_answersocrates_artifact
+from tests.research_provenance_fixtures import (
+    build_answersocrates_fixture,
+    build_serp_fixture,
+)
 from data_sources.modules.context_binding_generator import (
     generate_not_applicable_receipt,
 )
@@ -231,8 +233,8 @@ def _fixture(
         "serp_strategy": {
             "status": "resolved",
             "content_type": {
-                "observed": "guide",
-                "selected": "guide",
+                "observed": "General Article",
+                "selected": "General Article",
                 "status": "matched_default",
             },
             "serp_features": {"featured snippet": "targeted"},
@@ -299,34 +301,29 @@ def _fixture(
     editorial_plan = _json(research / "editorial-plan.json", plan)
     serp = _json(
         research / "serp-evidence.json",
-        build_serp_evidence(
+        build_serp_fixture(
+            tmp_path,
             query="field service scheduling guide",
-            collected_at="2026-08-11T14:00:00Z",
-            collector_name="serp_research",
-            collector_version="1.0.0",
+            collection_date="2026-08-11",
             run_id="serp-fixture-run",
             results=[{
-                "position": 1,
                 "url": "https://example.com/scheduling-guide",
                 "title": "Field service scheduling guide",
-                "result_type": "organic",
+                "description": "Scheduling guide.",
             }],
-            content_types=["guide"],
-            serp_features=["featured snippet"],
+            features=["featured snippet"],
             must_have_sections=["scheduling guide"],
-            competitor_gaps=[],
         ),
     )
     paa = research / "paa-questions.md"
     paa.write_text(
         json.dumps(
-            build_answersocrates_artifact(
+            build_answersocrates_fixture(
+                tmp_path,
                 query="field service scheduling guide",
                 collection_date="2026-08-11",
-                eligible_questions=(question,),
+                questions=(question,),
                 run_id="answersocrates-fixture-run",
-                started_at="2026-08-11T14:00:00Z",
-                completed_at="2026-08-11T14:01:00Z",
             ),
             indent=2,
             sort_keys=True,

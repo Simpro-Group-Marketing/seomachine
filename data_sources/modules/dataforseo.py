@@ -229,6 +229,17 @@ class DataForSEO:
         self, keyword: str, location_code: int = 2840, limit: int = 100
     ) -> Dict[str, Any]:
         """Get complete structured SERP data for a keyword."""
+        _, normalized = self.get_serp_capture(
+            keyword,
+            location_code=location_code,
+            limit=limit,
+        )
+        return normalized
+
+    def get_serp_capture(
+        self, keyword: str, location_code: int = 2840, limit: int = 100
+    ) -> tuple[Dict[str, Any], Dict[str, Any]]:
+        """Return the exact provider response and its existing normalized view."""
         data = [
             {
                 "keyword": keyword,
@@ -270,7 +281,7 @@ class DataForSEO:
                 features.append(item["type"])
 
         keyword_data = result.get("keyword_data", {}).get("keyword_info", {})
-        return {
+        normalized = {
             "keyword": keyword,
             "search_volume": keyword_data.get("search_volume"),
             "cpc": keyword_data.get("cpc"),
@@ -279,6 +290,7 @@ class DataForSEO:
             "features": list(dict.fromkeys(features)),
             "total_results": result.get("items_count", 0),
         }
+        return response, normalized
 
     def analyze_competitor(
         self,

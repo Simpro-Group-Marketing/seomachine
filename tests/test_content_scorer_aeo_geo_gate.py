@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from data_sources.modules.content_scorer import ContentScorer
-from data_sources.modules.paa_provenance_guard import build_answersocrates_artifact
+from tests.research_provenance_fixtures import build_answersocrates_fixture
 from data_sources.modules.url_validator import UrlValidationResult, UrlValidationSummary
 from tests.test_aeo_geo_rater import write_bound_experience_story_evidence
 from tests.vault_context_fixture import load_validated_claim_set_for_unit_test
@@ -173,17 +173,16 @@ def write_paa_fixture(test_case: unittest.TestCase, content: str) -> str:
     article_path.write_text(content, encoding="utf-8")
     artifact.write_text(
         json.dumps(
-            build_answersocrates_artifact(
+            build_answersocrates_fixture(
+                root,
                 query="hvac scheduling software",
                 collection_date="2026-05-22",
-                eligible_questions=(
+                questions=(
                     "What is the best way to schedule HVAC technicians?",
                     "How does HVAC scheduling software reduce missed appointments?",
                     "Should HVAC scheduling connect to invoicing?",
                 ),
                 run_id="content-scorer-fixture",
-                started_at="2026-05-22T14:00:00Z",
-                completed_at="2026-05-22T14:01:00Z",
             ),
             indent=2,
             sort_keys=True,

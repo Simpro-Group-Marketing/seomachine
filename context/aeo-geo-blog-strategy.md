@@ -392,10 +392,10 @@ The rewrite-only brief section must use this exact heading:
 
 ### Collected AnswerSocrates Artifact Template
 
-After the Playwright run finishes, execute this recorder command with the actual browser run ID, UTC timestamps, and every observed eligible question. Repeat `--eligible-question` and `--ineligible-fragment` as needed; omit either repeatable flag when its observed list is empty.
+After the fixed repository-approved Playwright collector finishes, save its locally attested raw capture. The recorder parses only the capture's visible People Also Ask section and closed blocker output; expected values compare against capture facts and cannot populate missing facts.
 
 ```powershell
-python data_sources/modules/paa_provenance_guard.py record --query "[main question or topic]" --collection-date "[YYYY-MM-DD matching the assembly date]" --run-id "[Playwright run ID]" --started-at "[RFC 3339 UTC start]" --completed-at "[RFC 3339 UTC completion]" --eligible-question "[complete eligible question?]" --ineligible-fragment "[observed keyword fragment]" --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
+python data_sources/modules/paa_provenance_guard.py record --raw-capture "research/answersocrates-playwright-raw-[topic-slug]-[YYYY-MM-DD].json" --expected-query "[main question or topic]" --expected-collection-date "[YYYY-MM-DD matching the assembly date]" --expected-run-id "[agency run ID]" --workspace-root "." --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
 ```
 
 The recorder emits `simpro-answersocrates-artifact/v1` with a nested `simpro-answersocrates-run-receipt/v1`, fixed `playwright_mcp` tool identity, payload SHA-256, and receipt SHA-256. Handwritten labels, Markdown templates, and self-described browser blockers are invalid provenance.
@@ -405,7 +405,7 @@ The recorder emits `simpro-answersocrates-artifact/v1` with a nested `simpro-ans
 Save the observed blocker before accepting a user CSV. The blocker reason must describe what the browser actually showed.
 
 ```powershell
-python data_sources/modules/paa_provenance_guard.py record --query "[main question or topic]" --collection-date "[YYYY-MM-DD matching the assembly date]" --run-id "[Playwright run ID]" --started-at "[RFC 3339 UTC start]" --completed-at "[RFC 3339 UTC completion]" --status blocked --blocker "[login | captcha | quota | unavailability]" --blocker-reason "[observed browser evidence]" --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
+python data_sources/modules/paa_provenance_guard.py record --raw-capture "research/answersocrates-playwright-raw-[topic-slug]-[YYYY-MM-DD].json" --expected-query "[main question or topic]" --expected-collection-date "[YYYY-MM-DD matching the assembly date]" --expected-run-id "[agency run ID]" --workspace-root "." --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
 ```
 
 For the blocked fallback, the BOM builder must receive `--user-paa-csv "[user-csv]" --answersocrates-blocker "[blocked-answersocrates-artifact]"`. Direct provenance debugging passes the CSV as `paa_provenance_guard.py --paa-artifact "[user-csv]" --answersocrates-blocker "[blocked-answersocrates-artifact]"`. Readiness reruns the semantic guard against those exact BOM-bound hashes.
@@ -416,7 +416,7 @@ Select only the complete eligible questions that materially support the main con
 
 ## General Source Support Classes
 
-Use only these exact general source-map classes: `primary_authority`, `independent_research`, `non_competing_expert`, `owned_product`, `customer_proof`, `review_platform`, and `competitor`. General causal, comparative, definitional, process, and recommendation claims require an exact claim-fit source-map row with `Claim`, `Claim type`, `Evidence relation: directly_supports`, `Source class`, `Classification artifact`, `Classification hash`, `URL`, source-visible `Evidence`, and `Status: approved`. The classification artifact must be a hash-bound `simpro-source-classification/v1` registry export; a writer-supplied source-class label is not evidence. Owned product sources support product facts; connector claims govern proof-sensitive Simpro language; customer and review proof retain their specialist gates. Duplicate or weak links cannot create authority by increasing link count.
+Use only these exact general source-map classes: `primary_authority`, `independent_research`, `non_competing_expert`, `owned_product`, `customer_proof`, `review_platform`, and `competitor`. General causal, comparative, definitional, process, and recommendation claims require an exact claim-fit source-map row with `Claim`, `Claim type`, `Evidence relation: directly_supports`, `Source class`, `Classification artifact`, `Classification hash`, `URL`, source-visible `Evidence`, and `Status: approved`. The classification artifact must be a hash-bound `simpro-source-classification/v1` registry export derived from one exact approved repository decision path, hash, revision, decision ID, URL, and hostname; callers cannot override `source_class` or `publisher_relationship`. A writer-supplied source-class label is not evidence. Owned product sources support product facts; connector claims govern proof-sensitive Simpro language; customer and review proof retain their specialist gates. Duplicate or weak links cannot create authority by increasing link count.
 
 When a PDF extraction or unreachable HTML fallback is necessary, also bind `Capture receipt` and `Capture receipt hash` from `simpro-source-capture-receipt/v1`. That receipt must identify the source URL, retrieval time, source and output hashes, extraction method, and exact capture tool. A locally authored evidence file without this receipt blocks readiness.
 

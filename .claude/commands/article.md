@@ -113,7 +113,7 @@ Before planning or drafting, resolve an E-E-A-T Proof Map:
 
 ### General Source Support Classes
 
-Use only these exact general source-map classes: `primary_authority`, `independent_research`, `non_competing_expert`, `owned_product`, `customer_proof`, `review_platform`, and `competitor`. General causal, comparative, definitional, process, and recommendation claims need an exact claim-fit row with `Claim`, `Claim type`, `Evidence relation: directly_supports`, `Source class`, `Classification artifact`, `Classification hash`, `URL`, source-visible `Evidence`, and `Status: approved`. The hash-bound classification must use `simpro-source-classification/v1`; writer-supplied class labels do not qualify. PDF extraction or unreachable-HTML fallback additionally requires `Capture receipt` and `Capture receipt hash` from `simpro-source-capture-receipt/v1`. Multiple copies of the same weak link do not create authority.
+Use only these exact general source-map classes: `primary_authority`, `independent_research`, `non_competing_expert`, `owned_product`, `customer_proof`, `review_platform`, and `competitor`. General causal, comparative, definitional, process, and recommendation claims need an exact claim-fit row with `Claim`, `Claim type`, `Evidence relation: directly_supports`, `Source class`, `Classification artifact`, `Classification hash`, `URL`, source-visible `Evidence`, and `Status: approved`. The hash-bound classification must use `simpro-source-classification/v1` and derive from one exact approved repository decision path, hash, revision, decision ID, URL, and hostname; callers cannot override `source_class` or `publisher_relationship`. Writer-supplied class labels do not qualify. PDF extraction or unreachable-HTML fallback additionally requires `Capture receipt` and `Capture receipt hash` from `simpro-source-capture-receipt/v1`. Multiple copies of the same weak link do not create authority.
 
 Proof infrastructure belongs only in the validation sidecar. The article plan records only the validation sidecar path and status so there is one authoritative proof state.
 
@@ -171,10 +171,10 @@ If AnswerSocrates shows keyword fragments or query modifiers instead of complete
 
 ### Collected AnswerSocrates Artifact Template
 
-After the Playwright run finishes, execute this recorder command with the actual browser run ID, UTC timestamps, and every observed eligible question. Repeat `--eligible-question` and `--ineligible-fragment` as needed; omit either repeatable flag when its observed list is empty.
+After the fixed repository-approved Playwright collector finishes, save its locally attested raw capture. The recorder parses only the capture's visible People Also Ask section and closed blocker output; expected values compare against capture facts and cannot populate missing facts.
 
 ```powershell
-python data_sources/modules/paa_provenance_guard.py record --query "[main question or topic]" --collection-date "[YYYY-MM-DD matching the assembly date]" --run-id "[Playwright run ID]" --started-at "[RFC 3339 UTC start]" --completed-at "[RFC 3339 UTC completion]" --eligible-question "[complete eligible question?]" --ineligible-fragment "[observed keyword fragment]" --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
+python data_sources/modules/paa_provenance_guard.py record --raw-capture "research/answersocrates-playwright-raw-[topic-slug]-[YYYY-MM-DD].json" --expected-query "[main question or topic]" --expected-collection-date "[YYYY-MM-DD matching the assembly date]" --expected-run-id "[agency run ID]" --workspace-root "." --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
 ```
 
 The recorder emits `simpro-answersocrates-artifact/v1` with a nested `simpro-answersocrates-run-receipt/v1`, fixed `playwright_mcp` tool identity, payload SHA-256, and receipt SHA-256. Handwritten labels, Markdown templates, and self-described browser blockers are invalid provenance.
@@ -184,7 +184,7 @@ The recorder emits `simpro-answersocrates-artifact/v1` with a nested `simpro-ans
 Save a blocked artifact before accepting a user CSV. The blocker enum and reason must reflect the observed browser failure:
 
 ```powershell
-python data_sources/modules/paa_provenance_guard.py record --query "[main question or topic]" --collection-date "[YYYY-MM-DD matching the assembly date]" --run-id "[Playwright run ID]" --started-at "[RFC 3339 UTC start]" --completed-at "[RFC 3339 UTC completion]" --status blocked --blocker "[login | captcha | quota | unavailability]" --blocker-reason "[observed browser evidence]" --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
+python data_sources/modules/paa_provenance_guard.py record --raw-capture "research/answersocrates-playwright-raw-[topic-slug]-[YYYY-MM-DD].json" --expected-query "[main question or topic]" --expected-collection-date "[YYYY-MM-DD matching the assembly date]" --expected-run-id "[agency run ID]" --workspace-root "." --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
 ```
 
 For the blocked fallback, bind both files in the BOM build with `--user-paa-csv "[user-csv]" --answersocrates-blocker "[blocked-answersocrates-artifact]"`. When debugging provenance directly, pass the CSV to `paa_provenance_guard.py` as `--paa-artifact "[user-csv]"` and pass the same blocker with `--answersocrates-blocker`.

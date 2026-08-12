@@ -3,7 +3,8 @@ from pathlib import Path
 import json
 
 from data_sources.modules import article_planner
-from data_sources.modules.blog_assembly_contract import canonical_json_sha256
+from data_sources.modules.blog_assembly_contract import atomic_write_json, canonical_json_sha256
+from data_sources.modules.execution_attestation import attest_mapping
 from data_sources.modules.editorial_plan_guard import build_serp_evidence
 from tests.test_editorial_runtime_guidance import article_plan
 
@@ -14,6 +15,45 @@ def _rule_ids(findings):
 
 def _guard():
     return import_module('data_sources.modules.editorial_plan_guard')
+
+
+def _bound_serp_evidence(
+    root: Path,
+    *,
+    query: str,
+    collected_at: str,
+    run_id: str,
+    title: str,
+    url: str,
+    features: list[str],
+    must_have_sections: list[str],
+):
+    raw_path = root / 'research' / f'raw-{run_id}.json'
+    capture = attest_mapping({
+        'schema': 'simpro-serp-raw-capture/v1',
+        'collector': {
+            'name': 'research_serp_analysis:dataforseo',
+            'version': '1.0.0',
+        },
+        'query': query,
+        'collected_at': collected_at,
+        'run_id': run_id,
+        'request': {
+            'url': 'dataforseo://serp/google/organic/live/advanced',
+            'locale': {'language_code': 'en', 'location_code': 2840},
+        },
+        'raw_response': {
+            'organic_results': [{'title': title, 'url': url, 'description': ''}],
+            'features': features,
+        },
+    }, purpose='simpro-serp-raw-capture/v1', workspace_root=root)
+    atomic_write_json(raw_path, capture)
+    return build_serp_evidence(
+        raw_capture_path=raw_path,
+        workspace_root=root,
+        must_have_sections=must_have_sections,
+        competitor_gaps=[],
+    )
 
 
 def test_guard_accepts_serialized_article_plan(tmp_path: Path):
@@ -146,8 +186,8 @@ def test_guard_validates_serp_evidence_and_final_article_mapping(tmp_path: Path)
     plan['serp_strategy'] = {
         'status': 'resolved',
         'content_type': {
-            'observed': 'guide',
-            'selected': 'guide',
+            'observed': 'General Article',
+            'selected': 'General Article',
             'status': 'matched_default',
         },
         'serp_features': {'featured snippet': 'targeted'},
@@ -169,22 +209,15 @@ def test_guard_validates_serp_evidence_and_final_article_mapping(tmp_path: Path)
         encoding='utf-8',
     )
     serp_path.write_text(
-        json.dumps(build_serp_evidence(
+        json.dumps(_bound_serp_evidence(
+            tmp_path,
             query='field service scheduling',
             collected_at='2026-08-05T12:00:00Z',
-            collector_name='serp_research',
-            collector_version='1.0.0',
             run_id='serp-test-run',
-            results=[{
-                'position': 1,
-                'url': 'https://example.com/scheduling-guide',
-                'title': 'Field service scheduling guide',
-                'result_type': 'organic',
-            }],
-            content_types=['guide'],
-            serp_features=['featured snippet'],
+            url='https://example.com/scheduling-guide',
+            title='Field service scheduling guide',
+            features=['featured snippet'],
             must_have_sections=['scheduling constraints'],
-            competitor_gaps=[],
         )),
         encoding='utf-8',
     )
@@ -262,22 +295,15 @@ def test_metadata_only_verified_serp_evidence_is_blocking(tmp_path: Path):
 
 def test_plain_rehashed_serp_json_cannot_mint_verified_collection(tmp_path: Path):
     path = tmp_path / 'serp.json'
-    payload = build_serp_evidence(
+    payload = _bound_serp_evidence(
+        tmp_path,
         query='field service scheduling',
         collected_at='2026-08-11T12:00:00Z',
-        collector_name='research_serp_analysis:dataforseo',
-        collector_version='1.0.0',
         run_id='serp-run-1',
-        results=[{
-            'position': 1,
-            'url': 'https://example.org/guide',
-            'title': 'Scheduling guide',
-            'result_type': 'organic',
-        }],
-        content_types=['guide'],
-        serp_features=[],
+        url='https://example.org/guide',
+        title='Scheduling guide',
+        features=[],
         must_have_sections=['Scheduling workflow'],
-        competitor_gaps=[],
     )
     payload.pop('execution_attestation')
     unsigned = dict(payload)

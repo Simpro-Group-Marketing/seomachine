@@ -34,7 +34,12 @@ except ImportError:  # pragma: no cover - dependency is declared, fallback is de
     Cache = None
 
 try:
-    from .blog_assembly_contract import atomic_write_json
+    from .blog_assembly_contract import (
+        atomic_write_json,
+        canonical_snapshot_artifact,
+        load_json_object_snapshot,
+        resolve_artifact,
+    )
     from .execution_attestation import attest_mapping, verify_mapping_attestation
     from .guard_common import Finding, should_fail, summarize_findings
     from .public_url_safety import request_public_url
@@ -50,7 +55,12 @@ try:
         _strip_frontmatter_preserve_lines,
     )
 except ImportError:  # pragma: no cover - supports direct script execution.
-    from blog_assembly_contract import atomic_write_json
+    from blog_assembly_contract import (
+        atomic_write_json,
+        canonical_snapshot_artifact,
+        load_json_object_snapshot,
+        resolve_artifact,
+    )
     from execution_attestation import attest_mapping, verify_mapping_attestation
     from guard_common import Finding, should_fail, summarize_findings
     from public_url_safety import request_public_url
@@ -92,6 +102,12 @@ SOURCE_CAPTURE_EMITTER_VERSION = "1.0.0"
 SOURCE_CLASSIFICATION_EMITTER_VERSION = "1.0.0"
 SOURCE_CAPTURE_ATTESTATION_PURPOSE = SOURCE_CAPTURE_SCHEMA
 SOURCE_CLASSIFICATION_ATTESTATION_PURPOSE = SOURCE_CLASSIFICATION_SCHEMA
+SOURCE_DECISIONS_SCHEMA = "simpro-source-classification-decisions/v1"
+SOURCE_DECISIONS_PATH = "context/source-classification-decisions.json"
+SOURCE_DECISION_FIELDS = frozenset({
+    "decision_id", "status", "source_url", "hostname", "source_class",
+    "publisher_relationship",
+})
 PUBLISHER_RELATIONSHIPS = frozenset(
     {"independent", "owned", "competitor", "customer", "review_platform"}
 )
@@ -284,21 +300,56 @@ def write_source_classification_artifact(
     path: str | Path,
     *,
     source_url: str,
-    source_class: str,
-    publisher_relationship: str,
-    record_id: str,
-    revision: str,
+    decision_id: str,
+    decision_path: str | Path,
     workspace_root: str | Path | None = None,
 ) -> dict:
-    """Atomically emit one workspace-attested source classification."""
+    """Emit classification derived from one approved repository decision row."""
+    if workspace_root is None:
+        raise ValueError("workspace_root is required for source classification")
+    root = Path(workspace_root).resolve()
     normalized_url = _required_emitter_text(source_url, "source_url")
     hostname = (urlsplit(normalized_url).hostname or "").lower()
     if not hostname:
         raise ValueError("source_url must contain a hostname")
+    normalized_decision_id = _required_emitter_text(decision_id, "decision_id")
+    snapshot = load_json_object_snapshot(
+        decision_path,
+        field="source classification decision registry",
+    )
+    registry = snapshot.payload
+    if set(registry) != {"schema", "revision", "decisions"}:
+        raise ValueError("source classification decision registry shape is invalid")
+    if registry.get("schema") != SOURCE_DECISIONS_SCHEMA:
+        raise ValueError("source classification decision registry schema is invalid")
+    revision = _required_emitter_text(registry.get("revision"), "decision revision")
+    decisions = registry.get("decisions")
+    if not isinstance(decisions, list):
+        raise ValueError("source classification decisions must be a list")
+    matches = [
+        row for row in decisions
+        if isinstance(row, dict) and row.get("decision_id") == normalized_decision_id
+    ]
+    if len(matches) != 1 or set(matches[0]) != SOURCE_DECISION_FIELDS:
+        raise ValueError("source classification decision must resolve exactly once")
+    decision = matches[0]
+    if decision.get("status") != "approved":
+        raise ValueError("source classification decision is not approved")
+    if decision.get("source_url") != normalized_url:
+        raise ValueError("source classification decision URL does not match")
+    if decision.get("hostname") != hostname:
+        raise ValueError("source classification decision hostname does not match")
+    source_class = decision.get("source_class")
+    publisher_relationship = decision.get("publisher_relationship")
     if source_class not in SOURCE_CLASSES:
-        raise ValueError("source_class must use the closed source-class enum")
-    if publisher_relationship not in PUBLISHER_RELATIONSHIPS:
-        raise ValueError("publisher_relationship must use the closed relationship enum")
+        raise ValueError("approved decision source_class is invalid")
+    if publisher_relationship not in SOURCE_CLASS_RELATIONSHIPS[source_class]:
+        raise ValueError("approved decision publisher relationship is invalid")
+    decision_binding = canonical_snapshot_artifact(snapshot, workspace_root=root)
+    if decision_binding["path"] != SOURCE_DECISIONS_PATH:
+        raise ValueError(
+            f"source classification decisions must use {SOURCE_DECISIONS_PATH}"
+        )
     payload = {
         "schema": SOURCE_CLASSIFICATION_SCHEMA,
         "source_url": normalized_url,
@@ -309,8 +360,11 @@ def write_source_classification_artifact(
             "relationship": publisher_relationship,
         },
         "registry": {
-            "record_id": _required_emitter_text(record_id, "record_id"),
-            "revision": _required_emitter_text(revision, "revision"),
+            "authority_mode": "repository_decision",
+            "record_id": normalized_decision_id,
+            "revision": revision,
+            "decision_path": decision_binding["path"],
+            "decision_sha256": decision_binding["sha256"],
         },
         "emitter": {
             "name": SOURCE_CLASSIFICATION_EMITTER,
@@ -965,7 +1019,17 @@ def _validate_source_classification(
             "Record the exact SHA-256 of the classification artifact.",
             proof,
         )
-    if _sha256_file(classification_path) != proof.classification_hash:
+    try:
+        classification_snapshot = load_json_object_snapshot(
+            classification_path,
+            field="source classification artifact",
+        )
+    except ValueError:
+        classification_snapshot = None
+    if (
+        classification_snapshot is None
+        or classification_snapshot.sha256 != proof.classification_hash
+    ):
         return _finding(
             "source_classification_hash_mismatch",
             candidate,
@@ -973,8 +1037,8 @@ def _validate_source_classification(
             "Regenerate the classification binding from the unchanged registry artifact.",
             proof,
         )
-    payload = _read_json_object(classification_path)
-    if payload is None:
+    payload = classification_snapshot.payload
+    if not isinstance(payload, dict):
         return _finding(
             "source_classification_artifact_invalid",
             candidate,
@@ -1037,6 +1101,71 @@ def _validate_source_classification(
             "Use Source class: owned_product for Simpro-owned product facts.",
             proof,
         )
+    decision_finding = _validate_classification_decision(
+        payload,
+        classification_path=classification_path,
+        base_path=base_path,
+    )
+    if decision_finding is not None:
+        return _finding(
+            decision_finding,
+            candidate,
+            "The source classification no longer matches its approved repository decision.",
+            "Regenerate classification from the current approved decision registry.",
+            proof,
+        )
+    return None
+
+
+def _validate_classification_decision(
+    payload: dict,
+    *,
+    classification_path: Path,
+    base_path: Path,
+) -> str | None:
+    registry = payload.get("registry")
+    if not isinstance(registry, dict) or registry.get("authority_mode") != "repository_decision":
+        return "source_classification_authority_unsupported"
+    workspace_root = _attestation_workspace_root(base_path)
+    try:
+        decision_path = resolve_artifact(
+            registry.get("decision_path"),
+            workspace_root=workspace_root,
+        )
+        snapshot = load_json_object_snapshot(
+            decision_path,
+            field="source classification decision registry",
+        )
+    except ValueError:
+        return "source_classification_decision_missing"
+    if snapshot.sha256 != registry.get("decision_sha256"):
+        return "source_classification_decision_tampered"
+    if registry.get("decision_path") != SOURCE_DECISIONS_PATH:
+        return "source_classification_authority_unsupported"
+    decision_registry = snapshot.payload
+    if (
+        set(decision_registry) != {"schema", "revision", "decisions"}
+        or decision_registry.get("schema") != SOURCE_DECISIONS_SCHEMA
+        or decision_registry.get("revision") != registry.get("revision")
+        or not isinstance(decision_registry.get("decisions"), list)
+    ):
+        return "source_classification_decision_revision_mismatch"
+    matches = [
+        row for row in decision_registry["decisions"]
+        if isinstance(row, dict) and row.get("decision_id") == registry.get("record_id")
+    ]
+    if len(matches) != 1 or set(matches[0]) != SOURCE_DECISION_FIELDS:
+        return "source_classification_decision_missing"
+    decision = matches[0]
+    expected = {
+        "status": "approved",
+        "source_url": payload.get("source_url"),
+        "hostname": payload.get("publisher", {}).get("hostname"),
+        "source_class": payload.get("source_class"),
+        "publisher_relationship": payload.get("publisher", {}).get("relationship"),
+    }
+    if any(decision.get(key) != value for key, value in expected.items()):
+        return "source_classification_decision_mismatch"
     return None
 
 
@@ -1309,9 +1438,17 @@ def _is_strict_classification_payload(payload: dict) -> bool:
         return False
     if publisher.get("relationship") not in PUBLISHER_RELATIONSHIPS:
         return False
-    if not isinstance(registry, dict) or set(registry) != {"record_id", "revision"}:
+    if not isinstance(registry, dict) or set(registry) != {
+        "authority_mode", "record_id", "revision", "decision_path", "decision_sha256"
+    }:
         return False
-    if not all(_is_nonempty_string(registry.get(key)) for key in ("record_id", "revision")):
+    if registry.get("authority_mode") != "repository_decision":
+        return False
+    if not all(_is_nonempty_string(registry.get(key)) for key in (
+        "record_id", "revision", "decision_path",
+    )):
+        return False
+    if not _is_sha256(registry.get("decision_sha256")):
         return False
     if not isinstance(emitter, dict) or set(emitter) != {"name", "version"}:
         return False

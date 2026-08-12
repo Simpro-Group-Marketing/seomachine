@@ -59,6 +59,97 @@ class FakeDataForSEO:
 
 
 class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
+    def test_cli_requires_explicit_agency_run_id(self):
+        module = load_research_serp_module()
+
+        with self.assertRaises(SystemExit):
+            module.parse_cli_args(["field service scheduling"])
+
+        args = module.parse_cli_args([
+            "field service scheduling", "--run-id", "agency-run-123",
+        ])
+        self.assertEqual(args.run_id, "agency-run-123")
+
+    def test_dataforseo_evidence_binds_exact_attested_raw_response(self):
+        module = load_research_serp_module()
+        normalized_response = {
+            "organic_results": [{
+                "title": "How to Schedule Field Service Work",
+                "url": "https://example.com/scheduling-guide",
+                "description": "A practical scheduling guide.",
+            }],
+            "features": ["people_also_ask"],
+            "provider_marker": {"request_id": "dfs-exact-123"},
+        }
+        raw_response = {
+            "tasks": [{
+                "result": [{
+                    "items": [
+                        {
+                            "type": "organic",
+                            "title": "How to Schedule Field Service Work",
+                            "url": "https://example.com/scheduling-guide",
+                            "description": "A practical scheduling guide.",
+                        },
+                        {"type": "people_also_ask"},
+                    ]
+                }]
+            }],
+            "provider_marker": {"request_id": "dfs-exact-123"},
+        }
+
+        class CaptureDataForSEO:
+            def get_serp_capture(self, keyword, limit=20):
+                return raw_response, normalized_response
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_dir = Path(temp_dir)
+            module.run_serp_analysis(
+                "field service scheduling",
+                run_id="agency-run-123",
+                output_dir=output_dir,
+                now=datetime(2026, 8, 11, 14, 30),
+                dataforseo_factory=CaptureDataForSEO,
+                fallback_runner=lambda *args, **kwargs: {},
+                intent_analyzer_factory=FakeIntentAnalyzer,
+                content_comparator_factory=FakeContentLengthComparator,
+                print_fn=lambda message="": None,
+            )
+            evidence_path = output_dir / "serp-evidence-field-service-scheduling-2026-08-11.json"
+            evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+            raw_path = output_dir / evidence["raw_capture"]["path"]
+            capture = json.loads(raw_path.read_text(encoding="utf-8"))
+
+            self.assertEqual(capture["raw_response"], raw_response)
+            self.assertEqual(capture["run_id"], "agency-run-123")
+            self.assertEqual(evidence["run_id"], "agency-run-123")
+            self.assertEqual(
+                evidence["raw_capture"]["sha256"],
+                __import__("hashlib").sha256(raw_path.read_bytes()).hexdigest(),
+            )
+            self.assertEqual(
+                check_serp_evidence_file(
+                    evidence_path,
+                    expected_query="field service scheduling",
+                    assembly_date="2026-08-11",
+                    workspace_root=output_dir,
+                ),
+                [],
+            )
+
+            capture["raw_response"]["tasks"][0]["result"][0]["items"][0]["title"] = "Tampered"
+            raw_path.write_text(json.dumps(capture), encoding="utf-8")
+            rules = {
+                row["rule_id"] for row in check_serp_evidence_file(
+                    evidence_path,
+                    expected_query="field service scheduling",
+                    assembly_date="2026-08-11",
+                    workspace_root=output_dir,
+                )
+            }
+
+        self.assertIn("serp_raw_capture_hash_mismatch", rules)
+
     def test_successful_run_writes_strict_hashed_serp_evidence(self):
         module = load_research_serp_module()
         serp_results = [
@@ -78,6 +169,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
             output_dir = Path(temp_dir)
             result = module.run_serp_analysis(
                 "field service scheduling",
+                run_id="agency-run-success",
                 output_dir=output_dir,
                 now=datetime(2026, 8, 11, 14, 30),
                 dataforseo_factory=lambda: FakeDataForSEO(
@@ -109,7 +201,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
                     "version": "1.0.0",
                 },
             )
-            self.assertTrue(evidence["run_id"].startswith("serp-field-service-scheduling-"))
+            self.assertEqual(evidence["run_id"], "agency-run-success")
             self.assertEqual(
                 evidence["results"],
                 [
@@ -154,7 +246,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
     def test_blocked_or_empty_run_does_not_mint_verified_serp_evidence(self):
         module = load_research_serp_module()
 
-        def blocked_fallback(keyword, output_dir, now):
+        def blocked_fallback(keyword, output_dir, now, **kwargs):
             return {
                 "fallback_used": True,
                 "fallback_blocker": "captcha_or_consent_or_unusual_traffic",
@@ -188,6 +280,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
                     )
                     module.run_serp_analysis(
                         "blocked keyword",
+                        run_id="agency-run-blocked",
                         output_dir=output_dir,
                         now=datetime(2026, 8, 11, 14, 30),
                         dataforseo_factory=factory,
@@ -399,6 +492,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             result = module.run_serp_analysis(
                 "field service scheduling",
+                run_id="agency-run-headings",
                 output_dir=temp_dir,
                 now=datetime(2026, 8, 6),
                 dataforseo_factory=lambda: FakeDataForSEO(
@@ -483,13 +577,13 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
         module = load_research_serp_module()
 
         args = module.parse_cli_args(
-            ["field service scheduling", "--word-target", "1600"]
+            ["field service scheduling", "--word-target", "1600", "--run-id", "agency-run-cli"]
         )
 
         self.assertEqual(args.keyword, "field service scheduling")
         self.assertEqual(args.word_target, 1600)
         with self.assertRaises(SystemExit):
-            module.parse_cli_args(["field service scheduling", "--word-target", "0"])
+            module.parse_cli_args(["field service scheduling", "--word-target", "0", "--run-id", "agency-run-cli"])
 
     def test_run_serp_analysis_rejects_blank_keyword_before_side_effects(self):
         module = load_research_serp_module()
@@ -544,6 +638,8 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
             output_dir = Path(temp_dir)
             result = module.run_playwright_serp_fallback(
                 "labor burden rate calculator",
+                run_id="agency-run-playwright",
+                workspace_root=output_dir,
                 output_dir=output_dir,
                 now=datetime(2026, 7, 7, 9, 15),
                 cli_runner=fake_cli_runner,
@@ -563,11 +659,12 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
                 ],
             )
 
-            artifact = output_dir / "serp-playwright-labor-burden-rate-calculator-2026-07-07.json"
+            artifact = output_dir / "serp-raw-labor-burden-rate-calculator-2026-07-07-playwright.json"
             self.assertTrue(artifact.exists())
             raw = json.loads(artifact.read_text(encoding="utf-8"))
-            self.assertEqual(raw["keyword"], "labor burden rate calculator")
-            self.assertEqual(raw["locale"], {"hl": "en", "gl": "us", "pws": "0"})
+            self.assertEqual(raw["query"], "labor burden rate calculator")
+            self.assertEqual(raw["request"]["locale"], {"hl": "en", "gl": "us", "pws": "0"})
+            self.assertEqual(json.loads(raw["raw_response"]), json.loads(fake_cli_runner("ignored")))
 
     def test_playwright_fallback_records_blocker_without_inventing_results(self):
         module = load_research_serp_module()
@@ -575,6 +672,8 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             result = module.run_playwright_serp_fallback(
                 "blocked keyword",
+                run_id="agency-run-playwright-blocked",
+                workspace_root=temp_dir,
                 output_dir=Path(temp_dir),
                 now=datetime(2026, 7, 7),
                 cli_runner=lambda keyword: json.dumps(
@@ -600,6 +699,8 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             result = module.run_playwright_serp_fallback(
                 "malformed keyword",
+                run_id="agency-run-playwright-malformed",
+                workspace_root=temp_dir,
                 output_dir=Path(temp_dir),
                 now=datetime(2026, 7, 7),
                 cli_runner=lambda keyword: json.dumps(
@@ -620,7 +721,24 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
     def test_missing_dataforseo_credentials_uses_playwright_fallback_and_writes_report(self):
         module = load_research_serp_module()
 
-        def fake_fallback(keyword, output_dir, now):
+        def fake_fallback(keyword, output_dir, now, run_id, workspace_root):
+            raw_capture = module.write_serp_raw_capture(
+                output_dir=Path(output_dir), workspace_root=Path(workspace_root),
+                keyword=keyword, run_id=run_id, now=now,
+                collector_source="playwright",
+                request_url="https://www.google.com/search?q=labor+burden+rate+calculator",
+                locale={"hl": "en", "gl": "us", "pws": "0"},
+                raw_response=json.dumps({
+                    "organic_results": [{
+                        "title": "Labor Burden Calculator",
+                        "url": "https://example.com/labor-burden",
+                        "description": "Calculate true labor cost.",
+                    }],
+                    "features": ["people_also_ask"],
+                    "paa_questions": ["How do you calculate labor burden rate?"],
+                    "blocker": None,
+                }),
+            )
             return {
                 "fallback_used": True,
                 "fallback_blocker": None,
@@ -638,12 +756,14 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
                 ],
                 "features": ["people_also_ask"],
                 "paa_questions": ["How do you calculate labor burden rate?"],
+                "raw_capture_path": str(raw_capture),
             }
 
         with tempfile.TemporaryDirectory() as temp_dir:
             output_dir = Path(temp_dir)
             result = module.run_serp_analysis(
                 "labor burden rate calculator",
+                run_id="agency-run-fallback",
                 output_dir=output_dir,
                 now=datetime(2026, 7, 7, 9, 30),
                 dataforseo_factory=lambda: FakeDataForSEO(
@@ -688,6 +808,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
             messages = []
             result = module.run_serp_analysis(
                 "labor burden rate calculator",
+                run_id="agency-run-word-target",
                 word_target=1600,
                 output_dir=output_dir,
                 now=datetime(2026, 7, 7),
@@ -769,6 +890,8 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
                 FakeIntentAnalyzer,
                 FakeContentLengthComparator,
                 lambda message="": None,
+                None,
+                "agency-run-positional",
             )
 
             self.assertIsNone(result["word_target"])
@@ -789,6 +912,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
             output_dir = Path(temp_dir)
             module.run_serp_analysis(
                 "field service scheduling",
+                run_id="agency-run-word-counts",
                 output_dir=output_dir,
                 now=datetime(2026, 7, 7),
                 dataforseo_factory=lambda: FakeDataForSEO(
@@ -824,7 +948,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
         module = load_research_serp_module()
         fallback_called = False
 
-        def fallback_runner(keyword, output_dir, now):
+        def fallback_runner(keyword, output_dir, now, **kwargs):
             nonlocal fallback_called
             fallback_called = True
             return {}
@@ -832,6 +956,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             result = module.run_serp_analysis(
                 "labor burden rate calculator",
+                run_id="agency-run-dataforseo",
                 output_dir=Path(temp_dir),
                 now=datetime(2026, 7, 7),
                 dataforseo_factory=lambda: FakeDataForSEO(),
@@ -848,7 +973,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
     def test_blocked_fallback_report_does_not_invent_competitive_metrics(self):
         module = load_research_serp_module()
 
-        def blocked_fallback(keyword, output_dir, now):
+        def blocked_fallback(keyword, output_dir, now, **kwargs):
             return {
                 "fallback_used": True,
                 "fallback_blocker": "captcha_or_consent_or_unusual_traffic",
@@ -865,6 +990,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
             messages = []
             result = module.run_serp_analysis(
                 "blocked keyword",
+                run_id="agency-run-blocked-report",
                 output_dir=output_dir,
                 now=datetime(2026, 7, 7, 9, 30),
                 dataforseo_factory=lambda: FakeDataForSEO(

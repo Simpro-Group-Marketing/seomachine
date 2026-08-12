@@ -8,16 +8,28 @@ from collections.abc import Mapping
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 try:
     from .article_planner import CTAType, EDITORIAL_PLAN_SCHEMA, FunnelStage, SectionType
-    from .blog_assembly_contract import canonical_json_sha256, load_json_object_snapshot
+    from .blog_assembly_contract import (
+        canonical_json_sha256,
+        canonical_snapshot_artifact,
+        load_json_object_snapshot,
+        load_json_text,
+        resolve_artifact,
+    )
     from .execution_attestation import attest_mapping, verify_mapping_attestation
     from .frontmatter import FrontmatterError, split_frontmatter
 except ImportError:  # pragma: no cover - supports direct script execution.
     from article_planner import CTAType, EDITORIAL_PLAN_SCHEMA, FunnelStage, SectionType
-    from blog_assembly_contract import canonical_json_sha256, load_json_object_snapshot
+    from blog_assembly_contract import (
+        canonical_json_sha256,
+        canonical_snapshot_artifact,
+        load_json_object_snapshot,
+        load_json_text,
+        resolve_artifact,
+    )
     from execution_attestation import attest_mapping, verify_mapping_attestation
     from frontmatter import FrontmatterError, split_frontmatter
 
@@ -124,10 +136,21 @@ SERP_EVIDENCE_FIELDS = frozenset(
         'run_id',
         'results',
         'observations',
+        'raw_capture',
         'execution_attestation',
         'evidence_hash',
     }
 )
+SERP_RAW_CAPTURE_SCHEMA = 'simpro-serp-raw-capture/v1'
+SERP_RAW_CAPTURE_ATTESTATION_PURPOSE = SERP_RAW_CAPTURE_SCHEMA
+SERP_RAW_CAPTURE_FIELDS = frozenset({
+    'schema', 'collector', 'query', 'collected_at', 'run_id', 'request',
+    'raw_response', 'execution_attestation',
+})
+SERP_APPROVED_COLLECTORS = frozenset({
+    'research_serp_analysis:dataforseo',
+    'research_serp_analysis:playwright',
+})
 SERP_RESULT_FIELDS = frozenset({'position', 'url', 'title', 'result_type'})
 SERP_OBSERVATION_FIELDS = frozenset(
     {'content_types', 'serp_features', 'must_have_sections', 'competitor_gaps'}
@@ -147,25 +170,41 @@ OWNED_INTERNAL_DOMAINS = frozenset(
 
 def build_serp_evidence(
     *,
-    query: str,
-    collected_at: str,
-    collector_name: str,
-    collector_version: str,
-    run_id: str,
-    results: list[dict[str, Any]],
-    content_types: list[str],
-    serp_features: list[str],
+    raw_capture_path: str | Path,
+    workspace_root: str | Path,
     must_have_sections: list[str],
     competitor_gaps: list[str],
 ) -> dict[str, Any]:
-    '''Build one receipt-hashed SERP observation artifact.'''
+    '''Build one evidence artifact solely from a bound attested raw capture.'''
+    root = Path(workspace_root).resolve()
+    snapshot, capture, normalized = _load_valid_serp_raw_capture(
+        raw_capture_path,
+        workspace_root=root,
+    )
+    organic = normalized.get('organic_results')
+    blocker = normalized.get('blocker') or normalized.get('fallback_blocker')
+    if blocker or not isinstance(organic, list) or not organic:
+        raise ValueError('blocked or empty SERP raw capture cannot mint verified evidence')
+    results = [
+        {
+            'position': position,
+            'url': str(row.get('url') or '').strip(),
+            'title': str(row.get('title') or '').strip(),
+            'result_type': 'organic',
+        }
+        for position, row in enumerate(organic[:10], start=1)
+    ]
+    content_types = _unique_strings([
+        _serp_content_type(row['title']) for row in results
+    ])
+    serp_features = _unique_strings(normalized.get('features', []))
     payload: dict[str, Any] = {
         'schema': SERP_EVIDENCE_SCHEMA,
         'status': 'verified',
-        'query': query,
-        'collected_at': collected_at,
-        'collector': {'name': collector_name, 'version': collector_version},
-        'run_id': run_id,
+        'query': capture['query'],
+        'collected_at': capture['collected_at'],
+        'collector': capture['collector'],
+        'run_id': capture['run_id'],
         'results': results,
         'observations': {
             'content_types': content_types,
@@ -173,25 +212,308 @@ def build_serp_evidence(
             'must_have_sections': must_have_sections,
             'competitor_gaps': competitor_gaps,
         },
+        'raw_capture': canonical_snapshot_artifact(snapshot, workspace_root=root),
     }
     payload['evidence_hash'] = canonical_json_sha256(payload)
     attested = attest_mapping(
         payload,
         purpose=SERP_EVIDENCE_ATTESTATION_PURPOSE,
+        workspace_root=root,
     )
     findings = _check_serp_evidence_payload(
         attested,
-        expected_query=query,
+        expected_query=str(capture['query']),
         assembly_date=(
-            collected_at[:10]
-            if isinstance(collected_at, str) and len(collected_at) >= 10
+            capture['collected_at'][:10]
+            if isinstance(capture['collected_at'], str) and len(capture['collected_at']) >= 10
             else None
         ),
+        workspace_root=root,
     )
     if findings:
         rules = ', '.join(sorted({str(row['rule_id']) for row in findings}))
         raise ValueError(f'invalid SERP evidence: {rules}')
     return attested
+
+
+def _artifact_workspace_root(
+    artifact: Path,
+    workspace_root: str | Path | None,
+) -> Path:
+    if workspace_root is not None:
+        return Path(workspace_root).resolve()
+    resolved = artifact.resolve()
+    cwd = Path.cwd().resolve()
+    try:
+        resolved.relative_to(cwd)
+    except ValueError:
+        return resolved.parent.parent if resolved.parent.name == 'research' else resolved.parent
+    return cwd
+
+
+def _load_valid_serp_raw_capture(
+    path: str | Path,
+    *,
+    workspace_root: str | Path,
+) -> tuple[Any, Mapping[str, Any], Mapping[str, Any]]:
+    root = Path(workspace_root).resolve()
+    snapshot = load_json_object_snapshot(path, field='SERP raw capture')
+    capture, normalized = _validate_serp_raw_snapshot(snapshot, workspace_root=root)
+    return snapshot, capture, normalized
+
+
+def _validate_serp_raw_snapshot(
+    snapshot: Any,
+    *,
+    workspace_root: str | Path,
+) -> tuple[Mapping[str, Any], Mapping[str, Any]]:
+    root = Path(workspace_root).resolve()
+    capture = snapshot.payload
+    if set(capture) != SERP_RAW_CAPTURE_FIELDS:
+        raise ValueError('SERP raw capture shape is invalid')
+    if capture.get('schema') != SERP_RAW_CAPTURE_SCHEMA:
+        raise ValueError('SERP raw capture schema is invalid')
+    collector = capture.get('collector')
+    if (
+        not isinstance(collector, Mapping)
+        or set(collector) != {'name', 'version'}
+        or collector.get('name') not in SERP_APPROVED_COLLECTORS
+        or not isinstance(collector.get('version'), str)
+        or not collector.get('version')
+    ):
+        raise ValueError('SERP raw capture collector is not approved')
+    if not verify_mapping_attestation(
+        capture,
+        purpose=SERP_RAW_CAPTURE_ATTESTATION_PURPOSE,
+        workspace_root=root,
+    ):
+        raise ValueError('SERP raw capture execution attestation is invalid')
+    for field in ('query', 'run_id'):
+        value = capture.get(field)
+        if not isinstance(value, str) or not value.strip() or value != value.strip():
+            raise ValueError(f'SERP raw capture {field} is invalid')
+    timestamp = _rfc3339_utc(capture.get('collected_at'))
+    if timestamp is None:
+        raise ValueError('SERP raw capture collected_at is invalid')
+    if timestamp > datetime.now(timezone.utc):
+        raise ValueError('SERP raw capture collected_at is in the future')
+    request = capture.get('request')
+    if (
+        not isinstance(request, Mapping)
+        or set(request) != {'url', 'locale'}
+        or not isinstance(request.get('url'), str)
+        or not request.get('url')
+        or not isinstance(request.get('locale'), Mapping)
+    ):
+        raise ValueError('SERP raw capture request binding is invalid')
+    request_url = str(request['url'])
+    locale = request['locale']
+    if collector.get('name') == 'research_serp_analysis:dataforseo':
+        if (
+            request_url != 'dataforseo://serp/google/organic/live/advanced'
+            or dict(locale) != {'language_code': 'en', 'location_code': 2840}
+        ):
+            raise ValueError('DataForSEO raw capture request or locale is not approved')
+    else:
+        parsed_url = urlparse(request_url)
+        query_values = parse_qs(parsed_url.query)
+        if (
+            parsed_url.scheme != 'https'
+            or parsed_url.hostname not in {'google.com', 'www.google.com'}
+            or parsed_url.path != '/search'
+            or query_values.get('q') != [str(capture['query'])]
+            or dict(locale) != {'hl': 'en', 'gl': 'us', 'pws': '0'}
+        ):
+            raise ValueError('Playwright raw capture request or locale is not approved')
+    normalized = _normalize_serp_raw_response(
+        capture.get('raw_response'),
+        collector_name=str(collector['name']),
+    )
+    return capture, normalized
+
+
+def _normalize_serp_raw_response(
+    raw_response: Any,
+    *,
+    collector_name: str,
+) -> Mapping[str, Any]:
+    value = raw_response
+    if collector_name == 'research_serp_analysis:playwright':
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError('Playwright raw response must be the exact CLI text')
+        value = load_json_text(value.strip(), field='Playwright CLI raw response')
+        if isinstance(value, str):
+            value = load_json_text(value, field='Playwright CLI embedded response')
+    if not isinstance(value, Mapping):
+        raise ValueError('SERP raw response must resolve to an object')
+    if collector_name == 'research_serp_analysis:dataforseo' and 'tasks' in value:
+        tasks = value.get('tasks')
+        if not isinstance(tasks, list) or len(tasks) != 1 or not isinstance(tasks[0], Mapping):
+            raise ValueError('DataForSEO raw response must contain exactly one task')
+        results = tasks[0].get('result')
+        if not isinstance(results, list) or not results or not isinstance(results[0], Mapping):
+            raise ValueError('DataForSEO raw response task result is invalid')
+        items = results[0].get('items')
+        if not isinstance(items, list):
+            raise ValueError('DataForSEO raw response result items are invalid')
+        organic_results: list[dict[str, Any]] = []
+        features: list[str] = []
+        for item in items:
+            if not isinstance(item, Mapping):
+                raise ValueError('DataForSEO raw response item is invalid')
+            item_type = item.get('type')
+            if item_type == 'organic':
+                organic_results.append({
+                    'title': item.get('title'),
+                    'url': item.get('url'),
+                    'description': item.get('description') or '',
+                })
+            elif isinstance(item_type, str) and item_type and item_type not in features:
+                features.append(item_type)
+        value = {'organic_results': organic_results, 'features': features}
+    organic = value.get('organic_results')
+    features = value.get('features')
+    if not isinstance(organic, list) or not isinstance(features, list):
+        raise ValueError('SERP raw response requires organic_results and features lists')
+    for row in organic:
+        if (
+            not isinstance(row, Mapping)
+            or not isinstance(row.get('title'), str)
+            or not row.get('title').strip()
+            or not isinstance(row.get('url'), str)
+            or not row.get('url').strip()
+        ):
+            raise ValueError('SERP raw organic result is invalid')
+    if any(not isinstance(item, str) or not item.strip() for item in features):
+        raise ValueError('SERP raw features must be non-empty strings')
+    return value
+
+
+def _unique_strings(values: Any) -> list[str]:
+    if not isinstance(values, list):
+        raise ValueError('SERP observation source must be a list')
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError('SERP observations must be non-empty strings')
+        text = value.strip()
+        key = text.casefold()
+        if key not in seen:
+            seen.add(key)
+            result.append(text)
+    return result
+
+
+def _serp_content_type(title: str) -> str:
+    patterns = (
+        ('Listicle', (r'\d+\s+(best|top|ways|tips|tools|ideas|examples|reasons)',)),
+        ('How-To Guide', (r'how to', r'guide to', r'tutorial')),
+        ('Definition', (r'what is', r'what are', r'meaning of', r'definition')),
+        ('Comparison', (r'vs\.?', r'versus', r'compared', r'comparison', r'difference between')),
+        ('Review', (r'review', r'reviewed')),
+        ('Tool/Resource', (r'calculator', r'tool', r'generator', r'template', r'free')),
+    )
+    for content_type, expressions in patterns:
+        if any(re.search(expression, title, re.IGNORECASE) for expression in expressions):
+            return content_type
+    return 'General Article'
+
+
+def _check_serp_raw_binding(
+    payload: Mapping[str, Any],
+    *,
+    workspace_root: str | Path | None,
+) -> list[Finding]:
+    binding = payload.get('raw_capture')
+    if not isinstance(binding, Mapping) or set(binding) != {'path', 'sha256'}:
+        return [_finding(
+            'serp_raw_capture_binding_missing',
+            'SERP evidence must bind the exact raw collector capture.',
+            '/raw_capture',
+            'Regenerate evidence through scripts/research_serp_analysis.py.',
+        )]
+    if workspace_root is None:
+        return [_finding(
+            'serp_raw_capture_workspace_missing',
+            'SERP raw capture validation requires the workspace root.',
+            '/raw_capture/path',
+            'Validate through the repository workflow.',
+        )]
+    try:
+        path = resolve_artifact(binding.get('path'), workspace_root=workspace_root)
+        snapshot = load_json_object_snapshot(path, field='SERP raw capture')
+    except ValueError as error:
+        return [_finding(
+            'serp_raw_capture_invalid',
+            f'SERP raw capture is invalid: {error}.',
+            '/raw_capture',
+            'Rerun the approved SERP collector.',
+        )]
+    if snapshot.sha256 != binding.get('sha256'):
+        return [_finding(
+            'serp_raw_capture_hash_mismatch',
+            'SERP raw capture bytes changed after evidence emission.',
+            '/raw_capture/sha256',
+            'Rerun SERP research from the unchanged raw response.',
+        )]
+    try:
+        capture, normalized = _validate_serp_raw_snapshot(
+            snapshot,
+            workspace_root=workspace_root,
+        )
+    except ValueError as error:
+        return [_finding(
+            'serp_raw_capture_invalid',
+            f'SERP raw capture is invalid: {error}.',
+            '/raw_capture',
+            'Rerun the approved SERP collector.',
+        )]
+    if any((
+        capture.get('query') != payload.get('query'),
+        capture.get('run_id') != payload.get('run_id'),
+        capture.get('collected_at') != payload.get('collected_at'),
+        capture.get('collector') != payload.get('collector'),
+    )):
+        return [_finding(
+            'serp_raw_capture_metadata_mismatch',
+            'SERP evidence metadata diverges from its raw capture.',
+            '/raw_capture',
+            'Regenerate evidence for the exact query and agency run.',
+        )]
+    organic = normalized.get('organic_results')
+    if normalized.get('blocker') or normalized.get('fallback_blocker') or not organic:
+        return [_finding(
+            'serp_raw_capture_blocked_or_empty',
+            'Blocked or empty raw SERP output cannot support verified evidence.',
+            '/raw_capture',
+            'Collect at least one visible organic result.',
+        )]
+    expected_results = [
+        {
+            'position': position,
+            'url': str(row.get('url') or '').strip(),
+            'title': str(row.get('title') or '').strip(),
+            'result_type': 'organic',
+        }
+        for position, row in enumerate(organic[:10], start=1)
+    ]
+    observations = payload.get('observations')
+    expected_types = _unique_strings([_serp_content_type(row['title']) for row in expected_results])
+    expected_features = _unique_strings(normalized.get('features', []))
+    if (
+        payload.get('results') != expected_results
+        or not isinstance(observations, Mapping)
+        or observations.get('content_types') != expected_types
+        or observations.get('serp_features') != expected_features
+    ):
+        return [_finding(
+            'serp_evidence_raw_divergence',
+            'SERP evidence rows or directly obtainable observations diverge from raw output.',
+            '/results',
+            'Regenerate normalized evidence from the bound raw capture.',
+        )]
+    return []
 
 
 def check_file(
@@ -247,8 +569,11 @@ def _check_loaded_plan(
         )
         strategy = payload.get('serp_strategy')
         try:
-            serp_payload = json.loads(Path(serp_evidence_path).read_text(encoding='utf-8'))
-        except (OSError, UnicodeError, json.JSONDecodeError):
+            serp_payload = load_json_object_snapshot(
+                serp_evidence_path,
+                field='SERP evidence',
+            ).payload
+        except ValueError:
             serp_payload = None
         if isinstance(strategy, Mapping) and isinstance(serp_payload, Mapping):
             findings.extend(_check_serp_strategy_evidence_binding(strategy, serp_payload))
@@ -279,22 +604,17 @@ def check_serp_evidence_file(
     *,
     expected_query: str,
     assembly_date: str | None,
+    workspace_root: str | Path | None = None,
 ) -> list[Finding]:
     '''Validate the exact SERP evidence metadata bound to an editorial plan.'''
     source = Path(path)
+    root = _artifact_workspace_root(source, workspace_root)
     try:
-        payload = json.loads(source.read_text(encoding='utf-8'))
-    except (OSError, UnicodeError) as error:
+        payload = load_json_object_snapshot(source, field='SERP evidence').payload
+    except ValueError as error:
         return [_finding(
             'serp_evidence_unreadable',
             f'SERP evidence cannot be read as UTF-8 JSON: {error}',
-            '/',
-            'Regenerate the verified SERP evidence artifact.',
-        )]
-    except json.JSONDecodeError as error:
-        return [_finding(
-            'serp_evidence_json_invalid',
-            f'SERP evidence contains invalid JSON: {error.msg}.',
             '/',
             'Regenerate the verified SERP evidence artifact.',
         )]
@@ -309,6 +629,7 @@ def check_serp_evidence_file(
         payload,
         expected_query=expected_query,
         assembly_date=assembly_date,
+        workspace_root=root,
     )
 
 
@@ -317,6 +638,7 @@ def _check_serp_evidence_payload(
     *,
     expected_query: str,
     assembly_date: str | None,
+    workspace_root: str | Path | None = None,
 ) -> list[Finding]:
     findings: list[Finding] = []
     if set(payload) != SERP_EVIDENCE_FIELDS:
@@ -336,6 +658,7 @@ def _check_serp_evidence_payload(
     if not verify_mapping_attestation(
         payload,
         purpose=SERP_EVIDENCE_ATTESTATION_PURPOSE,
+        workspace_root=workspace_root,
     ):
         findings.append(_finding(
             'serp_evidence_execution_attestation_invalid',
@@ -379,6 +702,13 @@ def _check_serp_evidence_payload(
             'SERP evidence must be verified on the current assembly date.',
             '/collected_at',
             'Rerun verified SERP research for this assembly run.',
+        ))
+    if timestamp is not None and timestamp > datetime.now(timezone.utc):
+        findings.append(_finding(
+            'serp_evidence_future',
+            'SERP evidence collection time cannot be in the future.',
+            '/collected_at',
+            'Rerun SERP research with the current UTC workflow clock.',
         ))
     collector = payload.get('collector')
     if (
@@ -462,6 +792,7 @@ def _check_serp_evidence_payload(
             '/evidence_hash',
             'Regenerate the immutable SERP evidence artifact.',
         ))
+    findings.extend(_check_serp_raw_binding(payload, workspace_root=workspace_root))
     return _sorted_findings(findings)
 
 
