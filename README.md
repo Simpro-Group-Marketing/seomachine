@@ -118,6 +118,8 @@ For rewrites only, the dedicated brief section must be:
 ### Prerequisites
 - [Claude Code](https://claude.com/claude-code) installed
 - Anthropic API account
+- Python 3.11 or newer
+- Access to the internal `simpro-context-connector` v2.0.0 release
 
 ### Installation
 
@@ -134,6 +136,7 @@ pip install -r data_sources/requirements.txt
 ```
 
 This installs:
+- The standalone Simpro vault Python client, CLI, and MCP adapter
 - Google Analytics/Search Console integrations
 - DataForSEO API client
 - NLP libraries (nltk, textstat)
@@ -144,6 +147,7 @@ This installs:
 
    - Copy `.env.example` to `.env` and set GA4/GSC/DataForSEO paths (see `CLAUDE.md` for MCP vs Python module credential boundaries)
    - Copy `.mcp.json.template` to `.mcp.json` and adjust paths for your machine
+   - Set `SIMPRO_VAULT_ROOT` to the authorized vault root; the connector does not read Claude plugin inventory or internal vault routes
    - Copy `.claude/settings.local.template.json` to `.claude/settings.local.json`
    - Place GA4 ADC at `credentials/adc.json` and GSC OAuth client secret at `credentials/gsc_client_secrets.json` (see `credentials/.gitkeep` — secrets are gitignored)
    - For the bundled GSC MCP server: `cd mcp-gsc && pip install -r requirements.txt` (see `mcp-gsc/README.md`)
