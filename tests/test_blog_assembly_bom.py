@@ -1066,7 +1066,26 @@ def _preflight(
             "threshold": 90,
             "passed": passed,
         },
-        "priority_fixes": [],
+        "scorecard": {
+            "passed": passed,
+            "content_quality": {
+                "score": 95 if passed else 0,
+                "threshold": 85,
+                "passed": passed,
+            },
+            "seo_quality": {
+                "score": 95 if passed else 0,
+                "threshold": 90,
+                "passed": passed,
+                "critical_issue_count": 0 if passed else 1,
+                "critical_issues": [] if passed else ["Fixture SEO failure."],
+            },
+            "aeo_geo": {
+                "score": 95 if passed else 0,
+                "threshold": 90,
+                "passed": passed,
+            },
+        },        "priority_fixes": [],
         "input_seal": {"status": "verified" if passed else "failed"},
         "input_hashes": input_hashes,
         "run_id": "run-1",

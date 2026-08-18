@@ -2,19 +2,31 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
+import os
 import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 try:
-    from .blog_assembly_contract import atomic_write_json, validate_sha256
+    from .blog_assembly_contract import (
+        atomic_write_json,
+        canonical_json_sha256,
+        file_sha256,
+        validate_sha256,
+    )
     from .execution_attestation import attest_mapping, verify_mapping_attestation
     from .guard_common import Finding, make_finding
 except ImportError:  # pragma: no cover - supports direct script execution.
-    from blog_assembly_contract import atomic_write_json, validate_sha256
+    from blog_assembly_contract import (
+        atomic_write_json,
+        canonical_json_sha256,
+        file_sha256,
+        validate_sha256,
+    )
     from execution_attestation import attest_mapping, verify_mapping_attestation
     from guard_common import Finding, make_finding
 
@@ -81,6 +93,23 @@ RECEIPT_FIELDS = frozenset(
 )
 TOOL_FIELDS = frozenset({"name", "version"})
 MUTATING_STAGES = frozenset({"draft", "optimization"})
+NATIVE_EDIT_STATE_SCHEMA = "simpro-blog-native-edit-state/v1"
+CONSUMED_NATIVE_EDIT_STATE_SCHEMA = "simpro-blog-native-edit-state-consumed/v1"
+EMPTY_ARTICLE_SHA256 = hashlib.sha256(b"").hexdigest()
+NATIVE_EDIT_STATE_FIELDS = frozenset(
+    {
+        "schema",
+        "article_path",
+        "article_existed",
+        "run_id",
+        "stage",
+        "tool",
+        "started_at",
+        "input_artifact_hashes",
+        "previous_receipt_hash",
+        "state_hash",
+    }
+)
 
 
 class StageReceiptError(ValueError):
@@ -89,6 +118,164 @@ class StageReceiptError(ValueError):
     def __init__(self, code: str, message: str):
         super().__init__(message)
         self.code = code
+
+
+def begin_native_edit(
+    *,
+    article_path: str | Path,
+    state_path: str | Path,
+    run_id: str,
+    stage: str,
+    tool_name: str,
+    tool_version: str,
+    input_artifacts: Mapping[str, str | Path] | None = None,
+    previous_receipt_hash: str = "",
+    started_at: datetime | str | None = None,
+) -> dict[str, Any]:
+    """Snapshot a native-owned draft or optimization without writing article copy."""
+    if stage not in MUTATING_STAGES:
+        raise StageReceiptError(
+            "native_edit_stage_invalid",
+            "native edit stage must be draft or optimization",
+        )
+    article = Path(article_path).resolve(strict=False)
+    if article.exists() and not article.is_file():
+        raise StageReceiptError(
+            "native_edit_article_invalid",
+            "article path must be a regular file",
+        )
+    article_existed = article.is_file()
+    if stage == "optimization" and not article_existed:
+        raise StageReceiptError(
+            "native_edit_article_missing",
+            "optimization must start from an existing article",
+        )
+    destination = Path(state_path).resolve(strict=False)
+    if destination.exists():
+        raise StageReceiptError(
+            "native_edit_state_exists",
+            "native edit state output already exists",
+        )
+    supplied_inputs = dict(input_artifacts or {})
+    if "article" in supplied_inputs:
+        raise StageReceiptError(
+            "native_edit_input_invalid",
+            "article is a reserved input artifact label",
+        )
+    _reject_path_collision(destination, {"article": article, **supplied_inputs})
+    inputs: dict[str, str] = {}
+    try:
+        for label, path in sorted(supplied_inputs.items()):
+            inputs[_required_text(label, "native_edit_input_invalid", "input label")] = file_sha256(path)
+    except OSError as error:
+        raise StageReceiptError("native_edit_input_invalid", str(error)) from error
+    inputs["article"] = file_sha256(article) if article_existed else EMPTY_ARTICLE_SHA256
+    started_text = _native_edit_time(started_at)
+    previous = previous_receipt_hash or ""
+    if previous:
+        try:
+            validate_sha256(previous, field="previous_receipt_hash")
+        except ValueError as error:
+            raise StageReceiptError("native_edit_previous_hash_invalid", str(error)) from error
+    state: dict[str, Any] = {
+        "schema": NATIVE_EDIT_STATE_SCHEMA,
+        "article_path": article.as_posix(),
+        "article_existed": article_existed,
+        "run_id": _required_text(run_id, "native_edit_run_id_invalid", "run_id"),
+        "stage": stage,
+        "tool": {
+            "name": _required_text(tool_name, "native_edit_tool_invalid", "tool_name"),
+            "version": _required_text(tool_version, "native_edit_tool_invalid", "tool_version"),
+        },
+        "started_at": started_text,
+        "input_artifact_hashes": dict(sorted(inputs.items())),
+        "previous_receipt_hash": previous,
+    }
+    state["state_hash"] = canonical_json_sha256(state)
+    atomic_write_json(destination, state)
+    return state
+
+
+def finish_native_edit(
+    *,
+    state_path: str | Path,
+    article_path: str | Path,
+    receipt_path: str | Path,
+    evidence_artifacts: Mapping[str, str | Path] | None = None,
+    completed_at: datetime | str | None = None,
+    workspace_root: str | Path | None = None,
+) -> dict[str, Any]:
+    """Close a native edit and write only its detached governance receipt."""
+    state_source = Path(state_path).resolve(strict=False)
+    try:
+        state = json.loads(state_source.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise StageReceiptError("native_edit_state_invalid", str(error)) from error
+    state = _validate_native_edit_state(state)
+    article = Path(article_path).resolve(strict=False)
+    if _path_identity(article) != _path_identity(state["article_path"]):
+        raise StageReceiptError(
+            "native_edit_article_mismatch",
+            "native edit must finish against the same article",
+        )
+    if not article.is_file():
+        raise StageReceiptError(
+            "native_edit_article_missing",
+            "native edit output article is unavailable",
+        )
+    destination = Path(receipt_path).resolve(strict=False)
+    if destination.exists():
+        raise StageReceiptError(
+            "native_edit_receipt_exists",
+            "native edit receipt output already exists",
+        )
+    evidence = dict(evidence_artifacts or {})
+    _reject_path_collision(
+        destination,
+        {"article": article, "state": state_source, **evidence},
+    )
+    after_hash = file_sha256(article)
+    before_hash = state["input_artifact_hashes"]["article"]
+    if before_hash == after_hash:
+        raise StageReceiptError(
+            "native_edit_unchanged",
+            "native edit did not change the article",
+        )
+    try:
+        evidence_hashes = {
+            _required_text(label, "native_edit_evidence_invalid", "evidence label"): file_sha256(path)
+            for label, path in sorted(evidence.items())
+        }
+    except OSError as error:
+        raise StageReceiptError("native_edit_evidence_invalid", str(error)) from error
+    tool = state["tool"]
+    completed_text = _native_edit_time(completed_at)
+    receipt = build_stage_receipt(
+        run_id=state["run_id"],
+        stage=state["stage"],
+        tool_name=tool["name"],
+        tool_version=tool["version"],
+        started_at=state["started_at"],
+        completed_at=completed_text,
+        mutation=True,
+        input_artifact_hashes=state["input_artifact_hashes"],
+        output_artifact_hashes={"article": after_hash},
+        evidence_hashes=evidence_hashes,
+        previous_receipt_hash=state["previous_receipt_hash"],
+        workspace_root=workspace_root,
+    )
+    write_stage_receipt(destination, receipt, workspace_root=workspace_root)
+    atomic_write_json(
+        state_source,
+        {
+            "schema": CONSUMED_NATIVE_EDIT_STATE_SCHEMA,
+            "active_state_hash": state["state_hash"],
+            "receipt_hash": receipt["receipt_hash"],
+            "receipt_sha256": file_sha256(destination),
+            "consumed_at": completed_text,
+        },
+    )
+    return receipt
 
 
 def build_stage_receipt(
@@ -459,6 +646,81 @@ def _hash_mapping(value: Any, *, code: str, field: str) -> dict[str, str]:
     return dict(sorted(result.items()))
 
 
+def _validate_native_edit_state(value: Any) -> dict[str, Any]:
+    if isinstance(value, Mapping) and value.get("schema") == CONSUMED_NATIVE_EDIT_STATE_SCHEMA:
+        raise StageReceiptError(
+            "native_edit_state_consumed",
+            "native edit state was already consumed",
+        )
+    if not isinstance(value, Mapping) or set(value) != NATIVE_EDIT_STATE_FIELDS:
+        raise StageReceiptError(
+            "native_edit_state_invalid",
+            "native edit state must use the exact field set",
+        )
+    if value.get("schema") != NATIVE_EDIT_STATE_SCHEMA:
+        raise StageReceiptError("native_edit_state_invalid", "native edit state schema is invalid")
+    expected_hash = canonical_json_sha256(
+        {key: child for key, child in value.items() if key != "state_hash"}
+    )
+    if value.get("state_hash") != expected_hash:
+        raise StageReceiptError("native_edit_state_invalid", "native edit state hash is invalid")
+    if value.get("stage") not in MUTATING_STAGES:
+        raise StageReceiptError("native_edit_state_invalid", "native edit state stage is invalid")
+    if not isinstance(value.get("article_existed"), bool):
+        raise StageReceiptError("native_edit_state_invalid", "article_existed must be boolean")
+    _required_text(value.get("article_path"), "native_edit_state_invalid", "article_path")
+    _required_text(value.get("run_id"), "native_edit_state_invalid", "run_id")
+    _timestamp(value.get("started_at"), "started_at")
+    tool = value.get("tool")
+    if not isinstance(tool, Mapping) or set(tool) != TOOL_FIELDS:
+        raise StageReceiptError("native_edit_state_invalid", "native edit tool is invalid")
+    _required_text(tool.get("name"), "native_edit_state_invalid", "tool name")
+    _required_text(tool.get("version"), "native_edit_state_invalid", "tool version")
+    inputs = value.get("input_artifact_hashes")
+    if not isinstance(inputs, Mapping) or "article" not in inputs:
+        raise StageReceiptError("native_edit_state_invalid", "native edit input hashes are invalid")
+    _hash_mapping(
+        inputs,
+        code="native_edit_state_invalid",
+        field="input_artifact_hashes",
+    )
+    previous = value.get("previous_receipt_hash")
+    if not isinstance(previous, str):
+        raise StageReceiptError("native_edit_state_invalid", "previous receipt hash is invalid")
+    if previous:
+        try:
+            validate_sha256(previous, field="previous_receipt_hash")
+        except ValueError as error:
+            raise StageReceiptError("native_edit_state_invalid", str(error)) from error
+    return dict(value)
+
+
+def _reject_path_collision(
+    output_path: str | Path,
+    inputs: Mapping[str, str | Path],
+) -> None:
+    destination = _path_identity(output_path)
+    for label, path in inputs.items():
+        if destination == _path_identity(path):
+            raise StageReceiptError(
+                "native_edit_output_collision",
+                f"governance output cannot overwrite input {label}",
+            )
+
+
+def _path_identity(path: Any) -> str:
+    if not isinstance(path, (str, Path)) or not str(path).strip():
+        raise StageReceiptError("native_edit_path_invalid", "artifact path must be non-empty")
+    return os.path.normcase(str(Path(path).resolve(strict=False)))
+
+
+def _native_edit_time(value: datetime | str | None) -> str:
+    if value is None:
+        value = datetime.now(timezone.utc)
+    text, _ = _timestamp(value, "native edit timestamp")
+    return text
+
+
 def _required_text(value: Any, code: str, field: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise StageReceiptError(code, f"{field} must be a non-empty string")
@@ -497,3 +759,82 @@ def _finding(rule_id: str, message: str) -> Finding:
         message=message,
         suggestion="Regenerate this receipt from the actual stage execution.",
     )
+
+
+def _label_paths(values: Sequence[str]) -> dict[str, Path]:
+    result: dict[str, Path] = {}
+    for value in values:
+        if "=" not in value:
+            raise StageReceiptError(
+                "native_edit_artifact_argument_invalid",
+                "artifact arguments must use label=path",
+            )
+        label, path = value.split("=", 1)
+        normalized = _required_text(
+            label,
+            "native_edit_artifact_argument_invalid",
+            "artifact label",
+        )
+        if normalized in result:
+            raise StageReceiptError(
+                "native_edit_artifact_argument_invalid",
+                f"duplicate artifact label: {normalized}",
+            )
+        result[normalized] = Path(
+            _required_text(
+                path,
+                "native_edit_artifact_argument_invalid",
+                "artifact path",
+            )
+        )
+    return result
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Create and validate blog stage receipts.",
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    begin = subparsers.add_parser("begin-native-edit")
+    begin.add_argument("--article", required=True)
+    begin.add_argument("--state", required=True)
+    begin.add_argument("--run-id", required=True)
+    begin.add_argument("--stage", choices=sorted(MUTATING_STAGES), required=True)
+    begin.add_argument("--tool-name", required=True)
+    begin.add_argument("--tool-version", required=True)
+    begin.add_argument("--input", action="append", default=[])
+    begin.add_argument("--previous-receipt-hash", default="")
+    finish = subparsers.add_parser("finish-native-edit")
+    finish.add_argument("--article", required=True)
+    finish.add_argument("--state", required=True)
+    finish.add_argument("--receipt", required=True)
+    finish.add_argument("--evidence", action="append", default=[])
+    finish.add_argument("--workspace-root")
+    args = parser.parse_args(argv)
+    try:
+        if args.command == "begin-native-edit":
+            begin_native_edit(
+                article_path=args.article,
+                state_path=args.state,
+                run_id=args.run_id,
+                stage=args.stage,
+                tool_name=args.tool_name,
+                tool_version=args.tool_version,
+                input_artifacts=_label_paths(args.input),
+                previous_receipt_hash=args.previous_receipt_hash,
+            )
+        else:
+            finish_native_edit(
+                state_path=args.state,
+                article_path=args.article,
+                receipt_path=args.receipt,
+                evidence_artifacts=_label_paths(args.evidence),
+                workspace_root=args.workspace_root,
+            )
+    except (OSError, UnicodeError, StageReceiptError) as error:
+        parser.error(str(error))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

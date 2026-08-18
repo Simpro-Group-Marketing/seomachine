@@ -202,7 +202,7 @@ Final 2-4 supporting articles to fill all gaps.
 For each piece, provide the exact command:
 ```
 /research "[primary keyword]"
-/article "[article title]"
+/write "[article title]"
 ```
 
 ## Output
@@ -314,20 +314,20 @@ Save to: `research/cluster-strategy-[topic-slug]-[YYYY-MM-DD].md`
 ### Phase 1: Foundation
 | Order | Piece | Command |
 |-------|-------|---------|
-| 1 | [Pillar: Title] | `/research "[keyword]"` then `/article "[title]"` |
-| 2 | [Article X: Title] | `/research "[keyword]"` then `/article "[title]"` |
-| 3 | [Article Y: Title] | `/research "[keyword]"` then `/article "[title]"` |
+| 1 | [Pillar: Title] | `/research "[keyword]"` then `/write "[title]"` |
+| 2 | [Article X: Title] | `/research "[keyword]"` then `/write "[title]"` |
+| 3 | [Article Y: Title] | `/research "[keyword]"` then `/write "[title]"` |
 
 ### Phase 2: Build Authority
 | Order | Piece | Command |
 |-------|-------|---------|
-| 4 | [Article X: Title] | `/research "[keyword]"` then `/article "[title]"` |
+| 4 | [Article X: Title] | `/research "[keyword]"` then `/write "[title]"` |
 [...]
 
 ### Phase 3: Complete Coverage
 | Order | Piece | Command |
 |-------|-------|---------|
-| 8 | [Article X: Title] | `/research "[keyword]"` then `/article "[title]"` |
+| 8 | [Article X: Title] | `/research "[keyword]"` then `/write "[title]"` |
 [...]
 
 ---

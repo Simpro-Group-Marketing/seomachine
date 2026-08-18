@@ -1,27 +1,14 @@
 from __future__ import annotations
 
+from tests.fixture_text import fixture_text
+
 from datetime import date
 
 from data_sources.modules import blog_assembly_contract
 from data_sources.modules.blog_identity_guard import check_article
 
 
-VALID = """---
-artifact_type: blog
-brand: Simpro
-title: A useful guide
-objective: Help field service leaders choose a workflow
-audience: Field service leaders
-region: US
-last_updated: 2026-08-11
-schema_notes:
-  - BlogPosting
-  - BreadcrumbList
-  - ImageObject for the featured image or logo
-  - Organization as publisher reference only, not a separate full schema block
----
-# A useful guide
-"""
+VALID = fixture_text("content_evidence:test_blog_identity_guard-9-1")
 
 
 def _rules(content: str) -> set[str]:

@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import json
 import unittest
 from contextlib import redirect_stdout
@@ -17,15 +19,9 @@ from tests.test_customer_proof_selector import write_context_receipt_fixture
 from tests.vault_context_fixture import load_validated_claim_set_for_unit_test
 
 
-ARTICLE_WITH_CASE_STUDY = """# Job quoting software
+ARTICLE_WITH_CASE_STUDY = fixture_text("content_evidence:test_customer_proof_diversity_guard-20-1")
 
-[TEAMWired](https://www.simprogroup.com/case-studies/teamwired) is used as customer proof for invoicing workflow context.
-"""
-
-ARTICLE_WITH_CLOCKSHARK_CASE_STUDY = """# Construction draw schedule
-
-[Underground Contractors](https://www.clockshark.com/resources/case-study-underground-contractors) is used as customer proof for construction crew workflow context.
-"""
+ARTICLE_WITH_CLOCKSHARK_CASE_STUDY = fixture_text("content_evidence:test_customer_proof_diversity_guard-25-2")
 
 
 def proof_slate(
@@ -120,14 +116,7 @@ class CustomerProofDiversityGuardTests(unittest.TestCase):
         self.assertTrue(should_fail(findings, fail_on="error"))
 
     def test_only_case_studies_without_non_case_study_search_attempt_fails(self):
-        sidecar = """Customer Proof Pack
-- Pack status: ready.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Approved quotes: none used.
-- Review-site experience evidence: none collected.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: none.
-"""
+        sidecar = fixture_text("content_evidence:test_customer_proof_diversity_guard-123-3")
 
         with TemporaryDirectory() as temp_dir:
             ledger_path = Path(temp_dir) / "ledger.json"
@@ -151,18 +140,7 @@ class CustomerProofDiversityGuardTests(unittest.TestCase):
     def test_customer_proof_without_mining_block_fails(self):
         sidecar = (
             proof_slate()
-            + """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
-"""
+            + fixture_text("content_evidence:test_customer_proof_diversity_guard-154-14")
         )
 
         with TemporaryDirectory() as temp_dir:
@@ -192,18 +170,7 @@ Customer Proof Selection Decision
                 include_final_use=False,
                 include_status=False,
             )
-            + """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
-"""
+            + fixture_text("content_evidence:test_customer_proof_diversity_guard-195-15")
         )
 
         with TemporaryDirectory() as temp_dir:
@@ -228,19 +195,7 @@ Customer Proof Selection Decision
         sidecar = (
             proof_slate()
             + proof_mining(include_usable_quotes=False)
-            + """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
-- Approved quotes: none used.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
-"""
+            + fixture_text("content_evidence:test_customer_proof_diversity_guard-231-16")
         )
 
         with TemporaryDirectory() as temp_dir:
@@ -268,19 +223,7 @@ Customer Proof Selection Decision
                 usable_quotes="Joel Anderson quote about quote-to-job workflow is usable if an exact quote is selected",
                 excluded_proof="none",
             )
-            + """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
-- Approved quotes: none used.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
-"""
+            + fixture_text("content_evidence:test_customer_proof_diversity_guard-271-17")
         )
 
         with TemporaryDirectory() as temp_dir:
@@ -310,19 +253,7 @@ Customer Proof Selection Decision
                 usable_quotes="Joel Anderson quote about quote-to-job workflow is usable if an exact quote is selected",
                 excluded_proof="exact Joel Anderson quote omitted because this section needs concise paraphrased workflow proof, not a quote block",
             )
-            + """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
-- Approved quotes: none used.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
-"""
+            + fixture_text("content_evidence:test_customer_proof_diversity_guard-313-18")
         )
         with TemporaryDirectory() as temp_dir:
             ledger_path = Path(temp_dir) / "ledger.json"
@@ -338,14 +269,7 @@ Customer Proof Selection Decision
         self.assertEqual(findings, [])
 
     def test_repeated_case_study_without_reuse_reason_fails(self):
-        sidecar = """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof; no approved exact quote selected for public copy.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-"""
+        sidecar = fixture_text("content_evidence:test_customer_proof_diversity_guard-341-4")
         ledger = {
             "version": 1,
             "uses": [
@@ -386,20 +310,7 @@ Customer Proof Selection Decision
         sidecar = (
             proof_slate()
             + proof_mining()
-            + """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof; no exact quote selected because no public-copy approval was recorded for this topic.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
-- Reuse reason: case-study-teamwired remains the best public source-visible invoicing metric for this draft after non-case-study proof checks.
-- Stronger underused candidates rejected: none found for the same invoicing role.
-"""
+            + fixture_text("content_evidence:test_customer_proof_diversity_guard-389-19")
         )
         ledger = {
             "version": 1,
@@ -437,10 +348,7 @@ Customer Proof Selection Decision
         self.assertEqual(findings, [])
 
     def test_selector_generated_slate_is_accepted_by_diversity_guard(self):
-        article = """# Job quoting software
-
-[Zebra Plumbing](https://www.simprogroup.com/case-studies/zebra-plumbing) is used as customer proof for onsite quoting workflow context.
-"""
+        article = fixture_text("content_evidence:test_customer_proof_diversity_guard-440-5")
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             index_path = root / "index.json"
@@ -536,18 +444,7 @@ Customer Proof Selection Decision
                     final_use="paraphrased customer proof only",
                     excluded_proof="metric proof omitted because this fixture only checks slate compatibility",
                 )
-                + """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Zebra Plumbing and BWE Engineering checked for quote-to-invoice proof.
-- Case-study proof path: Zebra Plumbing, URL: https://www.simprogroup.com/case-studies/zebra-plumbing, supported theme: onsite quoting workflow.
-- Review-site experience evidence: Capterra, https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/, date checked 2026-06-12, product: Simpro, experience pattern: quoting workflow, evidence summary: review themes checked, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased customer proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "job quoting software" --proof-role metric
-- Selected proof: quote-matrix-zebra-plumbing-onsite-quoting | Customer: Zebra Plumbing | URL: https://www.simprogroup.com/case-studies/zebra-plumbing | Use: onsite quoting workflow proof
-"""
+                + fixture_text("content_evidence:test_customer_proof_diversity_guard-539-31")
             )
 
             findings = check_content(
@@ -562,18 +459,7 @@ Customer Proof Selection Decision
         )
 
     def test_customer_proof_without_slate_fails(self):
-        sidecar = """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
-"""
+        sidecar = fixture_text("content_evidence:test_customer_proof_diversity_guard-565-6")
 
         findings = check_content(ARTICLE_WITH_CASE_STUDY, proof_content=sidecar)
 
@@ -592,18 +478,7 @@ Customer Proof Selection Decision
         sidecar = (
             proof_slate(include_experience_story=False)
             + proof_mining()
-            + """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
-"""
+            + fixture_text("content_evidence:test_customer_proof_diversity_guard-595-20")
         )
 
         with TemporaryDirectory() as temp_dir:
@@ -628,18 +503,7 @@ Customer Proof Selection Decision
         sidecar = (
             proof_slate(experience_story_rejected="none")
             + proof_mining()
-            + """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: Capterra, https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/, date checked 2026-06-12, product: Simpro, experience pattern: quote-to-invoice workflow, evidence summary: review story candidate checked, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
-"""
+            + fixture_text("content_evidence:test_customer_proof_diversity_guard-631-21")
         )
 
         with TemporaryDirectory() as temp_dir:
@@ -665,18 +529,7 @@ Customer Proof Selection Decision
         sidecar = (
             proof_slate()
             + proof_mining()
-            + """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: Capterra, https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/, date checked 2026-06-12, product: Simpro, experience pattern: quote-to-invoice workflow, evidence summary: review story candidate checked, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
-"""
+            + fixture_text("content_evidence:test_customer_proof_diversity_guard-668-22")
         )
 
         with TemporaryDirectory() as temp_dir:
@@ -707,18 +560,7 @@ Customer Proof Selection Decision
                 metric_selected="quote-matrix-bwe-engineering-job-to-invoice",
                 theme_selected="quote-matrix-bwe-engineering-job-to-invoice",
             )
-            + """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
-"""
+            + fixture_text("content_evidence:test_customer_proof_diversity_guard-710-23")
         )
 
         findings = check_content(ARTICLE_WITH_CASE_STUDY, proof_content=sidecar)
@@ -736,18 +578,7 @@ Customer Proof Selection Decision
                 metric_selected="case-study-teamwired",
             )
             + proof_mining()
-            + """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof and found BWE Engineering.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
-"""
+            + fixture_text("content_evidence:test_customer_proof_diversity_guard-739-24")
         )
         with TemporaryDirectory() as temp_dir:
             ledger_path = Path(temp_dir) / "ledger.json"
@@ -800,18 +631,7 @@ Customer Proof Selection Decision
                 metric_rejected="quote-matrix-bwe-engineering-job-to-invoice: rejected because this section needs security-specific invoicing proof",
             )
             + proof_mining()
-            + """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof and found BWE Engineering.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
-"""
+            + fixture_text("content_evidence:test_customer_proof_diversity_guard-803-25")
         )
         with TemporaryDirectory() as temp_dir:
             ledger_path = Path(temp_dir) / "ledger.json"
@@ -829,22 +649,7 @@ Customer Proof Selection Decision
     def test_review_story_copy_requires_experience_story_slate_role(self):
         sidecar = (
             proof_slate(include_experience_story=False)
-            + """Customer Proof Pack
-- Pack status: ready.
-- Review-site experience evidence: Capterra, https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/, date checked 2026-06-12, product: Simpro, experience pattern: quote-to-invoice workflow, evidence summary: reviewer discusses quotes and invoices, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased review story.
-- Claims excluded: exact review quote.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "quote invoice review story" --proof-role experience_story --require-eeat-story
-- Selected proof: review-capterra-owner-quote-invoice | Customer: Capterra owner review | URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/ | Use: review story proof
-
-Review Story Selection
-- Article title: Best job quoting and invoicing software
-- Content objective: help trade buyers evaluate quote-to-cash workflow
-- Selector command: python data_sources/modules/customer_proof_selector.py "quote invoice review story" --proof-role experience_story --require-eeat-story
-- Selected story: review-capterra-owner-quote-invoice | Identity: Megan B | Platform: Capterra | URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/ | Workflow story: owner uses service jobs, recurring jobs, quotes, invoices, and QBO | Status: approved | Use: E-E-A-T experience story
-"""
+            + fixture_text("content_evidence:test_customer_proof_diversity_guard-832-26")
         )
 
         findings = check_content(
@@ -860,15 +665,7 @@ Review Story Selection
         )
 
     def test_vague_global_reuse_reason_fails_for_repeated_proof(self):
-        sidecar = """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
-- Reuse reason: repeated case studies remain useful.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-"""
+        sidecar = fixture_text("content_evidence:test_customer_proof_diversity_guard-863-7")
         ledger = {
             "version": 1,
             "uses": [
@@ -908,19 +705,7 @@ Review Story Selection
     def test_overused_proof_with_better_underused_candidate_fails_even_with_specific_reuse_reason(
         self,
     ):
-        sidecar = """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof and found BWE Engineering.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "job invoicing software" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
-- Reuse reason: case-study-teamwired remains useful for invoicing workflow.
-"""
+        sidecar = fixture_text("content_evidence:test_customer_proof_diversity_guard-911-8")
         ledger = {
             "version": 1,
             "uses": [
@@ -1011,20 +796,7 @@ Customer Proof Selection Decision
                 metric_rejected="quote-matrix-bwe-engineering-job-to-invoice: rejected because BWE is agricultural engineering, while this section specifically needs security contractor invoicing proof",
             )
             + proof_mining()
-            + """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof and found BWE Engineering.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "security invoicing software" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: security invoicing workflow proof
-- Reuse reason: case-study-teamwired remains the best security-specific invoicing proof for this section.
-- Rejected stronger underused candidate: quote-matrix-bwe-engineering-job-to-invoice | Reason: rejected because BWE is agricultural engineering, while this section specifically needs security contractor invoicing proof.
-"""
+            + fixture_text("content_evidence:test_customer_proof_diversity_guard-1014-27")
         )
         ledger = {
             "version": 1,
@@ -1102,18 +874,7 @@ Customer Proof Selection Decision
         self.assertEqual(findings, [])
 
     def test_reuse_threshold_counts_unique_article_slugs(self):
-        sidecar = """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
-"""
+        sidecar = fixture_text("content_evidence:test_customer_proof_diversity_guard-1105-9")
         ledger = {
             "version": 1,
             "uses": [
@@ -1148,19 +909,7 @@ Customer Proof Selection Decision
         )
 
     def test_missing_proof_index_fails_when_overused_selection_must_be_compared(self):
-        sidecar = """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: invoicing workflow, evidence summary: reviewers discuss invoice workflows, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
-- Reuse reason: case-study-teamwired remains the best invoicing proof.
-"""
+        sidecar = fixture_text("content_evidence:test_customer_proof_diversity_guard-1151-10")
         ledger = {
             "version": 1,
             "uses": [
@@ -1197,22 +946,8 @@ Customer Proof Selection Decision
         )
 
     def test_overuse_baseline_triggers_reuse_guard_without_usage_rows(self):
-        article = """# Job quoting software
-
-[BGE Digital](https://www.simprogroup.com/case-studies/bge-digital) is used as customer proof for quoting workflow context.
-"""
-        sidecar = """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof and found Zebra Plumbing.
-- Case-study proof path: BGE Digital, URL: https://www.simprogroup.com/case-studies/bge-digital, supported theme: quote workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: quote workflow, evidence summary: reviewers discuss quote workflows, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "quoting software" --proof-role metric
-- Selected proof: case-study-bge-digital | Customer: BGE Digital | URL: https://www.simprogroup.com/case-studies/bge-digital | Use: quote workflow proof
-"""
+        article = fixture_text("content_evidence:test_customer_proof_diversity_guard-1200-11")
+        sidecar = fixture_text("content_evidence:test_customer_proof_diversity_guard-1204-12")
         ledger = {
             "version": 1,
             "overuse_baselines": [
@@ -1254,18 +989,7 @@ Customer Proof Selection Decision
                 theme_top="case-study-bge-digital",
             )
             + proof_mining()
-            + """Customer Proof Pack
-- Pack status: ready.
-- Case-study proof path: BGE Digital, URL: https://www.simprogroup.com/case-studies/bge-digital, supported theme: quote workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: quoting workflow, evidence summary: reviewers discuss quote and job workflow visibility, exact quote/rating approval status: not approved.
-- Reuse reason: BGE Digital remains the best source-visible quote workflow proof in this fixture.
-- Use in copy: paraphrased review-site theme and case-study proof only.
-- Claims excluded: exact review quotes and ratings.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "quote workflow" --proof-role theme
-- Selected proof: case-study-bge-digital | Customer: BGE Digital | URL: https://www.simprogroup.com/case-studies/bge-digital | Use: quote workflow theme proof
-"""
+            + fixture_text("content_evidence:test_customer_proof_diversity_guard-1257-28")
         )
 
         with TemporaryDirectory() as temp_dir:
@@ -1282,12 +1006,7 @@ Customer Proof Selection Decision
         self.assertEqual(findings, [])
 
     def test_exact_quote_requires_approved_quote_row(self):
-        sidecar = """Customer Proof Pack
-- Pack status: ready.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: scheduling workflow, evidence summary: reviewers discuss scheduling workflows, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased review-site theme only.
-- Claims excluded: exact review quotes.
-"""
+        sidecar = fixture_text("content_evidence:test_customer_proof_diversity_guard-1285-13")
         article = '# Review proof\n\nA G2 reviewer said, "Scheduling is much easier for our field team now."'
 
         with TemporaryDirectory() as temp_dir:
@@ -1319,17 +1038,7 @@ Customer Proof Selection Decision
                 recommended_use="exact quote",
                 final_use="exact quote",
             )
-            + """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for scheduling proof and selected an approved exact quote.
-- Approved quote: "Scheduling is much easier for our field team now." | Customer/brand: Example Customer | Source type: Quote Matrix | URL: https://example.com/customer-proof | Evidence: "Scheduling is much easier for our field team now." | Status: approved | Use: exact quote
-- Use in copy: exact quote.
-- Claims excluded: none.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "scheduling proof" --proof-role quote
-- Selected proof: quote-matrix-example-customer | Customer: Example Customer | URL: https://example.com/customer-proof | Use: exact quote proof
-"""
+            + fixture_text("content_evidence:test_customer_proof_diversity_guard-1322-29")
         )
         article = '# Review proof\n\nExample Customer said, "Scheduling is much easier for our field team now."'
 
@@ -1357,18 +1066,7 @@ Customer Proof Selection Decision
             sidecar.write_text(
                 proof_slate()
                 + proof_mining()
-                + """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof; no exact quote selected.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Reuse reason: TEAMWired remains the best public source-visible invoicing metric.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
-- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
-""",
+                + fixture_text("content_evidence:test_customer_proof_diversity_guard-1360-32"),
                 encoding="utf-8",
             )
             ledger.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
@@ -1390,13 +1088,7 @@ Customer Proof Selection Decision
         sidecar = (
             proof_slate()
             + proof_mining()
-            + """Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
-- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes.
-"""
+            + fixture_text("content_evidence:test_customer_proof_diversity_guard-1393-30")
         )
         verified_roles = {
             "metric": {

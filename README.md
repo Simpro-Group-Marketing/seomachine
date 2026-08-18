@@ -44,7 +44,7 @@ See [AUTHORS.md](AUTHORS.md) for the current Simpro Group Marketing repo authors
 ## Overview
 
 SEO Machine is built on Claude Code and provides:
-- **Custom Commands**: `/research`, `/write`, `/rewrite`, `/article`, `/analyze-existing`, `/optimize`, `/performance-review`, `/publish-draft`, `/priorities`, `/research-ai-citations`, plus SERP, gap, trending, cluster, and landing-page commands
+- **Custom Commands**: `/research`, `/write`, `/rewrite`, `/analyze-existing`, `/optimize`, `/performance-review`, `/publish-draft`, `/priorities`, `/research-ai-citations`, plus SERP, gap, trending, cluster, and landing-page commands
 - **Specialized Agents**: Content analyzer, SEO optimization, meta element creation, internal linking, keyword mapping, editor, performance analysis, headline generator, CRO analyst, landing page optimizer
 - **Marketing Skills**: 26+ marketing skills for copywriting, CRO, A/B testing, email sequences, pricing strategy, and more
 - **AEO/GEO Workflow**: Capsule Method structure, PAA/FAQ integration, source mapping, E-E-A-T Proof Map checks, and `aeo_geo_rater` scoring (90+ target) via `context/aeo-geo-blog-strategy.md`
@@ -56,63 +56,23 @@ SEO Machine is built on Claude Code and provides:
 
 ## Blog Assembly BOM and Readiness Seal
 
-Every new or changed blog requires a strict JSON `simpro-blog-assembly-bom/v1`. The vault remains the knowledge graph and discovery/proof source; the BOM is the article-specific execution record.
+Blog writing is native-first. `/write`, `/rewrite`, and `/optimize` create or edit public Markdown. Python modules do not draft, rewrite, or patch article copy in `drafts/`, `rewrites/`, or `published/`.
 
-Complete inventory: final article, validation sidecar, context request/pack/receipt plus customer-proof selector and Fred authority evidence when connector-bound, `simpro-blog-editorial-plan/v1`, verified SERP evidence, PAA artifact or rewrite brief plus conditional CSV/blocker evidence, every `simpro-blog-stage-receipt/v1`, conditional optimizer evidence, provisional/final BOM, preflight result, and detached final-readiness attestation.
+Python remains responsible for governance and workflow assistance: selector evidence, Context Binding evidence, verified SERP/PAA artifacts, editorial-plan validation, BOM assembly, readiness output, readiness receipts, and publisher transport payloads.
 
-Tool-emitted machine artifacts carry an `execution_attestation`, a keyed local execution-integrity attestation. It is required on every `simpro-blog-stage-receipt/v1`, verified `simpro-serp-evidence/v1`, nested `simpro-answersocrates-run-receipt/v1`, `simpro-source-classification/v1`, and `simpro-source-capture-receipt/v1`. Readiness verifies the attestation and canonical hash; a handwritten or merely rehashed replacement does not qualify.
+`/scrub` is read-only diagnostics. If scrub reports Unicode marks, em dashes, or whitespace issues, the command/agent applies those edits and reruns `/scrub`.
 
-This local control binds the exact payload to the configured repository emitter. It does not provide a remote/provider signature and does not prove that external observations are true. Source metadata, visible evidence, freshness, eligible PAA questions, and semantic claim fit remain separate validation requirements. For rewrites, a dedicated pre-picked PAA brief section still takes precedence and remains bound by its exact path and hash; it is not recast as AnswerSocrates output.
+Every new or changed blog requires `simpro-blog-assembly-bom/v1` and `/publish-readiness`. Readiness is the release owner and validates the article, sidecar, context binding, proof, URL/source support, schema, BOM, input hashes, and scorecard.
 
-Trust-key operations are part of the workflow. On a developer workstation, the emitter creates the ignored local key at `.cache/seomachine-execution-attestation.key`. Managed runners must configure the same secret for emission and validation through `SEOMACHINE_ARTIFACT_ATTESTATION_KEY`; use at least 32 UTF-8 bytes and keep it outside the repository. Losing or rotating either trust source invalidates existing attestations, so regenerate the affected machine artifacts before readiness.
+The readiness scorecard is independent:
 
-Stage receipts come from the tools that do the work. After creating the article scaffold, start the mutation recorder before drafting, finish it after saving, then run the deterministic receipt-emitting stages:
+- Content quality must be 85/100 or higher for blogs.
+- SEO quality must be 90/100 or higher with zero critical SEO issues.
+- AEO/GEO must be 90/100 or higher.
 
-```powershell
-python data_sources/modules/blog_assembly_mutation_recorder.py start --article "[article]" --state "research/stage-receipts/[topic-slug]/draft-state.json" --run-id "[run-id]" --stage draft --tool-name "[draft-tool]" --tool-version "[version]" --input "editorial_plan=research/editorial-plan-[topic-slug]-[YYYY-MM-DD].json"
-# Draft and save the article here.
-python data_sources/modules/blog_assembly_mutation_recorder.py finish --article "[article]" --state "research/stage-receipts/[topic-slug]/draft-state.json" --receipt "research/stage-receipts/[topic-slug]/draft.json" --evidence "serp_evidence=research/serp-evidence-[topic-slug]-[YYYY-MM-DD].json"
-python data_sources/modules/content_scrubber.py "[article]" --stage scrub --run-id "[run-id]" --previous-receipt "research/stage-receipts/[topic-slug]/draft.json" --stage-receipt-output "research/stage-receipts/[topic-slug]/scrub.json"
-python data_sources/modules/context_binding_generator.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --stage context_binding --run-id "[run-id]" --previous-receipt "research/stage-receipts/[topic-slug]/scrub.json" --stage-receipt-output "research/stage-receipts/[topic-slug]/context-binding.json"
-```
+A passed readiness result is invalid if any scorecard gate fails or disagrees with the top-level readiness scores.
 
-For a blog that the shared applicability guard classifies as non-connector, use the real no-context receipt instead of the connector command:
-
-```powershell
-python data_sources/modules/context_binding_generator.py "[article]" --proof-sidecar "[sidecar]" --not-applicable-reason "Final article contains no Simpro brand, URL, or connector-sensitive language." --stage context_binding --run-id "[run-id]" --previous-receipt "research/stage-receipts/[topic-slug]/scrub.json" --stage-receipt-output "research/stage-receipts/[topic-slug]/context-binding.json"
-```
-
-In that branch, omit context request/pack/receipt, customer-proof selector, and Fred evidence arguments from the BOM build, and omit context request/pack/receipt arguments from both readiness runs. The builder derives connector applicability from the final article and rejects this branch when Simpro branding, an official Simpro URL (including a schemeless hostname), or connector-sensitive language is present.
-
-Use this exact non-circular order. Add the applicable artifact arguments and repeat `--stage-receipt` for every closed stage:
-
-```powershell
-python data_sources/modules/blog_assembly_bom.py build "[article]" --validation-sidecar "[sidecar]" --editorial-plan "[editorial-plan]" --serp-evidence "[serp-evidence]" --paa-artifact "[paa-artifact]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --customer-proof-selector-evidence "[selector-evidence]" --fred-authority-evidence "[fred-evidence]" --stage-receipt "[closed-stage-receipt]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output "[provisional-bom]"
-python data_sources/modules/publish_readiness.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --assembly-bom "[provisional-bom]" --phase preflight --output "[preflight-readiness]"
-python data_sources/modules/blog_assembly_bom.py finalize --bom "[provisional-bom]" --preflight-readiness "[preflight-readiness]" --output "[final-bom]"
-python data_sources/modules/publish_readiness.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --assembly-bom "[final-bom]" --phase final --output "[final-readiness-attestation]" --stage-receipt-output "[final-readiness-stage-receipt]"
-```
-
-Preflight must pass before finalization. Final readiness reruns every source-artifact gate and writes a detached final-readiness attestation tied to the final BOM and final input hashes. It is not hashed back into the BOM. Both results declare `verification_scope: source_artifact`; CMS payload and rendered-page verification are outside this scope.
-
-When preflight writes `research/preflight-readiness-[topic-slug]-[YYYY-MM-DD].json`, it automatically emits `research/preflight-readiness-[topic-slug]-[YYYY-MM-DD]-stage-receipt.json`. Keep every preflight-bound provisional BOM immutable. Use `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json` for the initial provisional BOM and `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-final.json` for its finalized form. The closed post-optimization sequence is `optimization` -> `post_optimization_scrub` -> `post_optimization_context_binding` -> `final_preflight_readiness`; rebuild to the distinct provisional path `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-post-optimization.json`, then finalize to `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-post-optimization-final.json`. Include every receipt, optimizer evidence, and `--prior-preflight-readiness`. Do not overwrite the BOM referenced by the prior preflight. The guard rejects that collision because it would destroy the historical input seal.
-
-PAA and FAQ policy:
-
-- Every new article requires a receipt-bound `simpro-answersocrates-artifact/v1` JSON artifact emitted by `paa_provenance_guard.py record`, even when no FAQ is useful. Handwritten collection labels do not qualify.
-- For a rewrite, PAA pre-picked in a dedicated brief section takes precedence. Bind the brief path/hash, do not rerun AnswerSocrates, and use those exact questions as visible FAQ headings.
-- A rewrite without pre-picked brief PAA requires a structured AnswerSocrates artifact.
-- A user CSV is allowed only when a saved AnswerSocrates artifact records a genuine blocked state: login, CAPTCHA, quota, or unavailability.
-- SERP, Reddit, and YouTube are supplemental research and cannot satisfy PAA provenance.
-- Record `FAQ policy: required | not_applicable`. `not_applicable` requires a non-empty rationale. FAQ answer/proof/schema/scoring checks run only when visible FAQs exist.
-
-For rewrites only, the dedicated brief section must be:
-
-```markdown
-## Pre-picked PAA Questions
-- [Exact complete question?]
-```
-
+The canonical proof, FAQ, PAA, customer proof, Fred authority, named feature, vault language, schema, and recovery-loop policy lives in `context/aeo-geo-blog-strategy.md`.
 ## Getting Started
 
 ### Prerequisites
@@ -136,8 +96,8 @@ pip install -r data_sources/requirements.txt
 This installs:
 - Google Analytics/Search Console integrations
 - DataForSEO API client
-- NLP libraries (nltk, textstat)
-- Machine learning (scikit-learn)
+- Text analysis library (textstat)
+- Optional machine learning for clustering (scikit-learn)
 - Web scraping tools (beautifulsoup4)
 
 3. Configure credentials and MCP (Simpro setup):
@@ -276,7 +236,7 @@ After writing, these agents automatically analyze the content:
 - Updates content based on analysis findings
 - Refreshes statistics and examples
 - Improves SEO optimization
-- Applies `context/aeo-geo-blog-strategy.md` for sourced PAA/FAQ provenance, source mapping, E-E-A-T proof, direct-answer capsules, schema notes, and 85/90 quality gates
+- Applies `context/aeo-geo-blog-strategy.md` for sourced PAA/FAQ provenance, source mapping, E-E-A-T proof, direct-answer capsules, schema notes, and 85/90/90 quality gates
 - Places each link where it directly supports the sentence and reader task, without a per-paragraph quota
 - Uses function-bearing anchor text for feature and solution links; a feature or solution name alone is not enough
 - Adds new sections to fill gaps
@@ -373,11 +333,6 @@ Final SEO optimization pass before publishing.
 
 ### `/publish-draft [file]`
 Publish article to WordPress via REST API with Yoast SEO metadata.
-
----
-
-### `/article [topic]`
-Full blog workflow with AnswerSocrates PAA collection via Playwright MCP, then research and draft steps.
 
 ---
 
@@ -699,13 +654,8 @@ Six Python modules for landing page conversion optimization:
 - `customer_proof_index_intake.py` - Customer proof intake validator/merger; add new candidates through `context/customer-proof-intake-template.csv` and validate before relying on them in selector slates
 - `customer_proof_diversity_guard.py` - Customer proof diversity guard; use the After Writing command stack and `context/aeo-geo-blog-strategy.md` for full reuse policy
 - `review_story_identity_guard.py` - Review story identity guard; use the After Writing command stack and `context/aeo-geo-blog-strategy.md` for full review story/theme policy
-- `content_scrubber.py` - Removes invisible Unicode marks, em dashes, and whitespace artifacts before publish
+- `content_scrubber.py` - Read-only diagnostics for invisible Unicode marks, em dashes, and whitespace artifacts
 - `ai_copy_linter.py` - Deterministic AI copy detection gate with line-level findings
-- `engagement_analyzer.py` - Content engagement pattern analysis
-- `competitor_gap_analyzer.py` - Competitive content gap identification
-- `article_planner.py` - Data-driven article planning
-- `section_writer.py` - Section-level content guidance
-- `social_research_aggregator.py` - Social media research aggregation
 
 ### Research Command Entry Points
 
@@ -893,7 +843,7 @@ Every Simpro blog post should meet these requirements:
 1. **Agent passes**: SEO Optimizer, Meta Creator, Internal Linker, Keyword Mapper
 2. **Scrub punctuation artifacts**: `/scrub` or `content_scrubber.py` before human review
 3. **Seal readiness**: Follow the exact build -> preflight -> finalize -> detached final readiness commands in Blog Assembly BOM and Readiness Seal.
-4. **Optimize or repair**: Run `/optimize` after non-scoring gates pass when quality is below 85/100 or AEO/GEO is below 90/100. Treat optimization as a mutation, then rerun scrub and Context Binding and restart the two-phase seal.
+4. **Optimize or repair**: Run `/optimize` after non-scoring gates pass when content quality is below 85/100, SEO quality is below 90/100, or AEO/GEO is below 90/100. Treat optimization as a mutation, then rerun scrub and Context Binding and restart the two-phase seal.
 5. **Final readiness**: Accept only a passed detached attestation bound to the final BOM hash and all final inputs.
 6. **Publish**: `/publish-draft` to WordPress when approved
 
@@ -943,8 +893,9 @@ Customer proof diversity guard confirms proof selection is not defaulting to rec
 ### Example 2: Article with Full PAA Collection
 
 ```
-/article best hvac software
-# AnswerSocrates PAA -> brief -> draft with conditional FAQ schema notes
+/research best hvac software
+/write best hvac software
+# Research and PAA evidence -> brief -> native draft with conditional FAQ schema notes
 ```
 
 ### Example 3: Rewrite an Existing Simpro Blog
@@ -952,7 +903,7 @@ Customer proof diversity guard confirms proof selection is not defaulting to rec
 ```
 /analyze-existing https://www.simprogroup.com/blog/what-is-field-service-management/
 /rewrite field service management
-# Rewrite keeps the slug and must carry PAA/FAQ provenance, source map, E-E-A-T Proof Map, and 85/90 quality gates
+# Rewrite keeps the slug and must carry PAA/FAQ provenance, source map, E-E-A-T Proof Map, and 85/90/90 quality gates
 /optimize rewrites/field-service-management-rewrite-[date].md
 ```
 
@@ -1086,7 +1037,7 @@ Upstream project: [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/
 1. Copy `.env.example`, `.mcp.json.template`, and credential files for your machine
 2. Run `/research [your topic]` (or `/research-serp` for SERP-first work)
 3. Review the brief in `research/`
-4. Run `/write [your topic]` or `/article [your topic]` for full PAA collection
+4. Run `/write [your topic]` after the research package is ready
 5. Check AEO/GEO score and publish via `/publish-draft` when ready
 
 Happy writing!

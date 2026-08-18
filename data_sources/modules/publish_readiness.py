@@ -60,6 +60,7 @@ try:
     from .landing_page_scorer import LandingPageScorer
     from .publishable_markdown import FrontmatterError, read_publishable_markdown
     from .readiness_gate_context import _issue_readiness_gate_context
+    from .seo_quality_rater import PUBLISHING_THRESHOLD as SEO_PUBLISHING_THRESHOLD
     from .guard_common import should_fail, summarize_findings
     from .url_validator import UrlValidationSummary, validate_file_urls
 except ImportError:  # pragma: no cover - supports direct script execution.
@@ -103,6 +104,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from landing_page_scorer import LandingPageScorer
     from publishable_markdown import FrontmatterError, read_publishable_markdown
     from readiness_gate_context import _issue_readiness_gate_context
+    from seo_quality_rater import PUBLISHING_THRESHOLD as SEO_PUBLISHING_THRESHOLD
     from guard_common import should_fail, summarize_findings
     from url_validator import UrlValidationSummary, validate_file_urls
 
@@ -152,6 +154,7 @@ PASSED_RESULT_FIELDS = frozenset(
         "score",
         "score_threshold",
         "aeo_geo",
+        "scorecard",
         "priority_fixes",
         "gate_inventory",
         "input_hashes",
@@ -806,7 +809,11 @@ def _run_publish_readiness(
                 )
             )
 
-    passed = all(gate["passed"] for gate in gates)
+    scorecard = _scorecard_from_scorer_result(
+        scorer_result,
+        artifact_kind=artifact_kind,
+    )
+    passed = all(gate["passed"] for gate in gates) and bool(scorecard["passed"])
     result = {
         "schema": "simpro-publish-readiness-result/v1",
         "tool": {"name": "publish_readiness", "version": "1.0.0"},
@@ -824,6 +831,7 @@ def _run_publish_readiness(
         "score": _content_score(scorer_result),
         "score_threshold": scorer_result.get("threshold", 85),
         "aeo_geo": scorer_result.get("aeo_geo", {}),
+        "scorecard": scorecard,
         "priority_fixes": scorer_result.get("priority_fixes", []),
         "gate_inventory": [gate["name"] for gate in gates],
         "input_hashes": current_input_hashes,
@@ -1120,6 +1128,7 @@ def validate_passed_readiness_result(
             raise ValueError("passed blog readiness does not meet the AEO/GEO threshold")
     elif aeo_geo.get("passed") is not True:
         raise ValueError("passed readiness result contains a failed AEO/GEO result")
+    _validate_passed_scorecard(result, artifact_kind=artifact_kind)
     if not isinstance(result.get("priority_fixes"), list):
         raise ValueError("passed readiness priority_fixes must be a list")
     if not isinstance(result.get("run_id"), str) or not str(result["run_id"]).strip():
@@ -1161,6 +1170,117 @@ def validate_passed_readiness_result(
             "passed readiness result must bind the complete exact readiness input inventory"
         )
 
+
+def _validate_passed_scorecard(
+    result: Mapping[str, Any],
+    *,
+    artifact_kind: str,
+) -> None:
+    scorecard = result.get("scorecard")
+    if not isinstance(scorecard, Mapping):
+        raise ValueError("passed readiness result requires a scorecard")
+    expected_fields = {"passed", "content_quality", "seo_quality", "aeo_geo"}
+    if set(scorecard) != expected_fields:
+        raise ValueError("passed readiness scorecard has an invalid shape")
+    if scorecard.get("passed") is not True:
+        raise ValueError("passed readiness scorecard is not a completed pass")
+
+    expected_content_threshold = 75 if artifact_kind == "landing_page" else 85
+    content_gate = _validate_scorecard_gate(
+        scorecard,
+        "content_quality",
+        "content quality",
+        expected_threshold=expected_content_threshold,
+        require_numeric_score=True,
+    )
+    if not _same_number(content_gate.get("score"), result.get("score")):
+        raise ValueError("passed readiness scorecard content score does not match the result")
+    if content_gate.get("threshold") != result.get("score_threshold"):
+        raise ValueError("passed readiness scorecard content threshold does not match the result")
+
+    seo_gate = _scorecard_gate(scorecard, "seo_quality")
+    seo_not_applicable = seo_gate.get("not_applicable") is True
+    if seo_not_applicable:
+        if seo_gate.get("passed") is not True:
+            raise ValueError("passed readiness scorecard SEO gate is not a pass")
+    else:
+        _validate_scorecard_gate(
+            scorecard,
+            "seo_quality",
+            "SEO",
+            expected_threshold=90,
+            require_numeric_score=True,
+        )
+    critical_issue_count = seo_gate.get("critical_issue_count")
+    if (
+        not isinstance(critical_issue_count, int)
+        or isinstance(critical_issue_count, bool)
+        or critical_issue_count != 0
+    ):
+        raise ValueError("passed readiness scorecard SEO gate has critical issues")
+    critical_issues = seo_gate.get("critical_issues", [])
+    if not isinstance(critical_issues, list) or critical_issues:
+        raise ValueError("passed readiness scorecard SEO gate has critical issues")
+
+    aeo_gate = _scorecard_gate(scorecard, "aeo_geo")
+    aeo_not_applicable = aeo_gate.get("not_applicable") is True
+    if aeo_not_applicable and artifact_kind != "blog":
+        if aeo_gate.get("passed") is not True:
+            raise ValueError("passed readiness scorecard AEO/GEO gate is not a pass")
+    else:
+        _validate_scorecard_gate(
+            scorecard,
+            "aeo_geo",
+            "AEO/GEO",
+            expected_threshold=90 if artifact_kind == "blog" else None,
+            require_numeric_score=True,
+        )
+        aeo_geo = result.get("aeo_geo")
+        if not isinstance(aeo_geo, Mapping):
+            raise ValueError("passed readiness result requires an AEO/GEO result")
+        if not _same_number(aeo_gate.get("score"), aeo_geo.get("score")):
+            raise ValueError("passed readiness scorecard AEO/GEO score does not match the result")
+        if aeo_gate.get("threshold") != aeo_geo.get("threshold"):
+            raise ValueError("passed readiness scorecard AEO/GEO threshold does not match the result")
+        if aeo_gate.get("passed") != aeo_geo.get("passed"):
+            raise ValueError("passed readiness scorecard AEO/GEO status does not match the result")
+
+
+def _validate_scorecard_gate(
+    scorecard: Mapping[str, Any],
+    gate_name: str,
+    label: str,
+    *,
+    expected_threshold: int | None,
+    require_numeric_score: bool,
+) -> Mapping[str, Any]:
+    gate = scorecard.get(gate_name)
+    if not isinstance(gate, Mapping):
+        raise ValueError(f"passed readiness scorecard is missing the {label} gate")
+    score = gate.get("score")
+    threshold = gate.get("threshold")
+    if expected_threshold is not None and threshold != expected_threshold:
+        raise ValueError(f"passed readiness scorecard {label} threshold is invalid")
+    if require_numeric_score and (not _is_number(score) or not _is_number(threshold)):
+        raise ValueError(f"passed readiness scorecard {label} gate is missing a numeric score")
+    if gate.get("passed") is not True:
+        raise ValueError(f"passed readiness scorecard {label} gate is not a pass")
+    if _is_number(score) and _is_number(threshold) and float(score) < float(threshold):
+        raise ValueError(f"passed readiness scorecard {label} gate is below threshold")
+    return gate
+
+
+def _scorecard_gate(scorecard: Any, gate_name: str) -> Mapping[str, Any]:
+    if not isinstance(scorecard, Mapping):
+        return {}
+    gate = scorecard.get(gate_name)
+    if not isinstance(gate, Mapping):
+        return {}
+    return gate
+
+
+def _same_number(left: Any, right: Any) -> bool:
+    return _is_number(left) and _is_number(right) and float(left) == float(right)
 
 def _verify_result_path_bindings(
     result: Mapping[str, Any],
@@ -1637,15 +1757,29 @@ def format_text_report(result: ReadinessResult) -> str:
         for blocker in gate.get("blockers", [])[:3]:
             lines.append(f"       - {blocker}")
 
-    content_score = result.get("score")
-    content_threshold = result.get("score_threshold", 85)
+    scorecard = result.get("scorecard")
+    content_gate = _scorecard_gate(scorecard, "content_quality")
+    seo_gate = _scorecard_gate(scorecard, "seo_quality")
+    aeo_gate = _scorecard_gate(scorecard, "aeo_geo")
+
+    content_score = content_gate.get("score", result.get("score"))
+    content_threshold = content_gate.get("threshold", result.get("score_threshold", 85))
     content_passed = bool(
-        content_score is not None and content_score >= content_threshold
+        content_gate.get(
+            "passed",
+            content_score is not None and content_score >= content_threshold,
+        )
     )
+    seo_score = seo_gate.get("score")
+    seo_threshold = seo_gate.get("threshold", 90)
+    seo_passed = bool(seo_gate.get("passed", False))
+    seo_critical_issue_count = seo_gate.get("critical_issue_count")
     aeo_geo = result.get("aeo_geo", {})
-    aeo_geo_score = aeo_geo.get("score")
-    aeo_geo_threshold = aeo_geo.get("threshold", 90)
-    aeo_geo_passed = bool(aeo_geo.get("passed", False))
+    if not isinstance(aeo_geo, Mapping):
+        aeo_geo = {}
+    aeo_geo_score = aeo_gate.get("score", aeo_geo.get("score"))
+    aeo_geo_threshold = aeo_gate.get("threshold", aeo_geo.get("threshold", 90))
+    aeo_geo_passed = bool(aeo_gate.get("passed", aeo_geo.get("passed", False)))
 
     lines.extend(
         [
@@ -1657,14 +1791,26 @@ def format_text_report(result: ReadinessResult) -> str:
                 content_passed,
             ),
             _score_report_line(
-                "AEO/GEO score",
-                aeo_geo_score,
-                aeo_geo_threshold,
-                aeo_geo_passed,
+                "SEO score",
+                seo_score,
+                seo_threshold,
+                seo_passed,
             ),
         ]
     )
-
+    if isinstance(seo_critical_issue_count, int) and not isinstance(
+        seo_critical_issue_count,
+        bool,
+    ) and seo_critical_issue_count > 0:
+        lines.append(f"SEO critical issues: {seo_critical_issue_count}")
+    lines.append(
+        _score_report_line(
+            "AEO/GEO score",
+            aeo_geo_score,
+            aeo_geo_threshold,
+            aeo_geo_passed,
+        )
+    )
     priority_fixes = result.get("priority_fixes", [])
     if priority_fixes:
         lines.append("")
@@ -1929,6 +2075,102 @@ def _score_content(
 
 def _content_score(score_result: Dict[str, Any]) -> Any:
     return score_result.get("content_quality_score", score_result.get("composite_score"))
+
+
+def _scorecard_from_scorer_result(
+    score_result: Mapping[str, Any],
+    *,
+    artifact_kind: str,
+) -> Dict[str, Any]:
+    """Return independent publish score gates from a scorer result."""
+    gates = score_result.get("quality_gates")
+    quality_gates = gates if isinstance(gates, Mapping) else {}
+    content_source = quality_gates.get("content_quality")
+    if not isinstance(content_source, Mapping):
+        content_source = {}
+    seo_source = quality_gates.get("seo_quality")
+    if not isinstance(seo_source, Mapping):
+        seo_source = {}
+    aeo_source = quality_gates.get("aeo_geo")
+    if not isinstance(aeo_source, Mapping):
+        aeo_source = score_result.get("aeo_geo")
+    if not isinstance(aeo_source, Mapping):
+        aeo_source = {}
+
+    content_threshold = content_source.get("threshold", score_result.get("threshold"))
+    if not _is_number(content_threshold):
+        content_threshold = 75 if artifact_kind == "landing_page" else 85
+    content_score = content_source.get("score", _content_score(dict(score_result)))
+    content_passed = bool(
+        content_source.get(
+            "passed",
+            _is_number(content_score) and float(content_score) >= float(content_threshold),
+        )
+    )
+
+    seo_not_applicable = artifact_kind != "blog" and not seo_source
+    if seo_not_applicable:
+        critical_issues: list[Any] = []
+        seo_threshold = None
+        seo_score = None
+        seo_passed = True
+    else:
+        critical_issues = seo_source.get("critical_issues", [])
+        if not isinstance(critical_issues, list):
+            critical_issues = []
+        seo_threshold = SEO_PUBLISHING_THRESHOLD
+        seo_score = seo_source.get("score")
+        seo_passed = (
+            _is_number(seo_score)
+            and float(seo_score) >= float(seo_threshold)
+            and len(critical_issues) == 0
+        )
+
+    aeo_not_applicable = artifact_kind != "blog" and aeo_source.get("not_applicable") is True
+    aeo_threshold = aeo_source.get("threshold", 90)
+    aeo_score = aeo_source.get("score")
+    if aeo_not_applicable:
+        aeo_passed = bool(aeo_source.get("passed", True))
+    else:
+        aeo_passed = bool(
+            aeo_source.get(
+                "passed",
+                _is_number(aeo_score) and float(aeo_score) >= float(aeo_threshold),
+            )
+        )
+
+    content_gate = {
+        "score": content_score,
+        "threshold": content_threshold,
+        "passed": content_passed,
+    }
+    seo_gate = {
+        "score": seo_score,
+        "threshold": seo_threshold,
+        "passed": seo_passed,
+        "critical_issue_count": len(critical_issues),
+    }
+    aeo_gate = {
+        "score": aeo_score,
+        "threshold": aeo_threshold,
+        "passed": aeo_passed,
+    }
+    if seo_not_applicable:
+        seo_gate["not_applicable"] = True
+    if critical_issues:
+        seo_gate["critical_issues"] = critical_issues
+    if aeo_source.get("not_applicable") is True:
+        aeo_gate["not_applicable"] = True
+    return {
+        "passed": bool(
+            content_gate["passed"]
+            and seo_gate["passed"]
+            and aeo_gate["passed"]
+        ),
+        "content_quality": content_gate,
+        "seo_quality": seo_gate,
+        "aeo_geo": aeo_gate,
+    }
 
 
 def _score_report_line(

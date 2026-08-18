@@ -349,7 +349,6 @@ def _receipt_identity(
 
 def scrub_file(
     file_path: str,
-    output_path: Optional[str] = None,
     verbose: bool = False,
     *,
     stage_receipt_output: Optional[str] = None,
@@ -358,11 +357,10 @@ def scrub_file(
     stage: str = 'scrub',
 ) -> Optional[Dict[str, Any]]:
     """
-    Scrub a file and optionally save to a new location.
+    Inspect a file and report scrub changes without mutating article Markdown.
 
     Args:
         file_path: Path to file to scrub
-        output_path: Path to save cleaned content (if None, overwrites original)
         verbose: If True, print statistics
     """
     if stage not in {'scrub', 'post_optimization_scrub'}:
@@ -371,7 +369,6 @@ def scrub_file(
             'content scrubber stage must be scrub or post_optimization_scrub',
         )
     input_path = Path(file_path).resolve()
-    output = Path(output_path or file_path).resolve()
     receipt_path = (
         Path(stage_receipt_output).resolve()
         if stage_receipt_output is not None
@@ -384,7 +381,6 @@ def scrub_file(
     )
     _validate_scrub_paths(
         input_path=input_path,
-        output_path=output,
         receipt_path=receipt_path,
         previous_receipt_path=previous_path,
     )
@@ -411,52 +407,44 @@ def scrub_file(
         print(f"  - AI phrases replaced: {statistics['ai_phrases_replaced']}")
 
     if receipt_path is None:
-        _atomic_write_text(output, cleaned_content)
-        if verbose:
-            print(f"Scrubbed content saved to: {output}")
-        return None
+        return {
+            "file": str(input_path),
+            "would_change": content != cleaned_content,
+            "statistics": dict(statistics),
+        }
 
-    output_existed = output.is_file()
-    previous_output = output.read_bytes() if output_existed else None
-    output_written = False
-    try:
-        _atomic_write_text(output, cleaned_content)
-        output_written = True
-        completed_at = datetime.now(timezone.utc)
-        output_hash = _sha256_file(output)
-        statistics_hash = hashlib.sha256(
-            json.dumps(
-                statistics,
-                ensure_ascii=True,
-                separators=(',', ':'),
-                sort_keys=True,
-            ).encode('utf-8')
-        ).hexdigest()
-        stage_receipt = build_stage_receipt(
-            run_id=resolved_run_id,
-            stage=stage,
-            tool_name='content_scrubber',
-            tool_version='1.0.0',
-            started_at=started_at,
-            completed_at=completed_at,
-            mutation=input_hash != output_hash,
-            input_artifact_hashes={'article': input_hash},
-            output_artifact_hashes={'article': output_hash},
-            evidence_hashes={'scrub_statistics': statistics_hash},
-            previous_receipt_hash=previous_hash,
+    if content != cleaned_content:
+        raise StageReceiptError(
+            'scrub_changes_required',
+            'scrub diagnostics found required edits; apply them through the owning command before minting a clean receipt',
         )
-        write_stage_receipt(receipt_path, stage_receipt)
-    except Exception:
-        if output_written:
-            _restore_file(
-                output,
-                existed=output_existed,
-                previous_bytes=previous_output,
-            )
-        raise
+
+    output_hash = input_hash
+    statistics_hash = hashlib.sha256(
+        json.dumps(
+            statistics,
+            ensure_ascii=True,
+            separators=(',', ':'),
+            sort_keys=True,
+        ).encode('utf-8')
+    ).hexdigest()
+    stage_receipt = build_stage_receipt(
+        run_id=resolved_run_id,
+        stage=stage,
+        tool_name='content_scrubber',
+        tool_version='1.0.0',
+        started_at=started_at,
+        completed_at=datetime.now(timezone.utc),
+        mutation=False,
+        input_artifact_hashes={'article': input_hash},
+        output_artifact_hashes={'article': output_hash},
+        evidence_hashes={'scrub_statistics': statistics_hash},
+        previous_receipt_hash=previous_hash,
+    )
+    write_stage_receipt(receipt_path, stage_receipt)
 
     if verbose:
-        print(f"Scrubbed content saved to: {output}")
+        print(f"Scrub diagnostics recorded to: {receipt_path}")
     return stage_receipt
 
 
@@ -467,7 +455,6 @@ def _path_identity(path: Path) -> str:
 def _validate_scrub_paths(
     *,
     input_path: Path,
-    output_path: Path,
     receipt_path: Optional[Path],
     previous_receipt_path: Optional[Path],
 ) -> None:
@@ -477,13 +464,12 @@ def _validate_scrub_paths(
             'previous_receipt requires stage_receipt_output',
         )
     input_identity = _path_identity(input_path)
-    output_identity = _path_identity(output_path)
     previous_identity = (
         _path_identity(previous_receipt_path)
         if previous_receipt_path is not None
         else None
     )
-    if previous_identity in {input_identity, output_identity}:
+    if previous_identity == input_identity:
         raise StageReceiptError(
             'stage_receipt_path_collision',
             'previous receipt cannot overwrite or be overwritten by article content',
@@ -492,7 +478,6 @@ def _validate_scrub_paths(
         receipt_identity = _path_identity(receipt_path)
         if receipt_identity in {
             input_identity,
-            output_identity,
             previous_identity,
         }:
             raise StageReceiptError(
@@ -530,65 +515,9 @@ def _preflight_output_path(path: Path, label: str) -> None:
             probe.unlink(missing_ok=True)
 
 
-def _atomic_write_text(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary: Optional[Path] = None
-    try:
-        with tempfile.NamedTemporaryFile(
-            'w',
-            encoding='utf-8',
-            newline='\n',
-            dir=path.parent,
-            prefix=f'.{path.name}.',
-            suffix='.tmp',
-            delete=False,
-        ) as handle:
-            temporary = Path(handle.name)
-            handle.write(content)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary, path)
-        temporary = None
-    finally:
-        if temporary is not None:
-            temporary.unlink(missing_ok=True)
-
-
-def _restore_file(
-    path: Path,
-    *,
-    existed: bool,
-    previous_bytes: Optional[bytes],
-) -> None:
-    if not existed:
-        path.unlink(missing_ok=True)
-        return
-    if previous_bytes is None:  # pragma: no cover - invariant.
-        raise RuntimeError('rollback bytes are unavailable')
-    temporary: Optional[Path] = None
-    try:
-        with tempfile.NamedTemporaryFile(
-            'wb',
-            dir=path.parent,
-            prefix=f'.{path.name}.',
-            suffix='.rollback.tmp',
-            delete=False,
-        ) as handle:
-            temporary = Path(handle.name)
-            handle.write(previous_bytes)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary, path)
-        temporary = None
-    finally:
-        if temporary is not None:
-            temporary.unlink(missing_ok=True)
-
-
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(description='Scrub generated-content artifacts.')
     parser.add_argument('file_path')
-    parser.add_argument('--output', dest='output_path')
     parser.add_argument('--verbose', action='store_true')
     parser.add_argument('--stage-receipt-output')
     parser.add_argument('--run-id')
@@ -602,7 +531,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     try:
         receipt = scrub_file(
             args.file_path,
-            output_path=args.output_path,
             verbose=args.verbose,
             stage_receipt_output=args.stage_receipt_output,
             run_id=args.run_id,

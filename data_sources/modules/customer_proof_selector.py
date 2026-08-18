@@ -22,12 +22,14 @@ from tempfile import TemporaryDirectory
 from typing import Any, Dict, Iterable, Iterator, List, Mapping, Optional, Sequence
 
 try:
+    from .blog_assembly_contract import validate_governance_output_path
     from .proof_usage import count_customer_proof_usage, usage_matches_candidate
     from .vault_claim_receipts import (
         VaultClaimReceiptError,
         load_validated_claim_set,
     )
 except ImportError:  # pragma: no cover - supports direct script execution.
+    from blog_assembly_contract import validate_governance_output_path
     from proof_usage import count_customer_proof_usage, usage_matches_candidate
     from vault_claim_receipts import VaultClaimReceiptError, load_validated_claim_set
 
@@ -791,6 +793,8 @@ def _validate_evidence_output_paths(
     temporary_output: Path,
     artifacts: Mapping[str, _ArtifactSnapshot],
 ) -> None:
+    validate_governance_output_path(output)
+    validate_governance_output_path(temporary_output)
     for candidate in (output, temporary_output):
         for artifact in artifacts.values():
             if _paths_alias(candidate, artifact.path):

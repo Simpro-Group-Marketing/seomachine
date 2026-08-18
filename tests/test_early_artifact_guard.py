@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -9,12 +11,7 @@ from data_sources.modules.early_artifact_guard import (
 )
 
 
-REQUIRED_FRONTMATTER = """---
-title: "Plumbing Benchmark Article"
-primary_keyword: plumbing benchmarks
----
-
-"""
+REQUIRED_FRONTMATTER = fixture_text("content_evidence:test_early_artifact_guard-12-1")
 
 
 def _prose(word_count):
@@ -22,17 +19,9 @@ def _prose(word_count):
     return " ".join(words[index % len(words)] for index in range(word_count))
 
 
-FILLED_TABLE = """| Service | Typical range |
-|---|---|
-| Hourly call-out | $95 to $150 |
-| Hot water install | $1,200 to $1,800 |
-"""
+FILLED_TABLE = fixture_text("content_evidence:test_early_artifact_guard-25-2")
 
-SCAFFOLD_TABLE = """| Service | Typical range |
-|---|---|
-| Hourly call-out | Enter lender-approved value |
-| Hot water install | Enter lender-approved value |
-"""
+SCAFFOLD_TABLE = fixture_text("content_evidence:test_early_artifact_guard-31-3")
 
 
 def finding_ids(content, proof_content=None):
@@ -154,10 +143,7 @@ class EarlyArtifactGuardTests(unittest.TestCase):
             + "# Plumbing Benchmarks\n\n"
             + _prose(400)
         )
-        proof_content = """## Early Artifact Plan
-- Early artifact requirement: not applicable
-- Reason: Narrative story format with no data deliverable that fits the topic.
-"""
+        proof_content = fixture_text("content_evidence:test_early_artifact_guard-157-4")
 
         self.assertEqual(check_content(content, proof_content=proof_content), [])
 
@@ -167,9 +153,7 @@ class EarlyArtifactGuardTests(unittest.TestCase):
             + "# Plumbing Benchmarks\n\n"
             + _prose(400)
         )
-        proof_content = """## Early Artifact Plan
-- Early artifact requirement: not applicable
-"""
+        proof_content = fixture_text("content_evidence:test_early_artifact_guard-170-5")
 
         self.assertEqual(
             finding_ids(content, proof_content=proof_content),
@@ -182,10 +166,7 @@ class EarlyArtifactGuardTests(unittest.TestCase):
             + "# Plumbing Benchmarks\n\n"
             + _prose(400)
         )
-        sidecar = """## Early Artifact Plan
-- Early artifact requirement: not applicable
-- Reason: Narrative story format with no data deliverable that fits the topic.
-"""
+        sidecar = fixture_text("content_evidence:test_early_artifact_guard-185-6")
 
         with TemporaryDirectory() as root:
             article_path = Path(root) / "drafts" / "plumbing-benchmarks.md"

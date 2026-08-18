@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import hashlib
 import tempfile
 import unittest
@@ -12,34 +14,10 @@ from data_sources.modules.wordpress_publisher import (
 )
 
 
-DRAFT = """# Example Draft
-
-**Meta Title**: Example Draft for WordPress Publishing
-**Meta Description**: Example draft description for publisher preflight tests.
-**Target Keyword**: example draft
-**URL Slug**: /blog/example-draft
-
-This draft cites [a dead source](https://example.com/dead).
-"""
+DRAFT = fixture_text("publisher_contracts:test_wordpress_publisher-15-1")
 
 
-CANONICAL_DRAFT = """---
-title: "Canonical SEO Title | Simpro"
-meta_description: "Canonical description."
-primary_keyword: "field service software"
-secondary_keywords:
-  - "job management"
-  - scheduling
-target_url: "/blog/canonical-post"
-author: "Corey O'Donnell"
-last_updated: "2026-08-10"
-schema_notes: "BlogPosting and BreadcrumbList"
----
-
-# Canonical Display Title
-
-Canonical body copy.
-"""
+CANONICAL_DRAFT = fixture_text("publisher_contracts:test_wordpress_publisher-26-2")
 
 
 def passing_readiness():

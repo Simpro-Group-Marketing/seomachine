@@ -11,12 +11,10 @@ from typing import Any
 from urllib.parse import urlparse
 
 try:
-    from .article_planner import CTAType, EDITORIAL_PLAN_SCHEMA, FunnelStage, SectionType
     from .blog_assembly_contract import canonical_json_sha256
     from .execution_attestation import attest_mapping, verify_mapping_attestation
     from .frontmatter import FrontmatterError, split_frontmatter
 except ImportError:  # pragma: no cover - supports direct script execution.
-    from article_planner import CTAType, EDITORIAL_PLAN_SCHEMA, FunnelStage, SectionType
     from blog_assembly_contract import canonical_json_sha256
     from execution_attestation import attest_mapping, verify_mapping_attestation
     from frontmatter import FrontmatterError, split_frontmatter
@@ -24,6 +22,34 @@ except ImportError:  # pragma: no cover - supports direct script execution.
 
 Finding = dict[str, Any]
 
+EDITORIAL_PLAN_SCHEMA = 'simpro-blog-editorial-plan/v1'
+SECTION_TYPES = frozenset(
+    {
+        'intro',
+        'body_how_to',
+        'body_comparison',
+        'body_explanation',
+        'body_list',
+        'faq',
+        'conclusion',
+    }
+)
+CTA_TYPES = frozenset(
+    {
+        'soft',
+        'medium',
+        'strong',
+        'soft_resource_action',
+        'educational_next_step',
+        'contextual_product',
+        'commercial_contextual',
+        'commercial_comparison',
+        'commercial_conversion',
+        'thought_leadership_next_action',
+    }
+)
+FUNNEL_STAGES = frozenset({'tofu', 'mofu', 'bofu', 'thought leadership'})
+FAQ_SECTION_TYPE = 'faq'
 TOP_LEVEL_FIELDS = frozenset(
     {
         'schema',
@@ -222,7 +248,7 @@ def check_file(
                 'editorial_plan_json_invalid',
                 f'Editorial plan contains invalid JSON: {error.msg}.',
                 '/',
-                'Serialize the plan with serialize_article_plan().',
+                'Write a valid simpro-blog-editorial-plan/v1 JSON object.',
             )
         ]
     findings = check_plan(payload)
@@ -567,7 +593,7 @@ def _check_reader_contract(value: Any) -> list[Finding]:
         'promised_payoff',
     ):
         _require_nonempty_string(value, key, findings, f'{location}/{key}')
-    if value.get('funnel_stage') not in {stage.value for stage in FunnelStage}:
+    if value.get('funnel_stage') not in FUNNEL_STAGES:
         findings.append(_invalid_field(f'{location}/funnel_stage', 'uses an unsupported funnel stage'))
     findings.extend(_check_string_list(value.get('exclusions'), f'{location}/exclusions'))
     return findings
@@ -584,8 +610,8 @@ def _check_sections(
     numbers: list[int] = []
     word_total = 0
     all_word_targets_valid = True
-    section_types = {item.value for item in SectionType}
-    action_types = {item.value for item in CTAType}
+    section_types = SECTION_TYPES
+    action_types = CTA_TYPES
     for index, row in enumerate(value):
         row_location = f'{location}/{index}'
         if not isinstance(row, Mapping):
@@ -654,7 +680,7 @@ def _check_engagement_map(
             if any(item not in section_numbers for item in candidate):
                 findings.append(_invalid_field(f'{location}/{key}', 'references a section outside the plan'))
     mapping_values: dict[str, dict[str, int]] = {}
-    action_types = {item.value for item in CTAType}
+    action_types = CTA_TYPES
     for key in ('ctas', 'next_actions'):
         candidate = value.get(key)
         if not isinstance(candidate, Mapping) or any(
@@ -928,7 +954,7 @@ def _check_faq_paa_policies(
     faq_section_planned = bool(
         isinstance(sections_value, list)
         and any(
-            isinstance(section, Mapping) and section.get('type') == SectionType.FAQ.value
+            isinstance(section, Mapping) and section.get('type') == FAQ_SECTION_TYPE
             for section in sections_value
         )
     )

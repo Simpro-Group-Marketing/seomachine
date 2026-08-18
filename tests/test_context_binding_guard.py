@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import hashlib
 import io
 import json
@@ -290,13 +292,7 @@ class ContextBindingGuardTests(unittest.TestCase):
         article_text = "Simpro customers reduced administrative time by 25%."
         self.write_resource_only_context(
             article_text,
-            """
-## Metric Proof Pack
-
-- Metric requirement: required
-- Search log: legacy proof reviewed
-- Approved metric: Simpro customers reduced administrative time by 25%. | URL: https://www.simprogroup.com/customers/example/ | Evidence: reduced administrative time by 25% | Status: approved | Use: public metric
-""",
+            fixture_text("sealed_workflows:test_context_binding_guard-293-1"),
         )
 
         findings = self.check()
@@ -369,14 +365,7 @@ class ContextBindingGuardTests(unittest.TestCase):
         article_text = "Capterra reviewers describe Simpro as making scheduling easier."
         self.write_resource_only_context(
             article_text,
-            """
-## Review Site Theme Selection
-
-- Platform: Capterra
-- Workflow theme: easier scheduling
-- URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/
-- Status: approved for paraphrased review-theme use
-""",
+            fixture_text("sealed_workflows:test_context_binding_guard-372-2"),
         )
 
         findings = self.check()
@@ -396,11 +385,7 @@ class ContextBindingGuardTests(unittest.TestCase):
         )
         self.write_resource_only_context(
             article_text,
-            """
-## Customer Proof Pack
-
-- Claim: Example Customer reduced administrative work with Simpro. | URL: https://www.simprogroup.com/customers/example/ | Evidence: reduced administrative work | Status: approved | Use: customer proof
-""",
+            fixture_text("sealed_workflows:test_context_binding_guard-399-3"),
         )
 
         findings = self.check()
@@ -417,11 +402,7 @@ class ContextBindingGuardTests(unittest.TestCase):
         article_text = "Simpro helps field service businesses reduce administrative work."
         self.write_resource_only_context(
             article_text,
-            """
-## Source Map
-
-- Claim: Simpro helps field service businesses reduce administrative work. | URL: https://www.simprogroup.com/ | Evidence: product guidance | Status: approved | Use: commercial proof
-""",
+            fixture_text("sealed_workflows:test_context_binding_guard-420-4"),
         )
 
         findings = self.check()

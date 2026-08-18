@@ -79,7 +79,6 @@ You now have:
 # Core workflow
 /research [topic]           # Research before writing
 /write [topic]              # Create new article
-/article [topic]            # Simplified article creation
 /rewrite [topic]            # Update old content
 /optimize [file]            # Final SEO polish
 /scrub [file]               # Remove AI watermarks

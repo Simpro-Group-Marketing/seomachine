@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import os
 import json
 import time
@@ -44,27 +46,7 @@ class FakeSession:
 
 class UrlExtractionTests(unittest.TestCase):
     def test_extracts_markdown_and_bare_urls_while_ignoring_images_code_and_special_links(self):
-        content = """
----
-Meta Title: Example
----
-
-This paragraph has [a source](https://example.com/source) and a bare
-https://bare.example/path URL.
-
-![Image alt](https://cdn.example.com/image.png)
-
-`https://inline-code.example.com`
-
-```
-[coded](https://code.example.com)
-https://also-code.example.com
-```
-
-[Mail](mailto:team@example.com)
-[Phone](tel:+18005551212)
-[Anchor](#faq)
-"""
+        content = fixture_text("content_evidence:test_url_validator-47-1")
 
         links = extract_urls(content)
 

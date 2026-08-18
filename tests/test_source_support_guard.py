@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import hashlib
 import json
 import os
@@ -185,10 +187,7 @@ class SourceSupportGuardTests(unittest.TestCase):
                 )
 
     def test_general_recommendation_requires_claim_fit_source_map_row(self):
-        content = """# Scheduling guide
-
-Field service leaders should review technician capacity before assigning urgent work.
-"""
+        content = fixture_text("content_evidence:test_source_support_guard-188-1")
 
         findings = check_content(content, fetcher=fetcher_with({}))
 
@@ -524,12 +523,7 @@ Field service leaders should review technician capacity before assigning urgent 
         self.assertIn("source_claim_type_mismatch", [row["rule_id"] for row in findings])
 
     def test_general_causal_and_process_language_requires_claim_fit_source(self):
-        content = """# Scheduling workflow
-
-Reviewing capacity before dispatch reduces avoidable assignment conflicts.
-
-A constraint-first scheduling process begins with technician availability.
-"""
+        content = fixture_text("content_evidence:test_source_support_guard-527-2")
 
         findings = check_content(content)
 
@@ -903,15 +897,7 @@ Well-run HVAC operators should target [15% to 20% EBITDA margins]({EBITDA_URL}) 
         self.assertEqual(findings[0]["rule_id"], "source_evidence_not_found")
 
     def test_context_only_proof_path_fails(self):
-        content = """---
-Source Map:
-- Claim: Shaffer Beacon Mechanical achieved a 60% increase in profit margin | URL: context/features.md | Evidence: "60% increase in profit margin" | Status: approved | Use: named customer metric
----
-
-# HVAC franchise software
-
-Shaffer Beacon Mechanical achieved a 60% increase in profit margin using Simpro job costing workflows.
-"""
+        content = fixture_text("content_evidence:test_source_support_guard-906-3")
 
         findings = check_content(content, fetcher=fetcher_with({}))
 

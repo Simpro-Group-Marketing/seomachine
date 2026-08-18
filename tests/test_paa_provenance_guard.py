@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import hashlib
 import io
 import json
@@ -1023,12 +1025,7 @@ class PaaProvenanceGuardTests(unittest.TestCase):
             {finding["rule_id"] for finding in findings},
         )
     def test_new_workflow_without_faq_or_answersocrates_artifact_fails(self):
-        content = """# HVAC Scheduling Software
-
-## Scheduling workflows
-
-HVAC scheduling software helps teams coordinate dispatch, job updates, and invoicing.
-"""
+        content = fixture_text("sealed_workflows:test_paa_provenance_guard-1026-1")
 
         self.assertIn(
             "paa_new_answersocrates_required",
@@ -1186,14 +1183,7 @@ HVAC scheduling software helps teams coordinate dispatch, job updates, and invoi
             article.parent.mkdir()
             article.write_text(
                 article_with_faq(
-                    """```text
-PAA/FAQ Provenance
-- Source: answersocrates
-- Artifact: research/paa-questions-hvac-scheduling-2026-06-12.md
-- Selected questions:
-  - What is the best way to schedule HVAC technicians?
-  - Should HVAC scheduling connect to invoicing?
-```"""
+                    fixture_text("sealed_workflows:test_paa_provenance_guard-1189-4")
                 ),
                 encoding="utf-8",
             )
@@ -1218,14 +1208,7 @@ PAA/FAQ Provenance
                 encoding="utf-8",
             )
             sidecar.write_text(
-                """```text
-PAA/FAQ Provenance
-- Source: answersocrates
-- Artifact: research/paa-questions-hvac-scheduling-2026-06-12.md
-- Selected questions:
-  - What is the best way to schedule HVAC technicians?
-  - Should HVAC scheduling connect to invoicing?
-```""",
+                fixture_text("sealed_workflows:test_paa_provenance_guard-1221-2"),
                 encoding="utf-8",
             )
             article = root / "drafts" / "hvac-scheduling-2026-06-12.md"
@@ -1255,14 +1238,7 @@ PAA/FAQ Provenance
             article.parent.mkdir()
             article.write_text(
                 article_with_faq(
-                    """```text
-PAA/FAQ Provenance
-- Source: answersocrates
-- Artifact: research/paa-questions-hvac-scheduling-2026-06-12.md
-- Selected questions:
-  - What is the best way to schedule HVAC technicians?
-  - Should HVAC scheduling connect to invoicing?
-```"""
+                    fixture_text("sealed_workflows:test_paa_provenance_guard-1258-5")
                 ),
                 encoding="utf-8",
             )
@@ -1286,14 +1262,7 @@ PAA/FAQ Provenance
             article.parent.mkdir()
             article.write_text(
                 article_with_faq(
-                    """```text
-PAA/FAQ Provenance
-- Source: answersocrates
-- Artifact: research/missing-paa.md
-- Selected questions:
-  - What is the best way to schedule HVAC technicians?
-  - Should HVAC scheduling connect to invoicing?
-```"""
+                    fixture_text("sealed_workflows:test_paa_provenance_guard-1289-6")
                 ),
                 encoding="utf-8",
             )
@@ -1309,25 +1278,14 @@ PAA/FAQ Provenance
             artifact = root / "research" / "paa-questions-hvac-scheduling-2026-06-12.md"
             artifact.parent.mkdir()
             artifact.write_text(
-                """# PAA Questions: HVAC Scheduling
-
-- What is the best way to schedule HVAC technicians?
-- Should HVAC scheduling connect to invoicing?
-""",
+                fixture_text("sealed_workflows:test_paa_provenance_guard-1312-3"),
                 encoding="utf-8",
             )
             article = root / "drafts" / "hvac-scheduling.md"
             article.parent.mkdir()
             article.write_text(
                 article_with_faq(
-                    """```text
-PAA/FAQ Provenance
-- Source: internal brainstorm
-- Artifact: research/paa-questions-hvac-scheduling-2026-06-12.md
-- Selected questions:
-  - What is the best way to schedule HVAC technicians?
-  - Should HVAC scheduling connect to invoicing?
-```"""
+                    fixture_text("sealed_workflows:test_paa_provenance_guard-1323-7")
                 ),
                 encoding="utf-8",
             )

@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import List, Optional, Sequence
 
 try:
+    from .blog_assembly_contract import validate_governance_output_path
     from .vault_claim_receipts import (
         ApprovedClaim,
         ValidatedClaimSet,
@@ -20,6 +21,7 @@ try:
         load_validated_claim_set,
     )
 except ImportError:  # pragma: no cover - supports direct script execution.
+    from blog_assembly_contract import validate_governance_output_path
     from vault_claim_receipts import (
         ApprovedClaim,
         ValidatedClaimSet,
@@ -424,7 +426,7 @@ def _reject_evidence_output_collision(
 
 
 def _atomic_write_text(path: str | Path, content: str) -> None:
-    destination = Path(path)
+    destination = validate_governance_output_path(path)
     destination.parent.mkdir(parents=True, exist_ok=True)
     temp_path: Path | None = None
     try:

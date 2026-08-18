@@ -1,10 +1,14 @@
+from tests.fixture_text import fixture_text
+
 import os
 import base64
 import hashlib
 import json
 import subprocess
+import sys
 import tempfile
 import unittest
+from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -12,46 +16,14 @@ from data_sources.modules.grav_publisher import (
     GravPartialPublishError,
     GravPublishError,
     GravPublisher,
+    main,
 )
 
 
-DRAFT_WITH_SLUG = """---
-Meta Title: Payments for Trades Businesses and Faster Cash Flow
-Meta Description: Improve payments for trades businesses with clear invoices and flexible options.
-Primary Keyword: payments for trades businesses
-Secondary Keywords: field service payments, embedded payments, faster field service payments
-Author: Simpro
-Last Updated: 2026-05-28
-URL Slug: /blog/modern-customer-payment-expectations-trades
----
-
-# Payments for Trades Businesses: Meeting Modern Customer Expectations
-
-Payments for trades businesses are the invoice, collection, and reconciliation workflows.
-
-## Why it matters
-
-The payment step now shapes the service experience too.
-"""
+DRAFT_WITH_SLUG = fixture_text("publisher_contracts:test_grav_publisher-21-1")
 
 
-CANONICAL_DRAFT = """---
-title: "Canonical SEO Title | Simpro"
-meta_description: "Canonical description."
-primary_keyword: "field service software"
-secondary_keywords:
-  - "job management"
-  - scheduling
-target_url: "/blog/canonical-post"
-author: "Corey O'Donnell"
-last_updated: "2026-08-10"
-schema_notes: "BlogPosting and BreadcrumbList"
----
-
-# Canonical Display Title
-
-Canonical body copy.
-"""
+CANONICAL_DRAFT = fixture_text("publisher_contracts:test_grav_publisher-41-2")
 
 
 def passing_readiness():
@@ -537,7 +509,23 @@ class PublishPreflightTests(unittest.TestCase):
 
         readiness.assert_not_called()
         self.assertTrue(explicit["dry_run"])
-        self.assertEqual(Path(explicit["preview_path"]).parent.parent, preview_root)
+        self.assertNotIn("preview_path", explicit)
+        self.assertFalse(preview_root.exists())
+
+    def test_dry_run_cli_prints_in_memory_article_without_preview_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write(tmp, "post.md", DRAFT_WITH_SLUG)
+            output = StringIO()
+            with (
+                patch.object(sys, "argv", ["grav_publisher.py", path, "--dry-run"]),
+                patch.object(sys, "stdout", output),
+            ):
+                main()
+
+        rendered = output.getvalue()
+        self.assertIn("[dry run] No push performed.", rendered)
+        self.assertIn("----- article.en.md -----", rendered)
+        self.assertNotIn("Preview written to:", rendered)
 
     def test_unsafe_html_blocks_before_preview_write(self):
         unsafe = (

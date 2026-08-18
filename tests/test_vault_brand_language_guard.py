@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import unittest
 
 from data_sources.modules.vault_brand_language_guard import (
@@ -6,16 +8,7 @@ from data_sources.modules.vault_brand_language_guard import (
 )
 
 
-VALID_PRODUCT_SIDECAR = """## Vault Brand Language Alignment
-- Article title: Best job quoting and invoicing software
-- Product/solution language scope: product/feature
-- Vault connector evidence: vault_status ready; vault_describe roles inspected; vault_search/vault_read/vault_expand used; context_pack_hash=sha256:0bb54c045bee7316652b3420389615a8062f6b3b654dd56630a28b2501f060a8; receipt_hash=sha256:79a12fa9ec9e3287658f44a273dca3b393e557b25bfd564cc6c201ff3620eab9; resource_id=res-641679c4b6c65e93951cb8d8e1ab88af; feature resource_id=res-ad3ee1bcd777586d81415ba9298cd755; claim_id=claim-product-CPR-0001; manifest_revision=479e1c3ddcc8d3829b0da8544fd917d74d6f0ab547a5808d93129e0adf7ba1d3
-- Product/feature language applied: AI-first operating platform category, Simpro product naming, Operational Visibility and Control value pillar, quote-to-cash workflow phrase, avoided all-in-one and generic solutions.
-- Solution/industry language applied: not applicable
-- Fallback context use: none
-- Claims requiring source verification: mapped in Source Map / Customer Proof Pack / Metric Proof Pack
-- Status: aligned
-"""
+VALID_PRODUCT_SIDECAR = fixture_text("sealed_workflows:test_vault_brand_language_guard-9-1")
 
 
 class VaultBrandLanguageGuardTests(unittest.TestCase):

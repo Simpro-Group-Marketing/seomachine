@@ -1,24 +1,17 @@
+from tests.fixture_text import fixture_text
+
 import unittest
 
 from data_sources.modules import public_research_link_guard
 from data_sources.modules.url_validator import UrlValidationResult, UrlValidationSummary
 
 
-DOL_SOURCE_MAP = """
-## Source Map
-
-- Claim: Covered employers must keep records for non-exempt workers, including hours worked each day and total hours worked each workweek. | URL: https://www.dol.gov/agencies/whd/fact-sheets/21-flsa-recordkeeping | Evidence: Records include hours worked each day and total hours worked each workweek | Status: approved | Use: recordkeeping section
-"""
+DOL_SOURCE_MAP = fixture_text("content_evidence:test_public_research_link_guard-7-1")
 
 
 class PublicResearchLinkGuardTests(unittest.TestCase):
     def test_fails_when_flsa_recordkeeping_claim_has_only_sidecar_dol_proof(self):
-        article = """# Draft
-
-## Keep employee time tracking compliant
-
-FLSA recordkeeping rules include hours worked each day and total hours worked each workweek.
-"""
+        article = fixture_text("content_evidence:test_public_research_link_guard-16-2")
 
         findings = public_research_link_guard.check_content(
             article,
@@ -101,12 +94,7 @@ Federal [recordkeeping rules for covered employees]({replacement}) include hours
         self.assertEqual(findings, [])
 
     def test_passes_when_claim_removed_and_no_sidecar_research_is_needed(self):
-        article = """# Draft
-
-## Track time from field to payroll
-
-Use a clear time policy, manager review, and approved hours before payroll.
-"""
+        article = fixture_text("content_evidence:test_public_research_link_guard-104-3")
 
         findings = public_research_link_guard.check_content(
             article,
@@ -117,12 +105,7 @@ Use a clear time policy, manager review, and approved hours before payroll.
         self.assertEqual(findings, [])
 
     def test_owned_clockshark_links_do_not_count_as_external_research(self):
-        article = """# Draft
-
-## Keep employee time tracking compliant
-
-FLSA recordkeeping guidance matters for payroll records. ClockShark has [online timesheets](https://www.clockshark.com/tour/online-time-sheets).
-"""
+        article = fixture_text("content_evidence:test_public_research_link_guard-120-4")
         summary = UrlValidationSummary([
             UrlValidationResult(
                 url="https://www.clockshark.com/tour/online-time-sheets",

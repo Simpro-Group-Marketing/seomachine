@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import unittest
 
 from data_sources.modules.publish_content_safety import (
@@ -8,24 +10,12 @@ from data_sources.modules.publish_content_safety import (
 
 class PublishContentSafetyTests(unittest.TestCase):
     def test_allows_safe_markdown_and_approved_youtube_embed(self):
-        markdown = """Read [the guide](/blog/guide) and [email us](mailto:team@example.com).
-
-<div class="video" style="position: relative; aspect-ratio: 16/9; overflow: hidden">
-<iframe src="https://www.youtube-nocookie.com/embed/abc123" title="Demo video" loading="lazy" allowfullscreen></iframe>
-</div>
-"""
+        markdown = fixture_text("content_evidence:test_publish_content_safety-11-1")
 
         validate_publish_content(markdown)
 
     def test_ignores_markup_demonstrated_inside_code(self):
-        markdown = """Use this example:
-
-```html
-<script>alert('demonstration only')</script>
-```
-
-Inline `<script>` is also code.
-"""
+        markdown = fixture_text("content_evidence:test_publish_content_safety-21-2")
 
         validate_publish_content(markdown)
 

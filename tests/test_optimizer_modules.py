@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import os
 import subprocess
 import sys
@@ -258,15 +260,7 @@ class OptimizerModuleTests(unittest.TestCase):
 
     def test_seo_quality_rater_uses_only_visible_body_for_analysis(self):
         body = concise_article_with_links()
-        frontmatter = """---
-review_notes: "payments for trades businesses "
-noise:
-  - "Many various important claims with payments for trades businesses repeated."
-  - "A deliberately long metadata sentence that must never affect readability or content scoring because readers cannot see YAML frontmatter in the published body."
-fake_link: "[metadata only](https://example.com/not-visible)"
----
-
-"""
+        frontmatter = fixture_text("content_evidence:test_optimizer_modules-261-1")
         common = {
             "meta_title": "Payments for Trades Businesses Guide and Tips | Simpro",
             "meta_description": (

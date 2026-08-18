@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -11,15 +13,7 @@ from data_sources.modules.metric_proof_pack_guard import (
 from data_sources.modules.numeric_claim_source_guard import check_content as check_numeric_claims
 
 
-REQUIRED_FRONTMATTER = """---
-title: "Best HVAC Scheduling Software"
-primary_keyword: "hvac scheduling software"
----
-
-# Best HVAC Scheduling Software
-
-HVAC scheduling software helps contractors plan work.
-"""
+REQUIRED_FRONTMATTER = fixture_text("content_evidence:test_metric_proof_pack_guard-14-1")
 
 
 class MetricProofPackGuardTests(unittest.TestCase):
@@ -31,15 +25,7 @@ class MetricProofPackGuardTests(unittest.TestCase):
         self.assertTrue(should_fail(findings, fail_on="error"))
 
     def test_body_metric_claim_requires_metric_proof_pack_even_with_neutral_title(self):
-        content = """---
-title: "How to Clean Up Field Service Workflows"
-primary_keyword: "field service workflows"
----
-
-# How to Clean Up Field Service Workflows
-
-Simpro users cut admin by 40% after implementation.
-"""
+        content = fixture_text("content_evidence:test_metric_proof_pack_guard-34-2")
 
         findings = check_content(content)
 
@@ -47,14 +33,7 @@ Simpro users cut admin by 40% after implementation.
         self.assertEqual(findings[0]["rule_id"], "metric_proof_pack_missing")
 
     def test_metric_required_article_with_no_approved_metrics_fails(self):
-        content = REQUIRED_FRONTMATTER + """
-```text
-Metric Proof Pack
-- Metric requirement: required
-- Search log: Checked public case studies and found no approved metric.
-- Approved metrics: none used
-```
-"""
+        content = REQUIRED_FRONTMATTER + fixture_text("content_evidence:test_metric_proof_pack_guard-50-4")
 
         findings = check_content(content)
 
@@ -71,14 +50,7 @@ Metric Proof Pack
                 encoding="utf-8",
             )
             article = root / "drafts" / "best-hvac-scheduling-software.md"
-            content = REQUIRED_FRONTMATTER + """
-```text
-Metric Proof Pack
-- Metric requirement: required
-- Search log: Checked Simpro company proof for platform scale.
-- Approved metric: Simpro supports more than 24,000 trade businesses | URL: research/metric-source.md | Evidence: "more than 24,000 trade businesses" | Status: approved | Use: platform scale proof
-```
-"""
+            content = REQUIRED_FRONTMATTER + fixture_text("content_evidence:test_metric_proof_pack_guard-74-8")
             article.parent.mkdir(parents=True)
             article.write_text(content, encoding="utf-8")
 
@@ -104,14 +76,7 @@ Metric Proof Pack
             article.parent.mkdir(parents=True)
             article.write_text(REQUIRED_FRONTMATTER, encoding="utf-8")
             sidecar.write_text(
-                """
-```text
-Metric Proof Pack
-- Metric requirement: required
-- Search log: Checked Simpro company proof for platform scale.
-- Approved metric: Simpro supports more than 24,000 trade businesses | URL: research/metric-source.md | Evidence: "more than 24,000 trade businesses" | Status: approved | Use: platform scale proof
-```
-""",
+                fixture_text("content_evidence:test_metric_proof_pack_guard-107-9"),
                 encoding="utf-8",
             )
 
@@ -120,14 +85,7 @@ Metric Proof Pack
         self.assertEqual(findings, [])
 
     def test_approved_metric_missing_evidence_fails(self):
-        content = REQUIRED_FRONTMATTER + """
-```text
-Metric Proof Pack
-- Metric requirement: required
-- Search log: Checked Simpro company proof for platform scale.
-- Approved metric: Simpro supports more than 24,000 trade businesses | URL: research/metric-source.md | Status: approved | Use: platform scale proof
-```
-"""
+        content = REQUIRED_FRONTMATTER + fixture_text("content_evidence:test_metric_proof_pack_guard-123-5")
 
         findings = check_content(content)
 
@@ -135,37 +93,14 @@ Metric Proof Pack
         self.assertEqual(findings[0]["rule_id"], "metric_evidence_missing")
 
     def test_metric_not_applicable_with_documented_reason_passes(self):
-        content = """---
-title: "How to Name Field Service Jobs"
-primary_keyword: "field service job naming"
----
-
-# How to Name Field Service Jobs
-
-```text
-Metric Proof Pack
-- Metric requirement: not applicable
-- Reason: This naming workflow article does not make comparative, performance, cost, ROI, KPI, profit, margin, pricing, or software-selection claims.
-- Search log: Not required after editorial classification.
-- Approved metrics: none used
-```
-"""
+        content = fixture_text("content_evidence:test_metric_proof_pack_guard-138-3")
 
         findings = check_content(content)
 
         self.assertEqual(findings, [])
 
     def test_numeric_claim_not_covered_by_pack_still_fails_numeric_guard(self):
-        content = REQUIRED_FRONTMATTER + """
-```text
-Metric Proof Pack
-- Metric requirement: required
-- Search log: Checked Simpro company proof for platform scale.
-- Approved metric: Simpro supports more than 24,000 trade businesses | URL: https://example.com/proof | Evidence: "more than 24,000 trade businesses" | Status: approved | Use: platform scale proof
-```
-
-Simpro users cut admin by 40% after implementation.
-"""
+        content = REQUIRED_FRONTMATTER + fixture_text("content_evidence:test_metric_proof_pack_guard-159-6")
 
         numeric_findings = check_numeric_claims(content)
 
@@ -173,14 +108,7 @@ Simpro users cut admin by 40% after implementation.
         self.assertEqual(numeric_findings[0]["rule_id"], "unsupported_numeric_claim")
 
     def test_public_metric_source_uses_shared_cached_source_fetcher(self):
-        content = REQUIRED_FRONTMATTER + """
-```text
-Metric Proof Pack
-- Metric requirement: required
-- Search log: Checked Simpro company proof for platform scale.
-- Approved metric: Simpro supports more than 24,000 trade businesses | URL: https://example.com/proof | Evidence: "more than 24,000 trade businesses" | Status: approved | Use: platform scale proof
-```
-"""
+        content = REQUIRED_FRONTMATTER + fixture_text("content_evidence:test_metric_proof_pack_guard-176-7")
 
         with patch(
             "data_sources.modules.metric_proof_pack_guard.fetch_source_text",

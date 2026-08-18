@@ -2,10 +2,8 @@ from importlib import import_module
 from pathlib import Path
 import json
 
-from data_sources.modules import article_planner
 from data_sources.modules.blog_assembly_contract import canonical_json_sha256
 from data_sources.modules.editorial_plan_guard import build_serp_evidence
-from tests.test_editorial_runtime_guidance import article_plan
 
 
 def _rule_ids(findings):
@@ -16,10 +14,115 @@ def _guard():
     return import_module('data_sources.modules.editorial_plan_guard')
 
 
+def article_plan():
+    return {
+        'schema': 'simpro-blog-editorial-plan/v1',
+        'topic': 'Field service scheduling',
+        'date': '2026-08-05',
+        'meta': {
+            'title_options': ['Field Service Scheduling Guide'],
+            'meta_title': 'Field Service Scheduling Guide for Teams | Simpro',
+            'meta_description': (
+                'Field service scheduling guidance for teams balancing job priority, '
+                'technician skills, travel constraints, and customer commitments.'
+            ),
+            'url_slug': 'field-service-scheduling-guide',
+            'primary_keyword': 'field service scheduling',
+            'secondary_keywords': ['dispatch workflow'],
+        },
+        'total_word_target': 275,
+        'sections': [
+            {
+                'section_number': 1,
+                'type': 'intro',
+                'heading': 'Scheduling constraints',
+                'word_target': 275,
+                'strategic_angle': 'Start with the dispatch decision',
+                'engagement_hook': None,
+                'knowledge_gaps': [],
+                'unique_data': [],
+                'internal_links': [],
+                'cta': None,
+                'next_action': None,
+                'mini_story': False,
+                'featured_snippet': False,
+            }
+        ],
+        'engagement_map': {
+            'mini_stories': [],
+            'ctas': {},
+            'featured_snippets': [],
+            'next_actions': {},
+            'cta_exception_reason': 'No CTA is needed for this single-section fixture.',
+        },
+        'gap_mapping': {},
+        'insight_mapping': {},
+        'reader_contract': {
+            'primary_reader': 'Field service operations manager',
+            'sophistication_level': 'Intermediate; understands scheduling basics',
+            'trigger_problem': 'Recurring dispatch conflicts',
+            'existing_belief': 'More scheduling rules will solve the problem',
+            'decision_task_helped': 'Choose a practical scheduling workflow',
+            'distinctive_angle': 'Separate hard constraints from judgment calls',
+            'promised_payoff': 'A workflow the reader can test this month',
+            'funnel_stage': 'tofu',
+            'exclusions': ['Vendor rankings', 'Unsupported ROI claims'],
+        },
+        'serp_strategy': {
+            'status': 'unresolved_no_verified_serp_context',
+            'content_type': {
+                'observed': None,
+                'selected': None,
+                'status': 'not_claimed',
+            },
+            'serp_features': {},
+            'serp_structure': {},
+            'competitor_gaps': {},
+            'exception_reasons': {
+                'content_type': {},
+                'serp_features': {},
+                'serp_structure': {},
+                'competitor_gaps': {},
+            },
+        },
+        'original_contributions': [
+            {
+                'description': 'Constraint-first scheduling checklist',
+                'final_section': 'Scheduling constraints',
+                'visible_evidence': 'Match urgent work to current technician capacity',
+            }
+        ],
+        'entity_map': {
+            'primary': ['field service scheduling'],
+            'supporting': ['dispatch workflow'],
+        },
+        'query_ownership': {
+            'decision': 'clear',
+            'rationale': 'No existing owned page serves the same reader decision.',
+        },
+        'internal_link_plan': [
+            {
+                'target': '/field-service-management-software/',
+                'role': 'down_funnel',
+                'rationale': 'Gives the reader an intent-appropriate product next step.',
+            }
+        ],
+        'faq_policy': {
+            'status': 'not_applicable',
+            'rationale': 'No FAQ adds a useful decision answer for this plan.',
+        },
+        'paa_policy': {
+            'source_kind': 'answersocrates',
+            'query': 'field service scheduling',
+            'selected_questions': [],
+        },
+    }
+
+
 def test_guard_accepts_serialized_article_plan(tmp_path: Path):
     output = tmp_path / 'article-plan.json'
     output.write_text(
-        article_planner.serialize_article_plan(article_plan()),
+        json.dumps(article_plan(), indent=2, sort_keys=True) + '\n',
         encoding='utf-8',
     )
 
@@ -27,7 +130,7 @@ def test_guard_accepts_serialized_article_plan(tmp_path: Path):
 
 
 def test_guard_rejects_missing_or_wrong_schema():
-    payload = article_plan().to_dict()
+    payload = article_plan()
     payload.pop('schema')
 
     findings = _guard().check_plan(payload)
@@ -41,7 +144,7 @@ def test_guard_rejects_missing_or_wrong_schema():
 
 
 def test_guard_rejects_unknown_top_level_fields():
-    payload = article_plan().to_dict()
+    payload = article_plan()
     payload['invented_policy'] = {'status': 'approved'}
 
     findings = _guard().check_plan(payload)
@@ -53,7 +156,7 @@ def test_guard_rejects_unknown_top_level_fields():
 
 
 def test_guard_rejects_non_contiguous_sections_and_word_total_mismatch():
-    payload = article_plan().to_dict()
+    payload = article_plan()
     payload['sections'][0]['section_number'] = 2
     payload['total_word_target'] = 300
 
@@ -64,7 +167,7 @@ def test_guard_rejects_non_contiguous_sections_and_word_total_mismatch():
 
 
 def test_guard_rejects_engagement_references_that_do_not_match_sections():
-    payload = article_plan().to_dict()
+    payload = article_plan()
     payload['engagement_map']['ctas'] = {'soft_resource_action': 1}
 
     findings = _guard().check_plan(payload)
@@ -82,7 +185,7 @@ def test_file_guard_reports_invalid_json_without_crashing(tmp_path: Path):
 
 
 def test_guard_rejects_missing_reader_contract_field():
-    payload = article_plan().to_dict()
+    payload = article_plan()
     payload['reader_contract'].pop('distinctive_angle')
 
     findings = _guard().check_plan(payload)
@@ -95,7 +198,7 @@ def test_guard_rejects_missing_reader_contract_field():
 
 
 def test_guard_requires_world_class_editorial_decisions():
-    payload = article_plan().to_dict()
+    payload = article_plan()
 
     for field in (
         'original_contributions',
@@ -114,7 +217,7 @@ def test_guard_requires_world_class_editorial_decisions():
 
 
 def test_guard_blocks_owned_query_conflict_and_missing_down_funnel_link():
-    payload = article_plan().to_dict()
+    payload = article_plan()
     payload['query_ownership'] = {
         'decision': 'blocked',
         'rationale': 'The commercial pillar already owns this intent.',
@@ -139,7 +242,7 @@ def test_guard_validates_serp_evidence_and_final_article_mapping(tmp_path: Path)
     serp_path = tmp_path / 'research' / 'serp-evidence.json'
     plan_path.parent.mkdir(parents=True)
     article_path.parent.mkdir(parents=True)
-    plan = article_plan().to_dict()
+    plan = article_plan()
     plan['original_contributions'][0]['visible_evidence'] = (
         'A field service scheduling dispatch workflow needs hard constraints.'
     )
@@ -295,7 +398,7 @@ def test_plain_rehashed_serp_json_cannot_mint_verified_collection(tmp_path: Path
 
 
 def test_resolved_serp_strategy_cannot_use_empty_decision_maps():
-    payload = article_plan().to_dict()
+    payload = article_plan()
     payload['serp_strategy'] = {
         'status': 'resolved',
         'content_type': {
@@ -323,7 +426,7 @@ def test_original_contribution_requires_visible_evidence_in_mapped_section(
 ):
     plan_path = tmp_path / 'plan.json'
     article_path = tmp_path / 'article.md'
-    payload = article_plan().to_dict()
+    payload = article_plan()
     payload['original_contributions'][0]['visible_evidence'] = (
         'A benchmark table comparing dispatch utilization by team size.'
     )
@@ -346,7 +449,7 @@ def test_original_contribution_requires_visible_evidence_in_mapped_section(
 
 
 def test_faq_and_paa_policy_must_agree():
-    payload = article_plan().to_dict()
+    payload = article_plan()
     payload['faq_policy'] = {
         'status': 'not_applicable',
         'rationale': 'No useful FAQ.',
@@ -361,7 +464,7 @@ def test_faq_and_paa_policy_must_agree():
 def test_entity_binding_uses_visible_body_and_whole_entity_boundaries(tmp_path: Path):
     plan_path = tmp_path / 'editorial-plan.json'
     article_path = tmp_path / 'article.md'
-    plan = article_plan().to_dict()
+    plan = article_plan()
     plan['entity_map']['primary'] = ['AI']
     plan_path.write_text(json.dumps(plan), encoding='utf-8')
     article_path.write_text(
@@ -392,7 +495,7 @@ def test_entity_binding_uses_visible_body_and_whole_entity_boundaries(tmp_path: 
 
 
 def test_plan_date_must_be_canonical_iso_date():
-    payload = article_plan().to_dict()
+    payload = article_plan()
     payload['date'] = '2026-8-5'
 
     findings = _guard().check_plan(payload)
@@ -403,7 +506,7 @@ def test_plan_date_must_be_canonical_iso_date():
 def test_plan_date_must_match_workflow_and_article_dates(tmp_path: Path):
     plan_path = tmp_path / 'editorial-plan.json'
     article_path = tmp_path / 'article.md'
-    plan_path.write_text(json.dumps(article_plan().to_dict()), encoding='utf-8')
+    plan_path.write_text(json.dumps(article_plan()), encoding='utf-8')
     article_path.write_text(
         '---\n'
         'artifact_type: blog\n'
@@ -463,7 +566,7 @@ def test_serp_timestamp_requires_extended_rfc3339_utc(tmp_path: Path):
 
 
 def test_down_funnel_plan_rejects_external_target_and_accepts_owned_target():
-    payload = article_plan().to_dict()
+    payload = article_plan()
     payload['internal_link_plan'][0]['target'] = (
         'https://external.example/features/scheduling/'
     )
