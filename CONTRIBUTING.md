@@ -93,12 +93,26 @@ If you encounter bugs or have suggestions:
 
 ## Testing Your Contributions
 
+Run the deterministic core suite by default:
+
+```powershell
+python -m pytest -q
+```
+
+Run the integration suite explicitly when the change affects connectors, browsers, credentials, or live service canaries:
+
+```powershell
+python -m pytest integration_tests -q
+```
+
 Before submitting:
-1. **Test the Command/Agent**: Run it with real content
-2. **Verify Output**: Ensure output matches expected format
-3. **Check Integration**: Confirm it works with existing workflow
-4. **Update Documentation**: Add usage examples to README.md
-5. **Test Edge Cases**: Try with various content types and scenarios
+
+1. **Test the Command/Agent**: Run it with real content.
+2. **Verify Output**: Ensure output matches the documented contract.
+3. **Run Core Tests**: Run the deterministic core suite.
+4. **Run Relevant Integrations**: Run only the explicit integration tests the change touches.
+5. **Update Documentation**: Keep usage and workflow guidance current.
+6. **Test Edge Cases**: Exercise missing, stale, or blocked inputs without inventing data.
 
 ## Content Quality Standards
 

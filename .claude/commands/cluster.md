@@ -1,361 +1,80 @@
 # Cluster Command
 
-Build a complete topic cluster strategy with pillar page definition, 8-12 supporting articles, internal linking map, and creation sequence.
+Build an evidence-backed topic-cluster strategy with one pillar, distinct supporting articles, an internal-link map, and a creation sequence.
 
 ## Usage
+
 `/cluster [topic]`
 
-**Examples:**
-- `/cluster "content marketing"`
-- `/cluster "podcast monetization"`
-- `/cluster "remote team management"`
+Examples:
 
-## Process
+- `/cluster 'field service scheduling'`
+- `/cluster 'job costing for trades'`
 
-### Step 1: Gather Existing Data
+## Workflow
 
-Check for existing research that informs this cluster:
+### 1. Resolve Context
 
-1. Search `research/` for any existing `/research-topics` output:
-   ```
-   Glob: research/topic-clusters-*.md
-   ```
-2. Search for any existing research on this topic:
-   ```
-   Glob: research/*[topic-slug]*.md
-   ```
-3. If found, extract:
-   - Authority score for this topic area
-   - Keywords already ranking
-   - Coverage gaps identified
-   - Any SERP analysis already done
+- Resolve the topic, brand, domain, audience, objective, funnel role, and region.
+- Use the required vault connector workflow and `context/aeo-geo-blog-strategy.md` for current product, audience, voice, proof, and competitor boundaries.
+- Review relevant existing artifacts in `research/`, `context/target-keywords.md`, and `context/internal-links-map.md`.
+- Record missing inputs as blockers. Do not inherit a brand, topic, keyword, or metric from examples.
 
-Document what exists vs. what needs fresh research.
+### 2. Gather Search Evidence
 
-### Step 2: Keyword Research
+- Use current, attributable keyword and SERP evidence from configured sources.
+- Record source, query, region, date, and freshness.
+- Separate observed metrics from editorial judgment.
+- Do not invent search volume, difficulty, rankings, questions, traffic forecasts, or competitors.
 
-Build the complete keyword landscape for this topic.
+### 3. Define Intent Ownership
 
-1. **DataForSEO Keyword Ideas**
-   ```bash
-   python3 -c "
-   import sys; sys.path.insert(0, 'data_sources/modules')
-   from dataforseo import DataForSEOClient
-   client = DataForSEOClient()
-   results = client.get_keyword_ideas('$ARGUMENTS')
-   for kw in sorted(results, key=lambda x: x.get('search_volume', 0), reverse=True)[:30]:
-       print(f\"{kw.get('keyword', 'N/A')} | Vol: {kw.get('search_volume', 'N/A')} | Diff: {kw.get('keyword_difficulty', 'N/A')} | CPC: {kw.get('cpc', 'N/A')}\")
-   "
-   ```
+Adopt the `cluster-strategist` agent role and define:
 
-2. **DataForSEO Questions**
-   ```bash
-   python3 -c "
-   import sys; sys.path.insert(0, 'data_sources/modules')
-   from dataforseo import DataForSEOClient
-   client = DataForSEOClient()
-   results = client.get_questions('$ARGUMENTS')
-   for q in results[:15]:
-       print(f\"{q.get('keyword', 'N/A')} | Vol: {q.get('search_volume', 'N/A')}\")
-   "
-   ```
+- one pillar query and Reader Contract
+- distinct supporting queries and Reader Contracts
+- the reader task and search intent owned by every page
+- overlap risks with existing and proposed pages
+- merge, differentiate, or reject decisions for conflicting ideas
 
-3. **WebSearch for Additional Keywords**
-   ```
-   WebSearch: "[topic] guide" site:ahrefs.com OR site:semrush.com OR site:moz.com
-   WebSearch: "[topic] related keywords" OR "[topic] subtopics"
-   ```
+The number of supporting articles must follow verified opportunity and reader usefulness. Do not create pages to reach a quota.
 
-4. **Group Keywords into Tiers**
-   - **Pillar-level**: Broad, high-volume (1000+ searches/mo), competitive
-   - **Supporting-level**: Specific subtopics, medium volume (100-1000/mo)
-   - **Long-tail**: Very specific queries, low volume (<100/mo), low competition
+### 4. Build the Cluster
 
-### Step 3: SERP Analysis
+For the pillar and each accepted supporting article, provide:
 
-Analyze what's winning for the pillar keyword.
+- working title
+- primary query and verified metrics, when available
+- search intent and funnel role
+- reader problem and article objective
+- evidence-backed content angle
+- relationship to the pillar
+- required internal links and natural anchor concepts
+- priority with stated evidence and assumptions
 
-1. **Get SERP Data**
-   ```bash
-   python3 -c "
-   import sys; sys.path.insert(0, 'data_sources/modules')
-   from dataforseo import DataForSEOClient
-   client = DataForSEOClient()
-   results = client.get_serp_data('$ARGUMENTS')
-   for r in results[:10]:
-       print(f\"Position {r.get('position', 'N/A')}: {r.get('title', 'N/A')}\")
-       print(f\"  URL: {r.get('url', 'N/A')}\")
-       print(f\"  Description: {r.get('description', 'N/A')[:100]}\")
-       print()
-   "
-   ```
+Use a caller-supplied, intent- and evidence-complete word target only. Never derive a target mechanically from competitor length.
 
-2. **Fetch Top 3 Pillar/Guide Pages**
-   Use WebFetch on the top 3 ranking comprehensive guides. For each, document:
-   - H2/H3 structure
-   - Word count estimate
-   - Topics covered
-   - Gaps and thin sections
-   - Unique angles or data
+### 5. Create the Link Map and Roadmap
 
-3. **Identify Differentiation Opportunities**
-   - What do all top results miss?
-   - Where are they thin or generic?
-   - What unique angle can we bring?
-   - What data or examples are outdated?
-
-### Step 4: Define Pillar Page
-
-Adopt the **cluster-strategist** agent role (@agents/cluster-strategist.md).
-
-Define the pillar page:
-
-| Element | Details |
-|---------|---------|
-| **Title** | [Compelling H1 targeting pillar keyword] |
-| **Primary Keyword** | [Highest-volume broad term] |
-| **Secondary Keywords** | [3-5 related terms] |
-| **Search Intent** | [Informational / Commercial Investigation] |
-| **Word Target** | Caller-supplied, intent/evidence-complete target derived from the Reader Contract |
-| **Differentiation Angle** | [What makes ours uniquely valuable] |
-
-**Pillar Page Outline:**
-- Create full H2/H3 outline
-- Each H2 should map to a supporting article topic
-- Evaluate competitor-covered sections as context against the Reader Contract
-- Add sections only when they improve reader payoff, evidence completeness, or task usefulness
-- Note where each supporting article will be linked from
-
-### Step 5: Define Supporting Articles (8-12)
-
-For each supporting article, specify:
-
-| Field | Value |
-|-------|-------|
-| **#** | [Sequential number] |
-| **Title** | [Working title] |
-| **Primary Keyword** | [MUST be distinct from all other articles] |
-| **Search Volume** | [Monthly volume] |
-| **Keyword Difficulty** | [0-100 score] |
-| **Search Intent** | [Informational / How-to / Commercial / Comparison] |
-| **Content Angle** | [Specific perspective or approach] |
-| **Pillar Relationship** | [Which pillar H2 section this expands on] |
-| **Word Target** | [Caller-supplied, intent/evidence-complete target] |
-| **Priority Score** | [0-100 using prioritization framework] |
-
-**Prioritization Framework:**
-- Volume (30%): Higher search volume = higher score
-- Difficulty Inverse (20%): Lower difficulty = higher score
-- Commercial Intent (20%): Closer to conversion = higher score
-- Pillar Dependency (15%): More essential to pillar completeness = higher score
-- Cross-link Value (15%): More connections to other cluster pieces = higher score
-
-### Step 6: Build Internal Linking Map
-
-1. **Pillar-to-Supporting Links**
-   - Map each supporting article to specific pillar page sections
-   - Every supporting article MUST link back to pillar
-   - Pillar MUST link to every supporting article
-
-2. **Cross-Links Between Supporting Articles**
-   - Identify related supporting articles that should link to each other
-   - Aim for 2-3 cross-links per supporting article
-   - Ensure no orphaned pieces
-
-3. **Integration with Existing Content**
-   - Review @context/internal-links-map.md
-   - Identify existing site pages that should link to/from cluster pieces
-   - Note specific anchor text recommendations
-
-4. **Visual Linking Map**
-
-   Create an ASCII diagram showing all connections:
-   ```
-                    [Pillar Page Title]
-                   /    |    |    |    \
-                  /     |    |    |     \
-   [Article 1] [Art 2] [Art 3] [Art 4] [Art 5]
-        \___________/      |      \_________/
-              cross-link   |        cross-link
-   ```
-
-5. **Link Matrix Table**
-
-   | From \ To | Pillar | Art 1 | Art 2 | Art 3 | ... |
-   |-----------|--------|-------|-------|-------|-----|
-   | Pillar    | -      | ->    | ->    | ->    | ... |
-   | Art 1     | ->     | -     | ->    |       | ... |
-   | Art 2     | ->     |       | -     | ->    | ... |
-
-### Step 7: Create Execution Roadmap
-
-**Phase 1: Foundation (Pillar + High-Priority)**
-List the pillar page and top 3-4 highest-priority supporting articles.
-
-**Phase 2: Build Authority (Medium-Priority)**
-Next 3-4 supporting articles.
-
-**Phase 3: Complete Coverage (Remaining)**
-Final 2-4 supporting articles to fill all gaps.
-
-**Copy-Pastable Commands:**
-For each piece, provide the exact command:
-```
-/research "[primary keyword]"
-/write "[article title]"
-```
+- Map pillar-to-supporting, supporting-to-pillar, and genuinely useful cross-links.
+- Include relevant existing pages from the approved inventory.
+- Prevent orphan pages, repetitive anchors, and links to unverified routes.
+- Sequence work by prerequisite, reader value, evidence strength, and business priority.
+- Provide copy-ready `/research` and `/write` commands for accepted pages.
 
 ## Output
 
-Save to: `research/cluster-strategy-[topic-slug]-[YYYY-MM-DD].md`
+Save to `research/cluster-strategy-[topic-slug]-[YYYY-MM-DD].md` with:
 
-### Output Template
+1. resolved context and evidence ledger
+2. executive summary
+3. keyword and intent landscape
+4. pillar Reader Contract and outline direction
+5. supporting-article table
+6. cannibalization decisions
+7. internal-link matrix
+8. phased creation roadmap
+9. measurement plan
+10. blockers and unresolved evidence
 
-```markdown
-# Topic Cluster Strategy: [Topic]
-
-**Date**: [YYYY-MM-DD]
-**Pillar Keyword**: [keyword]
-**Cluster Size**: [X] articles (1 pillar + [X-1] supporting)
-
----
-
-## Executive Summary
-
-[2-3 sentences: What this cluster covers, the opportunity size, and the strategic approach.]
-
----
-
-## Keyword Landscape
-
-### Pillar-Level Keywords
-| Keyword | Volume | Difficulty | CPC | Intent |
-|---------|--------|------------|-----|--------|
-| [keyword] | [vol] | [diff] | [cpc] | [intent] |
-
-### Supporting-Level Keywords
-| Keyword | Volume | Difficulty | CPC | Intent | Assigned To |
-|---------|--------|------------|-----|--------|-------------|
-| [keyword] | [vol] | [diff] | [cpc] | [intent] | Article # |
-
-### Long-Tail / Question Keywords
-| Keyword | Volume | Assigned To |
-|---------|--------|-------------|
-| [keyword] | [vol] | Pillar FAQ / Article # |
-
----
-
-## Pillar Page Strategy
-
-### Overview
-| Element | Details |
-|---------|---------|
-| Title | [title] |
-| Primary Keyword | [keyword] |
-| Secondary Keywords | [keywords] |
-| Search Intent | [intent] |
-| Word Target | [Caller-supplied, intent/evidence-complete target] |
-| Differentiation | [angle] |
-
-### Competitive Analysis
-- **Top Competitor**: [URL] - [Strengths] - [Gaps]
-- **Top Competitor**: [URL] - [Strengths] - [Gaps]
-- **Top Competitor**: [URL] - [Strengths] - [Gaps]
-
-### Pillar Page Outline
-1. **H2: [Section Title]** - [Brief description, links to Article #X]
-2. **H2: [Section Title]** - [Brief description, links to Article #X]
-[...]
-
----
-
-## Supporting Articles
-
-### Article 1: [Title]
-| Field | Value |
-|-------|-------|
-| Primary Keyword | [keyword] |
-| Search Volume | [vol] |
-| Keyword Difficulty | [diff] |
-| Search Intent | [intent] |
-| Content Angle | [angle] |
-| Pillar Relationship | Expands on H2: [section] |
-| Word Target | [Caller-supplied intent/evidence-complete target] |
-| Priority Score | [score]/100 |
-
-### Article 2: [Title]
-[Same format...]
-
-[Continue for all 8-12 supporting articles...]
-
----
-
-## Internal Linking Map
-
-### Visual Cluster Map
-```
-[ASCII diagram showing all connections]
-```
-
-### Link Matrix
-| From \ To | Pillar | Art 1 | Art 2 | Art 3 | ... |
-|-----------|--------|-------|-------|-------|-----|
-| Pillar    | -      | ->    | ->    | ->    | ... |
-| Art 1     | ->     | -     | ->    |       | ... |
-
-### Integration with Existing Content
-- [Existing page] -> [Cluster piece]: [anchor text]
-- [Cluster piece] -> [Existing page]: [anchor text]
-
----
-
-## Content Creation Roadmap
-
-### Phase 1: Foundation
-| Order | Piece | Command |
-|-------|-------|---------|
-| 1 | [Pillar: Title] | `/research "[keyword]"` then `/write "[title]"` |
-| 2 | [Article X: Title] | `/research "[keyword]"` then `/write "[title]"` |
-| 3 | [Article Y: Title] | `/research "[keyword]"` then `/write "[title]"` |
-
-### Phase 2: Build Authority
-| Order | Piece | Command |
-|-------|-------|---------|
-| 4 | [Article X: Title] | `/research "[keyword]"` then `/write "[title]"` |
-[...]
-
-### Phase 3: Complete Coverage
-| Order | Piece | Command |
-|-------|-------|---------|
-| 8 | [Article X: Title] | `/research "[keyword]"` then `/write "[title]"` |
-[...]
-
----
-
-## Cannibalization Check
-
-| Article A | Article B | Potential Overlap | Resolution |
-|-----------|-----------|-------------------|------------|
-| [title] | [title] | [overlapping query] | [how differentiated] |
-
-**Verdict**: [PASS - No cannibalization risks / WARN - Monitor these pairs]
-
----
-
-## Success Metrics
-
-| Metric | Target | Timeline |
-|--------|--------|----------|
-| Pillar page ranking | Top 10 for "[keyword]" | 3-6 months |
-| Supporting articles indexed | All [X] indexed | 1-2 months |
-| Internal link coverage | 100% bidirectional | At publication |
-| Organic traffic (cluster) | [target] sessions/mo | 6-12 months |
-| Featured snippets | 2-3 snippets captured | 3-6 months |
-```
-
-## Required Context Files
-
-Before building the cluster strategy, review:
-- @context/seo-guidelines.md - SEO requirements and keyword rules
-- @context/internal-links-map.md - Existing internal linking targets
-- @context/target-keywords.md - Current keyword targets (avoid overlap)
+Every numeric value must cite its source and observation date. Every public-facing Simpro, product, proof, or competitor decision must remain within the connector evidence and canonical governance policy.

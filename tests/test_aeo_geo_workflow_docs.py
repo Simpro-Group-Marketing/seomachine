@@ -3,6 +3,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+AGENT_DIR = ROOT / '.claude' / 'agents'
 COMMAND_DIR = ROOT / ".claude" / "commands"
 BLOG_WRITING_COMMANDS = ("write.md", "rewrite.md", "optimize.md")
 RESEARCH_AND_ANALYSIS_COMMANDS = ("research.md", "analyze-existing.md")
@@ -99,6 +100,63 @@ def test_specialist_agents_return_findings_and_defer_release_status():
             assert phrase not in content
 
 
+def test_all_blog_specialists_are_advisory_and_defer_release_status():
+    advisory_agents = (
+        'content-analyzer.md',
+        'editor.md',
+        'seo-optimizer.md',
+        'meta-creator.md',
+        'internal-linker.md',
+        'keyword-mapper.md',
+    )
+    forbidden = (
+        'Publishing Ready',
+        'Ready to Publish',
+        'ready to publish',
+        'Publishing Recommendation',
+        'prevent publishing',
+    )
+
+    for name in advisory_agents:
+        content = _read(AGENT_DIR / name)
+        assert 'advisory findings' in content
+        assert '/publish-readiness' in content
+        for phrase in forbidden:
+            assert phrase not in content
+
+
+def test_content_analyzer_returns_a_readiness_handoff_not_a_release_verdict():
+    content = _read(AGENT_DIR / 'content-analyzer.md')
+
+    assert '## Readiness Handoff' in content
+    assert 'Final release status comes only from `/publish-readiness`' in content
+    assert 'SEO quality below 90' in content
+    assert 'any critical SEO issue' in content
+    assert 'AEO/GEO below 90' in content
+    assert '## 8. Publishing Checklist' not in content
+
+
+def test_active_production_prompts_do_not_carry_legacy_brand_or_topic_defaults():
+    legacy_pattern = re.compile(
+        r'\b(?:castos|podcast(?:s|er|ers|ing)?)\b',
+        re.IGNORECASE,
+    )
+    violations = []
+
+    for directory in (COMMAND_DIR, AGENT_DIR):
+        for path in directory.glob('*.md'):
+            for line_number, line in enumerate(
+                _read(path).splitlines(),
+                start=1,
+            ):
+                if legacy_pattern.search(line):
+                    violations.append(
+                        f'{path.relative_to(ROOT)}:{line_number}: {line.strip()}'
+                    )
+
+    assert violations == []
+
+
 def test_optimize_is_findings_and_targeted_edit_loop_not_finalizer():
     content = _read(COMMAND_DIR / "optimize.md")
 
@@ -178,3 +236,38 @@ def test_readme_no_longer_lists_deleted_authoring_modules():
     assert "SEO quality must be 90/100 or higher with zero critical SEO issues" in content
     for deleted_tool in DELETED_AUTHORING_TOOLS:
         assert deleted_tool not in content
+
+
+def test_default_pytest_route_is_the_deterministic_core_suite():
+    content = _read(ROOT / 'pytest.ini')
+
+    assert '[pytest]' in content
+    assert 'testpaths = tests' in content
+
+    contributing = _read(ROOT / 'CONTRIBUTING.md')
+    assert 'python -m pytest -q' in contributing
+    assert 'python -m pytest integration_tests -q' in contributing
+    assert 'deterministic core suite' in contributing
+
+
+def test_performance_and_cluster_surfaces_preserve_native_handoffs():
+    performance_agent = _read(AGENT_DIR / 'performance.md')
+    performance_command = _read(COMMAND_DIR / 'performance-review.md')
+    cluster_command = _read(COMMAND_DIR / 'cluster.md')
+
+    assert 'advisory findings' in performance_agent
+    assert 'Do not edit content' in performance_agent
+    assert 'Native commands own content changes' in performance_agent
+    assert '/publish-readiness' in performance_agent
+
+    for command in (performance_command, cluster_command):
+        assert '/research' in command
+        assert '/write' in command
+        assert 'vault connector workflow' in command
+
+    assert '/analyze-existing' in performance_command
+    assert '/optimize' in performance_command
+    assert '/rewrite' in performance_command
+    assert '/scrub' in performance_command
+    assert '/publish-readiness' in performance_command
+    assert 'cluster-strategist' in cluster_command
