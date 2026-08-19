@@ -72,6 +72,8 @@ FUNCTIONAL_DESTINATION_TERMS = {
     "work order",
 }
 OWNED_INTERNAL_DOMAINS = {
+    "aroflo.com",
+    "www.aroflo.com",
     "simprogroup.com",
     "www.simprogroup.com",
     "simpro.ai",
@@ -81,8 +83,29 @@ OWNED_INTERNAL_DOMAINS = {
     "bigchange.com",
     "www.bigchange.com",
 }
+BRAND_INTERNAL_DOMAINS = {
+    "aroflo": frozenset({"aroflo.com"}),
+    "bigchange": frozenset({"bigchange.com"}),
+    "clockshark": frozenset({"clockshark.com"}),
+    "simpro": frozenset({"simprogroup.com", "simpro.ai"}),
+}
 META_TITLE_BRAND_SUFFIX_RE = re.compile(r"\|\s*[A-Za-z][A-Za-z0-9 .&-]{1,40}$")
 PUBLISHING_THRESHOLD = 90
+SEO_TARGET_SCORE = 95
+
+
+def seo_target_status(
+    *,
+    score: float,
+    publishing_ready: bool,
+    target: int = SEO_TARGET_SCORE,
+) -> str:
+    """Classify SEO target status without changing release readiness."""
+    if not publishing_ready:
+        return "failed_floor"
+    if score >= target:
+        return "met"
+    return "below_target"
 
 
 def _non_negative_finite_float(value: str) -> float:
@@ -237,7 +260,8 @@ class SEOQualityRater:
         keyword_density: Optional[float] = None,
         internal_link_count: Optional[int] = None,
         external_link_count: Optional[int] = None,
-        validate_urls: bool = False
+        validate_urls: bool = False,
+        brand: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Rate content against SEO best practices
@@ -303,7 +327,12 @@ class SEOQualityRater:
                 "keyword_density must be a finite non-negative number or None"
             )
 
-        _, visible_body, _ = split_frontmatter(content)
+        frontmatter, visible_body, _ = split_frontmatter(content)
+        article_brand = _resolve_article_brand(
+            explicit_brand=brand,
+            frontmatter_brand=frontmatter.get("brand"),
+            meta_title=meta_title,
+        )
 
         # Extract structure from reader-visible copy only. Frontmatter remains
         # available to metadata resolution, but it is never article prose.
@@ -326,7 +355,8 @@ class SEOQualityRater:
         link_score = self._score_links(
             visible_body,
             internal_link_count,
-            external_link_count
+            external_link_count,
+            brand=article_brand,
         )
         readability_score = self._score_readability(visible_body, structure)
 
@@ -394,9 +424,23 @@ class SEOQualityRater:
                 'passed': url_validation.passed
             }
 
+        publishing_ready = (
+            overall_score >= PUBLISHING_THRESHOLD
+            and len(critical_issues) == 0
+        )
+        rounded_score = round(overall_score, 1)
+
         return {
-            'overall_score': round(overall_score, 1),
+            'overall_score': rounded_score,
             'grade': self._get_grade(overall_score),
+            'threshold': PUBLISHING_THRESHOLD,
+            'target': SEO_TARGET_SCORE,
+            'passed': publishing_ready,
+            'target_met': overall_score >= SEO_TARGET_SCORE,
+            'target_status': seo_target_status(
+                score=overall_score,
+                publishing_ready=publishing_ready,
+            ),
             'category_scores': {
                 'content': content_score['score'],
                 'keyword_optimization': keyword_score['score'],
@@ -408,10 +452,7 @@ class SEOQualityRater:
             'critical_issues': critical_issues,
             'warnings': warnings,
             'suggestions': suggestions,
-            'publishing_ready': (
-                overall_score >= PUBLISHING_THRESHOLD
-                and len(critical_issues) == 0
-            ),
+            'publishing_ready': publishing_ready,
             'details': details
         }
 
@@ -457,9 +498,12 @@ class SEOQualityRater:
 
         if primary_keyword:
             keyword_lower = primary_keyword.lower()
-            keyword_in_h1 = keyword_lower in h1_text.lower()
+            keyword_in_h1 = _contains_ordered_keyword_variant(h1_text, keyword_lower)
             first_100_words = ' '.join(content.split()[:100]).lower()
-            keyword_in_first_100 = keyword_lower in first_100_words
+            keyword_in_first_100 = _contains_ordered_keyword_variant(
+                first_100_words,
+                keyword_lower,
+            )
 
             for h2 in h2_texts:
                 if keyword_lower in h2.lower():
@@ -744,7 +788,9 @@ class SEOQualityRater:
         self,
         content: str,
         internal_count: Optional[int],
-        external_count: Optional[int]
+        external_count: Optional[int],
+        *,
+        brand: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Score internal and external linking"""
         score = 100
@@ -754,12 +800,15 @@ class SEOQualityRater:
 
         # Count links if not provided
         if internal_count is None:
-            internal_count, inferred_external_count = _count_markdown_links(content)
+            internal_count, inferred_external_count = _count_markdown_links(
+                content,
+                brand=brand,
+            )
             if external_count is None:
                 external_count = inferred_external_count
 
         if external_count is None:
-            _, external_count = _count_markdown_links(content)
+            _, external_count = _count_markdown_links(content, brand=brand)
 
         # Internal links
         min_internal = self.guidelines['min_internal_links']
@@ -776,7 +825,7 @@ class SEOQualityRater:
             score -= 5
             suggestions.append(f"Could add more internal links ({internal_count}). Optimal is {optimal_internal}.")
 
-        down_funnel = _analyze_down_funnel_links(content)
+        down_funnel = _analyze_down_funnel_links(content, brand=brand)
         if down_funnel["generic"]:
             score -= 20
             anchor, url = down_funnel["generic"][0]
@@ -902,7 +951,8 @@ def rate_seo_quality(
     internal_link_count: Optional[int] = None,
     external_link_count: Optional[int] = None,
     custom_guidelines: Optional[Dict[str, Any]] = None,
-    validate_urls: bool = False
+    validate_urls: bool = False,
+    brand: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Rate SEO quality of content
@@ -935,11 +985,16 @@ def rate_seo_quality(
         keyword_density,
         internal_link_count,
         external_link_count,
-        validate_urls
+        validate_urls,
+        brand,
     )
 
 
-def _count_markdown_links(content: str) -> Tuple[int, int]:
+def _count_markdown_links(
+    content: str,
+    *,
+    brand: Optional[str] = None,
+) -> Tuple[int, int]:
     """Count markdown links as internal or external for owned web content."""
     internal_count = 0
     external_count = 0
@@ -951,15 +1006,11 @@ def _count_markdown_links(content: str) -> Tuple[int, int]:
 
         parsed = urlparse(url)
         if parsed.scheme in {"http", "https"}:
-            hostname = (parsed.hostname or "").lower()
-            if (
-                hostname in OWNED_INTERNAL_DOMAINS
-                or hostname.endswith(".simprogroup.com")
-                or hostname.endswith(".simpro.ai")
-                or hostname.endswith(".clockshark.com")
-                or hostname.endswith(".bigchange.com")
-            ):
+            hostname = (parsed.hostname or "").lower().rstrip(".")
+            if _hostname_matches_brand(hostname, brand):
                 internal_count += 1
+            elif _hostname_is_group_owned(hostname):
+                continue
             else:
                 external_count += 1
         else:
@@ -977,7 +1028,11 @@ def _extract_markdown_links(content: str) -> List[Tuple[str, str]]:
     ]
 
 
-def _analyze_down_funnel_links(content: str) -> Dict[str, List[Tuple[str, str]]]:
+def _analyze_down_funnel_links(
+    content: str,
+    *,
+    brand: Optional[str] = None,
+) -> Dict[str, List[Tuple[str, str]]]:
     analysis = {
         "valid": [],
         "generic": [],
@@ -986,7 +1041,7 @@ def _analyze_down_funnel_links(content: str) -> Dict[str, List[Tuple[str, str]]]
     }
 
     for anchor, url in _extract_markdown_links(content):
-        path = _internal_link_path(url)
+        path = _internal_link_path(url, brand=brand)
         if not path or not _is_down_funnel_path(path):
             continue
 
@@ -1002,17 +1057,11 @@ def _analyze_down_funnel_links(content: str) -> Dict[str, List[Tuple[str, str]]]
     return analysis
 
 
-def _internal_link_path(url: str) -> Optional[str]:
+def _internal_link_path(url: str, *, brand: Optional[str] = None) -> Optional[str]:
     parsed = urlparse(url)
     if parsed.scheme in {"http", "https"}:
         hostname = (parsed.hostname or "").lower()
-        if not (
-            hostname in OWNED_INTERNAL_DOMAINS
-            or hostname.endswith(".simprogroup.com")
-            or hostname.endswith(".simpro.ai")
-            or hostname.endswith(".clockshark.com")
-            or hostname.endswith(".bigchange.com")
-        ):
+        if not _hostname_matches_brand(hostname, brand):
             return None
         return _normalize_path(parsed.path)
 
@@ -1020,6 +1069,79 @@ def _internal_link_path(url: str) -> Optional[str]:
         return None
 
     return _normalize_path(url)
+
+
+def _resolve_article_brand(
+    *,
+    explicit_brand: Any,
+    frontmatter_brand: Any,
+    meta_title: Optional[str],
+) -> Optional[str]:
+    for candidate in (explicit_brand, frontmatter_brand):
+        if candidate is not None:
+            if not isinstance(candidate, str):
+                return None
+            normalized = candidate.strip().casefold()
+            return normalized if normalized in BRAND_INTERNAL_DOMAINS else None
+
+    if isinstance(meta_title, str):
+        suffix = re.search(r"\|\s*([^|]+?)\s*$", meta_title)
+        if suffix is not None:
+            normalized = suffix.group(1).strip().casefold()
+            if normalized in BRAND_INTERNAL_DOMAINS:
+                return normalized
+    return None
+
+
+def _hostname_is_group_owned(hostname: str) -> bool:
+    return any(
+        hostname == domain or hostname.endswith(f".{domain}")
+        for domain in OWNED_INTERNAL_DOMAINS
+    )
+
+
+def _hostname_matches_brand(hostname: str, brand: Optional[str]) -> bool:
+    domains = (
+        BRAND_INTERNAL_DOMAINS.get(brand, frozenset())
+        if brand is not None
+        else frozenset(OWNED_INTERNAL_DOMAINS)
+    )
+    return any(
+        hostname == domain or hostname.endswith(f".{domain}")
+        for domain in domains
+    )
+
+
+def _contains_ordered_keyword_variant(text: str, keyword: str, *, max_gap_words: int = 2) -> bool:
+    """Match a keyword exactly or with a short natural-language token gap.
+
+    Australian titles commonly place a noun or preposition before a location,
+    as in ``construction estimating software options in Australia``. The
+    ordered-token fallback accepts no more than two total inserted words while
+    preserving every keyword token in order.
+    """
+    text_tokens = re.findall(r"[a-z0-9]+", text.casefold())
+    keyword_tokens = re.findall(r"[a-z0-9]+", keyword.casefold())
+    if not keyword_tokens:
+        return False
+
+    for start, token in enumerate(text_tokens):
+        if token != keyword_tokens[0]:
+            continue
+        position = start
+        inserted = 0
+        for expected in keyword_tokens[1:]:
+            position += 1
+            while position < len(text_tokens) and text_tokens[position] != expected:
+                inserted += 1
+                if inserted > max_gap_words:
+                    break
+                position += 1
+            if inserted > max_gap_words or position >= len(text_tokens):
+                break
+        else:
+            return True
+    return False
 
 
 def _normalize_path(path: str) -> str:
@@ -1229,6 +1351,9 @@ def _format_report(result: Dict[str, Any]) -> str:
         f"Overall Score: {result['overall_score']}/100",
         f"Grade: {result['grade']}",
         f"Publishing Ready: {result['publishing_ready']}",
+        f"Release Floor: {result.get('threshold', PUBLISHING_THRESHOLD)}",
+        f"Optimization Target: {result.get('target', SEO_TARGET_SCORE)}",
+        f"Target Status: {result.get('target_status', 'unknown')}",
         "",
         "Category Scores:",
     ]
@@ -1355,7 +1480,16 @@ def main(argv: Optional[List[str]] = None) -> int:
             if keyword.strip()
         ]
 
-    internal_links, external_links = _count_markdown_links(content)
+    frontmatter = _extract_frontmatter(content)
+    article_brand = _resolve_article_brand(
+        explicit_brand=None,
+        frontmatter_brand=frontmatter.get("brand"),
+        meta_title=meta_title,
+    )
+    internal_links, external_links = _count_markdown_links(
+        content,
+        brand=article_brand,
+    )
     result = rate_seo_quality(
         content=content,
         meta_title=meta_title,
@@ -1366,6 +1500,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         internal_link_count=internal_links,
         external_link_count=external_links,
         validate_urls=args.validate_urls,
+        brand=article_brand,
     )
 
     print(_format_report(result))

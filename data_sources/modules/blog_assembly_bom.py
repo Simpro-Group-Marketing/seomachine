@@ -158,6 +158,15 @@ def build_blog_assembly_bom_from_files(
         raise ValueError(
             "non-connector blog cannot include a partial or caller-forced connector binding"
         )
+    vault_evidence_paths = (
+        customer_proof_selector_evidence_path,
+        fred_authority_evidence_path,
+    )
+    if not connector_required and any(vault_evidence_paths):
+        raise ValueError(
+            "non-connector blog cannot include vault-dependent customer proof or "
+            "Fred authority evidence"
+        )
 
     context_result: context_binding_guard.ContextValidationResult | None = None
     if connector_required:

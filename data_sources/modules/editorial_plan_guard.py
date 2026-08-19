@@ -53,6 +53,7 @@ FAQ_SECTION_TYPE = 'faq'
 TOP_LEVEL_FIELDS = frozenset(
     {
         'schema',
+        'brand',
         'topic',
         'date',
         'meta',
@@ -163,12 +164,19 @@ RFC3339_UTC_RE = re.compile(
 )
 OWNED_INTERNAL_DOMAINS = frozenset(
     {
+        'aroflo.com',
         'simprogroup.com',
         'simpro.ai',
         'clockshark.com',
         'bigchange.com',
     }
 )
+BRAND_INTERNAL_DOMAINS = {
+    'aroflo': frozenset({'aroflo.com'}),
+    'bigchange': frozenset({'bigchange.com'}),
+    'clockshark': frozenset({'clockshark.com'}),
+    'simpro': frozenset({'simprogroup.com', 'simpro.ai'}),
+}
 
 
 def build_serp_evidence(
@@ -508,6 +516,12 @@ def check_plan(value: Any) -> list[Finding]:
     findings.extend(_unknown_fields(value, TOP_LEVEL_FIELDS, ''))
     _require_nonempty_string(value, 'topic', findings, '/topic')
     _require_nonempty_string(value, 'date', findings, '/date')
+    plan_brand = _resolve_plan_brand(value)
+    if 'brand' in value and plan_brand is None:
+        findings.append(_invalid_field(
+            '/brand',
+            'must be AroFlo, BigChange, ClockShark, or Simpro',
+        ))
     raw_plan_date = value.get('date')
     if isinstance(raw_plan_date, str) and raw_plan_date.strip() and _parse_iso_date(raw_plan_date) is None:
         findings.append(_finding(
@@ -555,7 +569,12 @@ def check_plan(value: Any) -> list[Finding]:
     findings.extend(_check_original_contributions(value.get('original_contributions')))
     findings.extend(_check_entity_map(value.get('entity_map')))
     findings.extend(_check_query_ownership(value.get('query_ownership')))
-    findings.extend(_check_internal_link_plan(value.get('internal_link_plan')))
+    findings.extend(
+        _check_internal_link_plan(
+            value.get('internal_link_plan'),
+            brand=plan_brand,
+        )
+    )
     findings.extend(
         _check_faq_paa_policies(
             value.get('faq_policy'),
@@ -875,7 +894,7 @@ def _check_query_ownership(value: Any) -> list[Finding]:
     return findings
 
 
-def _check_internal_link_plan(value: Any) -> list[Finding]:
+def _check_internal_link_plan(value: Any, *, brand: str | None) -> list[Finding]:
     location = '/internal_link_plan'
     if not isinstance(value, list) or not value:
         return [_invalid_field(location, 'must be a non-empty list')]
@@ -893,12 +912,16 @@ def _check_internal_link_plan(value: Any) -> list[Finding]:
         if role not in {'supporting', 'down_funnel'}:
             findings.append(_invalid_field(f'{row_location}/role', 'must be supporting or down_funnel'))
         target = row.get('target')
-        if isinstance(target, str) and target.strip() and not _is_internal_link_target(target):
+        if (
+            isinstance(target, str)
+            and target.strip()
+            and not _is_internal_link_target(target, brand=brand)
+        ):
             findings.append(_finding(
                 'editorial_plan_internal_link_external',
                 'Editorial-plan internal-link targets must resolve to an owned site.',
                 f'{row_location}/target',
-                'Use a root-relative URL or an owned Simpro, ClockShark, or BigChange URL.',
+                'Use a root-relative URL or an absolute URL owned by the article brand.',
             ))
         has_down_funnel = has_down_funnel or role == 'down_funnel'
     if not has_down_funnel:
@@ -1162,14 +1185,38 @@ def _contains_entity(visible_body: str, entity: str) -> bool:
     return bool(re.search(rf'(?<!\w){pattern}(?!\w)', visible_body))
 
 
-def _is_internal_link_target(target: str) -> bool:
+def _resolve_plan_brand(plan: Mapping[str, Any]) -> str | None:
+    raw_brand = plan.get('brand')
+    if raw_brand is not None:
+        if not isinstance(raw_brand, str):
+            return None
+        normalized = raw_brand.strip().casefold()
+        return normalized if normalized in BRAND_INTERNAL_DOMAINS else None
+
+    meta = plan.get('meta')
+    meta_title = meta.get('meta_title') if isinstance(meta, Mapping) else None
+    if not isinstance(meta_title, str):
+        return None
+    suffix = re.search(r'\|\s*([^|]+?)\s*$', meta_title)
+    if suffix is None:
+        return None
+    normalized = suffix.group(1).strip().casefold()
+    return normalized if normalized in BRAND_INTERNAL_DOMAINS else None
+
+
+def _is_internal_link_target(target: str, *, brand: str | None = None) -> bool:
     candidate = target.strip()
     parsed = urlparse(candidate)
     if parsed.scheme in {'http', 'https'}:
         hostname = (parsed.hostname or '').casefold().rstrip('.')
+        allowed_domains = (
+            BRAND_INTERNAL_DOMAINS.get(brand, frozenset())
+            if brand is not None
+            else OWNED_INTERNAL_DOMAINS
+        )
         return any(
             hostname == domain or hostname.endswith(f'.{domain}')
-            for domain in OWNED_INTERNAL_DOMAINS
+            for domain in allowed_domains
         )
     if parsed.scheme or parsed.netloc:
         return False

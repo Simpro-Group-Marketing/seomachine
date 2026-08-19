@@ -16,7 +16,7 @@ Examples:
 ### 1. Resolve Context
 
 - Resolve the topic, brand, domain, audience, objective, funnel role, and region.
-- Use the required vault connector workflow and `context/aeo-geo-blog-strategy.md` for current product, audience, voice, proof, and competitor boundaries.
+- Use the vault connector workflow only for Simpro-owned or cross-brand-triggered clusters. For AroFlo, BigChange, and ClockShark clusters with no Simpro signal, record the nonconnector reason and use current owning-brand sources.
 - Review relevant existing artifacts in `research/`, `context/target-keywords.md`, and `context/internal-links-map.md`.
 - Record missing inputs as blockers. Do not inherit a brand, topic, keyword, or metric from examples.
 

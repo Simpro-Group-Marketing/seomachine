@@ -8,6 +8,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from data_sources.modules import seo_quality_rater as seo_quality_rater_module
 from data_sources.modules.keyword_analyzer import KeywordAnalyzer
 from data_sources.modules.seo_quality_rater import SEOQualityRater
 from data_sources.modules.url_validator import UrlValidationResult, UrlValidationSummary
@@ -85,19 +86,42 @@ def concise_article_with_links(primary_keyword="payments for trades businesses")
     )
 
 
-def rate_article_with_links(links):
-    return SEOQualityRater().rate(
+def rate_article_with_links(links, *, brand="Simpro", guidelines=None):
+    return SEOQualityRater(guidelines).rate(
         article_with_links(links),
-        meta_title="Payments for Trades Businesses Guide and Tips | Simpro",
+        meta_title=f"Payments for Trades Businesses Guide and Tips | {brand}",
         meta_description=(
             "Payments for trades businesses need online, mobile and field options. "
             "Learn how to reduce friction and protect cash flow today."
         ),
         primary_keyword="payments for trades businesses",
+        brand=brand,
     )
 
 
 class OptimizerModuleTests(unittest.TestCase):
+    def test_seo_quality_rater_reports_release_floor_and_advisory_target(self):
+        result = SEOQualityRater().rate(
+            long_article(),
+            meta_title="Payments for Trades Businesses Guide and Tips | Simpro",
+            meta_description=(
+                "Payments for trades businesses need online, mobile and field options. "
+                "Learn how to reduce friction and protect cash flow today."
+            ),
+            primary_keyword="payments for trades businesses",
+            brand="Simpro",
+        )
+
+        self.assertEqual(result["threshold"], seo_quality_rater_module.PUBLISHING_THRESHOLD)
+        self.assertEqual(result["target"], 95)
+        self.assertEqual(result["target"], seo_quality_rater_module.SEO_TARGET_SCORE)
+        self.assertEqual(result["passed"], result["publishing_ready"])
+        self.assertEqual(
+            result["target_met"],
+            result["overall_score"] >= seo_quality_rater_module.SEO_TARGET_SCORE,
+        )
+        self.assertIn(result["target_status"], {"met", "below_target", "failed_floor"})
+
     def test_seo_quality_rater_cli_scores_supplied_file(self):
         article = long_article()
 
@@ -599,7 +623,8 @@ class OptimizerModuleTests(unittest.TestCase):
             "[ClockShark job management tools](https://www.clockshark.com/tour/job-management)\n"
             "[construction schedule example](https://www.clockshark.com/blog/construction-schedule-example)\n"
             "[types of construction projects](https://www.clockshark.com/blog/types-of-construction-projects)\n"
-            "[Underground Contractors customer story](https://www.clockshark.com/resources/case-study-underground-contractors)\n"
+            "[Underground Contractors customer story](https://www.clockshark.com/resources/case-study-underground-contractors)\n",
+            brand="ClockShark",
         )
 
         self.assertTrue(result["publishing_ready"], result)
@@ -613,12 +638,63 @@ class OptimizerModuleTests(unittest.TestCase):
             "[field service management software]"
             "(https://www.bigchange.com/field-service-management-software)\n"
             "[stock setup guide]"
-            "(https://www.bigchange.com/blog/how-to-set-up-and-sort-your-stock-hassle-free-with-bigchange)\n"
+            "(https://www.bigchange.com/blog/how-to-set-up-and-sort-your-stock-hassle-free-with-bigchange)\n",
+            brand="BigChange",
         )
 
         self.assertTrue(result["publishing_ready"], result)
         self.assertNotIn("Too few internal links", "\n".join(result["warnings"] + result["suggestions"]))
         self.assertNotIn("down-funnel", "\n".join(result["critical_issues"]))
+
+    def test_seo_quality_rater_counts_absolute_aroflo_links_as_internal(self):
+        result = rate_article_with_links(
+            "[job estimating software](https://aroflo.com/features/job-estimating)\n"
+            "[construction estimator guide](https://aroflo.com/blog/construction-estimator)\n"
+            "[job costing guide](https://aroflo.com/blog/the-how-to-job-costing-guide-that-every-tradesperson-should-read)\n",
+            brand="AroFlo",
+        )
+
+        self.assertTrue(result["publishing_ready"], result)
+        self.assertNotIn("Too few internal links", "\n".join(result["warnings"] + result["suggestions"]))
+        self.assertNotIn("down-funnel", "\n".join(result["critical_issues"]))
+
+    def test_seo_quality_rater_rejects_cross_brand_owned_links_as_internal(self):
+        cases = (
+            ("AroFlo", "https://www.bigchange.com/features/mobile-workforce-management-software"),
+            ("BigChange", "https://www.clockshark.com/tour/job-management"),
+            ("ClockShark", "https://www.simprogroup.com/features/payments"),
+            ("Simpro", "https://aroflo.com/features/job-estimating"),
+        )
+
+        for brand, target in cases:
+            with self.subTest(brand=brand, target=target):
+                result = rate_article_with_links(
+                    f"[job management software]({target})\n",
+                    brand=brand,
+                    guidelines={"min_internal_links": 1},
+                )
+
+                issues = "\n".join(result["critical_issues"])
+                warnings = "\n".join(result["warnings"] + result["suggestions"])
+                self.assertIn("down-funnel internal link", issues)
+                self.assertIn("Too few internal links", warnings)
+
+    def test_seo_quality_rater_accepts_natural_locale_keyword_variant(self):
+        content = long_article("construction estimating software options in Australia")
+
+        result = SEOQualityRater().rate(
+            content,
+            meta_title="Best Construction Estimating Software Australia | AroFlo",
+            meta_description=(
+                "Compare construction estimating software in Australia by features, "
+                "pricing, takeoffs and suitability for builders and trade businesses."
+            ),
+            primary_keyword="construction estimating software australia",
+        )
+
+        issues = "\n".join(result["critical_issues"])
+        self.assertNotIn("missing from H1", issues)
+        self.assertNotIn("missing from first 100 words", issues)
 
     def test_seo_quality_rater_accepts_industries_hub_down_funnel_link(self):
         result = rate_article_with_links(
@@ -637,7 +713,8 @@ class OptimizerModuleTests(unittest.TestCase):
             "(https://www.bigchange.com/features)\n"
             "[job sheet app](https://www.bigchange.com/job-sheet-app)\n"
             "[job sheet software guide]"
-            "(https://www.bigchange.com/blog/job-sheet-software)\n"
+            "(https://www.bigchange.com/blog/job-sheet-software)\n",
+            brand="BigChange",
         )
 
         self.assertTrue(result["publishing_ready"], result)

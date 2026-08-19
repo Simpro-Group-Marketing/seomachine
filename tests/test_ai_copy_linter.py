@@ -12,6 +12,26 @@ def finding_ids(content):
 
 
 class AiCopyLinterTests(unittest.TestCase):
+    def test_required_comparison_disclosure_is_not_linted_as_passive_voice(self):
+        disclosure = (
+            "This guide is published by AroFlo, a software provider included in this comparison. "
+            "We evaluated AroFlo against the same criteria used for every other platform listed. "
+            "Product information was reviewed using official vendor documentation and independent "
+            "software review sources in August 2026."
+        )
+
+        self.assertEqual(lint_content(disclosure), [])
+
+    def test_comparison_disclosure_with_appended_passive_copy_is_linted(self):
+        disclosure = (
+            "This guide is published by AroFlo, a software provider included in this comparison. "
+            "We evaluated AroFlo against the same criteria used for every other platform listed. "
+            "Product information was reviewed using official vendor documentation and independent "
+            "software review sources in August 2026. The shortlist was selected by the publisher."
+        )
+
+        self.assertIn("passive_voice", finding_ids(disclosure))
+
     def test_standalone_original_hero_image_placeholder_is_ignored(self):
         quote = chr(34)
         content = (

@@ -14,7 +14,8 @@ Readability now includes:
 - Paragraph length check (flags paragraphs >4 sentences)
 
 Composite score must be >= 85 to pass the general content quality threshold.
-SEO quality score must be >= 90 with no critical issues to pass the SEO gate.
+SEO quality score must clear the 90 release floor with no critical issues to
+pass the SEO gate. The honest optimization target is 95.
 AEO/GEO score must be >= 90 to pass the generative-answer publishing gate.
 """
 
@@ -35,6 +36,7 @@ try:
     from .readiness_gate_context import trusted_readiness_findings
     from .review_story_identity_guard import check_content as check_review_story_identity
     from .seo_quality_rater import PUBLISHING_THRESHOLD as SEO_PUBLISHING_THRESHOLD
+    from .seo_quality_rater import SEO_TARGET_SCORE
     from .seo_quality_rater import SEOQualityRater
     from .source_support_guard import check_content as check_source_support
     from .url_validator import validate_content_urls
@@ -50,6 +52,7 @@ except ImportError:
     from readiness_gate_context import trusted_readiness_findings
     from review_story_identity_guard import check_content as check_review_story_identity
     from seo_quality_rater import PUBLISHING_THRESHOLD as SEO_PUBLISHING_THRESHOLD
+    from seo_quality_rater import SEO_TARGET_SCORE
     from seo_quality_rater import SEOQualityRater
     from source_support_guard import check_content as check_source_support
     from url_validator import validate_content_urls
@@ -655,6 +658,20 @@ class ContentScorer:
         metric_proof_pack_findings = gate_context['metric_proof_pack_findings']
         customer_proof_findings = gate_context['customer_proof_findings']
         review_story_findings = gate_context['review_story_findings']
+        seo_score = seo.get('score', 0)
+        seo_target_met = (
+            isinstance(seo_score, (int, float))
+            and not isinstance(seo_score, bool)
+            and float(seo_score) >= float(SEO_TARGET_SCORE)
+        )
+        seo_target_status = seo.get('target_status')
+        if seo_target_status not in {'met', 'below_target', 'failed_floor'}:
+            if not seo_quality_passed:
+                seo_target_status = 'failed_floor'
+            elif seo_target_met:
+                seo_target_status = 'met'
+            else:
+                seo_target_status = 'below_target'
         quality_gates = {
             'content_quality': {
                 'score': composite,
@@ -662,9 +679,12 @@ class ContentScorer:
                 'passed': content_quality_passed
             },
             'seo_quality': {
-                'score': seo.get('score', 0),
+                'score': seo_score,
                 'threshold': SEO_PUBLISHING_THRESHOLD,
+                'target': SEO_TARGET_SCORE,
                 'passed': seo_quality_passed,
+                'target_met': bool(seo.get('target_met', seo_target_met)),
+                'target_status': seo_target_status,
                 'critical_issues': list(seo.get('critical_issues', [])),
                 'critical_issue_count': len(seo.get('critical_issues', [])),
             },
@@ -1056,12 +1076,18 @@ class ContentScorer:
         if not isinstance(secondary_keywords, list):
             secondary_keywords = None
 
+        rate_kwargs = {
+            'meta_title': meta_title or None,
+            'meta_description': meta_description or None,
+            'primary_keyword': primary_keyword or None,
+            'secondary_keywords': secondary_keywords,
+        }
+        if frontmatter.get('brand') is not None:
+            rate_kwargs['brand'] = frontmatter.get('brand')
+
         rated = self.seo_rater.rate(
             visible_body,
-            meta_title=meta_title or None,
-            meta_description=meta_description or None,
-            primary_keyword=primary_keyword or None,
-            secondary_keywords=secondary_keywords,
+            **rate_kwargs,
         )
 
         issues = []
@@ -1097,11 +1123,19 @@ class ContentScorer:
             'category_scores': dict(rated.get('category_scores', {})),
             'grade': rated.get('grade', ''),
             'publishing_ready': bool(rated.get('publishing_ready', False)),
+            'threshold': rated.get('threshold', SEO_PUBLISHING_THRESHOLD),
+            'target': rated.get('target', SEO_TARGET_SCORE),
+            'target_met': bool(rated.get('target_met', False)),
+            'target_status': rated.get('target_status', 'failed_floor'),
         })
 
         return {
             'score': max(0, min(100, round(float(rated.get('overall_score', 0))))),
-            'passed': bool(rated.get('publishing_ready', False)),
+            'passed': bool(rated.get('passed', rated.get('publishing_ready', False))),
+            'threshold': rated.get('threshold', SEO_PUBLISHING_THRESHOLD),
+            'target': rated.get('target', SEO_TARGET_SCORE),
+            'target_met': bool(rated.get('target_met', False)),
+            'target_status': rated.get('target_status', 'failed_floor'),
             'critical_issues': list(rated.get('critical_issues', [])),
             'issues': issues,
             'details': details

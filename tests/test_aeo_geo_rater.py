@@ -110,6 +110,15 @@ def finalized_no_author_bom():
     }
 
 
+def finalized_non_connector_bom():
+    bom = finalized_no_author_bom()
+    bom['connector_binding'] = {
+        'status': 'not_applicable',
+        'reason': 'Final article contains no Simpro brand, URL, or connector-sensitive language.',
+    }
+    return bom
+
+
 def write_bound_experience_story_evidence(
     test_case: unittest.TestCase,
     root: Path,
@@ -514,6 +523,24 @@ class AeoGeoRaterTests(unittest.TestCase):
         self.assertTrue(result["checks"]["eeat_proof"]["passed"])
         self.assertTrue(result["checks"]["paa_provenance"]["passed"])
 
+    def test_non_connector_bom_makes_selector_backed_eeat_not_applicable(self):
+        result = rate_aeo_geo(
+            COMPLIANT_ARTICLE,
+            {"primary_keyword": "hvac scheduling software"},
+            source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+            proof_sidecar_content=PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK,
+            finalized_bom=finalized_non_connector_bom(),
+            assembly_date=ASSEMBLY_DATE,
+            paa_workflow_mode="new",
+            paa_expected_query=PAA_QUERY,
+            paa_expected_collection_date=ASSEMBLY_DATE,
+        )
+
+        check = result["checks"]["eeat_proof"]
+        self.assertTrue(check["passed"])
+        self.assertFalse(check["applicable"])
+        self.assertEqual(check["status"], "not_applicable")
+
     def test_direct_answer_skips_standalone_image_placeholder(self):
         content = COMPLIANT_ARTICLE.replace(
             "# HVAC Scheduling Software for Contractors\n\n",
@@ -527,6 +554,14 @@ class AeoGeoRaterTests(unittest.TestCase):
         self.assertTrue(result["checks"]["direct_answer"]["passed"])
         self.assertTrue(first_two.startswith("HVAC scheduling software helps contractors"))
         self.assertNotIn("IMAGE PLACEHOLDER", first_two)
+
+    def test_direct_answer_accepts_natural_locale_keyword_variant(self):
+        result = _check_direct_answer(
+            "The strongest construction estimating software in Australia is the option that matches how a business prices work.",
+            {"primary_keyword": "construction estimating software australia"},
+        )
+
+        self.assertTrue(result["passed"], result)
 
     def test_direct_answer_skips_original_hero_image_placeholder(self):
         content = COMPLIANT_ARTICLE.replace(

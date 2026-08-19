@@ -1,6 +1,8 @@
 # Customer Proof Rule
 
-Apply this selector-first rule to blog drafts, rewrites, and research proof sidecars.
+Apply this selector-first rule to connector-bound blog drafts, rewrites, and research proof sidecars.
+
+AroFlo, BigChange, and ClockShark owned workflows with no Simpro name or official `simprogroup.com` URL are nonconnector. Do not run this vault-dependent selector for those workflows, and do not publish customer stories, testimonials, review-derived anecdotes, ratings, or quotes unless a separate approved non-vault proof-eligibility contract is available.
 
 Before drafting customer proof, the command workflow must resolve `topic`, `title`, and `objective`, automatically run:
 

@@ -24,6 +24,17 @@ SHAFFER_URL = "https://www.simprogroup.com/case-studies/schaffer-beacon-mechanic
 EBITDA_URL = "https://profitabilitypartners.io/what-is-ebitda-contractors/"
 PDF_URL = "https://example.com/report.pdf"
 G2_URL = "https://www.g2.com/products/simpro/reviews"
+PRODUCTION_IMAGE_PLACEHOLDER = (
+    '[IMAGE PLACEHOLDER | source: https://cdn.example.com/hero.png | '
+    'alt: "Construction plans and estimating tools" | render target: '
+    '1200 x 630 px | resize and compress before upload]'
+)
+
+
+def test_production_image_placeholder_is_not_treated_as_a_numeric_claim():
+    findings = check_content(PRODUCTION_IMAGE_PLACEHOLDER)
+
+    assert findings == []
 
 
 def fetcher_with(source_text_by_url):

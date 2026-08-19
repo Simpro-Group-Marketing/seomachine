@@ -630,13 +630,14 @@ def test_incomplete_blog_identity_fails_before_context_binding(files):
     scorer.score.assert_not_called()
 
 
-def test_non_simpro_article_skips_simpro_only_publish_gates(files):
+@pytest.mark.parametrize("brand", ("AroFlo", "BigChange", "ClockShark"))
+def test_owned_brand_article_skips_simpro_only_publish_gates(files, brand):
     article, sidecar = files
     article.write_text(
-        "---\nbrand: BigChange\nartifact_type: blog\ntitle: Job management\nobjective: Explain job management\naudience: Service leaders\nregion: US\n"
+        f"---\nbrand: {brand}\nartifact_type: blog\ntitle: Job management\nobjective: Explain job management\naudience: Service leaders\nregion: US\n"
         f"last_updated: {CURRENT_DATE}\n"
         "schema_notes:\n  - BlogPosting\n  - BreadcrumbList\n  - ImageObject for the featured image or logo\n  - Organization as publisher reference only, not a separate full schema block\n---\n"
-        "# Job management\n\nBigChange helps teams coordinate field work.",
+        f"# Job management\n\n{brand} helps teams coordinate field work.",
         encoding="utf-8",
     )
 
@@ -743,9 +744,27 @@ def test_text_report_shows_100_point_scales_thresholds_and_gate_status(files):
     report = publish_readiness.format_text_report(result)
 
     assert "Content score: 81.0/100 (threshold: 85, FAIL)" in report
-    assert "SEO score: 84/100 (threshold: 90, FAIL)" in report
+    assert "SEO score: 84/100 (release floor: 90, target: 95, FAIL)" in report
     assert "SEO critical issues: 1" in report
     assert "AEO/GEO score: 88/100 (threshold: 90, FAIL)" in report
+
+
+def test_text_report_marks_release_pass_below_seo_target(files):
+    article, sidecar = files
+    result, _, _, _ = run_with_patches(article, sidecar, score_passed=True)
+    result["scorecard"]["seo_quality"]["score"] = 92
+    result["scorecard"]["seo_quality"]["threshold"] = 90
+    result["scorecard"]["seo_quality"]["target"] = 95
+    result["scorecard"]["seo_quality"]["passed"] = True
+    result["scorecard"]["seo_quality"]["target_met"] = False
+    result["scorecard"]["seo_quality"]["target_status"] = "below_target"
+
+    report = publish_readiness.format_text_report(result)
+
+    assert (
+        "SEO score: 92/100 (release floor: 90, target: 95, PASS, BELOW TARGET)"
+        in report
+    )
 
 
 @pytest.mark.parametrize(

@@ -12,10 +12,10 @@ Python may write governance artifacts only: selector output, context binding evi
 
 1. Read the existing article and analysis findings.
 2. Resolve topic, title, objective, audience, target keyword, target URL, and rewrite path.
-3. Use the Simpro vault connector first for current brand, product, feature, audience, proof, competitor, and claim decisions. Repo-local context is fallback only when the sidecar records the vault-unavailable blocker.
+3. Classify Context Binding from the final brand metadata and content. Use the Simpro vault connector for Simpro-owned or cross-brand-triggered work. For AroFlo, BigChange, or ClockShark work with no Simpro name or official `simprogroup.com` URL, record the nonconnector reason and omit vault, Fred, and vault-dependent customer-proof selector artifacts.
 4. Reuse pre-picked PAA from a dedicated rewrite brief when present. If no dedicated PAA exists and PAA is required, collect structured AnswerSocrates evidence. Do not invent questions.
 5. Update the validation sidecar before changing proof-sensitive copy.
-6. Run customer proof and Fred authority selectors when applicable, then decide what to use publicly.
+6. Run customer proof and Fred authority selectors only when Context Binding requires the connector, then decide what to use publicly.
 7. Write the rewrite Markdown through `/rewrite`.
 8. Freeze one rewrite snapshot and run `content-analyzer`, `editor`, `seo-optimizer`, `meta-creator`, `internal-linker`, and `keyword-mapper` in parallel. They return advisory findings only. Select the useful findings and apply one consolidated edit batch through `/rewrite`.
 9. Run `/scrub [article]` as read-only diagnostics. Apply any required edits through `/rewrite` and rerun `/scrub`.
@@ -36,7 +36,7 @@ python data_sources/modules/blog_assembly_stage_receipt.py finish-native-edit --
 `/publish-readiness` must report separate gates for:
 
 - Content quality: 85/100 or higher.
-- SEO quality: 90/100 or higher and zero critical SEO issues.
+- SEO quality: 90/100 release floor with zero critical SEO issues; 95/100 honest optimization target when source-safe improvements exist.
 - AEO/GEO: 90/100 or higher.
 
 If any scorecard gate fails, repair the root copy, proof, sidecar, or scorer issue and rerun `/publish-readiness`. After 2 unsuccessful repair loops, route to `review-required/` with failed checks and attempted fixes.

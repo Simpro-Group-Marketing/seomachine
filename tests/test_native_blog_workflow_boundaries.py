@@ -102,13 +102,78 @@ def test_readiness_scorecard_keeps_content_seo_and_aeo_gates_independent():
     }
     assert scorecard["seo_quality"]["score"] == 89
     assert scorecard["seo_quality"]["threshold"] == 90
+    assert scorecard["seo_quality"]["target"] == 95
     assert scorecard["seo_quality"]["passed"] is False
+    assert scorecard["seo_quality"]["target_met"] is False
+    assert scorecard["seo_quality"]["target_status"] == "failed_floor"
     assert scorecard["seo_quality"]["critical_issue_count"] == 0
     assert scorecard["aeo_geo"] == {
         "score": 94,
         "threshold": 90,
         "passed": True,
     }
+
+
+@pytest.mark.parametrize(
+    "seo_score,expected_passed,expected_target_met,expected_target_status",
+    [
+        (90, True, False, "below_target"),
+        (92, True, False, "below_target"),
+        (95, True, True, "met"),
+    ],
+)
+def test_readiness_scorecard_reports_seo_target_separately_from_release_floor(
+    seo_score,
+    expected_passed,
+    expected_target_met,
+    expected_target_status,
+):
+    scorecard = publish_readiness._scorecard_from_scorer_result(
+        {
+            "content_quality_score": 95,
+            "threshold": 85,
+            "quality_gates": {
+                "seo_quality": {
+                    "score": seo_score,
+                    "passed": expected_passed,
+                    "critical_issues": [],
+                },
+                "aeo_geo": {"score": 95, "threshold": 90, "passed": True},
+            },
+        },
+        artifact_kind="blog",
+    )
+
+    assert scorecard["passed"] is True
+    assert scorecard["seo_quality"]["threshold"] == 90
+    assert scorecard["seo_quality"]["target"] == 95
+    assert scorecard["seo_quality"]["passed"] is expected_passed
+    assert scorecard["seo_quality"]["target_met"] is expected_target_met
+    assert scorecard["seo_quality"]["target_status"] == expected_target_status
+
+
+def test_readiness_scorecard_fails_floor_when_critical_issues_exist_even_at_target():
+    scorecard = publish_readiness._scorecard_from_scorer_result(
+        {
+            "content_quality_score": 95,
+            "threshold": 85,
+            "quality_gates": {
+                "seo_quality": {
+                    "score": 95,
+                    "passed": True,
+                    "critical_issues": ["Unsupported SEO claim"],
+                },
+                "aeo_geo": {"score": 95, "threshold": 90, "passed": True},
+            },
+        },
+        artifact_kind="blog",
+    )
+
+    assert scorecard["passed"] is False
+    assert scorecard["seo_quality"]["passed"] is False
+    assert scorecard["seo_quality"]["target_met"] is True
+    assert scorecard["seo_quality"]["target_status"] == "failed_floor"
+    assert scorecard["seo_quality"]["critical_issue_count"] == 1
 
 
 def test_readiness_scorecard_uses_the_canonical_seo_threshold(monkeypatch):

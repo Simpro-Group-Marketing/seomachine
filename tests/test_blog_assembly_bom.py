@@ -497,10 +497,12 @@ def test_schemeless_simpro_host_lookalike_remains_non_connector(
     assert bom["connector_binding"]["status"] == "not_applicable"
 
 
+@pytest.mark.parametrize("brand", ("AroFlo", "BigChange", "ClockShark"))
 def test_builder_accepts_real_non_connector_context_binding_receipt(
     tmp_path: Path,
+    brand: str,
 ):
-    paths = _fixture(tmp_path)
+    paths = _fixture(tmp_path, brand=brand)
     article_before = paths["article"].read_bytes()
     sidecar_before = paths["sidecar"].read_bytes()
 
@@ -521,6 +523,11 @@ def test_builder_accepts_real_non_connector_context_binding_receipt(
 
     assert bom["connector_binding"]["status"] == "not_applicable"
     assert bom["connector_binding"]["reason"] == reason
+    assert bom["artifacts"]["context_request"] is None
+    assert bom["artifacts"]["context_pack"] is None
+    assert bom["artifacts"]["context_receipt"] is None
+    assert bom["artifacts"]["customer_proof_selector_evidence"] is None
+    assert bom["artifacts"]["fred_authority_evidence"] is None
     assert result["stage_receipt"]["evidence_hashes"][
         "not_applicable_reason"
     ] == hashlib.sha256(reason.encode("utf-8")).hexdigest()
@@ -533,6 +540,59 @@ def test_builder_accepts_real_non_connector_context_binding_receipt(
         workspace_root=tmp_path,
         expected_lifecycle_state="provisional",
     ) == []
+
+
+@pytest.mark.parametrize("brand", ("AroFlo", "BigChange", "ClockShark"))
+@pytest.mark.parametrize(
+    ("argument", "filename"),
+    (
+        ("customer_proof_selector_evidence_path", "selector.json"),
+        ("fred_authority_evidence_path", "fred.md"),
+    ),
+)
+def test_non_connector_builder_rejects_vault_dependent_evidence(
+    tmp_path: Path,
+    brand: str,
+    argument: str,
+    filename: str,
+):
+    paths = _fixture(tmp_path, brand=brand)
+    evidence = tmp_path / "research" / filename
+    evidence.write_text("vault-dependent evidence\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="non-connector blog cannot include"):
+        _build(tmp_path, paths, **{argument: evidence})
+
+
+@pytest.mark.parametrize(
+    "field",
+    ("customer_proof_selector_evidence", "fred_authority_evidence"),
+)
+def test_non_connector_guard_rejects_vault_dependent_evidence(
+    tmp_path: Path,
+    field: str,
+):
+    paths = _fixture(tmp_path, brand="AroFlo")
+    bom = _build(tmp_path, paths)
+    evidence = tmp_path / "research" / f"{field}.txt"
+    evidence.write_text("vault-dependent evidence\n", encoding="utf-8")
+    bom["artifacts"][field] = {
+        "path": evidence.relative_to(tmp_path).as_posix(),
+        "sha256": _sha256(evidence),
+    }
+
+    findings = check_bom(
+        bom,
+        article_path=paths["article"],
+        validation_sidecar_path=paths["sidecar"],
+        workspace_root=tmp_path,
+        expected_lifecycle_state="provisional",
+    )
+
+    assert any(
+        finding["rule_id"] == "bom_non_connector_evidence_unexpected"
+        for finding in findings
+    )
 
 
 def test_builder_rejects_non_connector_receipt_bound_to_a_different_reason(

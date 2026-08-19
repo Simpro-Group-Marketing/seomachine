@@ -17,6 +17,13 @@ Python may run guards and write governance artifacts such as scorer output, sele
 5. Run `/scrub [article]` as read-only diagnostics and make any required copy edits through the command/agent workflow.
 6. Rerun `/publish-readiness` with the current sidecar, context artifacts, and BOM.
 
+## SEO target handling
+
+- SEO below 90 or any critical SEO issue is a release-floor failure and requires repair.
+- SEO 90-94 is release-pass, below-target. Run one honest, source-safe optimization pass only when the recommended fixes improve reader usefulness, search clarity, proof support, or structure.
+- If SEO is 90-94 and no target-safe fix exists, document `release-pass, below-target, no honest SEO fix recommended` and keep the article publishable.
+- SEO 95+ meets the advisory target. Do not run SEO-only edits unless another gate fails.
+
 ## Specialist routing
 
 - Content quality, answer completeness, or AEO/GEO findings: `content-analyzer` and `editor`.
@@ -42,7 +49,7 @@ python data_sources/modules/blog_assembly_stage_receipt.py finish-native-edit --
 Optimization is not ready until `/publish-readiness` reports:
 
 - Content quality: 85/100 or higher.
-- SEO quality: 90/100 or higher with zero critical SEO issues.
+- SEO quality: 90/100 release floor with zero critical SEO issues; 95/100 honest optimization target when source-safe improvements exist.
 - AEO/GEO: 90/100 or higher.
 - Every blocking proof, source, URL, public-artifact, identity, context, FAQ, PAA, customer-proof, Fred authority, named-feature, and vault-language gate passes.
 

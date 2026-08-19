@@ -67,7 +67,8 @@ Every new or changed blog requires `simpro-blog-assembly-bom/v1` and `/publish-r
 The readiness scorecard is independent:
 
 - Content quality must be 85/100 or higher for blogs.
-- SEO quality must be 90/100 or higher with zero critical SEO issues.
+- SEO quality must clear the 90/100 release floor with zero critical SEO issues.
+- SEO quality should target 95/100 when honest, source-safe optimization can improve the artifact.
 - AEO/GEO must be 90/100 or higher.
 
 A passed readiness result is invalid if any scorecard gate fails or disagrees with the top-level readiness scores.
@@ -843,7 +844,7 @@ Every Simpro blog post should meet these requirements:
 1. **Agent passes**: SEO Optimizer, Meta Creator, Internal Linker, Keyword Mapper
 2. **Scrub punctuation artifacts**: `/scrub` or `content_scrubber.py` before human review
 3. **Seal readiness**: Follow the exact build -> preflight -> finalize -> detached final readiness commands in Blog Assembly BOM and Readiness Seal.
-4. **Optimize or repair**: Run `/optimize` after non-scoring gates pass when content quality is below 85/100, SEO quality is below 90/100, or AEO/GEO is below 90/100. Treat optimization as a mutation, then rerun scrub and Context Binding and restart the two-phase seal.
+4. **Optimize or repair**: Run `/optimize` after non-scoring gates pass when content quality is below 85/100, SEO quality is below the 90/100 release floor, SEO quality is 90-94 and honest target-safe improvements exist, or AEO/GEO is below 90/100. Treat optimization as a mutation, then rerun scrub and Context Binding and restart the two-phase seal.
 5. **Final readiness**: Accept only a passed detached attestation bound to the final BOM hash and all final inputs.
 6. **Publish**: `/publish-draft` to WordPress when approved
 

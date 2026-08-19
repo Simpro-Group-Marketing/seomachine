@@ -393,6 +393,21 @@ def _check_artifact_inventory(
         ):
             if artifacts.get(field) is None:
                 findings.append(_finding(f"bom_{field}_missing", f"Connector-bound BOM requires artifacts.{field}."))
+    else:
+        for field in (
+            "context_request",
+            "context_pack",
+            "context_receipt",
+            "customer_proof_selector_evidence",
+            "fred_authority_evidence",
+        ):
+            if artifacts.get(field) is not None:
+                findings.append(
+                    _finding(
+                        "bom_non_connector_evidence_unexpected",
+                        f"Non-connector BOM cannot include artifacts.{field}.",
+                    )
+                )
     lifecycle = bom.get("lifecycle_state")
     workflow = bom.get("workflow")
     embedded_receipts = (

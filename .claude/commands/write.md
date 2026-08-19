@@ -12,7 +12,7 @@ Python may write governance artifacts only: selector output, context binding evi
 
 1. Read the user request and any supplied brief.
 2. Resolve topic, title, objective, audience, region, target keyword, target URL, and whether the article is new or a rewrite.
-3. Use the Simpro vault connector first for brand, product, feature, audience, proof, competitor, and claim decisions. Record any vault-unavailable fallback in the validation sidecar before writing proof-sensitive public copy.
+3. Classify Context Binding from the final brand metadata and content. Use the Simpro vault connector for Simpro-owned or cross-brand-triggered work. For AroFlo, BigChange, or ClockShark work with no Simpro name or official `simprogroup.com` URL, record the nonconnector reason and omit vault, Fred, and vault-dependent customer-proof selector artifacts.
 4. Build or update the validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`.
 5. Run mandatory selectors when applicable:
    - Customer proof selector before using customer proof.
@@ -37,7 +37,7 @@ python data_sources/modules/blog_assembly_stage_receipt.py finish-native-edit --
 `/publish-readiness` is the release owner and must report these independent gates:
 
 - Content quality: 85/100 or higher.
-- SEO quality: 90/100 or higher and zero critical SEO issues.
+- SEO quality: 90/100 release floor with zero critical SEO issues; 95/100 honest optimization target when source-safe improvements exist.
 - AEO/GEO: 90/100 or higher.
 
 Do not treat an overall score as a substitute for the SEO or AEO/GEO gates.

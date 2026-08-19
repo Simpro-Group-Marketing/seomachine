@@ -48,6 +48,7 @@ SIMPRO_ARTICLE_RE = re.compile(
     r"(?::\d+)?(?![A-Za-z0-9.:-])",
     re.IGNORECASE,
 )
+NON_CONNECTOR_BRANDS = frozenset({"aroflo", "bigchange", "clockshark"})
 REPO_CONTEXT_ALLOWLIST = {
     "context/seo-guidelines.md": frozenset({"SEO structure", "Schema rules", "Publish gates"}),
     "context/aeo-geo-blog-strategy.md": frozenset(
@@ -125,9 +126,7 @@ def requires_context(content: str) -> bool:
     brand = str(frontmatter.get("brand") or "").strip()
     if SIMPRO_ARTICLE_RE.search(content):
         return True
-    if brand:
-        return brand.casefold() == "simpro"
-    return True
+    return brand.casefold() not in NON_CONNECTOR_BRANDS
 
 
 def build_binding(

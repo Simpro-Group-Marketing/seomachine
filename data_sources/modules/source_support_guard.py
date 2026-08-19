@@ -37,6 +37,7 @@ try:
     from .blog_assembly_contract import atomic_write_json
     from .execution_attestation import attest_mapping, verify_mapping_attestation
     from .guard_common import Finding, should_fail, summarize_findings
+    from .image_placeholder import is_production_image_placeholder_line
     from .public_url_safety import request_public_url
     from .proof_sidecar import compose_with_sidecar, load_sidecar_content
     from .numeric_claim_source_guard import (
@@ -53,6 +54,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from blog_assembly_contract import atomic_write_json
     from execution_attestation import attest_mapping, verify_mapping_attestation
     from guard_common import Finding, should_fail, summarize_findings
+    from image_placeholder import is_production_image_placeholder_line
     from public_url_safety import request_public_url
     from proof_sidecar import compose_with_sidecar, load_sidecar_content
     from numeric_claim_source_guard import (
@@ -673,6 +675,8 @@ def _extract_claim_candidates(
     candidates: List[ClaimCandidate] = []
 
     for paragraph in _iter_paragraphs(body):
+        if is_production_image_placeholder_line(paragraph.text.strip()):
+            continue
         numeric_tokens = []
         if _is_candidate_claim(paragraph.text):
             numeric_tokens = _extract_numeric_tokens(_claim_text_for_detection(paragraph.text))

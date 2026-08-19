@@ -476,34 +476,42 @@ class ContextBindingGuardTests(unittest.TestCase):
                 for finding in findings
             )
         )
-    def test_explicit_non_simpro_article_with_simpro_copy_requires_context(self):
-        self.article.write_text(
-            "---\nbrand: BigChange\nartifact_type: blog\ntitle: Simpro comparison\n---\n"
-            "# Simpro comparison\n\nBigChange comparison copy mentions Simpro.\n",
-            encoding="utf-8",
-        )
-
-        findings = context_binding_guard.check_file(self.article)
-
-        self.assertTrue(
-            any(finding["rule_id"] == "context_request_missing" for finding in findings)
-        )
-
-    def test_cross_brand_official_simpro_hostnames_require_context(self):
-        for url in (
-            "https://www.simprogroup.com",
-            "https://helpguide.simprogroup.com/",
-            "simprogroup.com/resources",
-            "www.simprogroup.com/features",
-            "helpguide.simprogroup.com/article/123",
-        ):
-            with self.subTest(url=url):
-                content = (
-                    "---\nbrand: BigChange\nartifact_type: blog\ntitle: Comparison\n---\n"
-                    f"# Comparison\n\n[Product reference]({url})\n"
+    def test_owned_brand_article_with_simpro_copy_requires_context(self):
+        for brand in ("AroFlo", "BigChange", "ClockShark"):
+            with self.subTest(brand=brand):
+                self.article.write_text(
+                    f"---\nbrand: {brand}\nartifact_type: blog\n"
+                    "title: Simpro comparison\n---\n"
+                    f"# Simpro comparison\n\n{brand} comparison copy mentions Simpro.\n",
+                    encoding="utf-8",
                 )
 
-                self.assertTrue(context_binding_guard.requires_context(content))
+                findings = context_binding_guard.check_file(self.article)
+
+                self.assertTrue(
+                    any(
+                        finding["rule_id"] == "context_request_missing"
+                        for finding in findings
+                    )
+                )
+
+    def test_cross_brand_official_simpro_hostnames_require_context(self):
+        for brand in ("AroFlo", "BigChange", "ClockShark"):
+            for url in (
+                "https://www.simprogroup.com",
+                "https://helpguide.simprogroup.com/",
+                "simprogroup.com/resources",
+                "www.simprogroup.com/features",
+                "helpguide.simprogroup.com/article/123",
+            ):
+                with self.subTest(brand=brand, url=url):
+                    content = (
+                        f"---\nbrand: {brand}\nartifact_type: blog\n"
+                        "title: Comparison\n---\n"
+                        f"# Comparison\n\n[Product reference]({url})\n"
+                    )
+
+                    self.assertTrue(context_binding_guard.requires_context(content))
 
     def test_simpro_hostname_lookalike_does_not_require_context(self):
         for hostname in (
@@ -519,14 +527,25 @@ class ContextBindingGuardTests(unittest.TestCase):
 
                 self.assertFalse(context_binding_guard.requires_context(content))
 
-    def test_explicit_non_simpro_article_without_simpro_copy_is_exempt(self):
-        self.article.write_text(
-            "---\nbrand: BigChange\nartifact_type: blog\ntitle: Job management\n---\n"
-            "# Job management\n\nBigChange workflow copy.\n",
-            encoding="utf-8",
+    def test_owned_brand_article_without_simpro_copy_is_exempt(self):
+        for brand in ("AroFlo", "BigChange", "ClockShark"):
+            with self.subTest(brand=brand):
+                self.article.write_text(
+                    f"---\nbrand: {brand}\nartifact_type: blog\n"
+                    f"title: {brand} workflow\n---\n"
+                    f"# {brand} workflow\n\n{brand} workflow copy.\n",
+                    encoding="utf-8",
+                )
+
+                self.assertEqual(context_binding_guard.check_file(self.article), [])
+
+    def test_unknown_brand_fails_safe_into_context_workflow(self):
+        content = (
+            "---\nbrand: UnknownBrand\nartifact_type: blog\ntitle: Workflow guide\n---\n"
+            "# Workflow guide\n\nGeneric workflow copy.\n"
         )
 
-        self.assertEqual(context_binding_guard.check_file(self.article), [])
+        self.assertTrue(context_binding_guard.requires_context(content))
 
     def test_unbranded_article_fails_safe_into_context_workflow(self):
         self.article.write_text("# Generic workflow article\n\nField service guidance.\n", encoding="utf-8")

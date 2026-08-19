@@ -61,6 +61,7 @@ try:
     from .publishable_markdown import FrontmatterError, read_publishable_markdown
     from .readiness_gate_context import _issue_readiness_gate_context
     from .seo_quality_rater import PUBLISHING_THRESHOLD as SEO_PUBLISHING_THRESHOLD
+    from .seo_quality_rater import SEO_TARGET_SCORE
     from .guard_common import should_fail, summarize_findings
     from .url_validator import UrlValidationSummary, validate_file_urls
 except ImportError:  # pragma: no cover - supports direct script execution.
@@ -105,6 +106,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from publishable_markdown import FrontmatterError, read_publishable_markdown
     from readiness_gate_context import _issue_readiness_gate_context
     from seo_quality_rater import PUBLISHING_THRESHOLD as SEO_PUBLISHING_THRESHOLD
+    from seo_quality_rater import SEO_TARGET_SCORE
     from guard_common import should_fail, summarize_findings
     from url_validator import UrlValidationSummary, validate_file_urls
 
@@ -1208,9 +1210,22 @@ def _validate_passed_scorecard(
             scorecard,
             "seo_quality",
             "SEO",
-            expected_threshold=90,
+            expected_threshold=SEO_PUBLISHING_THRESHOLD,
             require_numeric_score=True,
         )
+        has_target_fields = any(
+            field in seo_gate
+            for field in ("target", "target_met", "target_status")
+        )
+        if has_target_fields:
+            if seo_gate.get("target") != SEO_TARGET_SCORE:
+                raise ValueError("passed readiness scorecard SEO gate has an invalid target")
+            target_met = seo_gate.get("target_met")
+            target_status = seo_gate.get("target_status")
+            if not isinstance(target_met, bool):
+                raise ValueError("passed readiness scorecard SEO gate has an invalid target status")
+            if target_status not in {"met", "below_target"}:
+                raise ValueError("passed readiness scorecard SEO gate has an invalid target status")
     critical_issue_count = seo_gate.get("critical_issue_count")
     if (
         not isinstance(critical_issue_count, int)
@@ -1772,7 +1787,10 @@ def format_text_report(result: ReadinessResult) -> str:
     )
     seo_score = seo_gate.get("score")
     seo_threshold = seo_gate.get("threshold", 90)
+    seo_target = seo_gate.get("target", SEO_TARGET_SCORE)
     seo_passed = bool(seo_gate.get("passed", False))
+    seo_target_met = seo_gate.get("target_met")
+    seo_target_status = seo_gate.get("target_status")
     seo_critical_issue_count = seo_gate.get("critical_issue_count")
     aeo_geo = result.get("aeo_geo", {})
     if not isinstance(aeo_geo, Mapping):
@@ -1790,11 +1808,14 @@ def format_text_report(result: ReadinessResult) -> str:
                 content_threshold,
                 content_passed,
             ),
-            _score_report_line(
+            _seo_score_report_line(
                 "SEO score",
                 seo_score,
                 seo_threshold,
+                seo_target,
                 seo_passed,
+                target_met=seo_target_met,
+                target_status=seo_target_status,
             ),
         ]
     )
@@ -2112,19 +2133,30 @@ def _scorecard_from_scorer_result(
     if seo_not_applicable:
         critical_issues: list[Any] = []
         seo_threshold = None
+        seo_target = None
         seo_score = None
         seo_passed = True
+        seo_target_met = False
+        seo_target_status = None
     else:
         critical_issues = seo_source.get("critical_issues", [])
         if not isinstance(critical_issues, list):
             critical_issues = []
         seo_threshold = SEO_PUBLISHING_THRESHOLD
+        seo_target = SEO_TARGET_SCORE
         seo_score = seo_source.get("score")
         seo_passed = (
             _is_number(seo_score)
             and float(seo_score) >= float(seo_threshold)
             and len(critical_issues) == 0
         )
+        seo_target_met = _is_number(seo_score) and float(seo_score) >= float(seo_target)
+        if not seo_passed:
+            seo_target_status = "failed_floor"
+        elif seo_target_met:
+            seo_target_status = "met"
+        else:
+            seo_target_status = "below_target"
 
     aeo_not_applicable = artifact_kind != "blog" and aeo_source.get("not_applicable") is True
     aeo_threshold = aeo_source.get("threshold", 90)
@@ -2150,6 +2182,14 @@ def _scorecard_from_scorer_result(
         "passed": seo_passed,
         "critical_issue_count": len(critical_issues),
     }
+    if not seo_not_applicable:
+        seo_gate.update(
+            {
+                "target": seo_target,
+                "target_met": bool(seo_target_met),
+                "target_status": seo_target_status,
+            }
+        )
     aeo_gate = {
         "score": aeo_score,
         "threshold": aeo_threshold,
@@ -2183,6 +2223,30 @@ def _score_report_line(
         return f"{label}: n/a"
     status = "PASS" if passed else "FAIL"
     return f"{label}: {score}/100 (threshold: {threshold}, {status})"
+
+
+def _seo_score_report_line(
+    label: str,
+    score: Any,
+    threshold: Any,
+    target: Any,
+    passed: bool,
+    *,
+    target_met: Any,
+    target_status: Any,
+) -> str:
+    if score is None:
+        return f"{label}: n/a"
+    if not passed:
+        status = "FAIL"
+    elif target_met is True or target_status == "met":
+        status = "PASS, TARGET MET"
+    else:
+        status = "PASS, BELOW TARGET"
+    return (
+        f"{label}: {score}/100 "
+        f"(release floor: {threshold}, target: {target}, {status})"
+    )
 
 
 def _finding_lines(findings: List[Dict[str, Any]]) -> List[str]:
