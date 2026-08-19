@@ -18,7 +18,7 @@ Python may write governance artifacts only: selector output, context binding evi
    - Customer proof selector before using customer proof.
    - Fred Voccola authority selector for every new or changed Simpro blog.
 6. Write the draft Markdown to `drafts/[topic-slug]-[YYYY-MM-DD].md` using the command, not a Python writer.
-7. Freeze one draft snapshot and run `content-analyzer`, `seo-optimizer`, `meta-creator`, `internal-linker`, and `keyword-mapper` in parallel. They return advisory findings only. Select the useful findings and apply one consolidated edit batch through `/write`.
+7. Freeze one draft snapshot and run `content-analyzer`, `editor`, `seo-optimizer`, `meta-creator`, `internal-linker`, and `keyword-mapper` in parallel. The Editor must use the reviewed Humanizer snapshot and Simpro policy against this same immutable draft snapshot. All specialists return advisory findings only. Select the useful findings and apply one consolidated edit batch through `/write`.
 8. Run `/scrub [article]` for diagnostics only. If it reports needed changes, make those edits through `/write` and rerun `/scrub`.
 9. Run `/publish-readiness [article]` with the sidecar, context artifacts, and BOM. Do not hand off as ready until it passes.
 
@@ -29,7 +29,7 @@ Open the draft receipt before native writing, then close it after the command ha
 ```powershell
 python data_sources/modules/blog_assembly_stage_receipt.py begin-native-edit --article "drafts/[topic-slug]-[YYYY-MM-DD].md" --state "research/stage-receipts/[topic-slug]/draft-state.json" --run-id "[run-id]" --stage draft --tool-name "write-command" --tool-version "1" --input "editorial_plan=research/editorial-plan-[topic-slug]-[YYYY-MM-DD].json"
 # /write creates and saves the public Markdown here.
-python data_sources/modules/blog_assembly_stage_receipt.py finish-native-edit --article "drafts/[topic-slug]-[YYYY-MM-DD].md" --state "research/stage-receipts/[topic-slug]/draft-state.json" --receipt "research/stage-receipts/[topic-slug]/draft.json"
+python data_sources/modules/blog_assembly_stage_receipt.py finish-native-edit --article "drafts/[topic-slug]-[YYYY-MM-DD].md" --state "research/stage-receipts/[topic-slug]/draft-state.json" --receipt "research/stage-receipts/[topic-slug]/draft.json" --evidence "humanizer_policy=config/humanizer-policy.json" --evidence "humanizer_upstream=vendor/blader-humanizer/UPSTREAM.json"
 ```
 
 ## Scorecard requirements

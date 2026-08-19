@@ -1,0 +1,166 @@
+{
+  "schema": "simpro-humanizer-upstream/v1",
+  "repository": "https://github.com/blader/humanizer",
+  "source_ref": "refs/heads/main",
+  "resolved_commit": "e2e92e7b4b8229253ed5c8e81dc65463fdeddda5",
+  "declared_version": "2.11.2",
+  "commit_verification": {
+    "verified": true,
+    "reason": "valid"
+  },
+  "license_spdx": "MIT",
+  "network_at_runtime": false,
+  "executed_upstream_files": [],
+  "files": {
+    "SKILL.md": {
+      "sha256": "14fc8a965b6e0a8dc100ba4dffeab55cb94bbac112abbde7e014d5c15a35c202",
+      "bytes": 30409
+    },
+    "LICENSE": {
+      "sha256": "4ac4810254ab36d45419141aeb8e69bf50652cfafe5b2dab947d06d44e5cbf96",
+      "bytes": 1066
+    }
+  },
+  "patterns": [
+    {
+      "id": 1,
+      "heading": "Inflated claims about importance and legacy"
+    },
+    {
+      "id": 2,
+      "heading": "Name-dropping to prove importance"
+    },
+    {
+      "id": 3,
+      "heading": "Shallow analysis with -ing phrases"
+    },
+    {
+      "id": 4,
+      "heading": "Sales language"
+    },
+    {
+      "id": 5,
+      "heading": "Vague sources"
+    },
+    {
+      "id": 6,
+      "heading": "Formulaic challenges and outlook sections"
+    },
+    {
+      "id": 7,
+      "heading": "Overused AI words"
+    },
+    {
+      "id": 8,
+      "heading": "Avoiding is and are"
+    },
+    {
+      "id": 9,
+      "heading": "Not X but Y and clipped negative endings"
+    },
+    {
+      "id": 10,
+      "heading": "Forced groups of three"
+    },
+    {
+      "id": 11,
+      "heading": "Changing names and repeating sentence openings"
+    },
+    {
+      "id": 12,
+      "heading": "False from X to Y ranges"
+    },
+    {
+      "id": 13,
+      "heading": "Passive voice and missing subjects"
+    },
+    {
+      "id": 14,
+      "heading": "Em and en dashes"
+    },
+    {
+      "id": 15,
+      "heading": "Too much bold text"
+    },
+    {
+      "id": 16,
+      "heading": "Lists with bold mini-headings"
+    },
+    {
+      "id": 17,
+      "heading": "Title case in headings"
+    },
+    {
+      "id": 18,
+      "heading": "Emojis"
+    },
+    {
+      "id": 19,
+      "heading": "Curly quotation marks"
+    },
+    {
+      "id": 20,
+      "heading": "Chatbot text left in the answer"
+    },
+    {
+      "id": 21,
+      "heading": "Knowledge-limit disclaimers and guesses"
+    },
+    {
+      "id": 22,
+      "heading": "Overly agreeable tone"
+    },
+    {
+      "id": 23,
+      "heading": "Filler phrases"
+    },
+    {
+      "id": 24,
+      "heading": "Too many qualifiers"
+    },
+    {
+      "id": 25,
+      "heading": "Generic positive endings"
+    },
+    {
+      "id": 26,
+      "heading": "Too many hyphenated word pairs"
+    },
+    {
+      "id": 27,
+      "heading": "Pretending to reveal a deeper truth"
+    },
+    {
+      "id": 28,
+      "heading": "Announcing the next point"
+    },
+    {
+      "id": 29,
+      "heading": "A heading repeated in the first sentence"
+    },
+    {
+      "id": 30,
+      "heading": "Writing about the previous version"
+    },
+    {
+      "id": 31,
+      "heading": "Forced punchlines and dramatic fragments"
+    },
+    {
+      "id": 32,
+      "heading": "Formulaic sayings"
+    },
+    {
+      "id": 33,
+      "heading": "Fake-candid openings"
+    },
+    {
+      "id": 34,
+      "heading": "Answering objections no one raised"
+    },
+    {
+      "id": 35,
+      "heading": "Rejecting fake alternatives"
+    }
+  ]
+}

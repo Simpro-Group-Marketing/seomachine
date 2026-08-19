@@ -123,6 +123,12 @@ The repo-local context files are downstream mirrors or operational state only. T
 
 Required validation sidecar evidence: generated vault context binding for every workflow; `Vault Brand Language Alignment` when product, feature, add-on, solution, industry, or related Simpro product URL language appears; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. These sections must cite connector `context_pack_hash`, `receipt_hash`, `resource_id`, `claim_id`, use mode, public URL when required, and relevant revisions. Missing required evidence blocks `/publish-readiness`, `/optimize`, and dev-ready handoff.
 
+## Reviewed Humanizer Governance
+
+The Editor reviews `/write`, `/rewrite`, and `/optimize` snapshots against the pinned Humanizer snapshot recorded in `vendor/blader-humanizer/UPSTREAM.json`, the local decisions in `config/humanizer-policy.json`, and current vault voice context. Humanizer is style advice only. It never edits public copy directly, does not approve claims, and has no runtime network access. Only policy entries explicitly marked for deterministic enforcement may enter the existing AI-copy linter. `/publish-readiness` remains the sole release owner.
+
+Validate the vendored snapshot offline with `python tools/humanizer_upstream.py verify`. Use `check-upstream`, `stage`, and `adopt` for reviewed upgrades. The weekly workflow may open a draft vendor-only PR, but a maintainer must review pattern changes and update the local policy before CI can pass. Never modify `config/humanizer-policy.json` automatically from upstream content.
+
 ## Vault-Backed Competitor and Feature Guardrails
 
 - `Competitive Shortlist Decision`: competitor-aware posts must document selected competitors, rejected competitors, connector-discovered competitive-context resources, approved claim IDs where public proof is used, and why the shortlist fits the article objective.

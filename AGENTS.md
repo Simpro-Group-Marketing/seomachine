@@ -18,6 +18,12 @@ Required validation sidecar evidence: a generated vault context binding for ever
 
 For every Simpro blog, retrieve current voice and tone guidance through the vault connector by semantic search and `resource_id` reads. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Em dashes are prohibited. Product pages and landing pages retain their existing restrained channel treatment.
 
+## Reviewed Humanizer Governance
+
+The Editor reviews `/write`, `/rewrite`, and `/optimize` snapshots against the pinned Humanizer snapshot recorded in `vendor/blader-humanizer/UPSTREAM.json`, the local decisions in `config/humanizer-policy.json`, and current vault voice context. Humanizer is style advice only. It never edits public copy directly, does not approve claims, and has no runtime network access. Only policy entries explicitly marked for deterministic enforcement may enter the existing AI-copy linter. `/publish-readiness` remains the sole release owner.
+
+Validate the vendored snapshot offline with `python tools/humanizer_upstream.py verify`. Use `check-upstream`, `stage`, and `adopt` for reviewed upgrades. The weekly workflow may open a draft vendor-only PR, but a maintainer must review pattern changes and update the local policy before CI can pass. Never modify `config/humanizer-policy.json` automatically from upstream content.
+
 ## Vault-Backed Competitor and Feature Guardrails
 
 - `Competitive Shortlist Decision`: competitor-aware posts must document selected competitors, rejected competitors, connector-discovered competitive-context resources, approved claim IDs where public proof is used, and why the shortlist fits the article objective.

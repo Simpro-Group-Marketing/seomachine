@@ -124,6 +124,37 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
             0,
         )
 
+    def test_humanity_score_receives_chatbot_blocker_from_shared_linter(self):
+        """Bypassing the shared blocker in humanity scoring must make this fail."""
+        result = ContentScorer()._score_humanity(
+            "I hope this helps. Feel free to ask for another version."
+        )
+
+        details = result["details"]
+        self.assertEqual(details["ai_copy_lint_errors"], 2)
+        self.assertIn(
+            "humanizer.chatbot_residue",
+            {
+                finding["rule_id"]
+                for finding in details["ai_copy_lint_findings"]
+            },
+        )
+
+    def test_contextual_humanizer_guidance_does_not_enter_humanity_score(self):
+        """Penalizing advisory Humanizer guidance in scoring must make this fail."""
+        result = ContentScorer()._score_humanity(
+            "This serves as the operating record. Let's dive in. Frankly, the handoff is late."
+        )
+
+        findings = result["details"]["ai_copy_lint_findings"]
+        self.assertFalse(
+            [
+                finding
+                for finding in findings
+                if str(finding["rule_id"]).startswith("humanizer.")
+            ]
+        )
+
     def test_seo_score_reads_lowercase_frontmatter_metadata(self):
         scorer = ContentScorer()
         content = COMPLIANT_ARTICLE.replace(

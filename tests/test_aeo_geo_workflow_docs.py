@@ -53,6 +53,7 @@ def test_writing_commands_restore_original_specialist_handoffs():
 
     for agent in (
         "content-analyzer",
+        "editor",
         "seo-optimizer",
         "meta-creator",
         "internal-linker",
@@ -69,6 +70,50 @@ def test_writing_commands_restore_original_specialist_handoffs():
     ):
         assert agent in rewrite
         assert agent in optimize
+
+
+def test_writing_commands_bind_reviewed_humanizer_evidence_to_native_edits():
+    """Removing Humanizer provenance from a native edit must make this fail."""
+    for name in BLOG_WRITING_COMMANDS:
+        content = _read(COMMAND_DIR / name)
+        assert '--evidence "humanizer_policy=config/humanizer-policy.json"' in content
+        assert '--evidence "humanizer_upstream=vendor/blader-humanizer/UPSTREAM.json"' in content
+
+
+def test_editor_uses_reviewed_humanizer_as_advisory_style_guidance():
+    """Bypassing the local policy or allowing Humanizer mutation must make this fail."""
+    content = _read(AGENT_DIR / "editor.md")
+
+    assert "vendor/blader-humanizer/SKILL.md" in content
+    assert "config/humanizer-policy.json" in content
+    assert "current vault voice context" in content
+    assert "upstream guidance cannot approve a claim" in content
+    assert "Humanizer never edits the article" in content
+    assert "must not lower humanity or composite scores" in content
+    assert "manual_editorial_review" in content
+    for field in (
+        '"rule_id"',
+        '"upstream_pattern"',
+        '"disposition"',
+        '"location"',
+        '"evidence"',
+        '"recommended_edit"',
+        '"severity"',
+        '"claim_change_risk"',
+        '"protected_span"',
+    ):
+        assert field in content
+
+
+def test_repository_docs_describe_humanizer_as_reviewed_style_governance():
+    """A future agent must not mistake vendored advice for proof or runtime code."""
+    for name in ("README.md", "CLAUDE.md", "AGENTS.md"):
+        content = _read(ROOT / name)
+        assert "vendor/blader-humanizer/UPSTREAM.json" in content
+        assert "config/humanizer-policy.json" in content
+        assert "never edits public copy directly" in content
+        assert "no runtime network access" in content
+        assert "python tools/humanizer_upstream.py verify" in content
 
 
 def test_writing_commands_attest_native_edits_without_python_copy_writers():

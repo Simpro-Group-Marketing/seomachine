@@ -9,7 +9,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from data_sources.modules import publish_readiness
+from data_sources.modules import ai_copy_linter, publish_readiness
 from data_sources.modules.blog_assembly_contract import canonical_artifact
 from data_sources.modules.blog_assembly_stage_receipt import (
     build_stage_receipt,
@@ -795,6 +795,27 @@ def test_warning_does_not_block(files):
     lint = next(row for row in result["gates"] if row["name"] == "ai_copy_linter")
     assert result["passed"] is True
     assert lint["warnings"] == 1
+
+
+def test_reviewed_chatbot_residue_blocks_through_existing_ai_copy_gate(files):
+    article, sidecar = files
+    findings = ai_copy_linter.lint_content("I hope this helps. Let me know if you need anything else.")
+    chatbot = [
+        item
+        for item in findings
+        if item["rule_id"] == "humanizer.chatbot_residue"
+    ]
+
+    result, _, _, _ = run_with_patches(
+        article,
+        sidecar,
+        overrides={"ai_copy_linter": chatbot},
+    )
+
+    lint = next(row for row in result["gates"] if row["name"] == "ai_copy_linter")
+    assert chatbot and all(item["severity"] == "error" for item in chatbot)
+    assert result["passed"] is False
+    assert lint["errors"] == len(chatbot)
 
 
 def test_sidecar_is_forwarded_to_all_proof_gates_and_scorer(files):

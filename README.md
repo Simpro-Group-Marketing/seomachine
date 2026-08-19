@@ -483,6 +483,12 @@ Specialized agents that automatically analyze content and provide expert recomme
 
 **Output**: Editorial report with specific improvements to make content sound human
 
+#### Reviewed Humanizer governance
+
+The Editor reviews `/write`, `/rewrite`, and `/optimize` snapshots against the pinned Humanizer snapshot recorded in `vendor/blader-humanizer/UPSTREAM.json`, the local decisions in `config/humanizer-policy.json`, and current vault voice context. Humanizer is style advice only. It never edits public copy directly, does not approve claims, and has no runtime network access. Only policy entries explicitly marked for deterministic enforcement may enter the existing AI-copy linter. `/publish-readiness` remains the sole release owner.
+
+Run `python tools/humanizer_upstream.py verify` for offline validation. Use `check-upstream`, `stage`, and `adopt` for reviewed upgrades. The Monday workflow can open a draft vendor-only PR, but it never auto-merges or changes the local policy. A maintainer must classify upstream pattern changes and update `reviewed_upstream_commit` before CI passes.
+
 ---
 
 ### Performance

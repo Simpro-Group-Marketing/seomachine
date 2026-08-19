@@ -1,0 +1,340 @@
+{
+  "schema": "simpro-humanizer-quality-corpus/v1",
+  "cases": [
+    {
+      "case_id": "humanizer-01",
+      "upstream_pattern": 1,
+      "heading": "Inflated claims about importance and legacy",
+      "disposition": "advisory",
+      "positive": "This landmark platform reshaped the entire industry.",
+      "counterexample": "The article explains the documented workflow without predicting its legacy.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-02",
+      "upstream_pattern": 2,
+      "heading": "Name-dropping to prove importance",
+      "disposition": "advisory",
+      "positive": "Leading analysts and major institutions recognize the approach.",
+      "counterexample": "The article names a source only when that source supports the claim.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-03",
+      "upstream_pattern": 3,
+      "heading": "Shallow analysis with -ing phrases",
+      "disposition": "advisory",
+      "positive": "The workflow improves visibility, helping teams move faster.",
+      "counterexample": "The workflow improves visibility because dispatch and finance share one record.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-04",
+      "upstream_pattern": 4,
+      "heading": "Sales language",
+      "disposition": "blocking",
+      "positive": "This groundbreaking platform will revolutionize dispatch.",
+      "counterexample": "The scheduling view shows assigned jobs and open capacity.",
+      "expected_rule_ids": [
+        "unsupported_hype"
+      ]
+    },
+    {
+      "case_id": "humanizer-05",
+      "upstream_pattern": 5,
+      "heading": "Vague sources",
+      "disposition": "proof_routed",
+      "positive": "Experts say job records improve performance.",
+      "counterexample": "A linked regulator report supplies the evidence for the statement.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-06",
+      "upstream_pattern": 6,
+      "heading": "Formulaic challenges and outlook sections",
+      "disposition": "advisory",
+      "positive": "Despite these challenges, the future remains promising.",
+      "counterexample": "The final section answers the objective without a generic outlook.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-07",
+      "upstream_pattern": 7,
+      "heading": "Overused AI words",
+      "disposition": "blocking",
+      "positive": "Delve into the ever-evolving scheduling landscape.",
+      "counterexample": "The AI scheduler uses the approved product name and supported description.",
+      "expected_rule_ids": [
+        "ai_phrase"
+      ]
+    },
+    {
+      "case_id": "humanizer-08",
+      "upstream_pattern": 8,
+      "heading": "Avoiding is and are",
+      "disposition": "advisory",
+      "positive": "The schedule serves as the operating record.",
+      "counterexample": "The schedule is the operating record.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-09",
+      "upstream_pattern": 9,
+      "heading": "Not X but Y and clipped negative endings",
+      "disposition": "blocking",
+      "positive": "This is not just scheduling, but also profit control.",
+      "counterexample": "The FAQ compares two real options with evidence.",
+      "expected_rule_ids": [
+        "not_just_but_also"
+      ]
+    },
+    {
+      "case_id": "humanizer-10",
+      "upstream_pattern": 10,
+      "heading": "Forced groups of three",
+      "disposition": "advisory",
+      "positive": "The workflow is faster, clearer, and smarter.",
+      "counterexample": "Use the number of points the evidence requires.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-11",
+      "upstream_pattern": 11,
+      "heading": "Changing names and repeating sentence openings",
+      "disposition": "blocking",
+      "positive": "Lead source follows each job. Lead source stays visible. Lead source links spend to invoices.",
+      "counterexample": "Lead source follows each job. Dispatch retains it. Finance connects it to invoices.",
+      "expected_rule_ids": [
+        "repeated_sentence_start"
+      ]
+    },
+    {
+      "case_id": "humanizer-12",
+      "upstream_pattern": 12,
+      "heading": "False from X to Y ranges",
+      "disposition": "advisory",
+      "positive": "The workflow covers everything from the first thought to lasting success.",
+      "counterexample": "The guide covers quoting through invoicing.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-13",
+      "upstream_pattern": 13,
+      "heading": "Passive voice and missing subjects",
+      "disposition": "blocking",
+      "positive": "The invoice was created after the technician left.",
+      "counterexample": "The technician created the invoice after leaving.",
+      "expected_rule_ids": [
+        "passive_voice"
+      ]
+    },
+    {
+      "case_id": "humanizer-14",
+      "upstream_pattern": 14,
+      "heading": "Em and en dashes",
+      "disposition": "blocking",
+      "positive": "Dispatch looks clean—until jobs move.",
+      "counterexample": "Use a period for prose and an en dash for the 2025–2026 range.",
+      "expected_rule_ids": [
+        "em_dash"
+      ]
+    },
+    {
+      "case_id": "humanizer-15",
+      "upstream_pattern": 15,
+      "heading": "Too much bold text",
+      "disposition": "advisory",
+      "positive": "**Every sentence is bold.**",
+      "counterexample": "Bold only the term readers need to scan.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-16",
+      "upstream_pattern": 16,
+      "heading": "Lists with bold mini-headings",
+      "disposition": "advisory",
+      "positive": "- **Scheduling:** Assign the job.",
+      "counterexample": "Use a plain list when labels add no meaning.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-17",
+      "upstream_pattern": 17,
+      "heading": "Title case in headings",
+      "disposition": "blocking",
+      "positive": "## Scheduling For Field Teams",
+      "counterexample": "## Scheduling for Field Teams",
+      "expected_rule_ids": [
+        "title_capitalized_preposition"
+      ]
+    },
+    {
+      "case_id": "humanizer-18",
+      "upstream_pattern": 18,
+      "heading": "Emojis",
+      "disposition": "advisory",
+      "positive": "🚀 Launch the new workflow.",
+      "counterexample": "Use an emoji only when the channel treatment calls for it.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-19",
+      "upstream_pattern": 19,
+      "heading": "Curly quotation marks",
+      "disposition": "overridden",
+      "positive": "He said “the job is complete.”",
+      "counterexample": "Keep the approved exact quotation unchanged.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-20",
+      "upstream_pattern": 20,
+      "heading": "Chatbot text left in the answer",
+      "disposition": "blocking",
+      "positive": "I hope this helps. Feel free to ask for another version.",
+      "counterexample": "The article ends with the intended reader action.",
+      "expected_rule_ids": [
+        "humanizer.chatbot_residue"
+      ]
+    },
+    {
+      "case_id": "humanizer-21",
+      "upstream_pattern": 21,
+      "heading": "Knowledge-limit disclaimers and guesses",
+      "disposition": "proof_routed",
+      "positive": "As of my last update, the feature may exist.",
+      "counterexample": "The limitation identifies a verified scope boundary.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-22",
+      "upstream_pattern": 22,
+      "heading": "Overly agreeable tone",
+      "disposition": "excluded",
+      "positive": "You are absolutely right about every point.",
+      "counterexample": "The blog evaluates the evidence without flattering the reader.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-23",
+      "upstream_pattern": 23,
+      "heading": "Filler phrases",
+      "disposition": "blocking",
+      "positive": "Dispatchers just need one job record.",
+      "counterexample": "### Is PPC just Google Ads?\n\nNo. PPC is a pricing model.",
+      "expected_rule_ids": [
+        "filler_word"
+      ]
+    },
+    {
+      "case_id": "humanizer-24",
+      "upstream_pattern": 24,
+      "heading": "Too many qualifiers",
+      "disposition": "advisory",
+      "positive": "The workflow could perhaps sometimes improve visibility.",
+      "counterexample": "The evidence may support a narrower claim.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-25",
+      "upstream_pattern": 25,
+      "heading": "Generic positive endings",
+      "disposition": "advisory",
+      "positive": "The future is bright for every field team.",
+      "counterexample": "The conclusion states the supported next action.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-26",
+      "upstream_pattern": 26,
+      "heading": "Too many hyphenated word pairs",
+      "disposition": "advisory",
+      "positive": "The end-to-end real-time workflow is user-friendly.",
+      "counterexample": "Real-time is retained as a necessary technical compound.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-27",
+      "upstream_pattern": 27,
+      "heading": "Pretending to reveal a deeper truth",
+      "disposition": "advisory",
+      "positive": "The real issue is not scheduling. It is control.",
+      "counterexample": "The author labels judgment as opinion.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-28",
+      "upstream_pattern": 28,
+      "heading": "Announcing the next point",
+      "disposition": "blocking",
+      "positive": "In conclusion, field teams need cleaner job data.",
+      "counterexample": "Field teams need cleaner job data.",
+      "expected_rule_ids": [
+        "setup_phrase"
+      ]
+    },
+    {
+      "case_id": "humanizer-29",
+      "upstream_pattern": 29,
+      "heading": "A heading repeated in the first sentence",
+      "disposition": "advisory",
+      "positive": "## Scheduling\n\nScheduling keeps the calendar current.",
+      "counterexample": "## Scheduling\n\nThe calendar shows assigned work and open capacity.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-30",
+      "upstream_pattern": 30,
+      "heading": "Writing about the previous version",
+      "disposition": "excluded",
+      "positive": "The previous version used a different workflow.",
+      "counterexample": "The migration guide explains what changed from the earlier release.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-31",
+      "upstream_pattern": 31,
+      "heading": "Forced punchlines and dramatic fragments",
+      "disposition": "advisory",
+      "positive": "One record. No excuses.",
+      "counterexample": "The author uses one short punchline where it improves emphasis.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-32",
+      "upstream_pattern": 32,
+      "heading": "Formulaic sayings",
+      "disposition": "advisory",
+      "positive": "When the going gets tough, the tough get going.",
+      "counterexample": "The author uses a saying only when it is authentic and useful.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-33",
+      "upstream_pattern": 33,
+      "heading": "Fake-candid openings",
+      "disposition": "advisory",
+      "positive": "Let us be honest, nobody likes paperwork.",
+      "counterexample": "In my experience, late job notes create avoidable rework.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-34",
+      "upstream_pattern": 34,
+      "heading": "Answering objections no one raised",
+      "disposition": "advisory",
+      "positive": "You might think setup is difficult, but it is not.",
+      "counterexample": "The FAQ answers a documented buyer objection.",
+      "expected_rule_ids": []
+    },
+    {
+      "case_id": "humanizer-35",
+      "upstream_pattern": 35,
+      "heading": "Rejecting fake alternatives",
+      "disposition": "advisory",
+      "positive": "It is not email. It is not a spreadsheet. It is Simpro.",
+      "counterexample": "The comparison evaluates email, spreadsheets, and job management software.",
+      "expected_rule_ids": []
+    }
+  ]
+}

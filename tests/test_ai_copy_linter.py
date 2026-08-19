@@ -12,6 +12,76 @@ def finding_ids(content):
 
 
 class AiCopyLinterTests(unittest.TestCase):
+    def test_chatbot_residue_from_reviewed_policy_is_error(self):
+        """Removing reviewed policy-regex enforcement must make this fail."""
+        findings = lint_content(
+            "I hope this helps. Feel free to ask if you need another version."
+        )
+
+        residue = [
+            finding
+            for finding in findings
+            if finding["rule_id"] == "humanizer.chatbot_residue"
+        ]
+        self.assertEqual(len(residue), 2)
+        self.assertTrue(all(finding["severity"] == "error" for finding in residue))
+
+    def test_chatbot_facing_offers_and_prompts_are_residue_errors(self):
+        content = (
+            "Should I continue? Want me to give examples? "
+            "Let me know if you need anything else. You're absolutely right!"
+        )
+
+        findings = lint_content(content)
+        residue = [
+            finding
+            for finding in findings
+            if finding["rule_id"] == "humanizer.chatbot_residue"
+        ]
+
+        self.assertEqual(len(residue), 4)
+        self.assertTrue(all(finding["severity"] == "error" for finding in residue))
+
+    def test_chatbot_residue_inside_exact_quotes_is_not_style_linted(self):
+        """Scanning exact quoted source text with Humanizer must make this fail."""
+        content = (
+            '> The reviewer wrote, "I hope this helps."\n\n'
+            "The source text says "
+            + chr(8220)
+            + "Feel free to ask for more detail."
+            + chr(8221)
+        )
+
+        findings = lint_content(content)
+
+        self.assertNotIn(
+            "humanizer.chatbot_residue",
+            {finding["rule_id"] for finding in findings},
+        )
+
+    def test_chatbot_residue_inside_html_comment_is_not_style_linted(self):
+        """Scanning hidden workflow comments with Humanizer must make this fail."""
+        findings = lint_content("<!-- I hope this helps. -->\nThe article ends here.")
+
+        self.assertNotIn(
+            "humanizer.chatbot_residue",
+            {finding["rule_id"] for finding in findings},
+        )
+
+    def test_contextual_humanizer_patterns_do_not_enter_release_linter(self):
+        """Compiling advisory patterns into release findings must make this fail."""
+        findings = lint_content(
+            "This serves as the operating record. Let's dive in. Frankly, the handoff is late."
+        )
+
+        self.assertFalse(
+            [
+                finding
+                for finding in findings
+                if str(finding["rule_id"]).startswith("humanizer.")
+            ]
+        )
+
     def test_standalone_original_hero_image_placeholder_is_ignored(self):
         quote = chr(34)
         content = (

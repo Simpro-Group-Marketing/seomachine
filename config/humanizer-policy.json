@@ -1,0 +1,525 @@
+{
+  "schema": "simpro-humanizer-policy/v1",
+  "reviewed_upstream_commit": "e2e92e7b4b8229253ed5c8e81dc65463fdeddda5",
+  "precedence": [
+    "vault_brand_voice",
+    "proof_and_claim_gates",
+    "factual_accuracy",
+    "exact_quote_integrity",
+    "native_edit_ownership",
+    "simpro_style",
+    "upstream_humanizer"
+  ],
+  "protected_spans": [
+    "yaml_frontmatter",
+    "fenced_code",
+    "inline_code",
+    "html_comment",
+    "url",
+    "link_destination",
+    "production_image_placeholder",
+    "exact_quotation",
+    "metric_or_date_range",
+    "connector_bound_claim"
+  ],
+  "runtime_network": false,
+  "patterns": [
+    {
+      "upstream_id": 1,
+      "upstream_heading": "Inflated claims about importance and legacy",
+      "stable_rule_id": "humanizer.inflated_importance",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [],
+      "rationale": "Importance and legacy language requires article-level editorial judgment."
+    },
+    {
+      "upstream_id": 2,
+      "upstream_heading": "Name-dropping to prove importance",
+      "stable_rule_id": "humanizer.importance_name_dropping",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [],
+      "rationale": "Named entities may be necessary proof, product, or source references."
+    },
+    {
+      "upstream_id": 3,
+      "upstream_heading": "Shallow analysis with -ing phrases",
+      "stable_rule_id": "humanizer.shallow_ing_analysis",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [],
+      "rationale": "Participial phrasing is valid when it carries real causal meaning."
+    },
+    {
+      "upstream_id": 4,
+      "upstream_heading": "Sales language",
+      "stable_rule_id": "humanizer.sales_language",
+      "disposition": "blocking",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "Approved, source-supported commercial language remains proof governed."
+      ],
+      "rationale": "Existing unsupported-hype rules block the deterministic subset; other sales language remains contextual.",
+      "enforcement": {
+        "mode": "existing_rules",
+        "rule_ids": [
+          "unsupported_hype"
+        ],
+        "advisory_remainder": true
+      }
+    },
+    {
+      "upstream_id": 5,
+      "upstream_heading": "Vague sources",
+      "stable_rule_id": "humanizer.vague_sources",
+      "disposition": "proof_routed",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "A visible authoritative citation may supply the attribution."
+      ],
+      "rationale": "Existing proof and source-support guards own attribution decisions."
+    },
+    {
+      "upstream_id": 6,
+      "upstream_heading": "Formulaic challenges and outlook sections",
+      "stable_rule_id": "humanizer.formulaic_challenges_outlook",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [],
+      "rationale": "Challenges and outlook sections can be useful when the brief calls for them."
+    },
+    {
+      "upstream_id": 7,
+      "upstream_heading": "Overused AI words",
+      "stable_rule_id": "humanizer.overused_ai_words",
+      "disposition": "blocking",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "Necessary AI product terminology remains allowed when vault aligned."
+      ],
+      "rationale": "Existing AI-phrase rules block the deterministic subset; remaining vocabulary is contextual.",
+      "enforcement": {
+        "mode": "existing_rules",
+        "rule_ids": [
+          "ai_phrase",
+          "unsupported_hype"
+        ],
+        "advisory_remainder": true
+      }
+    },
+    {
+      "upstream_id": 8,
+      "upstream_heading": "Avoiding is and are",
+      "stable_rule_id": "humanizer.copula_avoidance",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [],
+      "rationale": "Copular alternatives are sometimes the clearest wording."
+    },
+    {
+      "upstream_id": 9,
+      "upstream_heading": "Not X but Y and clipped negative endings",
+      "stable_rule_id": "humanizer.negative_parallelism",
+      "disposition": "blocking",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "Valid comparisons and FAQ answers remain allowed outside the exact blocked construction."
+      ],
+      "rationale": "The existing not-just-but-also rule blocks the deterministic subset; clipped endings remain advisory.",
+      "enforcement": {
+        "mode": "existing_rules",
+        "rule_ids": [
+          "not_just_but_also"
+        ],
+        "advisory_remainder": true
+      }
+    },
+    {
+      "upstream_id": 10,
+      "upstream_heading": "Forced groups of three",
+      "stable_rule_id": "humanizer.forced_groups_of_three",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [],
+      "rationale": "Groups of three may be deliberate Simpro signature language."
+    },
+    {
+      "upstream_id": 11,
+      "upstream_heading": "Changing names and repeating sentence openings",
+      "stable_rule_id": "humanizer.repeated_sentence_openings",
+      "disposition": "blocking",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "Deliberate authorial repetition remains advisory."
+      ],
+      "rationale": "The existing three-repeat detector blocks formulaic openings; deliberate repetition and naming stay advisory.",
+      "enforcement": {
+        "mode": "existing_rules",
+        "rule_ids": [
+          "repeated_sentence_start"
+        ],
+        "advisory_remainder": true
+      }
+    },
+    {
+      "upstream_id": 12,
+      "upstream_heading": "False from X to Y ranges",
+      "stable_rule_id": "humanizer.false_ranges",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [],
+      "rationale": "Ranges require semantic review because real scope and date ranges are valid."
+    },
+    {
+      "upstream_id": 13,
+      "upstream_heading": "Passive voice and missing subjects",
+      "stable_rule_id": "humanizer.passive_voice",
+      "disposition": "blocking",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "FAQ question headings retain the existing carve-out."
+      ],
+      "rationale": "The existing passive-voice detector remains narrow; technical and evidence-led passive voice may be valid.",
+      "enforcement": {
+        "mode": "existing_rules",
+        "rule_ids": [
+          "passive_voice"
+        ],
+        "advisory_remainder": true
+      }
+    },
+    {
+      "upstream_id": 14,
+      "upstream_heading": "Em and en dashes",
+      "stable_rule_id": "humanizer.dash_usage",
+      "disposition": "blocking",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "En dashes in ranges and exact source titles remain allowed.",
+        "Double hyphens are not imported as a new ban."
+      ],
+      "rationale": "Simpro blocks em dashes. En dashes and double hyphens are not imported as Humanizer bans.",
+      "enforcement": {
+        "mode": "existing_rules",
+        "rule_ids": [
+          "em_dash"
+        ],
+        "advisory_remainder": true
+      }
+    },
+    {
+      "upstream_id": 15,
+      "upstream_heading": "Too much bold text",
+      "stable_rule_id": "humanizer.bold_overuse",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [],
+      "rationale": "Bold use depends on section structure and reader scanning needs."
+    },
+    {
+      "upstream_id": 16,
+      "upstream_heading": "Lists with bold mini-headings",
+      "stable_rule_id": "humanizer.bold_label_lists",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [],
+      "rationale": "Bold mini-headings can be useful in concise operational lists."
+    },
+    {
+      "upstream_id": 17,
+      "upstream_heading": "Title case in headings",
+      "stable_rule_id": "humanizer.title_case_headings",
+      "disposition": "blocking",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "Proper nouns and quoted titles retain existing handling."
+      ],
+      "rationale": "The existing heading capitalization rule covers the deterministic Simpro subset.",
+      "enforcement": {
+        "mode": "existing_rules",
+        "rule_ids": [
+          "title_capitalized_preposition"
+        ],
+        "advisory_remainder": true
+      }
+    },
+    {
+      "upstream_id": 18,
+      "upstream_heading": "Emojis",
+      "stable_rule_id": "humanizer.emoji_usage",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [],
+      "rationale": "Emoji suitability depends on channel and article treatment."
+    },
+    {
+      "upstream_id": 19,
+      "upstream_heading": "Curly quotation marks",
+      "stable_rule_id": "humanizer.quotation_mark_conversion",
+      "disposition": "overridden",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "Never normalize or rewrite exact approved quotations."
+      ],
+      "rationale": "Exact quotation integrity outranks upstream quote-style conversion."
+    },
+    {
+      "upstream_id": 20,
+      "upstream_heading": "Chatbot text left in the answer",
+      "stable_rule_id": "humanizer.chatbot_residue",
+      "disposition": "blocking",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [],
+      "rationale": "Leaked assistant residue has no legitimate public-blog use.",
+      "enforcement": {
+        "mode": "policy_regex",
+        "severity": "error",
+        "pattern": "\\b(?:i hope this helps|hope this helps|let me know|would you like me to|want me to(?: give examples)?|should i continue|you(?:'|’)re absolutely right|as an ai(?: language model)?|feel free to ask)\\b",
+        "flags": [
+          "ignore_case"
+        ],
+        "message": "Remove chatbot residue from public blog copy.",
+        "suggestion": "Delete the assistant-facing phrase and end with the article’s intended reader action."
+      }
+    },
+    {
+      "upstream_id": 21,
+      "upstream_heading": "Knowledge-limit disclaimers and guesses",
+      "stable_rule_id": "humanizer.knowledge_limit_guesses",
+      "disposition": "proof_routed",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "Legal, safety, correction, and scope limitations remain valid."
+      ],
+      "rationale": "Unsupported factual guesses remain proof-gated; legitimate limitations remain allowed."
+    },
+    {
+      "upstream_id": 22,
+      "upstream_heading": "Overly agreeable tone",
+      "stable_rule_id": "humanizer.agreeable_assistant_tone",
+      "disposition": "excluded",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "Excluded because it targets assistant replies rather than blog prose."
+      ],
+      "rationale": "Assistant agreeability guidance does not apply to finished blog prose."
+    },
+    {
+      "upstream_id": 23,
+      "upstream_heading": "Filler phrases",
+      "stable_rule_id": "humanizer.filler_phrases",
+      "disposition": "blocking",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "Only the existing exact blocker phrases are enforced."
+      ],
+      "rationale": "Existing filler and setup rules block the deterministic subset; additional phrases remain advisory.",
+      "enforcement": {
+        "mode": "existing_rules",
+        "rule_ids": [
+          "filler_word",
+          "setup_phrase"
+        ],
+        "advisory_remainder": true
+      }
+    },
+    {
+      "upstream_id": 24,
+      "upstream_heading": "Too many qualifiers",
+      "stable_rule_id": "humanizer.qualifier_overuse",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [],
+      "rationale": "Qualifiers can accurately communicate evidence and product boundaries."
+    },
+    {
+      "upstream_id": 25,
+      "upstream_heading": "Generic positive endings",
+      "stable_rule_id": "humanizer.generic_positive_endings",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [],
+      "rationale": "Endings require article-level judgment about the promised payoff."
+    },
+    {
+      "upstream_id": 26,
+      "upstream_heading": "Too many hyphenated word pairs",
+      "stable_rule_id": "humanizer.hyphenated_pair_overuse",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [],
+      "rationale": "Hyphenated technical terms and compounds are often correct."
+    },
+    {
+      "upstream_id": 27,
+      "upstream_heading": "Pretending to reveal a deeper truth",
+      "stable_rule_id": "humanizer.deeper_truth_framing",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [],
+      "rationale": "Deeper-truth framing may be valid author opinion when clearly framed."
+    },
+    {
+      "upstream_id": 28,
+      "upstream_heading": "Announcing the next point",
+      "stable_rule_id": "humanizer.next_point_announcements",
+      "disposition": "blocking",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "Only the existing exact blocker phrases are enforced."
+      ],
+      "rationale": "Existing setup rules block deterministic announcements; other transitions remain advisory.",
+      "enforcement": {
+        "mode": "existing_rules",
+        "rule_ids": [
+          "setup_phrase"
+        ],
+        "advisory_remainder": true
+      }
+    },
+    {
+      "upstream_id": 29,
+      "upstream_heading": "A heading repeated in the first sentence",
+      "stable_rule_id": "humanizer.heading_echo",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [],
+      "rationale": "A heading echo can provide a direct answer and is not automatically redundant."
+    },
+    {
+      "upstream_id": 30,
+      "upstream_heading": "Writing about the previous version",
+      "stable_rule_id": "humanizer.previous_version_wording",
+      "disposition": "excluded",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "Excluded for blogs because change-history wording can be necessary."
+      ],
+      "rationale": "Previous-version wording is valid in update, migration, and comparison content."
+    },
+    {
+      "upstream_id": 31,
+      "upstream_heading": "Forced punchlines and dramatic fragments",
+      "stable_rule_id": "humanizer.dramatic_fragments",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "Named-author short punchlines are allowed."
+      ],
+      "rationale": "Named-author blogs may use short punchlines and deliberate fragments."
+    },
+    {
+      "upstream_id": 32,
+      "upstream_heading": "Formulaic sayings",
+      "stable_rule_id": "humanizer.formulaic_sayings",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [],
+      "rationale": "A saying may be authentic when it fits the author and subject."
+    },
+    {
+      "upstream_id": 33,
+      "upstream_heading": "Fake-candid openings",
+      "stable_rule_id": "humanizer.fake_candid_openings",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "Named-author first-person judgment is allowed."
+      ],
+      "rationale": "Named-author blogs may use candid first-person judgment when genuine."
+    },
+    {
+      "upstream_id": 34,
+      "upstream_heading": "Answering objections no one raised",
+      "stable_rule_id": "humanizer.unraised_objections",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "FAQs and evidence-backed buyer objections are allowed."
+      ],
+      "rationale": "Real buyer objections and FAQ answers remain valid."
+    },
+    {
+      "upstream_id": 35,
+      "upstream_heading": "Rejecting fake alternatives",
+      "stable_rule_id": "humanizer.fake_alternatives",
+      "disposition": "advisory",
+      "channels": [
+        "blog"
+      ],
+      "exceptions": [
+        "Evidence-backed comparison alternatives are allowed."
+      ],
+      "rationale": "Real evaluated alternatives remain valid in comparison content."
+    }
+  ]
+}

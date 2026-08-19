@@ -421,6 +421,46 @@ def test_native_draft_edit_is_attested_without_python_creating_the_article(tmp_p
     assert json.loads(state_path.read_text(encoding="utf-8"))["schema"].endswith("-consumed/v1")
 
 
+def test_native_edit_receipt_hashes_humanizer_policy_and_upstream_manifest(tmp_path: Path):
+    """Dropping Humanizer provenance from receipt evidence must make this fail."""
+    article = tmp_path / "drafts" / "topic.md"
+    policy = tmp_path / "config" / "humanizer-policy.json"
+    upstream = tmp_path / "vendor" / "blader-humanizer" / "UPSTREAM.json"
+    policy.parent.mkdir(parents=True)
+    upstream.parent.mkdir(parents=True)
+    policy.write_text('{"schema":"simpro-humanizer-policy/v1"}\n', encoding="utf-8")
+    upstream.write_text('{"schema":"simpro-humanizer-upstream/v1"}\n', encoding="utf-8")
+    state_path = tmp_path / "research" / "draft-state.json"
+    receipt_path = tmp_path / "research" / "draft.json"
+    stage_receipts.begin_native_edit(
+        article_path=article,
+        state_path=state_path,
+        run_id="run-humanizer",
+        stage="draft",
+        tool_name="write-command",
+        tool_version="1",
+        started_at="2026-08-19T12:00:00Z",
+    )
+    article.parent.mkdir(parents=True)
+    article.write_text("# Native draft\n", encoding="utf-8")
+
+    receipt = stage_receipts.finish_native_edit(
+        state_path=state_path,
+        article_path=article,
+        receipt_path=receipt_path,
+        evidence_artifacts={
+            "humanizer_policy": policy,
+            "humanizer_upstream": upstream,
+        },
+        completed_at="2026-08-19T12:01:00Z",
+    )
+
+    assert receipt["evidence_hashes"] == {
+        "humanizer_policy": hashlib.sha256(policy.read_bytes()).hexdigest(),
+        "humanizer_upstream": hashlib.sha256(upstream.read_bytes()).hexdigest(),
+    }
+
+
 def test_native_optimization_requires_an_existing_article(tmp_path: Path):
     with pytest.raises(StageReceiptError) as raised:
         stage_receipts.begin_native_edit(
