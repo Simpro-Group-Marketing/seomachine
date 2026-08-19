@@ -2,6 +2,8 @@ from importlib import import_module
 from pathlib import Path
 import json
 
+import pytest
+
 from data_sources.modules.blog_assembly_contract import canonical_json_sha256
 from data_sources.modules.editorial_plan_guard import build_serp_evidence
 
@@ -565,7 +567,7 @@ def test_serp_timestamp_requires_extended_rfc3339_utc(tmp_path: Path):
         ), timestamp
 
 
-def test_down_funnel_plan_rejects_external_target_and_accepts_owned_target():
+def test_down_funnel_plan_rejects_external_target_and_accepts_same_brand_target():
     payload = article_plan()
     payload['internal_link_plan'][0]['target'] = (
         'https://external.example/features/scheduling/'
@@ -582,3 +584,44 @@ def test_down_funnel_plan_rejects_external_target_and_accepts_owned_target():
     findings = _guard().check_plan(payload)
 
     assert 'editorial_plan_internal_link_external' not in _rule_ids(findings)
+
+
+@pytest.mark.parametrize(
+    ('brand', 'target'),
+    (
+        ('AroFlo', 'https://aroflo.com/features/job-estimating'),
+        ('BigChange', 'https://www.bigchange.com/job-management-software/'),
+        ('ClockShark', 'https://www.clockshark.com/tour/job-management'),
+        ('Simpro', 'https://www.simprogroup.com/features/scheduling/'),
+    ),
+)
+def test_down_funnel_plan_accepts_matching_owned_brand_domain(brand: str, target: str):
+    payload = article_plan()
+    payload['brand'] = brand
+    payload['internal_link_plan'][0]['target'] = target
+
+    findings = _guard().check_plan(payload)
+
+    assert 'editorial_plan_internal_link_external' not in _rule_ids(findings)
+
+
+@pytest.mark.parametrize(
+    ('brand', 'cross_brand_target'),
+    (
+        ('AroFlo', 'https://www.bigchange.com/job-management-software/'),
+        ('BigChange', 'https://www.clockshark.com/tour/job-management'),
+        ('ClockShark', 'https://www.simprogroup.com/features/scheduling/'),
+        ('Simpro', 'https://aroflo.com/features/job-estimating'),
+    ),
+)
+def test_down_funnel_plan_rejects_cross_brand_owned_domain(
+    brand: str,
+    cross_brand_target: str,
+):
+    payload = article_plan()
+    payload['brand'] = brand
+    payload['internal_link_plan'][0]['target'] = cross_brand_target
+
+    findings = _guard().check_plan(payload)
+
+    assert 'editorial_plan_internal_link_external' in _rule_ids(findings)

@@ -2,17 +2,17 @@
 
 This repo is proof-sensitive. Never synthesize data, customer claims, review claims, metrics, rankings, PAA questions, or quotes.
 
-## Obsidian Vault Source Rule
+## Simpro Vault Source Rule
 
-For every blog, SEO, AEO, competitor, proof, product, audience, partner, or workflow decision, use the Simpro vault connector as the active context source. The only configured content location is the vault root; prompts, guards, selectors, and workflow docs must not prescribe vault hubs, filenames, or internal directories.
+Use the Simpro vault connector as the active context source only when the final artifact is Simpro-owned or contains a Simpro signal. A Simpro signal is the name `Simpro` or an official `simprogroup.com` URL, including schemeless URLs and subdomains. AroFlo, BigChange, and ClockShark owned artifacts with no Simpro signal are nonconnector workflows. Missing, unknown, or malformed brand metadata fails closed into the connector workflow. The only configured connector content location is the vault root; prompts, guards, selectors, and workflow docs must not prescribe vault hubs, filenames, or internal directories.
 
-Required connector workflow: run vault health first, describe available roles/topics/entities, search in the task's natural language, read and expand results by `resource_id`, query approved claims only when public proof-sensitive language is needed, then build and validate a context pack. Evidence in validation sidecars must be bound to connector output: `context_pack_hash`, `receipt_hash`, `resource_id`, `claim_id`, use mode, public URL when required, and relevant manifest/revision values.
+For connector-bound workflows, run vault health first, describe available roles/topics/entities, search in the task's natural language, read and expand results by `resource_id`, query approved claims only when public proof-sensitive language is needed, then build and validate a context pack. Evidence in validation sidecars must be bound to connector output: `context_pack_hash`, `receipt_hash`, `resource_id`, `claim_id`, use mode, public URL when required, and relevant manifest/revision values.
 
 Do not use Google Workspace or old marketing-portal URLs as the active read path. Use them only as historical provenance when the vault connector exposes them as source evidence.
 
 The repo-local context files are downstream mirrors or operational state only. They cannot override the vault connector when the vault is available. If repo-local fallback is used because the vault is unavailable, document the explicit vault-unavailable blocker in the validation sidecar and do not make unsupported public claims.
 
-Required validation sidecar evidence: a generated vault context binding for every workflow; `Vault Brand Language Alignment` when product, feature, add-on, solution, industry, or related Simpro product URL language appears; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. These sections must cite connector resource IDs and claim IDs rather than fixed vault routes. Missing required evidence blocks `/publish-readiness`, `/optimize`, and dev-ready handoff.
+Every workflow requires a generated Context Binding decision. Connector-bound workflows require vault context evidence. AroFlo, BigChange, and ClockShark workflows with no Simpro signal require an explicit nonconnector binding and must omit context request/pack/receipt, Fred evidence, and vault-dependent customer-proof selector evidence. `Vault Brand Language Alignment` applies when connector-bound product, feature, add-on, solution, industry, or related Simpro product URL language appears; `Competitive Shortlist Decision` applies to competitor-aware posts; `Named Feature/Add-On Link Check` applies when named Simpro features/add-ons appear. Connector evidence sections must cite resource IDs and claim IDs rather than fixed vault routes. Missing required evidence blocks `/publish-readiness`, `/optimize`, and dev-ready handoff.
 
 ## Author-Led Blog Voice
 
@@ -26,7 +26,7 @@ Validate the vendored snapshot offline with `python tools/humanizer_upstream.py 
 
 ## Vault-Backed Competitor and Feature Guardrails
 
-- `Competitive Shortlist Decision`: competitor-aware posts must document selected competitors, rejected competitors, connector-discovered competitive-context resources, approved claim IDs where public proof is used, and why the shortlist fits the article objective.
+- `Competitive Shortlist Decision`: connector-bound competitor-aware posts must document selected competitors, rejected competitors, connector-discovered competitive-context resources, approved claim IDs where public proof is used, and why the shortlist fits the article objective. Nonconnector AroFlo, BigChange, and ClockShark posts document the task-approved shortlist and public official-source basis without vault resource or claim IDs.
 - Public competitor pages may shape SERP/article format, but cannot decide named competitors for Simpro public copy.
 - `Hindsight Boundary`: Hindsight/deal intelligence can inform internal strategy, but cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified through the claim registry. Keep raw deal counts out of public copy.
 - `Named Feature/Add-On Link Check`: first meaningful mentions of Simpro features/add-ons must be checked through connector-discovered product and feature resources before link decisions. Document the selected `resource_id` values, link decision, and reason in the validation sidecar.
@@ -35,11 +35,13 @@ Validate the vendored snapshot offline with `python tools/humanizer_upstream.py 
 
 ## Customer Proof Selection
 
-Before selecting customer proof for a blog, article, rewrite, or optimization pass, the command workflow must resolve `topic`, `title`, and `objective`, automatically run:
+Before selecting customer proof for a connector-bound blog, article, rewrite, or optimization pass, the command workflow must resolve `topic`, `title`, and `objective`, automatically run:
 
 ```powershell
 python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10
 ```
+
+For nonconnector AroFlo, BigChange, and ClockShark workflows, do not run the vault-dependent customer-proof selector and do not publish customer stories, testimonials, review-derived anecdotes, ratings, or quotes unless a separate approved non-vault proof-eligibility contract is available.
 
 Use `context/customer-proof-index.json` for curated proof routes and `context/customer-proof-usage-ledger.json` for reuse. Before claiming a proof source is underused, inspect the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the proof ID, public URL, and customer name. If the live scan finds public-copy usage missing from the ledger, update `context/customer-proof-usage-ledger.json` before selecting proof, rerun the proof health/selector checks, and document the backfill in the validation sidecar. Write the generated selector-first `Customer Proof Slate` to the validation sidecar before drafting customer proof; "consult" means reviewing generated selector output, not skipping execution. If inputs are missing, resolve them from the brief/context or stop before drafting customer proof. If the selector fails, write the blocker into the validation sidecar and do not invent proof. Edit selected/rejected rows only when editorial judgment requires it. experience_story consideration is required and E-E-A-T story usage is optional; if no story fits, use `Selected: [none]` with section-specific rejection reasons. Choose the most relevant approved proof, not the easiest mapped case study. If a repeated proof source is still the best fit, document a `Customer Proof Selection Decision` and a source-specific `Reuse reason` proving no stronger underused approved proof fits the same role.
 
@@ -65,7 +67,7 @@ For Capterra theme use, add `Review Site Theme Selection` with `Capterra tab row
 
 ## Fred Voccola Authority Selection
 
-For every new or changed Simpro blog and every rewrite, analysis, optimization, or publish-readiness pass, resolve `topic`, `title`, and `objective`, automatically run:
+For every new or changed Simpro blog and every connector-bound rewrite, analysis, optimization, or publish-readiness pass, resolve `topic`, `title`, and `objective`, automatically run:
 
 ```powershell
 python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --slate --limit 5

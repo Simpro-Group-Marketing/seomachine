@@ -366,6 +366,18 @@ def lint_content(content: str, profile: str = "simpro-web") -> List[Finding]:
 
 
 def _should_skip_copy_avoid_rule(rule_id: str, original_line: str) -> bool:
+    approved_comparison_disclosure = (
+        "This guide is published by AroFlo, a software provider included in this comparison. "
+        "We evaluated AroFlo against the same criteria used for every other platform listed. "
+        "Product information was reviewed using official vendor documentation and independent "
+        "software review sources in August 2026."
+    )
+    if (
+        rule_id == "passive_voice"
+        and " ".join(original_line.split()) == approved_comparison_disclosure
+    ):
+        return True
+
     if rule_id == 'modal_verb' and HOW_CAN_HEADING_RE.match(original_line):
         modal_words = MODAL_VERB_TOKEN_RE.findall(original_line)
         if len(modal_words) == 1 and modal_words[0].lower() == 'can':

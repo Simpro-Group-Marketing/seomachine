@@ -23,8 +23,8 @@ Use `context/aeo-geo-blog-strategy.md` and repo instructions as the canonical go
 
 ### 1. Inputs and Context
 - Resolve source URL or file path, post slug, topic, title, objective, audience, region, current target keyword, and intended reader task.
-- Run the required vault connector workflow from the repo instructions and canonical strategy before making product, competitor, proof, or workflow decisions.
-- Save or update analysis, context, receipt, and validation sidecar artifacts under `research/`.
+- Classify Context Binding from the brand metadata and content before making product, competitor, proof, or workflow decisions. Run the vault connector workflow only for Simpro-owned or cross-brand-triggered work.
+- Save context request/pack/receipt only for connector-bound work. For qualifying AroFlo, BigChange, and ClockShark work, save the nonconnector decision and omit vault-dependent Fred and customer-proof artifacts.
 - Use repo-local context files only as downstream mirrors or fallback context when the vault is unavailable, and record that blocker in the validation sidecar.
 
 ### 2. Content Analysis
@@ -37,12 +37,12 @@ Use `context/aeo-geo-blog-strategy.md` and repo instructions as the canonical go
 - Review target keyword use in the H1, H2s, introduction, meta title, meta description, and body copy.
 - Report keyword coverage, semantic gaps, and stuffing risk without forcing density targets unless a target was supplied.
 - Review internal links, external evidence links, headings, readability, and metadata.
-- Include SEO quality 90/100+ with zero critical SEO issues as the later publish-readiness target.
+- Include SEO quality release floor 90/100+ with zero critical SEO issues and optimization target 95/100 as the later publish-readiness target.
 
 ### 4. AEO/GEO and Proof Readiness
 - Audit direct-answer intro, early artifact, key takeaways, Capsule Method coverage, FAQ/PAA structure, schema notes, source-backed claims, and one-idea-per-section structure.
-- Identify missing Source Map, Metric Proof Pack, FAQ Proof Map, Customer Proof Pack, Vault Brand Language Alignment, Named Feature/Add-On Link Check, and Fred Voccola Authority Selection evidence required by the canonical strategy.
-- Treat content quality 85/100+, SEO quality 90/100+, and AEO/GEO 90/100+ as rewrite or optimization acceptance targets.
+- Identify missing Source Map, Metric Proof Pack, FAQ Proof Map, and branch-applicable proof evidence. Require Customer Proof Pack, Vault Brand Language Alignment, Named Feature/Add-On Link Check, and Fred Voccola Authority Selection only when Context Binding requires the connector.
+- Treat content quality 85/100+, SEO quality release floor 90/100+ and optimization target 95/100, and AEO/GEO 90/100+ as rewrite or optimization acceptance targets.
 - Do not invent replacement PAA questions, customer proof, author names, reviewer names, search-volume data, ranking data, traffic forecasts, or external claims.
 
 ### 5. Competitive Context

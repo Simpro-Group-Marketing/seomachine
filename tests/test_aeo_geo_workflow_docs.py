@@ -208,6 +208,9 @@ def test_optimize_is_findings_and_targeted_edit_loop_not_finalizer():
     assert "Optimization is a findings and targeted edit loop" in content
     assert "not a separate finalization path" in content
     assert "/publish-readiness" in content
+    assert "SEO 90-94 is release-pass, below-target" in content
+    assert "honest, source-safe optimization pass" in content
+    assert "no honest SEO fix recommended" in content
     for deleted_tool in DELETED_AUTHORING_TOOLS:
         assert deleted_tool not in content
 
@@ -228,7 +231,7 @@ def test_publish_readiness_documents_independent_scorecard():
     assert "`/publish-readiness` is the release owner" in content
     assert "`scorecard`" in content
     assert "`content_quality`: score, threshold 85 for blogs" in content
-    assert "`seo_quality`: score, threshold 90" in content
+    assert "`seo_quality`: score, release-floor threshold 90, advisory target 95" in content
     assert "`critical_issue_count` of 0" in content
     assert "`aeo_geo`: score, threshold 90 for blogs" in content
     for deleted_tool in DELETED_AUTHORING_TOOLS:
@@ -244,9 +247,12 @@ def test_strategy_keeps_native_boundary_and_score_thresholds():
     assert "`/scrub` is read-only diagnostics" in content
     assert "`/publish-readiness` owns the scorecard" in content
     assert "Content quality score of 85/100 or higher" in content
-    assert "SEO quality score of 90/100 or higher with zero critical SEO issues" in content
+    assert "SEO quality release floor of 90/100 or higher with zero critical SEO issues" in content
+    assert "SEO quality optimization target is 95/100" in content
     assert "AEO/GEO score of 90/100 or higher" in content
-    assert "use the Simpro vault connector as the active context source" in content
+    assert "Use the Simpro vault connector only for Simpro-owned artifacts" in content
+    assert "AroFlo, BigChange, and ClockShark owned artifacts" in content
+    assert "Missing, unknown, or malformed brand metadata fails closed" in content
     for deleted_tool in DELETED_AUTHORING_TOOLS:
         assert deleted_tool not in content
 
@@ -267,7 +273,7 @@ def test_research_and_analyze_existing_are_lean_command_skeletons():
         assert "validation sidecar" in content
         assert "Customer Proof Pack" in content
         assert "Fred Voccola Authority Selection" in content
-        assert "SEO quality 90/100+" in content
+        assert "SEO quality release floor 90/100+ and optimization target 95/100" in content
         assert "AEO/GEO 90/100+" in content
         assert "content quality 85/100+" in content
         for phrase in forbidden_embedded_policy:
@@ -278,7 +284,8 @@ def test_readme_no_longer_lists_deleted_authoring_modules():
 
     assert "Blog writing is native-first" in content
     assert "Python modules do not draft, rewrite, or patch article copy" in content
-    assert "SEO quality must be 90/100 or higher with zero critical SEO issues" in content
+    assert "SEO quality must clear the 90/100 release floor with zero critical SEO issues" in content
+    assert "SEO quality should target 95/100 when honest, source-safe optimization can improve the artifact" in content
     for deleted_tool in DELETED_AUTHORING_TOOLS:
         assert deleted_tool not in content
 

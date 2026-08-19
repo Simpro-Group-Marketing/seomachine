@@ -14,7 +14,7 @@ Use `context/aeo-geo-blog-strategy.md` and repo instructions as the canonical go
 
 ## What This Command Does
 1. Resolves topic, title, objective, audience, region, target keyword, and article intent.
-2. Builds the vault-backed research context and validation sidecar plan.
+2. Builds the connector-backed research context when required, or an explicit nonconnector decision for qualifying AroFlo, BigChange, and ClockShark work.
 3. Performs keyword, SERP, competitor, PAA/FAQ, proof, source, and internal-link research.
 4. Identifies reader-payoff gaps, Simpro angle, proof needs, and article structure.
 5. Saves a research brief for `/write`.
@@ -23,8 +23,8 @@ Use `context/aeo-geo-blog-strategy.md` and repo instructions as the canonical go
 
 ### 1. Inputs and Context
 - Resolve the working topic slug, target reader, search intent, main question, and article objective.
-- Run the required vault connector workflow from the repo instructions and canonical strategy.
-- Save context request, context pack, context receipt, and validation sidecar artifacts under `research/`.
+- Classify Context Binding from the brand metadata and content. Run the vault connector workflow only for Simpro-owned or cross-brand-triggered work.
+- Save context request, context pack, and context receipt under `research/` only when connector-bound. Save an explicit nonconnector binding reason for qualifying AroFlo, BigChange, and ClockShark work.
 - Use repo-local context files only as downstream mirrors or fallback context when the vault is unavailable, and record that blocker in the validation sidecar.
 
 ### 2. Keyword Research
@@ -39,16 +39,16 @@ Use `context/aeo-geo-blog-strategy.md` and repo instructions as the canonical go
 - Document selected/rejected competitors through the canonical `Competitive Shortlist Decision` policy when competitor-aware public copy is planned.
 - Treat competitor word count as context, not as the article target.
 
-### 4. Simpro Context and Proof Planning
-- Identify relevant Simpro product, solution, industry, feature, add-on, and internal-link context through connector-backed research.
-- Plan the validation sidecar evidence required by the canonical strategy, including Vault Brand Language Alignment, Named Feature/Add-On Link Check, Source Map, Metric Proof Pack, Customer Proof Pack, FAQ Proof Map, and Fred Voccola Authority Selection as applicable.
+### 4. Brand Context and Proof Planning
+- For connector-bound work, identify relevant Simpro product, solution, industry, feature, add-on, and internal-link context through connector-backed research. For nonconnector work, use task-approved brand sources and current public evidence.
+- Plan only the validation sidecar evidence applicable to the binding branch. Omit Vault Brand Language Alignment, Named Feature/Add-On Link Check, Customer Proof Pack selector evidence, and Fred Voccola Authority Selection from nonconnector workflows.
 - Do not select, quote, paraphrase, or metricize customer proof unless the required governance evidence exists.
 
 ### 5. AEO/GEO Planning
 - Resolve AEO/GEO variables: topic, audience, main question, related questions, tone, expertise, and target length.
 - Collect or document PAA/FAQ provenance according to the canonical strategy.
 - Plan the early artifact, direct-answer intro, key takeaways, Capsule Method coverage, FAQ shape, schema notes, and evidence-backed source map.
-- Treat content quality 85/100+, SEO quality 90/100+ with zero critical SEO issues, and AEO/GEO 90/100+ as handoff targets for the later writing/readiness workflow.
+- Treat content quality 85/100+, SEO quality release floor 90/100+ and optimization target 95/100, and AEO/GEO 90/100+ as handoff targets for the later writing/readiness workflow.
 
 ## Output
 Provide a research brief with:

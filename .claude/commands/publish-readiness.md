@@ -28,7 +28,7 @@ The runner enforces artifact identity, Context Binding, Blog Assembly BOM, publi
 The readiness output must include a `scorecard` with independent pass/fail records:
 
 - `content_quality`: score, threshold 85 for blogs, threshold 75 for landing pages, passed.
-- `seo_quality`: score, threshold 90, passed, and `critical_issue_count` of 0. Blog readiness fails if this gate fails.
+- `seo_quality`: score, release-floor threshold 90, advisory target 95, passed, `target_met`, `target_status`, and `critical_issue_count` of 0. Blog readiness fails if the release-floor gate fails.
 - `aeo_geo`: score, threshold 90 for blogs, passed. Blog readiness fails if this gate fails.
 
 A passed blog readiness result is invalid if any scorecard gate fails, if SEO has critical issues, or if the top-level content/AEO scores disagree with the scorecard.
@@ -40,7 +40,7 @@ Report:
 - Overall pass/fail.
 - One row per gate with error and warning counts.
 - Content score and threshold.
-- SEO score, threshold, and critical issue count.
+- SEO score, release floor, advisory target, target status, and critical issue count.
 - AEO/GEO score and threshold.
 - Priority fixes and the next owning command.
 

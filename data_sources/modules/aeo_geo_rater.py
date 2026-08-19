@@ -154,6 +154,11 @@ def rate_aeo_geo(
         ),
         "faq_structure": _check_faq_structure(body),
     }
+    if _validated_non_connector_bom(finalized_bom):
+        checks["eeat_proof"] = _not_applicable_check(
+            checks["eeat_proof"],
+            "Selector-backed Simpro E-E-A-T proof is not applicable to a guard-validated nonconnector article.",
+        )
     checks['author_voice'] = _check_author_voice(
         body,
         merged_metadata,
@@ -759,7 +764,10 @@ def _check_direct_answer(body: str, metadata: Dict[str, Any]) -> Dict[str, Any]:
             verb, subject = definition_match.groups()
             declarative_targets.append(f"{subject.strip()} {verb}")
 
-    includes_target = any(target in text_lower for target in targets) or any(
+    includes_target = any(
+        _contains_ordered_target(text_lower, target)
+        for target in targets
+    ) or any(
         re.match(rf"^{re.escape(target)}\b", text_lower)
         for target in declarative_targets
     )
@@ -1092,6 +1100,47 @@ def _check_eeat_proof(
             "has_documented_no_fit_boundary": has_documented_no_fit_boundary,
         },
     }
+
+
+def _contains_ordered_target(text: str, target: str, *, max_gap_words: int = 2) -> bool:
+    text_tokens = re.findall(r"[a-z0-9]+", text.casefold())
+    target_tokens = re.findall(r"[a-z0-9]+", target.casefold())
+    if not target_tokens:
+        return False
+
+    for start, token in enumerate(text_tokens):
+        if token != target_tokens[0]:
+            continue
+        position = start
+        inserted = 0
+        for expected in target_tokens[1:]:
+            position += 1
+            while position < len(text_tokens) and text_tokens[position] != expected:
+                inserted += 1
+                if inserted > max_gap_words:
+                    break
+                position += 1
+            if inserted > max_gap_words or position >= len(text_tokens):
+                break
+        else:
+            return True
+    return False
+
+
+def _validated_non_connector_bom(finalized_bom: Optional[Mapping[str, Any]]) -> bool:
+    if not isinstance(finalized_bom, Mapping):
+        return False
+    if finalized_bom.get("schema") != "simpro-blog-assembly-bom/v1":
+        return False
+    if finalized_bom.get("lifecycle_state") not in {"provisional", "final"}:
+        return False
+    binding = finalized_bom.get("connector_binding")
+    return bool(
+        isinstance(binding, Mapping)
+        and binding.get("status") == "not_applicable"
+        and binding.get("reason")
+        == "Final article contains no Simpro brand, URL, or connector-sensitive language."
+    )
 
 
 def _is_review_site_link(url: str) -> bool:

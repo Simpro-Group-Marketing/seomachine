@@ -11,17 +11,17 @@
 ---
 
 
-## Obsidian Vault Source Rule
+## Simpro Vault Source Rule
 
-For every blog, SEO, AEO, competitor, proof, product, audience, partner, or workflow decision, use the Simpro vault connector as the active context source. The only configured content location is the vault root; do not prescribe vault hubs, filenames, or internal directories.
+Use the Simpro vault connector for Simpro-owned competitive content or any artifact containing the name `Simpro` or an official `simprogroup.com` URL. AroFlo, BigChange, and ClockShark owned competitive content with no Simpro signal is nonconnector and uses the task brief plus current public sources. Missing, unknown, or malformed brand metadata fails closed into the connector workflow. The only configured connector content location is the vault root; do not prescribe vault hubs, filenames, or internal directories.
 
-Required connector workflow: run vault health first, describe available roles/topics/entities, search in the task's natural language, read and expand results by `resource_id`, query approved claims only when public proof-sensitive language is needed, then build and validate a context pack.
+For connector-bound work, run vault health first, describe available roles/topics/entities, search in the task's natural language, read and expand results by `resource_id`, query approved claims only when public proof-sensitive language is needed, then build and validate a context pack.
 
 Do not use Google Workspace or old marketing-portal URLs as the active read path. Use them only as historical provenance when the vault connector exposes them as source evidence.
 
 The repo-local context files are downstream mirrors or operational state only. They cannot override the vault connector when the vault is available. If fallback is used because the vault is unavailable, document the explicit vault-unavailable blocker in the validation sidecar.
 
-Required validation sidecar evidence: generated vault context binding for every workflow; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. These sections must cite connector `context_pack_hash`, `receipt_hash`, `resource_id`, `claim_id`, use mode, public URL when required, and relevant revisions. Missing required evidence blocks `/publish-readiness`, `/optimize`, and dev-ready handoff.
+Required validation sidecar evidence: every workflow records a generated Context Binding decision. Connector-bound work records vault context evidence; nonconnector work records the not-applicable reason and omits connector artifacts. `Competitive Shortlist Decision` applies to competitor-aware posts; `Named Feature/Add-On Link Check` applies when named Simpro features/add-ons appear. Connector sections must cite `context_pack_hash`, `receipt_hash`, `resource_id`, `claim_id`, use mode, public URL when required, and relevant revisions. Missing required evidence blocks `/publish-readiness`, `/optimize`, and dev-ready handoff.
 
 ## Vault-Backed Competitor Guardrails
 
@@ -31,7 +31,7 @@ Required validation sidecar evidence: generated vault context binding for every 
 
 ## How to Use This File
 
-Use the Simpro vault connector as the fast entrypoint for competitor-aware content decisions. This repo file is a downstream mirror/fallback only when the vault connector is unavailable. When using this fallback, document the connector blocker or fallback reason, then open linked reference files only when you need exact battlecard wording, source boundaries, or detailed SEO market evidence.
+For connector-bound competitive content, use the Simpro vault connector as the fast entrypoint. For nonconnector AroFlo, BigChange, and ClockShark content, use the task brief and current official public sources instead of this Simpro-specific mirror. When a connector-bound workflow uses fallback, document the blocker or fallback reason, then open linked reference files only when exact battlecard wording, source boundaries, or detailed SEO market evidence is required.
 
 ## Source Boundaries
 

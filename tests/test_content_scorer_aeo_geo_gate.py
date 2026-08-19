@@ -7,6 +7,7 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from data_sources.modules import content_scorer as content_scorer_module
+from data_sources.modules import seo_quality_rater as seo_quality_rater_module
 from data_sources.modules.content_scorer import ContentScorer
 from data_sources.modules.seo_quality_rater import PUBLISHING_THRESHOLD
 from data_sources.modules.paa_provenance_guard import build_answersocrates_artifact
@@ -107,6 +108,13 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
     def test_seo_gate_uses_the_canonical_seo_quality_threshold(self):
         self.assertEqual(content_scorer_module.SEO_PUBLISHING_THRESHOLD, PUBLISHING_THRESHOLD)
         self.assertFalse(hasattr(ContentScorer, "SEO_PASS_THRESHOLD"))
+
+    def test_seo_gate_uses_the_canonical_advisory_target(self):
+        self.assertEqual(content_scorer_module.SEO_TARGET_SCORE, 95)
+        self.assertEqual(
+            content_scorer_module.SEO_TARGET_SCORE,
+            seo_quality_rater_module.SEO_TARGET_SCORE,
+        )
 
     def test_legacy_70_score_no_longer_meets_quality_threshold(self):
         scorer = ContentScorer()
