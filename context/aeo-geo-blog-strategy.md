@@ -85,26 +85,50 @@ Command ownership:
 
 `/write`, `/rewrite`, and `/optimize` own public blog copy. Python does not draft, rewrite, or patch Markdown in `drafts/`, `rewrites/`, or `published/`.
 
-Python remains responsible for governance and workflow assistance: selector evidence, Context Binding evidence, verified SERP/PAA artifacts, editorial-plan validation, BOM assembly, readiness output, readiness receipts, and publisher transport payloads.
+Python remains responsible for governance and workflow assistance: selector evidence, Context Binding evidence, verified Semrush keyword decisions, verified SERP/PAA artifacts, editorial-plan validation, BOM assembly, readiness output, readiness receipts, and publisher transport payloads.
 
 `/scrub` is read-only diagnostics. If scrub diagnostics find Unicode marks, em dashes, or whitespace issues, the command/agent applies the copy edit and reruns `/scrub`. The scrubber may write governance diagnostics or receipts when explicitly requested, but it must not overwrite the article.
 
-Every new or changed blog still requires a strict `simpro-blog-assembly-bom/v1`. The vault is the knowledge graph and active evidence source only for connector-bound work. The BOM is the article-specific execution record for final article, validation sidecar, context request/pack/receipt when applicable, customer-proof selector evidence and Fred authority evidence only when connector-bound, editorial plan, verified SERP evidence, PAA or rewrite-brief evidence, governance receipts, provisional/final BOM, readiness outputs, and input hashes.
+Every new or changed blog still requires a strict `simpro-blog-assembly-bom/v1`. The vault is the knowledge graph and active evidence source only for connector-bound work. The BOM is the article-specific execution record for final article, validation sidecar, context request/pack/receipt when applicable, customer-proof selector evidence and Fred authority evidence only when connector-bound, editorial plan, Semrush keyword decision, verified SERP evidence, PAA or rewrite-brief evidence, governance receipts, provisional/final BOM, readiness outputs, and input hashes.
 
 BOM build currently accepts `--stage-receipt` for retained machine-owned governance receipts, such as Context Binding or readiness receipts. Do not use receipt tooling as a public-copy authoring proxy. Do not require a Python-generated article mutation receipt for prose written by the native command/agent workflow.
 
-Use this sequence after article copy, sidecar evidence, context evidence, editorial plan, SERP/PAA evidence, and required governance receipts exist:
+Use this sequence after article copy, sidecar evidence, context evidence, editorial plan, Semrush keyword decision, SERP/PAA evidence, customer-proof selector evidence, Fred authority evidence when connector-bound, and required governance receipts exist:
 
 ```powershell
-python data_sources/modules/blog_assembly_bom.py build "[article]" --validation-sidecar "[sidecar]" --editorial-plan "[editorial-plan]" --serp-evidence "[serp-evidence]" --paa-artifact "[paa-artifact-or-brief]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --customer-proof-selector-evidence "[selector-evidence]" --fred-authority-evidence "[fred-evidence]" --stage-receipt "[governance-receipt]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output "[provisional-bom]"
+python data_sources/modules/blog_creation_preflight.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --keyword-decision "[keyword-decision]" --scrub-receipt "[scrub-receipt]" --customer-proof-evidence "[selector-evidence]" --fred-authority-evidence "[fred-evidence]" --editorial-plan "[editorial-plan]" --serp-evidence "[serp-evidence]" --stage-receipt "[governance-receipt]" --paa-artifact "[paa-artifact-or-brief]" --assembly-date "[YYYY-MM-DD]" --output "[pre-bom-report]"
+python data_sources/modules/blog_assembly_bom.py build "[article]" --validation-sidecar "[sidecar]" --editorial-plan "[editorial-plan]" --keyword-decision "[keyword-decision]" --serp-evidence "[serp-evidence]" --paa-artifact "[paa-artifact-or-brief]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --customer-proof-selector-evidence "[selector-evidence]" --fred-authority-evidence "[fred-evidence]" --stage-receipt "[governance-receipt]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output "[provisional-bom]"
 python data_sources/modules/publish_readiness.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --assembly-bom "[provisional-bom]" --phase preflight --output "[preflight-readiness]"
 python data_sources/modules/blog_assembly_bom.py finalize --bom "[provisional-bom]" --preflight-readiness "[preflight-readiness]" --output "[final-bom]"
 python data_sources/modules/publish_readiness.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --assembly-bom "[final-bom]" --phase final --output "[final-readiness-attestation]"
 ```
 
+Proceed to BOM build only when the pre-BOM report has `ready_for_bom: true`. This report blocks stale Semrush decisions, missing or mismatched scrub receipts, missing customer proof selector evidence or invalid no-fit selector evidence, missing expertise evidence, missing commercial-page E-E-A-T strength decisions, and missing BOM dependency inputs before BOM assembly.
+
+For commercial-investigation blogs, valid `no_fit_customer_proof` selector evidence prevents invented customer proof but does not by itself make the page strong. At least one positive E-E-A-T signal should be selected when available: selected customer proof, visible approved review-theme or review-story evidence, selected Fred authority, named author, or an approved SME review note. If none exists, the validation sidecar must include `## E-E-A-T Strength Decision` with `Decision: proof_unavailable_safe_to_publish`, a substantive reason, the required public-copy boundary, and `Status: approved`. `/publish-readiness` records this as warning `eeat_strength_safe_but_weak`; the BOM records the same policy under `eeat_strength_policy`.
+
+Required sidecar block when the fallback is used:
+
+```markdown
+## E-E-A-T Strength Decision
+- Applicability: required
+- Intent: commercial_investigation
+- Positive signals: [none]
+- Decision: proof_unavailable_safe_to_publish
+- Reason: [which proof lanes were checked and why no selected signal fits the article objective]
+- Public copy boundary: public copy omits customer proof, named customer claims, review stories, exact quotes, testimonials, customer metrics, and unsupported SME claims.
+- Status: approved
+```
+
+Optional SME signal row:
+
+```markdown
+- SME review note: Reviewer name: [name]; Role/title: [role]; Review date: [YYYY-MM-DD]; Source of review: [Asana comment, doc comment, or other retained review surface]; Status: approved
+```
+
 Omit context request/pack/receipt, customer-proof selector evidence, and Fred authority evidence only when Context Binding classifies the final article as nonconnector and the validation sidecar records the not-applicable rationale. The builder derives applicability from the final article and rejects a nonconnector branch for Simpro branding, official or schemeless Simpro URLs, connector-sensitive language, unknown brands, or malformed metadata.
 
-Preflight accepts only a provisional BOM and must pass before finalization. Final readiness accepts only a final BOM, reruns every gate, and writes a detached final-readiness attestation bound to the final BOM and exact input hashes. Readiness outputs declare `verification_scope: source_artifact`; they do not claim CMS or rendered-page verification.
+Preflight accepts only a provisional BOM and must pass before finalization. Final readiness accepts only a final BOM, reruns every gate, and writes a detached final-readiness attestation bound to the final BOM and exact input hashes. Readiness outputs declare `verification_scope: source_artifact`; they do not claim CMS or rendered-page verification. Rendered canonical, indexability, schema deployment, Core Web Vitals, mobile rendering, image accessibility, and CMS link checks belong to launch QA until a separate rendered-page gate exists.
 
 `/publish-readiness` owns the scorecard. Blog readiness requires:
 
@@ -115,6 +139,17 @@ Preflight accepts only a provisional BOM and must pass before finalization. Fina
 SEO quality optimization target is 95/100. Scores from 90 to 94 remain publishable when critical issues are zero, but `/optimize` should attempt one honest, source-safe improvement pass only when the fixes improve reader usefulness, search clarity, proof support, or structure. Do not force keyword stuffing, unsupported claims, brief drift, or scorer-gaming to hit 95.
 
 An AEO/GEO or content score below threshold is a repair trigger, not a reporting endpoint. SEO below the 90/100 release floor or any SEO critical issue is blocking even when the content score passes.
+
+## Post-Publish Performance Measurement
+
+`/research-performance` without a target retains its queue-only Markdown output at `research/performance-review-[YYYY-MM-DD].md` and does not create a target receipt. A target-specific `/research-performance [URL-or-path]` writes the matched advisory pair `research/performance-review-[slug]-[YYYY-MM-DD].md` and `research/performance-receipt-[slug]-[YYYY-MM-DD].json` after resolving canonical identity, objective, conversion definition or not-applicable reason, success measure, owner, review date, a primary window, and its equal-length immediately preceding comparison window. Supplemental windows are optional.
+
+Write and finalize the Markdown report first, then build and check the JSON with `post_publish_measurement_receipt.py build --metadata ... --performance-report ... [--article ... --final-bom ...] --output ...` and `post_publish_measurement_receipt.py check [receipt] --performance-report ... --fail-on error`. The validator checks exact rendered report headings against receipt status, requires exact blocked source identity and blocker values in data-only blocked rows, rejects metrics from blocked first-party lanes, and requires non-empty observed values for the documented metrics. Fenced examples and HTML comments do not satisfy report evidence. The receipt binds a current local article and final BOM as `release_artifact` only when its canonical path ends with the BOM-bound editorial-plan URL slug; otherwise `live_url` requires canonical identity verification, `verified_at`, `verification_method: live_canonical_observation`, and the limitation that no local release artifact was available. It records `verification_scope: recorded_observation_metadata`.
+
+Keep source lanes separate: GSC is search-performance truth, GA4 is behavior/conversion evidence, and third-party tools are optional opportunity/SERP context that never satisfy first-party observation. Record property IDs, exact target filters, UTC retrieval times, limitations, and exact source-specific blockers. Emit `observed` only with at least one observed first-party lane. Otherwise emit `blocked` and preserve the lane blockers. A blocked target report is limited to `Scope and evidence`, `Data-quality and causality limits`, and exact per-source blockers and limitations. A blocked target report contains no opportunity queue, diagnosis, recommendation of any kind, verdict, recommended action, owning-command or other workflow handoff, or success claim.
+
+The report and receipt are advisory internal evidence, not public-claim proof, not Customer Proof Pack or validation-sidecar proof, not an assembly BOM, not a `/publish-readiness` input or gate, and not a release requirement. They are never public proof or authorization to edit copy or post externally. Their hashes validate recorded observation metadata and current artifact bindings, not external analytics truth or causal claims.
+
 ## PAA Provenance and Intent-Driven FAQ Policy
 
 - Every new article requires a structured AnswerSocrates artifact, even when no FAQ is useful.
@@ -131,6 +166,7 @@ An AEO/GEO or content score below threshold is a repair trigger, not a reporting
 Every new or changed blog requires `simpro-blog-editorial-plan/v1`, created through the native command/agent planning workflow rather than a parallel Python writing system. It must contain:
 
 - the complete Reader Contract;
+- a `keyword_decision` reference bound to `simpro-semrush-keyword-decision/v1`, including source `semrush_connector`, database, selected primary keyword, selected secondary keywords, and selection rationale;
 - verified intent and SERP decisions bound to `simpro-serp-evidence/v1`, including exact result observations, collection metadata, evidence path, canonical evidence hash, and observed features/structure; metadata-only verified labels do not qualify;
 - at least 1 original contribution mapped to an exact visible final section with a substantive exact `visible_evidence` excerpt that appears there;
 - primary and supporting entity coverage mapped to sections without density targets;
@@ -140,6 +176,35 @@ Every new or changed blog requires `simpro-blog-editorial-plan/v1`, created thro
 - the PAA source/binding/selected-question decision required by the workflow mode.
 
 The BOM binds the final serialized plan path/hash. Publish readiness validates the plan against the final article rather than accepting marker-only planning text.
+
+## Semrush Keyword Decision Contract
+
+Every new or changed SEO/AEO blog requires a machine-readable `simpro-semrush-keyword-decision/v1` artifact at `research/semrush-keyword-decision-[topic-slug]-[YYYY-MM-DD].json` before optimization decisions are finalized. When the task requires Semrush UI, use the authenticated Semrush UI in the main Chrome profile and record `execution_surface: semrush_ui_chrome_main_browser` in the report parameters. Do not substitute Semrush API, MCP, stale repo keyword tables, or estimates for current opportunity and SERP feasibility decisions. Existing `context/target-keywords.md` may inform seed terms only.
+
+Default Semrush databases by brand and market:
+
+- Simpro: `us`
+- ClockShark: `us`
+- BigChange: `uk`
+- AroFlo: `au` primary; add `nz` as a secondary check only when the brief is explicitly NZ or ANZ
+
+Required connector sequence:
+
+- `_keyword_research` to confirm available reports
+- `_get_report_schema` before running report types
+- `phrase_these` for exact candidate keyword metrics
+- `phrase_related` for adjacent opportunity discovery
+- `phrase_questions` for question demand and FAQ candidates
+- `phrase_organic` for SERP feasibility on finalists
+- `phrase_this` for final exact-primary confirmation when needed
+
+Selection rule: choose by intent fit first, then page ownership and cannibalization risk, then volume, difficulty, CPC, trend, SERP shape, and competitor feasibility.
+
+The keyword artifact must include seed terms, candidate metrics, finalist SERP rows, selected primary keyword, selected secondary keywords, rejected keywords with reasons, database used, connector report parameters, collection date, and this source boundary: `Semrush is third-party opportunity/SERP context; GSC remains first-party performance truth.`
+
+The BOM stores the artifact path/hash. Publish readiness runs `semrush_keyword_decision` and fails when the editorial plan, article metadata, BOM hash, or keyword artifact disagree.
+
+If the main Chrome Semrush UI opens but DOM or screenshot extraction times out or resets, record `blocked_semrush_ui_refresh` and stop before BOM assembly. The blocker proves the UI lane was attempted, but it does not satisfy the current keyword decision requirement.
 
 ## Required Variable Resolution
 
@@ -252,7 +317,7 @@ Every `/research`, `/write`, `/analyze-existing`, and `/rewrite` workflow must r
 
 Use the Global Customer Quote Matrix first for exact customer quotes. Use Customer Stories, References, and public case studies to verify the story path and publishability. Use review sites for first-hand Experience patterns by default, not unverified testimonial harvesting. Metrics from `context/features.md` must pair with public proof paths from `context/internal-links-map.md`.
 
-Before selecting customer proof for connector-bound work, the command workflow must resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and write the generated selector-first `Customer Proof Slate` to the validation sidecar before drafting customer proof. "Consult" means reviewing generated selector output, not skipping execution. If inputs are missing, resolve them from the brief/context or stop before drafting customer proof. If the selector fails, write the failure or blocker into the validation sidecar and do not invent proof. The selector uses `customer-proof-index.json` and `customer-proof-usage-ledger.json` to choose the most relevant approved proof, then penalizes proof with `recent_uses_90d` above 0 and overused proof. Before claiming a proof source is underused, inspect the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the proof ID, public URL, and customer name. If the live repo scan finds public-copy usage missing from the ledger, backfill `context/customer-proof-usage-ledger.json`, rerun proof health and selector checks, and document the backfill in the validation sidecar. Do not pick the easiest mapped case study when a better-fit Quote Matrix, Reference, Customer Story, or review-site proof route exists. experience_story consideration is required and E-E-A-T story usage is optional; if no story fits, use `Selected: [none]` with section-specific rejection reasons. Edit selected/rejected rows only when editorial judgment requires it. If a recently used or overused proof source is still the best proof, add a `Customer Proof Selection Decision` with a source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved proof fits the same role. For nonconnector AroFlo, BigChange, and ClockShark work, do not run this vault-dependent selector and do not publish customer proof without a separate approved non-vault eligibility contract.
+Before selecting customer proof for connector-bound work, the command workflow must resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and write the generated selector-first `Customer Proof Slate` to the validation sidecar before drafting customer proof. "Consult" means reviewing generated selector output, not skipping execution. If the selector reports no approved claims bound to the customer proof inventory and the article will use no customer proof, rerun the same full-role slate with `--allow-no-proof`; valid no-fit evidence records `selection_outcome: no_fit_customer_proof`, represents metric, quote, theme, and experience_story, sets each role to `Selected: [none]`, and states that public copy must omit customer proof. If inputs are missing, resolve them from the brief/context or stop before drafting customer proof. If the selector fails for any other reason, write the failure or blocker into the validation sidecar and do not invent proof. The selector uses `customer-proof-index.json` and `customer-proof-usage-ledger.json` to choose the most relevant approved proof, then penalizes proof with `recent_uses_90d` above 0 and overused proof. Before claiming a proof source is underused, inspect the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the proof ID, public URL, and customer name. If the live repo scan finds public-copy usage missing from the ledger, backfill `context/customer-proof-usage-ledger.json`, rerun proof health and selector checks, and document the backfill in the validation sidecar. Do not pick the easiest mapped case study when a better-fit Quote Matrix, Reference, Customer Story, or review-site proof route exists. experience_story consideration is required and E-E-A-T story usage is optional; if no story fits, use `Selected: [none]` with section-specific rejection reasons. Edit selected/rejected rows only when editorial judgment requires it. If a recently used or overused proof source is still the best proof, add a `Customer Proof Selection Decision` with a source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved proof fits the same role. For nonconnector AroFlo, BigChange, and ClockShark work, do not run this vault-dependent selector and do not publish customer proof without a separate approved non-vault eligibility contract.
 
 Selector chooses proof candidates; proof mining reads the selected public URL before the writer decides quote, metric, POV/story, theme, or omit use. When public copy uses selected customer proof, the validation sidecar must include `Selected Customer Proof Mining`. This block proves the selected source was checked for stronger quote, metric, POV/story, and theme evidence before the final copy used only the selected proof role.
 
@@ -292,11 +357,14 @@ Required Customer Proof Slate shape:
 Customer Proof Slate
 - Selector command: automatically run python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10
 - Selector evidence: research/customer-proof-selector-evidence-[topic-slug].json | SHA-256: [generated digest]
+- Selection outcome: [customer_proof_candidates_available or no_fit_customer_proof]
 - Role: metric | Top candidates: [proof_id, proof_id, proof_id] | Selected: [proof_id] | Rejected stronger candidates: [proof_id: reason]
 - Role: quote | Top candidates: [proof_id, proof_id, proof_id] | Selected: [proof_id or none] | Rejected stronger candidates: [proof_id: reason]
 - Role: theme | Top candidates: [proof_id, proof_id, proof_id] | Selected: [proof_id or none] | Rejected stronger candidates: [proof_id: reason]
 - Role: experience_story | Top candidates: [proof_id, proof_id, proof_id] | Selected: [proof_id or none] | Rejected stronger candidates: [proof_id: reason]
 ```
+
+For `selection_outcome: no_fit_customer_proof`, every role must have `Top candidates: [none]`, `Selected: [none]`, no claim IDs, and a no-fit reason stating that public copy must omit customer proof, named customer claims, review stories, exact quotes, testimonials, and customer metrics. Publish readiness still fails if the article contains proof-sensitive customer copy under a no-fit selector artifact.
 
 Required Customer Proof Pack shape:
 
@@ -475,6 +543,7 @@ Every `/write` plan and every moderate, major, or complete `/rewrite` plan must 
 | Metric Proof Pack | Metric requirement, Search log, Approved metric rows, public URL or local proof artifact, source-visible Evidence, Status: approved, intended Use, rejected candidates |
 | E-E-A-T Proof Map | Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, omitted unsupported claims |
 | Customer Proof Pack | Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved metrics, Use in copy, Claims excluded, approval status |
+| E-E-A-T Strength Decision | Required for commercial-investigation blogs when no positive signal is selected: Applicability, Intent, Positive signals, Decision, Reason, Public copy boundary, Status, and optional approved SME review note |
 | Fred Voccola Authority Selection | Mandatory only for connector-bound work: selector evaluation, ranked FVMI candidates, explicit selected-or-none decision, topical fit, intended use, source verification, embed decision, and VideoObject decision |
 | Named Feature Status and Commercial Treatment | Exactly one current claim-status row per detected Lightning, RAIN, role-agent, scheduler, or roadmap specialist name |
 | Review Story Selection | Required only when public copy paraphrases a review-derived E-E-A-T story; must include identity-backed selected story, public review URL, same paragraph link requirement, and exact quote boundary |
@@ -501,16 +570,17 @@ A draft is publish-ready only when both gates pass:
 - FAQ proof gate: `data_sources/modules/faq_proof_guard.py --fail-on error` must pass when FAQ answers are present. Every FAQ answer needs an authoritative non-owned public evidence link in visible copy. A Source Map or FAQ Proof Map can document the same evidence but cannot replace the inline link.
 - PAA provenance guard: `data_sources/modules/paa_provenance_guard.py --workflow-mode new|rewrite --paa-artifact [artifact] [--content-brief [brief]] [--answersocrates-blocker [artifact]] --fail-on error` always runs for blogs. Each visible FAQ question must match the bound eligible selected-question set exactly.
 - Source support guard: `data_sources/modules/source_support_guard.py --fail-on error` must pass before scoring or `/optimize`. Evidence snippets must be visible in the cited source, and named customer metric claims must be approved in Customer Proof Pack Approved metrics.
-- Customer proof diversity guard: `data_sources/modules/customer_proof_diversity_guard.py --fail-on error` must pass before scoring or `/optimize`. It verifies that case-study proof is not the only checked source route, that recently used or overused customer proof has a source-specific `Reuse reason`, that the sidecar includes `Customer Proof Selection Decision`, and that `customer_proof_selector.py` inputs from `customer-proof-index.json` and `customer-proof-usage-ledger.json` were respected, including selector-backed proof that no stronger underused approved proof fits the same role.
+- Customer proof diversity guard: `data_sources/modules/customer_proof_diversity_guard.py --fail-on error` must pass before scoring or `/optimize`. It verifies that case-study proof is not the only checked source route, that recently used or overused customer proof has a source-specific `Reuse reason`, that the sidecar includes `Customer Proof Selection Decision`, and that `customer_proof_selector.py` inputs from `customer-proof-index.json` and `customer-proof-usage-ledger.json` were respected, including selector-backed proof that no stronger underused approved proof fits the same role. Valid `no_fit_customer_proof` evidence can satisfy consideration only when public copy omits customer proof, named customer claims, review stories, exact quotes, testimonials, and customer metrics.
 - Selected customer proof mining: the customer proof diversity guard also requires `Selected Customer Proof Mining` whenever public copy uses customer proof, so selected proof is mined for quotes, metrics, POV/story, and workflow themes before final use is documented.
 - Review story identity guard: `data_sources/modules/review_story_identity_guard.py --fail-on error` must pass before scoring or `/optimize`. It verifies that review-derived E-E-A-T story copy has an identity-backed `Review Story Selection`, a usable public review URL, and a same paragraph public link. It also verifies that Capterra review-theme copy has `Review Site Theme Selection`, `Source row ref: Capterra tab row [n]`, `Public review-site URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/`, same paragraph source link, and no exact quote, reviewer-name claim, rating, ranking, or metric unless separately approved.
+- E-E-A-T strength guard: `data_sources/modules/eeat_strength_guard.py --fail-on error` runs inside `/publish-readiness` for commercial-investigation blogs. It passes cleanly with selected customer proof, visible approved review-theme or review-story evidence, selected Fred authority, a named author, or an approved SME review note. If no positive signal exists, it passes only when the sidecar has `Decision: proof_unavailable_safe_to_publish` and emits warning `eeat_strength_safe_but_weak`. Missing or mismatched decisions are blocking. This guard does not change the AEO/GEO score formula.
 - Fred authority guard: `data_sources/modules/fred_authority_guard.py --fail-on error` is a blocking `/publish-readiness` gate for Simpro blogs. It requires the complete `Fred Voccola Authority Selection` sidecar block, validates selected inventory and authority fields against the current manifest-backed vault, enforces exact quote and same-paragraph link evidence, restricts playlist assets to discovery or embedding, validates the privacy-enhanced responsive YouTube handoff, and requires `VideoObject` if and only if a video is embedded. A completed selection block without source-backed public use receives no AEO or E-E-A-T score credit.
 - Early artifact guard: `data_sources/modules/early_artifact_guard.py --fail-on error` must pass before scoring or `/optimize`. A usable artifact — a filled data table, a download link, a checklist deliverable, or a calculator/tool reference — must start within the first 300 words of body copy. The only exemption is an `Early Artifact Plan` block in the validation sidecar with `Early artifact requirement: not applicable` and a Reason.
 - Answer withholding guard: `data_sources/modules/answer_withholding_guard.py --fail-on error` must pass before scoring or `/optimize`. Placeholder table scaffolds block publish unconditionally with no exemption. When the target query implies a number, range, or template, the article must supply a concrete numeric answer early or a filled data table or download; a `Concrete Answer Check` block with `Concrete answer requirement: not applicable` and a Reason exempts only the numeric/template answer requirement, never scaffolds.
 - Vault brand language guard: `data_sources/modules/vault_brand_language_guard.py --fail-on error` must pass before scoring or `/optimize` when Simpro product, feature, add-on, solution, industry, or related Simpro product URL language appears. It requires `Vault Brand Language Alignment` in the validation sidecar with connector evidence, context pack and receipt hashes, feature-specific `resource_id` values when named features/add-ons appear, solution or vertical `resource_id` values when solution/industry language appears, fallback blocker details if fallback mirrors were used, and `Status: aligned`.
 - Named feature status guard: `data_sources/modules/named_feature_status_guard.py --fail-on error` is the blocking `Named Feature Status` gate. It requires `Named Feature Status and Commercial Treatment`, resolves current claim IDs through the vault, rejects unusable status or commercial evidence, and fails closed on unsupported public wording.
 
-Use `--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` with Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, Fred authority, vault brand language, Named Feature Status, and content scorer commands so proof maps stay out of the article copy artifact.
+Use `--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` with Metric Proof Pack, numeric claim, FAQ proof, PAA provenance, source support, customer proof diversity, review story identity, E-E-A-T strength, Fred authority, vault brand language, Named Feature Status, and content scorer commands so proof maps stay out of the article copy artifact.
 
 The validation sidecar is the only approved place for proof maps and proof packs that are not publishable article copy.
 

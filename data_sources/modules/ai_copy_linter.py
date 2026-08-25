@@ -610,6 +610,8 @@ def _find_repeated_sentence_starts(content: str) -> List[Finding]:
     active_lines = _iter_active_lines(content)
 
     for line_number, original_line, masked_line in active_lines:
+        if FAQ_QUESTION_HEADING_RE.match(original_line):
+            continue
         for sentence in SENTENCE_RE.finditer(masked_line):
             words = WORD_RE.findall(sentence.group(0).lower())
             if len(words) < 2:

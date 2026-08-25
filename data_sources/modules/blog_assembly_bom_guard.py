@@ -15,7 +15,10 @@ try:
         blog_assembly_stage_receipt,
         blog_identity_guard,
         context_binding_guard,
+        eeat_strength_guard,
         editorial_plan_guard,
+        industry_cluster_link_policy,
+        semrush_keyword_decision_guard,
     )
     from .blog_assembly_bom import (
         BOM_SCHEMA,
@@ -46,7 +49,10 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import blog_identity_guard
     import blog_assembly_stage_receipt
     import context_binding_guard
+    import eeat_strength_guard
     import editorial_plan_guard
+    import industry_cluster_link_policy
+    import semrush_keyword_decision_guard
     from blog_assembly_bom import (
         BOM_SCHEMA,
         EDITORIAL_PLAN_SCHEMA,
@@ -96,6 +102,7 @@ REQUIRED_ARTIFACT_FIELDS = (
     "article",
     "validation_sidecar",
     "editorial_plan",
+    "keyword_decision",
     "serp_evidence",
     "paa_artifact",
     "content_brief",
@@ -120,18 +127,97 @@ REQUIRED_TOP_LEVEL_FIELDS = frozenset({
     "artifacts",
     "connector_binding",
     "author_policy",
-    "schema_policy",
-    "faq_policy",
+        "schema_policy",
+        "industry_cluster_link_policy",
+        "eeat_strength_policy",
+        "faq_policy",
     "paa_policy",
     "editorial_plan_summary",
     "workflow",
     "preflight",
 })
+POST_PUBLISH_MEASUREMENT_RECEIPT_SCHEMA = (
+    "simpro-post-publish-measurement-receipt/v1"
+)
 
 
 def missing_bom_finding() -> Finding:
     """Return the stable blocker for a blog without its execution record."""
     return _finding("bom_missing", "Blog artifacts require --assembly-bom.")
+
+
+def check_archived_final_bom(
+    bom: Mapping[str, Any],
+    *,
+    article_path: str | Path,
+    workspace_root: str | Path,
+) -> list[Finding]:
+    """Validate an existing final BOM without imposing today's assembly date.
+
+    Post-publish consumers need the closed BOM shape, current artifact hashes,
+    stage chain, and preflight seal, but must not rerun date-sensitive release
+    policy after publication.
+    """
+    root = Path(workspace_root).resolve()
+    findings: list[Finding] = []
+    if not isinstance(bom, Mapping):
+        return [_finding("bom_archive_invalid", "Archived final BOM must be an object.")]
+    if set(bom) != REQUIRED_TOP_LEVEL_FIELDS:
+        findings.append(
+            _finding(
+                "bom_archive_shape_invalid",
+                "Archived final BOM must use the exact strict top-level field set.",
+            )
+        )
+    if bom.get("schema") != BOM_SCHEMA:
+        findings.append(_finding("bom_schema_invalid", f"BOM must use {BOM_SCHEMA}."))
+    if bom.get("lifecycle_state") != "final":
+        findings.append(
+            _finding("bom_lifecycle_state_mismatch", "Archived BOM must be final.")
+        )
+    if bom.get("workflow_mode") not in WORKFLOW_MODES:
+        findings.append(_finding("bom_workflow_mode_invalid", "BOM workflow_mode is invalid."))
+    assembly_date = _parse_date(bom.get("assembly_date"))
+    if assembly_date is None:
+        findings.append(
+            _finding("bom_assembly_date_invalid", "BOM assembly_date must be an ISO date.")
+        )
+
+    artifacts = bom.get("artifacts")
+    if not isinstance(artifacts, Mapping):
+        findings.append(
+            _finding("bom_artifacts_missing", "BOM requires a strict artifacts inventory.")
+        )
+        return _sorted(findings)
+    if set(artifacts) != set(REQUIRED_ARTIFACT_FIELDS):
+        findings.append(
+            _finding(
+                "bom_artifacts_shape_invalid",
+                "Archived final BOM artifacts must use the exact strict inventory.",
+            )
+        )
+
+    findings.extend(_check_topology(bom))
+    findings.extend(_check_artifact_inventory(bom, artifacts, root))
+    findings.extend(_check_supplied_path(artifacts, "article", article_path, root))
+    if _is_workspace_file(article_path, root):
+        try:
+            article = read_publishable_markdown(article_path)
+        except (OSError, UnicodeError, FrontmatterError) as error:
+            findings.append(
+                _finding("bom_article_unreadable", f"Article cannot be read: {error}")
+            )
+        else:
+            findings.extend(
+                finding
+                for finding in _check_identity(bom, article, assembly_date)
+                if finding.get("rule_id")
+                != "blog_identity_assembly_date_not_current"
+            )
+            findings.extend(_check_schema_and_faq(bom, article))
+    findings.extend(_check_workflow(bom, artifacts, root))
+    findings.extend(_check_preflight(bom, artifacts, root))
+    return _sorted(findings)
 
 
 def check_bom_file(
@@ -356,8 +442,9 @@ def _check_artifact_inventory(
             continue
         for index, row in enumerate(rows):
             findings.extend(_verify_row(row, f"{field}_{index}", root))
+    findings.extend(_check_post_publish_measurement_receipt_exclusion(artifacts, root))
 
-    for field in ("article", "validation_sidecar", "editorial_plan", "serp_evidence"):
+    for field in ("article", "validation_sidecar", "editorial_plan", "keyword_decision", "serp_evidence"):
         if artifacts.get(field) is None:
             findings.append(_finding(f"bom_{field}_missing", f"artifacts.{field} is required."))
     paa = bom.get("paa_policy")
@@ -435,6 +522,58 @@ def _check_artifact_inventory(
         findings.append(_finding("bom_preflight_readiness_missing", "Final BOM requires passed preflight readiness evidence."))
     if lifecycle == "provisional" and artifacts.get("preflight_readiness") is not None:
         findings.append(_finding("bom_provisional_readiness_present", "Provisional BOM cannot bind preflight output before it runs."))
+    return findings
+
+
+def _check_post_publish_measurement_receipt_exclusion(
+    artifacts: Mapping[str, Any],
+    root: Path,
+) -> list[Finding]:
+    """Keep advisory distribution and measurement artifacts out of every BOM slot."""
+    findings: list[Finding] = []
+    for field, value in artifacts.items():
+        rows = value if isinstance(value, list) else [value]
+        for index, row in enumerate(rows):
+            if not isinstance(row, Mapping):
+                continue
+            artifact_path = row.get("path")
+            normalized_path = (
+                artifact_path.replace("\\", "/").casefold()
+                if isinstance(artifact_path, str)
+                else ""
+            )
+            if (
+                normalized_path.startswith("repurposed/")
+                or normalized_path.startswith("research/performance-review-")
+                or normalized_path.startswith("research/performance-receipt-")
+            ):
+                findings.append(
+                    _finding(
+                        "bom_post_publish_artifact_forbidden",
+                        "Distribution handoffs and post-publish performance artifacts "
+                        "are advisory and cannot be BOM artifacts.",
+                    )
+                )
+            try:
+                path = verify_artifact(
+                    row,
+                    workspace_root=root,
+                    field=f"artifacts.{field}[{index}]",
+                )
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeError, json.JSONDecodeError, ValueError):
+                continue
+            if (
+                isinstance(payload, Mapping)
+                and payload.get("schema")
+                == POST_PUBLISH_MEASUREMENT_RECEIPT_SCHEMA
+            ):
+                findings.append(
+                    _finding(
+                        "bom_post_publish_measurement_receipt_forbidden",
+                        "Post-publish measurement receipts are advisory and cannot be BOM artifacts.",
+                    )
+                )
     return findings
 
 
@@ -740,6 +879,7 @@ def _check_editorial_plan(
         return [_finding("bom_editorial_plan_schema_invalid", f"Editorial plan must use {EDITORIAL_PLAN_SCHEMA}.")]
     article_row = artifacts.get("article")
     serp_row = artifacts.get("serp_evidence")
+    keyword_row = artifacts.get("keyword_decision")
     try:
         article_path = verify_artifact(
             article_row,
@@ -750,6 +890,11 @@ def _check_editorial_plan(
             serp_row,
             workspace_root=root,
             field="artifacts.serp_evidence",
+        )
+        keyword_path = verify_artifact(
+            keyword_row,
+            workspace_root=root,
+            field="artifacts.keyword_decision",
         )
     except ValueError:
         return []
@@ -762,6 +907,18 @@ def _check_editorial_plan(
             if isinstance(bom.get("assembly_date"), str)
             else None
         ),
+    )
+    plan_findings.extend(
+        semrush_keyword_decision_guard.check_file(
+            keyword_path,
+            article_path=article_path,
+            editorial_plan_path=path,
+            assembly_date=(
+                str(bom.get("assembly_date"))
+                if isinstance(bom.get("assembly_date"), str)
+                else None
+            ),
+        )
     )
     if plan_findings:
         return [
@@ -778,6 +935,71 @@ def _check_editorial_plan(
     findings: list[Finding] = []
     if bom.get("editorial_plan_summary") != expected:
         findings.append(_finding("bom_editorial_plan_summary_mismatch", "BOM editorial plan summary does not match the bound plan."))
+    try:
+        article_content = article_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as error:
+        return [_finding("bom_article_unreadable", f"Article cannot be read for industry cluster policy: {error}")]
+    connector = bom.get("connector_binding")
+    context = connector.get("context") if isinstance(connector, Mapping) else None
+    resource_ids = (
+        context.get("selected_resource_ids")
+        if isinstance(context, Mapping)
+        else []
+    )
+    expected_industry_policy = industry_cluster_link_policy.summarize_policy(
+        article_content,
+        plan=plan,
+        context_resource_ids=(
+            resource_ids
+            if isinstance(resource_ids, list)
+            else []
+        ),
+    )
+    if bom.get("industry_cluster_link_policy") != expected_industry_policy:
+        findings.append(
+            _finding(
+                "bom_industry_cluster_link_policy_mismatch",
+                "BOM industry_cluster_link_policy does not match the current article, editorial plan, and context binding.",
+            )
+        )
+    expected_eeat_strength_policy = eeat_strength_guard.summarize_policy(
+        article_content,
+        proof_sidecar=_verified_optional_artifact_path(
+            artifacts,
+            "validation_sidecar",
+            root,
+        ),
+        editorial_plan=plan,
+        customer_proof_selector_evidence=_verified_optional_artifact_path(
+            artifacts,
+            "customer_proof_selector_evidence",
+            root,
+        ),
+        fred_authority_evidence=_verified_optional_artifact_path(
+            artifacts,
+            "fred_authority_evidence",
+            root,
+        ),
+    )
+    selector_row = artifacts.get("customer_proof_selector_evidence")
+    fred_row = artifacts.get("fred_authority_evidence")
+    expected_eeat_strength_policy["customer_proof_selector_evidence"] = (
+        str(selector_row.get("path"))
+        if isinstance(selector_row, Mapping)
+        else ""
+    )
+    expected_eeat_strength_policy["fred_authority_evidence"] = (
+        str(fred_row.get("path"))
+        if isinstance(fred_row, Mapping)
+        else ""
+    )
+    if bom.get("eeat_strength_policy") != expected_eeat_strength_policy:
+        findings.append(
+            _finding(
+                "bom_eeat_strength_policy_mismatch",
+                "BOM eeat_strength_policy does not match the current article, editorial plan, sidecar, and proof evidence.",
+            )
+        )
     if bom.get("faq_policy") != plan.get("faq_policy"):
         findings.append(
             _finding(
@@ -789,6 +1011,24 @@ def _check_editorial_plan(
     if isinstance(ownership, Mapping) and ownership.get("decision") == "blocked":
         findings.append(_finding("bom_query_ownership_blocked", "Blocked query ownership prevents readiness."))
     return findings
+
+
+def _verified_optional_artifact_path(
+    artifacts: Mapping[str, Any],
+    field: str,
+    root: Path,
+) -> Path | None:
+    row = artifacts.get(field)
+    if not isinstance(row, Mapping):
+        return None
+    try:
+        return verify_artifact(
+            row,
+            workspace_root=root,
+            field=f"artifacts.{field}",
+        )
+    except ValueError:
+        return None
 
 
 def _check_workflow(
@@ -906,6 +1146,13 @@ def _check_workflow(
             or draft_evidence.get("serp_evidence") != serp_row.get("sha256")
         ):
             findings.append(_finding("bom_draft_serp_unbound", "Draft receipt must bind verified SERP evidence."))
+        keyword_row = artifacts.get("keyword_decision")
+        if (
+            not isinstance(draft_evidence, Mapping)
+            or not isinstance(keyword_row, Mapping)
+            or draft_evidence.get("keyword_decision") != keyword_row.get("sha256")
+        ):
+            findings.append(_finding("bom_draft_keyword_decision_unbound", "Draft receipt must bind Semrush keyword decision evidence."))
     for stage_name in ("scrub", "post_optimization_scrub"):
         stage_receipt = by_stage.get(stage_name)
         if not isinstance(stage_receipt, Mapping):

@@ -52,6 +52,14 @@ def write_context_receipt_fixture(root: Path, index_path: Path) -> tuple[Path, P
     return write_connector_context_fixture(root, evidence)
 
 
+def write_unbound_context_receipt_fixture(root: Path, *, public_url: str, use_mode: str = "public_metric") -> tuple[Path, Path]:
+    return write_connector_context_fixture(root, [{
+        "claim_id": f"claim-customer-proof-unbound-{use_mode}",
+        "assertion": "Approved public proof without a selector ID.", "use_mode": use_mode,
+        "brand_scope": ["Simpro"], "source_hash": f"hash-unbound-{use_mode}", "public_url": public_url,
+    }])
+
+
 def select_customer_proofs(*args, **kwargs):
     if not kwargs.get("context_pack") and not kwargs.get("context_receipt"):
         index_path = Path(kwargs.get("index_path", "context/customer-proof-index.json"))
@@ -66,73 +74,41 @@ def select_customer_proofs(*args, **kwargs):
 def write_selector_fixture(root: Path) -> tuple[Path, Path]:
     index_path = root / "customer-proof-index.json"
     ledger_path = root / "customer-proof-usage-ledger.json"
+    proof = [
+        {
+            "proof_id": "quote-matrix-zebra-plumbing-onsite-quoting", "customer": "Zebra Plumbing",
+            "source_type": "quote_matrix", "industry": ["plumbing", "small trade"],
+            "workflow_fit": ["quoting", "invoicing", "payments"], "themes": ["onsite quotes", "invoice speed"],
+            "public_url": "https://www.simprogroup.com/case-studies/zebra-plumbing",
+            "approval_status": "approved", "public_copy_allowed": True,
+            "approved_metrics": [{"metric": "20x quoting workflow", "status": "approved"}],
+        },
+        {
+            "proof_id": "quote-matrix-bwe-engineering-job-to-invoice", "customer": "BWE Engineering",
+            "source_type": "quote_matrix", "industry": ["engineering", "field service"],
+            "workflow_fit": ["job cards", "invoicing"], "themes": ["job-to-invoice workflow"],
+            "public_url": "https://www.simprogroup.com/case-studies/bwe-engineering",
+            "approval_status": "approved", "public_copy_allowed": True,
+            "approved_quotes": [{"quote": "Approved public quote text", "status": "approved"}],
+        },
+        {
+            "proof_id": "review-capterra-qbo-service-jobs-quotes-invoices",
+            "customer": "Capterra owner review with QBO integration", "source_type": "review_site",
+            "workflow_fit": ["service jobs", "quoting", "invoicing", "QBO"],
+            "themes": ["quotes", "invoices", "QuickBooks Online integration"],
+            "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+            "approval_status": "ready", "public_copy_allowed": True,
+            "review_story": {
+                "story_allowed": True, "identity_type": "person", "identity_display": "Megan B",
+                "person_name": "Megan B", "platform": "Capterra", "source_row_ref": "Capterra tab row 50",
+                "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+                "workflow_story": "Owner describes service jobs, quotes, invoices, and QBO integration.",
+                "verification_status": "brand-captured public review source",
+            },
+        },
+    ]
     index_path.write_text(
-        json.dumps(
-            {
-                "version": 1,
-                "proof": [
-                    {
-                        "proof_id": "quote-matrix-zebra-plumbing-onsite-quoting",
-                        "customer": "Zebra Plumbing",
-                        "source_type": "quote_matrix",
-                        "industry": ["plumbing", "small trade"],
-                        "workflow_fit": ["quoting", "invoicing", "payments"],
-                        "themes": ["onsite quotes", "invoice speed"],
-                        "public_url": "https://www.simprogroup.com/case-studies/zebra-plumbing",
-                        "approval_status": "approved",
-                        "public_copy_allowed": True,
-                        "approved_metrics": [
-                            {
-                                "metric": "20x quoting workflow",
-                                "status": "approved",
-                            }
-                        ],
-                    },
-                    {
-                        "proof_id": "quote-matrix-bwe-engineering-job-to-invoice",
-                        "customer": "BWE Engineering",
-                        "source_type": "quote_matrix",
-                        "industry": ["engineering", "field service"],
-                        "workflow_fit": ["job cards", "invoicing"],
-                        "themes": ["job-to-invoice workflow"],
-                        "public_url": "https://www.simprogroup.com/case-studies/bwe-engineering",
-                        "approval_status": "approved",
-                        "public_copy_allowed": True,
-                        "approved_quotes": [
-                            {
-                                "quote": "Approved public quote text",
-                                "status": "approved",
-                            }
-                        ],
-                    },
-                    {
-                        "proof_id": "review-capterra-qbo-service-jobs-quotes-invoices",
-                        "customer": "Capterra owner review with QBO integration",
-                        "source_type": "review_site",
-                        "workflow_fit": ["service jobs", "quoting", "invoicing", "QBO"],
-                        "themes": [
-                            "quotes",
-                            "invoices",
-                            "QuickBooks Online integration",
-                        ],
-                        "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
-                        "approval_status": "ready",
-                        "public_copy_allowed": True,
-                        "review_story": {
-                            "story_allowed": True,
-                            "identity_type": "person",
-                            "identity_display": "Megan B",
-                            "person_name": "Megan B",
-                            "platform": "Capterra",
-                            "source_row_ref": "Capterra tab row 50",
-                            "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
-                            "workflow_story": "Owner describes service jobs, quotes, invoices, and QBO integration.",
-                            "verification_status": "brand-captured public review source",
-                        },
-                    },
-                ],
-            }
-        ),
+        json.dumps({"version": 1, "proof": proof}),
         encoding="utf-8",
     )
     ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
@@ -186,6 +162,110 @@ class CustomerProofSelectorTests(unittest.TestCase):
                     proof_role="experience_story",
                     require_eeat_story=True,
                     limit=10,
+                )
+
+    def test_cli_writes_no_fit_evidence_and_rejects_selected_override(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path, ledger_path = write_selector_fixture(root)
+            pack_path, receipt_path = write_connector_context_fixture(root, [])
+            evidence_path = root / "selector-evidence.json"
+            stdout = StringIO()
+            stderr = StringIO()
+            base = ["end-to-end field service solution", "--index", str(index_path), "--ledger", str(ledger_path), "--context-pack", str(pack_path), "--context-receipt", str(receipt_path), "--slate", "--roles", "metric,quote,theme,experience_story", "--allow-no-proof", "--evidence-output", str(evidence_path)]
+
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                exit_code = _main([*base, "--title", "What Is an End-to-End Solution for Field Service?", "--objective", "Explain connected workflows from first contact to final payment.", "--require-eeat-story"])
+
+            evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+            roles = {row["role"]: row for row in evidence["roles"]}
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(stderr.getvalue(), "")
+            self.assertEqual((evidence["selection_outcome"], evidence["inputs"]["allow_no_proof"]), ("no_fit_customer_proof", True))
+            self.assertEqual(set(roles), {"metric", "quote", "theme", "experience_story"})
+            for row in roles.values():
+                self.assertEqual((row["candidate_ids"], row["claim_ids"], row["selected_id"]), ([], [], "none"))
+                self.assertIn("public copy must omit customer proof", row["no_fit_reason"])
+            self.assertIn("- Selection outcome: no_fit_customer_proof", stdout.getvalue())
+            self.assertIn("Selected: [none]", stdout.getvalue())
+
+            evidence_path.unlink()
+            stdout = StringIO()
+            stderr = StringIO()
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                exit_code = _main([*base, "--selected", "metric=quote-matrix-zebra-plumbing-onsite-quoting"])
+            self.assertEqual(exit_code, 1)
+            self.assertEqual(stdout.getvalue(), "")
+            self.assertIn("Selected customer proof ID is not in the verified metric candidate slate", stderr.getvalue())
+            self.assertFalse(evidence_path.exists())
+
+    def test_selector_binds_unbound_approved_claim_by_exact_public_url(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path, ledger_path = write_selector_fixture(root)
+            pack_path, receipt_path = write_unbound_context_receipt_fixture(
+                root,
+                public_url="https://www.simprogroup.com/case-studies/zebra-plumbing",
+                use_mode="public_metric",
+            )
+
+            results = _select_customer_proofs("best job quoting and invoicing software", index_path=index_path, ledger_path=ledger_path, context_pack=pack_path, context_receipt=receipt_path, proof_role="metric", limit=1)
+
+        self.assertEqual(results[0]["proof_id"], "quote-matrix-zebra-plumbing-onsite-quoting")
+        self.assertEqual(results[0]["claim_id"], "claim-customer-proof-unbound-public_metric")
+        self.assertEqual(results[0]["binding_source"], "public_url_exact_match")
+
+    def test_selector_fails_closed_when_public_url_binding_is_ambiguous(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path, ledger_path = write_selector_fixture(root)
+            index = json.loads(index_path.read_text(encoding="utf-8"))
+            duplicate = dict(index["proof"][0])
+            duplicate["proof_id"] = "quote-matrix-zebra-plumbing-duplicate"
+            index["proof"].append(duplicate)
+            index_path.write_text(json.dumps(index), encoding="utf-8")
+            pack_path, receipt_path = write_unbound_context_receipt_fixture(
+                root,
+                public_url="https://www.simprogroup.com/case-studies/zebra-plumbing",
+                use_mode="public_metric",
+            )
+
+            with self.assertRaisesRegex(
+                CustomerProofDataError,
+                "public URL binding is ambiguous",
+            ):
+                _select_customer_proofs(
+                    "best job quoting and invoicing software",
+                    index_path=index_path,
+                    ledger_path=ledger_path,
+                    context_pack=pack_path,
+                    context_receipt=receipt_path,
+                    proof_role="metric",
+                    limit=1,
+                )
+
+    def test_selector_fails_closed_when_public_url_mismatches(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path, ledger_path = write_selector_fixture(root)
+            pack_path, receipt_path = write_unbound_context_receipt_fixture(
+                root,
+                public_url="https://www.simprogroup.com/case-studies/not-in-index",
+                use_mode="public_metric",
+            )
+
+            with self.assertRaisesRegex(
+                CustomerProofDataError,
+                "no approved claims bound to the customer proof inventory",
+            ):
+                _select_customer_proofs(
+                    "best job quoting and invoicing software",
+                    index_path=index_path,
+                    ledger_path=ledger_path,
+                    context_pack=pack_path,
+                    context_receipt=receipt_path,
+                    proof_role="metric",
+                    limit=1,
                 )
 
     def test_selector_fails_closed_when_usage_ledger_is_missing(self):

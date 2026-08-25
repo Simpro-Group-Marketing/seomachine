@@ -283,6 +283,44 @@ class VaultBrandLanguageGuardTests(unittest.TestCase):
 
         self.assertEqual(findings, [])
 
+    def test_industry_software_slug_accepts_matching_vertical_profile_resource(self):
+        pack, receipt = self._validated_artifacts()
+        vertical_resource_id = "res-25a1152f611e5cd69ba57cf16b34a826"
+        resource = {
+            "resource_id": vertical_resource_id,
+            "title": "Electrical Vertical Profile",
+            "aliases": [],
+            "headings": ["Electrical Vertical Profile", "Trade Snapshot"],
+            "topics": ["electrical", "vertical", "profile", "trade"],
+            "semantic_roles": ["routing"],
+        }
+        pack["sections"]["Discovery Trace"]["selected_resource_ids"].append(
+            vertical_resource_id
+        )
+        pack["sections"]["Retrieved Guidance"].append(resource)
+        pack["sections"]["Selected Resource Inventory"].append(resource)
+        receipt["resources"].append(resource)
+        sidecar = VALID_PRODUCT_SIDECAR.replace(
+            "Product/solution language scope: product/feature",
+            "Product/solution language scope: solution/industry",
+        ).replace(
+            "resource_id=res-641679c4b6c65e93951cb8d8e1ab88af; feature resource_id=res-ad3ee1bcd777586d81415ba9298cd755;",
+            "resource_id=res-641679c4b6c65e93951cb8d8e1ab88af; "
+            "feature resource_id=res-ad3ee1bcd777586d81415ba9298cd755; "
+            f"vertical resource_id={vertical_resource_id};",
+        )
+
+        findings = check_content(
+            "# CRM for electricians\n\n"
+            "CRM should fit the wider [electrical contractor software]"
+            "(https://www.simprogroup.com/industries/electrical-software) stack.",
+            proof_content=sidecar,
+            context_pack=pack,
+            context_receipt=receipt,
+        )
+
+        self.assertEqual(findings, [])
+
     def test_solution_industry_rejects_bound_voice_only_resource(self):
         pack, receipt = self._validated_artifacts()
         voice_resource_id = "res-641679c4b6c65e93951cb8d8e1ab88af"

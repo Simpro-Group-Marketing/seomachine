@@ -1,4 +1,4 @@
-# Research Command
+﻿# Research Command
 
 Use this command to conduct SEO keyword research, competitor review, and evidence planning before writing new blog content.
 
@@ -8,7 +8,7 @@ Use this command to conduct SEO keyword research, competitor review, and evidenc
 ## Ownership
 `/research` owns the research brief and validation sidecar planning. It does not draft, rewrite, patch, move, or publish public blog Markdown.
 
-The original new-blog route remains `/research [topic]` followed by `/write [topic]`. `/write` owns the public draft. Python owns governance artifacts only: context packs and receipts, selector evidence, verified SERP/PAA artifacts, BOM assembly, scrub/readiness diagnostics, receipts, and publishing transport.
+The original new-blog route remains `/research [topic]` followed by `/write [topic]`. `/write` owns the public draft. Python owns governance artifacts only: context packs and receipts, selector evidence, verified Semrush keyword decisions, verified SERP/PAA artifacts, BOM assembly, scrub/readiness diagnostics, receipts, and publishing transport.
 
 Use `context/aeo-geo-blog-strategy.md` and repo instructions as the canonical governance source for vault context, Customer Proof Pack, Fred Voccola Authority Selection, feature/competitor guardrails, FAQ/PAA policy, source maps, BOM, score gates, and recovery loops.
 
@@ -27,11 +27,13 @@ Use `context/aeo-geo-blog-strategy.md` and repo instructions as the canonical go
 - Save context request, context pack, and context receipt under `research/` only when connector-bound. Save an explicit nonconnector binding reason for qualifying AroFlo, BigChange, and ClockShark work.
 - Use repo-local context files only as downstream mirrors or fallback context when the vault is unavailable, and record that blocker in the validation sidecar.
 
-### 2. Keyword Research
-- Identify the primary keyword, supporting keywords, semantic variants, and long-tail opportunities.
-- Record search volume, difficulty, ranking, or live SERP data only when verified in the current run.
-- Classify search intent as informational, commercial, transactional, navigational, or mixed.
-- Map the topic to the most relevant Simpro content cluster and funnel stage.
+### 2. Semrush Keyword Decision
+- Use live Semrush connector evidence for current optimization decisions; do not use repo keyword tables as current evidence.
+- Run `_keyword_research`, `_get_report_schema`, `phrase_these`, `phrase_related`, `phrase_questions`, `phrase_organic`, and `phrase_this` when exact final-primary confirmation is needed.
+- Use the default database from the canonical strategy unless the brief gives a stronger market requirement.
+- Choose by intent fit first, then page ownership/cannibalization risk, then volume, difficulty, CPC, trend, SERP shape, and competitor feasibility.
+- Save `research/semrush-keyword-decision-[topic-slug]-[YYYY-MM-DD].json` using `simpro-semrush-keyword-decision/v1`.
+- Record the selected primary keyword, secondary keywords, rejected keywords with reasons, connector report parameters, collection date, and the source boundary that Semrush is third-party opportunity/SERP context while GSC remains first-party performance truth.
 
 ### 3. SERP and Competitive Analysis
 - Review an intent-representative SERP set until the dominant format, recurring structure, and meaningful gaps are clear.
@@ -43,6 +45,7 @@ Use `context/aeo-geo-blog-strategy.md` and repo instructions as the canonical go
 - For connector-bound work, identify relevant Simpro product, solution, industry, feature, add-on, and internal-link context through connector-backed research. For nonconnector work, use task-approved brand sources and current public evidence.
 - Plan only the validation sidecar evidence applicable to the binding branch. Omit Vault Brand Language Alignment, Named Feature/Add-On Link Check, Customer Proof Pack selector evidence, and Fred Voccola Authority Selection from nonconnector workflows.
 - Do not select, quote, paraphrase, or metricize customer proof unless the required governance evidence exists.
+- For commercial-investigation topics, plan E-E-A-T strength early: use a positive signal when available, or the internal `proof_unavailable_safe_to_publish` sidecar decision when no approved signal fits.
 
 ### 5. AEO/GEO Planning
 - Resolve AEO/GEO variables: topic, audience, main question, related questions, tone, expertise, and target length.
@@ -56,6 +59,7 @@ Provide a research brief with:
 ### 1. SEO Foundation
 - Primary keyword, verified metrics if available, and search intent.
 - Secondary keywords and semantic variants.
+- Semrush keyword decision artifact path, selected/rejected keyword rationale, and database used.
 - Target word count derived from intent, reader task, and evidence depth.
 - Featured snippet and SERP feature opportunities.
 - AEO/GEO variable summary and PAA/FAQ plan.

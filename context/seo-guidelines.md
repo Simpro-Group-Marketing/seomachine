@@ -554,30 +554,29 @@ Simpro operates in AU/NZ, UK, and US/Canada/IE markets. All pages require hrefla
 - **Tap-friendly links**: Adequate spacing
 - **Fast loading**: Optimized images
 
-## AI Search Optimization (GEO/AICO)
+## AI Search Optimization (AEO/GEO)
 
-AI search engines (ChatGPT, Perplexity, Gemini, Claude) are now a significant traffic and recommendation channel. 5-15% of website traffic can come from AI sources, and 90% of buyers consult AI before purchase decisions. These guidelines ensure your content performs in both traditional Google search AND AI-generated answers.
+Use URL-derived blog best practices as idea sources only. Keep guidance that fits the Reader Contract, search intent, source evidence, and `context/aeo-geo-blog-strategy.md`; do not turn third-party advice into universal Simpro rules unless the canonical strategy already requires it.
+
+**Source boundary:** Semrush is third-party opportunity/SERP context; GSC remains first-party performance truth. source-artifact readiness does not validate rendered CMS output; rendered canonical, indexability, schema deployment, Core Web Vitals, mobile rendering, image accessibility, and CMS link checks belong to launch QA until a separate rendered-page gate exists.
 
 ### Direct-Answer-First Principle
 
-AI scrapers prioritize content near the top of the page. When a user asks ChatGPT "best field service management software" or "how to schedule field technicians," the AI scans articles and pulls from the earliest clear answer it finds.
+For answerable queries, lead with a direct answer, definition, recommendation, or clear thesis before adding background. Put limitations, assumptions, and proof boundaries after the answer.
 
 **Rules:**
 - **Answer the query directly in the first 1-2 sentences** of the article, before the narrative hook or story
 - For "best/top/how" queries, state the answer (or a clear thesis) immediately
-- Put the core answer in the meta description too — literally answer the question in 150-160 chars
+- Align the meta description with the reader task when the question can be answered accurately in 150-160 characters
 - Do NOT bury the answer behind 200+ words of context, history, or definitions
 - The narrative hook and APP formula still apply, but they come AFTER the direct answer sentence
 
-**Example — Before (traditional SEO):**
-> Most trades businesses struggle with choosing the right platform. In today's crowded market... [200 words later] ...the best option is Simpro because...
-
-**Example — After (AI-optimized):**
-> The best field service management software for trades contractors in 2026 is Simpro — it covers job costing, scheduling, quoting, and invoicing across electrical, HVAC, plumbing, and fire protection. Here's how it compares to ServiceTitan, Jobber, and Housecall Pro.
+**Pattern:**
+> State the supported recommendation, definition, or decision first. Follow with context, proof, and comparison detail only after the reader knows the answer.
 
 ### TL;DR / Key Takeaways Block
 
-Every article should include a TL;DR block near the top (after the introduction, before the first H2 body section). This gets pulled into AI-generated summaries and helps both AI and human readers.
+Use a key-takeaways block when it improves reader scanning and helps the article state its conclusions early. Omit it when the format is a short opinion post, news-style update, or another format where a separate block would duplicate the intro.
 
 **Format:**
 ```markdown
@@ -597,19 +596,19 @@ Every article should include a TL;DR block near the top (after the introduction,
 
 ### Authority Signaling for AI
 
-AI models weigh source and authorship signals when choosing citations. Apply these conditionally and do not invent a person:
+Apply authorship and freshness signals conditionally, and do not invent a person, review process, badge, or proof status:
 
 - **Author policy**: Use a named author only when one is actually provided; otherwise omit the author field and Person schema
-- **Reviewer/editor credit**: "Reviewed by [name], [title]" where possible
+- **Reviewer/editor credit**: Use only when an actual reviewer or editor is provided and approved for public display
 - **Last updated date**: Visible on the page, not just in metadata
-- **Expert verification badge**: Where applicable, note content has been expert-reviewed
+- **Expert verification badge**: Use only when a real expert-review workflow exists and is approved for the article
 - **Year in titles**: Include current year for time-sensitive topics ("Best FSM Software 2026")
 
 These signals should be in the article's frontmatter for the WordPress publisher to render.
 
 ### One Idea Per Section
 
-AI models parse content by section. Each H2/H3 section should focus on a single clear idea. This increases the chance that a specific section gets cited as a source in AI answers.
+Each H2/H3 section should focus on one clear idea so humans and machines can understand the section without blending unrelated claims.
 
 - One concept per heading
 - Use bullet lists and structured formatting within sections
@@ -617,12 +616,9 @@ AI models parse content by section. Each H2/H3 section should focus on a single 
 
 ### Embedded Media for Cross-Validation
 
-AI models (especially Perplexity and Gemini) reference YouTube videos alongside articles. Embedding relevant YouTube videos in articles:
-- Provides cross-validation (the article references a video that references the same topic)
-- Increases time on page (Google signal)
-- Adds a content format AI can independently verify
+Evaluate video only when the SERP, reader task, available assets, or section evidence makes video useful. Embedding a video is optional and must be source-fit.
 
-**Rule:** Evaluate selected video evidence for each article. Embed a relevant, public, embeddable video only when it materially supports the section. Prefer Simpro's own eligible videos, then authoritative third-party videos. When no eligible video fits, document the decision and omit the embed.
+Embed a public, embeddable video only when it materially supports a specific section and the sidecar/BOM records the decision. Require `VideoObject` only when a video is embedded.
 
 ### FAQ Sections as Prompt Targets
 
@@ -635,9 +631,7 @@ Use an FAQ section only when the editorial plan records `FAQ policy: required`. 
 
 ### Content Repurposing for AI Citation Surface
 
-AI tools pull from many surfaces beyond your website: Medium, LinkedIn Pulse, Reddit, Quora, YouTube transcripts. One article should be repurposed across multiple platforms to maximize the chance of being cited.
-
-This is handled by the `/repurpose` command, but writers should be aware: the more surfaces your content appears on (with attribution back to your site), the higher the chance AI recommends it.
+Repurposing can expand distribution when the source material is proof-safe and channel-fit. Treat it as a separate distribution workflow, not as a guaranteed citation or ranking tactic.
 
 ### AI Citation Audit
 

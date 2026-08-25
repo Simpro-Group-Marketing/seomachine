@@ -38,6 +38,19 @@ except ImportError:
     )
 
 
+ORIGINAL_MARKDOWN_IMAGE_PLACEHOLDER_RE = re.compile(
+    r"\A!\[[^\]\r\n]+\]\(IMAGE_PLACEHOLDER_ORIGINAL_[A-Z0-9_]+\)\Z"
+)
+
+
+def _is_protected_image_placeholder_line(line: str) -> bool:
+    stripped = line.strip()
+    return (
+        is_production_image_placeholder_line(stripped)
+        or ORIGINAL_MARKDOWN_IMAGE_PLACEHOLDER_RE.fullmatch(stripped) is not None
+    )
+
+
 class ContentScrubber:
     """
     Scrubs content to remove invisible marks and punctuation artifacts.
@@ -135,7 +148,7 @@ class ContentScrubber:
         segments: List[Tuple[bool, str]] = []
         cursor = 0
         for match in re.finditer(r"^[^\r\n]+(?=\r?$)", content, re.MULTILINE):
-            if not is_production_image_placeholder_line(match.group(0)):
+            if not _is_protected_image_placeholder_line(match.group(0)):
                 continue
             if match.start() > cursor:
                 segments.append((False, content[cursor:match.start()]))

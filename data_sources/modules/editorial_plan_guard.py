@@ -14,10 +14,12 @@ try:
     from .blog_assembly_contract import canonical_json_sha256
     from .execution_attestation import attest_mapping, verify_mapping_attestation
     from .frontmatter import FrontmatterError, split_frontmatter
+    from . import industry_cluster_link_policy
 except ImportError:  # pragma: no cover - supports direct script execution.
     from blog_assembly_contract import canonical_json_sha256
     from execution_attestation import attest_mapping, verify_mapping_attestation
     from frontmatter import FrontmatterError, split_frontmatter
+    import industry_cluster_link_policy
 
 
 Finding = dict[str, Any]
@@ -68,6 +70,8 @@ TOP_LEVEL_FIELDS = frozenset(
         'entity_map',
         'query_ownership',
         'internal_link_plan',
+        'industry_cluster_link_policy',
+        'keyword_decision',
         'faq_policy',
         'paa_policy',
     }
@@ -139,7 +143,19 @@ QUERY_OWNERSHIP_FIELDS = frozenset({'decision', 'rationale'})
 INTERNAL_LINK_FIELDS = frozenset({'target', 'role', 'rationale'})
 FAQ_POLICY_FIELDS = frozenset({'status', 'rationale'})
 PAA_POLICY_FIELDS = frozenset({'source_kind', 'query', 'selected_questions'})
+KEYWORD_DECISION_FIELDS = frozenset(
+    {
+        'status',
+        'artifact_schema',
+        'source',
+        'database',
+        'selected_primary_keyword',
+        'selected_secondary_keywords',
+        'selection_rationale',
+    }
+)
 SERP_EVIDENCE_SCHEMA = 'simpro-serp-evidence/v1'
+KEYWORD_DECISION_SCHEMA = 'simpro-semrush-keyword-decision/v1'
 SERP_EVIDENCE_ATTESTATION_PURPOSE = 'simpro-serp-evidence/v1'
 SERP_EVIDENCE_FIELDS = frozenset(
     {
@@ -566,12 +582,19 @@ def check_plan(value: Any) -> list[Finding]:
             )
         )
     findings.extend(_check_serp_strategy(value.get('serp_strategy')))
+    findings.extend(_check_keyword_decision(value.get('keyword_decision'), value.get('meta')))
     findings.extend(_check_original_contributions(value.get('original_contributions')))
     findings.extend(_check_entity_map(value.get('entity_map')))
     findings.extend(_check_query_ownership(value.get('query_ownership')))
     findings.extend(
         _check_internal_link_plan(
             value.get('internal_link_plan'),
+            brand=plan_brand,
+        )
+    )
+    findings.extend(
+        industry_cluster_link_policy.editorial_plan_findings(
+            value,
             brand=plan_brand,
         )
     )
@@ -837,6 +860,69 @@ def _check_serp_strategy_evidence_binding(
                     'Use only decisions observed in the bound SERP artifact.',
                 ))
     return findings
+
+
+def _check_keyword_decision(value: Any, meta: Any) -> list[Finding]:
+    location = '/keyword_decision'
+    if not isinstance(value, Mapping):
+        return [_invalid_field(location, 'must be an object')]
+    findings = _unknown_fields(value, KEYWORD_DECISION_FIELDS, location)
+    for key in (
+        'status',
+        'artifact_schema',
+        'source',
+        'database',
+        'selected_primary_keyword',
+        'selection_rationale',
+    ):
+        _require_nonempty_string(value, key, findings, f'{location}/{key}')
+    if value.get('status') != 'resolved':
+        findings.append(_invalid_field(f'{location}/status', 'must be resolved'))
+    if value.get('artifact_schema') != KEYWORD_DECISION_SCHEMA:
+        findings.append(_invalid_field(
+            f'{location}/artifact_schema',
+            f'must be {KEYWORD_DECISION_SCHEMA}',
+        ))
+    if value.get('source') != 'semrush_connector':
+        findings.append(_invalid_field(f'{location}/source', 'must be semrush_connector'))
+    selected_secondary_findings = _check_string_list(
+        value.get('selected_secondary_keywords'),
+        f'{location}/selected_secondary_keywords',
+    )
+    findings.extend(selected_secondary_findings)
+    if isinstance(meta, Mapping):
+        meta_primary = meta.get('primary_keyword')
+        selected_primary = value.get('selected_primary_keyword')
+        if (
+            isinstance(meta_primary, str)
+            and isinstance(selected_primary, str)
+            and _normalize_keyword(meta_primary) != _normalize_keyword(selected_primary)
+        ):
+            findings.append(_finding(
+                'editorial_plan_keyword_decision_mismatch',
+                'Editorial plan primary keyword must match the Semrush keyword decision.',
+                f'{location}/selected_primary_keyword',
+                'Regenerate the editorial plan from the current keyword decision artifact.',
+            ))
+        meta_secondary = meta.get('secondary_keywords')
+        selected_secondary = value.get('selected_secondary_keywords')
+        if (
+            isinstance(meta_secondary, list)
+            and isinstance(selected_secondary, list)
+            and [_normalize_keyword(item) for item in meta_secondary if isinstance(item, str)]
+            != [_normalize_keyword(item) for item in selected_secondary if isinstance(item, str)]
+        ):
+            findings.append(_finding(
+                'editorial_plan_keyword_decision_mismatch',
+                'Editorial plan secondary keywords must match the Semrush keyword decision.',
+                f'{location}/selected_secondary_keywords',
+                'Regenerate the editorial plan from the current keyword decision artifact.',
+            ))
+    return findings
+
+
+def _normalize_keyword(value: str) -> str:
+    return re.sub(r'\s+', ' ', value.strip()).casefold()
 
 
 def _casefolded_strings(value: Any) -> set[str]:

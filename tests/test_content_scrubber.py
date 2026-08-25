@@ -31,6 +31,19 @@ class ContentScrubberTests(unittest.TestCase):
 
         self.assertEqual(scrub_content(marker), marker)
 
+    def test_scrub_preserves_blank_lines_around_original_image_placeholder(self):
+        marker = (
+            "![Close up of hand holding broken phone with person in yellow shirt "
+            "in background](IMAGE_PLACEHOLDER_ORIGINAL_PHONE)"
+        )
+        content = (
+            "The job details should stay readable.\n\n"
+            f"{marker}\n\n"
+            "Technicians need the next paragraph on its own line."
+        )
+
+        self.assertEqual(scrub_content(content), content)
+
     def test_scrub_placeholder_restoration_does_not_collide_after_zero_width_cleanup(self):
         marker = (
             '[IMAGE PLACEHOLDER — ORIGINAL HERO: retain immediately before the '

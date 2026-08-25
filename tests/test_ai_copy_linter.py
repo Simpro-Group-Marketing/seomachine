@@ -442,6 +442,14 @@ class AiCopyLinterTests(unittest.TestCase):
         self.assertEqual(len(repeated), 1)
         self.assertEqual(repeated[0]["severity"], "error")
 
+    def test_repeated_sentence_starts_ignore_faq_question_headings(self):
+        findings = lint_content(
+            "## FAQ\n\n### What is FSM?\n\nFSM handles job delivery.\n\n"
+            "### What is CRM?\n\nCRM handles relationships.\n\n"
+            "### What is ERP?\n\nERP handles core business records."
+        )
+        self.assertFalse([finding for finding in findings if finding["rule_id"] == "repeated_sentence_start"])
+
     def test_markdown_links_urls_code_and_frontmatter_are_ignored(self):
         content = fixture_text("content_evidence:test_ai_copy_linter-354-1")
 

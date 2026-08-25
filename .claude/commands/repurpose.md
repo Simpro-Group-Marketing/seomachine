@@ -1,171 +1,87 @@
 # Repurpose Command
 
-Take a published or drafted article and generate platform-specific versions for distribution across multiple content surfaces, maximizing AI citation potential.
+Prepare a manual, evidence-bound distribution handoff from a sealed article. This command does not post to any external platform and does not predict distribution, backlink, platform-algorithm, or AI-citation outcomes.
 
 ## Usage
-`/repurpose [path-to-article]`
 
-**Examples:**
-- `/repurpose drafts/project-management-guide-2026-04-10.md`
-- `/repurpose published/start-a-blog.md`
+`/repurpose [article] --final-readiness [attestation] [--canonical-url URL]`
 
-## Why This Matters
+Example:
 
-AI search engines (ChatGPT, Perplexity, Gemini) pull recommendations from many surfaces beyond your website: Medium, LinkedIn, Reddit, Quora, YouTube transcripts. The more surfaces your content appears on with attribution back to your site, the higher the probability of being cited in AI-generated answers.
+`/repurpose published/field-service-guide.md --final-readiness research/final-readiness-field-service-guide-2026-08-21.json --canonical-url https://example.com/field-service-guide`
 
-One article should become 4-5 pieces of distributed content. This command automates the adaptation, not just copy-pasting.
+`[article]` is the exact Markdown artifact to repurpose. `[attestation]` is its existing final-readiness validation artifact. `--canonical-url` is optional; do not infer or invent it.
 
-## Process
+## Source-sealing requirement
 
-### 1. Read and Analyze Source Article
-- Read the full article
-- Identify the primary keyword, core thesis, and key claims
-- Note the article's URL slug (for linking back)
-- Extract 3-5 key takeaways
-- Identify the strongest data points, quotes, and insights
+Before any derivative generation, read the complete article and load the existing final-readiness validation through `data_sources.modules.publish_readiness.validate_passed_readiness_result`. Require phase `final` and `passed: true`. Require the attestation's `input_hashes.article.sha256` to match the supplied article's current exact-byte hash, and require its recorded `file` path to match the supplied article path. Calculate the current article SHA-256 hash from the supplied article bytes; do not normalize, reformat, or substitute the article before matching.
 
-### 2. Generate Platform-Specific Versions
+If the validation is missing, does not attest a passing final-readiness result, has no article hash, or its hash differs from the current article, set the state to `blocked`. Do not generate derivatives, draft public-platform copy, or suggest posting actions. Report the failed check and the corrective action: rerun final readiness against the current article before returning to `/repurpose`.
 
-For each platform, generate an adapted version that fits the platform's norms, audience expectations, and format. Each version must link back to the original article.
+## Handoff states
 
----
+- `blocked`: source-sealing validation failed. Output only the blocker and corrective action.
+- `sealed_preview`: final-readiness validation and exact article hash match succeeded. Inspect the sealed article, identify eligible distribution opportunities, and select channels rather than force them. A clearly labeled pre-publication derivative preview is permitted for selected channels, but it is not a publish-ready handoff or posting instruction. Canonical link: absent/unverified. Every derivative must be clearly labeled non-postable and remain manual-review-only.
+- `handoff_prepared`: the selected channels each have a complete manual review packet, a live check verifies the canonical identity, and every selected channel has verified owner, account identity, and disclosure. Derivative candidates may be prepared only from the sealed article and only for the selected channels. They remain manual-review artifacts, not posted content.
 
-#### LinkedIn Article (LinkedIn Pulse)
+A supplied URL alone is not verification. Record the canonical identity live check and every owner, account identity, and disclosure check with check/time/evidence in the channel packet. If any required check cannot be verified, fall back to `sealed_preview`.
 
-**Format:** Long-form article (800-1,200 words)
-**Tone:** Professional, insight-driven, slight thought-leadership angle
-**Structure:**
-- Opening hook (2-3 sentences, conversational)
-- 3-5 key insights from the article, reframed for a business/professional audience
-- Personal perspective or key insight
-- Clear takeaway or lesson
-- Link to full article: "I wrote a deeper breakdown on this: [link]"
-- No bullet-heavy formatting (LinkedIn penalizes listicle-style posts)
+## Proof boundary
 
-**Adaptation notes:**
-- Reframe for business value (ROI, productivity, growth) when possible
-- Remove niche-specific jargon that a general LinkedIn audience won't know
-- Add a "why this matters for your business" angle if the original is practitioner-focused
-- Do NOT just copy the intro + "read more at [link]"
+Derivatives may carry only claims already present and supported in the sealed article. Preserve the original claim meaning and cite the sealed article passage that permits each claim. Public proof links may be carried only when they are already present in the sealed article and support the same claim. If an adapted angle needs a new fact, proof link, customer statement, metric, quote, comparison, product capability, review assertion, or other proof-sensitive claim, omit it and record the gap for human review.
 
----
+No new proof-sensitive claims may be added. Do not add invented personal experience, affiliation, authorship, customer perspective, outcomes, product use, or platform participation. A useful explanation of the article is permitted only when it does not change or expand its supported claims.
 
-#### Medium Article
+## Select distribution channels
 
-**Format:** Full article adaptation (1,200-1,800 words)
-**Tone:** Match the original article's voice
-**Structure:**
-- Can be closer to the original than other platforms
-- Add a brief author bio paragraph at the end
-- Include "Originally published on [your blog]: [link]"
-- Use Medium-appropriate formatting (pull quotes, section breaks, no markdown tables)
-- Add Medium tags (5 tags, mix of broad and niche)
+Evaluate possible channels against the sealed article and available, specific opportunities. Select channels rather than force them. A channel is eligible only when its audience and a concrete opportunity fit the article without creating unsupported claims or artificial participation.
 
-**Adaptation notes:**
-- Medium readers expect depth, so don't over-simplify
-- Convert markdown tables to prose or bullet lists (Medium handles tables poorly)
-- Remove product-specific CTAs (trial links, pricing) -- replace with the "originally published" link
-- Keep internal links pointing to your site (these become backlinks from Medium)
-
----
-
-#### Reddit Comment Drafts (2-3 versions)
-
-**Format:** 100-250 word comment, conversational
-**Tone:** Casual, helpful, zero promotional language
-**Structure:**
-- Draft 2-3 comment versions, each targeting a different common Reddit thread type:
-  1. **Recommendation thread** ("What tool should I use?"): Share a genuine comparison with your product mentioned naturally
-  2. **Pain point thread** ("Frustrated with [problem]"): Share how the article's insight addresses this
-  3. **Discussion thread** ("What's your take on [topic]?"): Share a key insight as personal opinion
-
-**Adaptation notes:**
-- NEVER use marketing language ("industry-leading", "robust", "seamless")
-- Write as a real person sharing experience, not a brand
-- Only include a link if it genuinely helps: "There's a good breakdown here: [link]"
-- Include the link at most in 1 of the 3 drafts (Reddit penalizes link-heavy comments)
-- Reference specific subreddits where each comment would fit
-
----
-
-#### Quora Answer
-
-**Format:** 300-500 word answer
-**Tone:** Authoritative but approachable, answer-first
-**Structure:**
-- Direct answer in the first sentence (matches Quora's "answer the question" expectation)
-- 2-3 supporting points from the article
-- Brief personal context ("I work in [industry], so...")
-- Link to full article as "further reading"
-
-**Target questions:** Suggest 2-3 Quora questions this answer would fit (search Quora for related questions during generation).
-
-**Adaptation notes:**
-- Quora readers want the answer, not a teaser
-- Include specific numbers, examples, or comparisons
-- Avoid "check out our blog" language; instead: "I wrote a longer breakdown of this: [link]"
-
----
-
-#### YouTube Video Script Outline (Optional)
-
-**Format:** Script outline, not full script (150-300 words)
-**Structure:**
-- Hook (first 5 seconds): Restate the article's core insight as a question or bold claim
-- Key points (3-5 bullets): What to cover, with timestamps
-- CTA: Subscribe + link to article in description
-- Suggested title and thumbnail text
-
-**Only generate this if** the source article has strong visual/demonstrable content (comparisons, tutorials, teardowns).
-
----
-
-### 3. Generate Distribution Checklist
-
-After all versions are generated, output a checklist:
+For every selected channel, create a packet with all of these fields:
 
 ```markdown
-## Distribution Checklist
+### [Channel]
 
-### Publish
-- [ ] LinkedIn article posted
-- [ ] Medium article posted (include "Originally published on [blog]" + tags)
-- [ ] Quora answer posted to [suggested questions]
-
-### Reddit Engagement (Within 1-2 Weeks)
-- [ ] Monitor target subreddits for relevant threads (use F5Bot if set up)
-- [ ] Post comment draft 1 when matching thread appears
-- [ ] Post comment draft 2 when matching thread appears
-- [ ] Post comment draft 3 when matching thread appears
-
-### Optional
-- [ ] YouTube video script recorded and published
-- [ ] Community tab / newsletter mention
+- Audience/opportunity: [specific audience and live, relevant opportunity]
+- Adapted angle: [article-supported angle for that audience]
+- Permitted source passages: [article heading/section and exact supporting passage]
+- Public proof links: [only article-carried, claim-supporting URLs; or none]
+- Canonical link: [provided canonical URL after live identity verification; or omitted]
+- Owner: [named responsible person or team]
+- Account identity: [the account that may post and its relationship to the article]
+- Disclosure: [required affiliation/relationship disclosure, or not applicable with reason]
+- Human review required: yes
+- manual posting: required
 ```
+
+Do not select a channel when a real opportunity, owner, account identity, truthful disclosure, or human review cannot be specified. Do not force a channel merely because it appears in a context file or was used for another article.
+
+## Reddit and Quora
+
+Reddit and Quora are eligible only with a specific live thread or question that is relevant to the sealed article. The packet must name and link the live thread or question, include a disclosed affiliation, and state why the answer helps that audience. An optional directly useful link to the canonical article is never required; include it only when it materially helps the reader. Manual posting is required.
+
+Never fabricate a personal story, individual experience, independent recommendation, or community participation. If an appropriate live thread or question does not exist, do not prepare Reddit or Quora content.
+
+## Prohibited behavior
+
+- Automated posting is prohibited.
+- Fixed derivative counts are prohibited.
+- Fixed word quotas are prohibited.
+- Backlink promises are prohibited.
+- platform-algorithm claims are prohibited.
+- AI-citation predictions are prohibited.
+- Do not claim a platform will reward, penalize, rank, cite, distribute, or link to the derivative.
+- Do not promise links, traffic, citations, reach, engagement, or other outcomes.
 
 ## Output
 
-Save all repurposed content to a single file:
-- **File Location:** `repurposed/[original-slug]-repurposed-[YYYY-MM-DD].md`
-- **Format:** Markdown with clear section headers for each platform
+For `sealed_preview` and `handoff_prepared`, save the selected and rejected channel decisions plus any clearly labeled derivative candidates to:
 
-```
-repurposed/
-└── project-management-guide-repurposed-2026-04-10.md
-```
+`repurposed/[slug]-repurposed-[YYYY-MM-DD].md`
 
-## Quality Standards
+The repurposed handoff is advisory distribution work, not an assembly BOM artifact, not a `/publish-readiness` input or gate, and not a release requirement.
 
-- Each platform version must be genuinely adapted, not copy-pasted
-- LinkedIn version emphasizes business value
-- Medium version maintains depth
-- Reddit comments must pass the "would a real person write this?" test
-- Quora answer must directly answer a question
-- All versions link back to the original article
-- No product CTAs in Reddit or Quora versions (only helpful links)
-- Total output should take 5-10 minutes to review and publish manually
+The output must begin with the article path, final-readiness attestation path, attested article hash, current article hash, state, canonical URL status, and a statement that no external posting occurred. Include selected-channel packets, rejected channels with reasons, and a final manual-review checklist. In `sealed_preview`, every derivative remains clearly labeled non-postable. Do not create an output file for `blocked`.
 
-## Required Context Files
-- @context/brand-voice.md - Maintain brand voice in LinkedIn and Medium
-- @context/reddit-strategy.md - Reddit engagement rules
-- @context/ai-citation-targets.md - Platform priority reference
+## Related workflow
+
+`/research-ai-citations` can identify research questions and observed source patterns, but it does not authorize a channel, add proof, or predict citation outcomes. Use only a sealed-article handoff through this command for derivative preparation.

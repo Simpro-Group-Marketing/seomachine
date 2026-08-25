@@ -68,6 +68,7 @@ def expected_blog_gate_inventory(
         "ai_copy_linter",
         "url_validator",
         "public_research_links",
+        "industry_cluster_link_policy",
         "metric_proof_pack",
         "numeric_claim_source",
     ]
@@ -77,9 +78,11 @@ def expected_blog_gate_inventory(
         (
             "paa_provenance",
             "editorial_plan",
+            "semrush_keyword_decision",
             "source_support",
             "customer_proof_diversity",
             "review_story_identity",
+            "eeat_strength",
             "early_artifact",
             "answer_withholding",
         )

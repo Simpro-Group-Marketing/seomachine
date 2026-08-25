@@ -290,6 +290,23 @@ def test_readme_no_longer_lists_deleted_authoring_modules():
         assert deleted_tool not in content
 
 
+def test_seo_guidelines_keep_url_best_practices_evidence_safe():
+    content = _read(ROOT / "context" / "seo-guidelines.md")
+
+    assert "Semrush is third-party opportunity/SERP context" in content
+    assert "GSC remains first-party performance truth" in content
+    assert "source-artifact readiness does not validate rendered CMS output" in content
+    for unsupported in (
+        "5-15% of website traffic can come from AI sources",
+        "90% of buyers consult AI",
+        "AI scrapers prioritize content near the top",
+        "Every article should include a TL;DR",
+        "Video increases time on page",
+        "Create companion video content for every major guide",
+    ):
+        assert unsupported not in content
+
+
 def test_default_pytest_route_is_the_deterministic_core_suite():
     content = _read(ROOT / 'pytest.ini')
 

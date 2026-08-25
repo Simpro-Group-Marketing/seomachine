@@ -20,6 +20,7 @@ from datetime import date
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any, Dict, Iterable, Iterator, List, Mapping, Optional, Sequence
+from urllib.parse import urlsplit, urlunsplit
 
 try:
     from .blog_assembly_contract import validate_governance_output_path
@@ -39,10 +40,28 @@ DEFAULT_LEDGER_PATH = Path("context/customer-proof-usage-ledger.json")
 
 FindingDict = Dict[str, Any]
 SLATE_ROLES = {"experience_story", "metric", "quote", "theme"}
+CUSTOMER_PROOF_USE_MODES = {"public_metric", "exact_quote", "public_paraphrase"}
+NO_FIT_CUSTOMER_PROOF_OUTCOME = "no_fit_customer_proof"
+CUSTOMER_PROOF_CANDIDATES_AVAILABLE_OUTCOME = "customer_proof_candidates_available"
+NO_FIT_CUSTOMER_PROOF_REASON = (
+    "No customer proof selected because the current connector-validated context "
+    "has no approved claims bound to the customer proof inventory; public copy "
+    "must omit customer proof, named customer claims, review stories, exact "
+    "quotes, testimonials, and customer metrics."
+)
+NO_BOUND_CUSTOMER_PROOF_MESSAGE = (
+    "no approved claims bound to the customer proof inventory"
+)
 
 
 class CustomerProofDataError(RuntimeError):
     """Raised when receipt-backed customer proof cannot be verified."""
+
+
+@dataclass(frozen=True)
+class _ApprovedClaimBinding:
+    claim: Any
+    binding_source: str
 
 
 @dataclass(frozen=True)
@@ -169,16 +188,16 @@ def select_customer_proofs(
             "Customer proof index has no usable public customer proof inventory rows."
         )
     inventory_ids = {str(candidate["proof_id"]).strip() for candidate in proof_rows}
-    receipt_selector_ids = {
-        claim.selector_id
-        for claim in receipt_claims.approved_claims()
-        if claim.selector_id
-    }
-    if inventory_ids and not inventory_ids.intersection(receipt_selector_ids):
+    approved_claims = receipt_claims.approved_claims()
+    if not _has_inventory_bound_claim(
+        proof_rows,
+        inventory_ids=inventory_ids,
+        approved_claims=approved_claims,
+    ):
         raise CustomerProofDataError(
             "Customer proof context receipt has no approved claims bound to the "
-            "customer proof inventory; rebuild the vault-owned selector bindings "
-            "and context artifacts."
+            "customer proof inventory by selector ID or exact public URL; rebuild "
+            "the vault-owned selector bindings and context artifacts."
         )
     search_text = " ".join(part for part in (topic, title, objective) if part)
     topic_tokens = _tokens(search_text)
@@ -191,13 +210,24 @@ def select_customer_proofs(
             continue
         if not _matches_proof_role(candidate, proof_role):
             continue
+        use_modes = _use_modes_for_role(proof_role)
         approved_claim = receipt_claims.require_selector_claim(
             str(candidate.get("proof_id", "")),
-            use_modes=_use_modes_for_role(proof_role),
+            use_modes=use_modes,
             public_url=str(candidate.get("public_url", "")),
         )
+        binding_source = "selector_id" if approved_claim is not None else ""
         if approved_claim is None:
-            continue
+            public_url_binding = _public_url_binding(
+                candidate,
+                proof_rows=proof_rows,
+                approved_claims=approved_claims,
+                use_modes=use_modes,
+            )
+            if public_url_binding is None:
+                continue
+            approved_claim = public_url_binding.claim
+            binding_source = public_url_binding.binding_source
         result = dict(candidate)
         result.update(
             count_customer_proof_usage(
@@ -213,6 +243,7 @@ def select_customer_proofs(
         result["proof_role"] = proof_role
         result["review_story_eligible"] = _is_review_story_eligible(candidate)
         result["claim_id"] = approved_claim.claim_id
+        result["binding_source"] = binding_source
         result["approval_source"] = approved_claim.approval_source
         result["context_receipt_revision"] = approved_claim.receipt_revision
         result["score"] = _score_candidate(result)
@@ -254,6 +285,7 @@ def build_customer_proof_slate(
     limit: int = 8,
     selected_overrides: Optional[Dict[str, str]] = None,
     rejected_overrides: Optional[Dict[str, Dict[str, str]]] = None,
+    allow_no_proof: bool = False,
     reference_date: Optional[date] = None,
     _role_evidence: Optional[List[FindingDict]] = None,
     _input_snapshot: Optional[_SelectorInputSnapshot] = None,
@@ -264,6 +296,11 @@ def build_customer_proof_slate(
     normalized_roles = _parse_roles(
         ",".join(roles) if not isinstance(roles, str) else roles
     )
+    if allow_no_proof and set(normalized_roles) != SLATE_ROLES:
+        raise CustomerProofDataError(
+            "No-proof customer proof evidence requires metric, quote, theme, "
+            "and experience_story roles."
+        )
     command = _slate_selector_command(
         topic,
         title=title,
@@ -273,6 +310,7 @@ def build_customer_proof_slate(
         require_eeat_story=require_eeat_story,
         roles=normalized_roles,
         limit=limit,
+        allow_no_proof=allow_no_proof,
     )
     lines = [
         "Customer Proof Slate",
@@ -280,22 +318,31 @@ def build_customer_proof_slate(
         f"- Context receipt: {context_receipt or 'not supplied'}",
         "- Approval source: connector_claim_result",
     ]
+    no_fit_roles: set[str] = set()
     for role in normalized_roles:
-        results = select_customer_proofs(
-            topic,
-            index_path=index_path,
-            ledger_path=ledger_path,
-            context_pack=context_pack,
-            context_receipt=context_receipt,
-            article_slug=article_slug,
-            title=title,
-            objective=objective,
-            require_eeat_story=require_eeat_story and role == "experience_story",
-            proof_role=role,
-            limit=limit,
-            reference_date=reference_date,
-            _input_snapshot=_input_snapshot,
-        )
+        no_fit_reason = ""
+        try:
+            results = select_customer_proofs(
+                topic,
+                index_path=index_path,
+                ledger_path=ledger_path,
+                context_pack=context_pack,
+                context_receipt=context_receipt,
+                article_slug=article_slug,
+                title=title,
+                objective=objective,
+                require_eeat_story=require_eeat_story and role == "experience_story",
+                proof_role=role,
+                limit=limit,
+                reference_date=reference_date,
+                _input_snapshot=_input_snapshot,
+            )
+        except CustomerProofDataError as exc:
+            if not allow_no_proof or not _is_no_bound_customer_proof_error(exc):
+                raise
+            results = []
+            no_fit_reason = NO_FIT_CUSTOMER_PROOF_REASON
+            no_fit_roles.add(role)
         top_candidates = [
             str(result.get("proof_id", ""))
             for result in results
@@ -334,17 +381,27 @@ def build_customer_proof_slate(
             f"| Selected: [{selected_id}] | Claim IDs: [{', '.join(claim_ids) if claim_ids else 'none'}] "
             f"| Receipt revision: {receipt_revision} | Rejected stronger candidates: [{rejected_text}]"
         )
+        if no_fit_reason:
+            lines.append(f"  - No-fit reason: {no_fit_reason}")
         if _role_evidence is not None:
-            _role_evidence.append(
-                {
-                    "role": role,
-                    "candidate_ids": top_candidates,
-                    "claim_ids": claim_ids,
-                    "receipt_revision": receipt_revision,
-                    "selected_id": selected_id,
-                }
-            )
+            row = {
+                "role": role,
+                "candidate_ids": top_candidates,
+                "claim_ids": claim_ids,
+                "receipt_revision": receipt_revision,
+                "selected_id": selected_id,
+            }
+            if no_fit_reason:
+                row["selection_outcome"] = NO_FIT_CUSTOMER_PROOF_OUTCOME
+                row["no_fit_reason"] = no_fit_reason
+            _role_evidence.append(row)
+    if no_fit_roles and no_fit_roles == set(normalized_roles):
+        lines.insert(4, f"- Selection outcome: {NO_FIT_CUSTOMER_PROOF_OUTCOME}")
     return "\n".join(lines)
+
+
+def _is_no_bound_customer_proof_error(error: CustomerProofDataError) -> bool:
+    return NO_BOUND_CUSTOMER_PROOF_MESSAGE in str(error)
 
 
 def _parse_roles(raw_roles: str) -> List[str]:
@@ -401,6 +458,7 @@ def _slate_selector_command(
     require_eeat_story: bool,
     roles: Sequence[str],
     limit: int,
+    allow_no_proof: bool = False,
 ) -> str:
     parts = [
         "python",
@@ -417,6 +475,8 @@ def _slate_selector_command(
         parts.extend(["--context-receipt", _quote_command_value(str(context_receipt))])
     if require_eeat_story:
         parts.append("--require-eeat-story")
+    if allow_no_proof:
+        parts.append("--allow-no-proof")
     parts.extend(["--slate", "--roles", ",".join(roles), "--limit", str(limit)])
     return " ".join(parts)
 
@@ -489,6 +549,105 @@ def _load_receipt_claims(
             f"Customer proof context receipt is unavailable: {receipt_claims.blocker}"
         )
     return receipt_claims
+
+
+def _normalize_public_url(value: Any) -> str:
+    url = str(value or "").strip()
+    if not url.startswith(("http://", "https://")):
+        return ""
+    parsed = urlsplit(url)
+    if not parsed.scheme or not parsed.netloc:
+        return ""
+    path = parsed.path.rstrip("/")
+    return urlunsplit(
+        (
+            parsed.scheme.lower(),
+            parsed.netloc.lower(),
+            path,
+            parsed.query,
+            "",
+        )
+    )
+
+
+def _inventory_url_map(proof_rows: Iterable[FindingDict]) -> dict[str, list[str]]:
+    url_map: dict[str, list[str]] = {}
+    for candidate in proof_rows:
+        proof_id = str(candidate.get("proof_id") or "").strip()
+        normalized = _normalize_public_url(candidate.get("public_url"))
+        if not proof_id or not normalized:
+            continue
+        url_map.setdefault(normalized, []).append(proof_id)
+    return url_map
+
+
+def _public_url_binding(
+    candidate: FindingDict,
+    *,
+    proof_rows: Iterable[FindingDict],
+    approved_claims: Sequence[Any],
+    use_modes: set[str],
+) -> _ApprovedClaimBinding | None:
+    normalized_url = _normalize_public_url(candidate.get("public_url"))
+    if not normalized_url:
+        return None
+    inventory_matches = sorted(set(_inventory_url_map(proof_rows).get(normalized_url, [])))
+    if len(inventory_matches) > 1:
+        raise CustomerProofDataError(
+            "Customer proof public URL binding is ambiguous for "
+            f"{normalized_url}: {', '.join(inventory_matches)}"
+        )
+    matches = [
+        claim
+        for claim in approved_claims
+        if not str(getattr(claim, "selector_id", "") or "").strip()
+        and str(getattr(claim, "use_mode", "") or "") in use_modes
+        and _normalize_public_url(getattr(claim, "public_url", "")) == normalized_url
+    ]
+    if len(matches) > 1:
+        claim_ids = ", ".join(sorted(str(claim.claim_id) for claim in matches))
+        raise CustomerProofDataError(
+            "Customer proof approved claim public URL binding is ambiguous for "
+            f"{normalized_url}: {claim_ids}"
+        )
+    if not matches:
+        return None
+    return _ApprovedClaimBinding(
+        claim=matches[0],
+        binding_source="public_url_exact_match",
+    )
+
+
+def _has_inventory_bound_claim(
+    proof_rows: Iterable[FindingDict],
+    *,
+    inventory_ids: set[str],
+    approved_claims: Sequence[Any],
+) -> bool:
+    receipt_selector_ids = {
+        str(getattr(claim, "selector_id", "") or "").strip()
+        for claim in approved_claims
+        if str(getattr(claim, "selector_id", "") or "").strip()
+    }
+    if inventory_ids.intersection(receipt_selector_ids):
+        return True
+    url_map = _inventory_url_map(proof_rows)
+    for claim in approved_claims:
+        if str(getattr(claim, "selector_id", "") or "").strip():
+            continue
+        if str(getattr(claim, "use_mode", "") or "") not in CUSTOMER_PROOF_USE_MODES:
+            continue
+        normalized_url = _normalize_public_url(getattr(claim, "public_url", ""))
+        if not normalized_url or normalized_url not in url_map:
+            continue
+        inventory_matches = sorted(set(url_map[normalized_url]))
+        if len(inventory_matches) > 1:
+            raise CustomerProofDataError(
+                "Customer proof public URL binding is ambiguous for "
+                f"{normalized_url}: {', '.join(inventory_matches)}"
+            )
+        return True
+    return False
 
 
 @contextmanager
@@ -817,12 +976,15 @@ def _write_selector_evidence(
     reference_date: date,
     selected_overrides: Mapping[str, str],
     rejected_overrides: Mapping[str, Mapping[str, str]],
+    allow_no_proof: bool,
     role_evidence: Sequence[FindingDict],
     input_snapshot: _SelectorInputSnapshot,
 ) -> tuple[str, str]:
     artifacts = input_snapshot.artifacts
+    selection_outcome = _selector_evidence_outcome(role_evidence)
     evidence = {
         "schema": "simpro-customer-proof-selector-evidence/v1",
+        "selection_outcome": selection_outcome,
         "inputs": {
             "topic": topic,
             "title": title,
@@ -830,6 +992,7 @@ def _write_selector_evidence(
             "article_slug": article_slug,
             "roles": list(roles),
             "require_eeat_story": require_eeat_story,
+            "allow_no_proof": allow_no_proof,
             "limit": limit,
             "reference_date": reference_date.isoformat(),
             "selected_overrides": dict(selected_overrides),
@@ -868,6 +1031,18 @@ def _write_selector_evidence(
                 temporary_output.replace(output)
         raise
     return str(output), hashlib.sha256(payload).hexdigest()
+
+
+def _selector_evidence_outcome(role_evidence: Sequence[FindingDict]) -> str:
+    if role_evidence and all(
+        row.get("selection_outcome") == NO_FIT_CUSTOMER_PROOF_OUTCOME
+        and str(row.get("selected_id") or "").casefold() == "none"
+        and not row.get("candidate_ids")
+        and not row.get("claim_ids")
+        for row in role_evidence
+    ):
+        return NO_FIT_CUSTOMER_PROOF_OUTCOME
+    return CUSTOMER_PROOF_CANDIDATES_AVAILABLE_OUTCOME
 
 
 def _main(argv: Optional[Sequence[str]] = None) -> int:
@@ -944,9 +1119,19 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
         "--evidence-output",
         help="Write a hash-bound JSON record of selector inputs and verified candidates.",
     )
+    parser.add_argument(
+        "--allow-no-proof",
+        action="store_true",
+        help=(
+            "Allow a full four-role slate to emit no-fit evidence when the "
+            "current connector context has no bound customer proof candidates."
+        ),
+    )
     args = parser.parse_args(argv)
     if args.evidence_output and not args.slate:
         parser.error("--evidence-output requires --slate")
+    if args.allow_no_proof and not args.evidence_output:
+        parser.error("--allow-no-proof requires --evidence-output")
 
     try:
         if args.slate:
@@ -956,6 +1141,10 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
                 rejected_overrides = _parse_rejected_overrides(args.reject)
             except ValueError as exc:
                 parser.error(str(exc))
+            if args.allow_no_proof and set(roles) != SLATE_ROLES:
+                parser.error(
+                    "--allow-no-proof requires --roles metric,quote,theme,experience_story"
+                )
             reference_date = date.today()
             snapshot_context = (
                 _selector_input_snapshot(
@@ -983,6 +1172,7 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
                     limit=args.limit,
                     selected_overrides=selected_overrides,
                     rejected_overrides=rejected_overrides,
+                    allow_no_proof=args.allow_no_proof,
                     reference_date=reference_date,
                     _role_evidence=role_evidence,
                     _input_snapshot=input_snapshot,
@@ -1004,6 +1194,7 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
                         reference_date=reference_date,
                         selected_overrides=selected_overrides,
                         rejected_overrides=rejected_overrides,
+                        allow_no_proof=args.allow_no_proof,
                         role_evidence=role_evidence,
                         input_snapshot=input_snapshot,
                     )

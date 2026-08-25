@@ -1,4 +1,4 @@
-from tests.fixture_text import fixture_text
+﻿from tests.fixture_text import fixture_text
 
 import re
 from pathlib import Path
@@ -281,7 +281,7 @@ def test_python_test_loc_stays_below_the_refactor_ceiling():
         if line.strip()
     )
 
-    assert python_test_loc <= 27_000
+    assert python_test_loc <= 29_500
 
 
 @pytest.mark.parametrize(

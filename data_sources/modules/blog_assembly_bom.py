@@ -12,7 +12,14 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 try:
-    from . import blog_identity_guard, context_binding_guard, editorial_plan_guard
+    from . import (
+        blog_identity_guard,
+        context_binding_guard,
+        eeat_strength_guard,
+        editorial_plan_guard,
+        industry_cluster_link_policy,
+        semrush_keyword_decision_guard,
+    )
     from .blog_assembly_contract import (
         artifact_inventory_snapshots,
         atomic_write_json,
@@ -34,7 +41,10 @@ try:
 except ImportError:  # pragma: no cover - supports direct script execution.
     import blog_identity_guard
     import context_binding_guard
+    import eeat_strength_guard
     import editorial_plan_guard
+    import industry_cluster_link_policy
+    import semrush_keyword_decision_guard
     from blog_assembly_contract import (
         artifact_inventory_snapshots,
         atomic_write_json,
@@ -73,6 +83,7 @@ def build_blog_assembly_bom_from_files(
     article_path: str | Path,
     validation_sidecar_path: str | Path,
     editorial_plan_path: str | Path,
+    keyword_decision_path: str | Path,
     serp_evidence_path: str | Path,
     stage_receipt_paths: Sequence[str | Path],
     workflow_mode: str,
@@ -97,6 +108,7 @@ def build_blog_assembly_bom_from_files(
         ("article_path", article_path),
         ("validation_sidecar_path", validation_sidecar_path),
         ("editorial_plan_path", editorial_plan_path),
+        ("keyword_decision_path", keyword_decision_path),
         ("serp_evidence_path", serp_evidence_path),
     ):
         _validate_input_path(value, field=field)
@@ -146,6 +158,17 @@ def build_blog_assembly_bom_from_files(
             sorted({str(finding.get("rule_id") or "") for finding in plan_findings})
         )
         raise ValueError(f"editorial plan is invalid: {rule_ids}")
+    keyword_findings = semrush_keyword_decision_guard.check_file(
+        keyword_decision_path,
+        article_path=article_path,
+        editorial_plan_path=editorial_plan_path,
+        assembly_date=assembled.isoformat(),
+    )
+    if keyword_findings:
+        rule_ids = ", ".join(
+            sorted({str(finding.get("rule_id") or "") for finding in keyword_findings})
+        )
+        raise ValueError(f"Semrush keyword decision is invalid: {rule_ids}")
 
     connector_required = context_binding_guard.requires_context(article.raw)
     context_paths = (context_request_path, context_pack_path, context_receipt_path)
@@ -218,6 +241,7 @@ def build_blog_assembly_bom_from_files(
             workspace_root=root,
         ),
         "editorial_plan": canonical_artifact(editorial_plan_path, workspace_root=root),
+        "keyword_decision": canonical_artifact(keyword_decision_path, workspace_root=root),
         "serp_evidence": canonical_artifact(serp_evidence_path, workspace_root=root),
         "paa_artifact": _optional_artifact(paa_artifact_path, root),
         "content_brief": _optional_artifact(content_brief_path, root),
@@ -285,6 +309,25 @@ def build_blog_assembly_bom_from_files(
         visible_faq=bool(_visible_faq_questions(article.raw)),
         workspace_root=root,
     )
+    eeat_strength_policy = eeat_strength_guard.summarize_policy(
+        article.raw,
+        proof_sidecar=validation_sidecar_path,
+        editorial_plan=plan,
+        customer_proof_selector_evidence=customer_proof_selector_evidence_path,
+        fred_authority_evidence=fred_authority_evidence_path,
+    )
+    selector_row = artifacts.get("customer_proof_selector_evidence")
+    fred_row = artifacts.get("fred_authority_evidence")
+    eeat_strength_policy["customer_proof_selector_evidence"] = (
+        str(selector_row.get("path"))
+        if isinstance(selector_row, Mapping)
+        else ""
+    )
+    eeat_strength_policy["fred_authority_evidence"] = (
+        str(fred_row.get("path"))
+        if isinstance(fred_row, Mapping)
+        else ""
+    )
 
     bom = {
         "schema": BOM_SCHEMA,
@@ -299,6 +342,16 @@ def build_blog_assembly_bom_from_files(
         ),
         "author_policy": _author_policy(article),
         "schema_policy": _schema_policy(article),
+        "industry_cluster_link_policy": industry_cluster_link_policy.summarize_policy(
+            article.raw,
+            plan=plan,
+            context_resource_ids=(
+                context_result.resource_ids
+                if context_result is not None
+                else ()
+            ),
+        ),
+        "eeat_strength_policy": eeat_strength_policy,
         "faq_policy": _required_mapping(plan.get("faq_policy"), "editorial_plan.faq_policy"),
         "paa_policy": paa_policy,
         "editorial_plan_summary": _editorial_plan_summary(plan),
@@ -652,6 +705,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     build.add_argument("article_path")
     build.add_argument("--validation-sidecar", required=True)
     build.add_argument("--editorial-plan", required=True)
+    build.add_argument("--keyword-decision", required=True)
     build.add_argument("--serp-evidence", required=True)
     build.add_argument("--paa-artifact")
     build.add_argument("--content-brief")
@@ -685,6 +739,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 article_path=args.article_path,
                 validation_sidecar_path=args.validation_sidecar,
                 editorial_plan_path=args.editorial_plan,
+                keyword_decision_path=args.keyword_decision,
                 serp_evidence_path=args.serp_evidence,
                 paa_artifact_path=args.paa_artifact,
                 content_brief_path=args.content_brief,
@@ -924,10 +979,22 @@ def _editorial_plan_summary(plan: Mapping[str, Any]) -> dict[str, Any]:
         "schema": plan["schema"],
         "reader_contract": copy.deepcopy(plan["reader_contract"]),
         "serp_strategy": copy.deepcopy(plan["serp_strategy"]),
+        "keyword_decision": copy.deepcopy(plan["keyword_decision"]),
         "original_contributions": copy.deepcopy(plan["original_contributions"]),
         "entity_map": copy.deepcopy(plan["entity_map"]),
         "query_ownership": copy.deepcopy(plan["query_ownership"]),
         "internal_link_plan": copy.deepcopy(plan["internal_link_plan"]),
+        "industry_cluster_link_policy": copy.deepcopy(
+            plan.get(
+                "industry_cluster_link_policy",
+                {
+                    "status": "not_applicable",
+                    "reason": (
+                        "No single-trade Simpro industry cluster link is required."
+                    ),
+                },
+            )
+        ),
     }
 
 
@@ -1023,6 +1090,8 @@ def _validate_provisional_stage_receipts(
     )
     if draft_evidence.get("serp_evidence") != artifacts["serp_evidence"]["sha256"]:
         raise ValueError("draft stage receipt must bind verified SERP evidence")
+    if draft_evidence.get("keyword_decision") != artifacts["keyword_decision"]["sha256"]:
+        raise ValueError("draft stage receipt must bind Semrush keyword decision evidence")
 
     for stage_name in ("scrub", "post_optimization_scrub"):
         receipt = by_stage.get(stage_name)

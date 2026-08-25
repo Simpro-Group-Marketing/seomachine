@@ -6,16 +6,17 @@ Use `/optimize [article file]` for findings and targeted edits after an article 
 
 The command/agent applies public-copy edits. Python must not draft, rewrite, or patch public blog Markdown in `drafts/`, `rewrites/`, or `published/`.
 
-Python may run guards and write governance artifacts such as scorer output, selector evidence, context binding evidence, BOM JSON, readiness JSON, and publisher transport payloads.
+Python may run guards and write governance artifacts such as scorer output, selector evidence, context binding evidence, Semrush keyword decision JSON, BOM JSON, readiness JSON, and publisher transport payloads.
 
 ## Required workflow
 
 1. Run `/publish-readiness [article]` first unless the user explicitly requested a read-only audit.
 2. Read the failed gates, `scorecard`, `aeo_geo.checks`, and `priority_fixes`.
 3. Classify each issue as a public-copy gap, validation-sidecar/proof gap, or scorer/parser false negative.
-4. Apply only the highest-impact 3 to 5 fixes. Do not invent PAA questions, proof, metrics, rankings, customer stories, quotes, or unsupported product claims to gain points.
-5. Run `/scrub [article]` as read-only diagnostics and make any required copy edits through the command/agent workflow.
-6. Rerun `/publish-readiness` with the current sidecar, context artifacts, and BOM.
+4. If `semrush_keyword_decision` fails, repair or rerun the live Semrush keyword decision artifact and regenerate the editorial plan/BOM before optimizing copy.
+5. Apply only the highest-impact 3 to 5 fixes. Do not invent PAA questions, proof, metrics, rankings, customer stories, quotes, or unsupported product claims to gain points.
+6. Run `/scrub [article]` as read-only diagnostics and make any required copy edits through the command/agent workflow.
+7. Rerun `/publish-readiness` with the current sidecar, context artifacts, and BOM.
 
 ## SEO target handling
 
@@ -30,7 +31,8 @@ Python may run guards and write governance artifacts such as scorer output, sele
 - On-page SEO findings: `seo-optimizer`.
 - Meta title or description findings: `meta-creator`.
 - Internal-link findings: `internal-linker`.
-- Keyword coverage, placement, or intent findings: `keyword-mapper`.
+- Keyword coverage, placement, or intent findings with a passed `semrush_keyword_decision` gate: `keyword-mapper`.
+- Missing, stale, mismatched, or unmeasured selected keyword findings: rerun the Semrush keyword decision workflow before copy optimization.
 
 Run only the agents needed for the failed checks. When the Editor runs, it must use the reviewed Humanizer snapshot and Simpro policy against the same immutable article snapshot. Agents return advisory findings only; `/optimize` applies one consolidated edit batch and remains the sole copy owner for the repair.
 
@@ -51,7 +53,7 @@ Optimization is not ready until `/publish-readiness` reports:
 - Content quality: 85/100 or higher.
 - SEO quality: 90/100 release floor with zero critical SEO issues; 95/100 honest optimization target when source-safe improvements exist.
 - AEO/GEO: 90/100 or higher.
-- Every blocking proof, source, URL, public-artifact, identity, context, FAQ, PAA, customer-proof, Fred authority, named-feature, and vault-language gate passes.
+- Every blocking proof, source, URL, public-artifact, identity, context, FAQ, PAA, customer-proof, E-E-A-T strength, Fred authority, named-feature, and vault-language gate passes.
 
 If the article remains below threshold after 2 repair loops, move it to `review-required/` with the exact failed checks and attempted fixes.
 

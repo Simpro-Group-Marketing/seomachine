@@ -22,6 +22,7 @@ try:
     from .proof_sidecar import load_sidecar_content
     from .proof_claim_binding_guard import validate_proof_claim_bindings
     from .simpro_vault_client import SimproVaultClient, VaultClientError
+    from . import industry_cluster_link_policy
 except ImportError:  # pragma: no cover - supports direct script execution.
     from artifact_detection import extract_frontmatter, strip_frontmatter
     from frontmatter import FrontmatterError
@@ -29,6 +30,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from proof_sidecar import load_sidecar_content
     from proof_claim_binding_guard import validate_proof_claim_bindings
     from simpro_vault_client import SimproVaultClient, VaultClientError
+    import industry_cluster_link_policy
 
 
 BINDING_SCHEMA = "seomachine-context-binding/v1"
@@ -269,6 +271,14 @@ def _check_file_impl(
         findings.append(_finding("context_pack_schema_invalid", f"Context pack must use {PACK_SCHEMA}."))
     if receipt.get("schema") != RECEIPT_SCHEMA:
         findings.append(_finding("context_receipt_schema_invalid", f"Context receipt must use {RECEIPT_SCHEMA}."))
+    findings.extend(
+        industry_cluster_link_policy.context_findings(
+            content=content,
+            request=request,
+            pack=pack,
+            receipt=receipt,
+        )
+    )
     if findings:
         return findings
     try:

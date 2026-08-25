@@ -23,6 +23,10 @@ from data_sources.modules.blog_assembly_bom import (
 from data_sources.modules.context_binding_guard import ContextValidationResult
 from data_sources.modules.editorial_plan_guard import build_serp_evidence
 from data_sources.modules.paa_provenance_guard import build_answersocrates_artifact
+from data_sources.modules.semrush_keyword_decision_guard import (
+    SOURCE_BOUNDARY,
+    build_keyword_decision,
+)
 from data_sources.modules.context_binding_generator import (
     generate_not_applicable_receipt,
 )
@@ -138,6 +142,15 @@ def _fixture(
             "primary_keyword": "field service scheduling guide",
             "secondary_keywords": ["capacity planning", "dispatch constraints"],
         },
+        "keyword_decision": {
+            "status": "resolved",
+            "artifact_schema": "simpro-semrush-keyword-decision/v1",
+            "source": "semrush_connector",
+            "database": "us",
+            "selected_primary_keyword": "field service scheduling guide",
+            "selected_secondary_keywords": ["capacity planning", "dispatch constraints"],
+            "selection_rationale": "Intent fit and SERP feasibility support the guide target.",
+        },
         "total_word_target": 300,
         "sections": [
             {
@@ -247,6 +260,107 @@ def _fixture(
         )
         plan["engagement_map"]["featured_snippets"] = [2]
     editorial_plan = _json(research / "editorial-plan.json", plan)
+    keyword_decision = _json(
+        research / "semrush-keyword-decision-scheduling-guide-2026-08-11.json",
+        build_keyword_decision(
+            brand=brand,
+            market="US",
+            database="us",
+            collection_date="2026-08-11",
+            source_boundary=SOURCE_BOUNDARY,
+            seed_terms=["field service scheduling guide", "capacity planning"],
+            connector_reports=[
+                {"report": "_keyword_research", "parameters": {}, "status": "completed"},
+                {"report": "_get_report_schema", "parameters": {"report": "phrase_these"}, "status": "completed"},
+                {
+                    "report": "phrase_these",
+                    "parameters": {
+                        "phrase": "field service scheduling guide;capacity planning;dispatch constraints",
+                        "database": "us",
+                        "export_columns": "keyword,volume,cpc,competitive_density,results,trend,intent,keyword_difficulty",
+                    },
+                    "status": "completed",
+                },
+                {"report": "phrase_related", "parameters": {"phrase": "field service scheduling guide", "database": "us"}, "status": "completed"},
+                {"report": "phrase_questions", "parameters": {"phrase": "field service scheduling guide", "database": "us"}, "status": "completed"},
+                {"report": "phrase_organic", "parameters": {"phrase": "field service scheduling guide", "database": "us", "display_limit": 20}, "status": "completed"},
+                {"report": "phrase_this", "parameters": {"phrase": "field service scheduling guide", "database": "us"}, "status": "completed"},
+            ],
+            candidate_metrics=[
+                {
+                    "keyword": "field service scheduling guide",
+                    "volume": 720,
+                    "keyword_difficulty": 32,
+                    "cpc": 18.5,
+                    "competitive_density": 0.12,
+                    "results": 1000000,
+                    "trend": [1, 1, 1],
+                    "intent": "commercial",
+                },
+                {
+                    "keyword": "capacity planning",
+                    "volume": 260,
+                    "keyword_difficulty": 29,
+                    "cpc": 11.2,
+                    "competitive_density": 0.08,
+                    "results": 800000,
+                    "trend": [1, 1, 1],
+                    "intent": "informational",
+                },
+                {
+                    "keyword": "dispatch constraints",
+                    "volume": 90,
+                    "keyword_difficulty": 21,
+                    "cpc": 7.2,
+                    "competitive_density": 0.03,
+                    "results": 250000,
+                    "trend": [1, 1, 1],
+                    "intent": "informational",
+                },
+            ],
+            serp_finalists=[
+                {
+                    "keyword": "field service scheduling guide",
+                    "database": "us",
+                    "results": [
+                        {
+                            "position": 1,
+                            "position_type": "organic",
+                            "domain": "example.com",
+                            "url": "https://example.com/scheduling-guide",
+                            "triggered_serp_features": ["featured snippet"],
+                        }
+                    ],
+                }
+            ],
+            question_candidates=[
+                {
+                    "keyword": "how should field service teams schedule work",
+                    "volume": 40,
+                    "keyword_difficulty": 18,
+                    "intent": "informational",
+                }
+            ],
+            related_candidates=[
+                {
+                    "keyword": "field dispatch scheduling",
+                    "volume": 110,
+                    "keyword_difficulty": 28,
+                    "relevance": 0.74,
+                    "intent": "commercial",
+                }
+            ],
+            selected_primary_keyword="field service scheduling guide",
+            selected_secondary_keywords=["capacity planning", "dispatch constraints"],
+            rejected_keywords=[
+                {
+                    "keyword": "employee scheduling software",
+                    "reason": "Different buyer and page ownership lane.",
+                }
+            ],
+            selection_rationale="Intent fit, page ownership, and SERP feasibility support the selected target.",
+        ),
+    )
     serp = _json(
         research / "serp-evidence.json",
         build_serp_evidence(
@@ -297,7 +411,10 @@ def _fixture(
             "editorial_plan": _sha256(editorial_plan),
         },
         output_artifact_hashes={"article": _sha256(article)},
-        evidence_hashes={"serp_evidence": _sha256(serp)},
+        evidence_hashes={
+            "serp_evidence": _sha256(serp),
+            "keyword_decision": _sha256(keyword_decision),
+        },
     )
     draft_path = research / "stage-draft.json"
     write_stage_receipt(draft_path, draft_receipt)
@@ -341,6 +458,7 @@ def _fixture(
         "article": article,
         "sidecar": sidecar,
         "editorial_plan": editorial_plan,
+        "keyword_decision": keyword_decision,
         "serp": serp,
         "paa": paa,
         "stage_receipts": [draft_path, scrub_path, binding_path],
@@ -352,6 +470,7 @@ def _build(tmp_path: Path, paths: dict[str, Path], **overrides):
         "article_path": paths["article"],
         "validation_sidecar_path": paths["sidecar"],
         "editorial_plan_path": paths["editorial_plan"],
+        "keyword_decision_path": paths["keyword_decision"],
         "serp_evidence_path": paths["serp"],
         "paa_artifact_path": paths["paa"],
         "stage_receipt_paths": paths["stage_receipts"],
@@ -408,7 +527,10 @@ def _refresh_normal_stage_receipts(paths: dict[str, Path]) -> None:
             "editorial_plan": _sha256(paths["editorial_plan"]),
         },
         output_artifact_hashes={"article": _sha256(paths["article"])},
-        evidence_hashes={"serp_evidence": _sha256(paths["serp"])},
+        evidence_hashes={
+            "serp_evidence": _sha256(paths["serp"]),
+            "keyword_decision": _sha256(paths["keyword_decision"]),
+        },
     )
     write_stage_receipt(paths["stage_receipts"][0], draft_receipt)
     scrub_receipt = build_stage_receipt(
@@ -462,8 +584,34 @@ def test_builder_snapshots_actual_files_as_workspace_relative_paths(tmp_path: Pa
     assert bom["artifacts"]["editorial_plan"]["sha256"] == _sha256(
         paths["editorial_plan"]
     )
+    assert bom["artifacts"]["keyword_decision"] == {
+        "path": "research/semrush-keyword-decision-scheduling-guide-2026-08-11.json",
+        "sha256": _sha256(paths["keyword_decision"]),
+    }
+    assert bom["editorial_plan_summary"]["keyword_decision"]["selected_primary_keyword"] == (
+        "field service scheduling guide"
+    )
     assert bom["connector_binding"]["status"] == "not_applicable"
+    assert bom["eeat_strength_policy"] == {
+        "applicability": "not_applicable",
+        "intent": "not_applicable",
+        "intent_reasons": [],
+        "positive_signals": [],
+        "decision": "",
+        "sidecar_status": "",
+        "status": "not_applicable",
+        "findings": [],
+        "customer_proof_selector_evidence": "",
+        "fred_authority_evidence": "",
+    }
     assert bom["paa_policy"]["source_kind"] == "answersocrates"
+
+
+def test_builder_requires_semrush_keyword_decision_artifact(tmp_path: Path):
+    paths = _fixture(tmp_path)
+
+    with pytest.raises(ValueError, match="keyword_decision_path"):
+        _build(tmp_path, paths, keyword_decision_path=None)
 
 
 def test_schemeless_official_simpro_host_forces_connector_bound_bom(
@@ -972,6 +1120,17 @@ def test_connector_summary_comes_only_from_structured_validated_result(tmp_path:
     }
     assert "bom_customer_proof_evidence_binding_mismatch" in rules
     assert "bom_fred_evidence_binding_mismatch" in rules
+
+
+def test_builder_records_industry_cluster_link_policy(tmp_path: Path):
+    paths = _fixture(tmp_path)
+
+    bom = _build(tmp_path, paths)
+
+    assert bom["industry_cluster_link_policy"] == {
+        "status": "not_applicable",
+        "reason": "No single-trade Simpro industry cluster link is required.",
+    }
 
 
 def test_connector_builder_rejects_orphaned_proof_and_fred_inventory(tmp_path: Path):
@@ -1530,6 +1689,8 @@ def test_direct_script_build_cli_uses_the_same_strict_contract(tmp_path: Path):
         str(paths["sidecar"]),
         "--editorial-plan",
         str(paths["editorial_plan"]),
+        "--keyword-decision",
+        str(paths["keyword_decision"]),
         "--serp-evidence",
         str(paths["serp"]),
         "--paa-artifact",
@@ -1578,6 +1739,8 @@ def test_build_cli_rejects_output_collision_without_overwriting_article(
         str(paths["sidecar"]),
         "--editorial-plan",
         str(paths["editorial_plan"]),
+        "--keyword-decision",
+        str(paths["keyword_decision"]),
         "--serp-evidence",
         str(paths["serp"]),
         "--paa-artifact",
@@ -1701,6 +1864,8 @@ def test_bom_cli_reports_invalid_input_without_traceback(
                 "--validation-sidecar",
                 str(missing),
                 "--editorial-plan",
+                str(missing),
+                "--keyword-decision",
                 str(missing),
                 "--serp-evidence",
                 str(missing),

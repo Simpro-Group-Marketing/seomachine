@@ -80,6 +80,22 @@ def test_valid_provisional_bom_passes_strict_guard(tmp_path: Path):
     ) == set()
 
 
+def test_provisional_bom_requires_keyword_decision_artifact(tmp_path: Path):
+    paths = _fixture(tmp_path)
+    bom = _build(tmp_path, paths)
+    bom["artifacts"]["keyword_decision"] = None
+
+    rules = _rules(
+        tmp_path,
+        bom,
+        paths,
+        expected_lifecycle_state="provisional",
+    )
+
+    assert "bom_keyword_decision_missing" in rules
+    assert "bom_draft_keyword_decision_unbound" in rules
+
+
 def test_non_connector_bom_reason_must_match_context_binding_receipt(
     tmp_path: Path,
 ):
@@ -318,6 +334,41 @@ def test_faq_policy_must_exactly_match_bound_editorial_plan(tmp_path: Path):
     bom["faq_policy"]["rationale"] = "Caller-supplied replacement rationale."
 
     assert "bom_faq_policy_mismatch" in _rules(tmp_path, bom, paths)
+
+
+def test_industry_cluster_link_policy_must_match_current_article_and_plan(tmp_path: Path):
+    paths = _fixture(tmp_path)
+    bom = _build(tmp_path, paths)
+    bom["industry_cluster_link_policy"] = {
+        "status": "required",
+        "industry": "electrical",
+        "target": "https://www.simprogroup.com/industries/electrical-software",
+        "anchor": "electrical contractor software",
+        "placement": "intro_first_300_words",
+        "first_visible_word_position": 22,
+        "required_resource_ids": ["res-25a1152f611e5cd69ba57cf16b34a826"],
+    }
+
+    assert "bom_industry_cluster_link_policy_mismatch" in _rules(tmp_path, bom, paths)
+
+
+def test_eeat_strength_policy_must_match_current_article_sidecar_and_evidence(tmp_path: Path):
+    paths = _fixture(tmp_path)
+    bom = _build(tmp_path, paths)
+    bom["eeat_strength_policy"] = {
+        "applicability": "required",
+        "intent": "commercial_investigation",
+        "intent_reasons": ["title_or_query_commercial_term"],
+        "positive_signals": [],
+        "decision": "proof_unavailable_safe_to_publish",
+        "sidecar_status": "approved",
+        "status": "warning",
+        "findings": ["eeat_strength_safe_but_weak"],
+        "customer_proof_selector_evidence": "research/customer-proof-selector-evidence.json",
+        "fred_authority_evidence": "research/fred-authority-evidence.md",
+    }
+
+    assert "bom_eeat_strength_policy_mismatch" in _rules(tmp_path, bom, paths)
 
 
 def test_unknown_artifact_inventory_fields_are_rejected(tmp_path: Path):

@@ -1,4 +1,4 @@
-# Analyze Existing Command
+﻿# Analyze Existing Command
 
 Use this command to review an existing blog post for SEO opportunities, content gaps, AEO/GEO readiness, and rewrite or optimization routing.
 
@@ -8,7 +8,7 @@ Use this command to review an existing blog post for SEO opportunities, content 
 ## Ownership
 `/analyze-existing` owns the analysis report and rewrite routing. It does not draft, rewrite, patch, move, or publish public blog Markdown.
 
-The original rewrite route remains `/analyze-existing [URL or file path]` followed by `/rewrite [topic]` for substantial work or `/optimize [file]` for light polish. `/rewrite` and `/optimize` own public Markdown edits. Python owns governance artifacts only: scoring, guards, receipts, BOM assembly, scrub/readiness diagnostics, and publishing transport.
+The original rewrite route remains `/analyze-existing [URL or file path]` followed by `/rewrite [topic]` for substantial work or `/optimize [file]` for light polish. `/rewrite` and `/optimize` own public Markdown edits. Python owns governance artifacts only: scoring, guards, Semrush keyword decision JSON, receipts, BOM assembly, scrub/readiness diagnostics, and publishing transport.
 
 Use `context/aeo-geo-blog-strategy.md` and repo instructions as the canonical governance source for vault context, Customer Proof Pack, Fred Voccola Authority Selection, feature/competitor guardrails, FAQ/PAA policy, source maps, BOM, score gates, and recovery loops.
 
@@ -36,12 +36,13 @@ Use `context/aeo-geo-blog-strategy.md` and repo instructions as the canonical go
 - Classify search intent and compare it to the existing article format.
 - Review target keyword use in the H1, H2s, introduction, meta title, meta description, and body copy.
 - Report keyword coverage, semantic gaps, and stuffing risk without forcing density targets unless a target was supplied.
+- When rewrite or optimization is recommended, run or require the live Semrush keyword decision workflow and save `research/semrush-keyword-decision-[topic-slug]-[YYYY-MM-DD].json`; do not treat existing repo keyword tables as current evidence.
 - Review internal links, external evidence links, headings, readability, and metadata.
 - Include SEO quality release floor 90/100+ with zero critical SEO issues and optimization target 95/100 as the later publish-readiness target.
 
 ### 4. AEO/GEO and Proof Readiness
 - Audit direct-answer intro, early artifact, key takeaways, Capsule Method coverage, FAQ/PAA structure, schema notes, source-backed claims, and one-idea-per-section structure.
-- Identify missing Source Map, Metric Proof Pack, FAQ Proof Map, and branch-applicable proof evidence. Require Customer Proof Pack, Vault Brand Language Alignment, Named Feature/Add-On Link Check, and Fred Voccola Authority Selection only when Context Binding requires the connector.
+- Identify missing Source Map, Metric Proof Pack, FAQ Proof Map, E-E-A-T strength decision, and branch-applicable proof evidence. Require Customer Proof Pack, Vault Brand Language Alignment, Named Feature/Add-On Link Check, and Fred Voccola Authority Selection only when Context Binding requires the connector. For commercial-investigation rewrites, `no_fit_customer_proof` is anti-invention only; plan a positive signal or the internal `proof_unavailable_safe_to_publish` sidecar decision.
 - Treat content quality 85/100+, SEO quality release floor 90/100+ and optimization target 95/100, and AEO/GEO 90/100+ as rewrite or optimization acceptance targets.
 - Do not invent replacement PAA questions, customer proof, author names, reviewer names, search-volume data, ranking data, traffic forecasts, or external claims.
 
@@ -71,7 +72,7 @@ Provide an analysis report with:
 - Expected impact stated as evidence-bound reader value or search alignment direction, not unsupported ranking or traffic forecasts.
 
 ### 6. Research Brief
-If a rewrite is recommended, include updated target keywords, competitor observations, source needs, internal links, PAA/FAQ provenance needs, proof requirements, Simpro angle, and required artifacts before `/rewrite`.
+If a rewrite is recommended, include the Semrush keyword decision artifact path, selected/rejected keyword rationale, competitor observations, source needs, internal links, PAA/FAQ provenance needs, proof requirements, Simpro angle, and required artifacts before `/rewrite`.
 
 ## File Management
 Save the report to `research/analysis-[post-slug]-[YYYY-MM-DD].md`.

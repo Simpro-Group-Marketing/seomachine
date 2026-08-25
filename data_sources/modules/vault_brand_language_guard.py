@@ -116,6 +116,20 @@ VERTICAL_SEMANTIC_TERMS = {
     "solution",
     "solutions",
 }
+VERTICAL_TARGET_STOPWORDS = {
+    "software",
+    "business",
+    "businesses",
+    "contractor",
+    "contractors",
+    "field",
+    "service",
+    "services",
+    "for",
+    "and",
+    "the",
+    "simpro",
+}
 
 NAMED_FEATURES = (
     "AI Mobile Work Notes",
@@ -745,6 +759,25 @@ def _vertical_targets(content: str) -> set[str]:
     return targets
 
 
+def _vertical_target_matches(
+    semantic_values: Sequence[str],
+    target: str,
+) -> bool:
+    if any(_semantic_phrase_present(value, target) for value in semantic_values):
+        return True
+    target_tokens = [
+        token
+        for token in target.split()
+        if token and token not in VERTICAL_TARGET_STOPWORDS
+    ]
+    if not target_tokens:
+        return False
+    semantic_tokens = {
+        token for value in semantic_values for token in value.split()
+    }
+    return all(token in semantic_tokens for token in target_tokens)
+
+
 def _semantic_resource_finding(
     *,
     evidence: str,
@@ -792,8 +825,7 @@ def _semantic_resource_finding(
         }
         has_vertical_signal = bool(semantic_tokens & VERTICAL_SEMANTIC_TERMS)
         target_matches = not vertical_targets or any(
-            _semantic_phrase_present(value, target)
-            for value in semantic_values
+            _vertical_target_matches(semantic_values, target)
             for target in vertical_targets
         )
         if has_vertical_signal and target_matches:

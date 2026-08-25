@@ -32,6 +32,15 @@ def article_plan():
             'primary_keyword': 'field service scheduling',
             'secondary_keywords': ['dispatch workflow'],
         },
+        'keyword_decision': {
+            'status': 'resolved',
+            'artifact_schema': 'simpro-semrush-keyword-decision/v1',
+            'source': 'semrush_connector',
+            'database': 'us',
+            'selected_primary_keyword': 'field service scheduling',
+            'selected_secondary_keywords': ['dispatch workflow'],
+            'selection_rationale': 'The selected keyword matches reader intent and page ownership.',
+        },
         'total_word_target': 275,
         'sections': [
             {
@@ -157,6 +166,28 @@ def test_guard_rejects_unknown_top_level_fields():
     )
 
 
+def test_guard_requires_keyword_decision_reference():
+    payload = article_plan()
+    payload.pop('keyword_decision')
+
+    findings = _guard().check_plan(payload)
+
+    assert 'editorial_plan_field_invalid' in _rule_ids(findings)
+    assert any(
+        finding.get('location') == '/keyword_decision'
+        for finding in findings
+    )
+
+
+def test_guard_rejects_keyword_decision_that_disagrees_with_meta():
+    payload = article_plan()
+    payload['keyword_decision']['selected_primary_keyword'] = 'job scheduling software'
+
+    findings = _guard().check_plan(payload)
+
+    assert 'editorial_plan_keyword_decision_mismatch' in _rule_ids(findings)
+
+
 def test_guard_rejects_non_contiguous_sections_and_word_total_mismatch():
     payload = article_plan()
     payload['sections'][0]['section_number'] = 2
@@ -236,6 +267,73 @@ def test_guard_blocks_owned_query_conflict_and_missing_down_funnel_link():
 
     assert 'editorial_plan_query_ownership_blocked' in _rule_ids(findings)
     assert 'editorial_plan_down_funnel_link_missing' in _rule_ids(findings)
+
+
+def test_guard_requires_industry_cluster_policy_for_single_trade_simpro_blog():
+    payload = article_plan()
+    payload['brand'] = 'Simpro'
+    payload['topic'] = 'CRM for electricians'
+    payload['meta']['meta_title'] = 'CRM for Electricians | Simpro'
+    payload['meta']['primary_keyword'] = 'CRM for electricians'
+    payload['keyword_decision']['selected_primary_keyword'] = 'CRM for electricians'
+    payload['reader_contract']['primary_reader'] = 'Electrical contractor owner'
+    payload['reader_contract']['decision_task_helped'] = (
+        'Compare CRM options for electrical contractors'
+    )
+    payload['internal_link_plan'] = [
+        {
+            'target': 'https://www.simprogroup.com/features/crm-for-field-service',
+            'role': 'down_funnel',
+            'rationale': 'Gives the reader a CRM feature next step.',
+        }
+    ]
+
+    findings = _guard().check_plan(payload)
+
+    assert 'editorial_plan_industry_cluster_link_missing' in _rule_ids(findings)
+
+
+def test_guard_accepts_required_industry_cluster_policy_for_electrical_blog():
+    payload = article_plan()
+    payload['brand'] = 'Simpro'
+    payload['topic'] = 'CRM for electricians'
+    payload['meta']['meta_title'] = 'CRM for Electricians | Simpro'
+    payload['meta']['primary_keyword'] = 'CRM for electricians'
+    payload['keyword_decision']['selected_primary_keyword'] = 'CRM for electricians'
+    payload['reader_contract']['primary_reader'] = 'Electrical contractor owner'
+    payload['reader_contract']['decision_task_helped'] = (
+        'Compare CRM options for electrical contractors'
+    )
+    payload['internal_link_plan'] = [
+        {
+            'target': 'https://www.simprogroup.com/features/crm-for-field-service',
+            'role': 'down_funnel',
+            'rationale': 'Gives the reader a CRM feature next step.',
+        },
+        {
+            'target': 'https://www.simprogroup.com/industries/electrical-software',
+            'role': 'down_funnel',
+            'rationale': 'Builds the electrical contractor software cluster.',
+        },
+    ]
+    payload['industry_cluster_link_policy'] = {
+        'status': 'required',
+        'industry': 'electrical',
+        'target': 'https://www.simprogroup.com/industries/electrical-software',
+        'anchor': 'electrical contractor software',
+        'placement': 'intro_first_300_words',
+        'vault_vertical_query': (
+            'electrical contractor software industry page vertical profile '
+            'Simpro industries electrical-software'
+        ),
+        'required_resource_ids': ['res-25a1152f611e5cd69ba57cf16b34a826'],
+        'rationale': 'Single-trade Simpro blog should reinforce the electrical industry page.',
+    }
+
+    findings = _guard().check_plan(payload)
+
+    assert 'editorial_plan_industry_cluster_link_missing' not in _rule_ids(findings)
+    assert 'editorial_plan_industry_cluster_policy_invalid' not in _rule_ids(findings)
 
 
 def test_guard_validates_serp_evidence_and_final_article_mapping(tmp_path: Path):

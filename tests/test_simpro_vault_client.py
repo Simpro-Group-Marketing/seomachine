@@ -580,6 +580,53 @@ class SimproVaultClientTests(unittest.TestCase):
         self.assertEqual(result.error["code"], "connector_timeout")
         self.assertEqual(list(temporary_parent.iterdir()), [])
 
+    def test_connector_timeout_is_operation_aware(self):
+        plugin = self.root / "plugin"
+        scripts = plugin / "scripts"
+        scripts.mkdir(parents=True)
+        (scripts / "vault_cli.py").write_text("", encoding="utf-8")
+        vault = self.root / "vault"
+        vault.mkdir()
+        inventory = json.dumps(
+            [
+                {
+                    "id": "simpro-context@simpro",
+                    "enabled": True,
+                    "version": "1.2.10",
+                    "installPath": str(plugin),
+                    "projectPath": str(Path.cwd()),
+                }
+            ]
+        )
+        cases = (
+            ("search", lambda client: client.search("scheduling"), 45),
+            (
+                "validate",
+                lambda client: client.validate_context(
+                    {"task": "t"}, {"schema": "p"}, {"schema": "r"}
+                ),
+                180,
+            ),
+        )
+        for name, call_client, expected_timeout in cases:
+            with self.subTest(name=name):
+                calls = []
+
+                def run(command, **kwargs):
+                    calls.append((command, kwargs))
+                    if command[:3] == ["claude", "plugin", "list"]:
+                        return Completed(stdout=inventory)
+                    result = {"valid": True, "errors": []} if name == "validate" else []
+                    return Completed(stdout=json.dumps({"ok": True, "result": result}))
+
+                with patch(
+                    "data_sources.modules.simpro_vault_client.subprocess.run",
+                    side_effect=run,
+                ):
+                    call_client(SimproVaultClient(vault_root=vault))
+
+                self.assertEqual(calls[-1][1]["timeout"], expected_timeout)
+
     def test_moved_descriptor_and_resource_keep_stable_resource_id(self):
         vault = self.root / "fixture-vault"
         (vault / "protocol").mkdir(parents=True)

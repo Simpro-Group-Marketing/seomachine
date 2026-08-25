@@ -14,6 +14,7 @@ def _kwargs(tmp_path: Path) -> dict:
         "article_path": paths["article"],
         "validation_sidecar_path": paths["sidecar"],
         "editorial_plan_path": paths["editorial_plan"],
+        "keyword_decision_path": paths["keyword_decision"],
         "serp_evidence_path": paths["serp"],
         "paa_artifact_path": paths["paa"],
         "stage_receipt_paths": paths["stage_receipts"],

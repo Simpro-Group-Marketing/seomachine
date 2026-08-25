@@ -523,6 +523,25 @@ class AeoGeoRaterTests(unittest.TestCase):
         self.assertTrue(result["checks"]["eeat_proof"]["passed"])
         self.assertTrue(result["checks"]["paa_provenance"]["passed"])
 
+    def test_no_author_article_can_pass_aeo_when_required_context_is_valid(self):
+        content = COMPLIANT_ARTICLE.replace("Author: Jordan Lee\n", "").replace(
+            "  - Person as author\n",
+            "",
+        )
+
+        result = self.rate_with_bound_experience(
+            content,
+            proof_sidecar_suffix=FAQ_PROOF_BLOCK,
+        )
+
+        self.assertTrue(result["passed"], result)
+        self.assertGreaterEqual(result["score"], 90)
+        self.assertTrue(result["checks"]["metadata"]["passed"])
+        self.assertTrue(result["checks"]["eeat_proof"]["passed"])
+        self.assertFalse(
+            result["checks"]["eeat_proof"]["details"]["has_expertise"]
+        )
+
     def test_non_connector_bom_makes_selector_backed_eeat_not_applicable(self):
         result = rate_aeo_geo(
             COMPLIANT_ARTICLE,
@@ -840,6 +859,25 @@ class AeoGeoRaterTests(unittest.TestCase):
         self.assertIn(
             "validated_customer_experience", details["experience_signals"]
         )
+
+    def test_receipt_approved_fred_authority_satisfies_expertise(self):
+        body = (
+            "For connected field service context, see Fred Voccola's "
+            "[Webinar: The Connected Intelligence Revolution for Field Service Ops]"
+            "(https://youtube.com/watch?v=5pXio-zMXFI)."
+        )
+        proof_sidecar = "## Fred Voccola Authority Selection\n- Evaluation status: completed\n- Top candidates: [FVMI-0003]\n- Selected: [FVMI-0003]\n- Context receipt: research/context-receipt-what-is-an-end-to-end-solution.json\n- Claim IDs: [claim-fred-FVMI-0003]\n- Receipt revision: dd7488e21bcbeae9506147a29c9e5dd18f19d21d3051cc516a06e39d9b387319\n- Approval source: connector_claim_result\n- Fit decision: Selected for inline authority citation only.\n- Intended use: inline_citation\n- Target section: What Is an End to End Solution for Field Service?\n- Authority row: [res-7b30f511fc345ff2bb5fd9e515f03d06]\n- Public URL: https://youtube.com/watch?v=5pXio-zMXFI\n- Evidence status: receipt_approved\n- Verification method: not_applicable\n- Evidence excerpt: not applicable\n- Timestamp or locator: not applicable\n- Playback verified: not_applicable\n- Exact quote: not applicable\n- Embed decision: no\n- VideoObject: not applicable"
+
+        with patch("data_sources.modules.aeo_geo_rater._has_documented_no_fit_experience_boundary", return_value=True):
+            result = _check_eeat_proof(
+                body,
+                body,
+                {},
+                proof_sidecar_content=proof_sidecar,
+            )
+
+        self.assertTrue(result["passed"])
+        self.assertIn("fred_authority", result["details"]["expertise_signals"])
 
     def test_bound_selector_and_mining_without_visible_story_does_not_satisfy_experience(self):
         with TemporaryDirectory() as temp_dir:
@@ -1291,7 +1329,7 @@ E-E-A-T Proof Map
             'assembly_date_mismatch',
         )
 
-    def test_missing_author_requires_validated_finalized_bom_no_author_policy(self):
+    def test_missing_author_does_not_require_finalized_bom_for_aeo_metadata(self):
         content = COMPLIANT_ARTICLE.replace('Author: Jordan Lee\n', '').replace(
             '  - Person as author\n',
             '',
@@ -1306,7 +1344,11 @@ E-E-A-T Proof Map
             finalized_bom=finalized_no_author_bom(),
         )
 
-        self.assertFalse(unbound['checks']['metadata']['passed'])
+        self.assertTrue(unbound['checks']['metadata']['passed'])
+        self.assertEqual(
+            unbound['checks']['metadata']['details']['author_policy_status'],
+            '',
+        )
         self.assertTrue(finalized['checks']['metadata']['passed'])
         self.assertEqual(
             finalized['checks']['metadata']['details']['author_policy_status'],
@@ -1522,19 +1564,19 @@ E-E-A-T Proof Map
         result = self.rate(content, metadata={"author_policy_status": "not_provided"})
 
         metadata_check = result["checks"]["metadata"]
-        self.assertFalse(metadata_check["passed"])
+        self.assertTrue(metadata_check["passed"])
         self.assertFalse(metadata_check["details"]["has_author"])
         self.assertEqual(
             metadata_check["details"]["author_policy_status"],
             "",
         )
 
-    def test_missing_author_without_no_author_policy_still_fails_metadata(self):
+    def test_missing_author_without_no_author_policy_still_passes_metadata(self):
         content = COMPLIANT_ARTICLE.replace("Author: Jordan Lee\n", "")
 
         result = self.rate(content)
 
-        self.assertFalse(result["checks"]["metadata"]["passed"])
+        self.assertTrue(result["checks"]["metadata"]["passed"])
 
     def test_faq_without_linked_proof_blocks_aeo_geo_gate(self):
         content = COMPLIANT_ARTICLE.replace(

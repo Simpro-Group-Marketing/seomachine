@@ -333,7 +333,6 @@ def _check_metadata_quality(
     normalized = {_normalize_key(str(key)): value for key, value in metadata.items()}
     has_author = bool(str(normalized.get('author') or '').strip())
     author_policy_status = _validated_bom_author_policy(finalized_bom)
-    author_requirement_satisfied = has_author or author_policy_status == 'not_provided'
     raw_updated = str(
         normalized.get('last_updated')
         or normalized.get('updated')
@@ -366,14 +365,14 @@ def _check_metadata_quality(
         freshness_status = 'future'
     else:
         freshness_status = 'valid'
-    passed = author_requirement_satisfied and freshness_status == 'valid'
+    passed = freshness_status == 'valid'
     return {
         'passed': passed,
-        'issue': 'The draft is missing a verified author policy or valid freshness metadata.',
+        'issue': 'The draft is missing valid freshness metadata.',
         'fix': (
             'Use a canonical YYYY-MM-DD last_updated value matching the bound '
-            'assembly date. Provide a named author, or inject a guard-validated '
-            'finalized BOM whose author_policy.status is not_provided.'
+            'assembly date when one is provided. Author metadata is optional '
+            'for no-author blog workflows.'
         ),
         'severity': 'high',
         'details': {
@@ -1064,14 +1063,16 @@ def _check_eeat_proof(
         expertise_signals.append("author_metadata")
     if _has_expert_quote(body):
         expertise_signals.append("expert_quote")
+    if _has_valid_fred_authority_expertise(body, proof_sidecar_content):
+        expertise_signals.append("fred_authority")
 
     has_experience = bool(experience_signals)
     has_expertise = bool(expertise_signals)
-    passed = has_experience and has_expertise
+    passed = has_experience
 
     return {
         "passed": passed,
-        "issue": "The draft is missing required E-E-A-T proof for both experience and expertise.",
+        "issue": "The draft is missing required first-hand experience proof.",
         "fix": (
             "Use a hash-verified customer-proof selector experience_story binding, "
             "an approved Selected Customer Proof Mining record, and the selected "
@@ -1081,8 +1082,9 @@ def _check_eeat_proof(
             "First-hand evidence decision with Selected: [none] in the E-E-A-T "
             "Proof Map and a matching experience_story slate row with rejected-"
             "candidate reasons. Generic review-site experience evidence "
-            "and VoC themes are research inputs, not E-E-A-T story proof. Add a "
-            "validated named author or an attributable expert source. A bare owned "
+            "and VoC themes are research inputs, not E-E-A-T story proof. Named "
+            "authors and receipt-approved Fred authority are optional positive "
+            "expertise signals, not required AEO pass conditions. A bare owned "
             "product link does not establish Expertise."
         ),
         "severity": "high",
@@ -1753,6 +1755,67 @@ def _has_expert_quote(body: str) -> bool:
         re.search(quote_pattern, body, re.IGNORECASE)
         or re.search(attribution_pattern, body, re.IGNORECASE)
     )
+
+
+def _has_valid_fred_authority_expertise(
+    body: str,
+    proof_sidecar_content: Optional[str],
+) -> bool:
+    if not proof_sidecar_content:
+        return False
+    fields = _extract_fred_authority_selection_fields(proof_sidecar_content)
+    if not fields:
+        return False
+    if fields.get("evaluation_status", "").strip().casefold() != "completed":
+        return False
+    selected = _unwrap_bracketed_value(fields.get("selected", ""))
+    if not selected or selected.casefold() == "none":
+        return False
+    intended_use = fields.get("intended_use", "").strip().casefold()
+    if not intended_use or intended_use == "none":
+        return False
+    evidence_status = fields.get("evidence_status", "").strip().casefold()
+    if evidence_status != "receipt_approved":
+        return False
+    public_url = fields.get("public_url", "").strip()
+    if not public_url.startswith(("http://", "https://")):
+        return False
+    expected = _normalize_url(public_url)
+    return any(
+        _normalize_url(url) == expected
+        for _, url in _extract_markdown_links(body)
+    )
+
+
+def _extract_fred_authority_selection_fields(
+    proof_sidecar_content: str,
+) -> Dict[str, str]:
+    in_block = False
+    fields: Dict[str, str] = {}
+    for line in proof_sidecar_content.splitlines():
+        stripped = line.strip()
+        if re.match(
+            r"^(?:#{1,6}\s+)?Fred Voccola Authority Selection:?\s*$",
+            stripped,
+            re.IGNORECASE,
+        ):
+            in_block = True
+            continue
+        if not in_block:
+            continue
+        if stripped.startswith("```") or re.match(r"^#{1,6}\s+", stripped):
+            break
+        match = re.match(r"^[-*+]\s*([^:]+):\s*(.+?)\s*$", stripped)
+        if match:
+            fields[_normalize_key(match.group(1))] = match.group(2).strip()
+    return fields
+
+
+def _unwrap_bracketed_value(value: str) -> str:
+    cleaned = value.strip()
+    if cleaned.startswith("[") and cleaned.endswith("]"):
+        cleaned = cleaned[1:-1]
+    return cleaned.strip()
 
 
 def _check_section_clarity(body: str) -> Dict[str, Any]:

@@ -46,9 +46,10 @@ All commands are defined in `.claude/commands/` and invoked as slash commands. T
 - `grav-publish` (skill) - Publish a finished `drafts/`/`rewrites/` article to Grav CMS by committing `blogs/<slug>/article.en.md` to the GitHub `dev` branch via the `gh` Contents API (text only; images deferred). Config: `GRAV_REPO`, `GRAV_BRANCH`, `GRAV_BLOG_PATH`, `GRAV_DEFAULT_LANG` in `.env`.
 - `/cluster [topic]` - Build complete topic cluster strategy with pillar + supporting articles + linking map
 - `/priorities` - Content prioritization matrix
-- `/research-serp`, `/research-gaps`, `/research-trending`, `/research-performance`, `/research-topics` - Specialized research commands
-- `/research-ai-citations [topic]` - AI citation audit: generates prompts, clusters them, audits which sources AI cites
-- `/repurpose [file]` - Adapts article for LinkedIn, Medium, Reddit, Quora distribution
+- `/research-serp`, `/research-gaps`, `/research-trending`, `/research-topics` - Specialized research commands
+- `/research-performance` - No-argument performance queue; `/research-performance [URL-or-path]` writes the target report-and-receipt pair
+- `/research-ai-citations [topic]` - Evidence-bound AI citation research: generates prompts, clusters them, and records observed sources without citation predictions
+- `/repurpose [article] --final-readiness [attestation] [--canonical-url URL]` - Prepares an optional manual, evidence-bound distribution handoff from a sealed article; it never posts externally or adds unsupported claims, and it is not an AI-citation mechanism
 - `/landing-write`, `/landing-audit`, `/landing-research`, `/landing-publish`, `/landing-competitor` - Landing page commands
 
 ## Architecture
@@ -79,6 +80,7 @@ Located in `data_sources/modules/`. The Content Analyzer chains:
 15. `customer_proof_index_intake.py` - Customer proof intake validator/merger for `context/customer-proof-intake-template.csv`
 16. `customer_proof_diversity_guard.py` - Customer proof diversity guard requiring non-case-study proof search evidence, a `Customer Proof Selection Decision`, and source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved proof fits the same role
 17. `review_story_identity_guard.py` - Review story identity guard requiring identity-backed Review Story Selection, a public review URL, and same paragraph article link for review-derived E-E-A-T stories
+18. `eeat_strength_guard.py` - Commercial-investigation E-E-A-T strength guard requiring a positive proof signal or internal `proof_unavailable_safe_to_publish` decision with warning `eeat_strength_safe_but_weak`
 
 ### Data Integrations
 
@@ -149,12 +151,14 @@ For standard blog posts with FAQs, schema notes must list `BlogPosting`, `Breadc
 
 Use a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md` for proof-only infrastructure. Public blog drafts and rewrites must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan. Preferred publish readiness command: `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`.
 
+For commercial-investigation blogs, `no_fit_customer_proof` is only the anti-invention path. It does not count as a positive E-E-A-T signal. If no selected customer proof, visible approved review-theme/story evidence, selected Fred authority, named author, or approved SME review note exists, the sidecar must include `## E-E-A-T Strength Decision` with `Decision: proof_unavailable_safe_to_publish`, the required public-copy boundary, and `Status: approved`. `/publish-readiness` emits warning `eeat_strength_safe_but_weak`, and the BOM records `eeat_strength_policy`. This does not change AEO/GEO scoring.
+
 Before `/optimize` or any publish path, run the command-system gate:
 ```bash
 /publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json
 ```
 
-The slash command runs the public artifact, AI copy, URL, proof, source support, customer proof, review story, early artifact, answer withholding, content score, and AEO/GEO gates internally. Use individual guard modules only when debugging a failed gate from `context/aeo-geo-blog-strategy.md`.
+The slash command runs the public artifact, AI copy, URL, proof, source support, customer proof, review story, E-E-A-T strength, early artifact, answer withholding, content score, and AEO/GEO gates internally. Use individual guard modules only when debugging a failed gate from `context/aeo-geo-blog-strategy.md`.
 
 Every standard blog draft and rewrite needs a usable artifact — a filled data table, download link, checklist deliverable, or calculator reference — within the first 300 words of body copy, and must supply a concrete number, range, or template when the target query implies one. Placeholder table scaffolds block publish. Policy lives in `context/aeo-geo-blog-strategy.md`.
 

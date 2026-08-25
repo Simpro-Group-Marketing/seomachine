@@ -11,6 +11,7 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import sys
 import tempfile
 from datetime import datetime, timezone
@@ -26,10 +27,12 @@ try:
         context_binding_guard,
         customer_proof_diversity_guard,
         early_artifact_guard,
+        eeat_strength_guard,
         editorial_plan_guard,
         faq_answer_quality_guard,
         fred_authority_guard,
         faq_proof_guard,
+        industry_cluster_link_policy,
         metric_proof_pack_guard,
         named_feature_status_guard,
         numeric_claim_source_guard,
@@ -37,6 +40,7 @@ try:
         public_research_link_guard,
         public_artifact_guard,
         review_story_identity_guard,
+        semrush_keyword_decision_guard,
         source_support_guard,
         vault_brand_language_guard,
     )
@@ -58,7 +62,11 @@ try:
         write_stage_receipt,
     )
     from .landing_page_scorer import LandingPageScorer
-    from .publishable_markdown import FrontmatterError, read_publishable_markdown
+    from .publishable_markdown import (
+        FrontmatterError,
+        read_publishable_markdown,
+        split_frontmatter,
+    )
     from .readiness_gate_context import _issue_readiness_gate_context
     from .seo_quality_rater import PUBLISHING_THRESHOLD as SEO_PUBLISHING_THRESHOLD
     from .seo_quality_rater import SEO_TARGET_SCORE
@@ -72,10 +80,12 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import context_binding_guard
     import customer_proof_diversity_guard
     import early_artifact_guard
+    import eeat_strength_guard
     import editorial_plan_guard
     import faq_answer_quality_guard
     import fred_authority_guard
     import faq_proof_guard
+    import industry_cluster_link_policy
     import metric_proof_pack_guard
     import named_feature_status_guard
     import numeric_claim_source_guard
@@ -83,6 +93,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import public_research_link_guard
     import public_artifact_guard
     import review_story_identity_guard
+    import semrush_keyword_decision_guard
     import source_support_guard
     import vault_brand_language_guard
     from content_scorer import ContentScorer
@@ -103,7 +114,11 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         write_stage_receipt,
     )
     from landing_page_scorer import LandingPageScorer
-    from publishable_markdown import FrontmatterError, read_publishable_markdown
+    from publishable_markdown import (
+        FrontmatterError,
+        read_publishable_markdown,
+        split_frontmatter,
+    )
     from readiness_gate_context import _issue_readiness_gate_context
     from seo_quality_rater import PUBLISHING_THRESHOLD as SEO_PUBLISHING_THRESHOLD
     from seo_quality_rater import SEO_TARGET_SCORE
@@ -138,6 +153,28 @@ def _sign_readiness_execution(value: Mapping[str, Any]) -> str:
 
 READINESS_RESULT_SCHEMA = "simpro-publish-readiness-result/v1"
 READINESS_TOOL = {"name": "publish_readiness", "version": "1.0.0"}
+NO_FIT_CUSTOMER_PROOF_OUTCOME = "no_fit_customer_proof"
+CUSTOMER_PROOF_NO_FIT_MARKERS = (
+    "case study",
+    "customer story",
+    "customer proof",
+    "testimonial",
+    "review story",
+    "review-derived",
+    "reviewer",
+    "capterra",
+    "g2.com",
+    "software advice",
+    "/case-studies/",
+    "quote matrix",
+)
+CUSTOMER_PROOF_EXACT_QUOTE_RE = re.compile(
+    r"(?:\"[^\"]{20,}\"|\u201c[^\u201d]{20,}\u201d)"
+)
+CUSTOMER_PROOF_QUOTE_CONTEXT_RE = re.compile(
+    r"\b(?:customer|review|testimonial|said|says|reviewer|quoted)\b",
+    re.IGNORECASE,
+)
 PASSED_RESULT_FIELDS = frozenset(
     {
         "schema",
@@ -173,6 +210,11 @@ GATE_RESULT_FIELDS = frozenset(
 
 ARTICLE_GATES = (
     (
+        "industry_cluster_link_policy",
+        "Industry Cluster Link Policy",
+        industry_cluster_link_policy,
+    ),
+    (
         "metric_proof_pack",
         "Metric Proof Pack",
         metric_proof_pack_guard,
@@ -203,6 +245,11 @@ ARTICLE_GATES = (
         editorial_plan_guard,
     ),
     (
+        "semrush_keyword_decision",
+        "Semrush Keyword Decision",
+        semrush_keyword_decision_guard,
+    ),
+    (
         "source_support",
         "Source Support",
         source_support_guard,
@@ -216,6 +263,11 @@ ARTICLE_GATES = (
         "review_story_identity",
         "Review Story Identity",
         review_story_identity_guard,
+    ),
+    (
+        "eeat_strength",
+        "E-E-A-T Strength",
+        eeat_strength_guard,
     ),
     (
         "early_artifact",
@@ -688,6 +740,18 @@ def _run_publish_readiness(
             guard_kwargs["vault_root"] = vault_root
         if name == "fred_authority":
             guard_kwargs["vault_root"] = vault_root
+        if name == "eeat_strength":
+            guard_kwargs.update(
+                {
+                    "editorial_plan": runtime_policy.get("editorial_plan"),
+                    "customer_proof_selector_evidence": runtime_policy.get(
+                        "customer_proof_selector_evidence"
+                    ),
+                    "fred_authority_evidence": runtime_policy.get(
+                        "fred_authority_evidence"
+                    ),
+                }
+            )
         if name == "paa_provenance":
             guard_kwargs.update(runtime_policy["paa_kwargs"])
         if name == "editorial_plan":
@@ -709,12 +773,55 @@ def _run_publish_readiness(
                     "suggestion": "Regenerate the provisional BOM with --editorial-plan.",
                 }]
             )
+        elif name == "semrush_keyword_decision":
+            keyword_decision_path = runtime_policy.get("keyword_decision")
+            editorial_path = runtime_policy.get("editorial_plan")
+            findings = (
+                guard_module.check_file(
+                    keyword_decision_path,
+                    article_path=article_path,
+                    editorial_plan_path=editorial_path,
+                    assembly_date=runtime_policy.get("assembly_date"),
+                )
+                if keyword_decision_path and editorial_path
+                else [{
+                    "rule_id": "semrush_keyword_decision_missing",
+                    "severity": "error",
+                    "line": 1,
+                    "column": 1,
+                    "message": "Blog readiness requires a bound Semrush keyword decision.",
+                    "suggestion": "Regenerate the provisional BOM with --keyword-decision.",
+                }]
+            )
         else:
             findings = guard_module.check_file(str(article_path), **guard_kwargs)
+            if name == "customer_proof_diversity":
+                findings = [
+                    *findings,
+                    *_no_fit_customer_proof_findings(
+                        article_content,
+                        runtime_policy=runtime_policy,
+                    ),
+                ]
         prevalidated_gate_findings[name] = tuple(
             dict(finding) for finding in findings
         )
-        gates.append(_gate_from_findings(name, label, findings))
+        gate = _gate_from_findings(name, label, findings)
+        gates.append(gate)
+        if name == "semrush_keyword_decision" and not gate["passed"]:
+            return _blocked_readiness_result(
+                phase=phase,
+                article_path=article_path,
+                proof_sidecar_path=proof_sidecar_path,
+                context_request_path=context_request_path,
+                context_pack_path=context_pack_path,
+                context_receipt_path=context_receipt_path,
+                assembly_bom_path=assembly_bom_path,
+                artifact_kind=artifact_kind,
+                gates=gates,
+                score_threshold=score_threshold,
+                gate=gate,
+            )
 
     proof_sidecar_content = (
         Path(proof_sidecar_path).read_text(encoding="utf-8")
@@ -1659,9 +1766,12 @@ def _bom_runtime_policy(
     default = {
         "visible_faq": True,
         "editorial_plan": None,
+        "keyword_decision": None,
         "serp_evidence": None,
         "assembly_date": None,
         "assembly_bom": None,
+        "customer_proof_selector_evidence": None,
+        "fred_authority_evidence": None,
         "faq_policy_status": "",
         "scoring_metadata": {},
         "paa_kwargs": {},
@@ -1731,7 +1841,12 @@ def _bom_runtime_policy(
             isinstance(schema_policy, Mapping) and schema_policy.get("visible_faq") is True
         ),
         "editorial_plan": editorial_plan_path,
+        "keyword_decision": artifact_path("keyword_decision"),
         "serp_evidence": artifact_path("serp_evidence"),
+        "customer_proof_selector_evidence": artifact_path(
+            "customer_proof_selector_evidence"
+        ),
+        "fred_authority_evidence": artifact_path("fred_authority_evidence"),
         "assembly_date": str(bom.get("assembly_date") or ""),
         "assembly_bom": bom,
         "faq_policy_status": str(faq_policy.get("status") or ""),
@@ -1745,6 +1860,81 @@ def _bom_runtime_policy(
             "expected_collection_date": str(bom.get("assembly_date") or ""),
         },
     }
+
+
+def _no_fit_customer_proof_findings(
+    article_content: str,
+    *,
+    runtime_policy: Mapping[str, Any],
+) -> List[Dict[str, Any]]:
+    evidence_path = runtime_policy.get("customer_proof_selector_evidence")
+    if not isinstance(evidence_path, str) or not evidence_path:
+        return []
+    try:
+        evidence = json.loads(Path(evidence_path).read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return []
+    if not isinstance(evidence, Mapping):
+        return []
+    if evidence.get("selection_outcome") != NO_FIT_CUSTOMER_PROOF_OUTCOME:
+        return []
+    try:
+        _, scan_content, body_start_line = split_frontmatter(article_content)
+    except FrontmatterError:
+        scan_content = article_content
+        body_start_line = 1
+    for line_number, line in enumerate(
+        scan_content.splitlines(),
+        start=body_start_line,
+    ):
+        lowered = line.lower()
+        if not lowered.strip():
+            continue
+        has_customer_proof_marker = any(
+            marker in lowered for marker in CUSTOMER_PROOF_NO_FIT_MARKERS
+        )
+        has_customer_metric_shape = (
+            "%" in line
+            and any(
+                marker in lowered
+                for marker in (
+                    "customer",
+                    "case study",
+                    "review",
+                    "testimonial",
+                    "reduced",
+                    "increased",
+                    "saved",
+                    "improved",
+                )
+            )
+        )
+        has_customer_quote_shape = (
+            bool(CUSTOMER_PROOF_EXACT_QUOTE_RE.search(line))
+            and bool(CUSTOMER_PROOF_QUOTE_CONTEXT_RE.search(lowered))
+        )
+        if (
+            has_customer_proof_marker
+            or has_customer_metric_shape
+            or has_customer_quote_shape
+        ):
+            return [
+                {
+                    "rule_id": "customer_proof_no_fit_public_claim_present",
+                    "severity": "error",
+                    "line": line_number,
+                    "column": 1,
+                    "message": (
+                        "The bound selector evidence selected no customer proof, "
+                        "but the article contains customer proof-sensitive copy."
+                    ),
+                    "suggestion": (
+                        "Remove the customer proof copy or rerun customer proof "
+                        "selection and mining with approved bound evidence."
+                    ),
+                }
+            ]
+    return []
 
 
 def format_text_report(result: ReadinessResult) -> str:
@@ -1941,6 +2131,46 @@ def _gate_from_findings(
         "warnings": summary["warning"],
         "findings": findings,
         "blockers": _finding_lines(findings) if not passed else [],
+    }
+
+
+def _blocked_readiness_result(
+    *,
+    phase: str,
+    article_path: Path,
+    proof_sidecar_path: str | None,
+    context_request_path: str | None,
+    context_pack_path: str | None,
+    context_receipt_path: str | None,
+    assembly_bom_path: str | None,
+    artifact_kind: str | None,
+    gates: list[GateResult],
+    score_threshold: int,
+    gate: GateResult,
+) -> ReadinessResult:
+    return {
+        "schema": READINESS_RESULT_SCHEMA,
+        "phase": phase,
+        "verification_scope": "source_artifact",
+        "file": str(article_path),
+        "proof_sidecar": proof_sidecar_path,
+        "context_request": context_request_path,
+        "context_pack": context_pack_path,
+        "context_receipt": context_receipt_path,
+        "assembly_bom": assembly_bom_path,
+        "passed": False,
+        "artifact_kind": artifact_kind,
+        "gates": gates,
+        "score": None,
+        "score_threshold": score_threshold,
+        "aeo_geo": {"score": None, "threshold": 90, "passed": False},
+        "priority_fixes": [
+            {
+                "dimension": str(gate.get("name") or ""),
+                "issue": blocker,
+            }
+            for blocker in gate.get("blockers", [])
+        ],
     }
 
 

@@ -179,6 +179,70 @@ class ContextBindingGuardTests(unittest.TestCase):
             encoding="utf-8",
         )
 
+    def make_electrical_article_context(self, *, include_topic=True, include_resource=True):
+        self.article.write_text(
+            "---\n"
+            "artifact_type: blog\n"
+            "brand: Simpro\n"
+            "title: CRM for Electricians\n"
+            "objective: Help electrical contractors compare CRM software.\n"
+            "audience: Electrical contractor owners and operations managers\n"
+            "region: US\n"
+            "---\n"
+            "# CRM for Electricians\n\n"
+            "CRM for electricians should connect customer records, quotes, jobs, "
+            "invoices and service history. It should also fit the wider "
+            "[electrical contractor software]"
+            "(https://www.simprogroup.com/industries/electrical-software) stack.\n\n"
+            "Simpro helps teams coordinate work.\n",
+            encoding="utf-8",
+        )
+        request = json.loads(self.request.read_text(encoding="utf-8"))
+        request["scope"].update(
+            {
+                "title": "CRM for Electricians",
+                "objective": "Help electrical contractors compare CRM software.",
+                "audience": "Electrical contractor owners and operations managers",
+            }
+        )
+        if include_topic:
+            request["scope"]["required_context_topics"] = ["industry:electrical"]
+        self.request.write_text(json.dumps(request), encoding="utf-8")
+        pack = json.loads(self.pack.read_text(encoding="utf-8"))
+        pack["sections"]["Task and Scope"]["scope"] = request["scope"]
+        resource = {
+            "resource_id": "res-25a1152f611e5cd69ba57cf16b34a826",
+            "title": "Electrical Vertical Profile",
+            "headings": ["Electrical Vertical Profile", "Trade Snapshot"],
+            "topics": ["electrical", "vertical", "profile", "trade"],
+            "semantic_roles": ["routing"],
+        }
+        if include_resource:
+            pack["sections"]["Discovery Trace"]["selected_resource_ids"].append(
+                resource["resource_id"]
+            )
+            pack["sections"]["Selected Resource Inventory"].append(resource)
+            pack["sections"]["Retrieved Guidance"].append(resource)
+        self.pack.write_text(json.dumps(pack), encoding="utf-8")
+        receipt = json.loads(self.receipt.read_text(encoding="utf-8"))
+        if include_resource:
+            receipt["resources"].append(resource)
+        self.receipt.write_text(json.dumps(receipt), encoding="utf-8")
+        self.write_current_sidecar(
+            [
+                {
+                    "claim_id": "claim-simpro-work",
+                    "use_mode": "paraphrase",
+                    "brand_scope": "simpro",
+                    "public_url": "https://www.simprogroup.com/",
+                    "public_text": "Simpro helps teams coordinate work.",
+                    "public_text_sha256": sha256_text(
+                        "Simpro helps teams coordinate work."
+                    ),
+                }
+            ]
+        )
+
     def _write_context_predecessor(
         self,
         *,
@@ -1381,6 +1445,26 @@ class ContextBindingGuardTests(unittest.TestCase):
         self.assertIn("## Context Claim Use Map", content)
         self.assertEqual(result["claim_use_map"][0]["claim_id"], "claim-simpro-work")
         self.assertEqual(self.check(), [])
+
+    def test_context_binding_requires_vertical_topic_for_industry_cluster_article(self):
+        self.make_electrical_article_context(include_topic=False)
+
+        findings = self.check()
+
+        self.assertIn(
+            "context_request_industry_topic_missing",
+            {finding["rule_id"] for finding in findings},
+        )
+
+    def test_context_binding_requires_selected_vertical_resource_for_industry_cluster_article(self):
+        self.make_electrical_article_context(include_topic=True, include_resource=False)
+
+        findings = self.check()
+
+        self.assertIn(
+            "context_pack_industry_resource_missing",
+            {finding["rule_id"] for finding in findings},
+        )
 
     def test_generator_emits_a_real_context_binding_stage_receipt(self):
         pack = json.loads(self.pack.read_text(encoding="utf-8"))

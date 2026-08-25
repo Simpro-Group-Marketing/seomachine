@@ -165,6 +165,43 @@ def verify_selector_evidence_roles(
         if not isinstance(recorded_roles, list) or len(recorded_roles) != len(roles):
             return None
 
+        if evidence.get("selection_outcome") == "no_fit_customer_proof":
+            if inputs.get("allow_no_proof") is not True:
+                return None
+            if set(roles) != {"metric", "quote", "theme", "experience_story"}:
+                return None
+            verified_no_fit: Dict[str, Dict[str, Any]] = {}
+            for role, recorded in zip(roles, recorded_roles):
+                if not isinstance(recorded, dict) or recorded.get("role") != role:
+                    return None
+                if (
+                    recorded.get("selection_outcome") != "no_fit_customer_proof"
+                    or recorded.get("candidate_ids") != []
+                    or recorded.get("claim_ids") != []
+                    or str(recorded.get("selected_id", "")).casefold() != "none"
+                ):
+                    return None
+                no_fit_reason = str(recorded.get("no_fit_reason") or "")
+                if "public copy must omit customer proof" not in no_fit_reason.casefold():
+                    return None
+                role_rejections = rejected_overrides.get(role, {})
+                if not isinstance(role_rejections, dict):
+                    return None
+                verified_no_fit[role] = {
+                    "candidate_ids": [],
+                    "claim_ids": [],
+                    "selected_id": "none",
+                    "selected_candidate": None,
+                    "rejected_overrides": {
+                        str(candidate): str(reason)
+                        for candidate, reason in role_rejections.items()
+                    },
+                }
+            for name, path in artifact_paths.items():
+                if _file_sha256(path) != str(artifacts[name]["sha256"]):
+                    return None
+            return verified_no_fit
+
         verified: Dict[str, Dict[str, Any]] = {}
         for role, recorded in zip(roles, recorded_roles):
             if not isinstance(recorded, dict) or recorded.get("role") != role:

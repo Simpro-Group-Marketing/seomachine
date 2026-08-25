@@ -190,5 +190,9 @@ def test_expected_gate_inventory_is_conditional_without_losing_gate_order():
     assert "named_feature_status" not in minimal
     assert "fred_authority" not in minimal
     assert complete.index("faq_answer_quality") < complete.index("paa_provenance")
+    assert complete.index("editorial_plan") < complete.index("semrush_keyword_decision")
+    assert complete.index("semrush_keyword_decision") < complete.index("source_support")
+    assert complete.index("review_story_identity") < complete.index("eeat_strength")
+    assert complete.index("eeat_strength") < complete.index("early_artifact")
     assert complete.index("vault_brand_language") < complete.index("fred_authority")
     assert complete[-2:] == ["content_scorer", "input_seal"]

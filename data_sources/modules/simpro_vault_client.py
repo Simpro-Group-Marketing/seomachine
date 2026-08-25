@@ -45,6 +45,10 @@ OPERATIONS = (
 )
 PLUGIN_DISCOVERY_TIMEOUT_SECONDS = 15
 CONNECTOR_TIMEOUT_SECONDS = 45
+LONG_CONNECTOR_TIMEOUT_SECONDS = 180
+LONG_CONNECTOR_TIMEOUT_OPERATIONS = frozenset(
+    {"vault_build_context", "vault_validate_context"}
+)
 OWNING_REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -224,6 +228,12 @@ def _validate_plugin_matches(
     return cli
 
 
+def _connector_timeout(operation: str) -> int:
+    if operation in LONG_CONNECTOR_TIMEOUT_OPERATIONS:
+        return LONG_CONNECTOR_TIMEOUT_SECONDS
+    return CONNECTOR_TIMEOUT_SECONDS
+
+
 class SimproVaultClient:
     """Dispatch read-only operations through the installed shared connector."""
 
@@ -283,7 +293,7 @@ class SimproVaultClient:
                     encoding="utf-8",
                     errors="strict",
                     check=False,
-                    timeout=CONNECTOR_TIMEOUT_SECONDS,
+                    timeout=_connector_timeout(operation),
                 )
             except subprocess.TimeoutExpired as error:
                 raise VaultClientError(

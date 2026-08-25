@@ -554,6 +554,13 @@ class CustomerProofDiversityGuardTests(unittest.TestCase):
 
         self.assertEqual(findings, [])
 
+    def test_neutral_customer_definition_url_does_not_count_as_customer_proof(self):
+        findings = check_content(
+            "# CRM\n\n[Investopedia](https://www.investopedia.com/terms/c/customer_relation_management.asp) defines CRM for customer relationship management."
+        )
+
+        self.assertEqual(findings, [])
+
     def test_selected_proof_missing_from_slate_fails(self):
         sidecar = (
             proof_slate(

@@ -88,15 +88,18 @@ CURRENT_GATES = [
     ("public_artifact", "public_artifact_guard.check_file"),
     ("ai_copy_linter", "ai_copy_linter.lint_file"),
     ("public_research_links", "public_research_link_guard.check_file"),
+    ("industry_cluster_link_policy", "industry_cluster_link_policy.check_file"),
     ("metric_proof_pack", "metric_proof_pack_guard.check_file"),
     ("numeric_claim_source", "numeric_claim_source_guard.check_file"),
     ("faq_answer_quality", "faq_answer_quality_guard.check_file"),
     ("faq_proof", "faq_proof_guard.check_file"),
     ("paa_provenance", "paa_provenance_guard.check_file"),
     ("editorial_plan", "editorial_plan_guard.check_file"),
+    ("semrush_keyword_decision", "semrush_keyword_decision_guard.check_file"),
     ("source_support", "source_support_guard.check_file"),
     ("customer_proof_diversity", "customer_proof_diversity_guard.check_file"),
     ("review_story_identity", "review_story_identity_guard.check_file"),
+    ("eeat_strength", "eeat_strength_guard.check_file"),
     ("early_artifact", "early_artifact_guard.check_file"),
     ("answer_withholding", "answer_withholding_guard.check_file"),
     ("vault_brand_language", "vault_brand_language_guard.check_file"),
@@ -109,65 +112,79 @@ def _write_non_connector_bom(article, sidecar):
     research = article.parent / "research"
     research.mkdir(exist_ok=True)
     plan = research / "editorial-plan.json"
+    meta = {
+        "meta_title": "Field Service Scheduling Guide | Simpro",
+        "meta_description": "A practical guide to field service scheduling decisions.",
+        "primary_keyword": "field service scheduling",
+        "secondary_keywords": ["dispatch capacity"],
+    }
     plan.write_text(
+        json.dumps(
+            {
+                "meta": meta,
+            "keyword_decision": {
+                "status": "resolved", "artifact_schema": "simpro-semrush-keyword-decision/v1",
+                "source": "semrush_connector", "database": "us",
+                "selected_primary_keyword": "field service scheduling", "selected_secondary_keywords": ["dispatch capacity"],
+                "selection_rationale": "Intent fit and SERP feasibility support the target.",
+            },
+        }) + "\n",
+        encoding="utf-8",
+    )
+    keyword_decision = research / "semrush-keyword-decision-draft.json"
+    reports = ["_keyword_research", "_get_report_schema", "phrase_these", "phrase_related", "phrase_questions", "phrase_organic", "phrase_this"]
+    keyword_decision.write_text(
         json.dumps({
-            "meta": {
-                "meta_title": "Field Service Scheduling Guide | Simpro",
-                "meta_description": "A practical guide to field service scheduling decisions.",
-                "primary_keyword": "field service scheduling",
-                "secondary_keywords": ["dispatch capacity"],
-            }
+            "schema": "simpro-semrush-keyword-decision/v1", "brand": "Simpro", "market": "US",
+            "database": "us", "collection_date": CURRENT_DATE,
+            "source_boundary": "Semrush is third-party opportunity/SERP context; GSC remains first-party performance truth.",
+            "connector_reports": [
+                {"report": report, "parameters": ({"report": "phrase_these"} if report == "_get_report_schema" else ({} if report == "_keyword_research" else {"phrase": "field service scheduling", "database": "us"})), "status": "completed"}
+                for report in reports
+            ],
+            "seed_terms": ["field service scheduling"],
+            "candidate_metrics": [{"keyword": "field service scheduling", "volume": 100, "keyword_difficulty": 30, "intent": "commercial"}],
+            "serp_finalists": [{"keyword": "field service scheduling", "database": "us", "results": [{"position": 1, "position_type": "organic", "domain": "example.com", "url": "https://example.com", "triggered_serp_features": []}]}],
+            "question_candidates": [], "related_candidates": [],
+            "selected_primary_keyword": "field service scheduling", "selected_secondary_keywords": ["dispatch capacity"],
+            "rejected_keywords": [{"keyword": "employee scheduling software", "reason": "Different intent."}],
+            "selection_rationale": "Intent fit and SERP feasibility support the target.",
+            "evidence_hash": "0" * 64, "execution_attestation": {"placeholder": True},
         }) + "\n",
         encoding="utf-8",
     )
     bom_path = research / "blog-assembly-bom-draft.json"
     visible_faq = "## Frequently asked questions" in article.read_text(encoding="utf-8")
+    def row(path, rel):
+        return {"path": rel, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+
     bom_path.write_text(
         json.dumps(
             {
-                "schema": "simpro-blog-assembly-bom/v1",
-                "lifecycle_state": "provisional",
-                "workflow_mode": "new",
-                "assembly_date": CURRENT_DATE,
-                "author_policy": {
-                    "status": "not_provided",
-                    "name": "",
-                    "frontmatter_author_required": False,
-                    "schema_person_required": False,
-                    "named_author_voice_allowed": False,
-                },
+                "schema": "simpro-blog-assembly-bom/v1", "lifecycle_state": "provisional",
+                "workflow_mode": "new", "assembly_date": CURRENT_DATE,
+                "author_policy": {"status": "not_provided", "name": "", "frontmatter_author_required": False, "schema_person_required": False, "named_author_voice_allowed": False},
                 "schema_policy": {"visible_faq": visible_faq},
-                "faq_policy": {
-                    "status": "required" if visible_faq else "not_applicable",
-                    "rationale": "No useful FAQ is planned." if not visible_faq else "Visible FAQs are planned.",
-                },
-                "paa_policy": {
-                    "source_kind": "answersocrates",
-                    "query": "test query",
-                },
+                "faq_policy": {"status": "required" if visible_faq else "not_applicable", "rationale": "Visible FAQs are planned." if visible_faq else "No useful FAQ is planned."},
+                "paa_policy": {"source_kind": "answersocrates", "query": "test query"},
                 "artifacts": {
-                    "article": {
-                        "path": article.name,
-                        "sha256": hashlib.sha256(article.read_bytes()).hexdigest(),
-                    },
-                    "validation_sidecar": {
-                        "path": sidecar.name,
-                        "sha256": hashlib.sha256(sidecar.read_bytes()).hexdigest(),
-                    },
-                    "editorial_plan": {
-                        "path": "research/editorial-plan.json",
-                        "sha256": hashlib.sha256(plan.read_bytes()).hexdigest(),
-                    },
-                    "paa_artifact": None,
-                    "content_brief": None,
-                    "user_paa_csv": None,
-                    "answersocrates_blocker": None,
+                    "article": row(article, article.name), "validation_sidecar": row(sidecar, sidecar.name),
+                    "editorial_plan": row(plan, "research/editorial-plan.json"),
+                    "keyword_decision": row(keyword_decision, "research/semrush-keyword-decision-draft.json"),
+                    "paa_artifact": None, "content_brief": None, "user_paa_csv": None, "answersocrates_blocker": None,
                 },
             }
         ),
         encoding="utf-8",
     )
     return bom_path
+
+
+def _write_no_fit_customer_proof_evidence(path):
+    reason = "No customer proof selected; public copy must omit customer proof."
+    roles = [{"role": role, "candidate_ids": [], "claim_ids": [], "selected_id": "none", "no_fit_reason": reason} for role in ("metric", "quote", "theme", "experience_story")]
+    path.write_text(json.dumps({"schema": "simpro-customer-proof-selector-evidence/v1", "selection_outcome": "no_fit_customer_proof", "roles": roles}) + "\n", encoding="utf-8")
+    return path
 
 
 def _attach_normal_stage_chain(article, bom_path):
@@ -320,9 +337,10 @@ def test_all_gates_pass_in_required_order(files):
     result, order, _, _ = run_with_patches(article, sidecar)
     expected_order = [
         "context_binding", "blog_assembly_bom", "public_artifact", "ai_copy_linter", "url_validator", "public_research_links",
+        "industry_cluster_link_policy",
         "metric_proof_pack", "numeric_claim_source",
-        "paa_provenance", "editorial_plan", "source_support", "customer_proof_diversity",
-        "review_story_identity", "early_artifact", "answer_withholding",
+        "paa_provenance", "editorial_plan", "semrush_keyword_decision", "source_support", "customer_proof_diversity",
+        "review_story_identity", "eeat_strength", "early_artifact", "answer_withholding",
         "vault_brand_language", "named_feature_status",
         "fred_authority", "content_scorer",
     ]
@@ -517,6 +535,55 @@ def test_readiness_snapshot_includes_every_bound_bom_artifact(files):
     assert snapshots["editorial_plan"] == bom["artifacts"]["editorial_plan"]
     assert snapshots["optimizer_outputs[0]"] == bom["artifacts"]["optimizer_outputs"][0]
     assert snapshots["stage_receipts[0]"] == bom["artifacts"]["stage_receipts"][0]
+
+
+def test_no_fit_customer_proof_evidence_blocks_customer_proof_copy(files):
+    article, sidecar = files
+    article.write_text(
+        article.read_text(encoding="utf-8")
+        + "\n\nCase study: BWE Engineering reduced invoicing delays by 50% after using Simpro.\n",
+        encoding="utf-8",
+    )
+    bom_path = _write_non_connector_bom(article, sidecar)
+    evidence = _write_no_fit_customer_proof_evidence(
+        article.parent / "research" / "selector-no-fit.json"
+    )
+    bom = json.loads(bom_path.read_text(encoding="utf-8"))
+    bom["artifacts"]["customer_proof_selector_evidence"] = canonical_artifact(
+        evidence,
+        workspace_root=article.parent,
+    )
+    bom_path.write_text(json.dumps(bom), encoding="utf-8")
+
+    result, _, _, _ = run_with_patches(
+        article,
+        sidecar,
+        assembly_bom=bom_path,
+    )
+    gate = next(row for row in result["gates"] if row["name"] == "customer_proof_diversity")
+
+    assert (result["passed"], gate["passed"]) == (False, False)
+    assert gate["findings"][0]["rule_id"] == "customer_proof_no_fit_public_claim_present"
+
+
+def test_no_fit_customer_proof_ignores_quoted_frontmatter_description(tmp_path):
+    evidence = _write_no_fit_customer_proof_evidence(
+        tmp_path / "selector-no-fit.json"
+    )
+    content = (
+        "---\n"
+        'meta_description: "Connect leads, quotes, jobs and customers in one workflow."\n'
+        "---\n"
+        "# Draft\n\n"
+        "Body copy has no proof example.\n"
+    )
+
+    findings = publish_readiness._no_fit_customer_proof_findings(
+        content,
+        runtime_policy={"customer_proof_selector_evidence": str(evidence)},
+    )
+
+    assert findings == []
 
 
 def test_bom_article_path_cannot_widen_the_trusted_workspace_root(
@@ -847,6 +914,7 @@ def test_sidecar_is_forwarded_to_all_proof_gates_and_scorer(files):
             "ai_copy_linter",
             "context_binding",
             "editorial_plan",
+            "semrush_keyword_decision",
             "faq_answer_quality",
             "faq_proof",
         }:
@@ -886,6 +954,22 @@ def test_context_artifacts_are_forwarded_to_claim_sensitive_gates(files):
         assert call_kwargs["context_receipt"] == str(receipt)
     assert mocks["named_feature_status"].call_args.kwargs["vault_root"] == article.parent
     assert mocks["fred_authority"].call_args.kwargs["vault_root"] == article.parent
+
+
+def test_semrush_keyword_decision_gate_receives_bom_bound_artifact(files):
+    article, sidecar = files
+    result, _, mocks, _ = run_with_patches(article, sidecar)
+
+    assert result["passed"] is True
+    call = mocks["semrush_keyword_decision"].call_args
+    assert call.args[0].endswith("research\\semrush-keyword-decision-draft.json") or call.args[0].endswith(
+        "research/semrush-keyword-decision-draft.json"
+    )
+    assert call.kwargs["article_path"] == article
+    assert call.kwargs["assembly_date"] == CURRENT_DATE
+    assert call.kwargs["editorial_plan_path"].endswith("research\\editorial-plan.json") or call.kwargs[
+        "editorial_plan_path"
+    ].endswith("research/editorial-plan.json")
 
 
 def _write_assembly_bom(tmp_path, article, sidecar, request, pack, receipt):
@@ -945,6 +1029,45 @@ def test_assembly_bom_mismatch_blocks_before_downstream_gates(files, tmp_path):
         for finding in bom_gate["findings"]
     )
     mocks["public_artifact"].assert_not_called()
+    scorer.score.assert_not_called()
+
+
+def test_semrush_keyword_decision_blocks_before_downstream_gates(files):
+    article, sidecar = files
+
+    result, order, mocks, scorer = run_with_patches(
+        article,
+        sidecar,
+        overrides={
+            "semrush_keyword_decision": [
+                finding("semrush_keyword_decision_plan_primary_mismatch")
+            ]
+        },
+    )
+
+    gate_names = [gate["name"] for gate in result["gates"]]
+    semrush_gate = next(
+        gate for gate in result["gates"] if gate["name"] == "semrush_keyword_decision"
+    )
+    assert result["passed"] is False
+    assert gate_names == [
+        "artifact_identity",
+        "context_binding",
+        "blog_assembly_bom",
+        "public_artifact",
+        "ai_copy_linter",
+        "url_validator",
+        "public_research_links",
+        "industry_cluster_link_policy",
+        "metric_proof_pack",
+        "numeric_claim_source",
+        "paa_provenance",
+        "editorial_plan",
+        "semrush_keyword_decision",
+    ]
+    assert order[-1] == "semrush_keyword_decision"
+    assert semrush_gate["errors"] == 1
+    mocks["source_support"].assert_not_called()
     scorer.score.assert_not_called()
 
 

@@ -15,7 +15,7 @@ Generate high-commercial-intent prompts for a topic, cluster them, and create an
 Traditional SEO research asks: "What keywords do people search on Google?"
 AI citation research asks: "What prompts do people type into ChatGPT/Perplexity, and which sources get cited in the answers?"
 
-These are different questions with different answers. A page can rank #1 on Google but never get cited by ChatGPT if the content isn't structured for AI consumption, or if competitors dominate the directories and listicles that AI tools actually pull from.
+These are different questions with different observed outputs. A sampled answer may cite or omit any source. The audit records what occurred in the sampled response; it does not establish why a source was or was not cited.
 
 This command bridges that gap.
 
@@ -28,7 +28,7 @@ Generate a comprehensive list of high-commercial-intent prompts that a potential
 #### Prompt Categories
 
 **A. Direct Recommendation Prompts (Highest Priority)**
-These trigger AI to search the web and cite sources:
+Use these to sample recommendation-oriented answer behavior. Prompt type does not guarantee web search, a citation, or brand inclusion:
 - "What is the best [topic]?"
 - "Top [topic] for [use case]"
 - "Best [topic] for [audience]"
@@ -107,16 +107,16 @@ For the highest-priority prompts (pick 10-15 across clusters), manually run them
 
 **If AI tools are not available for live testing**, note this in the output and proceed with steps 1-2 plus the audit template for manual execution later.
 
-### Step 4: Gap Analysis
+### Step 4: Evidence-Bound Gap Analysis
 
-Based on the audit (or projected based on knowledge of the landscape):
+Base the gap analysis only on the recorded audit observations and cited sources. Do not project a gap from assumed landscape knowledge, predict AI-citation outcomes, or present a source pattern as an algorithm rule.
 
-1. **Where is your brand present?** List prompts/clusters where you appear
-2. **Where is your brand absent?** List prompts/clusters where you should appear but don't
-3. **Which sources dominate?** Rank the most-cited domains
-4. **Off-page targets:** Which directories, listicles, or platforms should you be added to?
-5. **On-page gaps:** Which blog pages need to be created or updated to serve these prompts?
-6. **Content format gaps:** Are competitors winning with comparison tables, FAQs, or structured data that you lack?
+1. **Observed brand mentions:** List audited prompts/clusters where the brand was observed, with the recorded answer position or citation evidence.
+2. **Not observed in audited prompts:** List only audited prompts/clusters where the brand was not observed in the recorded output.
+3. **Observed source pattern:** List cited domains and the audited prompts in which each appeared; do not infer causation or future visibility.
+4. **Off-page opportunities:** Which observed directories, listicles, or platforms could merit separate human review?
+5. **Observed on-page coverage:** Which audited prompts have no documented relevant article or source evidence in the audit record?
+6. **Observed format/source pattern:** Note documented use of comparison tables, FAQs, or structured data in cited sources without inferring that the format caused the citation.
 
 ### Step 5: Action Plan
 
@@ -126,17 +126,16 @@ Generate a prioritized action plan:
 ## Action Plan
 
 ### Quick Wins (This Week)
-- [ ] [Action]: [Expected impact]
-- [ ] [Action]: [Expected impact]
+- [ ] [Action]: [audit evidence] | Owner: [name or team]
+- [ ] [Action]: [audit evidence] | Owner: [name or team]
 
 ### Content to Create/Update
-- [ ] [Article topic]: Targets cluster [X], addresses gap [Y]
-- [ ] [Article topic]: Targets cluster [X], addresses gap [Y]
+- [ ] [Article topic or update]: [audited prompt and observed evidence gap] | Owner: [name or team]
+- [ ] [Article topic or update]: [audited prompt and observed evidence gap] | Owner: [name or team]
 
-### Off-Page Actions
-- [ ] Get listed on [directory]: Cited [N] times across audit
-- [ ] Outreach to [listicle URL]: Author is [name], approach via [channel]
-- [ ] Update [platform] profile: [What to add/change]
+### Off-Page Opportunities for Human Review
+- [ ] [Observed source or platform]: [recorded evidence and proposed owner]
+- [ ] [Observed source or platform]: [recorded evidence and disclosure or approval need]
 
 ### Monitor
 - [ ] Re-run audit in [timeframe] to measure changes
@@ -174,7 +173,7 @@ Save to: `research/ai-citations-[topic-slug]-[YYYY-MM-DD].md`
 ## Integration with Other Commands
 
 - **Before `/write`**: Run `/research-ai-citations` first to understand which prompts the article should target and which sources to reference
-- **After `/publish-draft`**: Run `/repurpose` to distribute the article across citation surfaces identified here
+- **Optional after final readiness**: Use `/repurpose [article] --final-readiness [attestation] [--canonical-url URL]` only for a manual, evidence-bound handoff. Repurposing is optional distribution work, not an AI-citation mechanism. Research observations do not authorize posting or add proof, and the handoff does not predict citation outcomes.
 - **Quarterly**: Re-run for core topic clusters to track changes in AI citation patterns
 
 ## Required Context Files
