@@ -20,7 +20,7 @@ from typing import Any, Mapping, Optional, Sequence
 CANONICAL_PLUGIN_ID = "simpro-context@simpro"
 LEGACY_PLUGIN_ID = "simpro-context@marketingskills"
 MINIMUM_PLUGIN_VERSIONS = {
-    CANONICAL_PLUGIN_ID: (1, 2, 10),
+    CANONICAL_PLUGIN_ID: (1, 3, 0),
     LEGACY_PLUGIN_ID: (1, 1, 2),
 }
 ROOT_ENVIRONMENT_VARIABLE = "SIMPRO_VAULT_ROOT"
@@ -40,6 +40,7 @@ OPERATIONS = (
     "vault_read",
     "vault_expand",
     "vault_claims",
+    "vault_find_proof",
     "vault_build_context",
     "vault_validate_context",
 )
@@ -47,7 +48,7 @@ PLUGIN_DISCOVERY_TIMEOUT_SECONDS = 15
 CONNECTOR_TIMEOUT_SECONDS = 45
 LONG_CONNECTOR_TIMEOUT_SECONDS = 180
 LONG_CONNECTOR_TIMEOUT_OPERATIONS = frozenset(
-    {"vault_build_context", "vault_validate_context"}
+    {"vault_find_proof", "vault_build_context", "vault_validate_context"}
 )
 OWNING_REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -93,6 +94,7 @@ RECOVERY_HINTS = {
     "claim_missing": "Refine vault_claims and omit the unsupported public passage if no claim exists.",
     "claim_not_approved": "Omit the unsupported public passage and search for approved evidence.",
     "claim_scope_mismatch": "Search claims again with the intended supported brand scope.",
+    "proof_profile_invalid": "Repair proof-source-profile-matrix.csv, rebuild vault artifacts, and retry proof retrieval.",
     "invalid_arguments": "Correct the operation arguments using vault_describe, then retry.",
     "manifest_stale": "Rebuild vault-owned protocol artifacts, then retry vault_status.",
     "revision_changed": "Restart discovery from vault_status and rebuild the context pack.",
@@ -443,6 +445,29 @@ class SimproVaultClient:
     def build_context(self, arguments: Mapping[str, Any]) -> Any:
         return self.dispatch("vault_build_context", arguments)
 
+    def find_proof(
+        self,
+        request: Mapping[str, Any],
+        *,
+        count: int = 7,
+        source_type_counts: Mapping[str, int] | None = None,
+        metric_classes: Sequence[str] | None = None,
+        required_fields: Sequence[str] | None = None,
+        max_per_subject: int = 1,
+    ) -> Any:
+        arguments: dict[str, Any] = {
+            "request": dict(request),
+            "count": count,
+            "max_per_subject": max_per_subject,
+        }
+        if source_type_counts is not None:
+            arguments["source_type_counts"] = dict(source_type_counts)
+        if metric_classes is not None:
+            arguments["metric_classes"] = list(metric_classes)
+        if required_fields is not None:
+            arguments["required_fields"] = list(required_fields)
+        return self.dispatch("vault_find_proof", arguments)
+
     def validate_context(
         self,
         request: Mapping[str, Any],
@@ -512,6 +537,28 @@ class SimproVaultClient:
 
     def try_build_context(self, arguments: Mapping[str, Any]) -> VaultOperationResult:
         return self._try("vault_build_context", lambda: self.build_context(arguments))
+
+    def try_find_proof(
+        self,
+        request: Mapping[str, Any],
+        *,
+        count: int = 7,
+        source_type_counts: Mapping[str, int] | None = None,
+        metric_classes: Sequence[str] | None = None,
+        required_fields: Sequence[str] | None = None,
+        max_per_subject: int = 1,
+    ) -> VaultOperationResult:
+        return self._try(
+            "vault_find_proof",
+            lambda: self.find_proof(
+                request,
+                count=count,
+                source_type_counts=source_type_counts,
+                metric_classes=metric_classes,
+                required_fields=required_fields,
+                max_per_subject=max_per_subject,
+            ),
+        )
 
     def try_validate_context(
         self,

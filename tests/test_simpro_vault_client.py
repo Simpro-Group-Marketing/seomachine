@@ -90,14 +90,14 @@ class SimproVaultClientTests(unittest.TestCase):
                 {
                     "id": "simpro-context@simpro",
                     "enabled": False,
-                    "version": "1.2.10",
+                    "version": "1.3.0",
                     "installPath": str(other),
                     "projectPath": str(self.root / "other-worktree"),
                 },
                 {
                     "id": "simpro-context@simpro",
                     "enabled": True,
-                    "version": "1.2.10",
+                    "version": "1.3.0",
                     "installPath": str(canonical),
                     "projectPath": str(Path.cwd()),
                 },
@@ -120,7 +120,7 @@ class SimproVaultClientTests(unittest.TestCase):
                 {
                     "id": "simpro-context@simpro",
                     "enabled": True,
-                    "version": "1.2.10",
+                    "version": "1.3.0",
                     "installPath": str(canonical),
                     "projectPath": str(repo_root),
                 }
@@ -140,7 +140,7 @@ class SimproVaultClientTests(unittest.TestCase):
                 {
                     "id": "simpro-context@simpro",
                     "enabled": True,
-                    "version": "1.2.10",
+                    "version": "1.3.0",
                     "installPath": str(foreign),
                     "projectPath": str(self.root / "other-worktree"),
                 }
@@ -164,7 +164,7 @@ class SimproVaultClientTests(unittest.TestCase):
                 {
                     "id": "simpro-context@simpro",
                     "enabled": False,
-                    "version": "1.2.10",
+                    "version": "1.3.0",
                     "installPath": str(canonical),
                     "projectPath": str(Path.cwd()),
                 },
@@ -193,7 +193,7 @@ class SimproVaultClientTests(unittest.TestCase):
                 {
                     "id": "simpro-context@simpro",
                     "enabled": False,
-                    "version": "1.2.10",
+                    "version": "1.3.0",
                     "installPath": str(self.root / "plugin"),
                     "projectPath": str(Path.cwd()),
                 }
@@ -345,14 +345,14 @@ class SimproVaultClientTests(unittest.TestCase):
                 discover_plugin()
 
         self.assertEqual(raised.exception.code, "plugin_outdated")
-    def test_discovery_accepts_canonical_1_2_10(self):
+    def test_discovery_accepts_canonical_1_3_0(self):
         plugin = self._plugin("plugin")
         inventory = json.dumps(
             [
                 {
                     "id": "simpro-context@simpro",
                     "enabled": True,
-                    "version": "1.2.10",
+                    "version": "1.3.0",
                     "installPath": str(plugin),
                     "projectPath": str(Path.cwd()),
                 }
@@ -479,7 +479,7 @@ class SimproVaultClientTests(unittest.TestCase):
                 {
                     "id": "simpro-context@simpro",
                     "enabled": True,
-                    "version": "1.2.10",
+                    "version": "1.3.0",
                     "installPath": str(plugin),
                     "projectPath": str(Path.cwd()),
                 }
@@ -506,6 +506,18 @@ class SimproVaultClientTests(unittest.TestCase):
                 relation_types=["links_to"],
                 purpose="context",
             )
+            proof = client.find_proof(
+                {
+                    "task": "Find homepage trust proof",
+                    "scope": {"brand": "Simpro"},
+                    "query": "field service management metrics",
+                },
+                count=7,
+                source_type_counts={"case_study": 5, "review": 2},
+                metric_classes=["customer_outcome"],
+                required_fields=["industry", "public_url"],
+                max_per_subject=1,
+            )
 
         self.assertEqual(result["operation"], "vault_search")
         self.assertEqual(
@@ -520,6 +532,22 @@ class SimproVaultClientTests(unittest.TestCase):
                 "resource_id": "res-alpha",
                 "relation_types": ["links_to"],
                 "purpose": "context",
+            },
+        )
+        self.assertEqual(proof["operation"], "vault_find_proof")
+        self.assertEqual(
+            proof["payload"],
+            {
+                "request": {
+                    "task": "Find homepage trust proof",
+                    "scope": {"brand": "Simpro"},
+                    "query": "field service management metrics",
+                },
+                "count": 7,
+                "source_type_counts": {"case_study": 5, "review": 2},
+                "metric_classes": ["customer_outcome"],
+                "required_fields": ["industry", "public_url"],
+                "max_per_subject": 1,
             },
         )
 
@@ -539,7 +567,7 @@ class SimproVaultClientTests(unittest.TestCase):
                 {
                     "id": "simpro-context@simpro",
                     "enabled": True,
-                    "version": "1.2.10",
+                    "version": "1.3.0",
                     "installPath": str(plugin),
                     "projectPath": str(Path.cwd()),
                 }
@@ -592,7 +620,7 @@ class SimproVaultClientTests(unittest.TestCase):
                 {
                     "id": "simpro-context@simpro",
                     "enabled": True,
-                    "version": "1.2.10",
+                    "version": "1.3.0",
                     "installPath": str(plugin),
                     "projectPath": str(Path.cwd()),
                 }
@@ -600,6 +628,17 @@ class SimproVaultClientTests(unittest.TestCase):
         )
         cases = (
             ("search", lambda client: client.search("scheduling"), 45),
+            (
+                "find_proof",
+                lambda client: client.find_proof(
+                    {
+                        "task": "Find homepage proof",
+                        "scope": {"brand": "Simpro"},
+                        "query": "metrics",
+                    }
+                ),
+                180,
+            ),
             (
                 "validate",
                 lambda client: client.validate_context(
