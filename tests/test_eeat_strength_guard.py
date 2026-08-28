@@ -233,7 +233,7 @@ def test_approved_review_theme_with_visible_public_link_is_positive_signal(tmp_p
         tmp_path / "article.md",
         body=(
             "A Capterra review theme can add a customer review perspective when it is "
-            f"linked in the same paragraph: [{review_url}]({review_url})."
+            f"linked in the same paragraph: [Capterra review theme evidence]({review_url})."
         ),
     )
     sidecar = _write(

@@ -37,6 +37,18 @@ def test_production_image_placeholder_is_not_treated_as_a_numeric_claim():
     assert findings == []
 
 
+def test_standalone_markdown_image_is_not_treated_as_a_public_claim():
+    content = (
+        "# Article\n\n"
+        "![Prevent employee time theft with GPS time tracking and accurate timesheets]"
+        "(https://www.datocms-assets.com/16247/time-theft.png)\n"
+    )
+
+    findings = check_content(content)
+
+    assert findings == []
+
+
 def fetcher_with(source_text_by_url):
     def fetcher(url):
         if url not in source_text_by_url:
@@ -139,6 +151,101 @@ def write_plain_capture_receipt(directory, url, artifact_name, *, method):
 
 
 class SourceSupportGuardTests(unittest.TestCase):
+    def test_one_authority_can_support_a_table_row_with_multiple_evidence_snippets(self):
+        url = "https://regulator.example.gov/tradesman"
+        content = f"""# License guide
+
+| License | Current fees |
+|---|---|
+| Tradesman license | A $36 exam fee and a $35 initial license fee. See [Tradesman requirements]({url}). |
+"""
+        sidecar = f"""## Source Map
+- Claim: $36 exam fee | URL: {url} | Evidence: Exam Fee: $36 | Status: approved
+- Claim: $35 initial license fee | URL: {url} | Evidence: Initial License Fee: $35 | Status: approved
+"""
+
+        findings = check_content(
+            content,
+            proof_content=sidecar,
+            fetcher=fetcher_with(
+                {url: "Fees. Exam Fee: $36. Initial License Fee: $35."}
+            ),
+        )
+
+        self.assertEqual(findings, [])
+
+    def test_short_exact_numeric_claim_can_bind_without_two_lexical_words(self):
+        url = "https://regulator.example.gov/apprentice"
+        content = f"""# License guide
+
+| Registration | Age |
+|---|---|
+| Apprentice | Be at least 16. See [Apprentice requirements]({url}). |
+"""
+        sidecar = f"""## Source Map
+- Claim: Be at least 16 | URL: {url} | Evidence: you are at least 16 years old | Status: approved
+"""
+
+        findings = check_content(
+            content,
+            proof_content=sidecar,
+            fetcher=fetcher_with({url: "you are at least 16 years old"}),
+        )
+
+        self.assertEqual(findings, [])
+
+    def test_table_row_fails_when_evidence_snippets_leave_a_material_number_unmapped(self):
+        url = "https://regulator.example.gov/tradesman"
+        content = f"""# License guide
+
+| License | Current fees |
+|---|---|
+| Tradesman license | A $36 exam fee, a $35 initial license fee, and a $99 renewal fee. See [Tradesman requirements]({url}). |
+"""
+        sidecar = f"""## Source Map
+- Claim: $36 exam fee | URL: {url} | Evidence: Exam Fee: $36 | Status: approved
+- Claim: $35 initial license fee | URL: {url} | Evidence: Initial License Fee: $35 | Status: approved
+"""
+
+        findings = check_content(
+            content,
+            proof_content=sidecar,
+            fetcher=fetcher_with(
+                {url: "Fees. Exam Fee: $36. Initial License Fee: $35."}
+            ),
+        )
+
+        self.assertTrue(findings)
+        self.assertTrue(
+            any(finding["rule_id"] == "missing_strict_proof" for finding in findings)
+        )
+
+    def test_numeric_table_proof_does_not_hide_an_unmapped_legal_scope_claim(self):
+        url = "https://regulator.example.gov/tradesman"
+        content = f"""# License guide
+
+| License | Fee and scope |
+|---|---|
+| Tradesman license | A $36 exam fee applies, and work is permitted only under direct supervision. See [Tradesman requirements]({url}). |
+"""
+        sidecar = f"""## Source Map
+- Claim: $36 exam fee | URL: {url} | Evidence: Exam Fee: $36 | Status: approved
+"""
+
+        findings = check_content(
+            content,
+            proof_content=sidecar,
+            fetcher=fetcher_with({url: "Fees. Exam Fee: $36."}),
+        )
+
+        self.assertTrue(findings)
+        self.assertTrue(
+            any(
+                "direct supervision" in finding.get("match", "")
+                for finding in findings
+            )
+        )
+
     def test_general_claim_detection_covers_unmistakable_assertion_forms(self):
         claims = (
             "A shared dispatch board helps teams reduce assignment conflicts.",
@@ -149,7 +256,6 @@ class SourceSupportGuardTests(unittest.TestCase):
             "Dispatching is when a coordinator assigns available technicians to jobs.",
             "First confirm technician availability, then assign the job, and finally notify the customer.",
             "The dispatch process moves from triage to assignment to confirmation.",
-            "Review technician capacity before assigning urgent work.",
             "Do not dispatch a technician until the required license is confirmed.",
         )
 
@@ -168,6 +274,9 @@ class SourceSupportGuardTests(unittest.TestCase):
             "Unlike the previous section, this section covers invoice timing.",
             "First, this article explains scheduling; then, it introduces invoicing.",
             "Review the next section for implementation details.",
+            "Review technician capacity before assigning urgent work.",
+            "Confirm the job type and supervisor before accepting an assignment.",
+            "Check the application details before sending the form.",
             "Dispatchers review capacity during the morning meeting.",
             "The example is a document excerpt used for discussion.",
         )
@@ -178,6 +287,65 @@ class SourceSupportGuardTests(unittest.TestCase):
                     check_content(f"# Scheduling guide\n\n{sentence}\n"),
                     [],
                 )
+
+    def test_faq_answers_with_faq_proof_map_are_not_source_support_duplicates(self):
+        content = """# Texas plumbing license
+
+## Frequently asked questions
+
+### What is the difference between a Master Plumber and a Responsible Master Plumber?
+
+Master Plumber is a Texas license. Responsible Master Plumber is a designation. The [TSBPE RMP requirements](https://tsbpe.texas.gov/license-types/responsible-master-plumber/) also require good standing and at least $300,000 in commercial liability insurance.
+"""
+        sidecar = """## FAQ Source Policy
+- Allowed source classes: neutral, non_competing_expert.
+- Competitor-owned FAQ sources: prohibited.
+- Status: aligned.
+
+## FAQ Proof Map
+- FAQ: What is the difference between a Master Plumber and a Responsible Master Plumber? | URL: https://tsbpe.texas.gov/license-types/responsible-master-plumber/ | Source class: neutral | Competitor check: passed | Support: Current official RMP requirements distinguish the designation from the Master license.
+"""
+
+        self.assertEqual(check_content(content, proof_content=sidecar), [])
+
+    def test_proof_not_required_advice_does_not_exempt_risky_or_factual_claims(self):
+        claims = (
+            "Review the licensing rules before assigning regulated work.",
+            "Check the local authority before starting work, even when the state exemption applies.",
+            "Check the local authority before starting homestead work.",
+            "Start the renewal process 60 days before expiration.",
+            "Organizing applications reduces processing delays.",
+            "A careful renewal approach is better than waiting.",
+            "Review technician capacity before assigning urgent work. This can help teams find scheduling gaps.",
+        )
+
+        for claim in claims:
+            with self.subTest(claim=claim):
+                findings = check_content(f"# Licensing guide\n\n{claim}\n")
+
+                self.assertTrue(findings)
+                self.assertTrue(
+                    any(
+                        finding["rule_id"]
+                        in {"general_claim_source_missing", "missing_strict_proof"}
+                        for finding in findings
+                    )
+                )
+
+    def test_fact_free_advice_in_high_risk_paragraph_needs_no_separate_mapping(self):
+        advice = "Confirm the job type and supervisor before accepting an assignment."
+        content = (
+            "# Tradesman work\n\n"
+            "A Tradesman performs plumbing only under the direct supervision of a "
+            f"Journeyman or Master Plumber. {advice}\n"
+        )
+
+        findings = check_content(content)
+
+        self.assertTrue(findings)
+        self.assertFalse(
+            any(finding.get("match") == advice for finding in findings)
+        )
 
     def test_all_planned_general_claim_classes_are_detected(self):
         claims = (
@@ -742,6 +910,33 @@ Customer Proof Pack:
 
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0]["rule_id"], "missing_strict_proof")
+
+    def test_regulator_claim_names_are_not_inferred_as_customer_names(self):
+        url = "https://regulator.example.gov/apprentice"
+        content = (
+            "# License guide\n\n"
+            f"The [TSBPE Apprentice requirements]({url}) list a $15 registration fee.\n"
+        )
+        sidecar = f"""## Source Map
+- Claim: The TSBPE Apprentice requirements list a $15 registration fee. | Source class: primary_authority | URL: {url} | Evidence: Registration fee: $15 | Status: approved
+"""
+
+        findings = check_content(
+            content,
+            proof_content=sidecar,
+            fetcher=fetcher_with({url: "Registration fee: $15"}),
+        )
+
+        self.assertFalse(
+            any(
+                finding["rule_id"]
+                in {
+                    "named_customer_metric_requires_approved_metric",
+                    "named_customer_metric_requires_approved_metric",
+                }
+                for finding in findings
+            )
+        )
 
     def test_shaffer_60_percent_claim_fails_when_source_lacks_evidence(self):
         content = f"""---

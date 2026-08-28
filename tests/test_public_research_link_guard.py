@@ -20,8 +20,7 @@ class PublicResearchLinkGuardTests(unittest.TestCase):
         )
 
         rule_ids = {finding["rule_id"] for finding in findings}
-        self.assertIn("public_research_link_missing", rule_ids)
-        self.assertIn("sidecar_research_requires_public_link", rule_ids)
+        self.assertEqual(rule_ids, {"public_research_inline_proof_missing"})
 
     def test_fails_when_public_dol_link_is_manual_review(self):
         url = "https://www.dol.gov/agencies/whd/flsa"
@@ -85,9 +84,12 @@ Federal [recordkeeping rules for covered employees]({replacement}) include hours
             )
         ])
 
+        replacement_sidecar = f"""## Source Map
+- Claim: Federal recordkeeping rules for covered employees include hours worked each workday and total hours worked each workweek. | Claim type: process | Source class: primary_authority | Evidence relation: directly_supports | URL: {replacement} | Evidence: "hours worked" | Status: approved
+"""
         findings = public_research_link_guard.check_content(
             article,
-            proof_content=DOL_SOURCE_MAP,
+            proof_content=replacement_sidecar,
             url_summary=summary,
         )
 
@@ -103,6 +105,28 @@ Federal [recordkeeping rules for covered employees]({replacement}) include hours
         )
 
         self.assertEqual(findings, [])
+
+    def test_manual_not_applicable_declaration_cannot_suppress_a_legal_claim(self):
+        article = """# Draft
+
+## Renewal
+
+Texas licenses must be renewed annually.
+"""
+
+        findings = public_research_link_guard.check_content(
+            article,
+            proof_content=(
+                "External research requirement: not applicable\n"
+                "Reason: workflow-only copy."
+            ),
+            url_summary=UrlValidationSummary([]),
+        )
+
+        self.assertIn(
+            "public_research_inline_proof_missing",
+            {finding["rule_id"] for finding in findings},
+        )
 
     def test_owned_clockshark_links_do_not_count_as_external_research(self):
         article = fixture_text("content_evidence:test_public_research_link_guard-120-4")
@@ -129,7 +153,7 @@ Federal [recordkeeping rules for covered employees]({replacement}) include hours
             " ".join(str(finding.get("suggestion", "")) for finding in findings),
         )
 
-    def test_semantic_faq_heading_uses_shared_h3_to_h5_answer_boundaries(self):
+    def test_semantic_faq_heading_is_left_to_the_faq_guard(self):
         url = "https://www.dol.gov/agencies/whd/fact-sheets/21-flsa-recordkeeping"
         article = f"""# Draft
 
@@ -157,17 +181,76 @@ FLSA recordkeeping rules include hours worked each day and total hours worked ea
             url_summary=summary,
         )
 
-        missing = [
-            finding
-            for finding in findings
-            if finding["rule_id"] == "public_research_link_missing"
-        ]
-        self.assertEqual(len(missing), 1)
-        self.assertEqual(
-            missing[0]["match"],
-            "Which FLSA records must covered employers keep?",
+        self.assertNotIn(
+            "public_research_inline_proof_missing",
+            {finding["rule_id"] for finding in findings},
         )
-        self.assertIn("FAQ answer", missing[0]["message"])
+
+    def test_legal_claim_requires_approved_source_in_same_paragraph(self):
+        url = "https://www.ecfr.gov/current/title-29/part-516"
+        article = f"""# Draft
+
+## Keep employee time tracking compliant
+
+Covered employers must retain wage-hour records.
+
+The [official federal recordkeeping rules]({url}) explain the details.
+"""
+        sidecar = f"""## Source Map
+- Claim: Covered employers must retain wage-hour records. | Claim type: process | Source class: primary_authority | Evidence relation: directly_supports | URL: {url} | Evidence: "retain records" | Status: approved
+"""
+
+        findings = public_research_link_guard.check_content(
+            article,
+            proof_content=sidecar,
+            url_summary=UrlValidationSummary([
+                UrlValidationResult(
+                    url=url,
+                    status="resolved",
+                    status_code=200,
+                    reason="HTTP 200",
+                    line=7,
+                    anchor="official federal recordkeeping rules",
+                )
+            ]),
+        )
+
+        self.assertIn(
+            "public_research_inline_proof_missing",
+            {finding["rule_id"] for finding in findings},
+        )
+
+    def test_legal_claim_rejects_generic_proof_anchor(self):
+        url = "https://www.ecfr.gov/current/title-29/part-516"
+        article = f"""# Draft
+
+## Keep employee time tracking compliant
+
+Covered employers must retain wage-hour records under this [source]({url}).
+"""
+        sidecar = f"""## Source Map
+- Claim: Covered employers must retain wage-hour records. | Claim type: process | Source class: primary_authority | Evidence relation: directly_supports | URL: {url} | Evidence: "retain records" | Status: approved
+"""
+
+        findings = public_research_link_guard.check_content(
+            article,
+            proof_content=sidecar,
+            url_summary=UrlValidationSummary([
+                UrlValidationResult(
+                    url=url,
+                    status="resolved",
+                    status_code=200,
+                    reason="HTTP 200",
+                    line=5,
+                    anchor="source",
+                )
+            ]),
+        )
+
+        self.assertIn(
+            "public_research_generic_proof_anchor",
+            {finding["rule_id"] for finding in findings},
+        )
 
 
 if __name__ == "__main__":

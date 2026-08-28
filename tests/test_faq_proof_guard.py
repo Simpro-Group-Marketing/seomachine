@@ -2,9 +2,12 @@ from tests.fixture_text import fixture_text
 
 import os
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from tempfile import NamedTemporaryFile
 
 from data_sources.modules.faq_proof_guard import (
+    _main,
     check_content,
     check_file,
     should_fail,
@@ -83,6 +86,70 @@ class FaqProofGuardTests(unittest.TestCase):
 
         self.assertEqual(check_content(content), [])
 
+    def test_navigation_faq_without_external_fact_does_not_require_proof(self):
+        content = """# Application guide
+
+## Frequently Asked Questions
+
+### Where can I start the application?
+
+Use the application link in the section above, then follow the on-screen steps.
+"""
+
+        self.assertEqual(check_content(content), [])
+
+    def test_personal_advice_faq_does_not_receive_a_quota_link(self):
+        content = """# Dispatch guide
+
+## Frequently Asked Questions
+
+### How do I choose a daily planning routine?
+
+You should choose a routine that your team can repeat consistently.
+"""
+
+        self.assertEqual(check_content(content), [])
+
+    def test_regulatory_fact_in_later_faq_paragraph_triggers_inline_mode(self):
+        content = """# License guide
+
+## Frequently Asked Questions
+
+### Where should I start?
+
+Start with the application checklist above.
+
+Texas licenses must be renewed annually.
+"""
+
+        self.assertIn("faq_answer_missing_inline_proof", finding_ids(content))
+
+    def test_fact_driven_faq_requires_proof_in_first_visible_paragraph(self):
+        content = """# License guide
+
+## Frequently Asked Questions
+
+### Which agency regulates plumbers in Texas?
+
+The Texas State Board of Plumbing Examiners regulates plumbers in Texas.
+
+The [official licensing page](https://tsbpe.texas.gov/license-types/) explains the license types.
+"""
+
+        self.assertIn("faq_answer_missing_first_paragraph_proof", finding_ids(content))
+
+    def test_fact_driven_faq_rejects_generic_proof_anchor(self):
+        content = """# License guide
+
+## Frequently Asked Questions
+
+### Which agency regulates plumbers in Texas?
+
+The Texas State Board of Plumbing Examiners regulates plumbers in Texas under this [source](https://tsbpe.texas.gov/license-types/).
+"""
+
+        self.assertIn("faq_answer_generic_proof_anchor", finding_ids(content))
+
     def test_faq_answer_with_only_owned_inline_link_fails(self):
         content = fixture_text("content_evidence:test_faq_proof_guard-105-4")
 
@@ -90,6 +157,18 @@ class FaqProofGuardTests(unittest.TestCase):
 
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0]["rule_id"], "faq_answer_missing_inline_proof")
+
+    def test_simpro_ai_link_is_owned_and_cannot_satisfy_faq_proof(self):
+        content = """# License guide
+
+## Frequently Asked Questions
+
+### Which agency regulates plumbers in Texas?
+
+The Texas State Board of Plumbing Examiners regulates plumbers in Texas. See [Simpro](https://simpro.ai/resources).
+"""
+
+        self.assertIn("faq_answer_missing_inline_proof", finding_ids(content))
 
     def test_faq_answer_with_only_question_specific_source_map_fails(self):
         content = fixture_text("content_evidence:test_faq_proof_guard-120-5")
@@ -104,7 +183,7 @@ class FaqProofGuardTests(unittest.TestCase):
 
         finding_ids = {finding["rule_id"] for finding in findings}
         self.assertIn("faq_answer_missing_inline_proof", finding_ids)
-        self.assertIn("faq_source_policy_missing", finding_ids)
+        self.assertNotIn("faq_source_policy_missing", finding_ids)
 
     def test_context_only_source_map_does_not_count_as_public_proof(self):
         content = fixture_text("content_evidence:test_faq_proof_guard-156-8")
@@ -119,7 +198,9 @@ class FaqProofGuardTests(unittest.TestCase):
     def test_check_file_and_failure_threshold(self):
         with NamedTemporaryFile("w", encoding="utf-8", suffix=".md", delete=False) as temp_file:
             temp_file.write(
-                fixture_text("content_evidence:test_faq_proof_guard-185-11")
+                "# License guide\n\n## Frequently Asked Questions\n\n"
+                "### Which agency regulates plumbers in Texas?\n\n"
+                "The Texas State Board of Plumbing Examiners regulates plumbers in Texas.\n"
             )
             temp_path = temp_file.name
 
@@ -155,6 +236,22 @@ class FaqProofGuardTests(unittest.TestCase):
         )
 
         self.assertEqual(check_content(faq_content(question, [url]), proof_content=sidecar), [])
+
+    def test_faq_source_map_uses_canonical_url_identity(self):
+        question = "What is field service management?"
+        mapped_url = "https://example.org/fsm-definition/?utm_source=brief"
+        visible_url = "https://EXAMPLE.org/fsm-definition#meaning"
+        sidecar = faq_sidecar(
+            question,
+            [
+                f"- FAQ: {question} | URL: {mapped_url} | Source class: neutral | Competitor check: passed | Support: Independent definition."
+            ],
+        )
+
+        self.assertEqual(
+            check_content(faq_content(question, [visible_url]), proof_content=sidecar),
+            [],
+        )
 
     def test_classified_faq_source_requires_an_allowed_source_class(self):
         question = "What is field service management?"
@@ -231,6 +328,18 @@ class FaqProofGuardTests(unittest.TestCase):
         sidecar = faq_sidecar("Unused question?", [])
 
         self.assertEqual(check_content(content, proof_content=sidecar), [])
+
+    def test_cli_help_describes_risk_tiered_inline_requirement(self):
+        output = StringIO()
+        with self.assertRaises(SystemExit) as raised, redirect_stdout(output):
+            _main(["--help"])
+
+        self.assertEqual(raised.exception.code, 0)
+        help_text = " ".join(output.getvalue().split())
+        self.assertIn("inline_required", help_text)
+        self.assertIn("first visible answer paragraph", help_text)
+        self.assertIn("machine assigns lower-risk citation modes", help_text)
+        self.assertNotIn("cannot replace inline public evidence links", help_text)
 
 if __name__ == "__main__":
     unittest.main()

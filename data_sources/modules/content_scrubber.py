@@ -41,6 +41,7 @@ except ImportError:
 ORIGINAL_MARKDOWN_IMAGE_PLACEHOLDER_RE = re.compile(
     r"\A!\[[^\]\r\n]+\]\(IMAGE_PLACEHOLDER_ORIGINAL_[A-Z0-9_]+\)\Z"
 )
+MARKDOWN_IMAGE_URL_RE = re.compile(r"\A!\[[^\]\r\n]+\]\(https?://[^\s)]+\)\Z")
 
 
 def _is_protected_image_placeholder_line(line: str) -> bool:
@@ -48,6 +49,7 @@ def _is_protected_image_placeholder_line(line: str) -> bool:
     return (
         is_production_image_placeholder_line(stripped)
         or ORIGINAL_MARKDOWN_IMAGE_PLACEHOLDER_RE.fullmatch(stripped) is not None
+        or MARKDOWN_IMAGE_URL_RE.fullmatch(stripped) is not None
     )
 
 

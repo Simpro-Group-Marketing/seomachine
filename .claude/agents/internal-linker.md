@@ -65,6 +65,22 @@ Anchor text must match the destination keyword or an approved anchor example fro
 
 Feature and solution links must use function-bearing anchor text that explains the workflow, category, or outcome behind the destination. A feature or solution name alone is not enough. Use anchors like "field service payments," "accounts receivable follow-up with Fast Cash," or "field service management software" instead of "Simpro Payments," "Fast Cash," or "Simpro Premium."
 
+### Link Quantity Guidelines
+
+Standard blog posts should contain 3 to 5 internal links:
+
+- **Minimum**: 3 internal links.
+- **Target**: 4 to 5 internal links when each link helps the reader.
+- **Maximum**: 7 internal links.
+
+The required down-funnel link counts as 1 of the 3 to 5 internal links unless a valid brief-bound override narrows the supporting-link count. For Simpro single-trade blogs, the required industry-cluster link counts as both the cluster link and the down-funnel link when its anchor and placement pass the policy, and it remains additive to exact-count brief-selected links unless the bound brief explicitly prohibits the industry page.
+
+Select links in this order: reader usefulness, proof/source requirements, required cluster or down-funnel destination, then the 3 to 5 internal-link target or valid brief-selected override count.
+
+URL fragments and `mailto:` or `tel:` links are navigation utilities and do not count toward the internal-link total. Preserve every required internal or public evidence link identified by the machine claim map. If a recommendation would remove, relocate, or change the anchor of a required link, report the conflict instead of proposing an unbound replacement. Flag repeated destinations and redundant links.
+
+The claim map uses the fixed modes `inline_required`, `section_source_allowed`, `sidecar_only`, and policy-engine-only `proof_not_required`. Protect every link required by `inline_required` or `section_source_allowed`; this agent may flag redundancy but must not reclassify a claim or assign `proof_not_required`.
+
 ### Link Placement Strategy
 
 #### Ideal Link Placement Locations
@@ -85,7 +101,7 @@ Feature and solution links must use function-bearing anchor text that explains t
 - "Related reading" or "next steps" suggestions
 - Link to logical follow-up content
 - Product/tool pages as solutions to problems discussed
-- Include only the conclusion links that support the planned next step; do not impose a fixed maximum
+- Include only the conclusion links that support the planned next step; keep the article within the 3 to 5 standard-blog target and never exceed the 7-link maximum
 
 **4. List Items** (Natural Fit)
 - When listing tools, features, or strategies with dedicated pages
@@ -148,9 +164,10 @@ Feature and solution links must use function-bearing anchor text that explains t
 
 ### Link Selection Guidelines
 
-- Select links from reader intent, article objective, query ownership, and the final section plan, without a minimum, optimum, or maximum count.
-- Include the required contextual down-funnel link with destination-matched anchor text.
+- Select links from reader intent, article objective, query ownership, and the final section plan while targeting 3 to 5 internal links for standard blogs.
+- Include the required contextual down-funnel link with destination-matched anchor text; count it toward the 3 to 5 internal links.
 - Add pillar, related-blog, product, tool, or resource links only when they help the reader take the next relevant action.
+- Do not recommend links merely to reach a quota, and never exceed 7 internal links.
 
 ### Topic Cluster Awareness
 

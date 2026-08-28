@@ -116,6 +116,52 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
             seo_quality_rater_module.SEO_TARGET_SCORE,
         )
 
+    def test_seo_score_honors_exact_internal_link_override_from_sidecar(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            sidecar = root / "validation.md"
+            sidecar.write_text(
+                "\n".join(
+                    [
+                        "## Link inventory and internal link decision",
+                        "- Override scope: `pre_faq_body`.",
+                        "- Override interpretation: exact_count `2` governs the two brief-selected supporting links and suppresses independently derived industry and down-funnel requirements not included in the bound brief.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            body = (
+                "# Texas Plumbing License Guide\n\n"
+                "Texas plumbing license decisions start with the state credential path.\n\n"
+                "## Practical records\n\n"
+                + (
+                    "Use a simple folder for applications, renewals, exams, and records. "
+                    "Keep each document name clear and easy to scan. "
+                )
+                * 40
+                + "\n\n"
+                "[plumbing training and licensing resources](https://www.simprogroup.com/blog/informational-resources-for-plumbing-contractors)\n"
+                "[grow a plumbing business](https://www.simprogroup.com/blog/how-to-grow-plumbing-business)\n"
+            )
+
+            result = ContentScorer()._score_seo(
+                body,
+                {
+                    "meta_title": "Texas Plumbing License Requirements Guide | Simpro",
+                    "meta_description": (
+                        "Texas plumbing license steps, records, renewals, and practical planning "
+                        "help plumbers choose the right credential path with less rework."
+                    ),
+                    "primary_keyword": "Texas plumbing license",
+                },
+                proof_sidecar=str(sidecar),
+            )
+
+        issue_text = "\n".join(issue["issue"] for issue in result["issues"])
+        self.assertGreaterEqual(result["score"], 90)
+        self.assertNotIn("Too few internal links", issue_text)
+        self.assertNotIn("down-funnel internal link", issue_text)
+
     def test_legacy_70_score_no_longer_meets_quality_threshold(self):
         scorer = ContentScorer()
 
@@ -801,6 +847,13 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
         self.assertIn("faq_proof", result["quality_gates"])
         self.assertFalse(result["quality_gates"]["faq_proof"]["passed"])
         self.assertIn("FAQ proof blockers detected", result["priority_fixes"][0]["issue"])
+        faq_fix = result["priority_fixes"][0]["fix"]
+        self.assertIn("citation_mode", faq_fix)
+        self.assertIn("inline_required", faq_fix)
+        self.assertIn("first visible answer paragraph", faq_fix)
+        self.assertIn("natural", faq_fix)
+        self.assertIn("quota-only", faq_fix)
+        self.assertNotIn("or add question-specific", faq_fix)
 
     def test_source_support_failure_blocks_content_scorer_when_enabled(self):
         scorer = ContentScorer()

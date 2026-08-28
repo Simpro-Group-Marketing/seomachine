@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from data_sources.modules import semrush_keyword_decision_guard
 from data_sources.modules.blog_assembly_stage_receipt import (
     build_stage_receipt,
@@ -50,6 +52,26 @@ def _article(path: Path, *, author: str | None = "Corey O'Donnell") -> Path:
             "Field service scheduling guidance for dispatch capacity decisions.",
         ]
     )
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+def _nonconnector_article(path: Path, brand: str, *, author: str | None = "Brian Paul") -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        "---",
+        "artifact_type: blog",
+        f"brand: {brand}",
+        "title: Field service scheduling guide",
+        "objective: Help operations leaders choose a scheduling workflow.",
+        "audience: Field service operations leaders",
+        "region: US",
+        "last_updated: 2026-08-20",
+        "primary_keyword: field service scheduling",
+    ]
+    if author:
+        lines.append(f"author: {author}")
+    lines.extend(["---", "# Field service scheduling guide", "", "Field service scheduling guidance for dispatch capacity decisions."])
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path
 
@@ -104,11 +126,11 @@ def _keyword_decision(
     return _write_json(path, payload)
 
 
-def _scrub_receipt(path: Path, article: Path) -> Path:
+def _scrub_receipt(path: Path, article: Path, *, stage: str = "scrub") -> Path:
     article_hash = hashlib.sha256(article.read_bytes()).hexdigest()
     receipt = build_stage_receipt(
         run_id="run-preflight",
-        stage="scrub",
+        stage=stage,
         tool_name="content_scrubber",
         tool_version="1.0.0",
         started_at="2026-08-20T12:00:00Z",
@@ -185,6 +207,11 @@ def _paths(tmp_path: Path, *, author: str | None = "Corey O'Donnell") -> dict[st
     }
 
 
+def _drop_connector_artifacts(paths: dict[str, Any]) -> None:
+    for key in ("context_request", "context_pack", "context_receipt", "customer_proof_evidence"):
+        paths.pop(key)
+
+
 def _rule_ids(report: dict[str, object]) -> set[str]:
     return {str(blocker["rule_id"]) for blocker in report["blockers"] if isinstance(blocker, dict)}
 
@@ -215,6 +242,18 @@ def test_preflight_blocks_semrush_api_fallback_surface(tmp_path: Path):
     assert report["ready_for_bom"] is False
     assert "semrush_ui_surface_missing" in _rule_ids(report)
     assert "semrush_api_fallback_prohibited" in _rule_ids(report)
+
+
+def test_preflight_accepts_legacy_authenticated_main_chrome_semrush_surface(tmp_path: Path):
+    paths = _paths(tmp_path)
+    paths["keyword_decision"] = _keyword_decision(
+        tmp_path / "research" / "legacy-ui-keyword.json",
+        execution_surface="authenticated_semrush_ui_in_main_chrome",
+    )
+
+    report = build_preflight_report(**paths, assembly_date="2026-08-20")
+
+    assert "semrush_ui_surface_missing" not in _rule_ids(report)
 
 
 def test_preflight_records_explicit_semrush_ui_refresh_blocker(tmp_path: Path):
@@ -270,6 +309,61 @@ def test_preflight_blocks_missing_bom_dependencies(tmp_path: Path):
     assert "editorial_plan_missing" in _rule_ids(report)
     assert "serp_evidence_missing" in _rule_ids(report)
     assert "stage_receipts_missing" in _rule_ids(report)
+
+
+@pytest.mark.parametrize("brand", ("AroFlo", "BigChange", "ClockShark"))
+def test_preflight_allows_nonconnector_article_without_context_or_vault_artifacts(
+    tmp_path: Path,
+    brand: str,
+):
+    paths = _paths(tmp_path)
+    paths["article"] = _nonconnector_article(paths["article"], brand)
+    paths["scrub_receipt"] = _scrub_receipt(
+        tmp_path / "research" / "scrub-nonconnector.json",
+        paths["article"],
+    )
+    paths["stage_receipts"] = [paths["scrub_receipt"]]
+    _drop_connector_artifacts(paths)
+
+    report = build_preflight_report(**paths, assembly_date="2026-08-20")
+
+    assert report["ready_for_bom"] is True
+    assert "context_request_missing" not in _rule_ids(report)
+    assert "context_pack_missing" not in _rule_ids(report)
+    assert "context_receipt_missing" not in _rule_ids(report)
+    assert "customer_proof_selector_evidence_missing" not in _rule_ids(report)
+
+
+@pytest.mark.parametrize(
+    ("argument", "rule_id"),
+    (
+        ("customer_proof_evidence", "nonconnector_customer_proof_evidence_unexpected"),
+        ("fred_authority_evidence", "nonconnector_fred_authority_evidence_unexpected"),
+    ),
+)
+def test_preflight_rejects_vault_dependent_artifacts_for_nonconnector_article(
+    tmp_path: Path,
+    argument: str,
+    rule_id: str,
+):
+    paths = _paths(tmp_path)
+    paths["article"] = _nonconnector_article(paths["article"], "ClockShark")
+    _drop_connector_artifacts(paths)
+    paths[argument] = _write_json(tmp_path / "research" / f"{argument}.json", {"schema": "fixture"})
+
+    report = build_preflight_report(**paths, assembly_date="2026-08-20")
+
+    assert report["ready_for_bom"] is False
+    assert rule_id in _rule_ids(report)
+
+
+def test_preflight_rejects_context_artifacts_for_nonconnector_article(tmp_path: Path):
+    paths = _paths(tmp_path)
+    paths["article"] = _nonconnector_article(paths["article"], "BigChange", author=None)
+
+    report = build_preflight_report(**paths, assembly_date="2026-08-20")
+
+    assert "nonconnector_context_artifact_unexpected" in _rule_ids(report)
 
 
 def test_preflight_accepts_no_fit_customer_proof_evidence_and_still_requires_run(tmp_path: Path):
@@ -359,6 +453,22 @@ def test_preflight_accepts_recorded_no_author_policy_without_expertise_path(tmp_
     assert report["ready_for_bom"] is True
     assert "expertise_path_missing" not in _rule_ids(report)
     assert report["required_human_inputs"] == []
+
+
+def test_preflight_accepts_post_optimization_scrub_receipt(tmp_path: Path):
+    paths = _paths(tmp_path)
+    post_scrub = _scrub_receipt(
+        tmp_path / "research" / "post-optimization-scrub.json",
+        paths["article"],
+        stage="post_optimization_scrub",
+    )
+    paths["scrub_receipt"] = post_scrub
+    paths["stage_receipts"] = [post_scrub]
+
+    report = build_preflight_report(**paths, assembly_date="2026-08-20")
+
+    assert report["ready_for_bom"] is True
+    assert "stage_receipt_stage_mismatch" not in _rule_ids(report)
 
 
 def test_preflight_blocks_unrecorded_missing_author_policy(tmp_path: Path):

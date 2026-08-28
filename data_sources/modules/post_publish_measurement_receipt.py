@@ -419,7 +419,11 @@ def _validate_final_bom(
     except (OSError, UnicodeError, json.JSONDecodeError) as error:
         raise ValueError("final_bom must be readable JSON") from error
     if not isinstance(bom, Mapping):
-        raise ValueError("final_bom must be a strict final simpro-blog-assembly-bom/v1 artifact")
+        raise ValueError(
+            "final_bom must be a strict final "
+            f"{blog_assembly_bom_guard.BOM_SCHEMA_V2} artifact or an archived final "
+            f"{blog_assembly_bom_guard.BOM_SCHEMA_V1} artifact"
+        )
     artifacts = bom.get("artifacts")
     if not isinstance(artifacts, Mapping) or artifacts.get("article") != dict(article):
         raise ValueError("final_bom.artifacts.article must exactly match the article snapshot")

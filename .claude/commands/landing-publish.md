@@ -39,7 +39,7 @@ Before publishing, ensure:
 1. Full publish readiness passes with the current context request, pack, and receipt
 2. No critical issues remain
 3. All required metadata is present
-4. Content has been scrubbed for AI watermarks
+4. Content has passed scrub and AI-copy lint checks
 
 ## File Format Requirements
 
@@ -182,7 +182,7 @@ Before running this command, verify:
 - [ ] URL slug is clean and short
 
 ### Technical
-- [ ] Content scrubbed for AI watermarks
+- [ ] Content passed scrub and AI-copy lint checks
 - [ ] Full publish-readiness stack passed with current context request, pack, and receipt
 - [ ] No critical issues
 - [ ] Proper markdown formatting

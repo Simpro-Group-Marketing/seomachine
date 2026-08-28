@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -172,6 +174,7 @@ def check_file(
     *,
     fail_on: str = "error",
     proof_sidecar: str | Path | None = None,
+    editorial_plan: str | Path | Mapping[str, Any] | None = None,
     **_: Any,
 ) -> list[Finding]:
     """Read one Markdown artifact and return industry cluster findings."""
@@ -185,7 +188,11 @@ def check_file(
                 suggestion="Regenerate the article artifact before publish readiness.",
             )
         ]
-    return check_content(content, fail_on=fail_on)
+    return check_content(
+        content,
+        plan=_load_plan(editorial_plan),
+        fail_on=fail_on,
+    )
 
 
 def context_findings(
@@ -194,9 +201,10 @@ def context_findings(
     request: Mapping[str, Any] | None,
     pack: Mapping[str, Any] | None,
     receipt: Mapping[str, Any] | None,
+    plan: Mapping[str, Any] | None = None,
 ) -> list[Finding]:
     """Validate the required vertical lane in context artifacts."""
-    policy = resolve_required_policy(content=content)
+    policy = resolve_required_policy(content=content, plan=plan)
     if policy is None:
         return []
     findings: list[Finding] = []
@@ -250,6 +258,8 @@ def editorial_plan_findings(plan: Mapping[str, Any], *, brand: str | None) -> li
                     "industry_cluster_link_policy must be an object when present.",
                 )
             ]
+        if link_policy_override_prohibits_industry_link(plan):
+            return _suppressed_industry_policy_findings(plan, declared)
         if declared.get("status") != "not_applicable":
             return [
                 _plan_finding(
@@ -276,6 +286,77 @@ def editorial_plan_findings(plan: Mapping[str, Any], *, brand: str | None) -> li
             )
         ]
     findings: list[Finding] = []
+    if link_policy_override_prohibits_industry_link(plan):
+        expected_suppressed_fields = {
+            "status",
+            "industry",
+            "target",
+            "anchor",
+            "placement",
+            "vault_vertical_query",
+            "required_resource_ids",
+            "rationale",
+        }
+        unknown_suppressed = set(declared) - expected_suppressed_fields
+        if unknown_suppressed:
+            findings.append(
+                _plan_finding(
+                    "editorial_plan_industry_cluster_policy_invalid",
+                    "/industry_cluster_link_policy",
+                    "industry_cluster_link_policy contains unsupported fields: "
+                    + ", ".join(sorted(str(field) for field in unknown_suppressed)),
+                )
+            )
+        if declared.get("status") != "suppressed_by_exact_brief_override":
+            findings.append(
+                _plan_finding(
+                    "editorial_plan_industry_cluster_policy_invalid",
+                    "/industry_cluster_link_policy/status",
+                    "industry_cluster_link_policy.status must be suppressed_by_exact_brief_override.",
+                )
+            )
+        if declared.get("industry") != policy.key:
+            findings.append(
+                _plan_finding(
+                    "editorial_plan_industry_cluster_policy_invalid",
+                    "/industry_cluster_link_policy/industry",
+                    f"industry_cluster_link_policy.industry must be {policy.key}.",
+                )
+            )
+        query = str(declared.get("vault_vertical_query") or "").strip()
+        normalized_query = _normalize_text(query)
+        if policy.key not in normalized_query.split() or not any(
+            term in normalized_query.split() for term in ("industry", "industries", "vertical")
+        ):
+            findings.append(
+                _plan_finding(
+                    "editorial_plan_industry_cluster_policy_invalid",
+                    "/industry_cluster_link_policy/vault_vertical_query",
+                    "vault_vertical_query must explicitly request the matching industry or vertical context.",
+                )
+            )
+        resources = declared.get("required_resource_ids")
+        if not isinstance(resources, list) or not resources or any(
+            not isinstance(resource_id, str) or RESOURCE_ID_RE.fullmatch(resource_id) is None
+            for resource_id in resources
+        ):
+            findings.append(
+                _plan_finding(
+                    "editorial_plan_industry_cluster_policy_invalid",
+                    "/industry_cluster_link_policy/required_resource_ids",
+                    "required_resource_ids must list at least one connector-shaped vault resource ID.",
+                )
+            )
+        rationale = str(declared.get("rationale") or "").casefold()
+        if "brief" not in rationale or "override" not in rationale:
+            findings.append(
+                _plan_finding(
+                    "editorial_plan_industry_cluster_policy_invalid",
+                    "/industry_cluster_link_policy/rationale",
+                    "Suppressed industry cluster policies must cite the brief override rationale.",
+                )
+            )
+        return _sorted(findings)
     expected_fields = {
         "status",
         "industry",
@@ -359,6 +440,88 @@ def editorial_plan_findings(plan: Mapping[str, Any], *, brand: str | None) -> li
     return _sorted(findings)
 
 
+def _suppressed_industry_policy_findings(
+    plan: Mapping[str, Any],
+    declared: Mapping[str, Any],
+) -> list[Finding]:
+    """Validate an industry policy intentionally suppressed by an exact brief override."""
+    findings: list[Finding] = []
+    expected_fields = {
+        "status",
+        "industry",
+        "target",
+        "anchor",
+        "placement",
+        "vault_vertical_query",
+        "required_resource_ids",
+        "rationale",
+    }
+    unknown = set(declared) - expected_fields
+    if unknown:
+        findings.append(
+            _plan_finding(
+                "editorial_plan_industry_cluster_policy_invalid",
+                "/industry_cluster_link_policy",
+                "industry_cluster_link_policy contains unsupported fields: "
+                + ", ".join(sorted(str(field) for field in unknown)),
+            )
+        )
+    if declared.get("status") != "suppressed_by_exact_brief_override":
+        findings.append(
+            _plan_finding(
+                "editorial_plan_industry_cluster_policy_invalid",
+                "/industry_cluster_link_policy/status",
+                "industry_cluster_link_policy.status must be suppressed_by_exact_brief_override.",
+            )
+        )
+    industry = str(declared.get("industry") or "").strip()
+    detected = _detected_policy_keys(plan=plan)
+    expected_industry = detected[0] if len(detected) == 1 else industry
+    if industry != expected_industry or industry not in POLICIES:
+        findings.append(
+            _plan_finding(
+                "editorial_plan_industry_cluster_policy_invalid",
+                "/industry_cluster_link_policy/industry",
+                "industry_cluster_link_policy.industry must match the suppressed single-trade policy.",
+            )
+        )
+    query = str(declared.get("vault_vertical_query") or "").strip()
+    normalized_query = _normalize_text(query)
+    if industry and (
+        industry not in normalized_query.split()
+        or not any(term in normalized_query.split() for term in ("industry", "industries", "vertical"))
+    ):
+        findings.append(
+            _plan_finding(
+                "editorial_plan_industry_cluster_policy_invalid",
+                "/industry_cluster_link_policy/vault_vertical_query",
+                "vault_vertical_query must explicitly request the matching industry or vertical context.",
+            )
+        )
+    resources = declared.get("required_resource_ids")
+    if not isinstance(resources, list) or not resources or any(
+        not isinstance(resource_id, str) or RESOURCE_ID_RE.fullmatch(resource_id) is None
+        for resource_id in resources
+    ):
+        findings.append(
+            _plan_finding(
+                "editorial_plan_industry_cluster_policy_invalid",
+                "/industry_cluster_link_policy/required_resource_ids",
+                "required_resource_ids must list at least one connector-shaped vault resource ID.",
+            )
+        )
+    rationale = str(declared.get("rationale") or "").casefold()
+    if "brief" not in rationale or "override" not in rationale:
+        findings.append(
+            _plan_finding(
+                "editorial_plan_industry_cluster_policy_invalid",
+                "/industry_cluster_link_policy/rationale",
+                "Suppressed industry cluster policies must cite the brief override rationale.",
+            )
+        )
+    return _sorted(findings)
+
+
 def summarize_policy(
     content: str,
     *,
@@ -366,6 +529,11 @@ def summarize_policy(
     context_resource_ids: Sequence[str] = (),
 ) -> dict[str, Any]:
     """Return the deterministic BOM summary for the industry-cluster decision."""
+    if link_policy_override_prohibits_industry_link(plan):
+        return {
+            "status": "not_applicable",
+            "reason": "Valid exact internal-link override explicitly prohibits the industry cluster link.",
+        }
     policy = resolve_required_policy(content=content, plan=plan)
     if policy is None:
         return {
@@ -404,6 +572,8 @@ def resolve_required_policy(
     brand: str | None = None,
 ) -> IndustryPolicy | None:
     """Return the required single-trade policy, or None if not applicable."""
+    if link_policy_override_prohibits_industry_link(plan):
+        return None
     resolved_brand = brand or _brand_from_plan(plan) or _brand_from_content(content)
     if resolved_brand != "simpro":
         return None
@@ -719,6 +889,139 @@ def _normalized_anchor_examples(policy: IndustryPolicy) -> set[str]:
 def _contains_phrase(text: str, phrase: str) -> bool:
     normalized = _normalize_text(phrase)
     return bool(normalized and re.search(rf"(?<![a-z0-9]){re.escape(normalized)}(?![a-z0-9])", text))
+
+
+def _load_plan(value: str | Path | Mapping[str, Any] | None) -> Mapping[str, Any] | None:
+    if isinstance(value, Mapping):
+        return value
+    if value is None:
+        return None
+    try:
+        loaded = json.loads(Path(value).read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return None
+    return loaded if isinstance(loaded, Mapping) else None
+
+
+def _has_valid_link_policy_override(plan: Mapping[str, Any] | None) -> bool:
+    if not isinstance(plan, Mapping):
+        return False
+    override = plan.get("link_policy_override")
+    if not isinstance(override, Mapping):
+        return False
+    expected_fields = {
+        "brief_path",
+        "brief_sha256",
+        "source_sentence",
+        "exact_count",
+        "scope",
+    }
+    if set(override) != expected_fields:
+        return False
+    shape_valid = (
+        isinstance(override.get("brief_path"), str)
+        and bool(str(override.get("brief_path")).strip())
+        and isinstance(override.get("brief_sha256"), str)
+        and re.fullmatch(r"[0-9a-f]{64}", str(override.get("brief_sha256"))) is not None
+        and isinstance(override.get("source_sentence"), str)
+        and bool(str(override.get("source_sentence")).strip())
+        and isinstance(override.get("exact_count"), int)
+        and not isinstance(override.get("exact_count"), bool)
+        and 0 < int(override.get("exact_count")) <= 7
+        and override.get("scope") == "pre_faq_body"
+    )
+    if not shape_valid or not link_policy_override_count_supported(
+        str(override.get("source_sentence")),
+        int(override.get("exact_count")),
+    ):
+        return False
+    brief_path = Path(str(override.get("brief_path")))
+    if not brief_path.is_absolute():
+        brief_path = Path.cwd() / brief_path
+    try:
+        brief_bytes = brief_path.read_bytes()
+        brief_text = brief_bytes.decode("utf-8")
+    except (OSError, UnicodeError):
+        return False
+    if hashlib.sha256(brief_bytes).hexdigest() != override.get("brief_sha256"):
+        return False
+    return _normalize_policy_sentence(str(override.get("source_sentence"))) in _normalize_policy_sentence(
+        brief_text
+    )
+
+
+def link_policy_override_count_supported(source_sentence: str, exact_count: int) -> bool:
+    """Return whether an explicit brief sentence permits the selected exact count."""
+    if not isinstance(exact_count, int) or isinstance(exact_count, bool):
+        return False
+    if exact_count <= 0 or exact_count > 7:
+        return False
+    normalized = _normalize_policy_sentence(source_sentence)
+    if "link" not in normalized:
+        return False
+    token_pattern = r"(?:[1-7]|one|two|three|four|five|six|seven)"
+    exact_match = re.search(rf"\bexactly\s+({token_pattern})\b", normalized)
+    if exact_match:
+        return _policy_number(exact_match.group(1)) == exact_count
+    only_match = re.search(
+        rf"\bonly\s+(?:these\s+)?({token_pattern})\b.*\binternal\s+links?\b",
+        normalized,
+    )
+    if only_match:
+        return _policy_number(only_match.group(1)) == exact_count
+    range_match = re.search(
+        rf"\b({token_pattern})\s*(?:-|to|through)\s*({token_pattern})\b",
+        normalized,
+    )
+    if range_match:
+        lower = _policy_number(range_match.group(1))
+        upper = _policy_number(range_match.group(2))
+        return lower is not None and upper is not None and lower <= exact_count <= upper
+    upper_match = re.search(rf"\bup to\s+({token_pattern})\b", normalized)
+    if upper_match:
+        upper = _policy_number(upper_match.group(1))
+        return upper is not None and exact_count <= upper
+    return False
+
+
+def link_policy_override_prohibits_industry_link(plan: Mapping[str, Any] | None) -> bool:
+    """Return whether a valid override explicitly opts out of the industry link."""
+    if not _has_valid_link_policy_override(plan):
+        return False
+    override = plan.get("link_policy_override") if isinstance(plan, Mapping) else None
+    sentence = _normalize_policy_sentence(str(override.get("source_sentence") or ""))
+    explicit_prohibitions = (
+        "do not include the industry page",
+        "do not include an industry page",
+        "do not link to the industry page",
+        "do not link to an industry page",
+        "exclude the industry page",
+        "exclude an industry page",
+        "omit the industry page",
+        "omit an industry page",
+        "no industry page link",
+        "no industry link",
+    )
+    if any(phrase in sentence for phrase in explicit_prohibitions):
+        return True
+    return False
+
+
+def _policy_number(value: str) -> int | None:
+    words = {
+        "one": 1,
+        "two": 2,
+        "three": 3,
+        "four": 4,
+        "five": 5,
+        "six": 6,
+        "seven": 7,
+    }
+    return int(value) if value.isdigit() else words.get(value)
+
+
+def _normalize_policy_sentence(value: str) -> str:
+    return re.sub(r"\s+", " ", value.casefold().replace("–", "-").replace("—", "-")).strip()
 
 
 def _finding(

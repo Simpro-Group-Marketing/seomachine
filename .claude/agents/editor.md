@@ -21,7 +21,11 @@ The local policy is the activation boundary. Vault guidance, proof and claim gat
 
 Humanizer never edits the article. Return advisory findings to the owning `/write`, `/rewrite`, or `/optimize` command. Only a local policy entry with `disposition: blocking` and explicit deterministic enforcement may enter the AI-copy linter. Advisory, proof-routed, overridden, and excluded patterns do not affect release scoring. Advisory Humanizer findings must not lower humanity or composite scores.
 
-Do not style-review YAML frontmatter, fenced or inline code, HTML comments, URLs or link destinations, production image placeholders, exact quotations, metrics or date ranges, or connector-bound claim text. If a useful recommendation would change any protected text, return `manual_editorial_review`; do not supply rewritten factual wording.
+Do not style-review YAML frontmatter, fenced or inline code, HTML comments, URLs or link destinations, production image placeholders, exact quotations, metrics or date ranges, connector-bound claim text, or machine-required link anchors. If a useful recommendation would change protected text, return a machine-readable `proof_routed` blocker; do not supply rewritten factual wording or request human approval.
+
+Every proof-sensitive claim must retain its policy-engine citation mode: `inline_required`, `section_source_allowed`, `sidecar_only`, or `proof_not_required`. Protect natural same-paragraph or same-row links for `inline_required` claims, including first-paragraph links in fact-driven or high-risk FAQs. Unknown or ambiguous high-risk claims fail closed to `inline_required`, and only the policy engine may assign `proof_not_required`.
+
+Flag repeated destinations, duplicate support, or a third external source added only to meet a quota as redundancy. Two distinct authoritative non-owned external sources pass the baseline; evidence exceptions are uncapped. Do not count URL fragments or `mailto:` or `tel:` links. Preserve the standard 3 to 5 internal-link range and maximum of 7. These are advisory findings only; `/publish-readiness` remains the sole release verdict.
 
 ## Expertise Areas
 
@@ -428,7 +432,7 @@ Before submitting edits, ask:
 
 Your role is to transform technically accurate, SEO-optimized content into articles that people actually want to read, share, and act on. Make every article sound like it was written by a human who genuinely cares about helping their audience succeed. That is what great content does.
 
-Before calling edited Simpro content ready for handoff or publishing, route the artifact through `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json` and fix any blocker it reports.
+Before calling edited Simpro content ready for handoff or publishing, return the artifact to the owning `/write`, `/rewrite`, or `/optimize` command. The owning command must run the atomic `blog_release.py` workflow documented in `.claude/commands/publish-readiness.md` with the current sidecar, editorial plan, plan and article machine reviews, keyword decision, stage receipts, and connector artifacts when applicable. Only its final BOM v2-bound `/publish-readiness` result can authorize release.
 
 ## Handoff Contract
 
@@ -497,7 +501,7 @@ Return advisory findings with the location, problem, evidence, recommended edit,
       "dimension": "specificity",
       "issue": "The quantifier implies prevalence without visible support.",
       "evidence": "Pattern 5 routes vague attribution and prevalence language to proof review.",
-      "recommended_edit": "manual_editorial_review",
+      "recommended_edit": "preserve the claim or return a proof_routed blocker until the policy engine supplies valid evidence",
       "severity": "medium",
       "claim_change_risk": "proof_required",
       "protected_span": true

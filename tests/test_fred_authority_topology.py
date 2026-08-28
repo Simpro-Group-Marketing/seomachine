@@ -149,7 +149,7 @@ def test_guard_validates_selected_source_from_receipt_without_using_evidence_anc
     article = (
         "## Workforce technology\n\n"
         "Fred Voccola discusses workforce technology in this "
-        "[source](https://example.com/skilled-trades).\n"
+        "[skilled trades workforce interview](https://example.com/skilled-trades).\n"
     )
 
     with patch(

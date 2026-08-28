@@ -41,13 +41,19 @@ except ImportError:  # pragma: no cover - supports direct script execution.
 
 EXACT_QUOTE_RE = re.compile(r'["\u201c](?P<quote>[^"\u201d]{20,})["\u201d]')
 
+CONNECTOR_PROOF_CONTEXT_RE = re.compile(
+    r"\b(?:Simpro|Fred(?:\s+Voccola)?|customers?|case stud(?:y|ies)|"
+    r"Capterra|G2|GetApp|Software Advice|Trustpilot|reviewers?|reviews)\b|"
+    r"https?://[^\s)]+simprogroup\.com/(?:customers?|case-stud(?:y|ies))/",
+    re.IGNORECASE,
+)
 REVIEW_THEME_RE = re.compile(
-    r"\b(?:Capterra|G2|GetApp|Software Advice|Trustpilot|reviewers?|reviews?)\b"
+    r"\b(?:Capterra|G2|GetApp|Software Advice|Trustpilot|reviewers?|reviews)\b"
     r".{0,120}\b(?:describe|described|report|reported|say|says|said|praise|"
     r"praised|mention|mentioned|highlight|highlighted|cite|cited|note|noted)\b"
     r"|\b(?:describe|described|report|reported|say|says|said|praise|praised|"
     r"mention|mentioned|highlight|highlighted|cite|cited|note|noted)\b"
-    r".{0,120}\b(?:Capterra|G2|GetApp|Software Advice|Trustpilot|reviewers?|reviews?)\b",
+    r".{0,120}\b(?:Capterra|G2|GetApp|Software Advice|Trustpilot|reviewers?|reviews)\b",
     re.IGNORECASE,
 )
 CUSTOMER_PROOF_RE = re.compile(
@@ -149,12 +155,13 @@ def find_proof_obligations(article_content: str) -> list[ProofObligation]:
         if not visible:
             continue
         quote = _exact_quote(visible)
-        if quote:
+        connector_sensitive = _is_connector_sensitive_proof_context(visible)
+        if quote and connector_sensitive:
             obligations.append(_obligation("exact_quote", quote, paragraph.line))
             continue
         if _is_candidate_claim(raw) and _extract_numeric_tokens(
             _claim_text_for_detection(raw)
-        ):
+        ) and connector_sensitive:
             obligations.append(_obligation("metric", visible, paragraph.line))
             continue
         if REVIEW_THEME_RE.search(visible):
@@ -166,6 +173,11 @@ def find_proof_obligations(article_content: str) -> list[ProofObligation]:
         if COMMERCIAL_CLAIM_RE.search(visible):
             obligations.append(_obligation("commercial_claim", visible, paragraph.line))
     return obligations
+
+
+def _is_connector_sensitive_proof_context(text: str) -> bool:
+    """Return true when a public passage needs connector-backed proof approval."""
+    return bool(CONNECTOR_PROOF_CONTEXT_RE.search(text))
 
 
 def _obligation(kind: str, passage: str, line: int) -> ProofObligation:

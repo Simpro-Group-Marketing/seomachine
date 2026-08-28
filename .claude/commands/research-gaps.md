@@ -21,16 +21,17 @@ For each gap:
 
 Execute the competitor gap analysis:
 ```bash
-python3 research_competitor_gaps.py
+python scripts/research_competitor_gaps.py
 ```
 
 This will:
-1. Fetch your current ranking keywords from GSC
-2. Analyze each competitor's top 20 ranking keywords
-3. Identify gaps (they rank, you don't)
-4. Enrich with search volume, difficulty, SERP features
-5. Score and prioritize opportunities
-6. Generate report: `research/competitor-gaps-YYYY-MM-DD.md`
+1. Load competitors from repository-root `config/competitors.json`. If missing, copy `config/competitors.example.json` to `config/competitors.json` and fill in direct competitors, content competitors, and relevant terms.
+2. Fetch your current ranking keywords from GSC
+3. Analyze each competitor's top 20 ranking keywords
+4. Identify gaps (they rank, you don't)
+5. Enrich with search volume, difficulty, SERP features
+6. Score and prioritize opportunities
+7. Generate report: `research/competitor-gaps-YYYY-MM-DD.md`
 
 ## Output
 

@@ -10,6 +10,8 @@ import os
 import sys
 import json
 from datetime import datetime
+from functools import lru_cache
+from pathlib import Path
 from typing import List, Dict, Any
 from dotenv import load_dotenv
 
@@ -25,18 +27,36 @@ from modules.opportunity_scorer import OpportunityScorer, OpportunityType  # noq
 from modules.search_intent_analyzer import SearchIntentAnalyzer  # noqa: E402
 
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_competitor_config(*, required: bool = False) -> dict[str, Any]:
+    """Load competitor configuration from the repository root."""
+    config_path = REPO_ROOT / "config" / "competitors.json"
+    if config_path.exists():
+        with config_path.open(encoding="utf-8") as handle:
+            config = json.load(handle)
+        if not isinstance(config, dict):
+            raise ValueError("config/competitors.json must contain a JSON object")
+        return config
+    message = (
+        "config/competitors.json not found. Copy "
+        "config/competitors.example.json to config/competitors.json and fill in "
+        "direct_competitors, content_competitors, and relevant_terms."
+    )
+    if required:
+        raise FileNotFoundError(message)
+    print(f"WARNING: {message}")
+    return {}
+
+
 def load_competitors():
     """Load competitor lists from config file."""
-    config_path = os.path.join(os.path.dirname(__file__), 'config', 'competitors.json')
-    if os.path.exists(config_path):
-        with open(config_path) as f:
-            config = json.load(f)
-        return config.get('direct_competitors', []), config.get('content_competitors', [])
-    print("WARNING: config/competitors.json not found. See config/competitors.example.json")
-    return [], []
+    config = load_competitor_config()
+    return config.get('direct_competitors', []), config.get('content_competitors', [])
 
 
-DIRECT_COMPETITORS, CONTENT_COMPETITORS = load_competitors()
+DIRECT_COMPETITORS, CONTENT_COMPETITORS = [], []
 
 
 def main():
@@ -46,6 +66,15 @@ def main():
     print(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print("Strategy: Find keywords competitors rank for that we don't")
     print("=" * 80)
+    try:
+        config = load_competitor_config(required=True)
+    except (OSError, ValueError) as error:
+        print(f"\nCONFIG ERROR: {error}")
+        return 2
+    global DIRECT_COMPETITORS, CONTENT_COMPETITORS
+    DIRECT_COMPETITORS = config.get('direct_competitors', [])
+    CONTENT_COMPETITORS = config.get('content_competitors', [])
+    load_relevant_terms.cache_clear()
 
     # Initialize clients
     print("\n1. Initializing data sources...")
@@ -232,7 +261,7 @@ def main():
         print("-" * 80)
         print(f"Competitor: {gap['competitor']} (position {gap['competitor_position']})")
         print(f"Search Volume: {gap.get('search_volume', 'Unknown')}/month")
-        print(f"Difficulty: {gap.get('difficulty', 'Unknown')}/100")
+        print(f"Difficulty: {display_metric(gap.get('difficulty'))}/100")
         print(f"Search Intent: {gap.get('search_intent', 'unknown')}")
         print(f"Content Type Needed: {gap.get('content_type', 'Guide')}")
         print(f"Opportunity Score: {gap['opportunity_score']:.2f}/100")
@@ -284,19 +313,9 @@ def is_relevant_keyword(keyword: str) -> bool:
     if len(keyword) < 4:
         return False
 
-    # Industry-relevant terms - customize for your niche
-    # Load from config if available, otherwise accept all keywords
-    config_path = os.path.join(os.path.dirname(__file__), 'config', 'competitors.json')
-    if os.path.exists(config_path):
-        with open(config_path) as f:
-            config = json.load(f)
-        relevant_terms = config.get('relevant_terms', [])
-        if not relevant_terms:
-            return True  # No filter configured, accept all
-    else:
-        return True  # No config, accept all
-
-    relevant_terms = [t.lower() for t in relevant_terms]
+    relevant_terms = load_relevant_terms()
+    if not relevant_terms:
+        return True  # No filter configured, accept all
 
     # Check if keyword contains any relevant terms
     if not any(term in keyword_lower for term in relevant_terms):
@@ -312,6 +331,33 @@ def is_relevant_keyword(keyword: str) -> bool:
         return False
 
     return True
+
+
+@lru_cache(maxsize=1)
+def load_relevant_terms() -> tuple[str, ...]:
+    """Return lower-cased relevant terms from repo-root config, loaded once."""
+    config = load_competitor_config()
+    terms = config.get('relevant_terms', [])
+    if not isinstance(terms, list):
+        return ()
+    return tuple(
+        str(term).strip().lower()
+        for term in terms
+        if isinstance(term, str) and term.strip()
+    )
+
+
+def display_metric(value: Any) -> str:
+    """Display numeric keyword metrics without hiding real zero values."""
+    if value is None:
+        return "Unknown"
+    return str(value)
+
+
+def _difficulty_or_default(value: Any, default: int = 100) -> float:
+    if isinstance(value, (int, float)):
+        return float(value)
+    return float(default)
 
 
 def determine_content_type(keyword: str, serp_features: List[str]) -> str:
@@ -403,7 +449,7 @@ def write_markdown_report(gaps: List[Dict[str, Any]], total_found: int):
 
             f.write("#### Keyword Metrics\n\n")
             f.write(f"- **Search Volume:** {gap.get('search_volume', 'Unknown')}/month\n")
-            f.write(f"- **SEO Difficulty:** {gap.get('difficulty', 'Unknown')}/100\n")
+            f.write(f"- **SEO Difficulty:** {display_metric(gap.get('difficulty'))}/100\n")
             if gap.get('cpc'):
                 f.write(f"- **CPC:** ${gap['cpc']:.2f}\n")
             f.write(f"- **Search Intent:** {gap.get('search_intent', 'unknown')}\n")
@@ -437,16 +483,16 @@ def write_markdown_report(gaps: List[Dict[str, Any]], total_found: int):
         f.write("### Phase 1: Quick Wins (Weeks 1-2)\n")
         f.write("Focus on CRITICAL priority gaps with lower difficulty:\n\n")
 
-        quick_wins = [g for g in critical if g.get('difficulty', 100) < 50][:5]
+        quick_wins = [g for g in critical if _difficulty_or_default(g.get('difficulty')) < 50][:5]
         for i, gap in enumerate(quick_wins, 1):
-            f.write(f"{i}. **{gap['keyword']}** - Difficulty: {gap.get('difficulty', 'Unknown')}, Volume: {gap.get('search_volume', 'Unknown')}\n")
+            f.write(f"{i}. **{gap['keyword']}** - Difficulty: {display_metric(gap.get('difficulty'))}, Volume: {display_metric(gap.get('search_volume'))}\n")
 
         f.write("\n### Phase 2: High-Value Targets (Weeks 3-6)\n")
         f.write("Target HIGH priority gaps with strong search volume:\n\n")
 
         high_value = [g for g in high if g.get('search_volume', 0) > 500][:5]
         for i, gap in enumerate(high_value, 1):
-            f.write(f"{i}. **{gap['keyword']}** - Volume: {gap.get('search_volume', 'Unknown')}, Difficulty: {gap.get('difficulty', 'Unknown')}\n")
+            f.write(f"{i}. **{gap['keyword']}** - Volume: {display_metric(gap.get('search_volume'))}, Difficulty: {display_metric(gap.get('difficulty'))}\n")
 
         f.write("\n### Phase 3: Content Clusters (Weeks 7+)\n")
         f.write("Build topical authority by creating content clusters around related gaps.\n\n")
@@ -454,11 +500,23 @@ def write_markdown_report(gaps: List[Dict[str, Any]], total_found: int):
         f.write("## Key Insights\n\n")
 
         # Analyze patterns
-        total_volume = sum(g.get('search_volume', 0) for g in gaps if g.get('search_volume'))
-        avg_difficulty = sum(g.get('difficulty', 0) for g in gaps if g.get('difficulty')) / len([g for g in gaps if g.get('difficulty')])
+        total_volume = sum(g.get('search_volume', 0) for g in gaps if g.get('search_volume') is not None)
+        difficulty_values = [
+            g.get('difficulty')
+            for g in gaps
+            if isinstance(g.get('difficulty'), (int, float))
+        ]
+        avg_difficulty = (
+            sum(difficulty_values) / len(difficulty_values)
+            if difficulty_values
+            else None
+        )
 
         f.write(f"- **Total Potential Search Volume:** {total_volume:,}/month\n")
-        f.write(f"- **Average SEO Difficulty:** {avg_difficulty:.1f}/100\n")
+        if avg_difficulty is None:
+            f.write("- **Average SEO Difficulty:** Unknown\n")
+        else:
+            f.write(f"- **Average SEO Difficulty:** {avg_difficulty:.1f}/100\n")
 
         # Content type breakdown
         content_types = {}
@@ -484,4 +542,4 @@ def write_markdown_report(gaps: List[Dict[str, Any]], total_found: int):
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

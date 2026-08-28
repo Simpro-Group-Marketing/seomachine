@@ -7,7 +7,7 @@ import json
 import re
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence
-from urllib.parse import parse_qs, urlparse, urlsplit, urlunsplit
+from urllib.parse import parse_qs, urlparse
 
 from bs4 import BeautifulSoup
 
@@ -22,6 +22,7 @@ try:
     from .context_binding_guard import visible_public_content
     from .frontmatter import FrontmatterError
     from .guard_common import Finding, make_finding, should_fail, summarize_findings
+    from .proof_link_policy import canonicalize_link_identity, is_generic_proof_anchor
     from .proof_sidecar import load_sidecar_content
     from .vault_claim_receipts import (
         ValidatedClaimSet,
@@ -39,6 +40,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from context_binding_guard import visible_public_content
     from frontmatter import FrontmatterError
     from guard_common import Finding, make_finding, should_fail, summarize_findings
+    from proof_link_policy import canonicalize_link_identity, is_generic_proof_anchor
     from proof_sidecar import load_sidecar_content
     from vault_claim_receipts import (
         ValidatedClaimSet,
@@ -60,7 +62,7 @@ ATTR_RE = re.compile(
 )
 PUBLIC_URL_RE = re.compile(r"https?://[^\s<>\"']+", re.IGNORECASE)
 MARKDOWN_LINK_RE = re.compile(
-    r"\[[^\]]+\]\(\s*(?:<(?P<angle>https?://[^>]+)>|(?P<plain>https?://[^\s)]+))"
+    r"\[(?P<anchor>[^\]]+)\]\(\s*(?:<(?P<angle>https?://[^>]+)>|(?P<plain>https?://[^\s)]+))"
     r"(?:\s+['\"][^'\"]*['\"])?\s*\)",
     re.IGNORECASE,
 )
@@ -846,11 +848,15 @@ def _visible_fallback_link(content: str, url: str) -> bool:
     visible_content = visible_public_content(content)
     for match in MARKDOWN_LINK_RE.finditer(visible_content):
         candidate = match.group("angle") or match.group("plain") or ""
-        if _normalize_url(candidate) == target:
+        if (
+            _normalize_url(candidate) == target
+            and not is_generic_proof_anchor(match.group("anchor"))
+        ):
             return True
     soup = BeautifulSoup(visible_content, "html.parser")
     return any(
         _normalize_url(str(anchor.get("href") or "")) == target
+        and not is_generic_proof_anchor(anchor.get_text(" ", strip=True))
         for anchor in soup.find_all("a", href=True)
     )
 
@@ -860,8 +866,20 @@ def _paragraph_with_url(content: str, url: str) -> Optional[str]:
     if not target:
         return None
     for paragraph in re.split(r"\n\s*\n", visible_public_content(content)):
-        if any(_normalize_url(candidate) == target for candidate in _public_urls(paragraph)):
-            return paragraph
+        for match in MARKDOWN_LINK_RE.finditer(paragraph):
+            candidate = match.group("angle") or match.group("plain") or ""
+            if (
+                _normalize_url(candidate) == target
+                and not is_generic_proof_anchor(match.group("anchor"))
+            ):
+                return paragraph
+        for anchor in BeautifulSoup(paragraph, "html.parser").find_all("a", href=True):
+            candidate = str(anchor.get("href") or "")
+            if (
+                _normalize_url(candidate) == target
+                and not is_generic_proof_anchor(anchor.get_text(" ", strip=True))
+            ):
+                return paragraph
     return None
 
 
@@ -918,47 +936,8 @@ def _normalize_key(value: str) -> str:
 
 
 def _normalize_url(value: str) -> str:
-    """Canonicalize URL identity without changing path or query semantics.
-
-    Scheme and hostname casing are normalized and HTTP(S) default ports are
-    removed. An empty HTTP(S) root path is treated as ``/``. Non-root trailing
-    slashes remain significant, and path, query, and fragment casing is
-    preserved exactly.
-    """
-    candidate = value.strip()
-    if not candidate:
-        return ""
-    try:
-        parsed = urlsplit(candidate)
-        port = parsed.port
-    except ValueError:
-        return candidate
-    scheme = parsed.scheme.casefold()
-    hostname = parsed.hostname
-    if not scheme or hostname is None:
-        return candidate
-
-    normalized_host = hostname.casefold()
-    if ":" in normalized_host and not normalized_host.startswith("["):
-        normalized_host = f"[{normalized_host}]"
-    default_port = (scheme == "http" and port == 80) or (
-        scheme == "https" and port == 443
-    )
-    if port is not None and not default_port:
-        normalized_host = f"{normalized_host}:{port}"
-    userinfo = parsed.netloc.rsplit("@", 1)[0] + "@" if "@" in parsed.netloc else ""
-    path = parsed.path
-    if scheme in {"http", "https"} and not path:
-        path = "/"
-    return urlunsplit(
-        (
-            scheme,
-            f"{userinfo}{normalized_host}",
-            path,
-            parsed.query,
-            parsed.fragment,
-        )
-    )
+    """Return the shared proof-policy URL identity."""
+    return canonicalize_link_identity(value)
 
 
 def _finding(rule_id: str, line: int, message: str, suggestion: str, *, match: str = "") -> Finding:

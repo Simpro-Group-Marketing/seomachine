@@ -39,6 +39,11 @@ from data_sources.modules.blog_assembly_stage_receipt import (
 from data_sources.modules.blog_assembly_contract import expected_blog_gate_inventory
 from data_sources.modules import blog_assembly_contract
 from data_sources.modules.blog_assembly_bom_guard import check_bom
+from data_sources.modules.machine_review import (
+    AGENT_ROSTER,
+    build_machine_review,
+    write_machine_review,
+)
 
 
 NON_CONNECTOR_REASON_SHA256 = hashlib.sha256(
@@ -465,6 +470,33 @@ def _fixture(
     }
 
 
+def _machine_reviews(tmp_path: Path, paths: dict[str, Path]) -> tuple[Path, Path]:
+    responses = [
+        {"agent": agent, "status": "completed", "findings": []}
+        for agent in AGENT_ROSTER
+    ]
+    reviews: list[Path] = []
+    for phase in ("plan", "article"):
+        review_path = tmp_path / "research" / f"machine-review-{phase}.json"
+        write_machine_review(
+            review_path,
+            build_machine_review(
+                run_id="run-1",
+                workflow_stage="write",
+                phase=phase,
+                command="/write",
+                repository_commit="abc123",
+                editorial_plan_path=paths["editorial_plan"],
+                article_path=paths["article"],
+                proof_sidecar_path=paths["sidecar"],
+                responses=responses,
+                created_at="2026-08-11T14:06:00Z",
+            ),
+        )
+        reviews.append(review_path)
+    return reviews[0], reviews[1]
+
+
 def _build(tmp_path: Path, paths: dict[str, Path], **overrides):
     kwargs = {
         "article_path": paths["article"],
@@ -479,6 +511,16 @@ def _build(tmp_path: Path, paths: dict[str, Path], **overrides):
         "workspace_root": tmp_path,
     }
     kwargs.update(overrides)
+    if "plan_review_path" not in kwargs and "article_review_path" not in kwargs:
+        review_paths = _machine_reviews(
+            tmp_path,
+            {
+                "editorial_plan": Path(kwargs["editorial_plan_path"]),
+                "article": Path(kwargs["article_path"]),
+                "sidecar": Path(kwargs["validation_sidecar_path"]),
+            },
+        )
+        kwargs["plan_review_path"], kwargs["article_review_path"] = review_paths
     context_paths = (
         kwargs.get("context_request_path"),
         kwargs.get("context_pack_path"),
@@ -574,7 +616,8 @@ def test_builder_snapshots_actual_files_as_workspace_relative_paths(tmp_path: Pa
 
     bom = _build(tmp_path, paths)
 
-    assert bom["schema"] == "simpro-blog-assembly-bom/v1"
+    assert bom["schema"] == "simpro-blog-assembly-bom/v2"
+    assert set(bom["machine_reviews"]) == {"plan", "article"}
     assert bom["lifecycle_state"] == "provisional"
     assert bom["workflow_mode"] == "new"
     assert bom["artifacts"]["article"] == {
@@ -1120,6 +1163,68 @@ def test_connector_summary_comes_only_from_structured_validated_result(tmp_path:
     }
     assert "bom_customer_proof_evidence_binding_mismatch" in rules
     assert "bom_fred_evidence_binding_mismatch" in rules
+
+
+def test_check_bom_connector_fallback_passes_bound_plan_to_context_guard(tmp_path: Path):
+    paths = _fixture(tmp_path, brand="Simpro")
+    request = _json(tmp_path / "research" / "context-request.json", {"scope": {}})
+    pack = _json(tmp_path / "research" / "context-pack.json", {"schema": "simpro-product-context-pack/v2"})
+    receipt = _json(tmp_path / "research" / "context-receipt.json", {"schema": "simpro-context-receipt/v1"})
+    selector = _json(tmp_path / "research" / "selector.json", {"status": "complete"})
+    fred = tmp_path / "research" / "fred.md"
+    fred.write_text(
+        "## Fred Voccola Authority Selection\n"
+        "- Evaluation status: completed\n"
+        "- Selected: [none]\n",
+        encoding="utf-8",
+    )
+    paths["sidecar"].write_text(
+        paths["sidecar"].read_text(encoding="utf-8")
+        + f"\n- Selector evidence: research/selector.json | SHA-256: {_sha256(selector)}\n\n"
+        + fred.read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    _refresh_normal_stage_receipts(paths)
+    validated = ContextValidationResult(
+        required=True,
+        findings=(),
+        resource_ids=("resource-1",),
+        approved_claim_ids=("claim-approved",),
+        pack_canonical_sha256="a" * 64,
+        receipt_canonical_sha256="b" * 64,
+        revisions=(("manifest_revision", "manifest-r1"),),
+    )
+
+    with patch(
+        "data_sources.modules.blog_assembly_bom.context_binding_guard.validate_context_artifacts",
+        return_value=validated,
+    ):
+        bom = _build(
+            tmp_path,
+            paths,
+            context_request_path=request,
+            context_pack_path=pack,
+            context_receipt_path=receipt,
+            customer_proof_selector_evidence_path=selector,
+            fred_authority_evidence_path=fred,
+        )
+
+    with patch(
+        "data_sources.modules.blog_assembly_bom_guard.context_binding_guard.validate_context_artifacts",
+        return_value=validated,
+    ) as validate:
+        findings = check_bom(
+            bom,
+            article_path=paths["article"],
+            validation_sidecar_path=paths["sidecar"],
+            context_request_path=request,
+            context_pack_path=pack,
+            context_receipt_path=receipt,
+            workspace_root=tmp_path,
+        )
+
+    assert findings == []
+    assert validate.call_args.kwargs["editorial_plan"]["schema"] == "simpro-blog-editorial-plan/v1"
 
 
 def test_builder_records_industry_cluster_link_policy(tmp_path: Path):
@@ -1677,6 +1782,7 @@ def test_finalize_adds_passed_preflight_without_self_reference(tmp_path: Path):
 
 def test_direct_script_build_cli_uses_the_same_strict_contract(tmp_path: Path):
     paths = _fixture(tmp_path)
+    plan_review, article_review = _machine_reviews(tmp_path, paths)
     output = tmp_path / "research" / "direct-script-bom.json"
     script = Path(__file__).parents[1] / "data_sources" / "modules" / "blog_assembly_bom.py"
 
@@ -1693,6 +1799,10 @@ def test_direct_script_build_cli_uses_the_same_strict_contract(tmp_path: Path):
         str(paths["keyword_decision"]),
         "--serp-evidence",
         str(paths["serp"]),
+        "--plan-review",
+        str(plan_review),
+        "--article-review",
+        str(article_review),
         "--paa-artifact",
         str(paths["paa"]),
     ]
@@ -1731,6 +1841,7 @@ def test_build_cli_rejects_output_collision_without_overwriting_article(
     capsys: pytest.CaptureFixture[str],
 ):
     paths = _fixture(tmp_path)
+    plan_review, article_review = _machine_reviews(tmp_path, paths)
     original = paths["article"].read_bytes()
     arguments = [
         "build",
@@ -1743,6 +1854,10 @@ def test_build_cli_rejects_output_collision_without_overwriting_article(
         str(paths["keyword_decision"]),
         "--serp-evidence",
         str(paths["serp"]),
+        "--plan-review",
+        str(plan_review),
+        "--article-review",
+        str(article_review),
         "--paa-artifact",
         str(paths["paa"]),
     ]

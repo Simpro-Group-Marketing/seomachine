@@ -6,7 +6,7 @@ Apply this rule to every FAQ in a blog draft, rewrite, or published Markdown han
 - Lead with an extractable answer: a supported number or range, named recommendation, definition, concrete action, or explained yes/no response.
 - Do not open with a generic deflection such as `There is no`, `It depends`, `Pricing depends`, `Costs vary`, `We do not know`, `It is unclear`, or `No source ranks`.
 - Put limitations and suitability caveats after the direct answer.
-- Include at least 1 authoritative non-owned public evidence link inside every FAQ answer. A Source Map or FAQ Proof Map can document the same evidence but cannot replace the visible link.
+- Fact-driven or high-risk FAQ claims use `inline_required`: add a natural descriptive anchor to an authoritative non-owned source in the first visible answer paragraph. Lower-risk answers follow their machine-assigned `section_source_allowed`, `sidecar_only`, or `proof_not_required` mode without quota-only links. A Source Map or FAQ Proof Map cannot replace the reader-facing link when `inline_required` applies.
 - Replace or remove a question when no defensible, evidence-backed answer is available.
 
 Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error` and `python data_sources/modules/faq_proof_guard.py [file] --fail-on error`. Both gates run inside `/publish-readiness`. Canonical policy lives in `context/aeo-geo-blog-strategy.md`.

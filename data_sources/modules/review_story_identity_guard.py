@@ -17,9 +17,11 @@ from typing import Dict, Iterable, List, Optional, Sequence
 
 try:
     from .guard_common import Finding, should_fail, summarize_findings
+    from .proof_link_policy import canonicalize_link_identity, is_generic_proof_anchor
     from .proof_sidecar import compose_with_sidecar, load_sidecar_content
 except ImportError:  # pragma: no cover - supports direct script execution.
     from guard_common import Finding, should_fail, summarize_findings
+    from proof_link_policy import canonicalize_link_identity, is_generic_proof_anchor
     from proof_sidecar import compose_with_sidecar, load_sidecar_content
 
 
@@ -43,6 +45,7 @@ NEXT_PROOF_HEADING_RE = re.compile(
 BULLET_FIELD_RE = re.compile(r"^\s*[-*+]\s*(?P<key>[^:]+):\s*(?P<value>.*?)\s*$")
 EXACT_QUOTE_RE = re.compile(r"(?:\"[^\"]{20,}\"|\u201c[^\u201d]{20,}\u201d)")
 URL_RE = re.compile(r"https?://[^\s),|]+", re.IGNORECASE)
+MARKDOWN_LINK_RE = re.compile(r"(?<!!)\[([^\]]+)\]\((https?://[^)]+)\)", re.IGNORECASE)
 REVIEW_SITE_URL_RE = re.compile(
     r"https?://[^\s)]*(?:g2\.com|capterra\.com|softwareadvice\.com|getapp\.com|"
     r"trustradius\.com|gartner(?:digitalmarkets)?\.com|trustpilot\.com|"
@@ -453,9 +456,8 @@ def _review_theme_findings(
 
 def _paragraph_with_url_and_identity(content: str, public_url: str, identity: str) -> Optional[str]:
     normalized_identity = _normalize_text(identity)
-    normalized_url = _normalize_url(public_url)
     for paragraph in _paragraphs(content):
-        if normalized_url not in _normalize_url(paragraph):
+        if not _has_natural_canonical_link(paragraph, public_url):
             continue
         if normalized_identity and normalized_identity in _normalize_text(paragraph):
             return paragraph
@@ -463,11 +465,21 @@ def _paragraph_with_url_and_identity(content: str, public_url: str, identity: st
 
 
 def _paragraph_with_url_and_review_theme(content: str, public_url: str) -> Optional[str]:
-    normalized_url = _normalize_url(public_url)
     for paragraph in _paragraphs(content):
-        if normalized_url and normalized_url in _normalize_url(paragraph) and _paragraph_has_review_signal(paragraph):
+        if _has_natural_canonical_link(paragraph, public_url) and _paragraph_has_review_signal(paragraph):
             return paragraph
     return None
+
+
+def _has_natural_canonical_link(paragraph: str, public_url: str) -> bool:
+    target = canonicalize_link_identity(public_url)
+    if not target:
+        return False
+    return any(
+        not is_generic_proof_anchor(anchor)
+        and canonicalize_link_identity(url) == target
+        for anchor, url in MARKDOWN_LINK_RE.findall(paragraph)
+    )
 
 
 def _paragraph_has_review_signal(paragraph: str) -> bool:
@@ -574,11 +586,11 @@ def _normalize_url(value: str) -> str:
     urls = URL_RE.findall(value)
     if urls:
         value = urls[0]
-    return value.strip().rstrip(".,)").lower()
+    return canonicalize_link_identity(value.strip().rstrip(".,)"))
 
 
 def _is_capterra_reviews_url(value: str) -> bool:
-    normalized = _normalize_url(value).rstrip("/")
+    normalized = _normalize_url(value).rstrip("/").casefold()
     return normalized == "https://www.capterra.com/p/10529/simpro-enterprise/reviews"
 
 

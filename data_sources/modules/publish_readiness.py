@@ -512,6 +512,7 @@ def _run_publish_readiness(
         context_request=context_request_path,
         context_pack=context_pack_path,
         context_receipt=context_receipt_path,
+        editorial_plan=runtime_policy.get("editorial_plan"),
         vault_root=vault_root,
     )
     context_gate = _gate_from_findings(
@@ -595,6 +596,7 @@ def _run_publish_readiness(
                 expected_lifecycle_state=(
                     "provisional" if phase == "preflight" else "final"
                 ),
+                require_current_schema=True,
                 context_result=context_result,
                 vault_root=vault_root,
             ),
@@ -752,6 +754,8 @@ def _run_publish_readiness(
                     ),
                 }
             )
+        if name == "industry_cluster_link_policy":
+            guard_kwargs["editorial_plan"] = runtime_policy.get("editorial_plan")
         if name == "paa_provenance":
             guard_kwargs.update(runtime_policy["paa_kwargs"])
         if name == "editorial_plan":
@@ -1018,7 +1022,13 @@ def write_readiness_result(
             if isinstance(last, Mapping):
                 previous_hash = str(last.get("receipt_hash") or "")
             optimized = any(
-                isinstance(row, Mapping) and row.get("stage") == "optimization"
+                isinstance(row, Mapping)
+                and row.get("stage")
+                in {
+                    "optimization",
+                    "post_optimization_scrub",
+                    "post_optimization_context_binding",
+                }
                 for row in receipts
             )
     if result.get("phase") == "final":
@@ -1836,6 +1846,10 @@ def _bom_runtime_policy(
                 "secondary_keywords",
             ):
                 scoring_metadata[key] = meta.get(key)
+        if isinstance(plan, Mapping):
+            scoring_metadata["seo_guidelines"] = (
+                editorial_plan_guard.internal_link_guidelines_from_plan(plan)
+            )
     return {
         "visible_faq": bool(
             isinstance(schema_policy, Mapping) and schema_policy.get("visible_faq") is True

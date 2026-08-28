@@ -97,18 +97,31 @@ The review story identity gate is mandatory before scoring or publish readiness 
 
 The early artifact and answer withholding gates run inside `/publish-readiness`: a usable artifact within the first 300 words of body copy, concrete answers for number/range/template queries, and no placeholder table scaffolds. Policy lives in `context/aeo-geo-blog-strategy.md`.
 
-When content quality is below 85/100 or AEO/GEO is below 90/100, continue automatically through the AEO/GEO Recovery Loop in `context/aeo-geo-blog-strategy.md`. Review `aeo_geo.checks`, distinguish copy or proof gaps from a scorer or parser false negative, apply the top 3-5 fixes, and rerun `/scrub` plus `/publish-readiness`. Do not stop at reporting a low score. After 2 unsuccessful iterations, route to `review-required/` with exact failed checks and attempted fixes.
+When content quality is below 85/100 or AEO/GEO is below 90/100, continue automatically through the AEO/GEO Recovery Loop in `context/aeo-geo-blog-strategy.md`. Review `aeo_geo.checks`, distinguish copy or proof gaps from a scorer or parser false negative, apply the top 3-5 fixes, and rerun `/scrub` plus `/publish-readiness`. Do not stop at reporting a low score. After 2 unsuccessful iterations, leave the article in place, write a machine-readable blocker under `research/`, and return nonzero with the exact failed checks and attempted fixes.
+
+## Risk-Tiered Citation and Link Policy
+
+Every proof-sensitive claim must be machine-mapped to evidence. The policy engine assigns exactly one citation mode and fails unknown or ambiguous high-risk claims closed to `inline_required`:
+
+- `inline_required`: legal, regulatory, licensing, compliance, safety, fees, deadlines, pricing, status, material numeric, causal, comparative, benchmark, quote, customer, review, Fred, and fact-driven FAQ claims need a natural public link in the same paragraph or table row. In an FAQ, place the link in the first visible answer paragraph.
+- `section_source_allowed`: lower-risk body definitions, background, and process explanations may use one mapped source in the same H2 section.
+- `sidecar_only`: approved low-risk product or brand language and clearly framed low-risk editorial recommendations may remain mapped in the validation sidecar without a visible public link.
+- `proof_not_required`: navigation, explicit opinion, or advice with no externally verifiable factual claim requires no proof. Only the policy engine may generate this mode.
+
+Use natural, descriptive anchor text. Prefer one authority link for a contiguous claim cluster, but allow multiple distinct authority links in one paragraph when separate evidence-triggered claims require them; never split or remove required proof for a per-paragraph link count. Two distinct authoritative non-owned external sources satisfy the standard-blog baseline; never add a third source only to meet a quota. Claim-fit evidence exceptions are uncapped. Standard blogs use 3 to 5 internal links and must not exceed 7. Valid brief-bound exact-count overrides may narrow the brief-selected supporting-link target, but single-trade Simpro posts still require the matching industry page unless the bound brief explicitly prohibits it. URL fragments and `mailto:` or `tel:` links do not count toward internal or external totals.
+
+Machine reviewers must preserve every required public link, report any proposed deletion or relocation that would break its claim mapping, and flag repeated destinations, duplicate support, or a quota-only third external source as redundancy. They remain advisory; `/publish-readiness` is the sole release verdict and no human approval step is part of this workflow.
 
 ## FAQ Answer Quality
 
 Every FAQ answer must use a 40-60 word first visible paragraph and lead with a supported number or range, named recommendation, definition, concrete action, or explained yes/no response. Generic openers such as `There is no`, `It depends`, `Pricing depends`, `Costs vary`, `We do not know`, `It is unclear`, and `No source ranks` block publish readiness. Put limitations after the direct answer.
 
-Every FAQ answer must also contain at least 1 authoritative non-owned public evidence link in the visible answer. A Source Map or FAQ Proof Map can document the same evidence but cannot replace that reader-facing link. If no defensible evidence-backed answer exists, replace or remove the question. The `faq_answer_quality_guard.py` and `faq_proof_guard.py` gates both run inside `/publish-readiness`.
+Fact-driven or high-risk FAQ claims use `inline_required` and must contain a natural authoritative non-owned public evidence link in the first visible answer paragraph. Lower-risk FAQ answers follow their machine-assigned citation mode and do not gain a visible link merely to satisfy a quota. A Source Map or FAQ Proof Map documents the evidence but cannot replace a reader-facing link when `inline_required` applies. If no defensible evidence-backed answer exists, replace or remove the question. The `faq_answer_quality_guard.py` and `faq_proof_guard.py` gates both run inside `/publish-readiness`.
 ## FAQ Source Policy
 
 - Allowed source classes: neutral, non_competing_expert.
 - Competitor-owned FAQ sources: prohibited.
-- Every visible non-owned FAQ URL requires its own exact `FAQ Proof Map` row in the validation sidecar: `FAQ`, `URL`, `Source class`, `Competitor check`, and `Support`.
+- Every visible non-owned FAQ URL requires its own exact `FAQ Proof Map` row in the validation sidecar: `FAQ`, `URL`, `Source class`, `Competitor check`, and `Support`. Fact-driven or high-risk answers must place that URL in the first visible paragraph.
 - Permitted evidence includes regulators, standards bodies, universities, trade associations, independent research or editorial sources, and non-competing experts.
 - Simpro-owned links may be additional reader resources but never satisfy the non-owned FAQ-proof requirement.
 - If compliant evidence cannot support a vendor-specific question, remove or reframe the FAQ and retain vendor evidence in the comparison or vendor-specific body section.

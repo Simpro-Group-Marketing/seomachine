@@ -20,11 +20,11 @@ This document catalogs verified Simpro URLs for strategic internal linking in bl
 
 1. Link naturally when the destination helps the reader evaluate, compare, or take the next step.
 2. Prefer deep links over the homepage.
-3. Use three to five internal links in a standard blog post unless the article is a long pillar guide.
+3. Use three to five internal links in a standard blog post. Three is the minimum, four to five is the normal target, and seven is the maximum unless the article is 3,000+ words or an approved pillar guide.
 4. Use descriptive anchors. Do not use "click here," "read more," or vague anchors.
 5. For BOFU content, include one demo, pricing, comparison, or customer story link.
 6. For TOFU content, use one product/category link only when the product relevance is explicit.
-7. For TOFU trade-vertical blogs, use the relevant brand industry page as the final cluster link instead of a generic demo page unless the brief explicitly requires a demo CTA.
+7. For TOFU trade-vertical blogs, use the relevant brand industry page as the cluster link instead of a generic demo page unless the brief explicitly requires a demo CTA. This cluster link counts toward the three-to-five internal-link total.
 8. When a customer outcome is mentioned, link to the matching case study if one exists in the sitemap.
 
 ## Performance-Informed Internal Linking Priorities

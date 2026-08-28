@@ -1,10 +1,13 @@
 """
 Public Research Link Guard
 
-Blocks sidecar-only handling of public research, compliance, legal,
-regulatory, or statistical proof. If a public article makes high-risk source-
-backed claims, the article body must carry visible resolved non-owned public
-research links in the relevant section or FAQ answer.
+Enforces machine-assigned citation modes for public research, compliance,
+legal, regulatory, and statistical proof. High-risk claims use
+``inline_required`` with a natural visible resolved non-owned link in the
+claim's paragraph. Lower-risk claims follow ``section_source_allowed``,
+``sidecar_only``, or ``proof_not_required`` as assigned. Release policy uses
+2 distinct non-owned authority sources as the standard-post baseline, adds no
+quota-only third source, and places no maximum on further claim-fit evidence.
 """
 
 from __future__ import annotations
@@ -21,11 +24,13 @@ from urllib.parse import urlparse
 try:
     from .faq_structure import detect_faq_structure
     from .guard_common import Finding, make_finding, should_fail, summarize_findings
+    from .proof_link_policy import analyze_proof_links
     from .proof_sidecar import load_sidecar_content
     from .url_validator import UrlValidationSummary, extract_urls, validate_file_urls
 except ImportError:  # pragma: no cover - supports direct script execution.
     from faq_structure import detect_faq_structure
     from guard_common import Finding, make_finding, should_fail, summarize_findings
+    from proof_link_policy import analyze_proof_links
     from proof_sidecar import load_sidecar_content
     from url_validator import UrlValidationSummary, extract_urls, validate_file_urls
 
@@ -105,10 +110,13 @@ def check_content(
     """Return findings for missing or blocked public research links."""
     findings: List[Finding] = []
     findings.extend(_manual_review_findings(url_summary))
-    findings.extend(_section_source_findings(content, url_summary))
-
-    if proof_content and not _external_research_not_applicable(proof_content):
-        findings.extend(_sidecar_source_findings(content, proof_content, url_summary))
+    findings.extend(
+        _policy_findings(
+            content,
+            proof_content or "",
+            url_summary,
+        )
+    )
 
     return sorted(
         findings,
@@ -117,6 +125,114 @@ def check_content(
             str(finding.get("rule_id") or ""),
         ),
     )
+
+
+def _policy_findings(
+    content: str,
+    proof_content: str,
+    url_summary: Optional[UrlValidationSummary],
+) -> List[Finding]:
+    """Enforce only non-FAQ public-research decisions from the shared policy."""
+    report = analyze_proof_links(
+        content,
+        proof_content,
+        url_summary=url_summary,
+    )
+    findings: List[Finding] = []
+    for requirement in report.requirements:
+        if requirement.owner != "public_research":
+            continue
+        if requirement.mode not in {"inline_required", "section_source_allowed"}:
+            continue
+
+        matching_links = [
+            link
+            for link in report.links
+            if link.external
+            and link.canonical_url in requirement.visible_urls
+            and (
+                requirement.line <= link.line <= requirement.end_line
+                if requirement.mode == "inline_required"
+                else link.section == requirement.section and not link.faq_question
+            )
+        ]
+        resolved_links = [
+            link
+            for link in matching_links
+            if _url_is_resolved(link.url, url_summary)
+        ]
+        if not resolved_links:
+            rule_id = (
+                "public_research_inline_proof_missing"
+                if requirement.mode == "inline_required"
+                else "public_research_section_proof_missing"
+            )
+            placement = (
+                "the same paragraph or Markdown table row"
+                if requirement.mode == "inline_required"
+                else "the same H2 section"
+            )
+            findings.append(
+                make_finding(
+                    rule_id,
+                    "error",
+                    requirement.line,
+                    match=requirement.claim[:160],
+                    message=(
+                        "This public research claim has no resolved, approved non-owned "
+                        f"authority link in {placement}."
+                    ),
+                    suggestion=(
+                        "Map the authority in the validation sidecar and add a descriptive "
+                        f"reader-visible link in {placement}, or remove the claim. Owned "
+                        "ClockShark/Simpro product links do not count as external research."
+                    ),
+                    citation_mode=requirement.mode,
+                    citation_owner=requirement.owner,
+                )
+            )
+            continue
+
+        if any(
+            generic.canonical_url == link.canonical_url
+            and requirement.line <= generic.line <= requirement.end_line
+            for link in resolved_links
+            for generic in report.generic_anchors
+        ):
+            findings.append(
+                make_finding(
+                    "public_research_generic_proof_anchor",
+                    "error",
+                    requirement.line,
+                    match=requirement.claim[:160],
+                    message="Required public proof uses generic link text.",
+                    suggestion=(
+                        "Replace the generic anchor with a descriptive authority anchor, "
+                        "such as the regulator name and guidance topic."
+                    ),
+                    citation_mode=requirement.mode,
+                    citation_owner=requirement.owner,
+                )
+            )
+
+    for redundant in report.redundant_citations:
+        findings.append(
+            make_finding(
+                "redundant_public_research_citation",
+                "warning",
+                redundant.lines[1],
+                match=redundant.canonical_url,
+                message=(
+                    "The same external authority is cited repeatedly within one non-FAQ H2."
+                ),
+                suggestion=(
+                    "Keep one contextual citation for the contiguous claim cluster unless "
+                    "separate required claim bindings justify each occurrence."
+                ),
+                section=redundant.section,
+            )
+        )
+    return findings
 
 
 def check_file(

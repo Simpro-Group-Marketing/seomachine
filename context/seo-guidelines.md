@@ -208,9 +208,12 @@ Primary keyword MUST appear in:
 ## Internal Linking Strategy
 
 ### Requirements
-- Include the contextual internal links that advance the Reader Contract and user journey.
-- Include the required down-funnel industry, solution, or feature link when the blog workflow calls for it.
-- Do not add or remove links to hit a fixed total; relevance and destination intent control the plan.
+- Use 3 to 5 internal links in standard blog posts.
+- Include at least 3 internal links; aim for 4 to 5 when the extra links improve the reader journey.
+- Do not exceed 7 internal links.
+- Include the required down-funnel industry, solution, or feature link when the blog workflow calls for it. That required link counts as 1 of the 3 to 5 internal links unless a brief-bound override narrows the supporting-link count.
+- Choose links in this order: reader usefulness, proof/source requirements, required cluster or down-funnel destination, then the 3 to 5 internal-link target. For single-trade Simpro posts, a valid exact-count override covers only the brief-selected supporting links; the matching industry page remains additive unless the brief explicitly prohibits it.
+- Do not count URL fragments or `mailto:` or `tel:` links toward the internal-link total.
 
 ### Link Types to Include
 
@@ -257,7 +260,20 @@ Primary keyword MUST appear in:
 
 ### Requirements
 - Use claim-fit external sources to add credibility and support claims.
-- Evidence needs determine the number of external links; a fixed total does not demonstrate authority.
+- Prefer one authority link for a contiguous claim cluster. Multiple distinct authority links may share a paragraph when separate evidence-triggered claims require them; do not split or remove required proof for a per-paragraph link count. Two distinct authoritative non-owned external sources pass the standard-blog baseline. Multiple links to one source still count as one source.
+- Do not add a third source only to meet a quota. Use additional sources whenever source support, regulations, public proof, specialist same-paragraph rules, or other claim-fit evidence requires them; evidence exceptions are uncapped.
+- Do not count URL fragments or `mailto:` or `tel:` links toward the external-source total.
+
+### Risk-Tiered Citation Modes
+
+Every proof-sensitive claim must be machine-mapped to exactly one citation mode:
+
+- `inline_required`: legal, regulatory, licensing, compliance, safety, fees, deadlines, pricing, status, material numeric, causal, comparative, benchmark, quote, customer, review, Fred, and fact-driven FAQ claims require a natural link in the same paragraph or table row. FAQ links belong in the first visible answer paragraph.
+- `section_source_allowed`: lower-risk body definitions, background, and process explanations may use one mapped source in the same H2 section.
+- `sidecar_only`: approved low-risk product or brand language and clearly framed low-risk editorial recommendations may remain mapped in the validation sidecar.
+- `proof_not_required`: navigation, explicit opinion, or advice with no externally verifiable factual claim requires no proof. Only the policy engine may generate this mode.
+
+Unknown or ambiguous high-risk claims fail closed to `inline_required`. Machine reviewers preserve required links and flag duplicate support, repeated destinations, and quota-only sources. `/publish-readiness` remains the sole release verdict.
 
 ### What to Link Externally
 - **Statistics and data sources**: Always cite where numbers come from
@@ -690,9 +706,10 @@ Before publishing, verify:
 - [ ] All meta elements are unique
 
 ### Links
-- [ ] Intent-appropriate internal links included
+- [ ] 3-5 intent-appropriate internal links included for standard blog posts, unless a valid brief-bound override narrows the supporting-link count
 - [ ] Internal links use descriptive anchor text
-- [ ] Every sourced claim has a claim-fit authority link; no fixed total is used
+- [ ] Required cluster or down-funnel link is included when the workflow calls for it; for single-trade Simpro posts, include the matching industry page even when a valid exact-count override exists, unless the brief explicitly prohibits it
+- [ ] Every proof-sensitive claim has a machine-assigned citation mode and claim-fit evidence placement; use at least 2 distinct authoritative non-owned sources, prohibit a quota-only third source, and add uncapped evidence when proof requires it
 - [ ] All links functional (no broken links)
 - [ ] Links add value to reader
 

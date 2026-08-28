@@ -19,10 +19,12 @@ Python may write governance artifacts only: selector output, context binding evi
    - Customer proof selector before using customer proof.
    - Fred Voccola authority selector for every new or changed Simpro blog.
    - E-E-A-T strength decision for commercial-investigation blogs when no selected proof, review, Fred, author, or SME signal exists.
-7. Write the draft Markdown to `drafts/[topic-slug]-[YYYY-MM-DD].md` using the command, not a Python writer.
-8. Freeze one draft snapshot and run `content-analyzer`, `editor`, `seo-optimizer`, `meta-creator`, `internal-linker`, and `keyword-mapper` in parallel. The Editor must use the reviewed Humanizer snapshot and Simpro policy against this same immutable draft snapshot. All specialists return advisory findings only. Select the useful findings and apply one consolidated edit batch through `/write`.
-9. Run `/scrub [article]` for diagnostics only. If it reports needed changes, make those edits through `/write` and rerun `/scrub`.
-10. Run `/publish-readiness [article]` with the sidecar, context artifacts, and BOM. Do not hand off as ready until it passes.
+7. Resolve `audience_language_research` in the editorial plan. Use community language only when it materially improves reader comprehension; default regulatory and licensing topics to `not_applicable` unless the brief asks for it.
+8. Validate and freeze the editorial plan, then run the six machine reviewers against that exact plan: Content Analyzer (`content-analyzer`), Editor (`editor`), SEO Optimizer (`seo-optimizer`), Meta Creator (`meta-creator`), Internal Linker (`internal-linker`), and Keyword Mapper (`keyword-mapper`). Save `simpro-blog-machine-review/v1` plan-review JSON. Resolve requested changes and repeat once if needed.
+9. Write the draft Markdown section by section in plan order to `drafts/[topic-slug]-[YYYY-MM-DD].md` using the command, not a Python writer.
+10. Freeze the article bytes and run the same six reviewers against that exact article. Save `simpro-blog-machine-review/v1` article-review JSON. Apply one consolidated edit batch through `/write`, then rerun all six reviewers after every article-byte change, including scrub, lint, or recovery-loop edits.
+11. Run `/scrub [article]` for diagnostics only. If it reports needed changes, make those edits through `/write`, rerun `/scrub`, and rerun article machine review.
+12. Run the atomic release wrapper with the sidecar, machine reviews, evidence artifacts, stage receipts, and context artifacts when connector-bound. Do not hand off as ready until final `/publish-readiness` passes.
 
 ## Native edit receipt
 
@@ -43,6 +45,16 @@ python data_sources/modules/blog_assembly_stage_receipt.py finish-native-edit --
 - AEO/GEO: 90/100 or higher.
 
 Do not treat an overall score as a substitute for the SEO or AEO/GEO gates.
+
+## Link policy
+
+Standard blog posts use 3 to 5 internal links and never more than 7. The required cluster or down-funnel industry, solution, or feature link counts toward that total unless a valid brief-bound override narrows the supporting-link count. URL fragments and `mailto:` or `tel:` links do not count. Two distinct authoritative non-owned external sources pass; do not add a third source only to meet a quota, while claim-fit evidence exceptions remain uncapped.
+
+A valid `link_policy_override` in `simpro-blog-editorial-plan/v1` may replace the 3 to 5 target for brief-selected internal body links but can never exceed the hard maximum of 7. It must bind the brief path, SHA-256, exact source sentence, exact count, and `pre_faq_body` scope. For single-trade Simpro posts, the matching industry page remains additive unless the bound brief explicitly prohibits it. External proof and legal citations remain separate and uncapped.
+
+Machine-map every proof-sensitive claim to exactly one policy-engine mode: `inline_required`, `section_source_allowed`, `sidecar_only`, or `proof_not_required`. `inline_required` covers legal, regulatory, licensing, compliance, safety, fees, deadlines, pricing, status, material numeric, causal, comparative, benchmark, quote, customer, review, Fred, and fact-driven FAQ claims; use a natural link in the same paragraph or row and in the FAQ's first visible paragraph. Lower-risk body definitions, background, and process may use `section_source_allowed`; approved low-risk product or brand language and clearly framed low-risk editorial recommendations may use `sidecar_only`. Only the policy engine may assign `proof_not_required` to navigation, explicit opinion, or advice with no externally verifiable factual claim. Unknown or ambiguous high-risk claims fail closed to `inline_required`.
+
+All six machine reviewers must protect required links and flag duplicate support, repeated destinations, and quota-only sources. They return advisory findings only; `/publish-readiness` is the sole verdict and no human approval step applies.
 
 ## Output
 

@@ -23,6 +23,8 @@ ARTICLE_WITH_CASE_STUDY = fixture_text("content_evidence:test_customer_proof_div
 
 ARTICLE_WITH_CLOCKSHARK_CASE_STUDY = fixture_text("content_evidence:test_customer_proof_diversity_guard-25-2")
 
+CUSTOMER_LINK_URL = "https://www.simprogroup.com/customers/acme-services"
+
 
 def proof_slate(
     *,
@@ -93,6 +95,35 @@ def proof_mining(
     if include_status:
         rows.append("- Status: approved")
     return "\n".join(rows) + "\n\n"
+
+
+def customer_link_sidecar(*, rows: str) -> str:
+    return (
+        proof_slate(
+            metric_selected="customer-acme-services",
+            quote_selected="customer-acme-services",
+            theme_selected="customer-acme-services",
+            metric_top="customer-acme-services",
+            quote_top="customer-acme-services",
+            theme_top="customer-acme-services",
+        )
+        + proof_mining(
+            usable_quotes='"Scheduling is much easier for our field team now."',
+            usable_metrics="Acme Services completed 40% more jobs.",
+            usable_pov="Acme Services centralized dispatch for field teams.",
+            recommended_use="customer quote, metric, and outcome",
+            final_use="customer quote, metric, outcome, and POV/story",
+        )
+        + "Customer Proof Pack\n"
+        + "- Pack status: ready.\n"
+        + "- Quote Matrix candidates: Acme Services selected for scheduling proof.\n"
+        + rows
+        + "- Use in copy: customer quote, metric, and outcome.\n"
+        + "- Claims excluded: none.\n\n"
+        + "Customer Proof Selection Decision\n"
+        + '- Selector command: python data_sources/modules/customer_proof_selector.py "Acme scheduling" --proof-role quote\n'
+        + f"- Selected proof: customer-acme-services | Customer: Acme Services | URL: {CUSTOMER_LINK_URL} | Use: customer quote, metric, and outcome\n"
+    )
 
 
 class CustomerProofDiversityGuardTests(unittest.TestCase):
@@ -1047,7 +1078,11 @@ class CustomerProofDiversityGuardTests(unittest.TestCase):
             )
             + fixture_text("content_evidence:test_customer_proof_diversity_guard-1322-29")
         )
-        article = '# Review proof\n\nExample Customer said, "Scheduling is much easier for our field team now."'
+        article = (
+            '# Review proof\n\nExample Customer said, "Scheduling is much easier for our '
+            'field team now," in its [scheduling workflow account]'
+            '(https://example.com/customer-proof).'
+        )
 
         with TemporaryDirectory() as temp_dir:
             ledger_path = Path(temp_dir) / "ledger.json"
@@ -1057,6 +1092,165 @@ class CustomerProofDiversityGuardTests(unittest.TestCase):
             findings = check_content(
                 article, proof_content=sidecar, ledger_path=ledger_path
             )
+
+        self.assertEqual(findings, [])
+
+    def test_approved_exact_quote_without_contextual_link_fails(self):
+        rows = (
+            '- Approved quote: "Scheduling is much easier for our field team now." '
+            f'| Customer/brand: Acme Services | URL: {CUSTOMER_LINK_URL} '
+            '| Evidence: "Scheduling is much easier for our field team now." '
+            '| Status: approved | Use: exact customer quote\n'
+        )
+        article = (
+            '# Scheduling proof\n\nAcme Services said, "Scheduling is much easier '
+            'for our field team now."'
+        )
+
+        findings = check_content(
+            article,
+            proof_content=customer_link_sidecar(rows=rows),
+            ledger_path=Path("missing-ledger.json"),
+        )
+
+        self.assertTrue(
+            any(
+                finding["rule_id"] == "customer_proof_visible_link_missing"
+                for finding in findings
+            )
+        )
+
+    def test_missing_pack_cannot_suppress_customer_link_finding(self):
+        proof = (
+            '## Source Map\n- Approved quote: "Scheduling is much easier for our field team now." '
+            f'| Customer/brand: Acme Services | URL: {CUSTOMER_LINK_URL} '
+            '| Evidence: "Scheduling is much easier for our field team now." '
+            '| Status: approved | Use: exact customer quote\n'
+        )
+        article = (
+            '# Scheduling proof\n\nAcme Services said, "Scheduling is much easier '
+            'for our field team now."'
+        )
+
+        rules = {
+            finding["rule_id"]
+            for finding in check_content(
+                article,
+                proof_content=proof,
+                ledger_path=Path("missing-ledger.json"),
+            )
+        }
+
+        self.assertIn("customer_proof_visible_link_missing", rules)
+
+    def test_approved_nonnumeric_customer_outcome_without_contextual_link_fails(self):
+        rows = (
+            '- Claim: Acme Services centralized dispatch for field teams. '
+            f'| Source class: customer_proof | URL: {CUSTOMER_LINK_URL} '
+            '| Evidence: Acme Services centralized dispatch for field teams. '
+            '| Status: approved | Use: customer outcome\n'
+        )
+        article = (
+            "# Dispatch proof\n\nAcme Services centralized dispatch for field teams."
+        )
+
+        findings = check_content(
+            article,
+            proof_content=customer_link_sidecar(rows=rows),
+            ledger_path=Path("missing-ledger.json"),
+        )
+
+        self.assertTrue(
+            any(
+                finding["rule_id"] == "customer_proof_visible_link_missing"
+                for finding in findings
+            )
+        )
+
+    def test_one_contextual_customer_link_supports_quote_metric_and_outcome(self):
+        rows = (
+            '- Approved quote: "Scheduling is much easier for our field team now." '
+            f'| Customer/brand: Acme Services | URL: {CUSTOMER_LINK_URL} '
+            '| Evidence: "Scheduling is much easier for our field team now." '
+            '| Status: approved | Use: exact customer quote\n'
+            '- Approved metric: Acme Services completed 40% more jobs. '
+            f'| Customer/brand: Acme Services | URL: {CUSTOMER_LINK_URL} '
+            '| Evidence: Acme Services completed 40% more jobs. '
+            '| Status: approved | Use: customer metric\n'
+            '- Claim: Acme Services centralized dispatch for field teams. '
+            f'| Source class: customer_proof | URL: {CUSTOMER_LINK_URL} '
+            '| Evidence: Acme Services centralized dispatch for field teams. '
+            '| Status: approved | Use: customer outcome\n'
+        )
+        article = (
+            "# Customer proof\n\n"
+            f"[Acme Services]({CUSTOMER_LINK_URL}) centralized dispatch for field "
+            "teams. Acme Services completed 40% more jobs. Acme Services said, "
+            '"Scheduling is much easier for our field team now."'
+        )
+
+        findings = check_content(
+            article,
+            proof_content=customer_link_sidecar(rows=rows),
+            ledger_path=Path("missing-ledger.json"),
+        )
+
+        self.assertEqual(findings, [])
+
+    def test_generic_or_bare_customer_proof_anchor_fails(self):
+        rows = (
+            '- Claim: Acme Services centralized dispatch for field teams. '
+            f'| Source class: customer_proof | URL: {CUSTOMER_LINK_URL} '
+            '| Evidence: Acme Services centralized dispatch for field teams. '
+            '| Status: approved | Use: customer outcome\n'
+        )
+        articles = (
+            (
+                "generic",
+                "# Dispatch proof\n\nAcme Services centralized dispatch for field "
+                f"teams. [Source]({CUSTOMER_LINK_URL})",
+            ),
+            (
+                "bare",
+                "# Dispatch proof\n\nAcme Services centralized dispatch for field "
+                f"teams. {CUSTOMER_LINK_URL}",
+            ),
+        )
+
+        for label, article in articles:
+            with self.subTest(label=label):
+                findings = check_content(
+                    article,
+                    proof_content=customer_link_sidecar(rows=rows),
+                    ledger_path=Path("missing-ledger.json"),
+                )
+
+                self.assertTrue(
+                    any(
+                        finding["rule_id"]
+                        == "customer_proof_anchor_not_descriptive"
+                        for finding in findings
+                    )
+                )
+
+    def test_customer_link_canonicalizes_tracking_fragment_and_trailing_slash(self):
+        rows = (
+            '- Claim: Acme Services centralized dispatch for field teams. '
+            f'| Source class: customer_proof | URL: {CUSTOMER_LINK_URL}/ '
+            '| Evidence: Acme Services centralized dispatch for field teams. '
+            '| Status: approved | Use: customer outcome\n'
+        )
+        article = (
+            "# Dispatch proof\n\n"
+            f"[Acme Services customer story]({CUSTOMER_LINK_URL}?utm_source=blog#results) "
+            "shows that Acme Services centralized dispatch for field teams."
+        )
+
+        findings = check_content(
+            article,
+            proof_content=customer_link_sidecar(rows=rows),
+            ledger_path=Path("missing-ledger.json"),
+        )
 
         self.assertEqual(findings, [])
 

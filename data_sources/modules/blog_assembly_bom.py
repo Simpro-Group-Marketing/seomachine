@@ -18,6 +18,7 @@ try:
         eeat_strength_guard,
         editorial_plan_guard,
         industry_cluster_link_policy,
+        machine_review,
         semrush_keyword_decision_guard,
     )
     from .blog_assembly_contract import (
@@ -44,6 +45,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import eeat_strength_guard
     import editorial_plan_guard
     import industry_cluster_link_policy
+    import machine_review
     import semrush_keyword_decision_guard
     from blog_assembly_contract import (
         artifact_inventory_snapshots,
@@ -65,7 +67,10 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from video_embed import inspect_video_embeds
 
 
-BOM_SCHEMA = "simpro-blog-assembly-bom/v1"
+BOM_SCHEMA_V1 = "simpro-blog-assembly-bom/v1"
+BOM_SCHEMA_V2 = "simpro-blog-assembly-bom/v2"
+BOM_SCHEMA = BOM_SCHEMA_V2
+ARCHIVED_BOM_SCHEMAS = frozenset({BOM_SCHEMA_V1, BOM_SCHEMA_V2})
 EDITORIAL_PLAN_SCHEMA = "simpro-blog-editorial-plan/v1"
 READINESS_SCHEMA = "simpro-publish-readiness-result/v1"
 PACK_SCHEMA = "simpro-product-context-pack/v2"
@@ -88,6 +93,9 @@ def build_blog_assembly_bom_from_files(
     stage_receipt_paths: Sequence[str | Path],
     workflow_mode: str,
     assembly_date: str,
+    plan_review_path: str | Path | None = None,
+    article_review_path: str | Path | None = None,
+    expected_review_run_id: str | None = None,
     paa_artifact_path: str | Path | None = None,
     content_brief_path: str | Path | None = None,
     user_paa_csv_path: str | Path | None = None,
@@ -113,6 +121,8 @@ def build_blog_assembly_bom_from_files(
     ):
         _validate_input_path(value, field=field)
     for field, value in (
+        ("plan_review_path", plan_review_path),
+        ("article_review_path", article_review_path),
         ("paa_artifact_path", paa_artifact_path),
         ("content_brief_path", content_brief_path),
         ("user_paa_csv_path", user_paa_csv_path),
@@ -169,6 +179,15 @@ def build_blog_assembly_bom_from_files(
             sorted({str(finding.get("rule_id") or "") for finding in keyword_findings})
         )
         raise ValueError(f"Semrush keyword decision is invalid: {rule_ids}")
+    machine_reviews = _machine_review_bindings(
+        plan_review_path=plan_review_path,
+        article_review_path=article_review_path,
+        editorial_plan_path=editorial_plan_path,
+        article_path=article_path,
+        proof_sidecar_path=validation_sidecar_path,
+        workspace_root=root,
+        expected_run_id=expected_review_run_id,
+    )
 
     connector_required = context_binding_guard.requires_context(article.raw)
     context_paths = (context_request_path, context_pack_path, context_receipt_path)
@@ -199,6 +218,7 @@ def build_blog_assembly_bom_from_files(
             context_request=context_request_path,
             context_pack=context_pack_path,
             context_receipt=context_receipt_path,
+            editorial_plan=plan,
             vault_root=vault_root,
             client=context_client,
         )
@@ -358,6 +378,7 @@ def build_blog_assembly_bom_from_files(
         "workflow": {
             "stage_receipts": stage_receipts,
         },
+        "machine_reviews": machine_reviews,
         "preflight": None,
     }
     return bom
@@ -378,8 +399,8 @@ def finalize_blog_assembly_bom(
     """Seal a passed preflight into a final BOM without self-reference."""
     root = Path(workspace_root or Path.cwd()).resolve()
     bom = _read_json_object(bom_path, "bom")
-    if bom.get("schema") != BOM_SCHEMA:
-        raise ValueError(f"bom.schema must be {BOM_SCHEMA}")
+    if not _is_supported_bom_schema(bom.get("schema")):
+        raise ValueError(f"bom.schema must be {BOM_SCHEMA_V1} or {BOM_SCHEMA_V2}")
     if bom.get("lifecycle_state") != "provisional":
         raise ValueError("only a provisional BOM can be finalized")
     if file_sha256(bom_path) != canonical_json_sha256(bom):
@@ -643,7 +664,13 @@ def validate_preflight_stage_receipt_binding(
         field="article_sha256",
     )
     optimized = any(
-        isinstance(row, Mapping) and row.get("stage") == "optimization"
+        isinstance(row, Mapping)
+        and row.get("stage")
+        in {
+            "optimization",
+            "post_optimization_scrub",
+            "post_optimization_context_binding",
+        }
         for row in prior_receipts
     )
     expected_stage = "final_preflight_readiness" if optimized else "preflight_readiness"
@@ -707,6 +734,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     build.add_argument("--editorial-plan", required=True)
     build.add_argument("--keyword-decision", required=True)
     build.add_argument("--serp-evidence", required=True)
+    build.add_argument("--plan-review")
+    build.add_argument("--article-review")
     build.add_argument("--paa-artifact")
     build.add_argument("--content-brief")
     build.add_argument("--user-paa-csv")
@@ -741,6 +770,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 editorial_plan_path=args.editorial_plan,
                 keyword_decision_path=args.keyword_decision,
                 serp_evidence_path=args.serp_evidence,
+                plan_review_path=args.plan_review,
+                article_review_path=args.article_review,
                 paa_artifact_path=args.paa_artifact,
                 content_brief_path=args.content_brief,
                 user_paa_csv_path=args.user_paa_csv,
@@ -1031,8 +1062,15 @@ def _validate_provisional_stage_receipts(
         )
         raise ValueError(f"stage receipt chain is invalid: {rules}")
     stages = tuple(str(receipt.get("stage") or "") for receipt in receipts)
+    optimized_tail = stages == (
+        "post_optimization_scrub",
+        "post_optimization_context_binding",
+    )
     optimized = "optimization" in stages
     expected = (
+        stages
+        if optimized_tail
+        else
         (
             "draft",
             "scrub",
@@ -1050,12 +1088,12 @@ def _validate_provisional_stage_receipts(
             "provisional stage receipt sequence must be exactly: "
             + " -> ".join(expected)
         )
-    if optimized != bool(optimizer_outputs):
+    if not optimized_tail and optimized != bool(optimizer_outputs):
         raise ValueError(
             "optimizer output evidence must be present if and only if the "
             "optimization stage is present"
         )
-    if optimized != bool(prior_preflight_readiness_path):
+    if not optimized_tail and optimized != bool(prior_preflight_readiness_path):
         raise ValueError(
             "prior preflight readiness evidence must be present if and only if "
             "the optimization stage is present"
@@ -1077,21 +1115,22 @@ def _validate_provisional_stage_receipts(
             connector_required=connector_required,
             workspace_root=workspace_root,
         )
-    draft = by_stage["draft"]
-    draft_inputs = _required_mapping(
-        draft.get("input_artifact_hashes"),
-        "draft.input_artifact_hashes",
-    )
-    if draft_inputs.get("editorial_plan") != artifacts["editorial_plan"]["sha256"]:
-        raise ValueError("draft stage receipt must bind the editorial plan input")
-    draft_evidence = _required_mapping(
-        draft.get("evidence_hashes"),
-        "draft.evidence_hashes",
-    )
-    if draft_evidence.get("serp_evidence") != artifacts["serp_evidence"]["sha256"]:
-        raise ValueError("draft stage receipt must bind verified SERP evidence")
-    if draft_evidence.get("keyword_decision") != artifacts["keyword_decision"]["sha256"]:
-        raise ValueError("draft stage receipt must bind Semrush keyword decision evidence")
+    draft = by_stage.get("draft")
+    if draft is not None:
+        draft_inputs = _required_mapping(
+            draft.get("input_artifact_hashes"),
+            "draft.input_artifact_hashes",
+        )
+        if draft_inputs.get("editorial_plan") != artifacts["editorial_plan"]["sha256"]:
+            raise ValueError("draft stage receipt must bind the editorial plan input")
+        draft_evidence = _required_mapping(
+            draft.get("evidence_hashes"),
+            "draft.evidence_hashes",
+        )
+        if draft_evidence.get("serp_evidence") != artifacts["serp_evidence"]["sha256"]:
+            raise ValueError("draft stage receipt must bind verified SERP evidence")
+        if draft_evidence.get("keyword_decision") != artifacts["keyword_decision"]["sha256"]:
+            raise ValueError("draft stage receipt must bind Semrush keyword decision evidence")
 
     for stage_name in ("scrub", "post_optimization_scrub"):
         receipt = by_stage.get(stage_name)
@@ -1216,7 +1255,7 @@ def _validate_prior_preflight_readiness(
         raise ValueError("prior preflight BOM artifact is invalid") from error
     prior_bom = _read_json_object(prior_bom_path, "prior_preflight_bom")
     if (
-        prior_bom.get("schema") != BOM_SCHEMA
+        not _is_supported_bom_schema(prior_bom.get("schema"))
         or prior_bom.get("lifecycle_state") != "provisional"
     ):
         raise ValueError("prior preflight must bind a provisional blog assembly BOM")
@@ -1424,6 +1463,61 @@ def _verify_bom_artifacts_unchanged(bom: Mapping[str, Any], root: Path) -> None:
 
 def _optional_artifact(path: str | Path | None, root: Path) -> dict[str, str] | None:
     return canonical_artifact(path, workspace_root=root) if path is not None else None
+
+
+def _is_supported_bom_schema(value: Any) -> bool:
+    return value in ARCHIVED_BOM_SCHEMAS
+
+
+def _machine_review_bindings(
+    *,
+    plan_review_path: str | Path | None,
+    article_review_path: str | Path | None,
+    editorial_plan_path: str | Path,
+    article_path: str | Path,
+    proof_sidecar_path: str | Path,
+    workspace_root: Path,
+    expected_run_id: str | None = None,
+) -> dict[str, dict[str, str]]:
+    if plan_review_path is None and article_review_path is None:
+        raise ValueError(
+            "New BOM assembly requires both plan_review_path and article_review_path; "
+            "BOM v1 is read-only archived evidence."
+        )
+    if plan_review_path is None or article_review_path is None:
+        raise ValueError(
+            "BOM v2 requires both plan_review_path and article_review_path"
+        )
+    for phase, review_path in (
+        ("plan", plan_review_path),
+        ("article", article_review_path),
+    ):
+        findings = machine_review.check_machine_review_file(
+            review_path,
+            proof_sidecar_path=proof_sidecar_path,
+            editorial_plan_path=editorial_plan_path,
+            article_path=article_path,
+            expected_phase=phase,
+        )
+        if findings:
+            rule_ids = ", ".join(
+                sorted({str(finding.get("rule_id") or "") for finding in findings})
+            )
+            raise ValueError(f"{phase} machine review is invalid: {rule_ids}")
+    pair_findings = machine_review.check_machine_review_pair(
+        plan_review_path,
+        article_review_path,
+        expected_run_id=expected_run_id,
+    )
+    if pair_findings:
+        rule_ids = ", ".join(
+            sorted({str(finding.get("rule_id") or "") for finding in pair_findings})
+        )
+        raise ValueError(f"machine review pair is invalid: {rule_ids}")
+    return {
+        "plan": canonical_artifact(plan_review_path, workspace_root=workspace_root),
+        "article": canonical_artifact(article_review_path, workspace_root=workspace_root),
+    }
 
 
 def _read_json_object(path: str | Path, field: str) -> dict[str, Any]:

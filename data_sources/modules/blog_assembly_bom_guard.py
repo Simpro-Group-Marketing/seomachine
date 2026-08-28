@@ -18,10 +18,14 @@ try:
         eeat_strength_guard,
         editorial_plan_guard,
         industry_cluster_link_policy,
+        machine_review,
         semrush_keyword_decision_guard,
     )
     from .blog_assembly_bom import (
         BOM_SCHEMA,
+        BOM_SCHEMA_V1,
+        BOM_SCHEMA_V2,
+        ARCHIVED_BOM_SCHEMAS,
         EDITORIAL_PLAN_SCHEMA,
         LIFECYCLE_STATES,
         WORKFLOW_MODES,
@@ -52,9 +56,13 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import eeat_strength_guard
     import editorial_plan_guard
     import industry_cluster_link_policy
+    import machine_review
     import semrush_keyword_decision_guard
     from blog_assembly_bom import (
         BOM_SCHEMA,
+        BOM_SCHEMA_V1,
+        BOM_SCHEMA_V2,
+        ARCHIVED_BOM_SCHEMAS,
         EDITORIAL_PLAN_SCHEMA,
         LIFECYCLE_STATES,
         WORKFLOW_MODES,
@@ -87,6 +95,13 @@ OPTIMIZED_PROVISIONAL_STAGES = NORMAL_FINAL_STAGES + (
     "post_optimization_context_binding",
 )
 OPTIMIZED_FINAL_STAGES = OPTIMIZED_PROVISIONAL_STAGES + (
+    "final_preflight_readiness",
+)
+OPTIMIZED_TAIL_PROVISIONAL_STAGES = (
+    "post_optimization_scrub",
+    "post_optimization_context_binding",
+)
+OPTIMIZED_TAIL_FINAL_STAGES = OPTIMIZED_TAIL_PROVISIONAL_STAGES + (
     "final_preflight_readiness",
 )
 FORBIDDEN_TOPOLOGY_PATTERNS = (
@@ -136,6 +151,7 @@ REQUIRED_TOP_LEVEL_FIELDS = frozenset({
     "workflow",
     "preflight",
 })
+V2_REQUIRED_TOP_LEVEL_FIELDS = REQUIRED_TOP_LEVEL_FIELDS | frozenset({"machine_reviews"})
 POST_PUBLISH_MEASUREMENT_RECEIPT_SCHEMA = (
     "simpro-post-publish-measurement-receipt/v1"
 )
@@ -162,15 +178,25 @@ def check_archived_final_bom(
     findings: list[Finding] = []
     if not isinstance(bom, Mapping):
         return [_finding("bom_archive_invalid", "Archived final BOM must be an object.")]
-    if set(bom) != REQUIRED_TOP_LEVEL_FIELDS:
+    expected_top_fields = (
+        V2_REQUIRED_TOP_LEVEL_FIELDS
+        if bom.get("schema") == BOM_SCHEMA_V2
+        else REQUIRED_TOP_LEVEL_FIELDS
+    )
+    if set(bom) != expected_top_fields:
         findings.append(
             _finding(
                 "bom_archive_shape_invalid",
                 "Archived final BOM must use the exact strict top-level field set.",
             )
         )
-    if bom.get("schema") != BOM_SCHEMA:
-        findings.append(_finding("bom_schema_invalid", f"BOM must use {BOM_SCHEMA}."))
+    if bom.get("schema") not in ARCHIVED_BOM_SCHEMAS:
+        findings.append(
+            _finding(
+                "bom_schema_invalid",
+                f"BOM must use {BOM_SCHEMA_V1} or {BOM_SCHEMA_V2}.",
+            )
+        )
     if bom.get("lifecycle_state") != "final":
         findings.append(
             _finding("bom_lifecycle_state_mismatch", "Archived BOM must be final.")
@@ -199,6 +225,14 @@ def check_archived_final_bom(
 
     findings.extend(_check_topology(bom))
     findings.extend(_check_artifact_inventory(bom, artifacts, root))
+    findings.extend(
+        _check_machine_reviews(
+            bom,
+            artifacts,
+            root,
+            proof_sidecar_path=None,
+        )
+    )
     findings.extend(_check_supplied_path(artifacts, "article", article_path, root))
     if _is_workspace_file(article_path, root):
         try:
@@ -230,6 +264,7 @@ def check_bom_file(
     context_receipt_path: str | Path | None = None,
     workspace_root: str | Path | None = None,
     expected_lifecycle_state: str | None = None,
+    require_current_schema: bool = False,
     context_result: context_binding_guard.ContextValidationResult | None = None,
     context_client: Any = None,
     vault_root: str | Path | None = None,
@@ -257,6 +292,7 @@ def check_bom_file(
         context_receipt_path=context_receipt_path,
         workspace_root=root,
         expected_lifecycle_state=expected_lifecycle_state,
+        require_current_schema=require_current_schema,
         context_result=context_result,
         context_client=context_client,
         vault_root=vault_root,
@@ -273,6 +309,7 @@ def check_bom(
     context_receipt_path: str | Path | None = None,
     workspace_root: str | Path | None = None,
     expected_lifecycle_state: str | None = None,
+    require_current_schema: bool = False,
     context_result: context_binding_guard.ContextValidationResult | None = None,
     context_client: Any = None,
     vault_root: str | Path | None = None,
@@ -280,8 +317,13 @@ def check_bom(
     """Return deterministic blocking findings for one BOM object."""
     root = Path(workspace_root or Path.cwd()).resolve()
     findings: list[Finding] = []
-    missing_fields = REQUIRED_TOP_LEVEL_FIELDS - set(bom)
-    unknown_fields = set(bom) - REQUIRED_TOP_LEVEL_FIELDS
+    expected_top_fields = (
+        V2_REQUIRED_TOP_LEVEL_FIELDS
+        if bom.get("schema") == BOM_SCHEMA_V2
+        else REQUIRED_TOP_LEVEL_FIELDS
+    )
+    missing_fields = expected_top_fields - set(bom)
+    unknown_fields = set(bom) - expected_top_fields
     if missing_fields:
         findings.append(
             _finding(
@@ -298,8 +340,20 @@ def check_bom(
                 + ", ".join(sorted(unknown_fields)),
             )
         )
-    if bom.get("schema") != BOM_SCHEMA:
-        findings.append(_finding("bom_schema_invalid", f"BOM must use {BOM_SCHEMA}."))
+    if bom.get("schema") not in ARCHIVED_BOM_SCHEMAS:
+        findings.append(
+            _finding(
+                "bom_schema_invalid",
+                f"BOM must use {BOM_SCHEMA_V1} or {BOM_SCHEMA_V2}.",
+            )
+        )
+    elif require_current_schema and bom.get("schema") != BOM_SCHEMA_V2:
+        findings.append(
+            _finding(
+                "bom_archived_schema_not_releasable",
+                "BOM v1 is readable only as archived evidence and cannot authorize a new release.",
+            )
+        )
     lifecycle = bom.get("lifecycle_state")
     if lifecycle not in LIFECYCLE_STATES:
         findings.append(_finding("bom_lifecycle_state_invalid", "BOM lifecycle_state is invalid."))
@@ -344,6 +398,14 @@ def check_bom(
     article = None
     sidecar_content = ""
     findings.extend(_check_artifact_inventory(bom, artifacts, root))
+    findings.extend(
+        _check_machine_reviews(
+            bom,
+            artifacts,
+            root,
+            proof_sidecar_path=validation_sidecar_path,
+        )
+    )
     article_path_findings = _check_supplied_path(
         artifacts,
         "article",
@@ -370,6 +432,7 @@ def check_bom(
             sidecar_content = Path(validation_sidecar_path).read_text(encoding="utf-8")
         except (OSError, UnicodeError) as error:
             findings.append(_finding("bom_sidecar_unreadable", f"Sidecar cannot be read: {error}"))
+    bound_editorial_plan = _load_bound_editorial_plan(artifacts, root)
 
     safe_context_inputs: dict[str, str | Path | None] = {}
     for label, supplied in (
@@ -400,6 +463,7 @@ def check_bom(
                 context_receipt_path=safe_context_inputs["context_receipt"],
                 context_result=context_result,
                 context_client=context_client,
+                editorial_plan=bound_editorial_plan,
                 vault_root=vault_root,
             )
         )
@@ -522,6 +586,117 @@ def _check_artifact_inventory(
         findings.append(_finding("bom_preflight_readiness_missing", "Final BOM requires passed preflight readiness evidence."))
     if lifecycle == "provisional" and artifacts.get("preflight_readiness") is not None:
         findings.append(_finding("bom_provisional_readiness_present", "Provisional BOM cannot bind preflight output before it runs."))
+    return findings
+
+
+def _check_machine_reviews(
+    bom: Mapping[str, Any],
+    artifacts: Mapping[str, Any],
+    root: Path,
+    *,
+    proof_sidecar_path: str | Path | None,
+) -> list[Finding]:
+    schema = bom.get("schema")
+    reviews = bom.get("machine_reviews")
+    if schema == BOM_SCHEMA_V1:
+        if reviews is not None:
+            return [
+                _finding(
+                    "bom_machine_reviews_unexpected",
+                    "BOM v1 cannot include machine_reviews.",
+                )
+            ]
+        return []
+    if schema != BOM_SCHEMA_V2:
+        return []
+    if not isinstance(reviews, Mapping) or set(reviews) != {"plan", "article"}:
+        return [
+            _finding(
+                "bom_machine_reviews_invalid",
+                "BOM v2 requires machine_reviews.plan and machine_reviews.article path/hash bindings.",
+            )
+        ]
+    findings: list[Finding] = []
+    plan_row = artifacts.get("editorial_plan")
+    article_row = artifacts.get("article")
+    sidecar_row = artifacts.get("validation_sidecar")
+    if (
+        not isinstance(plan_row, Mapping)
+        or not isinstance(article_row, Mapping)
+        or not isinstance(sidecar_row, Mapping)
+    ):
+        return [
+            _finding(
+                "bom_machine_reviews_inputs_missing",
+                "Machine reviews require bound article, editorial_plan, and validation_sidecar artifacts.",
+            )
+        ]
+    try:
+        plan_path = verify_artifact(plan_row, workspace_root=root, field="artifacts.editorial_plan")
+        article_path = verify_artifact(article_row, workspace_root=root, field="artifacts.article")
+        if proof_sidecar_path is None:
+            sidecar_path = resolve_artifact(
+                sidecar_row.get("path"),
+                workspace_root=root,
+            )
+        elif _is_workspace_file(proof_sidecar_path, root):
+            sidecar_path = Path(proof_sidecar_path).resolve()
+        else:
+            raise ValueError("validation sidecar is not a workspace file")
+    except ValueError as error:
+        return [
+            _finding(
+                "bom_machine_reviews_inputs_invalid",
+                f"Machine review inputs are invalid: {error}",
+            )
+        ]
+    review_paths: dict[str, Path] = {}
+    for phase in ("plan", "article"):
+        row = reviews.get(phase)
+        findings.extend(_verify_row(row, f"machine_reviews.{phase}", root))
+        if not isinstance(row, Mapping):
+            continue
+        try:
+            review_path = verify_artifact(
+                row,
+                workspace_root=root,
+                field=f"machine_reviews.{phase}",
+            )
+        except ValueError as error:
+            findings.append(
+                _finding(
+                    "bom_machine_review_artifact_invalid",
+                    f"Machine review {phase} artifact is invalid: {error}",
+                )
+            )
+            continue
+        review_paths[phase] = review_path
+        review_findings = machine_review.check_machine_review_file(
+            review_path,
+            proof_sidecar_path=sidecar_path,
+            editorial_plan_path=plan_path,
+            article_path=article_path,
+            expected_phase=phase,
+        )
+        findings.extend(
+            _finding(
+                str(finding.get("rule_id") or "machine_review_invalid"),
+                str(finding.get("message") or "Machine review is invalid."),
+            )
+            for finding in review_findings
+        )
+    if set(review_paths) == {"plan", "article"}:
+        pair_findings = machine_review.check_machine_review_pair(
+            review_paths["plan"],
+            review_paths["article"],
+        )
+        findings.extend(
+            _finding(
+                str(finding.get("rule_id") or "machine_review_pair_invalid"),
+                str(finding.get("message") or "Machine review pair is invalid."),
+            )
+            for finding in pair_findings
+        )
     return findings
 
 
@@ -797,6 +972,7 @@ def _check_connector(
     context_receipt_path: str | Path | None,
     context_result: context_binding_guard.ContextValidationResult | None,
     context_client: Any,
+    editorial_plan: Mapping[str, Any] | None,
     vault_root: str | Path | None,
 ) -> list[Finding]:
     required = context_binding_guard.requires_context(article.raw)
@@ -845,6 +1021,7 @@ def _check_connector(
             context_request=context_request_path,
             context_pack=context_pack_path,
             context_receipt=context_receipt_path,
+            editorial_plan=editorial_plan,
             client=context_client,
             vault_root=vault_root,
         )
@@ -854,6 +1031,27 @@ def _check_connector(
     if binding.get("context") != context_result.context_summary():
         findings.append(_finding("bom_context_summary_mismatch", "BOM connector summary does not exactly match validated connector artifacts."))
     return findings
+
+
+def _load_bound_editorial_plan(
+    artifacts: Mapping[str, Any],
+    root: Path,
+) -> Mapping[str, Any] | None:
+    row = artifacts.get("editorial_plan")
+    if not isinstance(row, Mapping) or not isinstance(row.get("path"), str):
+        return None
+    try:
+        path = verify_artifact(
+            row,
+            workspace_root=root,
+            field="artifacts.editorial_plan",
+        )
+        plan = json.loads(path.read_text(encoding="utf-8"))
+    except (ValueError, OSError, UnicodeError, json.JSONDecodeError):
+        return None
+    if not isinstance(plan, Mapping) or plan.get("schema") != EDITORIAL_PLAN_SCHEMA:
+        return None
+    return plan
 
 
 def _check_editorial_plan(
@@ -1075,10 +1273,16 @@ def _check_workflow(
     if loaded != embedded:
         findings.append(_finding("bom_stage_receipts_mismatch", "Embedded stage receipts must exactly match bound receipt artifacts."))
     stages = tuple(str(receipt.get("stage") or "") for receipt in loaded)
+    optimized_tail = stages in {
+        OPTIMIZED_TAIL_PROVISIONAL_STAGES,
+        OPTIMIZED_TAIL_FINAL_STAGES,
+    }
     optimized = "optimization" in stages
     lifecycle = bom.get("lifecycle_state")
     expected = (
-        OPTIMIZED_FINAL_STAGES if optimized and lifecycle == "final"
+        OPTIMIZED_TAIL_FINAL_STAGES if optimized_tail and lifecycle == "final"
+        else OPTIMIZED_TAIL_PROVISIONAL_STAGES if optimized_tail
+        else OPTIMIZED_FINAL_STAGES if optimized and lifecycle == "final"
         else OPTIMIZED_PROVISIONAL_STAGES if optimized
         else NORMAL_FINAL_STAGES if lifecycle == "final"
         else NORMAL_PROVISIONAL_STAGES
@@ -1561,6 +1765,13 @@ def _is_declared_artifact_path(field_path: tuple[str, ...]) -> bool:
     ):
         return True
     if field_path == ("preflight", "path"):
+        return True
+    if (
+        len(field_path) == 3
+        and field_path[0] == "machine_reviews"
+        and field_path[1] in {"plan", "article"}
+        and field_path[2] == "path"
+    ):
         return True
     if (
         len(field_path) == 4

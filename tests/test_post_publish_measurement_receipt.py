@@ -240,6 +240,26 @@ def test_builder_rejects_lookalike_final_bom(artifacts: dict[str, Path]):
         )
 
 
+def test_builder_non_object_bom_error_names_current_and_archived_schemas(
+    artifacts: dict[str, Path],
+):
+    root = artifacts["article"].parents[1]
+    non_object = _write(root / "research" / "non-object-final-bom.json", "[]\n")
+
+    with pytest.raises(ValueError) as raised:
+        build_receipt(
+            _metadata(),
+            artifacts["report"],
+            root,
+            article_path=artifacts["article"],
+            final_bom_path=non_object,
+        )
+
+    message = str(raised.value)
+    assert "simpro-blog-assembly-bom/v2" in message
+    assert "archived final simpro-blog-assembly-bom/v1" in message
+
+
 def test_builds_valid_live_url_observed_receipt_without_local_artifacts(artifacts: dict[str, Path]):
     receipt = build_receipt(_metadata(mode="live_url"), artifacts["report"], artifacts["article"].parents[1])
 

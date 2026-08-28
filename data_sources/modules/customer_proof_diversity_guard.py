@@ -26,6 +26,11 @@ try:
         load_sidecar_content,
         resolve_sidecar_path,
     )
+    from .proof_link_policy import (
+        analyze_proof_links,
+        canonicalize_link_identity,
+        is_generic_proof_anchor,
+    )
     from .proof_usage import count_customer_proof_usage
 except ImportError:  # pragma: no cover - supports direct script execution.
     from customer_proof_evidence import verify_selector_evidence_roles
@@ -35,6 +40,11 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         compose_with_sidecar,
         load_sidecar_content,
         resolve_sidecar_path,
+    )
+    from proof_link_policy import (
+        analyze_proof_links,
+        canonicalize_link_identity,
+        is_generic_proof_anchor,
     )
     from proof_usage import count_customer_proof_usage
 
@@ -148,10 +158,21 @@ def check_content(
     mining = _extract_selected_customer_proof_mining(proof_source)
     article_case_study_urls = _case_study_urls(content)
     proof_urls = _customer_proof_urls(proof_source)
-    findings: List[Finding] = []
+    findings: List[Finding] = _customer_proof_link_findings(
+        content,
+        proof_source,
+    )
 
     if pack is None:
-        return _missing_pack_findings(content, article_case_study_urls)
+        findings.extend(_missing_pack_findings(content, article_case_study_urls))
+        return sorted(
+            findings,
+            key=lambda finding: (
+                finding["severity"] != "error",
+                finding["line"],
+                finding["rule_id"],
+            ),
+        )
 
     all_case_study_urls = sorted(
         set(article_case_study_urls + _case_study_urls("\n".join(pack["lines"])))
@@ -230,6 +251,80 @@ def check_content(
             finding["rule_id"],
         ),
     )
+
+
+def _customer_proof_link_findings(
+    content: str,
+    proof_source: str,
+) -> List[Finding]:
+    """Require one natural, canonical-matching link per customer-proof unit."""
+    report = analyze_proof_links(content, proof_source)
+    findings: List[Finding] = []
+    emitted: set[tuple[str, int, int, tuple[str, ...]]] = set()
+
+    for requirement in report.requirements:
+        if (
+            requirement.owner != "customer_proof"
+            or requirement.mode != "inline_required"
+            or not requirement.approved_urls
+        ):
+            continue
+
+        unit_links = [
+            link
+            for link in report.links
+            if requirement.line <= link.line <= requirement.end_line
+            and canonicalize_link_identity(link.url) in requirement.approved_urls
+        ]
+        natural_links = [
+            link
+            for link in unit_links
+            if not is_generic_proof_anchor(link.anchor)
+        ]
+        if natural_links:
+            continue
+
+        if unit_links:
+            rule_id = "customer_proof_anchor_not_descriptive"
+            message = (
+                "Customer proof uses a bare URL or generic anchor instead of a "
+                "descriptive contextual link."
+            )
+            suggestion = (
+                "Link descriptive customer-story text to the approved proof URL in "
+                "the same paragraph or table row as the claim."
+            )
+        else:
+            rule_id = "customer_proof_visible_link_missing"
+            message = (
+                "Customer proof is mapped in the sidecar but has no canonical-matching "
+                "public link in the same paragraph or table row."
+            )
+            suggestion = (
+                "Add one natural contextual link to the approved customer proof URL "
+                "in the same paragraph or table row as the claim."
+            )
+
+        finding_key = (
+            rule_id,
+            requirement.line,
+            requirement.end_line,
+            requirement.approved_urls,
+        )
+        if finding_key in emitted:
+            continue
+        emitted.add(finding_key)
+        findings.append(
+            _finding(
+                rule_id,
+                requirement.line,
+                message,
+                suggestion,
+                match=requirement.claim,
+            )
+        )
+
+    return findings
 
 
 def check_file(

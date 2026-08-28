@@ -19,9 +19,11 @@ from urllib.parse import urlparse
 
 try:
     from .guard_common import Finding, should_fail, summarize_findings
+    from .proof_link_policy import canonicalize_link_identity, is_generic_proof_anchor
     from .proof_sidecar import compose_with_sidecar, load_sidecar_content
 except ImportError:  # pragma: no cover - supports direct script execution.
     from guard_common import Finding, should_fail, summarize_findings
+    from proof_link_policy import canonicalize_link_identity, is_generic_proof_anchor
     from proof_sidecar import compose_with_sidecar, load_sidecar_content
 
 
@@ -185,7 +187,7 @@ def check_content(
                 paragraph.text,
                 normalized_tokens,
                 proof_entries,
-            ) and not _has_matching_proof(normalized_tokens, proof_entries):
+            ):
                 findings.append(
                     {
                         "rule_id": "unsupported_numeric_claim",
@@ -195,13 +197,13 @@ def check_content(
                         "match": paragraph.text.strip(),
                         "numeric_tokens": numeric_tokens,
                         "message": (
-                            "High-risk numeric business claims need a public source link in "
-                            "the same paragraph or matching Source Map / Proof Pack proof."
+                            "High-risk numeric business claims need a visible approved "
+                            "source link in the same paragraph or Markdown table row."
                         ),
                         "suggestion": (
-                            "Add a public-facing proof URL next to the claim, map the same "
-                            "numeric claim to a Source Map / Proof Pack row with a URL or "
-                            "local proof artifact, or remove the unsupported number."
+                            "Map the same numeric claim in the validation sidecar and add "
+                            "its public-facing proof URL next to the claim, or remove the "
+                            "unsupported number."
                         ),
                     }
                 )
@@ -210,8 +212,6 @@ def check_content(
         if not verbal_phrases:
             continue
         if _has_visible_public_evidence_link(paragraph.text, verbal_phrases, proof_entries):
-            continue
-        if _has_matching_verbal_proof(verbal_phrases, proof_entries):
             continue
         findings.append(
             {
@@ -223,11 +223,11 @@ def check_content(
                 "claim_phrases": verbal_phrases,
                 "message": (
                     "Source-sensitive verbal quantities and business comparisons need "
-                    "a visible public evidence link or a matching Source Map row."
+                    "a visible approved public evidence link in the same paragraph."
                 ),
                 "suggestion": (
-                    "Add a public evidence link, map the claim phrase to a public URL "
-                    "in the Source Map, or remove the unsupported comparison."
+                    "Map the claim phrase to a public URL in the validation sidecar and "
+                    "link that source beside the claim, or remove the comparison."
                 ),
             }
         )
@@ -405,10 +405,17 @@ def _has_supported_same_paragraph_public_link(
     normalized_tokens: set[str],
     proof_entries: Sequence[ProofEntry],
 ) -> bool:
-    urls = _extract_public_urls(text)
-    for url in urls:
+    for anchor, url in _extract_public_link_rows(text):
+        if is_generic_proof_anchor(anchor):
+            continue
         if not _is_owned_proof_url(url):
-            return True
+            if not proof_entries or _has_matching_url_proof(
+                url,
+                normalized_tokens,
+                proof_entries,
+                text,
+            ):
+                return True
         if _has_matching_owned_url_proof(url, normalized_tokens, proof_entries, text):
             return True
     return False
@@ -419,10 +426,17 @@ def _is_public_url(url: str) -> bool:
 
 
 def _extract_public_urls(text: str) -> List[str]:
-    urls = [match.group(2) for match in MARKDOWN_LINK_RE.finditer(text)]
+    return [url for _anchor, url in _extract_public_link_rows(text)]
+
+
+def _extract_public_link_rows(text: str) -> List[tuple[str, str]]:
+    rows = [
+        (match.group(1).strip(), match.group(2).strip())
+        for match in MARKDOWN_LINK_RE.finditer(text)
+    ]
     text_without_markdown = MARKDOWN_LINK_RE.sub("", text)
-    urls.extend(match.group(0) for match in BARE_URL_RE.finditer(text_without_markdown))
-    return [url for url in urls if _is_public_url(url)]
+    rows.extend(("", match.group(0)) for match in BARE_URL_RE.finditer(text_without_markdown))
+    return [(anchor, url) for anchor, url in rows if _is_public_url(url)]
 
 
 def _is_owned_proof_url(url: str) -> bool:
@@ -449,15 +463,43 @@ def _has_matching_owned_url_proof(
     return False
 
 
+def _has_matching_url_proof(
+    url: str,
+    normalized_tokens: set[str],
+    proof_entries: Sequence[ProofEntry],
+    source_text: str = "",
+) -> bool:
+    normalized_url = canonicalize_link_identity(url)
+    for proof in proof_entries:
+        if source_text and _normalize_for_proof_text(proof.text) == _normalize_for_proof_text(source_text):
+            continue
+        if normalized_url not in {
+            canonicalize_link_identity(proof_url) for proof_url in proof.urls
+        }:
+            continue
+        if normalized_tokens.issubset(proof.normalized_tokens):
+            return True
+    return False
+
+
 def _has_visible_public_evidence_link(
     text: str,
     verbal_phrases: Sequence[str],
     proof_entries: Sequence[ProofEntry],
 ) -> bool:
-    urls = _extract_public_urls(text)
-    for url in urls:
+    for anchor, url in _extract_public_link_rows(text):
+        if is_generic_proof_anchor(anchor):
+            continue
         if not _is_owned_proof_url(url):
-            return True
+            if not proof_entries:
+                return True
+            if _has_matching_verbal_url_proof(
+                url,
+                verbal_phrases,
+                proof_entries,
+                text,
+            ):
+                return True
         normalized_url = _normalize_url(url)
         matching_proofs = [
             proof
@@ -470,6 +512,30 @@ def _has_visible_public_evidence_link(
         ):
             return True
     return False
+
+
+def _has_matching_verbal_url_proof(
+    url: str,
+    verbal_phrases: Sequence[str],
+    proof_entries: Sequence[ProofEntry],
+    source_text: str = "",
+) -> bool:
+    normalized_url = canonicalize_link_identity(url)
+    matching_proofs = [
+        proof
+        for proof in proof_entries
+        if (
+            not source_text
+            or _normalize_for_proof_text(proof.text)
+            != _normalize_for_proof_text(source_text)
+        )
+        and normalized_url
+        in {canonicalize_link_identity(proof_url) for proof_url in proof.urls}
+    ]
+    return all(
+        any(phrase in proof.normalized_text for proof in matching_proofs)
+        for phrase in verbal_phrases
+    )
 
 
 def _has_matching_verbal_proof(

@@ -209,6 +209,35 @@ def test_valid_provisional_chain_passes():
     assert check_receipt_chain(_normal_chain()) == []
 
 
+def test_optimized_tail_chain_with_external_predecessor_passes():
+    scrub = _receipt(
+        "post_optimization_scrub",
+        started="2026-08-11T14:02:00Z",
+        completed="2026-08-11T14:03:00Z",
+        article_in=H1,
+        article_out=H1,
+        previous=H3,
+    )
+    binding = _receipt(
+        "post_optimization_context_binding",
+        started="2026-08-11T14:04:00Z",
+        completed="2026-08-11T14:05:00Z",
+        article_in=H1,
+        article_out=H1,
+        previous=scrub["receipt_hash"],
+    )
+    preflight = _receipt(
+        "final_preflight_readiness",
+        started="2026-08-11T14:06:00Z",
+        completed="2026-08-11T14:07:00Z",
+        article_in=H1,
+        article_out=H1,
+        previous=binding["receipt_hash"],
+    )
+
+    assert check_receipt_chain([scrub, binding, preflight]) == []
+
+
 def test_normal_workflow_can_close_with_detached_final_readiness():
     receipts = _normal_chain()
     preflight = _receipt(

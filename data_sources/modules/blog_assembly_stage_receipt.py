@@ -51,6 +51,12 @@ OPTIMIZED_STAGE_SEQUENCE = (
     "final_preflight_readiness",
     "final_readiness_attestation",
 )
+OPTIMIZED_TAIL_STAGE_SEQUENCE = (
+    "post_optimization_scrub",
+    "post_optimization_context_binding",
+    "final_preflight_readiness",
+    "final_readiness_attestation",
+)
 STAGES = tuple(dict.fromkeys((*NORMAL_STAGE_SEQUENCE, *OPTIMIZED_STAGE_SEQUENCE)))
 DETERMINISTIC_TOOLS = {
     "scrub": ("content_scrubber", "1.0.0"),
@@ -599,7 +605,11 @@ def check_receipt_chain(
     stages = tuple(str(receipt.get("stage") or "") for receipt in receipts)
     valid_prefix = any(
         stages == sequence[: len(stages)]
-        for sequence in (NORMAL_STAGE_SEQUENCE, OPTIMIZED_STAGE_SEQUENCE)
+        for sequence in (
+            NORMAL_STAGE_SEQUENCE,
+            OPTIMIZED_STAGE_SEQUENCE,
+            OPTIMIZED_TAIL_STAGE_SEQUENCE,
+        )
     )
     if not valid_prefix:
         findings.append(_finding("stage_receipt_stage_order_invalid", "Receipt stages must follow the closed workflow order."))
@@ -609,7 +619,7 @@ def check_receipt_chain(
     for index, receipt in enumerate(receipts):
         previous = str(receipt.get("previous_receipt_hash") or "")
         if index == 0:
-            if previous:
+            if previous and not stages == OPTIMIZED_TAIL_STAGE_SEQUENCE[: len(stages)]:
                 findings.append(_finding("stage_receipt_previous_hash_mismatch", "First receipt cannot name a predecessor."))
             continue
         prior = receipts[index - 1]

@@ -16,9 +16,11 @@ from typing import Dict, List, Optional, Any, Tuple
 
 try:
     from .frontmatter import split_frontmatter
+    from .proof_link_policy import canonicalize_link_identity
     from .url_validator import validate_content_urls
 except ImportError:
     from frontmatter import split_frontmatter
+    from proof_link_policy import canonicalize_link_identity
     from url_validator import validate_content_urls
 
 
@@ -43,6 +45,13 @@ GENERIC_LINK_ANCHORS = {
     "this resource",
     "check it out",
 }
+HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
+MARKDOWN_IMAGE_RE = re.compile(r"!\[[^\]]*\]\([^)]+\)")
+FENCED_CODE_BLOCK_RE = re.compile(
+    r"^[ \t]*(?P<fence>`{3,}|~{3,})[^\r\n]*(?:\r?\n|\Z)"
+    r".*?^[ \t]*(?P=fence)[ \t]*(?:\r?\n|\Z)",
+    re.DOTALL | re.MULTILINE,
+)
 FUNCTIONAL_DESTINATION_TERMS = {
     "accounts receivable",
     "asset maintenance",
@@ -89,6 +98,54 @@ BRAND_INTERNAL_DOMAINS = {
     "clockshark": frozenset({"clockshark.com"}),
     "simpro": frozenset({"simprogroup.com", "simpro.ai"}),
 }
+GEO_KEYWORD_TAIL_TOKENS = frozenset(
+    {
+        "alabama",
+        "alaska",
+        "arizona",
+        "arkansas",
+        "australia",
+        "california",
+        "canada",
+        "colorado",
+        "connecticut",
+        "delaware",
+        "florida",
+        "georgia",
+        "hawaii",
+        "idaho",
+        "illinois",
+        "indiana",
+        "iowa",
+        "kansas",
+        "kentucky",
+        "louisiana",
+        "maine",
+        "maryland",
+        "massachusetts",
+        "michigan",
+        "minnesota",
+        "mississippi",
+        "missouri",
+        "montana",
+        "nebraska",
+        "nevada",
+        "ohio",
+        "oklahoma",
+        "oregon",
+        "pennsylvania",
+        "queensland",
+        "tennessee",
+        "texas",
+        "uk",
+        "utah",
+        "vermont",
+        "virginia",
+        "washington",
+        "wisconsin",
+        "wyoming",
+    }
+)
 META_TITLE_BRAND_SUFFIX_RE = re.compile(r"\|\s*[A-Za-z][A-Za-z0-9 .&-]{1,40}$")
 PUBLISHING_THRESHOLD = 90
 SEO_TARGET_SCORE = 95
@@ -206,6 +263,7 @@ class SEOQualityRater:
         for key in (
             'min_internal_links',
             'optimal_internal_links',
+            'max_internal_links',
             'min_external_links',
             'optimal_external_links',
         ):
@@ -226,16 +284,40 @@ class SEOQualityRater:
                     f"{minimum_key} must be less than or equal to {optimal_key}"
                 )
 
+        max_internal = self.guidelines.get('max_internal_links')
+        for key in ('min_internal_links', 'optimal_internal_links'):
+            value = self.guidelines.get(key)
+            if value is not None and max_internal is not None and value > max_internal:
+                raise ValueError(f"{key} must be less than or equal to max_internal_links")
+
+        long_form_exemption = self.guidelines.get(
+            'long_form_internal_link_exemption_word_count'
+        )
+        if long_form_exemption is not None and (
+            isinstance(long_form_exemption, bool)
+            or not isinstance(long_form_exemption, int)
+            or long_form_exemption <= 0
+        ):
+            raise ValueError(
+                "long_form_internal_link_exemption_word_count must be a positive integer or None"
+            )
+        require_down_funnel = self.guidelines.get('require_down_funnel_link')
+        if not isinstance(require_down_funnel, bool):
+            raise ValueError("require_down_funnel_link must be a boolean")
+
     def _default_guidelines(self) -> Dict[str, Any]:
         """Default SEO guidelines for proof-sensitive, intent-led blog quality."""
         return {
             'min_word_count': None,
             'optimal_word_count': None,
             'max_word_count': None,
-            'min_internal_links': None,
-            'optimal_internal_links': None,
-            'min_external_links': None,
-            'optimal_external_links': None,
+            'min_internal_links': 3,
+            'optimal_internal_links': 5,
+            'max_internal_links': 7,
+            'long_form_internal_link_exemption_word_count': 3000,
+            'min_external_links': 2,
+            'optimal_external_links': 2,
+            'require_down_funnel_link': True,
             'meta_title_length_min': 50,
             'meta_title_length_max': 60,
             'meta_description_length_min': 150,
@@ -650,9 +732,12 @@ class SEOQualityRater:
             rf"(?<!\w){escaped}(?!\w)",
             re.IGNORECASE,
         )
+        reader_visible = HTML_COMMENT_RE.sub("", content)
+        reader_visible = FENCED_CODE_BLOCK_RE.sub("", reader_visible)
+        reader_visible = MARKDOWN_IMAGE_RE.sub("", reader_visible)
         prose = "\n".join(
             line
-            for line in content.splitlines()
+            for line in reader_visible.splitlines()
             if not re.match(r"^\s*#", line)
         )
         sentences = [
@@ -825,52 +910,68 @@ class SEOQualityRater:
             score -= 5
             suggestions.append(f"Could add more internal links ({internal_count}). Optimal is {optimal_internal}.")
 
-        down_funnel = _analyze_down_funnel_links(content, brand=brand)
-        if down_funnel["generic"]:
-            score -= 20
-            anchor, url = down_funnel["generic"][0]
-            critical.append(
-                "A down-funnel internal link uses generic anchor text. "
-                f"Replace '{anchor}' for {url} with destination-matched anchor text."
-            )
-        elif down_funnel["name_only"]:
-            score -= 20
-            anchor, url = down_funnel["name_only"][0]
-            critical.append(
-                "A feature or solution link uses name-only anchor text. "
-                f"Replace '{anchor}' for {url} with functional anchor text that describes "
-                "the workflow, category, or outcome."
-            )
-        elif not down_funnel["valid"]:
-            score -= 20
-            if down_funnel["weak_anchor"]:
-                anchor, url = down_funnel["weak_anchor"][0]
+        max_internal = self.guidelines['max_internal_links']
+        long_form_exemption = self.guidelines[
+            'long_form_internal_link_exemption_word_count'
+        ]
+        if max_internal is not None and internal_count > max_internal:
+            article_word_count = _count_visible_words(content)
+            if (
+                long_form_exemption is None
+                or article_word_count < long_form_exemption
+            ):
+                score -= 5
+                if long_form_exemption is None:
+                    warnings.append(
+                        f"Too many internal links ({internal_count}). "
+                        f"Keep standard posts to {max_internal} or fewer."
+                    )
+                else:
+                    warnings.append(
+                        f"Too many internal links ({internal_count}) for a standard blog. "
+                        f"Keep standard posts to {max_internal} or fewer unless the article "
+                        f"is {long_form_exemption}+ words."
+                    )
+
+        if self.guidelines['require_down_funnel_link']:
+            down_funnel = _analyze_down_funnel_links(content, brand=brand)
+            if down_funnel["generic"]:
+                score -= 20
+                anchor, url = down_funnel["generic"][0]
                 critical.append(
-                    "A down-funnel internal link anchor text must match the destination keyword. "
-                    f"Replace '{anchor}' for {url} with a product, solution, feature, or industry keyword."
+                    "A down-funnel internal link uses generic anchor text. "
+                    f"Replace '{anchor}' for {url} with destination-matched anchor text."
                 )
-            else:
+            elif down_funnel["name_only"]:
+                score -= 20
+                anchor, url = down_funnel["name_only"][0]
                 critical.append(
-                    "Missing down-funnel internal link to /industries, /industries/..., "
-                    "/solutions/..., or /features/... with matched anchor text."
+                    "A feature or solution link uses name-only anchor text. "
+                    f"Replace '{anchor}' for {url} with functional anchor text that describes "
+                    "the workflow, category, or outcome."
                 )
+            elif not down_funnel["valid"]:
+                score -= 20
+                if down_funnel["weak_anchor"]:
+                    anchor, url = down_funnel["weak_anchor"][0]
+                    critical.append(
+                        "A down-funnel internal link anchor text must match the destination keyword. "
+                        f"Replace '{anchor}' for {url} with a product, solution, feature, or industry keyword."
+                    )
+                else:
+                    critical.append(
+                        "Missing down-funnel internal link to /industries, /industries/..., "
+                        "/solutions/..., or /features/... with matched anchor text."
+                    )
 
         # External links
         min_external = self.guidelines['min_external_links']
-        optimal_external = self.guidelines['optimal_external_links']
 
         if min_external is not None and external_count < min_external:
             score -= 15
-            target = optimal_external if optimal_external is not None else min_external
             warnings.append(
                 f"Too few non-owned public research links ({external_count}). "
-                f"Add authoritative resolved sources (target: {target})."
-            )
-        elif optimal_external is not None and external_count < optimal_external:
-            score -= 5
-            suggestions.append(
-                f"Could add more non-owned public research links ({external_count}). "
-                f"Optimal is {optimal_external}."
+                f"Add authoritative resolved sources (baseline: {min_external})."
             )
 
         return {
@@ -997,11 +1098,13 @@ def _count_markdown_links(
 ) -> Tuple[int, int]:
     """Count markdown links as internal or external for owned web content."""
     internal_count = 0
-    external_count = 0
+    distinct_external_urls = set()
 
     for _, url in _extract_markdown_links(content):
         url = url.strip()
         if not url:
+            continue
+        if url.startswith(("#", "mailto:", "tel:")):
             continue
 
         parsed = urlparse(url)
@@ -1012,11 +1115,13 @@ def _count_markdown_links(
             elif _hostname_is_group_owned(hostname):
                 continue
             else:
-                external_count += 1
+                canonical = canonicalize_link_identity(url)
+                if canonical:
+                    distinct_external_urls.add(canonical)
         else:
             internal_count += 1
 
-    return internal_count, external_count
+    return internal_count, len(distinct_external_urls)
 
 
 def _extract_markdown_links(content: str) -> List[Tuple[str, str]]:
@@ -1026,6 +1131,14 @@ def _extract_markdown_links(content: str) -> List[Tuple[str, str]]:
         (anchor.strip(), url.strip())
         for anchor, url in re.findall(r'(?<!!)\[([^\]]+)\]\(([^)]+)\)', body)
     ]
+
+
+def _count_visible_words(content: str) -> int:
+    """Count reader-visible words in an article body for link-density policy."""
+    _, body, _ = split_frontmatter(content)
+    body = re.sub(r"!\[[^\]]*\]\([^)]*\)", " ", body)
+    body = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", body)
+    return len(re.findall(r"[A-Za-z0-9]+", body))
 
 
 def _analyze_down_funnel_links(
@@ -1042,7 +1155,7 @@ def _analyze_down_funnel_links(
 
     for anchor, url in _extract_markdown_links(content):
         path = _internal_link_path(url, brand=brand)
-        if not path or not _is_down_funnel_path(path):
+        if not path or not _is_down_funnel_path(path, brand=brand):
             continue
 
         if _is_generic_anchor(anchor):
@@ -1101,9 +1214,10 @@ def _hostname_is_group_owned(hostname: str) -> bool:
 
 
 def _hostname_matches_brand(hostname: str, brand: Optional[str]) -> bool:
+    brand_key = brand.casefold() if isinstance(brand, str) else None
     domains = (
-        BRAND_INTERNAL_DOMAINS.get(brand, frozenset())
-        if brand is not None
+        BRAND_INTERNAL_DOMAINS.get(brand_key, frozenset())
+        if brand_key is not None
         else frozenset(OWNED_INTERNAL_DOMAINS)
     )
     return any(
@@ -1125,6 +1239,25 @@ def _contains_ordered_keyword_variant(text: str, keyword: str, *, max_gap_words:
     if not keyword_tokens:
         return False
 
+    if _contains_token_sequence_variant(
+        text_tokens,
+        keyword_tokens,
+        max_gap_words=max_gap_words,
+    ):
+        return True
+    return _contains_locale_fronted_keyword_variant(
+        text_tokens,
+        keyword_tokens,
+        max_gap_words=max_gap_words,
+    )
+
+
+def _contains_token_sequence_variant(
+    text_tokens: List[str],
+    keyword_tokens: List[str],
+    *,
+    max_gap_words: int,
+) -> bool:
     for start, token in enumerate(text_tokens):
         if token != keyword_tokens[0]:
             continue
@@ -1144,6 +1277,23 @@ def _contains_ordered_keyword_variant(text: str, keyword: str, *, max_gap_words:
     return False
 
 
+def _contains_locale_fronted_keyword_variant(
+    text_tokens: List[str],
+    keyword_tokens: List[str],
+    *,
+    max_gap_words: int,
+) -> bool:
+    """Accept natural title variants where a trailing locale moves first."""
+    if len(keyword_tokens) < 2 or keyword_tokens[-1] not in GEO_KEYWORD_TAIL_TOKENS:
+        return False
+    fronted_tokens = [keyword_tokens[-1], *keyword_tokens[:-1]]
+    return _contains_token_sequence_variant(
+        text_tokens,
+        fronted_tokens,
+        max_gap_words=max_gap_words,
+    )
+
+
 def _normalize_path(path: str) -> str:
     cleaned = path.split("#", 1)[0].split("?", 1)[0].strip()
     if not cleaned.startswith("/"):
@@ -1152,7 +1302,9 @@ def _normalize_path(path: str) -> str:
     return cleaned.rstrip("/") or "/"
 
 
-def _is_down_funnel_path(path: str) -> bool:
+def _is_down_funnel_path(path: str, *, brand: Optional[str] = None) -> bool:
+    if brand and brand.casefold() == "clockshark" and path.startswith("/tour/"):
+        return True
     return path in DOWN_FUNNEL_EXACT_PATHS or any(
         path.startswith(prefix) for prefix in DOWN_FUNNEL_PATH_PREFIXES
     )
@@ -1448,8 +1600,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         action="store_true",
         help=(
             "Resolve article URLs and fail readiness on unresolved/manual-review links. "
-            "Use with 2+ non-owned public research links unless the sidecar marks "
-            "External research requirement: not applicable with a reason."
+            "Standard posts use 2+ distinct non-owned authority sources as the baseline. "
+            "Add no quota-only third source, and apply no maximum to claim-required "
+            "evidence."
         ),
     )
 

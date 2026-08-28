@@ -67,11 +67,14 @@ Analyze completed articles and provide actionable recommendations to improve qua
 
 ### 3. Link Strategy Optimization
 
-#### Internal Linking (intent-appropriate; no fixed total)
+#### Internal Linking (3-5 standard-blog target; maximum 7)
 - Count current internal links
 - Evaluate link relevance and context
 - Assess anchor text quality (descriptive, keyword-rich)
 - Check for broken internal links
+- Confirm standard blog posts have 3 to 5 internal links and do not exceed 7
+- Confirm the required down-funnel or industry-cluster link counts toward the internal-link total, and remains additive to exact-count brief-selected links for single-trade Simpro posts unless the brief explicitly prohibits the industry page
+- Exclude URL fragments and `mailto:` or `tel:` links from link totals
 - Identify missed opportunities to link to:
   - Approved brand pillar content from the active link inventory
   - Related blog articles
@@ -82,12 +85,20 @@ Analyze completed articles and provide actionable recommendations to improve qua
 - "In [Section Name], link to [Approved Brand Page] with anchor text '[suggested text]'"
 - Paragraph-specific suggestions with exact placement
 
-#### External Linking (claim-fit evidence; no fixed total)
-- Count authoritative external links
+#### External Linking (2 distinct claim-fit authority sources)
+- Count distinct authoritative non-owned external sources, not raw links
 - Verify credibility of linked sources
 - Check for broken external links
 - Identify claims/statistics that need source citations
-- Recommend additional authoritative sources to strengthen credibility
+- Confirm 2 distinct authoritative non-owned external sources pass and reject a third source added only to meet a quota
+- Recommend additional authoritative sources whenever source support, regulation, public proof, specialist same-paragraph rules, or other claim-fit evidence requires them; evidence exceptions are uncapped
+- Exclude URL fragments and `mailto:` or `tel:` links from source totals
+
+#### Citation Modes and Link Protection
+
+Confirm every proof-sensitive claim has one machine-generated citation mode: `inline_required`, `section_source_allowed`, `sidecar_only`, or `proof_not_required`. Legal, regulatory, licensing, compliance, safety, fees, deadlines, pricing, status, material numeric, causal, comparative, benchmark, quote, customer, review, Fred, and fact-driven FAQ claims use `inline_required`; unknown or ambiguous high-risk claims fail closed to that mode. FAQ links must appear in the first visible answer paragraph. Only the policy engine may assign `proof_not_required`.
+
+Use natural descriptive anchors. Never recommend removing or relocating a required link unless the replacement preserves its exact claim mapping. Flag repeated destinations, duplicate support, and quota-only sources as redundancy. Return advisory findings only; `/publish-readiness` remains the sole verdict.
 
 ### 4. Technical SEO Elements
 
@@ -243,7 +254,7 @@ Specific recommendations with exact placement:
 ### Readiness Handoff
 **SEO finding status**: [No SEO blockers / SEO fixes required]
 
-Final release status comes only from `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`; do not treat SEO optimization alone as publish approval.
+Final release status comes only from the atomic `blog_release.py` workflow documented in `.claude/commands/publish-readiness.md`, including its final BOM v2-bound `/publish-readiness` result; do not treat SEO optimization alone as publish approval.
 
 **Estimated Time to Fix**: [X minutes/hours]
 

@@ -44,6 +44,21 @@ class ContentScrubberTests(unittest.TestCase):
 
         self.assertEqual(scrub_content(content), content)
 
+    def test_scrub_preserves_blank_lines_around_markdown_image_url(self):
+        marker = (
+            "![Prevent employee time theft with GPS time tracking]"
+            "(https://www.datocms-assets.com/16247/time-theft.png)"
+        )
+        content = (
+            "| Review cue | Use it for |\n"
+            "|---|---|\n"
+            "| Decision | Mark the entry before payroll. |\n\n"
+            f"{marker}\n\n"
+            "Technicians need the next paragraph on its own line."
+        )
+
+        self.assertEqual(scrub_content(content), content)
+
     def test_scrub_placeholder_restoration_does_not_collide_after_zero_width_cleanup(self):
         marker = (
             '[IMAGE PLACEHOLDER — ORIGINAL HERO: retain immediately before the '

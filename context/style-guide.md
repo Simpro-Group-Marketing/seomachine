@@ -504,7 +504,7 @@ Examples:
 - 2–5 words typically
 - ✅ "Learn how Simpro Payments works" / "See real-time job costing in action"
 - ❌ "Click here" / "Read more" / "This page"
-- Only 1 link per paragraph. Move the second link to a separate paragraph or remove it.
+- Prefer one authority link for a contiguous claim cluster. Multiple distinct authority links may share a paragraph when separate evidence-triggered claims require them; never split or remove required proof solely to satisfy a link-count rule. Use the shared proof-link policy to identify redundant citations.
 - Feature and solution links must use function-bearing anchor text. A feature or solution name alone is not enough; pair branded names with the workflow, category, or outcome.
 
 **Internal vs. External**:

@@ -453,7 +453,7 @@ def test_hidden_exact_quote_does_not_satisfy_public_quote_use(tmp_path):
     assert any(item["rule_id"] == "fred_authority_exact_quote_missing" for item in findings)
 
 
-def test_url_equality_normalizes_scheme_host_and_default_port_only():
+def test_url_equality_uses_shared_canonical_identity():
     assert _normalize_url("HTTPS://EXAMPLE.COM:443/skilled-trades?View=Full") == _normalize_url(
         "https://example.com/skilled-trades?View=Full"
     )
@@ -464,6 +464,9 @@ def test_url_equality_normalizes_scheme_host_and_default_port_only():
     assert _normalize_url("https://example.com/skilled-trades?View=Full") != _normalize_url(
         "https://example.com/skilled-trades?view=Full"
     )
+    assert _normalize_url(
+        "https://example.com/skilled-trades/?utm_source=article#quote"
+    ) == _normalize_url("https://example.com/skilled-trades")
 
 
 def test_default_port_and_authority_case_variants_join_to_receipt_url(tmp_path):
@@ -489,10 +492,43 @@ def test_default_port_and_authority_case_variants_join_to_receipt_url(tmp_path):
     assert guard_check(article, proof, pack, receipt) == []
 
 
-def test_url_equality_preserves_non_root_trailing_slash():
-    assert _normalize_url("https://example.com/skilled-trades/") != _normalize_url(
+def test_url_equality_removes_non_root_trailing_slash_difference():
+    assert _normalize_url("https://example.com/skilled-trades/") == _normalize_url(
         "https://example.com/skilled-trades"
     )
+
+
+@pytest.mark.parametrize(
+    "link_markup",
+    [
+        f"[source]({ARTICLE_URL})",
+        ARTICLE_URL,
+    ],
+)
+def test_fred_quote_rejects_generic_or_bare_proof_links(tmp_path, link_markup):
+    claims = default_fred_claims() + [
+        fred_claim(
+            "FVMI-001",
+            ARTICLE_QUOTE,
+            ARTICLE_URL,
+            authority_resource_id=ARTICLE_RESOURCE_ID,
+            claim_id="claim-fred-FVMI-001-exact",
+            use_mode="exact_quote",
+        )
+    ]
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path, claims)
+    article = f'# Article\n\nFred Voccola said, "{ARTICLE_QUOTE}" {link_markup}'
+    proof = article_quote_block(
+        revision,
+        claim_ids="claim-fred-FVMI-001, claim-fred-FVMI-001-exact",
+    )
+
+    rules = {
+        finding["rule_id"]
+        for finding in guard_check(article, proof, pack, receipt)
+    }
+
+    assert "fred_authority_public_link_missing" in rules
 
 
 def test_exact_quote_and_link_in_different_paragraphs_fails(tmp_path):

@@ -154,6 +154,14 @@ class AiCopyLinterTests(unittest.TestCase):
             {finding['rule_id'] for finding in findings},
         )
 
+    def test_first_word_after_colon_preposition_in_heading_is_allowed(self):
+        findings = lint_content('## Texas Plumbing License Guide: From Apprentice to Master Plumber')
+
+        self.assertNotIn(
+            'title_capitalized_preposition',
+            {finding['rule_id'] for finding in findings},
+        )
+
     def test_how_can_heading_allows_modal_can(self):
         findings = lint_content('## How Women Can Start a Career in the Trades')
 
@@ -305,7 +313,7 @@ class AiCopyLinterTests(unittest.TestCase):
 
         self.assertNotIn("named_fictional_scenario", finding_ids(content))
 
-    def test_multiple_links_in_one_paragraph_is_error(self):
+    def test_distinct_links_in_one_paragraph_do_not_trigger_a_quota_rule(self):
         content = (
             "The [Federal Reserve](https://www.frbservices.org/news) reported "
             "payment changes. Teams comparing "
@@ -313,15 +321,7 @@ class AiCopyLinterTests(unittest.TestCase):
             "need a clear payment workflow."
         )
 
-        findings = lint_content(content)
-        multiple_links = [
-            finding
-            for finding in findings
-            if finding["rule_id"] == "multiple_links_in_paragraph"
-        ]
-
-        self.assertEqual(len(multiple_links), 1)
-        self.assertEqual(multiple_links[0]["severity"], "error")
+        self.assertNotIn("multiple_links_in_paragraph", finding_ids(content))
 
     def test_one_link_per_paragraph_is_allowed(self):
         content = (

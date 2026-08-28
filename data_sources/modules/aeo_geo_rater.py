@@ -96,6 +96,11 @@ def rate_aeo_geo(
         Dict with score, passed, checks, issues, and details.
     """
     metadata = metadata or {}
+    if proof_sidecar_content is None and proof_sidecar_path:
+        try:
+            proof_sidecar_content = Path(proof_sidecar_path).read_text(encoding="utf-8")
+        except (OSError, UnicodeError):
+            proof_sidecar_content = None
     frontmatter = _extract_frontmatter(content)
     frontmatter.update(_extract_structured_frontmatter(content))
     merged_metadata = {**frontmatter, **metadata}
@@ -407,7 +412,10 @@ def _validated_bom_author_policy(
     """
     if not isinstance(finalized_bom, Mapping):
         return ''
-    if finalized_bom.get('schema') != 'simpro-blog-assembly-bom/v1':
+    if finalized_bom.get('schema') not in {
+        'simpro-blog-assembly-bom/v1',
+        'simpro-blog-assembly-bom/v2',
+    }:
         return ''
     if finalized_bom.get('lifecycle_state') not in {'provisional', 'final'}:
         return ''
@@ -642,13 +650,24 @@ def _check_external_source_diagnostic(content: str) -> Dict[str, Any]:
         'passed': True,
         'applicable': False,
         'status': 'not_applicable',
-        'issue': 'External link totals are not a quality criterion.',
-        'fix': 'Use claim-level source-support and source-quality gates instead.',
+        'issue': (
+            'External link totals are diagnostic in AEO scoring; release policy '
+            'still uses a 2 distinct non-owned authority source baseline.'
+        ),
+        'fix': (
+            'Use 2 distinct non-owned authority sources as the standard-post '
+            'baseline. Add further claim-fit sources whenever evidence requires '
+            'them, add no quota-only third source, and apply no maximum to '
+            'required evidence.'
+        ),
         'severity': 'info',
         'details': {
             'external_link_count': len(links),
             'external_links': links,
-            'reason': 'Fixed source-count scoring is disabled.',
+            'reason': (
+                'AEO fixed source-count scoring is disabled; release link policy '
+                'owns the baseline and claim-level proof gates own additions.'
+            ),
         },
     }
 
@@ -967,11 +986,18 @@ def _check_faq_proof(
 
     return {
         "passed": passed,
-        "issue": "One or more FAQ answers lacks linked proof for its claims.",
+        "issue": (
+            "One or more FAQ answers does not satisfy its machine-assigned "
+            "citation mode."
+        ),
         "fix": (
-            "Add 1 authoritative non-owned public evidence link inside each "
-            "FAQ answer. A Source Map or FAQ Proof Map can document the same "
-            "evidence but cannot replace the reader-facing link."
+            "Resolve each finding according to its machine-assigned citation_mode. "
+            "For inline_required, add a natural descriptive anchor to an "
+            "authoritative non-owned source in the first visible answer paragraph "
+            "and map it in the FAQ Proof Map. For section_source_allowed, "
+            "sidecar_only, or proof_not_required, satisfy the assigned mode without "
+            "quota-only links; a sidecar cannot replace inline evidence when "
+            "inline_required applies."
         ),
         "severity": "high",
         "details": {
@@ -1132,7 +1158,10 @@ def _contains_ordered_target(text: str, target: str, *, max_gap_words: int = 2) 
 def _validated_non_connector_bom(finalized_bom: Optional[Mapping[str, Any]]) -> bool:
     if not isinstance(finalized_bom, Mapping):
         return False
-    if finalized_bom.get("schema") != "simpro-blog-assembly-bom/v1":
+    if finalized_bom.get("schema") not in {
+        "simpro-blog-assembly-bom/v1",
+        "simpro-blog-assembly-bom/v2",
+    }:
         return False
     if finalized_bom.get("lifecycle_state") not in {"provisional", "final"}:
         return False

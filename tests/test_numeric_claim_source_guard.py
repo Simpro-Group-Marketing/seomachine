@@ -36,6 +36,40 @@ class NumericClaimSourceGuardTests(unittest.TestCase):
 
         self.assertEqual(check_content(content), [])
 
+    def test_non_owned_numeric_link_must_match_sidecar_proof_when_sidecar_exists(self):
+        content = (
+            "Contractors reported a 25% profit margin according to "
+            "[unrelated guidance](https://example.org/unrelated)."
+        )
+        sidecar = (
+            "## Source Map\n"
+            "- Claim: Contractors reported a 25% profit margin. | "
+            "Claim type: metric | Source class: independent_research | "
+            "URL: https://example.org/margin-study | Evidence: 25% profit margin | "
+            "Status: approved\n"
+        )
+
+        self.assertIn(
+            "unsupported_numeric_claim",
+            {
+                finding["rule_id"]
+                for finding in check_content(content, proof_content=sidecar)
+            },
+        )
+
+    def test_numeric_claim_rejects_generic_or_bare_proof_links(self):
+        generic = (
+            "Contractors reported a 25% profit margin under this "
+            "[source](https://example.org/margin-study)."
+        )
+        bare = (
+            "Contractors reported a 25% profit margin: "
+            "https://example.org/margin-study"
+        )
+
+        self.assertIn("unsupported_numeric_claim", finding_ids(generic))
+        self.assertIn("unsupported_numeric_claim", finding_ids(bare))
+
     def test_source_map_claim_without_url_or_artifact_still_fails(self):
         content = fixture_text("content_evidence:test_numeric_claim_source_guard-44-3")
 
@@ -55,21 +89,37 @@ class NumericClaimSourceGuardTests(unittest.TestCase):
 
         self.assertEqual(check_content(content), [])
 
+    def test_ordered_list_markers_are_not_material_numeric_claims(self):
+        content = """# Licensing guide
+
+1. Create an online account with an email address you control.
+2. Add an existing registration or license when applicable.
+3. Select the application action for the credential you need.
+"""
+
+        self.assertEqual(check_content(content), [])
+
     def test_fdd_item_numbers_are_ignored(self):
         content = fixture_text("content_evidence:test_numeric_claim_source_guard-84-5")
 
         self.assertEqual(check_content(content), [])
 
-    def test_source_map_with_public_url_can_support_body_claim(self):
+    def test_source_map_with_public_url_cannot_replace_visible_metric_proof(self):
         content = fixture_text("content_evidence:test_numeric_claim_source_guard-94-6")
 
-        self.assertEqual(check_content(content), [])
+        self.assertIn("unsupported_numeric_claim", finding_ids(content))
 
-    def test_sidecar_source_map_can_support_body_claim(self):
+    def test_sidecar_source_map_cannot_replace_visible_metric_proof(self):
         content = fixture_text("content_evidence:test_numeric_claim_source_guard-107-7")
         sidecar = fixture_text("content_evidence:test_numeric_claim_source_guard-111-8")
 
-        self.assertEqual(check_content(content, proof_content=sidecar), [])
+        self.assertIn(
+            "unsupported_numeric_claim",
+            {
+                finding["rule_id"]
+                for finding in check_content(content, proof_content=sidecar)
+            },
+        )
 
     def test_list_items_are_checked_as_separate_claims(self):
         content = fixture_text("content_evidence:test_numeric_claim_source_guard-118-9")
@@ -182,11 +232,17 @@ class NumericClaimSourceGuardTests(unittest.TestCase):
 
         self.assertEqual(check_content(content), [])
 
-    def test_verbal_quantity_with_matching_source_map_row_passes(self):
+    def test_verbal_quantity_with_matching_source_map_still_needs_visible_proof(self):
         content = fixture_text("content_evidence:test_numeric_claim_source_guard-274-23")
         sidecar = fixture_text("content_evidence:test_numeric_claim_source_guard-278-24")
 
-        self.assertEqual(check_content(content, proof_content=sidecar), [])
+        self.assertIn(
+            "unsupported_verbal_quantified_claim",
+            {
+                finding["rule_id"]
+                for finding in check_content(content, proof_content=sidecar)
+            },
+        )
 
     def test_source_map_must_cover_each_verbal_claim_phrase(self):
         content = fixture_text("content_evidence:test_numeric_claim_source_guard-288-25")

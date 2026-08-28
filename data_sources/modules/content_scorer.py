@@ -239,7 +239,7 @@ class ContentScorer:
         humanity = self._score_humanity(clean_content, lint_source=content)
         specificity = self._score_specificity(clean_content)
         structure = self._score_structure_balance(visible_body)
-        seo = self._score_seo(content, metadata)
+        seo = self._score_seo(content, metadata, proof_sidecar=proof_sidecar)
         readability = self._score_readability(clean_content)
 
         # Calculate composite score
@@ -519,8 +519,12 @@ class ContentScorer:
             priority_fixes.insert(0, {
                 'issue': 'FAQ proof blockers detected',
                 'fix': (
-                    'Add public proof links inside unsupported FAQ answers or add '
-                    f'question-specific Source Map / FAQ Proof Map entries: {faq_questions}'
+                    'Resolve each finding according to its machine-assigned citation_mode. '
+                    'For inline_required, use a natural descriptive anchor to an '
+                    'authoritative non-owned source in the first visible answer paragraph '
+                    'and map it in the FAQ Proof Map. For lower-risk modes, satisfy the '
+                    'assigned mode without quota-only links; a sidecar cannot replace '
+                    f'inline evidence when inline_required applies: {faq_questions}'
                 ),
                 'severity': 'high',
                 'dimension': 'faq_proof',
@@ -1036,7 +1040,13 @@ class ContentScorer:
             'details': details
         }
 
-    def _score_seo(self, content: str, metadata: Dict[str, Any]) -> Dict[str, Any]:
+    def _score_seo(
+        self,
+        content: str,
+        metadata: Dict[str, Any],
+        *,
+        proof_sidecar: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """Score SEO once through the canonical :class:`SEOQualityRater`."""
         frontmatter, visible_body, _ = split_frontmatter(content)
 
@@ -1085,7 +1095,18 @@ class ContentScorer:
         if frontmatter.get('brand') is not None:
             rate_kwargs['brand'] = frontmatter.get('brand')
 
-        rated = self.seo_rater.rate(
+        seo_guidelines = metadata.get('seo_guidelines')
+        seo_guidelines = self._seo_guidelines_with_link_policy_override(
+            seo_guidelines,
+            proof_sidecar=proof_sidecar,
+        )
+        seo_rater = (
+            SEOQualityRater(seo_guidelines)
+            if isinstance(seo_guidelines, Mapping) and seo_guidelines
+            else self.seo_rater
+        )
+
+        rated = seo_rater.rate(
             visible_body,
             **rate_kwargs,
         )
@@ -1140,6 +1161,62 @@ class ContentScorer:
             'issues': issues,
             'details': details
         }
+
+    def _seo_guidelines_with_link_policy_override(
+        self,
+        seo_guidelines: object,
+        *,
+        proof_sidecar: Optional[str],
+    ) -> object:
+        """Apply a bound exact internal-link override to SEO link scoring."""
+        exact_count = self._exact_internal_link_override_count(proof_sidecar)
+        if exact_count is None:
+            return seo_guidelines
+
+        resolved: Dict[str, Any]
+        if isinstance(seo_guidelines, Mapping):
+            resolved = dict(seo_guidelines)
+        else:
+            resolved = dict(self.seo_rater.guidelines)
+
+        resolved['min_internal_links'] = exact_count
+        resolved['optimal_internal_links'] = exact_count
+        if resolved.get('max_internal_links') is not None:
+            resolved['max_internal_links'] = max(
+                exact_count,
+                int(resolved['max_internal_links']),
+            )
+        resolved['require_down_funnel_link'] = False
+        return resolved
+
+    @staticmethod
+    def _exact_internal_link_override_count(proof_sidecar: Optional[str]) -> Optional[int]:
+        if not proof_sidecar:
+            return None
+        try:
+            sidecar_text = Path(proof_sidecar).read_text(encoding='utf-8')
+        except (OSError, UnicodeError):
+            return None
+        if not re.search(
+            r"Override scope:\s*`?pre_faq_body`?",
+            sidecar_text,
+            flags=re.IGNORECASE,
+        ):
+            return None
+        if not re.search(
+            r"suppress(?:es)?\s+independently\s+derived\s+industry\s*(?:/|and)\s*down-funnel",
+            sidecar_text,
+            flags=re.IGNORECASE,
+        ):
+            return None
+        count_match = re.search(
+            r"exact_count\s*`?(\d+)`?",
+            sidecar_text,
+            flags=re.IGNORECASE,
+        )
+        if not count_match:
+            return None
+        return int(count_match.group(1))
 
     def _score_readability(self, content: str) -> Dict[str, Any]:
         """Score content for readability, rhythm, and paragraph length"""

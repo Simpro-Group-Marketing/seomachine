@@ -14,6 +14,8 @@ from data_sources.modules.grav_publisher import GravPublisher
 
 
 ROOT = Path(__file__).resolve().parents[1]
+# Ceiling includes the machine-review and risk-tiered proof-link regression suites.
+PYTHON_TEST_LOC_REFACTOR_CEILING = 31_500
 
 
 BLOG_MARKDOWN = fixture_text("content_evidence:test_native_blog_workflow_boundaries-17-1")
@@ -281,7 +283,7 @@ def test_python_test_loc_stays_below_the_refactor_ceiling():
         if line.strip()
     )
 
-    assert python_test_loc <= 29_500
+    assert python_test_loc <= PYTHON_TEST_LOC_REFACTOR_CEILING
 
 
 @pytest.mark.parametrize(

@@ -2,7 +2,7 @@
 
 Simpro Marketing's Claude Code workspace for **SEO and AEO/GEO blog posts** - research, write, optimize, and publish long-form articles for field-service and trades audiences, with Simpro-specific brand context, first-party analytics, and generative-engine optimization built in.
 
-Fork of [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/seomachine), customized on branch `custom/local-context` for [simprogroup.com](https://www.simprogroup.com).
+Fork of [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/seomachine), customized for proof-governed Simpro SEO and AEO workflows.
 
 ## Obsidian Vault Source Rule
 
@@ -48,7 +48,7 @@ SEO Machine is built on Claude Code and provides:
 - **Specialized Agents**: Content analyzer, SEO optimization, meta element creation, internal linking, keyword mapping, editor, performance analysis, headline generator, CRO analyst, landing page optimizer
 - **Marketing Skills**: 26+ marketing skills for copywriting, CRO, A/B testing, email sequences, pricing strategy, and more
 - **AEO/GEO Workflow**: Capsule Method structure, PAA/FAQ integration, source mapping, E-E-A-T Proof Map checks, and `aeo_geo_rater` scoring (90+ target) via `context/aeo-geo-blog-strategy.md`
-- **Source-Proof Guardrails**: Metric-sensitive articles require a Metric Proof Pack before writing or publish readiness, including a Search log and at least one Approved metric with public URL or local proof artifact, source-visible Evidence, Status: approved, and intended Use. Every metric, statistic, or numeric business claim must be supported by a public URL or local proof artifact through the body link, Source Map, or Customer Proof Pack. When visible FAQs exist, answers must lead with a concrete extractable answer and include at least 1 authoritative non-owned public evidence link in visible copy; a Source Map or FAQ Proof Map can document but cannot replace that link. PAA provenance follows the strict AnswerSocrates/brief policy below. The source support guard requires strict proof rows with source-visible Evidence. The 403 replacement rule requires blocked 401, 403, or `manual_review` public research/source URLs to be replaced with an equivalent resolved public source link in public copy or the supported claim removed; Source Map notes must document the rejected 403 URL and replacement URL. Exact quotes/testimonials must be approved in Customer Proof Pack Approved quotes, and any named customer metric must be approved in Customer Proof Pack Approved metrics. Review-derived public E-E-A-T stories require identity-backed `Review Story Selection`, a public review URL, and a same paragraph article link. experience_story consideration is required and E-E-A-T story usage is optional when customer proof appears; use a proof-backed customer/review POV only when it improves the article objective. Fictional named personas are prohibited. Capterra review themes may use `Review Site Theme Selection` with `Source row ref: Capterra tab row [n]`, `Public review-site URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/`, and `Status: approved for paraphrased review-theme use`; public copy must link the Capterra review-site URL in the same paragraph and use no exact quote, reviewer-name claim, rating, ranking, or metric unless separately approved. Commercial-investigation blogs with no positive E-E-A-T signal need an internal `E-E-A-T Strength Decision` using `proof_unavailable_safe_to_publish`; this is a safe-but-weak warning, not AEO score debt. Full policy lives in `context/aeo-geo-blog-strategy.md`.
+- **Source-Proof Guardrails**: Every proof-sensitive claim is machine-mapped under one of four fixed citation modes: `inline_required`, `section_source_allowed`, `sidecar_only`, or policy-engine-only `proof_not_required`. High-risk and fact-driven FAQ claims require natural inline evidence; lower-risk material may use a section source or approved sidecar-only mapping. Unknown or ambiguous high-risk claims fail closed to `inline_required`. Prefer one authority link for a contiguous claim cluster, while allowing multiple distinct authority links in one paragraph when separate evidence-triggered claims require them. Metric-sensitive articles still require a Metric Proof Pack, and specialist customer, review, quote, rating, and named-metric gates retain their stricter same-paragraph and approval boundaries. Two distinct authoritative non-owned external sources pass the standard-blog baseline; extra claim-fit evidence is uncapped, but a quota-only third source is prohibited. Full policy lives in `context/aeo-geo-blog-strategy.md`.
 - **Advanced SEO Analysis**: Search intent detection, keyword distribution and clustering, content scope comparison, readability scoring, SEO quality rating (0-100)
 - **Data Integrations**: GA4 and GSC via project MCP servers; DataForSEO, Ahrefs, and live Semrush connector evidence for blog keyword decisions; PEEC AI citation tracking
 - **Simpro Context Pack**: connector-discovered vault resources selected by semantic search and stable `resource_id`, with receipt-approved claims for proof-sensitive public language; repo-local files remain workflow policy or non-authoritative operational state
@@ -62,7 +62,7 @@ Python remains responsible for governance and workflow assistance: selector evid
 
 `/scrub` is read-only diagnostics. If scrub reports Unicode marks, em dashes, or whitespace issues, the command/agent applies those edits and reruns `/scrub`.
 
-Every new or changed blog requires a passed `simpro-blog-creation-preflight/v1` report, `simpro-blog-assembly-bom/v1`, a bound `simpro-semrush-keyword-decision/v1` artifact, and `/publish-readiness`. Readiness is the release owner and validates the article, sidecar, context binding, proof, keyword decision, URL/source support, schema, BOM, input hashes, E-E-A-T strength policy, and scorecard.
+Every new or changed blog requires a passed `simpro-blog-creation-preflight/v1` report, `simpro-blog-assembly-bom/v2` for machine-reviewed runs, plan and article `simpro-blog-machine-review/v1` artifacts, a bound `simpro-semrush-keyword-decision/v1` artifact, and `/publish-readiness`. Readiness is the release owner and validates the article, sidecar, context binding, proof, keyword decision, URL/source support, schema, BOM, input hashes, E-E-A-T strength policy, and scorecard.
 
 The readiness scorecard is independent:
 
@@ -86,7 +86,7 @@ For commercial-investigation blogs, `no_fit_customer_proof` prevents invented cu
 ```bash
 git clone https://github.com/Simpro-Group-Marketing/seomachine.git
 cd seomachine
-git checkout custom/local-context
+git status --short
 ```
 
 2. Install Python dependencies for analysis modules:
@@ -654,11 +654,11 @@ Six Python modules for landing page conversion optimization:
 - `content_scorer.py` - 5-dimension content quality scoring (humanity, specificity, structure, SEO, readability) with AEO/GEO gate
 - `aeo_geo_rater.py` - Capsule Method, PAA, source mapping, and E-E-A-T scoring (90+ publish target)
 - `url_validator.py` - URL validation guardrail for Markdown links and bare URLs; runs inside `/publish-readiness`
-- `public_research_link_guard.py` - Public research link guardrail for the 403 replacement rule; blocks sidecar-only research/compliance/legal/regulatory/statistical proof and requires visible resolved non-owned public research links in public copy
+- `public_research_link_guard.py` - Claim-triggered public research guardrail for the 403 replacement rule; high-risk claims use natural visible non-owned links under `inline_required`, while lower-risk claims follow their machine-assigned citation mode. Standard posts use 2 distinct non-owned authority sources as a baseline, add no quota-only third source, and have no maximum when further claim-fit evidence is required
 - `metric_proof_pack_guard.py` - Metric Proof Pack guardrail; use the After Writing command stack before scoring or `/optimize`
 - `numeric_claim_source_guard.py` - Metric/stat proof guardrail; use the After Writing command stack before scoring or `/optimize`
 - `faq_answer_quality_guard.py` - Blocking answer-first FAQ guardrail; use the After Writing command stack before scoring or `/optimize`
-- `faq_proof_guard.py` - Requires an authoritative non-owned public evidence link inside every FAQ answer; sidecar-only proof does not pass
+- `faq_proof_guard.py` - Enforces risk-tiered FAQ proof: fact-driven or high-risk answers need a first-paragraph authoritative non-owned public link, while lower-risk answers follow their machine-assigned citation mode
 - `paa_provenance_guard.py` - PAA provenance guardrail; use the After Writing command stack before scoring or `/optimize`
 - `source_support_guard.py` - Strict source support guard; use the After Writing command stack before scoring or `/optimize`
 - `customer_proof_selector.py` - Customer proof selector; slash workflows automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10` before selecting proof and record the generated selector-first `Customer Proof Slate`; when the current connector context has no bound customer proof candidates and public copy will omit customer proof, rerun the same full-role slate with `--allow-no-proof` to emit `selection_outcome: no_fit_customer_proof`
@@ -748,7 +748,6 @@ seomachine/
 +-- drafts/                    # Blog drafts in progress
 +-- rewrites/                  # Updated blog posts
 +-- published/                 # Final blog markdown
-+-- review-required/
 +-- landing-pages/
 +-- audits/                    # Landing/page audits (e.g. FSM software page)
 +-- repurposed/
@@ -789,7 +788,7 @@ Every Simpro blog post should meet these requirements:
 - [ ] Unique angle vs. ServiceTitan, Jobber, Housecall Pro, and listicle competitors
 - [ ] Factually accurate - verify stats, customer names, and product claims
 - [ ] Metric Proof Pack passes for metric-sensitive topics: Search log complete, at least one Approved metric included, and each metric has public URL or local proof artifact plus source-visible Evidence
-- [ ] Every metric, statistic, or numeric business claim has same-paragraph proof or a Source Map / Customer Proof Pack entry with a public URL or local proof artifact
+- [ ] Every metric, statistic, or material numeric business claim has a natural same-paragraph or same-row public link plus the required machine-generated Source Map or Customer Proof Pack mapping
 - [ ] Source support guard passes: strict proof rows include Claim, URL, Evidence, and Status: approved; any named customer metric appears in Customer Proof Pack Approved metrics
 - [ ] Customer proof diversity guard passes: Customer Proof Pack includes Quote Matrix, Reference, Customer Story, or review-site search evidence when case studies are used, a `Customer Proof Selection Decision`, and a source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved proof fits the same role when selected proof is recently used or overused
 - [ ] Commercial-investigation posts either select a positive E-E-A-T signal or record `E-E-A-T Strength Decision` with `Decision: proof_unavailable_safe_to_publish`
@@ -800,9 +799,9 @@ Every Simpro blog post should meet these requirements:
 ### SEO
 - [ ] Natural terminology coverage, semantic variations, and keyword-stuffing detection checked per `seo-guidelines.md`
 - [ ] Keyword in H1, first 100 words, at least one relevant H2 where natural, conclusion, meta, and slug
-- [ ] Intent-appropriate internal links from `internal-links-map.md` (performance-prioritized pages where relevant)
-- [ ] At least 1 down-funnel internal link to `https://www.simprogroup.com/industries`, `/industries/...`, `/solutions/...`, or `/features/...`; Anchor text must match the destination keyword
-- [ ] Claim-fit credible external sources with natural in-sentence attribution; evidence needs determine the count
+- [ ] 3-5 intent-appropriate internal links from `internal-links-map.md`, with a hard maximum of 7; valid brief-bound overrides may narrow brief-selected supporting links; URL fragments and `mailto:` or `tel:` links do not count
+- [ ] At least 1 down-funnel internal link to `https://www.simprogroup.com/industries`, `/industries/...`, `/solutions/...`, or `/features/...`; single-trade Simpro posts still require the matching industry page when a brief override exists unless the brief explicitly prohibits it; Anchor text must match the destination keyword
+- [ ] At least 2 distinct claim-fit authoritative non-owned external sources with natural anchors; no quota-only third source, while evidence exceptions remain uncapped
 - [ ] Meta title 50-60 characters with `| Simpro` when space allows
 - [ ] Meta description 150-160 characters with accurate value or action language suited to search intent
 - [ ] Proper H1 -> H2 -> H3 hierarchy
@@ -811,7 +810,7 @@ Every Simpro blog post should meet these requirements:
 - [ ] Capsule Method: 50-60 word direct answer under H1 and on 60%+ major H2s
 - [ ] FAQ policy is intent-driven: `required` when useful or brief-selected; otherwise `not_applicable` with a non-empty rationale
 - [ ] When visible FAQs exist, answer quality passes: every answer leads with a supported number/range, named recommendation, definition, concrete action, or explained yes/no response; limitations follow the direct answer
-- [ ] When visible FAQs exist, FAQ proof passes: every answer contains at least 1 authoritative non-owned public evidence link in visible copy. A Source Map or FAQ Proof Map cannot replace the link
+- [ ] When visible FAQs exist, fact-driven or high-risk answers place a natural authoritative non-owned evidence link in the first paragraph; lower-risk answers follow their machine-assigned citation mode
 - [ ] PAA provenance passes against the exact eligible questions in the bound structured AnswerSocrates artifact or rewrite brief section
 - [ ] E-E-A-T Proof Map resolved with Experience proof and Expertise proof, including review-site experience evidence when reviews show first-hand customer experience
 - [ ] Author policy: If a named author is present, include `author` and map it to `Person as author`; If no named author is available, omit `author`, omit `Person as author`, and record the no-author decision in the blog assembly BOM and validation sidecar
@@ -847,18 +846,18 @@ Every Simpro blog post should meet these requirements:
 2. **Trades language**: job costing, dispatch, PM, quotes - not generic "solutions" copy
 3. **Named proof**: Customer outcomes from approved case studies and mapped metrics in `features.md`; use public-facing source links in the article body
 4. **Metric Proof Pack**: Do not add numbers first and source them later. Add only Approved metric rows from the Search log, and use the source-visible Evidence exactly as the public URL or local proof artifact supports it.
-5. **Metric/stat proof**: Every metric, statistic, or numeric business claim must map to evidence that proves it, either through a same-paragraph public link or a Source Map / Customer Proof Pack entry with a public URL or local proof artifact
-6. **FAQ quality and proof**: When visible FAQs exist, every answer must use a 40-60 word first paragraph, lead with a concrete extractable answer, and contain at least 1 authoritative non-owned public evidence link in visible copy. A Source Map or FAQ Proof Map cannot replace the link.
+5. **Metric/stat proof**: Every metric, statistic, or material numeric business claim uses `inline_required`: add a natural same-paragraph or same-row public link plus the required machine-generated Source Map or Customer Proof Pack mapping
+6. **FAQ quality and proof**: When visible FAQs exist, every answer must use a 40-60 word first paragraph and lead with a concrete extractable answer. Fact-driven or high-risk answers place a natural authoritative non-owned public evidence link in that first paragraph; lower-risk answers follow their machine-assigned citation mode.
 7. **Source support proof**: Add strict proof rows with Claim, Approved quote, or Approved metric plus URL, Evidence, and Status: approved for high-risk claims. Evidence must be visible in the cited public source or local proof artifact.
 8. **Source mapping**: Map every general or proof-sensitive claim to a claim-fit source. General claim rows require exact claim/type/relation fields plus a hash-bound `simpro-source-classification/v1` artifact. PDF or unreachable-HTML fallback requires a hash-bound `simpro-source-capture-receipt/v1`; evidence needs determine source/link count
-9. **Down-funnel link**: Add 1 contextual down-funnel internal link to an industry, solution, or feature page. Use `https://www.simprogroup.com/industries` for broad trades topics when no single industry page fits.
+9. **Down-funnel link**: Add 1 contextual down-funnel internal link to an industry, solution, or feature page. Use `https://www.simprogroup.com/industries` for broad trades topics when no single industry page fits. For single-trade Simpro posts, include the matching industry page even when a valid exact-count brief override exists, unless the brief explicitly prohibits that industry page.
 10. **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics only when the Obsidian vault is unavailable; otherwise treat them as repo-local mirrors/fallbacks. Draft bodies may use public sources and context-backed proof, but must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, internal proof-path instructions, or source/proof meta-commentary. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 11. **Competitive framing**: Use `Competitive Shortlist Decision` from the validation sidecar and `competitor-analysis.md` only as a fallback mirror; differentiate, do not disparage
 
 ### After Writing
 1. **Agent passes**: SEO Optimizer, Meta Creator, Internal Linker, Keyword Mapper
-2. **Scrub punctuation artifacts**: `/scrub` or `content_scrubber.py` before human review
-3. **Seal readiness**: Run `blog_creation_preflight.py` first, then follow the exact build -> preflight -> finalize -> detached final readiness commands in Blog Assembly BOM and Readiness Seal.
+2. **Scrub punctuation artifacts**: `/scrub` or `content_scrubber.py` before machine review and release
+3. **Seal readiness**: Run `blog_release.py` to produce pre-BOM, provisional BOM, preflight readiness, final BOM, final readiness, and detached stage receipts in one immutable release directory.
 4. **Optimize or repair**: Run `/optimize` after non-scoring gates pass when content quality is below 85/100, SEO quality is below the 90/100 release floor, SEO quality is 90-94 and honest target-safe improvements exist, or AEO/GEO is below 90/100. Treat optimization as a mutation, then rerun scrub and Context Binding and restart the two-phase seal.
 5. **Final readiness**: Accept only a passed detached attestation bound to the final BOM hash and all final inputs.
 6. **Publish**: `/publish-draft` to WordPress when approved
@@ -877,11 +876,11 @@ Use a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md` f
 
 URL validation confirms destinations resolve; it does not prove the page supports the claim, so Source Map and E-E-A-T proof review still verify claim support.
 
-Numeric claim source guard confirms every metric, statistic, or numeric business claim has a same-paragraph public link or a matching Source Map / Customer Proof Pack entry with a public URL or local proof artifact. It does not prove semantic support; it blocks unmapped numbers before scoring and `/optimize`.
+Numeric claim source guard confirms every metric, statistic, or material numeric business claim has a same-paragraph or same-row public link and the required machine-generated Source Map or Customer Proof Pack mapping. It does not prove semantic support; it blocks unmapped numbers before scoring and `/optimize`.
 
 Metric Proof Pack guard confirms metric-sensitive articles have documented metric research before writing or publish readiness. It requires a Search log and at least one Approved metric with public URL or local proof artifact, source-visible Evidence, Status: approved, and intended Use, unless `Metric requirement: not applicable` is documented with a reason. It blocks metric-free software, comparison, pricing, cost, ROI, KPI, profit, margin, guide, and vs topics before scoring and `/optimize`.
 
-FAQ answer quality guard blocks generic deflections, missing answers, and unexplained binary responses. FAQ proof guard separately confirms every FAQ answer contains an authoritative non-owned public evidence link in visible copy. Sidecar-only proof does not pass. Both guards run before scoring and `/optimize`.
+FAQ answer quality blocks generic deflections, missing answers, and unexplained binary responses. FAQ proof separately applies the risk-tiered policy: fact-driven or high-risk answers require a first-paragraph authoritative non-owned public link, while lower-risk answers follow `section_source_allowed`, `sidecar_only`, or policy-engine-generated `proof_not_required` as applicable. Both guards run before scoring and `/optimize`.
 
 PAA provenance guard always runs for blogs. It validates the bound structured AnswerSocrates artifact or rewrite brief section, then confirms every visible FAQ heading matches the eligible selected-question set exactly. Supplemental sources and proof links cannot replace PAA provenance.
 
@@ -999,7 +998,7 @@ E-E-A-T strength guard adds a commercial-investigation quality layer. It passes 
 ### "AEO/GEO score below 90"
 - Treat the result as a repair trigger, not a reporting endpoint. Review `aeo_geo.checks`, classify each failure as a copy gap, proof/sidecar gap, or scorer or parser false negative, and apply the top 3-5 fixes.
 - Fix a scorer or parser false negative with regression coverage instead of changing accurate copy to satisfy brittle matching.
-- Rerun `/scrub`, AI copy lint, URL validation, regenerate Context Binding with `context_binding_generator.py`, update the blog assembly BOM, and rerun `/publish-readiness`; repeat once if needed, then route to `review-required/` if the score remains below 90/100 after 2 iterations.
+- Rerun `/scrub`, AI copy lint, URL validation, and Context Binding. If article bytes changed, rerun article machine review, then start a new atomic `blog_release.py` run so it builds a fresh provisional BOM v2, preflight result, final BOM, and detached final-readiness attestation. Repeat once if needed, then leave the article in place and write a machine-readable blocker under `research/` if the score remains below threshold after 2 iterations.
 
 ### "MCP / GSC / GA4 not connecting"
 - Confirm `.mcp.json` paths match your machine (from `.mcp.json.template`)
@@ -1027,7 +1026,7 @@ E-E-A-T strength guard adds a commercial-investigation quality layer. It passes 
 - [Claude Code documentation](https://docs.claude.com/claude-code)
 
 ### Contributing (Simpro fork)
-- Internal work: branch `custom/local-context` on [Simpro-Group-Marketing/seomachine](https://github.com/Simpro-Group-Marketing/seomachine)
+- Internal work: use the active repository branch shown by `git branch --show-current` on [Simpro-Group-Marketing/seomachine](https://github.com/Simpro-Group-Marketing/seomachine)
 - Upstream fixes: consider PRs to [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/seomachine) when generic
 
 ## License
@@ -1046,7 +1045,7 @@ Upstream project: [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/
 
 **Upstream example**: `examples/castos/` shows the original Castos template pattern from the open-source repo.
 
-**Contributions**: Internal Simpro Marketing changes go to `custom/local-context`. Upstream improvements may be contributed back to TheCraigHewitt/seomachine where appropriate.
+**Contributions**: Internal Simpro Marketing changes follow the active repository branch and release process. Upstream improvements may be contributed back to TheCraigHewitt/seomachine where appropriate.
 
 ---
 

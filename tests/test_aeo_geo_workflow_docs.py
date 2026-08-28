@@ -90,7 +90,9 @@ def test_editor_uses_reviewed_humanizer_as_advisory_style_guidance():
     assert "upstream guidance cannot approve a claim" in content
     assert "Humanizer never edits the article" in content
     assert "must not lower humanity or composite scores" in content
-    assert "manual_editorial_review" in content
+    assert "manual_editorial_review" not in content
+    assert "do not supply rewritten factual wording or request human approval" in content
+    assert "proof_routed" in content
     for field in (
         '"rule_id"',
         '"upstream_pattern"',

@@ -144,6 +144,47 @@ class ReviewStoryIdentityGuardTests(unittest.TestCase):
 
         self.assertEqual(findings, [])
 
+    def test_review_story_rejects_generic_or_bare_same_paragraph_urls(self):
+        with TemporaryDirectory() as temp_dir:
+            index_path = write_index(Path(temp_dir))
+            generic = f"# Article\n\nMegan B describes a service business using Simpro for quotes and invoices in this [source]({CAPTERRA_URL})."
+            bare = f"# Article\n\nMegan B describes a service business using Simpro for quotes and invoices. {CAPTERRA_URL}"
+
+            for content in (generic, bare):
+                findings = check_content(
+                    content,
+                    proof_content=sidecar(
+                        "review-capterra-megan-qbo-quotes",
+                        "Megan B",
+                        "Capterra",
+                        CAPTERRA_URL,
+                    ),
+                    proof_index_path=index_path,
+                )
+                self.assertIn(
+                    "review_story_link_missing",
+                    {finding["rule_id"] for finding in findings},
+                )
+
+    def test_review_story_uses_canonical_url_identity(self):
+        with TemporaryDirectory() as temp_dir:
+            index_path = write_index(Path(temp_dir))
+            visible_url = CAPTERRA_URL.rstrip("/") + "?utm_source=article#reviews"
+            content = f"# Article\n\n[Megan B's Capterra review]({visible_url}) describes a service business using Simpro for quotes and invoices."
+
+            findings = check_content(
+                content,
+                proof_content=sidecar(
+                    "review-capterra-megan-qbo-quotes",
+                    "Megan B",
+                    "Capterra",
+                    CAPTERRA_URL,
+                ),
+                proof_index_path=index_path,
+            )
+
+        self.assertEqual(findings, [])
+
     def test_internal_only_google_review_story_fails_until_public_url_exists(self):
         with TemporaryDirectory() as temp_dir:
             index_path = write_index(Path(temp_dir))

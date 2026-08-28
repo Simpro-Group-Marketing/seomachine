@@ -14,6 +14,7 @@ from unittest.mock import patch
 from data_sources.modules.aeo_geo_rater import (
     _check_direct_answer,
     _check_eeat_proof,
+    _check_faq_proof,
     _check_faq_questions,
     _has_documented_no_fit_experience_boundary,
     rate_aeo_geo,
@@ -301,6 +302,31 @@ class AeoGeoRaterTests(unittest.TestCase):
                 )
 
         self.assertTrue(result)
+
+    def test_rate_aeo_geo_loads_no_fit_sidecar_from_path(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            _sidecar, sidecar_path, _index_path = self.write_no_fit_selector_evidence(root)
+            content = (
+                "# Job Sheets Guide\n\n"
+                "Job sheets help teams record work clearly.\n\n"
+                "## Frequently asked questions\n\n"
+                "### What is a job sheet?\n\n"
+                "A job sheet is a work record used to track job details and follow-up tasks.\n"
+            )
+            with patch(
+                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                new=load_validated_claim_set_for_unit_test,
+            ):
+                result = rate_aeo_geo(
+                    content,
+                    {"primary_keyword": "job sheets"},
+                    proof_sidecar_path=str(sidecar_path),
+                )
+
+        details = result["checks"]["eeat_proof"]["details"]
+        self.assertTrue(details["has_documented_no_fit_boundary"], result)
+        self.assertTrue(result["checks"]["eeat_proof"]["passed"], result)
 
     def test_no_fit_boundary_accepts_rerun_verified_empty_story_slate(self):
         with TemporaryDirectory() as temp_dir:
@@ -1539,6 +1565,36 @@ E-E-A-T Proof Map
         self.assertFalse(check['applicable'])
         self.assertEqual(check['status'], 'not_applicable')
         self.assertTrue(check['passed'])
+
+        guidance = " ".join(
+            str(check.get(field, ""))
+            for field in ("issue", "fix")
+        ) + " " + str(check.get("details", {}).get("reason", ""))
+        self.assertIn("2 distinct", guidance)
+        self.assertIn("quota-only third", guidance)
+        self.assertIn("no maximum", guidance)
+
+    def test_faq_proof_repair_respects_machine_assigned_citation_mode(self):
+        check = _check_faq_proof(
+            "",
+            None,
+            prevalidated_findings=(
+                {
+                    "rule_id": "faq_inline_proof_missing",
+                    "severity": "error",
+                    "question": "What license is required?",
+                    "citation_mode": "inline_required",
+                },
+            ),
+        )
+
+        self.assertFalse(check["passed"])
+        self.assertIn("citation_mode", check["fix"])
+        self.assertIn("inline_required", check["fix"])
+        self.assertIn("first visible answer paragraph", check["fix"])
+        self.assertIn("natural", check["fix"])
+        self.assertIn("quota-only", check["fix"])
+        self.assertNotIn("inside each FAQ answer", check["fix"])
 
     def test_missing_metadata_fails_while_external_link_count_stays_diagnostic(self):
         content = COMPLIANT_ARTICLE.replace("Author: Jordan Lee\n", "").replace(

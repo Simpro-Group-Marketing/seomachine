@@ -12,6 +12,12 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence
 
 try:
     from .guard_common import Finding, make_finding, should_fail, summarize_findings
+    from .proof_link_policy import (
+        ProofLinkReport,
+        analyze_proof_links,
+        canonicalize_link_identity,
+        is_generic_proof_anchor,
+    )
     from .proof_sidecar import load_sidecar_content
     from .vault_claim_receipts import (
         VaultClaimReceiptError,
@@ -20,6 +26,12 @@ try:
     )
 except ImportError:  # pragma: no cover - supports direct script execution.
     from guard_common import Finding, make_finding, should_fail, summarize_findings
+    from proof_link_policy import (
+        ProofLinkReport,
+        analyze_proof_links,
+        canonicalize_link_identity,
+        is_generic_proof_anchor,
+    )
     from proof_sidecar import load_sidecar_content
     from vault_claim_receipts import (
         VaultClaimReceiptError,
@@ -170,6 +182,11 @@ def check_content(
         return []
 
     proof_text = proof_content or ""
+    proof_link_report = analyze_proof_links(
+        public_body,
+        proof_text,
+        brand="Simpro",
+    )
     rows, table_findings = _parse_status_table(proof_text)
     findings.extend(table_findings)
     link_rows, link_findings = _parse_link_table(proof_text)
@@ -238,6 +255,7 @@ def check_content(
                 receipt_claims,
                 public_body,
                 feature_resources.get(name, set()),
+                proof_link_report,
             )
         )
 
@@ -639,6 +657,7 @@ def _validate_link_row(
     receipt_claims: ValidatedClaimSet,
     public_body: str,
     context_resource_ids: set[str],
+    proof_link_report: ProofLinkReport,
 ) -> List[Finding]:
     if not link_rows:
         return [
@@ -714,6 +733,45 @@ def _validate_link_row(
                 suggestion="Use the feature resource ID from the validated context pack.",
             )
         )
+
+    approved_public_urls = {
+        canonicalize_link_identity(claim.public_url)
+        for claim in approved_claims
+        if claim.authority_resource_id == resource_id and claim.public_url
+    }
+    status_requirements = tuple(
+        requirement
+        for requirement in proof_link_report.requirements
+        if requirement.owner == "named_feature_status"
+        and requirement.mode == "inline_required"
+        and _feature_name_match(requirement.claim, name) is not None
+    )
+    for requirement in status_requirements:
+        requirement_urls = set(requirement.approved_urls) & approved_public_urls
+        natural_inline_urls = {
+            link.canonical_url
+            for link in proof_link_report.links
+            if requirement.line <= link.line <= requirement.end_line
+            and not is_generic_proof_anchor(link.anchor)
+        }
+        if not requirement_urls.intersection(natural_inline_urls):
+            findings.append(
+                make_finding(
+                    "named_feature_inline_status_link_missing",
+                    "error",
+                    requirement.line,
+                    match=name,
+                    message=(
+                        f"{name} status or availability wording requires a natural "
+                        "same-paragraph or table-row link to its receipt-approved URL."
+                    ),
+                    suggestion=(
+                        "Link descriptive feature-status wording to the canonical approved "
+                        "public URL; do_not_link, generic anchors, and bare URLs cannot "
+                        "satisfy an inline-required claim."
+                    ),
+                )
+            )
 
     decision = str(row.get("Link decision") or "").strip().casefold()
     if decision not in ALLOWED_LINK_DECISIONS:
@@ -838,7 +896,7 @@ def _first_meaningful_mention_link(
 
 
 def _normalize_public_url(value: str) -> str:
-    return str(value or "").strip().rstrip("/").casefold()
+    return canonicalize_link_identity(str(value or ""))
 
 def _validate_row(
     name: str,

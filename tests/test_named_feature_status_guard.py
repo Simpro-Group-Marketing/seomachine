@@ -77,6 +77,32 @@ def status_table(*rows):
     return "\n".join(lines)
 
 
+def named_feature_status_proof(claim, *, url=None):
+    approved_url = url or "https://www.simprogroup.com/lightning/lcur-0001"
+    return (
+        "## Source Map\n\n"
+        f"- Claim: {claim} | Claim type: product_status | "
+        f"Source class: named_feature_status | URL: {approved_url} | "
+        "Status: approved | Use: named feature status"
+    )
+
+
+def link_decision(proof, *, name, capability_id, decision, target_url=""):
+    connector_claim_id = f"claim-lightning-{capability_id}"
+    resource_id = "res-" + hashlib.sha256(
+        connector_claim_id.encode("utf-8")
+    ).hexdigest()[:32]
+    old = (
+        f"| {name} | {resource_id} | do_not_link | | "
+        "No approved feature URL in this fixture. |"
+    )
+    new = (
+        f"| {name} | {resource_id} | {decision} | {target_url} | "
+        "Receipt-approved feature status source. |"
+    )
+    return proof.replace(old, new)
+
+
 def write_context_receipt_fixture(vault_path: Path) -> tuple[Path, Path]:
     claim_path = vault_path / "indexes" / "lightning-current-claim-status.csv"
     evidence = []
@@ -334,6 +360,98 @@ class NamedFeatureStatusGuardTests(unittest.TestCase):
         )
 
         self.assertEqual(findings, [])
+
+    def test_inline_required_status_claim_cannot_be_bypassed_by_do_not_link(self):
+        claim = "Lightning is currently available to eligible accounts."
+        row = "| Lightning | LCUR-0001 | | current_public_context | not_asserted | Eligible accounts | use |"
+        proof = status_table(row) + "\n\n" + named_feature_status_proof(claim)
+
+        findings = check_content(
+            f"# AI workflows\n\n{claim}",
+            proof_content=proof,
+            vault_path=self.vault_path,
+        )
+
+        self.assertIn(
+            "named_feature_inline_status_link_missing",
+            {finding["rule_id"] for finding in findings},
+        )
+
+    def test_inline_status_link_accepts_canonical_variants_in_paragraph_and_table_row(self):
+        claim = "Lightning is currently available to eligible accounts."
+        canonical_url = "https://www.simprogroup.com/lightning/lcur-0001"
+        variant_url = canonical_url + "/?utm_source=campaign#availability"
+        row = "| Lightning | LCUR-0001 | | current_public_context | not_asserted | Eligible accounts | use |"
+        proof = link_decision(
+            status_table(row),
+            name="Lightning",
+            capability_id="LCUR-0001",
+            decision="link",
+            target_url=canonical_url,
+        )
+        proof += "\n\n" + named_feature_status_proof(claim, url=canonical_url)
+        articles = (
+            f"# AI workflows\n\n[Lightning is currently available]({variant_url}) to eligible accounts.",
+            "# AI workflows\n\n| Status |\n|---|\n"
+            f"| [Lightning is currently available to eligible accounts]({variant_url}). |",
+        )
+
+        for article in articles:
+            with self.subTest(article=article):
+                findings = check_content(
+                    article,
+                    proof_content=proof,
+                    vault_path=self.vault_path,
+                )
+
+                self.assertEqual(findings, [])
+
+    def test_inline_status_link_rejects_generic_and_bare_citations(self):
+        claim = "Lightning is currently available to eligible accounts."
+        canonical_url = "https://www.simprogroup.com/lightning/lcur-0001"
+        row = "| Lightning | LCUR-0001 | | current_public_context | not_asserted | Eligible accounts | use |"
+        proof = status_table(row) + "\n\n" + named_feature_status_proof(
+            claim,
+            url=canonical_url,
+        )
+        articles = (
+            f"# AI workflows\n\n{claim} [Source]({canonical_url})",
+            f"# AI workflows\n\n{claim} {canonical_url}",
+        )
+
+        for article in articles:
+            with self.subTest(article=article):
+                findings = check_content(
+                    article,
+                    proof_content=proof,
+                    vault_path=self.vault_path,
+                )
+
+                self.assertIn(
+                    "named_feature_inline_status_link_missing",
+                    {finding["rule_id"] for finding in findings},
+                )
+
+    def test_inline_status_link_rejects_url_not_approved_by_receipt(self):
+        claim = "Lightning is currently available to eligible accounts."
+        unapproved_url = "https://example.com/lightning-status"
+        row = "| Lightning | LCUR-0001 | | current_public_context | not_asserted | Eligible accounts | use |"
+        proof = status_table(row) + "\n\n" + named_feature_status_proof(
+            claim,
+            url=unapproved_url,
+        )
+
+        findings = check_content(
+            "# AI workflows\n\n"
+            f"[Lightning is currently available]({unapproved_url}) to eligible accounts.",
+            proof_content=proof,
+            vault_path=self.vault_path,
+        )
+
+        self.assertIn(
+            "named_feature_inline_status_link_missing",
+            {finding["rule_id"] for finding in findings},
+        )
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from collections.abc import Mapping
@@ -71,6 +72,9 @@ TOP_LEVEL_FIELDS = frozenset(
         'query_ownership',
         'internal_link_plan',
         'industry_cluster_link_policy',
+        'rewrite_decisions',
+        'audience_language_research',
+        'link_policy_override',
         'keyword_decision',
         'faq_policy',
         'paa_policy',
@@ -141,6 +145,13 @@ ORIGINAL_CONTRIBUTION_FIELDS = frozenset(
 ENTITY_MAP_FIELDS = frozenset({'primary', 'supporting'})
 QUERY_OWNERSHIP_FIELDS = frozenset({'decision', 'rationale'})
 INTERNAL_LINK_FIELDS = frozenset({'target', 'role', 'rationale'})
+REWRITE_DECISIONS_FIELDS = frozenset({'preserve', 'update', 'add', 'remove'})
+AUDIENCE_LANGUAGE_RESEARCH_FIELDS = frozenset(
+    {'status', 'rationale', 'source_urls', 'observations', 'intended_section_use'}
+)
+LINK_POLICY_OVERRIDE_FIELDS = frozenset(
+    {'brief_path', 'brief_sha256', 'source_sentence', 'exact_count', 'scope'}
+)
 FAQ_POLICY_FIELDS = frozenset({'status', 'rationale'})
 PAA_POLICY_FIELDS = frozenset({'source_kind', 'query', 'selected_questions'})
 KEYWORD_DECISION_FIELDS = frozenset(
@@ -311,6 +322,13 @@ def check_file(
                 payload,
                 article_path,
                 assembly_date=assembly_date,
+            )
+        )
+        findings.extend(
+            _check_link_policy_override_binding(
+                payload,
+                article_path=article_path,
+                plan_path=source,
             )
         )
     return _sorted_findings(findings)
@@ -586,10 +604,26 @@ def check_plan(value: Any) -> list[Finding]:
     findings.extend(_check_original_contributions(value.get('original_contributions')))
     findings.extend(_check_entity_map(value.get('entity_map')))
     findings.extend(_check_query_ownership(value.get('query_ownership')))
+    findings.extend(_check_rewrite_decisions(value.get('rewrite_decisions')))
+    findings.extend(
+        _check_audience_language_research(value.get('audience_language_research'))
+    )
+    findings.extend(_check_link_policy_override_shape(value.get('link_policy_override')))
+    link_override_active = _has_syntactic_link_policy_override(
+        value.get('link_policy_override')
+    )
+    industry_link_required = (
+        industry_cluster_link_policy.resolve_required_policy(
+            plan=value,
+            brand=plan_brand,
+        )
+        is not None
+    )
     findings.extend(
         _check_internal_link_plan(
             value.get('internal_link_plan'),
             brand=plan_brand,
+            suppress_down_funnel=link_override_active and not industry_link_required,
         )
     )
     findings.extend(
@@ -980,7 +1014,12 @@ def _check_query_ownership(value: Any) -> list[Finding]:
     return findings
 
 
-def _check_internal_link_plan(value: Any, *, brand: str | None) -> list[Finding]:
+def _check_internal_link_plan(
+    value: Any,
+    *,
+    brand: str | None,
+    suppress_down_funnel: bool = False,
+) -> list[Finding]:
     location = '/internal_link_plan'
     if not isinstance(value, list) or not value:
         return [_invalid_field(location, 'must be a non-empty list')]
@@ -1010,7 +1049,7 @@ def _check_internal_link_plan(value: Any, *, brand: str | None) -> list[Finding]
                 'Use a root-relative URL or an absolute URL owned by the article brand.',
             ))
         has_down_funnel = has_down_funnel or role == 'down_funnel'
-    if not has_down_funnel:
+    if not has_down_funnel and not suppress_down_funnel:
         findings.append(_finding(
             'editorial_plan_down_funnel_link_missing',
             'Editorial plan requires an intent-appropriate down-funnel internal link.',
@@ -1018,6 +1057,206 @@ def _check_internal_link_plan(value: Any, *, brand: str | None) -> list[Finding]
             'Map a relevant product, solution, feature, or industry next step.',
         ))
     return findings
+
+
+def _check_rewrite_decisions(value: Any) -> list[Finding]:
+    if value is None:
+        return []
+    location = '/rewrite_decisions'
+    if not isinstance(value, Mapping):
+        return [_invalid_field(location, 'must be an object when present')]
+    findings = _unknown_fields(value, REWRITE_DECISIONS_FIELDS, location)
+    for key in REWRITE_DECISIONS_FIELDS:
+        candidate = value.get(key)
+        if not isinstance(candidate, list) or any(
+            not isinstance(item, Mapping) or not str(item.get('decision') or item.get('item') or '').strip()
+            for item in candidate
+        ):
+            findings.append(_invalid_field(f'{location}/{key}', 'must be a list of decision objects'))
+    return findings
+
+
+def _check_audience_language_research(value: Any) -> list[Finding]:
+    if value is None:
+        return []
+    location = '/audience_language_research'
+    if not isinstance(value, Mapping):
+        return [_invalid_field(location, 'must be an object when present')]
+    findings = _unknown_fields(value, AUDIENCE_LANGUAGE_RESEARCH_FIELDS, location)
+    status = value.get('status')
+    if status not in {'required', 'not_applicable'}:
+        findings.append(_invalid_field(f'{location}/status', 'must be required or not_applicable'))
+    _require_nonempty_string(value, 'rationale', findings, f'{location}/rationale')
+    for key in ('source_urls', 'observations', 'intended_section_use'):
+        candidate = value.get(key)
+        if not isinstance(candidate, list) or any(
+            not isinstance(item, str) or not item.strip() for item in candidate
+        ):
+            findings.append(_invalid_field(f'{location}/{key}', 'must be a list of non-empty strings'))
+    return findings
+
+
+def _check_link_policy_override_shape(value: Any) -> list[Finding]:
+    if value is None:
+        return []
+    location = '/link_policy_override'
+    if not isinstance(value, Mapping):
+        return [_invalid_field(location, 'must be an object when present')]
+    findings = _unknown_fields(value, LINK_POLICY_OVERRIDE_FIELDS, location)
+    for key in ('brief_path', 'brief_sha256', 'source_sentence', 'scope'):
+        _require_nonempty_string(value, key, findings, f'{location}/{key}')
+    try:
+        validate_sha = value.get('brief_sha256')
+        if not isinstance(validate_sha, str) or re.fullmatch(r'[0-9a-f]{64}', validate_sha) is None:
+            raise ValueError
+    except ValueError:
+        findings.append(_invalid_field(f'{location}/brief_sha256', 'must be a lowercase SHA-256 digest'))
+    exact_count = value.get('exact_count')
+    if (
+        not isinstance(exact_count, int)
+        or isinstance(exact_count, bool)
+        or exact_count <= 0
+        or exact_count > 7
+    ):
+        findings.append(
+            _invalid_field(
+                f'{location}/exact_count',
+                'must be a positive integer no greater than 7',
+            )
+        )
+    elif isinstance(value.get('source_sentence'), str) and not (
+        industry_cluster_link_policy.link_policy_override_count_supported(
+            str(value.get('source_sentence')),
+            exact_count,
+        )
+    ):
+        findings.append(
+            _invalid_field(
+                f'{location}/exact_count',
+                'must be explicitly permitted by source_sentence',
+            )
+        )
+    if value.get('scope') != 'pre_faq_body':
+        findings.append(_invalid_field(f'{location}/scope', 'must be pre_faq_body'))
+    return findings
+
+
+def _has_syntactic_link_policy_override(value: Any) -> bool:
+    return value is not None and not _check_link_policy_override_shape(value)
+
+
+def internal_link_guidelines_from_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
+    """Return SEO link-count guidelines resolved from an editorial plan."""
+    override = plan.get('link_policy_override') if isinstance(plan, Mapping) else None
+    if not _has_syntactic_link_policy_override(override):
+        return {}
+    exact_count = int(override['exact_count'])
+    industry_policy = industry_cluster_link_policy.resolve_required_policy(
+        plan=plan,
+        brand=_resolve_plan_brand(plan),
+    )
+    resolved_count = exact_count + (1 if industry_policy is not None else 0)
+    return {
+        'min_internal_links': resolved_count,
+        'optimal_internal_links': resolved_count,
+        'max_internal_links': resolved_count,
+        'require_down_funnel_link': industry_policy is not None,
+    }
+
+
+def _check_link_policy_override_binding(
+    plan: Mapping[str, Any],
+    *,
+    article_path: str | Path,
+    plan_path: Path,
+) -> list[Finding]:
+    override = plan.get('link_policy_override')
+    if override is None:
+        return []
+    findings = _check_link_policy_override_shape(override)
+    if findings:
+        return findings
+    brief_path = _resolve_brief_path(
+        override['brief_path'],
+        plan_path=plan_path,
+    )
+    try:
+        brief_bytes = brief_path.read_bytes()
+    except OSError as error:
+        return [_finding(
+            'editorial_plan_link_policy_override_brief_unreadable',
+            f'Link policy override brief cannot be read: {error}',
+            '/link_policy_override/brief_path',
+            'Restore the bound brief snapshot or remove the override.',
+        )]
+    actual_hash = hashlib.sha256(brief_bytes).hexdigest()
+    if actual_hash != override['brief_sha256']:
+        findings.append(_finding(
+            'editorial_plan_link_policy_override_brief_hash_mismatch',
+            'Link policy override brief hash does not match the bound brief snapshot.',
+            '/link_policy_override/brief_sha256',
+            'Bind the exact current brief snapshot hash.',
+        ))
+    try:
+        brief_text = brief_bytes.decode('utf-8')
+    except UnicodeDecodeError:
+        brief_text = ''
+    if _normalize_visible_text(str(override['source_sentence'])) not in _normalize_visible_text(brief_text):
+        findings.append(_finding(
+            'editorial_plan_link_policy_override_source_sentence_missing',
+            'Link policy override source sentence is not present in the bound brief.',
+            '/link_policy_override/source_sentence',
+            'Use an exact sentence from the bound brief snapshot.',
+        ))
+    try:
+        article = Path(article_path).read_text(encoding='utf-8')
+    except (OSError, UnicodeError) as error:
+        return [*_sorted_findings(findings), _finding(
+            'editorial_plan_link_policy_override_article_unreadable',
+            f'Article cannot be read for link-policy override validation: {error}',
+            '/link_policy_override',
+            'Restore the article or remove the override.',
+        )]
+    links = _pre_faq_internal_links(article, brand=_resolve_plan_brand(plan))
+    exact_count = int(override['exact_count'])
+    industry_policy = industry_cluster_link_policy.resolve_required_policy(
+        plan=plan,
+        brand=_resolve_plan_brand(plan),
+    )
+    expected_count = exact_count + (1 if industry_policy is not None else 0)
+    if len(links) != expected_count:
+        count_description = (
+            f'{exact_count} brief-selected links plus the required industry link'
+            if industry_policy is not None
+            else f'{exact_count} pre-FAQ internal body links'
+        )
+        findings.append(_finding(
+            'editorial_plan_link_policy_override_count_mismatch',
+            f'Link policy override requires exactly {count_description}.',
+            '/link_policy_override/exact_count',
+            'Match the resolved brief-bound internal-link count.',
+        ))
+    if len({target for _anchor, target in links}) != len(links):
+        findings.append(_finding(
+            'editorial_plan_link_policy_override_duplicate_target',
+            'Link policy override rejects duplicate internal-link targets.',
+            '/link_policy_override',
+            'Use each planned target once.',
+        ))
+    planned_targets = {
+        _normalize_link_target(str(row.get('target') or ''))
+        for row in plan.get('internal_link_plan', [])
+        if isinstance(row, Mapping)
+    }
+    actual_targets = {_normalize_link_target(target) for _anchor, target in links}
+    if actual_targets != planned_targets:
+        findings.append(_finding(
+            'editorial_plan_link_policy_override_target_set_mismatch',
+            'Link policy override requires final internal-link targets to match internal_link_plan exactly.',
+            '/internal_link_plan',
+            'Add the brief-selected targets and any required single-trade industry target only.',
+        ))
+    return _sorted_findings(findings)
 
 
 def _check_faq_paa_policies(
@@ -1312,6 +1551,77 @@ def _is_internal_link_target(target: str, *, brand: str | None = None) -> bool:
 def _article_contains_link_target(article: str, target: str) -> bool:
     escaped = re.escape(target.strip())
     return bool(re.search(rf'\]\(\s*{escaped}(?:\s+["\'][^"\']*["\'])?\s*\)', article) or re.search(rf'href\s*=\s*["\']{escaped}["\']', article, re.IGNORECASE))
+
+
+def _resolve_brief_path(raw_path: str, *, plan_path: Path) -> Path:
+    candidate = Path(raw_path)
+    if candidate.is_absolute():
+        return candidate
+    cwd_candidate = Path.cwd() / candidate
+    if cwd_candidate.exists():
+        return cwd_candidate
+    parent_candidate = plan_path.parent / candidate
+    if parent_candidate.exists():
+        return parent_candidate
+    return cwd_candidate
+
+
+def _pre_faq_internal_links(article: str, *, brand: str | None) -> list[tuple[str, str]]:
+    try:
+        _frontmatter, body, _line = split_frontmatter(article)
+    except FrontmatterError:
+        body = article
+    pre_faq = re.split(
+        r'(?im)^##\s+(?:frequently asked questions|faqs?)\s*$',
+        body,
+        maxsplit=1,
+    )[0]
+    pre_faq = _blank_non_visible_link_context(pre_faq)
+    links: list[tuple[str, str]] = []
+    for anchor, target in re.findall(
+        r'(?<!!)\[([^\]]+)\]\(([^)\s]+)(?:\s+["\'][^)]*["\'])?\)',
+        pre_faq,
+    ):
+        if _is_internal_link_target(target, brand=brand):
+            links.append((_visible_anchor(anchor), target.strip()))
+    for match in re.finditer(
+        r'<a\b[^>]*\bhref\s*=\s*["\']([^"\']+)["\'][^>]*>(.*?)</a>',
+        pre_faq,
+        flags=re.IGNORECASE | re.DOTALL,
+    ):
+        target = match.group(1).strip()
+        if _is_internal_link_target(target, brand=brand):
+            links.append((_visible_anchor(match.group(2)), target))
+    return links
+
+
+def _blank_non_visible_link_context(value: str) -> str:
+    value = re.sub(
+        r'^(?:```|~~~).*?^(?:```|~~~)\s*$',
+        ' ',
+        value,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    value = re.sub(r'<!--.*?-->', ' ', value, flags=re.DOTALL)
+    return value
+
+
+def _visible_anchor(value: str) -> str:
+    value = re.sub(r'<[^>]+>', ' ', value)
+    value = re.sub(r'[*_`]', '', value)
+    return re.sub(r'\s+', ' ', value).strip()
+
+
+def _normalize_link_target(target: str) -> str:
+    candidate = target.strip()
+    parsed = urlparse(candidate)
+    if parsed.scheme in {'http', 'https'}:
+        scheme = parsed.scheme.casefold()
+        host = (parsed.hostname or '').casefold().rstrip('.')
+        path = re.sub(r'/+', '/', parsed.path or '/')
+        return f'{scheme}://{host}{path.rstrip("/") or "/"}'
+    cleaned = candidate.split('#', 1)[0].split('?', 1)[0]
+    return re.sub(r'/+', '/', cleaned).rstrip('/') or '/'
 
 
 def _nested_string(value: Mapping[str, Any], parent: str, key: str) -> str:

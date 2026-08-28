@@ -369,6 +369,61 @@ class ContextBindingGuardTests(unittest.TestCase):
             )
         )
 
+    def test_regulatory_numeric_claims_do_not_require_connector_claim_binding(self):
+        article_text = (
+            "The TSBPE Tradesman route requires 4,000 hours of plumbing experience "
+            "and a $36 exam fee."
+        )
+        self.write_resource_only_context(article_text, "")
+
+        findings = self.check()
+
+        self.assertFalse(
+            any(
+                finding["rule_id"] == "context_proof_claim_unbound"
+                for finding in findings
+            ),
+            findings,
+        )
+
+    def test_regulator_fee_overlap_paragraph_does_not_require_connector_claim_binding(self):
+        article_text = (
+            "Two fee details matter when credentials overlap. The TSBPE Journeyman "
+            "fee notes say a Journeyman who also holds a Master license pays the "
+            "Master renewal fee rather than a separate Journeyman renewal fee. The "
+            "RMP fee notes say an applicant adding RMP during the Master renewal "
+            "period pays the $300 RMP renewal charge rather than both the $225 "
+            "initial designation charge and a renewal charge."
+        )
+        self.write_resource_only_context(article_text, "")
+
+        findings = self.check()
+
+        self.assertFalse(
+            any(
+                finding["rule_id"] == "context_proof_claim_unbound"
+                for finding in findings
+            ),
+            findings,
+        )
+
+    def test_generic_contractor_review_language_does_not_require_review_claim_binding(self):
+        article_text = (
+            "Save the search result or note the date checked when verification is "
+            "part of a hiring or contractor review."
+        )
+        self.write_resource_only_context(article_text, "")
+
+        findings = self.check()
+
+        self.assertFalse(
+            any(
+                finding["rule_id"] == "context_proof_claim_unbound"
+                for finding in findings
+            ),
+            findings,
+        )
+
     def test_hidden_html_proof_does_not_create_public_proof_obligation(self):
         self.write_resource_only_context(
             '<div style="display:none">Simpro customers reduced administrative time by 25%.</div>\n'
@@ -1460,6 +1515,41 @@ class ContextBindingGuardTests(unittest.TestCase):
         self.make_electrical_article_context(include_topic=True, include_resource=False)
 
         findings = self.check()
+
+        self.assertIn(
+            "context_pack_industry_resource_missing",
+            {finding["rule_id"] for finding in findings},
+        )
+
+    def test_context_binding_requires_vertical_context_when_exact_override_is_present(self):
+        self.make_electrical_article_context(include_topic=True, include_resource=False)
+        source_sentence = (
+            "Include exactly two contextual internal links before the FAQ: "
+            '"plumbing training and licensing resources" and "grow a plumbing business", '
+            "using only their selected Simpro destinations."
+        )
+        brief = self.root / "brief.md"
+        brief.write_text(f"# Brief\n\n{source_sentence}\n", encoding="utf-8")
+        plan = {
+            "schema": "simpro-blog-editorial-plan/v1",
+            "link_policy_override": {
+                "brief_path": str(brief),
+                "brief_sha256": hashlib.sha256(brief.read_bytes()).hexdigest(),
+                "source_sentence": source_sentence,
+                "exact_count": 2,
+                "scope": "pre_faq_body",
+            },
+        }
+
+        findings = context_binding_guard.check_file(
+            self.article,
+            proof_sidecar=self.sidecar,
+            context_request=self.request,
+            context_pack=self.pack,
+            context_receipt=self.receipt,
+            editorial_plan=plan,
+            client=ValidatingClient(),
+        )
 
         self.assertIn(
             "context_pack_industry_resource_missing",

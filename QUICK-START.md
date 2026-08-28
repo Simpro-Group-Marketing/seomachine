@@ -54,7 +54,7 @@ claude-code .
 ## That's It! 🎉
 
 You now have:
-- ✅ A comprehensive, SEO-optimized article (2000+ words)
+- A comprehensive, SEO-optimized article sized to the brief, SERP intent, and reader utility
 - ✅ Meta elements (title, description, keywords)
 - ✅ SEO optimization report
 - ✅ Internal linking suggestions
@@ -81,7 +81,7 @@ You now have:
 /write [topic]              # Create new article
 /rewrite [topic]            # Update old content
 /optimize [file]            # Final SEO polish
-/scrub [file]               # Remove AI watermarks
+/scrub [file]               # Diagnose copy artifacts and proof-sensitive style issues
 /publish-draft [file]       # Publish to WordPress
 
 # Analysis

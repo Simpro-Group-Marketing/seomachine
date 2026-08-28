@@ -2,10 +2,9 @@
 FAQ Proof Guard
 
 Deterministic guardrail for FAQ answers. It does not decide whether a source
-semantically proves a claim; it enforces the minimum evidence contract:
-every FAQ answer must carry a non-owned public proof URL in the visible answer
-body. A Source Map or FAQ Proof Map can document evidence, but it cannot replace
-the reader-facing link.
+semantically proves a claim. The shared risk-tiered policy decides whether an
+answer needs reader-visible proof; this guard exclusively enforces FAQ citation
+placement and approved FAQ source classifications.
 
 When a validation sidecar is supplied, every visible non-owned FAQ URL must have
 an exact FAQ Proof Map classification as neutral or non_competing_expert; competitor-
@@ -24,9 +23,11 @@ from urllib.parse import urlparse
 try:
     from .faq_structure import detect_faq_structure
     from .guard_common import Finding, should_fail, summarize_findings
+    from .proof_link_policy import analyze_proof_links, canonicalize_link_identity
 except ImportError:  # pragma: no cover - supports direct script execution.
     from faq_structure import detect_faq_structure
     from guard_common import Finding, should_fail, summarize_findings
+    from proof_link_policy import analyze_proof_links, canonicalize_link_identity
 
 
 PUBLIC_URL_RE = re.compile(r"https?://[^\s)\]|<>\"']+", re.IGNORECASE)
@@ -35,6 +36,7 @@ MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\((https?://[^)]+)\)", re.IGNORECASE)
 OWNED_PROOF_DOMAINS = (
     "simprogroup.com",
     "simpro.com",
+    "simpro.ai",
     "bigchange.com",
     "clockshark.com",
     "aroflo.com",
@@ -65,16 +67,18 @@ def check_content(
     proof_content: Optional[str] = None,
 ) -> List[Finding]:
     """
-    Check FAQ answers for linked proof.
+    Check FAQ answers against their machine-assigned risk-tier proof modes.
 
     Args:
         content: Markdown article or rewrite content.
         proof_content: Optional validation sidecar content. When supplied, it
             must declare the FAQ source policy and classify each visible
-            non-owned FAQ URL; it never replaces the inline evidence link.
+            non-owned FAQ URL. It cannot replace the first-paragraph reader link
+            when `inline_required` applies; lower-risk answers follow their
+            machine-assigned mode without quota-only links.
 
     Returns:
-        Structured findings for FAQ answers missing linked proof.
+        Structured findings for FAQ answers that do not satisfy their assigned mode.
     """
     structure = detect_faq_structure(content)
     if structure.unsupported_lines:
@@ -94,28 +98,79 @@ def check_content(
 
     findings: List[Finding] = []
 
+    report = analyze_proof_links(content, proof_content or "")
+    requirements = {
+        requirement.faq_question: requirement
+        for requirement in report.requirements
+        if requirement.owner == "faq"
+    }
+
     for faq_answer in faq_answers:
-        if _has_non_owned_public_proof_url(faq_answer.answer):
+        requirement = requirements.get(faq_answer.question)
+        if requirement is None or requirement.mode != "inline_required":
             continue
 
-        findings.append(
-            {
-                "rule_id": "faq_answer_missing_inline_proof",
-                "severity": "error",
-                "line": faq_answer.heading_line,
-                "column": 1,
-                "question": faq_answer.question,
-                "message": (
-                    "FAQ answer has no non-owned public evidence link in its "
-                    "visible answer body."
-                ),
-                "suggestion": (
-                    "Add 1 authoritative public evidence link inside the FAQ answer. "
-                    "A Source Map or FAQ Proof Map may document the same evidence, "
-                    "but sidecar-only proof and owned product links do not count."
-                ),
-            }
-        )
+        first_paragraph = _first_visible_paragraph(faq_answer.answer)
+        answer_urls = _non_owned_public_urls(faq_answer.answer)
+        first_paragraph_urls = _non_owned_public_urls(first_paragraph)
+        if not answer_urls:
+            findings.append(
+                {
+                    "rule_id": "faq_answer_missing_inline_proof",
+                    "severity": "error",
+                    "line": faq_answer.heading_line,
+                    "column": 1,
+                    "question": faq_answer.question,
+                    "message": (
+                        "This fact-driven FAQ answer has no non-owned public evidence "
+                        "link in its visible answer body."
+                    ),
+                    "suggestion": (
+                        "Add a descriptive authoritative link in the first visible "
+                        "paragraph, or rewrite the answer so it makes no proof-triggering claim."
+                    ),
+                }
+            )
+            continue
+
+        if not first_paragraph_urls:
+            findings.append(
+                {
+                    "rule_id": "faq_answer_missing_first_paragraph_proof",
+                    "severity": "error",
+                    "line": faq_answer.heading_line,
+                    "column": 1,
+                    "question": faq_answer.question,
+                    "message": (
+                        "This fact-driven FAQ answer places its proof after the first "
+                        "visible paragraph."
+                    ),
+                    "suggestion": (
+                        "Move one approved authority link into the first 40-60-word "
+                        "answer paragraph so the extractable answer carries its proof."
+                    ),
+                }
+            )
+            continue
+
+        if any(
+            link.faq_question == faq_answer.question
+            and requirement.line <= link.line <= requirement.end_line
+            for link in report.generic_anchors
+        ):
+            findings.append(
+                {
+                    "rule_id": "faq_answer_generic_proof_anchor",
+                    "severity": "error",
+                    "line": faq_answer.heading_line,
+                    "column": 1,
+                    "question": faq_answer.question,
+                    "message": "Required FAQ proof uses generic link text.",
+                    "suggestion": (
+                        "Use a descriptive anchor naming the authority and evidence topic."
+                    ),
+                }
+            )
 
     if proof_content is not None:
         findings.extend(_check_faq_source_policy(faq_answers, proof_content))
@@ -164,6 +219,8 @@ def _check_faq_source_policy(
     faq_answers: List[FaqAnswer],
     proof_content: str,
 ) -> List[Finding]:
+    if not any(_non_owned_public_urls(answer.answer) for answer in faq_answers):
+        return []
     if not _has_required_faq_source_policy(proof_content):
         first_answer = faq_answers[0]
         return [
@@ -183,7 +240,9 @@ def _check_faq_source_policy(
                 (
                     candidate
                     for candidate in proof_sources
-                    if candidate.question == faq_answer.question and candidate.url == url
+                    if candidate.question == faq_answer.question
+                    and canonicalize_link_identity(candidate.url)
+                    == canonicalize_link_identity(url)
                 ),
                 None,
             )
@@ -242,6 +301,17 @@ def _check_faq_source_policy(
                 )
 
     return findings
+
+
+def _first_visible_paragraph(answer: str) -> str:
+    return next(
+        (
+            paragraph.strip()
+            for paragraph in re.split(r"\n\s*\n", answer.strip())
+            if paragraph.strip()
+        ),
+        "",
+    )
 
 
 def _has_required_faq_source_policy(proof_content: str) -> bool:
@@ -329,7 +399,9 @@ def _is_owned_proof_url(url: str) -> bool:
 
 
 def _main(argv: Optional[List[str]] = None) -> int:
-    parser = argparse.ArgumentParser(description="Check FAQ answers for linked proof.")
+    parser = argparse.ArgumentParser(
+        description="Check FAQ answers against machine-assigned risk-tier proof modes."
+    )
     parser.add_argument("path", help="Markdown file to check")
     parser.add_argument(
         "--fail-on",
@@ -341,7 +413,9 @@ def _main(argv: Optional[List[str]] = None) -> int:
         "--proof-sidecar",
         help=(
             "Validation sidecar for FAQ source-policy and per-URL classification; "
-            "FAQ Proof Map rows cannot replace inline public evidence links."
+            "when inline_required applies, FAQ Proof Map rows cannot replace the "
+            "natural authoritative link in the first visible answer paragraph. "
+            "The machine assigns lower-risk citation modes."
         ),
     )
     args = parser.parse_args(argv)

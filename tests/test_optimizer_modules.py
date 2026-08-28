@@ -5,6 +5,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -100,6 +102,18 @@ def rate_article_with_links(links, *, brand="Simpro", guidelines=None):
 
 
 class OptimizerModuleTests(unittest.TestCase):
+    def test_seo_cli_help_describes_external_authority_source_policy(self):
+        output = StringIO()
+        with self.assertRaises(SystemExit) as raised, redirect_stdout(output):
+            seo_quality_rater_module.main(["--help"])
+
+        self.assertEqual(raised.exception.code, 0)
+        help_text = " ".join(output.getvalue().split())
+        self.assertIn("2+ distinct non-owned authority sources", help_text)
+        self.assertIn("quota-only third", help_text)
+        self.assertIn("no maximum", help_text)
+        self.assertNotIn("External research requirement: not applicable", help_text)
+
     def test_seo_quality_rater_reports_release_floor_and_advisory_target(self):
         result = SEOQualityRater().rate(
             long_article(),
@@ -188,7 +202,7 @@ class OptimizerModuleTests(unittest.TestCase):
         self.assertEqual(result["score"], 100)
         self.assertNotIn("H2 sections", findings)
 
-    def test_seo_quality_rater_default_does_not_require_fixed_link_totals(self):
+    def test_seo_quality_rater_default_uses_craig_style_link_totals(self):
         content = (
             "# Payments for Trades Businesses\n\n"
             "Payments for trades businesses connect invoice and job status.\n\n"
@@ -204,9 +218,151 @@ class OptimizerModuleTests(unittest.TestCase):
         )
 
         findings = "\n".join(result["warnings"] + result["suggestions"])
-        self.assertEqual(result["score"], 100)
+        self.assertLess(result["score"], 100)
+        self.assertIn("Too few internal links", findings)
+        self.assertIn("Too few non-owned public research links", findings)
+
+    def test_seo_quality_rater_default_accepts_three_internal_links_with_down_funnel_link(self):
+        content = (
+            "# Payments for Trades Businesses\n\n"
+            "Payments for trades businesses connect invoice and job status.\n\n"
+            "## Choose the next action\n\n"
+            "Use [field service payments]"
+            "(https://www.simprogroup.com/features/payments) to connect the handoff.\n"
+            "[accounts receivable follow-up with Fast Cash]"
+            "(https://www.simprogroup.com/features/fast-cash) supports follow-up.\n"
+            "[payments collection guide]"
+            "(https://www.simprogroup.com/blog/payments-as-a-strategic-growth-lever-for-trades) "
+            "adds planning detail.\n"
+            "[Federal Reserve](https://www.frbservices.org/news) provides payment-system context.\n"
+            "[J.D. Power](https://www.jdpower.com/business) provides customer-experience context."
+        )
+
+        result = SEOQualityRater()._score_links(
+            content,
+            internal_count=3,
+            external_count=2,
+        )
+
+        findings = "\n".join(result["warnings"] + result["suggestions"])
+        self.assertGreaterEqual(result["score"], 90)
         self.assertNotIn("Too few internal links", findings)
-        self.assertNotIn("research links", findings)
+        self.assertNotIn("Too few non-owned public research links", findings)
+        self.assertIn("Could add more internal links", findings)
+        self.assertNotIn("Could add more non-owned public research links", findings)
+
+    def test_seo_quality_rater_counts_distinct_external_destinations(self):
+        content = (
+            "# Payments for Trades Businesses\n\n"
+            "Use [Federal Reserve guidance](https://www.frbservices.org/news?utm_source=email).\n"
+            "Review the [same Federal Reserve guidance](https://www.frbservices.org/news#updates).\n"
+            "Compare [J.D. Power research](https://www.jdpower.com/business).\n"
+            "Use [field service payments](https://www.simprogroup.com/features/payments).\n"
+            "Read [Fast Cash workflows](https://www.simprogroup.com/features/fast-cash).\n"
+            "See the [payments collection guide](https://www.simprogroup.com/blog/payments-guide).\n"
+        )
+
+        result = SEOQualityRater()._score_links(
+            content,
+            internal_count=None,
+            external_count=None,
+        )
+
+        findings = "\n".join(result["warnings"] + result["suggestions"])
+        self.assertNotIn("Too few non-owned public research links", findings)
+        self.assertNotIn("Could add more non-owned public research links", findings)
+
+    def test_fragment_mail_and_phone_links_do_not_count_as_internal(self):
+        internal, external = seo_quality_rater_module._count_markdown_links(
+            "[FAQ](#faq) [Email](mailto:test@example.com) [Call](tel:+15551234567) "
+            "[guide](https://www.simprogroup.com/blog/guide) "
+            "[authority](https://example.org/rules)",
+            brand="Simpro",
+        )
+
+        self.assertEqual((internal, external), (1, 1))
+
+    def test_seo_quality_rater_default_ideal_links_score_cleanly(self):
+        content = (
+            "# Payments for Trades Businesses\n\n"
+            "Payments for trades businesses connect invoice and job status.\n\n"
+            "## Choose the next action\n\n"
+            "Use [field service payments]"
+            "(https://www.simprogroup.com/features/payments) to connect the handoff.\n"
+            "[accounts receivable follow-up with Fast Cash]"
+            "(https://www.simprogroup.com/features/fast-cash) supports follow-up.\n"
+            "[field service management software]"
+            "(https://www.simprogroup.com/solutions/field-service-management-software) "
+            "supports workflow planning.\n"
+            "[payments collection guide]"
+            "(https://www.simprogroup.com/blog/payments-as-a-strategic-growth-lever-for-trades) "
+            "adds planning detail.\n"
+            "[TEAMWired](https://www.simprogroup.com/case-studies/teamwired) adds a related story.\n"
+            "[Federal Reserve](https://www.frbservices.org/news) provides payment-system context.\n"
+            "[J.D. Power](https://www.jdpower.com/business) provides customer-experience context.\n"
+            "[U.S. Bank](https://www.usbank.com/business-banking.html) provides banking context."
+        )
+
+        result = SEOQualityRater()._score_links(
+            content,
+            internal_count=5,
+            external_count=3,
+        )
+
+        self.assertEqual(result["score"], 100)
+        self.assertEqual(result["warnings"], [])
+        self.assertEqual(result["suggestions"], [])
+
+    def test_evidence_required_external_links_have_no_maximum_penalty(self):
+        result = SEOQualityRater()._score_links(
+            "[field service payments](https://www.simprogroup.com/features/payments)",
+            internal_count=5,
+            external_count=12,
+        )
+
+        findings = "\n".join(
+            result["critical"] + result["warnings"] + result["suggestions"]
+        )
+        self.assertEqual(result["score"], 100)
+        self.assertNotIn("external", findings.casefold())
+
+    def test_seo_quality_rater_warns_when_standard_blog_has_too_many_internal_links(self):
+        content = (
+            "# Payments for Trades Businesses\n\n"
+            "Payments for trades businesses connect invoice and job status.\n\n"
+            "## Choose the next action\n\n"
+            "Use [field service payments]"
+            "(https://www.simprogroup.com/features/payments) to connect the handoff."
+        )
+
+        result = SEOQualityRater()._score_links(
+            content,
+            internal_count=8,
+            external_count=3,
+        )
+
+        findings = "\n".join(result["warnings"] + result["suggestions"])
+        self.assertLess(result["score"], 100)
+        self.assertIn("Too many internal links", findings)
+
+    def test_seo_quality_rater_allows_more_internal_links_for_long_form_articles(self):
+        long_body = " ".join(f"word{i}" for i in range(3000))
+        content = (
+            "# Payments for Trades Businesses\n\n"
+            f"{long_body}\n\n"
+            "Use [field service payments]"
+            "(https://www.simprogroup.com/features/payments) to connect the handoff."
+        )
+
+        result = SEOQualityRater()._score_links(
+            content,
+            internal_count=8,
+            external_count=3,
+        )
+
+        findings = "\n".join(result["warnings"] + result["suggestions"])
+        self.assertEqual(result["score"], 100)
+        self.assertNotIn("Too many internal links", findings)
 
     def test_seo_quality_rater_preserves_explicit_custom_link_totals(self):
         result = SEOQualityRater(
@@ -352,6 +508,33 @@ class OptimizerModuleTests(unittest.TestCase):
         self.assertIn("stuffing", findings)
         self.assertIn("repetition", findings)
         self.assertFalse(result["publishing_ready"])
+
+    def test_image_alt_and_placeholder_comment_do_not_trigger_keyword_stuffing(self):
+        keyword = "Texas plumbing license"
+        content = f"""# Texas Plumbing License Guide
+
+A Texas plumbing license follows credential-specific state requirements.
+
+![Texas plumbing license pathway](IMAGE_PLACEHOLDER_ORIGINAL_TEXAS_LICENSE_HERO)
+<!-- [IMAGE PLACEHOLDER 1: Original Texas plumbing license pathway hero] -->
+
+## Requirements at a glance
+
+Use the regulator's current credential pages to compare experience, fees, and supervision.
+"""
+
+        result = SEOQualityRater().rate(
+            content,
+            meta_title="Texas Plumbing License Requirements Guide | Simpro",
+            meta_description=(
+                "Compare Texas plumber credentials, experience rules, fees, renewal steps, "
+                "and official application routes before choosing your next license."
+            ),
+            primary_keyword=keyword,
+        )
+
+        findings = "\n".join(result["critical_issues"]).lower()
+        self.assertNotIn("stuffing", findings)
 
     def test_seo_quality_rater_computes_stuffing_risk_when_density_is_not_supplied(self):
         keyword = "field service scheduling"
@@ -696,6 +879,23 @@ class OptimizerModuleTests(unittest.TestCase):
         self.assertNotIn("missing from H1", issues)
         self.assertNotIn("missing from first 100 words", issues)
 
+    def test_seo_quality_rater_accepts_state_first_keyword_variant(self):
+        content = long_article("california electrical license")
+
+        result = SEOQualityRater().rate(
+            content,
+            meta_title="California Electrical License Guide | Simpro",
+            meta_description=(
+                "California electrical license steps cover trainee registration, "
+                "work hours, certification exams and contractor licensing."
+            ),
+            primary_keyword="electrical license california",
+        )
+
+        issues = "\n".join(result["critical_issues"])
+        self.assertNotIn("missing from H1", issues)
+        self.assertNotIn("missing from first 100 words", issues)
+
     def test_seo_quality_rater_accepts_industries_hub_down_funnel_link(self):
         result = rate_article_with_links(
             "[field service management solutions for your industry]"
@@ -707,6 +907,21 @@ class OptimizerModuleTests(unittest.TestCase):
         self.assertTrue(result["publishing_ready"], result)
         self.assertNotIn("down-funnel", "\n".join(result["critical_issues"]))
 
+    def test_seo_quality_rater_counts_industry_cluster_link_as_down_funnel_internal_link(self):
+        result = rate_article_with_links(
+            "[plumbing contractor software]"
+            "(https://www.simprogroup.com/industries/plumbing-software)\n"
+            "[plumbing margin guide]"
+            "(https://www.simprogroup.com/blog/plumbing-business-profit-margin-guide)\n"
+            "[plumbing KPI guide]"
+            "(https://www.simprogroup.com/blog/plumbing-kpis-that-protect-margin)\n"
+        )
+
+        findings = "\n".join(result["warnings"] + result["suggestions"])
+        self.assertTrue(result["publishing_ready"], result)
+        self.assertNotIn("down-funnel", "\n".join(result["critical_issues"]))
+        self.assertNotIn("Too few internal links", findings)
+
     def test_seo_quality_rater_accepts_features_hub_down_funnel_link(self):
         result = rate_article_with_links(
             "[job management software for field service teams]"
@@ -715,6 +930,18 @@ class OptimizerModuleTests(unittest.TestCase):
             "[job sheet software guide]"
             "(https://www.bigchange.com/blog/job-sheet-software)\n",
             brand="BigChange",
+        )
+
+        self.assertTrue(result["publishing_ready"], result)
+        self.assertNotIn("down-funnel", "\n".join(result["critical_issues"]))
+
+    def test_seo_quality_rater_accepts_clockshark_tour_down_funnel_link(self):
+        result = rate_article_with_links(
+            "[time tracking software for construction and field service crews]"
+            "(https://www.clockshark.com/tour/time-tracking-software)\n"
+            "[paper time card workflow](https://www.clockshark.com/blog/reasons-to-use-a-time-clock-instead-of-paper-time-cards)\n"
+            "[employee tracking apps](https://www.clockshark.com/blog/employee-tracking-apps)\n",
+            brand="ClockShark",
         )
 
         self.assertTrue(result["publishing_ready"], result)

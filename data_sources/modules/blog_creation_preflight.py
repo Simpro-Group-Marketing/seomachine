@@ -11,12 +11,14 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 try:
+    from . import context_binding_guard
     from . import eeat_strength_guard
     from . import semrush_keyword_decision_guard
     from .blog_assembly_contract import atomic_write_json
     from .blog_assembly_stage_receipt import check_stage_receipt_file
     from .frontmatter import FrontmatterError, split_frontmatter
 except ImportError:  # pragma: no cover - supports direct script execution.
+    import context_binding_guard
     import eeat_strength_guard
     import semrush_keyword_decision_guard
     from blog_assembly_contract import atomic_write_json
@@ -26,18 +28,25 @@ except ImportError:  # pragma: no cover - supports direct script execution.
 
 SCHEMA = "simpro-blog-creation-preflight/v1"
 SEMRUSH_UI_SURFACE = "semrush_ui_chrome_main_browser"
+SEMRUSH_UI_SURFACE_ALIASES = frozenset(
+    {
+        SEMRUSH_UI_SURFACE,
+        "authenticated_semrush_ui_in_main_chrome",
+    }
+)
 CUSTOMER_PROOF_SELECTOR_SCHEMA = "simpro-customer-proof-selector-evidence/v1"
 NO_FIT_CUSTOMER_PROOF_OUTCOME = "no_fit_customer_proof"
 REQUIRED_CUSTOMER_PROOF_ROLES = {"metric", "quote", "theme", "experience_story"}
+SCRUB_RECEIPT_STAGES = {"scrub", "post_optimization_scrub"}
 
 
 def build_preflight_report(
     article: str | Path,
     *,
     proof_sidecar: str | Path,
-    context_request: str | Path,
-    context_pack: str | Path,
-    context_receipt: str | Path,
+    context_request: str | Path | None = None,
+    context_pack: str | Path | None = None,
+    context_receipt: str | Path | None = None,
     keyword_decision: str | Path,
     assembly_date: str,
     output: str | Path | None = None,
@@ -79,16 +88,37 @@ def build_preflight_report(
     next_required_commands: list[str] = []
     required_human_inputs: list[str] = []
 
+    connector_required = _article_requires_context(article, blockers)
     required_paths = {
         "article": article,
         "proof_sidecar": proof_sidecar,
-        "context_request": context_request,
-        "context_pack": context_pack,
-        "context_receipt": context_receipt,
         "keyword_decision": keyword_decision,
         "editorial_plan": editorial_plan,
         "serp_evidence": serp_evidence,
     }
+    if connector_required:
+        required_paths.update(
+            {
+                "context_request": context_request,
+                "context_pack": context_pack,
+                "context_receipt": context_receipt,
+            }
+        )
+    else:
+        for label, path in (
+            ("context_request", context_request),
+            ("context_pack", context_pack),
+            ("context_receipt", context_receipt),
+        ):
+            if path is not None:
+                blockers.append(
+                    _blocker(
+                        "nonconnector_context_artifact_unexpected",
+                        f"Nonconnector preflight cannot include {label}.",
+                        "Omit connector artifacts unless the article contains a Simpro signal.",
+                        label,
+                    )
+                )
     for label, path in required_paths.items():
         _require_file(path, label, blockers)
     _require_stage_receipts(stage_receipts, blockers)
@@ -142,7 +172,6 @@ def build_preflight_report(
     else:
         receipt_findings = check_stage_receipt_file(
             scrub_receipt,
-            expected_stage="scrub",
             expected_tool_name="content_scrubber",
             expected_tool_version="1.0.0",
         )
@@ -150,10 +179,21 @@ def build_preflight_report(
             _guard_blocker(finding, "scrub_receipt") for finding in receipt_findings
         )
         if not receipt_findings:
+            blockers.extend(_check_scrub_receipt_stage(scrub_receipt))
+        if not receipt_findings:
             blockers.extend(_check_scrub_receipt_article_binding(scrub_receipt, article))
 
-    _check_customer_proof_evidence(customer_proof_evidence, blockers)
-    if not _has_expertise_path(metadata, fred_authority_evidence) and not _has_no_author_policy(proof_sidecar):
+    if connector_required:
+        _check_customer_proof_evidence(customer_proof_evidence, blockers)
+        expertise_path = fred_authority_evidence
+    else:
+        _check_nonconnector_vault_evidence(
+            customer_proof_evidence=customer_proof_evidence,
+            fred_authority_evidence=fred_authority_evidence,
+            blockers=blockers,
+        )
+        expertise_path = None
+    if not _has_expertise_path(metadata, expertise_path) and not _has_no_author_policy(proof_sidecar):
         required_human_inputs.append("no-author policy, named author, or selected Fred authority evidence")
         blockers.append(
             _blocker(
@@ -168,8 +208,8 @@ def build_preflight_report(
         article=article,
         proof_sidecar=proof_sidecar,
         editorial_plan=editorial_plan,
-        customer_proof_evidence=customer_proof_evidence,
-        fred_authority_evidence=fred_authority_evidence,
+        customer_proof_evidence=customer_proof_evidence if connector_required else None,
+        fred_authority_evidence=fred_authority_evidence if connector_required else None,
     )
     for finding in eeat_findings:
         converted = _guard_blocker(finding, "eeat_strength")
@@ -243,6 +283,27 @@ def _check_eeat_strength(
             fred_authority_evidence if _is_file(fred_authority_evidence) else None
         ),
     )
+
+
+def _article_requires_context(
+    article: str | Path,
+    blockers: list[dict[str, str]],
+) -> bool:
+    if not _is_file(article):
+        return False
+    try:
+        content = Path(article).read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as error:
+        blockers.append(
+            _blocker(
+                "article_unreadable",
+                f"Article cannot be read for connector routing: {error}",
+                "Restore the article before preflight.",
+                "article",
+            )
+        )
+        return False
+    return context_binding_guard.requires_context(content)
 
 
 def _artifact_path(path: str | Path | None) -> str | None:
@@ -352,6 +413,26 @@ def _check_scrub_receipt_article_binding(
     ]
 
 
+def _check_scrub_receipt_stage(scrub_receipt: str | Path) -> list[dict[str, str]]:
+    try:
+        payload = json.loads(Path(scrub_receipt).read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return []
+    if not isinstance(payload, Mapping):
+        return []
+    stage = str(payload.get("stage") or "")
+    if stage in SCRUB_RECEIPT_STAGES:
+        return []
+    return [
+        _blocker(
+            "stage_receipt_stage_mismatch",
+            "Scrub receipt must be from scrub or post_optimization_scrub.",
+            "Regenerate the receipt from /scrub or the post-optimization scrub stage.",
+            "scrub_receipt",
+        )
+    ]
+
+
 def _article_metadata(
     article: str | Path,
     blockers: list[dict[str, str]],
@@ -387,7 +468,7 @@ def _check_semrush_ui_surface(path: str | Path) -> list[dict[str, str]]:
         if isinstance(row, Mapping) and isinstance(row.get("parameters"), Mapping)
     }
     blockers: list[dict[str, str]] = []
-    if SEMRUSH_UI_SURFACE not in surfaces:
+    if not surfaces.intersection(SEMRUSH_UI_SURFACE_ALIASES):
         blockers.append(
             _blocker(
                 "semrush_ui_surface_missing",
@@ -526,6 +607,28 @@ def _check_no_fit_customer_proof_evidence(
     return blockers
 
 
+def _check_nonconnector_vault_evidence(
+    *,
+    customer_proof_evidence: str | Path | None,
+    fred_authority_evidence: str | Path | None,
+    blockers: list[dict[str, str]],
+    ) -> None:
+        for label, path in (
+            ("customer_proof_evidence", customer_proof_evidence),
+            ("fred_authority_evidence", fred_authority_evidence),
+        ):
+            if path is None or not str(path).strip():
+                continue
+            blockers.append(
+            _blocker(
+                f"nonconnector_{label}_unexpected",
+                f"Nonconnector preflight cannot include {label}.",
+                "Omit vault-dependent proof artifacts unless the article contains a Simpro signal.",
+                label,
+            )
+        )
+
+
 def _has_expertise_path(
     metadata: Mapping[str, Any],
     fred_authority_evidence: str | Path | None,
@@ -595,9 +698,9 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("article", help="Public blog Markdown artifact.")
     parser.add_argument("--proof-sidecar", required=True)
-    parser.add_argument("--context-request", required=True)
-    parser.add_argument("--context-pack", required=True)
-    parser.add_argument("--context-receipt", required=True)
+    parser.add_argument("--context-request")
+    parser.add_argument("--context-pack")
+    parser.add_argument("--context-receipt")
     parser.add_argument("--keyword-decision", required=True)
     parser.add_argument("--assembly-date", required=True)
     parser.add_argument("--output", required=True)

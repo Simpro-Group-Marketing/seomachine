@@ -212,6 +212,7 @@ def _check_file_impl(
     context_request: str | Path | None = None,
     context_pack: str | Path | None = None,
     context_receipt: str | Path | None = None,
+    editorial_plan: str | Path | Mapping[str, Any] | None = None,
     vault_root: str | Path | None = None,
     client: Any = None,
 ) -> List[Finding]:
@@ -277,6 +278,7 @@ def _check_file_impl(
             request=request,
             pack=pack,
             receipt=receipt,
+            plan=_load_editorial_plan(editorial_plan),
         )
     )
     if findings:
@@ -328,6 +330,7 @@ def validate_context_artifacts(
     context_request: str | Path | None = None,
     context_pack: str | Path | None = None,
     context_receipt: str | Path | None = None,
+    editorial_plan: str | Path | Mapping[str, Any] | None = None,
     vault_root: str | Path | None = None,
     client: Any = None,
 ) -> ContextValidationResult:
@@ -343,6 +346,7 @@ def validate_context_artifacts(
         context_request=context_request,
         context_pack=context_pack,
         context_receipt=context_receipt,
+        editorial_plan=editorial_plan,
         vault_root=vault_root,
         client=client,
     )
@@ -395,6 +399,7 @@ def check_file(
     context_request: str | Path | None = None,
     context_pack: str | Path | None = None,
     context_receipt: str | Path | None = None,
+    editorial_plan: str | Path | Mapping[str, Any] | None = None,
     vault_root: str | Path | None = None,
     client: Any = None,
 ) -> List[Finding]:
@@ -407,6 +412,7 @@ def check_file(
             context_request=context_request,
             context_pack=context_pack,
             context_receipt=context_receipt,
+            editorial_plan=editorial_plan,
             vault_root=vault_root,
             client=client,
         ).findings
@@ -535,6 +541,18 @@ def _read_json(path: Path) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ValueError(f"JSON artifact must contain an object: {path}")
     return value
+
+
+def _load_editorial_plan(value: str | Path | Mapping[str, Any] | None) -> Mapping[str, Any] | None:
+    if isinstance(value, Mapping):
+        return value
+    if value is None:
+        return None
+    try:
+        payload = _read_json(Path(value))
+    except (OSError, json.JSONDecodeError, ValueError):
+        return None
+    return payload
 
 
 def validate_request_article(

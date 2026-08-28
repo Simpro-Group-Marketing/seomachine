@@ -40,6 +40,11 @@ try:
     from .image_placeholder import is_production_image_placeholder_line
     from .public_url_safety import request_public_url
     from .proof_sidecar import compose_with_sidecar, load_sidecar_content
+    from .proof_link_policy import (
+        CitationRequirement,
+        ProofLinkReport,
+        analyze_proof_links,
+    )
     from .numeric_claim_source_guard import (
         MARKDOWN_LINK_RE,
         _blank_fenced_code,
@@ -57,6 +62,11 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from image_placeholder import is_production_image_placeholder_line
     from public_url_safety import request_public_url
     from proof_sidecar import compose_with_sidecar, load_sidecar_content
+    from proof_link_policy import (
+        CitationRequirement,
+        ProofLinkReport,
+        analyze_proof_links,
+    )
     from numeric_claim_source_guard import (
         MARKDOWN_LINK_RE,
         _blank_fenced_code,
@@ -94,6 +104,7 @@ SOURCE_CAPTURE_EMITTER_VERSION = "1.0.0"
 SOURCE_CLASSIFICATION_EMITTER_VERSION = "1.0.0"
 SOURCE_CAPTURE_ATTESTATION_PURPOSE = SOURCE_CAPTURE_SCHEMA
 SOURCE_CLASSIFICATION_ATTESTATION_PURPOSE = SOURCE_CLASSIFICATION_SCHEMA
+MARKDOWN_IMAGE_LINE_RE = re.compile(r"^\s*!\[[^\]\r\n]*\]\([^)]+?\)\s*$")
 PUBLISHER_RELATIONSHIPS = frozenset(
     {"independent", "owned", "competitor", "customer", "review_platform"}
 )
@@ -114,6 +125,11 @@ REVIEW_AUTHORITY_SIGNAL_RE = re.compile(
     r"\b(?:reviewer|named reviewer|star rating|stars?|rating|badge|badges|"
     r"ranked|ranking|category leader|category-leading|top rated|highest rated|"
     r"award|awarded)\b",
+    re.IGNORECASE,
+)
+SELF_NAVIGATION_RE = re.compile(
+    r"^(?:This|The)\s+(?:article|example|guide|section)\s+(?:can\s+)?helps?\s+"
+    r"(?:readers?|you)\s+(?:find|locate|navigate|understand|use)\b",
     re.IGNORECASE,
 )
 
@@ -160,7 +176,7 @@ GENERAL_CLAIM_PATTERNS = (
         "causal",
         re.compile(
             r"\b(?:causes?|leads? to|results? in|because of|therefore|drives?|"
-            r"contributes? to|improves?|reduces?|increases?|decreases?|prevents?|"
+            r"contributes? to|helps?|improves?|reduces?|increases?|decreases?|prevents?|"
             r"enables?|boosts?|cuts?|streamlines?)\b",
             re.IGNORECASE,
         ),
@@ -403,10 +419,23 @@ def check_content(
     proof_entries = _extract_proof_entries(proof_source)
     known_customer_names = _known_customer_names(proof_entries)
     candidates = _extract_claim_candidates(content, known_customer_names)
+    policy_report = analyze_proof_links(content, proof_source)
+    candidates = _policy_aligned_candidates(candidates, policy_report)
 
     findings: List[Finding] = []
     for candidate in candidates:
         matching_proofs = _matching_proofs(candidate, proof_entries)
+        if candidate.has_numeric_tokens and not matching_proofs:
+            cluster_applies, cluster_finding = _validate_numeric_proof_cluster(
+                candidate,
+                proof_entries,
+                base_path=base,
+                fetcher=fetcher,
+            )
+            if cluster_applies:
+                if cluster_finding is not None:
+                    findings.append(cluster_finding)
+                continue
         if candidate.requires_approved_quote:
             approved_quote_proofs = [
                 proof
@@ -517,6 +546,144 @@ def check_content(
         findings.append(next(finding for finding in proof_findings if finding is not None))
 
     return sorted(findings, key=lambda finding: (finding["line"], finding["column"], finding["rule_id"]))
+
+
+def _policy_aligned_candidates(
+    candidates: Sequence[ClaimCandidate],
+    report: ProofLinkReport,
+) -> List[ClaimCandidate]:
+    """Apply machine citation modes without weakening fail-closed claims."""
+    proof_free_ranges = [
+        (requirement.line, requirement.end_line)
+        for requirement in report.requirements
+        if requirement.owner == "public_research"
+        and requirement.mode == "proof_not_required"
+    ]
+    faq_ranges = [
+        (requirement.line, requirement.end_line)
+        for requirement in report.requirements
+        if requirement.owner == "faq"
+    ]
+    aligned = [
+        candidate
+        for candidate in candidates
+        if not any(start <= candidate.line <= end for start, end in proof_free_ranges)
+        and not any(start <= candidate.line <= end for start, end in faq_ranges)
+        and not _candidate_is_proof_not_required(candidate)
+    ]
+
+    for requirement in report.requirements:
+        if requirement.mode != "inline_required" or requirement.owner not in {
+            "numeric_claim",
+            "public_research",
+        }:
+            continue
+        if _requirement_has_candidate(requirement, aligned):
+            continue
+
+        numeric_tokens = _extract_numeric_tokens(
+            _claim_text_for_detection(requirement.claim)
+        )
+        aligned.append(
+            ClaimCandidate(
+                text=requirement.claim,
+                line=requirement.line,
+                numeric_tokens=numeric_tokens,
+                normalized_tokens=frozenset(
+                    _normalize_numeric_token(token) for token in numeric_tokens
+                ),
+                customer_names=frozenset(),
+                has_case_study_link=False,
+                requires_approved_quote=False,
+                claim_type=(
+                    ""
+                    if numeric_tokens
+                    else _general_claim_type(requirement.claim)
+                ),
+            )
+        )
+
+    return sorted(aligned, key=lambda candidate: (candidate.line, candidate.text))
+
+
+def _candidate_is_proof_not_required(candidate: ClaimCandidate) -> bool:
+    """Ask the policy engine whether one extracted advice sentence is fact-free."""
+    if candidate.claim_type != "recommendation":
+        return False
+    fragment = f"# Editorial advice\n\n{candidate.text}\n"
+    report = analyze_proof_links(fragment)
+    return any(
+        requirement.mode == "proof_not_required"
+        and requirement.owner == "public_research"
+        for requirement in report.requirements
+    )
+
+
+def _requirement_has_candidate(
+    requirement: CitationRequirement,
+    candidates: Sequence[ClaimCandidate],
+) -> bool:
+    requirement_text = _normalize_text(_claim_text_for_detection(requirement.claim))
+    for candidate in candidates:
+        if not requirement.line <= candidate.line <= requirement.end_line:
+            continue
+        candidate_text = _normalize_text(_claim_text_for_detection(candidate.text))
+        if candidate_text in requirement_text or requirement_text in candidate_text:
+            return True
+    return False
+
+
+def _validate_numeric_proof_cluster(
+    candidate: ClaimCandidate,
+    proof_entries: Sequence[ProofEntry],
+    *,
+    base_path: Path,
+    fetcher: Optional[Fetcher],
+) -> tuple[bool, Optional[Finding]]:
+    """Validate multiple exact snippets that collectively prove one numeric unit."""
+    partial_proofs: List[tuple[ProofEntry, List[str]]] = []
+    covered_tokens: set[str] = set()
+    for proof in proof_entries:
+        if not proof.is_approved or not _text_overlaps(candidate.text, proof):
+            continue
+        if candidate.is_named_customer_claim and not _proof_matches_customer(candidate, proof):
+            continue
+        proof_tokens = proof.normalized_numeric_tokens
+        matching_tokens = [
+            token
+            for token in candidate.numeric_tokens
+            if _normalize_numeric_token(token) in proof_tokens
+        ]
+        if not matching_tokens:
+            continue
+        partial_proofs.append((proof, matching_tokens))
+        covered_tokens.update(_normalize_numeric_token(token) for token in matching_tokens)
+
+    if not candidate.normalized_tokens.issubset(covered_tokens):
+        return False, None
+
+    for proof, matching_tokens in partial_proofs:
+        proof_candidate = ClaimCandidate(
+            text=proof.claim,
+            line=candidate.line,
+            numeric_tokens=matching_tokens,
+            normalized_tokens=frozenset(
+                _normalize_numeric_token(token) for token in matching_tokens
+            ),
+            customer_names=candidate.customer_names,
+            has_case_study_link=candidate.has_case_study_link,
+            requires_approved_quote=False,
+            claim_type="",
+        )
+        finding = _validate_proof_entry(
+            proof,
+            proof_candidate,
+            base_path=base_path,
+            fetcher=fetcher,
+        )
+        if finding is not None:
+            return True, finding
+    return True, None
 
 
 def check_file(
@@ -675,7 +842,11 @@ def _extract_claim_candidates(
     candidates: List[ClaimCandidate] = []
 
     for paragraph in _iter_paragraphs(body):
-        if is_production_image_placeholder_line(paragraph.text.strip()):
+        paragraph_text = paragraph.text.strip()
+        if (
+            is_production_image_placeholder_line(paragraph_text)
+            or MARKDOWN_IMAGE_LINE_RE.fullmatch(paragraph_text)
+        ):
             continue
         numeric_tokens = []
         if _is_candidate_claim(paragraph.text):
@@ -1161,6 +1332,8 @@ def _validate_capture_receipt(
 
 
 def _general_claim_type(text: str) -> str:
+    if SELF_NAVIGATION_RE.search(text.strip()):
+        return ""
     for claim_type, pattern in GENERAL_CLAIM_PATTERNS:
         if pattern.search(text):
             return claim_type
@@ -1447,7 +1620,14 @@ def _finding(
 def _known_customer_names(proof_entries: Sequence[ProofEntry]) -> List[str]:
     names = set()
     for proof in proof_entries:
-        for value in (proof.customer, proof.claim):
+        values = [proof.customer]
+        if (
+            proof.section == "customer proof pack"
+            or proof.source_class in {"customer_proof", "review_platform", "review_story"}
+            or any(token in proof.use.casefold() for token in ("customer", "review"))
+        ):
+            values.append(proof.claim)
+        for value in values:
             for name in re.findall(r"\b[A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z&]+){1,4}\b", value):
                 if not _is_generic_name(name):
                     names.add(name.strip())
@@ -1515,6 +1695,8 @@ def _proof_matches_customer(candidate: ClaimCandidate, proof: ProofEntry) -> boo
 
 
 def _text_overlaps(text: str, proof: ProofEntry) -> bool:
+    if _normalize_text(_claim_text_for_detection(text)) == _normalize_text(proof.claim):
+        return True
     text_words = _significant_words(text)
     proof_words = _significant_words(f"{proof.claim} {proof.evidence}")
     return len(text_words.intersection(proof_words)) >= 2
