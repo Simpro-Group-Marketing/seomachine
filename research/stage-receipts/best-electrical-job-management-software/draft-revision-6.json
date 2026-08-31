@@ -1,0 +1,35 @@
+{
+  "completed_at": "2026-08-31T20:59:09.921259Z",
+  "evidence_hashes": {
+    "humanizer_policy": "7ecf29b38c2ed38b993f3c6debfe38a6a5fb6bcbf79d3c3d32d43575dc8c6e00",
+    "humanizer_upstream": "c896803e866395266efc50484c8a68dedc8ff86cdc7a68b374585d636bdae8c7",
+    "keyword_decision": "7c13a22b89b9cea58d6d97c72ba9a15bcdf3080ca75070280201c986870a3b37",
+    "serp_evidence": "84230afd928c1976afbe6e1d1c98d4d724295f505774318ac2346b372507c73e"
+  },
+  "execution_attestation": {
+    "algorithm": "hmac-sha256",
+    "key_id": "7245f363d0e7cfc7",
+    "purpose": "simpro-blog-stage-receipt/v1",
+    "schema": "simpro-execution-attestation/v1",
+    "signature": "288dfda6963829a5341804cdbdee5240c0f35da6dcb1ef36395a17e900f83aad"
+  },
+  "input_artifact_hashes": {
+    "analysis": "a01306b846b5651d454a416dff444abb698f151d455680d4f0669e92ca1ecc4e",
+    "article": "9cad9486ec8e1c3ec4be50acfe6c449c810a8373e9592cc4b396345fbe45b3a7"
+  },
+  "mutation": true,
+  "output_artifact_hashes": {
+    "article": "07f9bbcf0822a4dcce8545274b959817b339602f72145c23e6d060aaa1be3654"
+  },
+  "previous_receipt_hash": "",
+  "receipt_hash": "cf0aa0ec0ddd803855d18e311836e70bb40ffdde1498ed6483e96c4c599592d9",
+  "run_id": "best-electrical-job-management-software-2026-08-31-task-2-revision-6",
+  "schema": "simpro-blog-stage-receipt/v1",
+  "stage": "draft",
+  "started_at": "2026-08-31T20:58:51.770150Z",
+  "status": "completed",
+  "tool": {
+    "name": "rewrite-command",
+    "version": "1"
+  }
+}
