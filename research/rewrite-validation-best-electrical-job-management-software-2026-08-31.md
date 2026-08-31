@@ -7,6 +7,16 @@
 - Locked tool order: Simpro, ServiceTitan, BuildOps, FieldPulse, Jobber, Housecall Pro, Service Fusion, FieldEdge, Tradify.
 - Public-copy boundary: no vendor capability, price, trial, included-user, integration, limitation, customer-proof, Fred, ranking, payback or Simpro product claim is asserted.
 
+## Final artifact binding
+
+- Article SHA-256: `ffc6e071c4ffefa41ab4a913039a0cac9f6c3cbe415fb2aa9484782f0ce81c52`.
+- Draft receipt: `research/stage-receipts/best-electrical-job-management-software/draft-review-fix-2.json`.
+- Draft receipt hash: `df65a75a5503ab315f8d763d545e394011c06304edef4bebe8231fe20ea812aa`.
+- Draft receipt file SHA-256: `659357332619a3a8172c7e718ca4c8f6f108d79bc4a626285b6ea4832a66bdca`.
+- Receipt-bound article SHA-256: `ffc6e071c4ffefa41ab4a913039a0cac9f6c3cbe415fb2aa9484782f0ce81c52`.
+- Task 1 context pack: `research/context-pack-best-electrical-job-management-software.json`, hash `0fa4dd324a5a7e759490e0cf44be6f75faa32ddbb5fc9e166590fe40a6402313`.
+- Task 1 context receipt: `research/context-receipt-best-electrical-job-management-software.json`, hash `fc950e872959dae16848999e9b441e43ea56a821a968726ed06fdc302745f735`.
+
 ## Context and source boundary
 
 - Context receipt status: partial. It is planning context, not public-claim approval.
