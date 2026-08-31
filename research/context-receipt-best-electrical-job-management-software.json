@@ -1,0 +1,1594 @@
+{
+  "claim_decisions": [],
+  "claim_registry_revision": "27ce7d324984d3083c8ebedf24a7f617d3a9a92944e51b48dc507f706199e076",
+  "constraints": [
+    "Use only official vendor pages for vendor capability, plan, price, included-user, trial, setup, and currency evidence.",
+    "Do not publish customer proof, metrics, quotes, review themes, or Fred authority in this release; selectors must still record Selected: [none].",
+    "Do not make universal best, absence, ranking, or competitor claims.",
+    "Use nine comparison tools in this locked order: Simpro, ServiceTitan, BuildOps, FieldPulse, Jobber, Housecall Pro, Service Fusion, FieldEdge, Tradify.",
+    "Do not use em dashes."
+  ],
+  "discovery_trace": [
+    {
+      "claim_registry_revision": "27ce7d324984d3083c8ebedf24a7f617d3a9a92944e51b48dc507f706199e076",
+      "operation": "vault_status",
+      "resource_count": 562,
+      "revisions": {
+        "approval_policy_revision": "6945674b56933849678c70200ff29438700475eae6e794388bb88b6febedccb6",
+        "claim_registry_revision": "27ce7d324984d3083c8ebedf24a7f617d3a9a92944e51b48dc507f706199e076",
+        "content_revision": "17de92caecf8409ff5abd4b53246bc4d7c852401d052062df6834aab0835fca6",
+        "contract_revision": "dde900186b0c4cbc5c2636680ff38b9e2c22f1aef02f547308353f806fbae560",
+        "inventory_revision": "a78fe8afacb4403d9d350789dc57ae4b185684050bc45f67310424896e2d5732",
+        "manifest_revision": "473b82bcb70d94215da056d80b5c46d270704abe421ea64b948f0aa1f7eaab7f"
+      }
+    },
+    {
+      "capabilities": [
+        "vault_status",
+        "vault_describe",
+        "vault_search",
+        "vault_read",
+        "vault_expand",
+        "vault_claims",
+        "vault_find_proof",
+        "vault_build_context",
+        "vault_validate_context"
+      ],
+      "description_sha256": "00a5a3092e9e72990e4e1865ac18333e4fbc1352130a82ff69cd0f8be709e819",
+      "operation": "vault_describe"
+    },
+    {
+      "operation": "vault_search",
+      "query": "Plan a grounded rewrite of Simpro's US blog '7 Best Electrical Job Management Software Tools For Growing Contractors'. Need author-led blog voice and US electrical contractor positioning, including appropriate product language, electrical workflows, product or feature link context, and competitive shortlist guidance. Do not request public claims beyond approved evidence.",
+      "result_resource_ids": [
+        "res-6b127060c8ec5af3b35b5f6dda5fd5c5",
+        "res-d7e3d5ca80955407a9d06be5f129e11b",
+        "res-10b97eee1de25395bbf8b904111ca4b0",
+        "res-087ac8044e26575b9c93aa0ba3a8c548",
+        "res-00ef40ec44d45fbdb96ebe608f0c1062",
+        "res-ef344eea8a3458d0b7bea645da567965",
+        "res-5c1b34d7d2175caab4fb29a208e59ac0",
+        "res-e36906687f0056ff8fe3b3ba596c8f31",
+        "res-00a2b19bd4ac503b9b560dc2d1af16aa",
+        "res-47015608c0d4556a854fca7544b4a040",
+        "res-333720650ed45a68b3161bb102b68035",
+        "res-4ed728a339af5009b9fc09bdee52e0bd",
+        "res-f0ac91cb964d53c7a091f25bd3ff3854",
+        "res-71a7390563a358149ec12bdc113b6a0e",
+        "res-a5b3b47382b45490bf2bedbf16c0b76e",
+        "res-4438c5a0eada51b193dc2ba116393d0b",
+        "res-258f5ac5624352769a692bb10a5b6f76",
+        "res-8397b2df1bb75f06b3c931a6fdd7ef0b",
+        "res-4d4c2fe49fe8506a81fd82655e296d18",
+        "res-a6fb58ed4f6c5cf8840594c08bed6bb1",
+        "res-bd711ad33f705cee819e81c0a8cc55c2",
+        "res-f2979c02b0135525aa2fbbfd41917cac",
+        "res-0ed2739598935660bb8574c576a67d2b",
+        "res-016b084e01c95de781db0babe595cf7b",
+        "res-18d584b3de86582991a7d737357098fd",
+        "res-22b40b3f1e3f5716a4aebeba21a9ef28",
+        "res-286ca2f7150b59398497f6b341b6c9b7",
+        "res-37e7197f89da5077a804de1666a17f53",
+        "res-3898a0c4e52b512e904dbda56fcf565c",
+        "res-6a89de98838b57a3821bfaeb59403191",
+        "res-740a770ce898580185bdea96edd48fe7",
+        "res-94453f7c1a4451f3901e17952c98df6c",
+        "res-a88df898c8d0538088b73be0695a65dd",
+        "res-acdd19b3b66657f0aea54e3d2b553791",
+        "res-c6e69419a82e59919b4af4731a7e496a",
+        "res-d4dcea9f4a0f557e89997989e25c35c4",
+        "res-e96167f722de551b9ed4c5ff31c1149e",
+        "res-e98f9497e07c5ffd84f77cc09af29f6b",
+        "res-f645cdd4b39b596cbb62d66786ba8582",
+        "res-f882ab230eb2563889e300d612c324bc",
+        "res-ff4d02b091d8529a9b1188d12b799096",
+        "res-8f9053a490bf573fa6414159d3a4822d",
+        "res-e66e0a4bca1c506f854c70a82966be4b",
+        "res-688ffe1c707b5c4e9cdc7523125500ab",
+        "res-65fa477571575953b3cf67817070f712",
+        "res-517ad5ccb2cd5c3985831d8aba4cedaa",
+        "res-f5ce486769d050c28658d7bad8eb8e43",
+        "res-8edeb0ee24685f3993080e33b256f83d",
+        "res-c2b93e155f9050f48b4cf909d6ba092e",
+        "res-7fe1a6688b5458e08bec9403b13f4622"
+      ],
+      "results_sha256": "60588455fd69a553554bea613c8364da01a7ef1c4a8c91a471596a65f0bf885c"
+    },
+    {
+      "operation": "vault_search",
+      "query": "US localization guidance for a Simpro-owned electrical contractor comparison article.",
+      "result_resource_ids": [
+        "res-10b97eee1de25395bbf8b904111ca4b0",
+        "res-087ac8044e26575b9c93aa0ba3a8c548",
+        "res-f5ce486769d050c28658d7bad8eb8e43",
+        "res-8397b2df1bb75f06b3c931a6fdd7ef0b",
+        "res-00ef40ec44d45fbdb96ebe608f0c1062",
+        "res-016b084e01c95de781db0babe595cf7b",
+        "res-0ed2739598935660bb8574c576a67d2b",
+        "res-18d584b3de86582991a7d737357098fd",
+        "res-22b40b3f1e3f5716a4aebeba21a9ef28",
+        "res-286ca2f7150b59398497f6b341b6c9b7",
+        "res-37e7197f89da5077a804de1666a17f53",
+        "res-3898a0c4e52b512e904dbda56fcf565c",
+        "res-4438c5a0eada51b193dc2ba116393d0b",
+        "res-4d4c2fe49fe8506a81fd82655e296d18",
+        "res-688ffe1c707b5c4e9cdc7523125500ab",
+        "res-6a89de98838b57a3821bfaeb59403191",
+        "res-a6fb58ed4f6c5cf8840594c08bed6bb1",
+        "res-a88df898c8d0538088b73be0695a65dd",
+        "res-acdd19b3b66657f0aea54e3d2b553791",
+        "res-bd711ad33f705cee819e81c0a8cc55c2",
+        "res-c6e69419a82e59919b4af4731a7e496a",
+        "res-d4dcea9f4a0f557e89997989e25c35c4",
+        "res-e98f9497e07c5ffd84f77cc09af29f6b",
+        "res-f2979c02b0135525aa2fbbfd41917cac",
+        "res-f882ab230eb2563889e300d612c324bc",
+        "res-ff4d02b091d8529a9b1188d12b799096",
+        "res-e96167f722de551b9ed4c5ff31c1149e",
+        "res-f645cdd4b39b596cbb62d66786ba8582",
+        "res-3dbb6d68a895558bb286729072bb6478",
+        "res-c4c716f8a61b5deba4f7b523579f116c",
+        "res-8edeb0ee24685f3993080e33b256f83d",
+        "res-f9f9499223a15d6a901806f30fb1a8ba",
+        "res-5b34a1d5478552f691257e513e42f9b0",
+        "res-7fe1a6688b5458e08bec9403b13f4622",
+        "res-24f9456b59615c23bb5f34969d316219",
+        "res-e7220f2a4bb25907a397b486f6a59752",
+        "res-0a8412a5382e50288fc87405a91a5b90",
+        "res-0dd3c26cb00d5e63b80c10af80d114e1",
+        "res-0e92d1d3421954998f7f69bd49bc748b",
+        "res-233343957bdc55ed8cfb7d8a0be0255e",
+        "res-4fabcba48fc651acb8a532101efe397b",
+        "res-527846e3eda65a87bfd6956b01e02b3c",
+        "res-5a3acf0d09675867ad09d75ad0e22893",
+        "res-650a5e23b62e5b0f837cbcf9208e15c0",
+        "res-6c64056014705c1ebdc9076981442862",
+        "res-6fcbe410d7e65cd487d6212fd0ab4932",
+        "res-8a2bebb68291574eae0546a14695c081",
+        "res-97863425c76e5b1cbce12f8df35e27d6",
+        "res-a95a38cb95f85ec19f618431e81d641f",
+        "res-c2b93e155f9050f48b4cf909d6ba092e"
+      ],
+      "results_sha256": "c65a00936f323e6c9ce03e423f9e101051cfc88bcead94993194378bc3e6d67c"
+    },
+    {
+      "content_sha256": "8271548aa15fa55aec21db673044e80849f3ab5cd6667eabfe971820c76613c1",
+      "operation": "vault_read",
+      "public_claim_use": "prohibited",
+      "read_purpose": "guidance",
+      "resource_id": "res-641679c4b6c65e93951cb8d8e1ab88af"
+    },
+    {
+      "content_sha256": "4a6c7999067fd1c8f868432d70179d8c14855668934d206bb94f208e46e2f227",
+      "operation": "vault_read",
+      "public_claim_use": "prohibited",
+      "read_purpose": "context",
+      "resource_id": "res-a5b3b47382b45490bf2bedbf16c0b76e"
+    },
+    {
+      "content_sha256": "4255861c240b8fc6eba03a755a8cc637158c235297beff6bbc35722a87826a21",
+      "operation": "vault_read",
+      "public_claim_use": "prohibited",
+      "read_purpose": "context",
+      "resource_id": "res-10b97eee1de25395bbf8b904111ca4b0"
+    },
+    {
+      "content_sha256": "22bb1a7df5b7a1cb827c1d311defa29524035961de297bab9968a39feca1a8ef",
+      "operation": "vault_read",
+      "public_claim_use": "prohibited",
+      "read_purpose": "context",
+      "resource_id": "res-71a7390563a358149ec12bdc113b6a0e"
+    },
+    {
+      "content_sha256": "9b79ea907fcde92330a1d0ac5953ef4ab63c98c46e52c445683cd70b31bf9d14",
+      "operation": "vault_read",
+      "public_claim_use": "prohibited",
+      "read_purpose": "guidance",
+      "resource_id": "res-d31f057a305f51918055120d95b76c6a"
+    }
+  ],
+  "errors": [
+    "Semrush MCP access is unavailable; no Semrush metrics may be claimed.",
+    "All future public capability and price claims require vendor-page source verification."
+  ],
+  "pack_sha256": "0fa4dd324a5a7e759490e0cf44be6f75faa32ddbb5fc9e166590fe40a6402313",
+  "receipt_sha256": "fc950e872959dae16848999e9b441e43ea56a821a968726ed06fdc302745f735",
+  "request_sha256": "bff3164701db0a3b24075d4a796b7c99c1ebf0066266d49157dc46d5e0fa5e4d",
+  "resource_purposes": {
+    "res-10b97eee1de25395bbf8b904111ca4b0": "context",
+    "res-641679c4b6c65e93951cb8d8e1ab88af": "guidance",
+    "res-71a7390563a358149ec12bdc113b6a0e": "context",
+    "res-a5b3b47382b45490bf2bedbf16c0b76e": "context",
+    "res-d31f057a305f51918055120d95b76c6a": "guidance"
+  },
+  "resources": [
+    {
+      "aliases": [
+        "Voice and Tone"
+      ],
+      "authority_state": "v1_eligible",
+      "content_available": true,
+      "content_sha256": "8271548aa15fa55aec21db673044e80849f3ab5cd6667eabfe971820c76613c1",
+      "content_truncated": false,
+      "entities": [],
+      "headings": [
+        "Voice and Tone",
+        "Summary",
+        "Hub",
+        "Content Brief",
+        "Voice Rules",
+        "Source-Backed Content",
+        "Source Nodes",
+        "Extracted PDF Evidence",
+        "Core Messaging Integration",
+        "Claim Rules"
+      ],
+      "lifecycle_state": "unspecified",
+      "locator": "wiki/concepts/voice-and-tone.md",
+      "media_type": "text/markdown",
+      "public_claim_use": "prohibited",
+      "read_purpose": "guidance",
+      "relationships": [
+        {
+          "resource_id": "res-09ebfff123cb5c5496e60c3a759a263d",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-0b358d66cf17583c8dda8eeaab9ad14f",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-0ed2739598935660bb8574c576a67d2b",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-100e43d575105b47b3c5e0be7decc4d9",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-15c8fb27c42c50419949ec9158edc6b7",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-1bd7664543655adaad10da1831742045",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-38f8652066df5fc79c960d81a103813f",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-77f3c08d28395540a5c0161012dd44e5",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-7b645d45fa7c50449183100d936b88a2",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-8041a2904b0256ebb6a0020e447547e2",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-8ef1a044d2be5ba4b8a15bed28696bf1",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-9842b0c357e752598eac4d3e4a530286",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d31f057a305f51918055120d95b76c6a",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-e66e0a4bca1c506f854c70a82966be4b",
+          "type": "links_to"
+        }
+      ],
+      "resource_id": "res-641679c4b6c65e93951cb8d8e1ab88af",
+      "retrieval_tier": "agent_context",
+      "semantic_roles": [
+        "guidance"
+      ],
+      "topics": [
+        "voice",
+        "tone",
+        "summary",
+        "hub",
+        "content",
+        "brief",
+        "backed",
+        "nodes",
+        "extracted",
+        "pdf",
+        "evidence",
+        "core",
+        "messaging",
+        "integration",
+        "claim"
+      ]
+    },
+    {
+      "aliases": [
+        "Product Positioning"
+      ],
+      "authority_state": "v1_eligible",
+      "content_available": true,
+      "content_sha256": "4a6c7999067fd1c8f868432d70179d8c14855668934d206bb94f208e46e2f227",
+      "content_truncated": false,
+      "entities": [],
+      "headings": [
+        "Product Positioning",
+        "Summary",
+        "Hub",
+        "Content Brief",
+        "Reusable Positioning Themes",
+        "Full Content Libraries",
+        "Source Nodes",
+        "Extracted PDF Evidence",
+        "Core Messaging Integration",
+        "Claim Rules",
+        "GTM Intake Integration"
+      ],
+      "lifecycle_state": "unspecified",
+      "locator": "wiki/concepts/product-positioning.md",
+      "media_type": "text/markdown",
+      "public_claim_use": "prohibited",
+      "read_purpose": "context",
+      "relationships": [
+        {
+          "resource_id": "res-00a2b19bd4ac503b9b560dc2d1af16aa",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-00ef40ec44d45fbdb96ebe608f0c1062",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-016b084e01c95de781db0babe595cf7b",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-038375b188cd5513b17ab2e87ad12ae0",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-0758ac6b6625554e9a912d46839980f0",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-087ac8044e26575b9c93aa0ba3a8c548",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-09ebfff123cb5c5496e60c3a759a263d",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-0b358d66cf17583c8dda8eeaab9ad14f",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-0b50debb2dc156b5b91c5e49a2f4132a",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-0bb9111d039b551884186948583a1945",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-0ed2739598935660bb8574c576a67d2b",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-100e43d575105b47b3c5e0be7decc4d9",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-10b97eee1de25395bbf8b904111ca4b0",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-14980f85b63550dd8db1aa5c34a98048",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-15282e58fa0551cc90f68090517ea19a",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-15c8fb27c42c50419949ec9158edc6b7",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-16a2949062775078a27d6e5eb739cae7",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-16c9b4c0717951e9a95c0c0517151b95",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-177020d87b8c5c2581a0b728bc1fe114",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-1825898a11855f89be9bb69c544a6aa3",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-189b7c063ff9569f8dce852bf8880da9",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-18d584b3de86582991a7d737357098fd",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-1ac415e6b1fe5b7197ab3852d3c411c2",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-1bd7664543655adaad10da1831742045",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-1d9fc7a9e5ac557ca5310e18df7fc6d2",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-1debf533b9305e60832d0988b483cf78",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-2105befb62be5b648df267ef531fe236",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-217220857db657d490d745d0021a7488",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-23e3f5584ba153999ba469d72fbf6570",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-24b973d0aefe57fe8b7d2df064b3fc14",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-286ca2f7150b59398497f6b341b6c9b7",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-297c9cda66eb54b1b2f04524dbb072e1",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-2feea4aeaa935a19864ec11f8af5ea52",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-32b013cd555c5034a745fda8b6a1ec87",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-360756c0fdeb5951a6c8cc00944b3cd8",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-36664d440fcf534793fdb3ab83b9aa37",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-37e7197f89da5077a804de1666a17f53",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-3898a0c4e52b512e904dbda56fcf565c",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-3a5d30731a315c37ac64085281627b26",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-3cd6af3174505e96b725b34e5936348c",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-3de3cedb5b6d5fa780eba767ccb0aff1",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-40930bf0bdcb53d19e6bf3b85358abee",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-40e35dfb3cff58d9bce630740abdbd0b",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-44ee3ccdcdb05dcfaa196b501fe75c58",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-485f268a0f605faebc655737bdabd8ca",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-4d4c2fe49fe8506a81fd82655e296d18",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-4d69e6bb9a3f5d2fad3c106363f8beef",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-4dac55b9784a5cf28952954db370aad5",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-4ed728a339af5009b9fc09bdee52e0bd",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-55f88d7428ad54429727ccc90aec6509",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-56dafdddcd105489b47ae670c5ba344e",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-57c0a8b06404563487335e0123378bca",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-6078f6806f0753ec9d8a8b8e78740225",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-688ffe1c707b5c4e9cdc7523125500ab",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-6a89de98838b57a3821bfaeb59403191",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-6b127060c8ec5af3b35b5f6dda5fd5c5",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-71a7390563a358149ec12bdc113b6a0e",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-77f3c08d28395540a5c0161012dd44e5",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-783cbe1a57d950e4b00c8b2f37ce9efb",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-7882b0eb0d585badb5ca70d5a55ccdf7",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-7b645d45fa7c50449183100d936b88a2",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-7cdf4d8f10b35a069a5d11bb8ea40eb0",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-8041a2904b0256ebb6a0020e447547e2",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-84f6bea4acec5044a157d7bf658aa83b",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-871c8ce44ea45bb193de4efe56c5b002",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-88bab9011d495714a2de47c872fbaf72",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-8984e91aae4e5d2382d6851f8eea6128",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-8e187e92b8be5a3d9d79c943453d1d89",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-8ef1a044d2be5ba4b8a15bed28696bf1",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-8f53bd057fdc5bb7bb5f3d72cd09a6d2",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-8fe062d92e61578a9ec6b2237f83665a",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-90538a3c9f5e5236b5e243ccecb47467",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-92348f8056165d4ba81a3c91738604e2",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-9376401072fd52cb8e9d04144da2b3bd",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-94453f7c1a4451f3901e17952c98df6c",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-96fda2969b1d5d4680d6b3f7dfb4c94e",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-981a9c71b30955a8b33deb7ebd305b4f",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-9842b0c357e752598eac4d3e4a530286",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-9b49eae285c155b88192c52d9da3f6a6",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-9efc1984594250b39b3f57ac62276644",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-9fad209012d457a994676c82c0f7422c",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-a5347a152deb5bd88e77bb9261a7079e",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-a6fb58ed4f6c5cf8840594c08bed6bb1",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-a7ec907b09875ee1adcff42141b9e5c7",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-a88df898c8d0538088b73be0695a65dd",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-ac34fbe2f00a50a69522c0864226ffb8",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-acdd19b3b66657f0aea54e3d2b553791",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-ae911b55ae745cd1b29145879c0ae268",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-af6f60806c045d578948b263c3e03e06",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-b13348b27af75f6295cc056c90062184",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-b6423ec98f18546988f383e604ab9141",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-b6583ac64f965333901f20e1d78b7b45",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-b9e17322fcca5cadbe141568fcfe394f",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-bbd2e1c5ef735c9cbe9453898a84415f",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-bc9de2a4aad65d48a33630d07eaf62ce",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-bd0ba3e2d9dc55de8573b5e216830a79",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-bd711ad33f705cee819e81c0a8cc55c2",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-bd8b512f01e055a79d9b33b640440ce7",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-bddb7ebd90ca52cf8ae206b3862631c4",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-be6e4813e8dc564e97aa0de63e8b0399",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-c4c716f8a61b5deba4f7b523579f116c",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-c6e69419a82e59919b4af4731a7e496a",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-c6e6f76054e0544fb8da1f656e0ce439",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-c9c6ba4764035e5083e168917b05db04",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-cd01dc5ec2d758f8899af6852db45cce",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-ce127d22bb0c5756aeb55b45e51841e3",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-cf618ca9cf6f513ab04e92ad37768124",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d2356acca85a59668d62cf7cfaa2a5ff",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d3239ede109755cd99885c2775001eb9",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d4c1e70d33425b3aa5f3fc8501374152",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d5554853eaf153358291a7d17bac472c",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d559c321ba4059d09b7977a1321c2346",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d57e03c015105476a778d3c33e513827",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d602587d4cfb52a68c3b6d56190b0b37",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d6341e726a6a55e8aca2799d2a744ed6",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d85713ef96905243ba0d444f543274db",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d8e031aef96b576987debf7f561a0527",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-dd9de32a6ff85ee8967653cf99560255",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-decced2dd1b75e948155bcbd7dadd29f",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-e1c9e79344545efabaff11ac9a098b08",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-e4b7fe3b3085588eb44c270d36b29684",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-e91c4c9798d254e181012e07dcf14492",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-e96167f722de551b9ed4c5ff31c1149e",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-e98f9497e07c5ffd84f77cc09af29f6b",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-eb57a52e29a95025b246eaccf8395456",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-ebf4c5b641b154e9b8bc3e3574006da0",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-ee604a7dffa15336bf1f0dffa8f19c91",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-f02a984cb7af59e69a64b6dd8534bd2f",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-f645cdd4b39b596cbb62d66786ba8582",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-f882ab230eb2563889e300d612c324bc",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-fb10afb49a5c5c07823d324bb7a23be0",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-fde43b95acdf51ab8e53d33440042bdd",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-ff4d02b091d8529a9b1188d12b799096",
+          "type": "links_to"
+        }
+      ],
+      "resource_id": "res-a5b3b47382b45490bf2bedbf16c0b76e",
+      "retrieval_tier": "agent_context",
+      "semantic_roles": [
+        "guidance"
+      ],
+      "topics": [
+        "product",
+        "positioning",
+        "summary",
+        "hub",
+        "content",
+        "brief",
+        "reusable",
+        "themes",
+        "full",
+        "libraries",
+        "nodes",
+        "extracted",
+        "pdf",
+        "evidence",
+        "core",
+        "messaging",
+        "integration",
+        "claim",
+        "gtm",
+        "intake"
+      ]
+    },
+    {
+      "aliases": [
+        "Source - Simpro Electrical datasheet (US).pdf"
+      ],
+      "authority_state": "v1_eligible",
+      "content_available": true,
+      "content_sha256": "4255861c240b8fc6eba03a755a8cc637158c235297beff6bbc35722a87826a21",
+      "content_truncated": false,
+      "entities": [],
+      "headings": [
+        "Source - Simpro Electrical datasheet (US).pdf",
+        "Summary",
+        "Source Links",
+        "Extraction Status",
+        "Mentions / Related Nodes",
+        "Topic Coverage",
+        "Safe-To-Use Claims",
+        "Do Not Use Without Review",
+        "Graph Spine Links"
+      ],
+      "lifecycle_state": "unspecified",
+      "locator": "wiki/sources/simpro-electrical-datasheet-us-pdf-1ibatg1q.md",
+      "media_type": "text/markdown",
+      "public_claim_use": "prohibited",
+      "read_purpose": "context",
+      "relationships": [
+        {
+          "resource_id": "res-1b7fdf9a04295c7594016b3a2c06a755",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-2a52a13e5af75359888562c0c5494b90",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-3250ad4272305976ab4e7b5dda27309d",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-3887846244f05f16bfc0516889d340f3",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-6db5b504db2750d69958d3aea58a24f1",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-9111b0ac2ac7514ea0778311d62ebddc",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-a5b3b47382b45490bf2bedbf16c0b76e",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d4c1e70d33425b3aa5f3fc8501374152",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-ddceeed6f8be59c2992f0d6adee3090e",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-dfc67c5cef87541d856a765f2747a2cb",
+          "type": "links_to"
+        }
+      ],
+      "resource_id": "res-10b97eee1de25395bbf8b904111ca4b0",
+      "retrieval_tier": "evidence_only",
+      "semantic_roles": [
+        "evidence"
+      ],
+      "topics": [
+        "simpro",
+        "electrical",
+        "datasheet",
+        "pdf",
+        "summary",
+        "links",
+        "extraction",
+        "status",
+        "mentions",
+        "related",
+        "nodes",
+        "topic",
+        "coverage",
+        "safe",
+        "claims",
+        "not",
+        "without",
+        "review",
+        "graph",
+        "spine"
+      ]
+    },
+    {
+      "aliases": [],
+      "authority_state": "v1_eligible",
+      "content_available": true,
+      "content_sha256": "22bb1a7df5b7a1cb827c1d311defa29524035961de297bab9968a39feca1a8ef",
+      "content_truncated": false,
+      "entities": [],
+      "headings": [
+        "Feature and Product Collateral Library",
+        "Read Order",
+        "Core platform/regional datasheets",
+        "Core Platform Datasheet - ANZ",
+        "Core Platform Datasheet - NA",
+        "Core Platform Datasheet - UK",
+        "Vertical datasheets",
+        "Electrical Vertical Datasheet",
+        "HVAC Vertical Datasheet",
+        "Low Voltage Vertical Datasheet",
+        "Plumbing Vertical Datasheet",
+        "Trade Services Vertical Datasheet",
+        "Add-ons",
+        "Data Feed",
+        "Delight",
+        "Digital Forms",
+        "Maintenance Planner",
+        "Message Maps for Add-ons",
+        "Multi-Company",
+        "Sage Intacct Integration",
+        "Simtrac",
+        "SMS Text Messaging",
+        "Takeoffs",
+        "Payments and cash-flow add-ons",
+        "Fast Cash",
+        "Payments - Bank Transfers",
+        "Simpro Payments",
+        "AI / Lightning-adjacent feature collateral",
+        "AI Strategic Outlook",
+        "Implementation, services, trust, and security",
+        "Data Security and Infrastructure",
+        "Implementation Guide",
+        "Implementation Packages",
+        "Private Cloud",
+        "Professional Services",
+        "Overview brochures and duplicate print variants",
+        "Overview Brochure - AU",
+        "Overview Brochure - NZ",
+        "Overview Brochure - UK",
+        "Overview Brochure - US",
+        "Proof / customer stories",
+        "Tropical Coast Plumbing Case Study",
+        "Safety"
+      ],
+      "lifecycle_state": "unspecified",
+      "locator": "wiki/features/source-docs/Feature and Product Collateral Library.md",
+      "media_type": "text/markdown",
+      "public_claim_use": "prohibited",
+      "read_purpose": "context",
+      "relationships": [
+        {
+          "resource_id": "res-00ef40ec44d45fbdb96ebe608f0c1062",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-016b084e01c95de781db0babe595cf7b",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-037aa9514d415d23bb6043aadc80dead",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-09f77a2983e654229496ebbf88ac4b2a",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-0a8412a5382e50288fc87405a91a5b90",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-0b50debb2dc156b5b91c5e49a2f4132a",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-0dd3c26cb00d5e63b80c10af80d114e1",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-0e92d1d3421954998f7f69bd49bc748b",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-0ed2739598935660bb8574c576a67d2b",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-10b97eee1de25395bbf8b904111ca4b0",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-1825898a11855f89be9bb69c544a6aa3",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-184eaa8101985200ba7ac25aa4e38bcf",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-18d584b3de86582991a7d737357098fd",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-22b40b3f1e3f5716a4aebeba21a9ef28",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-233343957bdc55ed8cfb7d8a0be0255e",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-23e3f5584ba153999ba469d72fbf6570",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-24f9456b59615c23bb5f34969d316219",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-286ca2f7150b59398497f6b341b6c9b7",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-2feea4aeaa935a19864ec11f8af5ea52",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-301f741538aa58e8b2694953ab77ce0d",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-33deaefa546b56358549b9dfe84f72c6",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-37e7197f89da5077a804de1666a17f53",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-3898a0c4e52b512e904dbda56fcf565c",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-3926e13407fa53eeb107fde72b223955",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-3ff216c212e1556998a437a67e24a034",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-4d4c2fe49fe8506a81fd82655e296d18",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-527846e3eda65a87bfd6956b01e02b3c",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-55f88d7428ad54429727ccc90aec6509",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-561db869bd2c581da1dff8bdabae26af",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-5a3acf0d09675867ad09d75ad0e22893",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-6078f6806f0753ec9d8a8b8e78740225",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-6353346578f65530a34117f17a59a924",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-648bc1449fc9553a87464d606dc72cb1",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-673b57f8b6ef5b7f9e831b168748e066",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-688ffe1c707b5c4e9cdc7523125500ab",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-6a89de98838b57a3821bfaeb59403191",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-6c48a796562958459f56b5fba6de6b6c",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-6c64056014705c1ebdc9076981442862",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-6fcbe410d7e65cd487d6212fd0ab4932",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-72f95a6c05015d9294047f154389d3df",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-767812a2d68c5debb114269d14d19b22",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-77f3c08d28395540a5c0161012dd44e5",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-783cbe1a57d950e4b00c8b2f37ce9efb",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-804f6e408f5a5fdf842a48992b3d6184",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-80ab57c3bb775e6bb7a963e3e7a65c9d",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-871c8ce44ea45bb193de4efe56c5b002",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-9050a9119f735219aa908db2e80fa550",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-94453f7c1a4451f3901e17952c98df6c",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-96fda2969b1d5d4680d6b3f7dfb4c94e",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-971f0b1c1bdd568ab2ea4dfe04170543",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-97863425c76e5b1cbce12f8df35e27d6",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-981a9c71b30955a8b33deb7ebd305b4f",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-98f4296e899653cdb7ec8914eb40f4db",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-9b3e505da7055c6b91368401c4385799",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-a6fb58ed4f6c5cf8840594c08bed6bb1",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-a7da8410434c5d5e85bd806288524212",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-a7ec907b09875ee1adcff42141b9e5c7",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-a88df898c8d0538088b73be0695a65dd",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-a95a38cb95f85ec19f618431e81d641f",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-a9fa2081cc0b5328ac5e36af2c05e45d",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-acdd19b3b66657f0aea54e3d2b553791",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-ae911b55ae745cd1b29145879c0ae268",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-af6f60806c045d578948b263c3e03e06",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-b6423ec98f18546988f383e604ab9141",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-b8d90660f324526da621a4846ed562ea",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-bbd2e1c5ef735c9cbe9453898a84415f",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-bd711ad33f705cee819e81c0a8cc55c2",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-be6e4813e8dc564e97aa0de63e8b0399",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-c2b93e155f9050f48b4cf909d6ba092e",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-c3db60256ee7529f8e163e40ea0444a8",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-c6446c5031c75caca952de485dc23cb4",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-c6e69419a82e59919b4af4731a7e496a",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-c6e6f76054e0544fb8da1f656e0ce439",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-ca9d4eb5e7585a64a6736feeaf937ec8",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-cd01dc5ec2d758f8899af6852db45cce",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d007de18471152beb1d85ab66b64a12f",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d4cee44baf6e5e21b430d8f2bf3e11cf",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d4dcea9f4a0f557e89997989e25c35c4",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d56d6c55608756b7970dc92a5ffde42d",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d57e03c015105476a778d3c33e513827",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d5991cd5309d596a8bc15cd0815d744d",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d9f61cf7b2a45de08e8b06d975a41200",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-dd31380e03be521dae06e887e280a1c0",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-dd9de32a6ff85ee8967653cf99560255",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-dedf3161fefe5d7a89e2ef268ef84689",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-e7220f2a4bb25907a397b486f6a59752",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-e91c4c9798d254e181012e07dcf14492",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-e98f9497e07c5ffd84f77cc09af29f6b",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-ee604a7dffa15336bf1f0dffa8f19c91",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-f5152c0f69775a029c6ed269e348829e",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-f5ce486769d050c28658d7bad8eb8e43",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-f882ab230eb2563889e300d612c324bc",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-f9ea08d14e815443a2942f6f5375689e",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-fde43b95acdf51ab8e53d33440042bdd",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-ff4d02b091d8529a9b1188d12b799096",
+          "type": "links_to"
+        }
+      ],
+      "resource_id": "res-71a7390563a358149ec12bdc113b6a0e",
+      "retrieval_tier": "evidence_only",
+      "semantic_roles": [
+        "evidence"
+      ],
+      "topics": [
+        "feature",
+        "product",
+        "collateral",
+        "library",
+        "read",
+        "order",
+        "core",
+        "platform",
+        "regional",
+        "datasheets",
+        "datasheet",
+        "anz",
+        "vertical",
+        "electrical",
+        "hvac",
+        "low",
+        "voltage",
+        "plumbing",
+        "trade",
+        "services",
+        "add",
+        "ons",
+        "data",
+        "feed"
+      ]
+    },
+    {
+      "aliases": [],
+      "authority_state": "v1_eligible",
+      "content_available": true,
+      "content_sha256": "9b79ea907fcde92330a1d0ac5953ef4ab63c98c46e52c445683cd70b31bf9d14",
+      "content_truncated": false,
+      "entities": [],
+      "headings": [
+        "Tone Voice and Localization Rules",
+        "Voice Baseline",
+        "Named-Author Blog Treatment",
+        "Localization Rules",
+        "Drafting Checks",
+        "Source Evidence",
+        "Claim Boundary",
+        "Compiled Detail",
+        "Agent Retrieval Notes"
+      ],
+      "lifecycle_state": "unspecified",
+      "locator": "wiki/messaging/Tone Voice and Localization Rules.md",
+      "media_type": "text/markdown",
+      "public_claim_use": "prohibited",
+      "read_purpose": "guidance",
+      "relationships": [
+        {
+          "resource_id": "res-0409dfe9b949599f99577d45bd7e7e25",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-09ebfff123cb5c5496e60c3a759a263d",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-1c9cd193f6955d26a2289d6a2ad37c64",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-230f144aab93512e840167c4a25e60be",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-47015608c0d4556a854fca7544b4a040",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-52541b6834d85a7ba6c91740a159647a",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-641679c4b6c65e93951cb8d8e1ab88af",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-92348f8056165d4ba81a3c91738604e2",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-9842b0c357e752598eac4d3e4a530286",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-b34b392d22b9507089ade3fec47ee9e0",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-c027b4f595a5549b8c29545379e0adf0",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-d4c1e70d33425b3aa5f3fc8501374152",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-e3ade596be645307ad4c1f84620ce021",
+          "type": "links_to"
+        },
+        {
+          "resource_id": "res-e66e0a4bca1c506f854c70a82966be4b",
+          "type": "links_to"
+        }
+      ],
+      "resource_id": "res-d31f057a305f51918055120d95b76c6a",
+      "retrieval_tier": "agent_context",
+      "semantic_roles": [
+        "guidance"
+      ],
+      "topics": [
+        "tone",
+        "voice",
+        "localization",
+        "baseline",
+        "named",
+        "author",
+        "blog",
+        "treatment",
+        "drafting",
+        "checks",
+        "evidence",
+        "claim",
+        "boundary",
+        "compiled",
+        "detail",
+        "agent",
+        "retrieval",
+        "notes"
+      ]
+    }
+  ],
+  "revisions": {
+    "approval_policy_revision": "6945674b56933849678c70200ff29438700475eae6e794388bb88b6febedccb6",
+    "claim_registry_revision": "27ce7d324984d3083c8ebedf24a7f617d3a9a92944e51b48dc507f706199e076",
+    "content_revision": "17de92caecf8409ff5abd4b53246bc4d7c852401d052062df6834aab0835fca6",
+    "contract_revision": "dde900186b0c4cbc5c2636680ff38b9e2c22f1aef02f547308353f806fbae560",
+    "inventory_revision": "a78fe8afacb4403d9d350789dc57ae4b185684050bc45f67310424896e2d5732",
+    "manifest_revision": "473b82bcb70d94215da056d80b5c46d270704abe421ea64b948f0aa1f7eaab7f"
+  },
+  "schema": "simpro-context-receipt/v1",
+  "search_queries": [
+    "Plan a grounded rewrite of Simpro's US blog '7 Best Electrical Job Management Software Tools For Growing Contractors'. Need author-led blog voice and US electrical contractor positioning, including appropriate product language, electrical workflows, product or feature link context, and competitive shortlist guidance. Do not request public claims beyond approved evidence.",
+    "US localization guidance for a Simpro-owned electrical contractor comparison article."
+  ],
+  "task_satisfaction": "partial",
+  "unresolved_gaps": [
+    "Semrush MCP access is unavailable; no Semrush metrics may be claimed.",
+    "All future public capability and price claims require vendor-page source verification."
+  ],
+  "validation_time": "2026-08-31T20:30:37.042560Z"
+}

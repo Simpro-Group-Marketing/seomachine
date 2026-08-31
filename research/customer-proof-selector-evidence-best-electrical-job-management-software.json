@@ -1,0 +1,78 @@
+{
+  "artifacts": {
+    "context_pack": {
+      "path": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-pack-best-electrical-job-management-software.json",
+      "sha256": "e4975c871091560e3a3556869947a474c234cae4ca9c5b7d2c5073430275250d"
+    },
+    "context_receipt": {
+      "path": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-receipt-best-electrical-job-management-software.json",
+      "sha256": "c33b8ac12b3bfd9a64417bacc1d4af97143caba4ebca5d047ea2a01e4b348b40"
+    },
+    "index": {
+      "path": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\context\\customer-proof-index.json",
+      "sha256": "7e0a015e470b2dfbe73d2258654536cd3786174a536f685c5e4dcf821d4968a9"
+    },
+    "ledger": {
+      "path": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\context\\customer-proof-usage-ledger.json",
+      "sha256": "ed343b063a58a93ea6a72c67cd7675216a43f94626413320c00c281cde94001f"
+    }
+  },
+  "inputs": {
+    "allow_no_proof": true,
+    "article_slug": "best-electrical-job-management-software",
+    "limit": 10,
+    "objective": "Help US electrical contractors compare nine platforms by workflow fit, operational depth, pricing, and implementation.",
+    "reference_date": "2026-08-31",
+    "rejected_overrides": {},
+    "require_eeat_story": true,
+    "roles": [
+      "metric",
+      "quote",
+      "theme",
+      "experience_story"
+    ],
+    "selected_overrides": {},
+    "title": "9 Best Electrical Job Management Software (2026) | Simpro",
+    "topic": "electrical job management software"
+  },
+  "roles": [
+    {
+      "candidate_ids": [],
+      "claim_ids": [],
+      "no_fit_reason": "No customer proof selected because the current connector-validated context has no approved claims bound to the customer proof inventory; public copy must omit customer proof, named customer claims, review stories, exact quotes, testimonials, and customer metrics.",
+      "receipt_revision": "not available",
+      "role": "metric",
+      "selected_id": "none",
+      "selection_outcome": "no_fit_customer_proof"
+    },
+    {
+      "candidate_ids": [],
+      "claim_ids": [],
+      "no_fit_reason": "No customer proof selected because the current connector-validated context has no approved claims bound to the customer proof inventory; public copy must omit customer proof, named customer claims, review stories, exact quotes, testimonials, and customer metrics.",
+      "receipt_revision": "not available",
+      "role": "quote",
+      "selected_id": "none",
+      "selection_outcome": "no_fit_customer_proof"
+    },
+    {
+      "candidate_ids": [],
+      "claim_ids": [],
+      "no_fit_reason": "No customer proof selected because the current connector-validated context has no approved claims bound to the customer proof inventory; public copy must omit customer proof, named customer claims, review stories, exact quotes, testimonials, and customer metrics.",
+      "receipt_revision": "not available",
+      "role": "theme",
+      "selected_id": "none",
+      "selection_outcome": "no_fit_customer_proof"
+    },
+    {
+      "candidate_ids": [],
+      "claim_ids": [],
+      "no_fit_reason": "No customer proof selected because the current connector-validated context has no approved claims bound to the customer proof inventory; public copy must omit customer proof, named customer claims, review stories, exact quotes, testimonials, and customer metrics.",
+      "receipt_revision": "not available",
+      "role": "experience_story",
+      "selected_id": "none",
+      "selection_outcome": "no_fit_customer_proof"
+    }
+  ],
+  "schema": "simpro-customer-proof-selector-evidence/v1",
+  "selection_outcome": "no_fit_customer_proof"
+}
