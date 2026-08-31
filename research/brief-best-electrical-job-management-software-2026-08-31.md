@@ -2,7 +2,7 @@
 
 ## Bound inputs
 
-- Title tag: 9 Best Electrical Job Management Software (2026) | Simpro
+- Title tag: 9 Best Electrical Job Management Software Tools (2026) | Simpro
 - H1: 9 Best Electrical Job Management Software Tools for Contractors in 2026
 - Primary keyword: electrical job management software
 - Objective: Help US electrical contractors compare nine platforms by workflow fit, operational depth, pricing, and implementation.
@@ -27,6 +27,10 @@ Help a contractor build a demo shortlist, not identify a universal winner. Separ
 ## Meta preview
 
 Meta description: Compare nine electrical job management software platforms by business size, job mix, estimating, scheduling, job costing, pricing and implementation.
+
+## Title decision
+
+The bound improvement brief recommends the title tag with `Tools`. This planning artifact retains that exact bound recommendation. The H1 remains the separately bound longer H1.
 
 ## Release constraints
 
