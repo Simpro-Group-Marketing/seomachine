@@ -6,6 +6,7 @@ from data_sources.modules.faq_structure import detect_faq_structure
 @pytest.mark.parametrize(
     "heading",
     (
+        "Pre-picked PAA Questions",
         "Questions field service leaders ask",
         "FAQs about scheduling",
         "Common scheduling questions",

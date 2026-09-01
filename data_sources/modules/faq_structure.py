@@ -8,6 +8,7 @@ from dataclasses import dataclass
 
 FAQ_H2_RE = re.compile(
     r"^##\s+(?:"
+    r"Pre-picked\s+PAA\s+Questions|"
     r"Frequently\s+Asked\s+Questions(?:(?:\s+(?:about|on|for)\s+|\s*[:\-]\s*).+)?|"
     r"FAQs?(?:(?:\s+(?:about|on|for)\s+|\s*[:\-]\s*).+)?|"
     r"Common(?:\s+.+)?\s+Questions|"

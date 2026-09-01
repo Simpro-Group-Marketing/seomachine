@@ -16,6 +16,7 @@ Implemented a dated in-place rewrite artifact and a private rewrite-validation s
 - Retained the canonical URL, the five bound internal body links, four unverified image placeholders with plan-supplied ALT directions, no author and no VideoObject.
 - Split the detailed capability comparison into two mobile-readable tables, using only `Not verified` capability states, and added source-mapped FAQ links where the supplied FAQ proof plan requires first-paragraph support.
 - Added the required buying-mistakes guidance and the single `Pre-picked PAA Questions` section with the seven exact FAQ headings.
+- Round-2 review fixes add all mandated scorecard categories and pass conditions, a full site-to-maintenance demo workflow, explicit pricing fields on every card, corrected official vendor routes, stronger fit-to-evaluate labels, and parser-compatible exact PAA heading recognition.
 - Used only Task 1's recorded official vendor routes. Because every route remains pending a current-page read, the cards and matrices direct the reader to verify facts instead of asserting capabilities, prices, trials, integrations or limitations.
 - Omitted customer proof, Fred evidence, rankings, payback claims and Simpro product or feature claims.
 
