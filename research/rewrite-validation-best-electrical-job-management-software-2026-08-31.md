@@ -9,11 +9,11 @@
 
 ## Final artifact binding
 
-- Article SHA-256: `e9308f0beb50aa60ad19292678c95c5679124baf164eda5e5d8ea16dfdc0bb2d`.
-- Draft receipt: `research/stage-receipts/best-electrical-job-management-software/draft-review-fix-3.json`.
-- Draft receipt hash: `ee952b2d9b413c1ed8e566036a3da79616f927949fcd3826cd3cafac43941989`.
-- Draft receipt file SHA-256: `f2ef3e22a3817dd7e0bcc1d78e4d464cbda34f0947d55da325a51e7f47cf4fed`.
-- Receipt-bound article SHA-256: `e9308f0beb50aa60ad19292678c95c5679124baf164eda5e5d8ea16dfdc0bb2d`.
+- Article SHA-256: `fa6879e060c56fe41555ad7673d78ffeeffc1bd36a45ab568c5ed17327741952`.
+- Draft receipt: `research/stage-receipts/best-electrical-job-management-software/draft-final-faq-fix.json`.
+- Draft receipt hash: `fa1494909955b8b9d1c168e90958b345aa7d49334d288a6e71b9d84141f13271`.
+- Draft receipt file SHA-256: `1cecf4fefcaaecbf0b5cce2ea2806716f2bef10129c54559ae818cbee5f91f16`.
+- Receipt-bound article SHA-256: `fa6879e060c56fe41555ad7673d78ffeeffc1bd36a45ab568c5ed17327741952`.
 - Task 1 context pack: `research/context-pack-best-electrical-job-management-software.json`, hash `0fa4dd324a5a7e759490e0cf44be6f75faa32ddbb5fc9e166590fe40a6402313`.
 - Task 1 context receipt: `research/context-receipt-best-electrical-job-management-software.json`, hash `fc950e872959dae16848999e9b441e43ea56a821a968726ed06fdc302745f735`.
 

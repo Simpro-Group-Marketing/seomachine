@@ -1,5 +1,5 @@
 {
-  "completed_at": "2026-09-01T19:37:10.976051Z",
+  "completed_at": "2026-09-01T19:46:29.571235Z",
   "evidence_hashes": {
     "humanizer_policy": "7ecf29b38c2ed38b993f3c6debfe38a6a5fb6bcbf79d3c3d32d43575dc8c6e00",
     "humanizer_upstream": "c896803e866395266efc50484c8a68dedc8ff86cdc7a68b374585d636bdae8c7",
@@ -11,25 +11,25 @@
     "key_id": "7245f363d0e7cfc7",
     "purpose": "simpro-blog-stage-receipt/v1",
     "schema": "simpro-execution-attestation/v1",
-    "signature": "2f87705db704b28290d023e1d6206fc705f135a3d16bfcb4e130e6fc6ed6b680"
+    "signature": "c4350358242444236b5df3334ef1b491fafa321a3e398bbaa4840f7cac41deef"
   },
   "input_artifact_hashes": {
     "analysis": "a01306b846b5651d454a416dff444abb698f151d455680d4f0669e92ca1ecc4e",
-    "article": "ffc6e071c4ffefa41ab4a913039a0cac9f6c3cbe415fb2aa9484782f0ce81c52"
+    "article": "e9308f0beb50aa60ad19292678c95c5679124baf164eda5e5d8ea16dfdc0bb2d"
   },
   "mutation": true,
   "output_artifact_hashes": {
-    "article": "e9308f0beb50aa60ad19292678c95c5679124baf164eda5e5d8ea16dfdc0bb2d"
+    "article": "fa6879e060c56fe41555ad7673d78ffeeffc1bd36a45ab568c5ed17327741952"
   },
-  "previous_receipt_hash": "",
-  "receipt_hash": "ee952b2d9b413c1ed8e566036a3da79616f927949fcd3826cd3cafac43941989",
-  "run_id": "best-electrical-job-management-software-2026-08-31-task-2-review-fix-3",
+  "previous_receipt_hash": "ee952b2d9b413c1ed8e566036a3da79616f927949fcd3826cd3cafac43941989",
+  "receipt_hash": "fa1494909955b8b9d1c168e90958b345aa7d49334d288a6e71b9d84141f13271",
+  "run_id": "best-electrical-job-management-software-2026-08-31-task-2-final-faq-fix",
   "schema": "simpro-blog-stage-receipt/v1",
   "stage": "draft",
-  "started_at": "2026-09-01T19:35:38.995588Z",
+  "started_at": "2026-09-01T19:45:51.122394Z",
   "status": "completed",
   "tool": {
-    "name": "rewrite-command",
-    "version": "1"
+    "name": "native-edit",
+    "version": "repo-local-native-edit-v1"
   }
 }
