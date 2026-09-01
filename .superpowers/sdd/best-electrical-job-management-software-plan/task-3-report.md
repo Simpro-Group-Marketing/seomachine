@@ -49,6 +49,15 @@ Direct article diagnostics:
 - Content scorer: `81.2/100` content quality (threshold 85), `67/100` AEO/GEO (threshold 90). The scorer identified absent metric-proof/PAA provenance and the linter errors.
 - SEO rater: `96.8/100`, but publishing-ready `false` because one QuickBooks URL timed out and the release floor therefore failed. Meta description warning: 149 characters.
 
+## AEO/GEO recovery loop disposition
+
+The scorecard is below the required content (85) and AEO/GEO (90) floors. The two permitted recovery loops were assessed and held rather than mutating public bytes:
+
+- Loop 1: attempted and blocked by 59 deterministic AI-copy-linter errors, 36 source-support errors, content quality `81.2`, AEO/GEO `67`, missing metric-proof/PAA provenance, and no approved vendor/source rows.
+- Loop 2: attempted and blocked by the invalid/unavailable Semrush decision, missing named author/reviewer and E-E-A-T evidence, and partial connector context. No defensible public-copy edit was authorized without verified sources, so downstream scrub, article reviews, BOM and readiness could not be rerun to a passing result.
+
+Per recovery policy, the article remains in place with the exact failed checks recorded above. A future `/rewrite` cycle must resolve the blockers, rerun scrub and all six article reviews, reseal receipts and rebuild the BOM before readiness is reconsidered.
+
 ## Assembly BOM and atomic release
 
 The provisional BOM command was attempted with all available Task 1 and Task 2 bindings. It exited `1` before writing a BOM because the blocked Semrush artifact does not satisfy the current keyword-decision schema. A second attempt using the dated article assembly date exited `1` because the repository requires the assembly date to equal the current UTC date; the article's locked `last_updated` is 2026-08-31. No public-copy or unrelated file was changed.
