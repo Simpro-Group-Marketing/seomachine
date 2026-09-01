@@ -1,0 +1,53 @@
+{
+  "agent_responses": [
+    {
+      "agent": "Content Analyzer",
+      "findings": [],
+      "status": "completed"
+    },
+    {
+      "agent": "Editor",
+      "findings": [],
+      "status": "completed"
+    },
+    {
+      "agent": "SEO Optimizer",
+      "findings": [],
+      "status": "completed"
+    },
+    {
+      "agent": "Meta Creator",
+      "findings": [],
+      "status": "completed"
+    },
+    {
+      "agent": "Internal Linker",
+      "findings": [],
+      "status": "completed"
+    },
+    {
+      "agent": "Keyword Mapper",
+      "findings": [],
+      "status": "completed"
+    }
+  ],
+  "agent_roster": [
+    "Content Analyzer",
+    "Editor",
+    "SEO Optimizer",
+    "Meta Creator",
+    "Internal Linker",
+    "Keyword Mapper"
+  ],
+  "article_sha256": "fa6879e060c56fe41555ad7673d78ffeeffc1bd36a45ab568c5ed17327741952",
+  "artifact_hash": "ad6e90def6f45f98615f718b882e6a5e940753cc939c31fb6d0619de42b896eb",
+  "command": "/rewrite",
+  "created_at": "2026-09-01T19:51:44.865Z",
+  "editorial_plan_sha256": "7c13a22b89b9cea58d6d97c72ba9a15bcdf3080ca75070280201c986870a3b37",
+  "phase": "article",
+  "proof_sidecar_sha256": "cfa7e8457e5f13f284695765705d14ce8a90c4c01f993cad2fe72427b948cdbc",
+  "repository_commit": "67544f2f6a183d0593957a5b8f89a6a6b1761542",
+  "run_id": "best-electrical-job-management-software-2026-08-31-task-2-final-faq-fix",
+  "schema": "simpro-blog-machine-review/v1",
+  "workflow_stage": "rewrite"
+}

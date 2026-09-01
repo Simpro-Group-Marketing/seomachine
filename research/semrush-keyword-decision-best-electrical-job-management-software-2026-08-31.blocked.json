@@ -1,0 +1,29 @@
+{
+  "schema": "simpro-semrush-keyword-decision-blocker/v1",
+  "status": "blocked",
+  "brand": "Simpro",
+  "market": "US",
+  "database": "us",
+  "collection_date": "2026-08-31",
+  "target_url": "https://www.simprogroup.com/blog/best-electrical-job-management-software",
+  "seed_terms": [
+    "electrical job management software",
+    "job management software for electricians",
+    "best electrical job management software"
+  ],
+  "required_schema_when_unblocked": "simpro-semrush-keyword-decision/v1",
+  "connector_reports": [
+    {
+      "report": "_keyword_research",
+      "status": "blocked",
+      "blocker": "Fresh Semrush Chrome UI evidence was unavailable for this release run."
+    },
+    {
+      "report": "_organic_research",
+      "status": "blocked",
+      "blocker": "Fresh Semrush Chrome UI evidence was unavailable for this release run."
+    }
+  ],
+  "release_boundary": "Do not pass keyword-decision readiness until a current simpro-semrush-keyword-decision/v1 artifact is generated.",
+  "recovery_instruction": "Run the authenticated Semrush Chrome UI workflow for the primary query and regenerate this decision artifact."
+}

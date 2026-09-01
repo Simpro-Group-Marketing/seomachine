@@ -16,6 +16,6 @@ BASE: 887522eed6507b033d9cafc57a0f730b5cb11905
 ## Task status
 
 - Baseline targeted governance tests: 603 passed, 139 subtests passed in 45.27s. Full default suite timed out after 124s without assertion output; deterministic collection succeeded (1,755 tests).
-- Task 1: partial - context and planning artifacts committed; external research and release blockers are recorded in task-1-report.md
-- Task 2: pending
-- Task 3: pending
+- Task 1: complete (commits `b81af54`..`e077441`, review clean after fix round 1)
+- Task 2: complete (commit `67544f2`; final FAQ fix; independent review clean)
+- Task 3: complete with governed blockers recorded in `task-3-report.md`; no external publish attempted. Article machine reviews and clean scrub receipt are bound to final bytes. Atomic `blog_release.py` exited `1` in `pre_bom` because Semrush, author/E-E-A-T, connector, source, image, linter, and score gates remain unresolved.

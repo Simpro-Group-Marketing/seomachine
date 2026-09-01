@@ -1,0 +1,176 @@
+{
+  "artifact_paths": {
+    "answersocrates_blocker": null,
+    "article": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\rewrites\\best-electrical-job-management-software-2026-08-31.md",
+    "content_brief": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\brief-best-electrical-job-management-software-2026-08-31.md",
+    "context_pack": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-pack-best-electrical-job-management-software.json",
+    "context_receipt": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-receipt-best-electrical-job-management-software.json",
+    "context_request": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-request-best-electrical-job-management-software.json",
+    "customer_proof_evidence": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\customer-proof-selector-evidence-best-electrical-job-management-software.json",
+    "editorial_plan": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\editorial-plan-best-electrical-job-management-software-2026-08-31.json",
+    "fred_authority_evidence": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\fred-authority-selection-best-electrical-job-management-software.txt",
+    "keyword_decision": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\semrush-keyword-decision-best-electrical-job-management-software-2026-08-31.blocked.json",
+    "output": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\releases\\best-electrical-job-management-software-2026-09-01-task-3\\pre-bom-report.json",
+    "paa_artifact": null,
+    "proof_sidecar": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\rewrite-validation-best-electrical-job-management-software-2026-08-31.md",
+    "scrub_receipt": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\stage-receipts\\best-electrical-job-management-software\\scrub-final-task3.json",
+    "semrush_blocker": null,
+    "serp_evidence": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\serp-evidence-best-electrical-job-management-software-2026-08-31.md",
+    "stage_receipts": [
+      "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\stage-receipts\\best-electrical-job-management-software\\scrub-final-task3.json",
+      "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\stage-receipts\\best-electrical-job-management-software\\draft-final-faq-fix.json"
+    ],
+    "user_paa_csv": null
+  },
+  "blockers": [
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision artifact has an invalid field set (missing: candidate_metrics, evidence_hash, execution_attestation, question_candidates, rejected_keywords, related_candidates, selected_primary_keyword, selected_secondary_keywords, selection_rationale, serp_finalists, source_boundary; unknown: recovery_instruction, release_boundary, required_schema_when_unblocked, status, target_url)",
+      "rule_id": "semrush_keyword_decision_shape_invalid",
+      "suggestion": "Regenerate the artifact with the current keyword-decision schema."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision field /candidate_metrics must contain Semrush keyword metrics.",
+      "rule_id": "semrush_keyword_decision_field_invalid",
+      "suggestion": "Regenerate the artifact with complete Semrush connector evidence."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision must be collected on the workflow assembly date.",
+      "rule_id": "semrush_keyword_decision_stale",
+      "suggestion": "Rerun the Semrush connector reports for this assembly run."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush connector execution log is missing required reports: _get_report_schema, phrase_organic, phrase_questions, phrase_related, phrase_these, phrase_this",
+      "rule_id": "semrush_keyword_decision_reports_missing",
+      "suggestion": "Run discovery, schema lookup, batch metrics, related, questions, organic SERP, and final exact-primary reports."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision field /connector_reports/0/parameters must contain the exact connector params.",
+      "rule_id": "semrush_keyword_decision_field_invalid",
+      "suggestion": "Regenerate the artifact with complete Semrush connector evidence."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision field /connector_reports/0/status must be completed.",
+      "rule_id": "semrush_keyword_decision_field_invalid",
+      "suggestion": "Regenerate the artifact with complete Semrush connector evidence."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision field /connector_reports/1/parameters must contain the exact connector params.",
+      "rule_id": "semrush_keyword_decision_field_invalid",
+      "suggestion": "Regenerate the artifact with complete Semrush connector evidence."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision field /connector_reports/1/status must be completed.",
+      "rule_id": "semrush_keyword_decision_field_invalid",
+      "suggestion": "Regenerate the artifact with complete Semrush connector evidence."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision canonical hash does not match its evidence.",
+      "rule_id": "semrush_keyword_decision_hash_invalid",
+      "suggestion": "Regenerate the immutable keyword decision artifact."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision lacks a valid local execution attestation.",
+      "rule_id": "semrush_keyword_decision_execution_attestation_invalid",
+      "suggestion": "Regenerate the artifact through build_keyword_decision()."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Article primary keyword metadata must match the Semrush-selected primary keyword.",
+      "rule_id": "semrush_keyword_decision_article_primary_mismatch",
+      "suggestion": "Update article frontmatter or regenerate the Semrush keyword decision."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision field /question_candidates must be a list of keyword rows.",
+      "rule_id": "semrush_keyword_decision_field_invalid",
+      "suggestion": "Regenerate the artifact with complete Semrush connector evidence."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision field /rejected_keywords must document rejected keyword candidates.",
+      "rule_id": "semrush_keyword_decision_field_invalid",
+      "suggestion": "Regenerate the artifact with complete Semrush connector evidence."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision field /related_candidates must be a list of keyword rows.",
+      "rule_id": "semrush_keyword_decision_field_invalid",
+      "suggestion": "Regenerate the artifact with complete Semrush connector evidence."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision artifact must use simpro-semrush-keyword-decision/v1.",
+      "rule_id": "semrush_keyword_decision_schema_invalid",
+      "suggestion": "Regenerate the artifact with the current keyword decision workflow."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision field /selected_primary_keyword must be a non-empty string.",
+      "rule_id": "semrush_keyword_decision_primary_missing",
+      "suggestion": "Regenerate the artifact with complete keyword-decision metadata."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision field /selected_secondary_keywords must be a list of non-empty strings.",
+      "rule_id": "semrush_keyword_decision_field_invalid",
+      "suggestion": "Regenerate the artifact with complete Semrush connector evidence."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision field /selection_rationale must be a non-empty string.",
+      "rule_id": "semrush_keyword_decision_field_invalid",
+      "suggestion": "Regenerate the artifact with complete keyword-decision metadata."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision field /serp_finalists must contain SERP rows for finalist keywords.",
+      "rule_id": "semrush_keyword_decision_field_invalid",
+      "suggestion": "Regenerate the artifact with complete Semrush connector evidence."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decisions must preserve the third-party source boundary.",
+      "rule_id": "semrush_keyword_decision_source_boundary_invalid",
+      "suggestion": "Set source_boundary to: Semrush is third-party opportunity/SERP context; GSC remains first-party performance truth."
+    },
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision does not identify the main Chrome UI evidence surface.",
+      "rule_id": "semrush_ui_surface_missing",
+      "suggestion": "Regenerate the keyword decision from the authenticated Semrush UI in the main Chrome profile."
+    },
+    {
+      "artifact": "article",
+      "message": "Preflight requires a recorded no-author policy, named author, or selected Fred authority evidence before BOM assembly.",
+      "rule_id": "no_author_policy_missing",
+      "suggestion": "Record the no-author decision in the validation sidecar, add a verified named author to frontmatter, or pass selected Fred authority evidence."
+    },
+    {
+      "artifact": "eeat_strength",
+      "message": "Commercial-investigation article has no positive E-E-A-T signal and no E-E-A-T Strength Decision.",
+      "rule_id": "eeat_strength_decision_missing",
+      "suggestion": "Add selected proof, a named author, Fred authority, approved review-theme evidence, an approved SME review note, or record Decision: proof_unavailable_safe_to_publish."
+    }
+  ],
+  "next_required_commands": [
+    "Use the authenticated Semrush UI in the main Chrome profile and regenerate the current keyword decision artifact.",
+    "Record Author policy: no_author in the validation sidecar, or run python data_sources/modules/fred_authority_selector.py [topic] --slate --output [fred-authority-evidence]",
+    "Add ## E-E-A-T Strength Decision with Decision: proof_unavailable_safe_to_publish, or select an approved customer proof, review-theme, Fred authority, author, or SME review signal."
+  ],
+  "ready_for_bom": false,
+  "required_human_inputs": [
+    "no-author policy, named author, or selected Fred authority evidence"
+  ],
+  "schema": "simpro-blog-creation-preflight/v1",
+  "warnings": []
+}

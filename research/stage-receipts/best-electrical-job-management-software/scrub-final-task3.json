@@ -1,0 +1,31 @@
+{
+  "completed_at": "2026-09-01T19:52:35.347316Z",
+  "evidence_hashes": {
+    "scrub_statistics": "9e4596bc68ff2e1592ceb025b5d3a29dd1c8534c30b9fc8c6fd0573e6ed7e683"
+  },
+  "execution_attestation": {
+    "algorithm": "hmac-sha256",
+    "key_id": "7245f363d0e7cfc7",
+    "purpose": "simpro-blog-stage-receipt/v1",
+    "schema": "simpro-execution-attestation/v1",
+    "signature": "c05e335e85e6433d9a62abb2aef8d4d1100c98181f81b935c07d666e19e3bbf5"
+  },
+  "input_artifact_hashes": {
+    "article": "fa6879e060c56fe41555ad7673d78ffeeffc1bd36a45ab568c5ed17327741952"
+  },
+  "mutation": false,
+  "output_artifact_hashes": {
+    "article": "fa6879e060c56fe41555ad7673d78ffeeffc1bd36a45ab568c5ed17327741952"
+  },
+  "previous_receipt_hash": "fa1494909955b8b9d1c168e90958b345aa7d49334d288a6e71b9d84141f13271",
+  "receipt_hash": "fd7efe04fcbb35a479c567b16808976248b3f14aa84373e73b7ebb64288dd051",
+  "run_id": "best-electrical-job-management-software-2026-08-31-task-2-final-faq-fix",
+  "schema": "simpro-blog-stage-receipt/v1",
+  "stage": "scrub",
+  "started_at": "2026-09-01T19:52:35.315765Z",
+  "status": "completed",
+  "tool": {
+    "name": "content_scrubber",
+    "version": "1.0.0"
+  }
+}
