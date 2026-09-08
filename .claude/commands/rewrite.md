@@ -17,7 +17,7 @@ Python may write governance artifacts only: selector output, context binding evi
 5. Update the validation sidecar before changing proof-sensitive copy.
 6. Run customer proof and Fred authority selectors only when Context Binding requires the connector, then decide what to use publicly.
 7. Write the rewrite Markdown through `/rewrite`.
-8. Freeze one rewrite snapshot and run `content-analyzer`, `editor`, `seo-optimizer`, `meta-creator`, `internal-linker`, and `keyword-mapper` in parallel. They return advisory findings only. Select the useful findings and apply one consolidated edit batch through `/rewrite`.
+8. Freeze one rewrite snapshot and run `content-analyzer`, `editor`, `seo-optimizer`, `meta-creator`, `internal-linker`, and `keyword-mapper` in parallel. The Editor must use the reviewed Humanizer snapshot and Simpro policy against this same immutable rewrite snapshot. All specialists return advisory findings only. Select the useful findings and apply one consolidated edit batch through `/rewrite`.
 9. Run `/scrub [article]` as read-only diagnostics. Apply any required edits through `/rewrite` and rerun `/scrub`.
 10. Run `/publish-readiness [article]` with sidecar, context artifacts, and BOM. Do not hand off as ready until every blocking gate and scorecard gate passes.
 
@@ -28,7 +28,7 @@ Open the receipt before native rewriting, then close it after `/rewrite` has sav
 ```powershell
 python data_sources/modules/blog_assembly_stage_receipt.py begin-native-edit --article "rewrites/[topic-slug]-[YYYY-MM-DD].md" --state "research/stage-receipts/[topic-slug]/draft-state.json" --run-id "[run-id]" --stage draft --tool-name "rewrite-command" --tool-version "1" --input "analysis=research/analysis-[topic-slug]-[YYYY-MM-DD].md"
 # /rewrite creates and saves the public Markdown here.
-python data_sources/modules/blog_assembly_stage_receipt.py finish-native-edit --article "rewrites/[topic-slug]-[YYYY-MM-DD].md" --state "research/stage-receipts/[topic-slug]/draft-state.json" --receipt "research/stage-receipts/[topic-slug]/draft.json"
+python data_sources/modules/blog_assembly_stage_receipt.py finish-native-edit --article "rewrites/[topic-slug]-[YYYY-MM-DD].md" --state "research/stage-receipts/[topic-slug]/draft-state.json" --receipt "research/stage-receipts/[topic-slug]/draft.json" --evidence "humanizer_policy=config/humanizer-policy.json" --evidence "humanizer_upstream=vendor/blader-humanizer/UPSTREAM.json"
 ```
 
 ## Scorecard requirements

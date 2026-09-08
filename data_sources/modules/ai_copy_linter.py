@@ -14,8 +14,10 @@ from typing import Dict, List, Optional, Pattern, Tuple
 
 try:
     from .image_placeholder import is_production_image_placeholder_line
+    from .humanizer_policy import load_policy_regex_rules
 except ImportError:
     from image_placeholder import is_production_image_placeholder_line
+    from humanizer_policy import load_policy_regex_rules
 
 
 Finding = Dict[str, object]
@@ -161,15 +163,17 @@ ERROR_RULES: List[Tuple[str, Pattern[str], str, str]] = [
 ]
 
 
-WARNING_RULES: List[Tuple[str, Pattern[str], str, str]] = [
+COPY_AVOID_RULES: List[Tuple[str, str, Pattern[str], str, str]] = [
     (
         "modal_verb",
+        "error",
         re.compile(r"\b(?:can|may|could|should|might)\b", re.IGNORECASE),
         "Modal verbs weaken copy and often hide uncertainty.",
         "Use a direct verb when the claim is supported.",
     ),
     (
         "filler_word",
+        "error",
         re.compile(
             r"\b(?:just|very|really|literally|actually|certainly|probably|"
             r"basically|maybe|hence|furthermore|moreover|however|"
@@ -181,6 +185,7 @@ WARNING_RULES: List[Tuple[str, Pattern[str], str, str]] = [
     ),
     (
         "passive_voice",
+        "error",
         re.compile(
             r"\b(?:is|are|was|were|be|been|being)\s+"
             r"(?:\w+ed|known|made|built|driven|given|taken|seen|done|set|run)\b",
@@ -191,6 +196,7 @@ WARNING_RULES: List[Tuple[str, Pattern[str], str, str]] = [
     ),
     (
         "vague_generalization",
+        "error",
         re.compile(
             r"\b(?:many|some|various|numerous|several|often|usually|typically|"
             r"generally|a lot of|things|stuff|businesses today|teams today)\b",
@@ -211,6 +217,9 @@ SENTENCE_RE = re.compile(r"[^.!?]+[.!?]")
 URL_RE = re.compile(r"https?://\S+|www\.\S+")
 MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\([^\)]*\)")
 INLINE_CODE_RE = re.compile(r"`[^`]*`")
+HTML_COMMENT_RE = re.compile(r"<!--.*?-->")
+STRAIGHT_QUOTE_RE = re.compile(r'"[^"\n]*"')
+SMART_QUOTE_RE = re.compile(r"“[^”\n]*”")
 WORD_RE = re.compile(r"\b[A-Za-z][A-Za-z']*\b")
 TITLE_FRONTMATTER_RE = re.compile(r"^\s*(?:title|meta_title)\s*:\s*(.+?)\s*$", re.IGNORECASE)
 TITLE_PREPOSITIONS = {
@@ -283,6 +292,7 @@ def lint_content(content: str, profile: str = "simpro-web") -> List[Finding]:
 
     findings: List[Finding] = []
     active_lines = _iter_active_lines(content)
+    humanizer_rules = load_policy_regex_rules()
 
     for line_number, original_line, masked_line in active_lines:
         for rule_id, pattern, message, suggestion in ERROR_RULES:
@@ -299,13 +309,13 @@ def lint_content(content: str, profile: str = "simpro-web") -> List[Finding]:
                 )
             )
 
-        for rule_id, pattern, message, suggestion in WARNING_RULES:
+        for rule_id, severity, pattern, message, suggestion in COPY_AVOID_RULES:
             if _should_skip_copy_avoid_rule(rule_id, original_line):
                 continue
             findings.extend(
                 _find_pattern(
                     rule_id,
-                    "error",
+                    severity,
                     pattern,
                     line_number,
                     original_line,
@@ -330,6 +340,24 @@ def lint_content(content: str, profile: str = "simpro-web") -> List[Finding]:
             )
 
         findings.extend(_find_long_sentences(line_number, original_line, masked_line))
+
+        humanizer_masked_line = _mask_humanizer_protected_spans(
+            original_line,
+            masked_line,
+        )
+        for rule in humanizer_rules:
+            findings.extend(
+                _find_pattern(
+                    rule.rule_id,
+                    rule.severity,
+                    rule.pattern,
+                    line_number,
+                    original_line,
+                    humanizer_masked_line,
+                    rule.message,
+                    rule.suggestion,
+                )
+            )
 
     findings.extend(_find_multiple_links_in_paragraph(content))
     findings.extend(_find_repeated_sentence_starts(content))
@@ -452,6 +480,15 @@ def _mask_ignored_spans(line: str) -> str:
             flags=re.IGNORECASE,
         )
     return masked
+
+
+def _mask_humanizer_protected_spans(original_line: str, masked_line: str) -> str:
+    if original_line.lstrip().startswith(">"):
+        return " " * len(masked_line)
+    protected = masked_line
+    for pattern in (HTML_COMMENT_RE, STRAIGHT_QUOTE_RE, SMART_QUOTE_RE):
+        protected = _mask_matches(protected, pattern)
+    return protected
 
 
 def _mask_matches(text: str, pattern: Pattern[str]) -> str:

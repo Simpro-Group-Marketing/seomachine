@@ -32,7 +32,7 @@ Python may run guards and write governance artifacts such as scorer output, sele
 - Internal-link findings: `internal-linker`.
 - Keyword coverage, placement, or intent findings: `keyword-mapper`.
 
-Run only the agents needed for the failed checks. Agents return advisory findings against one immutable snapshot; `/optimize` applies one consolidated edit batch and remains the sole copy owner for the repair.
+Run only the agents needed for the failed checks. When the Editor runs, it must use the reviewed Humanizer snapshot and Simpro policy against the same immutable article snapshot. Agents return advisory findings only; `/optimize` applies one consolidated edit batch and remains the sole copy owner for the repair.
 
 ## Native edit receipt
 
@@ -41,7 +41,7 @@ Open the optimization receipt before the consolidated edit batch and close it af
 ```powershell
 python data_sources/modules/blog_assembly_stage_receipt.py begin-native-edit --article "[article]" --state "research/stage-receipts/[topic-slug]/optimization-state.json" --run-id "[run-id]" --stage optimization --tool-name "optimize-command" --tool-version "1" --previous-receipt-hash "[previous-receipt-hash]"
 # /optimize applies and saves one native edit batch here.
-python data_sources/modules/blog_assembly_stage_receipt.py finish-native-edit --article "[article]" --state "research/stage-receipts/[topic-slug]/optimization-state.json" --receipt "research/stage-receipts/[topic-slug]/optimization.json"
+python data_sources/modules/blog_assembly_stage_receipt.py finish-native-edit --article "[article]" --state "research/stage-receipts/[topic-slug]/optimization-state.json" --receipt "research/stage-receipts/[topic-slug]/optimization.json" --evidence "humanizer_policy=config/humanizer-policy.json" --evidence "humanizer_upstream=vendor/blader-humanizer/UPSTREAM.json"
 ```
 
 ## Scorecard requirements

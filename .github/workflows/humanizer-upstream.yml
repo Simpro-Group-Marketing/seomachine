@@ -1,0 +1,116 @@
+name: Humanizer upstream review
+
+on:
+  schedule:
+    - cron: '0 13 * * 1'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/humanizer-upstream.yml'
+      - 'config/humanizer-policy.json'
+      - '.claude/agents/editor.md'
+      - '.claude/commands/optimize.md'
+      - '.claude/commands/rewrite.md'
+      - '.claude/commands/write.md'
+      - 'data_sources/modules/ai_copy_linter.py'
+      - 'data_sources/modules/humanizer_policy.py'
+      - 'tests/fixtures/humanizer_quality_corpus.json'
+      - 'tests/test_aeo_geo_workflow_docs.py'
+      - 'tests/test_ai_copy_linter.py'
+      - 'tests/test_blog_assembly_stage_receipt.py'
+      - 'tests/test_content_scorer_aeo_geo_gate.py'
+      - 'tests/test_humanizer_*.py'
+      - 'tests/test_publish_readiness.py'
+      - 'tools/humanizer_upstream.py'
+      - 'vendor/blader-humanizer/**'
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out review branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Require reviewed snapshot and complete policy
+        run: python tools/humanizer_upstream.py verify
+      - name: Run Humanizer compatibility tests
+        run: >-
+          python -m pytest -q
+          tests/test_humanizer_upstream.py
+          tests/test_humanizer_quality_corpus.py
+          tests/test_ai_copy_linter.py
+          tests/test_aeo_geo_workflow_docs.py
+          tests/test_blog_assembly_stage_receipt.py
+          tests/test_content_scorer_aeo_geo_gate.py
+          tests/test_publish_readiness.py
+          tests/test_humanizer_update_workflow.py
+
+  discover:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Check out main
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Verify current reviewed snapshot
+        run: python tools/humanizer_upstream.py verify
+      - name: Read current commit
+        id: current
+        shell: bash
+        run: |
+          current=$(python -c "import json; print(json.load(open('vendor/blader-humanizer/UPSTREAM.json', encoding='utf-8'))['resolved_commit'])")
+          echo "commit=$current" >> "$GITHUB_OUTPUT"
+      - name: Check upstream main
+        id: check
+        shell: bash
+        run: |
+          check_json=$(python tools/humanizer_upstream.py check-upstream --ref main)
+          status=$(python -c 'import json,sys; print(json.loads(sys.argv[1])["status"])' "$check_json")
+          latest=$(python -c 'import json,sys; print(json.loads(sys.argv[1])["latest_commit"])' "$check_json")
+          echo "json=$check_json" >> "$GITHUB_OUTPUT"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+      - name: Stage and adopt candidate on the automation branch
+        if: steps.check.outputs.status == 'update_available'
+        shell: bash
+        run: |
+          candidate="$RUNNER_TEMP/humanizer-${{ steps.check.outputs.latest }}"
+          python tools/humanizer_upstream.py stage --ref main --output "$candidate"
+          python tools/humanizer_upstream.py adopt --candidate "$candidate" --expected-current "${{ steps.current.outputs.commit }}"
+      - name: Open draft review PR
+        if: steps.check.outputs.status == 'update_available'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_JSON: ${{ steps.check.outputs.json }}
+          LATEST_COMMIT: ${{ steps.check.outputs.latest }}
+        run: |
+          branch="automation/humanizer-upstream-${LATEST_COMMIT:0:12}"
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+            echo "Review branch already exists: $branch"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add vendor/blader-humanizer
+          git commit -m "chore(humanizer): stage upstream ${LATEST_COMMIT:0:12}"
+          git push --set-upstream origin "$branch"
+          body=$(python -c 'import json,sys; d=json.loads(sys.argv[1]); m=json.load(open("vendor/blader-humanizer/UPSTREAM.json", encoding="utf-8")); print("## Upstream review\n\nThis draft stages a new immutable blader/humanizer snapshot. It does not activate new editorial behavior.\n\n- Current commit: `"+d["current_commit"]+"`\n- Candidate commit: `"+d["latest_commit"]+"`\n- Current version: `"+d["current_declared_version"]+"`\n- Candidate version: `"+d["latest_declared_version"]+"`\n- Current verification: `"+json.dumps(d["current_commit_verification"], sort_keys=True)+"`\n- Candidate verification: `"+json.dumps(m["commit_verification"], sort_keys=True)+"`\n- Current files: `"+json.dumps(d["current_files"], sort_keys=True)+"`\n- Candidate files: `"+json.dumps(d["latest_files"], sort_keys=True)+"`\n- Pattern changes: `"+json.dumps(d["pattern_changes"], sort_keys=True)+"`\n\n## Required review\n\n- [ ] Inspect the full upstream diff.\n- [ ] Classify every added, removed, renamed, or semantically changed pattern.\n- [ ] Update `reviewed_upstream_commit` in `config/humanizer-policy.json`.\n- [ ] Update golden-corpus cases when behavior changes.\n- [ ] Run the focused compatibility tests and full suite.\n\nThe compatibility job remains blocked until this review is complete.")' "$CHECK_JSON")
+          gh pr create --draft --base main --head "$branch" --title "chore(humanizer): review upstream ${LATEST_COMMIT:0:12}" --body "$body"
