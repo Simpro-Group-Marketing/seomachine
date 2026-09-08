@@ -1,8 +1,9 @@
-"""Thin client for the installed topology-agnostic Simpro vault connector.
+"""Compatibility imports for the standalone Simpro vault connector package.
 
-This module discovers the enabled Claude plugin and delegates every operation
-to its shared ``vault_cli.py`` implementation. It contains no vault topology
-or retrieval implementation of its own.
+The canonical engine, Python client, CLI, and MCP adapters live in the
+``simpro-vault-connector`` distribution. Seomachine keeps this module so
+existing workflow imports continue to resolve without consumer-specific
+connector discovery.
 """
 
 from __future__ import annotations
@@ -49,12 +50,7 @@ LONG_CONNECTOR_TIMEOUT_OPERATIONS = frozenset(
 OWNING_REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
-class VaultClientError(RuntimeError):
-    """Stable error raised when connector discovery or dispatch fails."""
-
-    def __init__(self, code: str, message: str) -> None:
-        super().__init__(message)
-        self.code = code
+SimproVaultClient = VaultClient
 
 
 @dataclass(frozen=True)
