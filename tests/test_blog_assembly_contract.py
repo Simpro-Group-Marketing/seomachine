@@ -9,9 +9,11 @@ from pathlib import Path
 import pytest
 
 from data_sources.modules.blog_assembly_contract import (
+    artifact_inventory_snapshots,
     atomic_write_json,
     canonical_artifact,
     expected_blog_gate_inventory,
+    order_blog_gate_results,
     resolve_artifact,
     validate_governance_output_path,
     validate_current_assembly_date,
@@ -57,6 +59,45 @@ def test_canonical_artifact_stores_workspace_relative_posix_path_and_hash(tmp_pa
         "path": "research/evidence.json",
         "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest(),
     }
+
+
+def test_execution_evidence_flattens_exact_labels_without_container_prefix():
+    digest = "a" * 64
+    artifacts = {
+        "article": {"path": "drafts/article.md", "sha256": digest},
+        "execution_evidence": {
+            "command_definition.write-command": {
+                "path": ".claude/commands/write.md",
+                "sha256": "b" * 64,
+            },
+            "agent_output.seo-optimizer": {
+                "path": "research/agent-outputs/seo-optimizer-topic-2026-08-12.md",
+                "sha256": "c" * 64,
+            },
+        },
+    }
+
+    assert artifact_inventory_snapshots(artifacts) == {
+        "article": artifacts["article"],
+        "command_definition.write-command": artifacts["execution_evidence"][
+            "command_definition.write-command"
+        ],
+        "agent_output.seo-optimizer": artifacts["execution_evidence"][
+            "agent_output.seo-optimizer"
+        ],
+    }
+
+
+def test_execution_evidence_rejects_duplicate_flattened_labels():
+    row = {"path": "drafts/article.md", "sha256": "a" * 64}
+
+    with pytest.raises(ValueError, match="duplicate artifact snapshot label"):
+        artifact_inventory_snapshots(
+            {
+                "agent_output.seo-optimizer": row,
+                "execution_evidence": {"agent_output.seo-optimizer": row},
+            }
+        )
 
 
 def test_canonical_artifact_rejects_workspace_escape(tmp_path: Path):
@@ -196,3 +237,19 @@ def test_expected_gate_inventory_is_conditional_without_losing_gate_order():
     assert complete.index("eeat_strength") < complete.index("early_artifact")
     assert complete.index("vault_brand_language") < complete.index("fred_authority")
     assert complete[-2:] == ["content_scorer", "input_seal"]
+
+
+def test_shared_gate_descriptors_order_executor_results_and_inventory():
+    expected = expected_blog_gate_inventory(
+        visible_faq=False,
+        connector_required=False,
+    )
+    shuffled = [{"name": name} for name in reversed(expected)]
+
+    ordered = order_blog_gate_results(
+        shuffled,
+        visible_faq=False,
+        connector_required=False,
+    )
+
+    assert [row["name"] for row in ordered] == expected

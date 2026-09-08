@@ -26,6 +26,8 @@ try:
         StageReceiptError,
         build_stage_receipt,
         load_stage_receipt,
+        stage_evidence_path,
+        write_stage_evidence,
         write_stage_receipt,
     )
 except ImportError:
@@ -34,6 +36,8 @@ except ImportError:
         StageReceiptError,
         build_stage_receipt,
         load_stage_receipt,
+        stage_evidence_path,
+        write_stage_evidence,
         write_stage_receipt,
     )
 
@@ -406,11 +410,17 @@ def scrub_file(
     if receipt_path is not None:
         resolved_run_id, previous_hash = _receipt_identity(run_id, previous_path)
         _preflight_output_path(receipt_path, "stage receipt")
-    input_hash = _sha256_file(input_path) if receipt_path is not None else None
-
-    # Read file
-    with input_path.open('r', encoding='utf-8') as f:
-        content = f.read()
+    # One immutable byte snapshot drives both the input hash and scrub parse.
+    input_bytes = input_path.read_bytes()
+    input_hash = (
+        hashlib.sha256(input_bytes).hexdigest()
+        if receipt_path is not None
+        else None
+    )
+    try:
+        content = input_bytes.decode('utf-8', errors='strict')
+    except UnicodeDecodeError as error:
+        raise ValueError(f'content input must use valid UTF-8: {error}') from error
 
     # Scrub content while retaining the exact execution statistics for the receipt.
     scrubber = ContentScrubber()
@@ -492,6 +502,7 @@ def _validate_scrub_paths(
         )
     if receipt_path is not None:
         receipt_identity = _path_identity(receipt_path)
+        evidence_identity = _path_identity(stage_evidence_path(receipt_path))
         if receipt_identity in {
             input_identity,
             previous_identity,
@@ -499,6 +510,16 @@ def _validate_scrub_paths(
             raise StageReceiptError(
                 'stage_receipt_path_collision',
                 'stage receipt path must be distinct from article and predecessor paths',
+            )
+        if evidence_identity in {
+            input_identity,
+            output_identity,
+            previous_identity,
+            receipt_identity,
+        }:
+            raise StageReceiptError(
+                'stage_receipt_path_collision',
+                'stage evidence path must be distinct from article and receipt paths',
             )
 
 

@@ -230,6 +230,52 @@ class CustomerProofDiversityGuardTests(unittest.TestCase):
         )
         self.assertTrue(should_fail(findings, fail_on="error"))
 
+    def test_one_recent_use_warns_and_requires_source_specific_comparison(self):
+        sidecar = """Customer Proof Pack
+- Pack status: ready.
+- Quote Matrix candidates: Checked Quote Matrix for quote-to-cash proof.
+- Case-study proof path: TEAMWired, URL: https://www.simprogroup.com/case-studies/teamwired, supported theme: invoicing workflow.
+- Use in copy: paraphrased case-study proof only.
+- Claims excluded: exact review quotes.
+
+Customer Proof Selection Decision
+- Selector command: python data_sources/modules/customer_proof_selector.py "teamwired invoicing" --proof-role metric
+- Selected proof: case-study-teamwired | Customer: TEAMWired | URL: https://www.simprogroup.com/case-studies/teamwired | Use: invoicing workflow proof
+"""
+        ledger = {
+            "version": 1,
+            "uses": [
+                {
+                    "proof_id": "case-study-teamwired",
+                    "customer": "TEAMWired",
+                    "source_url": "https://www.simprogroup.com/case-studies/teamwired",
+                    "article_slug": "prior-article",
+                    "artifact_path": "published/prior-article.md",
+                    "date_used": "2026-06-12",
+                    "section": "body",
+                    "use_type": "metric",
+                    "claim_summary": "invoicing proof",
+                }
+            ],
+        }
+
+        with TemporaryDirectory() as temp_dir:
+            ledger_path = Path(temp_dir) / "ledger.json"
+            index_path = Path(temp_dir) / "index.json"
+            ledger_path.write_text(json.dumps(ledger), encoding="utf-8")
+            index_path.write_text(json.dumps({"version": 1, "proof": []}), encoding="utf-8")
+            findings = check_content(
+                ARTICLE_WITH_CASE_STUDY,
+                proof_content=sidecar,
+                ledger_path=ledger_path,
+                proof_index_path=index_path,
+            )
+
+        severities = {finding["rule_id"]: finding["severity"] for finding in findings}
+        self.assertEqual("warning", severities["customer_proof_recent_use_warning"])
+        self.assertEqual("error", severities["customer_proof_reuse_requires_source_specific_reason"])
+        self.assertEqual("error", severities["customer_proof_zero_use_comparison_missing"])
+
     def test_only_case_studies_without_non_case_study_search_attempt_fails(self):
         sidecar = fixture_text("content_evidence:test_customer_proof_diversity_guard-123-3")
 
@@ -460,7 +506,10 @@ class CustomerProofDiversityGuardTests(unittest.TestCase):
                 proof_index_path=index_path,
             )
 
-        self.assertEqual(findings, [])
+        self.assertEqual(
+            [finding["rule_id"] for finding in findings],
+            ["customer_proof_recent_use_warning"],
+        )
 
     def test_selector_generated_slate_is_accepted_by_diversity_guard(self):
         article = fixture_text("content_evidence:test_customer_proof_diversity_guard-440-5")
@@ -993,7 +1042,10 @@ class CustomerProofDiversityGuardTests(unittest.TestCase):
                 context_receipt=receipt_path,
             )
 
-        self.assertEqual(findings, [])
+        self.assertEqual(
+            [finding["rule_id"] for finding in findings],
+            ["customer_proof_recent_use_warning"],
+        )
 
     def test_reuse_threshold_counts_unique_article_slugs(self):
         sidecar = fixture_text("content_evidence:test_customer_proof_diversity_guard-1105-9")
@@ -1026,8 +1078,17 @@ class CustomerProofDiversityGuardTests(unittest.TestCase):
                 ledger_path=ledger_path,
             )
 
-        self.assertFalse(
-            any(f["rule_id"].startswith("customer_proof_reuse") for f in findings)
+        warning = next(
+            finding
+            for finding in findings
+            if finding["rule_id"] == "customer_proof_recent_use_warning"
+        )
+        self.assertIn("1 recent use(s)", warning["message"])
+        self.assertTrue(
+            any(
+                finding["rule_id"] == "customer_proof_reuse_requires_source_specific_reason"
+                for finding in findings
+            )
         )
 
     def test_missing_proof_index_fails_when_overused_selection_must_be_compared(self):

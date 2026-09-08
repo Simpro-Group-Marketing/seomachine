@@ -72,17 +72,16 @@ def write_paa_fixture(test_case: unittest.TestCase, content: str) -> str:
     article_path.write_text(content, encoding="utf-8")
     artifact.write_text(
         json.dumps(
-            build_answersocrates_artifact(
+            build_answersocrates_fixture(
+                root,
                 query="hvac scheduling software",
                 collection_date="2026-05-22",
-                eligible_questions=(
+                questions=(
                     "What is the best way to schedule HVAC technicians?",
                     "How does HVAC scheduling software reduce missed appointments?",
                     "Should HVAC scheduling connect to invoicing?",
                 ),
                 run_id="content-scorer-fixture",
-                started_at="2026-05-22T14:00:00Z",
-                completed_at="2026-05-22T14:01:00Z",
             ),
             indent=2,
             sort_keys=True,
@@ -457,6 +456,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
                 content,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=write_paa_fixture(self, content),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertFalse(result["passed"])
@@ -510,6 +510,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
                     content,
                     {"primary_keyword": "hvac scheduling software"},
                     source_path=write_paa_fixture(self, content),
+                    paa_expected_run_id="content-scorer-fixture",
                     proof_sidecar=str(proof_sidecar_path),
                 )
 
@@ -557,6 +558,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
                 COMPLIANT_ARTICLE,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertGreaterEqual(result["content_quality_score"], 85)
@@ -599,6 +601,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
                 content,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=article_path,
+                paa_expected_run_id="content-scorer-fixture",
                 proof_sidecar=sidecar_path,
             )
 
@@ -646,6 +649,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
                 content,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=article_path,
+                paa_expected_run_id="content-scorer-fixture",
                 proof_sidecar=sidecar_path,
             )
 
@@ -732,6 +736,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
                 paa_answersocrates_blocker="collection unavailable",
                 paa_expected_query="field service scheduling",
                 paa_expected_collection_date="2026-05-21",
+                paa_expected_run_id="article-run-123",
                 paa_artifact="research/paa-questions-article-2026-05-21.md",
             )
 
@@ -748,6 +753,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
             paa_answersocrates_blocker="collection unavailable",
             paa_expected_query="field service scheduling",
             paa_expected_collection_date="2026-05-21",
+            paa_expected_run_id="article-run-123",
             paa_artifact="research/paa-questions-article-2026-05-21.md",
         )
 
@@ -830,6 +836,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
                 {"primary_keyword": "hvac scheduling software"},
                 validate_urls=True,
                 source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertFalse(result["passed"])
@@ -875,6 +882,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
                 content,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=write_paa_fixture(self, content),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertFalse(result["passed"])
@@ -931,6 +939,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
                 {"primary_keyword": "hvac scheduling software"},
                 validate_source_support=True,
                 source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertFalse(result["passed"])
@@ -990,6 +999,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
                 validate_urls=True,
                 validate_source_support=True,
                 source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertTrue(result["quality_gates"]["source_support"]["passed"])
@@ -1025,6 +1035,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
                 content,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=write_paa_fixture(self, content),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertFalse(result["passed"])
@@ -1061,6 +1072,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
                 content,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=write_paa_fixture(self, content),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertFalse(result["passed"])
@@ -1097,6 +1109,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
                 content,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=write_paa_fixture(self, content),
+                paa_expected_run_id="content-scorer-fixture",
             )
 
         self.assertFalse(result["passed"])
@@ -1132,6 +1145,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
                 COMPLIANT_ARTICLE,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+                paa_expected_run_id="content-scorer-fixture",
                 prevalidated_gate_findings={
                     "metric_proof_pack": (),
                     "customer_proof_diversity": (),
@@ -1163,6 +1177,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
                 COMPLIANT_ARTICLE,
                 {"primary_keyword": "hvac scheduling software"},
                 source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+                paa_expected_run_id="content-scorer-fixture",
                 prevalidated_gate_findings={"metric_proof_pack": ()},
             )
 

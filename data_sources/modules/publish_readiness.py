@@ -25,6 +25,7 @@ try:
         blog_assembly_bom_guard,
         blog_identity_guard,
         context_binding_guard,
+        competitive_shortlist_guard,
         customer_proof_diversity_guard,
         early_artifact_guard,
         eeat_strength_guard,
@@ -49,9 +50,13 @@ try:
         artifact_inventory_snapshots,
         atomic_write_json,
         canonical_artifact,
+        canonical_article_run_id,
         canonical_json_bytes,
         expected_blog_gate_inventory,
         file_sha256,
+        is_json_number,
+        load_json_object_snapshot,
+        order_blog_gate_results,
         resolve_artifact,
         validate_sha256,
         verify_artifact,
@@ -78,6 +83,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import blog_assembly_bom_guard
     import blog_identity_guard
     import context_binding_guard
+    import competitive_shortlist_guard
     import customer_proof_diversity_guard
     import early_artifact_guard
     import eeat_strength_guard
@@ -101,9 +107,13 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         artifact_inventory_snapshots,
         atomic_write_json,
         canonical_artifact,
+        canonical_article_run_id,
         canonical_json_bytes,
         expected_blog_gate_inventory,
         file_sha256,
+        is_json_number,
+        load_json_object_snapshot,
+        order_blog_gate_results,
         resolve_artifact,
         validate_sha256,
         verify_artifact,
@@ -727,6 +737,7 @@ def _run_publish_readiness(
             "proof_sidecar": proof_sidecar_path,
         }
         if name in {
+            "competitive_shortlist",
             "named_feature_status",
             "customer_proof_diversity",
             "fred_authority",
@@ -766,6 +777,7 @@ def _run_publish_readiness(
                     article_path=article_path,
                     serp_evidence_path=runtime_policy.get("serp_evidence"),
                     assembly_date=runtime_policy.get("assembly_date"),
+                    expected_run_id=runtime_policy.get("run_id"),
                 )
                 if editorial_path
                 else [{
@@ -897,12 +909,16 @@ def _run_publish_readiness(
                 seal_findings,
             )
         )
-        expected_inventory = expected_blog_gate_inventory(
-            visible_faq=bool(runtime_policy["visible_faq"]),
-            connector_required=simpro_context_required,
-        )
-        actual_inventory = [gate["name"] for gate in gates]
-        if actual_inventory != expected_inventory:
+        try:
+            gates = [
+                dict(row)
+                for row in order_blog_gate_results(
+                    gates,
+                    visible_faq=bool(runtime_policy["visible_faq"]),
+                    connector_required=simpro_context_required,
+                )
+            ]
+        except ValueError:
             gates.append(
                 _gate_from_findings(
                     "readiness_contract",
@@ -1007,12 +1023,26 @@ def write_readiness_result(
     previous_hash = ""
     optimized = False
     prior_receipts: list[Mapping[str, Any]] = []
+    bom_assembly_date: str | None = None
+    canonical_run_id: str | None = None
     if isinstance(bom_path, str) and bom_path:
         try:
-            bom = json.loads(Path(bom_path).read_text(encoding="utf-8"))
-        except (OSError, UnicodeError, json.JSONDecodeError) as error:
+            bom = load_json_object_snapshot(bom_path, field="assembly BOM").payload
+        except ValueError as error:
             raise ValueError(f"readiness BOM is unavailable: {error}") from error
         workflow = bom.get("workflow") if isinstance(bom, Mapping) else None
+        bom_assembly_date = (
+            str(bom.get("assembly_date"))
+            if isinstance(bom, Mapping) and isinstance(bom.get("assembly_date"), str)
+            else None
+        )
+        if bom_assembly_date is None:
+            raise ValueError("readiness BOM requires a canonical assembly_date")
+        canonical_run_id = canonical_article_run_id(
+            str(result.get("file") or ""),
+            workspace_root=root,
+            assembly_date=bom_assembly_date,
+        )
         receipts = workflow.get("stage_receipts") if isinstance(workflow, Mapping) else None
         if isinstance(receipts, list) and receipts:
             if any(not isinstance(row, Mapping) for row in receipts):
@@ -1067,7 +1097,15 @@ def write_readiness_result(
         previous_receipt_hash=previous_hash,
     )
     if prior_receipts:
-        chain_findings = check_receipt_chain([*prior_receipts, receipt])
+        if canonical_run_id is None or bom_assembly_date is None:
+            raise ValueError(
+                "readiness stage receipt requires canonical workflow identity"
+            )
+        chain_findings = check_receipt_chain(
+            [*prior_receipts, receipt],
+            expected_run_id=canonical_run_id,
+            assembly_date=bom_assembly_date,
+        )
         if chain_findings:
             rules = ", ".join(
                 sorted({str(finding["rule_id"]) for finding in chain_findings})
@@ -1195,8 +1233,10 @@ def validate_passed_readiness_result(
         if not resolved_bom.is_file():
             raise ValueError("passed blog readiness requires the bound assembly BOM")
         try:
-            bom = json.loads(resolved_bom.read_text(encoding="utf-8"))
-        except (OSError, UnicodeError, json.JSONDecodeError) as error:
+            bom = load_json_object_snapshot(
+                resolved_bom, field="assembly BOM"
+            ).payload
+        except ValueError as error:
             raise ValueError(f"passed readiness BOM is unavailable: {error}") from error
         if not isinstance(bom, Mapping):
             raise ValueError("passed readiness BOM must be an object")
@@ -1457,7 +1497,7 @@ def _verify_result_path_bindings(
 
 
 def _is_number(value: Any) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    return is_json_number(value)
 
 
 def _same_path(left: str | Path, right: str | Path) -> bool:
@@ -1500,8 +1540,10 @@ def _restore_file_after_failed_pair_write(
 def _readiness_run_id(assembly_bom: str | None, article_hash: str) -> str:
     if assembly_bom:
         try:
-            bom = json.loads(Path(assembly_bom).read_text(encoding="utf-8"))
-        except (OSError, UnicodeError, json.JSONDecodeError):
+            bom = load_json_object_snapshot(
+                assembly_bom, field="assembly BOM"
+            ).payload
+        except ValueError:
             bom = None
         workflow = bom.get("workflow") if isinstance(bom, Mapping) else None
         receipts = workflow.get("stage_receipts") if isinstance(workflow, Mapping) else None
@@ -1625,7 +1667,9 @@ def _reject_output_input_collision(
     bom_value = result.get("assembly_bom")
     if isinstance(bom_value, str) and bom_value:
         try:
-            bom = json.loads(Path(bom_value).read_text(encoding="utf-8"))
+            bom = load_json_object_snapshot(
+                bom_value, field="assembly BOM"
+            ).payload
             artifacts = bom.get("artifacts") if isinstance(bom, Mapping) else None
             if not isinstance(artifacts, Mapping):
                 raise ValueError("assembly BOM artifacts must be an object")
@@ -1637,7 +1681,7 @@ def _reject_output_input_collision(
                     raise ValueError(
                         f"{output_label} cannot overwrite input {label}"
                     )
-        except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        except ValueError as error:
             raise ValueError(
                 f"{output_label} cannot safely inspect its bound assembly BOM: {error}"
             ) from error
@@ -1707,8 +1751,8 @@ def _complete_readiness_input_hashes(
         field="assembly_bom",
     )
     try:
-        bom = json.loads(bom_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        bom = load_json_object_snapshot(bom_path, field="assembly BOM").payload
+    except ValueError as error:
         raise ValueError(f"assembly BOM changed or became unreadable: {error}") from error
     artifacts = bom.get("artifacts") if isinstance(bom, Mapping) else None
     if not isinstance(artifacts, Mapping):
@@ -1779,6 +1823,7 @@ def _bom_runtime_policy(
         "keyword_decision": None,
         "serp_evidence": None,
         "assembly_date": None,
+        "run_id": None,
         "assembly_bom": None,
         "customer_proof_selector_evidence": None,
         "fred_authority_evidence": None,
@@ -1797,8 +1842,8 @@ def _bom_runtime_policy(
     except ValueError:
         return default
     try:
-        bom = json.loads(source.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+        bom = load_json_object_snapshot(source, field="assembly BOM").payload
+    except ValueError:
         return default
     if not isinstance(bom, Mapping):
         return default
@@ -1834,8 +1879,10 @@ def _bom_runtime_policy(
     scoring_metadata: Dict[str, Any] = {}
     if editorial_plan_path:
         try:
-            plan = json.loads(Path(editorial_plan_path).read_text(encoding="utf-8"))
-        except (OSError, UnicodeError, json.JSONDecodeError):
+            plan = load_json_object_snapshot(
+                editorial_plan_path, field="editorial plan"
+            ).payload
+        except ValueError:
             plan = None
         meta = plan.get("meta") if isinstance(plan, Mapping) else None
         if isinstance(meta, Mapping):
@@ -1862,6 +1909,7 @@ def _bom_runtime_policy(
         ),
         "fred_authority_evidence": artifact_path("fred_authority_evidence"),
         "assembly_date": str(bom.get("assembly_date") or ""),
+        "run_id": _canonical_bom_run_id(bom),
         "assembly_bom": bom,
         "faq_policy_status": str(faq_policy.get("status") or ""),
         "scoring_metadata": scoring_metadata,
@@ -1872,6 +1920,7 @@ def _bom_runtime_policy(
             "answersocrates_blocker": artifact_path("answersocrates_blocker"),
             "expected_query": str(paa_policy.get("query") or ""),
             "expected_collection_date": str(bom.get("assembly_date") or ""),
+            "expected_run_id": _canonical_bom_run_id(bom),
         },
     }
 
@@ -2333,6 +2382,7 @@ def _score_content(
         paa_expected_collection_date=(
             str(paa.get("expected_collection_date") or "") or None
         ),
+        paa_expected_run_id=str(paa.get("expected_run_id") or "") or None,
         paa_artifact=str(paa.get("paa_artifact") or "") or None,
         readiness_gate_context=readiness_gate_context,
     )

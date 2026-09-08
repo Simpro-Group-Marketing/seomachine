@@ -174,6 +174,31 @@ def test_get_serp_data_preserves_first_seen_feature_order_when_deduplicating():
     assert result["features"] == ["z_feature", "a_feature", "m_feature"]
 
 
+def test_get_serp_capture_returns_exact_response_and_existing_normalized_view():
+    response = _serp_response(
+        [
+            {
+                "type": "organic",
+                "rank_absolute": 1,
+                "url": "https://example.com/guide",
+                "domain": "example.com",
+                "title": "Field Service Guide",
+                "description": "A practical guide.",
+                "breadcrumb": "Guides",
+            },
+            {"type": "people_also_ask"},
+        ]
+    )
+    response["provider_marker"] = {"request_id": "dfs-exact-123"}
+    client = _client_with_response(response)
+
+    raw, normalized = client.get_serp_capture("field service software")
+
+    assert raw is response
+    assert raw["provider_marker"] == {"request_id": "dfs-exact-123"}
+    assert normalized == client.get_serp_data("field service software")
+
+
 def test_post_uses_a_finite_positive_request_timeout():
     class Response:
         def raise_for_status(self):

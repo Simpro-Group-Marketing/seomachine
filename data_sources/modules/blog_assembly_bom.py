@@ -7,7 +7,7 @@ import copy
 import json
 import os
 import re
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -25,10 +25,17 @@ try:
         artifact_inventory_snapshots,
         atomic_write_json,
         canonical_artifact,
+        canonical_artifact_identity,
+        canonical_article_run_id,
+        canonical_snapshot_artifact,
         canonical_json_sha256,
         expected_blog_gate_inventory,
         file_sha256,
+        is_json_number,
+        load_json_object_snapshot,
+        NORMAL_PROVISIONAL_STAGES,
         normalized_text_sha256,
+        OPTIMIZED_PROVISIONAL_STAGES,
         resolve_artifact,
         sidecar_evidence_binding_errors,
         validate_current_assembly_date,
@@ -36,11 +43,13 @@ try:
         verify_artifact,
     )
     from .faq_structure import detect_faq_structure
+    from .blog_assembly_stage_receipt import stage_evidence_path
     from .named_person import is_named_person
     from .publishable_markdown import PublishableMarkdown, read_publishable_markdown
     from .schema_item_list import inspect_item_list_schema
     from .video_embed import inspect_video_embeds
 except ImportError:  # pragma: no cover - supports direct script execution.
+    import blog_assembly_capabilities
     import blog_identity_guard
     import context_binding_guard
     import eeat_strength_guard
@@ -52,10 +61,17 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         artifact_inventory_snapshots,
         atomic_write_json,
         canonical_artifact,
+        canonical_artifact_identity,
+        canonical_article_run_id,
+        canonical_snapshot_artifact,
         canonical_json_sha256,
         expected_blog_gate_inventory,
         file_sha256,
+        is_json_number,
+        load_json_object_snapshot,
+        NORMAL_PROVISIONAL_STAGES,
         normalized_text_sha256,
+        OPTIMIZED_PROVISIONAL_STAGES,
         resolve_artifact,
         sidecar_evidence_binding_errors,
         validate_current_assembly_date,
@@ -63,6 +79,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         verify_artifact,
     )
     from faq_structure import detect_faq_structure
+    from blog_assembly_stage_receipt import stage_evidence_path
     from named_person import is_named_person
     from publishable_markdown import PublishableMarkdown, read_publishable_markdown
     from schema_item_list import inspect_item_list_schema
@@ -111,6 +128,7 @@ def build_blog_assembly_bom_from_files(
     context_receipt_path: str | Path | None = None,
     customer_proof_selector_evidence_path: str | Path | None = None,
     fred_authority_evidence_path: str | Path | None = None,
+    agent_output_paths: Mapping[str, str | Path] | None = None,
     optimizer_output_paths: Sequence[str | Path] | None = None,
     prior_preflight_readiness_path: str | Path | None = None,
     workspace_root: str | Path | None = None,
@@ -153,6 +171,16 @@ def build_blog_assembly_bom_from_files(
         optimizer_output_paths or (),
         field="optimizer_output_paths",
     )
+    if agent_output_paths is None:
+        agent_output_paths = {}
+    if not isinstance(agent_output_paths, Mapping):
+        raise ValueError("agent_output_paths must be an ID-to-path object")
+    normalized_agent_output_paths: dict[str, str | Path] = {}
+    for agent_id, output_path in agent_output_paths.items():
+        if not isinstance(agent_id, str) or not agent_id.strip():
+            raise ValueError("agent_output_paths IDs must be non-empty strings")
+        _validate_input_path(output_path, field=f"agent_output_paths.{agent_id}")
+        normalized_agent_output_paths[agent_id] = output_path
     if workspace_root is not None:
         _validate_input_path(workspace_root, field="workspace_root")
     if vault_root is not None:
@@ -162,12 +190,35 @@ def build_blog_assembly_bom_from_files(
     assembled = _iso_date(assembly_date, "assembly_date")
     article = read_publishable_markdown(article_path)
     _validate_article_identity(article, assembled)
-    plan = _read_json_object(editorial_plan_path, "editorial_plan")
+    canonical_run_id = canonical_article_run_id(
+        article_path,
+        workspace_root=root,
+        assembly_date=assembled,
+    )
+    plan_snapshot = load_json_object_snapshot(
+        editorial_plan_path,
+        field="editorial_plan",
+    )
+    plan = plan_snapshot.payload
+    stage_receipt_snapshots = [
+        load_json_object_snapshot(path, field=f"stage_receipt[{index}]")
+        for index, path in enumerate(stage_receipt_paths)
+    ]
+    stage_receipts = [snapshot.payload for snapshot in stage_receipt_snapshots]
+    try:
+        execution_evidence = blog_assembly_capabilities.resolve_execution_evidence(
+            stage_receipts,
+            agent_output_paths=normalized_agent_output_paths,
+            workspace_root=root,
+        )
+    except blog_assembly_capabilities.CapabilityRegistryError as error:
+        raise ValueError(f"repository execution provenance is invalid: {error}") from error
     plan_findings = editorial_plan_guard.check_file(
         editorial_plan_path,
         article_path=article_path,
         serp_evidence_path=serp_evidence_path,
         assembly_date=assembled.isoformat(),
+        expected_run_id=canonical_run_id,
     )
     if plan_findings:
         rule_ids = ", ".join(
@@ -268,8 +319,36 @@ def build_blog_assembly_bom_from_files(
         raise ValueError(
             "paa_policy.selected_questions must exactly match visible FAQ headings in order"
         )
+    if paa_policy["source_kind"] == "brief_paa":
+        bound_paa_artifact = content_brief_path
+    elif paa_policy["source_kind"] == "user_csv":
+        bound_paa_artifact = user_paa_csv_path
+    else:
+        bound_paa_artifact = paa_artifact_path
+    paa_findings = paa_provenance_guard.check_file(
+        str(article_path),
+        proof_sidecar=str(validation_sidecar_path),
+        workflow_mode=mode,
+        content_brief=(str(content_brief_path) if content_brief_path else None),
+        answersocrates_blocker=(
+            str(answersocrates_blocker_path) if answersocrates_blocker_path else None
+        ),
+        expected_query=str(paa_policy["query"]),
+        expected_collection_date=assembled.isoformat(),
+        expected_run_id=canonical_run_id,
+        paa_artifact=(str(bound_paa_artifact) if bound_paa_artifact else None),
+    )
+    if paa_findings:
+        rules = ", ".join(
+            sorted({str(row.get("rule_id")) for row in paa_findings})
+        )
+        raise ValueError(f"PAA provenance is invalid: {rules}")
     artifacts = {
-        "article": canonical_artifact(article_path, workspace_root=root),
+        "article": canonical_artifact_identity(
+            article.path,
+            sha256=article.sha256,
+            workspace_root=root,
+        ),
         "validation_sidecar": canonical_artifact(
             validation_sidecar_path,
             workspace_root=root,
@@ -295,13 +374,19 @@ def build_blog_assembly_bom_from_files(
             fred_authority_evidence_path,
             root,
         ),
+        "execution_evidence": execution_evidence,
         "optimizer_outputs": [
             canonical_artifact(path, workspace_root=root)
             for path in (optimizer_output_paths or [])
         ],
         "stage_receipts": [
-            canonical_artifact(path, workspace_root=root)
+            canonical_snapshot_artifact(snapshot, workspace_root=root)
+            for snapshot in stage_receipt_snapshots
+        ],
+        "stage_evidence": [
+            canonical_artifact(stage_evidence_path(path), workspace_root=root)
             for path in stage_receipt_paths
+            if stage_evidence_path(path).is_file()
         ],
         "prior_preflight_readiness": _optional_artifact(
             prior_preflight_readiness_path,
@@ -325,18 +410,17 @@ def build_blog_assembly_bom_from_files(
                 "sidecar evidence bindings are invalid: "
                 + ", ".join(code for code, _ in evidence_errors)
             )
-    stage_receipts = [
-        _read_json_object(path, f"stage_receipt[{index}]")
-        for index, path in enumerate(stage_receipt_paths)
-    ]
     if not stage_receipts:
         raise ValueError("stage_receipt_paths must contain real tool-emitted receipts")
     connector_reason = None if connector_required else NON_CONNECTOR_REASON
     _validate_provisional_stage_receipts(
         stage_receipts,
+        expected_run_id=canonical_run_id,
+        assembly_date=assembled,
         article_sha256=artifacts["article"]["sha256"],
         optimizer_outputs=artifacts["optimizer_outputs"],
         artifacts=artifacts,
+        execution_evidence=execution_evidence,
         connector_required=connector_required,
         connector_reason=connector_reason,
         prior_preflight_readiness_path=prior_preflight_readiness_path,
@@ -395,6 +479,7 @@ def build_blog_assembly_bom_from_files(
         "machine_reviews": machine_reviews,
         "preflight": None,
     }
+    _verify_bom_artifacts_unchanged(bom, root)
     return bom
 
 
@@ -417,7 +502,7 @@ def finalize_blog_assembly_bom(
         raise ValueError(f"bom.schema must be {BOM_SCHEMA_V1} or {BOM_SCHEMA_V2}")
     if bom.get("lifecycle_state") != "provisional":
         raise ValueError("only a provisional BOM can be finalized")
-    if file_sha256(bom_path) != canonical_json_sha256(bom):
+    if bom_snapshot.sha256 != canonical_json_sha256(bom):
         raise ValueError(
             "provisional BOM bytes are not the canonical deterministic serialization"
         )
@@ -437,6 +522,7 @@ def finalize_blog_assembly_bom(
         preflight_receipt,
         bom=bom,
         readiness_path=Path(preflight_readiness_path),
+        workspace_root=root,
     )
     _verify_preflight_execution(
         readiness,
@@ -642,6 +728,7 @@ def _validate_preflight_stage_receipt(
     *,
     bom: Mapping[str, Any],
     readiness_path: Path,
+    workspace_root: Path,
 ) -> None:
     workflow = _required_mapping(bom.get("workflow"), "bom.workflow")
     prior = workflow.get("stage_receipts")
@@ -649,11 +736,18 @@ def _validate_preflight_stage_receipt(
         raise ValueError("bom.workflow.stage_receipts must be a list")
     artifacts = _required_mapping(bom.get("artifacts"), "bom.artifacts")
     article = _required_mapping(artifacts.get("article"), "bom.artifacts.article")
+    article_path = resolve_artifact(
+        article.get("path"),
+        workspace_root=workspace_root,
+    )
     validate_preflight_stage_receipt_binding(
         receipt,
         prior_receipts=prior,
         readiness_path=readiness_path,
         article_sha256=article.get("sha256"),
+        article_path=article_path,
+        workspace_root=workspace_root,
+        assembly_date=bom.get("assembly_date"),
     )
 
 
@@ -663,6 +757,9 @@ def validate_preflight_stage_receipt_binding(
     prior_receipts: Sequence[Mapping[str, Any]],
     readiness_path: str | Path,
     article_sha256: Any,
+    article_path: str | Path,
+    workspace_root: str | Path,
+    assembly_date: str | date,
 ) -> None:
     """Validate one readiness receipt against its exact run, inputs, and outputs."""
     try:
@@ -694,7 +791,18 @@ def validate_preflight_stage_receipt_binding(
         expected_tool_name="publish_readiness",
         expected_tool_version="1.0.0",
     )
-    findings.extend(check_receipt_chain([*prior_receipts, receipt]))
+    expected_run_id = canonical_article_run_id(
+        article_path,
+        workspace_root=workspace_root,
+        assembly_date=assembly_date,
+    )
+    findings.extend(
+        check_receipt_chain(
+            [*prior_receipts, receipt],
+            expected_run_id=expected_run_id,
+            assembly_date=assembly_date,
+        )
+    )
     if findings:
         raise ValueError(
             "preflight stage receipt is invalid: "
@@ -723,6 +831,13 @@ def validate_preflight_stage_receipt_binding(
         )
     if receipt.get("input_artifact_hashes") != expected_input_hashes:
         raise ValueError("preflight stage receipt input hashes do not match readiness")
+    expected_evidence_hashes = {
+        label: digest
+        for label, digest in expected_input_hashes.items()
+        if label not in {"article", "assembly_bom"}
+    }
+    if receipt.get("evidence_hashes") != expected_evidence_hashes:
+        raise ValueError("preflight stage receipt evidence hashes do not match readiness")
     if (
         receipt.get("run_id") != readiness.get("run_id")
         or receipt.get("started_at") != readiness.get("started_at")
@@ -759,6 +874,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     build.add_argument("--context-receipt")
     build.add_argument("--customer-proof-selector-evidence")
     build.add_argument("--fred-authority-evidence")
+    build.add_argument("--agent-output", action="append", default=[])
     build.add_argument("--optimizer-output", action="append", default=[])
     build.add_argument("--prior-preflight-readiness")
     build.add_argument("--stage-receipt", action="append", required=True)
@@ -795,6 +911,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 context_receipt_path=args.context_receipt,
                 customer_proof_selector_evidence_path=args.customer_proof_selector_evidence,
                 fred_authority_evidence_path=args.fred_authority_evidence,
+                agent_output_paths=_label_paths(args.agent_output),
                 optimizer_output_paths=args.optimizer_output,
                 prior_preflight_readiness_path=args.prior_preflight_readiness,
                 stage_receipt_paths=args.stage_receipt,
@@ -1062,9 +1179,12 @@ def _validate_editorial_plan(plan: Mapping[str, Any]) -> None:
 def _validate_provisional_stage_receipts(
     receipts: list[Mapping[str, Any]],
     *,
+    expected_run_id: str,
+    assembly_date: date,
     article_sha256: str,
     optimizer_outputs: list[dict[str, str]],
     artifacts: Mapping[str, Any],
+    execution_evidence: Mapping[str, Mapping[str, str]],
     connector_required: bool,
     connector_reason: str | None,
     prior_preflight_readiness_path: str | Path | None,
@@ -1076,7 +1196,26 @@ def _validate_provisional_stage_receipts(
     except ImportError:  # pragma: no cover - supports direct script execution.
         from blog_assembly_stage_receipt import check_receipt_chain
 
-    findings = check_receipt_chain(receipts)
+    stages = tuple(str(receipt.get("stage") or "") for receipt in receipts)
+    optimized = "optimization" in stages
+    if optimized != bool(prior_preflight_readiness_path):
+        raise ValueError(
+            "prior preflight readiness evidence must be present if and only if "
+            "the optimization stage is present"
+        )
+    resolvable_evidence = _resolvable_receipt_evidence_hashes(
+        receipts,
+        artifacts=artifacts,
+        execution_evidence=execution_evidence,
+        workspace_root=workspace_root,
+    )
+    findings = check_receipt_chain(
+        receipts,
+        expected_run_id=expected_run_id,
+        assembly_date=assembly_date,
+        now=datetime.now(timezone.utc),
+        resolvable_evidence_hashes=resolvable_evidence,
+    )
     if findings:
         rules = ", ".join(
             sorted({str(finding.get("rule_id")) for finding in findings})
@@ -1101,8 +1240,11 @@ def _validate_provisional_stage_receipts(
             "post_optimization_scrub",
             "post_optimization_context_binding",
         )
+        raise ValueError(f"stage receipt chain is invalid: {rules}: {messages}")
+    expected = (
+        OPTIMIZED_PROVISIONAL_STAGES
         if optimized
-        else ("draft", "scrub", "context_binding")
+        else NORMAL_PROVISIONAL_STAGES
     )
     if stages != expected:
         raise ValueError(
@@ -1238,8 +1380,26 @@ def _validate_provisional_stage_receipts(
             optimization.get("evidence_hashes"),
             "optimization.evidence_hashes",
         )
+        try:
+            expected_optimization_evidence = (
+                blog_assembly_capabilities.receipt_definition_hashes(
+                    receipts,
+                    stage="optimization",
+                    execution_evidence=execution_evidence,
+                )
+            )
+        except blog_assembly_capabilities.CapabilityRegistryError as error:
+            raise ValueError(
+                f"optimization execution evidence is invalid: {error}"
+            ) from error
+        for label, digest in expected_optimization_evidence.items():
+            if evidence.get(label) != digest:
+                raise ValueError(
+                    "optimization stage receipt must bind optimize command, agent "
+                    f"definitions, and final agent outputs: {label}"
+                )
         expected_optimizer_hashes = {
-            str(row["sha256"]) for row in optimizer_outputs
+            str(row["sha256"]) for row in expected_optimizer_rows
         }
         if not expected_optimizer_hashes.issubset(set(evidence.values())):
             raise ValueError(
@@ -1475,11 +1635,113 @@ def _verify_bom_artifacts_unchanged(bom: Mapping[str, Any], root: Path) -> None:
     for label, row in artifacts.items():
         if row is None:
             continue
-        if isinstance(row, list):
+        if label == "execution_evidence":
+            if not isinstance(row, Mapping):
+                raise ValueError("artifacts.execution_evidence must be an object")
+            for evidence_label, item in row.items():
+                verify_artifact(
+                    item,
+                    workspace_root=root,
+                    field=f"artifacts.execution_evidence.{evidence_label}",
+                )
+        elif isinstance(row, list):
             for index, item in enumerate(row):
                 verify_artifact(item, workspace_root=root, field=f"artifacts.{label}[{index}]")
         else:
             verify_artifact(row, workspace_root=root, field=f"artifacts.{label}")
+
+
+def _resolvable_receipt_evidence_hashes(
+    receipts: Sequence[Mapping[str, Any]],
+    *,
+    artifacts: Mapping[str, Any],
+    execution_evidence: Mapping[str, Mapping[str, str]] | None = None,
+    workspace_root: Path,
+) -> set[str]:
+    """Resolve every receipt evidence digest to a current bound source."""
+    resolvable = {
+        row["sha256"]
+        for row in artifact_inventory_snapshots(artifacts).values()
+    }
+    registered_evidence = (
+        execution_evidence
+        if execution_evidence is not None
+        else artifacts.get("execution_evidence")
+    )
+    capability_errors = blog_assembly_capabilities.validate_execution_evidence(
+        registered_evidence,
+        receipts=receipts,
+        workspace_root=workspace_root,
+    )
+    if capability_errors:
+        raise ValueError(
+            "repository capability definitions are invalid: "
+            + ", ".join(code for code, _ in capability_errors)
+        )
+    prior_readiness = artifacts.get("prior_preflight_readiness")
+    if isinstance(prior_readiness, Mapping):
+        prior_path = verify_artifact(
+            prior_readiness,
+            workspace_root=workspace_root,
+            field="artifacts.prior_preflight_readiness",
+        )
+        prior_payload = load_json_object_snapshot(
+            prior_path, field="prior preflight readiness"
+        ).payload
+        prior_inputs = prior_payload.get("input_hashes")
+        if isinstance(prior_inputs, Mapping):
+            for label, row in prior_inputs.items():
+                if isinstance(row, Mapping):
+                    resolvable.add(
+                        validate_sha256(
+                            row.get("sha256"),
+                            field=f"prior_preflight_readiness.input_hashes.{label}",
+                        )
+                    )
+    stage_rows = artifacts.get("stage_evidence")
+    manifests_by_hash: dict[str, Mapping[str, Any]] = {}
+    if isinstance(stage_rows, list):
+        for index, row in enumerate(stage_rows):
+            path = verify_artifact(
+                row,
+                workspace_root=workspace_root,
+                field=f"artifacts.stage_evidence[{index}]",
+            )
+            snapshot = load_json_object_snapshot(path, field=f"stage evidence {index}")
+            manifest = snapshot.payload
+            if manifest.get("schema") != "simpro-blog-stage-evidence/v1":
+                raise ValueError("stage evidence schema is invalid")
+            if set(manifest) != {"schema", "evidence_hashes", "payload"}:
+                raise ValueError("stage evidence must use the exact field set")
+            hashes = _required_mapping(
+                manifest.get("evidence_hashes"),
+                f"stage_evidence[{index}].evidence_hashes",
+            )
+            validated = {
+                str(label): validate_sha256(
+                    digest,
+                    field=f"stage_evidence[{index}].evidence_hashes.{label}",
+                )
+                for label, digest in hashes.items()
+            }
+            manifests_by_hash[snapshot.sha256] = validated
+    for receipt in receipts:
+        outputs = _required_mapping(
+            receipt.get("output_artifact_hashes"),
+            "stage_receipt.output_artifact_hashes",
+        )
+        evidence = _required_mapping(
+            receipt.get("evidence_hashes"),
+            "stage_receipt.evidence_hashes",
+        )
+        manifest_hash = outputs.get("stage_evidence")
+        manifest_evidence = manifests_by_hash.get(str(manifest_hash), {})
+        for label, digest in evidence.items():
+            if digest in resolvable:
+                continue
+            if manifest_evidence.get(label) == digest:
+                resolvable.add(str(digest))
+    return resolvable
 
 
 def _optional_artifact(path: str | Path | None, root: Path) -> dict[str, str] | None:
@@ -1555,12 +1817,9 @@ def _optional_json_schema(path: str | Path | None) -> str:
 
 def _read_json_object(path: str | Path, field: str) -> dict[str, Any]:
     try:
-        payload = json.loads(Path(path).read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        return load_json_object_snapshot(path, field=field).payload
+    except ValueError as error:
         raise ValueError(f"{field} must be a readable JSON object: {error}") from error
-    if not isinstance(payload, dict):
-        raise ValueError(f"{field} must be a JSON object")
-    return payload
 
 
 def _required_mapping(value: Any, field: str) -> Mapping[str, Any]:
@@ -1622,7 +1881,7 @@ def _nonempty(value: Any) -> bool:
 
 
 def _is_number(value: Any) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    return is_json_number(value)
 
 
 def _visible_faq_questions(content: str) -> list[str]:

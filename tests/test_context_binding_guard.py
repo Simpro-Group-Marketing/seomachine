@@ -1722,8 +1722,16 @@ class ContextBindingGuardTests(unittest.TestCase):
             {"article": article_hash, "validation_sidecar": sidecar_hash},
         )
         self.assertEqual(
-            stage_receipt["output_artifact_hashes"],
-            {"article": article_hash, "validation_sidecar": sidecar_hash},
+            stage_receipt["output_artifact_hashes"]["article"], article_hash
+        )
+        self.assertEqual(
+            stage_receipt["output_artifact_hashes"]["validation_sidecar"],
+            sidecar_hash,
+        )
+        evidence_path = self.root / "context-binding-stage-receipt-evidence.json"
+        self.assertEqual(
+            stage_receipt["output_artifact_hashes"]["stage_evidence"],
+            hashlib.sha256(evidence_path.read_bytes()).hexdigest(),
         )
         self.assertEqual(
             stage_receipt["evidence_hashes"],

@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import socket
+import subprocess
 import tempfile
 import unittest
 from datetime import datetime, timezone
@@ -131,15 +132,50 @@ def _utc_now():
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def write_source_decisions(
+    directory, url, source_class, relationship, *, status="approved", committed=True
+):
+    path = Path(directory) / "context" / "source-classification-decisions.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({
+        "schema": "simpro-source-classification-decisions/v1",
+        "revision": "test-revision-1",
+        "decisions": [{
+            "decision_id": "source:test-record",
+            "status": status,
+            "source_url": url,
+            "hostname": url.split("/", 3)[2].lower(),
+            "source_class": source_class,
+            "publisher_relationship": relationship,
+        }],
+    }, sort_keys=True), encoding="utf-8")
+    if committed:
+        root = Path(directory)
+        subprocess.run(["git", "init", "-q", str(root)], check=True)
+        subprocess.run(["git", "-C", str(root), "config", "user.email", "tests@example.com"], check=True)
+        subprocess.run(["git", "-C", str(root), "config", "user.name", "Tests"], check=True)
+        subprocess.run(["git", "-C", str(root), "add", "context/source-classification-decisions.json"], check=True)
+        subprocess.run([
+            "git", "-C", str(root), "commit", "--allow-empty", "-qm",
+            "approve source decisions",
+        ], check=True)
+    return path
+
+
+def commit_source_decisions(directory, url, source_class, relationship, *, status="approved"):
+    return write_source_decisions(
+        directory, url, source_class, relationship, status=status, committed=True
+    )
+
+
 def write_source_classification(directory, url, source_class, relationship):
+    decisions = write_source_decisions(directory, url, source_class, relationship)
     path = Path(directory) / "source-classification.json"
     source_support_guard.write_source_classification_artifact(
         path,
         source_url=url,
-        source_class=source_class,
-        publisher_relationship=relationship,
-        record_id="source:test-record",
-        revision="test-revision-1",
+        decision_id="source:test-record",
+        decision_path=decisions,
         workspace_root=directory,
     )
     return path.name, _sha256(path)
@@ -333,6 +369,38 @@ class SourceSupportGuardTests(unittest.TestCase):
                     ["general_claim_source_missing"],
                 )
 
+    def test_external_factual_commercial_and_guarantee_claims_require_support(self):
+        claims = (
+            "The platform stores every work order in a shared queue.",
+            "The scheduling add-on is included in the premium subscription.",
+            "Automated dispatch always eliminates assignment conflicts.",
+            "The workflow guarantees accurate invoices.",
+            "A required approval ensures every quote is correct.",
+            "The mobile app never loses a technician update.",
+        )
+
+        for claim in claims:
+            with self.subTest(claim=claim):
+                findings = check_content(f"# Scheduling guide\n\n{claim}\n")
+
+                self.assertEqual(
+                    [finding["rule_id"] for finding in findings],
+                    ["general_claim_source_missing"],
+                )
+
+    def test_actual_opinion_instruction_and_non_outcome_scenario_are_exempt(self):
+        exempt_sentences = (
+            "In my view, a shorter checklist is easier to use.",
+            "Review technician capacity before assigning urgent work.",
+            "Do not dispatch a technician until the required license is confirmed.",
+            "Imagine a dispatcher opening the queue at the start of a shift.",
+            "For example, suppose a technician receives a new work order.",
+        )
+
+        for sentence in exempt_sentences:
+            with self.subTest(sentence=sentence):
+                self.assertEqual(check_content(f"# Scheduling guide\n\n{sentence}\n"), [])
+
     def test_general_claim_detection_does_not_sweep_navigation_or_descriptive_prose(self):
         ordinary_sentences = (
             "This guide helps readers navigate the scheduling examples below.",
@@ -502,14 +570,15 @@ Source Map:
         url = "https://example.com/scheduling-guidance"
         claim = "Field service leaders should review technician capacity before assigning urgent work."
         with tempfile.TemporaryDirectory() as tmp:
+            decision = write_source_decisions(
+                tmp, url, "non_competing_expert", "independent",
+            )
             output = Path(tmp) / "source-classification.json"
             payload = source_support_guard.write_source_classification_artifact(
                 output,
                 source_url=url,
-                source_class="non_competing_expert",
-                publisher_relationship="independent",
-                record_id="source:test-record",
-                revision="test-revision-1",
+                decision_id="source:test-record",
+                decision_path=decision,
                 workspace_root=tmp,
             )
             stored = json.loads(output.read_text(encoding="utf-8"))

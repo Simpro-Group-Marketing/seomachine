@@ -76,6 +76,20 @@ def test_stale_article_hash_is_blocking(tmp_path: Path):
     assert "bom_article_hash_mismatch" in _rules(tmp_path, bom, paths)
 
 
+def test_workflow_chain_missing_canonical_article_identity_is_blocking(
+    tmp_path: Path,
+):
+    paths = _fixture(tmp_path)
+    bom = _build(tmp_path, paths)
+    bom["assembly_date"] = "not-a-date"
+
+    assert "bom_stage_canonical_identity_invalid" in _rules(
+        tmp_path,
+        bom,
+        paths,
+    )
+
+
 def test_valid_provisional_bom_passes_strict_guard(tmp_path: Path):
     paths = _fixture(tmp_path)
     bom = _build(tmp_path, paths)
@@ -152,6 +166,91 @@ def test_final_bom_requires_unchanged_historical_provisional_bom(tmp_path: Path)
         preflight_readiness_path=preflight,
         workspace_root=tmp_path,
     )
+
+
+@pytest.mark.parametrize(
+    ("raw", "strict_error"),
+    (
+        (b'{"schema":"one","schema":"two"}\n', "duplicate key"),
+        (b'{"score":NaN}\n', "non-finite"),
+    ),
+)
+def test_bound_preflight_readiness_rejects_permissive_json(
+    tmp_path: Path,
+    raw: bytes,
+    strict_error: str,
+):
+    paths = _fixture(tmp_path)
+    provisional = _build(tmp_path, paths)
+    bom_path = tmp_path / "research" / "bom.json"
+    write_blog_assembly_bom(bom_path, provisional)
+    preflight = _preflight(tmp_path, bom_path, provisional)
+    final = _finalize_fixture_bom(
+        bom_path=bom_path,
+        preflight_readiness_path=preflight,
+        workspace_root=tmp_path,
+    )
+    preflight.write_bytes(raw)
+    final["artifacts"]["preflight_readiness"]["sha256"] = hashlib.sha256(
+        raw
+    ).hexdigest()
+
+    findings = blog_assembly_bom_guard.check_bom(
+        final,
+        article_path=paths["article"],
+        validation_sidecar_path=paths["sidecar"],
+        workspace_root=tmp_path,
+        expected_lifecycle_state="final",
+    )
+    blockers = [
+        finding
+        for finding in findings
+        if finding["rule_id"] == "bom_preflight_invalid"
+    ]
+    assert blockers
+    assert strict_error in blockers[0]["message"]
+
+
+@pytest.mark.parametrize(
+    "raw",
+    (
+        b'{"schema":"one","schema":"two"}\n',
+        b'{"score":NaN}\n',
+    ),
+)
+def test_historical_provisional_bom_rejects_permissive_json(
+    tmp_path: Path,
+    raw: bytes,
+):
+    paths = _fixture(tmp_path)
+    provisional = _build(tmp_path, paths)
+    bom_path = tmp_path / "research" / "bom.json"
+    write_blog_assembly_bom(bom_path, provisional)
+    preflight = _preflight(tmp_path, bom_path, provisional)
+    final = _finalize_fixture_bom(
+        bom_path=bom_path,
+        preflight_readiness_path=preflight,
+        workspace_root=tmp_path,
+    )
+    bom_path.write_bytes(raw)
+    readiness = json.loads(preflight.read_text(encoding="utf-8"))
+    readiness["input_hashes"]["assembly_bom"]["sha256"] = hashlib.sha256(
+        raw
+    ).hexdigest()
+    preflight.write_text(
+        json.dumps(readiness, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    final["artifacts"]["preflight_readiness"]["sha256"] = hashlib.sha256(
+        preflight.read_bytes()
+    ).hexdigest()
+
+    assert "bom_preflight_bom_artifact_invalid" in _rules(
+        tmp_path,
+        final,
+        paths,
+        expected_lifecycle_state="final",
+    )
     bom_path.write_text('{"tampered": true}\n', encoding="utf-8")
 
     assert "bom_preflight_bom_artifact_invalid" in _rules(
@@ -208,6 +307,53 @@ def test_final_bom_rejects_preflight_receipt_not_bound_to_readiness_output(
     )
     receipt_row["sha256"] = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
     final["workflow"]["stage_receipts"][-1] = receipt
+
+    assert "bom_preflight_stage_receipt_invalid" in _rules(
+        tmp_path,
+        final,
+        paths,
+        expected_lifecycle_state="final",
+    )
+
+
+def test_final_guard_rejects_preflight_receipt_with_swapped_agent_outputs(
+    tmp_path: Path,
+):
+    paths = _fixture(tmp_path)
+    provisional = _build(tmp_path, paths)
+    bom_path = tmp_path / "research" / "bom.json"
+    write_blog_assembly_bom(bom_path, provisional)
+    preflight = _preflight(tmp_path, bom_path, provisional)
+    final = _finalize_fixture_bom(
+        bom_path=bom_path,
+        preflight_readiness_path=preflight,
+        workspace_root=tmp_path,
+    )
+    original = final["workflow"]["stage_receipts"][-1]
+    evidence = dict(original["evidence_hashes"])
+    output_labels = [
+        label for label in evidence if label.startswith("agent_output.")
+    ]
+    first, second = output_labels[:2]
+    evidence[first], evidence[second] = evidence[second], evidence[first]
+    replacement = build_stage_receipt(
+        run_id=original["run_id"],
+        stage=original["stage"],
+        tool_name=original["tool"]["name"],
+        tool_version=original["tool"]["version"],
+        started_at=original["started_at"],
+        completed_at=original["completed_at"],
+        mutation=False,
+        input_artifact_hashes=original["input_artifact_hashes"],
+        output_artifact_hashes=original["output_artifact_hashes"],
+        evidence_hashes=evidence,
+        previous_receipt_hash=original["previous_receipt_hash"],
+    )
+    receipt_row = final["artifacts"]["stage_receipts"][-1]
+    receipt_path = tmp_path / receipt_row["path"]
+    write_stage_receipt(receipt_path, replacement)
+    receipt_row["sha256"] = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
+    final["workflow"]["stage_receipts"][-1] = replacement
 
     assert "bom_preflight_stage_receipt_invalid" in _rules(
         tmp_path,
@@ -406,15 +552,18 @@ def test_editorial_plan_escape_is_rejected_before_any_read(tmp_path: Path):
     }
     try:
         with patch.object(Path, "read_text", side_effect=AssertionError("unsafe read")):
-            findings = blog_assembly_bom_guard._check_editorial_plan(
+            findings = blog_assembly_bom_guard._check_research_provenance(
                 {},
                 artifacts,
                 tmp_path,
+                tmp_path / "drafts" / "article.md",
             )
     finally:
         outside.unlink(missing_ok=True)
 
-    assert findings == []
+    assert {finding["rule_id"] for finding in findings} == {
+        "bom_editorial_plan_invalid"
+    }
 
 
 def test_stage_receipt_escape_is_rejected_before_any_read(tmp_path: Path):
@@ -586,11 +735,11 @@ def test_optimized_tail_allows_noop_optimizer_evidence(tmp_path: Path):
 
 def test_valid_optimized_bom_binds_prior_preflight_and_passes_guard(tmp_path: Path):
     paths = _fixture(tmp_path)
-    prior_readiness, optimizer = _prepare_optimized_workflow(tmp_path, paths)
+    prior_readiness, optimizer_outputs = _prepare_optimized_workflow(tmp_path, paths)
     bom = _build(
         tmp_path,
         paths,
-        optimizer_output_paths=[optimizer],
+        optimizer_output_paths=optimizer_outputs,
         prior_preflight_readiness_path=prior_readiness,
     )
 
@@ -604,11 +753,11 @@ def test_valid_optimized_bom_binds_prior_preflight_and_passes_guard(tmp_path: Pa
 
 def test_optimized_bom_without_prior_preflight_is_blocking(tmp_path: Path):
     paths = _fixture(tmp_path)
-    prior_readiness, optimizer = _prepare_optimized_workflow(tmp_path, paths)
+    prior_readiness, optimizer_outputs = _prepare_optimized_workflow(tmp_path, paths)
     bom = _build(
         tmp_path,
         paths,
-        optimizer_output_paths=[optimizer],
+        optimizer_output_paths=optimizer_outputs,
         prior_preflight_readiness_path=prior_readiness,
     )
     bom["artifacts"]["prior_preflight_readiness"] = None

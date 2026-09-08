@@ -252,7 +252,7 @@ Required proof sources:
 - Use the claim registry's public URL and source-visibility decision for public citations. Repo-local proof indexes and ledgers are operational selection and reuse state only; they cannot approve a claim or override the connector.
 - Context-backed metrics are valid only when the context pack carries an approved claim, permitted use mode, public proof URL, and source-visible evidence anchor. Public copy must link to the public case study, review site, or source URL, not to internal context files.
 - Metric-sensitive topics must include a Metric Proof Pack before drafting or publish readiness. The pack requires a Search log, each Approved metric, public proof URL or local proof artifact, source-visible Evidence, Status: approved, intended Use, and rejected candidates.
-- The source support guard requires each high-risk claim to map to a strict proof row with Claim, URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact.
+- The source support guard requires each detected external factual, comparative, causal, commercial, absolute, or guarantee claim to map to a strict proof row with Claim, Claim type, Source class, Evidence relation, URL, Evidence, classification binding, and Status: approved. A link alone does not prove the proposition. Explicit first-person opinion, direct imperative instructions, and non-outcome explanatory scenarios are the only language-detected exemptions. Unsupported outcome promises such as always, never, eliminates, guarantees, and ensures block readiness.
 - The PAA provenance guard requires each visible FAQ question to map exactly to the bound structured AnswerSocrates artifact or, for a rewrite, the dedicated pre-picked brief section. A user CSV requires a bound AnswerSocrates genuine blocked-state artifact. Proof links and supplemental SERP, Reddit, or YouTube research do not prove PAA provenance.
 - Do not write source/proof meta-commentary in public copy, such as "that case study is useful for this topic" or "this source is relevant for the article." Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 
@@ -456,13 +456,13 @@ Existing articles and sidecars are not bulk-backfilled. This block becomes manda
 
 For every new `/write` run, collect People Also Ask style questions from `https://answersocrates.com` with Playwright MCP.
 
-Required browser flow:
+Required fixed collector flow:
 
-1. Open AnswerSocrates with `browser_navigate`.
-2. Use `browser_snapshot` to identify the query input and submit action.
-3. Enter the inferred `main_question`; if no main question exists, enter `topic`.
-4. Submit with snapshot-derived targets only. Do not hard-code selectors.
-5. Wait for results and extract visible questions with `browser_evaluate`.
+1. Open the fixed page URL.
+2. Resolve the query input and submit action from the observed DOM.
+3. Enter the mandatory `--query` value.
+4. Submit and wait within the repository's fixed timeout bounds.
+5. Emit exact JSON to stdout containing observed page URL, title, diagnostic body text, section headings/items, and structurally scoped blocker observations from the fixed selector set. General body text never establishes a blocker.
 6. Immediately record the observed run as `research/paa-questions-[topic-slug]-[YYYY-MM-DD].json` with the recorder below. Do not hand-author the JSON or its hashes.
 
 If AnswerSocrates records a genuine blocked state such as login, CAPTCHA, quota, or unavailability, preserve that structured blocker artifact before asking for a PAA/FAQ CSV export. Do not invent replacement questions.
@@ -478,20 +478,20 @@ The rewrite-only brief section must use this exact heading:
 
 ### Collected AnswerSocrates Artifact Template
 
-After the Playwright run finishes, execute this recorder command with the actual browser run ID, UTC timestamps, and every observed eligible question. Repeat `--eligible-question` and `--ineligible-fragment` as needed; omit either repeatable flag when its observed list is empty.
+The `record` command runs the fixed repository-approved Playwright collector, `answersocrates_playwright_collector`, itself, persists exact bounded Playwright CLI stdout before interpretation, and parses only observed page headings/items plus structurally scoped blocker observations through a closed blocker mapping. General body text never establishes a blocker.
 
 ```powershell
-python data_sources/modules/paa_provenance_guard.py record --query "[main question or topic]" --collection-date "[YYYY-MM-DD matching the assembly date]" --run-id "[Playwright run ID]" --started-at "[RFC 3339 UTC start]" --completed-at "[RFC 3339 UTC completion]" --eligible-question "[complete eligible question?]" --ineligible-fragment "[observed keyword fragment]" --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
+python data_sources/modules/paa_provenance_guard.py record --query "[main question or topic]" --collection-date "[YYYY-MM-DD matching the assembly date]" --run-id "[canonical agency article run ID]" --raw-capture-output "research/answersocrates-playwright-raw-[topic-slug]-[YYYY-MM-DD].json" --workspace-root "." --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
 ```
 
-The recorder emits `simpro-answersocrates-artifact/v1` with a nested `simpro-answersocrates-run-receipt/v1`, fixed `playwright_mcp` tool identity, payload SHA-256, and receipt SHA-256. Handwritten labels, Markdown templates, and self-described browser blockers are invalid provenance.
+The recorder emits `simpro-answersocrates-artifact/v1` with a nested `simpro-answersocrates-run-receipt/v1`, fixed `answersocrates_playwright_collector` version `1.0.0`, payload SHA-256, and receipt SHA-256. Handwritten labels, caller-authored captures, Markdown templates, and self-described browser blockers are invalid provenance.
 
 ### Blocked AnswerSocrates Artifact Template
 
 Save the observed blocker before accepting a user CSV. The blocker reason must describe what the browser actually showed.
 
 ```powershell
-python data_sources/modules/paa_provenance_guard.py record --query "[main question or topic]" --collection-date "[YYYY-MM-DD matching the assembly date]" --run-id "[Playwright run ID]" --started-at "[RFC 3339 UTC start]" --completed-at "[RFC 3339 UTC completion]" --status blocked --blocker "[login | captcha | quota | unavailability]" --blocker-reason "[observed browser evidence]" --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
+python data_sources/modules/paa_provenance_guard.py record --query "[main question or topic]" --collection-date "[YYYY-MM-DD matching the assembly date]" --run-id "[canonical agency article run ID]" --raw-capture-output "research/answersocrates-playwright-raw-[topic-slug]-[YYYY-MM-DD].json" --workspace-root "." --output "research/paa-questions-[topic-slug]-[YYYY-MM-DD].json"
 ```
 
 For the blocked fallback, the BOM builder must receive `--user-paa-csv "[user-csv]" --answersocrates-blocker "[blocked-answersocrates-artifact]"`. Direct provenance debugging passes the CSV as `paa_provenance_guard.py --paa-artifact "[user-csv]" --answersocrates-blocker "[blocked-answersocrates-artifact]"`. Readiness reruns the semantic guard against those exact BOM-bound hashes.

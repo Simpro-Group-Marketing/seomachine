@@ -349,8 +349,8 @@ def test_guard_validates_serp_evidence_and_final_article_mapping(tmp_path: Path)
     plan['serp_strategy'] = {
         'status': 'resolved',
         'content_type': {
-            'observed': 'guide',
-            'selected': 'guide',
+            'observed': 'General Article',
+            'selected': 'General Article',
             'status': 'matched_default',
         },
         'serp_features': {'featured snippet': 'targeted'},
@@ -372,22 +372,15 @@ def test_guard_validates_serp_evidence_and_final_article_mapping(tmp_path: Path)
         encoding='utf-8',
     )
     serp_path.write_text(
-        json.dumps(build_serp_evidence(
+        json.dumps(_bound_serp_evidence(
+            tmp_path,
             query='field service scheduling',
             collected_at='2026-08-05T12:00:00Z',
-            collector_name='serp_research',
-            collector_version='1.0.0',
             run_id='serp-test-run',
-            results=[{
-                'position': 1,
-                'url': 'https://example.com/scheduling-guide',
-                'title': 'Field service scheduling guide',
-                'result_type': 'organic',
-            }],
-            content_types=['guide'],
-            serp_features=['featured snippet'],
+            url='https://example.com/scheduling-guide',
+            title='Field service scheduling guide',
+            features=['featured snippet'],
             must_have_sections=['scheduling constraints'],
-            competitor_gaps=[],
         )),
         encoding='utf-8',
     )
@@ -397,6 +390,7 @@ def test_guard_validates_serp_evidence_and_final_article_mapping(tmp_path: Path)
         article_path=article_path,
         serp_evidence_path=serp_path,
         assembly_date='2026-08-05',
+        expected_run_id='serp-test-run',
     ) == []
 
     article_path.write_text(
@@ -408,6 +402,7 @@ def test_guard_validates_serp_evidence_and_final_article_mapping(tmp_path: Path)
         article_path=article_path,
         serp_evidence_path=serp_path,
         assembly_date='2026-08-05',
+        expected_run_id='serp-test-run',
     )
 
     rules = _rule_ids(findings)
@@ -434,6 +429,7 @@ def test_guard_rejects_stale_or_unverified_serp_evidence(tmp_path: Path):
         serp_path,
         expected_query='field service scheduling',
         assembly_date='2026-08-05',
+        expected_run_id='run-123',
     )
 
     rules = _rule_ids(findings)
@@ -457,6 +453,7 @@ def test_metadata_only_verified_serp_evidence_is_blocking(tmp_path: Path):
         serp_path,
         expected_query='field service scheduling',
         assembly_date='2026-08-05',
+        expected_run_id='run-123',
     ))
 
     assert 'serp_evidence_shape_invalid' in rules
@@ -465,22 +462,15 @@ def test_metadata_only_verified_serp_evidence_is_blocking(tmp_path: Path):
 
 def test_plain_rehashed_serp_json_cannot_mint_verified_collection(tmp_path: Path):
     path = tmp_path / 'serp.json'
-    payload = build_serp_evidence(
+    payload = _bound_serp_evidence(
+        tmp_path,
         query='field service scheduling',
         collected_at='2026-08-11T12:00:00Z',
-        collector_name='research_serp_analysis:dataforseo',
-        collector_version='1.0.0',
         run_id='serp-run-1',
-        results=[{
-            'position': 1,
-            'url': 'https://example.org/guide',
-            'title': 'Scheduling guide',
-            'result_type': 'organic',
-        }],
-        content_types=['guide'],
-        serp_features=[],
+        url='https://example.org/guide',
+        title='Scheduling guide',
+        features=[],
         must_have_sections=['Scheduling workflow'],
-        competitor_gaps=[],
     )
     payload.pop('execution_attestation')
     unsigned = dict(payload)
@@ -492,6 +482,7 @@ def test_plain_rehashed_serp_json_cannot_mint_verified_collection(tmp_path: Path
         path,
         expected_query='field service scheduling',
         assembly_date='2026-08-11',
+        expected_run_id='agency-run-123',
     ))
 
     assert 'serp_evidence_execution_attestation_invalid' in rules
@@ -656,6 +647,7 @@ def test_serp_timestamp_requires_extended_rfc3339_utc(tmp_path: Path):
             serp_path,
             expected_query='field service scheduling',
             assembly_date='2026-08-05',
+            expected_run_id='run-123',
         )
 
         assert any(

@@ -229,17 +229,38 @@ class DataForSEO:
         self, keyword: str, location_code: int = 2840, limit: int = 100
     ) -> Dict[str, Any]:
         """Get complete structured SERP data for a keyword."""
-        data = [
-            {
-                "keyword": keyword,
-                "location_code": location_code,
-                "language_code": "en",
-                "device": "desktop",
-                "os": "windows",
-                "depth": limit,
-            }
-        ]
-        response = self._post("/v3/serp/google/organic/live/advanced", data)
+        response = self.get_serp_raw_response(
+            keyword, location_code=location_code, limit=limit
+        )
+        return self.normalize_serp_response(response, keyword=keyword)
+
+    def get_serp_raw_response(
+        self, keyword: str, location_code: int = 2840, limit: int = 100
+    ) -> Dict[str, Any]:
+        """Return the exact provider response without normalizing it."""
+        data = [{
+            "keyword": keyword,
+            "location_code": location_code,
+            "language_code": "en",
+            "device": "desktop",
+            "os": "windows",
+            "depth": limit,
+        }]
+        return self._post("/v3/serp/google/organic/live/advanced", data)
+
+    def get_serp_capture(
+        self, keyword: str, location_code: int = 2840, limit: int = 100
+    ) -> tuple[Dict[str, Any], Dict[str, Any]]:
+        """Return the exact provider response and its existing normalized view."""
+        response = self.get_serp_raw_response(
+            keyword, location_code=location_code, limit=limit
+        )
+        return response, self.normalize_serp_response(response, keyword=keyword)
+
+    def normalize_serp_response(
+        self, response: Dict[str, Any], *, keyword: str
+    ) -> Dict[str, Any]:
+        """Purely normalize one exact DataForSEO SERP response."""
         task = self._require_task(response, "SERP data")
         result = self._require_result(task, "SERP data")
         items = result.get("items")
@@ -270,7 +291,7 @@ class DataForSEO:
                 features.append(item["type"])
 
         keyword_data = result.get("keyword_data", {}).get("keyword_info", {})
-        return {
+        normalized = {
             "keyword": keyword,
             "search_volume": keyword_data.get("search_volume"),
             "cpc": keyword_data.get("cpc"),
@@ -279,6 +300,7 @@ class DataForSEO:
             "features": list(dict.fromkeys(features)),
             "total_results": result.get("items_count", 0),
         }
+        return normalized
 
     def analyze_competitor(
         self,

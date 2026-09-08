@@ -13,6 +13,7 @@ from typing import Any, Mapping, Sequence
 try:
     from . import (
         blog_assembly_contract,
+        blog_assembly_capabilities,
         blog_assembly_stage_receipt,
         blog_identity_guard,
         context_binding_guard,
@@ -31,6 +32,7 @@ try:
         LIFECYCLE_STATES,
         WORKFLOW_MODES,
         _editorial_plan_summary,
+        _resolvable_receipt_evidence_hashes,
         _schema_policy,
         _visible_faq_questions,
         _validate_prior_preflight_readiness,
@@ -39,9 +41,16 @@ try:
     from .blog_assembly_contract import (
         artifact_inventory_snapshots,
         canonical_artifact,
+        canonical_article_run_id,
         canonical_json_sha256,
         expected_blog_gate_inventory,
+        is_json_number,
+        load_json_object_snapshot,
         normalized_text_sha256,
+        NORMAL_FINAL_STAGES,
+        NORMAL_PROVISIONAL_STAGES,
+        OPTIMIZED_FINAL_STAGES,
+        OPTIMIZED_PROVISIONAL_STAGES,
         resolve_artifact,
         sidecar_evidence_binding_errors,
         validate_sha256,
@@ -51,6 +60,7 @@ try:
     from .publishable_markdown import FrontmatterError, read_publishable_markdown
 except ImportError:  # pragma: no cover - supports direct script execution.
     import blog_assembly_contract
+    import blog_assembly_capabilities
     import blog_identity_guard
     import blog_assembly_stage_receipt
     import context_binding_guard
@@ -68,6 +78,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         LIFECYCLE_STATES,
         WORKFLOW_MODES,
         _editorial_plan_summary,
+        _resolvable_receipt_evidence_hashes,
         _schema_policy,
         _visible_faq_questions,
         _validate_prior_preflight_readiness,
@@ -76,9 +87,16 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from blog_assembly_contract import (
         artifact_inventory_snapshots,
         canonical_artifact,
+        canonical_article_run_id,
         canonical_json_sha256,
         expected_blog_gate_inventory,
+        is_json_number,
+        load_json_object_snapshot,
         normalized_text_sha256,
+        NORMAL_FINAL_STAGES,
+        NORMAL_PROVISIONAL_STAGES,
+        OPTIMIZED_FINAL_STAGES,
+        OPTIMIZED_PROVISIONAL_STAGES,
         resolve_artifact,
         sidecar_evidence_binding_errors,
         validate_sha256,
@@ -132,8 +150,10 @@ REQUIRED_ARTIFACT_FIELDS = (
     "context_receipt",
     "customer_proof_selector_evidence",
     "fred_authority_evidence",
+    "execution_evidence",
     "optimizer_outputs",
     "stage_receipts",
+    "stage_evidence",
     "prior_preflight_readiness",
     "preflight_readiness",
 )
@@ -282,8 +302,8 @@ def check_bom_file(
         except ValueError as error:
             return [_finding("bom_path_invalid", f"Blog assembly BOM path is invalid: {error}")]
     try:
-        payload = json.loads(source.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        payload = load_json_object_snapshot(source, field="blog assembly BOM").payload
+    except ValueError as error:
         return [_finding("bom_invalid", f"Blog assembly BOM is invalid: {error}")]
     if not isinstance(payload, Mapping):
         return [_finding("bom_invalid", "Blog assembly BOM must be a JSON object.")]
@@ -482,7 +502,7 @@ def check_bom(
         ),
     ):
         findings.append(_finding(rule_id, message))
-    findings.extend(_check_editorial_plan(bom, artifacts, root))
+    findings.extend(_check_research_provenance(bom, artifacts, root, article_path))
     findings.extend(_check_workflow(bom, artifacts, root))
     findings.extend(_check_preflight(bom, artifacts, root))
     return _sorted(findings)
@@ -495,15 +515,17 @@ def _check_artifact_inventory(
 ) -> list[Finding]:
     findings: list[Finding] = []
     singleton_fields = set(REQUIRED_ARTIFACT_FIELDS) - {
+        "execution_evidence",
         "optimizer_outputs",
         "stage_receipts",
+        "stage_evidence",
     }
     for field in singleton_fields:
         row = artifacts.get(field)
         if row is None:
             continue
         findings.extend(_verify_row(row, field, root))
-    for field in ("optimizer_outputs", "stage_receipts"):
+    for field in ("optimizer_outputs", "stage_receipts", "stage_evidence"):
         rows = artifacts.get(field)
         if not isinstance(rows, list):
             findings.append(_finding(f"bom_{field}_invalid", f"artifacts.{field} must be a list."))
@@ -1110,20 +1132,18 @@ def _check_editorial_plan(
     bom: Mapping[str, Any],
     artifacts: Mapping[str, Any],
     root: Path,
+    article_path: str | Path,
 ) -> list[Finding]:
     row = artifacts.get("editorial_plan")
     if not isinstance(row, Mapping) or not isinstance(row.get("path"), str):
         return []
     try:
-        path = verify_artifact(
+        path, plan = _load_bound_json_object(
             row,
             workspace_root=root,
             field="artifacts.editorial_plan",
         )
-        plan = json.loads(path.read_text(encoding="utf-8"))
-    except ValueError:
-        return []
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+    except ValueError as error:
         return [_finding("bom_editorial_plan_invalid", f"Editorial plan is invalid: {error}")]
     if not isinstance(plan, Mapping) or plan.get("schema") != EDITORIAL_PLAN_SCHEMA:
         return [_finding("bom_editorial_plan_schema_invalid", f"Editorial plan must use {EDITORIAL_PLAN_SCHEMA}.")]
@@ -1148,8 +1168,16 @@ def _check_editorial_plan(
         )
     except ValueError:
         return []
-    plan_findings = editorial_plan_guard.check_file(
-        path,
+    assembled = _parse_date(bom.get("assembly_date"))
+    if assembled is None:
+        return [_finding("bom_assembly_date_invalid", "BOM assembly date is invalid.")]
+    canonical_run_id = canonical_article_run_id(
+        article_path,
+        workspace_root=root,
+        assembly_date=assembled,
+    )
+    plan_findings = editorial_plan_guard._check_loaded_plan(
+        plan,
         article_path=article_path,
         serp_evidence_path=serp_path,
         assembly_date=(
@@ -1157,6 +1185,7 @@ def _check_editorial_plan(
             if isinstance(bom.get("assembly_date"), str)
             else None
         ),
+        expected_run_id=canonical_run_id,
     )
     plan_findings.extend(
         semrush_keyword_decision_guard.check_file(
@@ -1257,6 +1286,43 @@ def _check_editorial_plan(
                 "BOM faq_policy must exactly match the bound editorial plan.",
             )
         )
+    paa_policy = bom.get("paa_policy")
+    if isinstance(paa_policy, Mapping):
+        artifact_label = {
+            "answersocrates": "paa_artifact",
+            "brief_paa": "content_brief",
+            "user_csv": "user_paa_csv",
+        }.get(str(paa_policy.get("source_kind") or ""))
+
+        def bound_path(label: str) -> str | None:
+            artifact = artifacts.get(label)
+            if not isinstance(artifact, Mapping):
+                return None
+            try:
+                return str(verify_artifact(
+                    artifact, workspace_root=root, field=f"artifacts.{label}"
+                ))
+            except ValueError:
+                return None
+
+        paa_findings = paa_provenance_guard.check_file(
+            str(article_path),
+            proof_sidecar=bound_path("validation_sidecar"),
+            workflow_mode=str(bom.get("workflow_mode") or ""),
+            content_brief=bound_path("content_brief"),
+            answersocrates_blocker=bound_path("answersocrates_blocker"),
+            expected_query=str(paa_policy.get("query") or ""),
+            expected_collection_date=assembled.isoformat(),
+            expected_run_id=canonical_run_id,
+            paa_artifact=bound_path(artifact_label) if artifact_label else None,
+        )
+        findings.extend(
+            _finding(
+                f"bom_{finding.get('rule_id')}",
+                str(finding.get("message") or "PAA provenance is invalid."),
+            )
+            for finding in paa_findings
+        )
     ownership = plan.get("query_ownership")
     if isinstance(ownership, Mapping) and ownership.get("decision") == "blocked":
         findings.append(_finding("bom_query_ownership_blocked", "Blocked query ownership prevents readiness."))
@@ -1312,7 +1378,13 @@ def _check_workflow(
                 workspace_root=root,
                 field=f"artifacts.stage_receipts[{index}]",
             )
-            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            receipt_snapshot = load_json_object_snapshot(
+                receipt_path,
+                field=f"stage receipt {index}",
+            )
+            if receipt_snapshot.sha256 != row.get("sha256"):
+                raise ValueError("stage receipt changed during validation")
+            receipt = receipt_snapshot.payload
         except ValueError:
             continue
         except (OSError, UnicodeError, json.JSONDecodeError) as error:
@@ -1498,18 +1570,39 @@ def _check_workflow(
     if isinstance(optimization_receipt, Mapping):
         optimization_evidence = optimization_receipt.get("evidence_hashes")
         optimizer_rows = artifacts.get("optimizer_outputs")
-        expected_hashes = {
-            str(row.get("sha256"))
-            for row in optimizer_rows
-            if isinstance(row, Mapping)
-        } if isinstance(optimizer_rows, list) else set()
-        actual_hashes = (
-            set(optimization_evidence.values())
-            if isinstance(optimization_evidence, Mapping)
-            else set()
-        )
-        if not expected_hashes or not expected_hashes.issubset(actual_hashes):
-            findings.append(_finding("bom_optimizer_evidence_unbound", "Optimization receipt must bind every optimizer output."))
+        try:
+            execution_evidence = artifacts.get("execution_evidence")
+            if not isinstance(execution_evidence, Mapping):
+                raise blog_assembly_capabilities.CapabilityRegistryError(
+                    "execution evidence is unavailable"
+                )
+            expected_evidence = blog_assembly_capabilities.receipt_definition_hashes(
+                loaded,
+                stage="optimization",
+                execution_evidence=execution_evidence,
+            )
+            expected_optimizer_rows = [
+                execution_evidence[f"agent_output.{agent_id}"]
+                for agent_id in blog_assembly_capabilities.expected_agent_ids(loaded)
+            ]
+            if optimizer_rows != expected_optimizer_rows:
+                raise blog_assembly_capabilities.CapabilityRegistryError(
+                    "optimizer outputs do not exactly match distinct agent outputs"
+                )
+            if not isinstance(optimization_evidence, Mapping) or any(
+                optimization_evidence.get(label) != digest
+                for label, digest in expected_evidence.items()
+            ):
+                raise blog_assembly_capabilities.CapabilityRegistryError(
+                    "optimization receipt does not bind definitions and agent outputs"
+                )
+        except (KeyError, blog_assembly_capabilities.CapabilityRegistryError) as error:
+            findings.append(
+                _finding(
+                    "bom_optimizer_evidence_unbound",
+                    f"Optimization capability evidence is invalid: {error}",
+                )
+            )
     article_row = artifacts.get("article")
     if loaded and isinstance(article_row, Mapping):
         outputs = loaded[-1].get("output_artifact_hashes")
@@ -1540,13 +1633,12 @@ def _check_preflight(
     if not isinstance(readiness_row, Mapping):
         return []
     try:
-        readiness_path = verify_artifact(
+        readiness_path, readiness = _load_bound_json_object(
             readiness_row,
             workspace_root=root,
             field="artifacts.preflight_readiness",
         )
-        readiness = json.loads(readiness_path.read_text(encoding="utf-8"))
-    except (ValueError, OSError, UnicodeError, json.JSONDecodeError) as error:
+    except ValueError as error:
         return [
             _finding(
                 "bom_preflight_invalid",
@@ -1682,16 +1774,12 @@ def _check_preflight(
             assembly_input.get("sha256"),
             field="input_hashes.assembly_bom.sha256",
         )
-        historical_path = verify_artifact(
+        _, historical_provisional = _load_bound_json_object(
             assembly_input,
             workspace_root=root,
             field="preflight.input_hashes.assembly_bom",
         )
-        historical_value = json.loads(historical_path.read_text(encoding="utf-8"))
-        if not isinstance(historical_value, Mapping):
-            raise ValueError("historical provisional BOM must be an object")
-        historical_provisional = historical_value
-    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as error:
+    except ValueError as error:
         findings.append(
             _finding(
                 "bom_preflight_bom_artifact_invalid",
@@ -1754,6 +1842,12 @@ def _check_preflight(
             prior_receipts=embedded_receipts[:-1],
             readiness_path=readiness_path,
             article_sha256=article_row.get("sha256"),
+            article_path=resolve_artifact(
+                article_row.get("path"),
+                workspace_root=root,
+            ),
+            workspace_root=root,
+            assembly_date=str(bom.get("assembly_date") or ""),
         )
     except (OSError, UnicodeError, ValueError) as error:
         findings.append(
@@ -1799,6 +1893,7 @@ def _check_topology(value: Any) -> list[Finding]:
 
 def _is_declared_artifact_path(field_path: tuple[str, ...]) -> bool:
     singleton_fields = set(REQUIRED_ARTIFACT_FIELDS) - {
+        "execution_evidence",
         "optimizer_outputs",
         "stage_receipts",
     }
@@ -1807,6 +1902,12 @@ def _is_declared_artifact_path(field_path: tuple[str, ...]) -> bool:
         and field_path[0] == "artifacts"
         and field_path[1] in singleton_fields
         and field_path[2] == "path"
+    ):
+        return True
+    if (
+        len(field_path) == 4
+        and field_path[:2] == ("artifacts", "execution_evidence")
+        and field_path[3] == "path"
     ):
         return True
     if (
@@ -1837,7 +1938,13 @@ def _is_declared_artifact_path(field_path: tuple[str, ...]) -> bool:
 
 
 def _is_artifact_snapshot_label(label: str) -> bool:
-    if label in set(REQUIRED_ARTIFACT_FIELDS) - {"optimizer_outputs", "stage_receipts"}:
+    if label.startswith(blog_assembly_capabilities.EXECUTION_EVIDENCE_PREFIXES):
+        return True
+    if label in set(REQUIRED_ARTIFACT_FIELDS) - {
+        "execution_evidence",
+        "optimizer_outputs",
+        "stage_receipts",
+    }:
         return True
     return re.fullmatch(r"(?:optimizer_outputs|stage_receipts)\[\d+\]", label) is not None
 
@@ -1862,7 +1969,7 @@ def _sorted(findings: Sequence[Finding]) -> list[Finding]:
 
 
 def _is_number(value: Any) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    return is_json_number(value)
 
 
 def _finding(rule_id: str, message: str) -> Finding:

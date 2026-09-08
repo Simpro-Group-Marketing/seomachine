@@ -1,6 +1,8 @@
 from tests.fixture_text import fixture_text
 
 import os
+import subprocess
+import tempfile
 import unittest
 from contextlib import redirect_stdout
 from io import StringIO
@@ -41,6 +43,48 @@ Field service management coordinates off-site workers, work orders, schedules an
 def faq_sidecar(question, rows, include_policy=True):
     policy = fixture_text("content_evidence:test_faq_proof_guard-37-1") if include_policy else ""
     return f"{policy}## FAQ Proof Map\n\n" + "\n".join(rows)
+
+
+def write_faq_classification(directory, url, source_class="neutral"):
+    from data_sources.modules import source_support_guard
+
+    root = Path(directory)
+    decision = root / "context" / "source-classification-decisions.json"
+    decision.parent.mkdir(parents=True, exist_ok=True)
+    decision.write_text(
+        __import__("json").dumps(
+            {
+                "schema": "simpro-source-classification-decisions/v1",
+                "revision": "faq-policy-1",
+                "decisions": [
+                    {
+                        "decision_id": "source:faq-test",
+                        "status": "approved",
+                        "source_url": url,
+                        "hostname": url.split("/", 3)[2].lower(),
+                        "source_class": source_class,
+                        "publisher_relationship": "independent",
+                    }
+                ],
+            },
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+    subprocess.run(["git", "init", "-q", str(root)], check=True)
+    subprocess.run(["git", "-C", str(root), "config", "user.email", "tests@example.com"], check=True)
+    subprocess.run(["git", "-C", str(root), "config", "user.name", "Tests"], check=True)
+    subprocess.run(["git", "-C", str(root), "add", "context/source-classification-decisions.json"], check=True)
+    subprocess.run(["git", "-C", str(root), "commit", "-qm", "approve FAQ source"], check=True)
+    output = root / "faq-source-classification.json"
+    source_support_guard.write_source_classification_artifact(
+        output,
+        source_url=url,
+        decision_id="source:faq-test",
+        decision_path=decision,
+        workspace_root=root,
+    )
+    return output.name, hashlib.sha256(output.read_bytes()).hexdigest()
 
 class FaqProofGuardTests(unittest.TestCase):
 
@@ -216,26 +260,83 @@ The Texas State Board of Plumbing Examiners regulates plumbers in Texas. See [Si
     def test_classified_neutral_faq_source_passes(self):
         question = "What is field service management?"
         url = "https://example.org/fsm-definition"
-        sidecar = faq_sidecar(
-            question,
-            [
-                f"- FAQ: {question} | URL: {url} | Source class: neutral | Competitor check: passed | Support: Independent definition."
-            ],
-        )
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact, digest = write_faq_classification(tmp, url)
+            sidecar = faq_sidecar(
+                question,
+                [
+                    f"- FAQ: {question} | URL: {url} | Source class: neutral | Competitor check: passed | Support: Independent definition. | Classification artifact: {artifact} | Classification hash: {digest}"
+                ],
+            )
 
-        self.assertEqual(check_content(faq_content(question, [url]), proof_content=sidecar), [])
+            self.assertEqual(
+                check_content(faq_content(question, [url]), proof_content=sidecar, base_path=tmp),
+                [],
+            )
 
     def test_classified_non_competing_expert_faq_source_passes(self):
         question = "What are AI agents good for?"
         url = "https://expert.example.org/ai-agents"
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact, digest = write_faq_classification(tmp, url, "non_competing_expert")
+            sidecar = faq_sidecar(
+                question,
+                [
+                    f"- FAQ: {question} | URL: {url} | Source class: non_competing_expert | Competitor check: passed | Support: Expert workflow guidance. | Classification artifact: {artifact} | Classification hash: {digest}"
+                ],
+            )
+
+            self.assertEqual(
+                check_content(faq_content(question, [url]), proof_content=sidecar, base_path=tmp),
+                [],
+            )
+
+    def test_faq_proof_map_requires_nonempty_support(self):
+        question = "What is field service management?"
+        url = "https://example.org/fsm-definition"
         sidecar = faq_sidecar(
             question,
-            [
-                f"- FAQ: {question} | URL: {url} | Source class: non_competing_expert | Competitor check: passed | Support: Expert workflow guidance."
-            ],
+            [f"- FAQ: {question} | URL: {url} | Source class: neutral | Competitor check: passed | Support:   "],
         )
 
-        self.assertEqual(check_content(faq_content(question, [url]), proof_content=sidecar), [])
+        self.assertIn(
+            "faq_answer_support_missing",
+            finding_ids_with_sidecar(faq_content(question, [url]), sidecar),
+        )
+
+    def test_sidecar_only_source_classification_is_not_attested(self):
+        question = "What is field service management?"
+        url = "https://example.org/fsm-definition"
+        sidecar = faq_sidecar(
+            question,
+            [f"- FAQ: {question} | URL: {url} | Source class: neutral | Competitor check: passed | Support: Independent definition."],
+        )
+
+        self.assertIn(
+            "faq_answer_source_classification_missing",
+            finding_ids_with_sidecar(faq_content(question, [url]), sidecar),
+        )
+
+    def test_tampered_or_mismatched_faq_classification_fails(self):
+        question = "What is field service management?"
+        url = "https://example.org/fsm-definition"
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact, digest = write_faq_classification(tmp, url)
+            artifact_path = Path(tmp) / artifact
+            artifact_path.write_text(artifact_path.read_text(encoding="utf-8") + " ", encoding="utf-8")
+            sidecar = faq_sidecar(
+                question,
+                [f"- FAQ: {question} | URL: {url} | Source class: neutral | Competitor check: passed | Support: Independent definition. | Classification artifact: {artifact} | Classification hash: {digest}"],
+            )
+
+            findings = check_content(
+                faq_content(question, [url]), proof_content=sidecar, base_path=tmp
+            )
+
+        self.assertIn(
+            "faq_answer_source_classification_invalid",
+            {finding["rule_id"] for finding in findings},
+        )
 
     def test_faq_source_map_uses_canonical_url_identity(self):
         question = "What is field service management?"

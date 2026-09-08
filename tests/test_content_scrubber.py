@@ -210,7 +210,12 @@ secondary_keywords:
             after = hashlib.sha256(article.read_bytes()).hexdigest()
 
             self.assertEqual(first['input_artifact_hashes'], {'article': before})
-            self.assertEqual(first['output_artifact_hashes'], {'article': after})
+            self.assertEqual(first['output_artifact_hashes']['article'], after)
+            evidence_path = root / 'scrub-evidence.json'
+            self.assertEqual(
+                first['output_artifact_hashes']['stage_evidence'],
+                hashlib.sha256(evidence_path.read_bytes()).hexdigest(),
+            )
             self.assertEqual(first['tool'], {'name': 'content_scrubber', 'version': '1.0.0'})
             self.assertEqual(after, before)
             self.assertFalse(first['mutation'])

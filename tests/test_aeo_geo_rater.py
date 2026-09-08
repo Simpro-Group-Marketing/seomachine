@@ -20,7 +20,7 @@ from data_sources.modules.aeo_geo_rater import (
     rate_aeo_geo,
 )
 from data_sources.modules.customer_proof_selector import _main as run_customer_proof_selector
-from data_sources.modules.paa_provenance_guard import build_answersocrates_artifact
+from tests.research_provenance_fixtures import build_answersocrates_fixture
 from tests.test_customer_proof_selector import (
     write_context_receipt_fixture,
     write_selector_fixture,
@@ -76,17 +76,16 @@ def write_paa_fixture(test_case: unittest.TestCase, content: str) -> str:
     article_path.write_text(content, encoding="utf-8")
     artifact.write_text(
         json.dumps(
-            build_answersocrates_artifact(
+            build_answersocrates_fixture(
+                root,
                 query=PAA_QUERY,
                 collection_date=ASSEMBLY_DATE,
-                eligible_questions=(
+                questions=(
                     "What is the best way to schedule HVAC technicians?",
                     "How does HVAC scheduling software reduce missed appointments?",
                     "Should HVAC scheduling connect to invoicing?",
                 ),
                 run_id="aeo-rater-fixture",
-                started_at=f"{ASSEMBLY_DATE}T14:00:00Z",
-                completed_at=f"{ASSEMBLY_DATE}T14:01:00Z",
             ),
             indent=2,
             sort_keys=True,
@@ -479,6 +478,7 @@ class AeoGeoRaterTests(unittest.TestCase):
         kwargs.setdefault('paa_workflow_mode', 'new')
         kwargs.setdefault('paa_expected_query', PAA_QUERY)
         kwargs.setdefault('paa_expected_collection_date', ASSEMBLY_DATE)
+        kwargs.setdefault('paa_expected_run_id', 'aeo-rater-fixture')
         return rate_aeo_geo(
             content,
             merged_metadata,
@@ -504,6 +504,7 @@ class AeoGeoRaterTests(unittest.TestCase):
         kwargs.setdefault("paa_workflow_mode", "new")
         kwargs.setdefault("paa_expected_query", PAA_QUERY)
         kwargs.setdefault("paa_expected_collection_date", ASSEMBLY_DATE)
+        kwargs.setdefault("paa_expected_run_id", "aeo-rater-fixture")
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             proof_sidecar, proof_sidecar_path = (
@@ -534,6 +535,9 @@ class AeoGeoRaterTests(unittest.TestCase):
             {"primary_keyword": "hvac scheduling software"},
             source_path=write_paa_fixture(self, content),
             proof_sidecar_content=PAA_PROVENANCE_BLOCK + proof_sidecar,
+            paa_expected_query=PAA_QUERY,
+            paa_expected_collection_date=ASSEMBLY_DATE,
+            paa_expected_run_id="aeo-rater-fixture",
         )
 
     def test_compliant_article_passes_90_point_gate(self):
