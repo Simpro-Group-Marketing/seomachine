@@ -511,6 +511,21 @@ class CustomerProofIndexIntakeTests(unittest.TestCase):
 
             self.assertEqual([], findings)
 
+    def test_merge_rejects_governance_output_in_public_article_directory(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            csv_path = root / "intake.csv"
+            output = root / "drafts" / "customer-proof-index.json"
+            output.parent.mkdir()
+            write_index(index_path)
+            write_csv(csv_path, [base_row()])
+
+            with self.assertRaisesRegex(ValueError, "public article director"):
+                merge_intake_file(csv_path, index_path=index_path, out_path=output)
+
+            self.assertFalse(output.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

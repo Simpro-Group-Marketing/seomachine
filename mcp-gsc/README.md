@@ -429,7 +429,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 #### Fixed
 - **Sitemap TypeError crash:** `get_sitemaps` and `list_sitemaps_enhanced` crashed with `TypeError` when a sitemap had errors or warnings, because the GSC API returns those counts as strings. Added `int()` casts before comparison. (Thanks [@mcprobert](https://github.com/mcprobert)!)
-- **File cache warning:** Suppressed the `file_cache is only supported with oauth2client<4.0.0` warning that caused crashes on MCP hosts that treat any stderr output as fatal (e.g. GitHub Copilot CLI).
+- **File cache warning:** Suppressed the legacy file-cache compatibility warning that caused crashes on MCP hosts that treat any stderr output as fatal (e.g. GitHub Copilot CLI).
 - **Domain property 404 errors:** All tools now return a clear, actionable message when a 404 occurs, explaining the exact format required and service account permission requirements for `sc-domain:` properties.
 
 #### Improved

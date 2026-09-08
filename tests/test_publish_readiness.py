@@ -33,18 +33,38 @@ def finding(rule_id="blocked", severity="error"):
 
 
 def score(passed=True):
+    content_score = 91.2 if passed else 81.0
+    aeo_score = 96 if passed else 88
     return {
         "passed": passed,
-        "content_quality_score": 91.2 if passed else 81.0,
+        "content_quality_score": content_score,
         "threshold": 85,
         "aeo_geo": {
-            "score": 96 if passed else 88,
+            "score": aeo_score,
             "threshold": 90,
             "passed": passed,
         },
+        "quality_gates": {
+            "content_quality": {
+                "score": content_score,
+                "threshold": 85,
+                "passed": content_score >= 85,
+            },
+            "seo_quality": {
+                "score": 91 if passed else 84,
+                "threshold": 90,
+                "passed": passed,
+                "critical_issues": [] if passed else ["SEO failed"],
+                "critical_issue_count": 0 if passed else 1,
+            },
+            "aeo_geo": {
+                "score": aeo_score,
+                "threshold": 90,
+                "passed": passed,
+            },
+        },
         "priority_fixes": [] if passed else [{"issue": "AEO failed"}],
     }
-
 
 @pytest.fixture
 def files(tmp_path):
@@ -723,6 +743,8 @@ def test_text_report_shows_100_point_scales_thresholds_and_gate_status(files):
     report = publish_readiness.format_text_report(result)
 
     assert "Content score: 81.0/100 (threshold: 85, FAIL)" in report
+    assert "SEO score: 84/100 (threshold: 90, FAIL)" in report
+    assert "SEO critical issues: 1" in report
     assert "AEO/GEO score: 88/100 (threshold: 90, FAIL)" in report
 
 
@@ -952,6 +974,17 @@ def test_persisting_a_fabricated_pass_with_no_gate_inventory_fails(files, tmp_pa
         "score": 100,
         "score_threshold": 85,
         "aeo_geo": {"score": 100, "threshold": 90, "passed": True},
+        "scorecard": {
+            "passed": True,
+            "content_quality": {"score": 100, "threshold": 85, "passed": True},
+            "seo_quality": {
+                "score": 100,
+                "threshold": 90,
+                "passed": True,
+                "critical_issue_count": 0,
+            },
+            "aeo_geo": {"score": 100, "threshold": 90, "passed": True},
+        },
         "priority_fixes": [],
         "gate_inventory": [],
         "input_hashes": {
@@ -976,6 +1009,24 @@ def test_persisting_a_fabricated_pass_with_no_gate_inventory_fails(files, tmp_pa
     assert not (tmp_path / "readiness.json").exists()
     assert not (tmp_path / "readiness-stage-receipt.json").exists()
 
+
+def test_passed_readiness_validation_rejects_failed_scorecard_gate(files):
+    article, sidecar = files
+    result, _, _, _ = run_with_patches(article, sidecar)
+    result["scorecard"]["seo_quality"] = {
+        "score": 89,
+        "threshold": 90,
+        "passed": False,
+        "critical_issue_count": 0,
+        "critical_issues": [],
+    }
+    result["scorecard"]["passed"] = True
+
+    with pytest.raises(ValueError, match="scorecard"):
+        publish_readiness.validate_passed_readiness_result(
+            result,
+            workspace_root=article.parent,
+        )
 
 def test_persisting_a_structurally_complete_copied_pass_cannot_mint_attestation(
     files,

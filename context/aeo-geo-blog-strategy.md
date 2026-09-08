@@ -71,53 +71,48 @@ Required `Vault Brand Language Alignment` sidecar block:
 
 This block validates vault language alignment only. It does not approve claims, pricing, metrics, proof, customer outcomes, competitive statements, quotes, rankings, or ratings; those still route through Source Map, Customer Proof Pack, Metric Proof Pack, and the existing proof gates.
 
-Use this file for blog workflows only. It supports `/research`, `/research-serp`, `/article`, `/write`, `/analyze-existing`, and `/rewrite`; it does not replace marketing skills.
+Use this file for blog workflows only. It supports `/research`, `/research-serp`, `/write`, `/analyze-existing`, `/rewrite`, and `/optimize`; it does not replace marketing skills.
 
-## Blog Assembly BOM and Two-Phase Seal
+## Native Blog Workflow, BOM, and Readiness
 
-Every new or changed blog requires a strict `simpro-blog-assembly-bom/v1`. The vault remains the knowledge graph and active evidence source. The JSON BOM is the per-article execution record; it binds source artifacts and receipts without prescribing vault paths or topology.
+Command ownership:
 
-The complete inventory is the final article, validation sidecar, context request/pack/receipt plus customer-proof selector and Fred authority evidence when connector-bound, `simpro-blog-editorial-plan/v1`, verified SERP evidence, the bound PAA artifact or rewrite brief (and CSV/blocker evidence when applicable), every `simpro-blog-stage-receipt/v1`, conditional optimizer evidence, provisional/final BOM, passed preflight output, and detached final-readiness attestation.
+- `/research` owns the research brief and validation sidecar planning. It does not write public blog Markdown.
+- `/analyze-existing` owns the analysis report and rewrite routing. It does not write public blog Markdown.
+- `/write`, `/rewrite`, and `/optimize` own public blog copy.
+- `/scrub` owns read-only diagnostics.
+- `/publish-readiness` owns release scoring, gates, readiness receipts, and final publish/no-publish status.
 
-Tool-emitted machine artifacts carry an `execution_attestation`, a keyed local execution-integrity attestation. It is required on every `simpro-blog-stage-receipt/v1`, verified `simpro-serp-evidence/v1`, nested `simpro-answersocrates-run-receipt/v1`, `simpro-source-classification/v1`, and `simpro-source-capture-receipt/v1`. Readiness verifies the attestation and canonical hash; a handwritten or merely rehashed replacement does not qualify.
+`/write`, `/rewrite`, and `/optimize` own public blog copy. Python does not draft, rewrite, or patch Markdown in `drafts/`, `rewrites/`, or `published/`.
 
-This local control binds the exact payload to the configured repository emitter. It does not provide a remote/provider signature and does not prove that external observations are true. Source metadata, visible evidence, freshness, eligible PAA questions, and semantic claim fit remain separate validation requirements. For rewrites, a dedicated pre-picked PAA brief section still takes precedence and remains bound by its exact path and hash; it is not recast as AnswerSocrates output.
+Python remains responsible for governance and workflow assistance: selector evidence, Context Binding evidence, verified SERP/PAA artifacts, editorial-plan validation, BOM assembly, readiness output, readiness receipts, and publisher transport payloads.
 
-Trust-key operations are part of the workflow. On a developer workstation, the emitter creates the ignored local key at `.cache/seomachine-execution-attestation.key`. Managed runners must configure the same secret for emission and validation through `SEOMACHINE_ARTIFACT_ATTESTATION_KEY`; use at least 32 UTF-8 bytes and keep it outside the repository. Losing or rotating either trust source invalidates existing attestations, so regenerate the affected machine artifacts before readiness.
+`/scrub` is read-only diagnostics. If scrub diagnostics find Unicode marks, em dashes, or whitespace issues, the command/agent applies the copy edit and reruns `/scrub`. The scrubber may write governance diagnostics or receipts when explicitly requested, but it must not overwrite the article.
 
-Receipts must come from the tools that perform the work. Create the article scaffold, start the mutation recorder before drafting, finish it only after the article is saved, then run the receipt-emitting deterministic stages:
+Every new or changed blog still requires a strict `simpro-blog-assembly-bom/v1`. The vault remains the knowledge graph and active evidence source. The BOM is the article-specific execution record for final article, validation sidecar, context request/pack/receipt when applicable, customer-proof selector evidence, Fred authority evidence, editorial plan, verified SERP evidence, PAA or rewrite-brief evidence, governance receipts, provisional/final BOM, readiness outputs, and input hashes.
 
-```powershell
-python data_sources/modules/blog_assembly_mutation_recorder.py start --article "[article]" --state "research/stage-receipts/[topic-slug]/draft-state.json" --run-id "[run-id]" --stage draft --tool-name "[draft-tool]" --tool-version "[version]" --input "editorial_plan=research/editorial-plan-[topic-slug]-[YYYY-MM-DD].json"
-# Draft and save the article here.
-python data_sources/modules/blog_assembly_mutation_recorder.py finish --article "[article]" --state "research/stage-receipts/[topic-slug]/draft-state.json" --receipt "research/stage-receipts/[topic-slug]/draft.json" --evidence "serp_evidence=research/serp-evidence-[topic-slug]-[YYYY-MM-DD].json"
-python data_sources/modules/content_scrubber.py "[article]" --stage scrub --run-id "[run-id]" --previous-receipt "research/stage-receipts/[topic-slug]/draft.json" --stage-receipt-output "research/stage-receipts/[topic-slug]/scrub.json"
-python data_sources/modules/context_binding_generator.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --stage context_binding --run-id "[run-id]" --previous-receipt "research/stage-receipts/[topic-slug]/scrub.json" --stage-receipt-output "research/stage-receipts/[topic-slug]/context-binding.json"
-```
+BOM build currently accepts `--stage-receipt` for retained machine-owned governance receipts, such as Context Binding or readiness receipts. Do not use receipt tooling as a public-copy authoring proxy. Do not require a Python-generated article mutation receipt for prose written by the native command/agent workflow.
 
-For a final article with no Simpro brand, official or schemeless Simpro URL, or connector-sensitive language, generate the non-connector receipt with the shared applicability decision:
+Use this sequence after article copy, sidecar evidence, context evidence, editorial plan, SERP/PAA evidence, and required governance receipts exist:
 
 ```powershell
-python data_sources/modules/context_binding_generator.py "[article]" --proof-sidecar "[sidecar]" --not-applicable-reason "Final article contains no Simpro brand, URL, or connector-sensitive language." --stage context_binding --run-id "[run-id]" --previous-receipt "research/stage-receipts/[topic-slug]/scrub.json" --stage-receipt-output "research/stage-receipts/[topic-slug]/context-binding.json"
-```
-
-For that branch only, omit context request/pack/receipt, customer-proof selector, and Fred evidence arguments from BOM build, and omit context request/pack/receipt from readiness. The builder derives applicability from the final article; callers cannot declare a Simpro or proof-sensitive article `not_applicable`.
-
-Use this exact non-circular sequence. Add the applicable artifact arguments and repeat `--stage-receipt` for every closed stage:
-
-```powershell
-python data_sources/modules/blog_assembly_bom.py build "[article]" --validation-sidecar "[sidecar]" --editorial-plan "[editorial-plan]" --serp-evidence "[serp-evidence]" --paa-artifact "[paa-artifact]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --customer-proof-selector-evidence "[selector-evidence]" --fred-authority-evidence "[fred-evidence]" --stage-receipt "[closed-stage-receipt]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output "[provisional-bom]"
+python data_sources/modules/blog_assembly_bom.py build "[article]" --validation-sidecar "[sidecar]" --editorial-plan "[editorial-plan]" --serp-evidence "[serp-evidence]" --paa-artifact "[paa-artifact-or-brief]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --customer-proof-selector-evidence "[selector-evidence]" --fred-authority-evidence "[fred-evidence]" --stage-receipt "[governance-receipt]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output "[provisional-bom]"
 python data_sources/modules/publish_readiness.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --assembly-bom "[provisional-bom]" --phase preflight --output "[preflight-readiness]"
 python data_sources/modules/blog_assembly_bom.py finalize --bom "[provisional-bom]" --preflight-readiness "[preflight-readiness]" --output "[final-bom]"
-python data_sources/modules/publish_readiness.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --assembly-bom "[final-bom]" --phase final --output "[final-readiness-attestation]" --stage-receipt-output "[final-readiness-stage-receipt]"
+python data_sources/modules/publish_readiness.py "[article]" --proof-sidecar "[sidecar]" --context-request "[request]" --context-pack "[pack]" --context-receipt "[receipt]" --assembly-bom "[final-bom]" --phase final --output "[final-readiness-attestation]"
 ```
 
-Preflight accepts only a provisional BOM and must pass before finalization. Final readiness accepts only a final BOM and reruns every gate. It writes a detached final-readiness attestation that includes the final BOM hash and every final input hash; the attestation is not hashed back into the BOM. Readiness outputs declare `verification_scope: source_artifact` and do not imply CMS/rendered-page acceptance.
+Omit context request/pack/receipt only when Context Binding classifies the final article as non-connector and the validation sidecar records the not-applicable rationale. The builder derives applicability from the final article and rejects a non-connector branch for Simpro branding, official or schemeless Simpro URLs, or connector-sensitive language.
 
-For `--output "research/preflight-readiness-[topic-slug]-[YYYY-MM-DD].json"`, preflight automatically writes `research/preflight-readiness-[topic-slug]-[YYYY-MM-DD]-stage-receipt.json`. Do not create or name this companion receipt manually.
+Preflight accepts only a provisional BOM and must pass before finalization. Final readiness accepts only a final BOM, reruns every gate, and writes a detached final-readiness attestation bound to the final BOM and exact input hashes. Readiness outputs declare `verification_scope: source_artifact`; they do not claim CMS or rendered-page verification.
 
-Normal closed receipts are `draft` -> `scrub` -> `context_binding` -> `preflight_readiness`. Preserve the initial provisional BOM at `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`; finalize it out of place to `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-final.json`. The **Closed post-optimization receipt sequence** is `optimization` -> `post_optimization_scrub` -> `post_optimization_context_binding` -> `final_preflight_readiness`, appended after the normal draft/scrub/binding stages. Start and finish the optimization recorder around the edit, use the post-optimization stage names for the scrubber and Context Binding generator, and rebuild with optimizer evidence, all receipts, plus `--prior-preflight-readiness "research/preflight-readiness-[topic-slug]-[YYYY-MM-DD].json"`. Write that rebuilt provisional BOM to `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-post-optimization.json` and finalize it out of place to `research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD]-post-optimization-final.json`. Do not overwrite the BOM referenced by the prior preflight. Preflight-bound provisional BOMs and readiness results are immutable history. Any mutation after finalization invalidates the BOM and attestation, so resume from a mutation receipt and rebuild the seal with new versioned paths.
+`/publish-readiness` owns the scorecard. Blog readiness requires:
 
+- Content quality score of 85/100 or higher.
+- SEO quality score of 90/100 or higher with zero critical SEO issues.
+- AEO/GEO score of 90/100 or higher.
+
+An AEO/GEO or content score below threshold is a repair trigger, not a reporting endpoint. SEO critical issues are blocking even when the content score passes.
 ## PAA Provenance and Intent-Driven FAQ Policy
 
 - Every new article requires a structured AnswerSocrates artifact, even when no FAQ is useful.
@@ -131,7 +126,7 @@ Normal closed receipts are `draft` -> `scrub` -> `context_binding` -> `preflight
 
 ## Editorial Plan Contract
 
-Every new or changed blog requires `simpro-blog-editorial-plan/v1`, serialized from the existing ArticlePlan workflow rather than a parallel planning system. It must contain:
+Every new or changed blog requires `simpro-blog-editorial-plan/v1`, created through the native command/agent planning workflow rather than a parallel Python writing system. It must contain:
 
 - the complete Reader Contract;
 - verified intent and SERP decisions bound to `simpro-serp-evidence/v1`, including exact result observations, collection metadata, evidence path, canonical evidence hash, and observed features/structure; metadata-only verified labels do not qualify;
@@ -146,7 +141,7 @@ The BOM binds the final serialized plan path/hash. Publish readiness validates t
 
 ## Required Variable Resolution
 
-Before drafting with `/article`, `/write`, or `/rewrite`, resolve these variables from the user prompt, research brief, generated vault context binding, and repo context files only as fallback/mirror inputs. `/analyze-existing` must audit which inputs are present, missing, or blocked before a rewrite proceeds.
+Before drafting with `/write` or `/rewrite`, resolve these variables from the user prompt, research brief, generated vault context binding, and repo context files only as fallback/mirror inputs. `/analyze-existing` must audit which inputs are present, missing, or blocked before a rewrite proceeds.
 
 | Variable | First source | Fallback |
 |---|---|---|
@@ -170,7 +165,7 @@ Do not invent replacement questions, customer proof, author names, reviewer name
 
 ## E-E-A-T Proof Map
 
-Every `/article`, `/write`, and `/rewrite` plan must resolve an E-E-A-T Proof Map before drafting. `/analyze-existing` must report Experience proof present/missing, Expertise proof present/missing, case-study proof candidates, Review-site VoC candidates, review-site experience evidence candidates, and claims that must stay out because proof is missing.
+Every `/write` and `/rewrite` plan must resolve an E-E-A-T Proof Map before drafting. `/analyze-existing` must report Experience proof present/missing, Expertise proof present/missing, case-study proof candidates, Review-site VoC candidates, review-site experience evidence candidates, and claims that must stay out because proof is missing.
 
 | Dimension | Approved inputs | Public-copy rule |
 |---|---|---|
@@ -190,7 +185,7 @@ Required proof sources:
 
 ## Metric Proof Pack
 
-Every `/research`, `/article`, `/write`, `/analyze-existing`, and `/rewrite` workflow for software, comparison, pricing, cost, ROI, KPI, profit, margin, guide, or vs topics must resolve a Metric Proof Pack before numbers enter public copy.
+Every `/research`, `/write`, `/analyze-existing`, and `/rewrite` workflow for software, comparison, pricing, cost, ROI, KPI, profit, margin, guide, or vs topics must resolve a Metric Proof Pack before numbers enter public copy.
 
 Required Metric Proof Pack shape:
 
@@ -251,7 +246,7 @@ Review-theme evidence is VoC only unless it is identity-backed and link-backed t
 
 ## Customer Proof Pack
 
-Every `/research`, `/article`, `/write`, `/analyze-existing`, and `/rewrite` workflow must resolve a task-specific Customer Proof Pack before placing direct quotes, named customer proof, approved metrics, or review-derived Experience patterns in public copy. Keep the Quote Matrix external; do not bulk-load it into repo context.
+Every `/research`, `/write`, `/analyze-existing`, and `/rewrite` workflow must resolve a task-specific Customer Proof Pack before placing direct quotes, named customer proof, approved metrics, or review-derived Experience patterns in public copy. Keep the Quote Matrix external; do not bulk-load it into repo context.
 
 Use the Global Customer Quote Matrix first for exact customer quotes. Use Customer Stories, References, and public case studies to verify the story path and publishability. Use review sites for first-hand Experience patterns by default, not unverified testimonial harvesting. Metrics from `context/features.md` must pair with public proof paths from `context/internal-links-map.md`.
 
@@ -332,7 +327,7 @@ Case-study proof paths and Review-site experience evidence may support non-numer
 
 ## Fred Voccola Authority Selection
 
-Every `/research`, `/article`, `/write`, `/rewrite`, `/analyze-existing`, and `/optimize` workflow for a new or changed Simpro blog must resolve `topic`, `title`, and `objective`, automatically run:
+Every `/research`, `/write`, `/rewrite`, `/analyze-existing`, and `/optimize` workflow for a new or changed Simpro blog must resolve `topic`, `title`, and `objective`, automatically run:
 
 ```powershell
 python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --slate --limit 5 --output "research/fred-authority-selection-[topic-slug].md"
@@ -381,7 +376,7 @@ Existing articles and sidecars are not bulk-backfilled. This block becomes manda
 
 ## AnswerSocrates PAA Workflow
 
-For every new `/article` run, collect People Also Ask style questions from `https://answersocrates.com` with Playwright MCP.
+For every new `/write` run, collect People Also Ask style questions from `https://answersocrates.com` with Playwright MCP.
 
 Required browser flow:
 
@@ -466,7 +461,7 @@ When a PDF extraction or unreachable HTML fallback is necessary, also bind `Capt
 
 ## AEO/GEO Map
 
-Every `/article` plan and every moderate, major, or complete `/rewrite` plan must include:
+Every `/write` plan and every moderate, major, or complete `/rewrite` plan must include:
 
 | Field | Requirement |
 |---|---|
@@ -527,6 +522,6 @@ An AEO/GEO score below 90/100 is a repair trigger, not a reporting endpoint. Unl
 5. Treat every edit as a mutation. Rerun `/scrub` and Context Binding, rebuild the provisional BOM, run preflight, finalize only after it passes, then run detached final readiness using the Blog Assembly BOM and Two-Phase Seal sequence.
 6. Repeat once if needed. If AEO/GEO remains below 90/100 after 2 iterations, route the artifact to `review-required/` with the score, failed checks, attempted fixes, and any external evidence or authority blocker.
 
-`/optimize` is allowed inside this recovery loop when all proof, source, URL, and public-artifact gates pass but content quality or AEO/GEO does not. Final handoff still requires content quality of at least 85/100, AEO/GEO of at least 90/100, and every blocking gate to pass.
+`/optimize` is allowed inside this recovery loop when all proof, source, URL, and public-artifact gates pass but content quality, SEO quality, or AEO/GEO does not. Final handoff still requires content quality of at least 85/100, SEO quality of at least 90/100 with zero critical SEO issues, AEO/GEO of at least 90/100, and every blocking gate to pass.
 
 Below-threshold drafts route to revision or `review-required/` with notes explaining failed checks.

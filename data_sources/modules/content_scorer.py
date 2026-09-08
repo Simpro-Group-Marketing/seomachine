@@ -14,6 +14,7 @@ Readability now includes:
 - Paragraph length check (flags paragraphs >4 sentences)
 
 Composite score must be >= 85 to pass the general content quality threshold.
+SEO quality score must be >= 90 with no critical issues to pass the SEO gate.
 AEO/GEO score must be >= 90 to pass the generative-answer publishing gate.
 """
 
@@ -33,6 +34,7 @@ try:
     from .readability_scorer import ReadabilityScorer
     from .readiness_gate_context import trusted_readiness_findings
     from .review_story_identity_guard import check_content as check_review_story_identity
+    from .seo_quality_rater import PUBLISHING_THRESHOLD as SEO_PUBLISHING_THRESHOLD
     from .seo_quality_rater import SEOQualityRater
     from .source_support_guard import check_content as check_source_support
     from .url_validator import validate_content_urls
@@ -47,6 +49,7 @@ except ImportError:
     from readability_scorer import ReadabilityScorer
     from readiness_gate_context import trusted_readiness_findings
     from review_story_identity_guard import check_content as check_review_story_identity
+    from seo_quality_rater import PUBLISHING_THRESHOLD as SEO_PUBLISHING_THRESHOLD
     from seo_quality_rater import SEOQualityRater
     from source_support_guard import check_content as check_source_support
     from url_validator import validate_content_urls
@@ -660,8 +663,10 @@ class ContentScorer:
             },
             'seo_quality': {
                 'score': seo.get('score', 0),
-                'threshold': self.PASS_THRESHOLD,
+                'threshold': SEO_PUBLISHING_THRESHOLD,
                 'passed': seo_quality_passed,
+                'critical_issues': list(seo.get('critical_issues', [])),
+                'critical_issue_count': len(seo.get('critical_issues', [])),
             },
             'aeo_geo': {
                 'score': aeo_geo.get('score', 0),
@@ -1097,6 +1102,7 @@ class ContentScorer:
         return {
             'score': max(0, min(100, round(float(rated.get('overall_score', 0))))),
             'passed': bool(rated.get('publishing_ready', False)),
+            'critical_issues': list(rated.get('critical_issues', [])),
             'issues': issues,
             'details': details
         }

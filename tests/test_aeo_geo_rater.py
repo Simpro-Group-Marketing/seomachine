@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import hashlib
 import json
 import re
@@ -45,83 +47,9 @@ PAA/FAQ Provenance
   - Should HVAC scheduling connect to invoicing?
 ```
 """
-FAQ_PROOF_BLOCK = """
-```text
-## FAQ Source Policy
-- Allowed source classes: neutral, non_competing_expert.
-- Competitor-owned FAQ sources: prohibited.
-- Status: aligned.
+FAQ_PROOF_BLOCK = fixture_text("content_evidence:test_aeo_geo_rater-48-1")
 
-## FAQ Proof Map
-- FAQ: What is the best way to schedule HVAC technicians? | URL: https://www.fieldtechnologiesonline.com/ | Source class: neutral | Competitor check: passed | Evidence: scheduling workflow supports availability, priority, location, and skill-fit claims | Status: approved
-- FAQ: How does HVAC scheduling software reduce missed appointments? | URL: https://www.achrnews.com/ | Source class: neutral | Competitor check: passed | Evidence: mobile job details and status updates support appointment coordination claims | Status: approved
-- FAQ: Should HVAC scheduling connect to invoicing? | URL: https://www.mckinsey.com/ | Source class: neutral | Competitor check: passed | Evidence: invoicing workflow supports completed-work-to-invoice claims | Status: approved
-```
-"""
-
-COMPLIANT_ARTICLE = """---
-Meta Title: HVAC Scheduling Software for Contractors | Simpro
-Meta Description: HVAC scheduling software helps contractors assign jobs, avoid double-booking, and keep technicians moving from one real-time calendar.
-Primary Keyword: hvac scheduling software
-Author: Jordan Lee
-Last Updated: 2026-05-22
-PAA Workflow Mode: new
-PAA Expected Query: hvac scheduling software
-PAA Expected Collection Date: 2026-05-22
-schema_notes:
-  - BlogPosting
-  - BreadcrumbList
-  - FAQPage
-  - Question and Answer inside FAQPage
-  - ImageObject for the featured image or logo
-  - Organization as publisher reference only, not a separate full schema block
-  - Person as author
----
-
-# HVAC Scheduling Software for Contractors
-
-HVAC scheduling software helps contractors assign technicians, avoid double-booking, and keep customers updated from one real-time calendar. For growing trade businesses, the right scheduling workflow connects dispatch, mobile job details, inventory, and invoicing so office teams can protect margins without running the day from spreadsheets.
-
-> **Key Takeaways**
-> - HVAC scheduling software should show technician availability, job status, and customer commitments in one dispatch view.
-> - Contractors need mobile job details so field teams can finish work without calling the office for every update.
-> - The strongest scheduling workflows connect quoting, inventory, invoicing, and reporting instead of stopping at the calendar.
-
-## What does HVAC scheduling software do?
-
-HVAC scheduling software gives dispatchers a real-time view of technician availability, active jobs, locations, and urgent service requests. Teams use it to assign work, update schedules, send mobile job details, and notify customers when plans change. Simpro connects scheduling with quoting, inventory, invoicing, and reporting for stronger day-to-day job control.
-
-The scheduling workflow should make the next best action clear for dispatchers, technicians, and managers. According to [Field Technologies Online](https://www.fieldtechnologiesonline.com/), field teams need real-time visibility to reduce wasted trips and missed updates.
-
-## How should contractors choose scheduling software?
-
-Contractors should choose scheduling software by matching the system to the work they actually run: service calls, planned maintenance, installations, and quoted project work. The best fit supports mobile updates, recurring jobs, drag-and-drop dispatch, customer notifications, and reporting that shows whether the schedule improved labor use, revenue timing, or profitability.
-
-That means the buying process should include workflow testing, not only feature comparison. The [ACHR News](https://www.achrnews.com/) regularly covers HVAC labor constraints, which makes dispatch efficiency a practical operating issue rather than a software preference.
-
-## Why does scheduling affect profit?
-
-Scheduling affects profit because every missed appointment, double-booking, and underprepared site visit creates labor leakage. A strong schedule protects billable hours, keeps technicians focused on the right work, and gives managers earlier warning when jobs are slipping. For HVAC contractors, dispatch discipline shapes margin visibility before the invoice reaches accounting.
-
-The profit impact compounds when scheduling is connected to job costing. Research from [McKinsey](https://www.mckinsey.com/) has shown that field productivity depends on better planning, tighter coordination, and faster information flow across operational teams.
-
-[Schaffer Beacon Mechanical](https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical) shows how field service teams use connected workflows to improve operational control.
-""" + PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK + """
-
-## Frequently Asked Questions
-
-### What is the best way to schedule HVAC technicians?
-
-The best way to schedule HVAC technicians is to use [field service scheduling](https://www.fieldtechnologiesonline.com/) that shows availability, job priority, location, and skill fit. This helps office teams assign work without overloading technicians or missing urgent calls. Mobile updates then keep the schedule accurate as jobs change during the day.
-
-### How does HVAC scheduling software reduce missed appointments?
-
-HVAC scheduling software reduces missed appointments by centralizing job details, technician assignments, customer notifications, and status updates. Dispatchers can see conflicts before they become failures, while technicians receive the latest job information through a [field service mobile app](https://www.achrnews.com/). Automated reminders also reduce no-shows and last-minute customer confusion.
-
-### Should HVAC scheduling connect to invoicing?
-
-HVAC scheduling should connect to invoicing because completed work loses value when job details stay trapped in the field. When technician notes, labor time, materials, and approvals flow into [field service invoicing](https://www.mckinsey.com/), office teams can invoice faster. That reduces rework, protects cash flow, and improves job-level reporting.
-"""
+COMPLIANT_ARTICLE = fixture_text("content_evidence:test_aeo_geo_rater-62-10") + PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK + fixture_text("content_evidence:test_aeo_geo_rater-109-2")
 
 
 def write_paa_fixture(test_case: unittest.TestCase, content: str) -> str:
@@ -225,19 +153,7 @@ def write_bound_experience_story_evidence(
             ]
         )
     test_case.assertEqual(exit_code, 0, stderr.getvalue())
-    sidecar = PAA_PROVENANCE_BLOCK + "\n## " + stdout.getvalue() + """
-
-## Selected Customer Proof Mining
-- Proof: review-capterra-qbo-service-jobs-quotes-invoices | Customer: Capterra owner review with QBO integration | URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/
-- Checked for: exact quotes, customer metrics, POV story, workflow themes
-- Usable quotes found: none found
-- Usable metrics found: none found
-- Usable POV/story found: Megan B describes using service jobs, quotes, invoices, and QBO integration.
-- Recommended use: identity-backed experience story in the scheduling workflow section
-- Final use in copy: Megan B experience story in the scheduling workflow section
-- Excluded proof: exact review wording and ratings
-- Status: approved
-"""
+    sidecar = PAA_PROVENANCE_BLOCK + "\n## " + stdout.getvalue() + fixture_text("content_evidence:test_aeo_geo_rater-228-3")
     sidecar_path = root / "validation-hvac-scheduling.md"
     sidecar_path.write_text(sidecar, encoding="utf-8")
     return sidecar, sidecar_path
@@ -245,24 +161,7 @@ def write_bound_experience_story_evidence(
 
 class AeoGeoRaterTests(unittest.TestCase):
     def test_rate_api_accepts_bound_quality_context_for_no_faq_article(self):
-        no_faq = '''---
-primary_keyword: field service scheduling
-last_updated: 2026-05-22
-schema_notes:
-  - BlogPosting
-  - BreadcrumbList
-  - ImageObject for the featured image or logo
-  - Organization as publisher reference only, not a separate full schema block
----
-
-# Field Service Scheduling
-
-Field service scheduling helps dispatchers assign work from one calendar.
-
-## Dispatch workflow
-
-Field service scheduling gives teams a reliable view of current work and technician capacity. Dispatchers can match urgent jobs to available technicians, update assignments as conditions change, and keep office and field staff working from the same operating picture throughout the service day.
-'''
+        no_faq = fixture_text("content_evidence:test_aeo_geo_rater-248-4")
         with patch(
             'data_sources.modules.blog_assembly_contract.current_utc_date',
             return_value=date(2026, 5, 22),
@@ -295,20 +194,7 @@ Field service scheduling gives teams a reliable view of current work and technic
 
     def test_topic_qualified_frequently_asked_questions_heading_is_recognized(self):
         result = _check_faq_questions(
-            """## Frequently asked questions about job sheets
-
-### Do job sheets need to be signed by the customer?
-
-This answer has enough detail for the question parser.
-
-### Can a job sheet be used as proof of work?
-
-This answer has enough detail for the question parser.
-
-### When should a job sheet be completed?
-
-This answer has enough detail for the question parser.
-"""
+            fixture_text("content_evidence:test_aeo_geo_rater-298-11")
         )
 
         self.assertTrue(result["passed"])
@@ -381,10 +267,7 @@ This answer has enough detail for the question parser.
                 ]
             )
         self.assertEqual(exit_code, 0, stderr.getvalue())
-        sidecar = """## E-E-A-T Proof Map
-- First-hand evidence decision: Selected: [none] because no approved customer story in the selector slate substantiates this article objective.
-
-## """ + stdout.getvalue()
+        sidecar = fixture_text("content_evidence:test_aeo_geo_rater-384-12") + stdout.getvalue()
         sidecar_path = root / "validation-job-sheets.md"
         sidecar_path.write_text(sidecar, encoding="utf-8")
         return sidecar, sidecar_path, index_path
@@ -545,31 +428,12 @@ This answer has enough detail for the question parser.
 
         self.assertFalse(result)
     def test_no_fit_boundary_rejects_unverifiable_typed_hash(self):
-        sidecar = """## Customer proof selector
-
-- Selector command: python data_sources/modules/customer_proof_selector.py "job sheets for UK field service teams" --title "What is a job sheet?" --objective "Define job sheets" --require-eeat-story --slate --roles metric,quote,theme,experience_story --limit 10
-- Selector execution: completed | Exit code: 0 | Output SHA-256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-
-## E-E-A-T Proof Map
-- First-hand evidence decision: Selected: [none] because no approved, brand-appropriate customer story supports this article objective.
-
-## Customer Proof Slate
-- Role: experience_story | Top candidates: [none] | Selected: [none] | Rejected stronger candidates: [none: no eligible candidate exists because the proof index has no brand-appropriate story for this article]
-"""
+        sidecar = fixture_text("content_evidence:test_aeo_geo_rater-548-5")
 
         self.assertFalse(_has_documented_no_fit_experience_boundary(sidecar))
 
     def test_no_fit_boundary_rejects_a_copied_selector_command_without_receipt(self):
-        sidecar = """## Customer proof selector
-
-- Selector command: python data_sources/modules/customer_proof_selector.py "job sheets for UK field service teams" --title "What is a job sheet?" --objective "Define job sheets" --require-eeat-story --slate --roles metric,quote,theme,experience_story --limit 10
-
-## E-E-A-T Proof Map
-- First-hand evidence decision: Selected: [none] because no approved, brand-appropriate customer story supports this article objective.
-
-## Customer Proof Slate
-- Role: experience_story | Top candidates: [none] | Selected: [none] | Rejected stronger candidates: [none: no eligible candidate exists because the proof index has no brand-appropriate story for this article]
-"""
+        sidecar = fixture_text("content_evidence:test_aeo_geo_rater-563-6")
 
         self.assertFalse(_has_documented_no_fit_experience_boundary(sidecar))
 
@@ -694,32 +558,7 @@ This answer has enough detail for the question parser.
         self.assertEqual(first_two, mixed_line)
 
     def test_faq_question_gate_allows_six_natural_language_questions(self):
-        content = """## FAQ
-
-### What is field service management software?
-
-Answer.
-
-### Who uses field service management software?
-
-Answer.
-
-### How does field service management software help dispatch?
-
-Answer.
-
-### How much does field service management software cost?
-
-Answer.
-
-### Which field service management software fits growing contractors?
-
-Answer.
-
-### Should I choose an all-in-one FSM platform or a simpler scheduling app?
-
-Answer.
-"""
+        content = fixture_text("content_evidence:test_aeo_geo_rater-697-7")
 
         result = _check_faq_questions(content)
 
@@ -727,12 +566,7 @@ Answer.
         self.assertEqual(result["details"]["question_count"], 6)
 
     def test_faq_question_gate_has_no_fixed_minimum_or_maximum(self):
-        one_question = """## Common questions
-
-### What does scheduling software do?
-
-Answer.
-"""
+        one_question = fixture_text("content_evidence:test_aeo_geo_rater-730-8")
         seven_questions = "## Questions and answers\n\n" + "\n\n".join(
             f"### What is scheduling decision {index}?\n\nAnswer."
             for index in range(1, 8)
@@ -747,20 +581,7 @@ Answer.
         self.assertEqual(seven_result["details"]["question_count"], 7)
 
     def test_faq_question_gate_accepts_h3_through_h5_question_headings(self):
-        content = '''## FAQ
-
-### What does scheduling software do?
-
-Answer.
-
-#### How should dispatchers assign urgent work?
-
-Answer.
-
-##### Should technicians receive mobile updates?
-
-Answer.
-'''
+        content = fixture_text("content_evidence:test_aeo_geo_rater-750-9")
 
         result = _check_faq_questions(content)
 
@@ -893,15 +714,7 @@ Answer.
             "\n[Schaffer Beacon Mechanical](https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical) shows how field service teams use connected workflows to improve operational control.\n",
             "\n[Megan B's Capterra review](https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/) describes a service business using Simpro for service jobs, recurring jobs, quotes, invoices, and QBO integration.\n",
         )
-        proof_sidecar = PAA_PROVENANCE_BLOCK + """
-```text
-Review Story Selection
-- Article title: HVAC Scheduling Software for Contractors
-- Content objective: explain connected field-service workflows
-- Selected story: review-capterra-megan-qbo-quotes | Identity: Megan B | Platform: Capterra | URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/ | Workflow story: owner describes service jobs, recurring jobs, quotes, invoices, and QBO integration | Status: approved | Use: E-E-A-T experience story
-- Article link requirement: same paragraph as review-derived paraphrase must link to the selected public review URL
-```
-"""
+        proof_sidecar = PAA_PROVENANCE_BLOCK + fixture_text("content_evidence:test_aeo_geo_rater-896-13")
 
         result = rate_aeo_geo(
             content,
@@ -933,13 +746,7 @@ Review Story Selection
             "https://www.simprogroup.com/features/scheduling-software",
             "https://www.clockshark.com/industries/construction-trades",
         )
-        proof_sidecar = PAA_PROVENANCE_BLOCK + """
-```text
-E-E-A-T Proof Map
-- Experience proof: The rewrite uses first-party ClockShark workflow evidence from https://www.clockshark.com/blog/construction-draw-schedule and https://www.clockshark.com/tour/job-management. No customer quote, customer metric, or review story appears in public copy. | Status: approved for public use
-- Expertise proof: The rewrite uses source-backed workflow explanation plus ClockShark construction and job-management pages.
-```
-"""
+        proof_sidecar = PAA_PROVENANCE_BLOCK + fixture_text("content_evidence:test_aeo_geo_rater-936-14")
 
         result = rate_aeo_geo(
             content,
@@ -958,10 +765,7 @@ E-E-A-T Proof Map
             "\n[Schaffer Beacon Mechanical](https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical) shows how field service teams use connected workflows to improve operational control.\n",
             "\nThe article does not use customer experience proof.\n",
         )
-        proof_sidecar = PAA_PROVENANCE_BLOCK + """
-## E-E-A-T Proof Map
-- Experience proof: URL: https://example.com/invented | Proof type: identity-backed experience | Evidence: invented customer workflow story | Status: approved
-"""
+        proof_sidecar = PAA_PROVENANCE_BLOCK + fixture_text("content_evidence:test_aeo_geo_rater-961-15")
 
         result = rate_aeo_geo(
             content,
@@ -1032,17 +836,7 @@ E-E-A-T Proof Map
 
     def test_handwritten_no_fit_boundary_without_selector_evidence_fails_closed(self):
         result = self.rate_without_customer_experience(
-            """
-```text
-E-E-A-T Proof Map
-- First-hand evidence decision: Selected: [none]. No approved identity-backed source in the selector slate substantiates women choosing or working in the ranked trades.
-```
-
-```text
-Customer Proof Slate
-- Role: experience_story | Top candidates: [review-capterra-trades-sme-job-costing-xero-qbo] | Selected: [none] | Rejected stronger candidates: [review-capterra-trades-sme-job-costing-xero-qbo: omitted because this software-user story does not substantiate the article's women-in-trades career objective]
-```
-"""
+            fixture_text("content_evidence:test_aeo_geo_rater-1035-16")
         )
         details = result["checks"]["eeat_proof"]["details"]
 
@@ -1054,102 +848,42 @@ Customer Proof Slate
 
     def test_documented_no_fit_requires_substantive_first_hand_reason(self):
         result = self.rate_without_customer_experience(
-            """
-```text
-E-E-A-T Proof Map
-- First-hand evidence decision: Selected: [none]. No fit.
-```
-
-```text
-Customer Proof Slate
-- Role: experience_story | Top candidates: [review-capterra-trades-sme-job-costing-xero-qbo] | Selected: [none] | Rejected stronger candidates: [review-capterra-trades-sme-job-costing-xero-qbo: omitted because this software-user story does not substantiate the article's women-in-trades career objective]
-```
-"""
+            fixture_text("content_evidence:test_aeo_geo_rater-1057-17")
         )
 
         self.assertFalse(result["checks"]["eeat_proof"]["passed"])
 
     def test_documented_no_fit_requires_experience_story_rejection_reason(self):
         result = self.rate_without_customer_experience(
-            """
-```text
-E-E-A-T Proof Map
-- First-hand evidence decision: Selected: [none]. No approved identity-backed source in the selector slate substantiates women choosing or working in the ranked trades.
-```
-
-```text
-Customer Proof Slate
-- Role: experience_story | Top candidates: [review-capterra-trades-sme-job-costing-xero-qbo] | Selected: [none] | Rejected stronger candidates: [none]
-```
-"""
+            fixture_text("content_evidence:test_aeo_geo_rater-1074-18")
         )
 
         self.assertFalse(result["checks"]["eeat_proof"]["passed"])
 
     def test_documented_no_fit_rejects_non_substantive_candidate_reason(self):
         result = self.rate_without_customer_experience(
-            """
-```text
-E-E-A-T Proof Map
-- First-hand evidence decision: Selected: [none]. No approved identity-backed source in the selector slate substantiates women choosing or working in the ranked trades.
-```
-
-```text
-Customer Proof Slate
-- Role: experience_story | Top candidates: [x] | Selected: [none] | Rejected stronger candidates: [x: y]
-```
-"""
+            fixture_text("content_evidence:test_aeo_geo_rater-1091-19")
         )
 
         self.assertFalse(result["checks"]["eeat_proof"]["passed"])
 
     def test_documented_no_fit_requires_a_real_top_candidate(self):
         result = self.rate_without_customer_experience(
-            """
-```text
-E-E-A-T Proof Map
-- First-hand evidence decision: Selected: [none]. No approved identity-backed source in the selector slate substantiates women choosing or working in the ranked trades.
-```
-
-```text
-Customer Proof Slate
-- Role: experience_story | Top candidates: [none] | Selected: [none] | Rejected stronger candidates: [none: omitted because this placeholder story does not substantiate the article's women-in-trades career objective]
-```
-"""
+            fixture_text("content_evidence:test_aeo_geo_rater-1108-20")
         )
 
         self.assertFalse(result["checks"]["eeat_proof"]["passed"])
 
     def test_documented_no_fit_rejects_null_pseudo_candidate(self):
         result = self.rate_without_customer_experience(
-            """
-```text
-E-E-A-T Proof Map
-- First-hand evidence decision: Selected: [none]. No approved identity-backed source in the selector slate substantiates women choosing or working in the ranked trades.
-```
-
-```text
-Customer Proof Slate
-- Role: experience_story | Top candidates: [null] | Selected: [none] | Rejected stronger candidates: [null: omitted because this placeholder story does not substantiate the article's women-in-trades career objective]
-```
-"""
+            fixture_text("content_evidence:test_aeo_geo_rater-1125-21")
         )
 
         self.assertFalse(result["checks"]["eeat_proof"]["passed"])
 
     def test_documented_no_fit_rejects_unknown_proof_id(self):
         result = self.rate_without_customer_experience(
-            """
-```text
-E-E-A-T Proof Map
-- First-hand evidence decision: Selected: [none]. No approved identity-backed source in the selector slate substantiates women choosing or working in the ranked trades.
-```
-
-```text
-Customer Proof Slate
-- Role: experience_story | Top candidates: [review-capterra-invented-proof-id] | Selected: [none] | Rejected stronger candidates: [review-capterra-invented-proof-id: omitted because this invented story does not substantiate the article's women-in-trades career objective]
-```
-"""
+            fixture_text("content_evidence:test_aeo_geo_rater-1142-22")
         )
 
         self.assertFalse(result["checks"]["eeat_proof"]["passed"])
@@ -1185,29 +919,14 @@ Customer Proof Slate
         _proof_ids,
     ):
         result = self.rate_without_customer_experience(
-            """
-```text
-E-E-A-T Proof Map
-- First-hand evidence decision: Selected: [none]. No approved identity-backed source in the selector slate substantiates women choosing or working in the ranked trades.
-```
-
-```text
-Customer Proof Slate
-- Role: experience_story | Top candidates: [review-capterra-trades-sme-job-costing-xero-qbo] | Selected: [none] | Rejected stronger candidates: [review-capterra-trades-sme-job-costing-xero-qbo: omitted because this software-user story does not substantiate the article's women-in-trades career objective]
-```
-"""
+            fixture_text("content_evidence:test_aeo_geo_rater-1188-23")
         )
 
         self.assertFalse(result["checks"]["eeat_proof"]["passed"])
 
     def test_aggregate_workforce_statistics_do_not_satisfy_experience(self):
         result = self.rate_without_customer_experience(
-            """
-```text
-E-E-A-T Proof Map
-- Experience proof: URL: https://www.apprenticeship.gov/sites/default/files/DOLIndFSWomen_043024-508.pdf | Evidence: aggregate workforce participation statistics, not a customer story, testimonial, or individual lived-experience claim. | Status: approved
-```
-"""
+            fixture_text("content_evidence:test_aeo_geo_rater-1205-24")
         )
 
         self.assertFalse(result["checks"]["eeat_proof"]["passed"])
@@ -1218,12 +937,7 @@ E-E-A-T Proof Map
 
     def test_numeric_apprenticeship_evidence_does_not_satisfy_experience(self):
         result = self.rate_without_customer_experience(
-            """
-```text
-E-E-A-T Proof Map
-- Experience proof: URL: https://www.apprenticeship.gov/data-and-statistics | Evidence: 108,829 women were active apprentices in FY 2023. | Status: approved
-```
-"""
+            fixture_text("content_evidence:test_aeo_geo_rater-1221-25")
         )
 
         self.assertFalse(result["checks"]["eeat_proof"]["passed"])
@@ -1234,12 +948,7 @@ E-E-A-T Proof Map
 
     def test_unavailable_first_hand_evidence_does_not_satisfy_experience(self):
         result = self.rate_without_customer_experience(
-            """
-```text
-E-E-A-T Proof Map
-- Experience proof: URL: https://example.com/source | Evidence: First-hand evidence is not available. | Status: approved
-```
-"""
+            fixture_text("content_evidence:test_aeo_geo_rater-1237-26")
         )
 
         self.assertFalse(result["checks"]["eeat_proof"]["passed"])
@@ -1250,12 +959,7 @@ E-E-A-T Proof Map
 
     def test_post_negated_first_hand_evidence_does_not_satisfy_experience(self):
         result = self.rate_without_customer_experience(
-            """
-```text
-E-E-A-T Proof Map
-- Experience proof: URL: https://example.com/source | Evidence: The article uses first-hand evidence, but it is unavailable. | Status: approved for public use
-```
-"""
+            fixture_text("content_evidence:test_aeo_geo_rater-1253-27")
         )
 
         self.assertFalse(result["checks"]["eeat_proof"]["passed"])
@@ -1314,12 +1018,7 @@ E-E-A-T Proof Map
 
     def test_generic_first_hand_experience_requires_proof_type(self):
         result = self.rate_without_customer_experience(
-            """
-```text
-E-E-A-T Proof Map
-- Experience proof: URL: https://example.com/source | Evidence: The article uses first-hand experience evidence from an identity-backed public account. | Status: approved
-```
-"""
+            fixture_text("content_evidence:test_aeo_geo_rater-1317-28")
         )
 
         self.assertFalse(result["checks"]["eeat_proof"]["passed"])
@@ -1330,24 +1029,14 @@ E-E-A-T Proof Map
 
     def test_generic_experience_proof_type_requires_exact_allowlist_value(self):
         result = self.rate_without_customer_experience(
-            """
-```text
-E-E-A-T Proof Map
-- Experience proof: URL: https://example.com/source | Proof type: first-hand evidence but unavailable | Evidence: The article uses first-hand evidence. | Status: approved
-```
-"""
+            fixture_text("content_evidence:test_aeo_geo_rater-1333-29")
         )
 
         self.assertFalse(result["checks"]["eeat_proof"]["passed"])
 
     def test_experience_proof_without_status_does_not_satisfy_experience(self):
         result = self.rate_without_customer_experience(
-            """
-```text
-E-E-A-T Proof Map
-- Experience proof: URL: https://example.com/source | Evidence: The article uses first-hand experience evidence from an identity-backed public account.
-```
-"""
+            fixture_text("content_evidence:test_aeo_geo_rater-1345-30")
         )
 
         self.assertFalse(result["checks"]["eeat_proof"]["passed"])

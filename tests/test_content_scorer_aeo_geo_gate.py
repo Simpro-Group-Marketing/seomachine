@@ -1,10 +1,14 @@
+from tests.fixture_text import fixture_text
+
 import json
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+from data_sources.modules import content_scorer as content_scorer_module
 from data_sources.modules.content_scorer import ContentScorer
+from data_sources.modules.seo_quality_rater import PUBLISHING_THRESHOLD
 from data_sources.modules.paa_provenance_guard import build_answersocrates_artifact
 from data_sources.modules.url_validator import UrlValidationResult, UrlValidationSummary
 from tests.test_aeo_geo_rater import write_bound_experience_story_evidence
@@ -24,19 +28,7 @@ PAA/FAQ Provenance
   - Should HVAC scheduling connect to invoicing?
 ```
 """
-FAQ_PROOF_BLOCK = """
-```text
-## FAQ Source Policy
-- Allowed source classes: neutral, non_competing_expert.
-- Competitor-owned FAQ sources: prohibited.
-- Status: aligned.
-
-## FAQ Proof Map
-- FAQ: What is the best way to schedule HVAC technicians? | URL: https://www.fieldtechnologiesonline.com/ | Source class: neutral | Competitor check: passed | Evidence: scheduling workflow supports availability, priority, location, and skill-fit claims | Status: approved
-- FAQ: How does HVAC scheduling software reduce missed appointments? | URL: https://www.achrnews.com/ | Source class: neutral | Competitor check: passed | Evidence: mobile job details and status updates support appointment coordination claims | Status: approved
-- FAQ: Should HVAC scheduling connect to invoicing? | URL: https://www.mckinsey.com/ | Source class: neutral | Competitor check: passed | Evidence: invoicing workflow supports completed-work-to-invoice claims | Status: approved
-```
-"""
+FAQ_PROOF_BLOCK = fixture_text("content_evidence:test_content_scorer_aeo_geo_gate-29-1")
 METRIC_PROOF_BLOCK = f"""
 ```text
 Metric Proof Pack
@@ -45,103 +37,9 @@ Metric Proof Pack
 - Approved metric: Simpro supports more than 24,000 trade businesses | URL: {METRIC_ARTIFACT} | Evidence: "more than 24,000 trade businesses" | Status: approved | Use: platform scale proof
 ```
 """
-CUSTOMER_PROOF_BLOCK = """
-```text
-Customer Proof Slate
-- Selector command: python data_sources/modules/customer_proof_selector.py "hvac scheduling software" --proof-role theme --limit 10
-- Role: metric | Top candidates: [quote-matrix-bwe-engineering-job-to-invoice] | Selected: [quote-matrix-bwe-engineering-job-to-invoice] | Rejected stronger candidates: [none]
-- Role: quote | Top candidates: [quote-matrix-bwe-engineering-job-to-invoice] | Selected: [none] | Rejected stronger candidates: [none]
-- Role: theme | Top candidates: [quote-matrix-bwe-engineering-job-to-invoice] | Selected: [quote-matrix-bwe-engineering-job-to-invoice] | Rejected stronger candidates: [none]
-- Role: experience_story | Top candidates: [review-capterra-owner-quote-invoice] | Selected: [none] | Rejected stronger candidates: [review-capterra-owner-quote-invoice: omitted because this fixture uses case-study workflow proof instead of a review POV story]
+CUSTOMER_PROOF_BLOCK = fixture_text("content_evidence:test_content_scorer_aeo_geo_gate-50-2")
 
-Selected Customer Proof Mining
-- Proof: quote-matrix-bwe-engineering-job-to-invoice | Customer: BWE Engineering | URL: https://www.simprogroup.com/case-studies/bwe-engineering
-- Checked for: exact quotes, customer metrics, POV story, workflow themes
-- Usable quotes found: none found
-- Usable metrics found: none found
-- Usable POV/story found: none found
-- Recommended use: theme
-- Final use in copy: paraphrased case-study workflow proof only
-- Excluded proof: none
-- Status: approved
-
-Customer Proof Pack
-- Pack status: ready.
-- Quote Matrix candidates: Checked Quote Matrix for HVAC scheduling proof; no exact quote selected for this test fixture.
-- Case-study proof path: BWE Engineering, URL: https://www.simprogroup.com/case-studies/bwe-engineering, supported theme: job-card, invoicing, cash-flow, and field-service workflow.
-- Review-site experience evidence: G2, https://www.g2.com/products/simpro/reviews, date checked 2026-06-12, product: Simpro, experience pattern: field workflow pain, evidence summary: reviewers discuss dispatch and field visibility, exact quote/rating approval status: not approved.
-- Use in copy: paraphrased case-study proof only.
-- Claims excluded: exact review quotes and ratings.
-
-Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "hvac scheduling software" --proof-role theme
-- Selected proof: quote-matrix-bwe-engineering-job-to-invoice | Customer: BWE Engineering | URL: https://www.simprogroup.com/case-studies/bwe-engineering | Use: field-service workflow proof
-```
-"""
-
-COMPLIANT_ARTICLE = """---
-Meta Title: HVAC Scheduling Software for Contractors | Simpro
-Meta Description: HVAC scheduling software helps contractors assign jobs, avoid double-booking, and keep technicians moving from one real-time calendar.
-Primary Keyword: hvac scheduling software
-Author: Jordan Lee
-Last Updated: 2026-05-22
-PAA Workflow Mode: new
-PAA Expected Query: hvac scheduling software
-PAA Expected Collection Date: 2026-05-22
-schema_notes:
-  - BlogPosting
-  - BreadcrumbList
-  - FAQPage
-  - Question and Answer inside FAQPage
-  - ImageObject for the featured image or logo
-  - Organization as publisher reference only, not a separate full schema block
-  - Person as author
----
-
-# HVAC Scheduling Software for Contractors
-
-HVAC scheduling software helps contractors assign technicians, avoid double-booking, and keep customers updated from one real-time calendar. For growing trade businesses, the right scheduling workflow connects dispatch, mobile job details, inventory, and invoicing so office teams can protect margins without running the day from spreadsheets.
-
-> **Key Takeaways**
-> - HVAC scheduling software should show technician availability, job status, and customer commitments in one dispatch view.
-> - Contractors need mobile job details so field teams can finish work without calling the office for every update.
-> - The strongest scheduling workflows connect quoting, inventory, invoicing, and reporting instead of stopping at the calendar.
-
-## What does HVAC scheduling software do?
-
-HVAC scheduling software gives dispatchers a real-time view of technician availability, active jobs, locations, and urgent service requests. Teams use it to assign work, update schedules, send mobile job details, and notify customers when plans change. Simpro connects scheduling with quoting, inventory, invoicing, and reporting for stronger day-to-day job control.
-
-The scheduling workflow should make the next best action clear for dispatchers, technicians, and managers. According to [Field Technologies Online](https://www.fieldtechnologiesonline.com/), field teams need real-time visibility to reduce wasted trips and missed updates.
-
-## How should contractors choose scheduling software?
-
-Contractors should choose scheduling software by matching the system to the work they actually run: service calls, planned maintenance, installations, and quoted project work. The best fit supports mobile updates, recurring jobs, drag-and-drop dispatch, customer notifications, and reporting that shows whether the schedule improved labor use, revenue timing, or profitability.
-
-That means the buying process should include workflow testing, not only feature comparison. The [ACHR News](https://www.achrnews.com/) regularly covers HVAC labor constraints, which makes dispatch efficiency a practical operating issue rather than a software preference.
-
-## Why does scheduling affect profit?
-
-Scheduling affects profit because every missed appointment, double-booking, and underprepared site visit creates labor leakage. A strong schedule protects billable hours, keeps technicians focused on the right work, and gives managers earlier warning when jobs are slipping. For HVAC contractors, dispatch discipline shapes margin visibility before the invoice reaches accounting.
-
-The profit impact compounds when scheduling is connected to job costing. Research from [McKinsey](https://www.mckinsey.com/) has shown that field productivity depends on better planning, tighter coordination, and faster information flow across operational teams.
-
-[BWE Engineering](https://www.simprogroup.com/case-studies/bwe-engineering) shows how field service teams use connected workflows to improve operational control.
-""" + METRIC_PROOF_BLOCK + PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK + CUSTOMER_PROOF_BLOCK + """
-
-## Frequently Asked Questions
-
-### What is the best way to schedule HVAC technicians?
-
-The best way to schedule HVAC technicians is to use [field service scheduling](https://www.fieldtechnologiesonline.com/) that shows availability, job priority, location, and skill fit. This helps office teams assign work without overloading technicians or missing urgent calls. Mobile updates then keep the schedule accurate as jobs change during the day.
-
-### How does HVAC scheduling software reduce missed appointments?
-
-HVAC scheduling software reduces missed appointments by centralizing job details, technician assignments, customer notifications, and status updates. Dispatchers can see conflicts before they become failures, while technicians receive the latest job information through a [field service mobile app](https://www.achrnews.com/). Automated reminders also reduce no-shows and last-minute customer confusion.
-
-### Should HVAC scheduling connect to invoicing?
-
-HVAC scheduling should connect to invoicing because completed work loses value when job details stay trapped in the field. When technician notes, labor time, materials, and approvals flow into [field service invoicing](https://www.mckinsey.com/), office teams can invoice faster. That reduces rework, protects cash flow, and improves job-level reporting.
-"""
+COMPLIANT_ARTICLE = fixture_text("content_evidence:test_content_scorer_aeo_geo_gate-84-10") + METRIC_PROOF_BLOCK + PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK + CUSTOMER_PROOF_BLOCK + fixture_text("content_evidence:test_content_scorer_aeo_geo_gate-131-3")
 
 
 def write_paa_fixture(test_case: unittest.TestCase, content: str) -> str:
@@ -206,6 +104,10 @@ def write_sidecar_fixture(test_case: unittest.TestCase, content: str) -> tuple[s
 
 
 class ContentScorerAeoGeoGateTests(unittest.TestCase):
+    def test_seo_gate_uses_the_canonical_seo_quality_threshold(self):
+        self.assertEqual(content_scorer_module.SEO_PUBLISHING_THRESHOLD, PUBLISHING_THRESHOLD)
+        self.assertFalse(hasattr(ContentScorer, "SEO_PASS_THRESHOLD"))
+
     def test_legacy_70_score_no_longer_meets_quality_threshold(self):
         scorer = ContentScorer()
 
@@ -213,16 +115,7 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
 
     def test_humanity_lint_uses_raw_markdown_context(self):
         scorer = ContentScorer()
-        content = """# HVAC PPC Guide
-
-[Simpro's HVAC software](https://www.simprogroup.com/industries/hvac-software) page connects customer contact, invoicing, payment, office-to-field communication, automated tasks, quotes, job cards, and reporting.
-
-## FAQ
-
-### Is PPC just Google Ads?
-
-No. PPC is a pricing model for ad clicks.
-"""
+        content = fixture_text("content_evidence:test_content_scorer_aeo_geo_gate-222-4")
 
         result = scorer.score(content, {"primary_keyword": "hvac ppc"})
 
@@ -253,24 +146,7 @@ No. PPC is a pricing model for ad clicks.
 
     def test_score_seo_records_word_count_without_short_content_issue(self):
         scorer = ContentScorer()
-        content = """---
-meta_title: HVAC Scheduling Software for Contractors | Simpro
-meta_description: HVAC scheduling software helps contractors assign jobs, avoid double-booking, and keep technicians moving from one real-time calendar.
-primary_keyword: hvac scheduling software
----
-
-# HVAC Scheduling Software for Contractors
-
-HVAC scheduling software helps contractors assign technicians, avoid double-booking, and keep customers updated from one real-time calendar.
-
-## HVAC scheduling software workflow
-
-Dispatchers need technician availability, job status, and customer commitments in one practical view.
-
-## Connected scheduling decisions
-
-The strongest workflow connects quoting, inventory, invoicing, and reporting instead of stopping at the calendar.
-"""
+        content = fixture_text("content_evidence:test_content_scorer_aeo_geo_gate-262-5")
 
         result = scorer._score_seo(content, {})
         issues = [issue["issue"] for issue in result["issues"]]
@@ -280,27 +156,8 @@ The strongest workflow connects quoting, inventory, invoicing, and reporting ins
 
     def test_content_dimensions_ignore_arbitrary_yaml_frontmatter(self):
         scorer = ContentScorer()
-        body = """# HVAC Scheduling Software for Contractors
-
-HVAC scheduling software helps dispatchers assign technicians and keep job records current. Office teams review skills, locations, customer commitments, and parts before updating the schedule.
-
-## HVAC scheduling software workflow
-
-Dispatchers prioritize urgent calls, assign the right technician, and update customers when plans change. Technicians close the job record after field work so invoicing can start without rekeying details.
-
-- Review technician availability.
-- Confirm customer access.
-- Update the job and invoice handoff.
-"""
-        frontmatter = """---
-noise:
-  - "Many various important statements that must not reduce specificity."
-  - "A deliberately complicated metadata sentence containing bureaucratic terminology and excessive subordinate clauses must not change the readability result."
-numbers: "2026 2027 75% $500"
-primary_keyword_noise: "hvac scheduling software hvac scheduling software"
----
-
-"""
+        body = fixture_text("content_evidence:test_content_scorer_aeo_geo_gate-289-6")
+        frontmatter = fixture_text("content_evidence:test_content_scorer_aeo_geo_gate-301-7")
         metadata = {
             "meta_title": "HVAC Scheduling Software for Contractors | Simpro",
             "meta_description": (
@@ -329,16 +186,7 @@ primary_keyword_noise: "hvac scheduling software hvac scheduling software"
 
     def test_score_seo_delegates_once_to_strengthened_seo_rater(self):
         scorer = ContentScorer()
-        content = """---
-meta_title: HVAC Scheduling Software for Contractors | Simpro
-meta_description: HVAC scheduling software helps contractors assign jobs, avoid double-booking, and keep technicians moving from one real-time calendar.
-primary_keyword: hvac scheduling software
----
-
-# HVAC Scheduling Software for Contractors
-
-HVAC scheduling software gives dispatchers a connected scheduling workflow.
-"""
+        content = fixture_text("content_evidence:test_content_scorer_aeo_geo_gate-338-8")
         rated = {
             "overall_score": 86.4,
             "grade": "B (Good)",
@@ -504,24 +352,7 @@ HVAC scheduling software gives dispatchers a connected scheduling workflow.
             "\n[BWE Engineering](https://www.simprogroup.com/case-studies/bwe-engineering) shows how field service teams use connected workflows to improve operational control.\n",
             "\n[Megan B's Capterra review](https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/) describes using service jobs, quotes, invoices, and QBO integration in one connected workflow.\n",
         )
-        customer_governance = """
-
-## Customer Proof Pack
-- Pack status: ready
-- Review-site experience evidence: Capterra owner workflow story selected through receipt-bound customer proof evidence.
-- Use in copy: paraphrased identity-backed workflow story with same-paragraph public link.
-- Claims excluded: exact review wording, ratings, rankings, and metrics.
-
-## Customer Proof Selection Decision
-- Selector command: python data_sources/modules/customer_proof_selector.py "hvac scheduling software for contractors" --roles metric,quote,theme,experience_story --require-eeat-story --limit 10
-- Selected proof: review-capterra-qbo-service-jobs-quotes-invoices | Customer: Capterra owner review with QBO integration | URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/ | Use: identity-backed experience story
-
-## Review Story Selection
-- Article title: HVAC Scheduling Software for Contractors
-- Content objective: Explain connected scheduling workflows
-- Selected story: review-capterra-qbo-service-jobs-quotes-invoices | Identity: Megan B | Platform: Capterra | URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/ | Workflow story: owner describes service jobs, recurring jobs, quotes, invoices, and QBO integration | Status: approved | Use: E-E-A-T experience story
-- Article link requirement: same paragraph as review-derived paraphrase must link to the selected public review URL
-"""
+        customer_governance = fixture_text("content_evidence:test_content_scorer_aeo_geo_gate-513-9")
 
         with TemporaryDirectory() as temp_dir:
             proof_sidecar, proof_sidecar_path = (

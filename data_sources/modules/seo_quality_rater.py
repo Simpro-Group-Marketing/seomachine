@@ -82,7 +82,7 @@ OWNED_INTERNAL_DOMAINS = {
     "www.bigchange.com",
 }
 META_TITLE_BRAND_SUFFIX_RE = re.compile(r"\|\s*[A-Za-z][A-Za-z0-9 .&-]{1,40}$")
-PUBLISHING_THRESHOLD = 85
+PUBLISHING_THRESHOLD = 90
 
 
 def _non_negative_finite_float(value: str) -> float:

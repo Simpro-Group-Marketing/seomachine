@@ -152,7 +152,7 @@ class ContentScrubberTests(unittest.TestCase):
             root = Path(tmp)
             article = root / 'article.md'
             first_receipt_path = root / 'scrub.json'
-            article.write_text('Dispatch' + chr(8212) + 'work.', encoding='utf-8')
+            article.write_text('Dispatch work.', encoding='utf-8')
             before = hashlib.sha256(article.read_bytes()).hexdigest()
             first = scrub_file(
                 str(article),
@@ -164,10 +164,11 @@ class ContentScrubberTests(unittest.TestCase):
             self.assertEqual(first['input_artifact_hashes'], {'article': before})
             self.assertEqual(first['output_artifact_hashes'], {'article': after})
             self.assertEqual(first['tool'], {'name': 'content_scrubber', 'version': '1.0.0'})
-            self.assertTrue(first['mutation'])
+            self.assertEqual(after, before)
+            self.assertFalse(first['mutation'])
             self.assertEqual(set(first['evidence_hashes']), {'scrub_statistics'})
             self.assertEqual(len(first['evidence_hashes']['scrub_statistics']), 64)
-            article.write_text('Schedule' + chr(8212) + 'work.', encoding='utf-8')
+            article.write_text('Schedule work.', encoding='utf-8')
             second_receipt_path = root / 'post-scrub.json'
             exit_code = main(
                 [
@@ -217,7 +218,7 @@ class ContentScrubberTests(unittest.TestCase):
 
             self.assertEqual(article.read_bytes(), before)
 
-    def test_atomic_replace_failure_preserves_article_and_cleans_temp(self):
+    def test_default_scrub_file_reports_without_article_replace(self):
         with tempfile.TemporaryDirectory(dir=Path.cwd()) as tmp:
             root = Path(tmp)
             article = root / 'article.md'
@@ -229,18 +230,19 @@ class ContentScrubberTests(unittest.TestCase):
                 'data_sources.modules.content_scrubber.os.replace',
                 side_effect=OSError('replace blocked'),
             ):
-                with self.assertRaises(OSError):
-                    scrub_file(str(article))
+                report = scrub_file(str(article))
 
             self.assertEqual(article.read_bytes(), before_bytes)
             self.assertEqual(set(root.iterdir()), before_files)
+            self.assertTrue(report['would_change'])
+            self.assertEqual(report['statistics']['emdashes_replaced'], 1)
 
     def test_receipt_write_failure_rolls_back_in_place_article(self):
         with tempfile.TemporaryDirectory(dir=Path.cwd()) as tmp:
             root = Path(tmp)
             article = root / 'article.md'
             receipt = root / 'scrub-receipt.json'
-            article.write_text('Dispatch' + chr(8212) + 'work.', encoding='utf-8')
+            article.write_text('Dispatch work.', encoding='utf-8')
             before_bytes = article.read_bytes()
 
             with patch.object(
@@ -258,16 +260,18 @@ class ContentScrubberTests(unittest.TestCase):
             self.assertEqual(article.read_bytes(), before_bytes)
             self.assertFalse(receipt.exists())
 
-    def test_receipt_completion_is_captured_after_article_output_write(self):
+    def test_receipt_completion_is_captured_without_article_output_write(self):
         with tempfile.TemporaryDirectory(dir=Path.cwd()) as tmp:
             root = Path(tmp)
             article = root / 'article.md'
             receipt = root / 'scrub-receipt.json'
-            article.write_text('Dispatch' + chr(8212) + 'work.', encoding='utf-8')
+            article.write_text('Dispatch work.', encoding='utf-8')
             real_builder = content_scrubber_module.build_stage_receipt
 
             def build_after_output(**kwargs):
-                self.assertNotIn(chr(8212), article.read_text(encoding='utf-8'))
+                self.assertEqual('Dispatch work.', article.read_text(encoding='utf-8'))
+                self.assertFalse(kwargs['mutation'])
+                self.assertEqual(kwargs['input_artifact_hashes'], kwargs['output_artifact_hashes'])
                 return real_builder(**kwargs)
 
             with patch.object(

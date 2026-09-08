@@ -69,7 +69,7 @@ data_sources/
 ```bash
 pip install google-analytics-data google-auth-oauthlib google-auth-httplib2
 pip install google-api-python-client
-pip install requests python-dotenv pandas
+pip install requests python-dotenv
 ```
 
 Or use the requirements file:

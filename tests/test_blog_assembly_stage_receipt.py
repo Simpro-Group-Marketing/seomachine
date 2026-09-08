@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from data_sources.modules import blog_assembly_stage_receipt as stage_receipts
 from data_sources.modules.blog_assembly_stage_receipt import (
     StageReceiptError,
     build_stage_receipt,
@@ -19,6 +20,7 @@ from data_sources.modules.blog_assembly_stage_receipt import (
 H1 = "1" * 64
 H2 = "2" * 64
 H3 = "3" * 64
+EMPTY_SHA256 = hashlib.sha256(b"").hexdigest()
 
 
 def _receipt(
@@ -379,3 +381,124 @@ def test_draft_and_optimization_receipts_must_record_a_mutation():
     assert "stage_receipt_mutation_required" in {
         finding["rule_id"] for finding in check_stage_receipt(receipt)
     }
+
+
+def test_native_draft_edit_is_attested_without_python_creating_the_article(tmp_path: Path):
+    article = tmp_path / "drafts" / "topic.md"
+    plan = tmp_path / "research" / "plan.json"
+    plan.parent.mkdir()
+    plan.write_text("{}\n", encoding="utf-8")
+    state_path = tmp_path / "research" / "receipts" / "draft-state.json"
+    receipt_path = state_path.with_name("draft.json")
+
+    state = stage_receipts.begin_native_edit(
+        article_path=article,
+        state_path=state_path,
+        run_id="run-native",
+        stage="draft",
+        tool_name="write-command",
+        tool_version="1",
+        input_artifacts={"editorial_plan": plan},
+        started_at="2026-08-18T12:00:00Z",
+    )
+
+    assert not article.exists()
+    assert state["article_existed"] is False
+    assert state["input_artifact_hashes"]["article"] == EMPTY_SHA256
+
+    article.parent.mkdir()
+    article.write_text("# Native draft\n", encoding="utf-8")
+    receipt = stage_receipts.finish_native_edit(
+        state_path=state_path,
+        article_path=article,
+        receipt_path=receipt_path,
+        completed_at="2026-08-18T12:01:00Z",
+    )
+
+    assert receipt["stage"] == "draft"
+    assert receipt["mutation"] is True
+    assert receipt_path.is_file()
+    assert json.loads(state_path.read_text(encoding="utf-8"))["schema"].endswith("-consumed/v1")
+
+
+def test_native_optimization_requires_an_existing_article(tmp_path: Path):
+    with pytest.raises(StageReceiptError) as raised:
+        stage_receipts.begin_native_edit(
+            article_path=tmp_path / "rewrites" / "missing.md",
+            state_path=tmp_path / "research" / "optimization-state.json",
+            run_id="run-native",
+            stage="optimization",
+            tool_name="optimize-command",
+            tool_version="1",
+            started_at="2026-08-18T12:00:00Z",
+        )
+
+    assert raised.value.code == "native_edit_article_missing"
+
+
+def test_native_edit_finish_rejects_an_unchanged_article(tmp_path: Path):
+    article = tmp_path / "drafts" / "topic.md"
+    article.parent.mkdir()
+    article.write_text("# Existing\n", encoding="utf-8")
+    state_path = tmp_path / "research" / "optimization-state.json"
+    receipt_path = tmp_path / "research" / "optimization.json"
+    stage_receipts.begin_native_edit(
+        article_path=article,
+        state_path=state_path,
+        run_id="run-native",
+        stage="optimization",
+        tool_name="optimize-command",
+        tool_version="1",
+        started_at="2026-08-18T12:00:00Z",
+    )
+
+    with pytest.raises(StageReceiptError) as raised:
+        stage_receipts.finish_native_edit(
+            state_path=state_path,
+            article_path=article,
+            receipt_path=receipt_path,
+            completed_at="2026-08-18T12:01:00Z",
+        )
+
+    assert raised.value.code == "native_edit_unchanged"
+    assert not receipt_path.exists()
+
+
+def test_native_edit_cli_records_draft_without_writing_public_markdown(tmp_path: Path):
+    article = tmp_path / "drafts" / "cli-topic.md"
+    state = tmp_path / "research" / "cli-state.json"
+    receipt = tmp_path / "research" / "cli-receipt.json"
+
+    assert stage_receipts.main(
+        [
+            "begin-native-edit",
+            "--article",
+            str(article),
+            "--state",
+            str(state),
+            "--run-id",
+            "run-cli",
+            "--stage",
+            "draft",
+            "--tool-name",
+            "write-command",
+            "--tool-version",
+            "1",
+        ]
+    ) == 0
+    assert not article.exists()
+
+    article.parent.mkdir()
+    article.write_text("# CLI draft\n", encoding="utf-8")
+    assert stage_receipts.main(
+        [
+            "finish-native-edit",
+            "--article",
+            str(article),
+            "--state",
+            str(state),
+            "--receipt",
+            str(receipt),
+        ]
+    ) == 0
+    assert load_stage_receipt(receipt)["stage"] == "draft"

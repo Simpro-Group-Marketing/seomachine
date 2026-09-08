@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import json
 import os
 from unittest.mock import patch
@@ -6,18 +8,7 @@ from data_sources.modules.named_feature_status_guard import check_content, main
 from data_sources.modules.vault_claim_receipts import ApprovedClaim, ValidatedClaimSet
 
 
-STATUS_TABLE = """## Named Feature Status and Commercial Treatment
-
-| Name | Capability claim ID | Commercial claim ID | Release status | Commercial treatment | Region or account boundary | Public wording decision |
-|---|---|---|---|---|---|---|
-| Lightning | LCUR-0001 | | current_public_context | not_asserted | Current Simpro accounts | use |
-
-## Named Feature/Add-On Link Check
-
-| Name | Resource ID | Link decision | Target URL | Reason |
-|---|---|---|---|---|
-| Lightning | res-11111111111111111111111111111111 | link | https://www.simprogroup.com/lightning | Receipt-bound feature resource. |
-"""
+STATUS_TABLE = fixture_text("content_evidence:test_named_feature_topology-9-1")
 ARTICLE = (
     "# AI workflows\n\n"
     "[Lightning](https://www.simprogroup.com/lightning) connects AI workflows "

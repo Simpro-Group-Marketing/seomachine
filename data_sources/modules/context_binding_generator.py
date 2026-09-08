@@ -31,7 +31,10 @@ try:
         load_stage_receipt,
         write_stage_receipt,
     )
-    from .blog_assembly_contract import normalized_text_sha256
+    from .blog_assembly_contract import (
+        normalized_text_sha256,
+        validate_governance_output_path,
+    )
 except ImportError:  # pragma: no cover - supports direct script execution.
     from context_binding_guard import (
         build_binding,
@@ -49,7 +52,10 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         load_stage_receipt,
         write_stage_receipt,
     )
-    from blog_assembly_contract import normalized_text_sha256
+    from blog_assembly_contract import (
+        normalized_text_sha256,
+        validate_governance_output_path,
+    )
 
 
 GENERATED_BLOCK_RE = re.compile(
@@ -523,6 +529,7 @@ def _resolve_distinct_paths(**paths: str | Path) -> dict[str, Path]:
 
 
 def _atomic_write_text(path: Path, content: str) -> None:
+    path = validate_governance_output_path(path)
     temporary: Path | None = None
     try:
         with tempfile.NamedTemporaryFile(

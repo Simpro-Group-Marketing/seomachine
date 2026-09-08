@@ -17,6 +17,14 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 from urllib.parse import urlparse
 
+try:
+    from .blog_assembly_contract import (
+        atomic_write_json,
+        validate_governance_output_path,
+    )
+except ImportError:  # pragma: no cover - supports direct script execution.
+    from blog_assembly_contract import atomic_write_json, validate_governance_output_path
+
 
 ALLOWED_SOURCE_TYPES = {
     "case_study",
@@ -111,11 +119,8 @@ def merge_intake_file(
     rows, _ = _read_csv(input_path)
     normalized_rows = [_normalize_row(row) for _, row in rows]
     merged, updated, appended = _merge_index(existing_index, normalized_rows)
-    out_file = Path(out_path)
-    out_file.write_text(
-        json.dumps(merged, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
+    out_file = validate_governance_output_path(out_path)
+    atomic_write_json(out_file, merged)
     return {
         "passed": True,
         "errors": 0,

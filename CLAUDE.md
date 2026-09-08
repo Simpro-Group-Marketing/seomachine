@@ -44,7 +44,6 @@ All commands are defined in `.claude/commands/` and invoked as slash commands. T
 - `/performance-review` - Analytics-driven content priorities
 - `/publish-draft [file]` - Publish to WordPress via REST API
 - `grav-publish` (skill) - Publish a finished `drafts/`/`rewrites/` article to Grav CMS by committing `blogs/<slug>/article.en.md` to the GitHub `dev` branch via the `gh` Contents API (text only; images deferred). Config: `GRAV_REPO`, `GRAV_BRANCH`, `GRAV_BLOG_PATH`, `GRAV_DEFAULT_LANG` in `.env`.
-- `/article [topic]` - Simplified article creation
 - `/cluster [topic]` - Build complete topic cluster strategy with pillar + supporting articles + linking map
 - `/priorities` - Content prioritization matrix
 - `/research-serp`, `/research-gaps`, `/research-trending`, `/research-performance`, `/research-topics` - Specialized research commands
@@ -211,7 +210,7 @@ Feature and solution links must use function-bearing anchor text that explains t
 - `brand-voice.md` - Fallback mirror for tone and messaging pillars when the vault is unavailable
 - `style-guide.md` - Fallback mirror for grammar and formatting standards when the vault is unavailable
 - `seo-guidelines.md` - Keyword and structure rules
-- `aeo-geo-blog-strategy.md` - Blog-specific AEO/GEO workflow for research, articles, analysis, and rewrites: AnswerSocrates PAA rules, Capsule Method, source mapping, E-E-A-T Proof Map, and 85/90 quality gates
+- `aeo-geo-blog-strategy.md` - Blog-specific AEO/GEO workflow for research, articles, analysis, and rewrites: AnswerSocrates PAA rules, Capsule Method, source mapping, E-E-A-T Proof Map, and 85/90/90 quality gates
 - `internal-links-map.md` - Key pages for internal linking
 - `features.md` - Product features
 - `competitor-analysis.md` - Competitive intelligence

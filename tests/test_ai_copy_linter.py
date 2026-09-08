@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import os
 import unittest
 from tempfile import NamedTemporaryFile
@@ -351,31 +353,12 @@ class AiCopyLinterTests(unittest.TestCase):
         self.assertEqual(repeated[0]["severity"], "error")
 
     def test_markdown_links_urls_code_and_frontmatter_are_ignored(self):
-        content = """---
-Meta Description: In conclusion, use this #tag
----
-
-[In conclusion](https://example.com/not-just-but-also?tag=#field)
-
-Visit https://example.com/not-just-but-also;done
-
-```
-This is not just code, but also a sample #tag;
-```
-
-Use 1 dispatch record.
-"""
+        content = fixture_text("content_evidence:test_ai_copy_linter-354-1")
 
         self.assertEqual(lint_content(content), [])
 
     def test_capitalized_prepositions_in_title_fields_are_errors(self):
-        content = """---
-title: "HVAC PPC Advertising: How to Turn Paid Clicks Into Booked Jobs"
-meta_title: "HVAC PPC Advertising: Turn Paid Clicks Into Booked Jobs"
----
-
-# HVAC PPC Advertising: How to Turn Paid Clicks Into Booked Jobs
-"""
+        content = fixture_text("content_evidence:test_ai_copy_linter-372-2")
 
         findings = [
             finding
@@ -388,21 +371,12 @@ meta_title: "HVAC PPC Advertising: Turn Paid Clicks Into Booked Jobs"
         self.assertTrue(all(finding["match"] == "Into" for finding in findings))
 
     def test_lowercase_prepositions_in_title_fields_are_allowed(self):
-        content = """---
-title: "HVAC PPC Advertising: How to Turn Paid Clicks into Booked Jobs"
-meta_title: "HVAC PPC Advertising: Turn Paid Clicks into Booked Jobs"
----
-
-# HVAC PPC Advertising: How to Turn Paid Clicks into Booked Jobs
-"""
+        content = fixture_text("content_evidence:test_ai_copy_linter-391-3")
 
         self.assertNotIn("title_capitalized_preposition", finding_ids(content))
 
     def test_capitalized_prepositions_in_subheadings_are_errors(self):
-        content = """## Connect PPC To HVAC Field Service Operations
-
-### What Is PPC In HVAC?
-"""
+        content = fixture_text("content_evidence:test_ai_copy_linter-402-4")
 
         findings = [
             finding

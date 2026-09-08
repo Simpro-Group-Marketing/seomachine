@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import json
 import sys
 import tempfile
@@ -467,22 +469,7 @@ class SimproVaultClientTests(unittest.TestCase):
         scripts.mkdir(parents=True)
         cli = scripts / "vault_cli.py"
         cli.write_text(
-            """
-import argparse
-import json
-
-parser = argparse.ArgumentParser()
-parser.add_argument("operation")
-parser.add_argument("--input-file")
-parser.add_argument("--vault-root")
-args = parser.parse_args()
-payload = json.loads(open(args.input_file, encoding="utf-8").read())
-print(json.dumps({"ok": True, "result": {
-    "operation": args.operation,
-    "payload": payload,
-    "vault_root": args.vault_root,
-}}))
-""".strip(),
+            fixture_text("sealed_workflows:test_simpro_vault_client-470-1").strip(),
             encoding="utf-8",
         )
         vault = self.root / "renamed-vault"
@@ -542,12 +529,7 @@ print(json.dumps({"ok": True, "result": {
         scripts.mkdir(parents=True)
         cli = scripts / "vault_cli.py"
         cli.write_text(
-            """
-import json
-import sys
-print(json.dumps({"ok": False, "error": {"code": "pack_stale", "message": "stale"}}), file=sys.stderr)
-raise SystemExit(1)
-""".strip(),
+            fixture_text("sealed_workflows:test_simpro_vault_client-545-2").strip(),
             encoding="utf-8",
         )
         vault = self.root / "vault"
@@ -610,25 +592,7 @@ raise SystemExit(1)
         manifest.write_text(json.dumps({"resources": [{"resource_id": "res-stable-scheduling", "title": "Scheduling guidance", "locator": "content-a/guide.md"}]}), encoding="utf-8")
         cli = self.root / "fixture_vault_cli.py"
         cli.write_text(
-            """
-import argparse, json
-from pathlib import Path
-p=argparse.ArgumentParser(); p.add_argument('operation'); p.add_argument('--input-file'); p.add_argument('--vault-root'); a=p.parse_args()
-root=Path(a.vault_root); payload=json.loads(Path(a.input_file).read_text(encoding='utf-8'))
-descriptors=[]
-for candidate in root.rglob('*.json'):
-    try: value=json.loads(candidate.read_text(encoding='utf-8'))
-    except Exception: continue
-    if isinstance(value,dict) and value.get('schema')=='simpro-retrieval-bootstrap/v1': descriptors.append(value)
-if len(descriptors)!=1: print(json.dumps({'ok':False,'error':{'code':'bootstrap_ambiguous','message':'bootstrap count'}})); raise SystemExit(1)
-manifest=json.loads((root/descriptors[0]['manifest']).read_text(encoding='utf-8')); rows=manifest['resources']
-if a.operation=='vault_search':
-    query=payload['query'].casefold(); result=[{'resource_id':r['resource_id']} for r in rows if query in (r['title']+' '+(root/r['locator']).read_text(encoding='utf-8')).casefold()]
-elif a.operation=='vault_read':
-    row=next(r for r in rows if r['resource_id']==payload['resource_id']); result={'resource_id':row['resource_id'],'content':(root/row['locator']).read_text(encoding='utf-8')}
-else: result={}
-print(json.dumps({'ok':True,'result':result}))
-""".strip(),
+            fixture_text("sealed_workflows:test_simpro_vault_client-613-3").strip(),
             encoding="utf-8",
         )
         client = SimproVaultClient(vault_root=vault, python_executable=sys.executable)

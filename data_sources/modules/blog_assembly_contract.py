@@ -14,6 +14,9 @@ from typing import Any, Mapping
 
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 WINDOWS_DRIVE_RE = re.compile(r"^[A-Za-z]:")
+PUBLIC_ARTICLE_DIRECTORIES = frozenset(
+    {"drafts", "rewrites", "published", "review-required"}
+)
 SELECTOR_EVIDENCE_LINE_RE = re.compile(
     r"(?im)^[-*+]\s*Selector evidence:\s*(.+?)\s*\|\s*"
     r"SHA-256:\s*([0-9a-f]{64})\s*$"
@@ -130,6 +133,33 @@ def validate_sha256(value: Any, *, field: str = "sha256") -> str:
     if not isinstance(value, str) or not SHA256_RE.fullmatch(value):
         raise ValueError(f"{field} must be a 64-character lowercase SHA-256 digest")
     return value
+
+
+def validate_governance_output_path(
+    path: str | Path,
+    *,
+    inputs: Mapping[str, str | Path] | None = None,
+) -> Path:
+    """Keep Python-authored governance artifacts out of public article trees."""
+    if not isinstance(path, (str, Path)) or not str(path).strip():
+        raise ValueError("governance output path must be non-empty")
+    destination = Path(path).resolve(strict=False)
+    protected_parts = {
+        part.casefold()
+        for part in destination.parts
+        if part.casefold() in PUBLIC_ARTICLE_DIRECTORIES
+    }
+    if protected_parts:
+        names = ", ".join(sorted(protected_parts))
+        raise ValueError(
+            f"governance output cannot target a public article directory: {names}"
+        )
+    destination_identity = os.path.normcase(str(destination))
+    for label, input_path in (inputs or {}).items():
+        input_identity = os.path.normcase(str(Path(input_path).resolve(strict=False)))
+        if destination_identity == input_identity:
+            raise ValueError(f"governance output cannot overwrite input {label}")
+    return destination
 
 
 def canonical_artifact(
@@ -338,7 +368,7 @@ def verify_artifact(
 
 def atomic_write_json(path: str | Path, payload: Mapping[str, Any]) -> None:
     """Persist deterministic JSON atomically and durably in the target directory."""
-    destination = Path(path)
+    destination = validate_governance_output_path(path)
     destination.parent.mkdir(parents=True, exist_ok=True)
     serialized = canonical_json_bytes(payload).decode("utf-8")
     temp_path: Path | None = None

@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import unittest
 
 from data_sources.modules.answer_withholding_guard import (
@@ -8,26 +10,11 @@ from data_sources.modules.answer_withholding_guard import (
 from data_sources.modules.artifact_detection import is_placeholder_cell
 
 
-COST_FRONTMATTER = """---
-title: "Plumbing Cost Benchmarks Australia"
-primary_keyword: plumbing cost benchmarks
----
+COST_FRONTMATTER = fixture_text("content_evidence:test_answer_withholding_guard-11-1")
 
-"""
+SCHEDULE_FRONTMATTER = fixture_text("content_evidence:test_answer_withholding_guard-18-2")
 
-SCHEDULE_FRONTMATTER = """---
-title: "Construction Draw Schedule Explained"
-primary_keyword: construction draw schedule
----
-
-"""
-
-NEUTRAL_FRONTMATTER = """---
-title: "Field Service Job Tracking Tips"
-primary_keyword: field service job tracking
----
-
-"""
+NEUTRAL_FRONTMATTER = fixture_text("content_evidence:test_answer_withholding_guard-25-3")
 
 
 def _prose(word_count):
@@ -35,28 +22,11 @@ def _prose(word_count):
     return " ".join(words[index % len(words)] for index in range(word_count))
 
 
-DRAW_SCHEDULE_SCAFFOLD = """| Draw stage | Typical work included | Request trigger | Documentation to gather | % of contract sum |
-|---|---|---|---|---|
-| Draw 1: site prep and foundation | Permits, site work, excavation, footings, foundation, slab or crawlspace | Foundation milestone complete | Photos, permits, inspection notes, invoices, and updated schedule | Enter lender-approved value |
-| Draw 2: framing and exterior shell | Framing, roof dry-in, windows, exterior doors, sheathing, and weatherproofing | Structural shell milestone complete | Photos, supplier invoices, inspection notes, and field progress report | Enter lender-approved value |
-| Draw 3: mechanical, electrical, and plumbing rough-ins | HVAC, electrical, plumbing, and related rough-in work before walls close | Rough-in milestone complete | Trade inspection status, rough-in photos, invoices, and change-order log | Enter lender-approved value |
-"""
+DRAW_SCHEDULE_SCAFFOLD = fixture_text("content_evidence:test_answer_withholding_guard-38-4")
 
-FILLED_DRAW_SCHEDULE = """| Draw stage | Typical work included | % of contract sum |
-|---|---|---|
-| Draw 1: foundation | Site work, excavation, footings, foundation | 20% |
-| Draw 2: framing | Framing, roof dry-in, windows, exterior doors | 20% |
-| Draw 3: rough-ins | HVAC, electrical, and plumbing rough-in work | 10% |
-| Draw 4: interior finishes | Drywall, paint, trim, and cabinetry | 25% |
-| Draw 5: exterior and site | Siding, driveway, grading, and landscaping | 15% |
-| Draw 6: final completion | Punch list, inspections, and certificate of occupancy | 10% |
-"""
+FILLED_DRAW_SCHEDULE = fixture_text("content_evidence:test_answer_withholding_guard-45-5")
 
-GUIDANCE_TABLE = """| Service | Typical range | Pricing notes |
-|---|---|---|
-| Hourly call-out | $95 to $150 | Confirm whether this includes call-out, diagnosis, parts, and GST |
-| Hot water install | $1,200 to $1,800 | Use this as a market range and adjust for access and system type |
-"""
+GUIDANCE_TABLE = fixture_text("content_evidence:test_answer_withholding_guard-55-6")
 
 
 def finding_ids(content, proof_content=None):
@@ -139,10 +109,7 @@ class PlaceholderScaffoldTests(unittest.TestCase):
             + "\n\n"
             + DRAW_SCHEDULE_SCAFFOLD
         )
-        proof_content = """## Concrete Answer Check
-- Concrete answer requirement: not applicable
-- Reason: Draw values are lender-specific for this audience.
-"""
+        proof_content = fixture_text("content_evidence:test_answer_withholding_guard-142-7")
 
         self.assertEqual(
             finding_ids(content, proof_content=proof_content),
@@ -196,10 +163,7 @@ class NumericAnswerTests(unittest.TestCase):
             + "# Plumbing Cost Benchmarks\n\n"
             + _prose(120)
         )
-        proof_content = """## Concrete Answer Check
-- Concrete answer requirement: not applicable
-- Reason: The article covers cost drivers, and rates vary too widely for a range.
-"""
+        proof_content = fixture_text("content_evidence:test_answer_withholding_guard-199-8")
 
         self.assertEqual(check_content(content, proof_content=proof_content), [])
 
@@ -209,9 +173,7 @@ class NumericAnswerTests(unittest.TestCase):
             + "# Plumbing Cost Benchmarks\n\n"
             + _prose(120)
         )
-        proof_content = """## Concrete Answer Check
-- Concrete answer requirement: not applicable
-"""
+        proof_content = fixture_text("content_evidence:test_answer_withholding_guard-212-9")
 
         self.assertEqual(
             finding_ids(content, proof_content=proof_content),

@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import tempfile
 import unittest
 from pathlib import Path
@@ -16,19 +18,7 @@ from data_sources.modules.publishable_markdown import (
 from data_sources.modules.wordpress_publisher import WordPressPublisher
 
 
-VALID_COMPLEX_FRONTMATTER = """---
-brand: Simpro
-artifact_type: blog
-artifact_kind: article
-tags: ['field service', 'job management']
-schema_notes: |-
-  BlogPosting
-  FAQPage
----
-# Valid draft
-
-Body copy.
-"""
+VALID_COMPLEX_FRONTMATTER = fixture_text("content_evidence:test_frontmatter_contract-19-1")
 
 
 class StrictFrontmatterContractTests(unittest.TestCase):

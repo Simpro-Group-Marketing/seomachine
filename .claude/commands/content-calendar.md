@@ -101,13 +101,13 @@ Assign every extracted opportunity to one of four content types:
 - No existing content for this keyword
 - Fills a cluster gap or competitor gap
 - Effort: Medium-High
-- Command: `/article [topic]` or `/write [topic]`
+- Command: `/write [topic]`
 
 **Trending** (Time-sensitive, rising searches)
 - Search volume increasing
 - Seasonal or news-driven
 - Effort: Medium (speed matters)
-- Command: `/article [topic]`
+- Command: `/write [topic]`
 
 **Deduplication**: If a keyword appears in multiple reports, keep the highest-priority categorization and note all data sources.
 
@@ -198,7 +198,7 @@ Save the calendar to `research/content-calendar-YYYY-MM.md` where YYYY-MM is the
 - **Effort**: Medium
 - **Rationale**: Rising search trend with low competition. First-mover advantage window.
 - **Data Source**: Trending Report
-- **Command**: `/article [topic]`
+- **Command**: `/write [topic]`
 
 ---
 
@@ -247,8 +247,8 @@ Items that didn't fit this month but should be scheduled next:
 | Date | Topic | Type | Cluster | Command |
 |------|-------|------|---------|---------|
 | Mon, [Month] [DD] | [topic] | Quick Win | [cluster] | `/rewrite [topic]` |
-| Thu, [Month] [DD] | [topic] | Trending | [cluster] | `/article [topic]` |
-| Mon, [Month] [DD] | [topic] | New Article | [cluster] | `/article [topic]` |
+| Thu, [Month] [DD] | [topic] | Trending | [cluster] | `/write [topic]` |
+| Mon, [Month] [DD] | [topic] | New Article | [cluster] | `/write [topic]` |
 | ... | | | | |
 
 ---

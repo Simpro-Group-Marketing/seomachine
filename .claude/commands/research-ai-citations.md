@@ -173,7 +173,7 @@ Save to: `research/ai-citations-[topic-slug]-[YYYY-MM-DD].md`
 
 ## Integration with Other Commands
 
-- **Before `/article`**: Run `/research-ai-citations` first to understand which prompts the article should target and which sources to reference
+- **Before `/write`**: Run `/research-ai-citations` first to understand which prompts the article should target and which sources to reference
 - **After `/publish-draft`**: Run `/repurpose` to distribute the article across citation surfaces identified here
 - **Quarterly**: Re-run for core topic clusters to track changes in AI citation patterns
 

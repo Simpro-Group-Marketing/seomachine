@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import importlib.util
 import json
 import subprocess
@@ -239,26 +241,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
         except ImportError:
             self.skipTest("Playwright is not installed")
 
-        html = """
-        <nav><h2>Images</h2></nav>
-        <div class="MjjYud">
-          <a href="https://example.com/videos"><h3>Videos</h3></a>
-          <p>A normal organic result whose title resembles a SERP feature.</p>
-        </div>
-        <section>
-          <h2>People also ask</h2>
-          <button>How should dispatch constraints be prioritized?</button>
-        </section>
-        <div><button>Is this unrelated question included?</button></div>
-        <div class="g">
-          <a href="https://example.com/guide"><h3>Scheduling Guide</h3></a>
-          <p>Verified organic result container.</p>
-        </div>
-        <div class="g">
-          <a href="https://support.google.com/help"><h3>Google Help</h3></a>
-        </div>
-        <a href="https://example.com/navigation"><h3>Outside Result Container</h3></a>
-        """
+        html = fixture_text("content_evidence:test_research_serp_playwright_fallback-242-1")
 
         try:
             with sync_playwright() as playwright:

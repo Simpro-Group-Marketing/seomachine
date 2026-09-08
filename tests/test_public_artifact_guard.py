@@ -1,3 +1,5 @@
+from tests.fixture_text import fixture_text
+
 import os
 import unittest
 from tempfile import NamedTemporaryFile
@@ -11,14 +13,7 @@ from data_sources.modules.public_artifact_guard import (
 
 class PublicArtifactGuardTests(unittest.TestCase):
     def test_editorial_validation_appendix_fails(self):
-        content = """# Article
-
-### Editorial Validation Appendix
-
-```text
-Metric Proof Pack
-```
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-14-1")
 
         findings = check_content(content)
 
@@ -26,13 +21,7 @@ Metric Proof Pack
         self.assertEqual(findings[0]["rule_id"], "internal_validation_artifact")
 
     def test_proof_heading_inside_fenced_code_fails(self):
-        content = """# Article
-
-```text
-PAA/FAQ Provenance
-- Source: AnswerSocrates
-```
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-29-2")
 
         findings = check_content(content)
 
@@ -40,13 +29,7 @@ PAA/FAQ Provenance
         self.assertEqual(findings[0]["match"], "PAA/FAQ Provenance")
 
     def test_early_artifact_plan_heading_fails(self):
-        content = """# Article
-
-## Early Artifact Plan
-
-- Early artifact requirement: not applicable
-- Reason: internal planning note
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-43-3")
 
         findings = check_content(content)
 
@@ -54,12 +37,7 @@ PAA/FAQ Provenance
         self.assertEqual(findings[0]["match"], "## Early Artifact Plan")
 
     def test_concrete_answer_check_heading_fails(self):
-        content = """# Article
-
-Concrete Answer Check
-
-- Concrete answer requirement: not applicable
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-57-4")
 
         findings = check_content(content)
 
@@ -67,12 +45,7 @@ Concrete Answer Check
         self.assertEqual(findings[0]["match"], "Concrete Answer Check")
 
     def test_vault_brand_language_alignment_heading_fails(self):
-        content = """# Article
-
-## Vault Brand Language Alignment
-
-- Status: aligned
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-70-5")
 
         findings = check_content(content)
 
@@ -80,12 +53,7 @@ Concrete Answer Check
         self.assertEqual(findings[0]["match"], "## Vault Brand Language Alignment")
 
     def test_source_routing_decision_heading_fails(self):
-        content = """# Article
-
-## Source Routing Decision
-
-- Status: aligned
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-83-6")
 
         findings = check_content(content)
 
@@ -93,12 +61,7 @@ Concrete Answer Check
         self.assertEqual(findings[0]["match"], "## Source Routing Decision")
 
     def test_fred_authority_selection_heading_fails(self):
-        content = """# Article
-
-## Fred Voccola Authority Selection
-
-- Selected: [none]
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-96-7")
 
         findings = check_content(content)
 
@@ -106,16 +69,7 @@ Concrete Answer Check
         self.assertEqual(findings[0]["match"], "## Fred Voccola Authority Selection")
 
     def test_context_binding_and_trace_headings_fail(self):
-        content = """# Article
-
-## Context Binding
-
-## Context Claim Use Map
-
-## Discovery Trace
-
-## Selected Resource Inventory
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-109-8")
 
         findings = check_content(content)
 
@@ -137,20 +91,7 @@ Concrete Answer Check
         self.assertEqual(findings[0]["match"], "## Context Recovery Report")
 
     def test_context_heading_variants_cannot_leak(self):
-        content = """# Article
-
-## Simpro Product Context Binding
-## Context Receipt
-## Context Validation Receipt
-## Context Resource Inventory
-## Context Discovery Trace
-## Claim Use Map
-## Context Pack
-## Context Request
-## Context Inventory
-## Simpro Product Context Pack
-## Context Validation
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-140-9")
         findings = check_content(content)
         matches = {finding["match"] for finding in findings}
         self.assertIn("## Simpro Product Context Binding", matches)
@@ -166,21 +107,7 @@ Concrete Answer Check
         self.assertIn("## Context Validation", matches)
 
     def test_context_pack_subsections_and_decorated_headings_cannot_leak(self):
-        content = """# Article
-
-## Approved Claim Evidence
-## Constraints and Unresolved Gaps
-## Retrieved Guidance
-## **Context Pack**
-### __Approved Claim Evidence__
-## `Context Request`
-## [Context Pack](#internal)
-## Context Pack {#internal}
-## Context Pack {.private}
-## Context Pack <!-- internal -->
-<h2>Context Pack</h2>
-## [Approved Claim Evidence](#proof)
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-169-10")
 
         findings = check_content(content)
         matches = {finding["match"] for finding in findings}
@@ -224,14 +151,7 @@ Concrete Answer Check
                 self.assertEqual(findings[0]["match"], f"## {heading}")
 
     def test_inline_markdown_cannot_disguise_internal_headings(self):
-        content = """# Article
-
-## Customer **Proof Pack**
-## Context **Binding**
-## Customer `Proof Slate`
-## Review ~~Story~~ Selection
-## Named Feature/Add-On _Link Check_
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-227-11")
 
         findings = check_content(content)
 
@@ -247,11 +167,7 @@ Concrete Answer Check
         )
 
     def test_inline_html_cannot_disguise_internal_headings(self):
-        content = """# Article
-
-## Customer <strong>Proof Pack</strong>
-## Context <em>Binding</em>
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-250-12")
 
         findings = check_content(content)
 
@@ -264,17 +180,7 @@ Concrete Answer Check
         )
 
     def test_raw_connector_schemas_and_fields_cannot_leak(self):
-        content = """# Article
-
-simpro-product-context-pack/v2
-simpro-context-receipt/v1
-seomachine-context-binding/v1
-context_pack_hash: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-receipt_hash=sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
-"resource_id": "simpro.product.positioning"
-claim_id: simpro.claim.example
-manifest_revision = manifest-2026-08-10
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-267-13")
 
         findings = check_content(content)
 
@@ -288,15 +194,7 @@ manifest_revision = manifest-2026-08-10
         )
 
     def test_raw_connector_schemas_and_fields_in_frontmatter_fail(self):
-        content = """---
-context_pack_hash: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-receipt_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
-connector_schema: simpro-product-context-pack/v2
----
-# Article
-
-This is public article copy.
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-291-14")
 
         findings = check_content(content)
         self.assertEqual(
@@ -305,15 +203,7 @@ This is public article copy.
         )
 
     def test_all_receipt_and_revision_hash_fields_cannot_leak(self):
-        content = """# Article
-
-claim_registry_revision: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-approval_policy_revision: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
-receipt_sha256: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-pack_sha256: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
-request_sha256: eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
-support_resource_hashes: {"res-proof": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"}
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-308-15")
 
         findings = check_content(content)
 
@@ -323,18 +213,7 @@ support_resource_hashes: {"res-proof": "ffffffffffffffffffffffffffffffffffffffff
         )
 
     def test_raw_connector_schemas_and_fields_in_fenced_blocks_fail(self):
-        content = """# Article
-
-```json
-{"schema": "simpro-product-context-pack/v2"}
-{"context_pack_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
-```
-
-~~~text
-simpro-context-receipt/v1
-resource_id: simpro.product.positioning
-~~~
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-326-16")
 
         findings = check_content(content)
         self.assertEqual(
@@ -343,13 +222,7 @@ resource_id: simpro.product.positioning
         )
 
     def test_cod_editorial_review_notes_fail(self):
-        content = """# Article
-
-| Workflow | Feature | Status |
-|---|---|---|
-| Intake | Pulse | Roadmap. Named, not dated. 🔍 *Confirm sequencing and commercial treatment before publication* |
-| Scheduling | Intelligent AI Scheduler | Delivered through RAIN. 🔍 *Confirm current Simpro availability - may now be live* |
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-346-17")
 
         findings = check_content(content)
         rule_ids = {finding["rule_id"] for finding in findings}
@@ -359,16 +232,7 @@ resource_id: simpro.product.positioning
         self.assertIn("unresolved_availability_note", rule_ids)
 
     def test_bracketed_editorial_labels_and_standalone_placeholders_fail(self):
-        content = """# Article
-
-[PMM REVIEW: Confirm this claim]
-[COD NOTE] Recheck packaging.
-[NEEDS REVIEW]
-
-TODO
-TBD: replace the source
-TK
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-362-18")
 
         findings = check_content(content)
         rule_ids = [finding["rule_id"] for finding in findings]
@@ -377,13 +241,7 @@ TK
         self.assertEqual(rule_ids.count("draft_placeholder_note"), 3)
 
     def test_blockquotes_cannot_hide_explicit_internal_review_markers(self):
-        content = """# Article
-
-> [PMM REVIEW: Confirm this claim]
-> [COD NOTE] Recheck packaging.
-> [NEEDS REVIEW]
-> 🔍 Confirm commercial treatment.
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-380-19")
 
         findings = check_content(content)
 
@@ -393,35 +251,17 @@ TK
         )
 
     def test_ordinary_prose_about_review_and_proof_sections_passes(self):
-        content = """# Article
-
-The editor reviewed the customer proof slate before drafting this public explanation.
-This paragraph compares review-story selection methods without exposing an internal block.
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-396-20")
 
         self.assertEqual(check_content(content), [])
 
     def test_reader_instructions_image_placeholders_and_examples_pass(self):
-        content = """# Article
-
-Confirm the package and region before choosing a plan.
-
-```text
-[IMAGE PLACEHOLDER: Dispatch board showing a cancellation workflow]
-[COD NOTE] This is a fenced example.
-TODO
-```
-
-> "The source text said 'may now be live' during editorial review."
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-405-21")
 
         self.assertEqual(check_content(content), [])
 
     def test_clean_public_article_passes(self):
-        content = """# Article
-
-This is public article copy with a useful customer-facing explanation.
-"""
+        content = fixture_text("content_evidence:test_public_artifact_guard-421-22")
 
         self.assertEqual(check_content(content), [])
 

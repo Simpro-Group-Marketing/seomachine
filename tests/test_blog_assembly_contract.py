@@ -13,10 +13,37 @@ from data_sources.modules.blog_assembly_contract import (
     canonical_artifact,
     expected_blog_gate_inventory,
     resolve_artifact,
+    validate_governance_output_path,
     validate_current_assembly_date,
     validate_sha256,
 )
 from data_sources.modules import blog_assembly_contract
+
+
+@pytest.mark.parametrize(
+    "public_directory",
+    ["drafts", "rewrites", "published", "review-required"],
+)
+def test_governance_outputs_cannot_target_public_article_directories(
+    tmp_path: Path,
+    public_directory: str,
+):
+    destination = tmp_path / public_directory / "receipt.json"
+
+    with pytest.raises(ValueError, match="public article director"):
+        validate_governance_output_path(destination)
+    with pytest.raises(ValueError, match="public article director"):
+        atomic_write_json(destination, {"governance": True})
+
+    assert not destination.exists()
+
+
+def test_governance_outputs_cannot_overwrite_an_input(tmp_path: Path):
+    article = tmp_path / "article.md"
+    article.write_text("# Article\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="cannot overwrite input"):
+        validate_governance_output_path(article, inputs={"article": article})
 
 
 def test_canonical_artifact_stores_workspace_relative_posix_path_and_hash(tmp_path: Path):

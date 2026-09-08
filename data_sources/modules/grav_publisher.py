@@ -582,7 +582,7 @@ class GravPublisher:
         """
         Publish a draft/rewrite file to the Grav repo.
 
-        When ``dry_run`` is True, the generated article is written to a local preview folder and
+        When ``dry_run`` is True, the generated article is returned in memory and
         no network call is made. A live request without GRAV_REPO fails closed.
         """
         if lang:
@@ -681,13 +681,9 @@ class GravPublisher:
         }
 
         if effective_dry_run:
-            preview_path = self.preview_root / draft["slug"] / f"article.{self.lang}.md"
-            preview_path.parent.mkdir(parents=True, exist_ok=True)
-            preview_path.write_text(article, encoding="utf-8")
             result.update(
                 {
                     "dry_run": True,
-                    "preview_path": str(preview_path),
                     "commit_url": "",
                 }
             )
@@ -822,7 +818,7 @@ def main():
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Build and preview the article locally without pushing to GitHub",
+        help="Build and print the article without writing locally or pushing to GitHub",
     )
     parser.add_argument(
         "--lang", default=None, help="Language code for article file (default: en)"
@@ -863,7 +859,6 @@ def main():
 
         if result.get("dry_run"):
             print("\n[dry run] No push performed.")
-            print(f"Preview written to: {result['preview_path']}")
             print("\n----- article.{lang}.md -----".format(lang=result["lang"]))
             print(result["article"])
         else:
