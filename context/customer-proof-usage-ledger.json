@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-07-29",
+  "updated_at": "2026-08-28",
   "source_boundary": "Initialized from a repo scan of drafts, rewrites, and research proof artifacts on 2026-06-12. Each entry records a detected customer proof URL occurrence so selection tooling can penalize repeated proof unless a reuse reason is documented.",
   "overuse_baselines": [
     {
@@ -265,6 +265,123 @@
       "use_type": "metric",
       "claim_summary": "Cinos project managers handle 50% more work",
       "reuse_reason": ""
+    },
+    {
+      "proof_id": "clockshark-customer-story-mabrys-electrical-service",
+      "source_type": "customer_story",
+      "customer": "Mabry's Electrical Service",
+      "source_url": "https://www.clockshark.com/testimonials/mabry-s-electrical-service-inc",
+      "article_slug": "what-is-employee-time-theft-and-how-to-reduce-it",
+      "artifact_path": "rewrites/employee-time-theft-2026-08-27.md",
+      "date_used": "2026-08-28",
+      "section": "Prevent buddy punching and shared-account clock-ins",
+      "use_type": "experience_story",
+      "claim_summary": "Paraphrased Mabry experience with manual timekeeping, buddy punching, and digital time records",
+      "reuse_reason": ""
+    },
+    {
+      "proof_id": "bigchange-customer-story-blackhall-plumbing-job-lifecycle",
+      "source_type": "customer_story",
+      "customer": "Blackhall",
+      "source_url": "https://www.bigchange.com/success-stories/bigchange-secures-sustainable-future-of-edinburghs-oldest-plumbing-company",
+      "article_slug": "job-tracking-for-field-services-tips",
+      "artifact_path": "published/job-tracking-for-field-services-tips-rewrite-2026-06-30.md",
+      "date_used": "2026-06-30",
+      "section": "6. Job cost and margin tracking while work is active",
+      "use_type": "theme",
+      "claim_summary": "Blackhall customer-story workflow links CRM, job scheduling, live tracking, resource management, job finance, and business intelligence.",
+      "reuse_reason": "Backfilled from live repo scan on 2026-08-28; historical use was missing from the ledger."
+    },
+    {
+      "proof_id": "review-capterra-bigchange-alexina-office-manager-job-lifecycle",
+      "source_type": "review_site",
+      "customer": "Capterra BigChange office-manager review",
+      "source_url": "https://www.capterra.ca/software/149479/jobwatch-powered-by-bigchange",
+      "article_slug": "job-scheduling-tips",
+      "artifact_path": "published/job-scheduling-tips-rewrite-2026-06-29.md",
+      "date_used": "2026-06-29",
+      "section": "How job scheduling software helps manage the full lifecycle",
+      "use_type": "experience_story",
+      "claim_summary": "Alexina's review describes replacing notes and engineer job sheets with a workflow for enquiries, quotes, installs, service jobs, invoices, payment follow-up, stock, and reports.",
+      "reuse_reason": "Backfilled from live repo scan on 2026-08-28; historical use was missing from the ledger."
+    },
+    {
+      "proof_id": "review-capterra-bigchange-alexina-office-manager-job-lifecycle",
+      "source_type": "review_site",
+      "customer": "Capterra BigChange office-manager review",
+      "source_url": "https://www.capterra.ca/software/149479/jobwatch-powered-by-bigchange",
+      "article_slug": "field-service-stock-control-management",
+      "artifact_path": "published/field-service-stock-control-management-rewrite-2026-06-30.md",
+      "date_used": "2026-06-30",
+      "section": "How BigChange helps field service businesses manage stock control",
+      "use_type": "experience_story",
+      "claim_summary": "Alexina's review describes notes, engineer job sheets, and disconnected administration alongside a workflow linking enquiries, quotes, installs, service jobs, invoices, payment follow-up, stock, and reports.",
+      "reuse_reason": "Backfilled from live repo scan on 2026-08-28; historical use was missing from the ledger."
+    },
+    {
+      "proof_id": "review-capterra-bigchange-alexina-office-manager-job-lifecycle",
+      "source_type": "review_site",
+      "customer": "Capterra BigChange office-manager review",
+      "source_url": "https://www.capterra.ca/software/149479/jobwatch-powered-by-bigchange",
+      "article_slug": "frequently-asked-questions-about-job-sheets",
+      "artifact_path": "published/frequently-asked-questions-about-job-sheets-rewrite-2026-08-07.md",
+      "date_used": "2026-08-07",
+      "section": "How digital job sheets connect field and office teams",
+      "use_type": "experience_story",
+      "claim_summary": "Alexina's review describes manual notes and engineer job sheets in the context of one workflow for enquiries, quotes, installs, service jobs, invoices, payment follow-up, stock, and reports.",
+      "reuse_reason": "Backfilled from live repo scan on 2026-08-28; historical use was missing from the ledger."
+    },
+    {
+      "proof_id": "review-capterra-bigchange-hannah-construction-one-system-workflow",
+      "source_type": "review_site",
+      "customer": "Capterra BigChange company-secretary review",
+      "source_url": "https://www.capterra.ca/software/149479/jobwatch-powered-by-bigchange",
+      "article_slug": "job-tracking-for-field-services-tips",
+      "artifact_path": "published/job-tracking-for-field-services-tips-rewrite-2026-06-30.md",
+      "date_used": "2026-06-30",
+      "section": "Why real-time job visibility matters in field service",
+      "use_type": "experience_story",
+      "claim_summary": "Hannah's review describes CRM, vehicle tracking, job and scheduler management, a fieldworker app, and finance-related workflows in one system.",
+      "reuse_reason": "Backfilled from live repo scan on 2026-08-28; historical use was missing from the ledger."
+    },
+    {
+      "proof_id": "bigchange-customer-story-cc-is-paperless-job-cards",
+      "source_type": "customer_story",
+      "customer": "CC Infrastructure Services (CC-IS)",
+      "source_url": "https://www.bigchange.com/success-stories/cc-is-cleans-up-with-bigchange-paperless-working",
+      "article_slug": "job-sheets-for-field-services-businesses",
+      "artifact_path": "rewrites/job-sheets-for-field-services-businesses-rewrite-2026-08-28.md",
+      "date_used": "2026-08-28",
+      "section": "From paper worksheets to digital job cards at CC-IS",
+      "use_type": "experience_story",
+      "claim_summary": "Paraphrased CC-IS transition from weekly paper worksheet folders to electronically transmitted records and digital job cards with before-and-after photographs.",
+      "reuse_reason": ""
+    },
+    {
+      "proof_id": "bigchange-customer-story-trents-drains-digital-job-cards",
+      "source_type": "customer_story",
+      "customer": "Trent's Drains",
+      "source_url": "https://www.bigchange.com/success-stories/trents-drains-remove-job-management-blockages-with-bigchange-software",
+      "article_slug": "job-sheets-for-field-services-businesses",
+      "artifact_path": "rewrites/job-sheets-for-field-services-businesses-rewrite-2026-08-28.md",
+      "date_used": "2026-08-31",
+      "section": "Two customer workflows to test your job sheet against",
+      "use_type": "theme",
+      "claim_summary": "Paraphrased Trent's Drains workflow showing cardboard job sheets, Word quotes, Excel histories, WhatsApp images, purchase orders, photos and customisable job-card templates.",
+      "reuse_reason": "Selected as zero-recent-use BigChange-owned proof after 2026-08-31 source verification and intake; stronger job-sheet-template fit than the prior CC-IS example."
+    },
+    {
+      "proof_id": "bigchange-customer-story-warmzilla-digital-job-sheet-lifecycle",
+      "source_type": "customer_story",
+      "customer": "WarmZilla",
+      "source_url": "https://www.bigchange.com/success-stories/warmzilla-puts-bigchange-at-the-heart-of-online-heating-revolution",
+      "article_slug": "job-sheets-for-field-services-businesses",
+      "artifact_path": "rewrites/job-sheets-for-field-services-businesses-rewrite-2026-08-28.md",
+      "date_used": "2026-08-31",
+      "section": "Two customer workflows to test your job sheet against",
+      "use_type": "experience_story",
+      "claim_summary": "Paraphrased WarmZilla workflow showing digital job sheets sent to engineers, completed with date, time and location-stamped photos and customer signature, then shared for invoicing and follow-up.",
+      "reuse_reason": "Selected as zero-recent-use BigChange-owned proof after 2026-08-31 source verification and intake; strongest lifecycle fit for field-to-office handoff."
     }
   ]
 }

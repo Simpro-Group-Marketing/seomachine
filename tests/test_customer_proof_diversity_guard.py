@@ -3,6 +3,7 @@ from tests.fixture_text import fixture_text
 import json
 import unittest
 from contextlib import redirect_stdout
+from datetime import date
 from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -15,6 +16,11 @@ from data_sources.modules.customer_proof_diversity_guard import (
     should_fail,
 )
 from data_sources.modules.customer_proof_selector import _main as selector_main
+from data_sources.modules.nonvault_customer_proof_selector import (
+    build_nonvault_customer_proof_slate,
+    write_nonvault_selector_evidence,
+)
+from tests.nonvault_proof_fixture import write_nonvault_proof_inputs
 from tests.test_customer_proof_selector import write_context_receipt_fixture
 from tests.vault_context_fixture import load_validated_claim_set_for_unit_test
 
@@ -24,6 +30,84 @@ ARTICLE_WITH_CASE_STUDY = fixture_text("content_evidence:test_customer_proof_div
 ARTICLE_WITH_CLOCKSHARK_CASE_STUDY = fixture_text("content_evidence:test_customer_proof_diversity_guard-25-2")
 
 CUSTOMER_LINK_URL = "https://www.simprogroup.com/customers/acme-services"
+
+
+def test_nonconnector_customer_story_accepts_hash_bound_nonvault_selector(tmp_path):
+    index_path, ledger_path = write_nonvault_proof_inputs(tmp_path / "proof")
+    evidence_path = tmp_path / "research" / "nonvault-proof.json"
+    _, digest, roles = write_nonvault_selector_evidence(
+        evidence_path,
+        topic="employee time theft",
+        brand="ClockShark",
+        title="Employee Time Theft",
+        objective="Prevent buddy punching fairly.",
+        article_slug="employee-time-theft",
+        roles=("metric", "quote", "theme", "experience_story"),
+        require_eeat_story=True,
+        limit=10,
+        reference_date=date(2026, 8, 28),
+        selected_overrides={
+            "theme": "clockshark-customer-story-mabrys-electrical-service",
+            "experience_story": "clockshark-customer-story-mabrys-electrical-service",
+        },
+        rejected_overrides={},
+        index_path=index_path,
+        ledger_path=ledger_path,
+    )
+    article = tmp_path / "article.md"
+    article.write_text(
+        "# Employee Time Theft\n\n"
+        "Mabry's Electrical Service reported buddy punching before changing its "
+        "timekeeping process. The [customer story]"
+        "(https://www.clockshark.com/testimonials/mabry-s-electrical-service-inc) "
+        "is one company's experience, not a guaranteed result.\n",
+        encoding="utf-8",
+    )
+    sidecar = tmp_path / "validation.md"
+    sidecar.write_text(
+        "## "
+        + build_nonvault_customer_proof_slate(
+            selector_command=(
+                'python data_sources/modules/nonvault_customer_proof_selector.py '
+                '"employee time theft"'
+            ),
+            roles=roles,
+            evidence_path=str(evidence_path),
+            evidence_sha256=digest,
+        )
+        + "\n## Selected Customer Proof Mining\n"
+        "- Proof: clockshark-customer-story-mabrys-electrical-service | Customer: Mabry's Electrical Service | URL: https://www.clockshark.com/testimonials/mabry-s-electrical-service-inc\n"
+        "- Checked for: exact quotes, customer metrics, POV story, workflow themes\n"
+        "- Usable quotes found: none found\n"
+        "- Usable metrics found: none found\n"
+        "- Usable POV/story found: buddy-punching workflow story\n"
+        "- Recommended use: paraphrased experience story\n"
+        "- Final use in copy: paraphrased experience story\n"
+        "- Excluded proof: exact quotes and metrics are not approved\n"
+        "- Status: approved\n\n"
+        "## Customer Proof Pack\n"
+        "- Pack status: ready\n"
+        "- Customer Story proof path: Mabry's Electrical Service | URL: https://www.clockshark.com/testimonials/mabry-s-electrical-service-inc\n"
+        "- Approved quotes: none used\n"
+        "- Approved metrics: none used\n"
+        "- Use in copy: paraphrased customer experience\n"
+        "- Claims excluded: exact quotes, metrics, and ratings\n\n"
+        "## Customer Proof Selection Decision\n"
+        "- Selector command: python data_sources/modules/nonvault_customer_proof_selector.py \"employee time theft\"\n"
+        "- Selected proof: clockshark-customer-story-mabrys-electrical-service | Customer: Mabry's Electrical Service | URL: https://www.clockshark.com/testimonials/mabry-s-electrical-service-inc | Use: experience story\n"
+        "- Rejected stronger candidates: none\n"
+        "- Final use in copy: paraphrased experience story\n",
+        encoding="utf-8",
+    )
+
+    findings = check_file(
+        article,
+        proof_sidecar=sidecar,
+        ledger_path=ledger_path,
+        proof_index_path=index_path,
+    )
+
+    assert findings == []
 
 
 def proof_slate(

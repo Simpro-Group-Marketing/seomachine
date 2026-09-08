@@ -15,6 +15,7 @@ from data_sources.modules import blog_assembly_bom_guard
 from data_sources.modules import blog_assembly_contract
 from data_sources.modules.blog_assembly_bom_guard import check_bom
 from data_sources.modules.blog_assembly_bom import (
+    NON_CONNECTOR_REASON,
     finalize_blog_assembly_bom,
     write_blog_assembly_bom,
 )
@@ -29,9 +30,16 @@ from tests.test_blog_assembly_bom import (
     _build,
     _finalize_fixture_bom,
     _fixture,
+    _json,
     _preflight,
     _prepare_optimized_workflow,
+    _sha256,
 )
+
+
+NON_CONNECTOR_REASON_SHA256 = hashlib.sha256(
+    NON_CONNECTOR_REASON.encode("utf-8")
+).hexdigest()
 
 
 
@@ -507,6 +515,73 @@ def test_optimizer_evidence_without_optimization_stage_is_rejected(tmp_path: Pat
     bom["artifacts"]["optimizer_outputs"] = [bom["artifacts"]["serp_evidence"]]
 
     assert "bom_optimizer_evidence_unexpected" in _rules(tmp_path, bom, paths)
+
+
+def test_optimized_tail_allows_noop_optimizer_evidence(tmp_path: Path):
+    paths = _fixture(tmp_path)
+    initial_bom = _build(tmp_path, paths)
+    initial_bom_path = tmp_path / "research" / "initial-bom.json"
+    write_blog_assembly_bom(initial_bom_path, initial_bom)
+    prior_readiness = _preflight(tmp_path, initial_bom_path, initial_bom)
+    article_hash = _sha256(paths["article"])
+    optimizer = _json(
+        tmp_path / "research" / "optimizer-output-noop.json",
+        {
+            "schema": "simpro-optimizer-output/v1",
+            "status": "completed",
+            "decision": {"type": "no_op", "article_bytes_changed": False},
+        },
+    )
+    post_scrub = build_stage_receipt(
+        run_id="run-1",
+        stage="post_optimization_scrub",
+        tool_name="content_scrubber",
+        tool_version="1.0.0",
+        started_at="2026-08-11T14:10:00Z",
+        completed_at="2026-08-11T14:11:00Z",
+        mutation=False,
+        input_artifact_hashes={"article": article_hash},
+        output_artifact_hashes={"article": article_hash},
+        evidence_hashes={"scrub_statistics": "d" * 64},
+        previous_receipt_hash="",
+    )
+    post_scrub_path = tmp_path / "research" / "stage-post-scrub-noop.json"
+    write_stage_receipt(post_scrub_path, post_scrub)
+    post_binding = build_stage_receipt(
+        run_id="run-1",
+        stage="post_optimization_context_binding",
+        tool_name="context_binding_generator",
+        tool_version="1.0.0",
+        started_at="2026-08-11T14:12:00Z",
+        completed_at="2026-08-11T14:13:00Z",
+        mutation=False,
+        input_artifact_hashes={"article": article_hash},
+        output_artifact_hashes={
+            "article": article_hash,
+            "validation_sidecar": _sha256(paths["sidecar"]),
+        },
+        evidence_hashes={
+            "context_binding": "c" * 64,
+            "not_applicable_reason": NON_CONNECTOR_REASON_SHA256,
+        },
+        previous_receipt_hash=post_scrub["receipt_hash"],
+    )
+    post_binding_path = tmp_path / "research" / "stage-post-binding-noop.json"
+    write_stage_receipt(post_binding_path, post_binding)
+    bom = _build(
+        tmp_path,
+        paths,
+        stage_receipt_paths=[post_scrub_path, post_binding_path],
+        optimizer_output_paths=[optimizer],
+        prior_preflight_readiness_path=prior_readiness,
+    )
+
+    assert _rules(
+        tmp_path,
+        bom,
+        paths,
+        expected_lifecycle_state="provisional",
+    ) == set()
 
 
 def test_valid_optimized_bom_binds_prior_preflight_and_passes_guard(tmp_path: Path):

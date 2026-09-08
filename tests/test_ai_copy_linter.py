@@ -248,6 +248,34 @@ class AiCopyLinterTests(unittest.TestCase):
             finding_ids("Use context/features.md as the source for this customer claim."),
         )
 
+    def test_editorial_process_leakage_is_error_in_public_body_copy(self):
+        content = (
+            "This article uses AI scheduling coverage as shorthand for scheduling intelligence. "
+            "It does not name a specific AI scheduler. The brief asks for an AI scheduling "
+            "and dispatch section, and that is the right editorial lane here."
+        )
+
+        findings = lint_content(content)
+        process = [
+            finding
+            for finding in findings
+            if finding["rule_id"] == "editorial_process_leakage"
+        ]
+
+        self.assertGreaterEqual(len(process), 3)
+        self.assertTrue(all(finding["severity"] == "error" for finding in process))
+
+    def test_frontmatter_metadata_does_not_trigger_editorial_process_leakage(self):
+        content = (
+            "---\n"
+            "meta_description: \"Plan AI scheduling coverage for trade contractors.\"\n"
+            "brief_status: \"The brief asks for scheduling coverage.\"\n"
+            "---\n\n"
+            "Field service leaders need scheduling context before they compare tools."
+        )
+
+        self.assertNotIn("editorial_process_leakage", finding_ids(content))
+
     def test_source_meta_commentary_is_error(self):
         content = (
             "That case study is useful for this topic, since it links payment speed "
@@ -354,6 +382,12 @@ class AiCopyLinterTests(unittest.TestCase):
         self.assertEqual(len(modal), 1)
         self.assertEqual(modal[0]["severity"], "error")
 
+    def test_approved_rain_timing_caveat_allows_modal(self):
+        findings = lint_content("All RAIN feature timing reflects current targets and may shift.")
+
+        modal = [finding for finding in findings if finding["rule_id"] == "modal_verb"]
+        self.assertEqual(modal, [])
+
     def test_filler_words_are_errors(self):
         findings = lint_content("Dispatchers just need one job record.")
 
@@ -450,10 +484,44 @@ class AiCopyLinterTests(unittest.TestCase):
         )
         self.assertFalse([finding for finding in findings if finding["rule_id"] == "repeated_sentence_start"])
 
+    def test_repeated_sentence_starts_ignore_comparison_labels(self):
+        content = (
+            "**Best fit:** Commercial contractors.\n\n"
+            "**Best fit:** Residential contractors.\n\n"
+            "**Best fit:** Mixed-work contractors.\n\n"
+            "**Pricing route:** Custom quote.\n\n"
+            "**Pricing route:** Public plans.\n\n"
+            "**Pricing route:** Request pricing."
+        )
+
+        self.assertFalse(
+            [
+                finding
+                for finding in lint_content(content)
+                if finding["rule_id"] == "repeated_sentence_start"
+            ]
+        )
+
     def test_markdown_links_urls_code_and_frontmatter_are_ignored(self):
         content = fixture_text("content_evidence:test_ai_copy_linter-354-1")
 
         self.assertEqual(lint_content(content), [])
+
+    def test_html_attributes_and_non_visible_blocks_are_ignored(self):
+        content = (
+            '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch">Visible copy.</div>\n'
+            '<script type="application/ld+json">\n'
+            '{"description": "This can improve workflows; schema only."}\n'
+            '</script>\n'
+            '<p>Dispatch is late; invoices slip.</p>\n'
+        )
+
+        findings = lint_content(content)
+
+        self.assertEqual(
+            [(finding["rule_id"], finding["line"]) for finding in findings],
+            [("semicolon", 5)],
+        )
 
     def test_capitalized_prepositions_in_title_fields_are_errors(self):
         content = fixture_text("content_evidence:test_ai_copy_linter-372-2")

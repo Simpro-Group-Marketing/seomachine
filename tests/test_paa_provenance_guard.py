@@ -118,6 +118,40 @@ class StrictPaaSourceTests(unittest.TestCase):
         self.assertTrue(record.run_receipt_valid)
         self.assertEqual(record.eligible_questions, FAQ_QUESTIONS)
 
+    def test_receipt_accepts_the_actual_playwright_cli_runtime(self):
+        artifact = build_answersocrates_artifact(
+            query=PAA_QUERY,
+            collection_date=COLLECTION_DATE,
+            eligible_questions=FAQ_QUESTIONS,
+            run_id="answersocrates-playwright-cli-run",
+            started_at=f"{COLLECTION_DATE}T14:00:00Z",
+            completed_at=f"{COLLECTION_DATE}T14:01:00Z",
+            tool={"name": "playwright_cli", "version": "0.1.19"},
+        )
+
+        record = paa_provenance_guard._parse_question_artifact(
+            json.dumps(artifact)
+        )
+
+        self.assertIsNotNone(record)
+        self.assertTrue(record.run_receipt_valid)
+        self.assertEqual(
+            artifact["run_receipt"]["tool"],
+            {"name": "playwright_cli", "version": "0.1.19"},
+        )
+
+    def test_receipt_builder_rejects_an_unapproved_browser_runtime(self):
+        with self.assertRaisesRegex(ValueError, "playwright_mcp or playwright_cli"):
+            build_answersocrates_artifact(
+                query=PAA_QUERY,
+                collection_date=COLLECTION_DATE,
+                eligible_questions=FAQ_QUESTIONS,
+                run_id="answersocrates-unapproved-browser-run",
+                started_at=f"{COLLECTION_DATE}T14:00:00Z",
+                completed_at=f"{COLLECTION_DATE}T14:01:00Z",
+                tool={"name": "unknown_browser", "version": "1.0.0"},
+            )
+
     def _write_family(
         self,
         root: Path,

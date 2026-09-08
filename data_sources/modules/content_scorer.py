@@ -19,6 +19,7 @@ pass the SEO gate. The honest optimization target is 95.
 AEO/GEO score must be >= 90 to pass the generative-answer publishing gate.
 """
 
+import html
 import re
 from collections.abc import Mapping, Sequence
 from typing import Dict, List, Optional, Any, Tuple
@@ -759,6 +760,17 @@ class ContentScorer:
         # Remove code blocks
         text = re.sub(r'```[^`]*```', '', text)
 
+        # Exclude non-visible HTML while retaining text rendered inside tables
+        # and other semantic elements.
+        text = re.sub(
+            r'<(?:script|style)\b[^>]*>.*?</(?:script|style)>',
+            '',
+            text,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        text = re.sub(r'<[^>]+>', ' ', text)
+        text = html.unescape(text)
+
         # Remove links but keep text
         text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)
 
@@ -970,6 +982,12 @@ class ContentScorer:
         # Remove metadata block
         content = re.sub(r'^\*\*[^*]+\*\*:\s*.+$', '', content, flags=re.MULTILINE)
         content = re.sub(r'^---+\s*$', '', content, flags=re.MULTILINE)
+        content = re.sub(
+            r'<(?:script|style)\b[^>]*>.*?</(?:script|style)>',
+            '',
+            content,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
 
         lines = content.split('\n')
 
@@ -977,17 +995,32 @@ class ContentScorer:
         table_chars = 0
         header_chars = 0
         total_chars = 0
+        in_html_table = False
 
         for line in lines:
-            line_stripped = line.strip()
+            raw_line = line.strip()
+            table_line = in_html_table or bool(
+                re.search(r'<table\b', raw_line, re.IGNORECASE)
+            )
+            if re.search(r'<table\b', raw_line, re.IGNORECASE):
+                in_html_table = True
+            line_stripped = html.unescape(
+                re.sub(r'<[^>]+>', '', raw_line)
+            ).strip()
+            if re.search(r'</table\s*>', raw_line, re.IGNORECASE):
+                in_html_table = False
             if not line_stripped:
+                continue
+            if re.fullmatch(r'!\[[^\]]*\]\([^)]+\)', line_stripped):
                 continue
 
             char_count = len(line_stripped)
             total_chars += char_count
 
             # List items
-            if re.match(r'^[-*+]\s', line_stripped) or re.match(r'^\d+\.\s', line_stripped):
+            if table_line:
+                table_chars += char_count
+            elif re.match(r'^[-*+]\s', line_stripped) or re.match(r'^\d+\.\s', line_stripped):
                 list_chars += char_count
             # Table rows
             elif '|' in line_stripped:

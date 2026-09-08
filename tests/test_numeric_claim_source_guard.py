@@ -89,6 +89,15 @@ class NumericClaimSourceGuardTests(unittest.TestCase):
 
         self.assertEqual(check_content(content), [])
 
+    def test_production_image_placeholder_metadata_is_not_a_business_claim(self):
+        content = (
+            '[IMAGE PLACEHOLDER | source: https://www.simprogroup.com/image.png | '
+            'alt: "8 Best Software Tools for Growing Businesses" | '
+            'render target: 819 x 250 px | resize and compress before upload]'
+        )
+
+        self.assertEqual(check_content(content), [])
+
     def test_ordered_list_markers_are_not_material_numeric_claims(self):
         content = """# Licensing guide
 

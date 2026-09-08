@@ -12,7 +12,7 @@ Python may write governance artifacts only: selector output, context binding evi
 
 1. Read the user request and any supplied brief.
 2. Resolve topic, title, objective, audience, region, target keyword, target URL, and whether the article is new or a rewrite.
-3. Classify Context Binding from the final brand metadata and content. Use the Simpro vault connector for Simpro-owned or cross-brand-triggered work. For AroFlo, BigChange, or ClockShark work with no Simpro name or official `simprogroup.com` URL, record the nonconnector reason and omit vault, Fred, and vault-dependent customer-proof selector artifacts.
+3. Classify Context Binding from the final brand metadata and content. Use the Simpro vault connector for Simpro-owned or cross-brand-triggered work. For AroFlo, BigChange, or ClockShark work with no Simpro name or official `simprogroup.com` URL, record the nonconnector reason and omit vault, Fred, and vault-dependent customer-proof selector artifacts. When a separate approved non-vault proof-eligibility contract applies, use `nonvault_customer_proof_selector.py` and supply only `simpro-nonvault-customer-proof-selector-evidence/v1`.
 4. Run the live Semrush keyword decision workflow from `context/aeo-geo-blog-strategy.md` unless a current valid `simpro-semrush-keyword-decision/v1` artifact already exists for the same article, plan, market, and assembly date.
 5. Build or update the validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`.
 6. Run mandatory selectors when applicable:
@@ -21,10 +21,13 @@ Python may write governance artifacts only: selector output, context binding evi
    - E-E-A-T strength decision for commercial-investigation blogs when no selected proof, review, Fred, author, or SME signal exists.
 7. Resolve `audience_language_research` in the editorial plan. Use community language only when it materially improves reader comprehension; default regulatory and licensing topics to `not_applicable` unless the brief asks for it.
 8. Validate and freeze the editorial plan, then run the six machine reviewers against that exact plan: Content Analyzer (`content-analyzer`), Editor (`editor`), SEO Optimizer (`seo-optimizer`), Meta Creator (`meta-creator`), Internal Linker (`internal-linker`), and Keyword Mapper (`keyword-mapper`). Save `simpro-blog-machine-review/v1` plan-review JSON. Resolve requested changes and repeat once if needed.
-9. Write the draft Markdown section by section in plan order to `drafts/[topic-slug]-[YYYY-MM-DD].md` using the command, not a Python writer.
-10. Freeze the article bytes and run the same six reviewers against that exact article. Save `simpro-blog-machine-review/v1` article-review JSON. Apply one consolidated edit batch through `/write`, then rerun all six reviewers after every article-byte change, including scrub, lint, or recovery-loop edits.
-11. Run `/scrub [article]` for diagnostics only. If it reports needed changes, make those edits through `/write`, rerun `/scrub`, and rerun article machine review.
-12. Run the atomic release wrapper with the sidecar, machine reviews, evidence artifacts, stage receipts, and context artifacts when connector-bound. Do not hand off as ready until final `/publish-readiness` passes.
+9. Run the Reader-Facing Copy Firewall before drafting. Convert brief instructions, source-fit notes, claim-selection logic, feature-omission rationale, command results, schema notes, and readiness status into article-ready guidance or sidecar/frontmatter/BOM evidence. Public body copy must read only as a blog for the ICP and must not explain how or why the article was assembled, including phrases such as "this article uses," "the brief asks," "right editorial lane," or "does not name a specific feature."
+10. Write the draft Markdown section by section in plan order to `drafts/[topic-slug]-[YYYY-MM-DD].md` using the command, not a Python writer.
+11. Freeze the article bytes, rerun the Reader-Facing Copy Firewall, and run the same six reviewers against that exact article. Save `simpro-blog-machine-review/v1` article-review JSON. Any `editorial_process_leakage` finding is a public-copy blocker owned by `/write`. Apply one consolidated edit batch through `/write`, then rerun all six reviewers after every article-byte change, including scrub, lint, or recovery-loop edits.
+12. Run `/scrub [article]` for diagnostics only. If it reports needed changes, make those edits through `/write`, rerun `/scrub`, and rerun article machine review.
+13. Run the atomic release wrapper far enough to produce an initial `/publish-readiness` scorecard or an exact non-scoring blocker. Do not skip this step, because `/optimize` needs the failed gates, `scorecard`, `aeo_geo.checks`, and `priority_fixes`.
+14. Run `/optimize [article]` for every new blog after the initial scorecard or blocker report. If no source-safe edits are needed, record a no-op optimizer output with the inspected scores, priority fixes, and reason. If `/optimize` changes article bytes, rerun `/scrub`, Context Binding, and the full six-agent article review.
+15. Run the atomic release wrapper again with the sidecar, machine reviews, evidence artifacts, stage receipts, optimizer output when present, post-optimization scrub receipt when applicable, and context artifacts when connector-bound. Do not hand off as ready until final `/publish-readiness` passes and reports separate Content, SEO, and AEO/GEO scores.
 
 ## Native edit receipt
 
@@ -59,5 +62,7 @@ All six machine reviewers must protect required links and flag duplicate support
 ## Output
 
 Return the draft path, sidecar path, evidence paths, BOM/readiness paths, scorecard, failed gates, and priority fixes. Keep proof infrastructure out of public copy.
+
+If scoring does not run because an upstream gate blocks readiness, report `scorecard: unavailable` with the exact blocking gate. Missing scores are a workflow blocker unless a pre-scoring gate stopped `/publish-readiness`.
 
 For detailed proof, E-E-A-T strength, and AEO/GEO policy, use `context/aeo-geo-blog-strategy.md`.

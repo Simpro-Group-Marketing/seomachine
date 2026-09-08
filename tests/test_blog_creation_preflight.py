@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +17,10 @@ from data_sources.modules.blog_creation_preflight import (
     build_preflight_report,
     main,
 )
+from data_sources.modules.nonvault_customer_proof_selector import (
+    write_nonvault_selector_evidence,
+)
+from tests.nonvault_proof_fixture import write_nonvault_proof_inputs
 
 
 def _write_json(path: Path, payload: object) -> Path:
@@ -327,7 +332,7 @@ def test_preflight_allows_nonconnector_article_without_context_or_vault_artifact
 
     report = build_preflight_report(**paths, assembly_date="2026-08-20")
 
-    assert report["ready_for_bom"] is True
+    assert report["ready_for_bom"] is True, json.dumps(report["blockers"], indent=2)
     assert "context_request_missing" not in _rule_ids(report)
     assert "context_pack_missing" not in _rule_ids(report)
     assert "context_receipt_missing" not in _rule_ids(report)
@@ -355,6 +360,46 @@ def test_preflight_rejects_vault_dependent_artifacts_for_nonconnector_article(
 
     assert report["ready_for_bom"] is False
     assert rule_id in _rule_ids(report)
+
+
+def test_preflight_accepts_nonconnector_nonvault_customer_proof_evidence(
+    tmp_path: Path,
+):
+    paths = _paths(tmp_path)
+    paths["article"] = _nonconnector_article(paths["article"], "ClockShark")
+    paths["scrub_receipt"] = _scrub_receipt(
+        tmp_path / "research" / "scrub-nonconnector-proof.json",
+        paths["article"],
+    )
+    paths["stage_receipts"] = [paths["scrub_receipt"]]
+    _drop_connector_artifacts(paths)
+    index_path, ledger_path = write_nonvault_proof_inputs(tmp_path / "proof")
+    evidence_path = tmp_path / "research" / "nonvault-proof-evidence.json"
+    write_nonvault_selector_evidence(
+        evidence_path,
+        topic="employee time theft",
+        brand="ClockShark",
+        title="Field service scheduling guide",
+        objective="Help operations leaders choose a scheduling workflow.",
+        article_slug="field-service-scheduling",
+        roles=("metric", "quote", "theme", "experience_story"),
+        require_eeat_story=True,
+        limit=10,
+        reference_date=date(2026, 8, 28),
+        selected_overrides={
+            "theme": "clockshark-customer-story-mabrys-electrical-service",
+            "experience_story": "clockshark-customer-story-mabrys-electrical-service",
+        },
+        rejected_overrides={},
+        index_path=index_path,
+        ledger_path=ledger_path,
+    )
+    paths["customer_proof_evidence"] = evidence_path
+
+    report = build_preflight_report(**paths, assembly_date="2026-08-20")
+
+    assert report["ready_for_bom"] is True, json.dumps(report["blockers"], indent=2)
+    assert "nonconnector_customer_proof_evidence_unexpected" not in _rule_ids(report)
 
 
 def test_preflight_rejects_context_artifacts_for_nonconnector_article(tmp_path: Path):

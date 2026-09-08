@@ -99,6 +99,27 @@ def test_check_file_reads_article_body_not_frontmatter(tmp_path: Path):
     assert "industry_cluster_link_missing" in _rules(findings)
 
 
+def test_link_destination_alone_does_not_make_a_general_article_single_trade():
+    content = (
+        "---\n"
+        "artifact_type: blog\n"
+        "brand: Simpro\n"
+        "title: Field Service Software Guide\n"
+        "objective: Help trade businesses compare software.\n"
+        "audience: Field service owners and operations managers\n"
+        "region: US\n"
+        "---\n"
+        "# Field Service Software Guide\n\n"
+        "Use this [field-service buying guidance]"
+        "(https://example.com/how-to-pick-hvac-field-service-management-software) "
+        "to test scheduling and dispatch workflows.\n"
+    )
+
+    findings = industry_cluster_link_policy.check_content(content)
+
+    assert findings == []
+
+
 def test_valid_exact_override_does_not_suppress_required_industry_link(tmp_path: Path):
     brief = tmp_path / "brief.md"
     sentence = "Use exactly two contextual internal body links before the FAQ."

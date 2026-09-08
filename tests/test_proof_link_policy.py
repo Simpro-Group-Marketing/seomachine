@@ -331,6 +331,93 @@ Simpro is the best field service platform for every trade business.
     assert requirement.visible_urls == ()
 
 
+def test_decision_first_buyer_guidance_is_not_misclassified_as_public_proof():
+    article = """# Best Field Service Management Software
+
+The best field service management software matches the buyer's workflow.
+
+**Decision rule:** Use the matrix to match each tool to a best-fit operating context.
+
+| Tool | Best fit | Avoid when | Validate before buying |
+|---|---|---|---|
+| Example FSM | Multi-crew work | Basic scheduling only | Migration and implementation |
+
+## Choose a route by team and workflow
+
+Growing multi-crew trades start with Example FSM. Map the office-to-field handoffs before product demos.
+
+## Evaluation methodology for the tools
+
+3. Record the implementation, migration, licensing, package, and total-cost questions that require a demo or written quote.
+
+## Compare the tools
+
+**Operational fit:** **Choose it when:** A trade contractor needs connected service, project, field, inventory, invoicing, and reporting workflows.
+
+**Scope limit:** **Avoid it when:** The buying problem stops at a lightweight appointment calendar.
+
+**Implementation test:** **Validate before buying:** Test one representative job and request the current written quote.
+
+## Use this buyer scorecard before you shortlist
+
+| Criterion | Evidence to collect | Pass signal |
+|---|---|---|
+| Workflow depth | One real job traced from intake through payment | Required handoffs work without duplicate entry |
+
+## Choose the next step
+
+Do not begin with a feature checklist. Document the required office-to-field handoffs, then score a short list against the same evidence.
+"""
+
+    report = analyze_proof_links(article, brand="Simpro")
+    public_requirements = [
+        requirement
+        for requirement in report.requirements
+        if requirement.owner == "public_research"
+    ]
+
+    assert public_requirements
+    assert {requirement.mode for requirement in public_requirements} == {
+        "proof_not_required"
+    }
+
+
+def test_no_ranking_disclosure_is_not_a_ranking_claim_but_real_ranking_is():
+    disclosure = analyze_proof_links(
+        "# Guide\n\nThis guide does not publish a universal ranking or superiority claim.\n",
+        brand="Simpro",
+    )
+    ranking = analyze_proof_links(
+        "# Guide\n\nSimpro is the best field service platform for every trade business.\n",
+        brand="Simpro",
+    )
+
+    assert disclosure.requirements == ()
+    assert any(
+        requirement.mode == "inline_required"
+        and requirement.reason == "high_risk_public_claim_without_matching_proof"
+        for requirement in ranking.requirements
+    )
+
+
+@pytest.mark.parametrize(
+    "claim",
+    (
+        "**Price test:** **Validate before buying:** Pricing is $99 per user.",
+        "**Status test:** **Choose it when:** Example FSM is currently available.",
+        "**Outcome test:** **Choose it when:** Automation reduces travel time.",
+        "**Ranking test:** **Choose it when:** It is best for every team.",
+    ),
+)
+def test_structured_buyer_labels_do_not_hide_risky_claims(claim):
+    report = analyze_proof_links(f"# Guide\n\n{claim}\n", brand="Simpro")
+
+    assert not any(
+        requirement.mode == "proof_not_required"
+        for requirement in report.requirements
+    )
+
+
 def test_images_comments_table_headers_and_navigation_advice_do_not_create_claims():
     article = """# License guide
 

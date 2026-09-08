@@ -10,6 +10,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+import pytest
+
 from data_sources.modules import source_support_guard
 from data_sources.modules.source_support_guard import (
     check_content,
@@ -35,6 +37,69 @@ def test_production_image_placeholder_is_not_treated_as_a_numeric_claim():
     findings = check_content(PRODUCTION_IMAGE_PLACEHOLDER)
 
     assert findings == []
+
+
+def test_comparison_alt_in_production_placeholder_is_not_a_public_claim():
+    placeholder = (
+        '[IMAGE PLACEHOLDER | source: '
+        'https://cdn.example.com/best-field-service-management-software/vendor.png | '
+        'alt: "Vendor logo for the 2026 software comparison" | render target: '
+        '809 x 405 px | resize and compress before upload]'
+    )
+
+    findings = check_content(placeholder)
+
+    assert findings == []
+
+
+def test_decision_first_buyer_guidance_is_not_treated_as_vendor_proof():
+    content = """# Best Field Service Management Software
+
+The best field service management software matches the buyer's workflow.
+
+| Tool | Best fit | Avoid when | Validate before buying |
+|---|---|---|---|
+| Example FSM | Multi-crew work | Basic scheduling only | Migration and implementation |
+
+## Compare the tools
+
+**Operational fit:** **Choose it when:** A trade contractor needs connected service, project, field, inventory, invoicing, and reporting workflows.
+
+**Scope limit:** **Avoid it when:** The buying problem stops at a lightweight appointment calendar.
+
+**Implementation test:** **Validate before buying:** Test one representative job and request the current written quote.
+
+## Use this buyer scorecard before you shortlist
+
+| Criterion | Evidence to collect | Pass signal |
+|---|---|---|
+| Workflow depth | One real job traced from intake through payment | Required handoffs work without duplicate entry |
+
+## Choose the next step
+
+Do not begin with a feature checklist. Document the required office-to-field handoffs, then score a short list against the same evidence.
+"""
+
+    assert check_content(content) == []
+
+
+@pytest.mark.parametrize(
+    "claim",
+    (
+        "**Price test:** **Validate before buying:** Pricing is $99 per user.",
+        "**Status test:** **Choose it when:** Example FSM is currently available.",
+        "**Outcome test:** **Choose it when:** Automation reduces travel time.",
+        "**Ranking test:** **Choose it when:** It is best for every team.",
+    ),
+)
+def test_structured_buyer_labels_do_not_exempt_risky_claims(claim):
+    assert check_content(f"# Guide\n\n{claim}\n")
+
+
+def test_imperative_buyer_advice_is_not_blocked_by_process_grammar():
+    content = "# Guide\n\nStart with configuration requirements and integration ownership.\n"
+
+    assert check_content(content) == []
 
 
 def test_standalone_markdown_image_is_not_treated_as_a_public_claim():

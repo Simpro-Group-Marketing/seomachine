@@ -59,6 +59,26 @@ class ContentScrubberTests(unittest.TestCase):
 
         self.assertEqual(scrub_content(content), content)
 
+    def test_scrub_preserves_yaml_and_json_ld_indentation(self):
+        content = """---
+secondary_keywords:
+  - plumbing software
+  - plumbing scheduling software
+---
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "author": {
+    "@type": "Organization",
+    "name": "Simpro"
+  }
+}
+</script>
+"""
+
+        self.assertEqual(scrub_content(content), content)
+
     def test_scrub_placeholder_restoration_does_not_collide_after_zero_width_cleanup(self):
         marker = (
             '[IMAGE PLACEHOLDER — ORIGINAL HERO: retain immediately before the '

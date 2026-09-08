@@ -35,6 +35,9 @@ SEMRUSH_UI_SURFACE_ALIASES = frozenset(
     }
 )
 CUSTOMER_PROOF_SELECTOR_SCHEMA = "simpro-customer-proof-selector-evidence/v1"
+NONVAULT_CUSTOMER_PROOF_SELECTOR_SCHEMA = (
+    "simpro-nonvault-customer-proof-selector-evidence/v1"
+)
 NO_FIT_CUSTOMER_PROOF_OUTCOME = "no_fit_customer_proof"
 REQUIRED_CUSTOMER_PROOF_ROLES = {"metric", "quote", "theme", "experience_story"}
 SCRUB_RECEIPT_STAGES = {"scrub", "post_optimization_scrub"}
@@ -183,13 +186,15 @@ def build_preflight_report(
         if not receipt_findings:
             blockers.extend(_check_scrub_receipt_article_binding(scrub_receipt, article))
 
+    nonvault_customer_proof_eligible = False
     if connector_required:
         _check_customer_proof_evidence(customer_proof_evidence, blockers)
         expertise_path = fred_authority_evidence
     else:
-        _check_nonconnector_vault_evidence(
+        nonvault_customer_proof_eligible = _check_nonconnector_vault_evidence(
             customer_proof_evidence=customer_proof_evidence,
             fred_authority_evidence=fred_authority_evidence,
+            article_brand=str(metadata.get("brand") or ""),
             blockers=blockers,
         )
         expertise_path = None
@@ -208,7 +213,11 @@ def build_preflight_report(
         article=article,
         proof_sidecar=proof_sidecar,
         editorial_plan=editorial_plan,
-        customer_proof_evidence=customer_proof_evidence if connector_required else None,
+        customer_proof_evidence=(
+            customer_proof_evidence
+            if connector_required or nonvault_customer_proof_eligible
+            else None
+        ),
         fred_authority_evidence=fred_authority_evidence if connector_required else None,
     )
     for finding in eeat_findings:
@@ -244,7 +253,7 @@ def build_preflight_report(
         )
     if "no_author_policy_missing" in rule_ids:
         next_required_commands.append(
-            "Record Author Policy: not_provided in the validation sidecar, or run python data_sources/modules/fred_authority_selector.py [topic] --slate --output [fred-authority-evidence]"
+            "Record Author policy: no_author in the validation sidecar, or run python data_sources/modules/fred_authority_selector.py [topic] --slate --output [fred-authority-evidence]"
         )
     if any(rule.startswith("eeat_strength_") for rule in rule_ids):
         next_required_commands.append(
@@ -611,22 +620,87 @@ def _check_nonconnector_vault_evidence(
     *,
     customer_proof_evidence: str | Path | None,
     fred_authority_evidence: str | Path | None,
+    article_brand: str,
     blockers: list[dict[str, str]],
-    ) -> None:
-        for label, path in (
-            ("customer_proof_evidence", customer_proof_evidence),
-            ("fred_authority_evidence", fred_authority_evidence),
-        ):
-            if path is None or not str(path).strip():
-                continue
-            blockers.append(
+) -> bool:
+    customer_proof_eligible = False
+    if customer_proof_evidence is not None and str(customer_proof_evidence).strip():
+        customer_proof_eligible = _check_nonvault_customer_proof_evidence(
+            customer_proof_evidence,
+            article_brand=article_brand,
+            blockers=blockers,
+        )
+    if fred_authority_evidence is not None and str(fred_authority_evidence).strip():
+        blockers.append(
             _blocker(
-                f"nonconnector_{label}_unexpected",
-                f"Nonconnector preflight cannot include {label}.",
+                "nonconnector_fred_authority_evidence_unexpected",
+                "Nonconnector preflight cannot include fred_authority_evidence.",
                 "Omit vault-dependent proof artifacts unless the article contains a Simpro signal.",
-                label,
+                "fred_authority_evidence",
             )
         )
+    return customer_proof_eligible
+
+
+def _check_nonvault_customer_proof_evidence(
+    path: str | Path,
+    *,
+    article_brand: str,
+    blockers: list[dict[str, str]],
+) -> bool:
+    candidate = Path(path)
+    try:
+        payload = json.loads(candidate.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        blockers.append(
+            _blocker(
+                "nonconnector_customer_proof_evidence_invalid",
+                "Nonconnector customer proof evidence is unavailable or invalid JSON.",
+                "Regenerate it with nonvault_customer_proof_selector.py.",
+                "customer_proof_evidence",
+            )
+        )
+        return False
+    if not isinstance(payload, dict) or payload.get("schema") != (
+        NONVAULT_CUSTOMER_PROOF_SELECTOR_SCHEMA
+    ):
+        blockers.append(
+            _blocker(
+                "nonconnector_customer_proof_evidence_unexpected",
+                "Nonconnector preflight received vault-dependent or unsupported customer proof evidence.",
+                "Use simpro-nonvault-customer-proof-selector-evidence/v1 or omit customer proof.",
+                "customer_proof_evidence",
+            )
+        )
+        return False
+    inputs = payload.get("inputs")
+    if not isinstance(inputs, dict) or str(inputs.get("brand") or "") != article_brand:
+        blockers.append(
+            _blocker(
+                "nonconnector_customer_proof_brand_mismatch",
+                "Nonconnector customer proof evidence brand does not match the article brand.",
+                "Regenerate non-vault proof evidence for the article brand.",
+                "customer_proof_evidence",
+            )
+        )
+        return False
+    roles = payload.get("roles")
+    role_names = {
+        str(row.get("role") or "")
+        for row in roles
+        if isinstance(row, dict)
+    } if isinstance(roles, list) else set()
+    if role_names != REQUIRED_CUSTOMER_PROOF_ROLES:
+        blockers.append(
+            _blocker(
+                "nonconnector_customer_proof_roles_invalid",
+                "Nonconnector customer proof evidence must contain metric, quote, theme, and experience_story roles.",
+                "Regenerate the complete non-vault proof slate.",
+                "customer_proof_evidence",
+            )
+        )
+        return False
+    return True
 
 
 def _has_expertise_path(

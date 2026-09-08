@@ -60,6 +60,38 @@ def write_unbound_context_receipt_fixture(root: Path, *, public_url: str, use_mo
     }])
 
 
+def write_no_fit_selector_fixture(root: Path) -> tuple[Path, Path]:
+    index_path = root / "customer-proof-index.json"
+    ledger_path = root / "customer-proof-usage-ledger.json"
+    index_path.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "proof": [
+                    {
+                        "proof_id": "review-generic-bound-but-not-usable",
+                        "customer": "Generic Review",
+                        "source_type": "review_site",
+                        "industry": ["retail"],
+                        "workflow_fit": [],
+                        "themes": [],
+                        "evidence": "",
+                        "public_url": "https://www.g2.com/products/simpro/reviews/generic-bound-but-not-usable",
+                        "approval_status": "approved",
+                        "public_copy_allowed": True,
+                        "approved_quotes": [],
+                        "approved_metrics": [],
+                        "review_story": {"story_allowed": False},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+    return index_path, ledger_path
+
+
 def select_customer_proofs(*args, **kwargs):
     if not kwargs.get("context_pack") and not kwargs.get("context_receipt"):
         index_path = Path(kwargs.get("index_path", "context/customer-proof-index.json"))
@@ -164,7 +196,7 @@ class CustomerProofSelectorTests(unittest.TestCase):
                     limit=10,
                 )
 
-    def test_cli_writes_no_fit_evidence_and_rejects_selected_override(self):
+    def test_cli_rejects_no_fit_when_customer_proof_binding_is_unavailable(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             index_path, ledger_path = write_selector_fixture(root)
@@ -177,6 +209,48 @@ class CustomerProofSelectorTests(unittest.TestCase):
             with redirect_stdout(stdout), redirect_stderr(stderr):
                 exit_code = _main([*base, "--title", "What Is an End-to-End Solution for Field Service?", "--objective", "Explain connected workflows from first contact to final payment.", "--require-eeat-story"])
 
+            self.assertEqual(exit_code, 1)
+            self.assertEqual(stdout.getvalue(), "")
+            self.assertIn("no approved claims bound to the customer proof inventory", stderr.getvalue())
+            self.assertFalse(evidence_path.exists())
+
+            stdout = StringIO()
+            stderr = StringIO()
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                exit_code = _main([*base, "--selected", "metric=quote-matrix-zebra-plumbing-onsite-quoting"])
+            self.assertEqual(exit_code, 1)
+            self.assertEqual(stdout.getvalue(), "")
+            self.assertIn("no approved claims bound to the customer proof inventory", stderr.getvalue())
+            self.assertFalse(evidence_path.exists())
+
+    def test_cli_writes_no_fit_evidence_after_bound_inventory_evaluates_empty(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path, ledger_path = write_no_fit_selector_fixture(root)
+            pack_path, receipt_path = write_context_receipt_fixture(root, index_path)
+            evidence_path = root / "selector-evidence.json"
+            stdout = StringIO()
+            stderr = StringIO()
+
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                exit_code = _main([
+                    "plumbing job management software",
+                    "--index",
+                    str(index_path),
+                    "--ledger",
+                    str(ledger_path),
+                    "--context-pack",
+                    str(pack_path),
+                    "--context-receipt",
+                    str(receipt_path),
+                    "--slate",
+                    "--roles",
+                    "metric,quote,theme,experience_story",
+                    "--allow-no-proof",
+                    "--evidence-output",
+                    str(evidence_path),
+                ])
+
             evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
             roles = {row["role"]: row for row in evidence["roles"]}
             self.assertEqual(exit_code, 0)
@@ -185,19 +259,9 @@ class CustomerProofSelectorTests(unittest.TestCase):
             self.assertEqual(set(roles), {"metric", "quote", "theme", "experience_story"})
             for row in roles.values():
                 self.assertEqual((row["candidate_ids"], row["claim_ids"], row["selected_id"]), ([], [], "none"))
-                self.assertIn("public copy must omit customer proof", row["no_fit_reason"])
+                self.assertIn("selector evaluated the current connector-bound proof inventory", row["no_fit_reason"])
             self.assertIn("- Selection outcome: no_fit_customer_proof", stdout.getvalue())
             self.assertIn("Selected: [none]", stdout.getvalue())
-
-            evidence_path.unlink()
-            stdout = StringIO()
-            stderr = StringIO()
-            with redirect_stdout(stdout), redirect_stderr(stderr):
-                exit_code = _main([*base, "--selected", "metric=quote-matrix-zebra-plumbing-onsite-quoting"])
-            self.assertEqual(exit_code, 1)
-            self.assertEqual(stdout.getvalue(), "")
-            self.assertIn("Selected customer proof ID is not in the verified metric candidate slate", stderr.getvalue())
-            self.assertFalse(evidence_path.exists())
 
     def test_selector_binds_unbound_approved_claim_by_exact_public_url(self):
         with TemporaryDirectory() as temp_dir:
@@ -213,6 +277,57 @@ class CustomerProofSelectorTests(unittest.TestCase):
 
         self.assertEqual(results[0]["proof_id"], "quote-matrix-zebra-plumbing-onsite-quoting")
         self.assertEqual(results[0]["claim_id"], "claim-customer-proof-unbound-public_metric")
+        self.assertEqual(results[0]["binding_source"], "public_url_exact_match")
+
+    def test_selector_uses_bound_exact_quote_when_local_quote_fields_are_stale(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            index_path = root / "customer-proof-index.json"
+            ledger_path = root / "customer-proof-usage-ledger.json"
+            public_url = "https://www.g2.com/products/simpro/reviews/simpro-review-4999982"
+            index_path.write_text(
+                json.dumps(
+                    {
+                        "version": 1,
+                        "proof": [
+                            {
+                                "proof_id": "review-g2-commercial-plumbing-call-to-invoice-fergus",
+                                "customer": "Matthew N.",
+                                "source_type": "review_site",
+                                "industry": ["construction"],
+                                "workflow_fit": ["workflow", "reporting", "call to invoice"],
+                                "themes": ["workflow setup", "reporting"],
+                                "public_url": public_url,
+                                "approval_status": "approved",
+                                "public_copy_allowed": True,
+                                "approved_quotes": [],
+                                "approved_metrics": [],
+                                "review_story": {"story_allowed": False},
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+            pack_path, receipt_path = write_unbound_context_receipt_fixture(
+                root,
+                public_url=public_url,
+                use_mode="exact_quote",
+            )
+
+            results = _select_customer_proofs(
+                "plumbing job management software workflow reporting",
+                index_path=index_path,
+                ledger_path=ledger_path,
+                context_pack=pack_path,
+                context_receipt=receipt_path,
+                proof_role="quote",
+                limit=1,
+            )
+
+        self.assertEqual(results[0]["proof_id"], "review-g2-commercial-plumbing-call-to-invoice-fergus")
+        self.assertEqual(results[0]["claim_id"], "claim-customer-proof-unbound-exact_quote")
         self.assertEqual(results[0]["binding_source"], "public_url_exact_match")
 
     def test_selector_fails_closed_when_public_url_binding_is_ambiguous(self):

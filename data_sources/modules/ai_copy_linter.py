@@ -41,6 +41,13 @@ APPROVED_PROPER_NOUNS = [
 
 
 FAQ_QUESTION_HEADING_RE = re.compile(r"^\s{0,3}#{2,6}\s+.+\?\s*$")
+COMPARISON_LABEL_RE = re.compile(
+    r"^\s*\*\*(?:Best fit|Pricing route):\*\*",
+    re.IGNORECASE,
+)
+HTML_TAG_RE = re.compile(r"<[^>]+>")
+NON_VISIBLE_HTML_OPEN_RE = re.compile(r"<\s*(script|style)\b", re.IGNORECASE)
+NON_VISIBLE_HTML_CLOSE_RE = re.compile(r"<\s*/\s*(script|style)\s*>", re.IGNORECASE)
 
 
 HOW_CAN_HEADING_RE = re.compile(
@@ -49,6 +56,9 @@ HOW_CAN_HEADING_RE = re.compile(
 MODAL_VERB_TOKEN_RE = re.compile(
     r'\b(?:can|may|could|should|might)\b', re.IGNORECASE
 )
+APPROVED_MODAL_CAVEAT_LINES = {
+    "All RAIN feature timing reflects current targets and may shift."
+}
 
 
 ERROR_RULES: List[Tuple[str, Pattern[str], str, str]] = [
@@ -121,6 +131,21 @@ ERROR_RULES: List[Tuple[str, Pattern[str], str, str]] = [
         ),
         "Internal workflow or repo-context language is not allowed in public blog copy.",
         "Use context files only to guide writing. Cite public URLs or remove the internal note.",
+    ),
+    (
+        "editorial_process_leakage",
+        re.compile(
+            r"\b(?:the\s+brief\s+(?:asks|asked|calls|called|requires|required)|"
+            r"(?:right|wrong)\s+editorial\s+lane|"
+            r"this\s+(?:article|blog|post|draft)\s+uses|"
+            r"(?:this|the)\s+(?:article|blog|post|draft)\s+"
+            r"(?:does\s+not\s+name|doesn't\s+name|avoids\s+naming|routes?\s+readers)|"
+            r"(?:frontmatter|metadata|validation\s+sidecar|assembly\s+BOM|"
+            r"publish[- ]readiness)\s+(?:says|records|requires|allows|blocks))\b",
+            re.IGNORECASE,
+        ),
+        "Editorial process notes are not allowed in public blog body copy.",
+        "Move rationale to frontmatter, the validation sidecar, the BOM, or the editorial plan.",
     ),
     (
         "source_meta_commentary",
@@ -377,6 +402,12 @@ def _should_skip_copy_avoid_rule(rule_id: str, original_line: str) -> bool:
     ):
         return True
 
+    if (
+        rule_id == "modal_verb"
+        and " ".join(original_line.split()) in APPROVED_MODAL_CAVEAT_LINES
+    ):
+        return True
+
     if rule_id == 'modal_verb' and HOW_CAN_HEADING_RE.match(original_line):
         modal_words = MODAL_VERB_TOKEN_RE.findall(original_line)
         if len(modal_words) == 1 and modal_words[0].lower() == 'can':
@@ -439,6 +470,7 @@ def _iter_active_lines(content: str) -> List[Tuple[int, str, str]]:
     active: List[Tuple[int, str, str]] = []
     in_code_fence = False
     in_frontmatter = False
+    in_non_visible_html = False
 
     for index, line in enumerate(lines, start=1):
         stripped = line.strip()
@@ -459,6 +491,16 @@ def _iter_active_lines(content: str) -> List[Tuple[int, str, str]]:
         if in_code_fence:
             continue
 
+        if in_non_visible_html:
+            if NON_VISIBLE_HTML_CLOSE_RE.search(line):
+                in_non_visible_html = False
+            continue
+
+        if NON_VISIBLE_HTML_OPEN_RE.search(line):
+            if not NON_VISIBLE_HTML_CLOSE_RE.search(line):
+                in_non_visible_html = True
+            continue
+
         if is_production_image_placeholder_line(stripped):
             continue
 
@@ -469,7 +511,7 @@ def _iter_active_lines(content: str) -> List[Tuple[int, str, str]]:
 
 def _mask_ignored_spans(line: str) -> str:
     masked = line
-    for pattern in (MARKDOWN_LINK_RE, URL_RE, INLINE_CODE_RE):
+    for pattern in (HTML_TAG_RE, MARKDOWN_LINK_RE, URL_RE, INLINE_CODE_RE):
         masked = _mask_matches(masked, pattern)
     for noun in APPROVED_PROPER_NOUNS:
         masked = re.sub(
@@ -549,7 +591,9 @@ def _find_repeated_sentence_starts(content: str) -> List[Finding]:
     active_lines = _iter_active_lines(content)
 
     for line_number, original_line, masked_line in active_lines:
-        if FAQ_QUESTION_HEADING_RE.match(original_line):
+        if FAQ_QUESTION_HEADING_RE.match(original_line) or COMPARISON_LABEL_RE.match(
+            original_line
+        ):
             continue
         for sentence in SENTENCE_RE.finditer(masked_line):
             words = WORD_RE.findall(sentence.group(0).lower())

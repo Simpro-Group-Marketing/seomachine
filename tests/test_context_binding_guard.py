@@ -438,6 +438,46 @@ class ContextBindingGuardTests(unittest.TestCase):
             findings,
         )
 
+    def test_numeric_html_attributes_do_not_create_public_metric_obligation(self):
+        self.write_resource_only_context(
+            '<div tabindex="0" style="min-width:980px">'
+            "Simpro is one platform in the comparison table."
+            "</div>",
+            "",
+        )
+
+        findings = self.check()
+
+        self.assertFalse(
+            any(
+                finding["rule_id"] == "context_proof_claim_unbound"
+                and finding.get("proof_kind") == "metric"
+                for finding in findings
+            ),
+            findings,
+        )
+
+    def test_production_placeholders_do_not_create_exact_quote_obligations(self):
+        self.write_resource_only_context(
+            '[CMS MODULE PLACEHOLDER | type: in-article CTA | accessible label: '
+            '"Compare your field service workflow with Simpro" | decorative icon alt: ""]\n\n'
+            '[IMAGE PLACEHOLDER | source: https://www.simprogroup.com/logo.png | alt: '
+            '"Simpro logo for the 2026 field service management software comparison" | '
+            'render target: 809 x 405 px | resize and compress before upload]',
+            "",
+        )
+
+        findings = self.check()
+
+        self.assertFalse(
+            any(
+                finding["rule_id"] == "context_proof_claim_unbound"
+                and finding.get("proof_kind") == "exact_quote"
+                for finding in findings
+            ),
+            findings,
+        )
+
     def test_resource_only_pack_cannot_authorize_exact_quote_with_legacy_approved_status(self):
         quote = "Simpro gives our technicians one place to work from."
         article_text = f'A customer said, "{quote}"'

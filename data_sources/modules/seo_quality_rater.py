@@ -52,6 +52,10 @@ FENCED_CODE_BLOCK_RE = re.compile(
     r".*?^[ \t]*(?P=fence)[ \t]*(?:\r?\n|\Z)",
     re.DOTALL | re.MULTILINE,
 )
+NON_VISIBLE_HTML_BLOCK_RE = re.compile(
+    r"<(?:script|style)\b[^>]*>.*?</(?:script|style)\s*>",
+    re.IGNORECASE | re.DOTALL,
+)
 FUNCTIONAL_DESTINATION_TERMS = {
     "accounts receivable",
     "asset maintenance",
@@ -410,6 +414,7 @@ class SEOQualityRater:
             )
 
         frontmatter, visible_body, _ = split_frontmatter(content)
+        analysis_body = NON_VISIBLE_HTML_BLOCK_RE.sub("", visible_body)
         article_brand = _resolve_article_brand(
             explicit_brand=brand,
             frontmatter_brand=frontmatter.get("brand"),
@@ -418,12 +423,14 @@ class SEOQualityRater:
 
         # Extract structure from reader-visible copy only. Frontmatter remains
         # available to metadata resolution, but it is never article prose.
-        structure = self._analyze_structure(visible_body, primary_keyword)
+        # Structured data and CSS are also excluded because browsers do not
+        # render their text as article copy.
+        structure = self._analyze_structure(analysis_body, primary_keyword)
 
         # Score each category
-        content_score = self._score_content(visible_body, structure)
+        content_score = self._score_content(analysis_body, structure)
         keyword_score = self._score_keyword_optimization(
-            visible_body,
+            analysis_body,
             structure,
             primary_keyword,
             secondary_keywords,
@@ -435,12 +442,12 @@ class SEOQualityRater:
         )
         structure_score = self._score_structure(structure)
         link_score = self._score_links(
-            visible_body,
+            analysis_body,
             internal_link_count,
             external_link_count,
             brand=article_brand,
         )
-        readability_score = self._score_readability(visible_body, structure)
+        readability_score = self._score_readability(analysis_body, structure)
 
         # Calculate overall score (weighted average)
         weights = {

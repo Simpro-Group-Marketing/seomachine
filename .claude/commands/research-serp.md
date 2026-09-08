@@ -3,7 +3,7 @@
 Deep SERP analysis for a specific keyword to understand what Google wants from verified visible results. Treat observed patterns as strong editorial defaults, with documented Reader Contract exceptions when reader intent, evidence, format, or business needs justify a different choice.
 
 ## Usage
-`/research-serp "keyword phrase" [--word-target 1600]`
+`/research-serp "keyword phrase" [--word-target 1600] [--location-code 2840] [--google-country us]`
 
 ## What This Command Does
 
@@ -26,9 +26,12 @@ Execute SERP analysis for a keyword:
 ```bash
 python scripts/research_serp_analysis.py "your target keyword"
 python scripts/research_serp_analysis.py "your target keyword" --word-target 1600
+python scripts/research_serp_analysis.py "what is a job sheet" --location-code 2826 --google-country gb
 ```
 
 Omit `--word-target` when Reader Contract planning has not resolved an intent- and evidence-complete target. The report will mark the target unresolved rather than inventing one from competitor counts.
+
+`--location-code` defaults to `2840` for DataForSEO and `--google-country` defaults to `us` for the Playwright Google fallback. For a UK run, use `--location-code 2826 --google-country gb` together so both collection paths use the intended locale.
 
 Within the AEO variable-resolution workflow, "competitive length from `/research-serp`" means the observed competitor distribution is planning context. It does not authorize a derived target, minimum, or expansion recommendation. The Reader Contract remains the source of the caller-supplied target.
 
@@ -59,7 +62,9 @@ Use this evidence order every time:
 DataForSEO remains the preferred source because it provides structured SERP data. If `DATAFORSEO_LOGIN` or `DATAFORSEO_PASSWORD` is missing, unavailable, or the DataForSEO request fails, run the Playwright SERP fallback instead of stopping immediately.
 
 The Playwright fallback must use this controlled Google URL pattern:
-`https://www.google.com/search?q=[keyword]&num=10&hl=en&gl=us&pws=0`
+`https://www.google.com/search?q=[keyword]&num=10&hl=en&gl=[google-country]&pws=0`
+
+Unless explicitly overridden, `google-country` is `us`; a UK run uses `gb`.
 
 Before running Playwright, verify `npx` is available. If it is not available, stop with this blocker:
 `npx unavailable; install Node/npm or provide a SERP export. PAA provenance still requires AnswerSocrates or the rewrite-only brief exception.`
@@ -82,7 +87,7 @@ When fallback is used, the report must include a `Playwright SERP Fallback` sect
 - DataForSEO failure reason
 - Search URL used
 - Timestamp
-- Locale assumptions: US, English, personalization disabled via `pws=0`
+- Locale assumptions: selected Google country (`US` by default; `GB` for the UK example), English, personalization disabled via `pws=0`
 - Raw artifact path
 - Limitations: browser-visible only, no search volume, no DataForSEO rank metrics, no invented competitor metrics
 

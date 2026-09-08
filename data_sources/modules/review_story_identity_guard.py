@@ -65,6 +65,7 @@ REVIEW_RATING_RANKING_CLAIM_RE = re.compile(
     re.IGNORECASE,
 )
 ALLOWED_IDENTITY_TYPES = {"person", "business", "person_and_business"}
+NOT_APPLICABLE_VALUES = {"not applicable", "not_applicable", "n/a", "na"}
 
 
 def check_content(
@@ -93,6 +94,21 @@ def check_content(
     if selection is None:
         return findings
 
+    if _review_story_selection_not_applicable(selection):
+        if has_review_story_signal:
+            return [
+                _finding(
+                    "review_story_selection_not_applicable_with_public_story",
+                    _first_review_signal_line(public_content),
+                    "Review-derived public copy appears while Review Story Selection is marked not applicable.",
+                    (
+                        "Remove the review-derived copy or replace the not-applicable record "
+                        "with an approved identity-backed Review Story Selection."
+                    ),
+                )
+            ]
+        return findings
+
     findings.extend(
         _review_story_selection_findings(
             content,
@@ -104,6 +120,14 @@ def check_content(
     )
 
     return sorted(findings, key=lambda finding: (finding["severity"] != "error", finding["line"], finding["rule_id"]))
+
+
+def _review_story_selection_not_applicable(selection: Dict[str, object]) -> bool:
+    selected = selection.get("selected_story", {})
+    proof_id = str(selected.get("proof_id", "")).strip() if isinstance(selected, dict) else ""
+    decision = str(selection.get("decision", "")).strip().lower()
+    status = str(selection.get("status", "")).strip().lower()
+    return not proof_id and decision in NOT_APPLICABLE_VALUES and status in NOT_APPLICABLE_VALUES
 
 
 def _review_signal_without_story_selection_findings(

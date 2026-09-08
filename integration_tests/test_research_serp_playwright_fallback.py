@@ -45,6 +45,7 @@ class FakeDataForSEO:
     def __init__(self, serp_data=None, error=None):
         if error:
             raise error
+        self.serp_calls = []
         self.serp_data = serp_data or {
             "organic_results": [
                 {
@@ -56,7 +57,14 @@ class FakeDataForSEO:
             "features": ["people_also_ask"],
         }
 
-    def get_serp_data(self, keyword, limit=20):
+    def get_serp_data(self, keyword, location_code=2840, limit=20):
+        self.serp_calls.append(
+            {
+                "keyword": keyword,
+                "location_code": location_code,
+                "limit": limit,
+            }
+        )
         return self.serp_data
 
 
@@ -156,7 +164,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
     def test_blocked_or_empty_run_does_not_mint_verified_serp_evidence(self):
         module = load_research_serp_module()
 
-        def blocked_fallback(keyword, output_dir, now):
+        def blocked_fallback(keyword, output_dir, now, google_country="us"):
             return {
                 "fallback_used": True,
                 "fallback_blocker": "captcha_or_consent_or_unusual_traffic",
@@ -471,8 +479,217 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
 
         self.assertEqual(args.keyword, "field service scheduling")
         self.assertEqual(args.word_target, 1600)
+        self.assertEqual(args.location_code, 2840)
+        self.assertEqual(args.google_country, "us")
+        uk_args = module.parse_cli_args(
+            [
+                "what is a job sheet",
+                "--location-code",
+                "2826",
+                "--google-country",
+                "gb",
+            ]
+        )
+        self.assertEqual(uk_args.location_code, 2826)
+        self.assertEqual(uk_args.google_country, "gb")
         with self.assertRaises(SystemExit):
             module.parse_cli_args(["field service scheduling", "--word-target", "0"])
+
+    def test_serp_locale_defaults_remain_us_for_dataforseo_and_playwright(self):
+        module = load_research_serp_module()
+        dataforseo = FakeDataForSEO()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            module.run_serp_analysis(
+                "field service scheduling",
+                output_dir=Path(temp_dir),
+                now=datetime(2026, 8, 28),
+                dataforseo_factory=lambda: dataforseo,
+                fallback_runner=lambda *args, **kwargs: {},
+                intent_analyzer_factory=FakeIntentAnalyzer,
+                content_comparator_factory=FakeContentLengthComparator,
+                print_fn=lambda message="": None,
+            )
+            fallback = module.run_playwright_serp_fallback(
+                "field service scheduling",
+                output_dir=Path(temp_dir),
+                now=datetime(2026, 8, 28),
+                cli_runner=lambda keyword: json.dumps(
+                    {
+                        "organic_results": [],
+                        "features": [],
+                        "paa_questions": [],
+                        "blocker": None,
+                    }
+                ),
+                npx_checker=lambda: True,
+            )
+
+        self.assertEqual(
+            dataforseo.serp_calls,
+            [
+                {
+                    "keyword": "field service scheduling",
+                    "location_code": 2840,
+                    "limit": 20,
+                }
+            ],
+        )
+        self.assertEqual(
+            fallback["search_url"],
+            "https://www.google.com/search?q=field+service+scheduling&num=10&hl=en&gl=us&pws=0",
+        )
+
+    def test_serp_locale_propagates_uk_to_successful_dataforseo_report(self):
+        module = load_research_serp_module()
+        dataforseo = FakeDataForSEO()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_dir = Path(temp_dir)
+            result = module.run_serp_analysis(
+                "job sheet",
+                output_dir=output_dir,
+                now=datetime(2026, 8, 28),
+                dataforseo_factory=lambda: dataforseo,
+                fallback_runner=lambda *args, **kwargs: {},
+                intent_analyzer_factory=FakeIntentAnalyzer,
+                content_comparator_factory=FakeContentLengthComparator,
+                print_fn=lambda message="": None,
+                location_code=2826,
+                google_country="gb",
+            )
+            report_text = (
+                output_dir / "serp-analysis-job-sheet.md"
+            ).read_text(encoding="utf-8")
+
+        self.assertEqual(result["location_code"], 2826)
+        self.assertEqual(result["google_country"], "gb")
+        self.assertEqual(dataforseo.serp_calls[0]["location_code"], 2826)
+        self.assertIn("**Requested DataForSEO Location Code:** 2826", report_text)
+        self.assertIn("**Requested Google Country:** GB", report_text)
+
+    def test_legacy_three_argument_fallback_runner_remains_supported(self):
+        module = load_research_serp_module()
+        calls = []
+
+        def unavailable_dataforseo():
+            raise RuntimeError("DataForSEO unavailable")
+
+        def legacy_fallback(keyword, output_dir, now):
+            calls.append(
+                {
+                    "keyword": keyword,
+                    "output_dir": output_dir,
+                    "now": now,
+                }
+            )
+            return {
+                "fallback_used": True,
+                "fallback_blocker": "captcha_or_consent_or_unusual_traffic",
+                "organic_results": [],
+                "features": [],
+                "paa_questions": [],
+                "search_url": "",
+                "raw_artifact": "",
+                "captured_at": now.isoformat(),
+                "locale": {"hl": "en", "gl": "us", "pws": "0"},
+            }
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_dir = Path(temp_dir)
+            result = module.run_serp_analysis(
+                "field service scheduling",
+                output_dir=output_dir,
+                now=datetime(2026, 8, 28),
+                dataforseo_factory=unavailable_dataforseo,
+                fallback_runner=legacy_fallback,
+                intent_analyzer_factory=FakeIntentAnalyzer,
+                content_comparator_factory=FakeContentLengthComparator,
+                print_fn=lambda message="": None,
+            )
+
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0]["keyword"], "field service scheduling")
+        self.assertEqual(calls[0]["output_dir"], output_dir)
+        self.assertEqual(calls[0]["now"], datetime(2026, 8, 28))
+        self.assertTrue(result["fallback_used"])
+
+    def test_serp_locale_propagates_uk_to_dataforseo_and_playwright_fallback(self):
+        module = load_research_serp_module()
+
+        class FailingDataForSEO:
+            def __init__(self):
+                self.serp_calls = []
+
+            def get_serp_data(self, keyword, location_code=2840, limit=20):
+                self.serp_calls.append(
+                    {
+                        "keyword": keyword,
+                        "location_code": location_code,
+                        "limit": limit,
+                    }
+                )
+                raise RuntimeError("DataForSEO unavailable")
+
+        dataforseo = FailingDataForSEO()
+
+        def fallback_runner(keyword, output_dir, now, google_country):
+            return module.run_playwright_serp_fallback(
+                keyword,
+                output_dir=output_dir,
+                now=now,
+                google_country=google_country,
+                cli_runner=lambda captured_keyword: json.dumps(
+                    {
+                        "organic_results": [],
+                        "features": [],
+                        "paa_questions": [],
+                        "blocker": None,
+                    }
+                ),
+                npx_checker=lambda: True,
+            )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_dir = Path(temp_dir)
+            result = module.run_serp_analysis(
+                "what is a job sheet",
+                output_dir=output_dir,
+                now=datetime(2026, 8, 28),
+                dataforseo_factory=lambda: dataforseo,
+                fallback_runner=fallback_runner,
+                intent_analyzer_factory=FakeIntentAnalyzer,
+                content_comparator_factory=FakeContentLengthComparator,
+                print_fn=lambda message="": None,
+                location_code=2826,
+                google_country="gb",
+            )
+            fallback_artifact = json.loads(
+                (
+                    output_dir
+                    / "serp-playwright-what-is-a-job-sheet-2026-08-28.json"
+                ).read_text(encoding="utf-8")
+            )
+            report_text = (
+                output_dir / "serp-analysis-what-is-a-job-sheet.md"
+            ).read_text(encoding="utf-8")
+
+        self.assertEqual(
+            dataforseo.serp_calls,
+            [
+                {
+                    "keyword": "what is a job sheet",
+                    "location_code": 2826,
+                    "limit": 20,
+                }
+            ],
+        )
+        self.assertEqual(
+            result["fallback_search_url"],
+            "https://www.google.com/search?q=what+is+a+job+sheet&num=10&hl=en&gl=gb&pws=0",
+        )
+        self.assertEqual(fallback_artifact["locale"]["gl"], "gb")
+        self.assertIn("**Locale assumptions:** GB", report_text)
 
     def test_run_serp_analysis_rejects_blank_keyword_before_side_effects(self):
         module = load_research_serp_module()
@@ -603,7 +820,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
     def test_missing_dataforseo_credentials_uses_playwright_fallback_and_writes_report(self):
         module = load_research_serp_module()
 
-        def fake_fallback(keyword, output_dir, now):
+        def fake_fallback(keyword, output_dir, now, google_country="us"):
             return {
                 "fallback_used": True,
                 "fallback_blocker": None,
@@ -831,7 +1048,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
     def test_blocked_fallback_report_does_not_invent_competitive_metrics(self):
         module = load_research_serp_module()
 
-        def blocked_fallback(keyword, output_dir, now):
+        def blocked_fallback(keyword, output_dir, now, google_country="us"):
             return {
                 "fallback_used": True,
                 "fallback_blocker": "captcha_or_consent_or_unusual_traffic",

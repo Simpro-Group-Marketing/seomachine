@@ -15,10 +15,12 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 try:
     from .faq_structure import detect_faq_structure
     from .frontmatter import FrontmatterError, split_frontmatter
+    from .image_placeholder import is_production_image_placeholder_line
     from .url_validator import UrlValidationSummary, extract_urls
 except ImportError:  # pragma: no cover - supports direct script execution.
     from faq_structure import detect_faq_structure
     from frontmatter import FrontmatterError, split_frontmatter
+    from image_placeholder import is_production_image_placeholder_line
     from url_validator import UrlValidationSummary, extract_urls
 
 
@@ -100,12 +102,73 @@ RECOMMENDATION_RE = re.compile(
     re.IGNORECASE,
 )
 COMPARATIVE_RANKING_RE = re.compile(
-    r"\b(?:best|better|leading|top[- ]rated|rank(?:ed|ing|s)?)\b",
+    r"\b(?:best(?![-\s]+fit\b)|better|leading|top[- ]rated|rank(?:ed|ing|s)?)\b",
     re.IGNORECASE,
+)
+NEGATED_RANKING_DISCLOSURE_RE = re.compile(
+    r"\b(?:do|does)\s+not\s+(?:claim|present|publish|support|use)\b"
+    r"[^.!?]{0,160}\b(?:rank(?:ed|ing|s)?|superiority)\b[^.!?]*",
+    re.IGNORECASE,
+)
+GENERIC_BEST_SELECTION_RE = re.compile(
+    r"^The\s+best\b[^.!?]{1,160}\b(?:fits?|matches?)\b",
+    re.IGNORECASE,
+)
+STRUCTURED_BUYER_GUIDANCE_RE = re.compile(
+    r"^\*\*[^*\r\n]+:\*\*\s+\*\*"
+    r"(?P<label>Choose\s+it\s+when|Avoid\s+it\s+when|Validate\s+before\s+buying):\*\*"
+    r"\s*(?P<body>\S[\s\S]*)$",
+    re.IGNORECASE,
+)
+EDITORIAL_METHOD_RE = re.compile(
+    r"^(?:Their inclusion\b[^.!?]{0,160}\b(?:framework|method)\b|"
+    r"\*\*Decision rule:\*\*\s+Use\b)",
+    re.IGNORECASE,
+)
+BUYER_DECISION_FRAME_RE = re.compile(
+    r"\b(?:wants?|needs?|requires?|required|mandatory|must|accepts?|assumes?|"
+    r"stops?\s+at|lacks?|does\s+not\s+(?:fit|match)|do\s+not\s+(?:fit|match)|"
+    r"remain(?:s)?\s+unproven|belong(?:s)?\s+in\s+the\s+same\s+buying\s+problem|"
+    r"form(?:s)?\s+the\s+primary\s+buying\s+problem|drive(?:s)?\s+(?:the|your)\s+shortlist|"
+    r"purchase\s+requirement|buying\s+(?:problem|case)|planned\s+team)\b",
+    re.IGNORECASE,
+)
+VALIDATE_ACTION_START_RE = re.compile(
+    r"^(?:Ask|Bring|Build|Capture|Confirm|Demonstrate|Document|List|Map|Model|"
+    r"Record|Request|Run|Test|Trace|Use)\b",
+    re.IGNORECASE,
+)
+ANY_PUBLIC_NUMBER_RE = re.compile(r"(?:[$\u00a3\u20ac]\s*\d|\b\d[\d,]*(?:\.\d+)?(?:\s*%|\b))")
+STRUCTURED_QUOTE_RE = re.compile(r'(?:"[^"]{20,}"|\u201c[^\u201d]{20,}\u201d)')
+STRUCTURED_CAUSAL_RE = re.compile(
+    r"\b(?:because|causes?|drives?|leads?\s+to|results?\s+in|improves?|"
+    r"reduces?|increases?|decreases?|prevents?|enables?|boosts?|cuts?|streamlines?)\b",
+    re.IGNORECASE,
+)
+DECISION_SCOPED_CAUSAL_RE = re.compile(
+    r"\bdrive(?:s)?\s+(?:the|your)\s+shortlist\b",
+    re.IGNORECASE,
+)
+STRUCTURED_STATUS_RE = re.compile(
+    r"\b(?:is|are|was|were|remains?)\s+(?:currently\s+)?"
+    r"(?:available|unavailable|included|excluded|supported|unsupported|free|paid|"
+    r"discontinued|deprecated)\b|\b(?:launched|sunset|retired|deprecated)\b",
+    re.IGNORECASE,
+)
+STRUCTURED_PRICING_ASSERTION_RE = re.compile(
+    r"\bpricing\s+(?:starts?|costs?|is\s+(?:free|paid|available|[$\u00a3\u20ac]|\d))\b|"
+    r"\b(?:costs?|priced)\s+(?:[$\u00a3\u20ac]|\d)|\bper\s+(?:user|seat|technician|month|year|job)\b",
+    re.IGNORECASE,
+)
+STRUCTURED_CAPABILITY_RE = re.compile(
+    r"\b(?:[A-Za-z0-9.-]+\s+){0,3}(?:tool|product|platform|software|vendor|system|app|suite)\s+"
+    r"(?:provides?|offers?|includes?|supports?|automates?|integrates?|allows?|enables?|lacks?|has)\b|"
+    r"\b[A-Z][A-Za-z0-9.-]*(?:\s+[A-Z][A-Za-z0-9.-]*){0,2}\s+"
+    r"(?:provides?|offers?|includes?|supports?|automates?|integrates?|allows?|enables?|lacks?|has)\b"
 )
 PURE_ADVICE_START_RE = re.compile(
     r"^(?:please\s+)?(?:apply|ask|before|check|compare|complete|confirm|consult|contact|create|for|"
-    r"follow|gather|keep|locate|maintain|match|open|organize|prepare|read|record|"
+    r"choose|do\s+not|follow|gather|keep|locate|maintain|match|open|organize|prepare|read|record|"
     r"review|save|select|start|treat|use|verify|visit)\b",
     re.IGNORECASE,
 )
@@ -199,6 +262,7 @@ class _ArticleUnit:
     end_line: int
     section: str
     is_table_row: bool = False
+    editorial_table_contract: str = ""
 
 
 @dataclass(frozen=True)
@@ -317,7 +381,7 @@ def analyze_proof_links(
         )
         if not residual_claim:
             continue
-        if _is_pure_navigation_or_advice(residual_claim):
+        if _is_editorial_buyer_guidance(unit, residual_claim) or _is_pure_navigation_or_advice(residual_claim):
             requirements.append(
                 CitationRequirement(
                     mode="proof_not_required",
@@ -338,7 +402,8 @@ def analyze_proof_links(
         elif (
             INFERRED_HIGH_RISK_RE.search(residual_claim)
             or LICENSE_DEFINITION_RE.search(residual_claim)
-            or COMPARATIVE_RANKING_RE.search(residual_claim)
+            or _has_comparative_ranking_claim(residual_claim)
+            or STRUCTURED_STATUS_RE.search(residual_claim)
         ):
             owner = "public_research"
             reason = "high_risk_public_claim_without_matching_proof"
@@ -538,12 +603,15 @@ def _article_units(article_content: str) -> list[_ArticleUnit]:
     section = "intro"
     paragraph: list[str] = []
     paragraph_line = body_start_line
+    editorial_table_contract = ""
 
     def flush(end_line: int) -> None:
         nonlocal paragraph, paragraph_line
         if paragraph:
             text = "\n".join(paragraph).strip()
             text = HTML_COMMENT_RE.sub("", text)
+            if is_production_image_placeholder_line(text):
+                text = ""
             text = MARKDOWN_IMAGE_RE.sub("", text).strip()
             if text and not text.startswith("#"):
                 units.append(
@@ -558,6 +626,9 @@ def _article_units(article_content: str) -> list[_ArticleUnit]:
 
     for index, line in enumerate(lines):
         offset = body_start_line + index
+        is_table_line = line.strip().startswith("|") and line.strip().endswith("|")
+        if not is_table_line:
+            editorial_table_contract = ""
         h2 = H2_RE.match(line.strip())
         if h2:
             flush(offset - 1)
@@ -578,13 +649,17 @@ def _article_units(article_content: str) -> list[_ArticleUnit]:
                     )
                 )
             continue
-        if line.strip().startswith("|") and line.strip().endswith("|"):
+        if is_table_line:
             flush(offset - 1)
             next_is_separator = (
                 index + 1 < len(lines)
                 and bool(TABLE_SEPARATOR_RE.match(lines[index + 1].strip()))
             )
-            if not TABLE_SEPARATOR_RE.match(line.strip()) and not next_is_separator:
+            if next_is_separator:
+                editorial_table_contract = _editorial_guidance_table_contract(line)
+            if not TABLE_SEPARATOR_RE.match(line.strip()) and (
+                not next_is_separator or editorial_table_contract
+            ):
                 units.append(
                     _ArticleUnit(
                         text=line.strip(),
@@ -592,6 +667,7 @@ def _article_units(article_content: str) -> list[_ArticleUnit]:
                         end_line=offset,
                         section=section,
                         is_table_row=True,
+                        editorial_table_contract=editorial_table_contract,
                     )
                 )
             continue
@@ -603,6 +679,14 @@ def _article_units(article_content: str) -> list[_ArticleUnit]:
         paragraph.append(line)
     flush(body_start_line + len(lines) - 1)
     return units
+
+
+def _editorial_guidance_table_contract(line: str) -> str:
+    cells = tuple(cell.strip().casefold() for cell in line.strip().strip("|").split("|"))
+    return {
+        ("tool", "best fit", "avoid when", "validate before buying"): "buyer_decision_matrix",
+        ("criterion", "evidence to collect", "pass signal"): "buyer_scorecard",
+    }.get(cells, "")
 
 
 def _proof_rows(proof_content: str) -> list[_ProofRow]:
@@ -721,7 +805,7 @@ def _faq_is_fact_driven(question: str, answer: str) -> bool:
     text = f"{question} {answer}"
     if LEGAL_OR_TIME_SENSITIVE_RE.search(text) or MATERIAL_NUMBER_RE.search(text):
         return True
-    if COMPARATIVE_RANKING_RE.search(text):
+    if _has_comparative_ranking_claim(text):
         return True
     if RECOMMENDATION_RE.search(f"{question} {first_paragraph}"):
         return False
@@ -781,6 +865,8 @@ def _remove_mapped_claims(claim: str, mapped_claims) -> str:
 def _is_pure_navigation_or_advice(text: str) -> bool:
     """Return true only for direct actions with no asserted public fact."""
     plain = _plain_text(text).strip()
+    if GENERIC_BEST_SELECTION_RE.match(plain):
+        return True
     start_text = RECORD_SCOPED_INSTRUCTION_PREFIX_RE.sub("", plain, count=1)
     if not PURE_ADVICE_START_RE.match(start_text):
         return False
@@ -788,11 +874,67 @@ def _is_pure_navigation_or_advice(text: str) -> bool:
         return False
     if ADVICE_FACT_ASSERTION_RE.search(plain):
         return False
-    if COMPARATIVE_RANKING_RE.search(plain):
+    if _has_comparative_ranking_claim(plain):
         return False
     if LEGAL_OR_TIME_SENSITIVE_RE.search(plain):
         return bool(RESOURCE_NAVIGATION_RE.search(plain))
     return True
+
+
+def _is_editorial_buyer_guidance(unit: _ArticleUnit, text: str) -> bool:
+    plain = _plain_text(text).strip()
+    if unit.editorial_table_contract:
+        cells = [cell.strip() for cell in plain.strip("|").split("|")]
+        if cells and cells[0].casefold() in {"tool", "criterion"}:
+            return True
+        scan = " | ".join(
+            cells[1:] if unit.editorial_table_contract == "buyer_decision_matrix" else cells
+        )
+        return _structured_editorial_guidance_is_safe(scan)
+    structured = STRUCTURED_BUYER_GUIDANCE_RE.match(plain)
+    if structured:
+        body = structured.group("body")
+        if structured.group("label").casefold().startswith("validate"):
+            sentences = [
+                sentence.strip()
+                for sentence in re.split(r"(?<=[.!?])\s+", body)
+                if sentence.strip()
+            ]
+            if not sentences or not all(VALIDATE_ACTION_START_RE.match(sentence) for sentence in sentences):
+                return False
+        elif not BUYER_DECISION_FRAME_RE.search(body):
+            return False
+        return _structured_editorial_guidance_is_safe(body)
+    if EDITORIAL_METHOD_RE.match(plain):
+        return _structured_editorial_guidance_is_safe(plain)
+    section = unit.section.casefold()
+    if section.startswith("choose a route"):
+        route_text = re.sub(r"\bhelps?\s+define\s+the\s+workflow\b", "", plain, flags=re.IGNORECASE)
+        return _structured_editorial_guidance_is_safe(route_text)
+    if section.startswith("evaluation methodology") and PURE_ADVICE_START_RE.match(plain):
+        return _structured_editorial_guidance_is_safe(plain)
+    if section.startswith("choose the next step"):
+        return _structured_editorial_guidance_is_safe(plain)
+    return GENERIC_BEST_SELECTION_RE.match(plain) is not None
+
+
+def _structured_editorial_guidance_is_safe(text: str) -> bool:
+    causal_scan = DECISION_SCOPED_CAUSAL_RE.sub("", text)
+    return not any(
+        pattern.search(causal_scan if pattern is STRUCTURED_CAUSAL_RE else text)
+        for pattern in (
+            ANY_PUBLIC_NUMBER_RE,
+            STRUCTURED_QUOTE_RE,
+            STRUCTURED_CAUSAL_RE,
+            STRUCTURED_STATUS_RE,
+            STRUCTURED_PRICING_ASSERTION_RE,
+            STRUCTURED_CAPABILITY_RE,
+        )
+    ) and not _has_comparative_ranking_claim(text)
+
+
+def _has_comparative_ranking_claim(text: str) -> bool:
+    return bool(COMPARATIVE_RANKING_RE.search(NEGATED_RANKING_DISCLOSURE_RE.sub("", text)))
 
 
 def _canonical_urls(

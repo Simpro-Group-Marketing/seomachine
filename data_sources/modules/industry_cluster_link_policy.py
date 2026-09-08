@@ -763,6 +763,7 @@ def _detected_policy_keys(
 
 def _content_signal_text(content: str) -> str:
     frontmatter, body = _frontmatter_and_body(content)
+    body = _visible_body_signal_text(body)
     return " ".join(
         value
         for value in (
@@ -773,6 +774,15 @@ def _content_signal_text(content: str) -> str:
         )
         if value
     )
+
+
+def _visible_body_signal_text(body: str) -> str:
+    """Return reader-visible body text without link destinations or media URLs."""
+    text = _blank_fenced_code(body)
+    text = re.sub(r"!\[[^\]]*\]\([^)]*\)", " ", text)
+    text = MARKDOWN_LINK_RE.sub(lambda match: match.group(1), text)
+    text = re.sub(r"https?://[^\s)>]+", " ", text, flags=re.IGNORECASE)
+    return _visible_text(text)
 
 
 def _plan_signal_text(plan: Mapping[str, Any] | None) -> str:

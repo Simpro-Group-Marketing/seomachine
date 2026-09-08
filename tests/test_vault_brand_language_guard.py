@@ -219,6 +219,60 @@ class VaultBrandLanguageGuardTests(unittest.TestCase):
             )
         )
 
+    def test_generic_payments_workflow_does_not_require_feature_resource(self):
+        sidecar = VALID_PRODUCT_SIDECAR.replace(
+            "; feature resource_id=res-ad3ee1bcd777586d81415ba9298cd755",
+            "",
+        )
+
+        findings = check_content(
+            "# Workflow comparison\n\n"
+            "Simpro software connects scheduling, invoicing, and payments.",
+            proof_content=sidecar,
+        )
+
+        self.assertNotIn(
+            "vault_brand_language_feature_resource_missing",
+            {finding["rule_id"] for finding in findings},
+        )
+
+    def test_simpro_payments_still_requires_feature_resource(self):
+        sidecar = VALID_PRODUCT_SIDECAR.replace(
+            "; feature resource_id=res-ad3ee1bcd777586d81415ba9298cd755",
+            "",
+        )
+
+        findings = check_content(
+            "# Payment options\n\nSimpro Payments is available for payment workflows.",
+            proof_content=sidecar,
+        )
+
+        self.assertIn(
+            "vault_brand_language_feature_resource_missing",
+            {finding["rule_id"] for finding in findings},
+        )
+
+    def test_declared_bare_payments_name_requires_feature_resource(self):
+        sidecar = VALID_PRODUCT_SIDECAR.replace(
+            "; feature resource_id=res-ad3ee1bcd777586d81415ba9298cd755",
+            "",
+        ) + (
+            "\n## Named Feature Status and Commercial Treatment\n\n"
+            "| Name | Capability claim ID | Commercial claim ID | Release status | Commercial treatment | Region or account boundary | Public wording decision |\n"
+            "|---|---|---|---|---|---|---|\n"
+            "| Payments | | | current_public_context | not_asserted | Current accounts | use |\n"
+        )
+
+        findings = check_content(
+            "# Payment options\n\nPayments is the declared feature name.",
+            proof_content=sidecar,
+        )
+
+        self.assertIn(
+            "vault_brand_language_feature_resource_missing",
+            {finding["rule_id"] for finding in findings},
+        )
+
     def test_sidecar_declared_feature_is_not_limited_to_static_aliases(self):
         sidecar = VALID_PRODUCT_SIDECAR.replace(
             "; feature resource_id=res-ad3ee1bcd777586d81415ba9298cd755",

@@ -24,6 +24,7 @@ try:
     from .image_placeholder import is_production_image_placeholder_line
     from .paa_provenance_guard import check_content as check_paa_provenance_content
     from .readiness_gate_context import trusted_readiness_findings
+    from .schema_item_list import inspect_item_list_schema
     from .video_embed import inspect_video_embeds
 except ImportError:
     import blog_assembly_contract
@@ -35,10 +36,15 @@ except ImportError:
     from image_placeholder import is_production_image_placeholder_line
     from paa_provenance_guard import check_content as check_paa_provenance_content
     from readiness_gate_context import trusted_readiness_findings
+    from schema_item_list import inspect_item_list_schema
     from video_embed import inspect_video_embeds
 
 
 PASS_THRESHOLD = 90
+NON_VISIBLE_HTML_BLOCK_RE = re.compile(
+    r"<(?:script|style)\b[^>]*>.*?</(?:script|style)\s*>",
+    re.IGNORECASE | re.DOTALL,
+)
 
 
 def _prevalidated_findings(
@@ -104,7 +110,7 @@ def rate_aeo_geo(
     frontmatter = _extract_frontmatter(content)
     frontmatter.update(_extract_structured_frontmatter(content))
     merged_metadata = {**frontmatter, **metadata}
-    body = _strip_frontmatter(content)
+    body = NON_VISIBLE_HTML_BLOCK_RE.sub("", _strip_frontmatter(content))
     faq_policy_status = str(
         merged_metadata.get('faq_policy_status') or ''
     ).strip().casefold()
@@ -432,7 +438,7 @@ def _validated_bom_author_policy(
     if set(policy) != required_keys:
         return ''
     status = policy.get('status')
-    if status not in {'named_author', 'not_provided'}:
+    if status not in {'named_author', 'no_author', 'not_provided'}:
         return ''
     named_author = status == 'named_author'
     name = str(policy.get('name') or '').strip()
@@ -474,9 +480,9 @@ def _check_author_voice(
     searchable = re.sub(r'<blockquote\b.*?</blockquote>', ' ', searchable, flags=re.DOTALL | re.IGNORECASE)
     searchable = re.sub(r'\x22[^\x22]*\x22', ' ', searchable)
     searchable = re.sub(r'“[^”]*”|‘[^’]*’', ' ', searchable, flags=re.DOTALL)
+    searchable = re.sub(r'https?://[^\s)>]+', ' ', searchable, flags=re.IGNORECASE)
     term_pattern = re.compile(
-        r'\b(?:I|me|my|mine|myself)\b|\bI(?:\x27m|\x27ve|\x27d|\x27ll)\b',
-        flags=re.IGNORECASE,
+        r'\b(?:I|(?i:me|my|mine|myself))\b|\bI(?:\x27m|\x27ve|\x27d|\x27ll)\b',
     )
     first_person_terms = list(dict.fromkeys(term_pattern.findall(searchable)))
     passed = has_author or not first_person_terms
@@ -516,6 +522,7 @@ def _check_schema(
     else:
         supplied = []
     entities = set(supplied)
+    item_list = inspect_item_list_schema(supplied, metadata)
     required = {
         'BlogPosting',
         'BreadcrumbList',
@@ -539,15 +546,21 @@ def _check_schema(
         required.add('VideoObject')
     elif 'VideoObject' in entities:
         unexpected.add('VideoObject')
+    if item_list.note:
+        required.add(item_list.note)
     missing = sorted(required - entities)
-    unknown = sorted(entities - CANONICAL_SCHEMA_ENTITIES)
+    allowed_entities = set(CANONICAL_SCHEMA_ENTITIES)
+    if item_list.note:
+        allowed_entities.add(item_list.note)
+    unknown = sorted(entities - allowed_entities)
     passed = (
         not missing
         and not unexpected
         and not unknown
+        and not item_list.errors
         and not video_inspection.errors
     )
-    return {
+    result = {
         'passed': passed,
         'issue': 'Schema notes do not match the exact conditional blog entity contract.',
         'fix': (
@@ -566,6 +579,14 @@ def _check_schema(
             'author_policy_status': _validated_bom_author_policy(finalized_bom),
         },
     }
+    if item_list.active:
+        result['details'].update(
+            {
+                'item_list_entry_count': len(item_list.entries),
+                'item_list_errors': list(item_list.errors),
+            }
+        )
+    return result
 
 
 def _has_supported_video_embed(content: str) -> bool:
@@ -1612,6 +1633,15 @@ def _has_documented_no_fit_experience_boundary(
                 and "no eligible candidate exists" in _normalize_text(empty_reason)
                 and _has_section_specific_story_rejection_reason(empty_reason)
             )
+
+    if not expected_candidates and not expected_rejections:
+        no_fit_reason = str(verified_story.get("no_fit_reason", ""))
+        normalized_no_fit = _normalize_text(no_fit_reason)
+        has_verified_rejections = (
+            _word_count(no_fit_reason) >= 8
+            and "no customer proof selected" in normalized_no_fit
+            and "public copy must omit" in normalized_no_fit
+        )
 
     return has_substantive_decision and has_verified_rejections
 

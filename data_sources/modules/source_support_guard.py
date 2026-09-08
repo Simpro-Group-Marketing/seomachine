@@ -553,8 +553,8 @@ def _policy_aligned_candidates(
     report: ProofLinkReport,
 ) -> List[ClaimCandidate]:
     """Apply machine citation modes without weakening fail-closed claims."""
-    proof_free_ranges = [
-        (requirement.line, requirement.end_line)
+    proof_free_requirements = [
+        requirement
         for requirement in report.requirements
         if requirement.owner == "public_research"
         and requirement.mode == "proof_not_required"
@@ -567,7 +567,10 @@ def _policy_aligned_candidates(
     aligned = [
         candidate
         for candidate in candidates
-        if not any(start <= candidate.line <= end for start, end in proof_free_ranges)
+        if not any(
+            _requirement_has_candidate(requirement, (candidate,))
+            for requirement in proof_free_requirements
+        )
         and not any(start <= candidate.line <= end for start, end in faq_ranges)
         and not _candidate_is_proof_not_required(candidate)
     ]
@@ -607,9 +610,7 @@ def _policy_aligned_candidates(
 
 
 def _candidate_is_proof_not_required(candidate: ClaimCandidate) -> bool:
-    """Ask the policy engine whether one extracted advice sentence is fact-free."""
-    if candidate.claim_type != "recommendation":
-        return False
+    """Ask the policy engine whether one extracted sentence is fact-free advice."""
     fragment = f"# Editorial advice\n\n{candidate.text}\n"
     report = analyze_proof_links(fragment)
     return any(
@@ -1672,6 +1673,10 @@ def _is_review_authority_claim(text: str) -> bool:
         "no ratings",
         "not use ratings",
         "do not use ratings",
+        "do not publish a universal ranking",
+        "does not publish a universal ranking",
+        "do not support a universal ranking",
+        "does not support a universal ranking",
     )
     if any(pattern in normalized for pattern in negated_patterns):
         return False

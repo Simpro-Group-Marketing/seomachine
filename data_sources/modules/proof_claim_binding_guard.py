@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 
 try:
     from .guard_common import Finding, make_finding
+    from .image_placeholder import is_production_image_placeholder_line
     from .numeric_claim_source_guard import (
         _blank_fenced_code,
         _claim_text_for_detection,
@@ -29,6 +30,7 @@ try:
     )
 except ImportError:  # pragma: no cover - supports direct script execution.
     from guard_common import Finding, make_finding
+    from image_placeholder import is_production_image_placeholder_line
     from numeric_claim_source_guard import (
         _blank_fenced_code,
         _claim_text_for_detection,
@@ -40,6 +42,10 @@ except ImportError:  # pragma: no cover - supports direct script execution.
 
 
 EXACT_QUOTE_RE = re.compile(r'["\u201c](?P<quote>[^"\u201d]{20,})["\u201d]')
+CMS_MODULE_PLACEHOLDER_RE = re.compile(
+    r"\A\[CMS[ \t]+MODULE[ \t]+PLACEHOLDER\b[^\]\r\n]*\]\Z",
+    re.IGNORECASE,
+)
 
 CONNECTOR_PROOF_CONTEXT_RE = re.compile(
     r"\b(?:Simpro|Fred(?:\s+Voccola)?|customers?|case stud(?:y|ies)|"
@@ -151,6 +157,8 @@ def find_proof_obligations(article_content: str) -> list[ProofObligation]:
         raw = paragraph.text.strip()
         if not raw:
             continue
+        if _is_nonclaim_placeholder_paragraph(raw):
+            continue
         visible = _visible_markdown_text(raw)
         if not visible:
             continue
@@ -159,8 +167,8 @@ def find_proof_obligations(article_content: str) -> list[ProofObligation]:
         if quote and connector_sensitive:
             obligations.append(_obligation("exact_quote", quote, paragraph.line))
             continue
-        if _is_candidate_claim(raw) and _extract_numeric_tokens(
-            _claim_text_for_detection(raw)
+        if _is_candidate_claim(visible) and _extract_numeric_tokens(
+            _claim_text_for_detection(visible)
         ) and connector_sensitive:
             obligations.append(_obligation("metric", visible, paragraph.line))
             continue
@@ -173,6 +181,16 @@ def find_proof_obligations(article_content: str) -> list[ProofObligation]:
         if COMMERCIAL_CLAIM_RE.search(visible):
             obligations.append(_obligation("commercial_claim", visible, paragraph.line))
     return obligations
+
+
+def _is_nonclaim_placeholder_paragraph(text: str) -> bool:
+    """Return true when every nonblank line is a standalone production marker."""
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    return bool(lines) and all(
+        is_production_image_placeholder_line(line)
+        or CMS_MODULE_PLACEHOLDER_RE.fullmatch(line) is not None
+        for line in lines
+    )
 
 
 def _is_connector_sensitive_proof_context(text: str) -> bool:

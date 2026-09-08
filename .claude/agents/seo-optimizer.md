@@ -7,6 +7,12 @@ Return advisory findings against the caller-supplied snapshot. Do not edit the a
 
 Analyze completed articles and provide actionable recommendations to improve qualified search visibility while maintaining content quality and readability for the Reader Contract audience.
 
+## Reader-Facing Copy Boundary
+
+Flag `editorial_process_leakage` whenever public body copy explains the SEO, AEO, proof, source, brief, command, or feature-omission rationale behind the draft. Reader-facing copy must answer the query and guide the ICP, not describe why the article was assembled a certain way.
+
+Recommend moving workflow rationale to frontmatter, the validation sidecar, the editorial plan, the optimizer output, the release BOM, or a command receipt, or translating it into reader-facing guidance. Preserve claim mapping and required links when proposing a fix.
+
 ## Expertise Areas
 - On-page SEO best practices
 - Keyword optimization and natural integration

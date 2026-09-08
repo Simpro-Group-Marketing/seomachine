@@ -8,6 +8,12 @@ Return advisory findings against the caller-supplied snapshot. Do not edit the a
 
 Transform well-researched, SEO-optimized content into compelling, personality-driven articles that sound like they were written by an experienced industry professional sharing hard-won insights with a friend, not a content mill churning out generic advice.
 
+## Reader-Facing Copy Boundary
+
+Flag `editorial_process_leakage` whenever public body copy explains the workflow instead of helping the ICP. This includes brief instructions, editorial rationale, source-fit reasoning, claim-selection decisions, feature-omission rationale, command results, schema notes, and publish-readiness status.
+
+Recommend moving workflow rationale to frontmatter, the validation sidecar, the editorial plan, the optimizer output, the release BOM, or a command receipt, or translating it into reader-facing guidance. Do not supply replacement factual copy unless the existing proof and claim mapping already support it.
+
 ## Reviewed Humanizer Integration
 
 Before reviewing blog prose:

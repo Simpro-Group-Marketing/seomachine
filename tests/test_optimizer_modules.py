@@ -455,6 +455,36 @@ class OptimizerModuleTests(unittest.TestCase):
 
         self.assertEqual(with_frontmatter, without_frontmatter)
 
+    def test_seo_quality_rater_ignores_json_ld_for_reader_visible_analysis(self):
+        keyword = "payments for trades businesses"
+        body = concise_article_with_links(keyword)
+        json_ld = f"""
+<script type="application/ld+json">
+{{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{keyword.title()}",
+  "description": "{keyword} connects payment records.",
+  "about": "{keyword}"
+}}
+</script>
+"""
+        common = {
+            "meta_title": "Payments for Trades Businesses Guide and Tips | Simpro",
+            "meta_description": (
+                "Payments for trades businesses need online, mobile and field options. "
+                "Learn how to reduce friction and protect cash flow today."
+            ),
+            "primary_keyword": keyword,
+        }
+
+        without_json_ld = SEOQualityRater().rate(body, **common)
+        with_json_ld = SEOQualityRater().rate(body + json_ld, **common)
+
+        self.assertEqual(with_json_ld, without_json_ld)
+        findings = "\n".join(with_json_ld["critical_issues"]).lower()
+        self.assertNotIn("stuffing", findings)
+
     def test_reported_keyword_density_never_creates_an_arbitrary_score_penalty(self):
         common = {
             "content": concise_article_with_links(),

@@ -44,6 +44,10 @@ from data_sources.modules.machine_review import (
     build_machine_review,
     write_machine_review,
 )
+from data_sources.modules.nonvault_customer_proof_selector import (
+    write_nonvault_selector_evidence,
+)
+from tests.nonvault_proof_fixture import write_nonvault_proof_inputs
 
 
 NON_CONNECTOR_REASON_SHA256 = hashlib.sha256(
@@ -130,7 +134,7 @@ def _fixture(
     article.write_text("\n".join(lines) + "\n", encoding="utf-8")
     sidecar = research / "validation-scheduling-guide-2026-08-11.md"
     sidecar.write_text(
-        f"Author policy: {'named_author' if author else 'not_provided'}\n"
+        f"Author policy: {'named_author' if author else 'no_author'}\n"
         + (f"Author: {author}\n" if author else "No named author available.\n"),
         encoding="utf-8",
     )
@@ -786,6 +790,59 @@ def test_non_connector_guard_rejects_vault_dependent_evidence(
     )
 
 
+def test_builder_records_nonvault_customer_proof_for_nonconnector_article(
+    tmp_path: Path,
+):
+    paths = _fixture(tmp_path, brand="ClockShark")
+    index_path, ledger_path = write_nonvault_proof_inputs(tmp_path / "proof")
+    evidence_path = tmp_path / "research" / "nonvault-proof-evidence.json"
+    write_nonvault_selector_evidence(
+        evidence_path,
+        topic="employee time theft",
+        brand="ClockShark",
+        title="Scheduling guide",
+        objective="Help service leaders improve scheduling decisions",
+        article_slug="scheduling-guide",
+        roles=("metric", "quote", "theme", "experience_story"),
+        require_eeat_story=True,
+        limit=10,
+        reference_date=date(2026, 8, 11),
+        selected_overrides={
+            "theme": "clockshark-customer-story-mabrys-electrical-service",
+            "experience_story": "clockshark-customer-story-mabrys-electrical-service",
+        },
+        rejected_overrides={},
+        index_path=index_path,
+        ledger_path=ledger_path,
+    )
+
+    bom = _build(
+        tmp_path,
+        paths,
+        customer_proof_selector_evidence_path=evidence_path,
+    )
+
+    assert bom["connector_binding"]["status"] == "not_applicable"
+    assert (
+        bom["artifacts"]["customer_proof_selector_evidence"]["sha256"]
+        == _sha256(evidence_path)
+    )
+    assert bom["eeat_strength_policy"]["positive_signals"] == [
+        "selected_customer_proof"
+    ]
+    findings = check_bom(
+        bom,
+        article_path=paths["article"],
+        validation_sidecar_path=paths["sidecar"],
+        workspace_root=tmp_path,
+        expected_lifecycle_state="provisional",
+    )
+    assert not any(
+        finding["rule_id"] == "bom_non_connector_evidence_unexpected"
+        for finding in findings
+    )
+
+
 def test_builder_rejects_non_connector_receipt_bound_to_a_different_reason(
     tmp_path: Path,
 ):
@@ -908,7 +965,7 @@ def test_builder_rejects_a_failed_or_invented_stage_receipt(tmp_path: Path):
 def test_builder_derives_exact_optional_author_contract(tmp_path: Path):
     no_author = _build(tmp_path, _fixture(tmp_path))
     assert no_author["author_policy"] == {
-        "status": "not_provided",
+        "status": "no_author",
         "name": "",
         "frontmatter_author_required": False,
         "schema_person_required": False,

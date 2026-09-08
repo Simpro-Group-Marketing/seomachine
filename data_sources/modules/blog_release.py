@@ -10,13 +10,19 @@ from pathlib import Path
 from typing import Sequence
 
 try:
-    from . import blog_assembly_bom, blog_creation_preflight, publish_readiness
-    from .blog_assembly_contract import atomic_write_json
+    from . import (
+        blog_assembly_bom,
+        blog_assembly_stage_receipt,
+        blog_creation_preflight,
+        publish_readiness,
+    )
+    from .blog_assembly_contract import atomic_write_json, validate_sha256
 except ImportError:  # pragma: no cover - supports direct script execution.
     import blog_assembly_bom
+    import blog_assembly_stage_receipt
     import blog_creation_preflight
     import publish_readiness
-    from blog_assembly_contract import atomic_write_json
+    from blog_assembly_contract import atomic_write_json, validate_sha256
 
 
 class ReleaseInvocationError(ValueError):
@@ -33,6 +39,7 @@ class ReleaseResult:
     output_dir: Path
     phase: str
     message: str
+    recovery_artifact: Path | None = None
 
 
 def run_blog_release(
@@ -59,12 +66,20 @@ def run_blog_release(
     content_brief: str | Path | None = None,
     user_paa_csv: str | Path | None = None,
     answersocrates_blocker: str | Path | None = None,
+    optimizer_outputs: Sequence[str | Path] | None = None,
+    prior_preflight_readiness: str | Path | None = None,
     workspace_root: str | Path | None = None,
     vault_root: str | Path | None = None,
 ) -> ReleaseResult:
-    """Run preflight, provisional BOM, readiness, final BOM, and final readiness."""
+    """Run the governed release sequence with mandatory optimization evidence."""
     root = Path(workspace_root or Path.cwd()).resolve()
-    destination = _new_output_dir(output_dir, workspace_root=root)
+    optimizer_outputs = tuple(optimizer_outputs or ())
+    optimized_release = bool(optimizer_outputs) or prior_preflight_readiness is not None
+    if bool(optimizer_outputs) != (prior_preflight_readiness is not None):
+        raise ReleaseInvocationError(
+            "optimized release requires both --optimizer-output and "
+            "--prior-preflight-readiness"
+        )
     _require_file(article, "article")
     _require_file(proof_sidecar, "proof_sidecar")
     _require_file(editorial_plan, "editorial_plan")
@@ -90,10 +105,15 @@ def run_blog_release(
     ):
         if value is not None:
             _require_file(value, label)
+    for index, optimizer_output in enumerate(optimizer_outputs):
+        _require_file(optimizer_output, f"optimizer_outputs[{index}]")
+    if prior_preflight_readiness is not None:
+        _require_file(prior_preflight_readiness, "prior_preflight_readiness")
     if not isinstance(run_id, str) or not run_id.strip():
         raise ReleaseInvocationError("run_id is required")
     if workflow_mode not in {"new", "rewrite"}:
         raise ReleaseInvocationError("workflow_mode must be new or rewrite")
+    destination = _new_output_dir(output_dir, workspace_root=root)
     release_stage_receipts = tuple(stage_receipts)
     if all(str(receipt) != str(scrub_receipt) for receipt in release_stage_receipts):
         release_stage_receipts = (scrub_receipt, *release_stage_receipts)
@@ -144,6 +164,8 @@ def run_blog_release(
         context_receipt_path=context_receipt,
         customer_proof_selector_evidence_path=customer_proof_evidence,
         fred_authority_evidence_path=fred_authority_evidence,
+        optimizer_output_paths=optimizer_outputs,
+        prior_preflight_readiness_path=prior_preflight_readiness,
         workspace_root=root,
         vault_root=vault_root,
     )
@@ -160,12 +182,36 @@ def run_blog_release(
         workspace_root=root,
         vault_root=vault_root,
     )
-    publish_readiness.write_readiness_result(
+    preflight_receipt_path = publish_readiness.write_readiness_result(
         paths["preflight_readiness"],
         preflight,
         receipt_path=paths["preflight_readiness_stage_receipt"],
         workspace_root=root,
     )
+    if not optimized_release:
+        recovery_artifact = _begin_optimization_run(
+            article=article,
+            run_id=run_id,
+            paths=paths,
+            preflight=preflight,
+            preflight_receipt_path=preflight_receipt_path,
+            workspace_root=root,
+        )
+        if preflight.get("passed") is not True:
+            return ReleaseResult(
+                0,
+                destination,
+                "optimization_started",
+                "initial preflight readiness blocked; /optimize run started from blocker report",
+                recovery_artifact=recovery_artifact,
+            )
+        return ReleaseResult(
+            0,
+            destination,
+            "optimization_started",
+            "initial preflight readiness completed; /optimize run started before final release",
+            recovery_artifact=recovery_artifact,
+        )
     if preflight.get("passed") is not True:
         return ReleaseResult(1, destination, "preflight_readiness", "preflight readiness blocked release")
 
@@ -205,6 +251,9 @@ def _release_paths(output_dir: Path) -> dict[str, Path]:
         "provisional_bom": output_dir / "provisional-bom.json",
         "preflight_readiness": output_dir / "preflight-readiness.json",
         "preflight_readiness_stage_receipt": output_dir / "preflight-readiness-stage-receipt.json",
+        "optimization_state": output_dir / "optimization-state.json",
+        "optimization_recovery": output_dir / "optimization-recovery.json",
+        "optimization_stage_receipt": output_dir / "optimization-stage-receipt.json",
         "final_bom": output_dir / "final-bom.json",
         "final_readiness": output_dir / "final-readiness.json",
         "final_readiness_stage_receipt": output_dir / "final-readiness-stage-receipt.json",
@@ -235,6 +284,116 @@ def _require_file(path: str | Path, label: str) -> None:
         raise ReleaseInvocationError(f"{label} is unreadable: {path}")
 
 
+def _begin_optimization_run(
+    *,
+    article: str | Path,
+    run_id: str,
+    paths: dict[str, Path],
+    preflight: dict[str, object],
+    preflight_receipt_path: Path | None,
+    workspace_root: Path,
+) -> Path:
+    optimization_state: str | None = None
+    optimization_stage_receipt: str | None = None
+    preflight_stage_receipt: str | None = None
+    native_edit_status = "not_started"
+    recovery_steps = [
+        "Run /optimize against the article using the initial readiness output.",
+        "Write a simpro-optimizer-output/v1 artifact with inspected scores, failed gates or blocker, aeo_geo checks, priority fixes, and the edit or no-op decision.",
+        "Rerun /scrub and Context Binding after article or sidecar changes.",
+    ]
+    if preflight_receipt_path is not None:
+        preflight_receipt = _read_json_object(
+            preflight_receipt_path,
+            "preflight_readiness_stage_receipt",
+        )
+        try:
+            previous_receipt_hash = validate_sha256(
+                preflight_receipt.get("receipt_hash"),
+                field="preflight_readiness_stage_receipt.receipt_hash",
+            )
+        except ValueError as error:
+            raise ReleasePolicyError(
+                "preflight readiness receipt is missing a valid receipt_hash; "
+                "cannot begin /optimize recovery"
+            ) from error
+
+        blog_assembly_stage_receipt.begin_native_edit(
+            article_path=article,
+            state_path=paths["optimization_state"],
+            run_id=run_id,
+            stage="optimization",
+            tool_name="optimize-command",
+            tool_version="1",
+            input_artifacts={
+                "preflight_readiness": paths["preflight_readiness"],
+                "preflight_readiness_receipt": preflight_receipt_path,
+            },
+            previous_receipt_hash=previous_receipt_hash,
+        )
+        native_edit_status = "started"
+        preflight_stage_receipt = _workspace_path(
+            preflight_receipt_path,
+            workspace_root=workspace_root,
+        )
+        optimization_state = _workspace_path(
+            paths["optimization_state"],
+            workspace_root=workspace_root,
+        )
+        optimization_stage_receipt = _workspace_path(
+            paths["optimization_stage_receipt"],
+            workspace_root=workspace_root,
+        )
+        recovery_steps.extend(
+            [
+                "Finish the optimization stage receipt if article bytes changed.",
+                "Rerun the release wrapper with --optimizer-output and --prior-preflight-readiness.",
+            ]
+        )
+    else:
+        recovery_steps.extend(
+            [
+                "Resolve the preflight blocker, then rerun /scrub and Context Binding when needed.",
+                "Rerun the release wrapper to produce the required passed initial scorecard before final release.",
+            ]
+        )
+    recovery = {
+        "schema": "simpro-blog-optimization-recovery/v1",
+        "status": "started",
+        "reason": "Optimizer evidence was not supplied to the release wrapper.",
+        "preflight_passed": preflight.get("passed") is True,
+        "native_edit_status": native_edit_status,
+        "preflight_readiness": _workspace_path(
+            paths["preflight_readiness"],
+            workspace_root=workspace_root,
+        ),
+        "preflight_readiness_stage_receipt": preflight_stage_receipt,
+        "optimization_state": optimization_state,
+        "optimization_stage_receipt": optimization_stage_receipt,
+        "required_next_steps": recovery_steps,
+    }
+    atomic_write_json(paths["optimization_recovery"], recovery)
+    return paths["optimization_recovery"]
+
+
+def _read_json_object(path: str | Path, label: str) -> dict[str, object]:
+    try:
+        value = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise ReleasePolicyError(f"{label} is unreadable: {error}") from error
+    if not isinstance(value, dict):
+        raise ReleasePolicyError(f"{label} must be a JSON object")
+    return value
+
+
+def _workspace_path(path: str | Path, *, workspace_root: Path) -> str:
+    resolved = Path(path).resolve(strict=False)
+    try:
+        return resolved.relative_to(workspace_root).as_posix()
+    except ValueError:
+        return resolved.as_posix()
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run the atomic Simpro blog release wrapper.")
     parser.add_argument("article")
@@ -259,6 +418,8 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--content-brief")
     parser.add_argument("--user-paa-csv")
     parser.add_argument("--answersocrates-blocker")
+    parser.add_argument("--optimizer-output", action="append", default=[], dest="optimizer_outputs")
+    parser.add_argument("--prior-preflight-readiness")
     parser.add_argument("--workspace-root", default=str(Path.cwd()))
     parser.add_argument("--vault-root")
     parser.add_argument("--json", action="store_true")
@@ -291,6 +452,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             content_brief=args.content_brief,
             user_paa_csv=args.user_paa_csv,
             answersocrates_blocker=args.answersocrates_blocker,
+            optimizer_outputs=args.optimizer_outputs,
+            prior_preflight_readiness=args.prior_preflight_readiness,
             workspace_root=args.workspace_root,
             vault_root=args.vault_root,
         )
@@ -304,10 +467,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"error: {error}", file=sys.stderr)
         return 1
     if args.json:
-        print(json.dumps({"exit_code": result.exit_code, "phase": result.phase, "message": result.message, "output_dir": str(result.output_dir)}, indent=2))
+        payload = {
+            "exit_code": result.exit_code,
+            "phase": result.phase,
+            "message": result.message,
+            "output_dir": str(result.output_dir),
+        }
+        if result.recovery_artifact is not None:
+            payload["recovery_artifact"] = str(result.recovery_artifact)
+        print(json.dumps(payload, indent=2))
     else:
         print(f"{result.phase}: {result.message}")
         print(f"output_dir: {result.output_dir}")
+        if result.recovery_artifact is not None:
+            print(f"recovery_artifact: {result.recovery_artifact}")
     return result.exit_code
 
 

@@ -19,10 +19,6 @@ from typing import Any, Mapping, Optional, Sequence
 
 CANONICAL_PLUGIN_ID = "simpro-context@simpro"
 LEGACY_PLUGIN_ID = "simpro-context@marketingskills"
-MINIMUM_PLUGIN_VERSIONS = {
-    CANONICAL_PLUGIN_ID: (1, 3, 0),
-    LEGACY_PLUGIN_ID: (1, 1, 2),
-}
 ROOT_ENVIRONMENT_VARIABLE = "SIMPRO_VAULT_ROOT"
 CLAUDE_SETTINGS_RELATIVE_PATH = Path(".claude") / "settings.json"
 REQUIRED_STATUS_REVISIONS = (
@@ -80,7 +76,6 @@ RECOVERY_HINTS = {
     "plugin_missing": "Run the canonical one-root configure_simpro_context.ps1 -VaultRoot <vault-root> setup, then retry.",
     "plugin_disabled": "Run the canonical one-root configure_simpro_context.ps1 -VaultRoot <vault-root> setup, then retry.",
     "plugin_ambiguous": "Remove duplicate simpro-context installations, then retry.",
-    "plugin_outdated": "Run the canonical one-root configure_simpro_context.ps1 -VaultRoot <vault-root> setup to update the plugin, then retry.",
     "plugin_cli_missing": "Run the canonical one-root configure_simpro_context.ps1 -VaultRoot <vault-root> setup to reinstall the plugin, then retry.",
     "plugin_unhealthy": "Run vault_status after rebuilding the vault-owned protocol artifacts.",
     "vault_claims_unavailable": "Restore approved Simpro claim health, rebuild vault artifacts, and retry vault_status.",
@@ -207,13 +202,6 @@ def _validate_plugin_matches(
         raise VaultClientError(
             "plugin_disabled",
             f"Required plugin is disabled: {plugin_id}",
-        )
-    version = plugin.get("version")
-    minimum_version = MINIMUM_PLUGIN_VERSIONS[plugin_id]
-    if not isinstance(version, str) or _version_tuple(version) < minimum_version:
-        raise VaultClientError(
-            "plugin_outdated",
-            f"Required plugin {plugin_id} must be version {'.'.join(map(str, minimum_version))} or newer",
         )
     install_path = plugin.get("installPath")
     if not isinstance(install_path, str) or not install_path.strip():
@@ -612,16 +600,6 @@ def _connector_error(stderr: str, stdout: str) -> VaultClientError:
                 if isinstance(code, str) and isinstance(message, str):
                     return VaultClientError(code, message)
     return VaultClientError("connector_failed", raw or "Shared connector operation failed")
-
-
-def _version_tuple(value: str) -> tuple[int, int, int]:
-    core = value.strip().split("-", 1)[0].split("+", 1)[0]
-    parts = core.split(".")
-    if not 1 <= len(parts) <= 3 or any(not part.isdigit() for part in parts):
-        return (0, 0, 0)
-    numbers = [int(part) for part in parts]
-    numbers.extend([0] * (3 - len(numbers)))
-    return tuple(numbers[:3])
 
 
 def _configured_vault_root(

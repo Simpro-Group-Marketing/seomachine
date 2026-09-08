@@ -11,6 +11,7 @@ falls back to a Playwright CLI capture of browser-visible Google SERP facts.
 from __future__ import annotations
 
 import argparse
+import inspect
 import json
 import os
 import re
@@ -63,6 +64,17 @@ def parse_cli_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         default=None,
         help="Optional caller-supplied intent/evidence-complete article target",
     )
+    parser.add_argument(
+        "--location-code",
+        type=_positive_int,
+        default=2840,
+        help="DataForSEO location code (default: 2840)",
+    )
+    parser.add_argument(
+        "--google-country",
+        default="us",
+        help="Google country code for the Playwright fallback (default: us)",
+    )
     return parser.parse_args(argv)
 
 
@@ -76,7 +88,12 @@ def main() -> None:
             '"your target keyword" --word-target 1600'
         )
         return
-    run_serp_analysis(args.keyword, word_target=args.word_target)
+    run_serp_analysis(
+        args.keyword,
+        word_target=args.word_target,
+        location_code=args.location_code,
+        google_country=args.google_country,
+    )
 
 
 def run_serp_analysis(
@@ -89,6 +106,8 @@ def run_serp_analysis(
     content_comparator_factory: Callable[[], Any] = ContentLengthComparator,
     print_fn: Callable[[str], None] = print,
     word_target: Optional[int] = None,
+    location_code: int = 2840,
+    google_country: str = "us",
 ) -> Dict[str, Any]:
     """Run SERP analysis with DataForSEO first and Playwright fallback second."""
     if not isinstance(keyword, str) or not keyword.strip():
@@ -103,6 +122,15 @@ def run_serp_analysis(
         )
     ):
         raise ValueError("word_target must be a positive integer or None")
+    if (
+        not isinstance(location_code, int)
+        or isinstance(location_code, bool)
+        or location_code <= 0
+    ):
+        raise ValueError("location_code must be a positive integer")
+    if not isinstance(google_country, str) or not google_country.strip():
+        raise ValueError("google_country must be a non-empty string")
+    google_country = google_country.strip().lower()
 
     now = now or datetime.now()
     output_dir = Path(output_dir)
@@ -140,7 +168,7 @@ def run_serp_analysis(
         print_fn(f"\n2. Fetching SERP data for '{keyword}'...")
         try:
             serp_data = normalize_serp_payload(
-                dfs.get_serp_data(keyword, limit=20),
+                dfs.get_serp_data(keyword, location_code=location_code, limit=20),
                 source="DataForSEO",
             )
             if not serp_data or "organic_results" not in serp_data:
@@ -156,7 +184,13 @@ def run_serp_analysis(
 
     if not serp_data:
         print_fn("\n2b. Attempting Playwright SERP fallback...")
-        fallback_data = fallback_runner(keyword, output_dir=output_dir, now=now)
+        fallback_data = call_fallback_runner(
+            fallback_runner,
+            keyword,
+            output_dir=output_dir,
+            now=now,
+            google_country=google_country,
+        )
         if fallback_data.get("fallback_blocker"):
             print_fn(f"   Playwright fallback blocker: {fallback_data['fallback_blocker']}")
         else:
@@ -175,6 +209,8 @@ def run_serp_analysis(
     analysis: Dict[str, Any] = {
         "keyword": keyword,
         "word_target": word_target,
+        "location_code": location_code,
+        "google_country": google_country,
         "analyzed_date": now.strftime("%Y-%m-%d"),
         "top_results": organic_results,
         "serp_features": serp_data.get("features", []),
@@ -185,6 +221,7 @@ def run_serp_analysis(
         "fallback_search_url": fallback_data.get("search_url", ""),
         "fallback_raw_artifact": fallback_data.get("raw_artifact", ""),
         "fallback_captured_at": fallback_data.get("captured_at", now.isoformat()),
+        "fallback_locale": fallback_data.get("locale", {}),
         "content_types": [],
         "title_patterns": [],
         "word_counts": [],
@@ -413,9 +450,43 @@ def analyze_search_intent(
     print_fn(f"   Confidence: {analysis['intent_confidence']:.0f}%")
 
 
-def build_google_search_url(keyword: str) -> str:
+def build_google_search_url(keyword: str, google_country: str = "us") -> str:
     """Build the controlled Google SERP URL used by the Playwright fallback."""
-    return f"https://www.google.com/search?q={quote_plus(keyword)}&num=10&hl=en&gl=us&pws=0"
+    return (
+        f"https://www.google.com/search?q={quote_plus(keyword)}&num=10&hl=en&"
+        f"gl={quote_plus(google_country)}&pws=0"
+    )
+
+
+def call_fallback_runner(
+    fallback_runner: Callable[..., Dict[str, Any]],
+    keyword: str,
+    *,
+    output_dir: Path,
+    now: datetime,
+    google_country: str,
+) -> Dict[str, Any]:
+    """Call current and legacy injected fallback runners without hiding runner errors."""
+    kwargs: Dict[str, Any] = {
+        "output_dir": output_dir,
+        "now": now,
+    }
+    try:
+        parameters = inspect.signature(fallback_runner).parameters
+    except (TypeError, ValueError):
+        parameters = {}
+
+    google_country_parameter = parameters.get("google_country")
+    accepts_google_country = bool(
+        google_country_parameter is not None
+        and google_country_parameter.kind is not inspect.Parameter.POSITIONAL_ONLY
+    ) or any(
+        parameter.kind is inspect.Parameter.VAR_KEYWORD
+        for parameter in parameters.values()
+    )
+    if accepts_google_country or not parameters:
+        kwargs["google_country"] = google_country
+    return fallback_runner(keyword, **kwargs)
 
 
 def npx_available() -> bool:
@@ -485,12 +556,13 @@ def run_playwright_serp_fallback(
     now: Optional[datetime] = None,
     cli_runner: Optional[Callable[[str], str]] = None,
     npx_checker: Callable[[], bool] = npx_available,
+    google_country: str = "us",
 ) -> Dict[str, Any]:
     """Capture visible Google SERP facts through Playwright CLI and save raw provenance."""
     now = now or datetime.now()
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    search_url = build_google_search_url(keyword)
+    search_url = build_google_search_url(keyword, google_country)
     artifact_path = output_dir / (
         f"serp-playwright-{sanitize_filename(keyword)}-{now.strftime('%Y-%m-%d')}.json"
     )
@@ -502,12 +574,17 @@ def run_playwright_serp_fallback(
             artifact_path,
             now,
             "npx unavailable; install Node/npm or provide a SERP/PAA export.",
+            google_country,
         )
         write_json_artifact(artifact_path, result)
         return result
 
     try:
-        raw_output = (cli_runner or run_playwright_cli_serp_capture)(keyword)
+        raw_output = (
+            cli_runner(keyword)
+            if cli_runner
+            else run_playwright_cli_serp_capture(keyword, google_country)
+        )
         payload = normalize_serp_payload(
             parse_playwright_cli_payload(raw_output),
             source="Playwright",
@@ -521,6 +598,7 @@ def run_playwright_serp_fallback(
             artifact_path,
             now,
             f"Playwright SERP fallback failed: {exc}",
+            google_country,
         )
         write_json_artifact(artifact_path, result)
         return result
@@ -546,7 +624,7 @@ def run_playwright_serp_fallback(
         "fallback_used": True,
         "fallback_blocker": blocker,
         "search_url": payload.get("search_url") or search_url,
-        "locale": {"hl": "en", "gl": "us", "pws": "0"},
+        "locale": {"hl": "en", "gl": google_country, "pws": "0"},
         "raw_artifact": str(artifact_path),
         "organic_results": organic_results,
         "features": [] if blocker else dedupe_strings(payload.get("features", [])),
@@ -557,9 +635,9 @@ def run_playwright_serp_fallback(
     return normalized
 
 
-def run_playwright_cli_serp_capture(keyword: str) -> str:
+def run_playwright_cli_serp_capture(keyword: str, google_country: str = "us") -> str:
     """Run Playwright CLI against Google and return the extraction JSON string."""
-    search_url = build_google_search_url(keyword)
+    search_url = build_google_search_url(keyword, google_country)
     code = build_playwright_serp_extraction_code(search_url)
     npx_path = find_npx_executable()
     if not npx_path:
@@ -786,6 +864,7 @@ def empty_playwright_fallback(
     artifact_path: Path,
     now: datetime,
     blocker: str,
+    google_country: str = "us",
 ) -> Dict[str, Any]:
     """Build a blocked fallback payload without inventing SERP evidence."""
     return {
@@ -794,7 +873,7 @@ def empty_playwright_fallback(
         "fallback_used": True,
         "fallback_blocker": blocker,
         "search_url": search_url,
-        "locale": {"hl": "en", "gl": "us", "pws": "0"},
+        "locale": {"hl": "en", "gl": google_country, "pws": "0"},
         "raw_artifact": str(artifact_path),
         "organic_results": [],
         "features": [],
@@ -1152,7 +1231,15 @@ def write_markdown_report(
         report.write(
             "- **Year Signals Prevalent:** "
             f"{'Yes' if analysis.get('freshness_important') else 'No'} "
-            "(observed context only)\n\n"
+            "(observed context only)\n"
+        )
+        report.write(
+            "- **Requested DataForSEO Location Code:** "
+            f"{analysis.get('location_code', 2840)}\n"
+        )
+        report.write(
+            "- **Requested Google Country:** "
+            f"{str(analysis.get('google_country') or 'us').upper()}\n\n"
         )
 
         report.write("## Content Context\n\n")
@@ -1268,7 +1355,11 @@ def write_playwright_fallback_section(report: Any, analysis: Dict[str, Any]) -> 
     report.write(f"- **DataForSEO failure reason:** {analysis.get('dataforseo_error') or 'not applicable'}\n")
     report.write(f"- **Search URL used:** {analysis.get('fallback_search_url') or 'not available'}\n")
     report.write(f"- **Timestamp:** {analysis.get('fallback_captured_at') or 'not available'}\n")
-    report.write("- **Locale assumptions:** US, English, personalization disabled via `pws=0`\n")
+    fallback_locale = analysis.get("fallback_locale") or {}
+    country = str(fallback_locale.get("gl") or "us").upper()
+    report.write(
+        f"- **Locale assumptions:** {country}, English, personalization disabled via `pws=0`\n"
+    )
     report.write(f"- **Raw artifact:** `{analysis.get('fallback_raw_artifact') or 'not available'}`\n")
     if analysis.get("fallback_blocker"):
         report.write(f"- **Playwright SERP fallback failed:** {analysis['fallback_blocker']}\n")

@@ -7,6 +7,10 @@ Analyze article content and recommend specific internal links on the owning bran
 
 Return advisory findings only. Do not edit public copy or assign release status. Final release status comes only from `/publish-readiness`.
 
+## Reader-Facing Copy Boundary
+
+Flag `editorial_process_leakage` when anchor text or surrounding link copy explains why a link, source, proof point, product mention, or omission was selected for the draft. Recommend audience-facing anchor context, or move the workflow rationale to the validation sidecar, editorial plan, optimizer output, release BOM, or command receipt.
+
 ## Expertise Areas
 - Information architecture and site structure
 - Topic cluster methodology

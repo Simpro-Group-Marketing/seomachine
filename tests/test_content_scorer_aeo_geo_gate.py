@@ -105,6 +105,40 @@ def write_sidecar_fixture(test_case: unittest.TestCase, content: str) -> tuple[s
 
 
 class ContentScorerAeoGeoGateTests(unittest.TestCase):
+    def test_clean_for_analysis_excludes_non_visible_html_and_keeps_table_text(self):
+        content = (
+            "# Platform guide\n\n"
+            "<table><tr><td>Visible buyer fit</td></tr></table>\n"
+            '<script type="application/ld+json">'
+            '{"description": "Hidden schema duplicate."}'
+            "</script>\n"
+        )
+
+        cleaned = ContentScorer()._clean_for_analysis(content)
+
+        self.assertIn("Visible buyer fit", cleaned)
+        self.assertNotIn("Hidden schema duplicate", cleaned)
+        self.assertNotIn("<td>", cleaned)
+
+    def test_structure_balance_counts_rendered_html_table_as_structure(self):
+        content = (
+            "# Platform guide\n\n"
+            "Use this guide to compare the products against your daily workflow.\n\n"
+            "<table>\n"
+            "<tr><th>Platform</th><th>Buyer fit</th></tr>\n"
+            "<tr><td>Alpha</td><td>Service teams</td></tr>\n"
+            "<tr><td>Beta</td><td>Project teams</td></tr>\n"
+            "</table>\n"
+            '<script type="application/ld+json">\n'
+            '{"description": "Schema text must not count as prose."}\n'
+            "</script>\n"
+        )
+
+        result = ContentScorer()._score_structure_balance(content)
+
+        self.assertGreater(result["details"]["table_chars"], 0)
+        self.assertLess(result["prose_ratio"], 0.75)
+
     def test_seo_gate_uses_the_canonical_seo_quality_threshold(self):
         self.assertEqual(content_scorer_module.SEO_PUBLISHING_THRESHOLD, PUBLISHING_THRESHOLD)
         self.assertFalse(hasattr(ContentScorer, "SEO_PASS_THRESHOLD"))

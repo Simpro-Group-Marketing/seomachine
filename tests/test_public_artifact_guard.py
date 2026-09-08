@@ -260,6 +260,47 @@ class PublicArtifactGuardTests(unittest.TestCase):
 
         self.assertEqual(check_content(content), [])
 
+    def test_unclear_media_placeholders_warn_without_error(self):
+        content = (
+            "# Article\n\n"
+            "<!-- IMAGE PLACEHOLDER: Original hero. Source: https://example.com/hero.jpg -->\n\n"
+            "<!--\n"
+            '[IMAGE PLACEHOLDER | source: https://example.com/commented.png | alt: "Hidden hero" | '
+            "render target: 960 x 250 px | resize and compress before upload]\n"
+            "-->\n\n"
+            "> **Video placeholder:** Retain original Vimeo embed here.\n\n"
+            'Theme image: [IMAGE PLACEHOLDER | source: https://example.com/hero.png | '
+            'alt: "Hero image" | render target: 960 x 250 px | '
+            "resize and compress before upload]\n\n"
+            "[IMAGE PLACEHOLDER: Hero image]\n"
+        )
+
+        findings = check_content(content)
+
+        self.assertEqual(
+            [finding["rule_id"] for finding in findings],
+            ["unclear_media_placeholder"] * 5,
+        )
+        self.assertTrue(
+            all(finding["severity"] == "warning" for finding in findings)
+        )
+        self.assertFalse(should_fail(findings, fail_on="error"))
+        self.assertTrue(should_fail(findings, fail_on="warning"))
+
+    def test_canonical_media_placeholders_pass_cleanly(self):
+        content = (
+            "# Article\n\n"
+            '[IMAGE PLACEHOLDER | source: https://example.com/hero.png | alt: '
+            '"Hero image for scheduling" | render target: 960 x 250 px | '
+            "resize and compress before upload]\n\n"
+            '[VIDEO PLACEHOLDER | source: https://www.youtube.com/watch?v=dQw4w9WgXcQ | '
+            'title: "Scheduling demo" | placement: after the scheduling section | '
+            "embed target: responsive 16:9 youtube-nocookie iframe | "
+            "VideoObject: add only after embed]\n"
+        )
+
+        self.assertEqual(check_content(content), [])
+
     def test_clean_public_article_passes(self):
         content = fixture_text("content_evidence:test_public_artifact_guard-421-22")
 

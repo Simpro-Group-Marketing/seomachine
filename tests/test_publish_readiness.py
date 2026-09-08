@@ -16,6 +16,10 @@ from data_sources.modules.blog_assembly_stage_receipt import (
     write_stage_receipt,
 )
 from data_sources.modules.url_validator import UrlValidationResult, UrlValidationSummary
+from data_sources.modules.nonvault_customer_proof_selector import (
+    write_nonvault_selector_evidence,
+)
+from tests.nonvault_proof_fixture import write_nonvault_proof_inputs
 
 
 CURRENT_DATE = date.today().isoformat()
@@ -586,6 +590,49 @@ def test_no_fit_customer_proof_ignores_quoted_frontmatter_description(tmp_path):
     assert findings == []
 
 
+def test_readiness_runtime_policy_resolves_nonvault_customer_proof_evidence(files):
+    article, sidecar = files
+    bom_path = _write_non_connector_bom(article, sidecar)
+    index_path, ledger_path = write_nonvault_proof_inputs(article.parent / "proof")
+    evidence = article.parent / "research" / "nonvault-proof.json"
+    write_nonvault_selector_evidence(
+        evidence,
+        topic="employee time theft",
+        brand="ClockShark",
+        title="Employee Time Theft",
+        objective="Prevent buddy punching fairly.",
+        article_slug="employee-time-theft",
+        roles=("metric", "quote", "theme", "experience_story"),
+        require_eeat_story=True,
+        limit=10,
+        reference_date=date.today(),
+        selected_overrides={
+            "theme": "clockshark-customer-story-mabrys-electrical-service",
+            "experience_story": "clockshark-customer-story-mabrys-electrical-service",
+        },
+        rejected_overrides={},
+        index_path=index_path,
+        ledger_path=ledger_path,
+    )
+    bom = json.loads(bom_path.read_text(encoding="utf-8"))
+    bom["artifacts"]["customer_proof_selector_evidence"] = canonical_artifact(
+        evidence,
+        workspace_root=article.parent,
+    )
+    bom_path.write_text(json.dumps(bom), encoding="utf-8")
+
+    policy = publish_readiness._bom_runtime_policy(
+        str(bom_path),
+        workspace_root=article.parent,
+    )
+
+    assert policy["customer_proof_selector_evidence"] == str(evidence.resolve())
+    assert publish_readiness._no_fit_customer_proof_findings(
+        article.read_text(encoding="utf-8"),
+        runtime_policy=policy,
+    ) == []
+
+
 def test_bom_article_path_cannot_widen_the_trusted_workspace_root(
     files,
     monkeypatch,
@@ -881,6 +928,24 @@ def test_warning_does_not_block(files):
     lint = next(row for row in result["gates"] if row["name"] == "ai_copy_linter")
     assert result["passed"] is True
     assert lint["warnings"] == 1
+
+
+def test_public_artifact_media_placeholder_warning_does_not_block(files):
+    article, sidecar = files
+    result, _, _, _ = run_with_patches(
+        article,
+        sidecar,
+        overrides={
+            "public_artifact": [
+                finding("unclear_media_placeholder", severity="warning")
+            ]
+        },
+    )
+
+    gate = next(row for row in result["gates"] if row["name"] == "public_artifact")
+    assert result["passed"] is True
+    assert gate["warnings"] == 1
+    assert gate["errors"] == 0
 
 
 def test_reviewed_chatbot_residue_blocks_through_existing_ai_copy_gate(files):

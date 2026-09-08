@@ -30,6 +30,26 @@ def test_blog_writing_commands_keep_public_copy_native_owned():
             assert deleted_tool not in content
 
 
+def test_nonconnector_customer_proof_docs_require_the_nonvault_selector_contract():
+    canonical = _read(ROOT / "context" / "aeo-geo-blog-strategy.md")
+    claude_rule = _read(ROOT / ".claude" / "rules" / "customer-proof.md")
+    agents_rule = _read(ROOT / ".agents" / "rules" / "customer-proof.md")
+
+    for content in (canonical, claude_rule, agents_rule):
+        assert "nonvault_customer_proof_selector.py" in content
+        assert "simpro-nonvault-customer-proof-selector-evidence/v1" in content
+        assert "AroFlo, BigChange, and ClockShark" in content
+
+    for name in ("write.md", "rewrite.md"):
+        content = _read(COMMAND_DIR / name)
+        assert "nonvault_customer_proof_selector.py" in content
+        assert "separate approved non-vault proof-eligibility contract" in content
+
+    readiness = _read(COMMAND_DIR / "publish-readiness.md")
+    assert "simpro-nonvault-customer-proof-selector-evidence/v1" in readiness
+    assert "vault-dependent customer-proof" in readiness
+
+
 def test_original_new_blog_route_replaces_the_redundant_article_command():
     assert not (COMMAND_DIR / "article.md").exists()
 
@@ -70,6 +90,45 @@ def test_writing_commands_restore_original_specialist_handoffs():
     ):
         assert agent in rewrite
         assert agent in optimize
+
+
+def test_reader_facing_copy_boundary_is_enforced_by_commands_and_agents():
+    write = _read(COMMAND_DIR / "write.md")
+    rewrite = _read(COMMAND_DIR / "rewrite.md")
+    optimize = _read(COMMAND_DIR / "optimize.md")
+    scrub = _read(COMMAND_DIR / "scrub.md")
+    readiness = _read(COMMAND_DIR / "publish-readiness.md")
+
+    for content, owner in ((write, "/write"), (rewrite, "/rewrite")):
+        assert "Reader-Facing Copy Firewall" in content
+        assert "before drafting" in content or "before rewriting" in content
+        assert "Public body copy must read only as a blog for the ICP" in content
+        assert "this article uses" in content
+        assert "the brief asks" in content
+        assert "right editorial lane" in content
+        assert "does not name a specific feature" in content
+        assert "`editorial_process_leakage` finding is a public-copy blocker" in content
+        assert f"owned by `{owner}`" in content
+
+    assert "Reader-Facing Copy Firewall as part of optimization diagnosis" in optimize
+    assert "never record a no-op optimizer output while this blocker remains" in optimize
+    assert "`editorial_process_leakage`" in scrub
+    assert "required public-copy recovery item" in scrub
+    assert "`editorial_process_leakage` as a hard public-copy blocker" in readiness
+    assert "even if Content, SEO, and AEO/GEO scores otherwise pass" in readiness
+
+    for name in (
+        "content-analyzer.md",
+        "editor.md",
+        "seo-optimizer.md",
+        "meta-creator.md",
+        "internal-linker.md",
+        "keyword-mapper.md",
+    ):
+        content = _read(AGENT_DIR / name)
+        assert "## Reader-Facing Copy Boundary" in content
+        assert "`editorial_process_leakage`" in content
+        assert "workflow rationale" in content or "workflow instead" in content
 
 
 def test_writing_commands_bind_reviewed_humanizer_evidence_to_native_edits():
@@ -238,6 +297,63 @@ def test_publish_readiness_documents_independent_scorecard():
     assert "`aeo_geo`: score, threshold 90 for blogs" in content
     for deleted_tool in DELETED_AUTHORING_TOOLS:
         assert deleted_tool not in content
+
+
+def test_blog_workflow_requires_scrub_optimize_and_score_reporting_every_run():
+    universal_rule = (
+        "every new or changed blog run must include `/scrub`, an initial "
+        "`/publish-readiness` scorecard or exact non-scoring blocker, "
+        "`/optimize`, a post-optimization `/scrub` when article bytes change, "
+        "and a final `/publish-readiness` handoff"
+    )
+    missing_score_rule = (
+        "Score absence is a workflow blocker unless a pre-scoring gate "
+        "blocked readiness"
+    )
+
+    for path in (
+        ROOT / "AGENTS.md",
+        ROOT / "CLAUDE.md",
+        ROOT / "context" / "aeo-geo-blog-strategy.md",
+    ):
+        content = _read(path)
+        assert universal_rule in content
+        assert missing_score_rule in content
+
+    for name in ("write.md", "rewrite.md"):
+        content = _read(COMMAND_DIR / name)
+        assert "initial `/publish-readiness` scorecard or an exact non-scoring blocker" in content
+        assert "Run `/optimize [article]` for every" in content
+        assert "reports separate Content, SEO, and AEO/GEO scores" in content
+        assert "Missing scores are a workflow blocker unless a pre-scoring gate stopped `/publish-readiness`" in content
+
+    optimize = _read(COMMAND_DIR / "optimize.md")
+    assert "If `/publish-readiness` stopped before scoring" in optimize
+    assert "no-op `simpro-optimizer-output/v1` artifact" in optimize
+
+    readiness = _read(COMMAND_DIR / "publish-readiness.md")
+    assert "If an upstream gate blocks scoring, report `scorecard: unavailable`" in readiness
+    assert "phase `optimization_started`" in readiness
+    assert "Exit `0` with phase `optimization_started`" in readiness
+    assert "optimization-state.json" in readiness
+    assert "optimization-recovery.json" in readiness
+    assert "--optimizer-output \"[optimizer-output]\"" in readiness
+    assert "--prior-preflight-readiness \"[preflight-readiness]\"" in readiness
+    assert "Final handoff must include the final scrub result and separate Content, SEO, and AEO/GEO scores" in readiness
+
+    for path in (ROOT / "AGENTS.md", ROOT / "CLAUDE.md"):
+        content = _read(path)
+        assert "phase `optimization_started`" in content
+        assert "optimization-recovery.json" in content
+        assert "--optimizer-output" in content
+        assert "--prior-preflight-readiness" in content
+        assert "phase `final_readiness`" in content or "produce `final_readiness`" in content
+
+    strategy = _read(ROOT / "context" / "aeo-geo-blog-strategy.md")
+    assert "The first wrapper run must advance missing optimizer evidence into `optimization_started`" in strategy
+    assert "not a dead-end exit" in strategy
+    assert "--optimizer-output \"[optimizer-output]\"" in strategy
+    assert "--prior-preflight-readiness \"[preflight-readiness]\"" in strategy
 
 
 def test_strategy_keeps_native_boundary_and_score_thresholds():

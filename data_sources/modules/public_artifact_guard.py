@@ -16,8 +16,16 @@ from pathlib import Path
 from typing import List, Optional, Sequence
 
 try:
+    from .image_placeholder import (
+        is_production_image_placeholder_line,
+        is_production_video_placeholder_line,
+    )
     from .guard_common import Finding, make_finding, should_fail, summarize_findings
 except ImportError:  # pragma: no cover - supports direct script execution.
+    from image_placeholder import (
+        is_production_image_placeholder_line,
+        is_production_video_placeholder_line,
+    )
     from guard_common import Finding, make_finding, should_fail, summarize_findings
 
 
@@ -65,6 +73,14 @@ DRAFT_PLACEHOLDER_RE = re.compile(
     r"(?:TODO|TBD|TK)(?:\s*:\s*[^|\n]+)?\s*$",
     re.IGNORECASE,
 )
+MEDIA_PLACEHOLDER_RE = re.compile(
+    r"\b(?:image|video|media|embed)\s+placeholder\b|"
+    r"\bplaceholder\s+(?:image|video|media|embed)\b|"
+    r"\[\s*(?:image|video)\s+placeholder\b|"
+    r"\b(?:add|insert|embed|place)\s+(?:an?\s+)?(?:image|video)\s+"
+    r"(?:here|later)\b",
+    re.IGNORECASE,
+)
 CONTEXT_INTERNAL_HEADING_RE = re.compile(
     r"^\s*(?:#{1,6}\s+)?(?:claim use map|(?:simpro\s+(?:product\s+)?|product\s+)?context\s+"
     r"(?:binding|pack|request|receipt|validation(?: receipt)?|claim use map|discovery trace|"
@@ -90,6 +106,7 @@ def check_content(content: str) -> List[Finding]:
     """Return findings for internal validation artifacts in public copy."""
     findings: List[Finding] = []
     in_fence = False
+    in_html_comment = False
     for line_number, line in enumerate(content.splitlines(), start=1):
         stripped = line.strip()
         normalized_heading = _normalize_heading(stripped)
@@ -149,6 +166,17 @@ def check_content(content: str) -> List[Finding]:
         if in_fence:
             continue
 
+        comment_context = in_html_comment or "<!--" in line
+        findings.extend(
+            _unclear_media_placeholder_findings(
+                line,
+                stripped,
+                line_number,
+                hidden=comment_context,
+            )
+        )
+        in_html_comment = _next_html_comment_state(line, in_html_comment)
+
         if EDITORIAL_REVIEW_SYMBOL_RE.search(line) or EDITORIAL_REVIEW_LABEL_RE.search(
             line
         ):
@@ -201,6 +229,67 @@ def check_content(content: str) -> List[Finding]:
             )
 
     return findings
+
+
+def _unclear_media_placeholder_findings(
+    line: str,
+    stripped: str,
+    line_number: int,
+    *,
+    hidden: bool,
+) -> List[Finding]:
+    if not hidden and (
+        is_production_image_placeholder_line(stripped)
+        or is_production_video_placeholder_line(stripped)
+    ):
+        return []
+    match = MEDIA_PLACEHOLDER_RE.search(line)
+    if not match:
+        return []
+    message = (
+        "Markdown contains a hidden or non-standalone media placeholder."
+        if hidden
+        else "Markdown contains an unclear media placeholder."
+    )
+    return [
+        make_finding(
+            "unclear_media_placeholder",
+            "warning",
+            line_number,
+            column=match.start() + 1,
+            match=stripped,
+            message=message,
+            suggestion=(
+                "Normalize it as a visible standalone line: "
+                '[IMAGE PLACEHOLDER | source: ... | alt: "..." | render target: ... | '
+                "resize and compress before upload] or "
+                '[VIDEO PLACEHOLDER | source: ... | title: "..." | placement: ... | '
+                "embed target: ... | VideoObject: add only after embed]."
+            ),
+        )
+    ]
+
+
+def _next_html_comment_state(line: str, currently_open: bool) -> bool:
+    """Track simple HTML comments so hidden media placeholders can be surfaced."""
+    state = currently_open
+    cursor = 0
+    while cursor < len(line):
+        if state:
+            close_index = line.find("-->", cursor)
+            if close_index == -1:
+                return True
+            state = False
+            cursor = close_index + 3
+            continue
+        open_index = line.find("<!--", cursor)
+        if open_index == -1:
+            return False
+        close_index = line.find("-->", open_index + 4)
+        if close_index == -1:
+            return True
+        cursor = close_index + 3
+    return state
 
 
 def _normalize_heading(line: str) -> str:

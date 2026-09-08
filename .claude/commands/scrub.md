@@ -22,6 +22,8 @@ Python must not draft, rewrite, or patch public blog Markdown in `drafts/`, `rew
 python data_sources/modules/ai_copy_linter.py [file-path] --profile simpro-web --fail-on error
 ```
 
+If the linter reports `editorial_process_leakage`, treat it as a required public-copy recovery item. Move workflow rationale to frontmatter, the validation sidecar, the editorial plan, the optimizer output, the release BOM, or a command receipt, or translate it into reader-facing guidance before rerunning `/scrub`.
+
 Before handoff, run `/publish-readiness [article]` so the full gate stack and independent scorecard are checked.
 
 ## Output

@@ -39,7 +39,7 @@ All commands are defined in `.claude/commands/` and invoked as slash commands. T
 - `/research [topic]` - Keyword/competitor research, generates brief in `research/`
 - `/write [topic]` - Create full article in `drafts/`, auto-triggers optimization agents
 - `/rewrite [topic]` - Update existing content with SEO plus AEO/GEO rewrite gates, saves to `rewrites/`
-- `/optimize [file]` - Final SEO polish pass
+- `/optimize [file]` - Required post-preflight SEO/AEO repair or recorded no-op pass
 - `/analyze-existing [URL or file]` - Content health and AEO/GEO rewrite-readiness audit
 - `/performance-review` - Analytics-driven content priorities
 - `/publish-draft [file]` - Publish to WordPress via REST API
@@ -117,13 +117,21 @@ Use slash commands for research and optimization workflows. Do not hand Python s
 
 For every blog, SEO, AEO, competitor, proof, product, audience, partner, or workflow decision, use the Simpro vault connector as the active context source. The only configured content location is the vault root; prompts, guards, selectors, and workflow docs must not prescribe vault hubs, filenames, or internal directories.
 
-Required connector workflow: run vault health first, describe available roles/topics/entities, search in the task's natural language, read and expand results by `resource_id`, query approved claims only when public proof-sensitive language is needed, then build and validate a context pack.
+Required connector workflow: run vault health first, describe available roles/topics/entities, search in the task's natural language, read and expand results by `resource_id`, query approved claims only when public proof-sensitive language is needed, then build and validate a context pack. Use the one enabled `simpro-context@simpro` installation whose `projectPath` matches this repository, regardless of its reported version. Never use an installation attached to another repository, worktree, or branch checkout. Determine compatibility from `vault_status` and the required operation contracts, not the version label. When vault MCP operations are absent from the active tool catalog, invoke the same current-project connector through `data_sources.modules.simpro_vault_client.SimproVaultClient`; missing MCP exposure does not make the vault unavailable.
 
 Do not use Google Workspace or old marketing-portal URLs as the active read path. Use them only as historical provenance when the vault connector exposes them as source evidence.
 
-The repo-local context files are downstream mirrors or operational state only. They cannot override the vault connector when the vault is available. If fallback is used because the vault is unavailable, document the explicit vault-unavailable blocker in the validation sidecar.
+The repo-local context files are downstream operational state only and are never an active or fallback source for Simpro work. If both surfaced MCP operations and the current-project `SimproVaultClient` path fail, stop, document the exact vault blocker in the validation sidecar, and do not draft unsupported public claims.
 
 Required validation sidecar evidence: generated vault context binding for every workflow; `Vault Brand Language Alignment` when product, feature, add-on, solution, industry, or related Simpro product URL language appears; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. These sections must cite connector `context_pack_hash`, `receipt_hash`, `resource_id`, `claim_id`, use mode, public URL when required, and relevant revisions. Missing required evidence blocks `/publish-readiness`, `/optimize`, and dev-ready handoff.
+
+## Reader-Facing Public Copy Boundary
+
+Public blog body copy must read as an article for the ICP, not as a workflow explanation for the operator. Keep brief instructions, editorial rationale, command results, claim-selection decisions, source-fit reasoning, product-mention omissions, schema notes, and publish-readiness status out of the body. Put that material in YAML frontmatter when it is public metadata, and in the validation sidecar, editorial plan, optimizer output, release BOM, or command receipt when it is workflow evidence.
+
+When image or video work remains, keep the marker reader-visible and standalone. `/write`, `/rewrite`, and `/optimize` must normalize hidden HTML comments, blockquotes, inline labels, and shorthand media notes into these formats: `[IMAGE PLACEHOLDER | source: ... | alt: "..." | render target: ... | resize and compress before upload]` or `[VIDEO PLACEHOLDER | source: ... | title: "..." | placement: ... | embed target: ... | VideoObject: add only after embed]`. Unclear media placeholder warnings are repair instructions for the LLM, not publish blockers.
+
+Never write public body sentences such as "this article uses," "the brief asks," "that is the right editorial lane," "it does not name a specific feature," or similar commentary that explains why the draft was assembled a certain way. Translate the decision into reader-facing guidance, or omit it. The AI copy linter's `editorial_process_leakage` rule is a release blocker for this class of mistake.
 
 ## Reviewed Humanizer Governance
 
@@ -144,6 +152,10 @@ Validate the vendored snapshot offline with `python tools/humanizer_upstream.py 
 Rewrites go to `rewrites/`. Landing pages go to `landing-pages/`. Audits go to `audits/`. Repurposed content goes to `repurposed/`.
 
 Blog rewrites must follow the same AEO/GEO evidence boundaries as new articles: sourced PAA/FAQ provenance, answer-first FAQ quality, risk-tiered citations, source mapping, Metric Proof Pack inputs, E-E-A-T Proof Map inputs, direct-answer structure, schema notes, AI copy lint, URL validation, proof gates, source support, and the 85/100 general quality plus 90/100 AEO/GEO gates before final handoff. After all non-scoring gates pass, a sub-threshold score triggers the automatic AEO/GEO Recovery Loop and may use `/optimize`; it does not end at reporting.
+
+Mandatory workflow: every new or changed blog run must include `/scrub`, an initial `/publish-readiness` scorecard or exact non-scoring blocker, `/optimize`, a post-optimization `/scrub` when article bytes change, and a final `/publish-readiness` handoff. After the first readiness pass, rerun the wrapper with the optimizer output and prior preflight readiness evidence until phase `final_readiness`. `/optimize` is mandatory even when it makes no source-safe copy edit; in that case it writes a no-op optimizer artifact containing the inspected scorecard or exact blocker, AEO/GEO checks, priority fixes, and no-edit reason. Score absence is a workflow blocker unless a pre-scoring gate blocked readiness; preserve and route that exact blocker into recovery.
+
+The first wrapper run intentionally omits optimizer evidence. It must return exit `0` with phase `optimization_started` and write `optimization-recovery.json` instead of failing because optimizer evidence is absent. If preflight passes, persist the scorecard and stage receipt and open `optimization-state.json`. If a gate blocks scoring, preserve the exact blocker without creating a fake passed receipt, begin the `/optimize` recovery handoff, repair the blocker, and rerun for the required initial scorecard. Only a later run with both `--optimizer-output` and `--prior-preflight-readiness` may produce `final_readiness`; neither a passing preflight score nor `optimization_started` is publish approval.
 
 Every FAQ must use a 40-60 word first paragraph and lead with a supported number/range, named recommendation, definition, concrete action, or explained yes/no response. Generic deflections block `faq_answer_quality_guard.py`. Fact-driven or high-risk FAQ answers need a natural authoritative non-owned public evidence link in that first paragraph. Lower-risk answers follow their machine-assigned citation mode and do not receive a visible link solely to meet a quota.
 

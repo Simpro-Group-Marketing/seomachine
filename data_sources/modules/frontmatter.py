@@ -115,6 +115,10 @@ def split_frontmatter(raw: str) -> tuple[dict[str, Any], str, int]:
 
 
 def _normalize_value(key: str, value: Any) -> str | list[str]:
+    if key == "item_list_entries" and not isinstance(value, list):
+        raise FrontmatterError(
+            "YAML frontmatter field item_list_entries must be a YAML list."
+        )
     if isinstance(value, Mapping):
         raise FrontmatterError(
             f"YAML frontmatter field {key} uses an unsupported object value."
@@ -127,7 +131,7 @@ def _normalize_value(key: str, value: Any) -> str | list[str]:
                     f"YAML frontmatter field {key} uses an unsupported nested value."
                 )
             normalized = _normalize_scalar(key, item)
-            if normalized:
+            if normalized or key == "item_list_entries":
                 items.append(normalized)
         return items
     return _normalize_scalar(key, value)

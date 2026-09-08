@@ -7,6 +7,10 @@ Generate multiple compelling meta title and description options for the Reader C
 
 Return advisory findings only. Do not edit public copy or assign release status. Final release status comes only from `/publish-readiness`.
 
+## Reader-Facing Copy Boundary
+
+Flag `editorial_process_leakage` in titles, descriptions, excerpts, or body-adjacent copy when the wording explains brief instructions, source selection, feature omissions, command status, schema notes, or readiness status. Metadata should sell the reader payoff, not expose workflow rationale.
+
 ## Expertise Areas
 - SERP psychology and click-through optimization
 - Keyword integration in limited character counts

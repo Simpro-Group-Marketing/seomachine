@@ -17,12 +17,11 @@
         "Do not publish customer proof, metrics, quotes, review themes, or Fred authority in this release; selectors must still record Selected: [none].",
         "Do not make universal best, absence, ranking, or competitor claims.",
         "Use nine comparison tools in this locked order: Simpro, ServiceTitan, BuildOps, FieldPulse, Jobber, Housecall Pro, Service Fusion, FieldEdge, Tradify.",
-        "Do not use em dashes."
+        "Do not use em dashes.",
+        "Connector-discovered competitive context is internal guidance only; public vendor claims use current official vendor sources.",
+        "The connector proof search was evaluated, but the editorial brief rejects public customer proof, review stories, metrics, quotes and Fred authority. No proof claim is bound for public use."
       ],
-      "unresolved_gaps": [
-        "Semrush MCP access is unavailable; no Semrush metrics may be claimed.",
-        "All future public capability and price claims require vendor-page source verification."
-      ]
+      "unresolved_gaps": []
     },
     "Discovery Trace": {
       "entries": [
@@ -56,124 +55,245 @@
         },
         {
           "operation": "vault_search",
-          "query": "Plan a grounded rewrite of Simpro's US blog '7 Best Electrical Job Management Software Tools For Growing Contractors'. Need author-led blog voice and US electrical contractor positioning, including appropriate product language, electrical workflows, product or feature link context, and competitive shortlist guidance. Do not request public claims beyond approved evidence.",
+          "query": "Rewrite 9 Best Electrical Job Management Software Tools for Contractors in 2026 for US electrical contractors comparing service maintenance mixed work and commercial projects with practical author-led Simpro blog voice",
           "result_resource_ids": [
             "res-6b127060c8ec5af3b35b5f6dda5fd5c5",
             "res-d7e3d5ca80955407a9d06be5f129e11b",
-            "res-10b97eee1de25395bbf8b904111ca4b0",
-            "res-087ac8044e26575b9c93aa0ba3a8c548",
-            "res-00ef40ec44d45fbdb96ebe608f0c1062",
-            "res-ef344eea8a3458d0b7bea645da567965",
-            "res-5c1b34d7d2175caab4fb29a208e59ac0",
-            "res-e36906687f0056ff8fe3b3ba596c8f31",
+            "res-b34b392d22b9507089ade3fec47ee9e0",
             "res-00a2b19bd4ac503b9b560dc2d1af16aa",
-            "res-47015608c0d4556a854fca7544b4a040",
-            "res-333720650ed45a68b3161bb102b68035",
+            "res-10b97eee1de25395bbf8b904111ca4b0",
             "res-4ed728a339af5009b9fc09bdee52e0bd",
-            "res-f0ac91cb964d53c7a091f25bd3ff3854",
-            "res-71a7390563a358149ec12bdc113b6a0e",
-            "res-a5b3b47382b45490bf2bedbf16c0b76e",
-            "res-4438c5a0eada51b193dc2ba116393d0b",
-            "res-258f5ac5624352769a692bb10a5b6f76",
+            "res-ef344eea8a3458d0b7bea645da567965",
+            "res-00ef40ec44d45fbdb96ebe608f0c1062",
+            "res-087ac8044e26575b9c93aa0ba3a8c548",
+            "res-177020d87b8c5c2581a0b728bc1fe114",
+            "res-f9f9499223a15d6a901806f30fb1a8ba",
+            "res-c4c716f8a61b5deba4f7b523579f116c",
+            "res-1d9fc7a9e5ac557ca5310e18df7fc6d2",
+            "res-641679c4b6c65e93951cb8d8e1ab88af",
+            "res-8edeb0ee24685f3993080e33b256f83d",
+            "res-d31f057a305f51918055120d95b76c6a",
+            "res-f5ce486769d050c28658d7bad8eb8e43",
+            "res-e3ade596be645307ad4c1f84620ce021",
+            "res-c2b93e155f9050f48b4cf909d6ba092e",
             "res-8397b2df1bb75f06b3c931a6fdd7ef0b",
-            "res-4d4c2fe49fe8506a81fd82655e296d18",
-            "res-a6fb58ed4f6c5cf8840594c08bed6bb1",
-            "res-bd711ad33f705cee819e81c0a8cc55c2",
-            "res-f2979c02b0135525aa2fbbfd41917cac",
+            "res-333720650ed45a68b3161bb102b68035",
+            "res-5c1b34d7d2175caab4fb29a208e59ac0",
+            "res-b9e17322fcca5cadbe141568fcfe394f",
+            "res-e66e0a4bca1c506f854c70a82966be4b",
+            "res-f0ac91cb964d53c7a091f25bd3ff3854",
+            "res-e7a385ba97f6566884cf9ad307ce6dda",
             "res-0ed2739598935660bb8574c576a67d2b",
+            "res-4438c5a0eada51b193dc2ba116393d0b",
+            "res-4fabcba48fc651acb8a532101efe397b",
+            "res-8f9053a490bf573fa6414159d3a4822d",
+            "res-f2979c02b0135525aa2fbbfd41917cac",
+            "res-92348f8056165d4ba81a3c91738604e2",
+            "res-e36906687f0056ff8fe3b3ba596c8f31",
             "res-016b084e01c95de781db0babe595cf7b",
             "res-18d584b3de86582991a7d737357098fd",
-            "res-22b40b3f1e3f5716a4aebeba21a9ef28",
             "res-286ca2f7150b59398497f6b341b6c9b7",
             "res-37e7197f89da5077a804de1666a17f53",
             "res-3898a0c4e52b512e904dbda56fcf565c",
+            "res-4d4c2fe49fe8506a81fd82655e296d18",
             "res-6a89de98838b57a3821bfaeb59403191",
-            "res-740a770ce898580185bdea96edd48fe7",
-            "res-94453f7c1a4451f3901e17952c98df6c",
+            "res-a6fb58ed4f6c5cf8840594c08bed6bb1",
             "res-a88df898c8d0538088b73be0695a65dd",
             "res-acdd19b3b66657f0aea54e3d2b553791",
+            "res-bd711ad33f705cee819e81c0a8cc55c2",
             "res-c6e69419a82e59919b4af4731a7e496a",
-            "res-d4dcea9f4a0f557e89997989e25c35c4",
-            "res-e96167f722de551b9ed4c5ff31c1149e",
             "res-e98f9497e07c5ffd84f77cc09af29f6b",
-            "res-f645cdd4b39b596cbb62d66786ba8582",
             "res-f882ab230eb2563889e300d612c324bc",
             "res-ff4d02b091d8529a9b1188d12b799096",
-            "res-8f9053a490bf573fa6414159d3a4822d",
-            "res-e66e0a4bca1c506f854c70a82966be4b",
-            "res-688ffe1c707b5c4e9cdc7523125500ab",
-            "res-65fa477571575953b3cf67817070f712",
-            "res-517ad5ccb2cd5c3985831d8aba4cedaa",
-            "res-f5ce486769d050c28658d7bad8eb8e43",
-            "res-8edeb0ee24685f3993080e33b256f83d",
-            "res-c2b93e155f9050f48b4cf909d6ba092e",
-            "res-7fe1a6688b5458e08bec9403b13f4622"
+            "res-22b40b3f1e3f5716a4aebeba21a9ef28",
+            "res-297c9cda66eb54b1b2f04524dbb072e1"
           ],
-          "results_sha256": "60588455fd69a553554bea613c8364da01a7ef1c4a8c91a471596a65f0bf885c"
+          "results_sha256": "c7c760b735dc2059fcbef7ef165b7b9cf87865a4a89769fcdb9a569775cd1bc6"
         },
         {
           "operation": "vault_search",
-          "query": "US localization guidance for a Simpro-owned electrical contractor comparison article.",
+          "query": "Simpro electrical contractor software job management project management estimating scheduling job costing inventory purchasing planned maintenance implementation pricing US positioning",
           "result_resource_ids": [
+            "res-6b127060c8ec5af3b35b5f6dda5fd5c5",
+            "res-00a2b19bd4ac503b9b560dc2d1af16aa",
+            "res-4ed728a339af5009b9fc09bdee52e0bd",
             "res-10b97eee1de25395bbf8b904111ca4b0",
-            "res-087ac8044e26575b9c93aa0ba3a8c548",
+            "res-4438c5a0eada51b193dc2ba116393d0b",
+            "res-bd711ad33f705cee819e81c0a8cc55c2",
+            "res-177020d87b8c5c2581a0b728bc1fe114",
+            "res-6fcbe410d7e65cd487d6212fd0ab4932",
             "res-f5ce486769d050c28658d7bad8eb8e43",
+            "res-1d9fc7a9e5ac557ca5310e18df7fc6d2",
+            "res-b9e17322fcca5cadbe141568fcfe394f",
+            "res-5c1b34d7d2175caab4fb29a208e59ac0",
+            "res-f0ac91cb964d53c7a091f25bd3ff3854",
             "res-8397b2df1bb75f06b3c931a6fdd7ef0b",
-            "res-00ef40ec44d45fbdb96ebe608f0c1062",
+            "res-94453f7c1a4451f3901e17952c98df6c",
+            "res-333720650ed45a68b3161bb102b68035",
+            "res-740a770ce898580185bdea96edd48fe7",
+            "res-d7e3d5ca80955407a9d06be5f129e11b",
+            "res-8edeb0ee24685f3993080e33b256f83d",
             "res-016b084e01c95de781db0babe595cf7b",
-            "res-0ed2739598935660bb8574c576a67d2b",
             "res-18d584b3de86582991a7d737357098fd",
             "res-22b40b3f1e3f5716a4aebeba21a9ef28",
             "res-286ca2f7150b59398497f6b341b6c9b7",
             "res-37e7197f89da5077a804de1666a17f53",
             "res-3898a0c4e52b512e904dbda56fcf565c",
-            "res-4438c5a0eada51b193dc2ba116393d0b",
             "res-4d4c2fe49fe8506a81fd82655e296d18",
-            "res-688ffe1c707b5c4e9cdc7523125500ab",
             "res-6a89de98838b57a3821bfaeb59403191",
             "res-a6fb58ed4f6c5cf8840594c08bed6bb1",
             "res-a88df898c8d0538088b73be0695a65dd",
             "res-acdd19b3b66657f0aea54e3d2b553791",
-            "res-bd711ad33f705cee819e81c0a8cc55c2",
             "res-c6e69419a82e59919b4af4731a7e496a",
             "res-d4dcea9f4a0f557e89997989e25c35c4",
             "res-e98f9497e07c5ffd84f77cc09af29f6b",
-            "res-f2979c02b0135525aa2fbbfd41917cac",
             "res-f882ab230eb2563889e300d612c324bc",
             "res-ff4d02b091d8529a9b1188d12b799096",
-            "res-e96167f722de551b9ed4c5ff31c1149e",
-            "res-f645cdd4b39b596cbb62d66786ba8582",
+            "res-00ef40ec44d45fbdb96ebe608f0c1062",
+            "res-087ac8044e26575b9c93aa0ba3a8c548",
+            "res-0ed2739598935660bb8574c576a67d2b",
+            "res-688ffe1c707b5c4e9cdc7523125500ab",
+            "res-f2979c02b0135525aa2fbbfd41917cac",
             "res-3dbb6d68a895558bb286729072bb6478",
-            "res-c4c716f8a61b5deba4f7b523579f116c",
-            "res-8edeb0ee24685f3993080e33b256f83d",
             "res-f9f9499223a15d6a901806f30fb1a8ba",
-            "res-5b34a1d5478552f691257e513e42f9b0",
-            "res-7fe1a6688b5458e08bec9403b13f4622",
-            "res-24f9456b59615c23bb5f34969d316219",
-            "res-e7220f2a4bb25907a397b486f6a59752",
-            "res-0a8412a5382e50288fc87405a91a5b90",
-            "res-0dd3c26cb00d5e63b80c10af80d114e1",
-            "res-0e92d1d3421954998f7f69bd49bc748b",
-            "res-233343957bdc55ed8cfb7d8a0be0255e",
             "res-4fabcba48fc651acb8a532101efe397b",
-            "res-527846e3eda65a87bfd6956b01e02b3c",
-            "res-5a3acf0d09675867ad09d75ad0e22893",
-            "res-650a5e23b62e5b0f837cbcf9208e15c0",
-            "res-6c64056014705c1ebdc9076981442862",
-            "res-6fcbe410d7e65cd487d6212fd0ab4932",
             "res-8a2bebb68291574eae0546a14695c081",
-            "res-97863425c76e5b1cbce12f8df35e27d6",
-            "res-a95a38cb95f85ec19f618431e81d641f",
-            "res-c2b93e155f9050f48b4cf909d6ba092e"
+            "res-c4c716f8a61b5deba4f7b523579f116c",
+            "res-e7220f2a4bb25907a397b486f6a59752",
+            "res-5b34a1d5478552f691257e513e42f9b0",
+            "res-9b3e505da7055c6b91368401c4385799",
+            "res-24f9456b59615c23bb5f34969d316219",
+            "res-740e2ed30d7f59ea98d6dcaf50d0c0d3"
           ],
-          "results_sha256": "c65a00936f323e6c9ce03e423f9e101051cfc88bcead94993194378bc3e6d67c"
+          "results_sha256": "7168d4b42f1d287f6c925fd67b31b749bbd4e534cca01258c58154102e5dbb4d"
+        },
+        {
+          "operation": "vault_search",
+          "query": "Competitive context for Simpro electrical job management software comparison ServiceTitan BuildOps FieldPulse Jobber Housecall Pro Service Fusion FieldEdge Tradify",
+          "result_resource_ids": [
+            "res-d7e3d5ca80955407a9d06be5f129e11b",
+            "res-efcbe1ba54cd5d92bbebe3d3b23f8fe4",
+            "res-06f0d3ef1e735c47ae4d751b44ed762e",
+            "res-6b127060c8ec5af3b35b5f6dda5fd5c5",
+            "res-517ad5ccb2cd5c3985831d8aba4cedaa",
+            "res-740e2ed30d7f59ea98d6dcaf50d0c0d3",
+            "res-5c1b34d7d2175caab4fb29a208e59ac0",
+            "res-177020d87b8c5c2581a0b728bc1fe114",
+            "res-00a2b19bd4ac503b9b560dc2d1af16aa",
+            "res-333720650ed45a68b3161bb102b68035",
+            "res-4ed728a339af5009b9fc09bdee52e0bd",
+            "res-f0ac91cb964d53c7a091f25bd3ff3854",
+            "res-10b97eee1de25395bbf8b904111ca4b0",
+            "res-087ac8044e26575b9c93aa0ba3a8c548",
+            "res-94e950d3a9685017bb7fc76ddd8a14aa",
+            "res-e96167f722de551b9ed4c5ff31c1149e",
+            "res-f617a15ce580567b968234d615b6d099",
+            "res-f645cdd4b39b596cbb62d66786ba8582",
+            "res-f9f9499223a15d6a901806f30fb1a8ba",
+            "res-d37b31d775545dc3bef17c7f1e5cff9d",
+            "res-ae223ba2759c5b88975a93ec431f2f91",
+            "res-5b34a1d5478552f691257e513e42f9b0",
+            "res-f5ce486769d050c28658d7bad8eb8e43",
+            "res-52541b6834d85a7ba6c91740a159647a",
+            "res-e7a385ba97f6566884cf9ad307ce6dda",
+            "res-1d9fc7a9e5ac557ca5310e18df7fc6d2",
+            "res-297c9cda66eb54b1b2f04524dbb072e1",
+            "res-650a5e23b62e5b0f837cbcf9208e15c0",
+            "res-90538a3c9f5e5236b5e243ccecb47467",
+            "res-b9e17322fcca5cadbe141568fcfe394f",
+            "res-c4c716f8a61b5deba4f7b523579f116c",
+            "res-2a52a13e5af75359888562c0c5494b90",
+            "res-7d3d50bfe3ee5d788f08a614c6e7ee88",
+            "res-f20f9512e16c5b2282b1a09dee24c01e",
+            "res-09b1f4509ed65855894bd5f481ec81b1",
+            "res-258f5ac5624352769a692bb10a5b6f76",
+            "res-65841a7ec8b15a5a80ebd5110f38e9ad",
+            "res-377e544d2c47577582ddd7ecdc38001a",
+            "res-63545a422ef4524eaba26da93075a75d",
+            "res-7fe1a6688b5458e08bec9403b13f4622",
+            "res-25a1152f611e5cd69ba57cf16b34a826",
+            "res-697db3f395a6530a9af110d8ef1ad17a",
+            "res-8edeb0ee24685f3993080e33b256f83d",
+            "res-0ed2739598935660bb8574c576a67d2b",
+            "res-2feea4aeaa935a19864ec11f8af5ea52",
+            "res-4438c5a0eada51b193dc2ba116393d0b",
+            "res-4d4c2fe49fe8506a81fd82655e296d18",
+            "res-55f88d7428ad54429727ccc90aec6509",
+            "res-77f3c08d28395540a5c0161012dd44e5",
+            "res-783cbe1a57d950e4b00c8b2f37ce9efb"
+          ],
+          "results_sha256": "11e33181d86bfe2c5dfd73bfaa26e223a4627cd4b47e51a343f9d0324a8544db"
+        },
+        {
+          "operation": "vault_search",
+          "query": "Customer proof relevant to US electrical contractors evaluating electrical job management software for service, recurring maintenance, mixed service and project work, or multi-stage commercial projects.",
+          "result_resource_ids": [
+            "res-c027b4f595a5549b8c29545379e0adf0",
+            "res-d7e3d5ca80955407a9d06be5f129e11b",
+            "res-6b127060c8ec5af3b35b5f6dda5fd5c5",
+            "res-dfc67c5cef87541d856a765f2747a2cb",
+            "res-10b97eee1de25395bbf8b904111ca4b0",
+            "res-ff4d02b091d8529a9b1188d12b799096",
+            "res-8397b2df1bb75f06b3c931a6fdd7ef0b",
+            "res-8edeb0ee24685f3993080e33b256f83d",
+            "res-f2979c02b0135525aa2fbbfd41917cac",
+            "res-00ef40ec44d45fbdb96ebe608f0c1062",
+            "res-71a7390563a358149ec12bdc113b6a0e",
+            "res-a290a78bdad559e1a5534051887e0026",
+            "res-087ac8044e26575b9c93aa0ba3a8c548",
+            "res-52541b6834d85a7ba6c91740a159647a",
+            "res-5b34a1d5478552f691257e513e42f9b0",
+            "res-2f14933d9ce5513382384f043ef20ae8",
+            "res-25a1152f611e5cd69ba57cf16b34a826",
+            "res-4fabcba48fc651acb8a532101efe397b",
+            "res-8a2bebb68291574eae0546a14695c081",
+            "res-c4c716f8a61b5deba4f7b523579f116c",
+            "res-f5ce486769d050c28658d7bad8eb8e43",
+            "res-ef344eea8a3458d0b7bea645da567965",
+            "res-1825898a11855f89be9bb69c544a6aa3",
+            "res-36d78c1c75ba5267a257cc7507e80633",
+            "res-24f9456b59615c23bb5f34969d316219",
+            "res-72a2be599e13554a8022a7ae77b76d94",
+            "res-2cfbd36e4cd954c0b7d99af8138cc5ab",
+            "res-072a548e23af577eb4807d354fdc7907",
+            "res-d184fe76982057489d6b17bb1148df0a",
+            "res-efcbe1ba54cd5d92bbebe3d3b23f8fe4",
+            "res-177020d87b8c5c2581a0b728bc1fe114",
+            "res-650a5e23b62e5b0f837cbcf9208e15c0",
+            "res-db2d25cc7e8258889a5f505bf8ee19b7",
+            "res-09b1f4509ed65855894bd5f481ec81b1",
+            "res-26fa616704bb589fb9b20f37fe149739",
+            "res-92348f8056165d4ba81a3c91738604e2",
+            "res-c2b93e155f9050f48b4cf909d6ba092e",
+            "res-60c106ff939951a5b4f9dfcda23b92e4",
+            "res-e36906687f0056ff8fe3b3ba596c8f31",
+            "res-f9f9499223a15d6a901806f30fb1a8ba",
+            "res-697db3f395a6530a9af110d8ef1ad17a",
+            "res-a3229151dcb25f06bca042d052b697a8",
+            "res-f2b8fa2da5ec5d0c95d3ee59c35a2b05",
+            "res-2a87ee6d6a11597383c8bc1a51b0bb91",
+            "res-ce8ade563d1f577799a7127547e20c75",
+            "res-16c113c993565a4c84150d131c034c57",
+            "res-3250ad4272305976ab4e7b5dda27309d",
+            "res-dc931a7743255605bd45163f29110796",
+            "res-ddceeed6f8be59c2992f0d6adee3090e",
+            "res-f0ac91cb964d53c7a091f25bd3ff3854"
+          ],
+          "results_sha256": "16f8bebb959fbb0e29323376379e6e37d36547ef9caabdc38d0075733a1d1beb"
         },
         {
           "content_sha256": "8271548aa15fa55aec21db673044e80849f3ab5cd6667eabfe971820c76613c1",
           "operation": "vault_read",
           "public_claim_use": "prohibited",
-          "read_purpose": "guidance",
+          "read_purpose": "context",
           "resource_id": "res-641679c4b6c65e93951cb8d8e1ab88af"
+        },
+        {
+          "content_sha256": "9b79ea907fcde92330a1d0ac5953ef4ab63c98c46e52c445683cd70b31bf9d14",
+          "operation": "vault_read",
+          "public_claim_use": "prohibited",
+          "read_purpose": "context",
+          "resource_id": "res-d31f057a305f51918055120d95b76c6a"
         },
         {
           "content_sha256": "4a6c7999067fd1c8f868432d70179d8c14855668934d206bb94f208e46e2f227",
@@ -183,40 +303,42 @@
           "resource_id": "res-a5b3b47382b45490bf2bedbf16c0b76e"
         },
         {
-          "content_sha256": "4255861c240b8fc6eba03a755a8cc637158c235297beff6bbc35722a87826a21",
+          "content_sha256": "9fa5f224f4a1ae6b1351375a2f9c940499531654f23a80992ca6baef6e3de83f",
           "operation": "vault_read",
           "public_claim_use": "prohibited",
           "read_purpose": "context",
-          "resource_id": "res-10b97eee1de25395bbf8b904111ca4b0"
+          "resource_id": "res-f5ce486769d050c28658d7bad8eb8e43"
         },
         {
-          "content_sha256": "22bb1a7df5b7a1cb827c1d311defa29524035961de297bab9968a39feca1a8ef",
+          "content_sha256": "51026617188ef98e26cae9a20db37011faf95f0921928404c5f95df04a5f34d6",
           "operation": "vault_read",
           "public_claim_use": "prohibited",
           "read_purpose": "context",
-          "resource_id": "res-71a7390563a358149ec12bdc113b6a0e"
+          "resource_id": "res-f9f9499223a15d6a901806f30fb1a8ba"
         },
         {
-          "content_sha256": "9b79ea907fcde92330a1d0ac5953ef4ab63c98c46e52c445683cd70b31bf9d14",
+          "content_sha256": "61a2c16b66e8a9cad3fb728930177c6961706890f8a3172f15cdc2c6baa3dba1",
           "operation": "vault_read",
           "public_claim_use": "prohibited",
-          "read_purpose": "guidance",
-          "resource_id": "res-d31f057a305f51918055120d95b76c6a"
+          "read_purpose": "context",
+          "resource_id": "res-517ad5ccb2cd5c3985831d8aba4cedaa"
         }
       ],
       "selected_resource_ids": [
         "res-641679c4b6c65e93951cb8d8e1ab88af",
+        "res-d31f057a305f51918055120d95b76c6a",
         "res-a5b3b47382b45490bf2bedbf16c0b76e",
-        "res-10b97eee1de25395bbf8b904111ca4b0",
-        "res-71a7390563a358149ec12bdc113b6a0e",
-        "res-d31f057a305f51918055120d95b76c6a"
+        "res-f5ce486769d050c28658d7bad8eb8e43",
+        "res-f9f9499223a15d6a901806f30fb1a8ba",
+        "res-517ad5ccb2cd5c3985831d8aba4cedaa"
       ],
       "selected_resource_purposes": {
-        "res-10b97eee1de25395bbf8b904111ca4b0": "context",
-        "res-641679c4b6c65e93951cb8d8e1ab88af": "guidance",
-        "res-71a7390563a358149ec12bdc113b6a0e": "context",
+        "res-517ad5ccb2cd5c3985831d8aba4cedaa": "context",
+        "res-641679c4b6c65e93951cb8d8e1ab88af": "context",
         "res-a5b3b47382b45490bf2bedbf16c0b76e": "context",
-        "res-d31f057a305f51918055120d95b76c6a": "guidance"
+        "res-d31f057a305f51918055120d95b76c6a": "context",
+        "res-f5ce486769d050c28658d7bad8eb8e43": "context",
+        "res-f9f9499223a15d6a901806f30fb1a8ba": "context"
       }
     },
     "Retrieved Guidance": [
@@ -242,7 +364,7 @@
           "Claim Rules"
         ],
         "public_claim_use": "prohibited",
-        "read_purpose": "guidance",
+        "read_purpose": "context",
         "relationships": [
           {
             "resource_id": "res-09ebfff123cb5c5496e60c3a759a263d",
@@ -323,6 +445,111 @@
           "messaging",
           "integration",
           "claim"
+        ]
+      },
+      {
+        "aliases": [],
+        "authority_state": "v1_eligible",
+        "content": "# Tone Voice and Localization Rules\n\nThis page compiles tone, voice, and localization rules for Simpro messaging.\n\n## Voice Baseline\n\nSimpro writing should be clear, practical, confident, trade-aware, human, outcome-oriented, and evidence-backed. It should avoid vague software claims, inflated AI language, and unsupported ROI language.\n\n## Named-Author Blog Treatment\n\n- Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines.\n- Author opinion must remain distinguishable from empirical fact.\n- Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated.\n- Em dashes are prohibited. Use a period, comma, colon, or parentheses when the grammar supports it.\n- Product pages and landing pages retain their existing restrained channel treatment.\n\n## Localization Rules\n\n- Localize spelling, terminology, currency, market examples, and regulatory references.\n- Do not localize the core positioning into a different category claim.\n- Do not change proof status, metric wording, or customer outcome context when adapting copy by market.\n- Keep region-specific claims tied to region-specific source material.\n\n## Drafting Checks\n\n- Does the copy state who the audience is?\n- Does the copy connect the feature to a source-supported operational or business outcome?\n- Does the copy avoid unsupported metrics or customer outcomes?\n- Does the copy preserve approved Lightning naming and architecture when AI features are involved?\n\n## Source Evidence\n\n- Voice and tone hub: [[wiki/messaging/Voice and Tone]]\n- Voice concept: [[wiki/concepts/voice-and-tone]]\n- Core messaging source node: [[wiki/sources/simpro-core-messaging-repository-05132026]]\n- Raw core messaging import: [simpro-core-messaging-repository-05132026.md](../../raw/imported-content/simpro-core-messaging-repository-05132026.md)\n- Simpro Voice Style Guide: [[wiki/sources/simpro-voice-style-guide-1hl78trt]]\n- COD editorial blog voice: [[wiki/sources/cod-editorial-blog-voice-2026-07-29]]\n- COD editorial intake note: [cod-editorial-blog-voice-2026-07-29.md](../../raw/source-intake/brand-guidance/cod-editorial-blog-voice-2026-07-29.md)\n\n## Claim Boundary\n\nTone and localization rules control wording. They do not make proof, metrics, reviews, rankings, or customer outcomes safe to use.\r\n\r\n## Compiled Detail\n\nUse this page as a working rule sheet for drafting and review. It should answer how to frame the topic, what to avoid, which neighboring pages carry more detail, and where source verification starts. The page is intentionally not a raw dump: it compiles the durable operating rules so another LLM can work from the wiki layer first.\n\nFor content creation, pair this page with [[wiki/messaging/Simpro Core Messaging Repository]], [[wiki/messaging/Message House]], [[wiki/messaging/Voice and Tone]], and [[wiki/product/Product Positioning]]. For proof-sensitive language, leave this page and route to [[wiki/proof/Customer Proof and Quotes]] and [[wiki/proof/Metrics Inventory]]. For AI or Lightning copy, route to [[wiki/lightning/Lightning Knowledge Hub]] and [[wiki/messaging/AI Positioning and Messaging Rules]].\n\nDo not treat this page as permission to invent examples, claims, or metrics. Its job is to preserve message discipline and reduce repeated raw-source reading. Exact wording, public customer proof, region-specific statements, and competitive claims still need source evidence.\r\n\r\n## Agent Retrieval Notes\n\nWhen an LLM uses this page, it should answer from the compiled guidance first and only open raw evidence after it has identified the exact source that matters. This keeps the vault aligned to the LLM-wiki pattern: the wiki carries the reusable synthesis, while raw remains the verification layer.\n\nA good answer from this page should name the relevant hub, state the safe-use boundary, and cite the source route that would support a deeper check. A poor answer would copy source-like wording without verification, treat a route as an approval, or invent a metric, quote, testimonial, customer outcome, review claim, ranking, pricing detail, roadmap point, or competitive fact.\n\nIf the task needs public copy, use this page to choose the angle, then verify exact support through the linked source node, matrix row, raw file, or extracted evidence note. If the task is internal strategy, preserve the internal-only caveats and do not turn them into external claims.\r\n",
+        "content_available": true,
+        "content_truncated": false,
+        "entities": [],
+        "headings": [
+          "Tone Voice and Localization Rules",
+          "Voice Baseline",
+          "Named-Author Blog Treatment",
+          "Localization Rules",
+          "Drafting Checks",
+          "Source Evidence",
+          "Claim Boundary",
+          "Compiled Detail",
+          "Agent Retrieval Notes"
+        ],
+        "public_claim_use": "prohibited",
+        "read_purpose": "context",
+        "relationships": [
+          {
+            "resource_id": "res-0409dfe9b949599f99577d45bd7e7e25",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-09ebfff123cb5c5496e60c3a759a263d",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-1c9cd193f6955d26a2289d6a2ad37c64",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-230f144aab93512e840167c4a25e60be",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-47015608c0d4556a854fca7544b4a040",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-52541b6834d85a7ba6c91740a159647a",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-641679c4b6c65e93951cb8d8e1ab88af",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-92348f8056165d4ba81a3c91738604e2",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-9842b0c357e752598eac4d3e4a530286",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-b34b392d22b9507089ade3fec47ee9e0",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-c027b4f595a5549b8c29545379e0adf0",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-d4c1e70d33425b3aa5f3fc8501374152",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-e3ade596be645307ad4c1f84620ce021",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-e66e0a4bca1c506f854c70a82966be4b",
+            "type": "links_to"
+          }
+        ],
+        "resource_id": "res-d31f057a305f51918055120d95b76c6a",
+        "retrieval_tier": "agent_context",
+        "semantic_roles": [
+          "guidance"
+        ],
+        "title": "Tone Voice and Localization Rules",
+        "topics": [
+          "tone",
+          "voice",
+          "localization",
+          "baseline",
+          "named",
+          "author",
+          "blog",
+          "treatment",
+          "drafting",
+          "checks",
+          "evidence",
+          "claim",
+          "boundary",
+          "compiled",
+          "detail",
+          "agent",
+          "retrieval",
+          "notes"
         ]
       },
       {
@@ -913,42 +1140,30 @@
         ]
       },
       {
-        "aliases": [
-          "Source - Simpro Electrical datasheet (US).pdf"
-        ],
+        "aliases": [],
         "authority_state": "v1_eligible",
-        "content": "---\naliases:\n  - Source - Simpro Electrical datasheet (US).pdf\ntype: source-node\ntitle: \"Simpro Electrical datasheet (US).pdf\"\ntags:\n  - addons\n  - brand\n  - company\n  - downloaded-binary\n  - payments\n  - positioning\n  - product\n  - region\n  - simpro-brand-context\n  - source\nsource_status: downloaded-binary\nraw_file: raw/drive/files/datasheets-verticals-payments-add-ons-ai-multi-company-data-security-implementation-prof-s-1iBatG1Q.pdf\ncreated: 2026-06-15T16:58:55.069Z\nextraction_status: text-extracted\nextracted_file: \"raw/extracted/pdf/simpro-electrical-datasheet-us-pdf-1ibatg1q.md\"\npage_count: 2\nword_count: 464\nzero_text_pages: 0\nextracted_at: \"2026-06-15T17:12:19Z\"\n---\n\n# Source - Simpro Electrical datasheet (US).pdf\n\n## Summary\n\nPDF text has been extracted into a separate raw evidence note. Use this node for routing and open the extracted note plus original PDF before using claim-level detail.\n\n## Source Links\n\n- Raw or metadata file: [raw/drive/files/datasheets-verticals-payments-add-ons-ai-multi-company-data-security-implementation-prof-s-1iBatG1Q.pdf](../../raw/drive/files/datasheets-verticals-payments-add-ons-ai-multi-company-data-security-implementation-prof-s-1iBatG1Q.pdf)\n- Export status: downloaded-binary\n- Source type: application/pdf\n- Source path: Datasheets (Verticals; Payments; Add-ons; AI; Multi-Company; Data Security; Implementation; Prof. Services) / Simpro / US datasheet versions / 2 Vertical Datasheets / Simpro Electrical datasheet (US).pdf\n\n## Extraction Status\n\n- Extraction status: text-extracted\n- [Extracted evidence note](../../raw/extracted/pdf/simpro-electrical-datasheet-us-pdf-1ibatg1q.md)\n- [Original binary](../../raw/drive/files/datasheets-verticals-payments-add-ons-ai-multi-company-data-security-implementation-prof-s-1iBatG1Q.pdf)\n- Pages: 2\n- Extracted words: 464\n- Zero-text pages: 0\n- Extraction error: None\n\n## Mentions / Related Nodes\n\n- [[Product Positioning]]\n- [[wiki/concepts/payments-and-add-ons|Payments and Add-ons]]\n- [[Simpro]]\n- [[Payments]]\n- [[US]]\n- [[wiki/concepts/product-positioning|Product Positioning]]\n- [[wiki/entities/payments|Payments]]\n- [[wiki/concepts/icp-and-customer-archetypes|ICP and Customer Archetypes]]\n- [[wiki/concepts/pricing-and-packaging|Pricing and Packaging]]\n\n## Topic Coverage\n\n- [[wiki/concepts/icp-and-customer-archetypes|ICP and Customer Archetypes]]; pages: p. 1, p. 2; confidence: high; entity: [[wiki/entities/payments|Payments]].\n- [[wiki/concepts/payments-and-add-ons|Payments and Add-ons]]; pages: p. 1, p. 2; confidence: high; entity: [[wiki/entities/payments|Payments]].\n- [[wiki/concepts/pricing-and-packaging|Pricing and Packaging]]; pages: p. 1, p. 2; confidence: high; entity: [[wiki/entities/payments|Payments]].\n- [[wiki/concepts/product-positioning|Product Positioning]]; pages: p. 1, p. 2; confidence: high; entity: [[wiki/entities/payments|Payments]].\n\nUse these page refs for routing only. Open the extracted evidence note and original PDF before using claims, quotes, metrics, proof, customer outcomes, or competitive statements.\n\n## Safe-To-Use Claims\n\n- No standalone claims were approved in this extraction pass.\n- Extracted text can be used to locate candidate evidence, but exact wording, metrics, proof, customer outcomes, and competitive claims require opening the extracted evidence note and original PDF.\n- Use this source node for routing; cite extracted/raw files in downstream outputs.\n\n## Do Not Use Without Review\n\n- Do not treat text extraction as approval for public copy.\n- Do not copy claims from this source node; verify them in the extracted evidence note and original PDF.\n- Do not infer missing metrics, customer names, outcomes, rankings, or competitive claims.\n\n## Graph Spine Links\n\n- [[wiki/sales/Sales Enablement Atlas|Sales Enablement Atlas]]\n- [[wiki/concepts/sales-enablement|Sales Enablement]]\n- [[wiki/product/Product Positioning|Product Positioning]]\n- [[wiki/Brand Graph Index|Brand Graph Index]]\n- [[wiki/entities/us|US]]\n- Proof/use status: sales enablement source; verify exact pricing, package, metric, proof, quote, or customer outcome copy before public reuse.\n\n",
+        "content": "---\ntype: full-feature-source-content\nsource_title: \"Simpro Electrical datasheet (US).pdf\"\nsource_node: \"wiki/sources/simpro-electrical-datasheet-us-pdf-1ibatg1q.md\"\nextracted_file: \"raw/extracted/pdf/simpro-electrical-datasheet-us-pdf-1ibatg1q.md\"\ncreated: \"2026-06-15T17:41:47Z\"\nevidence_status: source_content_needs_raw_verification\nfeature_category: \"feature_addon_datasheet\"\ncanonical_group: \"Electrical Vertical Datasheet\"\nmarket_variant: \"US standard\"\ngraph_status: \"primary_context\"\n---\n\n\n# Simpro Electrical datasheet (US).pdf\n\n## Source Links\n\n- Source node: [[wiki/sources/simpro-electrical-datasheet-us-pdf-1ibatg1q|Simpro Electrical datasheet (US).pdf]]\n- Extracted evidence: [extracted evidence note](../../../raw/extracted/pdf/simpro-electrical-datasheet-us-pdf-1ibatg1q.md)\n- Original PDF: [original PDF](../../../raw/drive/files/datasheets-verticals-payments-add-ons-ai-multi-company-data-security-implementation-prof-s-1iBatG1Q.pdf)\n\n## Use Rules\n\n- This page mirrors extracted product/feature collateral for local wiki use.\n- Verify source context before using exact feature wording, prices, package details, metrics, or customer proof.\n\n## Graph Spine Links\n\n- Feature atlas: [[wiki/features/Feature Library|Feature Datasheet Atlas]]\n- Source-doc library: [[wiki/features/source-docs/Feature and Product Collateral Library|Feature and Product Collateral Library]]\n- Canonical group: Electrical Vertical Datasheet\n- Routing status: primary_context\n- Market variant: US standard\n- Related hubs:\n  - [[wiki/features/Feature Library|Feature Datasheet Atlas]]\n  - [[wiki/features/source-docs/Feature and Product Collateral Library|Feature and Product Collateral Library]]\n  - [[wiki/concepts/product-positioning|Product Positioning]]\n  - [[wiki/concepts/sales-enablement|Sales Enablement]]\n  - [[wiki/verticals/Vertical Profile Library|Vertical Profile Library]]\n  - [[wiki/concepts/icp-and-customer-archetypes|ICP and Customer Archetypes]]\n- Source node: [[wiki/sources/simpro-electrical-datasheet-us-pdf-1ibatg1q|source node]]\n- Extracted evidence: [extracted evidence note](../../../raw/extracted/pdf/simpro-electrical-datasheet-us-pdf-1ibatg1q.md)\n- Original PDF: [original PDF](../../../raw/drive/files/datasheets-verticals-payments-add-ons-ai-multi-company-data-security-implementation-prof-s-1iBatG1Q.pdf)\n- Proof/use status: source-backed feature detail; verify exact claims\n\n\n## Full Extracted Feature/Collateral Content\n\n## Page 1\n\nTRANSFORM YOUR \nELECTRICAL BUSINESS \nWITH SIMPRO\nIntelligently trigger workflows and\nupdate jobs in Simpro using data\nautomatically collected from email\nattachments, website forms, field forms,\nand integrations—saving admin time\nand reducing manual entry.\nDataFeed\nQuickly mark up and scale digital\nplans, precisely calculate conduit\npaths, outlet groupings, and panel\nplacements, and connect your\ndrawings to your estimates and jobs—\nimproving speed and accuracy.\nTakeoffs\nTimely Estimates\nQuickly build accurate quotes for sub-panel\ninstalls, backup system integrations, outlet runs,\nconduit work, and more – with clear labor and\nmaterial breakdowns.\nEfficient Job Scheduling\nSchedule electrical crews by license class, task\ntype, and install phase to stay aligned with\nproject timelines.\nStreamlined Invoicing\nAutomate recurring invoicing for service calls\nand streamline billing for quoted jobs and\nprogressive draws.\nField Execution\nStandardize install checklists, test results,\ninspection forms, and site logs to boost\ndocumentation and compliance.\nComprehensive Insights\nGain real-time visibility into job costing, material\nuse, crew performance, and audit trails supports\nprofitability and compliance readiness.\nKEY FEATURES\nIn the fast-paced world of electrical services, success\nrequires more than experience—it takes visibility,\ncoordination, and control. Simpro equips electrical\ncompanies with a centralized platform to streamline\noperations, align teams, make smarter decisions, and\nscale with confidence.\nFrom panel upgrades and lighting installs to ongoing\nmaintenance and multi-phase fit-outs, Simpro helps you\nmanage every workflow, every crew, and every\ncustomer – with greater efficiency and oversight.\nsimprogroup.com/industries/electrical-software\n for ELECTRICAL\nField Service Management Software to\nPower Operations and Connect Your Teams\nFEATURED ADD-ONS\nFEATURED CAPABILITY\nAccelerate accounts receivable with\nsimple, flexible electronic payment\noptions – all in one place, without\nleaving Simpro. Improve cash flow,\nreduce admin, and get paid faster.\nSimpro Payments\n\n## Page 2\n\nWith Simpro, we’ve improved profitability\nand grown from 8 to 21 field technicians\nwithout increasing office staff.  Our techs\nenter materials into Simpro when on-site,\nwhich has made billing more accurate and\nmuch faster.  Simpro is a huge benefit for us\nand it’s easy for our technicians.\nExplore how Simpro is helping electrical companies manage\ncompliance testing and take operations to the next level. \nDive into feature details, see real-world success stories, and\nrequest a personalized demo to experience the impact firsthand.\nARE YOU READY TO TRANSFORM\nYOUR ELECTRICAL BUSINESS?\n%\nx\nx\n50\n50\nFaster Payments\nFrom Customers\nMore Field Technicians\n10\n10\n2.5\n2.5\nQuicker Invoicing\nENHANCED ELECTRICAL\nSUCCESS STORY:\nREBECCA BAFFREY\nVice President, Enhanced Electrical Services\nWith over 20 years leading innovation in electrical\nservices, Simpro delivers field service software\nbuilt to reduce complexity, improve project\nvisibility, and support compliance. \nTrusted by 8,500 businesses and over 250,000\nusers worldwide, Simpro helps electrical teams\novercome complexity and stay connected – from\nthe office to the field, and with their customers.\nWHY SIMPRO?\nELECTRICAL | DATASHEET\nsimprogroup.com/industries/electrical-software\nSimpro-Electrical-NA-Aug25\n",
         "content_available": true,
         "content_truncated": false,
         "entities": [],
         "headings": [
-          "Source - Simpro Electrical datasheet (US).pdf",
-          "Summary",
+          "Simpro Electrical datasheet (US).pdf",
           "Source Links",
-          "Extraction Status",
-          "Mentions / Related Nodes",
-          "Topic Coverage",
-          "Safe-To-Use Claims",
-          "Do Not Use Without Review",
-          "Graph Spine Links"
+          "Use Rules",
+          "Graph Spine Links",
+          "Full Extracted Feature/Collateral Content",
+          "Page 1",
+          "Page 2"
         ],
         "public_claim_use": "prohibited",
         "read_purpose": "context",
         "relationships": [
           {
-            "resource_id": "res-1b7fdf9a04295c7594016b3a2c06a755",
+            "resource_id": "res-10b97eee1de25395bbf8b904111ca4b0",
             "type": "links_to"
           },
           {
-            "resource_id": "res-2a52a13e5af75359888562c0c5494b90",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-3250ad4272305976ab4e7b5dda27309d",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-3887846244f05f16bfc0516889d340f3",
+            "resource_id": "res-1825898a11855f89be9bb69c544a6aa3",
             "type": "links_to"
           },
           {
@@ -956,7 +1171,7 @@
             "type": "links_to"
           },
           {
-            "resource_id": "res-9111b0ac2ac7514ea0778311d62ebddc",
+            "resource_id": "res-71a7390563a358149ec12bdc113b6a0e",
             "type": "links_to"
           },
           {
@@ -964,11 +1179,7 @@
             "type": "links_to"
           },
           {
-            "resource_id": "res-d4c1e70d33425b3aa5f3fc8501374152",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-ddceeed6f8be59c2992f0d6adee3090e",
+            "resource_id": "res-cb1c8e417b42532cb65e6e59893cf459",
             "type": "links_to"
           },
           {
@@ -976,7 +1187,7 @@
             "type": "links_to"
           }
         ],
-        "resource_id": "res-10b97eee1de25395bbf8b904111ca4b0",
+        "resource_id": "res-f5ce486769d050c28658d7bad8eb8e43",
         "retrieval_tier": "evidence_only",
         "semantic_roles": [
           "evidence"
@@ -987,109 +1198,68 @@
           "electrical",
           "datasheet",
           "pdf",
-          "summary",
           "links",
-          "extraction",
-          "status",
-          "mentions",
-          "related",
-          "nodes",
-          "topic",
-          "coverage",
-          "safe",
-          "claims",
-          "not",
-          "without",
-          "review",
           "graph",
-          "spine"
+          "spine",
+          "full",
+          "extracted",
+          "feature",
+          "collateral",
+          "content"
         ]
       },
       {
         "aliases": [],
-        "authority_state": "v1_eligible",
-        "content": "# Feature and Product Collateral Library\n\nGenerated: 2026-06-16\n\nThis grouped Simpro Brand Context - Start Here keeps all full extracted product, feature, add-on, overview, datasheet, implementation, service, trust/security, and related collateral discoverable without making every short datasheet a separate top-level concept page. Source verification is still required for exact public claims.\n\n## Read Order\n\n- Start with [[wiki/features/Feature Library|Feature Datasheet Atlas]].\n- Use primary context pages first.\n- Use secondary variants only for regional, print, layout, or source-verification needs.\n\n## Core platform/regional datasheets\n\n### Core Platform Datasheet - ANZ\n\n- [[wiki/features/source-docs/simpro-datasheet-anz-pdf-1fq5-jmo|Simpro Datasheet (ANZ).pdf]] - primary context; ANZ standard; group: Core Platform Datasheet - ANZ. Source: [[wiki/sources/simpro-datasheet-anz-pdf-1fq5-jmo|source node]].\n- [[wiki/features/source-docs/simpro-datasheet-anz-print-pdf-1-pfksiz|Simpro Datasheet (ANZ) PRINT.pdf]] - secondary print variant; ANZ print; group: Core Platform Datasheet - ANZ. Source: [[wiki/sources/simpro-datasheet-anz-print-pdf-1-pfksiz|source node]].\n\n### Core Platform Datasheet - NA\n\n- [[wiki/features/source-docs/simpro-datasheet-na-pdf-1amnwhdx|Simpro Datasheet (NA).pdf]] - primary context; NA standard; group: Core Platform Datasheet - NA. Source: [[wiki/sources/simpro-datasheet-na-pdf-1amnwhdx|source node]].\n- [[wiki/features/source-docs/simpro-datasheet-na-print-pdf-19oqbctd|Simpro Datasheet (NA) PRINT.pdf]] - secondary print variant; NA print; group: Core Platform Datasheet - NA. Source: [[wiki/sources/simpro-datasheet-na-print-pdf-19oqbctd|source node]].\n\n### Core Platform Datasheet - UK\n\n- [[wiki/features/source-docs/simpro-datasheet-uk-pdf-197ujnly|Simpro Datasheet (UK).pdf]] - primary context; UK standard; group: Core Platform Datasheet - UK. Source: [[wiki/sources/simpro-datasheet-uk-pdf-197ujnly|source node]].\n- [[wiki/features/source-docs/simpro-datasheet-uk-print-pdf-1gtfxddo|Simpro Datasheet (UK) PRINT.pdf]] - secondary print variant; UK print; group: Core Platform Datasheet - UK. Source: [[wiki/sources/simpro-datasheet-uk-print-pdf-1gtfxddo|source node]].\n\n## Vertical datasheets\n\n### Electrical Vertical Datasheet\n\n- [[wiki/features/source-docs/simpro-electrical-datasheet-us-pdf-1ibatg1q|Simpro Electrical datasheet (US).pdf]] - primary context; US standard; group: Electrical Vertical Datasheet. Source: [[wiki/sources/simpro-electrical-datasheet-us-pdf-1ibatg1q|source node]].\n\n### HVAC Vertical Datasheet\n\n- [[wiki/features/source-docs/simpro-hvac-datasheet-us-pdf-115s9kxe|Simpro HVAC datasheet (US).pdf]] - primary context; US standard; group: HVAC Vertical Datasheet. Source: [[wiki/sources/simpro-hvac-datasheet-us-pdf-115s9kxe|source node]].\n\n### Low Voltage Vertical Datasheet\n\n- [[wiki/features/source-docs/simpro-low-voltage-datasheet-us-pdf-1ml5wfxm|Simpro Low Voltage datasheet (US).pdf]] - primary context; US standard; group: Low Voltage Vertical Datasheet. Source: [[wiki/sources/simpro-low-voltage-datasheet-us-pdf-1ml5wfxm|source node]].\n\n### Plumbing Vertical Datasheet\n\n- [[wiki/features/source-docs/simpro-plumbing-datasheet-us-pdf-1itp8xk2|Simpro Plumbing datasheet (US).pdf]] - primary context; US standard; group: Plumbing Vertical Datasheet. Source: [[wiki/sources/simpro-plumbing-datasheet-us-pdf-1itp8xk2|source node]].\n\n### Trade Services Vertical Datasheet\n\n- [[wiki/features/source-docs/simpro-trade-services-datasheet-us-pdf-1e7pvgcs|Simpro Trade Services datasheet (US).pdf]] - primary context; US standard; group: Trade Services Vertical Datasheet. Source: [[wiki/sources/simpro-trade-services-datasheet-us-pdf-1e7pvgcs|source node]].\n\n## Add-ons\n\n### Data Feed\n\n- [[wiki/features/source-docs/simpro-addons-datafeed-24-uk-anz-v1-pdf-1kivh6mh|Simpro AddOns DataFeed 24 UK-ANZ v1.pdf]] - primary context; UK/ANZ standard; group: Data Feed. Source: [[wiki/sources/simpro-addons-datafeed-24-uk-anz-v1-pdf-1kivh6mh|source node]].\n- [[wiki/features/source-docs/simpro-addons-datafeed-24-us-pdf-1igg3b4e|Simpro AddOns DataFeed 24 US.pdf]] - primary context; US standard; group: Data Feed. Source: [[wiki/sources/simpro-addons-datafeed-24-us-pdf-1igg3b4e|source node]].\n\n### Delight\n\n- [[wiki/features/source-docs/simpro-delight-datasheet-a4-pdf-1huxof3x|Simpro + Delight Datasheet (A4).pdf]] - primary context; A4 standard; group: Delight. Source: [[wiki/sources/simpro-delight-datasheet-a4-pdf-1huxof3x|source node]].\n- [[wiki/features/source-docs/simpro-delight-datasheet-us-pdf-1vl1ozbi|Simpro + Delight Datasheet (US).pdf]] - primary context; US standard; group: Delight. Source: [[wiki/sources/simpro-delight-datasheet-us-pdf-1vl1ozbi|source node]].\n\n### Digital Forms\n\n- [[wiki/features/source-docs/simpro-addons-digitalforms-24-uk-anz-v1-pdf-1kfm6sqh|Simpro AddOns DigitalForms 24 UK-ANZ v1.pdf]] - primary context; UK/ANZ digital; group: Digital Forms. Source: [[wiki/sources/simpro-addons-digitalforms-24-uk-anz-v1-pdf-1kfm6sqh|source node]].\n- [[wiki/features/source-docs/simpro-addons-digitalforms-24-us-pdf-1i9vfezz|Simpro AddOns DigitalForms 24 US.pdf]] - primary context; US digital; group: Digital Forms. Source: [[wiki/sources/simpro-addons-digitalforms-24-us-pdf-1i9vfezz|source node]].\n\n### Maintenance Planner\n\n- [[wiki/features/source-docs/simpro-addons-mainenanceplanner-24-uk-anz-v1-pdf-1k8xijbv|Simpro AddOns MainenancePlanner 24 UK-ANZ v1.pdf]] - primary context; UK/ANZ standard; group: Maintenance Planner. Source: [[wiki/sources/simpro-addons-mainenanceplanner-24-uk-anz-v1-pdf-1k8xijbv|source node]].\n- [[wiki/features/source-docs/simpro-addons-mainenanceplanner-24-us-pdf-1izx7jlc|Simpro AddOns MainenancePlanner 24 US.pdf]] - primary context; NA standard; group: Maintenance Planner. Source: [[wiki/sources/simpro-addons-mainenanceplanner-24-us-pdf-1izx7jlc|source node]].\n\n### Message Maps for Add-ons\n\n- [[wiki/features/source-docs/message-maps-for-add-ons|Message Maps for Add-ons]] - primary context; global_or_unspecified standard; group: Message Maps for Add-ons. Source: [[wiki/sources/message-maps-for-add-ons-1yo6jk-n|source node]].\n\n### Multi-Company\n\n- [[wiki/features/source-docs/simpro-multi-company-24-uk-anz-v2-pdf-1n-8s5fv|Simpro Multi-Company 24 UK-ANZ v2.pdf]] - primary context; UK/ANZ standard; group: Multi-Company. Source: [[wiki/sources/simpro-multi-company-24-uk-anz-v2-pdf-1n-8s5fv|source node]].\n- [[wiki/features/source-docs/simpro-multi-company-24-us-v2-pdf-1nxeexh7|Simpro Multi-Company 24 US v2.pdf]] - primary context; US standard; group: Multi-Company. Source: [[wiki/sources/simpro-multi-company-24-us-v2-pdf-1nxeexh7|source node]].\n\n### Sage Intacct Integration\n\n- [[wiki/features/source-docs/simpro-sage-intacct-data-sheet-2025-digital-pdf-1rwq-cq9|Simpro Sage Intacct Data Sheet 2025 Digital.pdf]] - primary context; global_or_unspecified digital; group: Sage Intacct Integration. Source: [[wiki/sources/simpro-sage-intacct-data-sheet-2025-digital-pdf-1rwq-cq9|source node]].\n\n### Simtrac\n\n- [[wiki/features/source-docs/simpro-addons-simtrac-24-uk-anz-v1-pdf-1k4awpsm|Simpro AddOns Simtrac 24 UK-ANZ v1.pdf]] - primary context; UK/ANZ standard; group: Simtrac. Source: [[wiki/sources/simpro-addons-simtrac-24-uk-anz-v1-pdf-1k4awpsm|source node]].\n- [[wiki/features/source-docs/simpro-addons-simtrac-24-us-pdf-1ia31mgl|Simpro AddOns Simtrac 24 US.pdf]] - primary context; US standard; group: Simtrac. Source: [[wiki/sources/simpro-addons-simtrac-24-us-pdf-1ia31mgl|source node]].\n\n### SMS Text Messaging\n\n- [[wiki/features/source-docs/simpro-addons-sms-24-uk-anz-v2-pdf-1mubut-e|Simpro AddOns SMS 24 UK-ANZ v2.pdf]] - primary context; UK/ANZ standard; group: SMS Text Messaging. Source: [[wiki/sources/simpro-addons-sms-24-uk-anz-v2-pdf-1mubut-e|source node]].\n- [[wiki/features/source-docs/simpro-addons-sms-24-us-v2-pdf-1mtqkbk6|Simpro AddOns SMS 24 US v2.pdf]] - primary context; US standard; group: SMS Text Messaging. Source: [[wiki/sources/simpro-addons-sms-24-us-v2-pdf-1mtqkbk6|source node]].\n\n### Takeoffs\n\n- [[wiki/features/source-docs/simpro-addons-takeoffs-24-2-0-us-pdf-1iso7chz|Simpro AddOns Takeoffs 24 2.0 US.pdf]] - primary context; US standard; group: Takeoffs. Source: [[wiki/sources/simpro-addons-takeoffs-24-2-0-us-pdf-1iso7chz|source node]].\n- [[wiki/features/source-docs/simpro-addons-takeoffs-24-uk-anz-v1-pdf-1k1qebgj|Simpro AddOns TakeOffs 24 UK-ANZ v1.pdf]] - primary context; UK/ANZ standard; group: Takeoffs. Source: [[wiki/sources/simpro-addons-takeoffs-24-uk-anz-v1-pdf-1k1qebgj|source node]].\n\n## Payments and cash-flow add-ons\n\n### Fast Cash\n\n- [[wiki/features/source-docs/fast-cash-datasheet-simpro-pdf-13agno2h|Fast Cash Datasheet (Simpro).pdf]] - primary context; global_or_unspecified standard; group: Fast Cash. Source: [[wiki/sources/fast-cash-datasheet-simpro-pdf-13agno2h|source node]].\n- [[wiki/features/source-docs/fast-cash-datasheet-simpro-pdf-13agno2h|Fast Cash Datasheet duplicate]] - secondary duplicate variant; global_or_unspecified standard; group: Fast Cash. Source: [[wiki/sources/fast-cash-datasheet-simpro-pdf-13agno2h|source node]].\n\n### Payments - Bank Transfers\n\n- [[wiki/features/source-docs/simpro-payments-bank-transfers-us-pdf-1e8f8c9g|Simpro Payments Bank Transfers UK ANZ duplicate of US PDF]] - primary context; US/UK/ANZ standard; group: Payments - Bank Transfers. Source: [[wiki/sources/simpro-payments-bank-transfers-us-pdf-1e8f8c9g|source node]].\n- [[wiki/features/source-docs/simpro-payments-bank-transfers-us-pdf-1e8f8c9g|Simpro Payments Bank Transfers US.pdf]] - primary context; US standard; group: Payments - Bank Transfers. Source: [[wiki/sources/simpro-payments-bank-transfers-us-pdf-1e8f8c9g|source node]].\n\n### Simpro Payments\n\n- [[wiki/features/source-docs/simpro-payments-aus-nz-uk-v2-pdf-18lrk4ad|Simpro Payments AUS NZ UK v2.pdf]] - primary context; UK/AU/NZ standard; group: Simpro Payments. Source: [[wiki/sources/simpro-payments-aus-nz-uk-v2-pdf-18lrk4ad|source node]].\n- [[wiki/features/source-docs/simpro-payments-us-v2-pdf-1nphwqnk|Simpro Payments US v2.pdf]] - primary context; US standard; group: Simpro Payments. Source: [[wiki/sources/simpro-payments-us-v2-pdf-1nphwqnk|source node]].\n\n## AI / Lightning-adjacent feature collateral\n\n### AI Strategic Outlook\n\n- [[wiki/features/source-docs/simpro-ai-strategic-outlook-anz-uk-1bsg2c4m|Simpro AI Strategic Outlook ANZ UK]] - primary context; UK/ANZ standard; group: AI Strategic Outlook. Source: [[wiki/sources/simpro-ai-strategic-outlook-anz-uk-1bsg2c4m|source node]].\n- [[wiki/features/source-docs/simpro-ai-strategic-outlook-us-pdf-1hjnxmpg|Simpro AI Strategic Outlook US.pdf]] - primary context; US standard; group: AI Strategic Outlook. Source: [[wiki/sources/simpro-ai-strategic-outlook-us-pdf-1hjnxmpg|source node]].\n\n## Implementation, services, trust, and security\n\n### Data Security and Infrastructure\n\n- [[wiki/features/source-docs/simpro-data-security-and-infrastructure-us-pdf-1bkptjpy|Simpro Data Security and Infrastructure AUS NZ UK duplicate of US PDF]] - primary context; US/UK/AU/NZ standard; group: Data Security and Infrastructure. Source: [[wiki/sources/simpro-data-security-and-infrastructure-us-pdf-1bkptjpy|source node]].\n- [[wiki/features/source-docs/simpro-data-security-and-infrastructure-us-pdf-1bkptjpy|Simpro Data Security and Infrastructure US.pdf]] - primary context; US standard; group: Data Security and Infrastructure. Source: [[wiki/sources/simpro-data-security-and-infrastructure-us-pdf-1bkptjpy|source node]].\n\n### Implementation Guide\n\n- [[wiki/features/source-docs/simpro-2410-implementation-guide-us-final-pdf-12ntdqjq|SIMPRO 2410 Implementation Guide US Final.pdf]] - primary context; NA standard; group: Implementation Guide. Source: [[wiki/sources/simpro-2410-implementation-guide-us-final-pdf-12ntdqjq|source node]].\n- [[wiki/features/source-docs/simpro-2410-implementation-guide-us-final-pdf-12ntdqjq|SIMPRO 2410 Implementation Guide duplicate]] - secondary duplicate variant; NA standard; group: Implementation Guide. Source: [[wiki/sources/simpro-2410-implementation-guide-us-final-pdf-12ntdqjq|source node]].\n\n### Implementation Packages\n\n- [[wiki/features/source-docs/simpro-implementation-packages-smart-start-and-premium-pdf-1erxkkvc|Simpro - Implementation Packages - Smart Start and Premium.pdf]] - primary context; global_or_unspecified standard; group: Implementation Packages. Source: [[wiki/sources/simpro-implementation-packages-smart-start-and-premium-pdf-1erxkkvc|source node]].\n- [[wiki/features/source-docs/simpro-implementation-packages-smart-start-and-premium-pdf-1erxkkvc|Implementation Packages Smart Start and Premium duplicate]] - secondary duplicate variant; global_or_unspecified standard; group: Implementation Packages. Source: [[wiki/sources/simpro-implementation-packages-smart-start-and-premium-pdf-1erxkkvc|source node]].\n\n### Private Cloud\n\n- [[wiki/features/source-docs/simpro-privatecloud-datasheet-24-v2-fa-uk-anz-pdf-123vqcgc|Simpro PrivateCloud Datasheet 24-v2-FA UK-ANZ.pdf]] - primary context; UK/ANZ standard; group: Private Cloud. Source: [[wiki/sources/simpro-privatecloud-datasheet-24-v2-fa-uk-anz-pdf-123vqcgc|source node]].\n- [[wiki/features/source-docs/simpro-privatecloud-datasheet-24-v2-fa-us-pdf-124-7yx|Simpro PrivateCloud Datasheet 24-v2-FA US.pdf]] - primary context; US standard; group: Private Cloud. Source: [[wiki/sources/simpro-privatecloud-datasheet-24-v2-fa-us-pdf-124-7yx|source node]].\n\n### Professional Services\n\n- [[wiki/features/source-docs/simpro-professional-services-brochure-25-aus-nz-uk-pdf-1mnshpn4|Simpro Professional Services Brochure 25 AUS NZ UK.pdf]] - primary context; UK/AU/NZ standard; group: Professional Services. Source: [[wiki/sources/simpro-professional-services-brochure-25-aus-nz-uk-pdf-1mnshpn4|source node]].\n- [[wiki/features/source-docs/simpro-professional-services-brochure-25-us-pdf-1u8yldvl|Simpro Professional Services Brochure 25 US.pdf]] - primary context; NA standard; group: Professional Services. Source: [[wiki/sources/simpro-professional-services-brochure-25-us-pdf-1u8yldvl|source node]].\n\n## Overview brochures and duplicate print variants\n\n### Overview Brochure - AU\n\n- [[wiki/features/source-docs/simpro-overview25-au-digital-pdf-102592zb|Simpro-Overview25 AU Digital.pdf]] - primary context; AU digital; group: Overview Brochure - AU. Source: [[wiki/sources/simpro-overview25-au-digital-pdf-102592zb|source node]].\n- [[wiki/features/source-docs/simpro-overview25-au-digital-pdf-102592zb|Simpro Overview25 AU Print]] - secondary print variant; AU print; group: Overview Brochure - AU. Source: [[wiki/sources/simpro-overview25-au-digital-pdf-102592zb|source node]].\n\n### Overview Brochure - NZ\n\n- [[wiki/features/source-docs/simpro-overview25-nz-digital-pdf-1dx01cfx|Simpro-Overview25 NZ Digital.pdf]] - primary context; NZ digital; group: Overview Brochure - NZ. Source: [[wiki/sources/simpro-overview25-nz-digital-pdf-1dx01cfx|source node]].\n- [[wiki/features/source-docs/simpro-overview25-nz-digital-pdf-1dx01cfx|Simpro Overview25 NZ Print]] - secondary print variant; NZ print; group: Overview Brochure - NZ. Source: [[wiki/sources/simpro-overview25-nz-digital-pdf-1dx01cfx|source node]].\n\n### Overview Brochure - UK\n\n- [[wiki/features/source-docs/simpro-overview25-uk-digital-pdf-1z1wvh06|Simpro-Overview25 UK Digital.pdf]] - primary context; UK digital; group: Overview Brochure - UK. Source: [[wiki/sources/simpro-overview25-uk-digital-pdf-1z1wvh06|source node]].\n- [[wiki/features/source-docs/simpro-overview25-uk-digital-pdf-1z1wvh06|Simpro Overview25 UK Print]] - secondary print variant; UK print; group: Overview Brochure - UK. Source: [[wiki/sources/simpro-overview25-uk-digital-pdf-1z1wvh06|source node]].\n\n### Overview Brochure - US\n\n- [[wiki/features/source-docs/simpro-overview25-us-digital-pdf-1av204-d|Simpro-Overview25 US Digital.pdf]] - primary context; US digital; group: Overview Brochure - US. Source: [[wiki/sources/simpro-overview25-us-digital-pdf-1av204-d|source node]].\n- [[wiki/features/source-docs/simpro-overview25-us-digital-pdf-1av204-d|Simpro Overview25 US Print]] - secondary print variant; US print; group: Overview Brochure - US. Source: [[wiki/sources/simpro-overview25-us-digital-pdf-1av204-d|source node]].\n\n## Proof / customer stories\n\n### Tropical Coast Plumbing Case Study\n\n- [[wiki/features/source-docs/tropical-coast-plumbing-case-study-1-pdf-1d7l39is|Tropical Coast Plumbing Case Study (1).pdf]] - primary context; global_or_unspecified standard; group: Tropical Coast Plumbing Case Study. Source: [[wiki/sources/tropical-coast-plumbing-case-study-1-pdf-1d7l39is|source node]].\n\n## Safety\n\n- Do not publish feature claims, pricing, package details, metrics, customer proof, testimonials, or competitive claims from this Simpro Brand Context - Start Here alone.\n- Open the feature source-doc page, extracted evidence, and original PDF before using exact public copy.\n",
+        "authority_state": "source_checked",
+        "content": "---\ntype: imported-raw-content\ntitle: \"Simpro Group Electrical Vertical Profile - 8 June 2026\"\nsource_status: imported_from_pasted_capture\nimported_at: 2026-06-15T21:13:30Z\nsource_sha256: C44E74872AD6DDD200B8574B6E913B86897AA76E48DEB1DE699BC98785DE26EC\nsource_scope: \"electrical_vertical_profile\"\npublic_claim_status: routing_only_needs_source_verification\n---\n\n# Simpro Group Electrical Vertical Profile - 8 June 2026\n\n> Content-only extraction from a pasted capture. Bot/project wrapper, UI chrome, and project instructions were intentionally omitted. Use direct Drive/Docs exports if available.\nElectrical\nVertical Profile Library | Simpro Group\nElectrical\nTrade VerticalElectricalStatusApprovedLast Updated8 June 2026Versionv1.1\n1. Trade Snapshot & Geographic Scope\nTrade Overview\nElectrical contracting businesses install, maintain, test, and repair electrical systems across commercial, industrial, and residential properties. Most firms operate with a licensed field workforce — electricians, apprentices, and, in commercial settings, project supervisors — supported by an office team handling quoting, scheduling, compliance documentation, and administration. Commercial work is the primary content lens for this profile — including fitouts, switchboard upgrades, test and compliance services, and maintenance contracts — with residential included as a meaningful secondary lens, particularly for smaller operators who blend the two.\nGeographic Scope\n\nNorth America (US) — Large, fragmented market. Commercial and industrial electrical services dominate among growth-stage businesses — data/comms fitouts, switchboard and panel upgrades, high-voltage work, fire alarm and security integration. Contractor licensing is state- and province-level (Master Electrician, Journeyman). Many firms serve both residential and commercial markets. NEC compliance and AHJ permit requirements are central to project delivery. Accounting integrations (QuickBooks) and mobile-first workflows are primary technology requirements for this region.\nUnited Kingdom — Established contractor market with a strong compliance culture. Domestic Installer and commercial electrician segments operate under NICEIC or NAPIT certification. EICRs (Electrical Installation Condition Reports) are mandatory deliverables across the commercial and landlord sectors. Contract maintenance and test and inspection work are common revenue streams for mid-sized businesses. 'Engineer' is standard terminology for commercial roles; 'electrician' is the trade self-description. Accounting integration is predominantly with Xero.\nAustralia & New Zealand — Strong tradie culture with growing solar PV, EV charging, and smart electrical segments. Contractors operate under state and territory licensing regimes and AS/NZS 3000 Wiring Rules. Certificate of Compliance for Electrical Work (CCEW) is issued after every qualifying job in most states. Commercial fitout and maintenance contracts are common for growth-stage businesses. 'Switchboard' replaces 'panel' in local terminology. Xero is the dominant accounting platform.\n\n2. Target Business Profile\nOverall Company Size Range\nTypically 2–80 employees, encompassing licensed electricians, apprentices, and administrative or office staff. The platform sweet spot is 5–50 employees. Larger firms (80–150+) are present but represent a smaller proportion of the ICP for this trade; their complexity often requires deeper project management and multi-site capabilities.\nDominant Business Maturity (Archetype)\nBlended Empower and Elevate. The majority of incoming buyers are moving off manual processes (spreadsheets, whiteboards, paper job cards) or have outgrown entry-level FSM tools such as Tradify, ServiceM8, or Jobber. Elevate-stage businesses are scaling and encountering operational friction — scheduling complexity, poor job costing visibility, and administrative load that can no longer be absorbed by the current team. Excel-stage businesses (data-driven, using platforms for forecasting and margin optimisation) are present but less common in this vertical. [Hindsight-augmented]\nSize Segments\nSegment A: Smaller Operator\n1–10 employees, often an owner-operator with 2–6 electricians. Primarily residential and small commercial call-out work — fault-finding, outlet additions, consumer unit replacements, small fitouts. Strong urgency around quoting speed, mobile-first job management, and getting paid faster. Technology maturity is basic: phone, WhatsApp, spreadsheet, or a lightweight app like Tradify or Jobber. The owner is both the economic buyer and the primary user of the platform. Concerns centre on whether the product is 'too much' for their size and whether implementation will disrupt operations. [Hindsight-augmented]\nSegment B: Growth-Stage Business\n10–60 employees. A blend of service call-outs, multi-year maintenance contracts, and commercial project work. Beginning to manage compliance documentation at scale, asset registers, contract billing, and multi-crew scheduling. Needs integrated job costing, reporting for owner financial visibility, and the ability to invoice against project milestones. Technology maturity is intermediate — existing FSM tool (ServiceM8, Tradify, Fergus, or similar) that the business has outgrown. Operations Manager or Service Manager may initiate the evaluation, but the owner retains sign-off authority and ROI clarity is the primary closing requirement. [Hindsight-augmented]\nShared Characteristics Across Sizes\n\nJob types span service calls, test and inspection, maintenance contracts, and fitout or installation projects\nMaterial tracking and job costing are persistent pain points regardless of business size\nCompliance documentation (test certificates, EICRs, certificates of compliance) is non-negotiable at every scale\nOwner or principal is typically the economic buyer and final decision-maker [Hindsight-augmented]\nMobile-first field workforce — electricians in the field are a primary user group for any platform\n\nBuyer Dynamics & Decision Intelligence\n\nPrimary Decision Maker — Owner, Director, or Managing Director. At larger Growth-Stage businesses, an Operations Manager or General Manager may lead the evaluation but the owner retains commercial sign-off authority and typically makes the final decision. [Hindsight-augmented]\nKey Influencers — Office Manager or Service Coordinator (scheduling, admin, quoting workflows); Finance Manager or bookkeeper (payment velocity, Xero/QuickBooks integration, invoicing accuracy); Senior Electrician or Field Supervisor (mobile usability, job documentation on site).\nDecision Frame — ROI clarity combined with confidence that implementation is manageable. Buyers compare against their current manual processes or entry-level tools (Tradify, ServiceM8, Jobber). They want proof the platform pays for itself quickly and will not create disruption during rollout. The most common objection is not cost — it is complexity and change-management anxiety. When buyers do choose a platform, the dominant purchase frame is 'one system for everything' — service calls, projects, and contracts — rather than a feature-specific evaluation. [Hindsight-augmented]\nBuying Urgency Triggers — Growth strain on manual processes; missed invoices or consistently slow payment cycles; a lost contract due to poor compliance documentation; failed compliance audit or inspection; staff frustration or departure creating process vulnerability; owner being pulled back into admin instead of sales or supervision; integration pain with accounting and quoting tools — double-entry between Xero/QuickBooks and spreadsheets or a lightweight FSM reaching a visible breaking point. [Hindsight-augmented]\nTechnology Maturity Context — Most incoming buyers are at Empower or early Elevate. They are migrating from spreadsheets plus Tradify, ServiceM8, or Jobber combinations. Deep technical integration requirements are uncommon; Xero or QuickBooks integration and mobile app usability are the primary technology requirements. Buyers in this trade have low tolerance for long or complex implementation cycles — phased rollout framing is important**. [Hindsight-augmented]**\n\n3. Common Job Types & Work Scope\nWork Types & Real-World Examples\nInstallation\n\nNew switchboard (ANZ) / consumer unit (UK) / service panel (NA) installations\nPower outlet and circuit additions; sub-main upgrades\nCommercial fitouts — lighting, power distribution, data and communications cabling, access control\nNew residential builds and extensions (NA and ANZ); domestic rewires (UK)\nEV charger installation — growing commercial and residential segment across all regions\nSolar PV system installation and grid connection (primary in ANZ, growing in NA and UK)\nFire alarm, emergency lighting, and security system installation\n\nInspection & Testing\n\nElectrical Installation Condition Reports (EICRs) — UK commercial and landlord sector\nCertificate of Compliance for Electrical Work (CCEW) issued after every qualifying job in ANZ\nPeriodic inspection and testing under AS/NZS 3000 / BS 7671 / NEC\nPre-purchase property electrical inspections\nArc flash hazard assessments (NA, commercial and industrial)\nPAT testing (UK); thermal imaging and switchboard inspections\n\nMaintenance\n\nScheduled preventive maintenance on switchboards, distribution boards, and lighting systems under service contracts\nAnnual or periodic compliance checks for commercial tenants, landlords, and facilities clients\nEmergency lighting system testing and certification\nEnergy management and monitoring system maintenance\nPPM (planned preventive maintenance) contracts — typically monthly, quarterly, or annual cadence; compliance documentation delivery is a key client expectation\n\nRepair & Fault-Finding\n\nEmergency call-outs for power failures, tripped circuits, or faulty equipment\nFault diagnosis for commercial and industrial plant and switchgear\nConsumer unit, switchboard, and distribution board fault rectification\nLighting, emergency system, and access control fault repair\n\nWork Scope & Job Shape\nSmall Jobs / Call-Outs\nSingle-electrician or two-person call-outs for fault rectification, outlet additions, minor switchboard work, or quick commercial requests. Typically 1–4 hours. Rapid quote-to-invoice cycle is critical — same-day or next-day invoicing is the expectation. Materials often sourced on the day with limited pre-job planning.\nRecurring Contracts\nMonthly, quarterly, or annual maintenance agreements with commercial property owners, facilities managers, or tenants. Compliance documentation delivery (certificates, test results, service reports) is a key contractual obligation. Contract billing, visit scheduling, and renewal visibility are important operational requirements at this scale.\nMid-Sized Projects\nCommercial fitouts, switchboard replacements, and multi-phase electrical installation projects spanning 2–16 weeks. Often involve phased billing milestones and coordination with other trades (plumbing, HVAC, data contractors). Variation orders and material uplift are common and frequently go untracked, creating margin leakage. Asset handover documentation is required at project completion.\n4. Operational Challenges by Role\nOwner / Business Leader\n\nNo real-time view of job profitability on active projects — margins are only understood after invoicing, often too late to course-correct on labour overruns or material cost blow-outs. [Hindsight-augmented]\nQuoting is done from memory, past invoices, or spreadsheets — resulting in inconsistent pricing, insufficient margin for complexity, and no systematic review of job performance against quote.\nGrowth creates invisible operational drag — more jobs, more crews, more compliance obligations, but no proportional increase in financial clarity or management confidence.\nCompliance exposure is a liability risk: if test certificates, EICRs, or certificates of compliance are not delivered consistently, contracts can be lost or professional indemnity claims can follow.\nCannot scale without adding office headcount — administrative burden grows faster than revenue because manual coordination is the only option. [Hindsight-augmented]\nDifficult to identify which job types, clients, or contract types are genuinely profitable — mix decisions are made by feel.\n\nOffice / Back-Office Staff\n\nScheduling is manual and reactive — tracking which electrician is available, geographically close, and holds the right licence or certification for a job requires constant phone and messaging coordination. [Hindsight-augmented]\nQuoting is time-consuming due to variable materials pricing, labour rates by qualification level, and compliance requirements — each quote is rebuilt from scratch.\nJob completion information (timesheets, materials used, site notes, test results) arrives late, incompletely, or not at all from the field — creating invoicing delays and disputes.\nInvoicing requires manual data reconciliation across timesheets, delivery dockets, and field notes rather than pulling from a single job record.\nPurchase order and materials management is ad-hoc — leading to stock-outs, over-ordering, or missed material charges on invoices.\nMaintaining compliance document registers (certificates, EICRs, test records) manually is time-consuming and error-prone at scale.\n\nField Technician\n\nArriving on site without full job history, previous test results, asset details, or clear scope — leading to avoidable delays, incorrect materials, and repeat visits. [Hindsight-augmented]\nTimesheets and material usage tracked on paper or via text message, creating inaccuracies in job costing and leaving billable time off invoices.\nNo formal mechanism to capture variation work or additional materials on-site — extra work is performed but not charged.\nCompliance documentation (test certificates, circuit schedules) completed after the fact from memory, increasing error risk and creating liability exposure if records are challenged.\nField technicians cannot see real-time schedule changes, updated job briefs, or purchase approvals without calling the office — creating repeated interruptions and delays.\n\nFinance\n\nInvoice approval delays on project and contract work — compliance certificates and client sign-offs must be in place before payment is released, and chasing these is manual. [Hindsight-augmented]\nAR ageing pressure from slow follow-up on service and call-out invoices — particularly for businesses invoicing weekly or monthly in arrears.\nNo real-time view of WIP (work in progress) value against outstanding invoices — cash flow position is unclear until end-of-month close.\nMaterials costs entered late or inconsistently, making job-level margin analysis unreliable and hindering any meaningful financial review.\nAccounting integration gaps between field job management and Xero/QuickBooks create double-entry burden and reconciliation time at month-end.\n\n5. Profitability Pressure Points\nRevenue Leakage\n\nVariation work captured verbally on-site but never formally quoted or invoiced — extra circuits, material upgrades, or scope additions that never become billable revenue. [Hindsight-augmented]\nBillable travel time and first-hour call-out fees missed due to informal or absent job tracking.\nTest and inspection work completed without generating a compliance certificate or accompanying invoice — service delivered but not charged.\nMaterials used on-site not reconciled against purchase orders — unbilled material charges reduce gross margin on individual jobs across the portfolio.\nDeposits not collected upfront on materials-heavy jobs — cash tied up in materials before any revenue is recovered.\n\nMargin Erosion\n\nReturn visits caused by incomplete site information — wrong specification, missing test results, or incorrect materials loaded — add unbilled labour and vehicle costs to jobs without corresponding revenue. [Hindsight-augmented]\nLabour overruns on project work not visible until invoicing — by then, cost recovery via re-negotiation or variation is not possible.\nInefficient routing and unoptimised scheduling create unproductive time between jobs, reducing daily technician utilisation and effective hourly rate.\nApprentice and trade assistant hours recorded inconsistently — understated costs inflate apparent margin on jobs and distort business profitability analysis.\n\nCash Flow Delays\n\nProject invoices held up pending compliance certificates or client sign-off documentation — revenue is earned but not collectible until paperwork is complete. [Hindsight-augmented]\nSlow invoicing cycle from job completion to invoice dispatch — in businesses that rely on manual timesheet collection, days or weeks can pass before an invoice is raised.\nVariation orders not documented at the time of work — disputes at invoice stage delay payment on otherwise complete jobs.\nMaterials-heavy jobs proceed without upfront deposits — the business absorbs the cost of materials before being paid.\n\nLimited Financial Visibility\n\nNo real-time view of labour costs versus quoted hours on active projects — margin risk is invisible until jobs are closed and reconciled. [Hindsight-augmented]\nWIP value not visible during the month — decisions about resourcing, hiring, or taking on new work are made without confidence in the underlying cash position.\nJob-level profitability only knowable retrospectively — making it impossible to course-correct on underperforming jobs before they close.\nNo aggregate view of revenue contribution by work type (call-out vs. contract vs. project) — business mix decisions are made by instinct rather than data.\n\n6. Compliance & Risk Factors\nRegulatory & Compliance Drivers\n\nUnited States / Canada — State and provincial electrical contractor and worker licensing (Master Electrician, Journeyman); National Electrical Code (NEC) compliance and local AHJ permit and inspection requirements; NFPA 70E arc flash and electrical safety standards for commercial and industrial environments; low-voltage licensing (data, comms, security) is separately regulated in many US states.\nUnited Kingdom — BS 7671 18th Edition Wiring Regulations compliance; Part P Building Regulations for domestic electrical work; NICEIC or NAPIT scheme membership for certifying contractors; Electrical Installation Condition Reports (EICRs) as mandatory deliverables for commercial and landlord-owned properties; five-year EICR periodic inspection cycle for commercial tenants and landlord compliance under the Housing Act.\nAustralia & New Zealand — State and territory-based electrical contractor licensing and electrical worker licensing (varies by state); AS/NZS 3000 Wiring Rules (the Wiring Rules) compliance; Certificate of Compliance for Electrical Work (CCEW) required after every regulated electrical installation in most states; Safe Work Australia and state WHS/OHS legislation for site safety obligations.\n\nSafety & Risk Considerations\n\nWorking with live electrical systems creates injury, fire, and property damage risk when work is incomplete, incorrectly documented, or performed by unlicensed or unsupervised personnel.\nArc flash and electrocution risk requires documented risk assessments and appropriate PPE, particularly for switchboard and high-voltage work.\nWorking at height (luminaire installation, rooftop solar, ceiling-mounted systems) adds physical injury risk requiring Safe Work Method Statements (SWMS) or equivalent.\nUnplanned return visits due to incorrect first-visit work increase both safety exposure and customer trust erosion.\n\nCustomer Trust & Credibility Signals\n\nElectrical test certificates, inspection reports, and EICRs delivered promptly, correctly, and professionally after every qualifying job.\nCompliance documentation available digitally and on demand — critical for commercial property managers and FM clients managing their own compliance obligations.\nCrew credentials, licensing details, and insurance documentation visible to commercial clients on larger accounts.\nProfessional, consistent job cards and completion reports that demonstrate systematic, auditable work practices — particularly important for facilities management and government contracts.\n\nConsequences of Getting It Wrong\n\nFailed inspection or audit requiring costly rework before project sign-off, with potential for voided warranties and delay penalty exposure.\nRegulatory penalty, licensing suspension, or scheme membership removal for uncertified or non-compliant work.\nInsurance claims voided if compliance documentation is absent, incorrect, or cannot be produced at the time of an incident.\nContract termination or non-renewal from commercial clients whose own regulatory compliance depends on receiving certified electrical documentation from their contractors.\n\n7. Value Pillar Alignment\nConfidence in Profitability\nElectrical contractors lose margin on projects and service contracts when labour overruns, untracked variation work, and material discrepancies are invisible until after invoicing. Real-time job cost visibility against quoted hours — combined with material tracking from field to office — gives owners the financial clarity to course-correct before a job closes, not after. For businesses running maintenance contracts, profitability confidence depends on knowing which contract sites are performing and which are absorbing disproportionate resource without commensurate revenue. The inability to answer 'is this job making money?' until the job is closed is the defining profitability challenge of this trade. [Hindsight-augmented]\nOperational Visibility — Quote to Cash\nThe electrical trade's quote-to-cash lifecycle spans complex and disconnected touchpoints — rapid call-out quotes, multi-phase project billing with milestone holds, compliance certification requirements before client payment release, and recurring contract administration. Disconnected tools mean delays accumulate at every handoff: quoting done in spreadsheets, scheduling in messaging apps, timesheets on paper, invoicing from incomplete field records. End-to-end visibility from quote acceptance through job execution, certification delivery, and payment closes those gaps and compresses the cash cycle — removing the manual reconciliation layer that slows every invoice. [Hindsight-augmented]\nSmarter Field-to-Office Workflows\nThe most costly friction in the electrical trade lives at the field-to-office handoff. Timesheets not entered, materials not recorded, variation work not captured, and test results not uploaded mean the office cannot invoice accurately or on time — and the electrician has to be chased before the job can close. When field technicians have the tools to complete job documentation, capture materials used, record compliance information, and log variation work from site, office teams can invoice the same day without a manual chasing loop. The reduction in callbacks, rework, and admin hours compounds across every job in the business. [Hindsight-augmented]\nAI-Powered Automation as an Enabler\nIn electrical businesses, automation removes friction from the highest-volume, lowest-value administrative tasks: invoice generation from completed jobs, compliance certificate dispatch, maintenance schedule triggering from asset records, and accounts receivable follow-up on outstanding invoices. For a business managing dozens of service calls per week or a PPM contract portfolio, automated workflows remove the administrative ceiling that would otherwise require additional headcount to manage. Automation is positioned as an operational enabler for skilled electricians — not a replacement for trade expertise. [Hindsight-augmented]\nHigh-Impact Workflow Moments\n\nConverting a complex multi-room commercial fitout quote into a fully scoped, executable job — with materials list, crew scheduling, and compliance requirements — without manual re-entry across separate quoting, scheduling, and purchasing systems.\nElectrician completing job documentation, test result capture, and materials reconciliation from site — triggering same-day invoice generation without requiring office follow-up or re-entry.\nMaintenance contract renewal or PPM schedule automatically triggered from service history and asset compliance records — without requiring a manual review and rebuild of the visit schedule.\n\n8. Messaging Guardrails & Language\nLanguage to Use\n\n'Electricians' as the primary trade descriptor across all regions; 'engineers' in UK commercial contexts [Hindsight-augmented]\n'Certificate of Compliance' / 'CCEW' in ANZ; 'EICR' / 'Electrical Installation Certificate' in UK; 'permit' and 'inspection report' in NA\n'Switchboard' in ANZ; 'distribution board' or 'consumer unit' in UK; 'panel' or 'service panel' in NA\n'Call-out' in UK and ANZ; 'service call' acceptable in NA\n'Quote' preferred in UK and ANZ; 'estimate' also used in NA\n'PPM' or 'planned preventive maintenance' for recurring contract work — understood across all three regions\nReal job examples that resonate: 'commercial fitout,' 'switchboard upgrade,' 'test and inspection run,' 'reactive fault call,' 'annual EICR' [Hindsight-augmented]\nROI framing that lands in this trade: 'faster quoting,' 'same-day invoicing,' 'jobs don't fall through the cracks,' 'know your margin before the job ends,' 'stop chasing timesheets' [Hindsight-augmented]\n'Unified platform' as the core differentiator against Tradify, ServiceM8, and Jobber — electricians understand the pain of juggling multiple tools [Hindsight-augmented]\n\nLanguage to Avoid\n\n'Technician' in UK and ANZ electrical contexts — use 'electrician' or 'engineer' as appropriate to context [Hindsight-augmented]\n'ERP' or 'enterprise system' — this trade does not self-identify with enterprise software and the label creates instant friction\n'Streamlined' or 'optimised' without a concrete operational mechanism — too abstract and overused; trade buyers respond to specific operational descriptions\n'Automate everything' — overstates AI and automation capability and triggers scepticism in a trade that values practical, provable outcomes [Hindsight-augmented]\n'Seamless' — overused to the point of meaninglessness across trade and FSM marketing\n'Industrial' or 'infrastructure' — out of scope for this profile and implies heavy-engineering complexity that misrepresents the typical ICP\n\nWhat NOT to Claim\n\nDo not claim the platform replaces specialist compliance management or certification tools — it supports and streamlines compliance workflows around documentation, scheduling, and delivery; it does not generate certifications or guarantee regulatory compliance.\nDo not imply guaranteed ROI outcomes; frame as outcomes achieved by named customers or results typical for businesses of similar size and operational maturity. [Hindsight-augmented]\nDo not position for large-scale infrastructure, high-voltage transmission, or civil electrical projects — this profile covers commercial fitout, service, and maintenance contracting only.\nDo not suggest the platform eliminates the need for qualified electricians or licensed trade expertise — automation supports business operations around the trade, not the trade itself.\nDo not claim integration depth without specifying the platform — 'connects to your accounting software' is weaker than 'connects to Xero and QuickBooks, eliminating double-entry.' Integration specificity is a proven win driver in this vertical and vague integration claims do not convert. [Hindsight-augmented]\n\nTone Calibration\nContent for the electrical trade should feel operationally literate and practically grounded — speaking in the language of jobs, crews, quotes, and cash. Avoid corporate abstraction. Smaller operators (Segment A) respond to directness and proof of simplicity: 'you'll be quoting from your phone on day one.' Growth-stage businesses (Segment B) respond to scale framing and financial control language: 'stop running margin blind on your projects.' Across both segments, tone should be confident and specific — generalised efficiency claims land poorly with a trade buyer who has heard them before. Always lead with a problem or a financial consequence, not a feature list. [Hindsight-augmented]\n9. Proof Anchors\nSimpro\nCustomer NameCountryTrade FocusQuote / TestimonialKey Success MetricsNotesEnhanced Electrical ServicesUnited States (Nevada)Commercial, Residential & Industrial Electrical\"With Simpro, we've improved profitability and grown from 8 to 21 field technicians without increasing office staff. Our techs enter materials into Simpro when on-site, which has made billing more accurate and much faster.\" — Rebecca Baffrey, Vice President10X quicker invoice generation50% faster payments from customersNorberg ElectricUnited States (Illinois)Commercial & Industrial Electrical\"We save a lot of time and money with Simpro. Faster quoting and simplified asset management have made a huge improvement to our processes. We no longer use multiple software programs, we do it all in Simpro.\" — Erik Norberg, Operations Manager6X faster job estimates10X quicker to create project blueprintSTS Fire & ElectricalUnited KingdomFire Safety & Electrical Compliance\"The Maintenance Planner changed everything. We've cut admin time by at least 5x and tripled our contract value in just over a year. Simpro has helped us professionalise the way we work.\" — Dave Hemsley, Operations Manager5x reduction in admin time3x increase in contract valueElmleigh Electrical SystemsUnited KingdomElectrical Contractor\"Simpro's actionable workflows and project visibility tools have been vital to our growth. The ability to analyse jobs by project manager has completely changed how we track and manage profitability.\" — Chris Southwell, Director of OperationsNo metrics publishedUK project management and profitability tracking proofAudem ElectricalAustraliaResidential & Commercial Electrical\"The entire team loves using the Simpro mobile app. It's easily accessible job histories and schedules mean the team organises itself as soon as they arrive in the morning.\" — Michael Barram, COO30% business growth since implementation10x faster invoicingADJ ElectricalAustraliaCommercial & Industrial Electrical\"By having that system running for over two years, we were able to identify some areas of our works that were repeatedly costing us money. We had been using our labour rates for over 35 years and Simpro helped us realise where we were going wrong.\" — Raynor Pierce, Construction ManagerNo metrics publishedANZ labour rate and job costing discovery proofDC ElectricalAustraliaCommercial & Industrial Electrical\"Paper-based systems don't work for us — by removing those pain points, we are able to get back to what we do best.\" — Aaron Cluff, DirectorGrew from 2 to 60+ employees since implementing SimproANZ business growth proofElectrical Infrastructure Services LtdUnited KingdomHigh Voltage, Design, Install & Maintain\"Simpro allows us to capture any lead that comes in, make notes, attach information and carry that right through to the job, without duplication or loss of information. Simpro allows us to produce complex quotes in a very short time.\" — Nigel Bird, MDNo metrics publishedUK complex quoting and lead management proof\nBigChange\nCustomer NameCountryTrade FocusQuote / TestimonialKey Success MetricsNotesMEDLECUK (South England)Multi-Discipline Electrical (Retail, Hospitality, Leisure)\"The system has put an end to laborious paperwork and data entry, and as jobs come in they are instantly available to our engineers. It means we can be more reactive and efficient with our time, therefore around 40 percent more productive, allowing us to take on more work with the same resources.\" — Christian Tonna, Managing Director40% improvement in worker productivity92% first-time fix rate across 120 jobs/dayStirling Electrical ServicesUK (Scotland)Electrical & Security Systems\"The biggest thing about BigChange is the visibility that it gives us. All the information we need is instantly available so we can manage everything more dynamically and keep customers better informed. We are also winning more tenders as BigChange allows us to tick more boxes.\" — Scott McLean, Owner & Director80% reduction in paperwork20% improvement in operational efficiencyASH Integrated ServicesUK (Manchester)Mechanical & Electrical Contractor\"Without BigChange I estimate that we would need at least another 10 to 15 back-office staff just to maintain our current operation.\" — Antony Grace, Director400% workforce growth£7M predicted annual turnoverCitrus GroupUK (Merseyside)Electrical Contracting (Local Authorities & Social Housing)\"BigChange allows us to schedule engineers based on the priority and timeframes of the job and its location.\" — Daniel Kelly, Director100% paper-free operations10% increase in workforceFuture GroupUK (Essex)Lighting, Electrical, EV Charging, Fire & Security\"Since implementing BigChange, paperwork has become a thing of the past and we are far more efficient seeing, on average across the divisions, an 80% improvement.\" — Maddie Carr, Service Agreement Manager80% improvement in efficiency across divisionsUK multi-division efficiency proofSinewave Energy SolutionsUK (Swindon)High & Low Voltage EngineeringNo attributed quote available2,000 hours of engineer time saved annuallyAutomated job booking, scheduling, and invoicingMcNally EVUK (Yorkshire)EV Charging Installation\"We are committed to making the world greener... BigChange is helping us on our journey — our installers and engineers are able to access relevant client records and technical documents through the mobile app.\" — Nicky McNally, MDNo metrics publishedUK EV charging — growing segment proofCU Phosco LightingUnited KingdomOutdoor Lighting & Electrical Infrastructure\"When we discovered BigChange we realised there was a system that could not only meet our current needs but do a lot more, and give us a future-proof solution.\" — Stuart Murray, General ManagerNo metrics publishedUK outdoor electrical and infrastructure proof\nAroFlo\nCustomer NameCountryTrade FocusQuote / TestimonialKey Success MetricsNotesKAT ElectricalAustralia & New ZealandElectrical & Communications ContractorNo attributed quote available80% improvement in invoicing turnaround25% increase in revenue and staff productivityFive Star ElectricalANZ (Canberra)Commercial Electrical (Government, Commercial & Defence)\"AroFlo allows me to better manage our staff in the field and monitor their whereabouts and productivity.\" — Andrew Boyton, SupervisorSignificant improvement to cashflowFull elimination of paper-based timesheetsGB Electrical GroupANZ (Newcastle)Residential, Industrial & Commercial Electrical\"We've been using AroFlo since 2006 and without it we couldn't manage our complex business operations. We can view and track all job details from anywhere.\" — Darren Andrews, DirectorEliminated paper-based adminSignificantly improved cash flow controlN Group ElectricalAustralia & New ZealandCommercial Electrical\"The dashboards tell us exactly where every project stands. We've gone from chasing updates to actually managing the work.\" — Nick Goodwin, Director5 hours saved per day in field-to-office follow-upsANZ project visibility and reporting proofQuiklec ElectricalAustralia & New ZealandCommercial Electrical\"AroFlo's given us structure and visibility — the whole business runs smoother, and we're not buried in paperwork at the end of the day.\" — Peter Symons, Director25% increase in technician productivityANZ productivity proofDon Neal ElectricalAustralia & New ZealandElectrical Contracting\"Entering everything online has put an end to losing wholesaler invoices or struggling to remember job details.\" — Shane Phelan, ElectricianNo metrics publishedANZ materials and invoicing accuracy proofSangster ElectricalNew ZealandElectrical ContractorNo attributed quote available100% accountability across profit-critical business channelsImplemented in under one monthJogen ElectricalAustralia & New ZealandElectrical ContractorNo attributed quote availableStreamlined timesheets, purchase orders, and invoicingGroundplan integration for quotingVelocity ElectricalAustralia & New ZealandCommercial & Industrial ElectricalNo attributed quote available40% increase in hours billed100% invoicing improvement\nProof Gaps\n\nNo project-specific electrical case study for any brand — no customer story anchored in a commercial fitout, switchboard replacement, or multi-phase installation with margin or billing metrics. This would strengthen messaging for Segment B Growth-Stage buyers.\nNo Simpro UK electrical case study with cash flow or AR cycle metrics — STS Fire & Electrical covers maintenance contract growth; a service-focused UK story with invoicing speed or payment cycle metrics would add range.\nMcNally EV and CU Phosco Lighting (BigChange) have no published metrics — both are relevant to growing segments (EV charging, outdoor electrical). PMM to request metrics from these customers when capacity allows.\nSeveral AroFlo customers (Don Neal Electrical, Sangster, Jogen, Velocity) have no attributed quotes — outcomes are documented but no named testimonial is available. Note for future case study development.\n\n10. Deal Intelligence & Competitive Context\n[Hindsight-augmented] — Section 10 is fully informed by Hindsight deal intelligence. All data reflects the Electrical/Data vertical across the Simpro Group deal dataset\n10.1 Deal Volume & Win Rate\n1,454 deals analysed using the Account Industry field (crm_Account_Industry__c = \"Electrical/Data\") as the primary vertical filter, cross-referenced against company name contains \"electrical\" / \"electric\" and deal notes containing \"electrical\", \"electrician\", \"electrical contractor\". Results deduplicated before analysis\nStatusDeal CountAvg Deal ValueClosed Won611 (42.0%)$745Closed Lost843 (58.0%)$921\nWin rate context: 4 in 10 fully-resolved deals are won. Lost deals average significantly higher value than wins ($921 vs $745) — tightening loss reasons directly lifts revenue quality, not just logo count. This vertical is competitively winnable; the primary loss driver is buyer behaviour (no compelling event, status quo) rather than a competitor winning outright.\n10.2 Top Win Drivers\nDriverTagDeal Count (Won)Significance for ContentUnified PlatformProduct336Lead every electrical content asset with this message — buyers frame the purchase as 'one system for everything, not a feature evaluation.' Show a single job flowing quote to invoice without re-entry. Counter Tradify/ServiceM8/spreadsheet combinations directly.Product FitProduct274Use electrical-specific workflows in all demos and content — switchboard installs, data cabling, test and inspection, maintenance contracts. Generic FSM language loses this buyer. Map Simpro flows onto their exact job types in discovery.ROI ClarityPricing231Always build a specific business case using the prospect's own numbers — crew size, jobs per month, current DSO. Quantify status quo costs: missed variations, invoicing delays, rework. ROI must be established before pricing is presented.Integrations / APIsProduct120Name the platforms — Xero, QuickBooks. Never generalise to 'connects to your accounting software.' Show the end-to-end sync in demos. Address integration requirements explicitly in discovery to avoid late-stage loss.Mobile App FunctionalityProduct116Demo the field app live — job access, time capture, photos, compliance forms, signatures, offline mode. Lead with field usability for electricians on site in plant rooms and basements. Adoption stories resonate strongly.User Interface UsabilityProduct114Keep demos task-based and role-specific — show the dispatcher view, then the field view. Avoid overwhelming with features. Offer sandbox trials with guided tasks. 'Built for tradies, not software admins' is the right framing.Implementation EaseImplementation99Pre-empt the complexity objection with a phased go-live plan in every demo. Show a 90-day roadmap. Clarify exactly what Simpro handles vs what the customer provides. Implementation concerns appear in 93 lost deals — address early, not at close.Services / Support QualityImplementation93Introduce the post-sale team during the sales cycle. Show how to access support, training resources, and health checks. Local support in the prospect's time zone is a genuine differentiator — use it explicitly.Regional Support ProximityImplementation93Use region-specific case studies and references. Offer calls with local implementation specialists. Counter overseas vendor concerns directly — 'We've implemented with contractors in your region who understand your compliance context.'Pricing ClarityPricing67Present clear line-item proposals — licences, implementation, support, optional add-ons. No surprises. Show how pricing scales with growth. Frame against the total cost of current tools plus manual admin time.\n10.3 Top Loss Drivers\nDriverTagDeal Count (Lost)Significance for ContentLack of Compelling Event / UrgencyBuyer Behavior273Create 'cost of inaction' content — margin leakage calculators, variation billing gap analysis, compliance risk explainers. Sales must quantify status quo cost in every discovery call. Anchor to a date-driven event (new contract, busy season, compliance deadline). Never leave discovery without a specific reason to act now.Product FitProduct277Tighten lead qualification and discovery checklists — identify poor-fit prospects earlier and redirect rather than force fit. Create explicit 'who we're built for' and 'who we're not' content to attract better-fit inbound. Equip reps to disqualify confidently and fast.Prospect ResponsivenessBuyer Behavior155Build structured multi-step follow-up cadences — email, phone, short video recaps — replacing ad-hoc chasing. Provide content for each follow-up step (ROI one-pagers, implementation overview, peer reference). Define 'disengaged' triggers and route back to marketing nurture.Risk Aversion / Status QuoBuyer Behavior134Lead with change management proof — case studies of smooth transitions from spreadsheets and lightweight FSM tools. Show a phased rollout plan with minimal disruption framing. Migration templates and checklists de-risk the move psychologically and operationally.ROI ClarityPricing119Institutionalise ROI into the sales process — standard ROI workbook with pre-filled electrical contractor examples. Make ROI discussion mandatory before pricing is introduced. Concrete numeric outcomes ('Cut DSO by 24 days', 'Eliminated 10 hours/week admin') outperform vague efficiency claims.Budget ConstraintsPricing109Reposition price as investment vs cost using total cost of ownership framing. Offer phased licence structures — start with core modules, expand over time. ROI clarity is the fix for budget objections; discounting is not.Follow-up Cadence / CommunicationSales Execution106This is a sales process fix, not a content problem. Define a standard post-demo cadence (Day 1 recap, Day 3 ROI, Day 7 implementation plan). Each touchpoint should add value, not just chase. Flag to sales leadership — 106 lost deals signals a systemic process gap.Implementation ComplexityImplementation93Make implementation a core value proposition, not a footnote. Simple implementation roadmaps, 'go-live in X weeks' stories, and clear customer effort vs Simpro effort breakdowns. Show a real project plan in demos. Phased deployment framing converts this objection into a confidence builder.Competing PrioritiesBuyer Behavior87Create content on 'implementing during busy periods' — micro-milestones, minimal viable go-live paths, stories of contractors who implemented without disruption. Help prospects phase rollout around their calendar. Position Simpro implementation as creating capacity, not consuming it.Lead QualificationSales Execution40Tighten ICP targeting on ads and landing pages to reduce poor-fit inbound. Update discovery scripts to screen for fit earlier — size, workflows, tech stack, regions. Route poor-fit leads to lighter-touch nurture rather than full sales cycles.\n10.4 Feature Demand Signals\nFeature / CapabilityDeal Count (Total)WonLostImplicationAll Workflows (end-to-end unified platform)73331462Most discussed feature overall — high lost count signals this is a key evaluation criterion where deals are still being lost. Demonstration quality matters.Simpro Mobile57336320Strong won bias — mobile app is a genuine differentiator. Prioritise in demos for field-heavy electrical businesses.Integrations (Xero, myob, QuickBooks)408224184High on both sides — integration clarity is both a win driver and a loss risk. Name specific platforms, don't generalise.Scheduling & Dispatch355243112Won-biased — scheduling capability resonates strongly once demonstrated.BI / Reporting239136103Even split — reporting capability is expected; demonstration of electrical-specific reporting outputs differentiates.Project Management1609961Won-biased — important for Segment B growth-stage buyers running commercial fitouts and multi-phase projects.Preventative Maintenance Tracking1488959Won-biased — maintenance contract management is a key differentiator vs lightweight FSM tools.Quotes / Estimating1389444Won-biased — quoting speed and accuracy resonate strongly with both segments.Standard Reporting92920Won only — when standard reporting is demonstrated effectively it contributes to wins without loss risk.Simpro Payments91910Won only — payment capability contributes to wins when demonstrated; not currently a loss driver.Configurable Workflows37037Lost only — appears exclusively in lost deals. Signals a gap or complexity perception that is not being resolved in the sales process. Flag to product and sales enablement.Inventory Management35035Lost only — appears exclusively in lost deals. May indicate an unmet need or feature gap for electrical businesses managing materials-heavy jobs. Flag to product.\n10.5 Competitive Landscape\nCompetitorDeal CountWin Rate vs. ThemPositioning NoteManual processes (spreadsheets, etc.)68759.0%Primary displacement target. Strong win rate but 41% loss signals status quo messaging needs sharpening — quantify the cost of doing nothing.Tradify16086.3%Most common lightweight FSM competitor. Very strong win rate — unified platform, mobile depth, and job costing visibility are the decisive differentiators.ServiceM813480.6%Entry-level FSM, common in ANZ. Strong win rate; buyers outgrowing ServiceM8 cite scheduling complexity and reporting as primary gaps.Jobber3275.0%Primarily NA. Solid win rate; buyers cite project management and job costing as step-up requirements.AroFlo2623.1%Low win rate reflects NA/UK dataset where AroFlo is a competitive flag. In ANZ, AroFlo is a direct platform peer — not a displacement target. Do not build NA/UK campaign messaging around this matchup.ServiceTitan2556.0%Real and winnable competitive motion. Buyers choosing us over ServiceTitan cite commercial workflow depth, compliance documentation, and integration flexibility. Loss pattern: integration clarity gaps and no compelling event.Joblogic2050.0%Even split. Platform depth and local support are key levers — needs stronger differentiation narrative.Fergus2045.0%Win rate has softened. Migration support and implementation confidence are the key decision levers.Housecall Pro1637.0%Weak win rate — primarily NA residential/HVAC crossover. Better qualification on workflow fit needed before competing here.Procore128.3Enterprise/construction segment. Outside this profile's ICP — do not build campaign messaging around Procore displacement in electrical.\n10.6 Displacement Profile & Strategic Messaging Implications\n\nPrimary displacement is from manual processes and lightweight FSM tools (Tradify, ServiceM8, Jobber). Against these competitors, win rates are 75–86% — confirming that when a full capability comparison is made, the unified platform argument is compelling. [Hindsight-augmented]\nThe 'unified platform' message is the single most important differentiator: one system for service, projects, and maintenance versus a combination of lightweight FSM plus spreadsheets plus point apps. [Hindsight-augmented]\nAgainst ServiceTitan, the competitive motion is real and winnable — 25 deals, 56.0% win rate. Buyers evaluating for commercial electrical work encounter gaps in project management depth, compliance documentation workflows, and accounting integration flexibility. The loss pattern reveals an integration story clarity gap and a compelling event requirement — both should be pre-empted in the sales process. [Hindsight-augmented]\nAgainst AroFlo in ANZ (where AroFlo is the home market), the competitive dynamic is peer-level — both platforms serve the same ICP. Differentiation should focus on platform depth, project capability, implementation experience, and accounting integration breadth.\nHousecall Pro (37.5% win rate) and Fergus (45.0% win rate) are two competitors where current win rates suggest qualification drift or a messaging gap — monitor closely**. [Hindsight-augmented]**\nProcore deals are outside the core ICP for this profile — do not build campaign messaging or content around displacement of these platforms in the electrical vertical.\n\n10.7 Objection Handling & Competitive Displacement\nPrimary Objections by Stage\n\n'It's too complex / too much for us' — Frame implementation as a phased rollout starting with a lean workflow set — quoting, scheduling, mobile, and invoicing in phase one. De-risk by referencing customers of similar size who achieved value quickly (Norberg Electric, Enhanced Electrical Services). The objection is change-management anxiety, not a genuine product-fit concern for businesses in the core ICP. [Hindsight-augmented]\n'We don't feel any urgency to change' — Quantify the cost of the status quo: missed variation billing, slow payment cycles, admin hours that could be recovered, and the margin visibility gap on active jobs. Use buyer language from Hindsight win drivers: 'you're running margin blind on every project right now.' [Hindsight-augmented]\n'We're worried about the implementation' — Proactively solve for rollout: define a lean phase-one workflow set, confirm local support availability, and set clear time-to-value expectations. Implementation concerns appear in 93 lost deals — pre-empting this objection in the sales process is a direct win-rate lever. [Hindsight-augmented]\nCompetitive Displacement Intelligence\nvs. Tradify / ServiceM8 / Jobber (NA, UK, ANZ) — Acknowledge these tools work well at small scale — then challenge on what they cannot do: job costing visibility, project management, maintenance contract scheduling, integrated BI reporting, and accounting depth. Win rates against these tools (75–86%) confirm the platform wins when the full capability comparison is made. [Hindsight-augmented]\nvs. ServiceTitan (NA) — Acknowledge it as a credible platform for high-volume residential dispatch. Then reframe: if their work includes commercial projects, maintenance contracts, or compliance documentation requirements, ServiceTitan is built around a different motion. Ask them to show you how ServiceTitan handles multi-phase project billing, compliance certificate tracking, or Xero integration — those workflow tests reveal the fit gap. Win rate against ServiceTitan is 56% in this vertical; it is consistently winnable when the conversation shifts to commercial workflow fit. [Hindsight-augmented]\nvs. Joblogic / Commusoft (UK) — Lead with platform depth, project capability, and local reference customers. Win rate is even at 50% — stronger differentiation narrative needed. Peer references and review strategy are key levers. [Hindsight-augmented]\nvs. Fergus (ANZ) — Win rate has softened to 45%. Migration support and implementation confidence are the primary decision levers. Lead with the unified platform story and maintenance planner capability. [Hindsight-augmented]\nvs. AroFlo (NA/UK only) — Low win rate (23%) reflects dataset composition — AroFlo is a peer platform in ANZ, not a displacement target there. Do not build NA/UK campaign messaging around this matchup. [Hindsight-augmented]\nSales Conversation Guardrails\nAlways quantify the ROI case — abstract value propositions stall at the same rate that specific business cases close. Use the prospect's own numbers: crew size, jobs per month, current invoicing cycle. [Hindsight-augmented]\nNever generalise integration claims — name Xero and QuickBooks specifically. Vague integration language is a proven loss risk in this vertical. [Hindsight-augmented]\nAddress implementation concerns before close, not at close — implementation anxiety appears in 93 lost deals and is the primary change-management objection across both segments. [Hindsight-augmented]\nFollow-up cadence is a direct win-rate lever — 106 lost deals carry a follow-up cadence driver. Every post-demo touchpoint should add value, not just chase. [Hindsight-augmented]\n\nProof Gaps\n\nNo Simpro UK electrical case study with quantified project or contract billing metrics — needed for UK segment content assets.\nAroFlo electrical case study metrics not retrieved at time of v1.0 generation — 9 customers identified, some metrics need to be populated if they become available.\nNo project-work-specific electrical case study for any brand — a commercial fitout or switchboard project story with margin or billing metrics would close the proof gap for Segment B buyers.\nHindsight dataset reflects NA-weighted deal records — UK and ANZ regional patterns are underrepresented. Regional breakdowns should be added when sufficient deal volume per region is available.\n",
         "content_available": true,
         "content_truncated": false,
         "entities": [],
         "headings": [
-          "Feature and Product Collateral Library",
-          "Read Order",
-          "Core platform/regional datasheets",
-          "Core Platform Datasheet - ANZ",
-          "Core Platform Datasheet - NA",
-          "Core Platform Datasheet - UK",
-          "Vertical datasheets",
-          "Electrical Vertical Datasheet",
-          "HVAC Vertical Datasheet",
-          "Low Voltage Vertical Datasheet",
-          "Plumbing Vertical Datasheet",
-          "Trade Services Vertical Datasheet",
-          "Add-ons",
-          "Data Feed",
-          "Delight",
-          "Digital Forms",
-          "Maintenance Planner",
-          "Message Maps for Add-ons",
-          "Multi-Company",
-          "Sage Intacct Integration",
-          "Simtrac",
-          "SMS Text Messaging",
-          "Takeoffs",
-          "Payments and cash-flow add-ons",
-          "Fast Cash",
-          "Payments - Bank Transfers",
-          "Simpro Payments",
-          "AI / Lightning-adjacent feature collateral",
-          "AI Strategic Outlook",
-          "Implementation, services, trust, and security",
-          "Data Security and Infrastructure",
-          "Implementation Guide",
-          "Implementation Packages",
-          "Private Cloud",
-          "Professional Services",
-          "Overview brochures and duplicate print variants",
-          "Overview Brochure - AU",
-          "Overview Brochure - NZ",
-          "Overview Brochure - UK",
-          "Overview Brochure - US",
-          "Proof / customer stories",
-          "Tropical Coast Plumbing Case Study",
-          "Safety"
+          "Simpro Group Electrical Vertical Profile - 8 June 2026"
+        ],
+        "public_claim_use": "prohibited",
+        "read_purpose": "context",
+        "relationships": [],
+        "resource_id": "res-f9f9499223a15d6a901806f30fb1a8ba",
+        "retrieval_tier": "evidence_only",
+        "semantic_roles": [
+          "evidence"
+        ],
+        "title": "Simpro Group Electrical Vertical Profile - 8 June 2026",
+        "topics": [
+          "simpro",
+          "group",
+          "electrical",
+          "vertical",
+          "profile",
+          "june"
+        ]
+      },
+      {
+        "aliases": [
+          "Competitive Context"
+        ],
+        "authority_state": "v1_eligible",
+        "content": "---\naliases:\n  - Competitive Context\ntype: concept\ntitle: Competitive Context\ntags:\n  - competitive\n  - sales\ncreated: 2026-06-15T16:58:55.069Z\n---\n\n# Competitive Context\n\n## Summary\n\nCompetitive positioning and battlecard source map.\n\n## Hub\n\n- [[Competitive Context]]\n\n## Content Brief\n\nCompetitive context exists in the vault through sales battlecards and extracted source-topic rows. Treat this as internal enablement context, not public superiority messaging. Any public comparison or competitor claim requires direct source review and separate approval.\n\n### Reusable Guidance\n\n- Use battlecards to understand internal positioning, objections, and differentiators.\n- Do not publish competitor claims, rankings, or superiority language from these notes without checking the original source and public-proof policy.\n- Pair competitive context with product positioning and proof sources rather than inventing unsupported comparisons.\n\n## Source Nodes\n\n- [Simpro Battlecards (Direct Competitors)](../../wiki/sources/simpro-battlecards-direct-competitors-1bzgf9r8.md) -> [raw](../../raw/drive/sheets/nested/competitive-battlecards-simpro-simpro-battlecards-direct-competitors-1bZgf9r8.md)\n- [HINDSIGHT Copy of Simpro Battlecards](../../wiki/sources/hindsight-copy-of-simpro-battlecards-1elcobgn.md) -> [raw](../../raw/drive/sheets/nested/competitive-battlecards-simpro-hindsight-copy-of-simpro-battlecards-1ElcOBgN.md)\n- [Simpro Software Sales Battlecards (ERP/Upmarket)](../../wiki/sources/simpro-software-sales-battlecards-erp-upmarket-1xyzywou.md) -> [raw](../../raw/drive/sheets/nested/competitive-battlecards-simpro-simpro-software-sales-battlecards-erp-upmarket-1XyzYwOU.md)\n- [Simpro Software Sales Battlecards (Indirect Competitors)](../../wiki/sources/simpro-software-sales-battlecards-indirect-competitors-1ie9-n4r.md) -> [raw](../../raw/drive/sheets/nested/competitive-battlecards-simpro-simpro-software-sales-battlecards-indirect-competitors-1ie9-N4R.md)\n- [Simpro Software Sales Battlecards (Upmarket)](../../wiki/sources/simpro-software-sales-battlecards-upmarket-1ud7ofbn.md) -> [raw](../../raw/drive/sheets/nested/competitive-battlecards-simpro-simpro-software-sales-battlecards-upmarket-1ud7OfBN.md)\n\n## Extracted PDF Evidence\n\n- [[wiki/sources/alarmquest-customer-story-pdf-1hmsaizv|AlarmQuest Customer Story.pdf]]; pages: p. 2; confidence: medium; extracted file: [[raw/extracted/pdf/alarmquest-customer-story-pdf-1hmsaizv|evidence note]].\n- [[wiki/sources/goss-coating-pdf-1qdsdmzm|Goss Coating.pdf]]; pages: p. 1; confidence: medium; extracted file: [[raw/extracted/pdf/goss-coating-pdf-1qdsdmzm|evidence note]].\n- [[wiki/sources/internal-only-simpro-cheat-sheet-10aj3lly|Internal-Only Simpro Cheat Sheet]]; pages: p. 1; confidence: medium; extracted file: [[raw/extracted/pdf/internal-only-simpro-cheat-sheet-10aj3lly|evidence note]].\n- [[wiki/sources/john-williams-heating-services-case-study-pdf-1txl68lz|John Williams Heating Services Case Study.pdf]]; pages: p. 1; confidence: medium; extracted file: [[raw/extracted/pdf/john-williams-heating-services-case-study-pdf-1txl68lz|evidence note]].\n- [[wiki/sources/oracle-vision-customer-story-pdf-1kaeefmv|Oracle Vision Customer Story.pdf]]; pages: p. 2; confidence: medium; extracted file: [[raw/extracted/pdf/oracle-vision-customer-story-pdf-1kaeefmv|evidence note]].\n- [[wiki/sources/quorum-case-study-1-pdf-1surrtz6|Quorum Case Study (1).pdf]]; pages: p. 1; confidence: high; extracted file: [[raw/extracted/pdf/quorum-case-study-1-pdf-1surrtz6|evidence note]].\n- [[wiki/sources/simpro-addons-datafeed-24-uk-anz-v1-pdf-1kivh6mh|Simpro_AddOns_DataFeed_24_UK-ANZ_v1.pdf]]; pages: p. 1; confidence: medium; extracted file: [[raw/extracted/pdf/simpro-addons-datafeed-24-uk-anz-v1-pdf-1kivh6mh|evidence note]].\n- [[wiki/sources/simpro-addons-datafeed-24-us-pdf-1igg3b4e|Simpro_AddOns_DataFeed_24_US.pdf]]; pages: p. 1; confidence: medium; extracted file: [[raw/extracted/pdf/simpro-addons-datafeed-24-us-pdf-1igg3b4e|evidence note]].\n- [[wiki/sources/simpro-ai-strategic-outlook-anz-uk-1bsg2c4m|Simpro_AI_Strategic_Outlook_ANZ_UK]]; pages: p. 1; confidence: medium; extracted file: [[raw/extracted/pdf/simpro-ai-strategic-outlook-anz-uk-1bsg2c4m|evidence note]].\n- [[wiki/sources/simpro-ai-strategic-outlook-us-pdf-1hjnxmpg|Simpro_AI_Strategic_Outlook_US.pdf]]; pages: p. 1; confidence: medium; extracted file: [[raw/extracted/pdf/simpro-ai-strategic-outlook-us-pdf-1hjnxmpg|evidence note]].\n- [[wiki/sources/simpro-brandmanual-12-24-pdf-198fx6kg|Simpro_BrandManual_12.24.pdf]]; pages: p. 2, p. 7, p. 25, p. 37, p. 39; confidence: high; extracted file: [[raw/extracted/pdf/simpro-brandmanual-12-24-pdf-198fx6kg|evidence note]].\n\nThese links are routing evidence only. Open the extracted note and original PDF before using any claim-level detail.\n\n## Claim Rules\n\n- This concept page is a graph node, not claim evidence by itself.\n- Open source nodes and raw files before using copy, proof, metrics, customer outcomes, or competitive statements.\n\n",
+        "content_available": true,
+        "content_truncated": false,
+        "entities": [],
+        "headings": [
+          "Competitive Context",
+          "Summary",
+          "Hub",
+          "Content Brief",
+          "Reusable Guidance",
+          "Source Nodes",
+          "Extracted PDF Evidence",
+          "Claim Rules"
         ],
         "public_claim_use": "prohibited",
         "read_purpose": "context",
         "relationships": [
           {
-            "resource_id": "res-00ef40ec44d45fbdb96ebe608f0c1062",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-016b084e01c95de781db0babe595cf7b",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-037aa9514d415d23bb6043aadc80dead",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-09f77a2983e654229496ebbf88ac4b2a",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-0a8412a5382e50288fc87405a91a5b90",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-0b50debb2dc156b5b91c5e49a2f4132a",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-0dd3c26cb00d5e63b80c10af80d114e1",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-0e92d1d3421954998f7f69bd49bc748b",
+            "resource_id": "res-06f0d3ef1e735c47ae4d751b44ed762e",
             "type": "links_to"
           },
           {
@@ -1097,39 +1267,15 @@
             "type": "links_to"
           },
           {
-            "resource_id": "res-10b97eee1de25395bbf8b904111ca4b0",
+            "resource_id": "res-15c8fb27c42c50419949ec9158edc6b7",
             "type": "links_to"
           },
           {
-            "resource_id": "res-1825898a11855f89be9bb69c544a6aa3",
+            "resource_id": "res-1debf533b9305e60832d0988b483cf78",
             "type": "links_to"
           },
           {
-            "resource_id": "res-184eaa8101985200ba7ac25aa4e38bcf",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-18d584b3de86582991a7d737357098fd",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-22b40b3f1e3f5716a4aebeba21a9ef28",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-233343957bdc55ed8cfb7d8a0be0255e",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-23e3f5584ba153999ba469d72fbf6570",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-24f9456b59615c23bb5f34969d316219",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-286ca2f7150b59398497f6b341b6c9b7",
+            "resource_id": "res-258f5ac5624352769a692bb10a5b6f76",
             "type": "links_to"
           },
           {
@@ -1137,27 +1283,7 @@
             "type": "links_to"
           },
           {
-            "resource_id": "res-301f741538aa58e8b2694953ab77ce0d",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-33deaefa546b56358549b9dfe84f72c6",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-37e7197f89da5077a804de1666a17f53",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-3898a0c4e52b512e904dbda56fcf565c",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-3926e13407fa53eeb107fde72b223955",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-3ff216c212e1556998a437a67e24a034",
+            "resource_id": "res-333720650ed45a68b3161bb102b68035",
             "type": "links_to"
           },
           {
@@ -1165,63 +1291,19 @@
             "type": "links_to"
           },
           {
-            "resource_id": "res-527846e3eda65a87bfd6956b01e02b3c",
+            "resource_id": "res-4d6216fea2855e2ab95881047affb527",
             "type": "links_to"
           },
           {
-            "resource_id": "res-55f88d7428ad54429727ccc90aec6509",
+            "resource_id": "res-4d69e6bb9a3f5d2fad3c106363f8beef",
             "type": "links_to"
           },
           {
-            "resource_id": "res-561db869bd2c581da1dff8bdabae26af",
+            "resource_id": "res-5c1b34d7d2175caab4fb29a208e59ac0",
             "type": "links_to"
           },
           {
-            "resource_id": "res-5a3acf0d09675867ad09d75ad0e22893",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-6078f6806f0753ec9d8a8b8e78740225",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-6353346578f65530a34117f17a59a924",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-648bc1449fc9553a87464d606dc72cb1",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-673b57f8b6ef5b7f9e831b168748e066",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-688ffe1c707b5c4e9cdc7523125500ab",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-6a89de98838b57a3821bfaeb59403191",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-6c48a796562958459f56b5fba6de6b6c",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-6c64056014705c1ebdc9076981442862",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-6fcbe410d7e65cd487d6212fd0ab4932",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-72f95a6c05015d9294047f154389d3df",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-767812a2d68c5debb114269d14d19b22",
+            "resource_id": "res-740e2ed30d7f59ea98d6dcaf50d0c0d3",
             "type": "links_to"
           },
           {
@@ -1229,354 +1311,76 @@
             "type": "links_to"
           },
           {
-            "resource_id": "res-783cbe1a57d950e4b00c8b2f37ce9efb",
+            "resource_id": "res-7cdf4d8f10b35a069a5d11bb8ea40eb0",
             "type": "links_to"
           },
           {
-            "resource_id": "res-804f6e408f5a5fdf842a48992b3d6184",
+            "resource_id": "res-7d3d50bfe3ee5d788f08a614c6e7ee88",
             "type": "links_to"
           },
           {
-            "resource_id": "res-80ab57c3bb775e6bb7a963e3e7a65c9d",
+            "resource_id": "res-8041a2904b0256ebb6a0020e447547e2",
             "type": "links_to"
           },
           {
-            "resource_id": "res-871c8ce44ea45bb193de4efe56c5b002",
+            "resource_id": "res-8ef1a044d2be5ba4b8a15bed28696bf1",
             "type": "links_to"
           },
           {
-            "resource_id": "res-9050a9119f735219aa908db2e80fa550",
+            "resource_id": "res-ae223ba2759c5b88975a93ec431f2f91",
             "type": "links_to"
           },
           {
-            "resource_id": "res-94453f7c1a4451f3901e17952c98df6c",
+            "resource_id": "res-cf618ca9cf6f513ab04e92ad37768124",
             "type": "links_to"
           },
           {
-            "resource_id": "res-96fda2969b1d5d4680d6b3f7dfb4c94e",
+            "resource_id": "res-d602587d4cfb52a68c3b6d56190b0b37",
             "type": "links_to"
           },
           {
-            "resource_id": "res-971f0b1c1bdd568ab2ea4dfe04170543",
+            "resource_id": "res-d8e031aef96b576987debf7f561a0527",
             "type": "links_to"
           },
           {
-            "resource_id": "res-97863425c76e5b1cbce12f8df35e27d6",
+            "resource_id": "res-dd16b98dde965fdf8746a49aabb98ac6",
             "type": "links_to"
           },
           {
-            "resource_id": "res-981a9c71b30955a8b33deb7ebd305b4f",
+            "resource_id": "res-decced2dd1b75e948155bcbd7dadd29f",
             "type": "links_to"
           },
           {
-            "resource_id": "res-98f4296e899653cdb7ec8914eb40f4db",
+            "resource_id": "res-f0ac91cb964d53c7a091f25bd3ff3854",
             "type": "links_to"
           },
           {
-            "resource_id": "res-9b3e505da7055c6b91368401c4385799",
+            "resource_id": "res-f20f9512e16c5b2282b1a09dee24c01e",
             "type": "links_to"
           },
           {
-            "resource_id": "res-a6fb58ed4f6c5cf8840594c08bed6bb1",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-a7da8410434c5d5e85bd806288524212",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-a7ec907b09875ee1adcff42141b9e5c7",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-a88df898c8d0538088b73be0695a65dd",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-a95a38cb95f85ec19f618431e81d641f",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-a9fa2081cc0b5328ac5e36af2c05e45d",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-acdd19b3b66657f0aea54e3d2b553791",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-ae911b55ae745cd1b29145879c0ae268",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-af6f60806c045d578948b263c3e03e06",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-b6423ec98f18546988f383e604ab9141",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-b8d90660f324526da621a4846ed562ea",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-bbd2e1c5ef735c9cbe9453898a84415f",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-bd711ad33f705cee819e81c0a8cc55c2",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-be6e4813e8dc564e97aa0de63e8b0399",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-c2b93e155f9050f48b4cf909d6ba092e",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-c3db60256ee7529f8e163e40ea0444a8",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-c6446c5031c75caca952de485dc23cb4",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-c6e69419a82e59919b4af4731a7e496a",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-c6e6f76054e0544fb8da1f656e0ce439",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-ca9d4eb5e7585a64a6736feeaf937ec8",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-cd01dc5ec2d758f8899af6852db45cce",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-d007de18471152beb1d85ab66b64a12f",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-d4cee44baf6e5e21b430d8f2bf3e11cf",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-d4dcea9f4a0f557e89997989e25c35c4",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-d56d6c55608756b7970dc92a5ffde42d",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-d57e03c015105476a778d3c33e513827",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-d5991cd5309d596a8bc15cd0815d744d",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-d9f61cf7b2a45de08e8b06d975a41200",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-dd31380e03be521dae06e887e280a1c0",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-dd9de32a6ff85ee8967653cf99560255",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-dedf3161fefe5d7a89e2ef268ef84689",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-e7220f2a4bb25907a397b486f6a59752",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-e91c4c9798d254e181012e07dcf14492",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-e98f9497e07c5ffd84f77cc09af29f6b",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-ee604a7dffa15336bf1f0dffa8f19c91",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-f5152c0f69775a029c6ed269e348829e",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-f5ce486769d050c28658d7bad8eb8e43",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-f882ab230eb2563889e300d612c324bc",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-f9ea08d14e815443a2942f6f5375689e",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-fde43b95acdf51ab8e53d33440042bdd",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-ff4d02b091d8529a9b1188d12b799096",
+            "resource_id": "res-f617a15ce580567b968234d615b6d099",
             "type": "links_to"
           }
         ],
-        "resource_id": "res-71a7390563a358149ec12bdc113b6a0e",
-        "retrieval_tier": "evidence_only",
-        "semantic_roles": [
-          "evidence"
-        ],
-        "title": "Feature and Product Collateral Library",
-        "topics": [
-          "feature",
-          "product",
-          "collateral",
-          "library",
-          "read",
-          "order",
-          "core",
-          "platform",
-          "regional",
-          "datasheets",
-          "datasheet",
-          "anz",
-          "vertical",
-          "electrical",
-          "hvac",
-          "low",
-          "voltage",
-          "plumbing",
-          "trade",
-          "services",
-          "add",
-          "ons",
-          "data",
-          "feed"
-        ]
-      },
-      {
-        "aliases": [],
-        "authority_state": "v1_eligible",
-        "content": "# Tone Voice and Localization Rules\n\nThis page compiles tone, voice, and localization rules for Simpro messaging.\n\n## Voice Baseline\n\nSimpro writing should be clear, practical, confident, trade-aware, human, outcome-oriented, and evidence-backed. It should avoid vague software claims, inflated AI language, and unsupported ROI language.\n\n## Named-Author Blog Treatment\n\n- Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines.\n- Author opinion must remain distinguishable from empirical fact.\n- Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated.\n- Em dashes are prohibited. Use a period, comma, colon, or parentheses when the grammar supports it.\n- Product pages and landing pages retain their existing restrained channel treatment.\n\n## Localization Rules\n\n- Localize spelling, terminology, currency, market examples, and regulatory references.\n- Do not localize the core positioning into a different category claim.\n- Do not change proof status, metric wording, or customer outcome context when adapting copy by market.\n- Keep region-specific claims tied to region-specific source material.\n\n## Drafting Checks\n\n- Does the copy state who the audience is?\n- Does the copy connect the feature to a source-supported operational or business outcome?\n- Does the copy avoid unsupported metrics or customer outcomes?\n- Does the copy preserve approved Lightning naming and architecture when AI features are involved?\n\n## Source Evidence\n\n- Voice and tone hub: [[wiki/messaging/Voice and Tone]]\n- Voice concept: [[wiki/concepts/voice-and-tone]]\n- Core messaging source node: [[wiki/sources/simpro-core-messaging-repository-05132026]]\n- Raw core messaging import: [simpro-core-messaging-repository-05132026.md](../../raw/imported-content/simpro-core-messaging-repository-05132026.md)\n- Simpro Voice Style Guide: [[wiki/sources/simpro-voice-style-guide-1hl78trt]]\n- COD editorial blog voice: [[wiki/sources/cod-editorial-blog-voice-2026-07-29]]\n- COD editorial intake note: [cod-editorial-blog-voice-2026-07-29.md](../../raw/source-intake/brand-guidance/cod-editorial-blog-voice-2026-07-29.md)\n\n## Claim Boundary\n\nTone and localization rules control wording. They do not make proof, metrics, reviews, rankings, or customer outcomes safe to use.\r\n\r\n## Compiled Detail\n\nUse this page as a working rule sheet for drafting and review. It should answer how to frame the topic, what to avoid, which neighboring pages carry more detail, and where source verification starts. The page is intentionally not a raw dump: it compiles the durable operating rules so another LLM can work from the wiki layer first.\n\nFor content creation, pair this page with [[wiki/messaging/Simpro Core Messaging Repository]], [[wiki/messaging/Message House]], [[wiki/messaging/Voice and Tone]], and [[wiki/product/Product Positioning]]. For proof-sensitive language, leave this page and route to [[wiki/proof/Customer Proof and Quotes]] and [[wiki/proof/Metrics Inventory]]. For AI or Lightning copy, route to [[wiki/lightning/Lightning Knowledge Hub]] and [[wiki/messaging/AI Positioning and Messaging Rules]].\n\nDo not treat this page as permission to invent examples, claims, or metrics. Its job is to preserve message discipline and reduce repeated raw-source reading. Exact wording, public customer proof, region-specific statements, and competitive claims still need source evidence.\r\n\r\n## Agent Retrieval Notes\n\nWhen an LLM uses this page, it should answer from the compiled guidance first and only open raw evidence after it has identified the exact source that matters. This keeps the vault aligned to the LLM-wiki pattern: the wiki carries the reusable synthesis, while raw remains the verification layer.\n\nA good answer from this page should name the relevant hub, state the safe-use boundary, and cite the source route that would support a deeper check. A poor answer would copy source-like wording without verification, treat a route as an approval, or invent a metric, quote, testimonial, customer outcome, review claim, ranking, pricing detail, roadmap point, or competitive fact.\n\nIf the task needs public copy, use this page to choose the angle, then verify exact support through the linked source node, matrix row, raw file, or extracted evidence note. If the task is internal strategy, preserve the internal-only caveats and do not turn them into external claims.\r\n",
-        "content_available": true,
-        "content_truncated": false,
-        "entities": [],
-        "headings": [
-          "Tone Voice and Localization Rules",
-          "Voice Baseline",
-          "Named-Author Blog Treatment",
-          "Localization Rules",
-          "Drafting Checks",
-          "Source Evidence",
-          "Claim Boundary",
-          "Compiled Detail",
-          "Agent Retrieval Notes"
-        ],
-        "public_claim_use": "prohibited",
-        "read_purpose": "guidance",
-        "relationships": [
-          {
-            "resource_id": "res-0409dfe9b949599f99577d45bd7e7e25",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-09ebfff123cb5c5496e60c3a759a263d",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-1c9cd193f6955d26a2289d6a2ad37c64",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-230f144aab93512e840167c4a25e60be",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-47015608c0d4556a854fca7544b4a040",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-52541b6834d85a7ba6c91740a159647a",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-641679c4b6c65e93951cb8d8e1ab88af",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-92348f8056165d4ba81a3c91738604e2",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-9842b0c357e752598eac4d3e4a530286",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-b34b392d22b9507089ade3fec47ee9e0",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-c027b4f595a5549b8c29545379e0adf0",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-d4c1e70d33425b3aa5f3fc8501374152",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-e3ade596be645307ad4c1f84620ce021",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-e66e0a4bca1c506f854c70a82966be4b",
-            "type": "links_to"
-          }
-        ],
-        "resource_id": "res-d31f057a305f51918055120d95b76c6a",
+        "resource_id": "res-517ad5ccb2cd5c3985831d8aba4cedaa",
         "retrieval_tier": "agent_context",
         "semantic_roles": [
           "guidance"
         ],
-        "title": "Tone Voice and Localization Rules",
+        "title": "Competitive Context",
         "topics": [
-          "tone",
-          "voice",
-          "localization",
-          "baseline",
-          "named",
-          "author",
-          "blog",
-          "treatment",
-          "drafting",
-          "checks",
+          "competitive",
+          "summary",
+          "hub",
+          "content",
+          "brief",
+          "reusable",
+          "nodes",
+          "extracted",
+          "pdf",
           "evidence",
-          "claim",
-          "boundary",
-          "compiled",
-          "detail",
-          "agent",
-          "retrieval",
-          "notes"
+          "claim"
         ]
       }
     ],
@@ -1606,7 +1410,7 @@
         "locator": "wiki/concepts/voice-and-tone.md",
         "media_type": "text/markdown",
         "public_claim_use": "prohibited",
-        "read_purpose": "guidance",
+        "read_purpose": "context",
         "relationships": [
           {
             "resource_id": "res-09ebfff123cb5c5496e60c3a759a263d",
@@ -1686,6 +1490,113 @@
           "messaging",
           "integration",
           "claim"
+        ]
+      },
+      {
+        "aliases": [],
+        "authority_state": "v1_eligible",
+        "content_available": true,
+        "content_sha256": "9b79ea907fcde92330a1d0ac5953ef4ab63c98c46e52c445683cd70b31bf9d14",
+        "content_truncated": false,
+        "entities": [],
+        "headings": [
+          "Tone Voice and Localization Rules",
+          "Voice Baseline",
+          "Named-Author Blog Treatment",
+          "Localization Rules",
+          "Drafting Checks",
+          "Source Evidence",
+          "Claim Boundary",
+          "Compiled Detail",
+          "Agent Retrieval Notes"
+        ],
+        "lifecycle_state": "unspecified",
+        "locator": "wiki/messaging/Tone Voice and Localization Rules.md",
+        "media_type": "text/markdown",
+        "public_claim_use": "prohibited",
+        "read_purpose": "context",
+        "relationships": [
+          {
+            "resource_id": "res-0409dfe9b949599f99577d45bd7e7e25",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-09ebfff123cb5c5496e60c3a759a263d",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-1c9cd193f6955d26a2289d6a2ad37c64",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-230f144aab93512e840167c4a25e60be",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-47015608c0d4556a854fca7544b4a040",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-52541b6834d85a7ba6c91740a159647a",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-641679c4b6c65e93951cb8d8e1ab88af",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-92348f8056165d4ba81a3c91738604e2",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-9842b0c357e752598eac4d3e4a530286",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-b34b392d22b9507089ade3fec47ee9e0",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-c027b4f595a5549b8c29545379e0adf0",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-d4c1e70d33425b3aa5f3fc8501374152",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-e3ade596be645307ad4c1f84620ce021",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-e66e0a4bca1c506f854c70a82966be4b",
+            "type": "links_to"
+          }
+        ],
+        "resource_id": "res-d31f057a305f51918055120d95b76c6a",
+        "retrieval_tier": "agent_context",
+        "semantic_roles": [
+          "guidance"
+        ],
+        "topics": [
+          "tone",
+          "voice",
+          "localization",
+          "baseline",
+          "named",
+          "author",
+          "blog",
+          "treatment",
+          "drafting",
+          "checks",
+          "evidence",
+          "claim",
+          "boundary",
+          "compiled",
+          "detail",
+          "agent",
+          "retrieval",
+          "notes"
         ]
       },
       {
@@ -2278,194 +2189,27 @@
         ]
       },
       {
-        "aliases": [
-          "Source - Simpro Electrical datasheet (US).pdf"
-        ],
-        "authority_state": "v1_eligible",
-        "content_available": true,
-        "content_sha256": "4255861c240b8fc6eba03a755a8cc637158c235297beff6bbc35722a87826a21",
-        "content_truncated": false,
-        "entities": [],
-        "headings": [
-          "Source - Simpro Electrical datasheet (US).pdf",
-          "Summary",
-          "Source Links",
-          "Extraction Status",
-          "Mentions / Related Nodes",
-          "Topic Coverage",
-          "Safe-To-Use Claims",
-          "Do Not Use Without Review",
-          "Graph Spine Links"
-        ],
-        "lifecycle_state": "unspecified",
-        "locator": "wiki/sources/simpro-electrical-datasheet-us-pdf-1ibatg1q.md",
-        "media_type": "text/markdown",
-        "public_claim_use": "prohibited",
-        "read_purpose": "context",
-        "relationships": [
-          {
-            "resource_id": "res-1b7fdf9a04295c7594016b3a2c06a755",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-2a52a13e5af75359888562c0c5494b90",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-3250ad4272305976ab4e7b5dda27309d",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-3887846244f05f16bfc0516889d340f3",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-6db5b504db2750d69958d3aea58a24f1",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-9111b0ac2ac7514ea0778311d62ebddc",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-a5b3b47382b45490bf2bedbf16c0b76e",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-d4c1e70d33425b3aa5f3fc8501374152",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-ddceeed6f8be59c2992f0d6adee3090e",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-dfc67c5cef87541d856a765f2747a2cb",
-            "type": "links_to"
-          }
-        ],
-        "resource_id": "res-10b97eee1de25395bbf8b904111ca4b0",
-        "retrieval_tier": "evidence_only",
-        "semantic_roles": [
-          "evidence"
-        ],
-        "topics": [
-          "simpro",
-          "electrical",
-          "datasheet",
-          "pdf",
-          "summary",
-          "links",
-          "extraction",
-          "status",
-          "mentions",
-          "related",
-          "nodes",
-          "topic",
-          "coverage",
-          "safe",
-          "claims",
-          "not",
-          "without",
-          "review",
-          "graph",
-          "spine"
-        ]
-      },
-      {
         "aliases": [],
         "authority_state": "v1_eligible",
         "content_available": true,
-        "content_sha256": "22bb1a7df5b7a1cb827c1d311defa29524035961de297bab9968a39feca1a8ef",
+        "content_sha256": "9fa5f224f4a1ae6b1351375a2f9c940499531654f23a80992ca6baef6e3de83f",
         "content_truncated": false,
         "entities": [],
         "headings": [
-          "Feature and Product Collateral Library",
-          "Read Order",
-          "Core platform/regional datasheets",
-          "Core Platform Datasheet - ANZ",
-          "Core Platform Datasheet - NA",
-          "Core Platform Datasheet - UK",
-          "Vertical datasheets",
-          "Electrical Vertical Datasheet",
-          "HVAC Vertical Datasheet",
-          "Low Voltage Vertical Datasheet",
-          "Plumbing Vertical Datasheet",
-          "Trade Services Vertical Datasheet",
-          "Add-ons",
-          "Data Feed",
-          "Delight",
-          "Digital Forms",
-          "Maintenance Planner",
-          "Message Maps for Add-ons",
-          "Multi-Company",
-          "Sage Intacct Integration",
-          "Simtrac",
-          "SMS Text Messaging",
-          "Takeoffs",
-          "Payments and cash-flow add-ons",
-          "Fast Cash",
-          "Payments - Bank Transfers",
-          "Simpro Payments",
-          "AI / Lightning-adjacent feature collateral",
-          "AI Strategic Outlook",
-          "Implementation, services, trust, and security",
-          "Data Security and Infrastructure",
-          "Implementation Guide",
-          "Implementation Packages",
-          "Private Cloud",
-          "Professional Services",
-          "Overview brochures and duplicate print variants",
-          "Overview Brochure - AU",
-          "Overview Brochure - NZ",
-          "Overview Brochure - UK",
-          "Overview Brochure - US",
-          "Proof / customer stories",
-          "Tropical Coast Plumbing Case Study",
-          "Safety"
+          "Simpro Electrical datasheet (US).pdf",
+          "Source Links",
+          "Use Rules",
+          "Graph Spine Links",
+          "Full Extracted Feature/Collateral Content",
+          "Page 1",
+          "Page 2"
         ],
         "lifecycle_state": "unspecified",
-        "locator": "wiki/features/source-docs/Feature and Product Collateral Library.md",
+        "locator": "wiki/features/source-docs/simpro-electrical-datasheet-us-pdf-1ibatg1q.md",
         "media_type": "text/markdown",
         "public_claim_use": "prohibited",
         "read_purpose": "context",
         "relationships": [
-          {
-            "resource_id": "res-00ef40ec44d45fbdb96ebe608f0c1062",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-016b084e01c95de781db0babe595cf7b",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-037aa9514d415d23bb6043aadc80dead",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-09f77a2983e654229496ebbf88ac4b2a",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-0a8412a5382e50288fc87405a91a5b90",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-0b50debb2dc156b5b91c5e49a2f4132a",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-0dd3c26cb00d5e63b80c10af80d114e1",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-0e92d1d3421954998f7f69bd49bc748b",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-0ed2739598935660bb8574c576a67d2b",
-            "type": "links_to"
-          },
           {
             "resource_id": "res-10b97eee1de25395bbf8b904111ca4b0",
             "type": "links_to"
@@ -2475,31 +2219,119 @@
             "type": "links_to"
           },
           {
-            "resource_id": "res-184eaa8101985200ba7ac25aa4e38bcf",
+            "resource_id": "res-6db5b504db2750d69958d3aea58a24f1",
             "type": "links_to"
           },
           {
-            "resource_id": "res-18d584b3de86582991a7d737357098fd",
+            "resource_id": "res-71a7390563a358149ec12bdc113b6a0e",
             "type": "links_to"
           },
           {
-            "resource_id": "res-22b40b3f1e3f5716a4aebeba21a9ef28",
+            "resource_id": "res-a5b3b47382b45490bf2bedbf16c0b76e",
             "type": "links_to"
           },
           {
-            "resource_id": "res-233343957bdc55ed8cfb7d8a0be0255e",
+            "resource_id": "res-cb1c8e417b42532cb65e6e59893cf459",
             "type": "links_to"
           },
           {
-            "resource_id": "res-23e3f5584ba153999ba469d72fbf6570",
+            "resource_id": "res-dfc67c5cef87541d856a765f2747a2cb",
+            "type": "links_to"
+          }
+        ],
+        "resource_id": "res-f5ce486769d050c28658d7bad8eb8e43",
+        "retrieval_tier": "evidence_only",
+        "semantic_roles": [
+          "evidence"
+        ],
+        "topics": [
+          "simpro",
+          "electrical",
+          "datasheet",
+          "pdf",
+          "links",
+          "graph",
+          "spine",
+          "full",
+          "extracted",
+          "feature",
+          "collateral",
+          "content"
+        ]
+      },
+      {
+        "aliases": [],
+        "authority_state": "source_checked",
+        "content_available": true,
+        "content_sha256": "51026617188ef98e26cae9a20db37011faf95f0921928404c5f95df04a5f34d6",
+        "content_truncated": false,
+        "entities": [],
+        "headings": [
+          "Simpro Group Electrical Vertical Profile - 8 June 2026"
+        ],
+        "lifecycle_state": "unspecified",
+        "locator": "raw/imported-content/simpro-group-electrical-vertical-profile.md",
+        "media_type": "text/markdown",
+        "public_claim_use": "prohibited",
+        "read_purpose": "context",
+        "relationships": [],
+        "resource_id": "res-f9f9499223a15d6a901806f30fb1a8ba",
+        "retrieval_tier": "evidence_only",
+        "semantic_roles": [
+          "evidence"
+        ],
+        "topics": [
+          "simpro",
+          "group",
+          "electrical",
+          "vertical",
+          "profile",
+          "june"
+        ]
+      },
+      {
+        "aliases": [
+          "Competitive Context"
+        ],
+        "authority_state": "v1_eligible",
+        "content_available": true,
+        "content_sha256": "61a2c16b66e8a9cad3fb728930177c6961706890f8a3172f15cdc2c6baa3dba1",
+        "content_truncated": false,
+        "entities": [],
+        "headings": [
+          "Competitive Context",
+          "Summary",
+          "Hub",
+          "Content Brief",
+          "Reusable Guidance",
+          "Source Nodes",
+          "Extracted PDF Evidence",
+          "Claim Rules"
+        ],
+        "lifecycle_state": "unspecified",
+        "locator": "wiki/concepts/competitive-context.md",
+        "media_type": "text/markdown",
+        "public_claim_use": "prohibited",
+        "read_purpose": "context",
+        "relationships": [
+          {
+            "resource_id": "res-06f0d3ef1e735c47ae4d751b44ed762e",
             "type": "links_to"
           },
           {
-            "resource_id": "res-24f9456b59615c23bb5f34969d316219",
+            "resource_id": "res-0ed2739598935660bb8574c576a67d2b",
             "type": "links_to"
           },
           {
-            "resource_id": "res-286ca2f7150b59398497f6b341b6c9b7",
+            "resource_id": "res-15c8fb27c42c50419949ec9158edc6b7",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-1debf533b9305e60832d0988b483cf78",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-258f5ac5624352769a692bb10a5b6f76",
             "type": "links_to"
           },
           {
@@ -2507,27 +2339,7 @@
             "type": "links_to"
           },
           {
-            "resource_id": "res-301f741538aa58e8b2694953ab77ce0d",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-33deaefa546b56358549b9dfe84f72c6",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-37e7197f89da5077a804de1666a17f53",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-3898a0c4e52b512e904dbda56fcf565c",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-3926e13407fa53eeb107fde72b223955",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-3ff216c212e1556998a437a67e24a034",
+            "resource_id": "res-333720650ed45a68b3161bb102b68035",
             "type": "links_to"
           },
           {
@@ -2535,63 +2347,19 @@
             "type": "links_to"
           },
           {
-            "resource_id": "res-527846e3eda65a87bfd6956b01e02b3c",
+            "resource_id": "res-4d6216fea2855e2ab95881047affb527",
             "type": "links_to"
           },
           {
-            "resource_id": "res-55f88d7428ad54429727ccc90aec6509",
+            "resource_id": "res-4d69e6bb9a3f5d2fad3c106363f8beef",
             "type": "links_to"
           },
           {
-            "resource_id": "res-561db869bd2c581da1dff8bdabae26af",
+            "resource_id": "res-5c1b34d7d2175caab4fb29a208e59ac0",
             "type": "links_to"
           },
           {
-            "resource_id": "res-5a3acf0d09675867ad09d75ad0e22893",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-6078f6806f0753ec9d8a8b8e78740225",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-6353346578f65530a34117f17a59a924",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-648bc1449fc9553a87464d606dc72cb1",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-673b57f8b6ef5b7f9e831b168748e066",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-688ffe1c707b5c4e9cdc7523125500ab",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-6a89de98838b57a3821bfaeb59403191",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-6c48a796562958459f56b5fba6de6b6c",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-6c64056014705c1ebdc9076981442862",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-6fcbe410d7e65cd487d6212fd0ab4932",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-72f95a6c05015d9294047f154389d3df",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-767812a2d68c5debb114269d14d19b22",
+            "resource_id": "res-740e2ed30d7f59ea98d6dcaf50d0c0d3",
             "type": "links_to"
           },
           {
@@ -2599,355 +2367,75 @@
             "type": "links_to"
           },
           {
-            "resource_id": "res-783cbe1a57d950e4b00c8b2f37ce9efb",
+            "resource_id": "res-7cdf4d8f10b35a069a5d11bb8ea40eb0",
             "type": "links_to"
           },
           {
-            "resource_id": "res-804f6e408f5a5fdf842a48992b3d6184",
+            "resource_id": "res-7d3d50bfe3ee5d788f08a614c6e7ee88",
             "type": "links_to"
           },
           {
-            "resource_id": "res-80ab57c3bb775e6bb7a963e3e7a65c9d",
+            "resource_id": "res-8041a2904b0256ebb6a0020e447547e2",
             "type": "links_to"
           },
           {
-            "resource_id": "res-871c8ce44ea45bb193de4efe56c5b002",
+            "resource_id": "res-8ef1a044d2be5ba4b8a15bed28696bf1",
             "type": "links_to"
           },
           {
-            "resource_id": "res-9050a9119f735219aa908db2e80fa550",
+            "resource_id": "res-ae223ba2759c5b88975a93ec431f2f91",
             "type": "links_to"
           },
           {
-            "resource_id": "res-94453f7c1a4451f3901e17952c98df6c",
+            "resource_id": "res-cf618ca9cf6f513ab04e92ad37768124",
             "type": "links_to"
           },
           {
-            "resource_id": "res-96fda2969b1d5d4680d6b3f7dfb4c94e",
+            "resource_id": "res-d602587d4cfb52a68c3b6d56190b0b37",
             "type": "links_to"
           },
           {
-            "resource_id": "res-971f0b1c1bdd568ab2ea4dfe04170543",
+            "resource_id": "res-d8e031aef96b576987debf7f561a0527",
             "type": "links_to"
           },
           {
-            "resource_id": "res-97863425c76e5b1cbce12f8df35e27d6",
+            "resource_id": "res-dd16b98dde965fdf8746a49aabb98ac6",
             "type": "links_to"
           },
           {
-            "resource_id": "res-981a9c71b30955a8b33deb7ebd305b4f",
+            "resource_id": "res-decced2dd1b75e948155bcbd7dadd29f",
             "type": "links_to"
           },
           {
-            "resource_id": "res-98f4296e899653cdb7ec8914eb40f4db",
+            "resource_id": "res-f0ac91cb964d53c7a091f25bd3ff3854",
             "type": "links_to"
           },
           {
-            "resource_id": "res-9b3e505da7055c6b91368401c4385799",
+            "resource_id": "res-f20f9512e16c5b2282b1a09dee24c01e",
             "type": "links_to"
           },
           {
-            "resource_id": "res-a6fb58ed4f6c5cf8840594c08bed6bb1",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-a7da8410434c5d5e85bd806288524212",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-a7ec907b09875ee1adcff42141b9e5c7",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-a88df898c8d0538088b73be0695a65dd",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-a95a38cb95f85ec19f618431e81d641f",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-a9fa2081cc0b5328ac5e36af2c05e45d",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-acdd19b3b66657f0aea54e3d2b553791",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-ae911b55ae745cd1b29145879c0ae268",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-af6f60806c045d578948b263c3e03e06",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-b6423ec98f18546988f383e604ab9141",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-b8d90660f324526da621a4846ed562ea",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-bbd2e1c5ef735c9cbe9453898a84415f",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-bd711ad33f705cee819e81c0a8cc55c2",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-be6e4813e8dc564e97aa0de63e8b0399",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-c2b93e155f9050f48b4cf909d6ba092e",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-c3db60256ee7529f8e163e40ea0444a8",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-c6446c5031c75caca952de485dc23cb4",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-c6e69419a82e59919b4af4731a7e496a",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-c6e6f76054e0544fb8da1f656e0ce439",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-ca9d4eb5e7585a64a6736feeaf937ec8",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-cd01dc5ec2d758f8899af6852db45cce",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-d007de18471152beb1d85ab66b64a12f",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-d4cee44baf6e5e21b430d8f2bf3e11cf",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-d4dcea9f4a0f557e89997989e25c35c4",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-d56d6c55608756b7970dc92a5ffde42d",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-d57e03c015105476a778d3c33e513827",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-d5991cd5309d596a8bc15cd0815d744d",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-d9f61cf7b2a45de08e8b06d975a41200",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-dd31380e03be521dae06e887e280a1c0",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-dd9de32a6ff85ee8967653cf99560255",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-dedf3161fefe5d7a89e2ef268ef84689",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-e7220f2a4bb25907a397b486f6a59752",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-e91c4c9798d254e181012e07dcf14492",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-e98f9497e07c5ffd84f77cc09af29f6b",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-ee604a7dffa15336bf1f0dffa8f19c91",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-f5152c0f69775a029c6ed269e348829e",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-f5ce486769d050c28658d7bad8eb8e43",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-f882ab230eb2563889e300d612c324bc",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-f9ea08d14e815443a2942f6f5375689e",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-fde43b95acdf51ab8e53d33440042bdd",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-ff4d02b091d8529a9b1188d12b799096",
+            "resource_id": "res-f617a15ce580567b968234d615b6d099",
             "type": "links_to"
           }
         ],
-        "resource_id": "res-71a7390563a358149ec12bdc113b6a0e",
-        "retrieval_tier": "evidence_only",
-        "semantic_roles": [
-          "evidence"
-        ],
-        "topics": [
-          "feature",
-          "product",
-          "collateral",
-          "library",
-          "read",
-          "order",
-          "core",
-          "platform",
-          "regional",
-          "datasheets",
-          "datasheet",
-          "anz",
-          "vertical",
-          "electrical",
-          "hvac",
-          "low",
-          "voltage",
-          "plumbing",
-          "trade",
-          "services",
-          "add",
-          "ons",
-          "data",
-          "feed"
-        ]
-      },
-      {
-        "aliases": [],
-        "authority_state": "v1_eligible",
-        "content_available": true,
-        "content_sha256": "9b79ea907fcde92330a1d0ac5953ef4ab63c98c46e52c445683cd70b31bf9d14",
-        "content_truncated": false,
-        "entities": [],
-        "headings": [
-          "Tone Voice and Localization Rules",
-          "Voice Baseline",
-          "Named-Author Blog Treatment",
-          "Localization Rules",
-          "Drafting Checks",
-          "Source Evidence",
-          "Claim Boundary",
-          "Compiled Detail",
-          "Agent Retrieval Notes"
-        ],
-        "lifecycle_state": "unspecified",
-        "locator": "wiki/messaging/Tone Voice and Localization Rules.md",
-        "media_type": "text/markdown",
-        "public_claim_use": "prohibited",
-        "read_purpose": "guidance",
-        "relationships": [
-          {
-            "resource_id": "res-0409dfe9b949599f99577d45bd7e7e25",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-09ebfff123cb5c5496e60c3a759a263d",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-1c9cd193f6955d26a2289d6a2ad37c64",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-230f144aab93512e840167c4a25e60be",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-47015608c0d4556a854fca7544b4a040",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-52541b6834d85a7ba6c91740a159647a",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-641679c4b6c65e93951cb8d8e1ab88af",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-92348f8056165d4ba81a3c91738604e2",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-9842b0c357e752598eac4d3e4a530286",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-b34b392d22b9507089ade3fec47ee9e0",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-c027b4f595a5549b8c29545379e0adf0",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-d4c1e70d33425b3aa5f3fc8501374152",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-e3ade596be645307ad4c1f84620ce021",
-            "type": "links_to"
-          },
-          {
-            "resource_id": "res-e66e0a4bca1c506f854c70a82966be4b",
-            "type": "links_to"
-          }
-        ],
-        "resource_id": "res-d31f057a305f51918055120d95b76c6a",
+        "resource_id": "res-517ad5ccb2cd5c3985831d8aba4cedaa",
         "retrieval_tier": "agent_context",
         "semantic_roles": [
           "guidance"
         ],
         "topics": [
-          "tone",
-          "voice",
-          "localization",
-          "baseline",
-          "named",
-          "author",
-          "blog",
-          "treatment",
-          "drafting",
-          "checks",
+          "competitive",
+          "summary",
+          "hub",
+          "content",
+          "brief",
+          "reusable",
+          "nodes",
+          "extracted",
+          "pdf",
           "evidence",
-          "claim",
-          "boundary",
-          "compiled",
-          "detail",
-          "agent",
-          "retrieval",
-          "notes"
+          "claim"
         ]
       }
     ],
@@ -2969,12 +2457,12 @@
         "schema": "simpro-context-request/v1",
         "scope": {
           "artifact_type": "blog",
-          "audience": "US electrical contractors evaluating job-management software for service, maintenance, and project work",
+          "audience": "US electrical contractors evaluating software for residential service, recurring maintenance, mixed service and project work, or multi-stage commercial projects",
           "brand": "Simpro",
           "intended_public_use_modes": [
             "paraphrase"
           ],
-          "objective": "Help US electrical contractors compare nine platforms by workflow fit, operational depth, pricing, and implementation.",
+          "objective": "Help US electrical contractors compare nine platforms by workflow fit, operational depth, pricing and implementation, then build and test a two-to-three-vendor demo shortlist.",
           "region": "US",
           "required_context_topics": [
             "industry:electrical",
@@ -2983,22 +2471,19 @@
             "US localization",
             "feature and product collateral"
           ],
-          "title": "9 Best Electrical Job Management Software (2026) | Simpro"
+          "title": "9 Best Electrical Job Management Software Tools (2026) | Simpro"
         },
-        "task": "Run governed planning for the rewrite of https://www.simprogroup.com/blog/best-electrical-job-management-software. Preserve the existing URL and create no public article copy in this task.",
-        "unresolved_gaps": [
-          "Semrush MCP access is unavailable; no Semrush metrics may be claimed.",
-          "All future public capability and price claims require vendor-page source verification."
-        ]
+        "task": "Rewrite https://www.simprogroup.com/blog/best-electrical-job-management-software in place as a buyer-first, evidence-backed comparison titled 9 Best Electrical Job Management Software Tools (2026) | Simpro. Help US electrical contractors build and test a two-to-three-vendor demo shortlist while preserving the canonical URL and locked vendor order.",
+        "unresolved_gaps": []
       },
       "scope": {
         "artifact_type": "blog",
-        "audience": "US electrical contractors evaluating job-management software for service, maintenance, and project work",
+        "audience": "US electrical contractors evaluating software for residential service, recurring maintenance, mixed service and project work, or multi-stage commercial projects",
         "brand": "Simpro",
         "intended_public_use_modes": [
           "paraphrase"
         ],
-        "objective": "Help US electrical contractors compare nine platforms by workflow fit, operational depth, pricing, and implementation.",
+        "objective": "Help US electrical contractors compare nine platforms by workflow fit, operational depth, pricing and implementation, then build and test a two-to-three-vendor demo shortlist.",
         "region": "US",
         "required_context_topics": [
           "industry:electrical",
@@ -3007,10 +2492,10 @@
           "US localization",
           "feature and product collateral"
         ],
-        "title": "9 Best Electrical Job Management Software (2026) | Simpro"
+        "title": "9 Best Electrical Job Management Software Tools (2026) | Simpro"
       },
-      "task": "Run governed planning for the rewrite of https://www.simprogroup.com/blog/best-electrical-job-management-software. Preserve the existing URL and create no public article copy in this task.",
-      "task_satisfaction": "partial"
+      "task": "Rewrite https://www.simprogroup.com/blog/best-electrical-job-management-software in place as a buyer-first, evidence-backed comparison titled 9 Best Electrical Job Management Software Tools (2026) | Simpro. Help US electrical contractors build and test a two-to-three-vendor demo shortlist while preserving the canonical URL and locked vendor order.",
+      "task_satisfaction": "satisfied"
     }
   }
 }

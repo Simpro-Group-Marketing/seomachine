@@ -535,7 +535,7 @@ Implement structured data per page type. These are required, not optional.
 
 `FAQPage` and `Question and Answer inside FAQPage` are required only when visible FAQs exist. `Person as author` is required only when a named author exists. Require `VideoObject` if and only if a verified video embed exists.
 
-If a named author is present, include `author` in frontmatter and map it to `Person as author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization as publisher reference only`, and record the decision in the BOM and validation sidecar. When `author_policy.status` is `not_provided`, first-person singular author judgment outside quotes is prohibited.
+If a named author is present, include `author` in frontmatter and map it to `Person as author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization as publisher reference only`, and record `author_policy.status: no_author` in the BOM and `Author policy: no_author` in the validation sidecar. Legacy BOMs may retain `not_provided`. Without a named author, first-person singular author judgment outside quotes is prohibited.
 
 ### Feature Pages
 - `SoftwareApplication` or `Product`

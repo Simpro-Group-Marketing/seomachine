@@ -117,6 +117,38 @@ def theme_sidecar(url: str = CAPTERRA_URL, status: str = "approved for paraphras
 
 
 class ReviewStoryIdentityGuardTests(unittest.TestCase):
+    def test_not_applicable_review_story_record_passes_without_review_copy(self):
+        content = (
+            "# Article\n\n"
+            "Mabry's Electrical Service offers one customer-story example of "
+            "buddy-punching prevention."
+        )
+        proof_content = """Review Story Selection
+- Decision: not applicable
+- Reason: The selected passage comes from an official customer story, not a review platform.
+- Public-copy boundary: No review-derived anecdote, rating, reviewer identity, or exact review quote is used.
+- Status: not applicable
+"""
+
+        findings = check_content(content, proof_content=proof_content)
+
+        self.assertEqual(findings, [])
+
+    def test_not_applicable_review_story_record_cannot_mask_review_copy(self):
+        content = "# Article\n\nA Capterra reviewer describes a faster quote workflow."
+        proof_content = """Review Story Selection
+- Decision: not applicable
+- Reason: No review story selected.
+- Status: not applicable
+"""
+
+        findings = check_content(content, proof_content=proof_content)
+
+        self.assertIn(
+            "review_story_selection_not_applicable_with_public_story",
+            {finding["rule_id"] for finding in findings},
+        )
+
     def test_review_paraphrase_without_same_paragraph_link_fails(self):
         with TemporaryDirectory() as temp_dir:
             index_path = write_index(Path(temp_dir))

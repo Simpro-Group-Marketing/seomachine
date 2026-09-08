@@ -38,6 +38,7 @@ try:
     from .faq_structure import detect_faq_structure
     from .named_person import is_named_person
     from .publishable_markdown import PublishableMarkdown, read_publishable_markdown
+    from .schema_item_list import inspect_item_list_schema
     from .video_embed import inspect_video_embeds
 except ImportError:  # pragma: no cover - supports direct script execution.
     import blog_identity_guard
@@ -64,6 +65,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from faq_structure import detect_faq_structure
     from named_person import is_named_person
     from publishable_markdown import PublishableMarkdown, read_publishable_markdown
+    from schema_item_list import inspect_item_list_schema
     from video_embed import inspect_video_embeds
 
 
@@ -72,6 +74,10 @@ BOM_SCHEMA_V2 = "simpro-blog-assembly-bom/v2"
 BOM_SCHEMA = BOM_SCHEMA_V2
 ARCHIVED_BOM_SCHEMAS = frozenset({BOM_SCHEMA_V1, BOM_SCHEMA_V2})
 EDITORIAL_PLAN_SCHEMA = "simpro-blog-editorial-plan/v1"
+CONNECTOR_CUSTOMER_PROOF_SCHEMA = "simpro-customer-proof-selector-evidence/v1"
+NONVAULT_CUSTOMER_PROOF_SCHEMA = (
+    "simpro-nonvault-customer-proof-selector-evidence/v1"
+)
 READINESS_SCHEMA = "simpro-publish-readiness-result/v1"
 PACK_SCHEMA = "simpro-product-context-pack/v2"
 RECEIPT_SCHEMA = "simpro-context-receipt/v1"
@@ -200,15 +206,23 @@ def build_blog_assembly_bom_from_files(
         raise ValueError(
             "non-connector blog cannot include a partial or caller-forced connector binding"
         )
-    vault_evidence_paths = (
-        customer_proof_selector_evidence_path,
-        fred_authority_evidence_path,
-    )
-    if not connector_required and any(vault_evidence_paths):
+    if not connector_required and fred_authority_evidence_path:
         raise ValueError(
-            "non-connector blog cannot include vault-dependent customer proof or "
-            "Fred authority evidence"
+            "non-connector blog cannot include Fred authority evidence"
         )
+    if not connector_required and customer_proof_selector_evidence_path:
+        try:
+            customer_proof_schema = _optional_json_schema(
+                customer_proof_selector_evidence_path
+            )
+        except ValueError:
+            customer_proof_schema = ""
+        if customer_proof_schema != NONVAULT_CUSTOMER_PROOF_SCHEMA:
+            raise ValueError(
+                "non-connector blog cannot include vault-dependent customer proof "
+                "evidence; approved proof must use "
+                "simpro-nonvault-customer-proof-selector-evidence/v1"
+            )
 
     context_result: context_binding_guard.ContextValidationResult | None = None
     if connector_required:
@@ -906,7 +920,7 @@ def _author_policy(article: PublishableMarkdown) -> dict[str, Any]:
             "article.author must identify a named person, not an organization, team, or role byline"
         )
     return {
-        "status": "named_author" if named else "not_provided",
+        "status": "named_author" if named else "no_author",
         "name": author if named else "",
         "frontmatter_author_required": named,
         "schema_person_required": named,
@@ -916,6 +930,11 @@ def _author_policy(article: PublishableMarkdown) -> dict[str, Any]:
 
 def _schema_policy(article: PublishableMarkdown) -> dict[str, Any]:
     declared = article.values("schema_notes")
+    item_list = inspect_item_list_schema(declared, article.metadata)
+    if item_list.errors:
+        raise ValueError(
+            "invalid ItemList schema metadata: " + "; ".join(item_list.errors)
+        )
     faq = detect_faq_structure(article.raw)
     if faq.unsupported_lines:
         raise ValueError(
@@ -939,6 +958,8 @@ def _schema_policy(article: PublishableMarkdown) -> dict[str, Any]:
         required.append("Person as author")
     if video:
         required.append("VideoObject")
+    if item_list.note:
+        required.append(item_list.note)
     return {
         "declared_entities": declared,
         "required_entities": required,
@@ -1518,6 +1539,18 @@ def _machine_review_bindings(
         "plan": canonical_artifact(plan_review_path, workspace_root=workspace_root),
         "article": canonical_artifact(article_review_path, workspace_root=workspace_root),
     }
+
+
+def _optional_json_schema(path: str | Path | None) -> str:
+    if path is None:
+        return ""
+    try:
+        payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise ValueError(f"customer proof evidence is invalid: {error}") from error
+    if not isinstance(payload, Mapping):
+        raise ValueError("customer proof evidence must be a JSON object")
+    return str(payload.get("schema") or "")
 
 
 def _read_json_object(path: str | Path, field: str) -> dict[str, Any]:

@@ -229,7 +229,7 @@ class SimproVaultClientTests(unittest.TestCase):
         self.assertEqual(kwargs["errors"], "strict")
         self.assertGreater(kwargs["timeout"], 0)
 
-    def test_discovery_rejects_canonical_1_2_5_even_when_legacy_is_valid(self):
+    def test_discovery_uses_current_project_canonical_regardless_of_version(self):
         plugin = self._plugin("plugin")
         legacy = self._plugin("legacy")
         inventory = json.dumps(
@@ -254,19 +254,17 @@ class SimproVaultClientTests(unittest.TestCase):
             "data_sources.modules.simpro_vault_client.subprocess.run",
             return_value=Completed(stdout=inventory),
         ):
-            with self.assertRaises(VaultClientError) as raised:
-                discover_plugin()
+            discovered = discover_plugin()
 
-        self.assertEqual(raised.exception.code, "plugin_outdated")
+        self.assertEqual(discovered, plugin.resolve() / "scripts" / "vault_cli.py")
 
-    def test_discovery_rejects_canonical_1_2_6(self):
-        plugin = self._plugin("plugin")
+    def test_discovery_accepts_canonical_without_a_version_field(self):
+        plugin = self._plugin("plugin-without-version")
         inventory = json.dumps(
             [
                 {
                     "id": "simpro-context@simpro",
                     "enabled": True,
-                    "version": "1.2.6",
                     "installPath": str(plugin),
                     "projectPath": str(Path.cwd()),
                 }
@@ -276,75 +274,10 @@ class SimproVaultClientTests(unittest.TestCase):
             "data_sources.modules.simpro_vault_client.subprocess.run",
             return_value=Completed(stdout=inventory),
         ):
-            with self.assertRaises(VaultClientError) as raised:
-                discover_plugin()
+            discovered = discover_plugin()
 
-        self.assertEqual(raised.exception.code, "plugin_outdated")
+        self.assertEqual(discovered, plugin.resolve() / "scripts" / "vault_cli.py")
 
-    def test_discovery_rejects_canonical_1_2_7(self):
-        plugin = self._plugin("plugin")
-        inventory = json.dumps(
-            [
-                {
-                    "id": "simpro-context@simpro",
-                    "enabled": True,
-                    "version": "1.2.7",
-                    "installPath": str(plugin),
-                    "projectPath": str(Path.cwd()),
-                }
-            ]
-        )
-        with patch(
-            "data_sources.modules.simpro_vault_client.subprocess.run",
-            return_value=Completed(stdout=inventory),
-        ):
-            with self.assertRaises(VaultClientError) as raised:
-                discover_plugin()
-
-        self.assertEqual(raised.exception.code, "plugin_outdated")
-
-    def test_discovery_rejects_canonical_1_2_8(self):
-        plugin = self._plugin("plugin-1-2-8")
-        inventory = json.dumps(
-            [
-                {
-                    "id": "simpro-context@simpro",
-                    "enabled": True,
-                    "version": "1.2.8",
-                    "installPath": str(plugin),
-                    "projectPath": str(Path.cwd()),
-                }
-            ]
-        )
-        with patch(
-            "data_sources.modules.simpro_vault_client.subprocess.run",
-            return_value=Completed(stdout=inventory),
-        ):
-            with self.assertRaises(VaultClientError) as raised:
-                discover_plugin()
-
-        self.assertEqual(raised.exception.code, "plugin_outdated")
-    def test_discovery_rejects_canonical_1_2_9(self):
-        plugin = self._plugin("plugin-1-2-9")
-        inventory = json.dumps(
-            [
-                {
-                    "id": "simpro-context@simpro",
-                    "enabled": True,
-                    "version": "1.2.9",
-                    "installPath": str(plugin),
-                    "projectPath": str(Path.cwd()),
-                }
-            ]
-        )
-        with patch(
-            "data_sources.modules.simpro_vault_client.subprocess.run",
-            return_value=Completed(stdout=inventory),
-        ):
-            with self.assertRaises(VaultClientError) as raised:
-                discover_plugin()
-
-        self.assertEqual(raised.exception.code, "plugin_outdated")
     def test_discovery_accepts_canonical_1_3_0(self):
         plugin = self._plugin("plugin")
         inventory = json.dumps(

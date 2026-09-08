@@ -1,12 +1,12 @@
 {
   "schema": "simpro-context-request/v1",
-  "task": "Run governed planning for the rewrite of https://www.simprogroup.com/blog/best-electrical-job-management-software. Preserve the existing URL and create no public article copy in this task.",
+  "task": "Rewrite https://www.simprogroup.com/blog/best-electrical-job-management-software in place as a buyer-first, evidence-backed comparison titled 9 Best Electrical Job Management Software Tools (2026) | Simpro. Help US electrical contractors build and test a two-to-three-vendor demo shortlist while preserving the canonical URL and locked vendor order.",
   "scope": {
     "artifact_type": "blog",
     "brand": "Simpro",
-    "title": "9 Best Electrical Job Management Software (2026) | Simpro",
-    "objective": "Help US electrical contractors compare nine platforms by workflow fit, operational depth, pricing, and implementation.",
-    "audience": "US electrical contractors evaluating job-management software for service, maintenance, and project work",
+    "title": "9 Best Electrical Job Management Software Tools (2026) | Simpro",
+    "objective": "Help US electrical contractors compare nine platforms by workflow fit, operational depth, pricing and implementation, then build and test a two-to-three-vendor demo shortlist.",
+    "audience": "US electrical contractors evaluating software for residential service, recurring maintenance, mixed service and project work, or multi-stage commercial projects",
     "region": "US",
     "required_context_topics": [
       "industry:electrical",
@@ -32,8 +32,5 @@
     "Use nine comparison tools in this locked order: Simpro, ServiceTitan, BuildOps, FieldPulse, Jobber, Housecall Pro, Service Fusion, FieldEdge, Tradify.",
     "Do not use em dashes."
   ],
-  "unresolved_gaps": [
-    "Semrush MCP access is unavailable; no Semrush metrics may be claimed.",
-    "All future public capability and price claims require vendor-page source verification."
-  ]
+  "unresolved_gaps": []
 }

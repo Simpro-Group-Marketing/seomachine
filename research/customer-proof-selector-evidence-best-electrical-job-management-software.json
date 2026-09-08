@@ -2,11 +2,11 @@
   "artifacts": {
     "context_pack": {
       "path": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-pack-best-electrical-job-management-software.json",
-      "sha256": "e4975c871091560e3a3556869947a474c234cae4ca9c5b7d2c5073430275250d"
+      "sha256": "0de80af98d0e11c60e768398823f06e13b88897e7db5b357371953041955ba47"
     },
     "context_receipt": {
       "path": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-receipt-best-electrical-job-management-software.json",
-      "sha256": "c33b8ac12b3bfd9a64417bacc1d4af97143caba4ebca5d047ea2a01e4b348b40"
+      "sha256": "e1017fc8512fb1138eb4a1ca073eae57af83287b1d3a9b53550a9e03ee0e0a04"
     },
     "index": {
       "path": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\context\\customer-proof-index.json",
@@ -21,8 +21,8 @@
     "allow_no_proof": true,
     "article_slug": "best-electrical-job-management-software",
     "limit": 10,
-    "objective": "Help US electrical contractors compare nine platforms by workflow fit, operational depth, pricing, and implementation.",
-    "reference_date": "2026-08-31",
+    "objective": "Help US electrical contractors compare nine platforms by workflow fit, operational depth, pricing and implementation, then build and test a two-to-three-vendor demo shortlist.",
+    "reference_date": "2026-09-03",
     "rejected_overrides": {},
     "require_eeat_story": true,
     "roles": [
@@ -32,7 +32,7 @@
       "experience_story"
     ],
     "selected_overrides": {},
-    "title": "9 Best Electrical Job Management Software (2026) | Simpro",
+    "title": "9 Best Electrical Job Management Software Tools (2026) | Simpro",
     "topic": "electrical job management software"
   },
   "roles": [

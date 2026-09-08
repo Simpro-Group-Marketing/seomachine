@@ -2,7 +2,7 @@
 
 Apply this selector-first rule to connector-bound blog drafts, rewrites, and research proof sidecars.
 
-AroFlo, BigChange, and ClockShark owned workflows with no Simpro name or official `simprogroup.com` URL are nonconnector. Do not run this vault-dependent selector for those workflows, and do not publish customer stories, testimonials, review-derived anecdotes, ratings, or quotes unless a separate approved non-vault proof-eligibility contract is available.
+AroFlo, BigChange, and ClockShark owned workflows with no Simpro name or official `simprogroup.com` URL are nonconnector. Do not run the vault-dependent selector for those workflows. Under a separate approved non-vault proof-eligibility contract, run `python data_sources/modules/nonvault_customer_proof_selector.py "[topic]" --brand "[brand]" --title "[title]" --objective "[objective]" --article-slug "[slug]" --evidence-output "research/nonvault-customer-proof-selector-evidence-[topic-slug]-[YYYY-MM-DD].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`. Require `simpro-nonvault-customer-proof-selector-evidence/v1` bound to the approved proof index and usage ledger. V1 allows approved brand-owned customer stories, case studies, and references only; it excludes review-platform stories, exact quotes, customer metrics, ratings, star claims, and named-person attribution.
 
 Before drafting customer proof, the command workflow must resolve `topic`, `title`, and `objective`, automatically run:
 

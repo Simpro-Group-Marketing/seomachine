@@ -11,13 +11,15 @@ Python may run guards and write governance artifacts such as scorer output, sele
 ## Required workflow
 
 1. Run `/publish-readiness [article]` first unless the user explicitly requested a read-only audit.
-2. Read the failed gates, `scorecard`, `aeo_geo.checks`, and `priority_fixes`.
+2. Read the failed gates, `scorecard`, `aeo_geo.checks`, and `priority_fixes`. If `/publish-readiness` stopped before scoring, record `scorecard: unavailable`, name the exact pre-scoring blocker, and do not claim optimization scores.
 3. Classify each issue as a public-copy gap, validation-sidecar/proof gap, or scorer/parser false negative.
-4. If `semrush_keyword_decision` fails, repair or rerun the live Semrush keyword decision artifact and regenerate the editorial plan/BOM before optimizing copy.
-5. Apply only the highest-impact 3 to 5 fixes. Do not invent PAA questions, proof, metrics, rankings, customer stories, quotes, or unsupported product claims to gain points.
-6. Freeze the article bytes and run the required machine reviewers for the affected issue classes. If the article bytes change, rerun the full six-agent article review before release.
-7. Run `/scrub [article]` as read-only diagnostics and make any required copy edits through the command/agent workflow.
-8. Rerun the atomic release wrapper or `/publish-readiness` with the current sidecar, machine reviews, context artifacts, and BOM.
+4. Run the Reader-Facing Copy Firewall as part of optimization diagnosis. If public body copy contains brief rationale, source-fit notes, feature-omission reasoning, command status, or `editorial_process_leakage`, classify it as a public-copy gap and repair it through `/optimize`; never record a no-op optimizer output while this blocker remains.
+5. If `semrush_keyword_decision` fails, repair or rerun the live Semrush keyword decision artifact and regenerate the editorial plan/BOM before optimizing copy.
+6. Apply only the highest-impact 3 to 5 fixes. Do not invent PAA questions, proof, metrics, rankings, customer stories, quotes, or unsupported product claims to gain points.
+7. If no source-safe edits are needed, write a no-op `simpro-optimizer-output/v1` artifact with the inspected scorecard, failed gates or blocker, `aeo_geo.checks`, `priority_fixes`, and a concise no-change reason.
+8. Freeze the article bytes and run the required machine reviewers for the affected issue classes. If the article bytes change, rerun the full six-agent article review before release.
+9. Run `/scrub [article]` as read-only diagnostics and make any required copy edits through the command/agent workflow.
+10. Rerun the atomic release wrapper or `/publish-readiness` with the current sidecar, machine reviews, context artifacts, BOM, optimizer output when present, and the current scrub receipt.
 
 ## SEO target handling
 
@@ -65,6 +67,8 @@ Optimization is not ready until `/publish-readiness` reports:
 - SEO quality: 90/100 release floor with zero critical SEO issues; 95/100 honest optimization target when source-safe improvements exist.
 - AEO/GEO: 90/100 or higher.
 - Every blocking proof, source, URL, public-artifact, identity, context, FAQ, PAA, branch-applicable customer-proof, E-E-A-T strength, branch-applicable Fred authority, named-feature, and vault-language gate passes.
+
+Every new or changed blog run must include `/scrub`, an initial `/publish-readiness` scorecard or exact non-scoring blocker, `/optimize`, a post-optimization `/scrub` when article bytes change, and a final `/publish-readiness` handoff. `/optimize` is mandatory even for a no-op decision so the final response can report actual scores or a named blocker.
 
 If the article remains below threshold after 2 repair loops, leave the article in place, write a machine-readable blocker under `research/`, and return nonzero with the exact failed checks and attempted fixes.
 

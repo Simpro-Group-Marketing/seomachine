@@ -41,6 +41,11 @@ LOCAL_ARTIFACT_RE = re.compile(
 HEADING_RE = re.compile(r"^\s{0,3}#{1,6}\s+")
 TABLE_SEPARATOR_RE = re.compile(r"^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$")
 LIST_ITEM_RE = re.compile(r"^\s*(?:>\s*)?(?:[-*+]\s+|\d+[.)]\s+)")
+IMAGE_PLACEHOLDER_RE = re.compile(
+    r'^\[IMAGE PLACEHOLDER \| source: https?://[^|]+ \| alt: "[^"]+" '
+    r'\| render target: \d+ x \d+ px \| resize and compress before upload\]$',
+    re.IGNORECASE,
+)
 
 PERCENT_RE = re.compile(r"\b\d+(?:\.\d+)?\s?%")
 MONEY_RE = re.compile(
@@ -348,6 +353,10 @@ def _line_has_public_url_or_artifact(text: str) -> bool:
 
 
 def _is_candidate_claim(text: str) -> bool:
+    # Production image handoff metadata can contain dimensions and numerals in
+    # preserved ALT text. It is not a reader-facing numeric business claim.
+    if IMAGE_PLACEHOLDER_RE.fullmatch(text.strip()):
+        return False
     if not BUSINESS_KEYWORD_RE.search(text):
         return False
     detection_text = _claim_text_for_detection(text)

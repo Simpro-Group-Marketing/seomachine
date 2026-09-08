@@ -296,8 +296,9 @@ class ContentScrubber:
 
     def _clean_whitespace(self, content: str) -> str:
         """Clean up multiple spaces and normalize whitespace."""
-        # Replace multiple spaces with single space (but not in specific contexts)
-        content = re.sub(r'(?<!\.)  +', ' ', content)  # Multiple spaces to single, but not after period
+        # Replace multiple inline spaces while preserving line indentation and
+        # conventional double spacing after a period.
+        content = re.sub(r'(?<![.\s]) {2,}', ' ', content)
         
         # Remove spaces that appear between filename and extension (e.g., "file. png" -> "file.png")
         content = re.sub(r'(\w)\s+\.\s*(\w+)', r'\1.\2', content)

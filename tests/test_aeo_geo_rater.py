@@ -549,6 +549,38 @@ class AeoGeoRaterTests(unittest.TestCase):
         self.assertTrue(result["checks"]["eeat_proof"]["passed"])
         self.assertTrue(result["checks"]["paa_provenance"]["passed"])
 
+    def test_json_ld_is_excluded_from_reader_visible_section_diagnostics(self):
+        baseline = self.rate_with_bound_experience(
+            proof_sidecar_suffix=FAQ_PROOF_BLOCK,
+        )
+        json_ld = """
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "HVAC Scheduling Software for Contractors",
+  "description": "HVAC scheduling software helps field service teams."
+}
+</script>
+"""
+        with_json_ld = self.rate_with_bound_experience(
+            COMPLIANT_ARTICLE + json_ld,
+            proof_sidecar_suffix=FAQ_PROOF_BLOCK,
+        )
+
+        self.assertEqual(
+            with_json_ld["checks"]["direct_answer"],
+            baseline["checks"]["direct_answer"],
+        )
+        self.assertEqual(
+            with_json_ld["checks"]["capsule_coverage"],
+            baseline["checks"]["capsule_coverage"],
+        )
+        self.assertEqual(
+            with_json_ld["details"]["section_clarity"],
+            baseline["details"]["section_clarity"],
+        )
+
     def test_no_author_article_can_pass_aeo_when_required_context_is_valid(self):
         content = COMPLIANT_ARTICLE.replace("Author: Jordan Lee\n", "").replace(
             "  - Person as author\n",
@@ -1413,6 +1445,37 @@ E-E-A-T Proof Map
             '# HVAC Scheduling Software for Contractors\n\n> “I believe dispatchers need one calendar.”\n',
             1,
         )
+
+        result = self.rate(
+            content,
+            finalized_bom=finalized_no_author_bom(),
+        )
+
+        self.assertTrue(result['checks']['author_voice']['passed'])
+
+    def test_no_author_voice_ignores_i_query_parameter_in_public_url(self):
+        content = COMPLIANT_ARTICLE.replace('Author: Jordan Lee\n', '').replace(
+            '  - Person as author\n',
+            '',
+        )
+        content += (
+            '\n[Listen to the episode]'
+            '(https://podcasts.apple.com/show/episode?id=1&i=2).\n'
+        )
+
+        result = self.rate(
+            content,
+            finalized_bom=finalized_no_author_bom(),
+        )
+
+        self.assertTrue(result['checks']['author_voice']['passed'])
+
+    def test_no_author_voice_ignores_lowercase_i_in_relative_image_url(self):
+        content = COMPLIANT_ARTICLE.replace('Author: Jordan Lee\n', '').replace(
+            '  - Person as author\n',
+            '',
+        )
+        content += '\n![Official vendor logo](/mya-i-lojy-logo.png)\n'
 
         result = self.rate(
             content,

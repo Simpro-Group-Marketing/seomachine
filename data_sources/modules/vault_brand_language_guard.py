@@ -145,7 +145,6 @@ NAMED_FEATURES = (
     "JustAsk",
     "Maintenance Planner",
     "Multi-Company",
-    "Payments",
     "Private Cloud",
     "Simpro Payments",
     "Simtrac",

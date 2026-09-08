@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import json
 import re
+from collections import Counter
 from datetime import date
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -88,6 +89,9 @@ except ImportError:  # pragma: no cover - supports direct script execution.
 
 
 NORMAL_PROVISIONAL_STAGES = ("draft", "scrub", "context_binding")
+NONVAULT_CUSTOMER_PROOF_SCHEMA = (
+    "simpro-nonvault-customer-proof-selector-evidence/v1"
+)
 NORMAL_FINAL_STAGES = NORMAL_PROVISIONAL_STAGES + ("preflight_readiness",)
 OPTIMIZED_PROVISIONAL_STAGES = NORMAL_FINAL_STAGES + (
     "optimization",
@@ -549,7 +553,6 @@ def _check_artifact_inventory(
             "context_request",
             "context_pack",
             "context_receipt",
-            "customer_proof_selector_evidence",
             "fred_authority_evidence",
         ):
             if artifacts.get(field) is not None:
@@ -559,15 +562,33 @@ def _check_artifact_inventory(
                         f"Non-connector BOM cannot include artifacts.{field}.",
                     )
                 )
+        customer_proof_row = artifacts.get("customer_proof_selector_evidence")
+        if customer_proof_row is not None and _artifact_json_schema(
+            customer_proof_row,
+            root,
+        ) != NONVAULT_CUSTOMER_PROOF_SCHEMA:
+            findings.append(
+                _finding(
+                    "bom_non_connector_evidence_unexpected",
+                    "Non-connector BOM customer proof must use the non-vault selector evidence schema.",
+                )
+            )
     lifecycle = bom.get("lifecycle_state")
     workflow = bom.get("workflow")
     embedded_receipts = (
         workflow.get("stage_receipts") if isinstance(workflow, Mapping) else None
     )
-    optimized = isinstance(embedded_receipts, list) and any(
-        isinstance(receipt, Mapping) and receipt.get("stage") == "optimization"
-        for receipt in embedded_receipts
+    stages = (
+        tuple(str(receipt.get("stage") or "") for receipt in embedded_receipts)
+        if isinstance(embedded_receipts, list)
+        else ()
     )
+    optimized_tail = stages in {
+        OPTIMIZED_TAIL_PROVISIONAL_STAGES,
+        OPTIMIZED_TAIL_FINAL_STAGES,
+    }
+    optimized = "optimization" in stages
+    optimizer_evidence_allowed = optimized or optimized_tail
     if optimized and artifacts.get("prior_preflight_readiness") is None:
         findings.append(
             _finding(
@@ -575,7 +596,10 @@ def _check_artifact_inventory(
                 "Optimized BOM requires the earlier passed preflight readiness artifact.",
             )
         )
-    if not optimized and artifacts.get("prior_preflight_readiness") is not None:
+    if (
+        not optimizer_evidence_allowed
+        and artifacts.get("prior_preflight_readiness") is not None
+    ):
         findings.append(
             _finding(
                 "bom_prior_preflight_readiness_unexpected",
@@ -587,6 +611,19 @@ def _check_artifact_inventory(
     if lifecycle == "provisional" and artifacts.get("preflight_readiness") is not None:
         findings.append(_finding("bom_provisional_readiness_present", "Provisional BOM cannot bind preflight output before it runs."))
     return findings
+
+
+def _artifact_json_schema(row: Any, root: Path) -> str:
+    if not isinstance(row, Mapping):
+        return ""
+    try:
+        path = resolve_artifact(row.get("path"), workspace_root=root)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError, TypeError, ValueError):
+        return ""
+    if not isinstance(payload, Mapping):
+        return ""
+    return str(payload.get("schema") or "")
 
 
 def _check_machine_reviews(
@@ -849,17 +886,20 @@ def _check_author(
     author = article.scalar("author")
     named = bool(author)
     expected = {
-        "status": "named_author" if named else "not_provided",
+        "status": "named_author" if named else "no_author",
         "name": author if named else "",
         "frontmatter_author_required": named,
         "schema_person_required": named,
         "named_author_voice_allowed": named,
     }
     findings = []
-    if dict(policy) != expected:
+    legacy_expected = dict(expected)
+    if not named:
+        legacy_expected["status"] = "not_provided"
+    if dict(policy) not in (expected, legacy_expected):
         findings.append(_finding("bom_author_policy_mismatch", "BOM author_policy does not match final article frontmatter."))
     normalized = sidecar_content.casefold()
-    token = "author policy: named_author" if named else "author policy: not_provided"
+    token = f"author policy: {policy.get('status')}"
     if token not in normalized:
         findings.append(_finding("bom_author_policy_sidecar_missing", "Validation sidecar must record the exact author policy."))
     return findings
@@ -869,11 +909,13 @@ def _check_schema_and_faq(bom: Mapping[str, Any], article: Any) -> list[Finding]
     try:
         expected = _schema_policy(article)
     except ValueError as exc:
-        rule_id = (
-            "bom_video_embed_invalid"
-            if "video embed" in str(exc).casefold()
-            else "bom_faq_structure_unsupported"
-        )
+        normalized_error = str(exc).casefold()
+        if "itemlist schema metadata" in normalized_error:
+            rule_id = "bom_item_list_schema_invalid"
+        elif "video embed" in normalized_error:
+            rule_id = "bom_video_embed_invalid"
+        else:
+            rule_id = "bom_faq_structure_unsupported"
         return [_finding(rule_id, str(exc))]
     policy = bom.get("schema_policy")
     findings: list[Finding] = []
@@ -881,7 +923,17 @@ def _check_schema_and_faq(bom: Mapping[str, Any], article: Any) -> list[Finding]
         return [_finding("bom_schema_policy_missing", "BOM requires schema_policy.")]
     if dict(policy) != expected:
         findings.append(_finding("bom_schema_policy_mismatch", "BOM schema_policy does not match the final article."))
-    if expected["declared_entities"] != expected["required_entities"]:
+    item_list_active = any(
+        str(entity).startswith("ItemList for the ")
+        for entity in expected["required_entities"]
+    )
+    entities_match = (
+        Counter(expected["declared_entities"])
+        == Counter(expected["required_entities"])
+        if item_list_active
+        else expected["declared_entities"] == expected["required_entities"]
+    )
+    if not entities_match:
         findings.append(_finding("bom_schema_entities_mismatch", "Article schema_notes must exactly match visible author, FAQ, and video state."))
     faq_policy = bom.get("faq_policy")
     if not isinstance(faq_policy, Mapping):
@@ -1291,8 +1343,9 @@ def _check_workflow(
         findings.append(_finding("bom_stage_order_invalid", f"BOM stage sequence must be exactly: {' -> '.join(expected)}."))
     if optimized and not artifacts.get("optimizer_outputs"):
         findings.append(_finding("bom_optimizer_evidence_missing", "Optimization stage requires optimizer output evidence."))
-    if not optimized and artifacts.get("optimizer_outputs"):
-        findings.append(_finding("bom_optimizer_evidence_unexpected", "Optimizer evidence is allowed only when an optimization stage exists."))
+    optimizer_evidence_allowed = optimized or optimized_tail
+    if not optimizer_evidence_allowed and artifacts.get("optimizer_outputs"):
+        findings.append(_finding("bom_optimizer_evidence_unexpected", "Optimizer evidence is allowed only for an optimized workflow."))
     findings.extend(blog_assembly_stage_receipt.check_receipt_chain(loaded))
     by_stage = {
         str(receipt.get("stage") or ""): receipt

@@ -48,6 +48,7 @@ ANSWERSOCRATES_ARTIFACT_SCHEMA = "simpro-answersocrates-artifact/v1"
 ANSWERSOCRATES_RECEIPT_SCHEMA = "simpro-answersocrates-run-receipt/v1"
 ANSWERSOCRATES_RECEIPT_ATTESTATION_PURPOSE = ANSWERSOCRATES_RECEIPT_SCHEMA
 ANSWERSOCRATES_TOOL = {"name": "playwright_mcp", "version": "1.0.0"}
+ANSWERSOCRATES_TOOL_NAMES = frozenset({"playwright_mcp", "playwright_cli"})
 ELIGIBLE_HEADING_RE = re.compile(r'^##\s+Eligible Questions\s*$', re.IGNORECASE)
 INELIGIBLE_HEADING_RE = re.compile(r'^##\s+Ineligible Fragments\s*$', re.IGNORECASE)
 BRIEF_PAA_HEADING_RE = re.compile(r'^## Pre-picked PAA Questions$')
@@ -149,6 +150,7 @@ def build_answersocrates_artifact(
     run_id: str,
     started_at: str,
     completed_at: str,
+    tool: Optional[dict[str, str]] = None,
 ) -> dict:
     """Build a canonical, receipt-bound record after an actual browser collection run."""
     normalized_query = str(query).strip()
@@ -159,6 +161,11 @@ def build_answersocrates_artifact(
         raise ValueError("status must be collected or blocked")
     if not isinstance(run_id, str) or not run_id.strip():
         raise ValueError("run_id must be a non-empty string")
+    recorded_tool = dict(tool or ANSWERSOCRATES_TOOL)
+    if not _valid_answersocrates_tool(recorded_tool):
+        raise ValueError(
+            "tool must identify playwright_mcp or playwright_cli with a semantic version"
+        )
     started = _parse_utc_timestamp(started_at)
     completed = _parse_utc_timestamp(completed_at)
     if started is None or completed is None or completed <= started:
@@ -198,7 +205,7 @@ def build_answersocrates_artifact(
     receipt = attest_mapping({
         "schema": ANSWERSOCRATES_RECEIPT_SCHEMA,
         "run_id": run_id.strip(),
-        "tool": dict(ANSWERSOCRATES_TOOL),
+        "tool": recorded_tool,
         "started_at": started_at,
         "completed_at": completed_at,
         "status": status,
@@ -1220,7 +1227,7 @@ def _valid_answersocrates_receipt(value: object, *, payload: dict) -> bool:
     }:
         return False
     tool = value.get("tool")
-    if tool != ANSWERSOCRATES_TOOL:
+    if not _valid_answersocrates_tool(tool):
         return False
     started = _parse_utc_timestamp(value.get("started_at"))
     completed = _parse_utc_timestamp(value.get("completed_at"))
@@ -1245,6 +1252,19 @@ def _valid_answersocrates_receipt(value: object, *, payload: dict) -> bool:
         value,
         purpose=ANSWERSOCRATES_RECEIPT_ATTESTATION_PURPOSE,
         excluded_fields=("receipt_hash",),
+    )
+
+
+def _valid_answersocrates_tool(value: object) -> bool:
+    if not isinstance(value, dict) or set(value) != {"name", "version"}:
+        return False
+    name = value.get("name")
+    version = value.get("version")
+    return bool(
+        isinstance(name, str)
+        and name in ANSWERSOCRATES_TOOL_NAMES
+        and isinstance(version, str)
+        and re.fullmatch(r"\d+\.\d+\.\d+", version)
     )
 
 

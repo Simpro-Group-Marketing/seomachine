@@ -44,10 +44,11 @@ CUSTOMER_PROOF_USE_MODES = {"public_metric", "exact_quote", "public_paraphrase"}
 NO_FIT_CUSTOMER_PROOF_OUTCOME = "no_fit_customer_proof"
 CUSTOMER_PROOF_CANDIDATES_AVAILABLE_OUTCOME = "customer_proof_candidates_available"
 NO_FIT_CUSTOMER_PROOF_REASON = (
-    "No customer proof selected because the current connector-validated context "
-    "has no approved claims bound to the customer proof inventory; public copy "
-    "must omit customer proof, named customer claims, review stories, exact "
-    "quotes, testimonials, and customer metrics."
+    "No customer proof selected because the selector evaluated the current "
+    "connector-bound proof inventory and found no article-relevant approved "
+    "customer proof for this role; public copy must omit customer proof, named "
+    "customer claims, review stories, exact quotes, testimonials, and customer "
+    "metrics for the unsupported role."
 )
 NO_BOUND_CUSTOMER_PROOF_MESSAGE = (
     "no approved claims bound to the customer proof inventory"
@@ -208,26 +209,20 @@ def select_customer_proofs(
             continue
         if require_eeat_story and not _is_review_story_eligible(candidate):
             continue
-        if not _matches_proof_role(candidate, proof_role):
-            continue
         use_modes = _use_modes_for_role(proof_role)
-        approved_claim = receipt_claims.require_selector_claim(
-            str(candidate.get("proof_id", "")),
+        claim_binding = _claim_binding_for_candidate(
+            candidate,
+            proof_rows=proof_rows,
+            receipt_claims=receipt_claims,
+            approved_claims=approved_claims,
             use_modes=use_modes,
-            public_url=str(candidate.get("public_url", "")),
         )
-        binding_source = "selector_id" if approved_claim is not None else ""
-        if approved_claim is None:
-            public_url_binding = _public_url_binding(
-                candidate,
-                proof_rows=proof_rows,
-                approved_claims=approved_claims,
-                use_modes=use_modes,
-            )
-            if public_url_binding is None:
-                continue
-            approved_claim = public_url_binding.claim
-            binding_source = public_url_binding.binding_source
+        if claim_binding is None:
+            continue
+        approved_claim = claim_binding.claim
+        binding_source = claim_binding.binding_source
+        if not _matches_proof_role(candidate, proof_role, approved_claim=approved_claim):
+            continue
         result = dict(candidate)
         result.update(
             count_customer_proof_usage(
@@ -321,26 +316,22 @@ def build_customer_proof_slate(
     no_fit_roles: set[str] = set()
     for role in normalized_roles:
         no_fit_reason = ""
-        try:
-            results = select_customer_proofs(
-                topic,
-                index_path=index_path,
-                ledger_path=ledger_path,
-                context_pack=context_pack,
-                context_receipt=context_receipt,
-                article_slug=article_slug,
-                title=title,
-                objective=objective,
-                require_eeat_story=require_eeat_story and role == "experience_story",
-                proof_role=role,
-                limit=limit,
-                reference_date=reference_date,
-                _input_snapshot=_input_snapshot,
-            )
-        except CustomerProofDataError as exc:
-            if not allow_no_proof or not _is_no_bound_customer_proof_error(exc):
-                raise
-            results = []
+        results = select_customer_proofs(
+            topic,
+            index_path=index_path,
+            ledger_path=ledger_path,
+            context_pack=context_pack,
+            context_receipt=context_receipt,
+            article_slug=article_slug,
+            title=title,
+            objective=objective,
+            require_eeat_story=require_eeat_story and role == "experience_story",
+            proof_role=role,
+            limit=limit,
+            reference_date=reference_date,
+            _input_snapshot=_input_snapshot,
+        )
+        if allow_no_proof and not results:
             no_fit_reason = NO_FIT_CUSTOMER_PROOF_REASON
             no_fit_roles.add(role)
         top_candidates = [
@@ -618,6 +609,32 @@ def _public_url_binding(
     )
 
 
+def _claim_binding_for_candidate(
+    candidate: FindingDict,
+    *,
+    proof_rows: Iterable[FindingDict],
+    receipt_claims: Any,
+    approved_claims: Sequence[Any],
+    use_modes: set[str],
+) -> _ApprovedClaimBinding | None:
+    approved_claim = receipt_claims.require_selector_claim(
+        str(candidate.get("proof_id", "")),
+        use_modes=use_modes,
+        public_url=str(candidate.get("public_url", "")),
+    )
+    if approved_claim is not None:
+        return _ApprovedClaimBinding(
+            claim=approved_claim,
+            binding_source="selector_id",
+        )
+    return _public_url_binding(
+        candidate,
+        proof_rows=proof_rows,
+        approved_claims=approved_claims,
+        use_modes=use_modes,
+    )
+
+
 def _has_inventory_bound_claim(
     proof_rows: Iterable[FindingDict],
     *,
@@ -792,10 +809,16 @@ def _candidate_text(candidate: FindingDict) -> str:
     return " ".join(values)
 
 
-def _matches_proof_role(candidate: FindingDict, proof_role: str) -> bool:
+def _matches_proof_role(
+    candidate: FindingDict,
+    proof_role: str,
+    *,
+    approved_claim: Any | None = None,
+) -> bool:
     role = str(proof_role or "any").strip().lower()
     if role == "any":
         return True
+    approved_mode = str(getattr(approved_claim, "use_mode", "") or "").strip()
     if role == "experience_story":
         source_type = str(candidate.get("source_type", "")).strip().lower()
         if _is_review_story_eligible(candidate):
@@ -804,8 +827,12 @@ def _matches_proof_role(candidate: FindingDict, proof_role: str) -> bool:
             candidate.get("public_copy_allowed", False)
         )
     if role == "metric":
+        if approved_mode == "public_metric":
+            return True
         return bool(candidate.get("approved_metrics") or [])
     if role == "quote":
+        if approved_mode == "exact_quote":
+            return True
         for row in candidate.get("approved_quotes", []) or []:
             if (
                 isinstance(row, dict)
