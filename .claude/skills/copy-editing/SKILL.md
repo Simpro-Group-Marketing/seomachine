@@ -158,7 +158,7 @@ For every statement, ask "Okay, so what?" If the copy doesn't answer that questi
 - Round numbers that feel made up
 - Missing details that would make it real
 
-**Specificity upgrades:**
+**Proof-safe specificity upgrades:**
 
 | Vague | Proof-safe specific |
 |-------|---------------------|

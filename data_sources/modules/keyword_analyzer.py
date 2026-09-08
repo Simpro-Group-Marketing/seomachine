@@ -593,7 +593,8 @@ class KeywordAnalyzer:
         """Generate actionable recommendations"""
         recommendations = []
 
-        # Primary keyword density
+        # Density is diagnostic at the low end and protective at the high end.
+        # Do not recommend adding repetitions to meet a density target.
         status = primary_analysis['density_status']
         if target_density is None:
             recommendations.append(

@@ -499,6 +499,7 @@ class SEOQualityRater:
 
         details = {
             'word_count': structure['word_count'],
+            'keyword_density': keyword_density,
             'h2_count': structure['h2_count'],
             'has_h1': structure['has_h1'],
             'keyword_in_h1': structure.get('keyword_in_h1', False),
