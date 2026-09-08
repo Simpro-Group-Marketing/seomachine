@@ -346,13 +346,15 @@ class StrictPaaSourceTests(unittest.TestCase):
         started_at: str = f"{COLLECTION_DATE}T14:00:00Z",
         completed_at: str = f"{COLLECTION_DATE}T14:01:00Z",
         collector_name: str = "answersocrates_playwright_collector",
+        schema: str = "simpro-answersocrates-playwright-capture/v1",
+        page_url: str = "https://answersocrates.com/paa-extractor",
         raw_response: object | None = None,
     ) -> Path:
         if isinstance(raw_response, dict) and set(raw_response) == {"visible_sections", "blocker_output"}:
             blocker_output = str(raw_response.get("blocker_output") or "")
             raw_response = {
                 "stdout": json.dumps({
-                    "page_url": "https://answersocrates.com/paa-extractor",
+                    "page_url": page_url,
                     "page_title": "People Also Ask Extractor",
                     "body_text": blocker_output or "People Also Ask",
                     "blocker_observations": ([{
@@ -365,16 +367,16 @@ class StrictPaaSourceTests(unittest.TestCase):
                 "returncode": 0,
             }
         payload = {
-            "schema": "simpro-answersocrates-playwright-capture/v1",
+            "schema": schema,
             "collector": {"name": collector_name, "version": "1.0.0"},
             "query": query,
             "run_id": run_id,
             "started_at": started_at,
             "completed_at": completed_at,
-            "page_url": "https://answersocrates.com/paa-extractor",
+            "page_url": page_url,
             "raw_response": raw_response if raw_response is not None else {
                 "stdout": json.dumps({
-                    "page_url": "https://answersocrates.com/paa-extractor",
+                    "page_url": page_url,
                     "page_title": "People Also Ask Extractor",
                     "body_text": "People Also Ask",
                     "blocker_observations": [],
@@ -392,7 +394,7 @@ class StrictPaaSourceTests(unittest.TestCase):
         }
         capture = attest_mapping(
             payload,
-            purpose="simpro-answersocrates-playwright-capture/v1",
+            purpose=schema,
             workspace_root=root,
         )
         path = root / "research" / "answersocrates-playwright-raw.json"
@@ -420,6 +422,34 @@ class StrictPaaSourceTests(unittest.TestCase):
         self.assertEqual(
             artifact["run_receipt"]["tool"],
             paa_provenance_guard.ANSWERSOCRATES_TOOL,
+        )
+
+    def test_receipt_accepts_the_authenticated_chrome_connector_runtime(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            capture = self._write_raw_capture(
+                root,
+                collector_name="answersocrates_chrome_connector",
+                schema="simpro-answersocrates-chrome-connector-capture/v1",
+                page_url="https://answersocrates.com/",
+            )
+            artifact = build_answersocrates_artifact(
+                raw_capture_path=capture,
+                workspace_root=root,
+                expected_query=PAA_QUERY,
+                expected_collection_date=COLLECTION_DATE,
+                expected_run_id="browser-run-123",
+            )
+
+        record = paa_provenance_guard._parse_question_artifact(
+            json.dumps(artifact)
+        )
+
+        self.assertIsNotNone(record)
+        self.assertTrue(record.run_receipt_valid)
+        self.assertEqual(
+            artifact["run_receipt"]["tool"],
+            paa_provenance_guard.ANSWERSOCRATES_CHROME_CONNECTOR_TOOL,
         )
 
     def test_receipt_builder_rejects_an_unapproved_browser_runtime(self):

@@ -377,8 +377,8 @@ def _check_metadata_quality(
         and parsed_assembly != blog_assembly_contract.current_utc_date()
     ):
         freshness_status = 'assembly_date_not_current'
-    elif parsed_assembly is not None and parsed_updated != parsed_assembly:
-        freshness_status = 'assembly_date_mismatch'
+    elif parsed_assembly is not None and parsed_updated > parsed_assembly:
+        freshness_status = 'future'
     elif parsed_assembly is None and parsed_updated > date.today():
         freshness_status = 'future'
     else:
@@ -388,9 +388,9 @@ def _check_metadata_quality(
         'passed': passed,
         'issue': 'The draft is missing valid freshness metadata.',
         'fix': (
-            'Use a canonical YYYY-MM-DD last_updated value matching the bound '
-            'assembly date when one is provided. Author metadata is optional '
-            'for no-author blog workflows.'
+            'Use a canonical YYYY-MM-DD last_updated value that is not later '
+            'than the bound assembly date. Author metadata is optional for '
+            'no-author blog workflows.'
         ),
         'severity': 'high',
         'details': {

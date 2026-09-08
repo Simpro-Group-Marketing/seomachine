@@ -781,6 +781,8 @@ def _run_publish_readiness(
             )
         if name == "named_feature_status":
             guard_kwargs["vault_root"] = vault_root
+        if name == "competitive_shortlist":
+            guard_kwargs["vault_root"] = vault_root
         if name == "fred_authority":
             guard_kwargs["vault_root"] = vault_root
         if name == "eeat_strength":

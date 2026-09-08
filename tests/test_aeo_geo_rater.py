@@ -1376,7 +1376,7 @@ E-E-A-T Proof Map
             'valid',
         )
 
-    def test_metadata_requires_canonical_iso_freshness_and_matches_assembly_date(self):
+    def test_metadata_requires_canonical_iso_freshness_and_blocks_future_updates(self):
         malformed = COMPLIANT_ARTICLE.replace(
             'Last Updated: 2026-05-22',
             'Last Updated: May 22, 2026',
@@ -1395,10 +1395,10 @@ E-E-A-T Proof Map
             malformed_result['checks']['metadata']['details']['freshness_status'],
             'invalid',
         )
-        self.assertFalse(mismatch_result['checks']['metadata']['passed'])
+        self.assertTrue(mismatch_result['checks']['metadata']['passed'])
         self.assertEqual(
             mismatch_result['checks']['metadata']['details']['freshness_status'],
-            'assembly_date_mismatch',
+            'valid',
         )
 
     def test_missing_author_does_not_require_finalized_bom_for_aeo_metadata(self):

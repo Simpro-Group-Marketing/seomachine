@@ -82,6 +82,7 @@ def check_content(
     proof_content: str | None = None,
     context_pack: Mapping[str, Any] | str | Path | None = None,
     context_receipt: Mapping[str, Any] | str | Path | None = None,
+    vault_root: str | Path | None = None,
 ) -> list[Finding]:
     """Return competitive-shortlist findings for the exact public snapshot."""
     if not _is_competitor_aware(content):
@@ -140,7 +141,7 @@ def check_content(
 
     pack = _load_mapping(context_pack, "context pack", findings, line)
     receipt = _load_mapping(context_receipt, "context receipt", findings, line)
-    claims = _validated_claims(context_pack, context_receipt, findings, line)
+    claims = _validated_claims(context_pack, context_receipt, findings, line, vault_root)
     pack_resources = _resource_records(pack)
     receipt_resource_ids = _resource_ids(receipt)
     for row in rows:
@@ -223,6 +224,7 @@ def check_file(
     proof_sidecar: str | Path | None = None,
     context_pack: str | Path | None = None,
     context_receipt: str | Path | None = None,
+    vault_root: str | Path | None = None,
 ) -> list[Finding]:
     if fail_on not in {"error", "warning", "none"}:
         raise ValueError("fail_on must be one of: error, warning, none")
@@ -232,6 +234,7 @@ def check_file(
         proof_content=load_sidecar_content(article, proof_sidecar),
         context_pack=context_pack,
         context_receipt=context_receipt,
+        vault_root=vault_root,
     )
 
 
@@ -304,9 +307,14 @@ def _load_mapping(value: Mapping[str, Any] | str | Path | None, label: str,
 
 
 def _validated_claims(context_pack: Any, context_receipt: Any,
-                      findings: list[Finding], line: int) -> ValidatedClaimSet:
+                      findings: list[Finding], line: int,
+                      vault_root: str | Path | None = None) -> ValidatedClaimSet:
     try:
-        claims = load_validated_claim_set(context_pack, context_receipt)
+        claims = load_validated_claim_set(
+            context_pack,
+            context_receipt,
+            vault_root=vault_root,
+        )
     except (VaultClaimReceiptError, OSError, ValueError, TypeError) as error:
         findings.append(_finding(
             "competitive_shortlist_context_unverified",

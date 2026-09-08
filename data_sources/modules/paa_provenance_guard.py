@@ -67,8 +67,25 @@ ANSWERSOCRATES_TOOL = {
     "name": "answersocrates_playwright_collector",
     "version": "1.0.0",
 }
+ANSWERSOCRATES_CHROME_CONNECTOR_TOOL = {
+    "name": "answersocrates_chrome_connector",
+    "version": "1.0.0",
+}
 ANSWERSOCRATES_RAW_CAPTURE_SCHEMA = "simpro-answersocrates-playwright-capture/v1"
 ANSWERSOCRATES_RAW_CAPTURE_PURPOSE = ANSWERSOCRATES_RAW_CAPTURE_SCHEMA
+ANSWERSOCRATES_CHROME_CONNECTOR_RAW_CAPTURE_SCHEMA = (
+    "simpro-answersocrates-chrome-connector-capture/v1"
+)
+ANSWERSOCRATES_CAPTURE_CONTRACTS = {
+    ANSWERSOCRATES_RAW_CAPTURE_SCHEMA: (
+        ANSWERSOCRATES_TOOL,
+        ANSWERSOCRATES_RAW_CAPTURE_PURPOSE,
+    ),
+    ANSWERSOCRATES_CHROME_CONNECTOR_RAW_CAPTURE_SCHEMA: (
+        ANSWERSOCRATES_CHROME_CONNECTOR_TOOL,
+        ANSWERSOCRATES_CHROME_CONNECTOR_RAW_CAPTURE_SCHEMA,
+    ),
+}
 ANSWERSOCRATES_RAW_CAPTURE_FIELDS = frozenset({
     "schema", "collector", "query", "run_id", "started_at", "completed_at",
     "page_url", "raw_response", "execution_attestation",
@@ -86,6 +103,10 @@ ANSWERSOCRATES_BLOCKER_SCOPES = frozenset({
     "quota_container",
 })
 ANSWERSOCRATES_PAGE_URL = "https://answersocrates.com/paa-extractor"
+ANSWERSOCRATES_PAGE_URLS = frozenset({
+    ANSWERSOCRATES_PAGE_URL,
+    "https://answersocrates.com/",
+})
 ANSWERSOCRATES_OPEN_TIMEOUT_SECONDS = 30
 ANSWERSOCRATES_RUN_TIMEOUT_SECONDS = 90
 ANSWERSOCRATES_CLOSE_TIMEOUT_SECONDS = 15
@@ -210,13 +231,15 @@ def build_answersocrates_artifact(
     capture = snapshot.payload
     if set(capture) != ANSWERSOCRATES_RAW_CAPTURE_FIELDS:
         raise ValueError("AnswerSocrates raw capture shape is invalid")
-    if capture.get("schema") != ANSWERSOCRATES_RAW_CAPTURE_SCHEMA:
+    capture_contract = ANSWERSOCRATES_CAPTURE_CONTRACTS.get(capture.get("schema"))
+    if capture_contract is None:
         raise ValueError("AnswerSocrates raw capture schema is invalid")
-    if capture.get("collector") != ANSWERSOCRATES_TOOL:
+    expected_collector, capture_purpose = capture_contract
+    if capture.get("collector") != expected_collector:
         raise ValueError("AnswerSocrates raw capture collector is not approved")
     if not verify_mapping_attestation(
         capture,
-        purpose=ANSWERSOCRATES_RAW_CAPTURE_PURPOSE,
+        purpose=capture_purpose,
         workspace_root=root,
     ):
         raise ValueError("AnswerSocrates raw capture attestation is invalid")
@@ -227,7 +250,7 @@ def build_answersocrates_artifact(
         raise ValueError("AnswerSocrates raw capture query is invalid")
     if not isinstance(run_id, str) or not run_id.strip() or run_id != run_id.strip():
         raise ValueError("AnswerSocrates raw capture run_id is invalid")
-    if page_url != ANSWERSOCRATES_PAGE_URL:
+    if page_url not in ANSWERSOCRATES_PAGE_URLS:
         raise ValueError("AnswerSocrates raw capture page URL is invalid")
     started_at = capture.get("started_at")
     completed_at = capture.get("completed_at")
@@ -266,7 +289,7 @@ def build_answersocrates_artifact(
     receipt = attest_mapping({
         "schema": ANSWERSOCRATES_RECEIPT_SCHEMA,
         "run_id": run_id,
-        "tool": dict(ANSWERSOCRATES_TOOL),
+        "tool": dict(expected_collector),
         "started_at": started_at,
         "completed_at": completed_at,
         "status": status,
@@ -299,7 +322,7 @@ def _derive_answersocrates_observations(
     ):
         raise ValueError("AnswerSocrates browser stdout shape is invalid")
     if isinstance(browser_output, Mapping):
-        if browser_output.get("page_url") != ANSWERSOCRATES_PAGE_URL:
+        if browser_output.get("page_url") not in ANSWERSOCRATES_PAGE_URLS:
             raise ValueError("AnswerSocrates browser stdout page URL is invalid")
         if not isinstance(browser_output.get("page_title"), str):
             raise ValueError("AnswerSocrates browser stdout title is invalid")
@@ -1586,7 +1609,10 @@ def _valid_answersocrates_receipt(value: object, *, payload: dict) -> bool:
     }:
         return False
     tool = value.get("tool")
-    if tool != ANSWERSOCRATES_TOOL:
+    if tool not in (
+        ANSWERSOCRATES_TOOL,
+        ANSWERSOCRATES_CHROME_CONNECTOR_TOOL,
+    ):
         return False
     started = _parse_utc_timestamp(value.get("started_at"))
     completed = _parse_utc_timestamp(value.get("completed_at"))
@@ -1638,15 +1664,18 @@ def _valid_raw_capture_binding(
     if snapshot.sha256 != binding.get("sha256"):
         return False
     capture = snapshot.payload
+    capture_contract = ANSWERSOCRATES_CAPTURE_CONTRACTS.get(capture.get("schema"))
+    if capture_contract is None:
+        return False
+    expected_collector, capture_purpose = capture_contract
     if (
         set(capture) != ANSWERSOCRATES_RAW_CAPTURE_FIELDS
-        or capture.get("schema") != ANSWERSOCRATES_RAW_CAPTURE_SCHEMA
-        or capture.get("collector") != ANSWERSOCRATES_TOOL
+        or capture.get("collector") != expected_collector
         or capture.get("query") != expected_query
         or capture.get("run_id") != expected_run_id
         or not verify_mapping_attestation(
             capture,
-            purpose=ANSWERSOCRATES_RAW_CAPTURE_PURPOSE,
+            purpose=capture_purpose,
             workspace_root=workspace_root,
         )
     ):

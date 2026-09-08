@@ -17,6 +17,8 @@ TOPIC_SLUG = "ai-field-service-economics"
 REQUEST_PATH = ROOT / "research" / f"context-request-{TOPIC_SLUG}.json"
 PACK_PATH = ROOT / "research" / f"context-pack-{TOPIC_SLUG}.json"
 RECEIPT_PATH = ROOT / "research" / f"context-receipt-{TOPIC_SLUG}.json"
+SELECTOR_PACK_PATH = ROOT / "research" / f"context-pack-{TOPIC_SLUG}-selectors.json"
+SELECTOR_RECEIPT_PATH = ROOT / "research" / f"context-receipt-{TOPIC_SLUG}-selectors.json"
 TRACE_PATH = ROOT / "research" / f"context-refresh-{TOPIC_SLUG}-2026-09-08.json"
 
 REQUEST = {
@@ -77,7 +79,7 @@ EXPAND_RESOURCE_IDS = [
     "res-aabdab4b40f85d748bf1cf2c754a36f8",
 ]
 
-CLAIM_REQUESTS = [
+SELECTOR_CLAIM_REQUESTS = [
     {
         "claim_id": "claim-metric-MET-0064",
         "query": "Quorum estimating speed and project cost visibility field service case study",
@@ -198,22 +200,43 @@ def main() -> None:
             brand_scope=item["brand_scope"],
             limit=50,
         )
-        for item in CLAIM_REQUESTS
+        for item in SELECTOR_CLAIM_REQUESTS
     }
 
-    build_input = {
+    common_build_input = {
         "request": REQUEST,
         "search_queries": SEARCH_QUERIES,
         "resource_ids": list(RESOURCE_PURPOSES),
         "resource_purposes": RESOURCE_PURPOSES,
-        "claim_requests": CLAIM_REQUESTS,
         "constraints": CONSTRAINTS,
         "task_satisfaction": "satisfied",
         "unresolved_gaps": [],
     }
-    build_output = client.build_context(build_input)
-    pack = build_output["pack"]
-    receipt = build_output["receipt"]
+    selector_build_input = {
+        **common_build_input,
+        "claim_requests": SELECTOR_CLAIM_REQUESTS,
+    }
+    selector_build_output = client.build_context(selector_build_input)
+    selector_pack = selector_build_output["pack"]
+    selector_receipt = selector_build_output["receipt"]
+    selector_validation = client.validate_context(
+        REQUEST,
+        selector_pack,
+        selector_receipt,
+    )
+    if selector_validation.get("valid") is not True:
+        raise RuntimeError(
+            "Selector context validation did not return valid: "
+            f"{selector_validation}"
+        )
+
+    article_build_input = {
+        **common_build_input,
+        "claim_requests": [],
+    }
+    article_build_output = client.build_context(article_build_input)
+    pack = article_build_output["pack"]
+    receipt = article_build_output["receipt"]
     validation = client.validate_context(REQUEST, pack, receipt)
     if validation.get("valid") is not True:
         raise RuntimeError(f"Context validation did not return valid: {validation}")
@@ -221,6 +244,8 @@ def main() -> None:
     write_json(REQUEST_PATH, REQUEST)
     write_json(PACK_PATH, pack)
     write_json(RECEIPT_PATH, receipt)
+    write_json(SELECTOR_PACK_PATH, selector_pack)
+    write_json(SELECTOR_RECEIPT_PATH, selector_receipt)
     write_json(
         TRACE_PATH,
         {
@@ -232,9 +257,12 @@ def main() -> None:
             "expansions": expansions,
             "reads": reads,
             "approved_claim_lookups": claim_lookups,
-            "build_input": build_input,
-            "build_output": build_output,
-            "validation": validation,
+            "selector_build_input": selector_build_input,
+            "selector_build_output": selector_build_output,
+            "selector_validation": selector_validation,
+            "article_build_input": article_build_input,
+            "article_build_output": article_build_output,
+            "article_validation": validation,
         },
     )
     print(
@@ -246,6 +274,9 @@ def main() -> None:
                 "receipt_sha256": receipt.get("receipt_sha256"),
                 "request_sha256": receipt.get("request_sha256"),
                 "validation": validation,
+                "selector_pack_sha256": selector_receipt.get("pack_sha256"),
+                "selector_receipt_sha256": selector_receipt.get("receipt_sha256"),
+                "selector_validation": selector_validation,
             },
             ensure_ascii=False,
         )
