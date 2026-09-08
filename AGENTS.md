@@ -105,6 +105,20 @@ Every FAQ answer must also contain at least 1 authoritative non-owned public evi
 
 Use `context/aeo-geo-blog-strategy.md` as the canonical policy for Review Story Selection, Review Site Theme Selection, and approved quote/rating boundaries.
 
+## Production SEO Blog Strategy Contract
+
+Every new or changed Simpro blog, rewrite, optimization, analyze-existing pass, and existing blog on its next publish-readiness pass must use `blog-strategy-contract/v1`. Research writes exactly 1 `Search Intent and Format Decision`, `Commercial Pillar and Anchor Decision`, and `Lifecycle Refresh Record` to the validation sidecar. Duplicate sections or fields, placeholders, unsupported values, blocked decisions, and stale evidence fail closed. The exact field contract lives in `context/aeo-geo-blog-strategy.md` and the mirrored `seo-blog-strategy` rule files.
+
+`context/commercial-pillar-index.json` is the only executable commercial-destination source. Every Simpro blog requires exactly 1 commercial pillar: a specific industry page for a vertical topic, solution page for a category or cross-workflow topic, or feature page for a capability-led topic. The industries hub requires a documented no-specific-fit reason. A blog cannot be the commercial pillar; an informational hub is only an optional supporting blog link. The article Brand and Market must match the verified record and Semrush database. Current US evidence cannot authorize another market. The article primary keyword must differ from the indexed main keyword; exact collisions fail, and containment requires verified SERP evidence of different intent and format.
+
+The article body must contain the exact indexed canonical URL in the planned H2. At least 1 visible, human-readable Markdown anchor must contain the indexed main keyword as a contiguous case-insensitive phrase. Bare URLs, sidecar/frontmatter-only URLs, comments, code, images, generic anchors, unsupported synonyms, tracking parameters, fragments, and redirects fail. The index approves SEO routing only and never overrides vault product language, feature status, availability, source routing, or proof gates.
+
+Every public `Source Map` claim row must include claim type, source class, original-source status, source and checked dates, direct claim fit, freshness decision/reason, status, and intended use. Statistics require original sources; regulations and standards require official sources. Competitor evidence cannot decide neutral recommendations or FAQs. The Source Map cannot bypass stricter proof, FAQ, vault-receipt, or named-feature gates.
+
+High-volatility pricing, regulation, product-status, comparison, and statistics-led articles require review within 90 days; standard articles within 180 days. GSC, GA4, Semrush, and AI-citation lanes stay separate. Record unavailable or not-applicable lanes with reasons and never convert missing data to zero or claim improvement without dated evidence.
+
 ## Blog Schema Notes
 
-For standard blog posts with FAQs, schema notes must list `BlogPosting`, `BreadcrumbList`, and `FAQPage`; nested entities must be `Person as author`, `Question and Answer inside FAQPage`, `ImageObject for the featured image or logo`, and `Organization as publisher reference only, not a separate full schema block`. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Use `VideoObject` only when a video is embedded. Keep this aligned with `context/aeo-geo-blog-strategy.md`.
+A valid `Last Updated: YYYY-MM-DD` remains required and cannot be future-dated. Missing author passes. A verified author is an optional Expertise signal; author, reviewer, and credential claims remain proof-gated when present.
+
+For public Markdown blog artifacts, put the checked CMS handoff in `schema_notes` inside the top YAML frontmatter. Always list `BlogPosting`, `BreadcrumbList`, `ImageObject`, and Organization as publisher reference. Add `FAQPage` with nested Question/Answer only when visible FAQs exist. Include Person only when a verified author exists. Add `VideoObject` if and only if a video is embedded. Schema notes must never be reported as rendered JSON-LD implementation.

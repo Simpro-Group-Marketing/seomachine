@@ -20,6 +20,8 @@ For every Simpro blog, read `wiki/messaging/Voice and Tone.md` and `wiki/messagi
 
 Before returning `Ready`, confirm proof-only infrastructure lives in a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in the blog copy. The article file must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, `Vault Brand Language Alignment`, or structured data plan.
 
+Validate every Source Map row through `source_quality_guard.py`: `Claim fit` must be direct, statistics must use an original source, regulations and standards must use an official source, competitor evidence cannot support a neutral verdict/recommendation/FAQ, and all source/freshness dates and decisions must be explicit. Never use Source Map to bypass stricter proof, FAQ, vault-receipt, or named-feature gates.
+
 For every Simpro optimization, resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --limit 5`, and write the complete `Fred Voccola Authority Selection` block from `context/aeo-geo-blog-strategy.md` to the validation sidecar. Evaluation is mandatory and public use is optional. The selector defaults to `Selected: none`; select a source explicitly only after reviewing it and confirming direct topical support. If the selector, vault, manifest, or inventories fail, record `Evaluation status: blocked` and the blocker; do not invent Fred evidence, change public Fred content, or return `Ready`.
 
 Vault product-language check: If the article uses Simpro product, feature, add-on, solution, industry, or related Simpro product URL language, confirm the validation sidecar contains `Vault Brand Language Alignment` with `wiki/messaging/Simpro Core Messaging Repository.md`, `wiki/messaging/Message House.md`, `wiki/messaging/Core Value Pillars.md`, `wiki/product/Product Positioning.md`, `wiki/features/Feature Library.md`, any needed `wiki/features/source-docs/` route, `wiki/verticals/Vertical Profile Library.md` for solution/industry language, and `Status: aligned`. The `vault_brand_language_guard.py` publish gate runs inside `/publish-readiness`. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
@@ -35,6 +37,11 @@ FAQ answers must use a 40-60 word first paragraph, lead with a supported number/
 FAQ Source Policy: For every visible non-owned FAQ URL, add an exact `FAQ Proof Map` row with `FAQ`, `URL`, `Source class`, `Competitor check`, and `Support`; source class must be `neutral` or `non_competing_expert`. Competitor-owned FAQ sources: prohibited. Use neutral authorities or non-competing experts; Simpro-owned links are supplemental only. Reframe or remove vendor-specific FAQs without compliant evidence and retain vendor evidence in comparison or vendor-specific body sections.
 
 
+## Production SEO Strategy Contract
+
+This workflow uses `blog-strategy-contract/v1`, `context/commercial-pillar-index.json`, and the validation-sidecar sections `Search Intent and Format Decision`, `Commercial Pillar and Anchor Decision`, and `Lifecycle Refresh Record`. The exact fields and fail-closed rules live in `context/aeo-geo-blog-strategy.md` and the mirrored `seo-blog-strategy` rule. Every Simpro blog requires exactly 1 verified solution, industry, or feature commercial pillar; a blog is only an optional informational hub. Current US Semrush evidence authorizes US only. The final visible anchor must contain the indexed main keyword and use the canonical URL in the planned H2. Source quality, lifecycle, vault, proof, FAQ, Fred, artifact, and score gates remain independent and blocking.
+
+Optimization may improve anchor readability while retaining the indexed main keyword, exact canonical URL, and planned H2. It cannot change the Destination ID or commercial pillar without rerunning research and replacing all 3 contract decisions.
 Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error` when debugging FAQ quality failures; `/publish-readiness` runs it automatically.
 
 403 replacement rule: If a DOL, Capterra, G2, Trustpilot, Google Play, or other public research/source URL returns 401, 403, or `manual_review`, do not remove the citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. Source Map notes must document both the rejected 403 URL and the replacement URL. `/publish-readiness` runs `public_research_link_guard.py` to block sidecar-only handling of public research, compliance, legal, regulatory, or statistical proof.
@@ -86,7 +93,7 @@ If customer proof appears in public copy, experience_story consideration is requ
 - **Quality**: Verify links are contextually relevant
 - **Anchor Text**: Check for keyword-rich, descriptive anchor text
 - **Placement**: Natural integration within body content
-- **Variety**: Links to different page types (pillar, blog, product, resources)
+- **Variety**: Exactly 1 designated commercial solution, industry, or feature pillar plus optional blog and resource links
 - **Reference**: Cross-check @context/internal-links-map.md for opportunities
 - **Broken Links**: Verify all internal links work
 

@@ -1,11 +1,15 @@
 import re
+import subprocess
+import sys
 import unittest
 from dataclasses import replace
-from datetime import datetime
+from datetime import date, datetime
+from pathlib import Path
 
 from data_sources.modules.article_planner import (
     ArticlePlan,
     ArticlePlanner,
+    CommercialPillarPlan,
     CTAType,
     EngagementMap,
     FunnelStage,
@@ -14,6 +18,7 @@ from data_sources.modules.article_planner import (
     SectionPlan,
     SectionType as PlannerSectionType,
     format_article_plan,
+    resolve_commercial_pillar_plan,
 )
 from data_sources.modules.competitor_gap_analyzer import CompetitorGapAnalyzer
 from data_sources.modules.competitor_gap_analyzer import (
@@ -95,6 +100,94 @@ def article_plan() -> ArticlePlan:
         insight_to_section_mapping={},
         reader_contract=reader_contract(),
     )
+
+
+class ArticlePlannerCommercialPillarTests(unittest.TestCase):
+    def test_article_planner_remains_directly_executable(self):
+        project_root = Path(__file__).resolve().parents[1]
+
+        completed = subprocess.run(
+            [sys.executable, "data_sources/modules/article_planner.py"],
+            cwd=project_root,
+            text=True,
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Article Planner", completed.stdout)
+
+    INDEX_PATH = (
+        Path(__file__).resolve().parents[1]
+        / "context"
+        / "commercial-pillar-index.json"
+    )
+
+    def test_resolves_a_verified_market_specific_destination(self):
+        pillar = resolve_commercial_pillar_plan(
+            self.INDEX_PATH,
+            destination_id="simpro-us-solution-field-service-management-software",
+            brand="Simpro",
+            market="US",
+            planned_anchor_text="field service management software",
+            planned_h2_section="How field service teams connect the workflow",
+            today=date(2026, 8, 6),
+        )
+
+        self.assertIsInstance(pillar, CommercialPillarPlan)
+        self.assertEqual(pillar.pillar_type, "solution")
+        self.assertEqual(pillar.semrush_database, "us")
+        self.assertEqual(
+            pillar.canonical_url,
+            "https://www.simprogroup.com/solutions/field-service-management-software",
+        )
+
+    def test_rejects_an_anchor_that_omits_the_indexed_main_keyword(self):
+        with self.assertRaisesRegex(ValueError, "indexed main keyword"):
+            resolve_commercial_pillar_plan(
+                self.INDEX_PATH,
+                destination_id="simpro-us-solution-field-service-management-software",
+                brand="Simpro",
+                market="US",
+                planned_anchor_text="connect your operations",
+                planned_h2_section="How field service teams connect the workflow",
+                today=date(2026, 8, 6),
+            )
+
+    def test_rejects_an_anchor_that_only_contains_the_keyword_inside_a_longer_token(self):
+        with self.assertRaisesRegex(ValueError, "indexed main keyword"):
+            resolve_commercial_pillar_plan(
+                self.INDEX_PATH,
+                destination_id="simpro-us-solution-field-service-management-software",
+                brand="Simpro",
+                market="US",
+                planned_anchor_text="field service management softwareish",
+                planned_h2_section="How field service teams connect the workflow",
+                today=date(2026, 8, 6),
+            )
+
+    def test_article_plan_preserves_and_renders_the_pillar_decision(self):
+        pillar = resolve_commercial_pillar_plan(
+            self.INDEX_PATH,
+            destination_id="simpro-us-solution-field-service-management-software",
+            brand="Simpro",
+            market="US",
+            planned_anchor_text="field service management software",
+            planned_h2_section="How field service teams connect the workflow",
+            today=date(2026, 8, 6),
+        )
+        plan = replace(article_plan(), commercial_pillar=pillar)
+
+        self.assertEqual(
+            plan.to_dict()["commercial_pillar"]["destination_id"],
+            "simpro-us-solution-field-service-management-software",
+        )
+        rendered = format_article_plan(plan)
+        self.assertIn("## Commercial Pillar and Anchor Decision", rendered)
+        self.assertIn(pillar.canonical_url, rendered)
+        self.assertIn(pillar.planned_anchor_text, rendered)
 
 
 class ArticlePlannerEditorialContractTests(unittest.TestCase):

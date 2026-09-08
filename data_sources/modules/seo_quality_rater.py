@@ -6,6 +6,7 @@ Provides scoring (0-100) and specific recommendations for improvement.
 """
 
 import argparse
+from datetime import date
 from functools import lru_cache
 import math
 import re
@@ -15,8 +16,18 @@ from urllib.parse import urlparse
 from typing import Dict, List, Optional, Any, Tuple
 
 try:
+    from .commercial_pillar_index import (
+        CommercialPillarIndexError,
+        load_index,
+        validate_index,
+    )
     from .url_validator import validate_content_urls
 except ImportError:
+    from commercial_pillar_index import (
+        CommercialPillarIndexError,
+        load_index,
+        validate_index,
+    )
     from url_validator import validate_content_urls
 
 
@@ -28,6 +39,9 @@ DOWN_FUNNEL_PATH_PREFIXES = (
 DOWN_FUNNEL_EXACT_PATHS = {
     "/industries",
 }
+COMMERCIAL_PILLAR_INDEX_PATH = (
+    Path(__file__).resolve().parents[2] / "context" / "commercial-pillar-index.json"
+)
 GENERIC_LINK_ANCHORS = {
     "click here",
     "here",
@@ -801,7 +815,7 @@ class SEOQualityRater:
             anchor, url = down_funnel["generic"][0]
             critical.append(
                 "A down-funnel internal link uses generic anchor text. "
-                f"Replace '{anchor}' for {url} with destination-matched anchor text."
+                f"Replace '{anchor}' for {url} with descriptive, function-bearing anchor text."
             )
         elif down_funnel["name_only"]:
             score -= 20
@@ -813,16 +827,30 @@ class SEOQualityRater:
             )
         elif not down_funnel["valid"]:
             score -= 20
-            if down_funnel["weak_anchor"]:
+            if down_funnel["unverified_destination"]:
+                anchor, url = down_funnel["unverified_destination"][0]
+                critical.append(
+                    "A down-funnel URL is not an exact absolute canonical URL in the verified commercial pillar index. "
+                    f"Replace '{anchor}' for {url} with an eligible indexed destination or "
+                    "complete the evidence intake before treating it as the commercial pillar."
+                )
+            elif down_funnel["indexed_keyword_missing"]:
+                anchor, url = down_funnel["indexed_keyword_missing"][0]
+                critical.append(
+                    "A verified Simpro commercial pillar anchor must contain the indexed main keyword. "
+                    f"Replace '{anchor}' for {url} with the indexed main keyword for that page."
+                )
+            elif down_funnel["weak_anchor"]:
                 anchor, url = down_funnel["weak_anchor"][0]
                 critical.append(
-                    "A down-funnel internal link anchor text must match the destination keyword. "
-                    f"Replace '{anchor}' for {url} with a product, solution, feature, or industry keyword."
+                    "A down-funnel internal link needs descriptive, function-bearing anchor text. "
+                    f"Replace '{anchor}' for {url} with wording that identifies the destination's workflow or category."
                 )
             else:
                 critical.append(
                     "Missing down-funnel internal link to /industries, /industries/..., "
-                    "/solutions/..., or /features/... with matched anchor text."
+                    "/solutions/..., or /features/... with a descriptive, function-bearing anchor. "
+                    "Simpro commercial pillars must also resolve through the verified index."
                 )
 
         # External links
@@ -1001,6 +1029,8 @@ def _analyze_down_funnel_links(content: str) -> Dict[str, List[Tuple[str, str]]]
         "generic": [],
         "name_only": [],
         "weak_anchor": [],
+        "unverified_destination": [],
+        "indexed_keyword_missing": [],
     }
 
     for anchor, url in _extract_markdown_links(content):
@@ -1008,8 +1038,22 @@ def _analyze_down_funnel_links(content: str) -> Dict[str, List[Tuple[str, str]]]
         if not path or not _is_down_funnel_path(path):
             continue
 
+        indexed_keywords = _simpro_indexed_main_keywords(url)
         if _is_generic_anchor(anchor):
             analysis["generic"].append((anchor, url))
+        elif indexed_keywords == ():
+            if _is_name_only_feature_or_solution_anchor(anchor, path):
+                analysis["name_only"].append((anchor, url))
+            else:
+                analysis["unverified_destination"].append((anchor, url))
+        elif indexed_keywords is not None:
+            if any(
+                _anchor_contains_phrase(anchor, keyword)
+                for keyword in indexed_keywords
+            ):
+                analysis["valid"].append((anchor, url))
+            else:
+                analysis["indexed_keyword_missing"].append((anchor, url))
         elif _is_name_only_feature_or_solution_anchor(anchor, path):
             analysis["name_only"].append((anchor, url))
         elif _anchor_matches_down_funnel_target(anchor, path):
@@ -1018,6 +1062,49 @@ def _analyze_down_funnel_links(content: str) -> Dict[str, List[Tuple[str, str]]]
             analysis["weak_anchor"].append((anchor, url))
 
     return analysis
+
+
+def _anchor_contains_phrase(anchor: str, phrase: str) -> bool:
+    normalized_anchor = _normalize_anchor(anchor)
+    normalized_phrase = _normalize_anchor(phrase)
+    if not normalized_anchor or not normalized_phrase:
+        return False
+    return f" {normalized_phrase} " in f" {normalized_anchor} "
+
+
+def _simpro_indexed_main_keywords(url: str) -> Optional[Tuple[str, ...]]:
+    parsed = urlparse(url)
+    if not parsed.scheme and not parsed.netloc and parsed.path.startswith("/"):
+        # A relative commercial path cannot prove which brand, market, or canonical
+        # destination record it belongs to. Keep the scorer fail-closed; other
+        # brands can still use their absolute URLs through the legacy path checks.
+        return ()
+    hostname = (parsed.hostname or "").casefold()
+    if parsed.scheme not in {"http", "https"} or not (
+        hostname == "simprogroup.com" or hostname.endswith(".simprogroup.com")
+    ):
+        return None
+    return _verified_simpro_pillar_keywords_by_url().get(url.strip(), ())
+
+
+@lru_cache(maxsize=1)
+def _verified_simpro_pillar_keywords_by_url() -> Dict[str, Tuple[str, ...]]:
+    try:
+        index = load_index(COMMERCIAL_PILLAR_INDEX_PATH)
+    except CommercialPillarIndexError:
+        return {}
+    if validate_index(index, today=date.today()):
+        return {}
+
+    keywords: Dict[str, set[str]] = {}
+    for record in index.records:
+        if record.status != "verified" or record.brand.casefold() != "simpro":
+            continue
+        keywords.setdefault(record.canonical_url, set()).add(record.main_keyword)
+    return {
+        url: tuple(sorted(values, key=str.casefold))
+        for url, values in keywords.items()
+    }
 
 
 def _internal_link_path(url: str) -> Optional[str]:

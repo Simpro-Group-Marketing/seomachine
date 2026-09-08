@@ -363,6 +363,10 @@ class WordPressPublisher:
         file_path: str,
         post_type: str = 'post',
         proof_sidecar: Optional[str] = None,
+        context_request: Optional[str] = None,
+        context_pack: Optional[str] = None,
+        context_receipt: Optional[str] = None,
+        vault_root: Optional[str] = None,
     ) -> Dict:
         """
         Publish a draft file to WordPress as a post, page, or custom post type
@@ -371,6 +375,10 @@ class WordPressPublisher:
             file_path: Path to the markdown draft file
             post_type: Content type - 'post', 'page', or custom post type (e.g., 'compare')
             proof_sidecar: Optional validation sidecar for proof-aware readiness gates.
+            context_request: Optional Simpro context request artifact.
+            context_pack: Optional Simpro context pack artifact.
+            context_receipt: Optional Simpro context receipt artifact.
+            vault_root: Optional Simpro vault root override.
 
         Returns:
             Dict with post_id, edit_url, view_url, and status information
@@ -382,7 +390,20 @@ class WordPressPublisher:
                 f"{format_summary(url_summary)}"
             )
         require_source_support(file_path, context="WordPress publish")
-        _require_publish_readiness(file_path, proof_sidecar, "WordPress publish")
+        _require_publish_readiness(
+            file_path,
+            proof_sidecar,
+            "WordPress publish",
+            context_request=context_request,
+            context_pack=context_pack,
+            context_receipt=context_receipt,
+            vault_root=vault_root,
+            artifact_kind=(
+                "landing_page"
+                if post_type.strip().casefold() in {"page", "pages"}
+                else None
+            ),
+        )
 
         # Map friendly names to REST API endpoints
         type_endpoints = {
@@ -465,8 +486,25 @@ def _require_publish_readiness(
     file_path: str,
     proof_sidecar: Optional[str],
     context: str,
+    *,
+    context_request: Optional[str] = None,
+    context_pack: Optional[str] = None,
+    context_receipt: Optional[str] = None,
+    vault_root: Optional[str] = None,
+    artifact_kind: Optional[str] = None,
 ) -> Dict:
-    result = run_publish_readiness(file_path, proof_sidecar=proof_sidecar)
+    readiness_kwargs = {"proof_sidecar": proof_sidecar}
+    if context_request is not None:
+        readiness_kwargs["context_request"] = context_request
+    if context_pack is not None:
+        readiness_kwargs["context_pack"] = context_pack
+    if context_receipt is not None:
+        readiness_kwargs["context_receipt"] = context_receipt
+    if vault_root is not None:
+        readiness_kwargs["vault_root"] = vault_root
+    if artifact_kind is not None:
+        readiness_kwargs["artifact_kind"] = artifact_kind
+    result = run_publish_readiness(file_path, **readiness_kwargs)
     if result.get("passed"):
         return result
     raise ValueError(
@@ -513,6 +551,10 @@ def main():
         '--proof-sidecar',
         help='Optional validation sidecar for publish-readiness proof gates',
     )
+    parser.add_argument('--context-request', help='Current Simpro context request JSON.')
+    parser.add_argument('--context-pack', help='Current Simpro v2 context pack JSON.')
+    parser.add_argument('--context-receipt', help='Current Simpro context receipt JSON.')
+    parser.add_argument('--vault-root', help='Configured Simpro vault root override.')
     args = parser.parse_args()
 
     try:
@@ -521,6 +563,10 @@ def main():
             args.file_path,
             post_type=args.type,
             proof_sidecar=args.proof_sidecar,
+            context_request=args.context_request,
+            context_pack=args.context_pack,
+            context_receipt=args.context_receipt,
+            vault_root=args.vault_root,
         )
 
         type_label = result['post_type'].title()

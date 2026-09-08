@@ -3,7 +3,11 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from data_sources.modules.aeo_geo_rater import _check_faq_questions, rate_aeo_geo
+from data_sources.modules.aeo_geo_rater import (
+    _check_faq_questions,
+    _check_metadata,
+    rate_aeo_geo,
+)
 
 
 PAA_ARTIFACT = "research/paa-questions-hvac-scheduling-2026-05-22.md"
@@ -36,6 +40,10 @@ FAQ_PROOF_BLOCK = """
 - FAQ: How does HVAC scheduling software reduce missed appointments? | URL: https://www.achrnews.com/ | Source class: neutral | Competitor check: passed | Evidence: mobile job details and status updates support appointment coordination claims | Status: approved
 - FAQ: Should HVAC scheduling connect to invoicing? | URL: https://www.mckinsey.com/ | Source class: neutral | Competitor check: passed | Evidence: invoicing workflow supports completed-work-to-invoice claims | Status: approved
 ```
+"""
+AUTHOR_VERIFICATION_BLOCK = """
+## Author Verification
+- Author: Jordan Lee | URL: https://www.simprogroup.com/authors/jordan-lee | Evidence: Author profile reviewed | Checked date: 2026-08-06 | Status: verified
 """
 
 COMPLIANT_ARTICLE = """---
@@ -117,11 +125,16 @@ def write_paa_fixture(test_case: unittest.TestCase, content: str) -> str:
 
 
 class AeoGeoRaterTests(unittest.TestCase):
-    def rate(self, content: str = COMPLIANT_ARTICLE):
+    def rate(
+        self,
+        content: str = COMPLIANT_ARTICLE,
+        proof_sidecar_content: str = AUTHOR_VERIFICATION_BLOCK + PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK,
+    ):
         return rate_aeo_geo(
             content,
             {"primary_keyword": "hvac scheduling software"},
             source_path=write_paa_fixture(self, content),
+            proof_sidecar_content=proof_sidecar_content,
         )
 
     def rate_without_customer_experience(self, proof_sidecar: str):
@@ -133,7 +146,7 @@ class AeoGeoRaterTests(unittest.TestCase):
             content,
             {"primary_keyword": "hvac scheduling software"},
             source_path=write_paa_fixture(self, content),
-            proof_sidecar_content=PAA_PROVENANCE_BLOCK + proof_sidecar,
+            proof_sidecar_content=AUTHOR_VERIFICATION_BLOCK + PAA_PROVENANCE_BLOCK + proof_sidecar,
         )
 
     def test_compliant_article_passes_90_point_gate(self):
@@ -154,7 +167,10 @@ class AeoGeoRaterTests(unittest.TestCase):
             f"{PRODUCTION_IMAGE_MARKER}\n\n",
         )
 
-        result = self.rate(content)
+        result = self.rate(
+            content,
+            proof_sidecar_content=AUTHOR_VERIFICATION_BLOCK + FAQ_PROOF_BLOCK,
+        )
         first_two = result["checks"]["direct_answer"]["details"]["first_two_sentences"]
 
         self.assertTrue(result["checks"]["direct_answer"]["passed"])
@@ -168,7 +184,10 @@ class AeoGeoRaterTests(unittest.TestCase):
             f"{PRODUCTION_IMAGE_MARKER}\n\n",
         )
 
-        result = self.rate(content)
+        result = self.rate(
+            content,
+            proof_sidecar_content=AUTHOR_VERIFICATION_BLOCK + FAQ_PROOF_BLOCK,
+        )
         first_two = result["checks"]["direct_answer"]["details"]["first_two_sentences"]
 
         self.assertTrue(result["checks"]["direct_answer"]["passed"])
@@ -230,7 +249,7 @@ Answer.
             content,
             {"primary_keyword": "hvac scheduling software"},
             source_path=write_paa_fixture(self, content),
-            proof_sidecar_content=PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK,
+            proof_sidecar_content=AUTHOR_VERIFICATION_BLOCK + PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK,
         )
 
         self.assertTrue(result["checks"]["paa_provenance"]["passed"])
@@ -244,7 +263,80 @@ Answer.
         self.assertTrue(result["checks"]["eeat_proof"]["passed"])
         self.assertTrue(details["case_study_links"])
         self.assertIn("case_study_link", details["experience_signals"])
-        self.assertIn("author_metadata", details["expertise_signals"])
+        self.assertIn("verified_author_metadata", details["expertise_signals"])
+
+    def test_empty_sidecar_content_keeps_inline_author_verification_workflow(self):
+        content = COMPLIANT_ARTICLE + AUTHOR_VERIFICATION_BLOCK
+
+        result = rate_aeo_geo(
+            content,
+            {"primary_keyword": "hvac scheduling software"},
+            source_path=write_paa_fixture(self, content),
+            proof_sidecar_content="",
+        )
+
+        details = result["checks"]["eeat_proof"]["details"]
+        self.assertTrue(result["checks"]["eeat_proof"]["passed"])
+        self.assertIn("verified_author_metadata", details["expertise_signals"])
+
+    def test_author_metadata_proof_must_be_in_author_verification_section(self):
+        content = COMPLIANT_ARTICLE
+        content = content.replace("Simpro connects", "The platform connects")
+        content = content.replace(
+            "https://www.simprogroup.com/features/scheduling-software",
+            "https://www.fieldtechnologiesonline.com/",
+        ).replace(
+            "https://www.simprogroup.com/features/field-service-mobile-app",
+            "https://www.achrnews.com/",
+        ).replace(
+            "https://www.simprogroup.com/features/invoicing-software-for-construction",
+            "https://www.mckinsey.com/",
+        )
+        content += (
+            "\n\n## Editorial note\n\n"
+            "- Author: Jordan Lee | URL: https://www.simprogroup.com/authors/jordan-lee "
+            "| Evidence: Author profile reviewed | Checked date: 2026-08-06 | Status: verified\n"
+        )
+
+        result = self.rate(content, proof_sidecar_content="")
+
+        details = result["checks"]["eeat_proof"]["details"]
+        self.assertFalse(result["checks"]["eeat_proof"]["passed"])
+        self.assertNotIn("verified_author_metadata", details["expertise_signals"])
+
+    def test_bare_author_verification_scope_ends_at_next_bare_section(self):
+        proof = (
+            "Author Verification\n\n"
+            "Customer Proof Pack\n"
+            "- Author: Jordan Lee | URL: https://www.simprogroup.com/authors/jordan-lee "
+            "| Evidence: Author profile reviewed | Checked date: 2026-08-06 "
+            "| Status: verified\n"
+        )
+
+        result = self.rate(COMPLIANT_ARTICLE, proof_sidecar_content=proof)
+
+        details = result["checks"]["eeat_proof"]["details"]
+        self.assertNotIn("verified_author_metadata", details["expertise_signals"])
+
+    def test_unverified_author_metadata_does_not_count_as_expertise(self):
+        content = COMPLIANT_ARTICLE
+        content = content.replace("Simpro connects", "The platform connects")
+        content = content.replace(
+            "https://www.simprogroup.com/features/scheduling-software",
+            "https://www.fieldtechnologiesonline.com/",
+        ).replace(
+            "https://www.simprogroup.com/features/field-service-mobile-app",
+            "https://www.achrnews.com/",
+        ).replace(
+            "https://www.simprogroup.com/features/invoicing-software-for-construction",
+            "https://www.mckinsey.com/",
+        )
+
+        result = self.rate(content, proof_sidecar_content="")
+
+        details = result["checks"]["eeat_proof"]["details"]
+        self.assertFalse(result["checks"]["eeat_proof"]["passed"])
+        self.assertNotIn("verified_author_metadata", details["expertise_signals"])
 
     def test_eeat_detects_clockshark_case_study_and_workflow_links(self):
         content = COMPLIANT_ARTICLE.replace(
@@ -329,7 +421,7 @@ Answer.
             "\n[Schaffer Beacon Mechanical](https://www.simprogroup.com/case-studies/schaffer-beacon-mechanical) shows how field service teams use connected workflows to improve operational control.\n",
             "\n[Megan B's Capterra review](https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/) describes a service business using Simpro for service jobs, recurring jobs, quotes, invoices, and QBO integration.\n",
         )
-        proof_sidecar = PAA_PROVENANCE_BLOCK + """
+        proof_sidecar = AUTHOR_VERIFICATION_BLOCK + PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK + """
 ```text
 Review Story Selection
 - Article title: HVAC Scheduling Software for Contractors
@@ -369,7 +461,7 @@ Review Story Selection
             "https://www.simprogroup.com/features/scheduling-software",
             "https://www.clockshark.com/industries/construction-trades",
         )
-        proof_sidecar = PAA_PROVENANCE_BLOCK + """
+        proof_sidecar = PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK + """
 ```text
 E-E-A-T Proof Map
 - Experience proof: The rewrite uses first-party ClockShark workflow evidence from https://www.clockshark.com/blog/construction-draw-schedule and https://www.clockshark.com/tour/job-management. No customer quote, customer metric, or review story appears in public copy. | Status: approved for public use
@@ -771,6 +863,32 @@ E-E-A-T Proof Map
         self.assertFalse(result["checks"]["metadata"]["passed"])
         self.assertLess(result["score"], 90)
 
+    def test_missing_author_passes_when_last_updated_is_valid(self):
+        result = _check_metadata({"last_updated": "2026-05-22"})
+
+        self.assertTrue(result["passed"])
+        self.assertFalse(result["details"]["has_author"])
+        self.assertTrue(result["details"]["has_valid_last_updated"])
+
+    def test_invalid_or_future_last_updated_fails(self):
+        for value in ("May 22, 2026", "2999-01-01"):
+            with self.subTest(value=value):
+                result = _check_metadata({"last_updated": value})
+
+                self.assertFalse(result["passed"])
+                self.assertFalse(result["details"]["has_valid_last_updated"])
+
+    def test_future_last_updated_blocks_full_aeo_geo_pass(self):
+        content = COMPLIANT_ARTICLE.replace(
+            "Last Updated: 2026-05-22",
+            "Last Updated: 2999-01-01",
+        )
+
+        result = self.rate(content)
+
+        self.assertFalse(result["checks"]["metadata"]["passed"])
+        self.assertFalse(result["passed"])
+
     def test_faq_without_linked_proof_blocks_aeo_geo_gate(self):
         content = COMPLIANT_ARTICLE.replace(
             "[field service scheduling](https://www.fieldtechnologiesonline.com/)",
@@ -808,7 +926,10 @@ E-E-A-T Proof Map
     def test_faq_without_paa_provenance_blocks_aeo_geo_gate(self):
         content = COMPLIANT_ARTICLE.replace(PAA_PROVENANCE_BLOCK, "")
 
-        result = self.rate(content)
+        result = self.rate(
+            content,
+            proof_sidecar_content=AUTHOR_VERIFICATION_BLOCK + FAQ_PROOF_BLOCK,
+        )
 
         self.assertFalse(result["checks"]["paa_provenance"]["passed"])
         self.assertFalse(result["passed"])

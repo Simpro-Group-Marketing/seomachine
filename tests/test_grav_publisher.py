@@ -37,13 +37,13 @@ def passing_readiness():
     }
 
 
-def failing_readiness():
+def failing_readiness(gate_name="metric_proof_pack"):
     return {
         "passed": False,
         "gates": [
             {
-                "name": "metric_proof_pack",
-                "label": "Metric Proof Pack",
+                "name": gate_name,
+                "label": gate_name.replace("_", " ").title(),
                 "passed": False,
                 "blockers": ["line 1: metric_proof_pack_missing"],
             }
@@ -165,6 +165,25 @@ class PublishPreflightTests(unittest.TestCase):
     def setUp(self):
         self.pub = GravPublisher(repo="owner/repo", branch="dev", blog_path="blogs", lang="en")
 
+    def test_new_strategy_guards_block_before_grav_push(self):
+        for gate_name in ("source_quality", "blog_strategy", "schema_handoff"):
+            with self.subTest(gate_name=gate_name), tempfile.TemporaryDirectory() as tmp:
+                path = _write(tmp, "post.md", DRAFT_WITH_SLUG)
+                sidecar = _write(tmp, "validation-post.md", "Validation sidecar\n")
+                with patch(
+                    "data_sources.modules.grav_publisher.validate_file_urls",
+                    return_value=UrlValidationSummary([]),
+                ), patch(
+                    "data_sources.modules.grav_publisher.require_source_support",
+                    return_value=[],
+                ), patch(
+                    "data_sources.modules.grav_publisher.run_publish_readiness",
+                    return_value=failing_readiness(gate_name),
+                ), patch.object(self.pub, "push_article") as push_article:
+                    with self.assertRaises(GravPublishError):
+                        self.pub.publish(path, dry_run=False, proof_sidecar=sidecar)
+                push_article.assert_not_called()
+
     def test_publish_stops_before_push_when_url_validation_fails(self):
         blocked = UrlValidationResult(
             url="https://example.com/dead",
@@ -231,6 +250,79 @@ class PublishPreflightTests(unittest.TestCase):
         push_article.assert_not_called()
         self.assertIn("Publish readiness failed before Grav publish", str(raised.exception))
         self.assertIn("metric_proof_pack", str(raised.exception))
+
+    def test_dry_run_stops_before_preview_write_when_publish_readiness_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write(tmp, "post.md", DRAFT_WITH_SLUG)
+            sidecar = _write(tmp, "validation-post.md", "Metric Proof Pack\n")
+            preview_path = (
+                Path(__file__).resolve().parents[1]
+                / ".grav-preview"
+                / "modern-customer-payments"
+                / "article.en.md"
+            )
+            if preview_path.exists():
+                preview_path.unlink()
+            with patch(
+                "data_sources.modules.grav_publisher.validate_file_urls",
+                return_value=UrlValidationSummary([]),
+            ), patch(
+                "data_sources.modules.grav_publisher.require_source_support",
+                return_value=[],
+            ), patch(
+                "data_sources.modules.grav_publisher.run_publish_readiness",
+                return_value=failing_readiness(),
+            ) as readiness:
+                with self.assertRaises(GravPublishError):
+                    self.pub.publish(path, dry_run=True, proof_sidecar=sidecar)
+
+        readiness.assert_called_once_with(path, proof_sidecar=sidecar)
+        self.assertFalse(preview_path.exists())
+
+    def test_publish_forwards_context_artifacts_to_publish_readiness(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            path = _write(tmp, "post.md", DRAFT_WITH_SLUG)
+            sidecar = _write(tmp, "validation-post.md", "Metric Proof Pack\n")
+            request = root / "request.json"
+            pack = root / "pack.json"
+            receipt = root / "receipt.json"
+            vault_root = root / "vault"
+            for artifact in (request, pack, receipt):
+                artifact.write_text("{}", encoding="utf-8")
+            vault_root.mkdir()
+            with patch(
+                "data_sources.modules.grav_publisher.validate_file_urls",
+                return_value=UrlValidationSummary([]),
+            ), patch(
+                "data_sources.modules.grav_publisher.require_source_support",
+                return_value=[],
+            ), patch(
+                "data_sources.modules.grav_publisher.run_publish_readiness",
+                return_value=passing_readiness(),
+            ) as readiness, patch.object(
+                self.pub,
+                "push_article",
+                return_value={"action": "created", "commit_url": "https://github.example/commit"},
+            ):
+                self.pub.publish(
+                    path,
+                    dry_run=False,
+                    proof_sidecar=sidecar,
+                    context_request=str(request),
+                    context_pack=str(pack),
+                    context_receipt=str(receipt),
+                    vault_root=str(vault_root),
+                )
+
+        readiness.assert_called_once_with(
+            path,
+            proof_sidecar=sidecar,
+            context_request=str(request),
+            context_pack=str(pack),
+            context_receipt=str(receipt),
+            vault_root=str(vault_root),
+        )
 
     def test_publish_runs_readiness_before_grav_push(self):
         calls = []

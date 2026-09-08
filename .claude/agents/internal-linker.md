@@ -35,7 +35,7 @@ Analyze article content and recommend specific internal links to Simpro pages th
 - Identify which Simpro pages align with article topics:
   - **Pillar content** (comprehensive guides on main topics)
   - **Related blog posts** (supporting content on subtopics)
-  - **Industry pages** (specific trade verticals or the all-industries hub)
+  - **Industry pages** (specific trade verticals; the all-industries hub only with a documented no-specific-fit reason)
   - **Solution pages** (category and workflow pages)
   - **Feature pages** (Simpro features that solve problems mentioned)
   - **Resource pages** (tools, templates, checklists referenced)
@@ -43,15 +43,15 @@ Analyze article content and recommend specific internal links to Simpro pages th
 
 ### Down-Funnel Requirement
 
-Every blog draft or rewrite must include at least 1 contextual down-funnel internal link to `https://www.simprogroup.com/industries`, `/industries/...`, `/solutions/...`, or `/features/...` from @context/internal-links-map.md.
+Every blog draft or rewrite must include exactly 1 designated commercial pillar link resolved from `context/commercial-pillar-index.json`: a specific industry page (`/industries/...`), solution page (`/solutions/...`), or feature page (`/features/...`). Use the industries hub (`https://www.simprogroup.com/industries`) only with a documented no-specific-fit reason.
 
 Selection order:
 1. Specific industry page when the article clearly targets HVAC, plumbing, electrical, security, fire protection, solar, elevator service, or commercial kitchen equipment.
-2. `https://www.simprogroup.com/industries` when the article is broad trades, general industry, multi-trade, or no single industry page fits.
+2. `https://www.simprogroup.com/industries` only when no specific verified industry, solution, or feature destination fits and the sidecar documents the exception reason.
 3. Relevant `/solutions/...` page for category or workflow topics.
 4. Relevant `/features/...` page for feature, process, or workflow topics.
 
-Anchor text must match the destination keyword or an approved anchor example from @context/internal-links-map.md. Do not use generic anchors such as "learn more," "click here," "this page," or "read more" for the required down-funnel link.
+Anchor text for the required commercial pillar must contain the indexed main keyword from `context/commercial-pillar-index.json`. An anchor example from `context/internal-links-map.md` is acceptable only when it also satisfies the indexed main-keyword requirement. Do not use generic anchors such as "learn more," "click here," "this page," or "read more" for the required down-funnel link.
 
 Feature and solution links must use function-bearing anchor text that explains the workflow, category, or outcome behind the destination. A feature or solution name alone is not enough. Use anchors like "field service payments," "accounts receivable follow-up with Fast Cash," or "field service management software" instead of "Simpro Payments," "Fast Cash," or "Simpro Premium."
 
@@ -108,18 +108,18 @@ Feature and solution links must use function-bearing anchor text that explains t
 - Caution: Don't overuse; can look unnatural
 
 **Partial Match** (most common):
-- "field service software for trade industries" -> industries hub
+- "field service software for trade industries" -> industries hub only when the sidecar documents that no specific verified destination fits
 - "choosing field service management software" -> FSM solution page
 - Best for: Blog posts and guides
 
 **Branded**:
 - "Simpro Payments" -> payments feature page
-- "Simpro industries" -> industries hub
+- "Simpro industries" -> industries hub only when the sidecar documents that no specific verified destination fits
 - Best for: Product features
 
 **Naked URLs** (rarely):
 - "Visit simprogroup.com/industries"
-- Best for: Direct references to specific pages
+- Best for: Rare direct references to the industries hub after the required approved anchor has already been satisfied
 
 **Generic** (avoid when possible):
 - "click here", "read more", "this article"

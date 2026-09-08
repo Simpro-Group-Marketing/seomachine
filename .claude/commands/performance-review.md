@@ -13,6 +13,8 @@ Use this command to analyze content performance data and generate a prioritized 
 5. Creates actionable task queue with specific next steps
 6. Generates comprehensive performance report
 
+For blog work, read the `blog-strategy-contract/v1` `Lifecycle Refresh Record` from the validation sidecar and preserve the bound `Commercial Pillar and Anchor Decision`. Keep GSC, GA4, Semrush, and AI-citation evidence in separate lanes. Write `unavailable: [reason]` or `not_applicable: [reason]` when a lane cannot be queried. Never substitute zero for unavailable evidence or claim an improvement without dated source data. The strategy source remains `context/commercial-pillar-index.json`; this command does not change the pillar, `Search Intent and Format Decision`, or lifecycle cadence without a new evidence-backed review.
+
 ## Process
 
 ### Data Collection
@@ -288,27 +290,7 @@ After full review, drill into specific pages:
 
 ## Expected Impact
 
-Based on typical results:
-
-**Quick Wins** (Position 11-20 → 5-10):
-- Average traffic increase: 40-80%
-- Timeframe: 2-8 weeks
-- Success rate: 60-70% move to page 1
-
-**Declining Content Updates**:
-- Average recovery: 50-90% of lost traffic
-- Timeframe: 2-4 weeks
-- Often exceeds original performance with refresh
-
-**Low CTR Meta Improvements**:
-- Average CTR increase: 30-60%
-- Timeframe: Immediate (1-2 weeks)
-- Easiest wins with guaranteed impact
-
-**New Trending Content**:
-- Variable based on competition
-- First-mover advantage significant
-- Build authority before competition heats up
+Do not attach generic uplift ranges, success rates, recovery promises, time-to-impact claims, or guaranteed outcomes to recommendations. State an expected directional mechanism only when the current evidence supports it, then define the dated GSC, GA4, Semrush, or AI-citation measurement that will confirm or reject the hypothesis at the next review. Treat unavailable lanes as unavailable, not as zero performance.
 
 ## Success Criteria
 

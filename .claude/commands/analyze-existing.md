@@ -1,5 +1,11 @@
 # Analyze Existing Command
 
+
+## Production SEO Strategy Contract
+
+This workflow uses `blog-strategy-contract/v1`, `context/commercial-pillar-index.json`, and the validation-sidecar sections `Search Intent and Format Decision`, `Commercial Pillar and Anchor Decision`, and `Lifecycle Refresh Record`. The exact fields and fail-closed rules live in `context/aeo-geo-blog-strategy.md` and the mirrored `seo-blog-strategy` rule. Every Simpro blog requires exactly 1 verified solution, industry, or feature commercial pillar; a blog is only an optional informational hub. Current US Semrush evidence authorizes US only. The final visible anchor must contain the indexed main keyword and use the canonical URL in the planned H2. Source quality, lifecycle, vault, proof, FAQ, Fred, artifact, and score gates remain independent and blocking.
+
+Analysis must compare the article's primary keyword and observed intent with its commercial pillar and existing overlapping URLs. It must record whether the blog competes with the destination and block new creation for `update_existing` or `consolidate`.
 Use this command to review and analyze existing your company blog posts for SEO opportunities, content gaps, and improvement areas.
 
 ## Usage
@@ -139,7 +145,7 @@ If a rewrite is recommended, provide initial research brief including:
 - Main answer target and AEO/GEO variable resolution
 - PAA/FAQ provenance and selected 3-5 closest questions with intent labels
 - Insight summary and suggested blog focus
-- Source map with source, claim, anchor text, and target section
+- Source Map with every required claim-level source quality and freshness field
 - E-E-A-T Proof Map with Experience proof present/missing, Expertise proof present/missing, case-study proof candidates, Review-site VoC candidates, review-site experience evidence candidates, Authority/Trust proof, and any proof gaps that must remain out of the rewrite
 - Customer Proof Pack with Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved quotes, Approved metrics, Use in copy, Claims excluded, and approval status
 - Context-backed metrics that can be used only with public-facing source links

@@ -44,25 +44,29 @@ research/validation-[topic-slug]-[YYYY-MM-DD].md
 
 The command runs the complete publish-readiness stack:
 
-1. `public_artifact_guard`
-2. `ai_copy_linter`
-3. `url_validator`
-4. `public_research_link_guard`
-5. `metric_proof_pack_guard`
-6. `numeric_claim_source_guard`
-7. `faq_answer_quality_guard.py`
-8. `faq_proof_guard`
-9. `paa_provenance_guard`
-10. `source_support_guard`
-11. `customer_proof_diversity_guard`
-12. `review_story_identity_guard`
-13. `early_artifact_guard`
-14. `answer_withholding_guard`
-15. `vault_brand_language_guard`
-16. `named_feature_status` via `named_feature_status_guard.py`
-17. `source_routing_guard`
-18. `fred_authority` via `fred_authority_guard.py`
-19. `content_scorer` with URL and source-support validation
+1. `context_binding`
+2. `public_artifact_guard`
+3. `ai_copy_linter`
+4. `url_validator`
+5. `public_research_link_guard`
+6. `metric_proof_pack_guard`
+7. `numeric_claim_source_guard`
+8. `faq_answer_quality_guard.py`
+9. `faq_proof_guard`
+10. `paa_provenance_guard`
+11. `source_support_guard`
+12. `source_quality` via `source_quality_guard.py`
+13. `customer_proof_diversity_guard`
+14. `review_story_identity_guard`
+15. `early_artifact_guard`
+16. `answer_withholding_guard`
+17. `vault_brand_language_guard`
+18. `named_feature_status` via `named_feature_status_guard.py`
+19. `source_routing_guard`
+20. `blog_strategy` via `blog_strategy_guard.py`
+21. `schema_handoff` via `schema_handoff_guard.py`
+22. `fred_authority` via `fred_authority_guard.py`
+23. `content_scorer` with URL and source-support validation
 
 The blocking `fred_authority` gate passes the validation sidecar to `fred_authority_guard.py`. It requires a complete `Fred Voccola Authority Selection` evaluation for every new or changed Simpro blog and for existing content when next rewritten, optimized, or passed through publish readiness. A selector or vault failure remains blocked; public Fred use is optional and receives no AEO/E-E-A-T credit merely because the internal block exists.
 
@@ -71,6 +75,11 @@ FAQ answer-quality rule: every FAQ must use a 40-60 word first paragraph and lea
 FAQ Source Policy: Gate 8 receives the proof sidecar and requires one exact `FAQ Proof Map` row for each visible non-owned FAQ URL: `FAQ`, `URL`, `Source class`, `Competitor check`, and `Support`. The only allowed classes are `neutral` and `non_competing_expert`. Competitor-owned FAQ sources: prohibited. Simpro-owned links remain supplemental and cannot satisfy the non-owned proof requirement; reframe or remove vendor-specific FAQs without compliant evidence.
 
 
+## Production SEO Strategy Contract
+
+This workflow uses `blog-strategy-contract/v1`, `context/commercial-pillar-index.json`, and the validation-sidecar sections `Search Intent and Format Decision`, `Commercial Pillar and Anchor Decision`, and `Lifecycle Refresh Record`. The exact fields and fail-closed rules live in `context/aeo-geo-blog-strategy.md` and the mirrored `seo-blog-strategy` rule. Every Simpro blog requires exactly 1 verified solution, industry, or feature commercial pillar; a blog is only an optional informational hub. Current US Semrush evidence authorizes US only. The final visible anchor must contain the indexed main keyword and use the canonical URL in the planned H2. Source quality, lifecycle, vault, proof, FAQ, Fred, artifact, and score gates remain independent and blocking.
+
+Publish readiness independently revalidates the complete contract, index integrity and freshness, Brand/Market, keyword separation, article link and anchor, planned H2, and the existing URL summary's final URL. There is no warning-only publisher bypass.
 403 replacement rule: If a DOL, Capterra, G2, Trustpilot, Google Play, or other public research/source URL returns 401, 403, or `manual_review`, do not remove the citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. Source Map notes must document both the rejected 403 URL and the replacement URL. The `public_research_link_guard` blocks sidecar-only handling of public research, compliance, legal, regulatory, or statistical proof and requires visible resolved non-owned public research links in the relevant article section or FAQ answer. Full policy lives in `context/aeo-geo-blog-strategy.md`.
 
 ## Output

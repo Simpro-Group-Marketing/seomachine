@@ -32,6 +32,7 @@ def long_article(primary_keyword="payments for trades businesses"):
         + "\n\n".join(sections)
         + "\n\n[field service payments](https://www.simprogroup.com/features/payments)\n"
         + "[accounts receivable follow-up with Fast Cash](https://www.simprogroup.com/features/fast-cash)\n"
+        + "[field service management software](https://www.simprogroup.com/solutions/field-service-management-software)\n"
         + "[TEAMWired](https://www.simprogroup.com/case-studies/teamwired)\n"
         + "[Federal Reserve](https://www.frbservices.org/news)\n"
         + "[J.D. Power](https://www.jdpower.com/business)\n"
@@ -77,7 +78,7 @@ def concise_article_with_links(primary_keyword="payments for trades businesses")
         + "\n\n"
         + "[field service payments](https://www.simprogroup.com/features/payments)\n"
         + "[accounts receivable follow-up with Fast Cash](https://www.simprogroup.com/features/fast-cash)\n"
-        + "[field service management software](https://www.simprogroup.com/solutions/field-service-management)\n"
+        + "[field service management software](https://www.simprogroup.com/solutions/field-service-management-software)\n"
         + "[Federal Reserve](https://www.frbservices.org/news)\n"
         + "[J.D. Power](https://www.jdpower.com/business)\n"
     )
@@ -670,7 +671,7 @@ class OptimizerModuleTests(unittest.TestCase):
         self.assertNotIn("Too few internal links", "\n".join(result["warnings"] + result["suggestions"]))
         self.assertNotIn("down-funnel", "\n".join(result["critical_issues"]))
 
-    def test_seo_quality_rater_accepts_industries_hub_down_funnel_link(self):
+    def test_seo_quality_rater_rejects_unverified_industries_hub_link(self):
         result = rate_article_with_links(
             "[field service management solutions for your industry]"
             "(https://www.simprogroup.com/industries)\n"
@@ -678,18 +679,18 @@ class OptimizerModuleTests(unittest.TestCase):
             "[Simpro pricing](https://www.simprogroup.com/pricing)\n"
         )
 
-        self.assertTrue(result["publishing_ready"], result)
-        self.assertNotIn("down-funnel", "\n".join(result["critical_issues"]))
+        self.assertFalse(result["publishing_ready"], result)
+        self.assertIn("verified commercial pillar index", "\n".join(result["critical_issues"]))
 
-    def test_seo_quality_rater_accepts_feature_down_funnel_link(self):
+    def test_seo_quality_rater_rejects_unindexed_feature_down_funnel_link(self):
         result = rate_article_with_links(
             "[field service payments](https://www.simprogroup.com/features/payments)\n"
             "[accounts receivable follow-up with Fast Cash](https://www.simprogroup.com/features/fast-cash)\n"
             "[TEAMWired](https://www.simprogroup.com/case-studies/teamwired)\n"
         )
 
-        self.assertTrue(result["publishing_ready"], result)
-        self.assertNotIn("down-funnel", "\n".join(result["critical_issues"]))
+        self.assertFalse(result["publishing_ready"], result)
+        self.assertIn("verified commercial pillar index", "\n".join(result["critical_issues"]))
 
     def test_seo_quality_rater_rejects_name_only_feature_anchor(self):
         cases = [
@@ -733,6 +734,19 @@ class OptimizerModuleTests(unittest.TestCase):
         self.assertTrue(result["publishing_ready"], result)
         self.assertNotIn("down-funnel", "\n".join(result["critical_issues"]))
 
+    def test_seo_quality_rater_rejects_relative_simpro_commercial_link(self):
+        result = rate_article_with_links(
+            "[field service management software]"
+            "(/solutions/field-service-management-software)\n"
+            "[TEAMWired](https://www.simprogroup.com/case-studies/teamwired)\n"
+            "[Simpro pricing](https://www.simprogroup.com/pricing)\n"
+        )
+
+        issues = "\n".join(result["critical_issues"])
+        self.assertFalse(result["publishing_ready"], result)
+        self.assertIn("verified commercial pillar index", issues)
+        self.assertIn("exact absolute canonical URL", issues)
+
     def test_seo_quality_rater_rejects_name_only_solution_anchor(self):
         result = rate_article_with_links(
             "[Simpro Premium](https://www.simprogroup.com/solutions/simpro-premium)\n"
@@ -768,6 +782,19 @@ class OptimizerModuleTests(unittest.TestCase):
         issues = "\n".join(result["critical_issues"])
         self.assertFalse(result["publishing_ready"], result)
         self.assertIn("generic anchor text", issues)
+
+    def test_seo_quality_rater_weak_down_funnel_anchor_guidance_uses_indexed_keyword_language(self):
+        result = rate_article_with_links(
+            "[operations platform]"
+            "(https://www.simprogroup.com/solutions/field-service-management-software)\n"
+            "[TEAMWired](https://www.simprogroup.com/case-studies/teamwired)\n"
+            "[Simpro pricing](https://www.simprogroup.com/pricing)\n"
+        )
+
+        issues = "\n".join(result["critical_issues"])
+        self.assertFalse(result["publishing_ready"], result)
+        self.assertIn("indexed main keyword", issues)
+        self.assertNotIn("destination keyword", issues)
 
     def test_seo_quality_rater_rejects_unresolved_urls_when_validation_is_enabled(self):
         blocked = UrlValidationResult(

@@ -1,5 +1,11 @@
 # Write Command
 
+
+## Production SEO Strategy Contract
+
+This workflow uses `blog-strategy-contract/v1`, `context/commercial-pillar-index.json`, and the validation-sidecar sections `Search Intent and Format Decision`, `Commercial Pillar and Anchor Decision`, and `Lifecycle Refresh Record`. The exact fields and fail-closed rules live in `context/aeo-geo-blog-strategy.md` and the mirrored `seo-blog-strategy` rule. Every Simpro blog requires exactly 1 verified solution, industry, or feature commercial pillar; a blog is only an optional informational hub. Current US Semrush evidence authorizes US only. The final visible anchor must contain the indexed main keyword and use the canonical URL in the planned H2. Source quality, lifecycle, vault, proof, FAQ, Fred, artifact, and score gates remain independent and blocking.
+
+Writing must preserve the researched Destination ID, canonical URL, indexed main keyword, anchor, planned H2, Brand, and Market. Do not substitute a pillar or synonym during drafting. The designated commercial pillar is the required down-funnel internal link to a specific industry page (`/industries/...`), solution page (`/solutions/...`), or feature page (`/features/...`), according to the verified record. Use the industries hub (`https://www.simprogroup.com/industries`) only with a documented no-specific-fit reason. Anchor text must contain the indexed main keyword and at least 1 occurrence must match the planned anchor after normalization. Missing author passes; Person only when a verified author exists. Schema notes must never be reported as rendered JSON-LD implementation.
 Use this command to create comprehensive, SEO-optimized long-form blog content.
 
 For every Simpro blog, read `wiki/messaging/Voice and Tone.md` and `wiki/messaging/Tone Voice and Localization Rules.md` from the vault. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Em dashes are prohibited. Product pages and landing pages retain their existing restrained channel treatment.
@@ -67,7 +73,7 @@ Before drafting, resolve an E-E-A-T Proof Map:
 
 ### Down-Funnel Internal Link Rule
 
-Every draft must include at least 1 contextual down-funnel internal link to `/industries`, `/industries/...`, `/solutions/...`, or `/features/...` from @context/internal-links-map.md. Prefer the specific industry page when industry intent is clear, the `https://www.simprogroup.com/industries` hub for broad trades or general industry topics, the relevant solution page for category/workflow topics, and the relevant feature page for feature/workflow topics. Anchor text must match the destination keyword or an approved anchor example from @context/internal-links-map.md.
+Every draft must include exactly 1 designated commercial pillar from `context/commercial-pillar-index.json`: a specific industry page for vertical intent, a solution page for category/cross-workflow intent, or a feature page for capability intent. Use the industries hub only when no specific verified destination fits and record why. The exact canonical URL appears in the planned H2 and at least 1 visible anchor contains the indexed main keyword. Informational blog hubs are optional supporting links.
 
 Feature and solution links must use function-bearing anchor text that explains the workflow, category, or outcome behind the destination. A feature or solution name alone is not enough. Use anchors like "field service payments," "accounts receivable follow-up with Fast Cash," or "field service management software" instead of "Simpro Payments," "Fast Cash," or "Simpro Premium."
 
@@ -157,13 +163,14 @@ Apply these requirements from @context/aeo-geo-blog-strategy.md:
 - **Concrete answers**: If the target query implies a number, range, or template, supply a concrete version with disclaimers as needed. Placeholder-only table cells such as `TBD` or `Enter lender-approved value` block publish. Full policy lives in `context/aeo-geo-blog-strategy.md`.
 - **PAA selection**: Use 3-5 complete natural-language PAA or FAQ questions from AnswerSocrates, SERP research, Reddit, YouTube, or a user-provided CSV. Do not use AnswerSocrates keyword fragments or query modifiers as FAQ headings or selected questions.
 - **Source mapping**: Integrate at least three credible external sources inside natural sentences; map each source to the claim it supports.
+- **Source quality fields**: Each public Source Map row requires `Claim`, `Claim type`, `URL`, `Evidence`, `Source class`, `Original-source status`, `Source date`, `Checked date`, `Claim fit: direct`, `Freshness decision`, `Freshness reason`, `Status`, and `Intended use`. Statistics require original sources; regulations and standards require official sources. Competitor evidence cannot support neutral verdicts, recommendations, or FAQs. Source Map never bypasses stricter proof or vault evidence.
 - **FAQ answer quality**: Write a 40-60 word first paragraph that leads with a supported number or range, named recommendation, definition, concrete action, or explained yes/no response. Generic deflections such as `There is no`, `It depends`, `Pricing depends`, `Costs vary`, `We do not know`, `It is unclear`, and `No source ranks` block publish readiness. Put limitations after the direct answer.
 - **FAQ proof**: Every FAQ answer must include at least 1 authoritative non-owned public evidence link inside the visible answer. A Source Map or FAQ Proof Map can document the same evidence but cannot replace the reader-facing link.
 - **FAQ Source Policy**: Every visible non-owned FAQ URL needs an exact `FAQ Proof Map` row with `FAQ`, `URL`, `Source class`, `Competitor check`, and `Support`. Use only `neutral` or `non_competing_expert` sources. Competitor-owned FAQ sources: prohibited.
 - **Permitted FAQ evidence**: regulators, standards bodies, universities, trade associations, independent research/editorial, and non-competing experts. Simpro-owned links can be extra reader resources but cannot satisfy FAQ proof.
 - **Vendor-specific FAQs**: remove or reframe an FAQ without compliant evidence; retain vendor evidence in comparison or vendor-specific body sections.
 - **FAQ quality gate**: Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error` before scoring or optimization; `/publish-readiness` runs it automatically.
-- **E-E-A-T Proof Map**: Include named author, last-updated date, reviewer if available, Experience proof, Expertise proof, Authority/Trust proof, named customer proof or expert quote, and honest limitations where relevant.
+- **E-E-A-T Proof Map**: Include a verified author only when one is supplied, a required valid last-updated date, a proof-gated reviewer if present, Experience proof, Expertise proof, Authority/Trust proof, named customer proof or expert quote, and honest limitations where relevant.
 - **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, keywords, product framing, internal links, approved claims, proof candidates, and approved metrics only when the Obsidian vault is unavailable; otherwise treat them as repo-local mirrors/fallbacks. Public copy may use public sources and context-backed proof, but must not mention "repo context," context file paths, Source Maps, PAA artifacts, change summaries, or internal proof-path notes.
 - **Customer proof routing**: When citing customer proof, pair the case-study URL/theme from @context/internal-links-map.md with the metric/proof point from @context/features.md. Use exact quotes only when verified from the case-study page, Quote Matrix, Customer Stories, or References; if no mapped metric exists, cite only the broad theme.
 - **Customer proof selection governance**: Before selecting or drafting proof, resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and write the generated selector-first `Customer Proof Slate` to the validation sidecar. If inputs are missing, resolve them from the brief/context or stop before drafting customer proof. If the selector fails, write the blocker into the sidecar and do not invent proof. experience_story consideration is required and E-E-A-T story usage is optional. If no story fits, use `Selected: [none]` with section-specific rejection reasons. Full policy lives in `context/aeo-geo-blog-strategy.md`.
@@ -174,7 +181,7 @@ Apply these requirements from @context/aeo-geo-blog-strategy.md:
 - **Proof-index intake**: Add new proof candidates through `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates.
 - **Review proof routing**: For review-derived E-E-A-T stories, automatically run `customer_proof_selector.py` with `--slate --roles experience_story --require-eeat-story`, then run the review story identity gate from the required stack below. Use `context/aeo-geo-blog-strategy.md` for Review Story Selection, Review Site Theme Selection, Capterra theme use, exact-quote, rating, and metric boundaries.
 - **Customer Proof Pack**: Use the brief's Customer Proof Pack before placing direct quotes, named customer proof, approved metrics, or review-derived Experience patterns. If the pack is partial or blocked, omit unsupported claims.
-- **Schema notes**: For standard blog posts with FAQs, include BlogPosting, BreadcrumbList, and FAQPage. Nest Person as author, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Keep the Author frontmatter field mapped to Person. Use VideoObject only when a video is embedded.
+- **Schema notes**: Put the later CMS handoff in top YAML `schema_notes`. Always include BlogPosting, BreadcrumbList, ImageObject, and Organization as publisher reference. Add FAQPage with nested Question and Answer only when visible FAQs exist. Add Person only when a verified author exists. Add VideoObject if and only if a video is embedded. Missing author passes. Schema notes must never be reported as rendered JSON-LD implementation.
 
 #### 4. Main Body (use caller-supplied, intent/evidence-complete section targets)
 - **Logical Flow**: Organize sections in clear, progressive order
@@ -234,7 +241,7 @@ Give the reader a useful next action that fits the Reader Contract and funnel st
 
 #### Internal Linking (3-5+ links)
 - Reference @context/internal-links-map.md for key pages
-- Link to relevant pillar content from your site
+- Link the exact researched commercial solution, industry, or feature URL with an anchor containing its indexed main keyword; informational blog hubs remain optional supporting links
 - Link to related blog articles
 - Link to product/service pages where natural
 - Use descriptive anchor text with keywords
@@ -314,14 +321,14 @@ Word Count: [actual word count]
 - [ ] **YouTube embed**: Video eligibility evaluated; an eligible selected video is embedded when it materially supports the article, otherwise the embed is omitted
 - [ ] **FAQ prompts**: Questions written in natural language people would type into ChatGPT, not keyword fragments from AnswerSocrates
 - [ ] **One idea per section**: Each H2/H3 focuses on a single clear concept
-- [ ] **Author attribution**: Named author in frontmatter
+- [ ] **Author attribution**: Omitted or verified; a valid Last Updated date remains required
 - [ ] **Capsule Method**: H1 and 60%+ major H2s include 50-60 word direct-answer capsules
 - [ ] **Early usable artifact**: A filled data table, download link, checklist deliverable, or calculator reference starts within the first 300 words of body copy, or the sidecar documents a not-applicable reason
 - [ ] **Concrete answers**: Number/range/template queries get a concrete answer; no placeholder table scaffolds
 - [ ] **PAA**: 3-5 selected PAA/FAQ questions are answered in the draft
 - [ ] **source mapping**: At least three source-backed claims use natural contextual links
 - [ ] **Customer Proof Pack**: Selector automatically run, selected proof mined with `Selected Customer Proof Mining`, recent-use or overuse reason added when needed, and approved quotes/metrics mapped before use. Full proof boundaries live in `context/aeo-geo-blog-strategy.md`.
-- [ ] **Schema**: BlogPosting, BreadcrumbList, FAQPage, Person as author, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. VideoObject is included only when relevant.
+- [ ] **Schema**: CMS handoff includes BlogPosting, BreadcrumbList, ImageObject, and Organization publisher reference; FAQPage only for visible FAQs, Person only for a verified author, and VideoObject if and only if embedded
 
 ### 5. Engagement Checklist
 - [ ] **Hook**: Opens with question, scenario, statistic, or bold statement (NOT generic definition)
@@ -350,7 +357,7 @@ Example: `drafts/content-marketing-strategies-2025-10-15.md`
 
 ## Validation Sidecar
 
-Proof infrastructure belongs only in the validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`; the draft records only its sidecar path and status. Do not put an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan in the publishable blog draft. Use VideoObject only when a video is embedded.
+Proof infrastructure belongs only in the validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`; the draft records only its sidecar path and status. Do not put an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, `Search Intent and Format Decision`, `Commercial Pillar and Anchor Decision`, `Lifecycle Refresh Record`, or structured data plan in the publishable blog draft. Use VideoObject if and only if a video is embedded.
 
 Preferred publish readiness command:
 ```bash

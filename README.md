@@ -4,6 +4,12 @@ Simpro Marketing's Claude Code workspace for **SEO and AEO/GEO blog posts** — 
 
 Fork of [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/seomachine), customized on branch `custom/local-context` for [simprogroup.com](https://www.simprogroup.com).
 
+## Production SEO Blog Guardrails
+
+Simpro blog workflows use `blog-strategy-contract/v1` with exactly 1 `Search Intent and Format Decision`, `Commercial Pillar and Anchor Decision`, and `Lifecycle Refresh Record` in the validation sidecar. `context/commercial-pillar-index.json` is the sole executable source for the required commercial solution, industry, or feature destination. Article planning and publish readiness revalidate Brand, Market, destination title, regional Semrush evidence, keyword separation, canonical URL, planned H2, and an anchor containing the indexed main keyword. A blog remains an optional informational hub, never the commercial pillar. Source quality and lifecycle checks are blocking alongside all existing proof, vault, FAQ, PAA, artifact, Fred, and score gates.
+
+Missing author passes when `Last Updated: YYYY-MM-DD` is valid. Schema is a later CMS stage: top YAML frontmatter `schema_notes` is checked as a handoff. It always includes BlogPosting, BreadcrumbList, ImageObject, and Organization publisher reference; FAQPage with Question and Answer only when visible FAQs exist; Person only when a verified author exists; and VideoObject if and only if embedded. Schema notes must never be reported as rendered JSON-LD implementation.
+
 ## Obsidian Vault Source Rule
 
 For every blog, SEO, AEO, competitor, proof, product, audience, partner, or workflow decision, use the Obsidian vault as the active context source: `C:\Users\patrick.grueschow\Desktop\Obsidian\Simpro Brand Context`.
@@ -777,7 +783,7 @@ Every Simpro blog post should meet these requirements:
 - [ ] Natural terminology coverage, semantic variations, and keyword-stuffing detection checked per `seo-guidelines.md`
 - [ ] Keyword in H1, first 100 words, at least one relevant H2 where natural, conclusion, meta, and slug
 - [ ] 3-5 internal links from `internal-links-map.md` (performance-prioritized pages where relevant)
-- [ ] At least 1 down-funnel internal link to `https://www.simprogroup.com/industries`, `/industries/...`, `/solutions/...`, or `/features/...`; Anchor text must match the destination keyword
+- [ ] Exactly 1 designated commercial pillar link resolved from `context/commercial-pillar-index.json`: a specific industry page, solution page, or feature page; use the industries hub only with a documented no-specific-fit reason; anchor text must contain the indexed main keyword
 - [ ] 2-3 credible external sources with natural in-sentence attribution
 - [ ] Meta title 50-60 characters with `| Simpro` when space allows
 - [ ] Meta description 150-160 characters with accurate value or action language suited to search intent
@@ -790,8 +796,8 @@ Every Simpro blog post should meet these requirements:
 - [ ] FAQ proof passes: every FAQ answer contains at least 1 authoritative non-owned public evidence link in visible copy. A Source Map or FAQ Proof Map cannot replace the link.
 - [ ] PAA provenance passes: every FAQ question appears exactly in the selected questions and saved source artifact
 - [ ] E-E-A-T Proof Map resolved with Experience proof and Expertise proof, including review-site experience evidence when reviews show first-hand customer experience
-- [ ] Named author, last-updated date, and customer or expert proof where applicable
-- [ ] Schema notes: BlogPosting, BreadcrumbList, and FAQPage for standard blog posts with FAQs; nested Person as author; Question and Answer inside FAQPage; ImageObject for the featured image or logo; Organization as publisher reference only, not a separate full schema block; for public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters; VideoObject only if embedded
+- [ ] Valid last-updated date; author omitted or verified; customer or expert proof where applicable
+- [ ] Schema handoff notes: always BlogPosting, BreadcrumbList, ImageObject, and Organization publisher reference; FAQPage with Question and Answer only for visible FAQs; Person only for a verified author; VideoObject if and only if embedded; never report the notes as rendered JSON-LD
 - [ ] Target **90+** on `aeo_geo_rater` when run through `content_scorer`
 
 ### Readability
@@ -826,7 +832,7 @@ Every Simpro blog post should meet these requirements:
 6. **FAQ quality and proof**: Every FAQ must use a 40-60 word first paragraph, lead with a concrete extractable answer, and contain at least 1 authoritative non-owned public evidence link in visible copy. A Source Map or FAQ Proof Map cannot replace the link.
 7. **Source support proof**: Add strict proof rows with Claim, Approved quote, or Approved metric plus URL, Evidence, and Status: approved for high-risk claims. Evidence must be visible in the cited public source or local proof artifact.
 8. **Source mapping**: At least three external claims with clear attribution
-9. **Down-funnel link**: Add 1 contextual down-funnel internal link to an industry, solution, or feature page. Use `https://www.simprogroup.com/industries` for broad trades topics when no single industry page fits.
+9. **Down-funnel link**: Add exactly 1 designated commercial pillar link resolved from `context/commercial-pillar-index.json`: a specific industry page for vertical intent, a solution page for category/cross-workflow intent, or a feature page for capability intent. Use `https://www.simprogroup.com/industries` only when no specific verified destination fits and the validation sidecar documents why.
 10. **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics only when the Obsidian vault is unavailable; otherwise treat them as repo-local mirrors/fallbacks. Draft bodies may use public sources and context-backed proof, but must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, internal proof-path instructions, or source/proof meta-commentary. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 11. **Competitive framing**: Use `Competitive Shortlist Decision` from the validation sidecar and `competitor-analysis.md` only as a fallback mirror; differentiate, do not disparage
 

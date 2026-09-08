@@ -16,7 +16,7 @@ This document outlines SEO best practices and requirements for all Simpro blog c
 
 ### Target Scope
 - **Standard Blog Post**: cover the search intent and reader task without filler
-- **Pillar Content / Comprehensive Guides**: cover the full decision, workflow, or cluster when evidence supports that depth
+- **Comprehensive informational guides**: cover the full decision, workflow, or cluster when evidence supports that depth; this content type is not the required commercial pillar
 - **How-To Guides**: include every step, artifact, caveat, and proof source needed for the task
 - **News / Updates**: stay concise and source-bound
 
@@ -214,22 +214,20 @@ Primary keyword MUST appear in:
 
 ### Link Types to Include
 
-#### 1. Pillar Content (1-2 links)
-- Link to main comprehensive guides on related topics
-- Builds topic cluster authority
-- Usually cornerstone content that fully covers a broad cluster or decision path
+#### 1. Commercial Pillar (exactly 1 link)
+- Every Simpro blog designates exactly 1 commercial pillar: a solution, industry, or feature page verified in `context/commercial-pillar-index.json`
+- Select an industry page for a vertical topic, a solution page for a category or cross-workflow topic, and a feature page for a capability-led topic
+- Use the industries hub only when no specific verified destination fits and record the reason
+- The visible anchor must contain the destination's indexed main keyword and fit the destination page title
+- The article primary keyword must remain distinct from the destination main keyword so the blog and commercial page own different intent
 
-#### 2. Related Blog Posts (2-3 links)
+#### 2. Informational Hub and Related Blogs (optional supporting links)
+- An Informational hub is an optional supporting blog link, not the commercial pillar
 - Link to articles on related subtopics
 - Creates content web
 - Helps readers explore topics comprehensively
 
-#### 3. Product/Feature Pages (0-1 link)
-- Only when contextually relevant
-- Natural mention of how Simpro solves the problem
-- Never forced or overly promotional
-
-#### 4. Resource Pages (0-1 link)
+#### 3. Resource Pages (0-1 link)
 - Templates, tools, checklists
 - When mentioned as solutions in content
 - Provides additional value to reader
@@ -245,7 +243,7 @@ Primary keyword MUST appear in:
 **Placement**:
 - Within body paragraphs (most valuable)
 - Natural context that adds value to reader
-- Never more than 2 links per paragraph
+- Never more than 1 link per paragraph
 - Distributed throughout article, not clustered
 
 **Reference**:
@@ -507,15 +505,16 @@ Solar, Elevator Service, Pest Control, Pool Service, Commercial Kitchen Equipmen
 
 ## Schema Markup Requirements
 
-Implement structured data per page type. These are required, not optional.
+Record a checked schema handoff for the later CMS stage. Do not report schema notes as rendered JSON-LD implementation.
 
 ### Blog Posts
-- `WebPage` (or `Article` / `BlogPosting`)
+- `BlogPosting`
 - `BreadcrumbList`
-- `Organization` (publisher)
-- `FAQPage` — if FAQ section is present
-- `VideoObject` — if YouTube video is embedded
-- `Author` (named Person entity — not generic "Simpro Team")
+- `ImageObject`
+- `Organization` as publisher reference
+- `FAQPage` with nested Question/Answer only when visible FAQs exist
+- `VideoObject` if and only if a video is embedded
+- `Person` only when a verified author exists; Missing author passes
 
 ### Feature Pages
 - `SoftwareApplication` or `Product`
@@ -593,10 +592,10 @@ Every article should include a TL;DR block near the top (after the introduction,
 
 ### Authority Signaling for AI
 
-AI models weight authoritativeness signals when choosing which sources to cite. Include these in every article:
+Use source-backed authority signals when they fit the article:
 
-- **Author attribution**: Named author, not just "Team" or brand name
-- **Reviewer/editor credit**: "Reviewed by [name], [title]" where possible
+- **Author attribution**: Optional; verify the identity and credentials when present
+- **Reviewer/editor credit**: Optional and proof-gated when present
 - **Last updated date**: Visible on the page, not just in metadata
 - **Expert verification badge**: Where applicable, note content has been expert-reviewed
 - **Year in titles**: Include current year for time-sensitive topics ("Best FSM Software 2026")
@@ -718,7 +717,7 @@ Before publishing, verify:
 - [ ] Meta description directly answers the target query
 - [ ] FAQ questions written in natural prompt language
 - [ ] Video eligibility evaluated; embed only an eligible selected video that materially supports the article
-- [ ] Author attribution (named, not generic "Team")
+- [ ] Author omitted or verified; Missing author passes
 - [ ] Last updated date included
 - [ ] Year included in title for time-sensitive topics
 

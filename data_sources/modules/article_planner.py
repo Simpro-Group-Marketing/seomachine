@@ -10,8 +10,26 @@ Used by the /article command during the planning phase.
 
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, field
+from datetime import date
 from enum import Enum
+from html import unescape
+from pathlib import Path
 import re
+
+try:
+    from .commercial_pillar_index import (
+        CommercialPillarIndexError,
+        get_verified_destination,
+        load_index,
+        validate_index,
+    )
+except ImportError:  # pragma: no cover - direct script execution.
+    from commercial_pillar_index import (
+        CommercialPillarIndexError,
+        get_verified_destination,
+        load_index,
+        validate_index,
+    )
 
 
 class SectionType(Enum):
@@ -322,6 +340,107 @@ class EngagementMap:
         }
 
 
+@dataclass(frozen=True)
+class CommercialPillarPlan:
+    """Verified commercial destination preserved in an article plan."""
+
+    destination_id: str
+    brand: str
+    market: str
+    pillar_type: str
+    canonical_url: str
+    page_title: str
+    main_keyword: str
+    semrush_database: str
+    semrush_checked: str
+    semrush_valid_through: str
+    planned_anchor_text: str
+    planned_h2_section: str
+
+    def to_dict(self) -> Dict[str, str]:
+        return {
+            "destination_id": self.destination_id,
+            "brand": self.brand,
+            "market": self.market,
+            "pillar_type": self.pillar_type,
+            "canonical_url": self.canonical_url,
+            "page_title": self.page_title,
+            "main_keyword": self.main_keyword,
+            "semrush_database": self.semrush_database,
+            "semrush_checked": self.semrush_checked,
+            "semrush_valid_through": self.semrush_valid_through,
+            "planned_anchor_text": self.planned_anchor_text,
+            "planned_h2_section": self.planned_h2_section,
+        }
+
+
+def _normalize_anchor_phrase(value: str) -> str:
+    visible = unescape(value)
+    visible = re.sub(r"[*_~`]", "", visible)
+    visible = re.sub(r"[^a-z0-9]+", " ", visible.casefold())
+    return re.sub(r"\s+", " ", visible).strip()
+
+
+def _anchor_contains_keyword_phrase(anchor: str, keyword: str) -> bool:
+    normalized_anchor = _normalize_anchor_phrase(anchor)
+    normalized_keyword = _normalize_anchor_phrase(keyword)
+    if not normalized_anchor or not normalized_keyword:
+        return False
+    return f" {normalized_keyword} " in f" {normalized_anchor} "
+
+
+def resolve_commercial_pillar_plan(
+    index_path: str | Path,
+    *,
+    destination_id: str,
+    brand: str,
+    market: str,
+    planned_anchor_text: str,
+    planned_h2_section: str,
+    today: date,
+) -> CommercialPillarPlan:
+    """Resolve planning inputs only from a currently valid destination record."""
+
+    index = load_index(index_path)
+    findings = validate_index(index, today=today)
+    if findings:
+        rule_ids = ", ".join(sorted({str(finding["rule_id"]) for finding in findings}))
+        raise ValueError(f"Commercial pillar index is not executable: {rule_ids}")
+    try:
+        record = get_verified_destination(
+            index,
+            destination_id=destination_id,
+            brand=brand,
+            market=market,
+        )
+    except CommercialPillarIndexError as exc:
+        raise ValueError(str(exc)) from exc
+
+    if not isinstance(planned_anchor_text, str) or not planned_anchor_text.strip():
+        raise ValueError("planned_anchor_text must be a non-empty string")
+    if not isinstance(planned_h2_section, str) or not planned_h2_section.strip():
+        raise ValueError("planned_h2_section must be a non-empty string")
+    if not _anchor_contains_keyword_phrase(planned_anchor_text, record.main_keyword):
+        raise ValueError(
+            "Planned anchor text must contain the destination's indexed main keyword."
+        )
+
+    return CommercialPillarPlan(
+        destination_id=record.destination_id,
+        brand=record.brand,
+        market=record.market,
+        pillar_type=record.pillar_type,
+        canonical_url=record.canonical_url,
+        page_title=record.page_title,
+        main_keyword=record.main_keyword,
+        semrush_database=record.semrush_database,
+        semrush_checked=record.semrush_checked,
+        semrush_valid_through=record.semrush_valid_through,
+        planned_anchor_text=planned_anchor_text.strip(),
+        planned_h2_section=planned_h2_section.strip(),
+    )
+
+
 @dataclass
 class ArticlePlan:
     """Complete article plan ready for section-by-section writing."""
@@ -342,6 +461,7 @@ class ArticlePlan:
     included_gaps: Optional[List[str]] = None
     observed_must_have_sections: Optional[List[str]] = None
     included_must_have_sections: Optional[List[str]] = None
+    commercial_pillar: Optional[CommercialPillarPlan] = None
     serp_strategy_decisions: Optional[Dict[str, Any]] = field(
         init=False,
         default=None,
@@ -489,6 +609,11 @@ class ArticlePlan:
                     f"{field_name} must map non-empty strings to valid section numbers"
                 )
 
+        if self.commercial_pillar is not None and not isinstance(
+            self.commercial_pillar, CommercialPillarPlan
+        ):
+            raise ValueError("commercial_pillar must be a CommercialPillarPlan value or None")
+
         strategy_inputs = (
             self.dominant_content_type,
             self.selected_content_type,
@@ -559,6 +684,9 @@ class ArticlePlan:
             "reader_contract": self.reader_contract.to_dict(),
         }
         result["serp_strategy"] = self.serp_strategy_decisions
+        result["commercial_pillar"] = (
+            self.commercial_pillar.to_dict() if self.commercial_pillar else None
+        )
         return result
 
 
@@ -981,6 +1109,23 @@ def format_article_plan(plan: ArticlePlan) -> str:
 - **Promised payoff**: {contract.promised_payoff}
 - **Funnel stage**: {contract.funnel_stage.value}
 - **Exclusions**: {exclusions}
+"""
+    if plan.commercial_pillar is not None:
+        pillar = plan.commercial_pillar
+        report += f"""
+
+## Commercial Pillar and Anchor Decision
+- **Destination ID**: {pillar.destination_id}
+- **Pillar type**: {pillar.pillar_type}
+- **Commercial pillar URL**: {pillar.canonical_url}
+- **Destination page title**: {pillar.page_title}
+- **Indexed main keyword**: {pillar.main_keyword}
+- **Planned anchor text**: {pillar.planned_anchor_text}
+- **Planned H2 section**: {pillar.planned_h2_section}
+- **Market**: {pillar.market}
+- **Semrush database**: {pillar.semrush_database}
+- **Semrush checked**: {pillar.semrush_checked}
+- **Semrush valid through**: {pillar.semrush_valid_through}
 """
     if plan.serp_strategy_decisions.get("status") == "unresolved_no_verified_serp_context":
         report += """

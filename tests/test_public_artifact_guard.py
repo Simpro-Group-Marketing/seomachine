@@ -92,6 +92,30 @@ Concrete Answer Check
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0]["match"], "## Source Routing Decision")
 
+    def test_blog_strategy_contract_headings_stay_in_the_sidecar(self):
+        headings = (
+            "Search Intent and Format Decision",
+            "Commercial Pillar and Anchor Decision",
+            "Lifecycle Refresh Record",
+        )
+
+        for heading in headings:
+            with self.subTest(heading=heading):
+                findings = check_content(f"# Article\n\n## {heading}\n\n- Status: ready\n")
+                self.assertEqual(len(findings), 1)
+                self.assertEqual(findings[0]["rule_id"], "internal_validation_artifact")
+
+    def test_author_and_reviewer_verification_headings_stay_in_the_sidecar(self):
+        headings = ("Author Verification", "Reviewer Verification")
+
+        for heading in headings:
+            with self.subTest(heading=heading):
+                findings = check_content(
+                    f"# Article\n\n## {heading}\n\n- Status: verified\n"
+                )
+                self.assertEqual(len(findings), 1)
+                self.assertEqual(findings[0]["rule_id"], "internal_validation_artifact")
+
     def test_fred_authority_selection_heading_fails(self):
         content = """# Article
 

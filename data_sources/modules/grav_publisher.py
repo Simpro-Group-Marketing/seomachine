@@ -282,6 +282,10 @@ class GravPublisher:
         dry_run: bool = False,
         lang: Optional[str] = None,
         proof_sidecar: Optional[str] = None,
+        context_request: Optional[str] = None,
+        context_pack: Optional[str] = None,
+        context_receipt: Optional[str] = None,
+        vault_root: Optional[str] = None,
     ) -> Dict:
         """
         Publish a draft/rewrite file to the Grav repo.
@@ -302,8 +306,15 @@ class GravPublisher:
             require_source_support(file_path, context="Grav publish")
         except ValueError as exc:
             raise GravPublishError(str(exc)) from exc
-        if not dry_run:
-            _require_publish_readiness(file_path, proof_sidecar, "Grav publish")
+        _require_publish_readiness(
+            file_path,
+            proof_sidecar,
+            "Grav publish",
+            context_request=context_request,
+            context_pack=context_pack,
+            context_receipt=context_receipt,
+            vault_root=vault_root,
+        )
 
         draft = self.parse_draft_file(file_path)
         article = self.build_article(draft)
@@ -345,8 +356,22 @@ def _require_publish_readiness(
     file_path: str,
     proof_sidecar: Optional[str],
     context: str,
+    *,
+    context_request: Optional[str] = None,
+    context_pack: Optional[str] = None,
+    context_receipt: Optional[str] = None,
+    vault_root: Optional[str] = None,
 ) -> Dict:
-    result = run_publish_readiness(file_path, proof_sidecar=proof_sidecar)
+    readiness_kwargs = {"proof_sidecar": proof_sidecar}
+    if context_request is not None:
+        readiness_kwargs["context_request"] = context_request
+    if context_pack is not None:
+        readiness_kwargs["context_pack"] = context_pack
+    if context_receipt is not None:
+        readiness_kwargs["context_receipt"] = context_receipt
+    if vault_root is not None:
+        readiness_kwargs["vault_root"] = vault_root
+    result = run_publish_readiness(file_path, **readiness_kwargs)
     if result.get("passed"):
         return result
     raise GravPublishError(
@@ -399,6 +424,10 @@ def main():
         "--proof-sidecar",
         help="Optional validation sidecar for publish-readiness proof gates",
     )
+    parser.add_argument("--context-request", help="Current Simpro context request JSON.")
+    parser.add_argument("--context-pack", help="Current Simpro v2 context pack JSON.")
+    parser.add_argument("--context-receipt", help="Current Simpro context receipt JSON.")
+    parser.add_argument("--vault-root", help="Configured Simpro vault root override.")
     args = parser.parse_args()
 
     try:
@@ -408,6 +437,10 @@ def main():
             dry_run=args.dry_run,
             lang=args.lang,
             proof_sidecar=args.proof_sidecar,
+            context_request=args.context_request,
+            context_pack=args.context_pack,
+            context_receipt=args.context_receipt,
+            vault_root=args.vault_root,
         )
 
         print(f"\n[OK] Parsed draft: {result['title']}")

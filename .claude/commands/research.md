@@ -1,5 +1,11 @@
 # Research Command
 
+
+## Production SEO Strategy Contract
+
+This workflow uses `blog-strategy-contract/v1`, `context/commercial-pillar-index.json`, and the validation-sidecar sections `Search Intent and Format Decision`, `Commercial Pillar and Anchor Decision`, and `Lifecycle Refresh Record`. The exact fields and fail-closed rules live in `context/aeo-geo-blog-strategy.md` and the mirrored `seo-blog-strategy` rule. Every Simpro blog requires exactly 1 verified solution, industry, or feature commercial pillar; a blog is only an optional informational hub. Current US Semrush evidence authorizes US only. The final visible anchor must contain the indexed main keyword and use the canonical URL in the planned H2. Source quality, lifecycle, vault, proof, FAQ, Fred, artifact, and score gates remain independent and blocking.
+
+Research creates all 3 contract decisions from saved SERP, related-query/PAA, overlap, vault, live-title, and regional Semrush evidence. A blocked/stale index, `update_existing`, or `consolidate` decision stops new-article planning. Do not write Semrush metrics into the pillar sidecar block or infer evidence.
 Use this command to conduct comprehensive SEO keyword research and competitive analysis before writing new content.
 
 ## Usage
@@ -92,7 +98,7 @@ Required validation sidecar sections: `Vault Context Read Path` for every workfl
 - **Internal Links**: Map 3-5 key your company pages to link to (from @context/internal-links-map.md)
 - **External Authority**: Identify 2-3 authoritative external sources to link
 - **AEO/GEO Variables**: Resolve `topic`, `audience`, `main_question`, `related_questions`, `tone`, `expertise`, and `length` where possible from Vault Context Read Path, repo context fallback, and research evidence
-- **Source Mapping**: For each credible external source, document the claim it supports, the natural anchor phrase, and the target section
+- **Source Mapping**: For every public claim row record `Claim`, `Claim type`, `URL`, `Evidence`, `Source class`, `Original-source status`, `Source date`, `Checked date`, `Claim fit: direct`, `Freshness decision`, `Freshness reason`, `Status`, and `Intended use`. Statistics require original sources; regulations and standards require official sources. Competitor evidence cannot support neutral verdicts, recommendations, or FAQs. This row cannot replace a stricter proof or vault requirement.
 - **Metric Proof Pack**: For software, comparison, guide, pricing, cost, ROI, KPI, profit, margin, or vs topics, extract usable numbers before writing. Record `Search log`, each `Approved metric`, public proof URL or local proof artifact, source-visible Evidence, Status: approved, and intended Use. Plan for `/publish-readiness` before writing or scoring.
 - **Validation sidecar**: Store proof-only blocks in `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in the public draft. The sidecar can contain `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, and structured data notes. Do not add an `Editorial Validation Appendix` to blog copy. Preferred publish check: `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md`.
 - **FAQ Source Policy**: For each visible non-owned FAQ URL, add an exact `FAQ Proof Map` row with `FAQ`, `URL`, `Source class`, `Competitor check`, and `Support`. Allowed classes: `neutral`, `non_competing_expert`. Competitor-owned FAQ sources: prohibited.
@@ -116,7 +122,7 @@ Provides a comprehensive research brief with:
 - **Featured Snippet Opportunity**: Yes/No, format (paragraph, list, table)
 - **AEO/GEO Variables**: topic, audience, main_question, related_questions, tone, expertise, length
 - **PAA/FAQ Questions**: 3-5 closest questions with intent labels and article section mapping
-- **Source Map**: source, supported claim, anchor text, target section
+- **Source Map**: complete claim-level source-quality fields with direct fit, origin, dates, freshness, status, and intended use
 - **Metric Proof Pack**:
   - **Metric requirement**: required / not applicable
   - **Search log**: [public sources and local proof artifacts checked for usable numbers]
@@ -170,9 +176,9 @@ Conclusion
 - **Visual Suggestions**: Screenshots, charts, or graphics needed
 
 ### 5. Internal Linking Strategy
-- **Pillar Page**: Main your company pillar content to link to
-- **Related Articles**: 2-4 relevant blog posts to link
-- **Product Pages**: your company features to naturally mention
+- **Commercial Pillar**: Exactly 1 verified solution, industry, or feature destination from `context/commercial-pillar-index.json`, with Destination ID, canonical URL, indexed main keyword, planned anchor, and planned H2
+- **Informational Hub / Related Articles**: Optional supporting blog links only
+- **Additional Product Pages**: Add only when useful and vault-aligned; they do not replace the designated commercial pillar
 - **Resource Pages**: Tools or guides to reference
 
 ### 6. Meta Elements Preview

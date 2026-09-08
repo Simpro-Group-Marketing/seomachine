@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import io
 import json
+import subprocess
+import sys
 from contextlib import ExitStack, redirect_stdout
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
@@ -50,6 +53,7 @@ CURRENT_GATES = [
     ("faq_proof", "faq_proof_guard.check_file"),
     ("paa_provenance", "paa_provenance_guard.check_file"),
     ("source_support", "source_support_guard.check_file"),
+    ("source_quality", "source_quality_guard.check_file"),
     ("customer_proof_diversity", "customer_proof_diversity_guard.check_file"),
     ("review_story_identity", "review_story_identity_guard.check_file"),
     ("early_artifact", "early_artifact_guard.check_file"),
@@ -57,6 +61,8 @@ CURRENT_GATES = [
     ("vault_brand_language", "vault_brand_language_guard.check_file"),
     ("named_feature_status", "named_feature_status_guard.check_file"),
     ("source_routing", "source_routing_guard.check_file"),
+    ("blog_strategy", "blog_strategy_guard.check_file"),
+    ("schema_handoff", "schema_handoff_guard.check_file"),
     ("fred_authority", "fred_authority_guard.check_file"),
 ]
 
@@ -120,9 +126,9 @@ def test_all_gates_pass_in_required_order(files):
     expected = [
         "context_binding", "public_artifact", "ai_copy_linter", "url_validator", "public_research_links",
         "metric_proof_pack", "numeric_claim_source", "faq_answer_quality", "faq_proof",
-        "paa_provenance", "source_support", "customer_proof_diversity",
+        "paa_provenance", "source_support", "source_quality", "customer_proof_diversity",
         "review_story_identity", "early_artifact", "answer_withholding",
-        "vault_brand_language", "named_feature_status", "source_routing",
+        "vault_brand_language", "named_feature_status", "source_routing", "blog_strategy", "schema_handoff",
         "fred_authority", "content_scorer",
     ]
     assert result["passed"] is True
@@ -162,6 +168,10 @@ def test_simpro_context_gate_is_first_and_forwards_artifacts(files, tmp_path):
     assert mocks["customer_proof_diversity"].call_args.kwargs["context_receipt"] == str(receipt)
     assert mocks["review_story_identity"].call_args.kwargs["context_pack"] == str(pack)
     assert mocks["review_story_identity"].call_args.kwargs["context_receipt"] == str(receipt)
+    assert mocks["blog_strategy"].call_args.kwargs["context_request"] == str(request)
+    assert mocks["blog_strategy"].call_args.kwargs["context_pack"] == str(pack)
+    assert mocks["blog_strategy"].call_args.kwargs["context_receipt"] == str(receipt)
+    assert isinstance(mocks["blog_strategy"].call_args.kwargs["url_summary"], UrlValidationSummary)
 
 
 def test_simpro_context_artifacts_are_mandatory(files):
@@ -289,7 +299,7 @@ def test_landing_frontmatter_conflicts_with_requested_blog(files):
         ("service.md", "workflow: landing_page\n"),
     ],
 )
-def test_positive_landing_evidence_allows_landing_workflow(
+def test_positive_landing_evidence_skips_blog_only_guards(
     files, tmp_path, relative_path, frontmatter
 ):
     _, sidecar = files
@@ -298,7 +308,7 @@ def test_positive_landing_evidence_allows_landing_workflow(
     prefix = f"---\n{frontmatter}title: Simpro service page\n---\n" if frontmatter else ""
     article.write_text(f"{prefix}# Simpro service page\n\nBody.\n", encoding="utf-8")
 
-    result, order, _, _ = run_with_patches(
+    result, order, mocks, _ = run_with_patches(
         article,
         sidecar,
         artifact_kind="landing_page",
@@ -307,6 +317,9 @@ def test_positive_landing_evidence_allows_landing_workflow(
     assert result["passed"] is True
     assert result["artifact_kind"] == "landing_page"
     assert "context_binding" not in order
+    for gate_name in ("source_quality", "blog_strategy", "schema_handoff"):
+        assert gate_name not in {gate["name"] for gate in result["gates"]}
+        mocks[gate_name].assert_not_called()
 
 
 def test_landing_path_conflicts_with_requested_blog(files, tmp_path):
@@ -434,6 +447,9 @@ def test_equivalent_independent_artifact_fields_are_accepted(files):
         ("vault_brand_language", "vault_brand_language_alignment_missing"),
         ("named_feature_status", "named_feature_status_row_missing"),
         ("source_routing", "source_routing_missing"),
+        ("source_quality", "source_quality_claim_fit_not_direct"),
+        ("blog_strategy", "blog_strategy_pillar_link_missing"),
+        ("schema_handoff", "schema_handoff_notes_missing"),
         ("fred_authority", "fred_authority_selection_missing"),
     ],
 )
@@ -480,7 +496,7 @@ def test_sidecar_is_forwarded_to_all_proof_gates_and_scorer(files):
     result, _, mocks, scorer = run_with_patches(article, sidecar)
     assert result["passed"] is True
     for name, _ in CURRENT_GATES:
-        if name == "public_artifact" or name == "ai_copy_linter":
+        if name in {"public_artifact", "ai_copy_linter"}:
             continue
         assert mocks[name].call_args.kwargs["proof_sidecar"] == str(sidecar)
     assert scorer.score.call_args.kwargs["proof_sidecar"] == str(sidecar)
@@ -500,3 +516,28 @@ def test_json_output_has_stable_context_keys(files):
     payload = json.loads(output.getvalue())
     assert exit_code == 0
     assert {"context_request", "context_pack", "context_receipt"} <= payload.keys()
+
+
+def test_publish_readiness_script_reports_blockers_without_import_traceback(files):
+    article, sidecar = files
+    project_root = Path(__file__).resolve().parents[1]
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "data_sources/modules/publish_readiness.py",
+            str(article),
+            "--proof-sidecar",
+            str(sidecar),
+        ],
+        cwd=project_root,
+        text=True,
+        encoding="utf-8",
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+
+    assert completed.returncode == 1
+    assert "Traceback" not in completed.stderr
+    assert "PUBLISH READINESS" in completed.stdout

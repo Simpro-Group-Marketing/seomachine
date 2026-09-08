@@ -33,6 +33,8 @@ NEXT_HEADING_RE = re.compile(
     r"Selected Customer Proof Mining|Customer Proof Pack|Customer Proof Selection Decision|"
     r"E-E-A-T Proof Map|FAQ Proof Map|Review Story Selection|Review Site Theme Selection|"
     r"Structured data plan|Early Artifact Plan|Concrete Answer Check|"
+    r"Search Intent and Format Decision|Commercial Pillar and Anchor Decision|"
+    r"Lifecycle Refresh Record|"
     r"Competitive Shortlist Decision|Named Feature/Add-On Link Check|Hindsight Boundary|"
     r"Fred Voccola Authority Selection)\s*$",
     re.IGNORECASE,

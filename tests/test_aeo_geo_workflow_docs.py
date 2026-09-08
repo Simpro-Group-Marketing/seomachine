@@ -7,6 +7,75 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class AeoGeoWorkflowDocsTests(unittest.TestCase):
+    def test_production_blog_strategy_contract_is_mirrored_across_workflows(self):
+        canonical_and_rules = [
+            ROOT / "AGENTS.md",
+            ROOT / "CLAUDE.md",
+            ROOT / "README.md",
+            ROOT / "context" / "aeo-geo-blog-strategy.md",
+            ROOT / ".agents" / "rules" / "seo-blog-strategy.md",
+            ROOT / ".claude" / "rules" / "seo-blog-strategy.md",
+            ROOT / ".cursor" / "rules" / "seo-blog-strategy.mdc",
+        ]
+        workflow_docs = [
+            ROOT / ".claude" / "commands" / "research.md",
+            ROOT / ".claude" / "commands" / "article.md",
+            ROOT / ".claude" / "commands" / "write.md",
+            ROOT / ".claude" / "commands" / "rewrite.md",
+            ROOT / ".claude" / "commands" / "analyze-existing.md",
+            ROOT / ".claude" / "commands" / "optimize.md",
+            ROOT / ".claude" / "commands" / "publish-readiness.md",
+        ]
+        contract_markers = [
+            "blog-strategy-contract/v1",
+            "Search Intent and Format Decision",
+            "Commercial Pillar and Anchor Decision",
+            "Lifecycle Refresh Record",
+            "context/commercial-pillar-index.json",
+        ]
+        for path in canonical_and_rules + workflow_docs:
+            self.assertTrue(path.exists(), f"{path} must exist")
+            content = path.read_text(encoding="utf-8")
+            for marker in contract_markers:
+                self.assertIn(marker, content, f"{path.name} missing {marker}")
+            self.assertNotIn("blog-strategy-contract/v2", content)
+
+        rules_text = canonical_and_rules[-1].read_text(encoding="utf-8")
+        for field in (
+            "Primary query or prompt",
+            "Destination ID",
+            "Planned anchor text",
+            "Next review date",
+            "GSC lane",
+            "GA4 lane",
+            "Semrush lane",
+            "AI-citation lane",
+        ):
+            self.assertIn(field, rules_text)
+
+    def test_commercial_pillar_is_not_defined_as_a_blog_hub(self):
+        guidelines = (ROOT / "context" / "seo-guidelines.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("exactly 1 commercial pillar", guidelines)
+        self.assertIn("solution, industry, or feature page", guidelines)
+        self.assertIn("Informational hub", guidelines)
+        self.assertIn("optional supporting blog link", guidelines)
+        self.assertNotIn("Pillar Content (1-2 links)", guidelines)
+
+    def test_author_is_optional_and_schema_notes_are_conditional(self):
+        for relative in (
+            "AGENTS.md",
+            "CLAUDE.md",
+            "context/aeo-geo-blog-strategy.md",
+            ".claude/commands/write.md",
+            ".claude/commands/rewrite.md",
+        ):
+            content = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertIn("Missing author passes", content, relative)
+            self.assertIn("Person only when a verified author exists", content, relative)
+            self.assertIn("Schema notes must never be reported as rendered JSON-LD", content, relative)
+
     def test_faq_answer_quality_and_inline_evidence_rule_is_mirrored(self):
         required = [
             "faq_answer_quality_guard.py",
@@ -84,14 +153,13 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "BlogPosting",
             "BreadcrumbList",
             "FAQPage",
-            "Person as author",
-            "Question and Answer inside FAQPage",
-            "ImageObject for the featured image or logo",
-            "Organization as publisher reference only",
-            "not a separate full schema block",
+            "visible FAQs",
+            "verified author exists",
+            "ImageObject",
+            "Organization",
+            "if and only if",
             "schema_notes",
-            "top YAML frontmatter block",
-            "between the opening and closing --- delimiters",
+            "Schema notes must never be reported as rendered JSON-LD implementation",
         ]
 
         docs = [
@@ -347,7 +415,7 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             "/industries",
             "/solutions/",
             "/features/",
-            "Anchor text must match the destination keyword",
+            "Anchor text must contain the indexed main keyword",
         ]
 
         for path in command_paths:
@@ -409,9 +477,11 @@ class AeoGeoWorkflowDocsTests(unittest.TestCase):
             ROOT / ".claude" / "agents" / "internal-linker.md",
         ]
         required = [
-            "down-funnel internal link",
+            "designated commercial pillar",
+            "context/commercial-pillar-index.json",
             "https://www.simprogroup.com/industries",
-            "Anchor text must match the destination keyword",
+            "indexed main keyword",
+            "documented no-specific-fit reason",
         ]
 
         for path in docs:

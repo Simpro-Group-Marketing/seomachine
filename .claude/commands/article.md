@@ -1,5 +1,11 @@
 # Article Command
 
+
+## Production SEO Strategy Contract
+
+This workflow uses `blog-strategy-contract/v1`, `context/commercial-pillar-index.json`, and the validation-sidecar sections `Search Intent and Format Decision`, `Commercial Pillar and Anchor Decision`, and `Lifecycle Refresh Record`. The exact fields and fail-closed rules live in `context/aeo-geo-blog-strategy.md` and the mirrored `seo-blog-strategy` rule. Every Simpro blog requires exactly 1 verified solution, industry, or feature commercial pillar; a blog is only an optional informational hub. Current US Semrush evidence authorizes US only. The final visible anchor must contain the indexed main keyword and use the canonical URL in the planned H2. Source quality, lifecycle, vault, proof, FAQ, Fred, artifact, and score gates remain independent and blocking.
+
+Planning must validate the index, resolve the Destination ID, and preserve its canonical URL, indexed main keyword, planned anchor, planned H2, Brand, and Market. Refuse stale, blocked, cross-market, colliding-keyword, or unsupported destination records. The designated commercial pillar is the required down-funnel internal link to a specific industry page (`/industries/...`), solution page (`/solutions/...`), or feature page (`/features/...`), according to the verified record. Use the industries hub (`https://www.simprogroup.com/industries`) only with a documented no-specific-fit reason. Anchor text must contain the indexed main keyword and at least 1 occurrence must match the planned anchor after normalization.
 A unified content creation pipeline that produces comprehensive, SEO-optimized articles through mandatory research, strategic planning, and section-by-section writing.
 
 For every Simpro blog, read `wiki/messaging/Voice and Tone.md` and `wiki/messaging/Tone Voice and Localization Rules.md` from the vault. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Em dashes are prohibited. Product pages and landing pages retain their existing restrained channel treatment.
@@ -99,7 +105,7 @@ Use the contract to set an intent/evidence-complete word target, natural termino
 
 ### Down-Funnel Internal Link Rule
 
-Every article must include at least 1 contextual down-funnel internal link to `/industries`, `/industries/...`, `/solutions/...`, or `/features/...` from @context/internal-links-map.md. Prefer the specific industry page when industry intent is clear, the `https://www.simprogroup.com/industries` hub for broad trades or general industry topics, the relevant solution page for category/workflow topics, and the relevant feature page for feature/workflow topics. Anchor text must match the destination keyword or an approved anchor example from @context/internal-links-map.md.
+Every article must include exactly 1 designated commercial pillar from `context/commercial-pillar-index.json`: a specific industry page for vertical intent, a solution page for category/cross-workflow intent, or a feature page for capability intent. Use the industries hub only when no specific verified destination fits and record why. The exact canonical URL appears in the planned H2 and at least 1 visible anchor contains the indexed main keyword. Informational blog hubs are optional supporting links.
 
 Feature and solution links must use function-bearing anchor text that explains the workflow, category, or outcome behind the destination. A feature or solution name alone is not enough. Use anchors like "field service payments," "accounts receivable follow-up with Fast Cash," or "field service management software" instead of "Simpro Payments," "Fast Cash," or "Simpro Premium."
 
@@ -470,11 +476,11 @@ Save to: `research/article-plan-[topic-slug]-[YYYY-MM-DD].md`
   2. [AnswerSocrates question and assigned section]
   3. [AnswerSocrates question and assigned section]
 - **Source Map**:
-  | Source | Claim Supported | Anchor Text | Target Section |
-  |--------|-----------------|-------------|----------------|
-  | [URL] | [claim] | [natural contextual phrase] | [section] |
+  | Claim | Claim type | URL | Evidence | Source class | Original-source status | Source date | Checked date | Claim fit | Freshness decision | Freshness reason | Status | Intended use |
+  |-------|------------|-----|----------|--------------|------------------------|-------------|--------------|-----------|--------------------|------------------|--------|--------------|
+  | [claim] | [statistic / regulation / standard / factual / recommendation / comparison / FAQ] | [URL] | [source-visible support] | [class] | [original / secondary / not_applicable] | [date] | [date] | direct | [current / historical_scoped] | [reason or not_applicable] | approved | [section and use] |
 - **Proof Sidecar**: [research/validation-[topic-slug]-[YYYY-MM-DD].md; ready / partial / blocked]
-- **Schema Notes**: BlogPosting, BreadcrumbList, and FAQPage for standard blog posts with FAQs; nest Person as author, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Keep the Author frontmatter field mapped to Person. Add VideoObject only if video is embedded.
+- **Schema Notes**: Put the later CMS handoff in top YAML `schema_notes`. Always include BlogPosting, BreadcrumbList, ImageObject, and Organization as publisher reference. Add FAQPage with nested Question and Answer only for visible FAQs. Add Person only when a verified author exists. Add VideoObject if and only if embedded. Missing author passes. Schema notes must never be reported as rendered JSON-LD implementation.
 - **AEO/GEO Score Target**: 90/100 or higher
 
 ### 1. Introduction
@@ -704,14 +710,14 @@ After all sections are written and edited:
    - [ ] Video eligibility evaluated; an eligible selected video is embedded when it materially supports the article, otherwise the embed is omitted
    - [ ] FAQ questions written in natural prompt language, not keyword fragments from AnswerSocrates
    - [ ] One idea per section (each H2/H3 focuses on single concept)
-   - [ ] Author attribution in frontmatter
+   - [ ] Author omitted or verified; valid Last Updated date present
    - [ ] AnswerSocrates PAA artifact exists at `research/paa-questions-[topic-slug]-[YYYY-MM-DD].md`
    - [ ] Capsule Method applied to H1 and 60%+ major H2s
    - [ ] AEO/GEO Map complete with selected PAA, source mapping, and E-E-A-T proof
    - [ ] Metric Proof Pack checked using the post-writing gate stack
    - [ ] FAQ proof checked using the post-writing gate stack
    - [ ] PAA provenance checked using the post-writing gate stack
-   - [ ] Schema notes included for BlogPosting, BreadcrumbList, FAQPage, Person as author, Question and Answer inside FAQPage, ImageObject for the featured image or logo, and Organization as publisher reference only, not a separate full schema block. VideoObject is included only when relevant.
+   - [ ] Schema notes include BlogPosting, BreadcrumbList, ImageObject, and Organization publisher reference; FAQPage only for visible FAQs, Person only for a verified author, and VideoObject only when a video is embedded.
    - [ ] Public article body does not mention "repo context," context file paths, Source Maps, PAA artifacts, change summaries, or internal proof-path notes
 
    **Engagement Checklist:**
@@ -748,7 +754,7 @@ Removes invisible Unicode marks, em dashes, and whitespace artifacts.
 
 ### 2. Publish Readiness
 
-Proof infrastructure belongs only in the validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`; article plans and drafts retain only its sidecar path and status. The article draft must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan as public copy. Use VideoObject only when a video is embedded.
+Proof infrastructure belongs only in the validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`; article plans and drafts retain only its sidecar path and status. The article draft must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, `Search Intent and Format Decision`, `Commercial Pillar and Anchor Decision`, `Lifecycle Refresh Record`, or structured data plan as public copy. Use VideoObject if and only if a video is embedded.
 
 Preferred publish readiness command:
 ```bash

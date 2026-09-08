@@ -8,6 +8,7 @@ before they are treated as publish-ready for AEO/GEO.
 
 import json
 import re
+from datetime import date
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, FrozenSet, List, Optional, Tuple
@@ -103,6 +104,7 @@ def rate_aeo_geo(
             and checks["faq_questions"]["passed"]
             and checks["faq_answer_length"]["passed"]
             and checks["faq_answer_quality"]["passed"]
+            and checks["metadata"]["passed"]
             and checks["eeat_proof"]["passed"]
             and checks["faq_proof"]["passed"]
             and checks["paa_provenance"]["passed"]
@@ -448,21 +450,34 @@ def _check_external_sources(content: str) -> Dict[str, Any]:
 def _check_metadata(metadata: Dict[str, Any]) -> Dict[str, Any]:
     normalized = {_normalize_key(str(key)): value for key, value in metadata.items()}
     has_author = bool(normalized.get("author"))
-    has_last_updated = bool(
+    last_updated_value = str(
         normalized.get("last_updated")
         or normalized.get("updated")
         or normalized.get("date_updated")
+        or ""
+    ).strip()
+    has_last_updated = bool(last_updated_value)
+    parsed_last_updated = None
+    if has_last_updated:
+        try:
+            parsed_last_updated = date.fromisoformat(last_updated_value)
+        except ValueError:
+            parsed_last_updated = None
+    has_valid_last_updated = bool(
+        parsed_last_updated is not None and parsed_last_updated <= date.today()
     )
-    passed = has_author and has_last_updated
+    passed = has_valid_last_updated
 
     return {
         "passed": passed,
-        "issue": "The draft is missing named author or last-updated metadata.",
-        "fix": "Add Author and Last Updated fields to the article frontmatter.",
+        "issue": "The draft is missing a valid Last Updated date or uses an invalid/future date.",
+        "fix": "Add Last Updated in YYYY-MM-DD format to the article frontmatter. Author is optional.",
         "severity": "medium",
         "details": {
             "has_author": has_author,
             "has_last_updated": has_last_updated,
+            "has_valid_last_updated": has_valid_last_updated,
+            "last_updated": last_updated_value,
         },
     }
 
@@ -475,6 +490,7 @@ def _check_eeat_proof(
 ) -> Dict[str, Any]:
     links = _extract_markdown_links(content)
     normalized = {_normalize_key(str(key)): value for key, value in metadata.items()}
+    proof_context = proof_sidecar_content or content
 
     case_study_links = [
         url for _, url in links if _is_case_study_link(url)
@@ -504,14 +520,23 @@ def _check_eeat_proof(
         experience_signals.append("documented_no_fit_experience_boundary")
 
     expertise_signals = []
-    if normalized.get("author"):
-        expertise_signals.append("author_metadata")
-    if (
+    if normalized.get("author") and _has_verified_metadata_person(
+        str(normalized.get("author", "")),
+        proof_context,
+        section_name="Author Verification",
+    ):
+        expertise_signals.append("verified_author_metadata")
+    reviewer = (
         normalized.get("reviewer")
         or normalized.get("reviewed_by")
         or normalized.get("expert_reviewer")
+    )
+    if reviewer and _has_verified_metadata_person(
+        str(reviewer),
+        proof_context,
+        section_name="Reviewer Verification",
     ):
-        expertise_signals.append("reviewer_metadata")
+        expertise_signals.append("verified_reviewer_metadata")
     if simpro_product_links:
         expertise_signals.append("simpro_product_or_workflow_link")
     if clockshark_workflow_links:
@@ -968,6 +993,50 @@ def _has_expert_quote(body: str) -> bool:
         re.search(quote_pattern, body, re.IGNORECASE)
         or re.search(attribution_pattern, body, re.IGNORECASE)
     )
+
+
+def _has_verified_metadata_person(
+    name: str,
+    proof_content: str,
+    *,
+    section_name: str,
+) -> bool:
+    normalized_name = _normalize_text(name)
+    if not normalized_name or not proof_content:
+        return False
+    in_verification_section = False
+    for line in proof_content.splitlines():
+        stripped = line.strip()
+        heading = re.match(r"^\s*#{1,6}\s+(?P<title>.*?)\s*$", stripped)
+        if heading:
+            in_verification_section = (
+                heading.group("title").strip().rstrip(":").casefold()
+                == section_name.casefold()
+            )
+            continue
+        if stripped.rstrip(":").casefold() == section_name.casefold():
+            in_verification_section = True
+            continue
+        if (
+            in_verification_section
+            and stripped
+            and not stripped.startswith(("-", "*", "+"))
+        ):
+            in_verification_section = False
+        if not in_verification_section:
+            continue
+        if not stripped.startswith(("-", "*", "+")):
+            continue
+        if normalized_name not in _normalize_text(stripped):
+            continue
+        if not re.search(r"(?:^|\|)\s*Status\s*:\s*(?:verified|approved)\s*(?:\||$)", stripped, re.IGNORECASE):
+            continue
+        if not re.search(r"https?://", stripped, re.IGNORECASE):
+            continue
+        if "evidence:" not in stripped.casefold() or "checked date:" not in stripped.casefold():
+            continue
+        return True
+    return False
 
 
 def _check_section_clarity(body: str) -> Dict[str, Any]:

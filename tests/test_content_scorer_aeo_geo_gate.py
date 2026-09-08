@@ -74,6 +74,12 @@ Customer Proof Selection Decision
 - Selected proof: quote-matrix-bwe-engineering-job-to-invoice | Customer: BWE Engineering | URL: https://www.simprogroup.com/case-studies/bwe-engineering | Use: field-service workflow proof
 ```
 """
+AUTHOR_VERIFICATION_BLOCK = """
+```text
+Author Verification
+- Author: Jordan Lee | URL: https://www.simprogroup.com/authors/jordan-lee | Evidence: Author profile reviewed | Checked date: 2026-08-06 | Status: verified
+```
+"""
 
 COMPLIANT_ARTICLE = """---
 Meta Title: HVAC Scheduling Software for Contractors | Simpro
@@ -111,7 +117,7 @@ Scheduling affects profit because every missed appointment, double-booking, and 
 The profit impact compounds when scheduling is connected to job costing. Research from [McKinsey](https://www.mckinsey.com/) has shown that field productivity depends on better planning, tighter coordination, and faster information flow across operational teams.
 
 [BWE Engineering](https://www.simprogroup.com/case-studies/bwe-engineering) shows how field service teams use connected workflows to improve operational control.
-""" + METRIC_PROOF_BLOCK + PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK + CUSTOMER_PROOF_BLOCK + """
+""" + METRIC_PROOF_BLOCK + PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK + CUSTOMER_PROOF_BLOCK + AUTHOR_VERIFICATION_BLOCK + """
 
 ## Frequently Asked Questions
 
@@ -166,7 +172,10 @@ def write_sidecar_fixture(test_case: unittest.TestCase, content: str) -> tuple[s
         / "research"
         / f"validation-{article_path.stem}.md"
     )
-    sidecar_path.write_text(METRIC_PROOF_BLOCK + PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK + CUSTOMER_PROOF_BLOCK, encoding="utf-8")
+    sidecar_path.write_text(
+        METRIC_PROOF_BLOCK + PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK + CUSTOMER_PROOF_BLOCK + AUTHOR_VERIFICATION_BLOCK,
+        encoding="utf-8",
+    )
     return str(article_path), str(sidecar_path)
 
 

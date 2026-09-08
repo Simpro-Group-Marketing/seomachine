@@ -96,7 +96,7 @@ Before drafting with `/article`, `/write`, or `/rewrite`, resolve these variable
 | `main_question` | SERP/PAA intent, title, or brief | Ask if no clear primary question exists |
 | `related_questions` | AnswerSocrates PAA artifact, SERP, Reddit, YouTube | Ask for PAA/FAQ CSV if AnswerSocrates is blocked |
 | `tone` | Vault messaging and style routes | `context/brand-voice.md` and `context/style-guide.md` fallback mirrors if the vault is unavailable |
-| `expertise` | `context/features.md`, customer proof, expert quotes | Ask if a named author/reviewer is required and missing |
+| `expertise` | `context/features.md`, customer proof, expert quotes, and any supplied verified author/reviewer | Missing author passes; do not request a name solely to satisfy metadata |
 | `length` | SERP/content brief | Default to competitive length from `/research-serp` |
 
 Do not synthesize facts, search volume, PAA questions, customer claims, or expert quotes. If the repo and live research do not provide an input, ask for it or mark it as missing.
@@ -401,7 +401,7 @@ When a PAA/FAQ CSV or raw question set is available, select the 3-5 closest ques
   - Add `- Status: aligned.` in the `FAQ Source Policy` sidecar block.
 
 - PAA provenance is required for each FAQ question: include `PAA/FAQ Provenance` with Source, Artifact, and exact Selected questions. Run `python data_sources/modules/paa_provenance_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error` before scoring or `/optimize`.
-- Add schema notes for standard blog posts with FAQs: primary schemas are `BlogPosting`, `BreadcrumbList`, and `FAQPage`; nest `Person as author`, `Question and Answer inside FAQPage`, `ImageObject for the featured image or logo`, and `Organization as publisher reference only, not a separate full schema block`. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. Use `VideoObject` only when a video is embedded.
+- Add the later CMS handoff to top YAML `schema_notes`: always `BlogPosting`, `BreadcrumbList`, `ImageObject for the featured image or logo`, and `Organization as publisher reference only, not a separate full schema block`; add `FAQPage` and `Question and Answer inside FAQPage` only when visible FAQs exist; add `Person as author` only when a verified author exists; add `VideoObject` if and only if a video is embedded. Missing author passes. Schema notes must never be reported as rendered JSON-LD implementation.
 - Evaluate Fred authority evidence for every new or changed Simpro blog, but add Fred content only when a selected source directly supports the section. Keep `Fred Voccola Authority Selection` in the validation sidecar, not public copy.
 
 ## AEO/GEO Map
@@ -414,7 +414,7 @@ Every `/article` plan and every moderate, major, or complete `/rewrite` plan mus
 | Capsule targets | H1 plus 60%+ major H2s |
 | Selected PAA questions | 3-5 questions from AnswerSocrates or user export |
 | PAA/FAQ provenance | Source label, artifact path, and exact selected questions from a saved source artifact |
-| Source map | Source, claim, anchor text, target section |
+| Source map | Claim, claim type, URL, Evidence, source class, original-source status, source/checked dates, direct claim fit, freshness decision/reason, approved status, and intended use |
 | Metric Proof Pack | Metric requirement, Search log, Approved metric rows, public URL or local proof artifact, source-visible Evidence, Status: approved, intended Use, rejected candidates |
 | E-E-A-T Proof Map | Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, omitted unsupported claims |
 | Customer Proof Pack | Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved metrics, Use in copy, Claims excluded, approval status |
@@ -432,7 +432,7 @@ A draft is publish-ready only when both gates pass:
 
 - General content quality score: 85/100 or higher.
 - AEO/GEO score: 90/100 or higher.
-- Validation sidecar: proof-only blocks must live in `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in public copy. Public artifacts must pass `data_sources/modules/public_artifact_guard.py --fail-on error` and must not contain an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, `Fred Voccola Authority Selection`, `Named Feature Status and Commercial Treatment`, `Vault Brand Language Alignment`, `Source Routing Decision`, `Early Artifact Plan`, `Concrete Answer Check`, bracketed editorial labels, publication confirmation notes, unresolved availability notes, standalone TODO/TBD/TK markers, or structured data plan. Fenced examples, quoted source text, production image placeholders, and reader instructions remain allowed.
+- Validation sidecar: proof-only blocks must live in `research/validation-[topic-slug]-[YYYY-MM-DD].md`, not in public copy. Public artifacts must pass `data_sources/modules/public_artifact_guard.py --fail-on error` and must not contain an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, `Search Intent and Format Decision`, `Commercial Pillar and Anchor Decision`, `Lifecycle Refresh Record`, `Fred Voccola Authority Selection`, `Named Feature Status and Commercial Treatment`, `Vault Brand Language Alignment`, `Source Routing Decision`, `Early Artifact Plan`, `Concrete Answer Check`, bracketed editorial labels, publication confirmation notes, unresolved availability notes, standalone TODO/TBD/TK markers, or structured data plan. Fenced examples, quoted source text, production image placeholders, and reader instructions remain allowed.
 - AI copy linting: `data_sources/modules/ai_copy_linter.py --profile simpro-web --fail-on error` blocks copy avoid-rule errors before publish readiness. Copy avoid-rule errors include modal verbs, passive voice, repeated starts, vague generalizations, filler words, and long sentences.
 - Publish readiness runner: use `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` as the default execution command. Use the individual gates below for debugging and policy-specific failures.
 - URL validation gate: `data_sources/modules/url_validator.py --fail-on unresolved` must pass before scoring, `/optimize`, handoff, or publish. URL validation confirms destinations resolve; it does not prove the page supports the claim.
@@ -459,3 +459,67 @@ Use `--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md` with Metr
 The validation sidecar is the only approved place for proof maps and proof packs that are not publishable article copy.
 
 Below-threshold drafts route to revision or `review-required/` with notes explaining failed checks.
+
+## Production SEO Blog Strategy Contract
+
+All new blogs, rewrites, optimizations, analyze-existing passes, and existing blogs on their next publish-readiness pass use `blog-strategy-contract/v1`. `context/commercial-pillar-index.json` is the only executable destination source. Research must validate it before planning. Exactly 1 verified commercial pillar is required: industry for a vertical topic, solution for a category or cross-workflow topic, or feature for a capability-led topic. The industries hub is allowed only with a documented no-specific-fit reason. Another blog cannot serve as the commercial pillar; an informational hub is an optional supporting blog link.
+
+The destination record must match article Brand, Market, canonical domain, live title, and regional Semrush database. US evidence authorizes US only. Article and destination main keywords must differ. Exact collisions fail; phrase containment needs a verified SERP artifact demonstrating different intent and content type. The exact canonical URL must appear as a visible Markdown body link in the planned H2. At least 1 occurrence must use the planned anchor text exactly after whitespace, emphasis, punctuation, case, and HTML-entity normalization, and the approved anchor must contain the indexed main keyword as a contiguous phrase. Additional natural variants are allowed only after that occurrence. Redirects, tracking parameters, fragments, generic anchors, unsupported synonyms, bare URLs, frontmatter, comments, code, images, and sidecar-only links do not satisfy the requirement.
+
+The validation sidecar contains each section and field exactly once. Its SERP evidence artifact and related-query/PAA artifact must each resolve to a nonempty file inside this repository; a path string alone is not evidence:
+
+### Search Intent and Format Decision
+
+- Contract version: blog-strategy-contract/v1
+- Primary query or prompt:
+- Searcher task:
+- Intent class:
+- Funnel stage:
+- SERP evidence artifact:
+- Dominant content type:
+- Selected content type:
+- Observed SERP features:
+- Related-query/PAA artifact:
+- Format decision:
+- Exception reason:
+- Status: ready | blocked
+
+### Commercial Pillar and Anchor Decision
+
+- Contract version: blog-strategy-contract/v1
+- Article title:
+- Article primary keyword:
+- Article intent:
+- Destination ID:
+- Commercial pillar URL:
+- Planned anchor text:
+- Planned H2 section:
+- Existing overlapping URLs checked:
+- Pillar-versus-blog intent difference:
+- Cannibalization decision:
+- Incoming-link candidates:
+- Status: aligned | blocked
+
+Do not repeat Semrush metrics in the sidecar. `blog_strategy_guard.py` resolves the Destination ID against the index and independently checks market, evidence freshness, canonical URL, anchor, H2, keyword separation, and the URL validator's existing final URL result.
+
+### Lifecycle Refresh Record
+
+- Contract version: blog-strategy-contract/v1
+- Last-updated date:
+- Volatility: high | standard
+- Next review date:
+- Review command:
+- GSC lane:
+- GA4 lane:
+- Semrush lane:
+- AI-citation lane:
+- Decision:
+- Status:
+
+High-volatility pricing, regulation, product-status, comparison, and statistics-led articles require review within 90 days. Standard articles require review within 180 days. GSC, GA4, Semrush, and AI-citation evidence remain distinct. Use `unavailable: [reason]` or `not_applicable: [reason]` for missing lanes. Missing data never becomes zero, and lifecycle records cannot claim improvement without dated evidence.
+
+Each public `Source Map` claim row requires `Claim`, `Claim type`, `URL`, `Evidence`, `Source class`, `Original-source status`, `Source date`, `Checked date`, `Claim fit`, `Freshness decision`, `Freshness reason`, `Status`, and `Intended use`. Public claim fit must be direct. Statistics need original sources; regulations and standards need official sources. Competitor-owned sources cannot support neutral verdicts, recommendations, or FAQs. Undated or historical evidence requires a scoped freshness decision. The Source Map cannot replace Customer Proof Pack, Metric Proof Pack, FAQ Proof Map, vault receipt, or named-feature evidence.
+
+A valid, nonfuture `Last Updated: YYYY-MM-DD` is required. Missing author passes. A verified author is optional Expertise evidence; any identity, reviewer, or credential claim remains proof-gated. The frontmatter `schema_notes` field is a later CMS handoff: always `BlogPosting`, `BreadcrumbList`, `ImageObject`, and Organization publisher reference; `FAQPage` with Question/Answer only when visible FAQs exist; Person only when a verified author exists; and `VideoObject` if and only if embedded. Schema notes must never be reported as rendered JSON-LD implementation.
+
+`source_quality_guard.py`, `blog_strategy_guard.py`, and `schema_handoff_guard.py` block publish readiness. They preserve every existing proof, vault, FAQ, PAA, capsule, early-artifact, source-routing, Fred authority, and 85/90 score gate. This contract adds no permanent bypass, bulk backfill, rendered CMS schema, `llms.txt`, universal IndexNow, fixed AI-citation target, publishing quota, speculative ranking guarantee, Original Contribution Plan, or media-accessibility requirement.

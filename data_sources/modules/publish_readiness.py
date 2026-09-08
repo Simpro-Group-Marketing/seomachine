@@ -16,6 +16,7 @@ try:
     from . import (
         ai_copy_linter,
         answer_withholding_guard,
+        blog_strategy_guard,
         customer_proof_diversity_guard,
         context_binding_guard,
         early_artifact_guard,
@@ -29,6 +30,8 @@ try:
         public_research_link_guard,
         public_artifact_guard,
         review_story_identity_guard,
+        schema_handoff_guard,
+        source_quality_guard,
         source_support_guard,
         source_routing_guard,
         vault_brand_language_guard,
@@ -39,6 +42,7 @@ try:
 except ImportError:  # pragma: no cover - supports direct script execution.
     import ai_copy_linter
     import answer_withholding_guard
+    import blog_strategy_guard
     import customer_proof_diversity_guard
     import context_binding_guard
     import early_artifact_guard
@@ -52,6 +56,8 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import public_research_link_guard
     import public_artifact_guard
     import review_story_identity_guard
+    import schema_handoff_guard
+    import source_quality_guard
     import source_support_guard
     import source_routing_guard
     import vault_brand_language_guard
@@ -96,6 +102,11 @@ ARTICLE_GATES = (
         source_support_guard,
     ),
     (
+        "source_quality",
+        "Source Quality and Lifecycle",
+        source_quality_guard,
+    ),
+    (
         "customer_proof_diversity",
         "Customer Proof Diversity",
         customer_proof_diversity_guard,
@@ -131,11 +142,23 @@ ARTICLE_GATES = (
         source_routing_guard,
     ),
     (
+        "blog_strategy",
+        "Blog Strategy",
+        blog_strategy_guard,
+    ),
+    (
+        "schema_handoff",
+        "Schema Handoff",
+        schema_handoff_guard,
+    ),
+    (
         "fred_authority",
         "Fred Voccola Authority",
         fred_authority_guard,
     ),
 )
+
+BLOG_ONLY_GATES = {"source_quality", "blog_strategy", "schema_handoff"}
 
 
 def run_publish_readiness(
@@ -253,10 +276,12 @@ def run_publish_readiness(
     )
 
     for name, label, guard_module in ARTICLE_GATES:
-        guard_kwargs: Dict[str, Any] = {
-            "fail_on": "error",
-            "proof_sidecar": proof_sidecar_path,
-        }
+        if normalized_artifact_kind != "blog" and name in BLOG_ONLY_GATES:
+            continue
+        guard_kwargs: Dict[str, Any] = (
+            {} if name == "blog_strategy" else {"fail_on": "error"}
+        )
+        guard_kwargs["proof_sidecar"] = proof_sidecar_path
         if name in {"named_feature_status", "fred_authority", "customer_proof_diversity", "review_story_identity"}:
             guard_kwargs.update(
                 {
@@ -268,6 +293,16 @@ def run_publish_readiness(
             guard_kwargs["vault_root"] = vault_root
         if name == "customer_proof_diversity":
             guard_kwargs["vault_root"] = vault_root
+        if name == "blog_strategy":
+            guard_kwargs.update(
+                {
+                    "context_request": context_request_path,
+                    "context_pack": context_pack_path,
+                    "context_receipt": context_receipt_path,
+                    "url_summary": url_summary,
+                    "require_strategy": normalized_artifact_kind == "blog",
+                }
+            )
         findings = guard_module.check_file(str(article_path), **guard_kwargs)
         gates.append(_gate_from_findings(name, label, findings))
 
@@ -520,7 +555,10 @@ def _resolve_artifact_kind(
     requested_value: object,
 ) -> tuple[str, str | None, str | None]:
     """Resolve kind from symmetric positive evidence, defaulting ambiguity to blog."""
-    from .artifact_detection import extract_frontmatter, extract_frontmatter_values
+    try:
+        from .artifact_detection import extract_frontmatter, extract_frontmatter_values
+    except ImportError:  # pragma: no cover - direct script execution.
+        from artifact_detection import extract_frontmatter, extract_frontmatter_values
 
     frontmatter = extract_frontmatter(content)
     frontmatter_values = extract_frontmatter_values(content)
