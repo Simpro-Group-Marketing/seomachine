@@ -44,7 +44,7 @@ Flag `editorial_process_leakage` when anchor text or surrounding link copy expla
 - Identify which owning-brand pages align with article topics:
   - **Pillar content** (comprehensive guides on main topics)
   - **Related blog posts** (supporting content on subtopics)
-  - **Industry pages** (specific trade verticals or the all-industries hub)
+  - **Industry pages** (specific trade verticals; the all-industries hub only with a documented no-specific-fit reason)
   - **Solution pages** (category and workflow pages)
   - **Feature pages** (Simpro features that solve problems mentioned)
   - **Resource pages** (tools, templates, checklists referenced)
@@ -67,7 +67,7 @@ Selection order:
 3. The owning-brand industries or product hub when the article is broad, multi-trade, or no specific page fits.
 4. A relevant owning-brand feature page for a feature, process, or workflow topic.
 
-Anchor text must match the destination keyword or an approved anchor example from @context/internal-links-map.md. Do not use generic anchors such as "learn more," "click here," "this page," or "read more" for the required down-funnel link.
+Anchor text for the required commercial pillar must contain the indexed main keyword from `context/commercial-pillar-index.json`. An anchor example from `context/internal-links-map.md` is acceptable only when it also satisfies the indexed main-keyword requirement. Do not use generic anchors such as "learn more," "click here," "this page," or "read more" for the required down-funnel link.
 
 Feature and solution links must use function-bearing anchor text that explains the workflow, category, or outcome behind the destination. A feature or solution name alone is not enough. Use anchors like "field service payments," "accounts receivable follow-up with Fast Cash," or "field service management software" instead of "Simpro Payments," "Fast Cash," or "Simpro Premium."
 
@@ -140,13 +140,13 @@ The claim map uses the fixed modes `inline_required`, `section_source_allowed`, 
 - Caution: Don't overuse; can look unnatural
 
 **Partial Match** (most common):
-- "field service software for trade industries" -> industries hub
+- "field service software for trade industries" -> industries hub only when the sidecar documents that no specific verified destination fits
 - "choosing field service management software" -> FSM solution page
 - Best for: Blog posts and guides
 
 **Branded**:
 - "Simpro Payments" -> payments feature page
-- "Simpro industries" -> industries hub
+- "Simpro industries" -> industries hub only when the sidecar documents that no specific verified destination fits
 - Best for: Product features
 
 **Naked URLs** (rarely):

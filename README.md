@@ -4,6 +4,12 @@ Simpro Marketing's Claude Code workspace for **SEO and AEO/GEO blog posts** - re
 
 Fork of [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/seomachine), customized for proof-governed Simpro SEO and AEO workflows.
 
+## Production SEO Blog Guardrails
+
+Simpro blog workflows use `blog-strategy-contract/v1` with exactly 1 `Search Intent and Format Decision`, `Commercial Pillar and Anchor Decision`, and `Lifecycle Refresh Record` in the validation sidecar. `context/commercial-pillar-index.json` is the sole executable source for the required commercial solution, industry, or feature destination. Article planning and publish readiness revalidate Brand, Market, destination title, regional Semrush evidence, keyword separation, canonical URL, planned H2, and an anchor containing the indexed main keyword. A blog remains an optional informational hub, never the commercial pillar. Source quality and lifecycle checks are blocking alongside all existing proof, vault, FAQ, PAA, artifact, Fred, and score gates.
+
+Missing author passes when `Last Updated: YYYY-MM-DD` is valid. Schema is a later CMS stage: top YAML frontmatter `schema_notes` is checked as a handoff. It always includes BlogPosting, BreadcrumbList, ImageObject, and Organization publisher reference; FAQPage with Question and Answer only when visible FAQs exist; Person only when a verified author exists; and VideoObject if and only if embedded. Schema notes must never be reported as rendered JSON-LD implementation.
+
 ## Obsidian Vault Source Rule
 
 For every blog, SEO, AEO, competitor, proof, product, audience, partner, or workflow decision, use the Simpro vault connector as the active context source. The only configured content location is the vault root; prompts, guards, selectors, and workflow docs must not prescribe vault hubs, filenames, or internal directories.

@@ -239,7 +239,7 @@ This document catalogs verified Simpro URLs for strategic internal linking in bl
 
 ### All Industries
 - **URL**: https://www.simprogroup.com/industries
-- **When to Link**: Broad trades, general industry, multi-trade, software for trade industries, and posts where no single industry page fits.
+- **When to Link**: Only when no specific verified industry, solution, or feature destination fits and the validation sidecar documents the no-specific-fit reason.
 - **Anchor Text Examples**: field service management solutions for your industry, field service software for trade industries, Simpro industries, software for trades businesses
 
 ### HVAC

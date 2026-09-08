@@ -3,6 +3,8 @@ from __future__ import annotations
 import io
 import hashlib
 import json
+import subprocess
+import sys
 from contextlib import ExitStack, redirect_stdout
 from datetime import date
 from unittest.mock import Mock, patch
@@ -101,6 +103,7 @@ CURRENT_GATES = [
     ("editorial_plan", "editorial_plan_guard.check_file"),
     ("semrush_keyword_decision", "semrush_keyword_decision_guard.check_file"),
     ("source_support", "source_support_guard.check_file"),
+    ("source_quality", "source_quality_guard.check_file"),
     ("customer_proof_diversity", "customer_proof_diversity_guard.check_file"),
     ("review_story_identity", "review_story_identity_guard.check_file"),
     ("eeat_strength", "eeat_strength_guard.check_file"),

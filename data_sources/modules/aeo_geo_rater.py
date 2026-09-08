@@ -291,6 +291,7 @@ def rate_aeo_geo(
             and checks["faq_questions"]["passed"]
             and checks["faq_answer_length"]["passed"]
             and checks["faq_answer_quality"]["passed"]
+            and checks["metadata"]["passed"]
             and checks["eeat_proof"]["passed"]
             and checks["faq_proof"]["passed"]
             and checks["paa_provenance"]["passed"]
@@ -1090,6 +1091,7 @@ def _check_eeat_proof(
 ) -> Dict[str, Any]:
     links = _extract_markdown_links(content)
     normalized = {_normalize_key(str(key)): value for key, value in metadata.items()}
+    proof_context = proof_sidecar_content or content
 
     case_study_links = [url for _, url in links if _is_case_study_link(url)]
     review_site_links = [url for _, url in links if _is_review_site_link(url)]

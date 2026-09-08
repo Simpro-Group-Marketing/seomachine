@@ -629,7 +629,10 @@ class AeoGeoRaterTests(unittest.TestCase):
             f"{PRODUCTION_IMAGE_MARKER}\n\n",
         )
 
-        result = self.rate(content)
+        result = self.rate(
+            content,
+            proof_sidecar_content=AUTHOR_VERIFICATION_BLOCK + FAQ_PROOF_BLOCK,
+        )
         first_two = result["checks"]["direct_answer"]["details"]["first_two_sentences"]
 
         self.assertTrue(result["checks"]["direct_answer"]["passed"])
@@ -651,7 +654,10 @@ class AeoGeoRaterTests(unittest.TestCase):
             f"{PRODUCTION_IMAGE_MARKER}\n\n",
         )
 
-        result = self.rate(content)
+        result = self.rate(
+            content,
+            proof_sidecar_content=AUTHOR_VERIFICATION_BLOCK + FAQ_PROOF_BLOCK,
+        )
         first_two = result["checks"]["direct_answer"]["details"]["first_two_sentences"]
 
         self.assertTrue(result["checks"]["direct_answer"]["passed"])
@@ -1738,7 +1744,10 @@ E-E-A-T Proof Map
     def test_faq_without_paa_provenance_blocks_aeo_geo_gate(self):
         content = COMPLIANT_ARTICLE.replace(PAA_PROVENANCE_BLOCK, "")
 
-        result = self.rate(content)
+        result = self.rate(
+            content,
+            proof_sidecar_content=AUTHOR_VERIFICATION_BLOCK + FAQ_PROOF_BLOCK,
+        )
 
         self.assertFalse(result["checks"]["paa_provenance"]["passed"])
         self.assertFalse(result["passed"])

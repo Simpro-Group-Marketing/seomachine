@@ -6,6 +6,7 @@ Provides scoring (0-100) and specific recommendations for improvement.
 """
 
 import argparse
+from datetime import date
 from functools import lru_cache
 import math
 import re
@@ -33,6 +34,9 @@ DOWN_FUNNEL_EXACT_PATHS = {
     "/features",
     "/industries",
 }
+COMMERCIAL_PILLAR_INDEX_PATH = (
+    Path(__file__).resolve().parents[2] / "context" / "commercial-pillar-index.json"
+)
 GENERIC_LINK_ANCHORS = {
     "click here",
     "here",
@@ -1159,6 +1163,8 @@ def _analyze_down_funnel_links(
         "generic": [],
         "name_only": [],
         "weak_anchor": [],
+        "unverified_destination": [],
+        "indexed_keyword_missing": [],
     }
 
     for anchor, url in _extract_markdown_links(content):
@@ -1166,8 +1172,22 @@ def _analyze_down_funnel_links(
         if not path or not _is_down_funnel_path(path, brand=brand):
             continue
 
+        indexed_keywords = _simpro_indexed_main_keywords(url)
         if _is_generic_anchor(anchor):
             analysis["generic"].append((anchor, url))
+        elif indexed_keywords == ():
+            if _is_name_only_feature_or_solution_anchor(anchor, path):
+                analysis["name_only"].append((anchor, url))
+            else:
+                analysis["unverified_destination"].append((anchor, url))
+        elif indexed_keywords is not None:
+            if any(
+                _anchor_contains_phrase(anchor, keyword)
+                for keyword in indexed_keywords
+            ):
+                analysis["valid"].append((anchor, url))
+            else:
+                analysis["indexed_keyword_missing"].append((anchor, url))
         elif _is_name_only_feature_or_solution_anchor(anchor, path):
             analysis["name_only"].append((anchor, url))
         elif _anchor_matches_down_funnel_target(anchor, path):

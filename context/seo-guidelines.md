@@ -16,7 +16,7 @@ This document outlines SEO best practices and requirements for all Simpro blog c
 
 ### Target Scope
 - **Standard Blog Post**: cover the search intent and reader task without filler
-- **Pillar Content / Comprehensive Guides**: cover the full decision, workflow, or cluster when evidence supports that depth
+- **Comprehensive informational guides**: cover the full decision, workflow, or cluster when evidence supports that depth; this content type is not the required commercial pillar
 - **How-To Guides**: include every step, artifact, caveat, and proof source needed for the task
 - **News / Updates**: stay concise and source-bound
 
@@ -522,7 +522,7 @@ Solar, Elevator Service, Pest Control, Pool Service, Commercial Kitchen Equipmen
 
 ## Schema Markup Requirements
 
-Implement structured data per page type. These are required, not optional.
+Record a checked schema handoff for the later CMS stage. Do not report schema notes as rendered JSON-LD implementation.
 
 ### Blog Posts
 - `BlogPosting`

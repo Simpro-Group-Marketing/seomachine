@@ -99,7 +99,10 @@ def write_sidecar_fixture(test_case: unittest.TestCase, content: str) -> tuple[s
         / "research"
         / f"validation-{article_path.stem}.md"
     )
-    sidecar_path.write_text(METRIC_PROOF_BLOCK + PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK + CUSTOMER_PROOF_BLOCK, encoding="utf-8")
+    sidecar_path.write_text(
+        METRIC_PROOF_BLOCK + PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK + CUSTOMER_PROOF_BLOCK + AUTHOR_VERIFICATION_BLOCK,
+        encoding="utf-8",
+    )
     return str(article_path), str(sidecar_path)
 
 

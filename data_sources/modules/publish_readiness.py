@@ -265,6 +265,11 @@ ARTICLE_GATES = (
         source_support_guard,
     ),
     (
+        "source_quality",
+        "Source Quality and Lifecycle",
+        source_quality_guard,
+    ),
+    (
         "customer_proof_diversity",
         "Customer Proof Diversity",
         customer_proof_diversity_guard,
@@ -305,6 +310,8 @@ ARTICLE_GATES = (
         fred_authority_guard,
     ),
 )
+
+BLOG_ONLY_GATES = {"source_quality", "blog_strategy", "schema_handoff"}
 
 
 SIMPRO_CONTEXT_GATE_NAMES = frozenset({
