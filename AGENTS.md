@@ -100,7 +100,7 @@ Every FAQ answer must also contain at least 1 authoritative non-owned public evi
 
 - Allowed source classes: neutral, non_competing_expert.
 - Competitor-owned FAQ sources: prohibited.
-- Every visible non-owned FAQ URL requires its own exact `FAQ Proof Map` row in the validation sidecar: `FAQ`, `URL`, `Source class`, `Competitor check`, and `Support`.
+- Every visible non-owned FAQ URL requires its own exact `FAQ Proof Map` row in the validation sidecar: `FAQ`, `URL`, `Source class`, `Competitor check`, `Support`, `Classification artifact`, and `Classification hash`. The classification must be a repository-approved `simpro-source-classification/v1` artifact for the exact URL and independent relationship; sidecar labels alone are not authority.
 - Permitted evidence includes regulators, standards bodies, universities, trade associations, independent research or editorial sources, and non-competing experts.
 - Simpro-owned links may be additional reader resources but never satisfy the non-owned FAQ-proof requirement.
 - If compliant evidence cannot support a vendor-specific question, remove or reframe the FAQ and retain vendor evidence in the comparison or vendor-specific body section.

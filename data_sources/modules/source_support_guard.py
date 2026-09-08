@@ -147,6 +147,7 @@ INSUFFICIENT_SOURCE_RE = re.compile(
 )
 SOURCE_CLASSES = frozenset(
     {
+        "neutral",
         "primary_authority",
         "independent_research",
         "non_competing_expert",
@@ -157,9 +158,47 @@ SOURCE_CLASSES = frozenset(
     }
 )
 GENERAL_CLAIM_TYPES = frozenset(
-    {"causal", "comparative", "definitional", "process", "recommendation"}
+    {
+        "absolute",
+        "causal",
+        "commercial",
+        "comparative",
+        "definitional",
+        "factual",
+        "guarantee",
+        "process",
+        "recommendation",
+    }
 )
 GENERAL_CLAIM_PATTERNS = (
+    (
+        "guarantee",
+        re.compile(
+            r"\b(?:guarantees?|ensures?|eliminates?)\b|"
+            r"\b(?:zero[- ]risk|fail[- ]proof|error[- ]proof|cannot fail)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "absolute",
+        re.compile(
+            r"\b(?:always|never)\b(?=[^.!?]{0,100}\b(?:is|are|has|have|"
+            r"stores?|records?|tracks?|offers?|provides?|includes?|supports?|"
+            r"loses?|prevents?|works?|delivers?|produces?))",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "commercial",
+        re.compile(
+            r"\b(?:pricing|price|costs?|subscription|plan|package|premium|trial|"
+            r"add[- ]on|upgrade|license|licence)\b[^.!?]{0,90}\b"
+            r"(?:is|are|costs?|includes?|included|requires?|available|free|paid)\b|"
+            r"\b(?:is|are)\s+included\s+in\s+(?:the\s+)?(?:paid|premium|"
+            r"enterprise|standard|basic)?\s*(?:plan|package|subscription)\b",
+            re.IGNORECASE,
+        ),
+    ),
     (
         "comparative",
         re.compile(
@@ -205,6 +244,16 @@ GENERAL_CLAIM_PATTERNS = (
         ),
     ),
     (
+        "factual",
+        re.compile(
+            r"^(?:The|A|An|This|That|These|Those|[A-Z][A-Za-z0-9&.+-]+)\s+"
+            r"(?:[A-Za-z0-9&.+-]+\s+){0,5}"
+            r"(?:stores?|records?|tracks?|offers?|provides?|includes?|supports?|"
+            r"connects?|sends?|displays?|manages?|contains?)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
         "recommendation",
         re.compile(
             r"\b(?:should|must|need to|ought to|avoid|choose|recommend(?:ed|s)?|"
@@ -221,6 +270,7 @@ GENERAL_SOURCE_CLASSES = frozenset(
 )
 OWNED_PRODUCT_GENERAL_CLAIM_TYPES = frozenset({"definitional", "process"})
 SOURCE_CLASS_RELATIONSHIPS = {
+    "neutral": frozenset({"independent"}),
     "primary_authority": frozenset({"independent"}),
     "independent_research": frozenset({"independent"}),
     "non_competing_expert": frozenset({"independent"}),
@@ -748,6 +798,8 @@ def _extract_claim_candidates(
         if not is_special_claim:
             general_candidates = []
             for sentence in _split_claim_sentences(paragraph.text):
+                if _is_general_claim_exempt(sentence):
+                    continue
                 claim_type = _general_claim_type(_claim_text_for_detection(sentence))
                 if claim_type:
                     general_candidates.append(
@@ -1119,6 +1171,48 @@ def _validate_source_classification(
     return None
 
 
+def validate_source_classification_binding(
+    *,
+    source_url: str,
+    source_class: str,
+    classification_artifact: str,
+    classification_hash: str,
+    base_path: str | Path,
+) -> str | None:
+    """Return the strict classification rule ID for another proof guard.
+
+    This reuses the same repository-decision, Git HEAD, hash, and local
+    execution-attestation checks as Source Map validation without trusting a
+    second sidecar classification surface.
+    """
+    candidate = ClaimCandidate(
+        text="classification binding",
+        line=1,
+        numeric_tokens=[],
+        normalized_tokens=frozenset(),
+        customer_names=frozenset(),
+        has_case_study_link=False,
+        requires_approved_quote=False,
+        claim_type="factual",
+    )
+    proof = ProofEntry(
+        kind="claim",
+        claim="classification binding",
+        url=source_url,
+        evidence="classification binding",
+        status="approved",
+        line=1,
+        section="faq proof map",
+        source_class=source_class,
+        claim_type="factual",
+        evidence_relation="directly_supports",
+        classification_artifact=classification_artifact,
+        classification_hash=classification_hash,
+    )
+    finding = _validate_source_classification(proof, candidate, Path(base_path))
+    return str(finding["rule_id"]) if finding is not None else None
+
+
 def _validate_classification_decision(
     payload: dict,
     *,
@@ -1344,6 +1438,41 @@ def _general_claim_type(text: str) -> str:
         if pattern.search(text):
             return claim_type
     return ""
+
+
+OPINION_SIGNAL_RE = re.compile(
+    r"^\s*(?:In my (?:view|opinion)|I (?:think|believe|prefer)|"
+    r"From my perspective|We (?:think|believe|prefer))\b",
+    re.IGNORECASE,
+)
+IMPERATIVE_INSTRUCTION_RE = re.compile(
+    r"^\s*(?:Review|Verify|Confirm|Check|Choose|Avoid|Use|Open|Create|Add|"
+    r"Remove|Compare|Document|Record|Keep|Do not|Don't)\b",
+    re.IGNORECASE,
+)
+SCENARIO_SIGNAL_RE = re.compile(
+    r"^\s*(?:Imagine|Suppose|For example,?\s+suppose|Consider a scenario where)\b",
+    re.IGNORECASE,
+)
+
+
+def _is_general_claim_exempt(sentence: str) -> bool:
+    """Apply only language-observable exemptions, never writer-provided labels."""
+    text = _claim_text_for_detection(sentence).strip()
+    if OPINION_SIGNAL_RE.search(text):
+        return True
+    if IMPERATIVE_INSTRUCTION_RE.search(text):
+        return True
+    if SCENARIO_SIGNAL_RE.search(text):
+        return not (
+            OUTCOME_SIGNAL_RE.search(text)
+            or any(
+                claim_type in {"absolute", "causal", "comparative", "guarantee"}
+                and pattern.search(text)
+                for claim_type, pattern in GENERAL_CLAIM_PATTERNS
+            )
+        )
+    return False
 
 
 def _validate_source_text_contains_evidence(

@@ -69,6 +69,7 @@ BLOG_GATE_DESCRIPTORS = (
     BlogGateDescriptor("faq_proof", "visible_faq"),
     BlogGateDescriptor("paa_provenance"),
     BlogGateDescriptor("editorial_plan"),
+    BlogGateDescriptor("competitive_shortlist"),
     BlogGateDescriptor("source_support"),
     BlogGateDescriptor("customer_proof_diversity"),
     BlogGateDescriptor("review_story_identity"),

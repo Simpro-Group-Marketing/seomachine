@@ -74,6 +74,7 @@ CURRENT_GATES = [
     ("faq_proof", "faq_proof_guard.check_file"),
     ("paa_provenance", "paa_provenance_guard.check_file"),
     ("editorial_plan", "editorial_plan_guard.check_file"),
+    ("competitive_shortlist", "competitive_shortlist_guard.check_file"),
     ("source_support", "source_support_guard.check_file"),
     ("customer_proof_diversity", "customer_proof_diversity_guard.check_file"),
     ("review_story_identity", "review_story_identity_guard.check_file"),
@@ -301,7 +302,7 @@ def test_all_gates_pass_in_required_order(files):
     expected_order = [
         "context_binding", "blog_assembly_bom", "public_artifact", "ai_copy_linter", "url_validator", "public_research_links",
         "metric_proof_pack", "numeric_claim_source",
-        "paa_provenance", "editorial_plan", "source_support", "customer_proof_diversity",
+        "paa_provenance", "editorial_plan", "competitive_shortlist", "source_support", "customer_proof_diversity",
         "review_story_identity", "early_artifact", "answer_withholding",
         "vault_brand_language", "named_feature_status",
         "fred_authority", "content_scorer",

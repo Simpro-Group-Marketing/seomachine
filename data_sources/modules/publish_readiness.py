@@ -24,6 +24,7 @@ try:
         blog_assembly_bom_guard,
         blog_identity_guard,
         context_binding_guard,
+        competitive_shortlist_guard,
         customer_proof_diversity_guard,
         early_artifact_guard,
         editorial_plan_guard,
@@ -72,6 +73,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import blog_assembly_bom_guard
     import blog_identity_guard
     import context_binding_guard
+    import competitive_shortlist_guard
     import customer_proof_diversity_guard
     import early_artifact_guard
     import editorial_plan_guard
@@ -204,6 +206,11 @@ ARTICLE_GATES = (
         "editorial_plan",
         "Editorial Plan",
         editorial_plan_guard,
+    ),
+    (
+        "competitive_shortlist",
+        "Competitive Shortlist",
+        competitive_shortlist_guard,
     ),
     (
         "source_support",
@@ -676,6 +683,7 @@ def _run_publish_readiness(
             "proof_sidecar": proof_sidecar_path,
         }
         if name in {
+            "competitive_shortlist",
             "named_feature_status",
             "customer_proof_diversity",
             "fred_authority",

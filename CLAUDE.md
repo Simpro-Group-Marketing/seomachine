@@ -75,11 +75,12 @@ Located in `data_sources/modules/`. The Content Analyzer chains:
 10. `faq_proof_guard.py` - FAQ proof guardrail requiring an authoritative non-owned public evidence link inside every visible FAQ answer; sidecar-only proof does not pass
 11. `paa_provenance_guard.py` - PAA provenance guardrail requiring FAQ questions to match a structured AnswerSocrates artifact or, for rewrites, the dedicated pre-picked brief section; user CSV fallback requires a bound genuine AnswerSocrates blocker, while SERP, Reddit, and YouTube remain supplemental only
 12. `source_support_guard.py` - Strict source support guard requiring approved proof rows with source-visible Evidence snippets
-13. `customer_proof_selector.py` - Customer proof selector automatically run by slash workflows with `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10` to choose the most relevant approved proof
-14. `customer_proof_index_health.py` - Read-only proof inventory health report for source mix, approvals, overuse, and public-copy gaps
-15. `customer_proof_index_intake.py` - Customer proof intake validator/merger for `context/customer-proof-intake-template.csv`
-16. `customer_proof_diversity_guard.py` - Customer proof diversity guard requiring non-case-study proof search evidence, a `Customer Proof Selection Decision`, and source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved proof fits the same role
-17. `review_story_identity_guard.py` - Review story identity guard requiring identity-backed Review Story Selection, a public review URL, and same paragraph article link for review-derived E-E-A-T stories
+13. `competitive_shortlist_guard.py` - Connector-bound competitive shortlist gate for selected/rejected decisions and public competitor claims
+14. `customer_proof_selector.py` - Customer proof selector automatically run by slash workflows with `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10` to choose the most relevant approved proof
+15. `customer_proof_index_health.py` - Read-only proof inventory health report for source mix, approvals, overuse, and public-copy gaps
+16. `customer_proof_index_intake.py` - Customer proof intake validator/merger for `context/customer-proof-intake-template.csv`
+17. `customer_proof_diversity_guard.py` - Customer proof diversity guard warning on every recent use and requiring a source-specific `Reuse reason` plus explicit same-role comparison against suitable approved zero-use proof
+18. `review_story_identity_guard.py` - Review story identity guard requiring identity-backed Review Story Selection, a public review URL, and same paragraph article link for review-derived E-E-A-T stories
 
 ### Data Integrations
 

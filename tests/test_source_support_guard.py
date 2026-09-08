@@ -283,8 +283,6 @@ class SourceSupportGuardTests(unittest.TestCase):
             "Dispatching is when a coordinator assigns available technicians to jobs.",
             "First confirm technician availability, then assign the job, and finally notify the customer.",
             "The dispatch process moves from triage to assignment to confirmation.",
-            "Review technician capacity before assigning urgent work.",
-            "Do not dispatch a technician until the required license is confirmed.",
         )
 
         for claim in claims:
@@ -295,6 +293,38 @@ class SourceSupportGuardTests(unittest.TestCase):
                     [finding["rule_id"] for finding in findings],
                     ["general_claim_source_missing"],
                 )
+
+    def test_external_factual_commercial_and_guarantee_claims_require_support(self):
+        claims = (
+            "The platform stores every work order in a shared queue.",
+            "The scheduling add-on is included in the premium subscription.",
+            "Automated dispatch always eliminates assignment conflicts.",
+            "The workflow guarantees accurate invoices.",
+            "A required approval ensures every quote is correct.",
+            "The mobile app never loses a technician update.",
+        )
+
+        for claim in claims:
+            with self.subTest(claim=claim):
+                findings = check_content(f"# Scheduling guide\n\n{claim}\n")
+
+                self.assertEqual(
+                    [finding["rule_id"] for finding in findings],
+                    ["general_claim_source_missing"],
+                )
+
+    def test_actual_opinion_instruction_and_non_outcome_scenario_are_exempt(self):
+        exempt_sentences = (
+            "In my view, a shorter checklist is easier to use.",
+            "Review technician capacity before assigning urgent work.",
+            "Do not dispatch a technician until the required license is confirmed.",
+            "Imagine a dispatcher opening the queue at the start of a shift.",
+            "For example, suppose a technician receives a new work order.",
+        )
+
+        for sentence in exempt_sentences:
+            with self.subTest(sentence=sentence):
+                self.assertEqual(check_content(f"# Scheduling guide\n\n{sentence}\n"), [])
 
     def test_general_claim_detection_does_not_sweep_navigation_or_descriptive_prose(self):
         ordinary_sentences = (

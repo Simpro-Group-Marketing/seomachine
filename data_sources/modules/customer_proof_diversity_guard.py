@@ -987,7 +987,7 @@ def _reuse_findings(
     reference: date,
 ) -> tuple[List[Finding], List[Dict[str, object]]]:
     findings: List[Finding] = []
-    overused_sources: List[Dict[str, object]] = []
+    recently_used_sources: List[Dict[str, object]] = []
     for url in customer_proof_urls:
         usage = count_customer_proof_usage(
             ledger,
@@ -995,10 +995,21 @@ def _reuse_findings(
             source_url=url,
             reference_date=reference,
         )
-        if usage["recent_uses_90d"] >= 3:
-            overused_sources.append({"url": url, "usage": usage})
+        if usage["recent_uses_90d"] > 0:
+            recently_used_sources.append({"url": url, "usage": usage})
+            findings.append(
+                _finding(
+                    "customer_proof_recent_use_warning",
+                    pack["line"],
+                    f"Customer proof source has {usage['recent_uses_90d']} recent use(s) in the last 90 days: {url}",
+                    "Prefer suitable approved zero-use proof or document the source-specific reuse decision.",
+                    severity="warning",
+                    match=url,
+                )
+            )
         reason = _source_specific_reuse_reason(url, pack, decision)
-        if usage["recent_uses_90d"] >= 3 and not reason:
+        comparison = _source_specific_zero_use_comparison(url, pack, decision)
+        if usage["recent_uses_90d"] > 0 and not reason:
             findings.append(
                 _finding(
                     "customer_proof_reuse_requires_source_specific_reason",
@@ -1011,18 +1022,20 @@ def _reuse_findings(
                     match=url,
                 )
             )
-        elif usage["recent_uses_90d"] >= 2 and not reason:
+        if usage["recent_uses_90d"] > 0 and not comparison:
             findings.append(
                 _finding(
-                    "customer_proof_reuse_warning",
+                    "customer_proof_zero_use_comparison_missing",
                     pack["line"],
-                    f"Customer proof source has already been used {usage['recent_uses_90d']} times in the last 90 days: {url}",
-                    "Consider a fresher proof source or document a Reuse reason.",
-                    severity="warning",
+                    f"Recently used proof lacks an explicit comparison with suitable approved zero-use evidence: {url}",
+                    (
+                        "Name the suitable zero-use candidates considered and why they do not fit the same role, "
+                        "or record that the selector found none for that role."
+                    ),
                     match=url,
                 )
             )
-    return findings, overused_sources
+    return findings, recently_used_sources
 
 
 def _stronger_underused_candidate_findings(
@@ -1211,7 +1224,7 @@ def _is_stronger_underused_candidate(
         return False
     if not bool(candidate.get("public_copy_allowed", False)):
         return False
-    if int(candidate.get("recent_uses_90d", 0)) >= 3:
+    if int(candidate.get("recent_uses_90d", 0)) != 0:
         return False
     return int(candidate.get("score", 0)) >= selected_score
 
@@ -1295,6 +1308,32 @@ def _source_specific_reuse_reason(
             if value and any(
                 identifier and identifier in normalized_value
                 for identifier in identifiers
+            ):
+                return value
+    return ""
+
+
+def _source_specific_zero_use_comparison(
+    url: str,
+    pack: Dict[str, object],
+    decision: Optional[Dict[str, object]],
+) -> str:
+    """Return an explicit same-role zero-use comparison for this selection."""
+    if not _source_specific_reuse_reason(url, pack, decision):
+        return ""
+    for block in (decision, pack):
+        if block is None:
+            continue
+        for field in block.get("fields", []):
+            key = str(field.get("key", ""))
+            value = str(field.get("value", "")).strip()
+            normalized = _normalize_text(value)
+            if not value or not any(term in key for term in ("zero use", "zero-use", "underused")):
+                continue
+            if (
+                ("none found" in normalized and "role" in normalized)
+                or ("reason" in normalized and len(normalized.split()) >= 6)
+                or ("zero use" in normalized and "role" in normalized)
             ):
                 return value
     return ""

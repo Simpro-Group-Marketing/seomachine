@@ -95,15 +95,18 @@ The command runs the complete publish-readiness stack. FAQ-specific gates are co
 10. `faq_answer_quality_guard.py` when visible FAQs exist
 11. `faq_proof_guard` when visible FAQs exist
 12. `paa_provenance_guard`
-13. `source_support_guard`
-14. `customer_proof_diversity_guard`
-15. `review_story_identity_guard`
-16. `early_artifact_guard`
-17. `answer_withholding_guard`
-18. `vault_brand_language_guard`
-19. `named_feature_status` via `named_feature_status_guard.py`
-20. `fred_authority` via `fred_authority_guard.py`
-21. `content_scorer` for consolidated quality and AEO/GEO scoring; URL and source-support gates are reused rather than requested twice
+13. `editorial_plan_guard`
+14. `competitive_shortlist_guard`
+15. `source_support_guard`
+16. `customer_proof_diversity_guard`
+17. `review_story_identity_guard`
+18. `early_artifact_guard`
+19. `answer_withholding_guard`
+20. `vault_brand_language_guard`
+21. `named_feature_status` via `named_feature_status_guard.py`
+22. `fred_authority` via `fred_authority_guard.py`
+23. `content_scorer` for consolidated quality and AEO/GEO scoring; URL and source-support gates are reused rather than requested twice
+24. `input_seal`
 
 The blocking `fred_authority` gate passes the validation sidecar to `fred_authority_guard.py`. It requires a complete `Fred Voccola Authority Selection` evaluation for every new or changed Simpro blog and for existing content when next rewritten, optimized, or passed through publish readiness. A selector or vault failure remains blocked; public Fred use is optional and receives no AEO/E-E-A-T credit merely because the internal block exists.
 
@@ -111,7 +114,9 @@ PAA and FAQ policy: every new article requires a structured AnswerSocrates artif
 
 When visible FAQs exist, every answer must use a 40-60 word first paragraph and lead with a supported number or range, named recommendation, definition, concrete action, or explained yes/no response. Generic deflections block the FAQ answer-quality gate. The FAQ proof gate separately requires at least 1 authoritative non-owned public evidence link inside each visible FAQ answer; a Source Map or FAQ Proof Map cannot replace that link, so sidecar-only proof does not pass.
 
-FAQ Source Policy: Gate 8 receives the proof sidecar and requires one exact `FAQ Proof Map` row for each visible non-owned FAQ URL: `FAQ`, `URL`, `Source class`, `Competitor check`, and `Support`. The only allowed classes are `neutral` and `non_competing_expert`. Competitor-owned FAQ sources: prohibited. Simpro-owned links remain supplemental and cannot satisfy the non-owned proof requirement; reframe or remove vendor-specific FAQs without compliant evidence.
+FAQ Source Policy: The FAQ proof gate receives the proof sidecar and requires one exact `FAQ Proof Map` row for each visible non-owned FAQ URL: `FAQ`, `URL`, `Source class`, `Competitor check`, `Support`, `Classification artifact`, and `Classification hash`. The only allowed classes are `neutral` and `non_competing_expert`, and both must match a repository-approved `simpro-source-classification/v1` artifact. Competitor-owned FAQ sources are prohibited. Simpro-owned links remain supplemental and cannot satisfy the non-owned proof requirement; reframe or remove vendor-specific FAQs without compliant evidence.
+
+Competitive shortlist policy: competitor-aware articles require `Competitive Shortlist Decision` in the validation sidecar. The gate matches the exact article objective, selected and rejected competitors, reasons, connector resource IDs, and any public competitor claim IDs and URLs to the validated context pack and receipt. Public SERP pages may inform format but cannot authorize the shortlist.
 
 
 403 replacement rule: If a DOL, Capterra, G2, Trustpilot, Google Play, or other public research/source URL returns 401, 403, or `manual_review`, do not remove the citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. Source Map notes must document both the rejected 403 URL and the replacement URL. The `public_research_link_guard` blocks sidecar-only handling of public research, compliance, legal, regulatory, or statistical proof and requires visible resolved non-owned public research links in the relevant article section or FAQ answer. Full policy lives in `context/aeo-geo-blog-strategy.md`.

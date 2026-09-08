@@ -24,9 +24,11 @@ from urllib.parse import urlparse
 try:
     from .faq_structure import detect_faq_structure
     from .guard_common import Finding, should_fail, summarize_findings
+    from .source_support_guard import validate_source_classification_binding
 except ImportError:  # pragma: no cover - supports direct script execution.
     from faq_structure import detect_faq_structure
     from guard_common import Finding, should_fail, summarize_findings
+    from source_support_guard import validate_source_classification_binding
 
 
 PUBLIC_URL_RE = re.compile(r"https?://[^\s)\]|<>\"']+", re.IGNORECASE)
@@ -58,11 +60,15 @@ class FaqProofSource:
     url: str
     source_class: str
     competitor_check: str
+    support: str
+    classification_artifact: str
+    classification_hash: str
 
 
 def check_content(
     content: str,
     proof_content: Optional[str] = None,
+    base_path: str | Path | None = None,
 ) -> List[Finding]:
     """
     Check FAQ answers for linked proof.
@@ -118,7 +124,13 @@ def check_content(
         )
 
     if proof_content is not None:
-        findings.extend(_check_faq_source_policy(faq_answers, proof_content))
+        findings.extend(
+            _check_faq_source_policy(
+                faq_answers,
+                proof_content,
+                base_path=Path(base_path) if base_path is not None else Path.cwd(),
+            )
+        )
 
     return findings
 
@@ -146,7 +158,11 @@ def check_file(
 
     proof_content = Path(proof_sidecar).read_text(encoding="utf-8") if proof_sidecar else None
     content = Path(path).read_text(encoding="utf-8")
-    return check_content(content, proof_content=proof_content)
+    return check_content(
+        content,
+        proof_content=proof_content,
+        base_path=Path(path).parent,
+    )
 
 
 def _extract_faq_answers(content: str) -> List[FaqAnswer]:
@@ -163,6 +179,8 @@ def _extract_faq_answers(content: str) -> List[FaqAnswer]:
 def _check_faq_source_policy(
     faq_answers: List[FaqAnswer],
     proof_content: str,
+    *,
+    base_path: Path,
 ) -> List[Finding]:
     if not _has_required_faq_source_policy(proof_content):
         first_answer = faq_answers[0]
@@ -209,6 +227,17 @@ def _check_faq_source_policy(
                 )
                 continue
 
+            if not source.support:
+                findings.append(
+                    _faq_source_finding(
+                        faq_answer,
+                        "faq_answer_support_missing",
+                        "FAQ Proof Map row has no source-grounded Support proposition.",
+                        "State the exact proposition this source supports for the FAQ answer.",
+                    )
+                )
+                continue
+
             if source.source_class == "competitor_owned" or source.competitor_check == "failed":
                 findings.append(
                     _faq_source_finding(
@@ -238,6 +267,34 @@ def _check_faq_source_policy(
                         "faq_answer_competitor_check_missing",
                         "FAQ Proof Map row must record Competitor check: passed.",
                         "Verify the source is non-competing and record Competitor check: passed.",
+                    )
+                )
+                continue
+
+            if not source.classification_artifact or not source.classification_hash:
+                findings.append(
+                    _faq_source_finding(
+                        faq_answer,
+                        "faq_answer_source_classification_missing",
+                        "FAQ source labels are not bound to a simpro-source-classification/v1 artifact.",
+                        "Add the repository-emitted Classification artifact and exact Classification hash.",
+                    )
+                )
+                continue
+            classification_error = validate_source_classification_binding(
+                source_url=source.url,
+                source_class=source.source_class,
+                classification_artifact=source.classification_artifact,
+                classification_hash=source.classification_hash,
+                base_path=base_path,
+            )
+            if classification_error is not None:
+                findings.append(
+                    _faq_source_finding(
+                        faq_answer,
+                        "faq_answer_source_classification_invalid",
+                        "FAQ source classification is missing, tampered, mismatched, or not repository-approved.",
+                        "Regenerate the classification artifact from the committed source decision registry.",
                     )
                 )
 
@@ -282,6 +339,9 @@ def _extract_faq_proof_sources(proof_content: str) -> List[FaqProofSource]:
                     url=url,
                     source_class=fields.get("source class", "").lower(),
                     competitor_check=fields.get("competitor check", "").lower(),
+                    support=fields.get("support", "").strip(),
+                    classification_artifact=fields.get("classification artifact", "").strip(),
+                    classification_hash=fields.get("classification hash", "").strip(),
                 )
             )
 
