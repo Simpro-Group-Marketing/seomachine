@@ -29,7 +29,21 @@ def _reviews(tmp_path: Path, paths: dict[str, Path]) -> tuple[Path, Path]:
 
 
 def _build(paths: dict[str, Path], plan_review: Path, article_review: Path, tmp_path: Path):
-    return build_blog_assembly_bom_from_files(article_path=paths["article"], validation_sidecar_path=paths["sidecar"], editorial_plan_path=paths["editorial_plan"], keyword_decision_path=paths["keyword_decision"], serp_evidence_path=paths["serp"], paa_artifact_path=paths["paa"], plan_review_path=plan_review, article_review_path=article_review, stage_receipt_paths=paths["stage_receipts"], workflow_mode="new", assembly_date="2026-08-11", workspace_root=tmp_path)
+    return build_blog_assembly_bom_from_files(
+        article_path=paths["article"],
+        validation_sidecar_path=paths["sidecar"],
+        editorial_plan_path=paths["editorial_plan"],
+        keyword_decision_path=paths["keyword_decision"],
+        serp_evidence_path=paths["serp"],
+        paa_artifact_path=paths["paa"],
+        plan_review_path=plan_review,
+        article_review_path=article_review,
+        agent_output_paths=paths["agent_outputs"],
+        stage_receipt_paths=paths["stage_receipts"],
+        workflow_mode="new",
+        assembly_date="2026-08-11",
+        workspace_root=tmp_path,
+    )
 
 
 def test_bom_v2_binds_machine_reviews_and_rejects_stale_article_review(tmp_path: Path):

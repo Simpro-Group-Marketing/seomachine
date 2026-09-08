@@ -12,7 +12,11 @@ from data_sources.modules.content_scorer import ContentScorer
 from data_sources.modules.seo_quality_rater import PUBLISHING_THRESHOLD
 from data_sources.modules.paa_provenance_guard import build_answersocrates_artifact
 from data_sources.modules.url_validator import UrlValidationResult, UrlValidationSummary
-from tests.test_aeo_geo_rater import write_bound_experience_story_evidence
+from tests.research_provenance_fixtures import build_answersocrates_fixture
+from tests.test_aeo_geo_rater import (
+    AUTHOR_VERIFICATION_BLOCK,
+    write_bound_experience_story_evidence,
+)
 from tests.vault_context_fixture import load_validated_claim_set_for_unit_test
 
 

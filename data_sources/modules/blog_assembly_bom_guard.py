@@ -21,6 +21,7 @@ try:
         editorial_plan_guard,
         industry_cluster_link_policy,
         machine_review,
+        paa_provenance_guard,
         semrush_keyword_decision_guard,
     )
     from .blog_assembly_bom import (
@@ -68,6 +69,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import editorial_plan_guard
     import industry_cluster_link_policy
     import machine_review
+    import paa_provenance_guard
     import semrush_keyword_decision_guard
     from blog_assembly_bom import (
         BOM_SCHEMA,
@@ -502,7 +504,7 @@ def check_bom(
         ),
     ):
         findings.append(_finding(rule_id, message))
-    findings.extend(_check_research_provenance(bom, artifacts, root, article_path))
+    findings.extend(_check_editorial_plan(bom, artifacts, root, article_path))
     findings.extend(_check_workflow(bom, artifacts, root))
     findings.extend(_check_preflight(bom, artifacts, root))
     return _sorted(findings)
@@ -1128,6 +1130,23 @@ def _load_bound_editorial_plan(
     return plan
 
 
+def _load_bound_json_object(
+    row: Any,
+    *,
+    workspace_root: Path,
+    field: str,
+) -> tuple[Path, dict[str, Any]]:
+    """Hash and parse one bound JSON object from the same immutable bytes."""
+    if not isinstance(row, Mapping):
+        raise ValueError(f"{field} must be a path/hash object")
+    expected = validate_sha256(row.get("sha256"), field=f"{field}.sha256")
+    path = resolve_artifact(row.get("path"), workspace_root=workspace_root)
+    snapshot = load_json_object_snapshot(path, field=field)
+    if snapshot.sha256 != expected:
+        raise ValueError(f"{field}.sha256 does not match current file contents")
+    return path, snapshot.payload
+
+
 def _check_editorial_plan(
     bom: Mapping[str, Any],
     artifacts: Mapping[str, Any],
@@ -1329,6 +1348,15 @@ def _check_editorial_plan(
     return findings
 
 
+def _check_research_provenance(
+    bom: Mapping[str, Any],
+    artifacts: Mapping[str, Any],
+    root: Path,
+    article_path: str | Path,
+) -> list[Finding]:
+    return _check_editorial_plan(bom, artifacts, root, article_path)
+
+
 def _verified_optional_artifact_path(
     artifacts: Mapping[str, Any],
     field: str,
@@ -1361,6 +1389,13 @@ def _check_workflow(
             _finding(
                 "bom_workflow_shape_invalid",
                 "BOM workflow must contain only stage_receipts.",
+            )
+        )
+    if _parse_date(bom.get("assembly_date")) is None:
+        findings.append(
+            _finding(
+                "bom_stage_canonical_identity_invalid",
+                "Stage receipt canonical article identity cannot be validated without a valid BOM assembly date.",
             )
         )
     embedded = workflow.get("stage_receipts")

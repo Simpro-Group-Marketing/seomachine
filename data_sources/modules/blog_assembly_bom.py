@@ -13,12 +13,14 @@ from typing import Any, Mapping, Sequence
 
 try:
     from . import (
+        blog_assembly_capabilities,
         blog_identity_guard,
         context_binding_guard,
         eeat_strength_guard,
         editorial_plan_guard,
         industry_cluster_link_policy,
         machine_review,
+        paa_provenance_guard,
         semrush_keyword_decision_guard,
     )
     from .blog_assembly_contract import (
@@ -56,6 +58,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import editorial_plan_guard
     import industry_cluster_link_policy
     import machine_review
+    import paa_provenance_guard
     import semrush_keyword_decision_guard
     from blog_assembly_contract import (
         artifact_inventory_snapshots,
@@ -205,12 +208,28 @@ def build_blog_assembly_bom_from_files(
         for index, path in enumerate(stage_receipt_paths)
     ]
     stage_receipts = [snapshot.payload for snapshot in stage_receipt_snapshots]
-    try:
-        execution_evidence = blog_assembly_capabilities.resolve_execution_evidence(
-            stage_receipts,
-            agent_output_paths=normalized_agent_output_paths,
-            workspace_root=root,
+    if plan_review_path is None or article_review_path is None:
+        raise ValueError(
+            "New BOM assembly requires both plan_review_path and article_review_path; "
+            "BOM v1 is read-only archived evidence."
         )
+    stage_names = tuple(str(receipt.get("stage") or "") for receipt in stage_receipts)
+    optimized_tail = stage_names == (
+        "post_optimization_scrub",
+        "post_optimization_context_binding",
+    )
+    try:
+        if optimized_tail:
+            execution_evidence = _execution_evidence_from_prior_preflight(
+                prior_preflight_readiness_path,
+                workspace_root=root,
+            )
+        else:
+            execution_evidence = blog_assembly_capabilities.resolve_execution_evidence(
+                stage_receipts,
+                agent_output_paths=normalized_agent_output_paths,
+                workspace_root=root,
+            )
     except blog_assembly_capabilities.CapabilityRegistryError as error:
         raise ValueError(f"repository execution provenance is invalid: {error}") from error
     plan_findings = editorial_plan_guard.check_file(
@@ -497,7 +516,8 @@ def finalize_blog_assembly_bom(
 ) -> dict[str, Any]:
     """Seal a passed preflight into a final BOM without self-reference."""
     root = Path(workspace_root or Path.cwd()).resolve()
-    bom = _read_json_object(bom_path, "bom")
+    bom_snapshot = load_json_object_snapshot(bom_path, field="bom")
+    bom = bom_snapshot.payload
     if not _is_supported_bom_schema(bom.get("schema")):
         raise ValueError(f"bom.schema must be {BOM_SCHEMA_V1} or {BOM_SCHEMA_V2}")
     if bom.get("lifecycle_state") != "provisional":
@@ -1197,8 +1217,14 @@ def _validate_provisional_stage_receipts(
         from blog_assembly_stage_receipt import check_receipt_chain
 
     stages = tuple(str(receipt.get("stage") or "") for receipt in receipts)
+    optimized_tail = stages == (
+        "post_optimization_scrub",
+        "post_optimization_context_binding",
+    )
     optimized = "optimization" in stages
-    if optimized != bool(prior_preflight_readiness_path):
+    if optimized_tail and not prior_preflight_readiness_path:
+        raise ValueError("optimized-tail workflow requires prior preflight readiness evidence")
+    if not optimized_tail and optimized != bool(prior_preflight_readiness_path):
         raise ValueError(
             "prior preflight readiness evidence must be present if and only if "
             "the optimization stage is present"
@@ -1209,42 +1235,23 @@ def _validate_provisional_stage_receipts(
         execution_evidence=execution_evidence,
         workspace_root=workspace_root,
     )
-    findings = check_receipt_chain(
-        receipts,
-        expected_run_id=expected_run_id,
-        assembly_date=assembly_date,
-        now=datetime.now(timezone.utc),
-        resolvable_evidence_hashes=resolvable_evidence,
-    )
-    if findings:
-        rules = ", ".join(
-            sorted({str(finding.get("rule_id")) for finding in findings})
+    if not optimized_tail:
+        findings = check_receipt_chain(
+            receipts,
+            expected_run_id=expected_run_id,
+            assembly_date=assembly_date,
+            now=datetime.now(timezone.utc),
+            resolvable_evidence_hashes=resolvable_evidence,
         )
-        raise ValueError(f"stage receipt chain is invalid: {rules}")
+        if findings:
+            rules = ", ".join(
+                sorted({str(finding.get("rule_id")) for finding in findings})
+            )
+            raise ValueError(f"stage receipt chain is invalid: {rules}")
     stages = tuple(str(receipt.get("stage") or "") for receipt in receipts)
-    optimized_tail = stages == (
-        "post_optimization_scrub",
-        "post_optimization_context_binding",
-    )
     optimized = "optimization" in stages
-    expected = (
-        stages
-        if optimized_tail
-        else
-        (
-            "draft",
-            "scrub",
-            "context_binding",
-            "preflight_readiness",
-            "optimization",
-            "post_optimization_scrub",
-            "post_optimization_context_binding",
-        )
-        raise ValueError(f"stage receipt chain is invalid: {rules}: {messages}")
-    expected = (
-        OPTIMIZED_PROVISIONAL_STAGES
-        if optimized
-        else NORMAL_PROVISIONAL_STAGES
+    expected = stages if optimized_tail else (
+        OPTIMIZED_PROVISIONAL_STAGES if optimized else NORMAL_PROVISIONAL_STAGES
     )
     if stages != expected:
         raise ValueError(
@@ -1255,6 +1262,15 @@ def _validate_provisional_stage_receipts(
         raise ValueError(
             "optimizer output evidence must be present if and only if the "
             "optimization stage is present"
+        )
+    expected_optimizer_rows = [
+        execution_evidence[f"agent_output.{agent_id}"]
+        for agent_id in blog_assembly_capabilities.expected_agent_ids(receipts)
+    ] if optimized else []
+    if not optimized_tail and optimizer_outputs != expected_optimizer_rows:
+        raise ValueError(
+            "optimizer outputs must exactly match the ordered, distinct "
+            "agent output artifacts in execution evidence"
         )
     if not optimized_tail and optimized != bool(prior_preflight_readiness_path):
         raise ValueError(
@@ -1668,16 +1684,22 @@ def _resolvable_receipt_evidence_hashes(
         if execution_evidence is not None
         else artifacts.get("execution_evidence")
     )
-    capability_errors = blog_assembly_capabilities.validate_execution_evidence(
-        registered_evidence,
-        receipts=receipts,
-        workspace_root=workspace_root,
+    stages = tuple(str(receipt.get("stage") or "") for receipt in receipts)
+    optimized_tail = stages == (
+        "post_optimization_scrub",
+        "post_optimization_context_binding",
     )
-    if capability_errors:
-        raise ValueError(
-            "repository capability definitions are invalid: "
-            + ", ".join(code for code, _ in capability_errors)
+    if not optimized_tail:
+        capability_errors = blog_assembly_capabilities.validate_execution_evidence(
+            registered_evidence,
+            receipts=receipts,
+            workspace_root=workspace_root,
         )
+        if capability_errors:
+            raise ValueError(
+                "repository capability definitions are invalid: "
+                + ", ".join(code for code, _ in capability_errors)
+            )
     prior_readiness = artifacts.get("prior_preflight_readiness")
     if isinstance(prior_readiness, Mapping):
         prior_path = verify_artifact(
@@ -1746,6 +1768,70 @@ def _resolvable_receipt_evidence_hashes(
 
 def _optional_artifact(path: str | Path | None, root: Path) -> dict[str, str] | None:
     return canonical_artifact(path, workspace_root=root) if path is not None else None
+
+
+def _execution_evidence_from_prior_preflight(
+    prior_preflight_readiness_path: str | Path | None,
+    *,
+    workspace_root: Path,
+) -> dict[str, dict[str, str]]:
+    if prior_preflight_readiness_path is None:
+        raise blog_assembly_capabilities.CapabilityRegistryError(
+            "optimized-tail workflow requires prior preflight readiness evidence"
+        )
+    try:
+        readiness = _read_json_object(
+            prior_preflight_readiness_path,
+            "prior_preflight_readiness",
+        )
+        inputs = _required_mapping(
+            readiness.get("input_hashes"),
+            "prior_preflight_readiness.input_hashes",
+        )
+        prior_bom_row = _required_mapping(
+            inputs.get("assembly_bom"),
+            "prior_preflight_readiness.input_hashes.assembly_bom",
+        )
+        prior_bom_path = verify_artifact(
+            prior_bom_row,
+            workspace_root=workspace_root,
+            field="prior_preflight_readiness.input_hashes.assembly_bom",
+        )
+        prior_bom = _read_json_object(prior_bom_path, "prior_preflight_bom")
+        prior_artifacts = _required_mapping(
+            prior_bom.get("artifacts"),
+            "prior_preflight_bom.artifacts",
+        )
+        evidence = _required_mapping(
+            prior_artifacts.get("execution_evidence"),
+            "prior_preflight_bom.artifacts.execution_evidence",
+        )
+        copied: dict[str, dict[str, str]] = {}
+        for label, row in evidence.items():
+            if not isinstance(label, str):
+                raise ValueError("execution evidence labels must be strings")
+            copied[label] = dict(
+                _required_mapping(
+                    row,
+                    f"prior_preflight_bom.artifacts.execution_evidence.{label}",
+                )
+            )
+        return copied
+    except ValueError as error:
+        raise blog_assembly_capabilities.CapabilityRegistryError(str(error)) from error
+
+
+def _label_paths(values: Sequence[str]) -> dict[str, Path]:
+    result: dict[str, Path] = {}
+    for value in values:
+        if "=" not in value:
+            raise ValueError("agent output arguments must use id=path")
+        label, raw_path = value.split("=", 1)
+        normalized = _required_string(label, "agent_output.id")
+        if normalized in result:
+            raise ValueError(f"duplicate agent output ID: {normalized}")
+        result[normalized] = Path(_required_string(raw_path, "agent_output.path"))
+    return result
 
 
 def _is_supported_bom_schema(value: Any) -> bool:

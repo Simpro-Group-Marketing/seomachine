@@ -109,6 +109,16 @@ RFC3339_UTC_RE = re.compile(
 )
 SOURCE_CAPTURE_SCHEMA = "simpro-source-capture-receipt/v1"
 SOURCE_CLASSIFICATION_SCHEMA = "simpro-source-classification/v1"
+SOURCE_DECISIONS_SCHEMA = "simpro-source-classification-decisions/v1"
+SOURCE_DECISIONS_PATH = "context/source-classification-decisions.json"
+SOURCE_DECISION_FIELDS = frozenset({
+    "decision_id",
+    "status",
+    "source_url",
+    "hostname",
+    "source_class",
+    "publisher_relationship",
+})
 SOURCE_CAPTURE_EMITTER = "source_support_capture"
 SOURCE_CLASSIFICATION_EMITTER = "source_registry_export"
 SOURCE_CAPTURE_EMITTER_VERSION = "1.0.0"

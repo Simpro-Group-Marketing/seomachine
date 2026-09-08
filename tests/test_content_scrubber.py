@@ -324,7 +324,10 @@ secondary_keywords:
             def build_after_output(**kwargs):
                 self.assertEqual('Dispatch work.', article.read_text(encoding='utf-8'))
                 self.assertFalse(kwargs['mutation'])
-                self.assertEqual(kwargs['input_artifact_hashes'], kwargs['output_artifact_hashes'])
+                self.assertEqual(
+                    kwargs['input_artifact_hashes']['article'],
+                    kwargs['output_artifact_hashes']['article'],
+                )
                 return real_builder(**kwargs)
 
             with patch.object(

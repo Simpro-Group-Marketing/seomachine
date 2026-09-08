@@ -55,10 +55,17 @@ def test_invalid_freshness_date_fails():
     assert "blog_identity_last_updated_invalid" in _rules(content)
 
 
-def test_assembly_date_mismatch_fails():
+def test_last_updated_after_assembly_date_fails():
     assert "blog_identity_last_updated_mismatch" in {
         finding["rule_id"]
         for finding in check_article(VALID, assembly_date=date(2026, 8, 10))
+    }
+
+
+def test_last_updated_before_assembly_date_passes():
+    assert "blog_identity_last_updated_mismatch" not in {
+        finding["rule_id"]
+        for finding in check_article(VALID, assembly_date=date(2026, 8, 12))
     }
 
 

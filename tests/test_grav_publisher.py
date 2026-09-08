@@ -18,9 +18,11 @@ from data_sources.modules.grav_publisher import (
     GravPublisher,
     main,
 )
+from data_sources.modules.url_validator import UrlValidationSummary
 
 
 DRAFT_WITH_SLUG = fixture_text("publisher_contracts:test_grav_publisher-21-1")
+DEFAULT_FAILING_GATE_NAME = "metric_proof_pack"
 
 
 CANONICAL_DRAFT = fixture_text("publisher_contracts:test_grav_publisher-41-2")
@@ -42,7 +44,7 @@ def _write_bom(tmpdir: str) -> str:
     return str(path)
 
 
-def failing_readiness():
+def failing_readiness(gate_name: str = DEFAULT_FAILING_GATE_NAME):
     return {
         "passed": False,
         "gates": [
@@ -468,11 +470,7 @@ class PublishPreflightTests(unittest.TestCase):
         readiness.assert_called_once_with(
             path,
             proof_sidecar=sidecar,
-            context_request=None,
-            context_pack=None,
-            context_receipt=None,
             assembly_bom=bom,
-            vault_root=None,
         )
         self.assertEqual(
             result["publish_input_sha256"]["assembly_bom"],

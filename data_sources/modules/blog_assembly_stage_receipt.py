@@ -16,6 +16,7 @@ try:
         atomic_write_json,
         canonical_json_sha256,
         file_sha256,
+        load_json_object_snapshot,
         validate_sha256,
     )
     from .execution_attestation import attest_mapping, verify_mapping_attestation
@@ -25,6 +26,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         atomic_write_json,
         canonical_json_sha256,
         file_sha256,
+        load_json_object_snapshot,
         validate_sha256,
     )
     from execution_attestation import attest_mapping, verify_mapping_attestation
@@ -125,6 +127,35 @@ class StageReceiptError(ValueError):
     def __init__(self, code: str, message: str):
         super().__init__(message)
         self.code = code
+
+
+def stage_evidence_path(receipt_path: str | Path) -> Path:
+    """Return the deterministic evidence sidecar path for one stage receipt."""
+    receipt = Path(receipt_path)
+    return receipt.with_name(f"{receipt.stem}-evidence.json")
+
+
+def write_stage_evidence(
+    receipt_path: str | Path,
+    *,
+    evidence_hashes: Mapping[str, str],
+    payload: Mapping[str, Any],
+) -> tuple[Path, str]:
+    """Materialize logical stage evidence in a path/hash-bound JSON artifact."""
+    hashes = _hash_mapping(
+        evidence_hashes,
+        code="stage_receipt_evidence_hash_invalid",
+        field="evidence_hashes",
+    )
+    manifest = {
+        "schema": STAGE_EVIDENCE_SCHEMA,
+        "evidence_hashes": hashes,
+        "payload": dict(payload),
+    }
+    destination = stage_evidence_path(receipt_path)
+    atomic_write_json(destination, manifest)
+    digest = hashlib.sha256(destination.read_bytes()).hexdigest()
+    return destination, digest
 
 
 def begin_native_edit(

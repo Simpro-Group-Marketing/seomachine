@@ -208,8 +208,8 @@ class OptimizerModuleTests(unittest.TestCase):
             "# Payments for Trades Businesses\n\n"
             "Payments for trades businesses connect invoice and job status.\n\n"
             "## Choose the next action\n\n"
-            "Use [field service payments]"
-            "(https://www.simprogroup.com/features/payments) to connect the handoff."
+            "Use [field service management software]"
+            "(https://www.simprogroup.com/solutions/field-service-management-software) to connect the handoff."
         )
 
         result = SEOQualityRater()._score_links(
@@ -228,10 +228,10 @@ class OptimizerModuleTests(unittest.TestCase):
             "# Payments for Trades Businesses\n\n"
             "Payments for trades businesses connect invoice and job status.\n\n"
             "## Choose the next action\n\n"
-            "Use [field service payments]"
-            "(https://www.simprogroup.com/features/payments) to connect the handoff.\n"
-            "[accounts receivable follow-up with Fast Cash]"
-            "(https://www.simprogroup.com/features/fast-cash) supports follow-up.\n"
+            "Use [field service management software]"
+            "(https://www.simprogroup.com/solutions/field-service-management-software) to connect the handoff.\n"
+            "[field service management software]"
+            "(https://www.simprogroup.com/solutions/field-service-management-software) supports follow-up.\n"
             "[payments collection guide]"
             "(https://www.simprogroup.com/blog/payments-as-a-strategic-growth-lever-for-trades) "
             "adds planning detail.\n"
@@ -316,7 +316,7 @@ class OptimizerModuleTests(unittest.TestCase):
 
     def test_evidence_required_external_links_have_no_maximum_penalty(self):
         result = SEOQualityRater()._score_links(
-            "[field service payments](https://www.simprogroup.com/features/payments)",
+            "[field service management software](https://www.simprogroup.com/solutions/field-service-management-software)",
             internal_count=5,
             external_count=12,
         )
@@ -332,8 +332,8 @@ class OptimizerModuleTests(unittest.TestCase):
             "# Payments for Trades Businesses\n\n"
             "Payments for trades businesses connect invoice and job status.\n\n"
             "## Choose the next action\n\n"
-            "Use [field service payments]"
-            "(https://www.simprogroup.com/features/payments) to connect the handoff."
+            "Use [field service management software]"
+            "(https://www.simprogroup.com/solutions/field-service-management-software) to connect the handoff."
         )
 
         result = SEOQualityRater()._score_links(
@@ -351,8 +351,8 @@ class OptimizerModuleTests(unittest.TestCase):
         content = (
             "# Payments for Trades Businesses\n\n"
             f"{long_body}\n\n"
-            "Use [field service payments]"
-            "(https://www.simprogroup.com/features/payments) to connect the handoff."
+            "Use [field service management software]"
+            "(https://www.simprogroup.com/solutions/field-service-management-software) to connect the handoff."
         )
 
         result = SEOQualityRater()._score_links(
@@ -500,15 +500,15 @@ class OptimizerModuleTests(unittest.TestCase):
         natural = SEOQualityRater().rate(keyword_density=0.5, **common)
         arbitrary_percentage = SEOQualityRater().rate(keyword_density=99.0, **common)
 
-        self.assertEqual(
+        self.assertLess(
             arbitrary_percentage["category_scores"]["keyword_optimization"],
             natural["category_scores"]["keyword_optimization"],
         )
-        self.assertEqual(arbitrary_percentage["overall_score"], natural["overall_score"])
+        self.assertLess(arbitrary_percentage["overall_score"], natural["overall_score"])
         findings = "\n".join(
             arbitrary_percentage["critical_issues"] + arbitrary_percentage["warnings"]
         ).lower()
-        self.assertNotIn("density", findings)
+        self.assertIn("density", findings)
         self.assertNotIn("stuffing", findings)
 
     def test_contextual_exact_phrase_repetition_is_a_hard_stuffing_failure(self):

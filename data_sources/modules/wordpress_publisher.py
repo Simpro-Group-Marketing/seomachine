@@ -28,6 +28,8 @@ try:
         validate_publish_plain_text,
     )
     from .publish_readiness import run_publish_readiness
+    from .source_support_guard import require_source_support
+    from .url_validator import validate_file_urls
 except ImportError:
     from publishable_markdown import (
         PublishableMarkdown,
@@ -43,6 +45,8 @@ except ImportError:
         validate_publish_plain_text,
     )
     from publish_readiness import run_publish_readiness
+    from source_support_guard import require_source_support
+    from url_validator import validate_file_urls
 
 
 WORDPRESS_REQUEST_TIMEOUT = (5, 30)
@@ -669,6 +673,7 @@ class WordPressPublisher:
             file_path,
             proof_sidecar,
             "WordPress publish",
+            artifact_kind="landing_page" if api_endpoint == "pages" else None,
             context_request=context_request,
             context_pack=context_pack,
             context_receipt=context_receipt,
@@ -969,15 +974,31 @@ def _require_publish_readiness(
     context_receipt: Optional[str] = None,
     assembly_bom: Optional[str] = None,
     vault_root: Optional[str | Path] = None,
+    artifact_kind: Optional[str] = None,
 ) -> Dict:
+    readiness_kwargs = {"proof_sidecar": proof_sidecar}
+    if assembly_bom is not None:
+        readiness_kwargs.update({
+            "context_request": context_request,
+            "context_pack": context_pack,
+            "context_receipt": context_receipt,
+            "assembly_bom": assembly_bom,
+            "vault_root": vault_root,
+        })
+    else:
+        for label, value in (
+            ("context_request", context_request),
+            ("context_pack", context_pack),
+            ("context_receipt", context_receipt),
+            ("vault_root", vault_root),
+        ):
+            if value is not None:
+                readiness_kwargs[label] = value
+    if artifact_kind is not None:
+        readiness_kwargs["artifact_kind"] = artifact_kind
     result = run_publish_readiness(
         file_path,
-        proof_sidecar=proof_sidecar,
-        context_request=context_request,
-        context_pack=context_pack,
-        context_receipt=context_receipt,
-        assembly_bom=assembly_bom,
-        vault_root=vault_root,
+        **readiness_kwargs,
     )
     if result.get("passed"):
         return result
@@ -993,6 +1014,8 @@ def _format_readiness_blockers(result: Dict) -> str:
         if gate.get("passed"):
             continue
         name = gate.get("name", "unknown_gate")
+        if name == "ai_copy":
+            name = "ai_copy_linter"
         label = gate.get("label", name)
         lines.append(f"- {name} ({label})")
         for blocker in gate.get("blockers", [])[:3]:

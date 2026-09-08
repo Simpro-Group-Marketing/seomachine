@@ -42,6 +42,7 @@ try:
         public_artifact_guard,
         review_story_identity_guard,
         semrush_keyword_decision_guard,
+        source_quality_guard,
         source_support_guard,
         vault_brand_language_guard,
     )
@@ -100,6 +101,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import public_artifact_guard
     import review_story_identity_guard
     import semrush_keyword_decision_guard
+    import source_quality_guard
     import source_support_guard
     import vault_brand_language_guard
     from content_scorer import ContentScorer
@@ -260,6 +262,11 @@ ARTICLE_GATES = (
         semrush_keyword_decision_guard,
     ),
     (
+        "competitive_shortlist",
+        "Competitive Shortlist",
+        competitive_shortlist_guard,
+    ),
+    (
         "source_support",
         "Source Support",
         source_support_guard,
@@ -332,6 +339,7 @@ def run_publish_readiness(
     ai_profile: str = "simpro-web",
     phase: str = "preflight",
     workspace_root: str | Path | None = None,
+    artifact_kind: str | None = None,
 ) -> ReadinessResult:
     """Run the complete gate stack inside one trusted workspace boundary."""
     if phase not in {"preflight", "final"}:
@@ -374,6 +382,7 @@ def run_publish_readiness(
         ai_profile=ai_profile,
         phase=phase,
         workspace_root=root,
+        artifact_kind=artifact_kind,
     )
     return _ExecutedReadinessResult(raw, workspace_root=root)
 
@@ -390,6 +399,7 @@ def _run_publish_readiness(
     ai_profile: str = "simpro-web",
     phase: str = "preflight",
     workspace_root: str | Path,
+    artifact_kind: str | None = None,
 ) -> ReadinessResult:
     """Run the full publish-readiness stack and return structured results."""
     if phase not in {"preflight", "final"}:
@@ -439,10 +449,22 @@ def _run_publish_readiness(
         }
     article_content = article.raw
     try:
-        artifact_kind = context_binding_guard.require_artifact_kind(
+        requested_artifact_kind = artifact_kind
+        detected_artifact_kind = context_binding_guard.require_artifact_kind(
             article_content,
             article_path=article_path,
         )
+        if requested_artifact_kind is not None:
+            if requested_artifact_kind not in {"blog", "landing_page"}:
+                raise ValueError("artifact_kind must be blog or landing_page")
+            if (
+                requested_artifact_kind == "blog"
+                and detected_artifact_kind != "blog"
+            ):
+                raise ValueError("artifact_kind does not match the article")
+            resolved_artifact_kind = requested_artifact_kind
+        else:
+            resolved_artifact_kind = detected_artifact_kind
     except ValueError as error:
         message = str(error)
         normalized = message.casefold()
@@ -484,6 +506,7 @@ def _run_publish_readiness(
                 {"dimension": "artifact_identity", "issue": message}
             ],
         }
+    artifact_kind = resolved_artifact_kind
     score_threshold = 75 if artifact_kind == "landing_page" else 85
     gates: List[GateResult] = []
     runtime_policy = _bom_runtime_policy(
@@ -2005,6 +2028,16 @@ def _no_fit_customer_proof_findings(
                 }
             ]
     return []
+
+
+def _canonical_bom_run_id(bom: Mapping[str, Any]) -> str:
+    workflow = bom.get("workflow")
+    receipts = workflow.get("stage_receipts") if isinstance(workflow, Mapping) else None
+    if isinstance(receipts, list) and receipts and isinstance(receipts[0], Mapping):
+        run_id = receipts[0].get("run_id")
+        if isinstance(run_id, str) and run_id.strip():
+            return run_id.strip()
+    return ""
 
 
 def format_text_report(result: ReadinessResult) -> str:

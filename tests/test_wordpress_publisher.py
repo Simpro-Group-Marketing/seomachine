@@ -12,12 +12,14 @@ from data_sources.modules.wordpress_publisher import (
     WordPressPartialPublishError,
     WordPressPublisher,
 )
+from data_sources.modules.url_validator import UrlValidationSummary
 
 
 DRAFT = fixture_text("publisher_contracts:test_wordpress_publisher-15-1")
 
 
 CANONICAL_DRAFT = fixture_text("publisher_contracts:test_wordpress_publisher-26-2")
+DEFAULT_FAILING_GATE_NAME = "ai_copy_linter"
 
 
 def passing_readiness():
@@ -36,7 +38,7 @@ def _write_bom(tmpdir: str) -> str:
     return str(path)
 
 
-def failing_readiness():
+def failing_readiness(gate_name: str = DEFAULT_FAILING_GATE_NAME):
     return {
         "passed": False,
         "gates": [

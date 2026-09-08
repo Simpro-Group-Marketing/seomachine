@@ -12,12 +12,22 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 try:
-    from .blog_assembly_contract import canonical_json_sha256
+    from .blog_assembly_contract import (
+        canonical_json_sha256,
+        canonical_snapshot_artifact,
+        load_json_object_snapshot,
+        resolve_artifact,
+    )
     from .execution_attestation import attest_mapping, verify_mapping_attestation
     from .frontmatter import FrontmatterError, split_frontmatter
     from . import industry_cluster_link_policy
 except ImportError:  # pragma: no cover - supports direct script execution.
-    from blog_assembly_contract import canonical_json_sha256
+    from blog_assembly_contract import (
+        canonical_json_sha256,
+        canonical_snapshot_artifact,
+        load_json_object_snapshot,
+        resolve_artifact,
+    )
     from execution_attestation import attest_mapping, verify_mapping_attestation
     from frontmatter import FrontmatterError, split_frontmatter
     import industry_cluster_link_policy
@@ -192,6 +202,7 @@ SERP_RAW_CAPTURE_FIELDS = frozenset({
 SERP_APPROVED_COLLECTORS = frozenset({
     ('research_serp_analysis:dataforseo', '1.0.0'),
     ('research_serp_analysis:playwright', '1.0.0'),
+    ('research_serp_analysis:semrush', '1.0.0'),
 })
 SERP_RESULT_FIELDS = frozenset({'position', 'url', 'title', 'result_type'})
 SERP_OBSERVATION_FIELDS = frozenset(
@@ -215,6 +226,14 @@ BRAND_INTERNAL_DOMAINS = {
     'clockshark': frozenset({'clockshark.com'}),
     'simpro': frozenset({'simprogroup.com', 'simpro.ai'}),
 }
+
+
+def load_json_text(value: str, *, field: str) -> Any:
+    '''Parse one exact JSON text value with a field-specific failure.'''
+    try:
+        return json.loads(value)
+    except (TypeError, json.JSONDecodeError) as error:
+        raise ValueError(f'{field} is not valid JSON') from error
 
 
 def build_serp_evidence(
@@ -376,6 +395,9 @@ def _validate_serp_raw_snapshot(
             or dict(locale) != {'language_code': 'en', 'location_code': 2840}
         ):
             raise ValueError('DataForSEO raw capture request or locale is not approved')
+    elif collector.get('name') == 'research_serp_analysis:semrush':
+        if request_url != 'semrush://keyword/phrase_organic' or dict(locale) != {'database': 'us'}:
+            raise ValueError('Semrush raw capture request or locale is not approved')
     else:
         parsed_url = urlparse(request_url)
         query_values = parse_qs(parsed_url.query)
@@ -604,6 +626,7 @@ def check_file(
         ]
     return _check_loaded_plan(
         payload,
+        plan_path=source,
         article_path=article_path,
         serp_evidence_path=serp_evidence_path,
         assembly_date=assembly_date,
@@ -614,6 +637,7 @@ def check_file(
 def _check_loaded_plan(
     payload: Mapping[str, Any],
     *,
+    plan_path: str | Path | None = None,
     article_path: str | Path | None,
     serp_evidence_path: str | Path | None,
     assembly_date: str | None,
@@ -666,7 +690,7 @@ def _check_loaded_plan(
             _check_link_policy_override_binding(
                 payload,
                 article_path=article_path,
-                plan_path=source,
+                plan_path=plan_path,
             )
         )
     return _sorted_findings(findings)
@@ -1818,12 +1842,12 @@ def _check_article_date_binding(
         )
         if candidate is not None
     }
-    if any(updated != expected for expected in expected_dates):
+    if any(updated > expected for expected in expected_dates):
         return [_finding(
             'editorial_plan_article_date_mismatch',
-            'Final article last_updated must match the editorial-plan and workflow assembly dates.',
+            'Final article last_updated cannot be later than the editorial-plan or workflow assembly dates.',
             '/last_updated',
-            'Update the article and rebuild the plan in one assembly run.',
+            'Update the article date only after a real CMS update date exists, then rebuild the plan in one assembly run.',
         )]
     return []
 

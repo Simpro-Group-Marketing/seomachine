@@ -333,8 +333,19 @@ def _check_connector_reports(value: Any, database: str) -> list[Finding]:
         reports.add(report.strip())
         if not isinstance(parameters, Mapping):
             findings.append(_invalid(f"{location}/parameters", "must contain the exact connector params"))
-        if row.get("status") != "completed":
-            findings.append(_invalid(f"{location}/status", "must be completed"))
+        allowed_statuses = {"completed"}
+        if report == "phrase_questions":
+            allowed_statuses.add("unsupported")
+        if report == "_get_report_schema":
+            allowed_statuses.add("unavailable")
+        if row.get("status") not in allowed_statuses:
+            if report == "phrase_questions":
+                expected_status = "must be completed or unsupported"
+            elif report == "_get_report_schema":
+                expected_status = "must be completed or unavailable"
+            else:
+                expected_status = "must be completed"
+            findings.append(_invalid(f"{location}/status", expected_status))
         if report in REPORTS_WITH_DATABASE and isinstance(parameters, Mapping):
             if parameters.get("database") != database:
                 findings.append(_finding(

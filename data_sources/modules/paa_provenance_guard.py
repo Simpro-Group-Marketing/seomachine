@@ -63,8 +63,38 @@ ANSWERSOCRATES_BLOCKER_STATES = frozenset(
 ANSWERSOCRATES_ARTIFACT_SCHEMA = "simpro-answersocrates-artifact/v1"
 ANSWERSOCRATES_RECEIPT_SCHEMA = "simpro-answersocrates-run-receipt/v1"
 ANSWERSOCRATES_RECEIPT_ATTESTATION_PURPOSE = ANSWERSOCRATES_RECEIPT_SCHEMA
-ANSWERSOCRATES_TOOL = {"name": "playwright_mcp", "version": "1.0.0"}
-ANSWERSOCRATES_TOOL_NAMES = frozenset({"playwright_mcp", "playwright_cli"})
+ANSWERSOCRATES_TOOL = {
+    "name": "answersocrates_playwright_collector",
+    "version": "1.0.0",
+}
+ANSWERSOCRATES_RAW_CAPTURE_SCHEMA = "simpro-answersocrates-playwright-capture/v1"
+ANSWERSOCRATES_RAW_CAPTURE_PURPOSE = ANSWERSOCRATES_RAW_CAPTURE_SCHEMA
+ANSWERSOCRATES_RAW_CAPTURE_FIELDS = frozenset({
+    "schema", "collector", "query", "run_id", "started_at", "completed_at",
+    "page_url", "raw_response", "execution_attestation",
+})
+ANSWERSOCRATES_RAW_RESPONSE_FIELDS = frozenset({"stdout", "stderr", "returncode"})
+ANSWERSOCRATES_BROWSER_OUTPUT_FIELDS = frozenset({
+    "page_url", "page_title", "body_text", "sections", "blocker_observations",
+})
+ANSWERSOCRATES_BLOCKER_SCOPES = frozenset({
+    "role_alert",
+    "aria_live_assertive",
+    "error_container",
+    "authentication_gate",
+    "captcha_container",
+    "quota_container",
+})
+ANSWERSOCRATES_PAGE_URL = "https://answersocrates.com/paa-extractor"
+ANSWERSOCRATES_OPEN_TIMEOUT_SECONDS = 30
+ANSWERSOCRATES_RUN_TIMEOUT_SECONDS = 90
+ANSWERSOCRATES_CLOSE_TIMEOUT_SECONDS = 15
+ANSWERSOCRATES_BLOCKER_PATTERNS = (
+    ("login", re.compile(r"\b(?:log\s*in|sign\s*in|authentication required)\b", re.I)),
+    ("captcha", re.compile(r"\b(?:captcha|not a robot|unusual traffic)\b", re.I)),
+    ("quota", re.compile(r"\b(?:quota|free search|too many requests|rate limit)\b", re.I)),
+    ("unavailability", re.compile(r"\b(?:unavailable|timeout(?:error)?|timed? out|failed|service error)\b", re.I)),
+)
 ELIGIBLE_HEADING_RE = re.compile(r'^##\s+Eligible Questions\s*$', re.IGNORECASE)
 INELIGIBLE_HEADING_RE = re.compile(r'^##\s+Ineligible Fragments\s*$', re.IGNORECASE)
 BRIEF_PAA_HEADING_RE = re.compile(r'^## Pre-picked PAA Questions$')
@@ -159,32 +189,48 @@ class _DuplicateBriefPaaSectionsError(ValueError):
 
 def build_answersocrates_artifact(
     *,
-    query: str,
-    collection_date: str,
-    eligible_questions: List[str] | tuple[str, ...] = (),
-    ineligible_fragments: List[str] | tuple[str, ...] = (),
-    status: str = "collected",
-    blocker: str = "",
-    blocker_reason: str = "",
-    run_id: str,
-    started_at: str,
-    completed_at: str,
-    tool: Optional[dict[str, str]] = None,
+    raw_capture_path: str | Path,
+    workspace_root: str | Path,
+    expected_query: str,
+    expected_collection_date: str,
+    expected_run_id: str,
 ) -> dict:
-    """Build a canonical, receipt-bound record after an actual browser collection run."""
-    normalized_query = str(query).strip()
-    normalized_date = _parse_iso_date(str(collection_date))
-    if not normalized_query or normalized_date is None:
-        raise ValueError("query and collection_date are required")
-    if status not in {"collected", "blocked"}:
-        raise ValueError("status must be collected or blocked")
-    if not isinstance(run_id, str) or not run_id.strip():
-        raise ValueError("run_id must be a non-empty string")
-    recorded_tool = dict(tool or ANSWERSOCRATES_TOOL)
-    if not _valid_answersocrates_tool(recorded_tool):
-        raise ValueError(
-            "tool must identify playwright_mcp or playwright_cli with a semantic version"
-        )
+    """Derive a canonical record from one fixed-collector raw browser capture."""
+    root = Path(workspace_root).resolve()
+    if not isinstance(expected_query, str) or not expected_query.strip():
+        raise ValueError("expected_query is required")
+    if _parse_iso_date(str(expected_collection_date or "")) is None:
+        raise ValueError("expected_collection_date is required as an ISO date")
+    if not isinstance(expected_run_id, str) or not expected_run_id.strip():
+        raise ValueError("expected_run_id is required")
+    snapshot = load_json_object_snapshot(
+        raw_capture_path,
+        field="AnswerSocrates raw Playwright capture",
+    )
+    capture = snapshot.payload
+    if set(capture) != ANSWERSOCRATES_RAW_CAPTURE_FIELDS:
+        raise ValueError("AnswerSocrates raw capture shape is invalid")
+    if capture.get("schema") != ANSWERSOCRATES_RAW_CAPTURE_SCHEMA:
+        raise ValueError("AnswerSocrates raw capture schema is invalid")
+    if capture.get("collector") != ANSWERSOCRATES_TOOL:
+        raise ValueError("AnswerSocrates raw capture collector is not approved")
+    if not verify_mapping_attestation(
+        capture,
+        purpose=ANSWERSOCRATES_RAW_CAPTURE_PURPOSE,
+        workspace_root=root,
+    ):
+        raise ValueError("AnswerSocrates raw capture attestation is invalid")
+    query = capture.get("query")
+    run_id = capture.get("run_id")
+    page_url = capture.get("page_url")
+    if not isinstance(query, str) or not query.strip() or query != query.strip():
+        raise ValueError("AnswerSocrates raw capture query is invalid")
+    if not isinstance(run_id, str) or not run_id.strip() or run_id != run_id.strip():
+        raise ValueError("AnswerSocrates raw capture run_id is invalid")
+    if page_url != ANSWERSOCRATES_PAGE_URL:
+        raise ValueError("AnswerSocrates raw capture page URL is invalid")
+    started_at = capture.get("started_at")
+    completed_at = capture.get("completed_at")
     started = _parse_utc_timestamp(started_at)
     completed = _parse_utc_timestamp(completed_at)
     if started is None or completed is None or completed <= started:
@@ -219,8 +265,8 @@ def build_answersocrates_artifact(
     }
     receipt = attest_mapping({
         "schema": ANSWERSOCRATES_RECEIPT_SCHEMA,
-        "run_id": run_id.strip(),
-        "tool": recorded_tool,
+        "run_id": run_id,
+        "tool": dict(ANSWERSOCRATES_TOOL),
         "started_at": started_at,
         "completed_at": completed_at,
         "status": status,
@@ -1540,7 +1586,7 @@ def _valid_answersocrates_receipt(value: object, *, payload: dict) -> bool:
     }:
         return False
     tool = value.get("tool")
-    if not _valid_answersocrates_tool(tool):
+    if tool != ANSWERSOCRATES_TOOL:
         return False
     started = _parse_utc_timestamp(value.get("started_at"))
     completed = _parse_utc_timestamp(value.get("completed_at"))
@@ -1569,16 +1615,62 @@ def _valid_answersocrates_receipt(value: object, *, payload: dict) -> bool:
     )
 
 
-def _valid_answersocrates_tool(value: object) -> bool:
-    if not isinstance(value, dict) or set(value) != {"name", "version"}:
+def _valid_raw_capture_binding(
+    binding: object,
+    *,
+    workspace_root: str | Path | None,
+    expected_query: object,
+    expected_run_id: object,
+    expected_collection_date: object,
+    expected_questions: object,
+    expected_fragments: object,
+    expected_blocker: object,
+) -> bool:
+    if workspace_root is None:
+        return isinstance(binding, Mapping) and set(binding) == {"path", "sha256"}
+    if not isinstance(binding, Mapping) or set(binding) != {"path", "sha256"}:
         return False
-    name = value.get("name")
-    version = value.get("version")
-    return bool(
-        isinstance(name, str)
-        and name in ANSWERSOCRATES_TOOL_NAMES
-        and isinstance(version, str)
-        and re.fullmatch(r"\d+\.\d+\.\d+", version)
+    try:
+        path = resolve_artifact(binding.get("path"), workspace_root=workspace_root)
+        snapshot = load_json_object_snapshot(path, field="AnswerSocrates raw capture")
+    except ValueError:
+        return False
+    if snapshot.sha256 != binding.get("sha256"):
+        return False
+    capture = snapshot.payload
+    if (
+        set(capture) != ANSWERSOCRATES_RAW_CAPTURE_FIELDS
+        or capture.get("schema") != ANSWERSOCRATES_RAW_CAPTURE_SCHEMA
+        or capture.get("collector") != ANSWERSOCRATES_TOOL
+        or capture.get("query") != expected_query
+        or capture.get("run_id") != expected_run_id
+        or not verify_mapping_attestation(
+            capture,
+            purpose=ANSWERSOCRATES_RAW_CAPTURE_PURPOSE,
+            workspace_root=workspace_root,
+        )
+    ):
+        return False
+    completed = _parse_utc_timestamp(capture.get("completed_at"))
+    started = _parse_utc_timestamp(capture.get("started_at"))
+    if (
+        started is None
+        or completed is None
+        or completed <= started
+        or completed > datetime.now(timezone.utc)
+        or completed.date().isoformat() != expected_collection_date
+    ):
+        return False
+    try:
+        questions, fragments, blocker = _derive_answersocrates_observations(
+            capture.get("raw_response")
+        )
+    except ValueError:
+        return False
+    return (
+        questions == expected_questions
+        and fragments == expected_fragments
+        and blocker == expected_blocker
     )
 
 
@@ -1728,7 +1820,10 @@ def _parse_iso_date(value: str) -> Optional[date]:
 def _artifact_workspace_root(path: Path) -> Path:
     """Resolve the workspace root for conventional research-bound artifacts."""
     resolved = path.resolve()
-    return resolved.parent.parent if resolved.parent.name == "research" else resolved.parent
+    for parent in resolved.parents:
+        if parent.name == "research":
+            return parent.parent
+    return resolved.parent
 
 
 def _exact_match(text: str) -> str:

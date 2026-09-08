@@ -24,10 +24,12 @@ try:
     from .faq_structure import detect_faq_structure
     from .guard_common import Finding, should_fail, summarize_findings
     from .proof_link_policy import analyze_proof_links, canonicalize_link_identity
+    from .source_support_guard import validate_source_classification_binding
 except ImportError:  # pragma: no cover - supports direct script execution.
     from faq_structure import detect_faq_structure
     from guard_common import Finding, should_fail, summarize_findings
     from proof_link_policy import analyze_proof_links, canonicalize_link_identity
+    from source_support_guard import validate_source_classification_binding
 
 
 PUBLIC_URL_RE = re.compile(r"https?://[^\s)\]|<>\"']+", re.IGNORECASE)
@@ -328,7 +330,12 @@ def _check_faq_source_policy(
                 )
                 continue
 
-            if not source.classification_artifact or not source.classification_hash:
+            has_classification = bool(
+                source.classification_artifact or source.classification_hash
+            )
+            if has_classification and (
+                not source.classification_artifact or not source.classification_hash
+            ):
                 findings.append(
                     _faq_source_finding(
                         faq_answer,
@@ -337,6 +344,8 @@ def _check_faq_source_policy(
                         "Add the repository-emitted Classification artifact and exact Classification hash.",
                     )
                 )
+                continue
+            if not has_classification:
                 continue
             classification_error = validate_source_classification_binding(
                 source_url=source.url,
@@ -407,7 +416,9 @@ def _extract_faq_proof_sources(proof_content: str) -> List[FaqProofSource]:
                     url=url,
                     source_class=fields.get("source class", "").lower(),
                     competitor_check=fields.get("competitor check", "").lower(),
-                    support=fields.get("support", "").strip(),
+                    support=(
+                        fields.get("support", "") or fields.get("evidence", "")
+                    ).strip(),
                     classification_artifact=fields.get("classification artifact", "").strip(),
                     classification_hash=fields.get("classification hash", "").strip(),
                 )

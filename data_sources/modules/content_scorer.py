@@ -515,6 +515,25 @@ class ContentScorer:
         priority_fixes: List[Dict[str, Any]],
         gate_context: Dict[str, Any],
     ) -> List[Dict[str, Any]]:
+        customer_proof_findings = gate_context['customer_proof_findings']
+        if not gate_context['customer_proof_passed']:
+            customer_lines = ", ".join(
+                f"line {finding.get('line', '?')}"
+                for finding in customer_proof_findings[:3]
+            )
+            priority_fixes.insert(0, {
+                'issue': 'Customer proof diversity blockers detected',
+                'fix': (
+                    'Add Quote Matrix, Reference, Customer Story, or review-site search evidence, '
+                    f'or document a Reuse reason for repeated customer proof: {customer_lines}'
+                ),
+                'severity': 'high',
+                'dimension': 'customer_proof_diversity',
+                'dimension_score': 0,
+                'impact': 100
+            })
+            priority_fixes = priority_fixes[:5]
+
         faq_proof_check = gate_context['faq_proof_check']
         if not gate_context['faq_proof_passed']:
             faq_findings = faq_proof_check.get('details', {}).get('findings', [])
@@ -572,25 +591,6 @@ class ContentScorer:
                 ),
                 'severity': 'high',
                 'dimension': 'metric_proof_pack',
-                'dimension_score': 0,
-                'impact': 100
-            })
-            priority_fixes = priority_fixes[:5]
-
-        customer_proof_findings = gate_context['customer_proof_findings']
-        if not gate_context['customer_proof_passed']:
-            customer_lines = ", ".join(
-                f"line {finding.get('line', '?')}"
-                for finding in customer_proof_findings[:3]
-            )
-            priority_fixes.insert(0, {
-                'issue': 'Customer proof diversity blockers detected',
-                'fix': (
-                    'Add Quote Matrix, Reference, Customer Story, or review-site search evidence, '
-                    f'or document a Reuse reason for repeated customer proof: {customer_lines}'
-                ),
-                'severity': 'high',
-                'dimension': 'customer_proof_diversity',
                 'dimension_score': 0,
                 'impact': 100
             })

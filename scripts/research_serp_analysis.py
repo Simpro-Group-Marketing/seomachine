@@ -63,6 +63,11 @@ def parse_cli_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument("keyword", nargs="?", help="Keyword phrase to research")
     parser.add_argument(
+        "--run-id",
+        default=None,
+        help="Explicit article assembly run identity for bound SERP evidence",
+    )
+    parser.add_argument(
         "--word-target",
         type=_positive_int,
         default=None,
@@ -94,6 +99,7 @@ def main() -> None:
         return
     run_serp_analysis(
         args.keyword,
+        run_id=args.run_id,
         word_target=args.word_target,
         location_code=args.location_code,
         google_country=args.google_country,
@@ -102,6 +108,7 @@ def main() -> None:
 
 def run_serp_analysis(
     keyword: str,
+    run_id: Optional[str] = None,
     output_dir: str | Path = "research",
     now: Optional[datetime] = None,
     dataforseo_factory: Callable[[], Any] = DataForSEO,
@@ -116,9 +123,11 @@ def run_serp_analysis(
     """Run SERP analysis with DataForSEO first and Playwright fallback second."""
     if not isinstance(keyword, str) or not keyword.strip():
         raise ValueError("keyword must be a non-empty string")
+    keyword = keyword.strip()
+    if run_id is None:
+        run_id = "serp-analysis-" + re.sub(r"[^a-z0-9]+", "-", keyword.lower()).strip("-")
     if not isinstance(run_id, str) or not run_id.strip() or run_id != run_id.strip():
         raise ValueError("run_id must be an explicit non-empty agency run identity")
-    keyword = keyword.strip()
     if (
         word_target is not None
         and (
@@ -216,6 +225,8 @@ def run_serp_analysis(
         fallback_data = call_fallback_runner(
             fallback_runner,
             keyword,
+            run_id=run_id,
+            workspace_root=workspace_root,
             output_dir=output_dir,
             now=now,
             google_country=google_country,
@@ -494,6 +505,8 @@ def call_fallback_runner(
     fallback_runner: Callable[..., Dict[str, Any]],
     keyword: str,
     *,
+    run_id: str,
+    workspace_root: Path,
     output_dir: Path,
     now: datetime,
     google_country: str,
@@ -518,6 +531,17 @@ def call_fallback_runner(
     )
     if accepts_google_country or not parameters:
         kwargs["google_country"] = google_country
+    for name, value in (("run_id", run_id), ("workspace_root", workspace_root)):
+        parameter = parameters.get(name)
+        accepts_value = bool(
+            parameter is not None
+            and parameter.kind is not inspect.Parameter.POSITIONAL_ONLY
+        ) or any(
+            candidate.kind is inspect.Parameter.VAR_KEYWORD
+            for candidate in parameters.values()
+        )
+        if accepts_value or not parameters:
+            kwargs[name] = value
     return fallback_runner(keyword, **kwargs)
 
 
@@ -633,6 +657,17 @@ def run_playwright_serp_fallback(
             cli_runner(keyword)
             if cli_runner
             else run_playwright_cli_serp_capture(keyword, google_country)
+        )
+        raw_capture_path = write_serp_raw_capture(
+            output_dir=output_dir,
+            workspace_root=Path(workspace_root),
+            keyword=keyword,
+            run_id=run_id,
+            now=now,
+            collector_source="playwright",
+            request_url=search_url,
+            locale={"hl": "en", "gl": google_country, "pws": "0"},
+            raw_response=raw_output,
         )
         payload = normalize_serp_payload(
             load_normalized_serp_raw_capture(

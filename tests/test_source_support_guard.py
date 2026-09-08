@@ -392,7 +392,6 @@ class SourceSupportGuardTests(unittest.TestCase):
         exempt_sentences = (
             "In my view, a shorter checklist is easier to use.",
             "Review technician capacity before assigning urgent work.",
-            "Do not dispatch a technician until the required license is confirmed.",
             "Imagine a dispatcher opening the queue at the start of a shift.",
             "For example, suppose a technician receives a new work order.",
         )

@@ -66,16 +66,20 @@ BLOG_GATE_DESCRIPTORS = (
     BlogGateDescriptor("ai_copy_linter"),
     BlogGateDescriptor("url_validator"),
     BlogGateDescriptor("public_research_links"),
+    BlogGateDescriptor("industry_cluster_link_policy"),
     BlogGateDescriptor("metric_proof_pack"),
     BlogGateDescriptor("numeric_claim_source"),
     BlogGateDescriptor("faq_answer_quality", "visible_faq"),
     BlogGateDescriptor("faq_proof", "visible_faq"),
     BlogGateDescriptor("paa_provenance"),
     BlogGateDescriptor("editorial_plan"),
+    BlogGateDescriptor("semrush_keyword_decision"),
     BlogGateDescriptor("competitive_shortlist"),
     BlogGateDescriptor("source_support"),
+    BlogGateDescriptor("source_quality"),
     BlogGateDescriptor("customer_proof_diversity"),
     BlogGateDescriptor("review_story_identity"),
+    BlogGateDescriptor("eeat_strength"),
     BlogGateDescriptor("early_artifact"),
     BlogGateDescriptor("answer_withholding"),
     BlogGateDescriptor("vault_brand_language", "connector_required"),
@@ -246,32 +250,27 @@ def expected_blog_gate_inventory(
     connector_required: bool,
 ) -> list[str]:
     """Return the closed, ordered gate inventory for a passed blog run."""
-    gates = [
-        "artifact_identity",
-        "context_binding",
-        "blog_assembly_bom",
-        "public_artifact",
-        "ai_copy_linter",
-        "url_validator",
-        "public_research_links",
-        "industry_cluster_link_policy",
-        "metric_proof_pack",
-        "numeric_claim_source",
-    ]
-    if visible_faq:
-        gates.extend(("faq_answer_quality", "faq_proof"))
-    gates.extend(
-        (
-            "paa_provenance",
-            "editorial_plan",
-            "semrush_keyword_decision",
-            "source_support",
-            "customer_proof_diversity",
-            "review_story_identity",
-            "eeat_strength",
-            "early_artifact",
-            "answer_withholding",
+    return [
+        descriptor.name
+        for descriptor in BLOG_GATE_DESCRIPTORS
+        if _gate_descriptor_enabled(
+            descriptor,
+            visible_faq=visible_faq,
+            connector_required=connector_required,
         )
+    ]
+
+
+def order_blog_gate_results(
+    gates: Sequence[Mapping[str, Any]],
+    *,
+    visible_faq: bool,
+    connector_required: bool,
+) -> list[Mapping[str, Any]]:
+    """Order complete executor results using the canonical conditional inventory."""
+    expected = expected_blog_gate_inventory(
+        visible_faq=visible_faq,
+        connector_required=connector_required,
     )
     by_name: dict[str, Mapping[str, Any]] = {}
     for row in gates:

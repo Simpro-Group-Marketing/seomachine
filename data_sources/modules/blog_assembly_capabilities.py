@@ -42,17 +42,6 @@ class RouteCapability:
 
 
 ROUTES = {
-    "article-command": RouteCapability(
-        command_id="article-command",
-        command_path=".claude/commands/article.md",
-        agent_ids=(
-            "content-analyzer",
-            "seo-optimizer",
-            "meta-creator",
-            "internal-linker",
-            "keyword-mapper",
-        ),
-    ),
     "write-command": RouteCapability(
         command_id="write-command",
         command_path=".claude/commands/write.md",

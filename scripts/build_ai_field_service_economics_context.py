@@ -79,6 +79,36 @@ EXPAND_RESOURCE_IDS = [
 
 CLAIM_REQUESTS = [
     {
+        "claim_id": "claim-metric-MET-0064",
+        "query": "Quorum estimating speed and project cost visibility field service case study",
+        "use_mode": "public_metric",
+        "brand_scope": "Simpro",
+    },
+    {
+        "claim_id": "claim-metric-MET-0066",
+        "query": "TEAMWired manual invoicing workflow field service case study",
+        "use_mode": "public_metric",
+        "brand_scope": "Simpro",
+    },
+    {
+        "claim_id": "claim-metric-MET-0072",
+        "query": "AlarmQuest invoice generation field service case study",
+        "use_mode": "public_metric",
+        "brand_scope": "Simpro",
+    },
+    {
+        "claim_id": "claim-metric-MET-0077",
+        "query": "Audem Electrical field service operational efficiency case study",
+        "use_mode": "public_metric",
+        "brand_scope": "Simpro",
+    },
+    {
+        "claim_id": "claim-metric-MET-0095",
+        "query": "Infinite Audio Video Solutions field service administration case study",
+        "use_mode": "public_metric",
+        "brand_scope": "Simpro",
+    },
+    {
         "claim_id": "claim-fred-FVMI-0006",
         "query": "Fred Voccola Simpro AI in the Commercial Trades plumbers electricians HVAC contractors",
         "use_mode": "authority_support",

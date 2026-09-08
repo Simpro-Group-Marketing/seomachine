@@ -16,10 +16,20 @@ from urllib.parse import urlparse
 from typing import Dict, List, Optional, Any, Tuple
 
 try:
+    from .commercial_pillar_index import (
+        CommercialPillarIndexError,
+        load_index,
+        validate_index,
+    )
     from .frontmatter import split_frontmatter
     from .proof_link_policy import canonicalize_link_identity
     from .url_validator import validate_content_urls
 except ImportError:
+    from commercial_pillar_index import (
+        CommercialPillarIndexError,
+        load_index,
+        validate_index,
+    )
     from frontmatter import split_frontmatter
     from proof_link_policy import canonicalize_link_identity
     from url_validator import validate_content_urls
@@ -438,6 +448,7 @@ class SEOQualityRater:
             structure,
             primary_keyword,
             secondary_keywords,
+            keyword_density=keyword_density,
         )
         meta_score = self._score_meta_elements(
             meta_title,
@@ -664,6 +675,7 @@ class SEOQualityRater:
         structure: Dict,
         primary_keyword: Optional[str],
         secondary_keywords: Optional[List[str]],
+        keyword_density: Optional[float] = None,
     ) -> Dict[str, Any]:
         """Score keyword optimization"""
         score = 100
@@ -714,6 +726,12 @@ class SEOQualityRater:
                 "Contextual keyword stuffing detected: "
                 f"{repetition}. Remove forced exact-phrase repetition and use "
                 "natural terminology where it helps the reader."
+            )
+        if keyword_density is not None and keyword_density > 3.0:
+            score -= 20
+            critical.append(
+                f"Keyword density is too high ({keyword_density:.1f}%). "
+                "Reduce exact-match repetition and use natural related terms."
             )
         # Secondary keywords
         if secondary_keywords:
@@ -964,7 +982,21 @@ class SEOQualityRater:
                 )
             elif not down_funnel["valid"]:
                 score -= 20
-                if down_funnel["weak_anchor"]:
+                if down_funnel["unverified_destination"]:
+                    anchor, url = down_funnel["unverified_destination"][0]
+                    critical.append(
+                        "A Simpro down-funnel link must match a verified commercial pillar index "
+                        "destination with an exact absolute canonical URL. "
+                        f"Check '{anchor}' for {url} against context/commercial-pillar-index.json."
+                    )
+                elif down_funnel["indexed_keyword_missing"]:
+                    anchor, url = down_funnel["indexed_keyword_missing"][0]
+                    indexed_keywords = _simpro_indexed_main_keywords(url) or ()
+                    critical.append(
+                        "A down-funnel internal link anchor text must include an indexed main keyword. "
+                        f"Replace '{anchor}' for {url} with one of: {', '.join(indexed_keywords)}."
+                    )
+                elif down_funnel["weak_anchor"]:
                     anchor, url = down_funnel["weak_anchor"][0]
                     critical.append(
                         "A down-funnel internal link anchor text must match the destination keyword. "
@@ -1145,12 +1177,53 @@ def _extract_markdown_links(content: str) -> List[Tuple[str, str]]:
     ]
 
 
+def _simpro_indexed_main_keywords(url: str) -> Optional[Tuple[str, ...]]:
+    parsed = urlparse(url)
+    if not parsed.scheme and not parsed.netloc and parsed.path.startswith("/"):
+        return ()
+    hostname = (parsed.hostname or "").casefold()
+    if parsed.scheme not in {"http", "https"} or not (
+        hostname == "simprogroup.com" or hostname.endswith(".simprogroup.com")
+    ):
+        return None
+    return _verified_simpro_pillar_keywords_by_url().get(url.strip(), ())
+
+
+@lru_cache(maxsize=1)
+def _verified_simpro_pillar_keywords_by_url() -> Dict[str, Tuple[str, ...]]:
+    try:
+        index = load_index(COMMERCIAL_PILLAR_INDEX_PATH)
+    except CommercialPillarIndexError:
+        return {}
+
+    keywords: Dict[str, set[str]] = {}
+    for record in index.records:
+        if record.status != "verified" or record.brand.casefold() != "simpro":
+            continue
+        keywords.setdefault(record.canonical_url, set()).add(record.main_keyword)
+    return {
+        url: tuple(sorted(values, key=str.casefold))
+        for url, values in keywords.items()
+    }
+
+
 def _count_visible_words(content: str) -> int:
     """Count reader-visible words in an article body for link-density policy."""
     _, body, _ = split_frontmatter(content)
     body = re.sub(r"!\[[^\]]*\]\([^)]*\)", " ", body)
     body = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", body)
     return len(re.findall(r"[A-Za-z0-9]+", body))
+
+
+def _anchor_contains_phrase(anchor: str, phrase: str) -> bool:
+    normalized_anchor = _normalize_anchor(anchor)
+    normalized_phrase = _normalize_anchor(phrase)
+    if not normalized_anchor or not normalized_phrase:
+        return False
+    return (
+        f" {normalized_phrase} " in f" {normalized_anchor} "
+        or _contains_ordered_keyword_variant(normalized_anchor, normalized_phrase)
+    )
 
 
 def _analyze_down_funnel_links(

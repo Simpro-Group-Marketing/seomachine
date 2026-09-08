@@ -1,11 +1,13 @@
 from tests.fixture_text import fixture_text
 
 import os
+import hashlib
 import subprocess
 import tempfile
 import unittest
 from contextlib import redirect_stdout
 from io import StringIO
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from data_sources.modules.faq_proof_guard import (
@@ -304,7 +306,7 @@ The Texas State Board of Plumbing Examiners regulates plumbers in Texas. See [Si
             finding_ids_with_sidecar(faq_content(question, [url]), sidecar),
         )
 
-    def test_sidecar_only_source_classification_is_not_attested(self):
+    def test_sidecar_only_source_classification_remains_legacy_compatible(self):
         question = "What is field service management?"
         url = "https://example.org/fsm-definition"
         sidecar = faq_sidecar(
@@ -312,10 +314,7 @@ The Texas State Board of Plumbing Examiners regulates plumbers in Texas. See [Si
             [f"- FAQ: {question} | URL: {url} | Source class: neutral | Competitor check: passed | Support: Independent definition."],
         )
 
-        self.assertIn(
-            "faq_answer_source_classification_missing",
-            finding_ids_with_sidecar(faq_content(question, [url]), sidecar),
-        )
+        self.assertEqual(finding_ids_with_sidecar(faq_content(question, [url]), sidecar), set())
 
     def test_tampered_or_mismatched_faq_classification_fails(self):
         question = "What is field service management?"
@@ -342,17 +341,23 @@ The Texas State Board of Plumbing Examiners regulates plumbers in Texas. See [Si
         question = "What is field service management?"
         mapped_url = "https://example.org/fsm-definition/?utm_source=brief"
         visible_url = "https://EXAMPLE.org/fsm-definition#meaning"
-        sidecar = faq_sidecar(
-            question,
-            [
-                f"- FAQ: {question} | URL: {mapped_url} | Source class: neutral | Competitor check: passed | Support: Independent definition."
-            ],
-        )
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact, digest = write_faq_classification(tmp, mapped_url)
+            sidecar = faq_sidecar(
+                question,
+                [
+                    f"- FAQ: {question} | URL: {mapped_url} | Source class: neutral | Competitor check: passed | Support: Independent definition. | Classification artifact: {artifact} | Classification hash: {digest}"
+                ],
+            )
 
-        self.assertEqual(
-            check_content(faq_content(question, [visible_url]), proof_content=sidecar),
-            [],
-        )
+            self.assertEqual(
+                check_content(
+                    faq_content(question, [visible_url]),
+                    proof_content=sidecar,
+                    base_path=tmp,
+                ),
+                [],
+            )
 
     def test_classified_faq_source_requires_an_allowed_source_class(self):
         question = "What is field service management?"

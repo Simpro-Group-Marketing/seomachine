@@ -1541,6 +1541,54 @@ class ContextBindingGuardTests(unittest.TestCase):
         self.assertEqual(result["claim_use_map"][0]["claim_id"], "claim-simpro-work")
         self.assertEqual(self.check(), [])
 
+    def test_generator_binds_exact_quote_excerpt_from_longer_source_text(self):
+        article_text = (
+            'In a G2 review, Matthew N. described Simpro as '
+            '"Custom workflow set up, prebuilds and deep reporting."'
+        )
+        excerpt = "Custom workflow set up, prebuilds and deep reporting."
+        source_text = (
+            "Custom workflow set up, prebuilds and deep reporting. "
+            "It also has retention and payment claims which is a much needed "
+            "feature in the NZL construction industry."
+        )
+        self.article.write_text(f"# Simpro draft\n\n{article_text}\n", encoding="utf-8")
+        pack = json.loads(self.pack.read_text(encoding="utf-8"))
+        receipt = json.loads(self.receipt.read_text(encoding="utf-8"))
+        evidence = pack["sections"]["Approved Claim Evidence"][0]
+        evidence.update(
+            {
+                "use_mode": "exact_quote",
+                "assertion": f"Review exact snippet: {source_text}",
+                "verbatim_evidence": {
+                    "text": source_text,
+                    "text_sha256": sha256_text(source_text),
+                    "resource_id": "res-review-source",
+                    "public_url": "https://www.simprogroup.com/",
+                },
+            }
+        )
+        receipt["claim_decisions"][0]["use_mode"] = "exact_quote"
+        self.pack.write_text(json.dumps(pack), encoding="utf-8")
+        self.receipt.write_text(json.dumps(receipt), encoding="utf-8")
+
+        result = context_binding_generator.generate_and_install(
+            self.article,
+            self.request,
+            self.pack,
+            self.receipt,
+            self.sidecar,
+            repo_context=[
+                {"path": "context/seo-guidelines.md", "role": "SEO structure"}
+            ],
+            client=ValidatingClient(),
+        )
+
+        claim_map = result["claim_use_map"][0]
+        self.assertEqual(claim_map["public_text"], excerpt)
+        self.assertEqual(claim_map["public_text_sha256"], sha256_text(excerpt))
+        self.assertEqual(self.check(), [])
+
     def test_context_binding_requires_vertical_topic_for_industry_cluster_article(self):
         self.make_electrical_article_context(include_topic=False)
 

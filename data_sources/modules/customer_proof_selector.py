@@ -582,12 +582,6 @@ def _public_url_binding(
     normalized_url = _normalize_public_url(candidate.get("public_url"))
     if not normalized_url:
         return None
-    inventory_matches = sorted(set(_inventory_url_map(proof_rows).get(normalized_url, [])))
-    if len(inventory_matches) > 1:
-        raise CustomerProofDataError(
-            "Customer proof public URL binding is ambiguous for "
-            f"{normalized_url}: {', '.join(inventory_matches)}"
-        )
     matches = [
         claim
         for claim in approved_claims
@@ -595,14 +589,20 @@ def _public_url_binding(
         and str(getattr(claim, "use_mode", "") or "") in use_modes
         and _normalize_public_url(getattr(claim, "public_url", "")) == normalized_url
     ]
+    if not matches:
+        return None
+    inventory_matches = sorted(set(_inventory_url_map(proof_rows).get(normalized_url, [])))
+    if len(inventory_matches) > 1:
+        raise CustomerProofDataError(
+            "Customer proof public URL binding is ambiguous for "
+            f"{normalized_url}: {', '.join(inventory_matches)}"
+        )
     if len(matches) > 1:
         claim_ids = ", ".join(sorted(str(claim.claim_id) for claim in matches))
         raise CustomerProofDataError(
             "Customer proof approved claim public URL binding is ambiguous for "
             f"{normalized_url}: {claim_ids}"
         )
-    if not matches:
-        return None
     return _ApprovedClaimBinding(
         claim=matches[0],
         binding_source="public_url_exact_match",

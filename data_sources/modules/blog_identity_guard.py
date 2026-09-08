@@ -131,11 +131,11 @@ def check_article(
                 "Blog assembly_date must equal the current UTC date.",
             )
         )
-    if expected is not None and parsed_updated is not None and parsed_updated != expected:
+    if expected is not None and parsed_updated is not None and parsed_updated > expected:
         findings.append(
             _finding(
                 "blog_identity_last_updated_mismatch",
-                "Blog last_updated must match the current assembly date.",
+                "Blog last_updated cannot be later than the current assembly date.",
             )
         )
     return sorted(findings, key=lambda item: str(item["rule_id"]))

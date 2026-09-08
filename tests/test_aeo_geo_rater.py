@@ -49,6 +49,10 @@ PAA/FAQ Provenance
 ```
 """
 FAQ_PROOF_BLOCK = fixture_text("content_evidence:test_aeo_geo_rater-48-1")
+AUTHOR_VERIFICATION_BLOCK = """
+## Author Verification
+- Author: Jordan Lee | URL: https://www.simprogroup.com/authors/jordan-lee | Evidence: Author profile reviewed | Checked date: 2026-08-06 | Status: verified
+"""
 
 COMPLIANT_ARTICLE = fixture_text("content_evidence:test_aeo_geo_rater-62-10") + PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK + fixture_text("content_evidence:test_aeo_geo_rater-109-2")
 

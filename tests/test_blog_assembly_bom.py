@@ -60,6 +60,10 @@ from data_sources.modules.nonvault_customer_proof_selector import (
     write_nonvault_selector_evidence,
 )
 from tests.nonvault_proof_fixture import write_nonvault_proof_inputs
+from tests.research_provenance_fixtures import (
+    build_answersocrates_fixture,
+    build_serp_fixture,
+)
 
 
 NON_CONNECTOR_REASON_SHA256 = hashlib.sha256(
@@ -113,7 +117,7 @@ def _fixture(
     author: str | None = None,
     visible_faq: bool = False,
     brand: str = "BigChange",
-    route: str = "article-command",
+    route: str = "write-command",
     bind_definitions: bool = True,
 ) -> dict[str, object]:
     research = tmp_path / "research"
@@ -121,7 +125,6 @@ def _fixture(
     research.mkdir()
     drafts.mkdir()
     for relative in (
-        ".claude/commands/article.md",
         ".claude/commands/write.md",
         ".claude/commands/rewrite.md",
         ".claude/commands/optimize.md",
@@ -453,13 +456,6 @@ def _fixture(
         encoding="utf-8",
     )
     route_agents = {
-        "article-command": (
-            "content-analyzer",
-            "seo-optimizer",
-            "meta-creator",
-            "internal-linker",
-            "keyword-mapper",
-        ),
         "write-command": (
             "content-analyzer",
             "seo-optimizer",
@@ -879,6 +875,7 @@ def test_schemeless_simpro_host_lookalike_remains_non_connector(
 def test_builder_accepts_real_non_connector_context_binding_receipt(
     tmp_path: Path,
     brand: str,
+    monkeypatch: pytest.MonkeyPatch,
 ):
     paths = _fixture(tmp_path, brand=brand)
     article_before = paths["article"].read_bytes()
@@ -1346,11 +1343,16 @@ def test_placeholder_identity_is_rejected(tmp_path: Path):
         _build(tmp_path, paths)
 
 
-def test_last_updated_must_match_assembly_date(
+def test_last_updated_must_not_be_after_assembly_date(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ):
     paths = _fixture(tmp_path)
+    text = paths["article"].read_text(encoding="utf-8").replace(
+        "last_updated: 2026-08-09",
+        "last_updated: 2026-08-11",
+    )
+    paths["article"].write_text(text, encoding="utf-8")
     monkeypatch.setattr(
         blog_assembly_contract,
         "current_utc_date",

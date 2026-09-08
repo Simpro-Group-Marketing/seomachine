@@ -6,6 +6,35 @@ import pytest
 
 from data_sources.modules.blog_assembly_contract import canonical_json_sha256
 from data_sources.modules.editorial_plan_guard import build_serp_evidence
+from tests.research_provenance_fixtures import build_serp_fixture
+
+
+def _bound_serp_evidence(
+    workspace_root: Path,
+    *,
+    query: str,
+    collected_at: str,
+    run_id: str,
+    url: str,
+    title: str,
+    features: list[str],
+    must_have_sections: list[str],
+) -> dict:
+    return build_serp_fixture(
+        workspace_root,
+        query=query,
+        collection_date=collected_at.split("T", 1)[0],
+        run_id=run_id,
+        results=[
+            {
+                "url": url,
+                "title": title,
+                "description": title,
+            }
+        ],
+        features=features,
+        must_have_sections=must_have_sections,
+    )
 
 
 def _rule_ids(findings):

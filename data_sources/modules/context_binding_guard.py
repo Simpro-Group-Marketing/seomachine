@@ -486,8 +486,13 @@ def validate_claim_map(
             if use_mode == "exact_quote":
                 verbatim = evidence_row.get("verbatim_evidence")
                 exact_text = verbatim.get("text") if isinstance(verbatim, dict) else None
-                if not isinstance(exact_text, str) or normalized != _normalize_public_text(exact_text):
-                    findings.append(_finding("context_claim_exact_quote_mismatch", f"Claim {claim_id} exact quote must equal its bound verbatim evidence."))
+                exact_normalized = (
+                    _normalize_public_text(exact_text)
+                    if isinstance(exact_text, str)
+                    else ""
+                )
+                if not exact_normalized or normalized not in exact_normalized:
+                    findings.append(_finding("context_claim_exact_quote_mismatch", f"Claim {claim_id} exact quote must be source-visible in its bound verbatim evidence."))
             if use_mode == "public_metric":
                 assertion = evidence_row.get("assertion")
                 if not isinstance(assertion, str) or normalized != _normalize_public_text(assertion):

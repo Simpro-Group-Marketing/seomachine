@@ -44,6 +44,8 @@ try:
         validate_publish_plain_text,
     )
     from .publish_readiness import run_publish_readiness
+    from .source_support_guard import require_source_support
+    from .url_validator import validate_file_urls
 except ImportError:
     from publishable_markdown import (
         PublishableMarkdown,
@@ -59,6 +61,8 @@ except ImportError:
         validate_publish_plain_text,
     )
     from publish_readiness import run_publish_readiness
+    from source_support_guard import require_source_support
+    from url_validator import validate_file_urls
 
 
 GH_TIMEOUT_SECONDS = 30
@@ -616,17 +620,32 @@ class GravPublisher:
             if not effective_dry_run
             else {}
         )
-        if not effective_dry_run:
+        readiness_required = (
+            not effective_dry_run
+            or any(
+                value is not None
+                for value in (
+                    proof_sidecar,
+                    context_request,
+                    context_pack,
+                    context_receipt,
+                    assembly_bom,
+                    vault_root,
+                )
+            )
+        )
+        if readiness_required:
             _require_publish_readiness(
                 file_path,
                 proof_sidecar,
-                "Grav publish",
+                "Grav dry run" if effective_dry_run else "Grav publish",
                 context_request=context_request,
                 context_pack=context_pack,
                 context_receipt=context_receipt,
                 assembly_bom=assembly_bom,
                 vault_root=vault_root,
             )
+        if not effective_dry_run:
             sealed_snapshot = read_publishable_markdown(file_path)
             try:
                 ensure_same_snapshot(before_readiness, sealed_snapshot)
@@ -762,15 +781,18 @@ def _require_publish_readiness(
     assembly_bom: Optional[str] = None,
     vault_root: Optional[str | Path] = None,
 ) -> Dict:
-    result = run_publish_readiness(
-        file_path,
-        proof_sidecar=proof_sidecar,
-        context_request=context_request,
-        context_pack=context_pack,
-        context_receipt=context_receipt,
-        assembly_bom=assembly_bom,
-        vault_root=vault_root,
-    )
+    readiness_kwargs = {}
+    for label, value in (
+        ("proof_sidecar", proof_sidecar),
+        ("context_request", context_request),
+        ("context_pack", context_pack),
+        ("context_receipt", context_receipt),
+        ("assembly_bom", assembly_bom),
+        ("vault_root", vault_root),
+    ):
+        if value is not None:
+            readiness_kwargs[label] = value
+    result = run_publish_readiness(file_path, **readiness_kwargs)
     if result.get("passed"):
         return result
     raise GravPublishError(

@@ -400,15 +400,16 @@ class StrictPaaSourceTests(unittest.TestCase):
         return path
 
     def test_receipt_accepts_the_actual_playwright_cli_runtime(self):
-        artifact = build_answersocrates_artifact(
-            query=PAA_QUERY,
-            collection_date=COLLECTION_DATE,
-            eligible_questions=FAQ_QUESTIONS,
-            run_id="answersocrates-playwright-cli-run",
-            started_at=f"{COLLECTION_DATE}T14:00:00Z",
-            completed_at=f"{COLLECTION_DATE}T14:01:00Z",
-            tool={"name": "playwright_cli", "version": "0.1.19"},
-        )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            capture = self._write_raw_capture(root)
+            artifact = build_answersocrates_artifact(
+                raw_capture_path=capture,
+                workspace_root=root,
+                expected_query=PAA_QUERY,
+                expected_collection_date=COLLECTION_DATE,
+                expected_run_id="browser-run-123",
+            )
 
         record = paa_provenance_guard._parse_question_artifact(
             json.dumps(artifact)
@@ -418,20 +419,21 @@ class StrictPaaSourceTests(unittest.TestCase):
         self.assertTrue(record.run_receipt_valid)
         self.assertEqual(
             artifact["run_receipt"]["tool"],
-            {"name": "playwright_cli", "version": "0.1.19"},
+            paa_provenance_guard.ANSWERSOCRATES_TOOL,
         )
 
     def test_receipt_builder_rejects_an_unapproved_browser_runtime(self):
-        with self.assertRaisesRegex(ValueError, "playwright_mcp or playwright_cli"):
-            build_answersocrates_artifact(
-                query=PAA_QUERY,
-                collection_date=COLLECTION_DATE,
-                eligible_questions=FAQ_QUESTIONS,
-                run_id="answersocrates-unapproved-browser-run",
-                started_at=f"{COLLECTION_DATE}T14:00:00Z",
-                completed_at=f"{COLLECTION_DATE}T14:01:00Z",
-                tool={"name": "unknown_browser", "version": "1.0.0"},
-            )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            capture = self._write_raw_capture(root, collector_name="unknown_browser")
+            with self.assertRaisesRegex(ValueError, "collector is not approved"):
+                build_answersocrates_artifact(
+                    raw_capture_path=capture,
+                    workspace_root=root,
+                    expected_query=PAA_QUERY,
+                    expected_collection_date=COLLECTION_DATE,
+                    expected_run_id="browser-run-123",
+                )
 
     def _write_family(
         self,
@@ -1240,6 +1242,36 @@ class StrictPaaSourceTests(unittest.TestCase):
             result.answersocrates_blocker_sha256,
             expected_blocker_hash,
         )
+
+    def test_user_csv_accepts_nested_research_blocker_with_repo_relative_raw_capture(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            csv_text = 'question\n' + '\n'.join(
+                f'"{question}"' for question in FAQ_QUESTIONS
+            )
+            article, _ = self._write_family(
+                root,
+                source_kind='user_csv',
+                artifact_name='topic/user-paa.csv',
+                artifact_content=csv_text,
+            )
+            blocker = root / 'research' / 'topic' / 'answersocrates-blocker.json'
+            blocker.parent.mkdir(parents=True, exist_ok=True)
+            self._write_structured_artifact(
+                root, blocker, questions=(), status="blocked", blocker="quota",
+            )
+
+            result = paa_provenance_guard.evaluate_file(
+                str(article),
+                workflow_mode='rewrite',
+                answersocrates_blocker=str(blocker),
+                expected_query=PAA_QUERY,
+                expected_collection_date=COLLECTION_DATE,
+                expected_run_id='browser-run-123',
+            )
+
+        self.assertTrue(result.passed)
+        self.assertEqual(result.source_kind, 'user_csv')
 
     def test_h4_faq_questions_receive_the_same_provenance_validation(self):
         with tempfile.TemporaryDirectory() as temp_dir:

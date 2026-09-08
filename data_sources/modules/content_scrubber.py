@@ -454,6 +454,11 @@ def scrub_file(
             sort_keys=True,
         ).encode('utf-8')
     ).hexdigest()
+    _, evidence_artifact_hash = write_stage_evidence(
+        receipt_path,
+        evidence_hashes={'scrub_statistics': statistics_hash},
+        payload={'statistics': dict(statistics), 'would_change': False},
+    )
     stage_receipt = build_stage_receipt(
         run_id=resolved_run_id,
         stage=stage,
@@ -463,7 +468,10 @@ def scrub_file(
         completed_at=datetime.now(timezone.utc),
         mutation=False,
         input_artifact_hashes={'article': input_hash},
-        output_artifact_hashes={'article': output_hash},
+        output_artifact_hashes={
+            'article': output_hash,
+            'stage_evidence': evidence_artifact_hash,
+        },
         evidence_hashes={'scrub_statistics': statistics_hash},
         previous_receipt_hash=previous_hash,
     )
@@ -513,7 +521,6 @@ def _validate_scrub_paths(
             )
         if evidence_identity in {
             input_identity,
-            output_identity,
             previous_identity,
             receipt_identity,
         }:

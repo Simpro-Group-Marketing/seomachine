@@ -18,13 +18,6 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 ROUTE_AGENTS = {
-    "article-command": (
-        "content-analyzer",
-        "seo-optimizer",
-        "meta-creator",
-        "internal-linker",
-        "keyword-mapper",
-    ),
     "write-command": (
         "content-analyzer",
         "seo-optimizer",
@@ -71,7 +64,7 @@ def test_registry_rejects_unknown_route_and_wrong_command_version():
     with pytest.raises(CapabilityRegistryError, match="draft receipt tool identity"):
         infer_route([_receipt("draft", "external-writer")])
     with pytest.raises(CapabilityRegistryError, match="version 1"):
-        infer_route([_receipt("draft", "article-command", "2")])
+        infer_route([_receipt("draft", "write-command", "2")])
 
 
 def test_registry_adds_optimize_agents_as_one_deduplicated_union():

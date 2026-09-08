@@ -34,6 +34,7 @@ try:
         write_stage_receipt,
     )
     from .blog_assembly_contract import (
+        load_json_object_snapshot,
         normalized_text_sha256,
         validate_governance_output_path,
     )
@@ -57,6 +58,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         write_stage_receipt,
     )
     from blog_assembly_contract import (
+        load_json_object_snapshot,
         normalized_text_sha256,
         validate_governance_output_path,
     )
@@ -523,8 +525,7 @@ def _derive_claim_map(
         evidence = matches[0]
         use_mode = str(decision.get("use_mode", "")).strip()
         if use_mode == "exact_quote":
-            verbatim = evidence.get("verbatim_evidence")
-            public_text = verbatim.get("text") if isinstance(verbatim, dict) else None
+            public_text = _exact_quote_public_text(article_content, evidence)
         else:
             public_text = evidence.get("assertion")
         if not isinstance(public_text, str) or not public_text.strip():
@@ -546,6 +547,38 @@ def _derive_claim_map(
             }
         )
     return claim_map
+
+
+def _exact_quote_public_text(
+    article_content: str,
+    evidence: Mapping[str, Any],
+) -> str | None:
+    """Return the exact quote passage that is source-visible and public-used.
+
+    Some approved review claims store the full source-visible field while policy
+    allows a shorter attributed snippet. Bind the full passage when it appears
+    in the article; otherwise bind the longest quoted article excerpt that is
+    an exact substring of the approved source-visible text.
+    """
+    verbatim = evidence.get("verbatim_evidence")
+    source_text = verbatim.get("text") if isinstance(verbatim, dict) else None
+    if not isinstance(source_text, str) or not source_text.strip():
+        return None
+    normalized_source = normalize_public_text(source_text)
+    normalized_article = normalize_public_body(article_content)
+    if normalized_article.count(normalized_source) == 1:
+        return source_text
+    quoted_passages = re.findall(r'"([^"]+)"', normalize_public_text(article_content))
+    candidates = [
+        passage
+        for passage in quoted_passages
+        if passage.strip()
+        and normalize_public_text(passage) in normalized_source
+        and normalized_article.count(normalize_public_text(passage)) == 1
+    ]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda passage: (len(normalize_public_text(passage)), passage))
 
 
 def _read_object(path: Path) -> dict[str, Any]:
