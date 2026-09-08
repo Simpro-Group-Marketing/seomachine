@@ -154,6 +154,11 @@ Keep source lanes separate: GSC is search-performance truth, GA4 is behavior/con
 
 The report and receipt are advisory internal evidence, not public-claim proof, not Customer Proof Pack or validation-sidecar proof, not an assembly BOM, not a `/publish-readiness` input or gate, and not a release requirement. They are never public proof or authorization to edit copy or post externally. Their hashes validate recorded observation metadata and current artifact bindings, not external analytics truth or causal claims.
 
+- Content quality score of 85/100 or higher.
+- SEO quality score of 90/100 or higher with zero critical SEO issues.
+- AEO/GEO score of 90/100 or higher.
+
+An AEO/GEO or content score below threshold is a repair trigger, not a reporting endpoint. SEO critical issues are blocking even when the content score passes.
 ## PAA Provenance and Intent-Driven FAQ Policy
 
 - Every new article requires a structured AnswerSocrates artifact, even when no FAQ is useful.
