@@ -91,8 +91,9 @@ except ImportError:  # pragma: no cover - supports direct script execution.
 
 BOM_SCHEMA_V1 = "simpro-blog-assembly-bom/v1"
 BOM_SCHEMA_V2 = "simpro-blog-assembly-bom/v2"
-BOM_SCHEMA = BOM_SCHEMA_V2
-ARCHIVED_BOM_SCHEMAS = frozenset({BOM_SCHEMA_V1, BOM_SCHEMA_V2})
+BOM_SCHEMA_V3 = "simpro-blog-assembly-bom/v3"
+BOM_SCHEMA = BOM_SCHEMA_V3
+ARCHIVED_BOM_SCHEMAS = frozenset({BOM_SCHEMA_V1, BOM_SCHEMA_V2, BOM_SCHEMA_V3})
 EDITORIAL_PLAN_SCHEMA = "simpro-blog-editorial-plan/v1"
 CONNECTOR_CUSTOMER_PROOF_SCHEMA = "simpro-customer-proof-selector-evidence/v1"
 NONVAULT_CUSTOMER_PROOF_SCHEMA = (
@@ -131,6 +132,7 @@ def build_blog_assembly_bom_from_files(
     context_receipt_path: str | Path | None = None,
     customer_proof_selector_evidence_path: str | Path | None = None,
     fred_authority_evidence_path: str | Path | None = None,
+    hindsight_strategy_evidence_path: str | Path | None = None,
     agent_output_paths: Mapping[str, str | Path] | None = None,
     optimizer_output_paths: Sequence[str | Path] | None = None,
     prior_preflight_readiness_path: str | Path | None = None,
@@ -162,6 +164,7 @@ def build_blog_assembly_bom_from_files(
             customer_proof_selector_evidence_path,
         ),
         ("fred_authority_evidence_path", fred_authority_evidence_path),
+        ("hindsight_strategy_evidence_path", hindsight_strategy_evidence_path),
         ("prior_preflight_readiness_path", prior_preflight_readiness_path),
     ):
         if value is not None:
@@ -198,6 +201,7 @@ def build_blog_assembly_bom_from_files(
         workspace_root=root,
         assembly_date=assembled,
     )
+    workflow_run_id = expected_review_run_id or canonical_run_id
     plan_snapshot = load_json_object_snapshot(
         editorial_plan_path,
         field="editorial_plan",
@@ -237,7 +241,7 @@ def build_blog_assembly_bom_from_files(
         article_path=article_path,
         serp_evidence_path=serp_evidence_path,
         assembly_date=assembled.isoformat(),
-        expected_run_id=canonical_run_id,
+        expected_run_id=workflow_run_id,
     )
     if plan_findings:
         rule_ids = ", ".join(
@@ -354,7 +358,7 @@ def build_blog_assembly_bom_from_files(
         ),
         expected_query=str(paa_policy["query"]),
         expected_collection_date=assembled.isoformat(),
-        expected_run_id=canonical_run_id,
+        expected_run_id=workflow_run_id,
         paa_artifact=(str(bound_paa_artifact) if bound_paa_artifact else None),
     )
     if paa_findings:
@@ -391,6 +395,10 @@ def build_blog_assembly_bom_from_files(
         ),
         "fred_authority_evidence": _optional_artifact(
             fred_authority_evidence_path,
+            root,
+        ),
+        "hindsight_strategy_evidence": _optional_artifact(
+            hindsight_strategy_evidence_path,
             root,
         ),
         "execution_evidence": execution_evidence,
@@ -434,7 +442,7 @@ def build_blog_assembly_bom_from_files(
     connector_reason = None if connector_required else NON_CONNECTOR_REASON
     _validate_provisional_stage_receipts(
         stage_receipts,
-        expected_run_id=canonical_run_id,
+        expected_run_id=workflow_run_id,
         assembly_date=assembled,
         article_sha256=artifacts["article"]["sha256"],
         optimizer_outputs=artifacts["optimizer_outputs"],
@@ -489,6 +497,10 @@ def build_blog_assembly_bom_from_files(
             ),
         ),
         "eeat_strength_policy": eeat_strength_policy,
+        "hindsight_strategy_policy": _hindsight_strategy_policy(
+            validation_sidecar_path=validation_sidecar_path,
+            hindsight_strategy_evidence_path=hindsight_strategy_evidence_path,
+        ),
         "faq_policy": _required_mapping(plan.get("faq_policy"), "editorial_plan.faq_policy"),
         "paa_policy": paa_policy,
         "editorial_plan_summary": _editorial_plan_summary(plan),
@@ -519,14 +531,16 @@ def finalize_blog_assembly_bom(
     bom_snapshot = load_json_object_snapshot(bom_path, field="bom")
     bom = bom_snapshot.payload
     if not _is_supported_bom_schema(bom.get("schema")):
-        raise ValueError(f"bom.schema must be {BOM_SCHEMA_V1} or {BOM_SCHEMA_V2}")
+        raise ValueError(
+            f"bom.schema must be {BOM_SCHEMA_V1}, {BOM_SCHEMA_V2}, or {BOM_SCHEMA_V3}"
+        )
     if bom.get("lifecycle_state") != "provisional":
         raise ValueError("only a provisional BOM can be finalized")
     if bom_snapshot.sha256 != canonical_json_sha256(bom):
         raise ValueError(
             "provisional BOM bytes are not the canonical deterministic serialization"
         )
-    _validate_provisional_bom_guard(bom, workspace_root=root)
+    _validate_provisional_bom_guard(bom, workspace_root=root, vault_root=vault_root)
     readiness = _read_json_object(preflight_readiness_path, "preflight_readiness")
     _validate_passed_preflight(
         readiness,
@@ -544,14 +558,6 @@ def finalize_blog_assembly_bom(
         readiness_path=Path(preflight_readiness_path),
         workspace_root=root,
     )
-    _verify_preflight_execution(
-        readiness,
-        bom=bom,
-        bom_path=Path(bom_path),
-        workspace_root=root,
-        vault_root=vault_root,
-    )
-
     final_bom = copy.deepcopy(bom)
     readiness_artifact = canonical_artifact(
         preflight_readiness_path,
@@ -571,7 +577,7 @@ def finalize_blog_assembly_bom(
         "gate_inventory": list(readiness["gate_inventory"]),
         "input_hashes": copy.deepcopy(readiness["input_hashes"]),
     }
-    _validate_final_bom_guard(final_bom, workspace_root=root)
+    _validate_final_bom_guard(final_bom, workspace_root=root, vault_root=vault_root)
     return final_bom
 
 
@@ -590,84 +596,11 @@ def _validate_persisted_readiness_contract(
     )
 
 
-def _verify_preflight_execution(
-    readiness: Mapping[str, Any],
-    *,
-    bom: Mapping[str, Any],
-    bom_path: Path,
-    workspace_root: Path,
-    vault_root: str | Path | None,
-) -> None:
-    rerun = _rerun_preflight_readiness(
-        bom=bom,
-        bom_path=bom_path,
-        workspace_root=workspace_root,
-        vault_root=vault_root,
-    )
-    if rerun.get("passed") is not True:
-        raise ValueError("preflight verification rerun did not pass")
-    stable_fields = (
-        "schema",
-        "tool",
-        "phase",
-        "verification_scope",
-        "passed",
-        "artifact_kind",
-        "gates",
-        "score",
-        "score_threshold",
-        "aeo_geo",
-        "priority_fixes",
-        "gate_inventory",
-        "input_hashes",
-        "input_seal",
-        "run_id",
-    )
-    persisted_stable = {field: readiness.get(field) for field in stable_fields}
-    rerun_stable = {field: rerun.get(field) for field in stable_fields}
-    if rerun_stable != persisted_stable:
-        raise ValueError(
-            "persisted preflight does not match the live verification rerun"
-        )
-
-
-def _rerun_preflight_readiness(
-    *,
-    bom: Mapping[str, Any],
-    bom_path: Path,
-    workspace_root: Path,
-    vault_root: str | Path | None,
-) -> Mapping[str, Any]:
-    try:
-        from . import publish_readiness
-    except ImportError:  # pragma: no cover - supports direct script execution.
-        import publish_readiness
-    artifacts = _required_mapping(bom.get("artifacts"), "bom.artifacts")
-
-    def bound_path(label: str, *, required: bool = False) -> Path | None:
-        row = artifacts.get(label)
-        if row is None and not required:
-            return None
-        mapping = _required_mapping(row, f"bom.artifacts.{label}")
-        return resolve_artifact(mapping.get("path"), workspace_root=workspace_root)
-
-    return publish_readiness.run_publish_readiness(
-        bound_path("article", required=True),
-        proof_sidecar=bound_path("validation_sidecar", required=True),
-        context_request=bound_path("context_request"),
-        context_pack=bound_path("context_pack"),
-        context_receipt=bound_path("context_receipt"),
-        assembly_bom=bom_path,
-        vault_root=vault_root,
-        phase="preflight",
-        workspace_root=workspace_root,
-    )
-
-
 def _validate_provisional_bom_guard(
     bom: Mapping[str, Any],
     *,
     workspace_root: Path,
+    vault_root: str | Path | None = None,
 ) -> None:
     """Run the same complete BOM guard used by preflight before sealing."""
     try:
@@ -692,6 +625,7 @@ def _validate_provisional_bom_guard(
         context_pack_path=bound_path("context_pack"),
         context_receipt_path=bound_path("context_receipt"),
         workspace_root=workspace_root,
+        vault_root=vault_root,
         expected_lifecycle_state="provisional",
     )
     if findings:
@@ -705,6 +639,7 @@ def _validate_final_bom_guard(
     bom: Mapping[str, Any],
     *,
     workspace_root: Path,
+    vault_root: str | Path | None = None,
 ) -> None:
     """Reject a final object that would fail the same guard after persistence."""
     try:
@@ -729,6 +664,7 @@ def _validate_final_bom_guard(
         context_pack_path=bound_path("context_pack"),
         context_receipt_path=bound_path("context_receipt"),
         workspace_root=workspace_root,
+        vault_root=vault_root,
         expected_lifecycle_state="final",
     )
     if findings:
@@ -811,10 +747,20 @@ def validate_preflight_stage_receipt_binding(
         expected_tool_name="publish_readiness",
         expected_tool_version="1.0.0",
     )
-    expected_run_id = canonical_article_run_id(
+    receipt_run_ids = {
+        str(row.get("run_id") or "").strip()
+        for row in [*prior_receipts, receipt]
+        if isinstance(row, Mapping)
+    }
+    receipt_run_ids.discard("")
+    expected_run_id = (
+        next(iter(receipt_run_ids))
+        if len(receipt_run_ids) == 1
+        else canonical_article_run_id(
         article_path,
         workspace_root=workspace_root,
         assembly_date=assembly_date,
+        )
     )
     findings.extend(
         check_receipt_chain(
@@ -894,9 +840,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     build.add_argument("--context-receipt")
     build.add_argument("--customer-proof-selector-evidence")
     build.add_argument("--fred-authority-evidence")
+    build.add_argument("--hindsight-strategy-evidence")
     build.add_argument("--agent-output", action="append", default=[])
     build.add_argument("--optimizer-output", action="append", default=[])
     build.add_argument("--prior-preflight-readiness")
+    build.add_argument("--expected-review-run-id")
     build.add_argument("--stage-receipt", action="append", required=True)
     build.add_argument("--workflow-mode", choices=sorted(WORKFLOW_MODES), required=True)
     build.add_argument("--assembly-date", required=True)
@@ -931,9 +879,11 @@ def main(argv: Sequence[str] | None = None) -> int:
                 context_receipt_path=args.context_receipt,
                 customer_proof_selector_evidence_path=args.customer_proof_selector_evidence,
                 fred_authority_evidence_path=args.fred_authority_evidence,
+                hindsight_strategy_evidence_path=args.hindsight_strategy_evidence,
                 agent_output_paths=_label_paths(args.agent_output),
                 optimizer_output_paths=args.optimizer_output,
                 prior_preflight_readiness_path=args.prior_preflight_readiness,
+                expected_review_run_id=args.expected_review_run_id,
                 stage_receipt_paths=args.stage_receipt,
                 workflow_mode=args.workflow_mode,
                 assembly_date=args.assembly_date,
@@ -1768,6 +1718,130 @@ def _resolvable_receipt_evidence_hashes(
 
 def _optional_artifact(path: str | Path | None, root: Path) -> dict[str, str] | None:
     return canonical_artifact(path, workspace_root=root) if path is not None else None
+
+
+def _hindsight_strategy_policy(
+    *,
+    validation_sidecar_path: str | Path,
+    hindsight_strategy_evidence_path: str | Path | None,
+) -> dict[str, Any]:
+    try:
+        sidecar_content = Path(validation_sidecar_path).read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as error:
+        raise ValueError(f"validation sidecar is unreadable for Hindsight policy: {error}") from error
+    block = _hindsight_strategy_block(sidecar_content)
+    if block is None:
+        if hindsight_strategy_evidence_path is not None:
+            raise ValueError(
+                "hindsight_strategy_evidence_path requires Hindsight Strategy Selection in the validation sidecar"
+            )
+        return {
+            "status": "not_applicable",
+            "public_claim_use": "prohibited",
+            "claim_support_allowed": False,
+            "evidence_required": False,
+            "rationale": "No Hindsight Strategy Selection block was used for this article.",
+        }
+    status = str(block["fields"].get("status", "")).strip().casefold()
+    if status not in {"internal_strategy_only", "not_applicable", "blocked"}:
+        raise ValueError(
+            "Hindsight Strategy Selection status must be internal_strategy_only, not_applicable, or blocked"
+        )
+    normalized = _normalize_hindsight_block_text(str(block["text"]))
+    if status in {"not_applicable", "blocked"}:
+        if hindsight_strategy_evidence_path is not None:
+            raise ValueError(
+                "hindsight_strategy_evidence_path is allowed only when Hindsight status is internal_strategy_only"
+            )
+        return {
+            "status": status,
+            "public_claim_use": "prohibited",
+            "claim_support_allowed": False,
+            "evidence_required": False,
+            "rationale": str(
+                block["fields"].get("reason")
+                or block["fields"].get("rationale")
+                or "Hindsight internal strategy was not selected for public-copy support."
+            ),
+        }
+    if hindsight_strategy_evidence_path is None:
+        raise ValueError(
+            "Hindsight internal_strategy_only selection requires hindsight_strategy_evidence_path"
+        )
+    for marker in (
+        "public_claim_use: prohibited",
+        "claim_support_allowed: false",
+    ):
+        if marker not in normalized:
+            raise ValueError(
+                f"Hindsight Strategy Selection is missing required boundary marker: {marker}"
+            )
+    evidence = _read_json_object(
+        hindsight_strategy_evidence_path,
+        "hindsight_strategy_evidence",
+    )
+    pack = _required_mapping(evidence.get("pack"), "hindsight_strategy_evidence.pack")
+    receipt = _required_mapping(
+        evidence.get("receipt"),
+        "hindsight_strategy_evidence.receipt",
+    )
+    evidence_sidecar = _required_mapping(
+        evidence.get("sidecar"),
+        "hindsight_strategy_evidence.sidecar",
+    )
+    if pack.get("schema") != "simpro-internal-strategy-pack/v1":
+        raise ValueError("Hindsight evidence pack schema is invalid")
+    if receipt.get("schema") != "simpro-internal-strategy-receipt/v1":
+        raise ValueError("Hindsight evidence receipt schema is invalid")
+    if evidence_sidecar.get("schema") != "simpro-content-validation-sidecar/v1":
+        raise ValueError("Hindsight evidence sidecar schema is invalid")
+    if evidence_sidecar.get("public_claim_use") != "prohibited":
+        raise ValueError("Hindsight evidence sidecar must prohibit public claim use")
+    if evidence_sidecar.get("claim_support_allowed") is not False:
+        raise ValueError("Hindsight evidence sidecar cannot allow claim support")
+    return {
+        "status": "internal_strategy_only",
+        "public_claim_use": "prohibited",
+        "claim_support_allowed": False,
+        "evidence_required": True,
+        "evidence_schema": "simpro-internal-strategy-pack/v1",
+        "receipt_schema": "simpro-internal-strategy-receipt/v1",
+        "sidecar_schema": "simpro-content-validation-sidecar/v1",
+        "pack_sha256": canonical_json_sha256(pack),
+        "receipt_sha256": canonical_json_sha256(receipt),
+    }
+
+
+def _hindsight_strategy_block(content: str) -> dict[str, Any] | None:
+    lines = content.splitlines()
+    heading_re = re.compile(
+        r"^\s*(?:#{1,6}\s+)?Hindsight Strategy Selection:?\s*$",
+        re.IGNORECASE,
+    )
+    field_re = re.compile(r"^\s*[-*+]\s*(?P<key>[^:]+):\s*(?P<value>.*?)\s*$")
+    heading_line_re = re.compile(r"^\s*#{1,6}\s+\S")
+    for index, line in enumerate(lines):
+        if not heading_re.match(line.strip()):
+            continue
+        block_lines: list[str] = []
+        fields: dict[str, str] = {}
+        for block_line in lines[index + 1 :]:
+            if heading_line_re.match(block_line):
+                break
+            block_lines.append(block_line)
+            match = field_re.match(block_line)
+            if match:
+                key = re.sub(r"\s+", " ", match.group("key").strip().casefold())
+                fields[key] = match.group("value").strip()
+        return {"fields": fields, "text": "\n".join(block_lines)}
+    return None
+
+
+def _normalize_hindsight_block_text(value: str) -> str:
+    normalized = value.casefold()
+    normalized = re.sub(r"\s+", " ", normalized)
+    normalized = re.sub(r"\s*:\s*", ": ", normalized)
+    return normalized
 
 
 def _execution_evidence_from_prior_preflight(

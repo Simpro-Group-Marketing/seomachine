@@ -218,10 +218,19 @@ def _is_allowed_root_configuration(
     if line_end < 0:
         line_end = len(text)
     line = text[line_start:line_end]
+    context_start = text.rfind("\n", 0, line_start - 1) + 1
+    context_start = text.rfind("\n", 0, context_start - 1) + 1
+    context_start = text.rfind("\n", 0, context_start - 1) + 1
+    context = text[context_start:line_end]
     return bool(
         re.search(
-            r"\b(?:authority_root|SIMPRO_VAULT_ROOT)\b|--vault-root\b",
+            r"\bauthority_root\b|--vault-root\b",
             line,
+            re.IGNORECASE,
+        )
+        or re.search(
+            r'"simpro-context@simpro"|"\s*authority_root\s*"',
+            context,
             re.IGNORECASE,
         )
     )

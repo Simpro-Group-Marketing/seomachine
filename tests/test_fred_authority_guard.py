@@ -299,6 +299,30 @@ def test_none_selection_rejects_public_fred_use(tmp_path):
     )
 
 
+def test_none_selection_allows_required_fred_media_navigation(tmp_path):
+    pack, receipt, revision = write_context_receipt_fixture(tmp_path)
+    public_copy = """# Article
+
+[IMAGE PLACEHOLDER | source: approved asset | alt: "Fred Voccola discusses field service economics" | render target: featured image | resize and compress before upload]
+
+[VIDEO PLACEHOLDER | source: https://www.youtube.com/watch?v=abc123 | title: "Field service economics interview" | placement: after the opening answer | embed target: responsive 16:9 https://www.youtube-nocookie.com/embed/abc123 with visible fallback link, descriptive title, lazy loading, and no autoplay | VideoObject: add only after embed]
+
+[Watch the full Fred Voccola interview on YouTube](https://www.youtube.com/watch?v=abc123).
+"""
+
+    findings = guard_check(
+        public_copy,
+        selection_block(revision),
+        pack,
+        receipt,
+    )
+
+    assert not any(
+        item["rule_id"] == "fred_authority_public_use_without_selection"
+        for item in findings
+    )
+
+
 def test_missing_receipt_fails_closed(tmp_path):
     _, _, revision = write_context_receipt_fixture(tmp_path)
 

@@ -72,12 +72,19 @@ REQUIRED_FIELDS = (
     "intended use",
 )
 ALLOWED_CLAIM_TYPES = {
+    "absolute",
+    "causal",
+    "commercial",
+    "comparative",
+    "definitional",
     "statistic",
     "regulation",
     "standard",
     "factual",
     "definition",
     "historical",
+    "process",
+    "guarantee",
     "recommendation",
     "comparison",
     "faq",
@@ -99,10 +106,15 @@ ALLOWED_SOURCE_CLASSES = {
     "academic",
     "trade_association",
     "neutral",
+    "primary_authority",
     "non_competing_expert",
+    "competitor",
     "competitor_owned",
+    "owned_product",
     "simpro_owned",
+    "customer_proof",
     "customer",
+    "review_platform",
     "review_site",
     "original_research",
     "secondary",
@@ -218,7 +230,7 @@ def check_source_map(proof_content: str, *, today: date) -> list[Finding]:
             )
         if claim_type in {"regulation", "standard"} and source_class not in OFFICIAL_CLASSES:
             findings.append(_finding("source_quality_official_source_required", row.line, "Regulations and standards require an official source."))
-        if source_class == "competitor_owned" and claim_type in {"recommendation", "comparison", "faq"}:
+        if source_class in {"competitor", "competitor_owned"} and claim_type in {"recommendation", "comparison", "comparative", "faq"}:
             findings.append(_finding("source_quality_competitor_neutral_proof", row.line, "Competitor-owned evidence cannot support a neutral verdict, recommendation, comparison, or FAQ."))
         source_date = fields.get("source date", "").casefold()
         if source_date in {"undated", "historical"} and freshness_decision != "historical_scoped":

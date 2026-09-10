@@ -387,7 +387,10 @@ def _derive_answersocrates_observations(
         items = section.get("items")
         if not isinstance(heading, str) or not isinstance(items, list):
             raise ValueError("AnswerSocrates visible section is invalid")
-        paa_section = heading.strip().casefold() == "people also ask"
+        paa_section = heading.strip().casefold() in {
+            "people also ask",
+            "people also asked",
+        }
         for item in items:
             if not isinstance(item, str) or not item.strip() or item != item.strip():
                 raise ValueError("AnswerSocrates visible items must be trimmed text")

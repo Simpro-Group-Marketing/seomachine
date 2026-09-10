@@ -460,6 +460,12 @@ def _proof_candidates_available(evidence: Mapping[str, Any] | None) -> bool:
         return False
     if evidence.get("selection_outcome") == NO_FIT_CUSTOMER_PROOF_OUTCOME:
         return False
+    inputs = evidence.get("inputs")
+    rejected_overrides = (
+        inputs.get("rejected_overrides")
+        if isinstance(inputs, Mapping)
+        else None
+    )
     roles = evidence.get("roles")
     if not isinstance(roles, list):
         return False
@@ -469,7 +475,19 @@ def _proof_candidates_available(evidence: Mapping[str, Any] | None) -> bool:
         candidates = row.get("candidate_ids")
         selected = str(row.get("selected_id") or "").strip().casefold()
         if isinstance(candidates, list) and candidates and selected in {"", "none"}:
-            return True
+            role = str(row.get("role") or "").strip()
+            role_rejections = (
+                rejected_overrides.get(role)
+                if isinstance(rejected_overrides, Mapping)
+                else None
+            )
+            if not isinstance(role_rejections, Mapping):
+                return True
+            for candidate in candidates:
+                candidate_id = str(candidate or "").strip()
+                reason = str(role_rejections.get(candidate_id) or "").strip()
+                if not candidate_id or _word_count(reason) < 8:
+                    return True
     return False
 
 

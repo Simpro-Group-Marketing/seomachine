@@ -947,6 +947,24 @@ class StrictPaaSourceTests(unittest.TestCase):
                 }), "stderr": "", "returncode": 0}
             )
 
+    def test_answersocrates_accepts_current_people_also_asked_heading(self):
+        questions, fragments, blocker = paa_provenance_guard._derive_answersocrates_observations(
+            {"stdout": json.dumps({
+                "page_url": "https://answersocrates.com/",
+                "page_title": "Answer Socrates",
+                "body_text": "People Also Asked",
+                "blocker_observations": [],
+                "sections": [{
+                    "heading": "People Also Asked",
+                    "items": ["What is field service management?"],
+                }],
+            }), "stderr": "", "returncode": 0}
+        )
+
+        self.assertEqual(questions, ["What is field service management?"])
+        self.assertEqual(fragments, [])
+        self.assertIsNone(blocker)
+
     def test_answersocrates_rejects_colliding_normalized_question_keys(self):
         with self.assertRaisesRegex(ValueError, 'normalization'):
             paa_provenance_guard._derive_answersocrates_observations(

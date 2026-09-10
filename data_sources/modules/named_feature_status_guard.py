@@ -9,6 +9,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence
+from urllib.parse import urlparse
 
 try:
     from .guard_common import Finding, make_finding, should_fail, summarize_findings
@@ -64,7 +65,7 @@ ALLOWED_COMMERCIAL_TREATMENTS = {
     "mixed",
     "not_asserted",
 }
-ALLOWED_WORDING_DECISIONS = {"use", "qualify", "omit"}
+ALLOWED_WORDING_DECISIONS = {"use", "qualify", "omit", "navigation_only"}
 LINK_REQUIRED_COLUMNS = ("Name", "Resource ID", "Link decision", "Target URL", "Reason")
 ALLOWED_LINK_DECISIONS = {"link", "do_not_link"}
 FEATURE_ALIASES = (
@@ -128,6 +129,7 @@ def check_content(
     vault_root: str | Path | None = None,
     context_pack: str | Path | None = None,
     context_receipt: str | Path | None = None,
+    validated_claim_set: ValidatedClaimSet | None = None,
 ) -> List[Finding]:
     """Return status, evidence-binding, and article-link findings for named features."""
     public_body = _public_body(content)
@@ -139,7 +141,9 @@ def check_content(
     receipt_claims = ValidatedClaimSet(
         blocker="context pack and receipt are required for public proof eligibility"
     )
-    if detected or context_pack or context_receipt:
+    if validated_claim_set is not None:
+        receipt_claims = validated_claim_set
+    elif detected or context_pack or context_receipt:
         try:
             receipt_claims = load_validated_claim_set(
                 context_pack,
@@ -161,10 +165,12 @@ def check_content(
             )
             receipt_claims = ValidatedClaimSet(blocker=str(exc))
 
+    context_pack_object = _load_context_pack_object(context_pack) if context_pack else {}
+    bound_context_resource_ids = _all_resource_ids(context_pack_object)
     if receipt_claims.available and context_pack:
         context_detected, context_resources = _detect_context_features(
             public_body,
-            _load_context_pack_object(context_pack),
+            context_pack_object,
         )
         for name, line in context_detected.items():
             existing_name = next(
@@ -255,6 +261,7 @@ def check_content(
                 receipt_claims,
                 public_body,
                 feature_resources.get(name, set()),
+                bound_context_resource_ids,
                 proof_link_report,
             )
         )
@@ -275,6 +282,7 @@ def check_file(
     vault_root: str | Path | None = None,
     context_pack: str | Path | None = None,
     context_receipt: str | Path | None = None,
+    validated_claim_set: ValidatedClaimSet | None = None,
 ) -> List[Finding]:
     """Check an article and its validation sidecar."""
     if fail_on not in {"error", "warning", "none"}:
@@ -288,6 +296,7 @@ def check_file(
         vault_root=vault_root,
         context_pack=context_pack,
         context_receipt=context_receipt,
+        validated_claim_set=validated_claim_set,
     )
 
 
@@ -399,6 +408,28 @@ def _detect_context_features(
 def _valid_resource_id(value: object) -> str:
     resource_id = str(value or "").strip()
     return resource_id if re.fullmatch(r"res-[0-9a-f]{32}", resource_id) else ""
+
+
+def _all_resource_ids(value: Any) -> set[str]:
+    resource_ids: set[str] = set()
+    if isinstance(value, Mapping):
+        for field in ("resource_id", "authority_resource_id"):
+            resource_id = _valid_resource_id(value.get(field))
+            if resource_id:
+                resource_ids.add(resource_id)
+        support_resource_ids = value.get("support_resource_ids")
+        if isinstance(support_resource_ids, list):
+            resource_ids.update(
+                resource_id
+                for item in support_resource_ids
+                if (resource_id := _valid_resource_id(item))
+            )
+        for nested in value.values():
+            resource_ids.update(_all_resource_ids(nested))
+    elif isinstance(value, list):
+        for nested in value:
+            resource_ids.update(_all_resource_ids(nested))
+    return resource_ids
 
 
 def _record_values(record: Mapping[str, Any], *fields: str) -> List[str]:
@@ -657,6 +688,7 @@ def _validate_link_row(
     receipt_claims: ValidatedClaimSet,
     public_body: str,
     context_resource_ids: set[str],
+    bound_context_resource_ids: set[str],
     proof_link_report: ProofLinkReport,
 ) -> List[Finding]:
     if not link_rows:
@@ -684,6 +716,10 @@ def _validate_link_row(
     row = link_rows[0]
     row_line = int(row.get("_line", line))
     findings: List[Finding] = []
+    navigation_only = (
+        str(status_row.get("Public wording decision") or "").strip().casefold()
+        == "navigation_only"
+    )
     resource_id = str(row.get("Resource ID") or "").strip()
     if not re.fullmatch(r"res-[0-9a-f]{32}", resource_id):
         findings.append(
@@ -711,7 +747,9 @@ def _validate_link_row(
         for claim in approved_claims
         if claim.authority_resource_id
     }
-    if resource_id and resource_id not in allowed_resources:
+    if resource_id and resource_id not in allowed_resources and not (
+        navigation_only and resource_id in bound_context_resource_ids
+    ):
         findings.append(
             make_finding(
                 "named_feature_link_resource_id_unbound",
@@ -804,7 +842,10 @@ def _validate_link_row(
             for claim in approved_claims
             if claim.authority_resource_id == resource_id and claim.public_url
         }
-        if normalized_target not in approved_urls:
+        if normalized_target not in approved_urls and not (
+            navigation_only
+            and urlparse(target_url).hostname in {"simprogroup.com", "www.simprogroup.com"}
+        ):
             findings.append(
                 make_finding(
                     "named_feature_link_target_unbound",
@@ -830,9 +871,16 @@ def _validate_link_row(
                 )
             )
         first_mention_link = _first_meaningful_mention_link(public_body, name, article_links)
+        has_meaningful_mention = _has_meaningful_mention(public_body, name)
         if (
             first_mention_link is None
             or _normalize_public_url(first_mention_link) != normalized_target
+        ) and not (
+            navigation_only
+            and first_mention_link is None
+            and not has_meaningful_mention
+            and normalized_target
+            in {_normalize_public_url(link["url"]) for link in article_links}
         ):
             findings.append(
                 make_finding(
@@ -879,6 +927,20 @@ def _first_meaningful_mention_link(
     name: str,
     links: Sequence[Mapping[str, Any]],
 ) -> str | None:
+    match = _feature_name_match(_without_markdown_headings(content), name)
+    if match is None:
+        return None
+    for link in links:
+        if int(link["anchor_start"]) <= match.start() < int(link["anchor_end"]):
+            return str(link["url"])
+    return None
+
+
+def _has_meaningful_mention(content: str, name: str) -> bool:
+    return _feature_name_match(_without_markdown_headings(content), name) is not None
+
+
+def _without_markdown_headings(content: str) -> str:
     searchable = list(content)
     offset = 0
     for line in content.splitlines(keepends=True):
@@ -886,13 +948,14 @@ def _first_meaningful_mention_link(
             for index in range(offset, offset + len(line.rstrip("\r\n"))):
                 searchable[index] = " "
         offset += len(line)
-    match = _feature_name_match("".join(searchable), name)
-    if match is None:
-        return None
-    for link in links:
-        if int(link["anchor_start"]) <= match.start() < int(link["anchor_end"]):
-            return str(link["url"])
-    return None
+    for link in MARKDOWN_LINK_RE.finditer(content):
+        for group_index in (2, 3):
+            start = link.start(group_index)
+            end = link.end(group_index)
+            if start >= 0 and end >= 0:
+                for index in range(start, end):
+                    searchable[index] = " "
+    return "".join(searchable)
 
 
 def _normalize_public_url(value: str) -> str:
@@ -941,7 +1004,7 @@ def _validate_row(
                 row_line,
                 match=wording,
                 message=f"{name} has an invalid public wording decision.",
-                suggestion="Use use, qualify, or omit.",
+            suggestion="Use use, qualify, omit, or navigation_only.",
             )
         )
     if not row.get("Region or account boundary", "").strip():
@@ -959,7 +1022,7 @@ def _validate_row(
     capability_ids = _split_claim_ids(row.get("Capability claim ID", ""))
     commercial_ids = _split_claim_ids(row.get("Commercial claim ID", ""))
     unusable_claim = False
-    if not capability_ids:
+    if not capability_ids and wording != "navigation_only":
         findings.append(
             make_finding(
                 "named_feature_capability_claim_missing",

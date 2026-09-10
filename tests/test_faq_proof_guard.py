@@ -196,15 +196,34 @@ The Texas State Board of Plumbing Examiners regulates plumbers in Texas under th
 
         self.assertIn("faq_answer_generic_proof_anchor", finding_ids(content))
 
-    def test_faq_answer_with_only_owned_inline_link_fails(self):
+    def test_faq_answer_with_owned_inline_link_satisfies_inline_placement(self):
         content = fixture_text("content_evidence:test_faq_proof_guard-105-4")
 
-        findings = check_content(content)
+        self.assertEqual(check_content(content), [])
 
-        self.assertEqual(len(findings), 1)
-        self.assertEqual(findings[0]["rule_id"], "faq_answer_missing_inline_proof")
+    def test_owned_faq_url_requires_owned_product_map_row_when_sidecar_supplied(self):
+        question = "How does HVAC scheduling software reduce missed appointments?"
+        content = fixture_text("content_evidence:test_faq_proof_guard-105-4")
+        sidecar = faq_sidecar(question, [])
 
-    def test_simpro_ai_link_is_owned_and_cannot_satisfy_faq_proof(self):
+        self.assertIn(
+            "faq_answer_source_map_url_missing",
+            finding_ids_with_sidecar(content, sidecar),
+        )
+
+    def test_owned_product_faq_source_map_passes(self):
+        question = "What is the best field service software?"
+        url = "https://www.simprogroup.com/blog/best-field-service-management-software"
+        sidecar = faq_sidecar(
+            question,
+            [
+                f"- FAQ: {question} | URL: {url} | Source class: owned_product | Competitor check: passed | Support: Simpro's guide provides owned comparison criteria for field service management software."
+            ],
+        )
+
+        self.assertEqual(check_content(faq_content(question, [url]), proof_content=sidecar), [])
+
+    def test_simpro_ai_link_is_owned_and_requires_faq_proof_map_classification(self):
         content = """# License guide
 
 ## Frequently Asked Questions
@@ -213,8 +232,12 @@ The Texas State Board of Plumbing Examiners regulates plumbers in Texas under th
 
 The Texas State Board of Plumbing Examiners regulates plumbers in Texas. See [Simpro](https://simpro.ai/resources).
 """
+        sidecar = faq_sidecar("Which agency regulates plumbers in Texas?", [])
 
-        self.assertIn("faq_answer_missing_inline_proof", finding_ids(content))
+        self.assertIn(
+            "faq_answer_source_map_url_missing",
+            finding_ids_with_sidecar(content, sidecar),
+        )
 
     def test_faq_answer_with_only_question_specific_source_map_fails(self):
         content = fixture_text("content_evidence:test_faq_proof_guard-120-5")

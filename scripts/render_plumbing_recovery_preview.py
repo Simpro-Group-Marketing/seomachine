@@ -37,7 +37,8 @@ EXPECTED_TITLE = "Best Plumbing Job Management Software for 2026 | Simpro"
 EXPECTED_H1 = "Best Plumbing Job Management Software for 2026"
 EXPECTED_META_DESCRIPTION = (
     "Compare eight plumbing job management software platforms by business fit, "
-    "workflows, pricing route, rollout questions, and three-year cost."
+    "workflow depth, pricing route, rollout questions, risk, and three-year cost "
+    "for demos."
 )
 EXPECTED_CANONICAL = (
     "https://www.simprogroup.com/blog/best-plumbing-job-management-software"

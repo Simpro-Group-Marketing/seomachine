@@ -463,7 +463,15 @@ class ContextBindingGuardTests(unittest.TestCase):
             '"Compare your field service workflow with Simpro" | decorative icon alt: ""]\n\n'
             '[IMAGE PLACEHOLDER | source: https://www.simprogroup.com/logo.png | alt: '
             '"Simpro logo for the 2026 field service management software comparison" | '
-            'render target: 809 x 405 px | resize and compress before upload]',
+            'render target: 809 x 405 px | resize and compress before upload]\n\n'
+            '[VIDEO PLACEHOLDER | source: https://www.youtube.com/watch?v=GU0pqwFXo4Q | '
+            'title: "How Simpro and AI Is Reshaping Field Service Economics" | '
+            'placement: after the opening answer | embed target: responsive 16:9 | '
+            'VideoObject: add only after embed]\n\n'
+            '[IMAGE PLACEHOLDER | source: Asana asset 1218074500122453, '
+            '"How Simpro and AI is Reshaping Field Service Economics.jpg" | alt: '
+            '"Fred Voccola discusses AI field service economics for trade businesses" | '
+            'render target: featured image | resize and compress before upload]',
             "",
         )
 

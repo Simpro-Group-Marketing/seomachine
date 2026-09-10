@@ -430,7 +430,7 @@ class SourceSupportGuardTests(unittest.TestCase):
 Master Plumber is a Texas license. Responsible Master Plumber is a designation. The [TSBPE RMP requirements](https://tsbpe.texas.gov/license-types/responsible-master-plumber/) also require good standing and at least $300,000 in commercial liability insurance.
 """
         sidecar = """## FAQ Source Policy
-- Allowed source classes: neutral, non_competing_expert.
+- Allowed source classes: neutral, non_competing_expert, owned_product.
 - Competitor-owned FAQ sources: prohibited.
 - Status: aligned.
 
@@ -1651,6 +1651,26 @@ Well-run HVAC operators should target [15% to 20% EBITDA margins]({EBITDA_URL}) 
                 )
         finally:
             os.unlink(temp_path)
+
+    def test_reader_supplied_worksheet_rows_are_not_empirical_claims(self):
+        content = """# Pilot worksheet
+
+| Worksheet item | Reader-supplied variables | Calculation | Interpretation |
+|---|---|---|---|
+| Capacity value | Verified hours saved, hourly labor cost | Hours saved x hourly labor cost | Capacity made available at labor cost, not revenue |
+| Payback period | Implementation cost, monthly verified benefit | Total cost / monthly verified benefit | Estimated months to recover cost |
+"""
+
+        self.assertEqual(check_content(content), [])
+
+    def test_go_no_go_questions_are_not_factual_claims(self):
+        content = """# Pilot checklist
+
+- Did the target metric improve without a decline in quality or control?
+- Were exceptions manageable and owned?
+"""
+
+        self.assertEqual(check_content(content), [])
 
 
 if __name__ == "__main__":

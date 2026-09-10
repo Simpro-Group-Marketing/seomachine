@@ -1,5 +1,5 @@
 # Google Analytics and Search Console
-simpro-vault-connector @ git+https://github.com/Simpro-Group-Marketing/simpro-context-connector.git@v2.0.0
+simpro-vault-connector @ git+https://github.com/Simpro-Group-Marketing/simpro-context-connector.git@v2.1.0
 
 google-analytics-data>=0.18.0
 google-auth>=2.23.0

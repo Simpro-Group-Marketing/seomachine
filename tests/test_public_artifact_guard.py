@@ -161,6 +161,7 @@ class PublicArtifactGuardTests(unittest.TestCase):
             "Review Story Selection",
             "Review Site Theme Selection",
             "Competitive Shortlist Decision",
+            "Hindsight Strategy Selection",
             "Named Feature/Add-On Link Check",
         )
 

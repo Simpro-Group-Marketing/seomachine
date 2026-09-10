@@ -202,6 +202,39 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
         self.assertNotIn("Too few internal links", issue_text)
         self.assertNotIn("down-funnel internal link", issue_text)
 
+    def test_seo_score_honors_frontmatter_aeo_title_topic(self):
+        content = """---
+brand: Simpro
+primary_keyword: ai field service management
+primary_aeo_topic: ai field service economics
+---
+
+# AI Field Service Economics: What to Measure Before You Automate
+
+AI field service management starts with a measurable constraint and a bounded pilot.
+
+## Build the scorecard
+
+Use operating data to compare the same workflow before and after the pilot.
+"""
+
+        result = ContentScorer()._score_seo(
+            content,
+            {
+                "meta_title": "AI Field Service Economics: Practical Scorecard | Simpro",
+                "meta_description": (
+                    "Use an AI field service economics scorecard to test capacity, "
+                    "cost, quality, and controls before expanding a field service pilot."
+                ),
+            },
+        )
+
+        self.assertEqual(result["details"]["h1_keyword"], "ai field service economics")
+        self.assertNotIn(
+            "missing from H1",
+            "\n".join(result["critical_issues"]),
+        )
+
     def test_legacy_70_score_no_longer_meets_quality_threshold(self):
         scorer = ContentScorer()
 
@@ -326,9 +359,8 @@ class ContentScorerAeoGeoGateTests(unittest.TestCase):
         with patch.object(scorer.seo_rater, "rate", return_value=rated) as rate:
             result = scorer._score_seo(content, {})
 
-        _, visible_body = content.split("---\n", 2)[1:]
         rate.assert_called_once_with(
-            visible_body,
+            content,
             meta_title="HVAC Scheduling Software for Contractors | Simpro",
             meta_description=(
                 "HVAC scheduling software helps contractors assign jobs, avoid "

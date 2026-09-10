@@ -41,6 +41,7 @@ DOWN_FUNNEL_PATH_PREFIXES = (
     "/solutions/",
 )
 DOWN_FUNNEL_EXACT_PATHS = {
+    "/",
     "/features",
     "/industries",
 }
@@ -439,7 +440,17 @@ class SEOQualityRater:
         # available to metadata resolution, but it is never article prose.
         # Structured data and CSS are also excluded because browsers do not
         # render their text as article copy.
-        structure = self._analyze_structure(analysis_body, primary_keyword)
+        primary_aeo_topic = frontmatter.get("primary_aeo_topic")
+        title_keyword = (
+            primary_aeo_topic.strip()
+            if isinstance(primary_aeo_topic, str) and primary_aeo_topic.strip()
+            else primary_keyword
+        )
+        structure = self._analyze_structure(
+            analysis_body,
+            primary_keyword,
+            h1_keyword=title_keyword,
+        )
 
         # Score each category
         content_score = self._score_content(analysis_body, structure)
@@ -449,11 +460,12 @@ class SEOQualityRater:
             primary_keyword,
             secondary_keywords,
             keyword_density=keyword_density,
+            h1_keyword=title_keyword,
         )
         meta_score = self._score_meta_elements(
             meta_title,
             meta_description,
-            primary_keyword
+            title_keyword
         )
         structure_score = self._score_structure(structure)
         link_score = self._score_links(
@@ -518,7 +530,8 @@ class SEOQualityRater:
             'h2_count': structure['h2_count'],
             'has_h1': structure['has_h1'],
             'keyword_in_h1': structure.get('keyword_in_h1', False),
-            'keyword_in_first_100': structure.get('keyword_in_first_100', False)
+            'keyword_in_first_100': structure.get('keyword_in_first_100', False),
+            'h1_keyword': title_keyword,
         }
         if url_validation is not None:
             details['url_validation'] = {
@@ -561,7 +574,12 @@ class SEOQualityRater:
             'details': details
         }
 
-    def _analyze_structure(self, content: str, primary_keyword: Optional[str]) -> Dict[str, Any]:
+    def _analyze_structure(
+        self,
+        content: str,
+        primary_keyword: Optional[str],
+        h1_keyword: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """Analyze content structure"""
         lines = content.split('\n')
 
@@ -601,9 +619,15 @@ class SEOQualityRater:
         keyword_in_first_100 = False
         h2_with_keyword = 0
 
+        title_target = h1_keyword or primary_keyword
+        if title_target:
+            keyword_in_h1 = _contains_ordered_keyword_variant(
+                h1_text,
+                title_target.lower(),
+            )
+
         if primary_keyword:
             keyword_lower = primary_keyword.lower()
-            keyword_in_h1 = _contains_ordered_keyword_variant(h1_text, keyword_lower)
             first_100_words = ' '.join(content.split()[:100]).lower()
             keyword_in_first_100 = _contains_ordered_keyword_variant(
                 first_100_words,
@@ -676,6 +700,7 @@ class SEOQualityRater:
         primary_keyword: Optional[str],
         secondary_keywords: Optional[List[str]],
         keyword_density: Optional[float] = None,
+        h1_keyword: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Score keyword optimization"""
         score = 100
@@ -694,7 +719,8 @@ class SEOQualityRater:
         # Keyword in H1
         if not structure['keyword_in_h1']:
             score -= 20
-            critical.append(f"Primary keyword '{primary_keyword}' missing from H1 heading")
+            heading_target = h1_keyword or primary_keyword
+            critical.append(f"Primary topic '{heading_target}' missing from H1 heading")
 
         # Keyword in first 100 words
         if not structure['keyword_in_first_100']:
@@ -1004,7 +1030,7 @@ class SEOQualityRater:
                     )
                 else:
                     critical.append(
-                        "Missing down-funnel internal link to /industries, /industries/..., "
+                        "Missing down-funnel internal link to /, /industries, /industries/..., "
                         "/solutions/..., or /features/... with matched anchor text."
                     )
 

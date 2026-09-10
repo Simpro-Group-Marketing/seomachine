@@ -256,8 +256,8 @@ def test_builder_non_object_bom_error_names_current_and_archived_schemas(
         )
 
     message = str(raised.value)
-    assert "simpro-blog-assembly-bom/v2" in message
-    assert "archived final simpro-blog-assembly-bom/v1" in message
+    assert "simpro-blog-assembly-bom/v3" in message
+    assert "archived final simpro-blog-assembly-bom/v1/simpro-blog-assembly-bom/v2" in message
 
 
 def test_builds_valid_live_url_observed_receipt_without_local_artifacts(artifacts: dict[str, Path]):

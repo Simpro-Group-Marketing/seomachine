@@ -154,3 +154,18 @@ Use this checklist to review dispatch capacity.
 """
 
     assert check_content(public_copy, proof_content="") == []
+
+
+def test_operating_baseline_comparisons_do_not_trigger_competitor_shortlist():
+    public_copy = """---
+artifact_type: blog
+brand: Simpro
+title: AI field service economics
+objective: Compare the same operating baseline before and after a pilot
+---
+# AI field service economics
+
+Compare the same measures after a bounded pilot. The comparison tests the workflow, not vendors.
+"""
+
+    assert check_content(public_copy, proof_content="") == []

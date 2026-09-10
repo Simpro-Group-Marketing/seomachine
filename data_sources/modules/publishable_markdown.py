@@ -104,6 +104,24 @@ def read_publishable_markdown(path: str | Path) -> PublishableMarkdown:
         raise FrontmatterError(
             f"Publishable Markdown is not valid UTF-8: {source}."
         ) from exc
+    return parse_publishable_markdown(
+        source,
+        raw,
+        sha256=hashlib.sha256(raw_bytes).hexdigest(),
+    )
+
+
+def parse_publishable_markdown(
+    path: str | Path,
+    raw: str,
+    *,
+    sha256: str | None = None,
+) -> PublishableMarkdown:
+    """Parse already captured UTF-8 text without reopening its source file."""
+    source = Path(path)
+    actual_sha256 = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+    if sha256 is not None and sha256 != actual_sha256:
+        raise FrontmatterError("Captured Markdown text does not match its SHA-256 seal.")
     metadata, body = _split_frontmatter(raw)
     metadata, body = _merge_legacy_metadata(metadata, body)
     h1_match = H1_RE.search(body)
@@ -114,7 +132,7 @@ def read_publishable_markdown(path: str | Path) -> PublishableMarkdown:
     return PublishableMarkdown(
         path=source,
         raw=raw,
-        sha256=hashlib.sha256(raw_bytes).hexdigest(),
+        sha256=actual_sha256,
         metadata=metadata,
         h1=h1,
         body=body,

@@ -361,6 +361,35 @@ class NamedFeatureStatusGuardTests(unittest.TestCase):
 
         self.assertEqual(findings, [])
 
+    def test_navigation_only_feature_link_uses_bound_context_resource(self):
+        pack_path, receipt_path = write_context_receipt_fixture(self.vault_path)
+        connector_claim_id = "claim-lightning-LCUR-0001"
+        resource_id = "res-" + hashlib.sha256(
+            connector_claim_id.encode("utf-8")
+        ).hexdigest()[:32]
+        target_url = "https://www.simprogroup.com/lightning"
+        proof = f"""## Named Feature Status and Commercial Treatment
+
+| Name | Capability claim ID | Commercial claim ID | Release status | Commercial treatment | Region or account boundary | Public wording decision |
+|---|---|---|---|---|---|---|
+| Lightning | | | current_public_context | not_asserted | Public navigation only | navigation_only |
+
+## Named Feature/Add-On Link Check
+
+| Name | Resource ID | Link decision | Target URL | Reason |
+|---|---|---|---|---|
+| Lightning | {resource_id} | link | {target_url} | Connector-bound public product navigation. |
+"""
+        findings = _check_content(
+            f"# AI workflows\n\n[Simpro Lightning]({target_url}) is the next page to review.",
+            proof_content=proof,
+            context_pack=pack_path,
+            context_receipt=receipt_path,
+            vault_path=self.vault_path,
+        )
+
+        self.assertEqual(findings, [])
+
     def test_inline_required_status_claim_cannot_be_bypassed_by_do_not_link(self):
         claim = "Lightning is currently available to eligible accounts."
         row = "| Lightning | LCUR-0001 | | current_public_context | not_asserted | Eligible accounts | use |"

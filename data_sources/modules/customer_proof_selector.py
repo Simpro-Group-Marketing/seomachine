@@ -17,6 +17,7 @@ import sys
 from contextlib import contextmanager, nullcontext
 from dataclasses import dataclass
 from datetime import date
+from functools import lru_cache
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any, Dict, Iterable, Iterator, List, Mapping, Optional, Sequence
@@ -529,6 +530,39 @@ def _load_receipt_claims(
     context_pack: str | Path | None,
     context_receipt: str | Path | None,
 ) -> Any:
+    if not context_pack or not context_receipt:
+        pack_path = str(context_pack or "")
+        receipt_path = str(context_receipt or "")
+        pack_digest = ""
+        receipt_digest = ""
+    else:
+        resolved_pack = Path(context_pack).expanduser().resolve()
+        resolved_receipt = Path(context_receipt).expanduser().resolve()
+        pack_path = str(resolved_pack)
+        receipt_path = str(resolved_receipt)
+        try:
+            pack_digest = hashlib.sha256(resolved_pack.read_bytes()).hexdigest()
+            receipt_digest = hashlib.sha256(resolved_receipt.read_bytes()).hexdigest()
+        except OSError as exc:
+            raise CustomerProofDataError(
+                f"Customer proof context artifact is unreadable: {exc}"
+            ) from exc
+    return _load_receipt_claims_cached(
+        pack_path,
+        receipt_path,
+        pack_digest,
+        receipt_digest,
+    )
+
+
+@lru_cache(maxsize=32)
+def _load_receipt_claims_cached(
+    context_pack: str,
+    context_receipt: str,
+    pack_digest: str,
+    receipt_digest: str,
+) -> Any:
+    del pack_digest, receipt_digest
     try:
         receipt_claims = load_validated_claim_set(context_pack, context_receipt)
     except VaultClaimReceiptError as exc:

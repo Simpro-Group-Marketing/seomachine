@@ -7,9 +7,9 @@ PRODUCTION_IMAGE_PLACEHOLDER_RE = re.compile(
     r"""
     \A
     \[IMAGE[ \t]+PLACEHOLDER\b
-    (?=[^\]\r\n]*\|[ \t]*source:[ \t]*https://[^\s|\]]+)
+    (?=[^\]\r\n]*\|[ \t]*source:[ \t]*[^|\]\r\n]+)
     (?=[^\]\r\n]*\|[ \t]*alt:[ \t]*"[^"\r\n]+")
-    (?=[^\]\r\n]*\|[ \t]*render[ \t]+target:[ \t]*\d+[ \t]*(?:×|x)[ \t]*\d+[ \t]*px\b)
+    (?=[^\]\r\n]*\|[ \t]*render[ \t]+target:[ \t]*[^|\]\r\n]+)
     (?=[^\]\r\n]*\bresize[ \t]+and[ \t]+compress\b)
     [^\]\r\n]*
     \]

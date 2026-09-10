@@ -3,10 +3,9 @@ from __future__ import annotations
 import io
 import hashlib
 import json
-import subprocess
-import sys
 from contextlib import ExitStack, redirect_stdout
 from datetime import date
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
@@ -21,6 +20,7 @@ from data_sources.modules.url_validator import UrlValidationResult, UrlValidatio
 from data_sources.modules.nonvault_customer_proof_selector import (
     write_nonvault_selector_evidence,
 )
+from data_sources.modules.readiness.telemetry import ReadinessTelemetry
 from tests.nonvault_proof_fixture import write_nonvault_proof_inputs
 
 
@@ -94,25 +94,26 @@ CURRENT_GATES = [
     ("public_artifact", "public_artifact_guard.check_file"),
     ("ai_copy_linter", "ai_copy_linter.lint_file"),
     ("public_research_links", "public_research_link_guard.check_file"),
-    ("industry_cluster_link_policy", "industry_cluster_link_policy.check_file"),
-    ("metric_proof_pack", "metric_proof_pack_guard.check_file"),
-    ("numeric_claim_source", "numeric_claim_source_guard.check_file"),
-    ("faq_answer_quality", "faq_answer_quality_guard.check_file"),
-    ("faq_proof", "faq_proof_guard.check_file"),
-    ("paa_provenance", "paa_provenance_guard.check_file"),
+    ("industry_cluster_link_policy", "industry_cluster_link_policy.check_content"),
+    ("metric_proof_pack", "metric_proof_pack_guard.check_content"),
+    ("numeric_claim_source", "numeric_claim_source_guard.check_content"),
+    ("faq_answer_quality", "faq_answer_quality_guard.check_content"),
+    ("faq_proof", "faq_proof_guard.check_content"),
+    ("paa_provenance", "paa_provenance_guard.check_content"),
     ("editorial_plan", "editorial_plan_guard.check_file"),
     ("semrush_keyword_decision", "semrush_keyword_decision_guard.check_file"),
-    ("competitive_shortlist", "competitive_shortlist_guard.check_file"),
-    ("source_support", "source_support_guard.check_file"),
-    ("source_quality", "source_quality_guard.check_file"),
-    ("customer_proof_diversity", "customer_proof_diversity_guard.check_file"),
-    ("review_story_identity", "review_story_identity_guard.check_file"),
+    ("competitive_shortlist", "competitive_shortlist_guard.check_content"),
+    ("hindsight_boundary", "hindsight_boundary_guard.check_content"),
+    ("source_support", "source_support_guard.check_content"),
+    ("source_quality", "source_quality_guard.check_content"),
+    ("customer_proof_diversity", "customer_proof_diversity_guard.check_content"),
+    ("review_story_identity", "review_story_identity_guard.check_content"),
     ("eeat_strength", "eeat_strength_guard.check_file"),
-    ("early_artifact", "early_artifact_guard.check_file"),
-    ("answer_withholding", "answer_withholding_guard.check_file"),
-    ("vault_brand_language", "vault_brand_language_guard.check_file"),
-    ("named_feature_status", "named_feature_status_guard.check_file"),
-    ("fred_authority", "fred_authority_guard.check_file"),
+    ("early_artifact", "early_artifact_guard.check_content"),
+    ("answer_withholding", "answer_withholding_guard.check_content"),
+    ("vault_brand_language", "vault_brand_language_guard.check_content"),
+    ("named_feature_status", "named_feature_status_guard.check_content"),
+    ("fred_authority", "fred_authority_guard.check_content"),
 ]
 
 
@@ -347,7 +348,7 @@ def test_all_gates_pass_in_required_order(files):
         "context_binding", "blog_assembly_bom", "public_artifact", "ai_copy_linter", "url_validator", "public_research_links",
         "industry_cluster_link_policy",
         "metric_proof_pack", "numeric_claim_source",
-        "paa_provenance", "editorial_plan", "semrush_keyword_decision", "competitive_shortlist", "source_support", "source_quality", "customer_proof_diversity",
+        "paa_provenance", "editorial_plan", "semrush_keyword_decision", "competitive_shortlist", "hindsight_boundary", "source_support", "source_quality", "customer_proof_diversity",
         "review_story_identity", "eeat_strength", "early_artifact", "answer_withholding",
         "vault_brand_language", "named_feature_status",
         "fred_authority", "content_scorer",
@@ -455,6 +456,46 @@ def test_mutation_during_readiness_invalidates_the_input_seal(files):
     )
 
 
+def test_readiness_captures_once_and_reseals_each_unique_input_once(files, monkeypatch):
+    article, sidecar = files
+    from data_sources.modules.readiness import inputs as inputs_module
+
+    reads: list[Path] = []
+    rehashes: list[Path] = []
+    original_read = inputs_module._read_bounded
+    original_rehash = inputs_module._stream_sha256
+
+    def counted_read(path, *, max_bytes, field):
+        reads.append(path.resolve())
+        return original_read(path, max_bytes=max_bytes, field=field)
+
+    def counted_rehash(path):
+        rehashes.append(path.resolve())
+        return original_rehash(path)
+
+    monkeypatch.setattr(inputs_module, "_read_bounded", counted_read)
+    monkeypatch.setattr(inputs_module, "_stream_sha256", counted_rehash)
+
+    result, _, _, _ = run_with_patches(article, sidecar)
+
+    assert result["passed"] is True
+    assert reads
+    assert len(reads) == len(set(reads))
+    assert sorted(rehashes) == sorted(set(reads))
+
+
+def test_readiness_parses_the_captured_article_without_reopening_it(files):
+    article, sidecar = files
+
+    with patch(
+        "data_sources.modules.publish_readiness.read_publishable_markdown",
+        side_effect=AssertionError("article was reopened after immutable capture"),
+    ):
+        result, _, _, _ = run_with_patches(article, sidecar)
+
+    assert result["passed"] is True
+
+
 def test_faq_specific_gates_run_when_visible_faq_is_bound(files):
     article, sidecar = files
     article.write_text(
@@ -518,6 +559,49 @@ def test_final_readiness_requires_final_bom_and_attests_its_hash(files):
     assert result["verification_scope"] == "source_artifact"
     assert result["final_bom_sha256"] == result["input_hashes"]["assembly_bom"]["sha256"]
     assert mocks["blog_assembly_bom"].call_args.kwargs["expected_lifecycle_state"] == "final"
+
+
+def test_final_attestation_reuses_authenticated_preflight_without_running_gates(files):
+    article, sidecar = files
+    preflight, _, _, _ = run_with_patches(article, sidecar)
+    provisional_path = Path(preflight["assembly_bom"])
+    final_bom = json.loads(provisional_path.read_text(encoding="utf-8"))
+    final_bom["lifecycle_state"] = "final"
+    final_path = provisional_path.with_name("final-bom.json")
+    final_path.write_text(json.dumps(final_bom), encoding="utf-8")
+
+    with patch(
+        "data_sources.modules.publish_readiness._run_publish_readiness",
+        side_effect=AssertionError("final attestation reran the full gate stack"),
+    ):
+        final = publish_readiness.build_final_readiness_attestation(
+            preflight,
+            final_bom=final_path,
+            workspace_root=article.parent,
+        )
+
+    assert final["phase"] == "final"
+    assert final["gates"] == preflight["gates"]
+    assert final["scorecard"] == preflight["scorecard"]
+    assert final["input_hashes"]["assembly_bom"]["sha256"] == (
+        final["final_bom_sha256"]
+    )
+
+
+def test_final_attestation_rejects_caller_copied_preflight(files):
+    article, sidecar = files
+    preflight, _, _, _ = run_with_patches(article, sidecar)
+    final_path = Path(preflight["assembly_bom"]).with_name("final-bom.json")
+    final_bom = json.loads(Path(preflight["assembly_bom"]).read_text(encoding="utf-8"))
+    final_bom["lifecycle_state"] = "final"
+    final_path.write_text(json.dumps(final_bom), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="actual publish-readiness execution"):
+        publish_readiness.build_final_readiness_attestation(
+            dict(preflight),
+            final_bom=final_path,
+            workspace_root=article.parent,
+        )
 
 
 def test_readiness_snapshot_includes_every_bound_bom_artifact(files):
@@ -691,6 +775,23 @@ def test_blog_without_assembly_bom_fails_before_downstream_gates(files):
     bom_gate = result["gates"][2]
     assert bom_gate["findings"][0]["rule_id"] == "bom_missing"
     mocks["public_artifact"].assert_not_called()
+    scorer.score.assert_not_called()
+
+
+def test_missing_direct_input_fails_before_any_expensive_gate(files):
+    article, sidecar = files
+    missing = article.parent / "missing-context-pack.json"
+
+    result, order, mocks, scorer = run_with_patches(
+        article,
+        sidecar,
+        context_pack=missing,
+    )
+
+    assert result["passed"] is False
+    assert [gate["name"] for gate in result["gates"]] == ["input_seal"]
+    assert order == []
+    mocks["context_binding"].assert_not_called()
     scorer.score.assert_not_called()
 
 
@@ -986,18 +1087,25 @@ def test_sidecar_is_forwarded_to_all_proof_gates_and_scorer(files):
     article, sidecar = files
     result, _, mocks, scorer = run_with_patches(article, sidecar)
     assert result["passed"] is True
-    for name, _ in CURRENT_GATES:
-        if name in {
-            "public_artifact",
-            "ai_copy_linter",
-            "context_binding",
-            "editorial_plan",
-            "semrush_keyword_decision",
-            "faq_answer_quality",
-            "faq_proof",
-        }:
-            continue
-        assert mocks[name].call_args.kwargs["proof_sidecar"] == str(sidecar)
+    proof_content = sidecar.read_bytes().decode("utf-8")
+    for name in {
+        "metric_proof_pack",
+        "numeric_claim_source",
+        "paa_provenance",
+        "competitive_shortlist",
+        "hindsight_boundary",
+        "source_support",
+        "source_quality",
+        "customer_proof_diversity",
+        "review_story_identity",
+        "early_artifact",
+        "answer_withholding",
+        "vault_brand_language",
+        "named_feature_status",
+        "fred_authority",
+    }:
+        assert mocks[name].call_args.kwargs["proof_content"] == proof_content
+    assert mocks["eeat_strength"].call_args.kwargs["proof_sidecar"] == str(sidecar)
     assert scorer.score.call_args.kwargs["proof_sidecar"] == str(sidecar)
 
 
@@ -1006,6 +1114,8 @@ def test_context_artifacts_are_forwarded_to_claim_sensitive_gates(files):
     request = article.parent / "request.json"
     pack = article.parent / "pack.json"
     receipt = article.parent / "receipt.json"
+    for artifact in (request, pack, receipt):
+        artifact.write_text("{}\n", encoding="utf-8")
     result, _, mocks, _ = run_with_patches(
         article,
         sidecar,
@@ -1034,6 +1144,69 @@ def test_context_artifacts_are_forwarded_to_claim_sensitive_gates(files):
     assert mocks["fred_authority"].call_args.kwargs["vault_root"] == article.parent
 
 
+def test_connector_client_and_validated_claim_set_are_reused_once_per_run(files):
+    article, sidecar = files
+    request = article.parent / "request.json"
+    pack = article.parent / "pack.json"
+    receipt = article.parent / "receipt.json"
+    for artifact in (request, pack, receipt):
+        artifact.write_text("{}\n", encoding="utf-8")
+    client = Mock()
+    claims = Mock()
+
+    with patch(
+        "data_sources.modules.publish_readiness.SimproVaultClient",
+        return_value=client,
+    ) as client_factory, patch(
+        "data_sources.modules.publish_readiness.load_validated_claim_set",
+        return_value=claims,
+    ) as claim_loader:
+        result, _, mocks, _ = run_with_patches(
+            article,
+            sidecar,
+            context_request=request,
+            context_pack=pack,
+            context_receipt=receipt,
+            vault_root=article.parent,
+        )
+
+    assert result["passed"] is True
+    client_factory.assert_called_once_with(vault_root=article.parent)
+    claim_loader.assert_called_once_with(
+        pack,
+        receipt,
+        vault_root=article.parent,
+        client=client,
+    )
+    assert mocks["context_binding"].call_args.kwargs["client"] is client
+    for name in {"competitive_shortlist", "named_feature_status", "fred_authority"}:
+        assert mocks[name].call_args.kwargs["validated_claim_set"] is claims
+
+
+def test_run_telemetry_records_real_gate_timings_and_io_counts(files):
+    article, sidecar = files
+    telemetry = ReadinessTelemetry(run_id="run-1", phase="preflight")
+
+    result, _, _, _ = run_with_patches(article, sidecar, telemetry=telemetry)
+    telemetry.finish("passed")
+    payload = telemetry.to_dict()
+
+    assert result["passed"] is True
+    stage_names = {stage["name"] for stage in payload["stages"]}
+    assert {
+        "gate.artifact_identity",
+        "gate.context_binding",
+        "gate.blog_assembly_bom",
+        "gate.public_artifact",
+        "gate.ai_copy_linter",
+        "gate.url_validator",
+        "gate.content_scorer",
+    } <= stage_names
+    assert all(stage["elapsed_ms"] >= 0 for stage in payload["stages"])
+    assert payload["counters"]["unique_file_reads"] > 0
+    assert payload["counters"]["final_rehashes"] > 0
+
+
 def test_semrush_keyword_decision_gate_receives_bom_bound_artifact(files):
     article, sidecar = files
     result, _, mocks, _ = run_with_patches(article, sidecar)
@@ -1051,6 +1224,8 @@ def test_semrush_keyword_decision_gate_receives_bom_bound_artifact(files):
 
 
 def _write_assembly_bom(tmp_path, article, sidecar, request, pack, receipt):
+    for artifact in (request, pack, receipt):
+        artifact.write_text("{}\n", encoding="utf-8")
     bom_path = _write_non_connector_bom(article, sidecar)
     bom = json.loads(bom_path.read_text(encoding="utf-8"))
     return bom_path, bom
@@ -1162,6 +1337,97 @@ def test_json_output_has_stable_scoring_keys(files):
     payload = json.loads(output.getvalue())
     assert exit_code == 0
     assert {"file", "proof_sidecar", "passed", "score", "aeo_geo", "gates"} <= payload.keys()
+
+
+def test_cli_writes_optional_content_free_telemetry_for_blocked_run(files, tmp_path):
+    article, sidecar = files
+    destination = tmp_path / "readiness-telemetry.json"
+    blocked = {
+        "file": str(article),
+        "proof_sidecar": str(sidecar),
+        "passed": False,
+        "score": None,
+        "aeo_geo": {"score": None},
+        "priority_fixes": [],
+        "gates": [{"name": "context_binding"}],
+    }
+    with patch(
+        "data_sources.modules.publish_readiness.run_publish_readiness",
+        return_value=blocked,
+    ), redirect_stdout(io.StringIO()):
+        exit_code = publish_readiness.main(
+            [
+                str(article),
+                "--proof-sidecar",
+                str(sidecar),
+                "--telemetry-output",
+                str(destination),
+                "--workspace-root",
+                str(tmp_path),
+                "--json",
+            ]
+        )
+
+    payload = json.loads(destination.read_text(encoding="utf-8"))
+    assert exit_code == 1
+    assert payload["schema"] == "simpro-readiness-telemetry/v1"
+    assert payload["phase"] == "preflight"
+    assert payload["outcome"] == "blocked"
+    assert payload["counters"]["full_readiness_executions"] == 1
+    assert payload["counters"]["gate_invocations"] == 1
+    assert str(article) not in json.dumps(payload)
+
+
+def test_cli_telemetry_write_failure_is_operational_exit_two(files):
+    article, _ = files
+    blocked = {
+        "file": str(article),
+        "passed": False,
+        "gates": [],
+        "score": None,
+        "aeo_geo": {"score": None},
+        "priority_fixes": [],
+    }
+    with patch(
+        "data_sources.modules.publish_readiness.run_publish_readiness",
+        return_value=blocked,
+    ), patch(
+        "data_sources.modules.publish_readiness.ReadinessTelemetry.write",
+        side_effect=OSError("disk full"),
+    ), pytest.raises(SystemExit) as error:
+        publish_readiness.main(
+            [
+                str(article),
+                "--telemetry-output",
+                "telemetry.json",
+                "--workspace-root",
+                str(article.parent),
+                "--json",
+            ]
+        )
+
+    assert error.value.code == 2
+
+
+def test_cli_telemetry_output_cannot_overwrite_an_input(files):
+    article, sidecar = files
+    original = article.read_bytes()
+    with pytest.raises(SystemExit) as error:
+        publish_readiness.main(
+            [
+                str(article),
+                "--proof-sidecar",
+                str(sidecar),
+                "--telemetry-output",
+                str(article),
+                "--workspace-root",
+                str(article.parent),
+                "--json",
+            ]
+        )
+
+    assert error.value.code == 2
+    assert article.read_bytes() == original
 
 
 def test_cli_atomically_persists_readiness_output(files, tmp_path):

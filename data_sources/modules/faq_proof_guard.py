@@ -6,9 +6,9 @@ semantically proves a claim. The shared risk-tiered policy decides whether an
 answer needs reader-visible proof; this guard exclusively enforces FAQ citation
 placement and approved FAQ source classifications.
 
-When a validation sidecar is supplied, every visible non-owned FAQ URL must have
-an exact FAQ Proof Map classification as neutral or non_competing_expert; competitor-
-owned FAQ sources are prohibited.
+When a validation sidecar is supplied, every visible public FAQ URL must have
+an exact FAQ Proof Map classification as neutral, non_competing_expert, or
+owned_product; competitor-owned FAQ sources are prohibited.
 """
 
 import argparse
@@ -18,7 +18,6 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
-from urllib.parse import urlparse
 
 try:
     from .faq_structure import detect_faq_structure
@@ -35,15 +34,9 @@ except ImportError:  # pragma: no cover - supports direct script execution.
 PUBLIC_URL_RE = re.compile(r"https?://[^\s)\]|<>\"']+", re.IGNORECASE)
 H2_RE = re.compile(r"^##\s+")
 MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\((https?://[^)]+)\)", re.IGNORECASE)
-OWNED_PROOF_DOMAINS = (
-    "simprogroup.com",
-    "simpro.com",
-    "simpro.ai",
-    "bigchange.com",
-    "clockshark.com",
-    "aroflo.com",
+ALLOWED_FAQ_SOURCE_CLASSES = frozenset(
+    {"neutral", "non_competing_expert", "owned_product"}
 )
-ALLOWED_FAQ_SOURCE_CLASSES = frozenset({"neutral", "non_competing_expert"})
 FAQ_SOURCE_POLICY_HEADING = "## FAQ Source Policy"
 FAQ_PROOF_MAP_HEADING = "## FAQ Proof Map"
 
@@ -78,8 +71,8 @@ def check_content(
     Args:
         content: Markdown article or rewrite content.
         proof_content: Optional validation sidecar content. When supplied, it
-            must declare the FAQ source policy and classify each visible
-            non-owned FAQ URL. It cannot replace the first-paragraph reader link
+            must declare the FAQ source policy and classify each visible public
+            FAQ URL. It cannot replace the first-paragraph reader link
             when `inline_required` applies; lower-risk answers follow their
             machine-assigned mode without quota-only links.
 
@@ -117,8 +110,8 @@ def check_content(
             continue
 
         first_paragraph = _first_visible_paragraph(faq_answer.answer)
-        answer_urls = _non_owned_public_urls(faq_answer.answer)
-        first_paragraph_urls = _non_owned_public_urls(first_paragraph)
+        answer_urls = _public_faq_urls(faq_answer.answer)
+        first_paragraph_urls = _public_faq_urls(first_paragraph)
         if not answer_urls:
             findings.append(
                 {
@@ -128,7 +121,7 @@ def check_content(
                     "column": 1,
                     "question": faq_answer.question,
                     "message": (
-                        "This fact-driven FAQ answer has no non-owned public evidence "
+                        "This fact-driven FAQ answer has no public evidence "
                         "link in its visible answer body."
                     ),
                     "suggestion": (
@@ -237,7 +230,7 @@ def _check_faq_source_policy(
     *,
     base_path: Path,
 ) -> List[Finding]:
-    if not any(_non_owned_public_urls(answer.answer) for answer in faq_answers):
+    if not any(_public_faq_urls(answer.answer) for answer in faq_answers):
         return []
     if not _has_required_faq_source_policy(proof_content):
         first_answer = faq_answers[0]
@@ -253,7 +246,7 @@ def _check_faq_source_policy(
     proof_sources = _extract_faq_proof_sources(proof_content)
     findings: List[Finding] = []
     for faq_answer in faq_answers:
-        for url in _non_owned_public_urls(faq_answer.answer):
+        for url in _public_faq_urls(faq_answer.answer):
             source = next(
                 (
                     candidate
@@ -269,7 +262,7 @@ def _check_faq_source_policy(
                     _faq_source_finding(
                         faq_answer,
                         "faq_answer_source_map_url_missing",
-                        "Visible non-owned FAQ source has no exact FAQ Proof Map row.",
+                        "Visible FAQ source has no exact FAQ Proof Map row.",
                         "Add one FAQ Proof Map row for this exact question and URL.",
                     )
                 )
@@ -281,7 +274,7 @@ def _check_faq_source_policy(
                         faq_answer,
                         "faq_answer_source_class_missing",
                         "FAQ Proof Map row lacks a Source class.",
-                        "Classify the source as neutral or non_competing_expert.",
+                        "Classify the source as neutral, non_competing_expert, or owned_product.",
                     )
                 )
                 continue
@@ -303,7 +296,7 @@ def _check_faq_source_policy(
                         faq_answer,
                         "faq_answer_competitor_owned_source",
                         "Competitor-owned sources are prohibited in FAQ answers.",
-                        "Replace the source with neutral or non-competing expert evidence.",
+                        "Replace the source with owned, neutral, or non-competing expert evidence.",
                     )
                 )
                 continue
@@ -314,7 +307,7 @@ def _check_faq_source_policy(
                         faq_answer,
                         "faq_answer_source_class_disallowed",
                         "FAQ source class is not permitted.",
-                        "Use only neutral or non_competing_expert evidence.",
+                        "Use only neutral, non_competing_expert, or owned_product evidence.",
                     )
                 )
                 continue
@@ -325,7 +318,7 @@ def _check_faq_source_policy(
                         faq_answer,
                         "faq_answer_competitor_check_missing",
                         "FAQ Proof Map row must record Competitor check: passed.",
-                        "Verify the source is non-competing and record Competitor check: passed.",
+                        "Verify the source is not competitor-owned and record Competitor check: passed.",
                     )
                 )
                 continue
@@ -381,7 +374,7 @@ def _first_visible_paragraph(answer: str) -> str:
 def _has_required_faq_source_policy(proof_content: str) -> bool:
     required = (
         FAQ_SOURCE_POLICY_HEADING,
-        "- Allowed source classes: neutral, non_competing_expert.",
+        "- Allowed source classes: neutral, non_competing_expert, owned_product.",
         "- Competitor-owned FAQ sources: prohibited.",
         "- Status: aligned.",
     )
@@ -427,8 +420,8 @@ def _extract_faq_proof_sources(proof_content: str) -> List[FaqProofSource]:
     return source_rows
 
 
-def _non_owned_public_urls(text: str) -> List[str]:
-    return [url for url in _extract_public_urls(text) if not _is_owned_proof_url(url)]
+def _public_faq_urls(text: str) -> List[str]:
+    return _extract_public_urls(text)
 
 
 def _faq_source_finding(
@@ -449,8 +442,8 @@ def _faq_source_finding(
 
 
 
-def _has_non_owned_public_proof_url(text: str) -> bool:
-    return any(not _is_owned_proof_url(url) for url in _extract_public_urls(text))
+def _has_public_faq_proof_url(text: str) -> bool:
+    return bool(_extract_public_urls(text))
 
 
 def _extract_public_urls(text: str) -> List[str]:
@@ -458,13 +451,6 @@ def _extract_public_urls(text: str) -> List[str]:
     text_without_markdown = MARKDOWN_LINK_RE.sub("", text)
     urls.extend(match.group(0) for match in PUBLIC_URL_RE.finditer(text_without_markdown))
     return urls
-
-
-def _is_owned_proof_url(url: str) -> bool:
-    host = urlparse(url).netloc.lower()
-    if host.startswith("www."):
-        host = host[4:]
-    return any(host == domain or host.endswith(f".{domain}") for domain in OWNED_PROOF_DOMAINS)
 
 
 def _main(argv: Optional[List[str]] = None) -> int:

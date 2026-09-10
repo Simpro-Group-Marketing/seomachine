@@ -51,6 +51,7 @@ SEARCH_QUERIES = [
     "current Simpro Lightning Cooper JustAsk FieldReady JobReady JobScribe JobBrief positioning status and public product links",
     "Fred Voccola CEPro How Simpro and AI is reshaping field service economics video GU0pqwFXo4Q",
     "Simpro field service management scheduling reporting metrics internal link guidance for AI economics blog",
+    "Simpro field service management solutions industries vertical context for trade businesses",
 ]
 
 RESOURCE_PURPOSES = {
@@ -63,11 +64,11 @@ RESOURCE_PURPOSES = {
     "res-0409dfe9b949599f99577d45bd7e7e25": "guidance",
     "res-aabdab4b40f85d748bf1cf2c754a36f8": "context",
     "res-16c113c993565a4c84150d131c034c57": "guidance",
-    "res-15f3055bbe9850d0974573791ce80840": "guidance",
     "res-a275b848264f5d88ace06f5e420f73b3": "context",
     "res-d20b284debde5496a54d7bc67186760b": "context",
     "res-7b30f511fc345ff2bb5fd9e515f03d06": "context",
     "res-f882ab230eb2563889e300d612c324bc": "context",
+    "res-ae4607729666509bb97813e66e18590b": "context",
 }
 
 EXPAND_RESOURCE_IDS = [
@@ -75,7 +76,6 @@ EXPAND_RESOURCE_IDS = [
     "res-dfc67c5cef87541d856a765f2747a2cb",
     "res-47015608c0d4556a854fca7544b4a040",
     "res-0409dfe9b949599f99577d45bd7e7e25",
-    "res-15f3055bbe9850d0974573791ce80840",
     "res-aabdab4b40f85d748bf1cf2c754a36f8",
 ]
 
@@ -108,6 +108,12 @@ SELECTOR_CLAIM_REQUESTS = [
         "claim_id": "claim-metric-MET-0095",
         "query": "Infinite Audio Video Solutions field service administration case study",
         "use_mode": "public_metric",
+        "brand_scope": "Simpro",
+    },
+    {
+        "claim_id": "claim-fred-FVMI-0001",
+        "query": "Fred Voccola Simpro Group CEO AI driving SMB margin expansion field service economics",
+        "use_mode": "authority_support",
         "brand_scope": "Simpro",
     },
     {
@@ -171,14 +177,21 @@ def main() -> None:
     client = SimproVaultClient()
     status = client.status()
     describe = client.describe()
-    searches = {query: client.search(query, limit=50) for query in SEARCH_QUERIES}
-    expansions = {
-        resource_id: client.expand(
+    print("vault status and describe complete", flush=True)
+    search_rows = [
+        client.search(query, limit=50)
+        for query in SEARCH_QUERIES
+    ]
+    expansion_rows = [
+        client.expand(
             resource_id,
             purpose=RESOURCE_PURPOSES[resource_id],
         )
         for resource_id in EXPAND_RESOURCE_IDS
-    }
+    ]
+    searches = dict(zip(SEARCH_QUERIES, search_rows, strict=True))
+    expansions = dict(zip(EXPAND_RESOURCE_IDS, expansion_rows, strict=True))
+    print("vault searches and expansions complete", flush=True)
 
     discovered_ids: set[str] = set()
     for rows in searches.values():
@@ -189,19 +202,31 @@ def main() -> None:
     if missing_ids:
         raise RuntimeError(f"Selected resource IDs were not rediscovered: {missing_ids}")
 
-    reads = {
-        resource_id: client.read(resource_id, purpose=purpose)
-        for resource_id, purpose in RESOURCE_PURPOSES.items()
-    }
-    claim_lookups = {
-        item["claim_id"]: client.claims(
+    resource_items = list(RESOURCE_PURPOSES.items())
+    read_rows = [
+        client.read(resource_id, purpose=purpose)
+        for resource_id, purpose in resource_items
+    ]
+    claim_rows = [
+        client.claims(
             item["query"],
             use_mode=item["use_mode"],
             brand_scope=item["brand_scope"],
             limit=50,
         )
         for item in SELECTOR_CLAIM_REQUESTS
-    }
+    ]
+    reads = dict(zip(
+        [resource_id for resource_id, _ in resource_items],
+        read_rows,
+        strict=True,
+    ))
+    claim_lookups = dict(zip(
+        [item["claim_id"] for item in SELECTOR_CLAIM_REQUESTS],
+        claim_rows,
+        strict=True,
+    ))
+    print("vault reads and approved-claim lookups complete", flush=True)
 
     common_build_input = {
         "request": REQUEST,
@@ -212,11 +237,33 @@ def main() -> None:
         "task_satisfaction": "satisfied",
         "unresolved_gaps": [],
     }
+    article_build_input = {
+        **common_build_input,
+        "claim_requests": [
+            item
+            for item in SELECTOR_CLAIM_REQUESTS
+            if item["claim_id"] == "claim-fred-FVMI-0001"
+        ],
+    }
+    article_build_output = client.build_context(article_build_input)
+    print("article context build complete", flush=True)
+    pack = article_build_output["pack"]
+    receipt = article_build_output["receipt"]
+    validation = client.validate_context(REQUEST, pack, receipt)
+    if validation.get("valid") is not True:
+        raise RuntimeError(f"Context validation did not return valid: {validation}")
+    print("article context validation complete", flush=True)
+
+    write_json(REQUEST_PATH, REQUEST)
+    write_json(PACK_PATH, pack)
+    write_json(RECEIPT_PATH, receipt)
+
     selector_build_input = {
         **common_build_input,
         "claim_requests": SELECTOR_CLAIM_REQUESTS,
     }
     selector_build_output = client.build_context(selector_build_input)
+    print("selector context build complete", flush=True)
     selector_pack = selector_build_output["pack"]
     selector_receipt = selector_build_output["receipt"]
     selector_validation = client.validate_context(
@@ -229,21 +276,8 @@ def main() -> None:
             "Selector context validation did not return valid: "
             f"{selector_validation}"
         )
+    print("selector context validation complete", flush=True)
 
-    article_build_input = {
-        **common_build_input,
-        "claim_requests": [],
-    }
-    article_build_output = client.build_context(article_build_input)
-    pack = article_build_output["pack"]
-    receipt = article_build_output["receipt"]
-    validation = client.validate_context(REQUEST, pack, receipt)
-    if validation.get("valid") is not True:
-        raise RuntimeError(f"Context validation did not return valid: {validation}")
-
-    write_json(REQUEST_PATH, REQUEST)
-    write_json(PACK_PATH, pack)
-    write_json(RECEIPT_PATH, receipt)
     write_json(SELECTOR_PACK_PATH, selector_pack)
     write_json(SELECTOR_RECEIPT_PATH, selector_receipt)
     write_json(

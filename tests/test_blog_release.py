@@ -9,7 +9,9 @@ from data_sources.modules import blog_release
 
 
 def _touch(path: Path, payload: str = "{}\n") -> Path:
-    path.parent.mkdir(parents=True, exist_ok=True); path.write_text(payload, encoding="utf-8"); return path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(payload, encoding="utf-8")
+    return path
 
 
 def _inputs(tmp_path: Path) -> dict[str, object]:
@@ -36,6 +38,29 @@ def test_blog_release_rejects_reused_output_directory(tmp_path: Path):
         _run(tmp_path)
 
 
+def test_blog_release_persists_telemetry_when_a_stage_raises(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(
+        blog_release.blog_creation_preflight,
+        "build_preflight_report",
+        lambda *args, **kwargs: (_ for _ in ()).throw(OSError("boundary failed")),
+    )
+
+    with pytest.raises(OSError, match="boundary failed"):
+        _run(tmp_path)
+
+    payload = json.loads(
+        (tmp_path / "research" / "releases" / "run" / "release-telemetry.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert payload["outcome"] == "operational_error"
+    assert payload["stages"][0]["name"] == "pre_bom"
+    assert payload["stages"][0]["outcome"] == "error"
+
+
 def test_blog_release_writes_fixed_artifacts_for_blocker_and_initial_scorecard(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -43,6 +68,11 @@ def test_blog_release_writes_fixed_artifacts_for_blocker_and_initial_scorecard(
     monkeypatch.setattr(blog_release.blog_creation_preflight, "build_preflight_report", lambda *a, **k: {"schema": "simpro-blog-creation-preflight/v1", "ready_for_bom": False, "blockers": [{"rule_id": "blocked"}]})
     blocked = _run(tmp_path)
     assert blocked.exit_code == 1 and (blocked.output_dir / "pre-bom-report.json").is_file()
+    blocked_telemetry = json.loads(
+        (blocked.output_dir / "release-telemetry.json").read_text(encoding="utf-8")
+    )
+    assert blocked_telemetry["schema"] == "simpro-readiness-telemetry/v1"
+    assert blocked_telemetry["outcome"] == "blocked"
     assert not (blocked.output_dir / "provisional-bom.json").exists()
 
     tmp2 = tmp_path / "initial_scorecard"
@@ -62,6 +92,7 @@ def test_blog_release_writes_fixed_artifacts_for_blocker_and_initial_scorecard(
         "preflight-readiness-stage-receipt.json",
         "preflight-readiness.json",
         "provisional-bom.json",
+        "release-telemetry.json",
     ]
     recovery = json.loads((passed.output_dir / "optimization-recovery.json").read_text(encoding="utf-8"))
     assert recovery["schema"] == "simpro-blog-optimization-recovery/v1"
@@ -111,7 +142,26 @@ def test_blog_release_finalizes_only_with_optimizer_evidence(
 
     monkeypatch.setattr(blog_release.blog_assembly_bom, "build_blog_assembly_bom_from_files", provisional)
     monkeypatch.setattr(blog_release.blog_assembly_bom, "finalize_blog_assembly_bom", lambda **k: {"schema": "simpro-blog-assembly-bom/v2", "lifecycle_state": "final", "artifacts": {}, "workflow": {"stage_receipts": []}})
-    monkeypatch.setattr(blog_release.publish_readiness, "run_publish_readiness", lambda *a, **k: {"schema": "simpro-publish-readiness-result/v1", "passed": True, "phase": k["phase"]})
+    readiness_calls = []
+
+    def readiness(*args, **kwargs):
+        readiness_calls.append(kwargs["phase"])
+        return {
+            "schema": "simpro-publish-readiness-result/v1",
+            "passed": True,
+            "phase": kwargs["phase"],
+        }
+
+    monkeypatch.setattr(blog_release.publish_readiness, "run_publish_readiness", readiness)
+    monkeypatch.setattr(
+        blog_release.publish_readiness,
+        "build_final_readiness_attestation",
+        lambda preflight, **kwargs: {
+            **preflight,
+            "phase": "final",
+            "final_bom_sha256": "a" * 64,
+        },
+    )
     monkeypatch.setattr(blog_release.publish_readiness, "write_readiness_result", lambda output, result, **k: (_touch(Path(output), json.dumps(result)), _touch(Path(k["receipt_path"]), '{"receipt": true}\n')))
 
     passed = _run(
@@ -121,7 +171,21 @@ def test_blog_release_finalizes_only_with_optimizer_evidence(
     )
 
     assert passed.exit_code == 0
-    assert sorted(p.name for p in passed.output_dir.iterdir()) == ["final-bom.json", "final-readiness-stage-receipt.json", "final-readiness.json", "pre-bom-report.json", "preflight-readiness-stage-receipt.json", "preflight-readiness.json", "provisional-bom.json"]
+    assert sorted(p.name for p in passed.output_dir.iterdir()) == ["final-bom.json", "final-readiness-stage-receipt.json", "final-readiness.json", "pre-bom-report.json", "preflight-readiness-stage-receipt.json", "preflight-readiness.json", "provisional-bom.json", "release-telemetry.json"]
+    assert readiness_calls == ["preflight"]
+    telemetry = json.loads(
+        (passed.output_dir / "release-telemetry.json").read_text(encoding="utf-8")
+    )
+    assert telemetry["counters"]["full_readiness_executions"] == 1
+    assert [stage["name"] for stage in telemetry["stages"]] == [
+        "pre_bom",
+        "provisional_bom",
+        "preflight_readiness",
+        "preflight_persistence",
+        "bom_finalization",
+        "final_attestation",
+        "final_persistence",
+    ]
     assert observed == {
         "optimizer_output_paths": (optimizer,),
         "prior_preflight_readiness_path": prior_readiness,
@@ -182,6 +246,15 @@ def test_blog_release_forwards_nonvault_customer_proof_evidence(tmp_path: Path, 
             "schema": "simpro-publish-readiness-result/v1",
             "passed": True,
             "phase": kwargs["phase"],
+        },
+    )
+    monkeypatch.setattr(
+        blog_release.publish_readiness,
+        "build_final_readiness_attestation",
+        lambda preflight, **kwargs: {
+            **preflight,
+            "phase": "final",
+            "final_bom_sha256": "a" * 64,
         },
     )
     monkeypatch.setattr(

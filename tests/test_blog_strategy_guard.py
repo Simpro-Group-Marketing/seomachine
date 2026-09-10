@@ -16,7 +16,9 @@ from data_sources.modules.url_validator import UrlValidationResult, UrlValidatio
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 INDEX = load_index(REPO_ROOT / "context" / "commercial-pillar-index.json")
-PILLAR_URL = "https://www.simprogroup.com/solutions/field-service-management-software"
+PILLAR_URL = "https://www.simprogroup.com/"
+PILLAR_DESTINATION_ID = "simpro-us-homepage-field-service-management-software"
+STRATEGY_TODAY = date(2026, 9, 8)
 
 
 def sidecar(**replacements: str) -> str:
@@ -53,7 +55,7 @@ def sidecar(**replacements: str) -> str:
 - Article title: Field Service Software Checklist
 - Article primary keyword: {values['article_keyword']}
 - Article intent: informational
-- Destination ID: simpro-us-solution-field-service-management-software
+- Destination ID: {PILLAR_DESTINATION_ID}
 - Commercial pillar URL: {values['pillar_url']}
 - Planned anchor text: {values['anchor']}
 - Planned H2 section: {values['h2']}
@@ -145,7 +147,7 @@ def test_contract_parser_accepts_complete_versioned_blocks() -> None:
 
     assert findings == []
     assert contract is not None
-    assert contract.commercial_pillar.destination_id == "simpro-us-solution-field-service-management-software"
+    assert contract.commercial_pillar.destination_id == PILLAR_DESTINATION_ID
     assert contract.lifecycle.volatility == "standard"
 
 
@@ -163,7 +165,7 @@ def test_contract_parser_accepts_existing_bare_sidecar_headings() -> None:
     assert findings == []
     assert contract is not None
     assert contract.commercial_pillar.destination_id == (
-        "simpro-us-solution-field-service-management-software"
+        PILLAR_DESTINATION_ID
     )
 
 
@@ -177,7 +179,7 @@ def test_research_artifact_paths_must_resolve_to_nonempty_repo_files(tmp_path: P
         content,
         proof_content=sidecar(),
         index=INDEX,
-        today=date(2026, 8, 6),
+        today=STRATEGY_TODAY,
         artifact_root=tmp_path,
     )
     assert "blog_strategy_serp_artifact_missing" in rule_ids(missing)
@@ -193,7 +195,7 @@ def test_research_artifact_paths_must_resolve_to_nonempty_repo_files(tmp_path: P
         content,
         proof_content=sidecar(),
         index=INDEX,
-        today=date(2026, 8, 6),
+        today=STRATEGY_TODAY,
         artifact_root=tmp_path,
     ) == []
 
@@ -240,7 +242,7 @@ def test_visible_canonical_pillar_link_with_keyword_anchor_in_planned_h2_passes(
         f"Use [**field service management software**]({PILLAR_URL}) to compare connected workflows."
     )
 
-    findings = check_content(content, proof_content=sidecar(), index=INDEX, today=date(2026, 8, 6))
+    findings = check_content(content, proof_content=sidecar(), index=INDEX, today=STRATEGY_TODAY)
 
     assert findings == []
 
@@ -266,7 +268,7 @@ def test_article_link_guard_rejects_nonvisible_noncanonical_or_unsupported_ancho
     body: str,
     expected_rule: str,
 ) -> None:
-    findings = check_content(article(body), proof_content=sidecar(), index=INDEX, today=date(2026, 8, 6))
+    findings = check_content(article(body), proof_content=sidecar(), index=INDEX, today=STRATEGY_TODAY)
 
     assert expected_rule in rule_ids(findings)
 
@@ -274,7 +276,7 @@ def test_article_link_guard_rejects_nonvisible_noncanonical_or_unsupported_ancho
 def test_frontmatter_and_sidecar_urls_do_not_count_as_article_links() -> None:
     content = article("## Choosing field service software\n\nNo commercial link here.", pillar_url=PILLAR_URL)
 
-    findings = check_content(content, proof_content=sidecar(), index=INDEX, today=date(2026, 8, 6))
+    findings = check_content(content, proof_content=sidecar(), index=INDEX, today=STRATEGY_TODAY)
 
     assert "blog_strategy_pillar_link_missing" in rule_ids(findings)
 
@@ -286,7 +288,7 @@ def test_non_simpro_article_without_strategy_contract_is_out_of_scope() -> None:
         market="US",
     )
 
-    findings = check_content(content, proof_content="", index=INDEX, today=date(2026, 8, 6))
+    findings = check_content(content, proof_content="", index=INDEX, today=STRATEGY_TODAY)
 
     assert findings == []
 
@@ -301,7 +303,7 @@ def test_required_mode_blocks_missing_brand_from_skipping_strategy_contract() ->
         content,
         proof_content="",
         index=INDEX,
-        today=date(2026, 8, 6),
+        today=STRATEGY_TODAY,
         require_strategy=True,
     )
 
@@ -339,7 +341,7 @@ def test_required_mode_still_skips_explicit_non_simpro_brand_without_contract() 
         content,
         proof_content="",
         index=INDEX,
-        today=date(2026, 8, 6),
+        today=STRATEGY_TODAY,
         require_strategy=True,
     )
 
@@ -369,7 +371,7 @@ def test_redirected_pillar_url_fails_without_second_request() -> None:
                 reason="resolved",
                 line=11,
                 anchor="field service management software",
-                final_url=PILLAR_URL + "/",
+                final_url="https://www.simprogroup.com/?redirected=1",
             )
         ]
     )
@@ -378,7 +380,7 @@ def test_redirected_pillar_url_fails_without_second_request() -> None:
         content,
         proof_content=sidecar(),
         index=INDEX,
-        today=date(2026, 8, 6),
+        today=STRATEGY_TODAY,
         url_summary=url_summary,
     )
 
@@ -396,7 +398,7 @@ def test_article_brand_market_and_primary_keyword_collisions_fail() -> None:
         content,
         proof_content=sidecar(article_keyword="field service management software"),
         index=INDEX,
-        today=date(2026, 8, 6),
+        today=STRATEGY_TODAY,
     )
 
     assert "blog_strategy_market_mismatch" in rule_ids(findings)
@@ -414,7 +416,7 @@ def test_article_h1_is_checked_when_frontmatter_title_is_absent() -> None:
         content,
         proof_content=sidecar(),
         index=INDEX,
-        today=date(2026, 8, 6),
+        today=STRATEGY_TODAY,
     )
 
     assert "blog_strategy_article_title_mismatch" in rule_ids(findings)
@@ -433,7 +435,7 @@ def test_containment_collision_requires_verified_intent_and_content_type_differe
             pillar_difference="The pages are different.",
         ),
         index=INDEX,
-        today=date(2026, 8, 6),
+        today=STRATEGY_TODAY,
     )
 
     assert "blog_strategy_keyword_overlap_unproved" in rule_ids(findings)
@@ -455,7 +457,7 @@ def test_containment_collision_rejects_unrelated_serp_artifacts(tmp_path: Path) 
         content,
         proof_content=sidecar(article_keyword="best field service management software"),
         index=INDEX,
-        today=date(2026, 8, 6),
+        today=STRATEGY_TODAY,
         artifact_root=tmp_path,
     )
 
@@ -471,7 +473,7 @@ def test_new_draft_is_blocked_when_research_decides_update_existing() -> None:
         content,
         proof_content=sidecar(cannibalization="update_existing"),
         index=INDEX,
-        today=date(2026, 8, 6),
+        today=STRATEGY_TODAY,
         article_path=Path("drafts/new-field-service-checklist.md"),
     )
 
@@ -485,7 +487,7 @@ def test_pillar_paragraph_keeps_one_link_per_paragraph() -> None:
         "[review pricing](https://www.simprogroup.com/pricing) before choosing."
     )
 
-    findings = check_content(content, proof_content=sidecar(), index=INDEX, today=date(2026, 8, 6))
+    findings = check_content(content, proof_content=sidecar(), index=INDEX, today=STRATEGY_TODAY)
 
     assert "blog_strategy_pillar_paragraph_link_count" in rule_ids(findings)
 
@@ -502,7 +504,7 @@ def test_industries_hub_requires_documented_no_specific_fit_reason(tmp_path: Pat
         anchor="trades",
         pillar_difference="The article and hub have different intent and different content type.",
     ).replace(
-        "Destination ID: simpro-us-solution-field-service-management-software",
+        f"Destination ID: {PILLAR_DESTINATION_ID}",
         "Destination ID: simpro-us-industries-hub",
     )
 

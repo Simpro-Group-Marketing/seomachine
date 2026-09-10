@@ -38,7 +38,12 @@ HEADING_RE = re.compile(r"^##\s+Competitive Shortlist Decision\s*$", re.IGNORECA
 NEXT_H2_RE = re.compile(r"^##\s+")
 FIELD_RE = re.compile(r"^\s*[-*+]\s*([^:]+):\s*(.*?)\s*$")
 COMPETITOR_TRIGGER_RE = re.compile(
-    r"\b(?:competitors?|alternatives?|compare|comparison|versus|vs\.?)\b",
+    r"\b(?:competitors?|alternatives?|versus|vs\.?)\b",
+    re.IGNORECASE,
+)
+COMPARISON_PAGE_TRIGGER_RE = re.compile(
+    r"\b(?:compare|comparison)\s+(?:vendors?|software|platforms?|products?|tools?)\b|"
+    r"\b(?:vendors?|software|platforms?|products?|tools?)\s+(?:compare|comparison)\b",
     re.IGNORECASE,
 )
 SIMPRO_VS_RE = re.compile(
@@ -83,6 +88,7 @@ def check_content(
     context_pack: Mapping[str, Any] | str | Path | None = None,
     context_receipt: Mapping[str, Any] | str | Path | None = None,
     vault_root: str | Path | None = None,
+    validated_claim_set: ValidatedClaimSet | None = None,
 ) -> list[Finding]:
     """Return competitive-shortlist findings for the exact public snapshot."""
     if not _is_competitor_aware(content):
@@ -141,11 +147,31 @@ def check_content(
 
     pack = _load_mapping(context_pack, "context pack", findings, line)
     receipt = _load_mapping(context_receipt, "context receipt", findings, line)
-    claims = _validated_claims(context_pack, context_receipt, findings, line, vault_root)
+    rows_with_public_claim_ids = [
+        row for row in rows
+        if row.claim_id.strip().casefold() not in {"", "none", "[none]"}
+    ]
+    claims = ValidatedClaimSet()
+    if rows_with_public_claim_ids:
+        claims = validated_claim_set or _validated_claims(
+            context_pack,
+            context_receipt,
+            findings,
+            line,
+            vault_root,
+        )
+        if validated_claim_set is not None and not claims.available:
+            findings.append(_finding(
+                "competitive_shortlist_context_unverified",
+                line,
+                f"Competitive shortlist context is unavailable: {claims.blocker}",
+                "Restore connector validation before authorizing a shortlist.",
+            ))
     pack_resources = _resource_records(pack)
     receipt_resource_ids = _resource_ids(receipt)
     for row in rows:
         record = pack_resources.get(row.resource_id)
+        row_uses_public_claim = row.claim_id.strip().casefold() not in {"", "none", "[none]"}
         if (
             not RESOURCE_ID_RE.fullmatch(row.resource_id)
             or record is None
@@ -158,13 +184,25 @@ def check_content(
                 "Use the connector resource ID that supplied competitive context for this competitor.",
                 match=row.resource_id,
             ))
-        elif row.competitor.casefold() not in _flatten_text(record).casefold():
+        elif row_uses_public_claim and row.competitor.casefold() not in _flatten_text(record).casefold():
             findings.append(_finding(
                 "competitive_shortlist_resource_mismatch",
                 row.line,
                 "Competitive decision resource does not identify the named competitor.",
                 "Use the competitor-specific resource selected by connector search and read/expand.",
                 match=row.competitor,
+            ))
+        elif (
+            not row_uses_public_claim
+            and row.public_url
+            and row.public_url.casefold() not in (proof_content or "").casefold()
+        ):
+            findings.append(_finding(
+                "competitive_shortlist_public_url_unmapped",
+                row.line,
+                "No-claim competitive shortlist rows must be supported by official public Source Map evidence.",
+                "Add the row's official public URL to the Source Map or use a receipt-approved claim ID.",
+                match=row.public_url,
             ))
 
     selected_names = {row.competitor.casefold(): row for row in selected}
@@ -225,6 +263,7 @@ def check_file(
     context_pack: str | Path | None = None,
     context_receipt: str | Path | None = None,
     vault_root: str | Path | None = None,
+    validated_claim_set: ValidatedClaimSet | None = None,
 ) -> list[Finding]:
     if fail_on not in {"error", "warning", "none"}:
         raise ValueError("fail_on must be one of: error, warning, none")
@@ -235,11 +274,16 @@ def check_file(
         context_pack=context_pack,
         context_receipt=context_receipt,
         vault_root=vault_root,
+        validated_claim_set=validated_claim_set,
     )
 
 
 def _is_competitor_aware(content: str) -> bool:
-    return bool(COMPETITOR_TRIGGER_RE.search(_public_body(content)))
+    public_body = _public_body(content)
+    return bool(
+        COMPETITOR_TRIGGER_RE.search(public_body)
+        or COMPARISON_PAGE_TRIGGER_RE.search(public_body)
+    )
 
 
 def _extract_block(proof: str) -> tuple[dict[str, str], list[ShortlistRow], int] | None:

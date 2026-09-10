@@ -125,6 +125,7 @@ VERTICAL_TARGET_STOPWORDS = {
     "field",
     "service",
     "services",
+    "management",
     "for",
     "and",
     "the",
@@ -764,16 +765,16 @@ def _vertical_target_matches(
 ) -> bool:
     if any(_semantic_phrase_present(value, target) for value in semantic_values):
         return True
+    semantic_tokens = {
+        token for value in semantic_values for token in value.split()
+    }
     target_tokens = [
         token
         for token in target.split()
         if token and token not in VERTICAL_TARGET_STOPWORDS
     ]
     if not target_tokens:
-        return False
-    semantic_tokens = {
-        token for value in semantic_values for token in value.split()
-    }
+        return bool(semantic_tokens & VERTICAL_SEMANTIC_TERMS)
     return all(token in semantic_tokens for token in target_tokens)
 
 

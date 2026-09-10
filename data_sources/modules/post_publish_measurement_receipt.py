@@ -421,8 +421,8 @@ def _validate_final_bom(
     if not isinstance(bom, Mapping):
         raise ValueError(
             "final_bom must be a strict final "
-            f"{blog_assembly_bom_guard.BOM_SCHEMA_V2} artifact or an archived final "
-            f"{blog_assembly_bom_guard.BOM_SCHEMA_V1} artifact"
+            f"{blog_assembly_bom_guard.BOM_SCHEMA} artifact or an archived final "
+            f"{blog_assembly_bom_guard.BOM_SCHEMA_V1}/{blog_assembly_bom_guard.BOM_SCHEMA_V2} artifact"
         )
     artifacts = bom.get("artifacts")
     if not isinstance(artifacts, Mapping) or artifacts.get("article") != dict(article):

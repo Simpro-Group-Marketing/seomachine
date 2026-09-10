@@ -17,10 +17,7 @@
     },
     "simpro-vault": {
       "command": "python",
-      "args": ["-m", "simpro_vault.mcp"],
-      "env": {
-        "SIMPRO_VAULT_ROOT": "${SIMPRO_VAULT_ROOT}"
-      }
+      "args": ["-m", "simpro_vault.mcp"]
     }
   }
 }

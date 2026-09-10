@@ -19,12 +19,9 @@ from data_sources.modules.blog_assembly_bom import (
     build_blog_assembly_bom_from_files,
     finalize_blog_assembly_bom,
     main as bom_main,
-    validate_preflight_stage_receipt_binding,
     write_blog_assembly_bom,
 )
 from data_sources.modules.context_binding_guard import ContextValidationResult
-from data_sources.modules.editorial_plan_guard import build_serp_evidence
-from data_sources.modules.paa_provenance_guard import build_answersocrates_artifact
 from data_sources.modules.semrush_keyword_decision_guard import (
     SOURCE_BOUNDARY,
     build_keyword_decision,
@@ -799,7 +796,7 @@ def test_builder_snapshots_actual_files_as_workspace_relative_paths(tmp_path: Pa
 
     bom = _build(tmp_path, paths)
 
-    assert bom["schema"] == "simpro-blog-assembly-bom/v2"
+    assert bom["schema"] == "simpro-blog-assembly-bom/v3"
     assert set(bom["machine_reviews"]) == {"plan", "article"}
     assert bom["lifecycle_state"] == "provisional"
     assert bom["workflow_mode"] == "new"
@@ -1777,23 +1774,12 @@ def _finalize_fixture_bom(
     preflight_readiness_path: Path,
     workspace_root: Path,
 ) -> dict:
-    """Finalize a fixture while leaving production rerun verification enabled by default.
-
-    These focused BOM tests use deliberately small article fixtures that are not
-    intended to pass every editorial readiness gate. Tests that exercise behavior
-    after the live-rerun boundary provide the exact persisted result as the rerun
-    result; the dedicated rerun-adversary test below covers disagreement.
-    """
-    readiness = json.loads(preflight_readiness_path.read_text(encoding="utf-8"))
-    with patch(
-        "data_sources.modules.blog_assembly_bom._rerun_preflight_readiness",
-        return_value=readiness,
-    ):
-        return finalize_blog_assembly_bom(
-            bom_path=bom_path,
-            preflight_readiness_path=preflight_readiness_path,
-            workspace_root=workspace_root,
-        )
+    """Finalize a fixture through the persisted attestation boundary."""
+    return finalize_blog_assembly_bom(
+        bom_path=bom_path,
+        preflight_readiness_path=preflight_readiness_path,
+        workspace_root=workspace_root,
+    )
 
 
 def _prepare_optimized_workflow(
@@ -2081,7 +2067,7 @@ def test_caller_invented_minimal_passed_preflight_cannot_finalize(tmp_path: Path
         )
 
 
-def test_structurally_complete_fabricated_preflight_cannot_survive_rerun(
+def test_structurally_complete_tampered_preflight_cannot_survive_attestation(
     tmp_path: Path,
 ):
     paths = _fixture(tmp_path)
@@ -2089,21 +2075,17 @@ def test_structurally_complete_fabricated_preflight_cannot_survive_rerun(
     bom_path = tmp_path / "research" / "bom.json"
     write_blog_assembly_bom(bom_path, bom)
     preflight = _preflight(tmp_path, bom_path, bom)
-    actual_rerun = json.loads(preflight.read_text(encoding="utf-8"))
-    actual_rerun["passed"] = False
+    tampered = json.loads(preflight.read_text(encoding="utf-8"))
+    tampered["score"] = 96
+    tampered["scorecard"]["content_quality"]["score"] = 96
+    _json(preflight, tampered)
 
-    with patch(
-        "data_sources.modules.blog_assembly_bom._rerun_preflight_readiness",
-        return_value=actual_rerun,
-    ) as rerun:
-        with pytest.raises(ValueError, match="verification rerun did not pass"):
-            finalize_blog_assembly_bom(
-                bom_path=bom_path,
-                preflight_readiness_path=preflight,
-                workspace_root=tmp_path,
-            )
-
-    rerun.assert_called_once()
+    with pytest.raises(ValueError, match="does not bind the readiness output"):
+        finalize_blog_assembly_bom(
+            bom_path=bom_path,
+            preflight_readiness_path=preflight,
+            workspace_root=tmp_path,
+        )
 
 
 def test_failed_preflight_cannot_finalize(tmp_path: Path):
@@ -2277,25 +2259,20 @@ def test_finalize_cli_rejects_output_collision_without_overwriting_preflight(
     preflight = _preflight(tmp_path, bom_path, bom)
     original = preflight.read_bytes()
 
-    readiness = json.loads(preflight.read_text(encoding="utf-8"))
-    with patch(
-        "data_sources.modules.blog_assembly_bom._rerun_preflight_readiness",
-        return_value=readiness,
-    ):
-        with pytest.raises(SystemExit) as raised:
-            bom_main(
-                [
-                    "finalize",
-                    "--bom",
-                    str(bom_path),
-                    "--preflight-readiness",
-                    str(preflight),
-                    "--workspace-root",
-                    str(tmp_path),
-                    "--output",
-                    str(preflight),
-                ]
-            )
+    with pytest.raises(SystemExit) as raised:
+        bom_main(
+            [
+                "finalize",
+                "--bom",
+                str(bom_path),
+                "--preflight-readiness",
+                str(preflight),
+                "--workspace-root",
+                str(tmp_path),
+                "--output",
+                str(preflight),
+            ]
+        )
 
     captured = capsys.readouterr()
     assert raised.value.code == 2
@@ -2315,25 +2292,20 @@ def test_finalize_cli_rejects_in_place_replacement_of_preflight_bom(
     preflight = _preflight(tmp_path, bom_path, bom)
     original_bom = bom_path.read_bytes()
 
-    readiness = json.loads(preflight.read_text(encoding="utf-8"))
-    with patch(
-        "data_sources.modules.blog_assembly_bom._rerun_preflight_readiness",
-        return_value=readiness,
-    ):
-        with pytest.raises(SystemExit) as raised:
-            bom_main(
-                [
-                    "finalize",
-                    "--bom",
-                    str(bom_path),
-                    "--preflight-readiness",
-                    str(preflight),
-                    "--workspace-root",
-                    str(tmp_path),
-                    "--output",
-                    str(bom_path),
-                ]
-            )
+    with pytest.raises(SystemExit) as raised:
+        bom_main(
+            [
+                "finalize",
+                "--bom",
+                str(bom_path),
+                "--preflight-readiness",
+                str(preflight),
+                "--workspace-root",
+                str(tmp_path),
+                "--output",
+                str(bom_path),
+            ]
+        )
 
     captured = capsys.readouterr()
     assert raised.value.code == 2

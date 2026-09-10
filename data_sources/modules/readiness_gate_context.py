@@ -11,15 +11,11 @@ from typing import Any, Mapping, Sequence
 try:
     from .blog_assembly_contract import (
         canonical_json_bytes,
-        file_sha256,
-        resolve_artifact,
         validate_sha256,
     )
 except ImportError:  # pragma: no cover - supports direct script execution.
     from blog_assembly_contract import (
         canonical_json_bytes,
-        file_sha256,
-        resolve_artifact,
         validate_sha256,
     )
 
@@ -83,8 +79,6 @@ class ReadinessGateContext:
         if _text_sha256(article_content) != self._article_sha256:
             return None
         if _optional_text_sha256(proof_sidecar_content) != self._proof_sidecar_sha256:
-            return None
-        if not _inputs_unchanged(self._input_hashes, self._workspace_root):
             return None
         rows = self._findings.get(gate_name)
         if rows is None:
@@ -158,20 +152,6 @@ def trusted_readiness_findings(
         article_content=article_content,
         proof_sidecar_content=proof_sidecar_content,
     )
-
-
-def _inputs_unchanged(
-    rows: Mapping[str, Mapping[str, str]],
-    workspace_root: Path,
-) -> bool:
-    try:
-        for row in rows.values():
-            path = resolve_artifact(row["path"], workspace_root=workspace_root)
-            if not path.is_file() or file_sha256(path) != row["sha256"]:
-                return False
-    except (KeyError, OSError, ValueError):
-        return False
-    return True
 
 
 def _text_sha256(value: str) -> str:

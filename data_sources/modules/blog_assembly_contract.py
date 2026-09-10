@@ -75,6 +75,7 @@ BLOG_GATE_DESCRIPTORS = (
     BlogGateDescriptor("editorial_plan"),
     BlogGateDescriptor("semrush_keyword_decision"),
     BlogGateDescriptor("competitive_shortlist"),
+    BlogGateDescriptor("hindsight_boundary"),
     BlogGateDescriptor("source_support"),
     BlogGateDescriptor("source_quality"),
     BlogGateDescriptor("customer_proof_diversity"),
@@ -300,7 +301,11 @@ def _gate_descriptor_enabled(
 
 def file_sha256(path: str | Path) -> str:
     """Return the SHA-256 digest of the exact bytes on disk."""
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as handle:
+        while chunk := handle.read(1024 * 1024):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def normalized_text_sha256(value: Any, *, field: str) -> str:

@@ -1,0 +1,25 @@
+{
+  "schema": "simpro-python-structure-baseline/v1",
+  "maximum_lines": 500,
+  "strict_files": [
+    "data_sources/modules/blog_release.py",
+    "data_sources/modules/competitive_shortlist_guard.py",
+    "data_sources/modules/publish_readiness.py"
+  ],
+  "strict_directories": [
+    "data_sources/modules/readiness"
+  ],
+  "grandfathered_files": {
+    "data_sources/modules/blog_assembly_bom.py": 2061,
+    "data_sources/modules/fred_authority_guard.py": 1016,
+    "data_sources/modules/named_feature_status_guard.py": 1187,
+    "data_sources/modules/publish_readiness_core.py": 2965
+  },
+  "complexity_strict_files": [
+    "data_sources/modules/blog_release.py",
+    "data_sources/modules/publish_readiness.py"
+  ],
+  "complexity_strict_directories": [
+    "data_sources/modules/readiness"
+  ]
+}

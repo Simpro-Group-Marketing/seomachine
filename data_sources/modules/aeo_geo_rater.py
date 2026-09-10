@@ -428,6 +428,7 @@ def _validated_bom_author_policy(
     if finalized_bom.get('schema') not in {
         'simpro-blog-assembly-bom/v1',
         'simpro-blog-assembly-bom/v2',
+        'simpro-blog-assembly-bom/v3',
     }:
         return ''
     if finalized_bom.get('lifecycle_state') not in {'provisional', 'final'}:
@@ -1023,8 +1024,9 @@ def _check_faq_proof(
         "fix": (
             "Resolve each finding according to its machine-assigned citation_mode. "
             "For inline_required, add a natural descriptive anchor to an "
-            "authoritative non-owned source in the first visible answer paragraph "
-            "and map it in the FAQ Proof Map. For section_source_allowed, "
+            "authoritative owned or non-owned source in the first visible answer "
+            "paragraph, map it in the FAQ Proof Map, and do not use competitor-owned "
+            "FAQ sources. For section_source_allowed, "
             "sidecar_only, or proof_not_required, satisfy the assigned mode without "
             "quota-only links; a sidecar cannot replace inline evidence when "
             "inline_required applies."
@@ -1194,6 +1196,7 @@ def _validated_non_connector_bom(finalized_bom: Optional[Mapping[str, Any]]) -> 
     if finalized_bom.get("schema") not in {
         "simpro-blog-assembly-bom/v1",
         "simpro-blog-assembly-bom/v2",
+        "simpro-blog-assembly-bom/v3",
     }:
         return False
     if finalized_bom.get("lifecycle_state") not in {"provisional", "final"}:
@@ -1629,7 +1632,14 @@ def _has_documented_no_fit_experience_boundary(
                 malformed_rejection = True
                 break
             sidecar_rejections[candidate_key] = reason
-        if malformed_rejection or sidecar_rejections != expected_rejections:
+        empty_slate_reason = (
+            not expected_candidates
+            and not expected_rejections
+            and set(sidecar_rejections) == {"none"}
+        )
+        if malformed_rejection or (
+            sidecar_rejections != expected_rejections and not empty_slate_reason
+        ):
             continue
         if expected_candidates:
             has_verified_rejections = set(sidecar_rejections) == set(
@@ -1649,7 +1659,7 @@ def _has_documented_no_fit_experience_boundary(
     if not expected_candidates and not expected_rejections:
         no_fit_reason = str(verified_story.get("no_fit_reason", ""))
         normalized_no_fit = _normalize_text(no_fit_reason)
-        has_verified_rejections = (
+        has_verified_rejections = has_verified_rejections or (
             _word_count(no_fit_reason) >= 8
             and "no customer proof selected" in normalized_no_fit
             and "public copy must omit" in normalized_no_fit

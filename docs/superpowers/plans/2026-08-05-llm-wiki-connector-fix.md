@@ -49,7 +49,7 @@
 - Restore/modify corresponding tests from recovered commits `83968d6` and `23c7bd1`
 
 **Interfaces:**
-- `simpro_vault_client` resolves only explicit `--vault-root`, plugin `authority_root`, or `SIMPRO_VAULT_ROOT`.
+- `simpro_vault_client` resolves only explicit test roots or the configured `simpro-context@simpro` plugin `authority_root`.
 - Publish readiness consumes current context pack and receipt inputs and blocks stale, tampered, missing, or invalid claim evidence.
 
 - [ ] Cherry-pick `83968d6` into the isolated worktree and resolve conflicts by preserving current main behavior unless it weakens context enforcement.

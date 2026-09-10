@@ -266,7 +266,7 @@ The Texas State Board of Plumbing Examiners regulates plumbers in Texas.
 The [official TSBPE licensing page](https://tsbpe.texas.gov/license-types/) lists the regulated license types.
 """
     sidecar = """## FAQ Source Policy
-- Allowed source classes: neutral, non_competing_expert.
+- Allowed source classes: neutral, non_competing_expert, owned_product.
 - Competitor-owned FAQ sources: prohibited.
 - Status: aligned.
 

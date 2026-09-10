@@ -92,11 +92,11 @@ This document organizes Simpro's target keyword hypotheses by topic cluster for 
 
 ### Semrush MCP Exact US Keyword Metrics
 
-**Source boundary**: Queried through authenticated Semrush MCP on 2026-05-21 using `phrase_these` with `database=us`. `Competition` is Semrush paid competition on a 0-1 scale. SERP feature IDs are Semrush feature codes; use them as structured presence signals, not human-readable SERP labels until mapped in a separate SERP review.
+**Source boundary**: Queried through authenticated Semrush MCP on 2026-05-21 using `phrase_these` with `database=us`, with the homepage commercial pillar record refreshed on 2026-09-08 for `field service management software`. `Competition` is Semrush paid competition on a 0-1 scale. SERP feature IDs are Semrush feature codes; use them as structured presence signals, not human-readable SERP labels until mapped in a separate SERP review.
 
 | Keyword | Semrush US Volume | KD Index | CPC | Competition | Results | SERP Feature Codes | Readout |
 |---|---:|---:|---:|---:|---:|---|---|
-| field service management software | 6,600 | 47 | $34.06 | 0.05 | 442,000,000 | 6, 9, 21, 36, 43, 45, 52 | Core category term has real scale and mid-range difficulty. |
+| field service management software | 9,900 | 48 | $34.06 | 0.05 | 442,000,000 | 6, 9, 21, 36, 43, 45, 52 | Core category term has real scale and mid-range difficulty. The verified Simpro US commercial pillar is the homepage: `https://www.simprogroup.com/`. |
 | field service software | 6,600 | 51 | $34.06 | 0.05 | 638,000,000 | 6, 9, 20, 36, 45, 52 | Same volume as the full FSM term with slightly higher KD. |
 | best field service management software | 1,600 | 40 | $44.95 | 0.33 | 406,000,000 | 6, 9, 20, 36, 45, 52 | High-value comparison/list intent with meaningful demand. |
 | AI field service software | 30 | 40 | $466.84 | 0.57 | 424,000,000 | 6, 9, 20, 36, 45, 52 | Low current volume, but unusually high CPC and paid competition. Treat as strategic positioning support. |
@@ -171,11 +171,11 @@ The reviewed HTML dashboard is useful for strategy but not as a first-party metr
 
 ### Pillar Keyword
 - **Keyword**: field service management software
-- **Search Volume**: Semrush US volume 6,600; Ahrefs Free US bucket `>1000`
-- **Difficulty**: Semrush KD index 47; Ahrefs Free KD `Hard`
+- **Search Volume**: Semrush US volume 9,900; Ahrefs Free US bucket `>1000`
+- **Difficulty**: Semrush KD index 48; Ahrefs Free KD `Hard`
 - **Intent**: Commercial / informational
 - **Current Ranking**: US GSC exact query avg position 19.7; 8 clicks and 6,862 impressions
-- **Pillar Content URL**: https://www.simprogroup.com/solutions/field-service-management-software
+- **Pillar Content URL**: https://www.simprogroup.com/
 
 ### Cluster Keywords
 1. field service software
@@ -586,7 +586,7 @@ These topics are strategically important based on Product Marketing context and 
 - `fire protection software`: exact query avg position 21.3; fire protection page has 7,867 impressions and 2 clicks.
 
 ### Potential Cannibalization to Check
-- `field service management software`: The best-FSM blog captures `field service software` (6,116 impressions), `field service management software` (5,309 impressions), and `field service scheduling software` (4,826 impressions). The FSM solution page's top non-brand exact category signal is only 1 click / 801 impressions at avg position 51.6. Treat the blog as a support asset and route authority to the solution page.
+- `field service management software`: The best-FSM blog captures `field service software` (6,116 impressions), `field service management software` (5,309 impressions), and `field service scheduling software` (4,826 impressions). Treat the blog as a support asset and route general category authority to the homepage; use the FSM solution page only for feature-level or brief-approved workflow support.
 - `AI field service software`: The AI-for-field-service blog owns the main AI query set (`ai in field service management`, `ai field service management`, `field service management ai`, `ai for field service`). Keep this as the education hub, but internally link to category and feature pages where AI is a differentiator.
 - `HVAC software`: The HVAC industry page receives high impressions but low clicks and ranks weakly for exact software intent. Check whether HVAC blog posts are absorbing informational demand without passing authority to the industry page.
 - `plumbing software`: The plumbing industry page has the highest industry-page impressions but almost no click capture. Use plumbing business, plumbing KPI, and Foster Plumbing proof content to support the industry page.

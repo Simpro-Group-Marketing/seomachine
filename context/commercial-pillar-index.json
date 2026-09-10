@@ -1,38 +1,38 @@
 {
   "schema_version": "commercial-pillar-index/v1",
-  "updated_at": "2026-08-06",
+  "updated_at": "2026-09-08",
   "records": [
     {
-      "destination_id": "simpro-us-solution-field-service-management-software",
+      "destination_id": "simpro-us-homepage-field-service-management-software",
       "brand": "Simpro",
       "market": "US",
-      "pillar_type": "solution",
-      "canonical_url": "https://www.simprogroup.com/solutions/field-service-management-software",
-      "page_title": "Field Service Management Software",
-      "title_checked": "2026-05-21",
-      "title_valid_through": "2026-11-17",
+      "pillar_type": "homepage",
+      "canonical_url": "https://www.simprogroup.com/",
+      "page_title": "Field Service Management Software | Simpro AI-First Platform",
+      "title_checked": "2026-09-08",
+      "title_valid_through": "2026-12-07",
       "main_keyword": "field service management software",
       "semrush_database": "us",
       "semrush_report": "phrase_these",
-      "semrush_checked": "2026-05-21",
-      "semrush_valid_through": "2026-08-19",
+      "semrush_checked": "2026-09-08",
+      "semrush_valid_through": "2026-12-07",
       "semrush_result_status": "exact",
-      "volume": 6600,
-      "keyword_difficulty": 47,
+      "volume": 9900,
+      "keyword_difficulty": 48,
       "evidence_path": [
-        "context/target-keywords.md",
-        "context/internal-links-map.md",
-        "context/internal-links-map.md"
+        "research/semrush-commercial-pillar-homepage-field-service-management-software-2026-09-08.md",
+        "research/semrush-commercial-pillar-homepage-field-service-management-software-2026-09-08.md",
+        "research/semrush-commercial-pillar-homepage-field-service-management-software-2026-09-08.md"
       ],
       "evidence_locator": [
-        "lines:95-99",
-        "line:106",
-        "line:107"
+        "lines:3-4",
+        "line:5",
+        "line:6"
       ],
       "evidence_sha256": [
-        "abf9f1d2c4ced66bb86e6ff9e291f91dadb02c376dfb56a79409052e57e1886d",
-        "53691529b7709f0bb55d72f50485347dbb2acd640ea92b3af9b0c5561c6e9069",
-        "475b9876ac55ed751e22364dd89c5b0419dd5a0467403cc53e464abc1f723d65"
+        "3d69a47c94f1a90cbe73ee0719604513d020fc78c0375878457e563c8a901054",
+        "be6e8ae5164d9bf8009477b1d3912a870bdc938d40a172a122540d2f484b3fd1",
+        "8e93f1d9bb1fa889b1c660788bc8dd5ad2e075f380ce4b773d24829ca92badd2"
       ],
       "vault_routes": [
         "wiki/messaging/Simpro Core Messaging Repository.md",
@@ -68,7 +68,7 @@
         "line:246"
       ],
       "evidence_sha256": [
-        "614fc24bb18d93cf3cda026f17e9ae7c35dd4b746c0243adf71560fc87b5991b",
+        "486d2e527f502afc74b80cc5c11cf9d3ba482e21380ea36f4ed09f88985ec6f2",
         "f3435ebc28ee48ee34049f841520a2e8f9e7de037fb201792685dc8af2a440c6",
         "59008f2e129ca0164477d50e445e67e9af1f83a2a25ff7395f3e2a9fbe9ab610"
       ],
@@ -77,7 +77,7 @@
         "wiki/verticals/Vertical Profile Library.md",
         "wiki/features/source-docs/simpro-hvac-datasheet-us-pdf-115s9kxe.md"
       ],
-      "status": "verified"
+      "status": "stale"
     },
     {
       "destination_id": "simpro-us-industry-electrical-software",
@@ -107,7 +107,7 @@
         "line:251"
       ],
       "evidence_sha256": [
-        "e76a24dbdf51583f16a33fbe050559ca4074b9959b3ad91ce8b6fbb09ad61e49",
+        "870ef087fcf62187ce9d99212a457e2cc87081719f17e4b0511e01c1bd76c07c",
         "bb01b64c736397d0587f2bc3aa2e0ea4a39221f7591c512cef9bb15988af5cfc",
         "3fb6169e7475a6bef0a61feb8d66c5913783fe141a832244be806e65fbdfe90b"
       ],
@@ -116,7 +116,7 @@
         "wiki/verticals/Vertical Profile Library.md",
         "wiki/verticals/Electrical Vertical Profile.md"
       ],
-      "status": "verified"
+      "status": "stale"
     },
     {
       "destination_id": "simpro-us-industry-plumbing-software",
@@ -130,23 +130,23 @@
       "main_keyword": "plumbing software",
       "semrush_database": "us",
       "semrush_report": "phrase_these",
-      "semrush_checked": "2026-05-21",
-      "semrush_valid_through": "2026-08-19",
+      "semrush_checked": "2026-09-08",
+      "semrush_valid_through": "2026-12-07",
       "semrush_result_status": "exact",
       "volume": 1600,
       "keyword_difficulty": 44,
       "evidence_path": [
-        "context/target-keywords.md",
+        "research/semrush-commercial-pillar-plumbing-software-2026-09-08.md",
         "context/internal-links-map.md",
         "context/internal-links-map.md"
       ],
       "evidence_locator": [
-        "lines:95-107",
+        "line:7",
         "line:255",
         "line:256"
       ],
       "evidence_sha256": [
-        "2f6a45461f2a8483d5fa1e8b129f6be24cde525def06760be95e4918834a35fb",
+        "253cca9ded9b80060e8ee9c58da36d70d2c68c0ee97a6703215763cf5409ed2a",
         "14c38265ffba7c22b08c03d776867f7a62418d183be72b1a9ae89089351eee33",
         "6848a9bc7b15d52db00c2c381663568bf4dbd92c5a9755dc16df15ee1f4c9c8c"
       ],

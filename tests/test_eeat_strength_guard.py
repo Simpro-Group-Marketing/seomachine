@@ -130,6 +130,33 @@ def _selected_selector(path: Path) -> Path:
     )
 
 
+def _rejected_selector(path: Path, *, complete: bool = True) -> Path:
+    candidates = ["proof-123", "proof-456"]
+    rejected = {
+        "proof-123": "This proof addresses estimating speed rather than the article's AI economics decision framework.",
+    }
+    if complete:
+        rejected["proof-456"] = (
+            "This proof addresses invoicing throughput rather than the article's AI economics decision framework."
+        )
+    return _json(
+        path,
+        {
+            "schema": "simpro-customer-proof-selector-evidence/v1",
+            "selection_outcome": "customer_proof_candidates_available",
+            "inputs": {"rejected_overrides": {"metric": rejected}},
+            "roles": [
+                {
+                    "role": "metric",
+                    "candidate_ids": candidates,
+                    "claim_ids": ["claim-123", "claim-456"],
+                    "selected_id": "none",
+                }
+            ],
+        },
+    )
+
+
 def _fred(path: Path, *, selected: bool = False) -> Path:
     selected_value = "FVMI-0003" if selected else "none"
     return _write(
@@ -217,6 +244,24 @@ def test_selected_customer_proof_is_positive_signal(tmp_path: Path):
     findings = _check(tmp_path, selector=selector)
 
     assert findings == []
+
+
+def test_source_specific_rejections_satisfy_available_proof_decision(tmp_path: Path):
+    selector = _rejected_selector(tmp_path / "selector.json")
+    sidecar = _fallback_sidecar(tmp_path / "validation.md")
+
+    findings = _check(tmp_path, selector=selector, sidecar=sidecar)
+
+    assert _finding_ids(findings) == {"eeat_strength_safe_but_weak"}
+
+
+def test_incomplete_rejections_leave_available_proof_blocker(tmp_path: Path):
+    selector = _rejected_selector(tmp_path / "selector.json", complete=False)
+    sidecar = _fallback_sidecar(tmp_path / "validation.md")
+
+    findings = _check(tmp_path, selector=selector, sidecar=sidecar)
+
+    assert "eeat_strength_available_proof_omitted" in _finding_ids(findings)
 
 
 def test_selected_fred_authority_is_positive_signal(tmp_path: Path):

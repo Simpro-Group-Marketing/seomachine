@@ -10,7 +10,7 @@ from data_sources.modules import blog_assembly_contract
 from data_sources.modules.blog_assembly_bom import build_blog_assembly_bom_from_files
 from data_sources.modules.blog_assembly_bom_guard import check_bom
 from data_sources.modules.machine_review import AGENT_ROSTER, build_machine_review, write_machine_review
-from tests.test_blog_assembly_bom import _fixture
+from tests.test_blog_assembly_bom import _fixture, _refresh_normal_stage_receipts
 
 
 @pytest.fixture(autouse=True)
@@ -46,10 +46,11 @@ def _build(paths: dict[str, Path], plan_review: Path, article_review: Path, tmp_
     )
 
 
-def test_bom_v2_binds_machine_reviews_and_rejects_stale_article_review(tmp_path: Path):
+def test_bom_v3_binds_machine_reviews_and_rejects_stale_article_review(tmp_path: Path):
     paths = _fixture(tmp_path); plan_review, article_review = _reviews(tmp_path, paths)
     bom = _build(paths, plan_review, article_review, tmp_path)
-    assert bom["schema"] == "simpro-blog-assembly-bom/v2"
+    assert bom["schema"] == "simpro-blog-assembly-bom/v3"
+    assert bom["hindsight_strategy_policy"]["status"] == "not_applicable"
     assert set(bom["machine_reviews"]) == {"plan", "article"}
     assert check_bom(bom, article_path=paths["article"], validation_sidecar_path=paths["sidecar"], workspace_root=tmp_path, expected_lifecycle_state="provisional") == []
     paths["article"].write_text(paths["article"].read_text(encoding="utf-8") + "\nChanged after review.\n", encoding="utf-8")
@@ -57,7 +58,7 @@ def test_bom_v2_binds_machine_reviews_and_rejects_stale_article_review(tmp_path:
         _build(paths, plan_review, article_review, tmp_path)
 
 
-def test_bom_v2_rejects_machine_reviews_bound_to_a_stale_validation_sidecar(tmp_path: Path):
+def test_bom_v3_rejects_machine_reviews_bound_to_a_stale_validation_sidecar(tmp_path: Path):
     paths = _fixture(tmp_path); plan_review, article_review = _reviews(tmp_path, paths)
     bom = _build(paths, plan_review, article_review, tmp_path)
 
@@ -79,6 +80,68 @@ def test_bom_v2_rejects_machine_reviews_bound_to_a_stale_validation_sidecar(tmp_
         )
     }
     assert "machine_review_proof_sidecar_hash_mismatch" in rules
+
+
+def test_bom_v3_binds_hindsight_internal_strategy_evidence(tmp_path: Path):
+    paths = _fixture(tmp_path)
+    plan_review, article_review = _reviews(tmp_path, paths)
+    evidence = tmp_path / "research" / "hindsight-strategy-evidence.json"
+    evidence.write_text(
+        """{
+  "pack": {"schema": "simpro-internal-strategy-pack/v1", "resources": []},
+  "sidecar": {
+    "schema": "simpro-content-validation-sidecar/v1",
+    "public_claim_use": "prohibited",
+    "claim_support_allowed": false
+  },
+  "receipt": {"schema": "simpro-internal-strategy-receipt/v1", "resource_ids": []}
+}
+""",
+        encoding="utf-8",
+    )
+    paths["sidecar"].write_text(
+        paths["sidecar"].read_text(encoding="utf-8")
+        + "\n## Hindsight Strategy Selection\n\n"
+        + "- Status: internal_strategy_only\n"
+        + "- Selected resources: res-hindsight-plumbing\n"
+        + "- public_claim_use: prohibited\n"
+        + "- claim_support_allowed: false\n"
+        + "- source_pack_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n"
+        + "- source_receipt_sha256: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n",
+        encoding="utf-8",
+    )
+    _refresh_normal_stage_receipts(paths)
+    plan_review, article_review = _reviews(tmp_path, paths)
+
+    bom = build_blog_assembly_bom_from_files(
+        article_path=paths["article"],
+        validation_sidecar_path=paths["sidecar"],
+        editorial_plan_path=paths["editorial_plan"],
+        keyword_decision_path=paths["keyword_decision"],
+        serp_evidence_path=paths["serp"],
+        paa_artifact_path=paths["paa"],
+        plan_review_path=plan_review,
+        article_review_path=article_review,
+        agent_output_paths=paths["agent_outputs"],
+        stage_receipt_paths=paths["stage_receipts"],
+        workflow_mode="new",
+        assembly_date="2026-08-11",
+        workspace_root=tmp_path,
+        hindsight_strategy_evidence_path=evidence,
+    )
+
+    assert bom["artifacts"]["hindsight_strategy_evidence"]["path"] == (
+        "research/hindsight-strategy-evidence.json"
+    )
+    assert bom["hindsight_strategy_policy"]["status"] == "internal_strategy_only"
+    assert bom["hindsight_strategy_policy"]["claim_support_allowed"] is False
+    assert check_bom(
+        bom,
+        article_path=paths["article"],
+        validation_sidecar_path=paths["sidecar"],
+        workspace_root=tmp_path,
+        expected_lifecycle_state="provisional",
+    ) == []
 
 
 def test_new_bom_build_cannot_fall_back_to_archived_v1(tmp_path: Path):

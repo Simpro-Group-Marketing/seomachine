@@ -33,8 +33,8 @@ This document catalogs verified Simpro URLs for strategic internal linking in bl
 
 ### Priority Link Flows
 
-1. Route FSM category authority from `/blog/best-field-service-management-software` to `/solutions/field-service-management-software`. The blog has 298,684 GSC impressions and captures the main category queries, while the solution page has stronger GA4 conversion signal.
-2. Support `/solutions/field-service-management-software` from definition, buyer-guide, scheduling, dispatch, mobile app, reporting, and industry pages. The solution page has 3,469 GA4 sessions and 83 key events but weak non-brand category rankings.
+1. Route general FSM category authority from `/blog/best-field-service-management-software` to the homepage when the exact query owner is `field service management software`. The blog has 298,684 GSC impressions and captures the main category queries, while the homepage has the strongest conversion-adjacent signal.
+2. Use `/solutions/field-service-management-software` only for feature-level or workflow-support routing when a brief explicitly assigns that page. It is not the default owner for the general FSM software query.
 3. Use industry blog clusters to reinforce industry pages. HVAC, plumbing, and electrical industry pages each have high impressions but low CTR, which makes them internal-link and snippet-improvement priorities.
 4. Link commercial comparison and pricing content back to the FSM solution and relevant industry pages. Pricing has strong branded intent and 10 GA4 key events, but it should not be the only BOFU destination.
 5. Keep AI education pages linked to concrete FSM and feature pages. AI field-service variants show 6,940 impressions but only 4 clicks; the link path should turn AI interest into category and workflow evaluation.
@@ -43,8 +43,8 @@ This document catalogs verified Simpro URLs for strategic internal linking in bl
 
 | Page | GSC Clicks | GSC Impressions | CTR | Avg Position | GA4 Sessions | GA4 Key Events | Link Use |
 |---|---:|---:|---:|---:|---:|---:|---|
-| `/` | 2,614 | 48,030 | 5.44% | 26.5 | 20,701 | 170 | Use sparingly; strong brand/conversion page but deep links are usually better. |
-| `/solutions/field-service-management-software` | 19 | 21,400 | 0.09% | 23.3 | 3,469 | 83 | Primary FSM destination and conversion page. |
+| `/` | 2,614 | 48,030 | 5.44% | 26.5 | 20,701 | 170 | Primary owner for the general `field service management software` query when the commercial pillar index assigns the homepage. |
+| `/solutions/field-service-management-software` | 19 | 21,400 | 0.09% | 23.3 | 3,469 | 83 | Workflow-support page only when the brief or pillar decision explicitly assigns it. |
 | `/blog/best-field-service-management-software` | 32 | 298,684 | 0.01% | 12.5 | 437 | 1 | Authority donor for FSM category links. |
 | `/blog/ai-for-field-service` | 11 | 8,281 | 0.13% | 11.2 | 87 | 0 | AI education hub; link to FSM and feature pages. |
 | `/pricing` | 120 | 17,684 | 0.68% | 2.7 | 430 | 10 | BOFU support link, especially from comparison and ROI content. |
@@ -68,8 +68,8 @@ This document catalogs verified Simpro URLs for strategic internal linking in bl
 
 ### Homepage
 - **URL**: https://www.simprogroup.com/
-- **When to Link**: Rarely. Use when introducing Simpro broadly and no deeper product page fits.
-- **Anchor Text Examples**: Simpro, the Simpro platform, Simpro field service software
+- **When to Link**: Use when the brief or commercial pillar decision assigns the homepage to the general `field service management software` query. Otherwise link sparingly when introducing Simpro broadly and no deeper product page fits.
+- **Anchor Text Examples**: field service management software, Simpro, the Simpro platform, Simpro field service software
 
 ### Demo
 - **URL**: https://www.simprogroup.com/demo
@@ -105,8 +105,8 @@ This document catalogs verified Simpro URLs for strategic internal linking in bl
 
 ### Field Service Management Software
 - **URL**: https://www.simprogroup.com/solutions/field-service-management-software
-- **When to Link**: Primary destination for FSM category articles, buyer guides, and "what is field service software" content.
-- **Anchor Text Examples**: field service management software, field service software for trades, FSM software
+- **When to Link**: Use for feature-level or workflow-support routing when the brief or commercial pillar decision explicitly assigns this page. Do not use as the default owner for the general `field service management software` query.
+- **Anchor Text Examples**: field service software for trades, FSM software, connected field service workflows
 
 ### Job Management Software
 - **URL**: https://www.simprogroup.com/solutions/job-management-software
@@ -421,7 +421,7 @@ These are sitemap-confirmed blog pages relevant to Simpro content production. Us
 ## Quick Reference by Topic
 
 **When writing about field service software**, link to:
-- https://www.simprogroup.com/solutions/field-service-management-software - primary field service management software page
+- https://www.simprogroup.com/ - primary field service management software page when the homepage owns the general FSM query
 - https://www.simprogroup.com/blog/what-is-field-service-management - definition and education support
 - https://www.simprogroup.com/blog/best-field-service-management-software - commercial comparison support
 - https://www.simprogroup.com/demo - conversion next step

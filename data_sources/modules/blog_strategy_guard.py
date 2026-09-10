@@ -100,11 +100,21 @@ def check_content(
     if not primary_keyword:
         findings.append(_finding("blog_strategy_primary_keyword_missing", 1, "Simpro blog frontmatter requires Primary Keyword."))
 
-    index_findings = validate_index(index, today=today)
+    decision = contract.commercial_pillar
+    matching_records = [
+        record for record in index.records
+        if record.destination_id == decision.destination_id
+    ]
+    scoped_index = CommercialPillarIndex(
+        schema_version=index.schema_version,
+        updated_at=index.updated_at,
+        records=tuple(matching_records),
+        source_path=index.source_path,
+    )
+    index_findings = validate_index(scoped_index, today=today) if matching_records else []
     if index_findings:
         return index_findings + findings
 
-    decision = contract.commercial_pillar
     destination: Optional[CommercialPillarRecord] = None
     try:
         destination = get_verified_destination(
@@ -236,6 +246,11 @@ def check_content(
             link
             for link in planned_anchor_links
             if _normalize_text(link.h2) == planned_h2
+            or (not _normalize_text(link.h2) and planned_h2 in {
+                "opening paragraph",
+                "opening paragraph before first h2",
+                "opening paragraph before the first comparison matrix",
+            })
         ]
         if planned_anchor_links and not approved_links:
             findings.append(_finding("blog_strategy_planned_h2_mismatch", planned_anchor_links[0].line, "Approved pillar link is outside the planned H2 section.", record=destination, link=planned_anchor_links[0], **metadata))

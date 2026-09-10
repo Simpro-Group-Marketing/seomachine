@@ -19,7 +19,10 @@ from bs4 import BeautifulSoup
 
 try:
     from .guard_common import Finding, make_finding
-    from .image_placeholder import is_production_image_placeholder_line
+    from .image_placeholder import (
+        is_production_image_placeholder_line,
+        is_production_video_placeholder_line,
+    )
     from .numeric_claim_source_guard import (
         _blank_fenced_code,
         _claim_text_for_detection,
@@ -30,7 +33,10 @@ try:
     )
 except ImportError:  # pragma: no cover - supports direct script execution.
     from guard_common import Finding, make_finding
-    from image_placeholder import is_production_image_placeholder_line
+    from image_placeholder import (
+        is_production_image_placeholder_line,
+        is_production_video_placeholder_line,
+    )
     from numeric_claim_source_guard import (
         _blank_fenced_code,
         _claim_text_for_detection,
@@ -188,6 +194,7 @@ def _is_nonclaim_placeholder_paragraph(text: str) -> bool:
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     return bool(lines) and all(
         is_production_image_placeholder_line(line)
+        or is_production_video_placeholder_line(line)
         or CMS_MODULE_PLACEHOLDER_RE.fullmatch(line) is not None
         for line in lines
     )

@@ -68,7 +68,7 @@ Python remains responsible for governance and workflow assistance: selector evid
 
 `/scrub` is read-only diagnostics. If scrub reports Unicode marks, em dashes, or whitespace issues, the command/agent applies those edits and reruns `/scrub`.
 
-Every new or changed blog requires a passed `simpro-blog-creation-preflight/v1` report, `simpro-blog-assembly-bom/v2` for machine-reviewed runs, plan and article `simpro-blog-machine-review/v1` artifacts, a bound `simpro-semrush-keyword-decision/v1` artifact, and `/publish-readiness`. Readiness is the release owner and validates the article, sidecar, context binding, proof, keyword decision, URL/source support, schema, BOM, input hashes, E-E-A-T strength policy, and scorecard.
+Every new or changed blog requires a passed `simpro-blog-creation-preflight/v1` report, `simpro-blog-assembly-bom/v3` for machine-reviewed runs, plan and article `simpro-blog-machine-review/v1` artifacts, a bound `simpro-semrush-keyword-decision/v1` artifact, and `/publish-readiness`. Readiness is the release owner and validates the article, sidecar, context binding, proof, keyword decision, URL/source support, schema, BOM, input hashes, E-E-A-T strength policy, Hindsight internal-strategy boundary, and scorecard.
 
 The readiness scorecard is independent:
 
@@ -114,7 +114,7 @@ This installs:
 
    - Copy `.env.example` to `.env` and set GA4/GSC/DataForSEO paths (see `CLAUDE.md` for MCP vs Python module credential boundaries)
    - Copy `.mcp.json.template` to `.mcp.json` and adjust paths for your machine
-   - Set `SIMPRO_VAULT_ROOT` to the authorized vault root; the connector does not read Claude plugin inventory or internal vault routes
+   - Configure `simpro-context@simpro` with its root-only `authority_root`; the Python client and MCP adapter read that plugin authority configuration by default
    - Copy `.claude/settings.local.template.json` to `.claude/settings.local.json`
    - Place GA4 ADC at `credentials/adc.json` and GSC OAuth client secret at `credentials/gsc_client_secrets.json` (see `credentials/.gitkeep` - secrets are gitignored)
    - For the bundled GSC MCP server: `cd mcp-gsc && pip install -r requirements.txt` (see `mcp-gsc/README.md`)
@@ -1008,7 +1008,7 @@ E-E-A-T strength guard adds a commercial-investigation quality layer. It passes 
 ### "AEO/GEO score below 90"
 - Treat the result as a repair trigger, not a reporting endpoint. Review `aeo_geo.checks`, classify each failure as a copy gap, proof/sidecar gap, or scorer or parser false negative, and apply the top 3-5 fixes.
 - Fix a scorer or parser false negative with regression coverage instead of changing accurate copy to satisfy brittle matching.
-- Rerun `/scrub`, AI copy lint, URL validation, and Context Binding. If article bytes changed, rerun article machine review, then start a new atomic `blog_release.py` run so it builds a fresh provisional BOM v2, preflight result, final BOM, and detached final-readiness attestation. Repeat once if needed, then leave the article in place and write a machine-readable blocker under `research/` if the score remains below threshold after 2 iterations.
+- Rerun `/scrub`, AI copy lint, URL validation, and Context Binding. If article bytes changed, rerun article machine review, then start a new atomic `blog_release.py` run so it builds a fresh provisional BOM v3, preflight result, final BOM, and detached final-readiness attestation. Repeat once if needed, then leave the article in place and write a machine-readable blocker under `research/` if the score remains below threshold after 2 iterations.
 
 ### "MCP / GSC / GA4 not connecting"
 - Confirm `.mcp.json` paths match your machine (from `.mcp.json.template`)

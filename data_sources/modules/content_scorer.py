@@ -545,8 +545,9 @@ class ContentScorer:
                 'fix': (
                     'Resolve each finding according to its machine-assigned citation_mode. '
                     'For inline_required, use a natural descriptive anchor to an '
-                    'authoritative non-owned source in the first visible answer paragraph '
-                    'and map it in the FAQ Proof Map. For lower-risk modes, satisfy the '
+                    'authoritative owned or non-owned source in the first visible answer '
+                    'paragraph, map it in the FAQ Proof Map, and do not use competitor-owned '
+                    'FAQ sources. For lower-risk modes, satisfy the '
                     'assigned mode without quota-only links; a sidecar cannot replace '
                     f'inline evidence when inline_required applies: {faq_questions}'
                 ),
@@ -1144,7 +1145,7 @@ class ContentScorer:
         )
 
         rated = seo_rater.rate(
-            visible_body,
+            content,
             **rate_kwargs,
         )
 

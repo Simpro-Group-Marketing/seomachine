@@ -375,6 +375,44 @@ class VaultBrandLanguageGuardTests(unittest.TestCase):
 
         self.assertEqual(findings, [])
 
+    def test_generic_field_service_management_solution_accepts_vertical_library(self):
+        pack, receipt = self._validated_artifacts()
+        vertical_resource_id = "res-ae4607729666509bb97813e66e18590b"
+        resource = {
+            "resource_id": vertical_resource_id,
+            "title": "Simpro Group Vertical Profile Library",
+            "aliases": [],
+            "headings": ["Simpro Group Vertical Profile Library"],
+            "topics": ["simpro", "group", "vertical", "profile", "library"],
+            "semantic_roles": ["evidence"],
+        }
+        pack["sections"]["Discovery Trace"]["selected_resource_ids"].append(
+            vertical_resource_id
+        )
+        pack["sections"]["Retrieved Guidance"].append(resource)
+        pack["sections"]["Selected Resource Inventory"].append(resource)
+        receipt["resources"].append(resource)
+        sidecar = VALID_PRODUCT_SIDECAR.replace(
+            "Product/solution language scope: product/feature",
+            "Product/solution language scope: solution/industry",
+        ).replace(
+            "feature resource_id=res-ad3ee1bcd777586d81415ba9298cd755;",
+            "feature resource_id=res-ad3ee1bcd777586d81415ba9298cd755; "
+            f"solution resource_id={vertical_resource_id};",
+        )
+
+        findings = check_content(
+            "# AI operations\n\n"
+            "Use [field service management software]"
+            "(https://www.simprogroup.com/) "
+            "to keep the pilot record connected.",
+            proof_content=sidecar,
+            context_pack=pack,
+            context_receipt=receipt,
+        )
+
+        self.assertEqual(findings, [])
+
     def test_solution_industry_rejects_bound_voice_only_resource(self):
         pack, receipt = self._validated_artifacts()
         voice_resource_id = "res-641679c4b6c65e93951cb8d8e1ab88af"

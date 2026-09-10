@@ -22,6 +22,10 @@ try:
     from .context_binding_guard import visible_public_content
     from .frontmatter import FrontmatterError
     from .guard_common import Finding, make_finding, should_fail, summarize_findings
+    from .image_placeholder import (
+        is_production_image_placeholder_line,
+        is_production_video_placeholder_line,
+    )
     from .proof_link_policy import canonicalize_link_identity, is_generic_proof_anchor
     from .proof_sidecar import load_sidecar_content
     from .vault_claim_receipts import (
@@ -40,6 +44,10 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from context_binding_guard import visible_public_content
     from frontmatter import FrontmatterError
     from guard_common import Finding, make_finding, should_fail, summarize_findings
+    from image_placeholder import (
+        is_production_image_placeholder_line,
+        is_production_video_placeholder_line,
+    )
     from proof_link_policy import canonicalize_link_identity, is_generic_proof_anchor
     from proof_sidecar import load_sidecar_content
     from vault_claim_receipts import (
@@ -141,6 +149,7 @@ def check_content(
     vault_root: str | Path | None = None,
     context_pack: str | Path | None = None,
     context_receipt: str | Path | None = None,
+    validated_claim_set: ValidatedClaimSet | None = None,
 ) -> List[Finding]:
     """Return findings for the mandatory Fred authority evaluation contract."""
     review_required, frontmatter_error = _authority_review_state(content)
@@ -231,22 +240,25 @@ def check_content(
             )
         )
 
-    try:
-        receipt_claims = load_validated_claim_set(
-            context_pack,
-            context_receipt,
-            vault_root=vault_root,
-        )
-    except VaultClaimReceiptError as exc:
-        findings.append(
-            _finding(
-                "fred_authority_receipt_unavailable",
-                line,
-                f"Fred authority context receipt verification failed: {exc}",
-                "Restore connector validation and regenerate the context pack and receipt.",
+    if validated_claim_set is not None:
+        receipt_claims = validated_claim_set
+    else:
+        try:
+            receipt_claims = load_validated_claim_set(
+                context_pack,
+                context_receipt,
+                vault_root=vault_root,
             )
-        )
-        return _sorted(findings)
+        except VaultClaimReceiptError as exc:
+            findings.append(
+                _finding(
+                    "fred_authority_receipt_unavailable",
+                    line,
+                    f"Fred authority context receipt verification failed: {exc}",
+                    "Restore connector validation and regenerate the context pack and receipt.",
+                )
+            )
+            return _sorted(findings)
     if not receipt_claims.available:
         findings.append(
             _finding(
@@ -364,6 +376,7 @@ def check_file(
     vault_root: str | Path | None = None,
     context_pack: str | Path | None = None,
     context_receipt: str | Path | None = None,
+    validated_claim_set: ValidatedClaimSet | None = None,
 ) -> List[Finding]:
     """Check a public article file plus its validation sidecar."""
     if fail_on not in {"error", "warning", "none"}:
@@ -375,6 +388,7 @@ def check_file(
         vault_root=vault_root,
         context_pack=context_pack,
         context_receipt=context_receipt,
+        validated_claim_set=validated_claim_set,
     )
 
 
@@ -902,10 +916,30 @@ def _trim_url_candidate(value: str) -> str:
 
 
 def _public_fred_signal(content: str) -> bool:
+    visible = visible_public_content(content)
+    prose_lines: List[str] = []
+    follows_video_placeholder = False
+    for line in visible.splitlines():
+        stripped = line.strip()
+        if is_production_image_placeholder_line(stripped):
+            follows_video_placeholder = False
+            continue
+        if is_production_video_placeholder_line(stripped):
+            follows_video_placeholder = True
+            continue
+        if not stripped:
+            continue
+        if follows_video_placeholder and MARKDOWN_LINK_RE.fullmatch(
+            stripped.rstrip(".,;")
+        ):
+            follows_video_placeholder = False
+            continue
+        follows_video_placeholder = False
+        prose_lines.append(line)
     return bool(
         re.search(
             r"\bFred\s+Voccola\b",
-            visible_public_content(content),
+            "\n".join(prose_lines),
             re.IGNORECASE,
         )
     )

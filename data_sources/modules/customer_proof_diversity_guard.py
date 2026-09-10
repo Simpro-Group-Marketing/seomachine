@@ -800,6 +800,8 @@ def _parse_role_row(value: str) -> tuple[str, Dict[str, object]]:
             details["selected"] = _parse_proof_id_list(raw_value)
         elif normalized_key == "rejected stronger candidates":
             details["rejected"] = _parse_rejected_candidates(raw_value)
+        elif normalized_key == "reason":
+            details["reason"] = raw_value.strip()
     return role, details
 
 
@@ -930,6 +932,15 @@ def _experience_story_consideration_findings(
         str(candidate) for candidate in role_details.get("top_candidates", [])
     ]
     if not top_candidates:
+        reason = _normalize_space(str(role_details.get("reason", "")))
+        if (
+            "no customer proof selected" in reason
+            and "no approved claims" in reason
+        ) or (
+            "selector returned no" in reason
+            and "experience_story" in reason
+        ):
+            return []
         return [
             _finding(
                 "customer_proof_slate_experience_story_candidates_missing",

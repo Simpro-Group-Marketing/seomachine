@@ -950,6 +950,7 @@ def _extract_claim_candidates(
 ) -> List[ClaimCandidate]:
     body = _strip_frontmatter_preserve_lines(content)
     body = _blank_fenced_code(body)
+    body = _blank_reader_supplied_worksheet_tables(body)
     candidates: List[ClaimCandidate] = []
 
     for paragraph in _iter_paragraphs(body):
@@ -1020,6 +1021,29 @@ def _split_claim_sentences(text: str) -> List[str]:
         for sentence in re.split(r"(?<=[.!?])\s+(?=[A-Z0-9\[])", text.strip())
         if sentence.strip()
     ]
+
+
+def _blank_reader_supplied_worksheet_tables(content: str) -> str:
+    """Exclude variable-only calculation worksheets from empirical claim checks."""
+    lines = content.splitlines(keepends=True)
+    blanked = list(lines)
+    index = 0
+    while index < len(lines):
+        stripped = lines[index].strip()
+        if not (
+            stripped.startswith("|")
+            and "reader-supplied variables" in stripped.casefold()
+            and "calculation" in stripped.casefold()
+        ):
+            index += 1
+            continue
+        cursor = index
+        while cursor < len(lines) and lines[cursor].strip().startswith("|"):
+            newline = "\n" if lines[cursor].endswith("\n") else ""
+            blanked[cursor] = newline
+            cursor += 1
+        index = cursor
+    return "".join(blanked)
 
 
 def _matching_proofs(
@@ -1641,6 +1665,8 @@ SCENARIO_SIGNAL_RE = re.compile(
 def _is_general_claim_exempt(sentence: str) -> bool:
     """Apply only language-observable exemptions, never writer-provided labels."""
     text = _claim_text_for_detection(sentence).strip()
+    if text.endswith("?"):
+        return True
     if OPINION_SIGNAL_RE.search(text):
         return True
     if IMPERATIVE_INSTRUCTION_RE.search(text):

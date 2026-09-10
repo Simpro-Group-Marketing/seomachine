@@ -15,8 +15,8 @@ from data_sources.modules.grav_publisher import GravPublisher
 
 ROOT = Path(__file__).resolve().parents[1]
 # Ceiling includes machine-review, non-vault proof, ItemList schema,
-# and risk-tiered proof-link regression suites.
-PYTHON_TEST_LOC_REFACTOR_CEILING = 36_000
+# risk-tiered proof-link suites, and P0 readiness integrity coverage.
+PYTHON_TEST_LOC_REFACTOR_CEILING = 37_000
 
 
 BLOG_MARKDOWN = fixture_text("content_evidence:test_native_blog_workflow_boundaries-17-1")

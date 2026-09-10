@@ -19,10 +19,10 @@ from data_sources.modules.commercial_pillar_index import (
 def _write_evidence(root: Path) -> tuple[Path, Path, str, str, str, str]:
     keyword_path = root / "target-keywords.md"
     link_path = root / "internal-links-map.md"
-    keyword_line = "| field service management software | 6,600 | 47 |"
+    keyword_line = "| field service management software | 9,900 | 48 |"
     market_line = "**Source boundary**: Semrush Exact US Keyword Metrics using `phrase_these` with `database=us`."
-    title_line = "### Field Service Management Software"
-    link_line = "- **URL**: https://www.simprogroup.com/solutions/field-service-management-software"
+    title_line = "### Field Service Management Software | Simpro AI-First Platform"
+    link_line = "- **URL**: https://www.simprogroup.com/"
     keyword_path.write_text(f"{market_line}\n{keyword_line}\n", encoding="utf-8")
     link_path.write_text(f"{title_line}\n{link_line}\n", encoding="utf-8")
     return keyword_path, link_path, keyword_line, market_line, title_line, link_line
@@ -35,22 +35,22 @@ def _sha(value: str) -> str:
 def _record(root: Path, **overrides: object) -> dict[str, object]:
     keyword_path, link_path, keyword_line, market_line, title_line, link_line = _write_evidence(root)
     record: dict[str, object] = {
-        "destination_id": "simpro-us-solution-field-service-management-software",
+        "destination_id": "simpro-us-homepage-field-service-management-software",
         "brand": "Simpro",
         "market": "US",
-        "pillar_type": "solution",
-        "canonical_url": "https://www.simprogroup.com/solutions/field-service-management-software",
-        "page_title": "Field Service Management Software",
+        "pillar_type": "homepage",
+        "canonical_url": "https://www.simprogroup.com/",
+        "page_title": "Field Service Management Software | Simpro AI-First Platform",
         "title_checked": "2026-08-01",
         "title_valid_through": "2026-11-01",
         "main_keyword": "field service management software",
         "semrush_database": "us",
         "semrush_report": "phrase_these",
         "semrush_checked": "2026-08-01",
-        "semrush_valid_through": "2026-09-01",
+        "semrush_valid_through": "2026-11-01",
         "semrush_result_status": "exact",
-        "volume": 6600,
-        "keyword_difficulty": 47,
+        "volume": 9900,
+        "keyword_difficulty": 48,
         "evidence_path": [str(keyword_path), str(link_path), str(link_path)],
         "evidence_locator": ["lines:1-2", "line:1", "line:2"],
         "evidence_sha256": [_sha(f"{market_line}\n{keyword_line}"), _sha(title_line), _sha(link_line)],
@@ -82,14 +82,14 @@ def test_load_and_resolve_verified_destination(tmp_path: Path) -> None:
     findings = validate_index(index, today=date(2026, 8, 6))
     destination = get_verified_destination(
         index,
-        destination_id="simpro-us-solution-field-service-management-software",
+        destination_id="simpro-us-homepage-field-service-management-software",
         brand="Simpro",
         market="US",
     )
 
     assert findings == []
     assert destination.main_keyword == "field service management software"
-    assert destination.volume == 6600
+    assert destination.volume == 9900
 
 
 @pytest.mark.parametrize(
@@ -257,11 +257,12 @@ def test_us_evidence_cannot_be_relabelled_as_another_market(tmp_path: Path) -> N
     ("pillar_type", "path", "title", "keyword"),
     [
         ("solution", "/solutions/field-service-management-software", "Field Service Management Software", "field service management software"),
+        ("homepage", "/", "Field Service Management Software | Simpro AI-First Platform", "field service management software"),
         ("industry", "/industries/hvac-software", "HVAC", "HVAC software"),
         ("feature", "/features/scheduling-dispatch", "Scheduling Dispatch", "scheduling dispatch software"),
     ],
 )
-def test_solution_industry_and_feature_destinations_validate(
+def test_homepage_solution_industry_and_feature_destinations_validate(
     tmp_path: Path,
     pillar_type: str,
     path: str,
@@ -320,7 +321,7 @@ def test_get_verified_destination_rejects_cross_market_and_blocked_records(tmp_p
     with pytest.raises(CommercialPillarIndexError, match="brand/market"):
         get_verified_destination(
             index,
-            destination_id="simpro-us-solution-field-service-management-software",
+            destination_id="simpro-us-homepage-field-service-management-software",
             brand="Simpro",
             market="UK",
         )
@@ -328,7 +329,7 @@ def test_get_verified_destination_rejects_cross_market_and_blocked_records(tmp_p
     with pytest.raises(CommercialPillarIndexError, match="brand/market"):
         get_verified_destination(
             index,
-            destination_id="simpro-us-solution-field-service-management-software",
+            destination_id="simpro-us-homepage-field-service-management-software",
             brand="ClockShark",
             market="US",
         )
@@ -336,7 +337,7 @@ def test_get_verified_destination_rejects_cross_market_and_blocked_records(tmp_p
     with pytest.raises(CommercialPillarIndexError, match="not verified"):
         get_verified_destination(
             index,
-            destination_id="simpro-us-solution-field-service-management-software",
+            destination_id="simpro-us-homepage-field-service-management-software",
             brand="Simpro",
             market="US",
         )
@@ -350,7 +351,7 @@ def test_blocked_and_stale_records_can_remain_indexed_but_cannot_be_selected(tmp
     stale_root.mkdir()
     blocked = _record(
         blocked_root,
-        destination_id="simpro-uk-solution-field-service-management-software",
+        destination_id="simpro-uk-homepage-field-service-management-software",
         market="UK",
         semrush_database="uk",
         semrush_result_status="unavailable",
@@ -370,7 +371,7 @@ def test_blocked_and_stale_records_can_remain_indexed_but_cannot_be_selected(tmp
 
     assert validate_index(index, today=date(2026, 8, 6)) == []
     for destination_id, market in (
-        ("simpro-uk-solution-field-service-management-software", "UK"),
+        ("simpro-uk-homepage-field-service-management-software", "UK"),
         ("simpro-us-solution-stale", "US"),
     ):
         with pytest.raises(CommercialPillarIndexError, match="not verified"):

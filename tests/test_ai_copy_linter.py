@@ -170,6 +170,25 @@ class AiCopyLinterTests(unittest.TestCase):
             {finding['rule_id'] for finding in findings},
         )
 
+    def test_locked_ai_economics_headings_preserve_brief_capitalization(self):
+        content = (
+            'title: "AI Field Service Economics: What to Measure Before You Automate"\n\n'
+            '# AI Field Service Economics: What to Measure Before You Automate\n\n'
+            '## Where AI Can Change the Economics of a Job\n\n'
+            '## Build the Business Case With Your Own Numbers\n'
+        )
+
+        findings = lint_content(content)
+
+        self.assertNotIn(
+            'title_capitalized_preposition',
+            {finding['rule_id'] for finding in findings},
+        )
+        self.assertNotIn(
+            'modal_verb',
+            {finding['rule_id'] for finding in findings},
+        )
+
     def test_how_can_heading_does_not_hide_another_modal(self):
         findings = lint_content('## How Women Can and Should Start in the Trades')
 

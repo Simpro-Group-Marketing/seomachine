@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-08-28",
+  "updated_at": "2026-09-08",
   "source_boundary": "Initialized from a repo scan of drafts, rewrites, and research proof artifacts on 2026-06-12. Each entry records a detected customer proof URL occurrence so selection tooling can penalize repeated proof unless a reuse reason is documented.",
   "overuse_baselines": [
     {
@@ -382,6 +382,19 @@
       "use_type": "experience_story",
       "claim_summary": "Paraphrased WarmZilla workflow showing digital job sheets sent to engineers, completed with date, time and location-stamped photos and customer signature, then shared for invoicing and follow-up.",
       "reuse_reason": "Selected as zero-recent-use BigChange-owned proof after 2026-08-31 source verification and intake; strongest lifecycle fit for field-to-office handoff."
+    },
+    {
+      "proof_id": "case-study-foster-plumbing-job-costing-exit",
+      "source_type": "case_study",
+      "customer": "Foster Plumbing",
+      "source_url": "https://www.simprogroup.com/case-studies/foster-plumbing",
+      "article_slug": "best-plumbing-job-management-software",
+      "artifact_path": "rewrites/best-plumbing-job-management-software-rewrite-2026-09-03.md",
+      "date_used": "2026-09-08",
+      "section": "Simpro",
+      "use_type": "metric",
+      "claim_summary": "Same-paragraph Foster Plumbing case-study metric sentence: the Colorado plumbing contractor scaled from $1 million to $10 million in revenue.",
+      "reuse_reason": "Selected by the current customer-proof selector as the strongest approved proof source for a US plumbing job-management comparison after the weak G2 review proof path was rejected. Public copy uses one connector-approved case-study metric without generalizing the customer result into a guaranteed Simpro outcome."
     }
   ]
 }

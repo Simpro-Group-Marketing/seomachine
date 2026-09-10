@@ -156,14 +156,14 @@ Machine reviewers must preserve every required public link, report any proposed 
 
 Every FAQ answer must use a 40-60 word first visible paragraph and lead with a supported number or range, named recommendation, definition, concrete action, or explained yes/no response. Generic openers such as `There is no`, `It depends`, `Pricing depends`, `Costs vary`, `We do not know`, `It is unclear`, and `No source ranks` block publish readiness. Put limitations after the direct answer.
 
-Fact-driven or high-risk FAQ claims use `inline_required` and must contain a natural authoritative non-owned public evidence link in the first visible answer paragraph. Lower-risk FAQ answers follow their machine-assigned citation mode and do not gain a visible link merely to satisfy a quota. A Source Map or FAQ Proof Map documents the evidence but cannot replace a reader-facing link when `inline_required` applies. If no defensible evidence-backed answer exists, replace or remove the question. The `faq_answer_quality_guard.py` and `faq_proof_guard.py` gates both run inside `/publish-readiness`.
+Fact-driven or high-risk FAQ claims use `inline_required` and must contain a natural authoritative public evidence link in the first visible answer paragraph. FAQ support links may be owned or non-owned when they directly support the answer, but competitor-owned sources are prohibited. Lower-risk FAQ answers follow their machine-assigned citation mode and do not gain a visible link merely to satisfy a quota. A Source Map or FAQ Proof Map documents the evidence but cannot replace a reader-facing link when `inline_required` applies. If no defensible evidence-backed answer exists, replace or remove the question. The `faq_answer_quality_guard.py` and `faq_proof_guard.py` gates both run inside `/publish-readiness`.
 ## FAQ Source Policy
 
-- Allowed source classes: neutral, non_competing_expert.
+- Allowed source classes: neutral, non_competing_expert, owned_product.
 - Competitor-owned FAQ sources: prohibited.
-- Every visible non-owned FAQ URL requires its own exact `FAQ Proof Map` row in the validation sidecar: `FAQ`, `URL`, `Source class`, `Competitor check`, and `Support`. Fact-driven or high-risk answers must place that URL in the first visible paragraph.
+- Every visible FAQ URL requires its own exact `FAQ Proof Map` row in the validation sidecar: `FAQ`, `URL`, `Source class`, `Competitor check`, and `Support`. Fact-driven or high-risk answers must place a supporting URL in the first visible paragraph.
 - Permitted evidence includes regulators, standards bodies, universities, trade associations, independent research or editorial sources, and non-competing experts.
-- Simpro-owned links may be additional reader resources but never satisfy the non-owned FAQ-proof requirement.
+- Simpro-owned links may satisfy FAQ support when they directly support the answer and are classified as `owned_product`; they do not count toward the standard-blog non-owned external authority baseline.
 - If compliant evidence cannot support a vendor-specific question, remove or reframe the FAQ and retain vendor evidence in the comparison or vendor-specific body section.
 
 Use `context/aeo-geo-blog-strategy.md` as the canonical policy for Review Story Selection, Review Site Theme Selection, and approved quote/rating boundaries.

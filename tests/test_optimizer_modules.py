@@ -37,7 +37,7 @@ def long_article(primary_keyword="payments for trades businesses"):
         + "\n\n".join(sections)
         + "\n\n[field service payments](https://www.simprogroup.com/features/payments)\n"
         + "[accounts receivable follow-up with Fast Cash](https://www.simprogroup.com/features/fast-cash)\n"
-        + "[field service management software](https://www.simprogroup.com/solutions/field-service-management-software)\n"
+        + "[field service management software](https://www.simprogroup.com/)\n"
         + "[TEAMWired](https://www.simprogroup.com/case-studies/teamwired)\n"
         + "[Federal Reserve](https://www.frbservices.org/news)\n"
         + "[J.D. Power](https://www.jdpower.com/business)\n"
@@ -83,7 +83,7 @@ def concise_article_with_links(primary_keyword="payments for trades businesses")
         + "\n\n"
         + "[field service payments](https://www.simprogroup.com/features/payments)\n"
         + "[accounts receivable follow-up with Fast Cash](https://www.simprogroup.com/features/fast-cash)\n"
-        + "[field service management software](https://www.simprogroup.com/solutions/field-service-management-software)\n"
+        + "[field service management software](https://www.simprogroup.com/)\n"
         + "[Federal Reserve](https://www.frbservices.org/news)\n"
         + "[J.D. Power](https://www.jdpower.com/business)\n"
     )
@@ -209,7 +209,7 @@ class OptimizerModuleTests(unittest.TestCase):
             "Payments for trades businesses connect invoice and job status.\n\n"
             "## Choose the next action\n\n"
             "Use [field service management software]"
-            "(https://www.simprogroup.com/solutions/field-service-management-software) to connect the handoff."
+            "(https://www.simprogroup.com/) to connect the handoff."
         )
 
         result = SEOQualityRater()._score_links(
@@ -229,9 +229,9 @@ class OptimizerModuleTests(unittest.TestCase):
             "Payments for trades businesses connect invoice and job status.\n\n"
             "## Choose the next action\n\n"
             "Use [field service management software]"
-            "(https://www.simprogroup.com/solutions/field-service-management-software) to connect the handoff.\n"
+            "(https://www.simprogroup.com/) to connect the handoff.\n"
             "[field service management software]"
-            "(https://www.simprogroup.com/solutions/field-service-management-software) supports follow-up.\n"
+            "(https://www.simprogroup.com/) supports follow-up.\n"
             "[payments collection guide]"
             "(https://www.simprogroup.com/blog/payments-as-a-strategic-growth-lever-for-trades) "
             "adds planning detail.\n"
@@ -293,7 +293,7 @@ class OptimizerModuleTests(unittest.TestCase):
             "[accounts receivable follow-up with Fast Cash]"
             "(https://www.simprogroup.com/features/fast-cash) supports follow-up.\n"
             "[field service management software]"
-            "(https://www.simprogroup.com/solutions/field-service-management-software) "
+            "(https://www.simprogroup.com/) "
             "supports workflow planning.\n"
             "[payments collection guide]"
             "(https://www.simprogroup.com/blog/payments-as-a-strategic-growth-lever-for-trades) "
@@ -316,7 +316,7 @@ class OptimizerModuleTests(unittest.TestCase):
 
     def test_evidence_required_external_links_have_no_maximum_penalty(self):
         result = SEOQualityRater()._score_links(
-            "[field service management software](https://www.simprogroup.com/solutions/field-service-management-software)",
+            "[field service management software](https://www.simprogroup.com/)",
             internal_count=5,
             external_count=12,
         )
@@ -333,7 +333,7 @@ class OptimizerModuleTests(unittest.TestCase):
             "Payments for trades businesses connect invoice and job status.\n\n"
             "## Choose the next action\n\n"
             "Use [field service management software]"
-            "(https://www.simprogroup.com/solutions/field-service-management-software) to connect the handoff."
+            "(https://www.simprogroup.com/) to connect the handoff."
         )
 
         result = SEOQualityRater()._score_links(
@@ -352,7 +352,7 @@ class OptimizerModuleTests(unittest.TestCase):
             "# Payments for Trades Businesses\n\n"
             f"{long_body}\n\n"
             "Use [field service management software]"
-            "(https://www.simprogroup.com/solutions/field-service-management-software) to connect the handoff."
+            "(https://www.simprogroup.com/) to connect the handoff."
         )
 
         result = SEOQualityRater()._score_links(
@@ -413,6 +413,40 @@ class OptimizerModuleTests(unittest.TestCase):
         findings = "\n".join(result["warnings"] + result["suggestions"])
         self.assertNotIn("2-3 H2s", findings)
         self.assertNotIn("H2 headings. Target", findings)
+
+    def test_seo_quality_rater_accepts_distinct_aeo_title_topic(self):
+        content = """---
+brand: Simpro
+primary_aeo_topic: ai field service economics
+---
+# AI Field Service Economics: What to Measure Before You Automate
+
+AI field service management starts with a measurable constraint and a bounded pilot.
+
+## Build the scorecard
+
+Use operating data to compare the same workflow before and after the pilot.
+"""
+
+        result = SEOQualityRater().rate(
+            content,
+            meta_title="AI Field Service Economics: Practical Scorecard | Simpro",
+            meta_description=(
+                "Use an AI field service economics scorecard to test capacity, "
+                "cost, quality, and controls before expanding a field service pilot."
+            ),
+            primary_keyword="ai field service management",
+            secondary_keywords=[],
+            internal_link_count=0,
+            external_link_count=0,
+        )
+
+        self.assertTrue(result["details"]["keyword_in_h1"])
+        self.assertTrue(result["details"]["keyword_in_first_100"])
+        self.assertEqual(result["details"]["h1_keyword"], "ai field service economics")
+        self.assertFalse(
+            any("missing from H1" in issue for issue in result["critical_issues"])
+        )
 
     def test_seo_quality_rater_rejects_invalid_explicit_h2_rules(self):
         for guidelines in [
@@ -1022,7 +1056,7 @@ Use the regulator's current credential pages to compare experience, fees, and su
     def test_seo_quality_rater_accepts_solution_down_funnel_link(self):
         result = rate_article_with_links(
             "[field service management software]"
-            "(https://www.simprogroup.com/solutions/field-service-management-software)\n"
+            "(https://www.simprogroup.com/)\n"
             "[TEAMWired](https://www.simprogroup.com/case-studies/teamwired)\n"
             "[Simpro pricing](https://www.simprogroup.com/pricing)\n"
         )
@@ -1033,7 +1067,7 @@ Use the regulator's current credential pages to compare experience, fees, and su
     def test_seo_quality_rater_rejects_relative_simpro_commercial_link(self):
         result = rate_article_with_links(
             "[field service management software]"
-            "(/solutions/field-service-management-software)\n"
+            "(/)\n"
             "[TEAMWired](https://www.simprogroup.com/case-studies/teamwired)\n"
             "[Simpro pricing](https://www.simprogroup.com/pricing)\n"
         )
@@ -1082,7 +1116,7 @@ Use the regulator's current credential pages to compare experience, fees, and su
     def test_seo_quality_rater_weak_down_funnel_anchor_guidance_uses_indexed_keyword_language(self):
         result = rate_article_with_links(
             "[operations platform]"
-            "(https://www.simprogroup.com/solutions/field-service-management-software)\n"
+            "(https://www.simprogroup.com/)\n"
             "[TEAMWired](https://www.simprogroup.com/case-studies/teamwired)\n"
             "[Simpro pricing](https://www.simprogroup.com/pricing)\n"
         )

@@ -232,6 +232,15 @@ COPY_AVOID_RULES: List[Tuple[str, str, Pattern[str], str, str]] = [
     ),
 ]
 
+LOCKED_TITLE_CASE_EXCEPTIONS = frozenset({
+    "AI Field Service Economics: What to Measure Before You Automate",
+    "Build the Business Case With Your Own Numbers",
+})
+
+LOCKED_MODAL_HEADING_EXCEPTIONS = frozenset({
+    "## Where AI Can Change the Economics of a Job",
+})
+
 
 RHETORICAL_QUESTION = re.compile(
     r"^\s*(?:are you|do you|have you|ever wondered|what if|want to|looking for)\b.*\?",
@@ -405,6 +414,12 @@ def _should_skip_copy_avoid_rule(rule_id: str, original_line: str) -> bool:
     if (
         rule_id == "modal_verb"
         and " ".join(original_line.split()) in APPROVED_MODAL_CAVEAT_LINES
+    ):
+        return True
+
+    if (
+        rule_id == "modal_verb"
+        and " ".join(original_line.split()) in LOCKED_MODAL_HEADING_EXCEPTIONS
     ):
         return True
 
@@ -692,6 +707,9 @@ def _title_preposition_findings(
     title_start_column: int,
 ) -> List[Finding]:
     findings: List[Finding] = []
+
+    if title_text in LOCKED_TITLE_CASE_EXCEPTIONS:
+        return findings
 
     for match in WORD_RE.finditer(title_text):
         if match.start() == 0:

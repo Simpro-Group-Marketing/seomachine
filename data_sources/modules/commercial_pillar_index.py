@@ -27,7 +27,7 @@ except ImportError:  # pragma: no cover - direct script execution.
 
 
 SCHEMA_VERSION = "commercial-pillar-index/v1"
-ALLOWED_PILLAR_TYPES = {"solution", "industry", "feature", "industries_hub"}
+ALLOWED_PILLAR_TYPES = {"homepage", "solution", "industry", "feature", "industries_hub"}
 ALLOWED_MARKETS = {"US", "UK", "AU", "NZ", "CA", "IE"}
 SEMRUSH_DATABASE_BY_MARKET = {
     "US": "us",
@@ -41,6 +41,7 @@ ALLOWED_STATUSES = {"verified", "stale", "blocked", "retired"}
 ALLOWED_SEMRUSH_STATUSES = {"exact", "zero", "unavailable"}
 EXPECTED_HOST_BY_BRAND = {"simpro": "www.simprogroup.com"}
 EXPECTED_PATH_PREFIX = {
+    "homepage": "/",
     "solution": "/solutions/",
     "industry": "/industries/",
     "feature": "/features/",
@@ -365,8 +366,8 @@ def _validate_record(
         findings.append(_finding("commercial_pillar_volume_invalid", row, "Semrush volume must be zero or greater."))
     if not 0 <= record.keyword_difficulty <= 100:
         findings.append(_finding("commercial_pillar_keyword_difficulty_invalid", row, "Keyword difficulty must be between 0 and 100."))
-    if record.pillar_type in {"solution", "industry", "feature"} and not record.vault_routes:
-        findings.append(_finding("commercial_pillar_vault_routes_missing", row, "Solution, industry, and feature destinations require vault routes."))
+    if record.pillar_type in {"homepage", "solution", "industry", "feature"} and not record.vault_routes:
+        findings.append(_finding("commercial_pillar_vault_routes_missing", row, "Homepage, solution, industry, and feature destinations require vault routes."))
     if record.page_title and record.main_keyword and not _title_keyword_fit(record.page_title, record.main_keyword):
         findings.append(_finding("commercial_pillar_title_keyword_mismatch", row, "Destination main keyword does not fit the recorded page title."))
 
@@ -455,7 +456,7 @@ def _url_findings(record: CommercialPillarRecord, *, row: int) -> list[Finding]:
         findings.append(_finding("commercial_pillar_brand_domain_mismatch", row, f"Destination host does not match brand {record.brand}."))
     expected_prefix = EXPECTED_PATH_PREFIX.get(record.pillar_type)
     if expected_prefix:
-        if record.pillar_type == "industries_hub":
+        if record.pillar_type in {"homepage", "industries_hub"}:
             path_matches = parsed.path == expected_prefix
         else:
             path_matches = parsed.path.startswith(expected_prefix) and parsed.path != expected_prefix
@@ -656,7 +657,12 @@ def _title_keyword_fit(page_title: str, keyword: str) -> bool:
     keyword_tokens = set(re.findall(r"[a-z0-9]+", keyword.casefold()))
     generic = {"simpro", "software", "solution", "solutions", "industry", "industries", "feature", "features", "for", "management"}
     significant_title_tokens = title_tokens - generic
-    return bool(significant_title_tokens) and significant_title_tokens.issubset(keyword_tokens)
+    significant_keyword_tokens = keyword_tokens - generic
+    return bool(significant_title_tokens) and (
+        significant_title_tokens.issubset(keyword_tokens)
+        or bool(significant_keyword_tokens)
+        and significant_keyword_tokens.issubset(title_tokens)
+    )
 
 
 def _record_from_mapping(raw: Mapping[str, Any], *, row: int) -> CommercialPillarRecord:
