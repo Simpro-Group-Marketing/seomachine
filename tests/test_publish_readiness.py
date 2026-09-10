@@ -1116,14 +1116,18 @@ def test_context_artifacts_are_forwarded_to_claim_sensitive_gates(files):
     receipt = article.parent / "receipt.json"
     for artifact in (request, pack, receipt):
         artifact.write_text("{}\n", encoding="utf-8")
-    result, _, mocks, _ = run_with_patches(
-        article,
-        sidecar,
-        context_request=request,
-        context_pack=pack,
-        context_receipt=receipt,
-        vault_root=article.parent,
-    )
+    with patch(
+        "data_sources.modules.publish_readiness.SimproVaultClient",
+        return_value=Mock(),
+    ):
+        result, _, mocks, _ = run_with_patches(
+            article,
+            sidecar,
+            context_request=request,
+            context_pack=pack,
+            context_receipt=receipt,
+            vault_root=article.parent,
+        )
 
     assert result["passed"] is True
     context_kwargs = mocks["context_binding"].call_args.kwargs

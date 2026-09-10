@@ -23,6 +23,7 @@ class ContentGateInputs:
     runtime_policy: Mapping[str, Any]
     captured: ReadinessInputs
     validated_claim_set: ValidatedClaimSet | None
+    transport: Any | None
 
 
 def run_content_gate(
@@ -96,6 +97,11 @@ def _source_support(module: Any, value: ContentGateInputs) -> list[dict[str, Any
         value.article_content,
         base_path=value.article_path,
         proof_content=value.proof_content,
+        fetcher=(
+            lambda url: module.fetch_source_text(url, transport=value.transport)
+        )
+        if value.transport is not None
+        else None,
     )
 
 

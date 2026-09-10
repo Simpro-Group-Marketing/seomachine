@@ -6,8 +6,9 @@ import ipaddress
 import math
 import socket
 import time
+from contextlib import nullcontext
 from dataclasses import dataclass
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, ContextManager, Mapping
 from urllib.parse import urljoin, urlsplit
 
 import requests
@@ -340,6 +341,7 @@ def request_public_url(
     max_response_bytes: int = DEFAULT_MAX_RESPONSE_BYTES,
     total_timeout_seconds: float | None = None,
     resolver: Resolver = socket.getaddrinfo,
+    request_guard: Callable[[str], ContextManager[Any]] | None = None,
     **request_kwargs: Any,
 ) -> Any:
     """Request a public URL through an IP-pinned, bounded, proxy-free transport."""
@@ -361,16 +363,18 @@ def request_public_url(
     _remaining_seconds(deadline)
     current_method = method.upper()
     for redirect_count in range(max_redirects + 1):
-        response = _send_pinned_request(
-            session,
-            current_method,
-            current,
-            headers=headers,
-            timeout=timeout,
-            max_response_bytes=max_response_bytes,
-            deadline=deadline,
-            request_kwargs=dict(request_kwargs),
-        )
+        guard = request_guard(current.hostname) if request_guard else nullcontext()
+        with guard:
+            response = _send_pinned_request(
+                session,
+                current_method,
+                current,
+                headers=headers,
+                timeout=timeout,
+                max_response_bytes=max_response_bytes,
+                deadline=deadline,
+                request_kwargs=dict(request_kwargs),
+            )
         status_code = getattr(response, "status_code", None)
         location = getattr(response, "headers", {}).get("Location")
         if status_code not in REDIRECT_STATUSES or not location:

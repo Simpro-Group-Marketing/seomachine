@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+from contextlib import contextmanager
+
+import pytest
 
 from data_sources.modules.readiness.inputs import ReadinessInputs
 from data_sources.modules.readiness.session import ValidationSession
+from data_sources.modules.readiness.telemetry import ReadinessTelemetry
 from data_sources.modules import readiness_gate_context
 
 
@@ -40,6 +44,42 @@ def test_session_creates_connector_and_claim_set_once(tmp_path: Path):
     assert created[-1] == "closed"
 
 
+@pytest.mark.parametrize("raises", [False, True])
+def test_session_owns_one_connector_workflow_snapshot(
+    tmp_path: Path,
+    raises: bool,
+):
+    article = tmp_path / "article.md"
+    article.write_text("# Article\n", encoding="utf-8")
+    inputs = ReadinessInputs.capture({"article": article}, workspace_root=tmp_path)
+    events: list[str] = []
+
+    class Client:
+        @contextmanager
+        def workflow_snapshot(self):
+            events.append("snapshot_enter")
+            try:
+                yield self
+            finally:
+                events.append("snapshot_exit")
+
+        def close(self) -> None:
+            events.append("close")
+
+    with pytest.raises(RuntimeError) if raises else _does_not_raise():
+        with ValidationSession(inputs, connector_factory=Client) as session:
+            assert session.connector() is session.connector()
+            if raises:
+                raise RuntimeError("gate failed")
+
+    assert events == ["snapshot_enter", "snapshot_exit", "close"]
+
+
+@contextmanager
+def _does_not_raise():
+    yield
+
+
 def test_session_findings_are_copied_and_bound_to_one_session(tmp_path: Path):
     article = tmp_path / "article.md"
     article.write_text("# Article\n", encoding="utf-8")
@@ -54,6 +94,32 @@ def test_session_findings_are_copied_and_bound_to_one_session(tmp_path: Path):
 
     other = ValidationSession(inputs)
     assert other.findings("gate") is None
+
+
+def test_session_creates_and_closes_one_public_transport(tmp_path: Path):
+    article = tmp_path / "article.md"
+    article.write_text("# Article\n", encoding="utf-8")
+    inputs = ReadinessInputs.capture({"article": article}, workspace_root=tmp_path)
+    events: list[str] = []
+
+    class Transport:
+        counters = {"requests": 3, "cache_hits": 2, "cache_misses": 1}
+
+        def close(self) -> None:
+            events.append("closed")
+
+    telemetry = ReadinessTelemetry(run_id="run-1", phase="preflight")
+    with ValidationSession(
+        inputs, transport_factory=Transport, telemetry=telemetry
+    ) as session:
+        assert session.transport() is session.transport()
+
+    assert events == ["closed"]
+    telemetry.finish("passed")
+    counters = telemetry.to_dict()["counters"]
+    assert counters["http_requests"] == 3
+    assert counters["cache_hits"] == 2
+    assert counters["cache_misses"] == 1
 
 
 def test_trusted_findings_do_not_rehash_files_during_lookup(

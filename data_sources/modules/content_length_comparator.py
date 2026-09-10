@@ -21,12 +21,13 @@ except ImportError:  # pragma: no cover - supports direct script execution.
 class ContentLengthComparator:
     """Compares content length against top SERP competitors"""
 
-    def __init__(self, *, session=None, resolver=socket.getaddrinfo):
+    def __init__(self, *, session=None, resolver=socket.getaddrinfo, transport=None):
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
         self.session = session or requests.Session()
         self.resolver = resolver
+        self.transport = transport
 
     def analyze(
         self,
@@ -187,14 +188,23 @@ class ContentLengthComparator:
             'h2_headings': [],
         }
         try:
-            response = request_public_url(
-                self.session,
-                'GET',
-                url,
-                headers=self.headers,
-                timeout=10,
-                resolver=self.resolver,
-            )
+            if self.transport is not None:
+                response = self.transport.request(
+                    'GET',
+                    url,
+                    headers=self.headers,
+                    timeout=10,
+                    response_profile="competitor-content",
+                )
+            else:
+                response = request_public_url(
+                    self.session,
+                    'GET',
+                    url,
+                    headers=self.headers,
+                    timeout=10,
+                    resolver=self.resolver,
+                )
             response.raise_for_status()
 
             soup = BeautifulSoup(response.content, 'html.parser')

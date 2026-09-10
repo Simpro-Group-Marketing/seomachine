@@ -8,6 +8,7 @@ from typing import Any, Callable, Mapping
 from .inputs import ReadinessInputs
 from .session import ValidationSession
 from .telemetry import ReadinessTelemetry
+from ..public_http import PublicHttpTransport
 
 
 def run_in_session(
@@ -19,6 +20,7 @@ def run_in_session(
     blocked_result: Callable[[ValueError], Mapping[str, Any]],
     connector_factory: Callable[[], Any],
     claim_loader: Callable[[Any], Any],
+    transport_factory: Callable[[], Any] | None = None,
     telemetry: ReadinessTelemetry | None,
 ) -> Mapping[str, Any]:
     """Capture first, fail closed, and close external resources on every exit."""
@@ -35,6 +37,7 @@ def run_in_session(
         inputs,
         connector_factory=connector_factory,
         claim_loader=claim_loader,
+        transport_factory=transport_factory or PublicHttpTransport,
         telemetry=telemetry,
     ) as session:
         return runner(

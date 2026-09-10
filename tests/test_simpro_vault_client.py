@@ -242,7 +242,7 @@ def test_dependency_is_pinned_to_immutable_v2_release() -> None:
     assert (
         "simpro-vault-connector @ "
         "git+https://github.com/Simpro-Group-Marketing/"
-        "simpro-context-connector.git@v2.1.0"
+        "simpro-context-connector.git@v2.2.0"
     ) in requirements
 
 

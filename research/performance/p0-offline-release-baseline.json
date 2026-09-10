@@ -1,0 +1,136 @@
+{
+  "boundary_counters": {
+    "cache_hits": 0,
+    "cache_misses": 0,
+    "connector_final_seals": 0,
+    "connector_state_parses": 0,
+    "full_readiness_executions": 1,
+    "http_operations": 0,
+    "reason": "The deterministic characterization test replaces external boundaries."
+  },
+  "environment": {
+    "platform": "win32",
+    "process_peak_rss_available": true,
+    "python": "3.14.4"
+  },
+  "fixture": "tests/test_blog_release.py::test_blog_release_finalizes_only_with_optimizer_evidence",
+  "repository_commit": "8d2feb6ef166bf21fcc3b77085ee0ebbe6d3da92",
+  "samples": [
+    {
+      "fixture_elapsed_ms": 2169.525,
+      "peak_rss_bytes": 151613440,
+      "scoring_imports": [
+        "data_sources.modules.content_scorer",
+        "data_sources.modules.readability_scorer",
+        "textstat"
+      ],
+      "wall_ms": 2701.829
+    },
+    {
+      "fixture_elapsed_ms": 2107.993,
+      "peak_rss_bytes": 150917120,
+      "scoring_imports": [
+        "data_sources.modules.content_scorer",
+        "data_sources.modules.readability_scorer",
+        "textstat"
+      ],
+      "wall_ms": 2615.942
+    },
+    {
+      "fixture_elapsed_ms": 2164.082,
+      "peak_rss_bytes": 150638592,
+      "scoring_imports": [
+        "data_sources.modules.content_scorer",
+        "data_sources.modules.readability_scorer",
+        "textstat"
+      ],
+      "wall_ms": 2678.652
+    },
+    {
+      "fixture_elapsed_ms": 2190.164,
+      "peak_rss_bytes": 150892544,
+      "scoring_imports": [
+        "data_sources.modules.content_scorer",
+        "data_sources.modules.readability_scorer",
+        "textstat"
+      ],
+      "wall_ms": 2728.658
+    },
+    {
+      "fixture_elapsed_ms": 2305.183,
+      "peak_rss_bytes": 151195648,
+      "scoring_imports": [
+        "data_sources.modules.content_scorer",
+        "data_sources.modules.readability_scorer",
+        "textstat"
+      ],
+      "wall_ms": 2849.151
+    },
+    {
+      "fixture_elapsed_ms": 2154.324,
+      "peak_rss_bytes": 151236608,
+      "scoring_imports": [
+        "data_sources.modules.content_scorer",
+        "data_sources.modules.readability_scorer",
+        "textstat"
+      ],
+      "wall_ms": 2677.069
+    },
+    {
+      "fixture_elapsed_ms": 2133.232,
+      "peak_rss_bytes": 151068672,
+      "scoring_imports": [
+        "data_sources.modules.content_scorer",
+        "data_sources.modules.readability_scorer",
+        "textstat"
+      ],
+      "wall_ms": 2626.234
+    },
+    {
+      "fixture_elapsed_ms": 2140.465,
+      "peak_rss_bytes": 151322624,
+      "scoring_imports": [
+        "data_sources.modules.content_scorer",
+        "data_sources.modules.readability_scorer",
+        "textstat"
+      ],
+      "wall_ms": 2645.794
+    },
+    {
+      "fixture_elapsed_ms": 2131.745,
+      "peak_rss_bytes": 151814144,
+      "scoring_imports": [
+        "data_sources.modules.content_scorer",
+        "data_sources.modules.readability_scorer",
+        "textstat"
+      ],
+      "wall_ms": 2705.332
+    },
+    {
+      "fixture_elapsed_ms": 2343.7,
+      "peak_rss_bytes": 151199744,
+      "scoring_imports": [
+        "data_sources.modules.content_scorer",
+        "data_sources.modules.readability_scorer",
+        "textstat"
+      ],
+      "wall_ms": 2953.367
+    }
+  ],
+  "schema": "simpro-offline-release-benchmark/v1",
+  "summary": {
+    "median_peak_rss_bytes": 151197696,
+    "median_wall_ms": 2690.24,
+    "sample_count": 10
+  },
+  "warmup": {
+    "fixture_elapsed_ms": 2134.328,
+    "peak_rss_bytes": 151384064,
+    "scoring_imports": [
+      "data_sources.modules.content_scorer",
+      "data_sources.modules.readability_scorer",
+      "textstat"
+    ],
+    "wall_ms": 2712.383
+  }
+}

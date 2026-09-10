@@ -1,0 +1,438 @@
+{
+  "complexity_violations": {
+    "data_sources/modules/above_fold_analyzer.py": {
+      "_analyze_headline": 15
+    },
+    "data_sources/modules/aeo_geo_rater.py": {
+      "_check_schema": 11,
+      "_has_documented_no_fit_experience_boundary": 19,
+      "_validated_customer_experience_binding": 13
+    },
+    "data_sources/modules/ai_copy_linter.py": {
+      "_iter_active_lines": 12
+    },
+    "data_sources/modules/blog_assembly_bom_guard.py": {
+      "_check_artifact_inventory": 20,
+      "_check_editorial_plan": 18,
+      "_check_hindsight_strategy_policy": 17,
+      "_check_machine_reviews": 13,
+      "_check_preflight": 30,
+      "_check_schema_and_faq": 12,
+      "_check_topology": 11,
+      "_check_workflow": 44,
+      "check_archived_final_bom": 12,
+      "check_bom": 22
+    },
+    "data_sources/modules/blog_assembly_contract.py": {
+      "artifact_inventory_snapshots": 12
+    },
+    "data_sources/modules/blog_assembly_stage_receipt.py": {
+      "_validate_native_edit_state": 12,
+      "check_receipt_chain": 23,
+      "check_stage_receipt": 39
+    },
+    "data_sources/modules/blog_creation_preflight.py": {
+      "build_preflight_report": 21
+    },
+    "data_sources/modules/blog_identity_guard.py": {
+      "check_article": 16
+    },
+    "data_sources/modules/blog_strategy_contract.py": {
+      "validate_contract": 17
+    },
+    "data_sources/modules/blog_strategy_guard.py": {
+      "check_content": 38
+    },
+    "data_sources/modules/chrome_review_evidence.py": {
+      "validate_evidence_artifact": 19
+    },
+    "data_sources/modules/commercial_pillar_index.py": {
+      "_validate_record": 19
+    },
+    "data_sources/modules/competitive_shortlist_guard.py": {
+      "check_content": 21
+    },
+    "data_sources/modules/content_length_comparator.py": {
+      "analyze": 18
+    },
+    "data_sources/modules/context_binding_generator.py": {
+      "_derive_claim_map": 11,
+      "generate_and_install": 18
+    },
+    "data_sources/modules/context_binding_guard.py": {
+      "_check_file_impl": 23,
+      "_request_article_error": 19,
+      "validate_claim_map": 28
+    },
+    "data_sources/modules/cta_analyzer.py": {
+      "_score_cta": 14
+    },
+    "data_sources/modules/customer_proof_evidence.py": {
+      "_verify_nonvault_selector_evidence": 18,
+      "verify_selector_evidence_roles": 42
+    },
+    "data_sources/modules/customer_proof_index_intake.py": {
+      "_validate_row": 14
+    },
+    "data_sources/modules/customer_proof_selector.py": {
+      "_matches_proof_role": 12
+    },
+    "data_sources/modules/dataforseo.py": {
+      "analyze_competitor": 11
+    },
+    "data_sources/modules/early_artifact_guard.py": {
+      "check_content": 11
+    },
+    "data_sources/modules/editorial_plan_guard.py": {
+      "_check_engagement_map": 11,
+      "_check_final_article_bindings": 16,
+      "_check_link_policy_override_binding": 11,
+      "_check_sections": 15,
+      "_check_serp_evidence_payload": 25,
+      "_normalize_serp_raw_response": 17,
+      "_validate_serp_raw_snapshot": 15
+    },
+    "data_sources/modules/faq_proof_guard.py": {
+      "_check_faq_source_policy": 14
+    },
+    "data_sources/modules/faq_structure.py": {
+      "detect_faq_structure": 14
+    },
+    "data_sources/modules/fred_authority_guard.py": {
+      "_embed_findings": 17,
+      "check_content": 25
+    },
+    "data_sources/modules/grav_publisher.py": {
+      "publish": 12,
+      "push_article": 13
+    },
+    "data_sources/modules/hindsight_boundary_guard.py": {
+      "check_content": 11
+    },
+    "data_sources/modules/humanizer_policy.py": {
+      "load_policy_regex_rules": 15
+    },
+    "data_sources/modules/industry_cluster_link_policy.py": {
+      "_selected_resources": 14,
+      "editorial_plan_findings": 22
+    },
+    "data_sources/modules/keyword_analyzer.py": {
+      "_detect_keyword_stuffing": 11,
+      "_generate_recommendations": 12
+    },
+    "data_sources/modules/landing_page_scorer.py": {
+      "_score_above_fold": 12,
+      "_score_ctas": 12,
+      "_score_seo": 11
+    },
+    "data_sources/modules/machine_review.py": {
+      "_check_agent_responses": 12,
+      "_check_findings": 11,
+      "check_machine_review": 13
+    },
+    "data_sources/modules/metric_proof_pack_guard.py": {
+      "_extract_metric_proof_pack": 13
+    },
+    "data_sources/modules/named_feature_status_guard.py": {
+      "_detect_context_features": 12,
+      "_validate_link_row": 15,
+      "_validate_row": 13,
+      "check_content": 13
+    },
+    "data_sources/modules/numeric_claim_source_guard.py": {
+      "_iter_paragraphs": 12,
+      "_normalize_numeric_token": 12
+    },
+    "data_sources/modules/opportunity_scorer.py": {
+      "_calculate_position_score": 15
+    },
+    "data_sources/modules/paa_provenance_guard.py": {
+      "_derive_answersocrates_observations": 31,
+      "_extract_provenance_block": 14,
+      "_workflow_policy_finding": 11,
+      "build_answersocrates_artifact": 16,
+      "check_content": 32
+    },
+    "data_sources/modules/post_publish_measurement_receipt.py": {
+      "_blocked_report_is_data_only": 13,
+      "_blocked_report_values": 14,
+      "_validate_artifacts": 13,
+      "_validate_performance_report": 22,
+      "_validate_receipt_prose": 16,
+      "_validate_sources": 22,
+      "_validate_windows": 11,
+      "build_receipt": 14
+    },
+    "data_sources/modules/proof_claim_binding_guard.py": {
+      "_valid_claim_bindings": 14
+    },
+    "data_sources/modules/proof_link_policy.py": {
+      "_article_units": 17,
+      "_classify_proof_row": 14,
+      "_is_editorial_buyer_guidance": 11,
+      "analyze_proof_links": 13
+    },
+    "data_sources/modules/public_artifact_guard.py": {
+      "check_content": 13
+    },
+    "data_sources/modules/public_url_safety.py": {
+      "_materialize_bounded_response": 11,
+      "_resolve_public_url": 15
+    },
+    "data_sources/modules/publish_content_safety.py": {
+      "_iter_markdown_destinations": 22,
+      "_validate_tag": 12
+    },
+    "data_sources/modules/readability_scorer.py": {
+      "_calculate_overall_score": 19,
+      "_generate_recommendations": 17
+    },
+    "data_sources/modules/review_story_identity_guard.py": {
+      "_review_story_selection_findings": 13,
+      "_review_theme_findings": 11
+    },
+    "data_sources/modules/schema_handoff_guard.py": {
+      "_author_verified": 11,
+      "check_content": 18
+    },
+    "data_sources/modules/schema_item_list.py": {
+      "inspect_item_list_schema": 12
+    },
+    "data_sources/modules/search_intent_analyzer.py": {
+      "_analyze_keyword_patterns": 12,
+      "_get_detected_signals": 13
+    },
+    "data_sources/modules/semrush_keyword_decision_guard.py": {
+      "_check_connector_reports": 14,
+      "_check_serp_finalists": 13,
+      "check_decision": 14
+    },
+    "data_sources/modules/seo_quality_rater.py": {
+      "_score_keyword_optimization": 11,
+      "_score_links": 17,
+      "rate": 14
+    },
+    "data_sources/modules/source_quality_guard.py": {
+      "_extract_source_rows": 13,
+      "_lifecycle_findings": 15,
+      "check_source_map": 23
+    },
+    "data_sources/modules/trust_signal_analyzer.py": {
+      "_calculate_score": 14
+    },
+    "data_sources/modules/vault_brand_language_guard.py": {
+      "_bound_connector_evidence_findings": 11,
+      "_context_resource_ids": 17,
+      "check_content": 16
+    },
+    "data_sources/modules/wordpress_publisher.py": {
+      "_find_existing_draft": 15,
+      "_validate_draft_readback": 13,
+      "create_draft": 15,
+      "publish_draft": 15
+    },
+    "scripts/research_competitor_gaps.py": {
+      "main": 18,
+      "write_markdown_report": 12
+    },
+    "scripts/research_performance_matrix.py": {
+      "main": 13
+    },
+    "scripts/research_quick_wins.py": {
+      "main": 21
+    },
+    "scripts/research_serp_analysis.py": {
+      "normalize_serp_payload": 13,
+      "run_serp_analysis": 24,
+      "write_content_brief_section": 12,
+      "write_markdown_report": 18
+    },
+    "scripts/research_topic_clusters.py": {
+      "calculate_authority_score": 16,
+      "main": 13,
+      "write_markdown_report": 15
+    },
+    "scripts/research_trending.py": {
+      "calculate_trend_opportunity_score": 13,
+      "main": 14,
+      "write_markdown_report": 21
+    },
+    "scripts/run_corrected_live_blog_performance.py": {
+      "build_engagement_writing_diagnosis": 20,
+      "content_style_review": 14,
+      "main": 13,
+      "read_gen_ai_export": 11
+    },
+    "scripts/seo_baseline_analysis.py": {
+      "main": 39
+    },
+    "scripts/seo_bofu_rankings.py": {
+      "main": 21
+    },
+    "scripts/seo_competitor_analysis.py": {
+      "main": 46
+    }
+  },
+  "maximum_lines": 500,
+  "oversized_production_files": {
+    "data_sources/modules/above_fold_analyzer.py": 512,
+    "data_sources/modules/aeo_geo_rater.py": 1922,
+    "data_sources/modules/ai_copy_linter.py": 782,
+    "data_sources/modules/blog_assembly_bom_guard.py": 2246,
+    "data_sources/modules/blog_assembly_contract.py": 668,
+    "data_sources/modules/blog_assembly_stage_receipt.py": 943,
+    "data_sources/modules/blog_creation_preflight.py": 823,
+    "data_sources/modules/blog_strategy_guard.py": 640,
+    "data_sources/modules/commercial_pillar_index.py": 811,
+    "data_sources/modules/content_scrubber.py": 592,
+    "data_sources/modules/context_binding_generator.py": 807,
+    "data_sources/modules/context_binding_guard.py": 912,
+    "data_sources/modules/cro_checker.py": 655,
+    "data_sources/modules/cta_analyzer.py": 550,
+    "data_sources/modules/customer_proof_diversity_guard.py": 1663,
+    "data_sources/modules/customer_proof_index_health.py": 514,
+    "data_sources/modules/customer_proof_index_intake.py": 639,
+    "data_sources/modules/customer_proof_selector.py": 1291,
+    "data_sources/modules/dataforseo.py": 678,
+    "data_sources/modules/editorial_plan_guard.py": 2134,
+    "data_sources/modules/eeat_strength_guard.py": 718,
+    "data_sources/modules/fred_authority_guard.py": 1016,
+    "data_sources/modules/google_search_console.py": 555,
+    "data_sources/modules/grav_publisher.py": 902,
+    "data_sources/modules/industry_cluster_link_policy.py": 1073,
+    "data_sources/modules/keyword_analyzer.py": 800,
+    "data_sources/modules/landing_page_scorer.py": 782,
+    "data_sources/modules/machine_review.py": 695,
+    "data_sources/modules/named_feature_status_guard.py": 1187,
+    "data_sources/modules/nonvault_customer_proof_selector.py": 524,
+    "data_sources/modules/numeric_claim_source_guard.py": 695,
+    "data_sources/modules/opportunity_scorer.py": 515,
+    "data_sources/modules/paa_provenance_guard.py": 2032,
+    "data_sources/modules/post_publish_measurement_receipt.py": 1583,
+    "data_sources/modules/proof_link_policy.py": 1018,
+    "data_sources/modules/public_research_link_guard.py": 592,
+    "data_sources/modules/readability_scorer.py": 505,
+    "data_sources/modules/review_story_identity_guard.py": 673,
+    "data_sources/modules/semrush_keyword_decision_guard.py": 689,
+    "data_sources/modules/seo_quality_rater.py": 1791,
+    "data_sources/modules/source_quality_guard.py": 593,
+    "data_sources/modules/trust_signal_analyzer.py": 567,
+    "data_sources/modules/vault_brand_language_guard.py": 954,
+    "data_sources/modules/wordpress_publisher.py": 1108,
+    "scripts/build_plumbing_recovery_evidence.py": 791,
+    "scripts/live_blog_source_pull.py": 629,
+    "scripts/research_competitor_gaps.py": 545,
+    "scripts/research_serp_analysis.py": 1674,
+    "scripts/research_topic_clusters.py": 565,
+    "scripts/run_corrected_live_blog_performance.py": 2034,
+    "tools/humanizer_upstream.py": 627
+  },
+  "production_roots": [
+    "data_sources",
+    "scripts",
+    "tools"
+  ],
+  "schema": "simpro-python-structure-baseline/v2",
+  "target_lines": 400,
+  "test_file_lines": {
+    "tests/__init__.py": 1,
+    "tests/fixture_text.py": 22,
+    "tests/nonvault_proof_fixture.py": 121,
+    "tests/research_provenance_fixtures.py": 107,
+    "tests/test_aeo_geo_rater.py": 1762,
+    "tests/test_aeo_geo_workflow_docs.py": 460,
+    "tests/test_agent_governance_docs.py": 40,
+    "tests/test_ai_copy_linter.py": 608,
+    "tests/test_answer_withholding_guard.py": 212,
+    "tests/test_author_video_policy.py": 167,
+    "tests/test_blog_assembly_bom.py": 2394,
+    "tests/test_blog_assembly_bom_guard.py": 835,
+    "tests/test_blog_assembly_bom_input_types.py": 49,
+    "tests/test_blog_assembly_bom_v2.py": 250,
+    "tests/test_blog_assembly_capabilities.py": 174,
+    "tests/test_blog_assembly_contract.py": 255,
+    "tests/test_blog_assembly_stage_receipt.py": 573,
+    "tests/test_blog_creation_preflight.py": 575,
+    "tests/test_blog_identity_guard.py": 90,
+    "tests/test_blog_release.py": 288,
+    "tests/test_blog_strategy_guard.py": 518,
+    "tests/test_chrome_review_evidence.py": 141,
+    "tests/test_commercial_pillar_index.py": 497,
+    "tests/test_competitive_shortlist_guard.py": 171,
+    "tests/test_content_length_comparator.py": 272,
+    "tests/test_content_scorer_aeo_geo_gate.py": 1228,
+    "tests/test_content_scrubber.py": 358,
+    "tests/test_context_binding_guard.py": 2592,
+    "tests/test_context_refactor_integrity.py": 167,
+    "tests/test_customer_proof_diversity_guard.py": 1489,
+    "tests/test_customer_proof_index_health.py": 525,
+    "tests/test_customer_proof_index_intake.py": 531,
+    "tests/test_customer_proof_selector.py": 1631,
+    "tests/test_dataforseo_official_contract.py": 381,
+    "tests/test_early_artifact_guard.py": 189,
+    "tests/test_editorial_plan_guard.py": 746,
+    "tests/test_editorial_scoring.py": 130,
+    "tests/test_eeat_strength_guard.py": 361,
+    "tests/test_execution_attestation.py": 82,
+    "tests/test_faq_answer_quality_guard.py": 214,
+    "tests/test_faq_proof_guard.py": 474,
+    "tests/test_faq_structure.py": 66,
+    "tests/test_fred_authority_guard.py": 859,
+    "tests/test_fred_authority_selector.py": 467,
+    "tests/test_fred_authority_topology.py": 182,
+    "tests/test_frontmatter_contract.py": 172,
+    "tests/test_google_analytics_compat.py": 102,
+    "tests/test_grav_publisher.py": 974,
+    "tests/test_guard_common.py": 76,
+    "tests/test_hindsight_boundary_guard.py": 69,
+    "tests/test_humanizer_quality_corpus.py": 80,
+    "tests/test_humanizer_update_workflow.py": 66,
+    "tests/test_humanizer_upstream.py": 524,
+    "tests/test_industry_cluster_link_policy.py": 208,
+    "tests/test_item_list_schema_support.py": 310,
+    "tests/test_link_policy_override.py": 128,
+    "tests/test_machine_review.py": 139,
+    "tests/test_metric_proof_pack_guard.py": 124,
+    "tests/test_named_feature_status_guard.py": 487,
+    "tests/test_named_feature_topology.py": 296,
+    "tests/test_native_blog_workflow_boundaries.py": 303,
+    "tests/test_nonvault_customer_proof_selector.py": 173,
+    "tests/test_numeric_claim_source_guard.py": 290,
+    "tests/test_optimizer_modules.py": 1303,
+    "tests/test_p0_structure.py": 19,
+    "tests/test_paa_provenance_guard.py": 1840,
+    "tests/test_post_publish_measurement_receipt.py": 1301,
+    "tests/test_post_publish_measurement_release_boundary.py": 152,
+    "tests/test_proof_link_policy.py": 747,
+    "tests/test_proof_sidecar.py": 58,
+    "tests/test_proof_usage.py": 106,
+    "tests/test_public_artifact_guard.py": 351,
+    "tests/test_public_http_transport.py": 287,
+    "tests/test_public_research_link_guard.py": 257,
+    "tests/test_public_url_safety.py": 469,
+    "tests/test_publish_content_safety.py": 55,
+    "tests/test_publish_readiness.py": 1891,
+    "tests/test_publishable_markdown.py": 38,
+    "tests/test_python_structure.py": 35,
+    "tests/test_readiness_inputs.py": 156,
+    "tests/test_readiness_lazy_scoring.py": 59,
+    "tests/test_readiness_session.py": 158,
+    "tests/test_readiness_telemetry.py": 75,
+    "tests/test_repurpose_workflow_docs.py": 178,
+    "tests/test_research_competitor_gaps.py": 21,
+    "tests/test_research_performance_workflow_docs.py": 223,
+    "tests/test_research_quick_wins_helpers.py": 90,
+    "tests/test_review_story_identity_guard.py": 337,
+    "tests/test_schema_handoff_guard.py": 181,
+    "tests/test_semrush_keyword_decision_guard.py": 257,
+    "tests/test_simpro_vault_client.py": 264,
+    "tests/test_source_quality_guard.py": 391,
+    "tests/test_source_support_guard.py": 1677,
+    "tests/test_url_validator.py": 300,
+    "tests/test_vault_brand_language_guard.py": 544,
+    "tests/test_vault_claim_receipts.py": 443,
+    "tests/test_vault_topology_neutrality.py": 433,
+    "tests/test_wordpress_publisher.py": 1186,
+    "tests/vault_context_fixture.py": 170
+  }
+}

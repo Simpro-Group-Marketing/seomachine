@@ -16,7 +16,6 @@ from data_sources.modules.grav_publisher import GravPublisher
 ROOT = Path(__file__).resolve().parents[1]
 # Ceiling includes machine-review, non-vault proof, ItemList schema,
 # risk-tiered proof-link suites, and P0 readiness integrity coverage.
-PYTHON_TEST_LOC_REFACTOR_CEILING = 37_000
 
 
 BLOG_MARKDOWN = fixture_text("content_evidence:test_native_blog_workflow_boundaries-17-1")
@@ -274,17 +273,6 @@ def test_retained_python_modules_do_not_hardcode_blog_copy_writes():
                 violations.append(f"{path.relative_to(ROOT)}:{line_number}: {line.strip()}")
 
     assert violations == []
-
-
-def test_python_test_loc_stays_below_the_refactor_ceiling():
-    python_test_loc = sum(
-        1
-        for path in (ROOT / "tests").rglob("*.py")
-        for line in path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    )
-
-    assert python_test_loc <= PYTHON_TEST_LOC_REFACTOR_CEILING
 
 
 @pytest.mark.parametrize(

@@ -67,6 +67,23 @@ class UrlExtractionTests(unittest.TestCase):
 
 
 class UrlValidationTests(unittest.TestCase):
+    def test_uses_injected_run_scoped_transport(self):
+        class Transport:
+            def __init__(self):
+                self.calls = []
+
+            def request(self, method, url, **kwargs):
+                self.calls.append((method, url, kwargs))
+                return FakeResponse(200, url)
+
+        transport = Transport()
+        validator = UrlValidator(transport=transport)
+
+        result = validator.validate_url("https://example.com/source")
+
+        self.assertTrue(result.passed)
+        self.assertEqual([call[:2] for call in transport.calls], [("HEAD", "https://example.com/source")])
+
     def test_blocks_private_destination_before_any_http_request(self):
         session = FakeSession([])
 

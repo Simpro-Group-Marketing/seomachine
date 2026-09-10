@@ -963,30 +963,30 @@ Source Map:
 
         self.assertEqual(findings, [])
 
-    def test_fetch_source_text_uses_builtin_file_cache_when_diskcache_is_unavailable(self):
+    def test_fetch_source_text_uses_injected_shared_transport(self):
         class FakeResponse:
             text = "<html><body>Visible proof text for source support.</body></html>"
 
             def raise_for_status(self):
                 return None
 
-        old_cwd = os.getcwd()
-        with tempfile.TemporaryDirectory() as temp_dir:
-            os.chdir(temp_dir)
-            try:
-                request = Mock(return_value=FakeResponse())
-                with patch("data_sources.modules.source_support_guard.Cache", None), patch(
-                    "data_sources.modules.source_support_guard.request_public_url",
-                    request,
-                ):
-                    first = fetch_source_text("https://example.com/source")
-                    second = fetch_source_text("https://example.com/source")
+        request = Mock(return_value=FakeResponse())
 
-                self.assertIn("Visible proof text", first)
-                self.assertEqual(first, second)
-                self.assertEqual(request.call_count, 1)
-            finally:
-                os.chdir(old_cwd)
+        class Transport:
+            response = None
+
+            def request(self, method, url, **kwargs):
+                if self.response is None:
+                    self.response = request(method, url, **kwargs)
+                return self.response
+
+        transport = Transport()
+        first = fetch_source_text("https://example.com/source", transport=transport)
+        second = fetch_source_text("https://example.com/source", transport=transport)
+
+        self.assertIn("Visible proof text", first)
+        self.assertEqual(first, second)
+        self.assertEqual(request.call_count, 1)
 
     def test_fetch_source_text_blocks_private_destination_before_request(self):
         def resolver(host, port, *, type=socket.SOCK_STREAM):

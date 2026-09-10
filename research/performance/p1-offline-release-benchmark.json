@@ -1,0 +1,92 @@
+{
+  "boundary_counters": {
+    "cache_hits": 0,
+    "cache_misses": 0,
+    "connector_final_seals": 0,
+    "connector_state_parses": 0,
+    "full_readiness_executions": 1,
+    "http_operations": 0,
+    "reason": "The deterministic characterization test replaces external boundaries."
+  },
+  "environment": {
+    "platform": "win32",
+    "process_peak_rss_available": true,
+    "python": "3.14.4"
+  },
+  "fixture": "tests/test_blog_release.py::test_blog_release_finalizes_only_with_optimizer_evidence",
+  "repository_commit": "8d2feb6ef166bf21fcc3b77085ee0ebbe6d3da92",
+  "samples": [
+    {
+      "fixture_elapsed_ms": 1340.027,
+      "peak_rss_bytes": 70311936,
+      "scoring_imports": [],
+      "wall_ms": 1847.876
+    },
+    {
+      "fixture_elapsed_ms": 1354.05,
+      "peak_rss_bytes": 70377472,
+      "scoring_imports": [],
+      "wall_ms": 1905.896
+    },
+    {
+      "fixture_elapsed_ms": 1236.266,
+      "peak_rss_bytes": 70627328,
+      "scoring_imports": [],
+      "wall_ms": 1714.62
+    },
+    {
+      "fixture_elapsed_ms": 1227.463,
+      "peak_rss_bytes": 70569984,
+      "scoring_imports": [],
+      "wall_ms": 1734.192
+    },
+    {
+      "fixture_elapsed_ms": 1437.617,
+      "peak_rss_bytes": 70184960,
+      "scoring_imports": [],
+      "wall_ms": 1983.335
+    },
+    {
+      "fixture_elapsed_ms": 1440.028,
+      "peak_rss_bytes": 70258688,
+      "scoring_imports": [],
+      "wall_ms": 1990.42
+    },
+    {
+      "fixture_elapsed_ms": 1411.285,
+      "peak_rss_bytes": 70496256,
+      "scoring_imports": [],
+      "wall_ms": 1981.834
+    },
+    {
+      "fixture_elapsed_ms": 1249.095,
+      "peak_rss_bytes": 70565888,
+      "scoring_imports": [],
+      "wall_ms": 1761.94
+    },
+    {
+      "fixture_elapsed_ms": 1384.236,
+      "peak_rss_bytes": 70250496,
+      "scoring_imports": [],
+      "wall_ms": 1898.915
+    },
+    {
+      "fixture_elapsed_ms": 1351.317,
+      "peak_rss_bytes": 70266880,
+      "scoring_imports": [],
+      "wall_ms": 1889.549
+    }
+  ],
+  "schema": "simpro-offline-release-benchmark/v1",
+  "summary": {
+    "median_peak_rss_bytes": 70344704,
+    "median_wall_ms": 1894.232,
+    "sample_count": 10
+  },
+  "warmup": {
+    "fixture_elapsed_ms": 1422.267,
+    "peak_rss_bytes": 70500352,
+    "scoring_imports": [],
+    "wall_ms": 2001.257
+  }
+}

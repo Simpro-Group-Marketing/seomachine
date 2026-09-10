@@ -131,6 +131,26 @@ class ContentLengthComparatorTests(unittest.TestCase):
         self.assertTrue(callable(ContentLengthComparator().fetch_word_count))
         self.assertTrue(callable(ContentLengthComparator().fetch_content_context))
 
+    def test_public_content_context_uses_injected_transport(self):
+        transport = Mock()
+        response = Mock()
+        response.content = b"<html><body><main><h2>Observed heading</h2><p>Observed page words.</p></main></body></html>"
+        response.raise_for_status.return_value = None
+        transport.request.return_value = response
+
+        context = ContentLengthComparator(transport=transport).fetch_content_context(
+            "https://example.com/guide"
+        )
+
+        self.assertGreater(context["word_count"], 0)
+        transport.request.assert_called_once_with(
+            "GET",
+            "https://example.com/guide",
+            headers=ContentLengthComparator(transport=transport).headers,
+            timeout=10,
+            response_profile="competitor-content",
+        )
+
     @patch("data_sources.modules.content_length_comparator.request_public_url")
     def test_public_content_context_fetches_word_count_and_h2_headings_once(self, request):
         response = Mock()

@@ -18,8 +18,11 @@ class ValidationSession:
         "_closed",
         "_connector",
         "_connector_factory",
+        "_connector_snapshot",
         "_context_result",
         "_findings",
+        "_transport",
+        "_transport_factory",
         "inputs",
         "telemetry",
     )
@@ -30,6 +33,7 @@ class ValidationSession:
         *,
         connector_factory: Callable[[], Any] | None = None,
         claim_loader: Callable[[Any], Any] | None = None,
+        transport_factory: Callable[[], Any] | None = None,
         telemetry: ReadinessTelemetry | None = None,
     ) -> None:
         if not isinstance(inputs, ReadinessInputs):
@@ -38,10 +42,13 @@ class ValidationSession:
         self.telemetry = telemetry
         self._connector_factory = connector_factory
         self._claim_loader = claim_loader
+        self._transport_factory = transport_factory
         self._connector: Any = None
+        self._connector_snapshot: Any = None
         self._claim_set: Any = None
         self._context_result: Any = None
         self._findings: dict[str, tuple[dict[str, Any], ...]] = {}
+        self._transport: Any = None
         self._closed = False
 
     def __enter__(self) -> "ValidationSession":
@@ -58,6 +65,18 @@ class ValidationSession:
             if self._connector_factory is None:
                 raise RuntimeError("ValidationSession has no connector factory")
             self._connector = self._connector_factory()
+            workflow_snapshot = getattr(type(self._connector), "workflow_snapshot", None)
+            if callable(workflow_snapshot):
+                candidate = workflow_snapshot(self._connector)
+                enter = getattr(candidate, "__enter__", None)
+                exit_snapshot = getattr(candidate, "__exit__", None)
+                if callable(enter) and callable(exit_snapshot):
+                    self._connector_snapshot = candidate
+                    snapshot_client = enter()
+                    if snapshot_client is not self._connector:
+                        exit_snapshot(None, None, None)
+                        self._connector_snapshot = None
+                        raise RuntimeError("connector workflow_snapshot must return its client")
             if self.telemetry is not None:
                 self.telemetry.increment("connector_clients")
         return self._connector
@@ -71,6 +90,14 @@ class ValidationSession:
             if self.telemetry is not None:
                 self.telemetry.increment("connector_operations")
         return self._claim_set
+
+    def transport(self) -> Any:
+        self._require_open()
+        if self._transport is None:
+            if self._transport_factory is None:
+                raise RuntimeError("ValidationSession has no transport factory")
+            self._transport = self._transport_factory()
+        return self._transport
 
     def context_result(self) -> Any:
         self._require_open()
@@ -104,13 +131,29 @@ class ValidationSession:
             return
         self._closed = True
         connector = self._connector
+        snapshot = self._connector_snapshot
+        transport = self._transport
         self._connector = None
-        if connector is not None:
-            close = getattr(connector, "close", None)
-            if callable(close):
-                close()
+        self._connector_snapshot = None
+        self._transport = None
+        try:
+            if transport is not None:
+                counters = getattr(transport, "counters", {})
+                if self.telemetry is not None and isinstance(counters, Mapping):
+                    self.telemetry.increment("http_requests", int(counters.get("requests", 0)))
+                    self.telemetry.increment("cache_hits", int(counters.get("cache_hits", 0)))
+                    self.telemetry.increment("cache_misses", int(counters.get("cache_misses", 0)))
+                transport.close()
+        finally:
+            try:
+                if snapshot is not None:
+                    snapshot.__exit__(None, None, None)
+            finally:
+                if connector is not None:
+                    close = getattr(connector, "close", None)
+                    if callable(close):
+                        close()
 
     def _require_open(self) -> None:
         if self._closed:
             raise RuntimeError("ValidationSession is closed")
-
