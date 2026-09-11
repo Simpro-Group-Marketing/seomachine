@@ -256,6 +256,7 @@ def _run_remaining_gates(
     sealed_input_hashes: Dict[str, Dict[str, str]] | None,
     input_capture_error: ValueError | None,
     telemetry: ReadinessTelemetry | None,
+    run_id: str | None,
 ) -> ReadinessResult:
     gates.append(
         _gate_from_findings(
@@ -463,7 +464,7 @@ def _run_remaining_gates(
         "input_seal": {
             "status": "verified" if not seal_findings else "failed",
         },
-        "run_id": _readiness_run_id(assembly_bom_path, article.sha256),
+        "run_id": run_id or _readiness_run_id(assembly_bom_path, article.sha256),
         "started_at": run_started_at,
         "completed_at": _utc_now(),
     }

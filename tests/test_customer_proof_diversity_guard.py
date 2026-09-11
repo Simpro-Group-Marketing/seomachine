@@ -1,5 +1,4 @@
 from tests.fixture_text import fixture_text
-
 import json
 import unittest
 from contextlib import redirect_stdout
@@ -8,10 +7,9 @@ from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
-
 from data_sources.modules.customer_proof_diversity_guard import (
     _stronger_slate_candidate_findings,
-    check_content,
+    check_content as _check_content,
     check_file,
     should_fail,
 )
@@ -24,12 +22,14 @@ from tests.nonvault_proof_fixture import write_nonvault_proof_inputs
 from tests.test_customer_proof_selector import write_context_receipt_fixture
 from tests.vault_context_fixture import load_validated_claim_set_for_unit_test
 
-
 ARTICLE_WITH_CASE_STUDY = fixture_text("content_evidence:test_customer_proof_diversity_guard-20-1")
-
 ARTICLE_WITH_CLOCKSHARK_CASE_STUDY = fixture_text("content_evidence:test_customer_proof_diversity_guard-25-2")
-
 CUSTOMER_LINK_URL = "https://www.simprogroup.com/customers/acme-services"
+
+
+def check_content(*args, **kwargs):
+    kwargs.setdefault("reference_date", date(2026, 8, 28))
+    return _check_content(*args, **kwargs)
 
 
 def test_nonconnector_customer_story_accepts_hash_bound_nonvault_selector(tmp_path):

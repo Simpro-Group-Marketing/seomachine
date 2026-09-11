@@ -1,4 +1,4 @@
-"""Safe, bounded, run-scoped transport for unauthenticated public HTTP."""
+"""Safe typed transport for bounded, unauthenticated public HTTP."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Mapping
+from typing import Any, Iterable, Iterator, Mapping
 from urllib.parse import urlsplit, urlunsplit
 
 import requests
@@ -26,12 +26,18 @@ from .policies import (
     MAX_CACHE_BYTES,
     MAX_PER_HOST,
     MAX_WORKERS,
-    POLICY_VERSION,
-    persistent_ttl,
+    TRANSIENT_STATUSES,
+    TRANSPORT_VERSION,
+    HttpRequestPolicy,
+    URL_RESOLUTION_POLICY,
 )
 
 
-@dataclass(frozen=True)
+CACHE_SCHEMA = "simpro-public-http-cache/v2"
+SENSITIVE_HEADERS = frozenset({"authorization", "cookie", "proxy-authorization"})
+
+
+@dataclass(frozen=True, slots=True)
 class _ResponseSnapshot:
     status_code: int
     body: bytes
@@ -39,13 +45,28 @@ class _ResponseSnapshot:
     final_url: str
 
     @classmethod
-    def capture(cls, response: Any) -> "_ResponseSnapshot":
-        return cls(
+    def capture(
+        cls,
+        response: Any,
+        *,
+        policy: HttpRequestPolicy,
+    ) -> "_ResponseSnapshot":
+        snapshot = cls(
             status_code=int(response.status_code),
             body=bytes(getattr(response, "content", b"")),
             content_type=str(getattr(response, "headers", {}).get("Content-Type", "")),
             final_url=str(getattr(response, "url", "")),
         )
+        snapshot.validate(policy)
+        return snapshot
+
+    def validate(self, policy: HttpRequestPolicy) -> None:
+        if len(self.body) > policy.max_response_bytes:
+            raise ValueError("public HTTP response exceeds policy byte limit")
+        mime = self.content_type.partition(";")[0].strip().casefold()
+        accepted = {value.casefold() for value in policy.accepted_mime_types}
+        if "*/*" not in accepted and mime not in accepted:
+            raise ValueError("public HTTP response MIME type is not accepted by policy")
 
     def response(self) -> requests.Response:
         response = requests.Response()
@@ -57,36 +78,61 @@ class _ResponseSnapshot:
             response.headers["Content-Type"] = self.content_type
         return response
 
-    def persistent_value(self) -> dict[str, Any]:
+    def persistent_value(self, *, policy_digest: str) -> dict[str, Any]:
         return {
-            "schema": "simpro-public-http-cache/v1",
+            "schema": CACHE_SCHEMA,
+            "policy_digest": policy_digest,
             "status_code": self.status_code,
             "body": self.body,
+            "body_digest": hashlib.sha256(self.body).hexdigest(),
+            "byte_count": len(self.body),
             "content_type": self.content_type,
             "final_url": self.final_url,
         }
 
     @classmethod
-    def from_value(cls, value: Mapping[str, Any]) -> "_ResponseSnapshot" | None:
-        if value.get("schema") != "simpro-public-http-cache/v1":
+    def from_value(
+        cls,
+        value: Mapping[str, Any],
+        *,
+        policy: HttpRequestPolicy,
+        policy_digest: str,
+    ) -> "_ResponseSnapshot" | None:
+        expected = {
+            "schema", "policy_digest", "status_code", "body", "body_digest",
+            "byte_count", "content_type", "final_url",
+        }
+        if set(value) != expected or value.get("schema") != CACHE_SCHEMA:
             return None
         status = value.get("status_code")
         body = value.get("body")
-        content_type = value.get("content_type")
-        final_url = value.get("final_url")
         if (
             isinstance(status, bool)
             or not isinstance(status, int)
             or not isinstance(body, bytes)
-            or not isinstance(content_type, str)
-            or not isinstance(final_url, str)
+            or not isinstance(value.get("content_type"), str)
+            or not isinstance(value.get("final_url"), str)
+            or value.get("policy_digest") != policy_digest
+            or value.get("byte_count") != len(body)
+            or value.get("body_digest") != hashlib.sha256(body).hexdigest()
         ):
             return None
-        return cls(status, body, content_type, final_url)
+        snapshot = cls(status, body, str(value["content_type"]), str(value["final_url"]))
+        try:
+            snapshot.validate(policy)
+        except ValueError:
+            return None
+        return snapshot
+
+
+@dataclass(slots=True)
+class _Gate:
+    semaphore: threading.BoundedSemaphore
+    users: int = 0
 
 
 class PublicHttpTransport:
-    """Share public HTTP work within one workflow and close every resource."""
+    """Share bounded public HTTP work within one workflow."""
 
     def __init__(
         self,
@@ -98,14 +144,23 @@ class PublicHttpTransport:
         max_workers: int = MAX_WORKERS,
         max_per_host: int = MAX_PER_HOST,
     ) -> None:
+        if isinstance(max_workers, bool) or not isinstance(max_workers, int) or max_workers < 1:
+            raise ValueError("max_workers must be a positive integer")
+        if (
+            isinstance(max_per_host, bool)
+            or not isinstance(max_per_host, int)
+            or max_per_host < 1
+            or max_per_host > max_workers
+        ):
+            raise ValueError("max_per_host must be between one and max_workers")
         self._requester = requester
         self._resolver = resolver
         self._max_workers = max_workers
         self._global_limit = threading.BoundedSemaphore(max_workers)
         self._max_per_host = max_per_host
-        self._host_limits: dict[str, threading.BoundedSemaphore] = {}
-        self._memo: dict[str, _ResponseSnapshot | BaseException] = {}
-        self._flights: dict[str, threading.Lock] = {}
+        self._host_limits: dict[str, _Gate] = {}
+        self._memo: dict[str, _ResponseSnapshot] = {}
+        self._flights: dict[str, _Gate] = {}
         self._sessions: list[requests.Session] = []
         self._local = threading.local()
         self._lock = threading.RLock()
@@ -113,7 +168,7 @@ class PublicHttpTransport:
         self._counts = {"requests": 0, "cache_hits": 0, "cache_misses": 0}
         self._cache = (
             ResponseCache(
-                Path(cache_dir) if cache_dir is not None else cache_path("public_http", "v1"),
+                Path(cache_dir) if cache_dir is not None else cache_path("public_http", "v2"),
                 size_limit=MAX_CACHE_BYTES,
             )
             if persistent_cache
@@ -137,41 +192,54 @@ class PublicHttpTransport:
         method: str,
         url: str,
         *,
+        policy: HttpRequestPolicy = URL_RESOLUTION_POLICY,
         headers: Mapping[str, str] | None = None,
-        response_profile: str = "default",
-        **request_kwargs: Any,
+        body: bytes | str | None = None,
     ) -> requests.Response:
         self._require_open()
+        if not isinstance(policy, HttpRequestPolicy):
+            raise ValueError("HTTP request requires a declared typed policy")
+        normalized_method = method.upper()
+        if normalized_method not in policy.allowed_methods:
+            raise ValueError("HTTP method is not allowed by policy")
+        if body is not None:
+            raise ValueError("public HTTP request body is prohibited")
+        normalized_headers = _normalize_headers(headers, policy=policy)
         validate_public_url(url, resolver=self._resolver)
         canonical = _canonical_url(url)
-        key = _request_key(method, canonical, headers, response_profile)
-        flight = self._flight(key)
-        with flight:
-            snapshot = self._lookup(key, persistent=_persistable(url, headers))
+        key = _request_key(normalized_method, canonical, normalized_headers, policy)
+        with self._single_flight(key):
+            snapshot = self._lookup(key, policy=policy)
             if snapshot is not None:
                 return snapshot.response()
-            if self._cache is None or not _persistable(url, headers):
+            if self._cache is None:
+                return self._request_miss(key, normalized_method, url, normalized_headers, policy)
+            with self._cache.lock(key) as cache_locked:
+                if cache_locked:
+                    snapshot = self._lookup(key, policy=policy)
+                    if snapshot is not None:
+                        return snapshot.response()
                 return self._request_miss(
-                    key, method, url, headers, request_kwargs
-                )
-            with self._cache.lock(key):
-                snapshot = self._lookup(key, persistent=True)
-                if snapshot is not None:
-                    return snapshot.response()
-                return self._request_miss(
-                    key, method, url, headers, request_kwargs
+                    key,
+                    normalized_method,
+                    url,
+                    normalized_headers,
+                    policy,
+                    allow_persist=cache_locked,
                 )
 
     def request_many(
         self,
         method: str,
         urls: Iterable[str],
-        **request_kwargs: Any,
+        *,
+        policy: HttpRequestPolicy = URL_RESOLUTION_POLICY,
+        headers: Mapping[str, str] | None = None,
     ) -> list[requests.Response]:
         ordered = list(urls)
         with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
             futures = [
-                executor.submit(self.request, method, url, **request_kwargs)
+                executor.submit(self.request, method, url, policy=policy, headers=headers)
                 for url in ordered
             ]
             return [future.result() for future in futures]
@@ -183,25 +251,35 @@ class PublicHttpTransport:
             self._closed = True
             sessions = tuple(self._sessions)
             self._sessions.clear()
+            self._memo.clear()
+            self._flights.clear()
+            self._host_limits.clear()
         for session in sessions:
             session.close()
         if self._cache is not None:
             self._cache.close()
 
-    def _lookup(self, key: str, *, persistent: bool) -> _ResponseSnapshot | None:
+    def _lookup(
+        self,
+        key: str,
+        *,
+        policy: HttpRequestPolicy,
+    ) -> _ResponseSnapshot | None:
         existing = self._memo.get(key)
-        if isinstance(existing, BaseException):
-            self._increment("cache_hits")
-            raise existing
         if existing is not None:
             self._increment("cache_hits")
             return existing
-        if not persistent or self._cache is None:
+        if self._cache is None:
             return None
         value = self._cache.get(key)
         if value is None:
             return None
-        snapshot = _ResponseSnapshot.from_value(value)
+        digest = _policy_digest(policy)
+        snapshot = _ResponseSnapshot.from_value(
+            value,
+            policy=policy,
+            policy_digest=digest,
+        )
         if snapshot is None:
             self._cache.delete(key)
             return None
@@ -214,40 +292,69 @@ class PublicHttpTransport:
         key: str,
         method: str,
         url: str,
-        headers: Mapping[str, str] | None,
-        request_kwargs: Mapping[str, Any],
+        headers: Mapping[str, str],
+        policy: HttpRequestPolicy,
+        allow_persist: bool = True,
     ) -> requests.Response:
         self._increment("cache_misses")
         try:
             response = self._requester(
                 self._session(),
-                method.upper(),
+                method,
                 url,
-                headers=headers,
+                headers=headers or None,
+                timeout=(policy.connect_timeout, policy.read_timeout),
+                max_redirects=policy.redirect_limit,
+                max_response_bytes=policy.max_response_bytes,
+                total_timeout_seconds=policy.total_deadline,
                 resolver=self._resolver,
                 request_guard=self._request_guard,
-                **dict(request_kwargs),
             )
+            snapshot = _ResponseSnapshot.capture(response, policy=policy)
+        except Exception:
             self._increment("requests")
-            snapshot = _ResponseSnapshot.capture(response)
-            self._memo[key] = snapshot
-            eligible = _persistable_response(url, headers, snapshot)
-            self._persist(key, snapshot, eligible=eligible)
-            return snapshot.response()
-        except BaseException as error:
-            self._increment("requests")
-            self._memo[key] = error
             raise
+        self._increment("requests")
+        if policy.ttl_for(snapshot.status_code) is not None:
+            self._memo[key] = snapshot
+            if allow_persist:
+                self._persist(key, snapshot, policy=policy)
+        return snapshot.response()
 
-    def _persist(self, key: str, snapshot: _ResponseSnapshot, *, eligible: bool) -> None:
-        ttl = persistent_ttl(snapshot.status_code)
-        if not eligible or ttl is None or self._cache is None:
+    def _persist(
+        self,
+        key: str,
+        snapshot: _ResponseSnapshot,
+        *,
+        policy: HttpRequestPolicy,
+    ) -> None:
+        ttl = policy.ttl_for(snapshot.status_code)
+        if ttl is None or self._cache is None:
             return
-        self._cache.set(key, snapshot.persistent_value(), ttl=ttl)
+        digest = _policy_digest(policy)
+        self._cache.set(
+            key,
+            snapshot.persistent_value(policy_digest=digest),
+            ttl=ttl,
+        )
 
-    def _flight(self, key: str) -> threading.Lock:
+    @contextmanager
+    def _single_flight(self, key: str) -> Iterator[None]:
         with self._lock:
-            return self._flights.setdefault(key, threading.Lock())
+            gate = self._flights.get(key)
+            if gate is None:
+                gate = _Gate(threading.BoundedSemaphore(1))
+                self._flights[key] = gate
+            gate.users += 1
+        gate.semaphore.acquire()
+        try:
+            yield
+        finally:
+            gate.semaphore.release()
+            with self._lock:
+                gate.users -= 1
+                if gate.users == 0 and self._flights.get(key) is gate:
+                    self._flights.pop(key, None)
 
     def _session(self) -> requests.Session:
         session = getattr(self._local, "session", None)
@@ -259,14 +366,25 @@ class PublicHttpTransport:
         return session
 
     @contextmanager
-    def _request_guard(self, hostname: str):
+    def _request_guard(self, hostname: str) -> Iterator[None]:
         key = hostname.rstrip(".").casefold()
         with self._lock:
-            host_limit = self._host_limits.setdefault(
-                key, threading.BoundedSemaphore(self._max_per_host)
-            )
-        with self._global_limit, host_limit:
+            gate = self._host_limits.get(key)
+            if gate is None:
+                gate = _Gate(threading.BoundedSemaphore(self._max_per_host))
+                self._host_limits[key] = gate
+            gate.users += 1
+        self._global_limit.acquire()
+        gate.semaphore.acquire()
+        try:
             yield
+        finally:
+            gate.semaphore.release()
+            self._global_limit.release()
+            with self._lock:
+                gate.users -= 1
+                if gate.users == 0 and self._host_limits.get(key) is gate:
+                    self._host_limits.pop(key, None)
 
     def _increment(self, name: str) -> None:
         with self._lock:
@@ -287,31 +405,48 @@ def _canonical_url(url: str) -> str:
     return urlunsplit((scheme, authority, parsed.path or "/", parsed.query, ""))
 
 
+def _normalize_headers(
+    headers: Mapping[str, str] | None,
+    *,
+    policy: HttpRequestPolicy,
+) -> dict[str, str]:
+    normalized = {str(name).casefold(): str(value) for name, value in (headers or {}).items()}
+    names = set(normalized)
+    if names.intersection(SENSITIVE_HEADERS):
+        raise ValueError("credential and cookie headers are prohibited")
+    undeclared = names.difference(policy.vary_headers)
+    if undeclared:
+        raise ValueError(f"HTTP header is not declared by policy: {sorted(undeclared)[0]}")
+    return dict(sorted(normalized.items()))
+
+
+def _policy_digest(policy: HttpRequestPolicy) -> str:
+    serialized = json.dumps(
+        policy.canonical_value(),
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+    ).encode("utf-8")
+    return hashlib.sha256(serialized).hexdigest()
+
+
 def _request_key(
     method: str,
     canonical_url: str,
     headers: Mapping[str, str] | None,
-    response_profile: str,
+    policy: HttpRequestPolicy,
 ) -> str:
-    normalized_headers = sorted(
-        (str(name).casefold(), str(value)) for name, value in (headers or {}).items()
-    )
-    payload = json.dumps(
-        [POLICY_VERSION, method.upper(), canonical_url, response_profile, normalized_headers],
+    payload = {
+        "transport_version": TRANSPORT_VERSION,
+        "policy": policy.canonical_value(),
+        "method": method.upper(),
+        "url": canonical_url,
+        "headers": sorted((headers or {}).items()),
+    }
+    serialized = json.dumps(
+        payload,
+        sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=True,
     ).encode("utf-8")
-    return hashlib.sha256(payload).hexdigest()
-
-
-def _persistable(url: str, headers: Mapping[str, str] | None) -> bool:
-    names = {str(name).casefold() for name in (headers or {})}
-    return not urlsplit(url).query and not names.intersection({"authorization", "cookie"})
-
-
-def _persistable_response(
-    url: str,
-    headers: Mapping[str, str] | None,
-    snapshot: _ResponseSnapshot,
-) -> bool:
-    return _persistable(url, headers) and not urlsplit(snapshot.final_url).query
+    return hashlib.sha256(serialized).hexdigest()

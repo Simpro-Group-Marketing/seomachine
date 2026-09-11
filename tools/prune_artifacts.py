@@ -19,6 +19,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         apply_retention,
         plan_retention,
         purge_expired_quarantine,
+        resume_retention,
         restore_quarantine,
     )
 
@@ -26,6 +27,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     root = args.workspace_root.resolve()
     try:
+        if args.resume is not None:
+            manifest = resume_retention(args.resume, workspace_root=root)
+            _print({"status": "complete", "manifest": _relative(manifest, root)})
+            return 0
         if args.restore is not None:
             restored = restore_quarantine(args.restore, workspace_root=root)
             _print({"status": "restored", "paths": [_relative(path, root) for path in restored]})
@@ -85,6 +90,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--quarantine-days", type=int, default=14)
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--restore", type=Path)
+    parser.add_argument("--resume", type=Path)
     parser.add_argument("--purge-quarantine", action="store_true")
     return parser
 

@@ -6,6 +6,7 @@ from data_sources.modules.content_length_comparator import (
     ContentLengthComparator,
     compare_content_length,
 )
+from data_sources.modules.public_http import COMPETITOR_CONTENT_POLICY
 
 
 SERP_RESULTS = [
@@ -147,8 +148,7 @@ class ContentLengthComparatorTests(unittest.TestCase):
             "GET",
             "https://example.com/guide",
             headers=ContentLengthComparator(transport=transport).headers,
-            timeout=10,
-            response_profile="competitor-content",
+            policy=COMPETITOR_CONTENT_POLICY,
         )
 
     @patch("data_sources.modules.content_length_comparator.request_public_url")

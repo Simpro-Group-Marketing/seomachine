@@ -292,6 +292,7 @@ def validate_preflight_stage_receipt_binding(
         expected_stage=expected_stage,
         expected_tool_name="publish_readiness",
         expected_tool_version="1.0.0",
+        workspace_root=workspace_root,
     )
     expected_run_id = _receipt_chain_run_id(
         [*prior_receipts, receipt],
@@ -304,6 +305,7 @@ def validate_preflight_stage_receipt_binding(
             [*prior_receipts, receipt],
             expected_run_id=expected_run_id,
             assembly_date=assembly_date,
+            workspace_root=workspace_root,
         )
     )
     if findings:

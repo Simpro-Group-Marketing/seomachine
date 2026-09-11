@@ -17,9 +17,30 @@ def _receipt_context(
 ) -> tuple[str, bool, list[Mapping[str, Any]], str | None, str | None]:
     bom_path = result.get("assembly_bom")
     if not isinstance(bom_path, str) or not bom_path:
-        return "", False, [], None, None
+        manifest_path = result.get("release_manifest")
+        if result.get("schema") != FINAL_READINESS_RESULT_SCHEMA or not isinstance(
+            manifest_path, str
+        ):
+            return "", False, [], None, None
+        manifest = load_json_object_snapshot(
+            _resolve_workspace_input(
+                manifest_path,
+                workspace_root=workspace_root,
+                field="release_manifest",
+            ),
+            field="release manifest",
+        ).payload
+        previous = manifest.get("previous_receipt_hash")
+        if not isinstance(previous, str):
+            raise ValueError("release manifest previous receipt hash is invalid")
+        return previous, False, [], None, str(result.get("run_id") or "")
     try:
-        bom = load_json_object_snapshot(bom_path, field="assembly BOM").payload
+        resolved_bom = _resolve_workspace_input(
+            bom_path,
+            workspace_root=workspace_root,
+            field="assembly BOM",
+        )
+        bom = load_json_object_snapshot(resolved_bom, field="assembly BOM").payload
     except ValueError as error:
         raise ValueError(f"readiness BOM is unavailable: {error}") from error
     workflow = bom.get("workflow") if isinstance(bom, Mapping) else None
@@ -64,6 +85,7 @@ def _validate_built_receipt_chain(
     *,
     expected_run_id: str | None,
     assembly_date: str | None,
+    workspace_root: Path,
 ) -> None:
     if not prior_receipts:
         return
@@ -73,6 +95,7 @@ def _validate_built_receipt_chain(
         [*prior_receipts, receipt],
         expected_run_id=expected_run_id,
         assembly_date=assembly_date,
+        workspace_root=workspace_root,
     )
     if findings:
         rules = ", ".join(sorted({str(finding["rule_id"]) for finding in findings}))
@@ -129,6 +152,26 @@ def write_readiness_result(
         workspace_root=root,
     )
     output_digest = hashlib.sha256(canonical_json_bytes(result)).hexdigest()
+    output_artifact_hashes = {
+        "article": article_hash,
+        "readiness_output": output_digest,
+    }
+    if result.get("schema") == FINAL_READINESS_RESULT_SCHEMA:
+        manifest_path = _resolve_workspace_input(
+            result.get("release_manifest"),
+            workspace_root=root,
+            field="release_manifest",
+        )
+        manifest_digest = file_sha256(manifest_path)
+        if manifest_digest != result.get("release_manifest_sha256"):
+            raise ValueError("final release manifest hash does not match")
+        output_artifact_hashes["release_manifest"] = manifest_digest
+        manifest = load_json_object_snapshot(
+            manifest_path,
+            field="release manifest",
+        ).payload
+        if manifest.get("previous_receipt_hash") != previous_hash:
+            raise ValueError("release manifest does not bind the receipt chain head")
     receipt = build_stage_receipt(
         run_id=str(result.get("run_id") or ""),
         stage=stage,
@@ -138,30 +181,40 @@ def write_readiness_result(
         completed_at=str(result.get("completed_at") or ""),
         mutation=False,
         input_artifact_hashes=input_hashes,
-        output_artifact_hashes={
-            "article": article_hash,
-            "readiness_output": output_digest,
-        },
+        output_artifact_hashes=output_artifact_hashes,
         evidence_hashes={
             label: digest
             for label, digest in input_hashes.items()
             if label not in {"article", "assembly_bom"}
         },
         previous_receipt_hash=previous_hash,
+        workspace_root=root,
     )
     _validate_built_receipt_chain(
         receipt,
         prior_receipts,
         expected_run_id=expected_chain_run_id,
         assembly_date=bom_assembly_date,
+        workspace_root=root,
     )
     _validate_actual_readiness_execution(result, workspace_root=root)
+    if result.get("schema") == FINAL_READINESS_RESULT_SCHEMA:
+        return persist_new_result_pair(
+            output,
+            result,
+            destination,
+            receipt,
+        )
     return persist_result_pair(
         output,
         result,
         destination,
         receipt,
-        receipt_writer=write_stage_receipt,
+        receipt_writer=lambda path, value: write_stage_receipt(
+            path,
+            value,
+            workspace_root=root,
+        ),
     )
 
 

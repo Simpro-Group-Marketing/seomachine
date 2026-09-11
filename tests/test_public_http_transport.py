@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import os
 import socket
 import subprocess
@@ -8,11 +7,9 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-
 import pytest
 import requests
 from diskcache import Cache
-
 from data_sources.modules.public_http import cache as cache_module
 from data_sources.modules.public_http.cache import ResponseCache
 from data_sources.modules.public_http.transport import (
@@ -20,8 +17,8 @@ from data_sources.modules.public_http.transport import (
     _canonical_url,
     _request_key,
 )
+from data_sources.modules.public_http.policies import URL_RESOLUTION_POLICY
 from data_sources.modules.public_url_safety import PublicUrlSafetyError
-
 
 def _public_resolver(host: str, port: int, **_: object):
     return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", port))]
@@ -195,7 +192,9 @@ def test_transport_does_not_persist_transient_negative_responses(
 
 def test_transport_treats_corrupt_persistent_entry_as_a_miss(tmp_path: Path) -> None:
     url = "https://example.com/source"
-    key = _request_key("GET", _canonical_url(url), None, "default")
+    key = _request_key(
+        "GET", _canonical_url(url), None, URL_RESOLUTION_POLICY
+    )
     with Cache(str(tmp_path / "cache")) as cache:
         cache.set(key, {"schema": "wrong"}, expire=60)
     calls = 0

@@ -102,6 +102,17 @@ class ReadinessInputs:
             for label, snapshot in self._by_label.items()
         }
 
+    def release_inventory(self) -> dict[str, dict[str, str | int]]:
+        """Return path, exact digest, and byte count for release authorization."""
+        return {
+            label: {
+                "path": snapshot.relative_path,
+                "sha256": snapshot.sha256,
+                "bytes": snapshot.byte_count,
+            }
+            for label, snapshot in self._by_label.items()
+        }
+
     def reseal(self) -> None:
         """Hash each unique bound path once and reject any mutation."""
         for path, snapshot in self._by_path.items():

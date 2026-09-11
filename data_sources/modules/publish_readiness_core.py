@@ -267,6 +267,7 @@ def _run_publish_readiness(
     phase: str = "preflight",
     workspace_root: str | Path,
     artifact_kind: str | None = None,
+    run_id: str | None = None,
     session: ValidationSession | None,
     input_capture_error: ValueError | None,
     telemetry: ReadinessTelemetry | None,
@@ -424,6 +425,7 @@ def _run_publish_readiness(
         sealed_input_hashes=sealed_input_hashes,
         input_capture_error=input_capture_error,
         telemetry=telemetry,
+        run_id=run_id,
     )
 
 

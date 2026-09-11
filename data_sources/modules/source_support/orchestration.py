@@ -348,8 +348,7 @@ def fetch_source_text(
         "GET",
         url,
         headers={"User-Agent": DEFAULT_USER_AGENT},
-        timeout=DEFAULT_TIMEOUT_SECONDS,
-        response_profile="source-visible-text",
+        policy=SOURCE_VISIBLE_TEXT_POLICY,
     )
     response.raise_for_status()
     return _extract_visible_text(response.text)

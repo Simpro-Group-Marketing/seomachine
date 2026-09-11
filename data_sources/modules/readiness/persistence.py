@@ -7,7 +7,49 @@ import tempfile
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
-from ..blog_assembly_contract import atomic_write_json
+from ..blog_assembly_contract import atomic_write_json, canonical_json_bytes
+
+
+def persist_new_result_pair(
+    output: Path,
+    result: Mapping[str, Any],
+    receipt_path: Path,
+    receipt: Mapping[str, Any],
+) -> Path:
+    """Stage and install a final result pair without replacing either output."""
+    if output.exists() or receipt_path.exists():
+        raise ValueError("final release output already exists")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    receipt_path.parent.mkdir(parents=True, exist_ok=True)
+    staged = [
+        _stage_bytes(output, canonical_json_bytes(result)),
+        _stage_bytes(receipt_path, canonical_json_bytes(receipt)),
+    ]
+    try:
+        for temporary, destination in zip(staged, (output, receipt_path), strict=True):
+            try:
+                os.link(temporary, destination)
+            except FileExistsError as error:
+                raise ValueError("final release output already exists") from error
+        return receipt_path
+    finally:
+        for temporary in staged:
+            temporary.unlink(missing_ok=True)
+
+
+def _stage_bytes(destination: Path, content: bytes) -> Path:
+    with tempfile.NamedTemporaryFile(
+        mode="wb",
+        dir=destination.parent,
+        prefix=f".{destination.name}.",
+        suffix=".bundle.tmp",
+        delete=False,
+    ) as handle:
+        temporary = Path(handle.name)
+        handle.write(content)
+        handle.flush()
+        os.fsync(handle.fileno())
+    return temporary
 
 
 def persist_result_pair(

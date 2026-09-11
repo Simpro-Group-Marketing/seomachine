@@ -38,7 +38,7 @@ try:
     from ..execution_attestation import attest_mapping, verify_mapping_attestation
     from ..guard_common import Finding, should_fail, summarize_findings
     from ..image_placeholder import is_production_image_placeholder_line
-    from ..public_http import PublicHttpTransport
+    from ..public_http import PublicHttpTransport, SOURCE_VISIBLE_TEXT_POLICY
     from ..proof_sidecar import compose_with_sidecar, load_sidecar_content
     from ..proof_link_policy import (
         CitationRequirement,
@@ -65,7 +65,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from execution_attestation import attest_mapping, verify_mapping_attestation
     from guard_common import Finding, should_fail, summarize_findings
     from image_placeholder import is_production_image_placeholder_line
-    from public_http import PublicHttpTransport
+    from public_http import PublicHttpTransport, SOURCE_VISIBLE_TEXT_POLICY
     from proof_sidecar import compose_with_sidecar, load_sidecar_content
     from proof_link_policy import (
         CitationRequirement,

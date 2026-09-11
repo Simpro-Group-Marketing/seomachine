@@ -17,6 +17,7 @@ def run_publish_readiness(
     phase: str = "preflight",
     workspace_root: str | Path | None = None,
     artifact_kind: str | None = None,
+    run_id: str | None = None,
     telemetry: ReadinessTelemetry | None = None,
 ) -> ReadinessResult:
     """Run the complete gate stack inside one trusted workspace boundary."""
@@ -61,6 +62,7 @@ def run_publish_readiness(
         phase=phase,
         workspace_root=root,
         artifact_kind=artifact_kind,
+        run_id=run_id,
         telemetry=telemetry,
     )
     return _ExecutedReadinessResult(raw, workspace_root=root)
@@ -68,16 +70,21 @@ def run_publish_readiness(
 def build_final_readiness_attestation(
     preflight_result: Mapping[str, Any],
     *,
-    final_bom: str | Path,
+    final_bom: str | Path | None = None,
+    run_id: str | None = None,
     workspace_root: str | Path | None = None,
     telemetry: ReadinessTelemetry | None = None,
 ) -> ReadinessResult:
     """Bind an authenticated full preflight to one validated final BOM."""
     root = _result_workspace_root(preflight_result, workspace_root)
-    final_bom_path = _resolve_workspace_input(
-        final_bom,
-        workspace_root=root,
-        field="final_bom",
+    final_bom_path = (
+        _resolve_workspace_input(
+            final_bom,
+            workspace_root=root,
+            field="final_bom",
+        )
+        if final_bom is not None
+        else None
     )
     return build_final_attestation(
         preflight_result,
@@ -87,6 +94,7 @@ def build_final_readiness_attestation(
         validate_result=validate_passed_readiness_result,
         executed_result_factory=_ExecutedReadinessResult,
         readiness_run_id=_readiness_run_id,
+        run_id=run_id,
         telemetry=telemetry,
     )
 
@@ -103,6 +111,7 @@ def _run_publish_readiness_session(
     phase: str = "preflight",
     workspace_root: str | Path,
     artifact_kind: str | None = None,
+    run_id: str | None = None,
     telemetry: ReadinessTelemetry | None = None,
 ) -> ReadinessResult:
     """Create one immutable input/session boundary around the gate stack."""
@@ -118,6 +127,7 @@ def _run_publish_readiness_session(
         "phase": phase,
         "workspace_root": workspace_root,
         "artifact_kind": artifact_kind,
+        "run_id": run_id,
     }
     return run_in_session(
         input_paths={

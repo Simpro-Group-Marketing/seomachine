@@ -15,6 +15,7 @@ from data_sources.modules.artifact_runtime.retention import (
     apply_retention,
     plan_retention,
     purge_expired_quarantine,
+    resume_retention,
     restore_quarantine,
 )
 
@@ -117,7 +118,7 @@ def test_retention_quarantine_is_recoverable(tmp_path: Path) -> None:
 
     assert not source.exists()
     manifest_payload = json.loads(manifest.read_text(encoding="utf-8"))
-    assert manifest_payload["schema"] == "simpro-artifact-quarantine/v1"
+    assert manifest_payload["schema"] == "simpro-artifact-quarantine/v2"
     assert manifest_payload["artifacts"][0]["original_path"] == source.relative_to(
         tmp_path
     ).as_posix()
@@ -202,3 +203,82 @@ def test_purge_only_updates_rows_that_are_still_quarantined(tmp_path: Path) -> N
     assert len(deleted) == 1
     assert [row["status"] for row in persisted["artifacts"]] == ["restored", "purged"]
     assert restored_target.is_file()
+
+
+def test_retention_runs_in_same_second_use_unique_directories(tmp_path: Path) -> None:
+    manifests: list[Path] = []
+    for index in range(2):
+        pointer, record = _write_trace(tmp_path, f"orphan-{index}.json", str(index))
+        pointer.unlink()
+        source = tmp_path / str(record["object"]["path"])
+        old = (NOW - timedelta(days=91)).timestamp()
+        os.utime(source, (old, old))
+        manifests.append(
+            apply_retention(
+                plan_retention(tmp_path, now=NOW),
+                workspace_root=tmp_path,
+                now=NOW,
+            )
+        )
+
+    assert manifests[0].parent != manifests[1].parent
+    assert all(path.is_file() for path in manifests)
+
+
+def test_malformed_pointer_candidate_blocks_retention(tmp_path: Path) -> None:
+    pointer, record = _write_trace(tmp_path, "orphan.json", "orphan")
+    pointer.unlink()
+    malformed = tmp_path / "research" / "malformed.json"
+    malformed.write_text('{"schema":', encoding="utf-8")
+    source = tmp_path / str(record["object"]["path"])
+    old = (NOW - timedelta(days=91)).timestamp()
+    os.utime(source, (old, old))
+
+    with pytest.raises(ValueError, match="pointer candidate"):
+        plan_retention(tmp_path, now=NOW)
+
+    assert source.is_file()
+
+
+def test_resume_retention_completes_linked_source_and_target_state(
+    tmp_path: Path,
+) -> None:
+    pointer, record = _write_trace(tmp_path, "orphan.json", "orphan")
+    pointer.unlink()
+    source = tmp_path / str(record["object"]["path"])
+    digest = str(record["object"]["sha256"])
+    run_root = tmp_path / ".seomachine" / "quarantine" / "v2" / "run-test"
+    target = run_root / "objects" / "000001.blob"
+    target.parent.mkdir(parents=True)
+    os.link(source, target)
+    manifest_path = run_root / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "schema": "simpro-artifact-quarantine/v2",
+                "run_id": "run-test",
+                "status": "moving",
+                "created_at": "2026-09-10T12:00:00Z",
+                "delete_after": "2026-09-24T12:00:00Z",
+                "artifacts": [
+                    {
+                        "original_path": source.relative_to(tmp_path).as_posix(),
+                        "quarantine_path": target.relative_to(tmp_path).as_posix(),
+                        "sha256": digest,
+                        "bytes": source.stat().st_size,
+                        "status": "linked",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    resumed = resume_retention(manifest_path, workspace_root=tmp_path)
+
+    assert resumed == manifest_path
+    assert not source.exists()
+    assert target.is_file()
+    persisted = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert persisted["status"] == "complete"
+    assert persisted["artifacts"][0]["status"] == "quarantined"

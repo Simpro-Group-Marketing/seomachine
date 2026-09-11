@@ -53,16 +53,16 @@ class ResponseCache:
     @contextmanager
     def lock(self, key: str):
         if self._cache is None or Lock is None:
-            yield
+            yield False
             return
         try:
             lock = Lock(self._cache, f"request-lock:{key}", expire=30)
             lock.acquire()
         except Exception:
-            yield
+            yield False
             return
         try:
-            yield
+            yield True
         finally:
             try:
                 lock.release()

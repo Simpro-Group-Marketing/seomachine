@@ -38,6 +38,7 @@ def _validate_receipt_sequence(
         findings = check_receipt_chain(
             receipts, expected_run_id=expected_run_id, assembly_date=assembly_date,
             now=datetime.now(timezone.utc), resolvable_evidence_hashes=resolvable,
+            workspace_root=workspace_root,
         )
         if findings:
             rules = ", ".join(sorted({str(row.get("rule_id")) for row in findings}))

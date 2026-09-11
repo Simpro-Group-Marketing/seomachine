@@ -692,10 +692,10 @@ def test_optimized_tail_allows_noop_optimizer_evidence(tmp_path: Path):
         input_artifact_hashes={"article": article_hash},
         output_artifact_hashes={"article": article_hash},
         evidence_hashes={"scrub_statistics": "d" * 64},
-        previous_receipt_hash="",
+        previous_receipt_hash="", workspace_root=tmp_path,
     )
     post_scrub_path = tmp_path / "research" / "stage-post-scrub-noop.json"
-    write_stage_receipt(post_scrub_path, post_scrub)
+    write_stage_receipt(post_scrub_path, post_scrub, workspace_root=tmp_path)
     post_binding = build_stage_receipt(
         run_id="run-1",
         stage="post_optimization_context_binding",
@@ -713,10 +713,10 @@ def test_optimized_tail_allows_noop_optimizer_evidence(tmp_path: Path):
             "context_binding": "c" * 64,
             "not_applicable_reason": NON_CONNECTOR_REASON_SHA256,
         },
-        previous_receipt_hash=post_scrub["receipt_hash"],
+        previous_receipt_hash=post_scrub["receipt_hash"], workspace_root=tmp_path,
     )
     post_binding_path = tmp_path / "research" / "stage-post-binding-noop.json"
-    write_stage_receipt(post_binding_path, post_binding)
+    write_stage_receipt(post_binding_path, post_binding, workspace_root=tmp_path)
     bom = _build(
         tmp_path,
         paths,

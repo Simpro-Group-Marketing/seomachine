@@ -13,8 +13,10 @@ from bs4 import BeautifulSoup
 import statistics
 
 try:
+    from .public_http import COMPETITOR_CONTENT_POLICY
     from .public_url_safety import request_public_url
 except ImportError:  # pragma: no cover - supports direct script execution.
+    from public_http import COMPETITOR_CONTENT_POLICY
     from public_url_safety import request_public_url
 
 
@@ -193,8 +195,7 @@ class ContentLengthComparator:
                     'GET',
                     url,
                     headers=self.headers,
-                    timeout=10,
-                    response_profile="competitor-content",
+                    policy=COMPETITOR_CONTENT_POLICY,
                 )
             else:
                 response = request_public_url(

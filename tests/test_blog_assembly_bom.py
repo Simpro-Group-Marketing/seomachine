@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import hashlib
 import os
 import json
@@ -8,10 +7,8 @@ import shutil
 import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
-
 import pytest
 from unittest.mock import patch
-
 from data_sources.modules.blog_assembly_bom import (
     NON_CONNECTOR_REASON,
     _reject_bom_output_collision,
@@ -508,9 +505,10 @@ def _fixture(
             "serp_evidence": _sha256(serp),
             "keyword_decision": _sha256(keyword_decision),
         },
+        workspace_root=tmp_path,
     )
     draft_path = research / "stage-draft.json"
-    write_stage_receipt(draft_path, draft_receipt)
+    write_stage_receipt(draft_path, draft_receipt, workspace_root=tmp_path)
     scrub_path = research / "stage-scrub.json"
     scrub_evidence = {"scrub_statistics": "f" * 64}
     scrub_receipt = build_stage_receipt(
@@ -527,9 +525,9 @@ def _fixture(
             "stage_evidence": _stage_evidence(scrub_path, scrub_evidence),
         },
         evidence_hashes=scrub_evidence,
-        previous_receipt_hash=draft_receipt["receipt_hash"],
+        previous_receipt_hash=draft_receipt["receipt_hash"], workspace_root=tmp_path,
     )
-    write_stage_receipt(scrub_path, scrub_receipt)
+    write_stage_receipt(scrub_path, scrub_receipt, workspace_root=tmp_path)
     binding_path = research / "stage-context-binding.json"
     binding_evidence = {
         "context_binding": "e" * 64,
@@ -550,9 +548,9 @@ def _fixture(
             "stage_evidence": _stage_evidence(binding_path, binding_evidence),
         },
         evidence_hashes=binding_evidence,
-        previous_receipt_hash=scrub_receipt["receipt_hash"],
+        previous_receipt_hash=scrub_receipt["receipt_hash"], workspace_root=tmp_path,
     )
-    write_stage_receipt(binding_path, binding_receipt)
+    write_stage_receipt(binding_path, binding_receipt, workspace_root=tmp_path)
     return {
         "article": article,
         "sidecar": sidecar,
@@ -650,9 +648,9 @@ def _build(tmp_path: Path, paths: dict[str, Path], **overrides):
                 ),
             },
             evidence_hashes=binding_evidence,
-            previous_receipt_hash=scrub_receipt["receipt_hash"],
+            previous_receipt_hash=scrub_receipt["receipt_hash"], workspace_root=tmp_path,
         )
-        write_stage_receipt(paths["stage_receipts"][2], binding_receipt)
+        write_stage_receipt(paths["stage_receipts"][2], binding_receipt, workspace_root=tmp_path)
     return build_blog_assembly_bom_from_files(**kwargs)
 
 
@@ -709,6 +707,7 @@ def test_builder_rejects_serp_evidence_from_another_article_run(tmp_path: Path):
 
 
 def _refresh_normal_stage_receipts(paths: dict[str, object]) -> None:
+    workspace_root = Path(paths["article"]).parent.parent
     route = str(paths["route"])
     route_receipts = [
         {"stage": "draft", "tool": {"name": route, "version": "1"}}
@@ -716,7 +715,7 @@ def _refresh_normal_stage_receipts(paths: dict[str, object]) -> None:
     execution_evidence = resolve_execution_evidence(
         route_receipts,
         agent_output_paths=paths["agent_outputs"],
-        workspace_root=Path(paths["article"]).parent.parent,
+        workspace_root=workspace_root,
     )
     draft_evidence = {"serp_evidence": _sha256(Path(paths["serp"]))}
     draft_evidence.update(
@@ -743,8 +742,9 @@ def _refresh_normal_stage_receipts(paths: dict[str, object]) -> None:
             "serp_evidence": _sha256(paths["serp"]),
             "keyword_decision": _sha256(paths["keyword_decision"]),
         },
+        workspace_root=workspace_root,
     )
-    write_stage_receipt(paths["stage_receipts"][0], draft_receipt)
+    write_stage_receipt(paths["stage_receipts"][0], draft_receipt, workspace_root=workspace_root)
     scrub_evidence = {"scrub_statistics": "f" * 64}
     scrub_receipt = build_stage_receipt(
         run_id=_run_id(paths["article"]),
@@ -762,9 +762,9 @@ def _refresh_normal_stage_receipts(paths: dict[str, object]) -> None:
             ),
         },
         evidence_hashes=scrub_evidence,
-        previous_receipt_hash=draft_receipt["receipt_hash"],
+        previous_receipt_hash=draft_receipt["receipt_hash"], workspace_root=workspace_root,
     )
-    write_stage_receipt(paths["stage_receipts"][1], scrub_receipt)
+    write_stage_receipt(paths["stage_receipts"][1], scrub_receipt, workspace_root=workspace_root)
     binding_evidence = {
         "context_binding": "e" * 64,
         "not_applicable_reason": NON_CONNECTOR_REASON_SHA256,
@@ -786,9 +786,9 @@ def _refresh_normal_stage_receipts(paths: dict[str, object]) -> None:
             ),
         },
         evidence_hashes=binding_evidence,
-        previous_receipt_hash=scrub_receipt["receipt_hash"],
+        previous_receipt_hash=scrub_receipt["receipt_hash"], workspace_root=workspace_root,
     )
-    write_stage_receipt(paths["stage_receipts"][2], binding_receipt)
+    write_stage_receipt(paths["stage_receipts"][2], binding_receipt, workspace_root=workspace_root)
 
 
 def test_builder_snapshots_actual_files_as_workspace_relative_paths(tmp_path: Path):
@@ -900,7 +900,7 @@ def test_builder_accepts_real_non_connector_context_binding_receipt(
         reason,
         stage_receipt_output=paths["stage_receipts"][2],
         previous_receipt=paths["stage_receipts"][1],
-        run_id=_run_id(paths["article"]),
+        run_id=_run_id(paths["article"]), workspace_root=tmp_path,
     )
 
     bom = _build(tmp_path, paths)
@@ -1060,9 +1060,9 @@ def test_builder_rejects_non_connector_receipt_bound_to_a_different_reason(
             ),
         },
         evidence_hashes=binding_evidence,
-        previous_receipt_hash=scrub["receipt_hash"],
+        previous_receipt_hash=scrub["receipt_hash"], workspace_root=tmp_path,
     )
-    write_stage_receipt(paths["stage_receipts"][2], binding)
+    write_stage_receipt(paths["stage_receipts"][2], binding, workspace_root=tmp_path)
 
     with pytest.raises(ValueError, match="not-applicable reason"):
         _build(tmp_path, paths)
@@ -1091,9 +1091,9 @@ def test_context_binding_receipt_must_bind_the_sidecar_output(tmp_path: Path):
             ),
         },
         evidence_hashes=binding_evidence,
-        previous_receipt_hash=scrub["receipt_hash"],
+        previous_receipt_hash=scrub["receipt_hash"], workspace_root=tmp_path,
     )
-    write_stage_receipt(paths["stage_receipts"][2], binding)
+    write_stage_receipt(paths["stage_receipts"][2], binding, workspace_root=tmp_path)
 
     with pytest.raises(ValueError, match="validation sidecar"):
         _build(tmp_path, paths)
@@ -1113,9 +1113,9 @@ def test_scrub_receipt_must_bind_scrub_statistics(tmp_path: Path):
         input_artifact_hashes={"article": _sha256(paths["article"])},
         output_artifact_hashes={"article": _sha256(paths["article"])},
         evidence_hashes={},
-        previous_receipt_hash=draft["receipt_hash"],
+        previous_receipt_hash=draft["receipt_hash"], workspace_root=tmp_path,
     )
-    write_stage_receipt(paths["stage_receipts"][1], scrub)
+    write_stage_receipt(paths["stage_receipts"][1], scrub, workspace_root=tmp_path)
     binding_evidence = {
         "context_binding": "e" * 64,
         "not_applicable_reason": NON_CONNECTOR_REASON_SHA256,
@@ -1137,9 +1137,9 @@ def test_scrub_receipt_must_bind_scrub_statistics(tmp_path: Path):
             ),
         },
         evidence_hashes=binding_evidence,
-        previous_receipt_hash=scrub["receipt_hash"],
+        previous_receipt_hash=scrub["receipt_hash"], workspace_root=tmp_path,
     )
-    write_stage_receipt(paths["stage_receipts"][2], binding)
+    write_stage_receipt(paths["stage_receipts"][2], binding, workspace_root=tmp_path)
 
     with pytest.raises(ValueError, match="scrub statistics"):
         _build(tmp_path, paths)
@@ -1847,10 +1847,10 @@ def _prepare_optimized_workflow(
         input_artifact_hashes={"article": before_hash},
         output_artifact_hashes={"article": after_hash},
         evidence_hashes=optimization_evidence,
-        previous_receipt_hash=prior_receipt["receipt_hash"],
+        previous_receipt_hash=prior_receipt["receipt_hash"], workspace_root=tmp_path,
     )
     optimization_path = tmp_path / "research" / "stage-optimization.json"
-    write_stage_receipt(optimization_path, optimization)
+    write_stage_receipt(optimization_path, optimization, workspace_root=tmp_path)
     post_scrub_path = tmp_path / "research" / "stage-post-scrub.json"
     post_scrub_evidence = {"scrub_statistics": "d" * 64}
     post_scrub = build_stage_receipt(
@@ -1869,9 +1869,9 @@ def _prepare_optimized_workflow(
             ),
         },
         evidence_hashes=post_scrub_evidence,
-        previous_receipt_hash=optimization["receipt_hash"],
+        previous_receipt_hash=optimization["receipt_hash"], workspace_root=tmp_path,
     )
-    write_stage_receipt(post_scrub_path, post_scrub)
+    write_stage_receipt(post_scrub_path, post_scrub, workspace_root=tmp_path)
     paths["sidecar"].write_text(
         paths["sidecar"].read_text(encoding="utf-8")
         + "Final Context Binding regenerated.\n",
@@ -1899,9 +1899,9 @@ def _prepare_optimized_workflow(
             ),
         },
         evidence_hashes=post_binding_evidence,
-        previous_receipt_hash=post_scrub["receipt_hash"],
+        previous_receipt_hash=post_scrub["receipt_hash"], workspace_root=tmp_path,
     )
-    write_stage_receipt(post_binding_path, post_binding)
+    write_stage_receipt(post_binding_path, post_binding, workspace_root=tmp_path)
     paths["stage_receipts"] = [
         *paths["stage_receipts"],
         prior_receipt_path,

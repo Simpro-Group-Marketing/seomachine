@@ -77,6 +77,8 @@ try:
     from .inputs import ReadinessInputs
     from .contracts import (
         GATE_RESULT_FIELDS,
+        FINAL_READINESS_RESULT_SCHEMA,
+        FINAL_RELEASE_FIELDS,
         PASSED_RESULT_FIELDS,
         READINESS_RESULT_SCHEMA,
         READINESS_TOOL,
@@ -89,7 +91,7 @@ try:
     from .gates import CONTENT_GATE_NAMES, ContentGateInputs, run_content_gate
     from .session import ValidationSession
     from .orchestrator import run_in_session
-    from .persistence import persist_result_pair
+    from .persistence import persist_new_result_pair, persist_result_pair
     from .telemetry import ReadinessTelemetry
     from .scoring_contracts import compatibility_symbols
     from ..simpro_vault_client import SimproVaultClient
@@ -157,6 +159,8 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from readiness.inputs import ReadinessInputs
     from readiness.contracts import (
         GATE_RESULT_FIELDS,
+        FINAL_READINESS_RESULT_SCHEMA,
+        FINAL_RELEASE_FIELDS,
         PASSED_RESULT_FIELDS,
         READINESS_RESULT_SCHEMA,
         READINESS_TOOL,
@@ -169,7 +173,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from readiness.gates import CONTENT_GATE_NAMES, ContentGateInputs, run_content_gate
     from readiness.session import ValidationSession
     from readiness.orchestrator import run_in_session
-    from readiness.persistence import persist_result_pair
+    from readiness.persistence import persist_new_result_pair, persist_result_pair
     from readiness.telemetry import ReadinessTelemetry
     from readiness.scoring_contracts import compatibility_symbols
     from simpro_vault_client import SimproVaultClient

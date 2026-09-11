@@ -13,6 +13,7 @@ try:
         blog_assembly_stage_receipt,
         blog_creation_preflight,
         publish_readiness,
+        release_authorization,
     )
     from .blog_assembly_contract import atomic_write_json, validate_sha256
     from .artifact_runtime.release_invocation import (
@@ -25,6 +26,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import blog_assembly_stage_receipt
     import blog_creation_preflight
     import publish_readiness
+    import release_authorization
     from blog_assembly_contract import atomic_write_json, validate_sha256
     from artifact_runtime.release_invocation import (
         ReleaseInvocationError,
@@ -46,7 +48,7 @@ class ReleaseResult:
     recovery_artifact: Path | None = None
 
 
-def run_blog_release(
+def _run_blog_release(
     *,
     article: str | Path,
     run_id: str,
@@ -194,6 +196,7 @@ def run_blog_release(
             context_receipt=context_receipt,
             assembly_bom=paths["provisional_bom"],
             phase="preflight",
+            run_id=run_id,
             workspace_root=root,
             vault_root=vault_root,
             telemetry=telemetry,
@@ -253,14 +256,27 @@ def run_blog_release(
         final = publish_readiness.build_final_readiness_attestation(
             preflight,
             final_bom=paths["final_bom"],
+            run_id=run_id,
             workspace_root=root,
             telemetry=telemetry,
+        )
+        final = release_authorization.prepare_final_release_result(
+            final,
+            release_manifest_path=paths["release_manifest"],
+            previous_receipt_hash=_final_chain_head(final_bom),
+            workspace_root=root,
         )
     with telemetry.stage("final_persistence"):
         publish_readiness.write_readiness_result(
             paths["final_readiness"],
             final,
             receipt_path=paths["final_readiness_stage_receipt"],
+            workspace_root=root,
+        )
+        release_authorization.load_publish_authorization(
+            final_readiness_path=paths["final_readiness"],
+            final_receipt_path=paths["final_readiness_stage_receipt"],
+            release_manifest_path=paths["release_manifest"],
             workspace_root=root,
         )
     if final.get("passed") is not True:
@@ -270,6 +286,15 @@ def run_blog_release(
     return finish(
         ReleaseResult(0, destination, "final_readiness", "final readiness passed")
     )
+
+
+def run_blog_release(**kwargs: object) -> ReleaseResult:
+    """Compatibility facade over the unified artifact release workflow."""
+    try:
+        from .artifact_release import run_artifact_release
+    except ImportError:  # pragma: no cover - supports direct script execution.
+        from artifact_release import run_artifact_release
+    return run_artifact_release(artifact_kind="blog", **kwargs)
 
 
 def _release_paths(output_dir: Path) -> dict[str, Path]:
@@ -282,6 +307,7 @@ def _release_paths(output_dir: Path) -> dict[str, Path]:
         "optimization_recovery": output_dir / "optimization-recovery.json",
         "optimization_stage_receipt": output_dir / "optimization-stage-receipt.json",
         "final_bom": output_dir / "final-bom.json",
+        "release_manifest": output_dir / "release-manifest.json",
         "final_readiness": output_dir / "final-readiness.json",
         "final_readiness_stage_receipt": output_dir / "final-readiness-stage-receipt.json",
         "release_telemetry": output_dir / "release-telemetry.json",
@@ -303,6 +329,20 @@ def _new_output_dir(path: str | Path, *, workspace_root: Path) -> Path:
         raise ReleaseInvocationError("output_dir must not already exist")
     resolved.mkdir(parents=True)
     return resolved
+
+
+def _final_chain_head(final_bom: Mapping[str, object]) -> str:
+    workflow = final_bom.get("workflow")
+    receipts = workflow.get("stage_receipts") if isinstance(workflow, Mapping) else None
+    if not isinstance(receipts, list) or not receipts:
+        return ""
+    last = receipts[-1]
+    if not isinstance(last, Mapping):
+        raise ReleasePolicyError("final BOM stage receipt chain is invalid")
+    try:
+        return validate_sha256(last.get("receipt_hash"), field="receipt_hash")
+    except ValueError as error:
+        raise ReleasePolicyError("final BOM stage receipt chain head is invalid") from error
 
 
 def _begin_optimization_run(

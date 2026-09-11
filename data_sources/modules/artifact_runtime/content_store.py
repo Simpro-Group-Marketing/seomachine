@@ -13,6 +13,7 @@ from typing import Any
 
 from ..blog_assembly_contract import atomic_write_json, canonical_json_bytes
 from .limits import JSON_MAX_BYTES
+from .workspace_lock import artifact_workspace_lock
 
 
 POINTER_SCHEMA = "simpro-context-trace-pointer/v1"
@@ -39,7 +40,6 @@ def write_context_trace(
     digest = hashlib.sha256(serialized).hexdigest()
     relative_object = OBJECT_PREFIX / digest[:2] / f"{digest}.json"
     object_path = root.joinpath(*relative_object.parts)
-    _store_immutable_object(object_path, serialized, digest=digest)
     pointer_payload: dict[str, object] = {
         "schema": POINTER_SCHEMA,
         "trace_schema": trace_schema,
@@ -50,7 +50,9 @@ def write_context_trace(
             "bytes": len(serialized),
         },
     }
-    atomic_write_json(pointer, pointer_payload)
+    with artifact_workspace_lock(root):
+        _store_immutable_object(object_path, serialized, digest=digest)
+        atomic_write_json(pointer, pointer_payload)
     return pointer_payload
 
 

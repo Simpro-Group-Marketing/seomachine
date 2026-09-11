@@ -1682,7 +1682,7 @@ def _check_workflow(
     optimizer_evidence_allowed = optimized or optimized_tail
     if not optimizer_evidence_allowed and artifacts.get("optimizer_outputs"):
         findings.append(_finding("bom_optimizer_evidence_unexpected", "Optimizer evidence is allowed only for an optimized workflow."))
-    findings.extend(blog_assembly_stage_receipt.check_receipt_chain(loaded))
+    findings.extend(blog_assembly_stage_receipt.check_receipt_chain(loaded, workspace_root=root))
     by_stage = {
         str(receipt.get("stage") or ""): receipt
         for receipt in loaded

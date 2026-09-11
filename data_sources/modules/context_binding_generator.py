@@ -313,7 +313,7 @@ def generate_not_applicable_receipt(
     stage_receipt_output: str | Path | None,
     run_id: str | None = None,
     previous_receipt: str | Path | None = None,
-    stage: str = "context_binding",
+    stage: str = "context_binding", workspace_root: str | Path | None = None,
 ) -> dict[str, Any]:
     """Attest that Context Binding is inapplicable without mutating inputs."""
     if stage not in {"context_binding", "post_optimization_context_binding"}:
@@ -366,7 +366,7 @@ def generate_not_applicable_receipt(
         started_at=started_at,
         expected_previous_stage=_context_predecessor_stage(stage),
         article_hash=article_hash,
-        previous_required=True,
+        previous_required=True, workspace_root=workspace_root,
     )
     receipt_path = resolved["stage_receipt"]
     _preflight_receipt_destination(receipt_path)
@@ -418,9 +418,9 @@ def generate_not_applicable_receipt(
                 "context_binding": context_evidence_hash,
                 "not_applicable_reason": reason_hash,
             },
-            previous_receipt_hash=previous_hash,
+            previous_receipt_hash=previous_hash, workspace_root=workspace_root,
         )
-        write_stage_receipt(receipt_path, stage_receipt)
+        write_stage_receipt(receipt_path, stage_receipt, workspace_root=workspace_root)
     except Exception:
         evidence_path.unlink(missing_ok=True)
         raise
@@ -445,7 +445,7 @@ def _receipt_identity(
     started_at: datetime | None = None,
     expected_previous_stage: str | None = None,
     article_hash: str | None = None,
-    previous_required: bool = False,
+    previous_required: bool = False, workspace_root: str | Path | None = None,
 ) -> tuple[str, str]:
     if previous_receipt is None:
         if previous_required:
@@ -454,7 +454,7 @@ def _receipt_identity(
                 "Context Binding requires the immediately preceding scrub receipt.",
             )
         return run_id or str(uuid4()), ""
-    previous = load_stage_receipt(previous_receipt)
+    previous = load_stage_receipt(previous_receipt, workspace_root=workspace_root)
     previous_run_id = str(previous["run_id"])
     if run_id is not None and run_id != previous_run_id:
         raise StageReceiptError(

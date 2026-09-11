@@ -27,19 +27,24 @@ def _validate_actual_readiness_execution(
 def _validate_result_envelope(result: Mapping[str, Any]) -> str:
     phase = result.get("phase")
     expected_fields = set(PASSED_RESULT_FIELDS)
-    if phase == "final":
+    schema = result.get("schema")
+    if schema == FINAL_READINESS_RESULT_SCHEMA:
+        expected_fields.update(FINAL_RELEASE_FIELDS)
+    if phase == "final" and result.get("artifact_kind") == "blog":
         expected_fields.add("final_bom_sha256")
     if set(result) != expected_fields:
         raise ValueError("passed readiness result must use the exact result field set")
     expected = {
-        "schema": READINESS_RESULT_SCHEMA,
         "tool": READINESS_TOOL,
         "verification_scope": "source_artifact",
         "passed": True,
     }
+    if schema not in {READINESS_RESULT_SCHEMA, FINAL_READINESS_RESULT_SCHEMA}:
+        raise ValueError("passed readiness result uses an unsupported schema")
+    if schema == FINAL_READINESS_RESULT_SCHEMA and phase != "final":
+        raise ValueError("publish-readiness result v2 is reserved for final release")
     if any(result.get(key) != value for key, value in expected.items()):
         messages = {
-            "schema": f"passed readiness result must use {READINESS_RESULT_SCHEMA}",
             "tool": "passed readiness result uses the wrong readiness tool identity",
             "verification_scope": "passed readiness result must declare source_artifact verification",
             "passed": "passed readiness result must declare passed true",
@@ -201,6 +206,27 @@ def _validate_complete_input_inventory(
         )
 
 
+def _validate_release_manifest_binding(
+    result: Mapping[str, Any],
+    *,
+    workspace_root: Path,
+) -> None:
+    if result.get("schema") != FINAL_READINESS_RESULT_SCHEMA:
+        return
+    manifest = result.get("release_manifest")
+    digest = result.get("release_manifest_sha256")
+    if not isinstance(manifest, str) or not manifest:
+        raise ValueError("final release readiness requires a release manifest")
+    validate_sha256(digest, field="release_manifest_sha256")
+    path = _resolve_workspace_input(
+        manifest,
+        workspace_root=workspace_root,
+        field="release_manifest",
+    )
+    if file_sha256(path) != digest:
+        raise ValueError("final release manifest hash does not match")
+
+
 def validate_passed_readiness_result(
     result: Mapping[str, Any],
     *,
@@ -223,6 +249,7 @@ def validate_passed_readiness_result(
     _verify_result_inputs_unchanged(result, workspace_root=root)
     _verify_result_path_bindings(result, workspace_root=root)
     _validate_complete_input_inventory(result, workspace_root=root)
+    _validate_release_manifest_binding(result, workspace_root=root)
 
 def _validate_passed_scorecard(
     result: Mapping[str, Any],

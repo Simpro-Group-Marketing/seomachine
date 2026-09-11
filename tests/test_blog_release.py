@@ -1,12 +1,9 @@
 from __future__ import annotations
-
 import json
 from pathlib import Path
-
 import pytest
-
 from data_sources.modules import blog_release
-
+from tests.release_test_support import mock_final_authorization
 
 def _touch(path: Path, payload: str = "{}\n") -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -163,6 +160,7 @@ def test_blog_release_finalizes_only_with_optimizer_evidence(
         },
     )
     monkeypatch.setattr(blog_release.publish_readiness, "write_readiness_result", lambda output, result, **k: (_touch(Path(output), json.dumps(result)), _touch(Path(k["receipt_path"]), '{"receipt": true}\n')))
+    mock_final_authorization(monkeypatch, blog_release)
 
     passed = _run(
         tmp_path,
@@ -171,7 +169,7 @@ def test_blog_release_finalizes_only_with_optimizer_evidence(
     )
 
     assert passed.exit_code == 0
-    assert sorted(p.name for p in passed.output_dir.iterdir()) == ["final-bom.json", "final-readiness-stage-receipt.json", "final-readiness.json", "pre-bom-report.json", "preflight-readiness-stage-receipt.json", "preflight-readiness.json", "provisional-bom.json", "release-telemetry.json"]
+    assert sorted(p.name for p in passed.output_dir.iterdir()) == ["final-bom.json", "final-readiness-stage-receipt.json", "final-readiness.json", "pre-bom-report.json", "preflight-readiness-stage-receipt.json", "preflight-readiness.json", "provisional-bom.json", "release-manifest.json", "release-telemetry.json"]
     assert readiness_calls == ["preflight"]
     telemetry = json.loads(
         (passed.output_dir / "release-telemetry.json").read_text(encoding="utf-8")
@@ -265,6 +263,7 @@ def test_blog_release_forwards_nonvault_customer_proof_evidence(tmp_path: Path, 
             _touch(Path(kwargs["receipt_path"]), '{"receipt": true}\n'),
         ),
     )
+    mock_final_authorization(monkeypatch, blog_release)
 
     optimizer = _touch(tmp_path / "research" / "optimizer-output.json")
     prior_readiness = _touch(tmp_path / "research" / "prior-preflight-readiness.json")

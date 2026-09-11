@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import sys
+import os
+import subprocess
+import time
 from pathlib import Path
 
 import pytest
@@ -11,6 +14,7 @@ from data_sources.modules.artifact_runtime.limits import (
 )
 from data_sources.modules.artifact_runtime.paths import cache_path, spool_path
 from data_sources.modules.artifact_runtime.subprocesses import (
+    ProcessCleanupError,
     SubprocessOutputLimitError,
     run_bounded_process,
 )
@@ -112,3 +116,46 @@ def test_runtime_paths_use_injected_worker_root(
 
     assert cache_path("public_http", "v1") == runtime / "cache" / "public_http" / "v1"
     assert spool_path() == runtime / "spool" / "v1"
+
+
+def test_bounded_process_timeout_includes_cleanup_budget() -> None:
+    started = time.monotonic()
+
+    with pytest.raises(subprocess.TimeoutExpired):
+        run_bounded_process(
+            [sys.executable, "-c", "import time; time.sleep(30)"],
+            timeout=0.2,
+            spool_threshold_bytes=128,
+            max_output_bytes=1024,
+        )
+
+    assert time.monotonic() - started < 2.5
+
+
+def test_process_cleanup_error_is_a_stable_runtime_error() -> None:
+    assert issubclass(ProcessCleanupError, RuntimeError)
+
+
+def test_timeout_terminates_grandchild_holding_inherited_pipes(tmp_path: Path) -> None:
+    pid_path = tmp_path / "grandchild.pid"
+    script = (
+        "import pathlib,subprocess,sys,time;"
+        "child=subprocess.Popen([sys.executable,'-c','import time;time.sleep(30)']);"
+        "pathlib.Path(sys.argv[1]).write_text(str(child.pid),encoding='utf-8');"
+        "time.sleep(30)"
+    )
+
+    with pytest.raises(subprocess.TimeoutExpired):
+        run_bounded_process(
+            [sys.executable, "-c", script, str(pid_path)],
+            timeout=0.5,
+            spool_threshold_bytes=128,
+            max_output_bytes=1024,
+            spool_dir=tmp_path / "spool",
+        )
+
+    grandchild_pid = int(pid_path.read_text(encoding="utf-8"))
+    time.sleep(0.05)
+    with pytest.raises(OSError):
+        os.kill(grandchild_pid, 0)
+    assert list((tmp_path / "spool").iterdir()) == []

@@ -21,10 +21,12 @@ import requests
 
 try:
     from .artifact_runtime.paths import cache_path
+    from .public_http import URL_RESOLUTION_POLICY
     from .public_url_safety import PublicUrlSafetyError, request_public_url
     from .public_http.url_cache import NullUrlResolutionCache, UrlResolutionCache
 except ImportError:  # pragma: no cover - supports direct script execution.
     from artifact_runtime.paths import cache_path
+    from public_http import URL_RESOLUTION_POLICY
     from public_url_safety import PublicUrlSafetyError, request_public_url
     from public_http.url_cache import NullUrlResolutionCache, UrlResolutionCache
 
@@ -220,9 +222,8 @@ class UrlValidator:
             return self.transport.request(
                 method,
                 url,
-                timeout=self.timeout,
                 headers=self.headers,
-                response_profile="url-resolution",
+                policy=URL_RESOLUTION_POLICY,
             )
         return self.requester(
             self.session,

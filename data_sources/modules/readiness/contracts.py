@@ -14,6 +14,7 @@ from ..blog_assembly_contract import canonical_json_bytes
 GateResult = dict[str, Any]
 ReadinessResult = dict[str, Any]
 READINESS_RESULT_SCHEMA = "simpro-publish-readiness-result/v1"
+FINAL_READINESS_RESULT_SCHEMA = "simpro-publish-readiness-result/v2"
 READINESS_TOOL = {"name": "publish_readiness", "version": "1.0.0"}
 PASSED_RESULT_FIELDS = frozenset(
     {
@@ -42,6 +43,9 @@ PASSED_RESULT_FIELDS = frozenset(
         "started_at",
         "completed_at",
     }
+)
+FINAL_RELEASE_FIELDS = frozenset(
+    {"release_manifest", "release_manifest_sha256"}
 )
 GATE_RESULT_FIELDS = frozenset(
     {"name", "label", "passed", "errors", "warnings", "findings", "blockers"}
