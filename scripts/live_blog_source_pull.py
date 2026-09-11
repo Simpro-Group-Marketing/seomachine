@@ -12,6 +12,8 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from data_sources.modules import gsc  # noqa: E402 - script path bootstrap
 
 GSC_SITE = "sc-domain:simprogroup.com"
 GA4_PROPERTY = "properties/309907809"
@@ -100,12 +102,9 @@ def create_gsc_service():
 
 def gsc_query(
     service,
-    start_date: str,
-    end_date: str,
-    dimensions: list[str],
-    *,
+    start_date: str, end_date: str, dimensions: list[str], *,
     page_url: str | None = None,
-    row_limit: int = 25_000,
+    row_limit: int = 25_000, mode: gsc.GscQueryMode,
 ) -> dict[str, Any]:
     body: dict[str, Any] = {
         "startDate": start_date,
@@ -113,7 +112,6 @@ def gsc_query(
         "dimensions": dimensions,
         "type": "web",
         "dataState": "final",
-        "rowLimit": row_limit,
     }
     if page_url:
         body["dimensionFilterGroups"] = [
@@ -128,7 +126,9 @@ def gsc_query(
                 ],
             }
         ]
-    return service.searchanalytics().query(siteUrl=GSC_SITE, body=body).execute()
+    return gsc.query_search_analytics(
+        service, site_url=GSC_SITE, body=body, max_rows=row_limit, mode=mode
+    )
 
 
 def pull_gsc_period(service, url: str, start_date: str, end_date: str) -> dict[str, Any]:
@@ -142,7 +142,7 @@ def pull_gsc_period(service, url: str, start_date: str, end_date: str) -> dict[s
             end_date,
             ["page"],
             page_url=variant,
-            row_limit=10,
+            row_limit=10, mode=gsc.GscQueryMode.TOP_N,
         )
         rows = response.get("rows") or []
         probes.append({"variant": variant, "row_count": len(rows)})
@@ -171,7 +171,7 @@ def pull_gsc_period(service, url: str, start_date: str, end_date: str) -> dict[s
         end_date,
         ["query"],
         page_url=selected_variant,
-        row_limit=25_000,
+        row_limit=gsc.GSC_MAX_WORKFLOW_ROWS, mode=gsc.GscQueryMode.COMPLETE,
     )
     query_rows = []
     for query_row in query_response.get("rows") or []:
@@ -494,7 +494,7 @@ async def probe_sources(output_path: Path) -> None:
                 candidate_text,
                 candidate_text,
                 ["page"],
-                row_limit=1,
+                row_limit=1, mode=gsc.GscQueryMode.TOP_N,
             )
             gsc_available = bool(gsc_response.get("rows"))
             ga4_response = await ga4_report(

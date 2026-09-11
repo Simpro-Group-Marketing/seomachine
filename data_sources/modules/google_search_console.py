@@ -10,6 +10,13 @@ from typing import Dict, List, Optional, Any
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 
+try:
+    from .gsc.intent import commercial_intent_score, intent_category
+    from .gsc.pagination import iter_search_analytics_rows
+except ImportError:  # pragma: no cover - supports direct module-path execution.
+    from gsc.intent import commercial_intent_score, intent_category
+    from gsc.pagination import iter_search_analytics_rows
+
 class GoogleSearchConsole:
     """Google Search Console data fetcher"""
 
@@ -60,17 +67,11 @@ class GoogleSearchConsole:
             'startDate': start_date,
             'endDate': end_date,
             'dimensions': ['query'],
-            'rowLimit': limit,
             'dimensionFilterGroups': []
         }
 
-        response = self.service.searchanalytics().query(
-            siteUrl=self.site_url,
-            body=request
-        ).execute()
-
         results = []
-        for row in response.get('rows', []):
+        for row in self._search_rows(request, max_rows=limit):
             query = row['keys'][0]
             results.append({
                 'keyword': query,
@@ -144,78 +145,27 @@ class GoogleSearchConsole:
         return quick_wins
 
     def _calculate_commercial_intent(self, keyword: str) -> float:
-        """
-        Calculate commercial intent score for a keyword
-
-        Returns:
-            Float between 0.1 (informational) and 3.0 (transactional)
-        """
-        keyword = keyword.lower()
-
-        # HIGH INTENT (3.0): Transactional - ready to buy
-        high_intent_terms = [
-            'pricing', 'price', 'cost', 'buy', 'purchase', 'vs', 'versus',
-            'alternative', 'alternatives', 'best', 'top', 'review', 'reviews',
-            'comparison', 'compare', 'plan', 'plans', 'trial', 'free trial',
-            'discount', 'coupon', 'deal', 'hosting', 'service', 'services',
-            'platform', 'software', 'tool', 'tools', 'solution', 'solutions',
-            'provider', 'providers'
-        ]
-
-        # MEDIUM-HIGH INTENT (2.0): Commercial investigation
-        medium_high_intent = [
-            'how to', 'guide', 'tutorial', 'tips', 'strategies', 'examples',
-            'ideas', 'ways to', 'for business', 'for companies', 'professional',
-            'analytics', 'monetization', 'monetize', 'grow', 'increase',
-            'improve', 'optimize', 'setup', 'set up'
-        ]
-
-        # MEDIUM INTENT (1.0): Informational with potential
-        medium_intent = [
-            'what is', 'how does', 'why', 'benefits', 'features',
-            'podcast', 'podcasting', 'audio', 'video', 'rss', 'marketing'
-        ]
-
-        # LOW INTENT (0.1): Pure informational/celebrity/news
-        low_intent_terms = [
-            'who is', 'biography', 'age', 'net worth', 'height', 'wife',
-            'husband', 'dating', 'married', 'death', 'died', 'born',
-            'pewdiepie', 'youtube stars', 'celebrity', 'famous'
-        ]
-
-        # Check for low intent first (these override everything)
-        for term in low_intent_terms:
-            if term in keyword:
-                return 0.1
-
-        # Check for high intent
-        for term in high_intent_terms:
-            if term in keyword:
-                return 3.0
-
-        # Check for medium-high intent
-        for term in medium_high_intent:
-            if term in keyword:
-                return 2.0
-
-        # Check for medium intent
-        for term in medium_intent:
-            if term in keyword:
-                return 1.0
-
-        # Default: low-medium intent
-        return 0.5
+        """Calculate the existing deterministic commercial-intent score."""
+        return commercial_intent_score(keyword)
 
     def _get_intent_category(self, score: float) -> str:
         """Get human-readable intent category"""
-        if score >= 2.5:
-            return 'Transactional'
-        elif score >= 1.5:
-            return 'Commercial Investigation'
-        elif score >= 0.8:
-            return 'Informational (Relevant)'
-        else:
-            return 'Informational (Low Value)'
+        return intent_category(score)
+
+    def _search_rows(
+        self,
+        request: Dict[str, Any],
+        *,
+        max_rows: int,
+    ) -> List[Dict[str, Any]]:
+        return list(
+            iter_search_analytics_rows(
+                self.service,
+                site_url=self.site_url,
+                body=request,
+                max_rows=max_rows,
+            )
+        )
 
     def get_page_performance(
         self,
@@ -249,15 +199,10 @@ class GoogleSearchConsole:
             }]
         }
 
-        response = self.service.searchanalytics().query(
-            siteUrl=self.site_url,
-            body=request
-        ).execute()
-
-        if not response.get('rows'):
+        page_rows = self._search_rows(request, max_rows=1)
+        if not page_rows:
             return {'url': url, 'error': 'No data found'}
-
-        row = response['rows'][0]
+        row = page_rows[0]
 
         page_data = {
             'url': row['keys'][0],
@@ -279,16 +224,10 @@ class GoogleSearchConsole:
                     'expression': url
                 }]
             }],
-            'rowLimit': 50
         }
 
-        keywords_response = self.service.searchanalytics().query(
-            siteUrl=self.site_url,
-            body=keywords_request
-        ).execute()
-
         keywords = []
-        for kw_row in keywords_response.get('rows', []):
+        for kw_row in self._search_rows(keywords_request, max_rows=50):
             keywords.append({
                 'keyword': kw_row['keys'][0],
                 'clicks': kw_row['clicks'],
@@ -329,7 +268,6 @@ class GoogleSearchConsole:
             'startDate': start_date,
             'endDate': end_date,
             'dimensions': ['page'],
-            'rowLimit': 1000
         }
 
         if path_filter:
@@ -341,13 +279,8 @@ class GoogleSearchConsole:
                 }]
             }]
 
-        response = self.service.searchanalytics().query(
-            siteUrl=self.site_url,
-            body=request
-        ).execute()
-
         low_ctr = []
-        for row in response.get('rows', []):
+        for row in self._search_rows(request, max_rows=1000):
             impressions = row['impressions']
             ctr = row['ctr']
 
@@ -398,13 +331,7 @@ class GoogleSearchConsole:
             'startDate': recent_start,
             'endDate': recent_end,
             'dimensions': ['query'],
-            'rowLimit': 1000
         }
-
-        recent_response = self.service.searchanalytics().query(
-            siteUrl=self.site_url,
-            body=recent_request
-        ).execute()
 
         # Get comparison data
         comparison_end = (datetime.now() - timedelta(days=days_recent)).strftime('%Y-%m-%d')
@@ -414,22 +341,16 @@ class GoogleSearchConsole:
             'startDate': comparison_start,
             'endDate': comparison_end,
             'dimensions': ['query'],
-            'rowLimit': 1000
         }
-
-        comparison_response = self.service.searchanalytics().query(
-            siteUrl=self.site_url,
-            body=comparison_request
-        ).execute()
 
         # Create lookup for comparison data
         comparison_lookup = {
             row['keys'][0]: row['impressions']
-            for row in comparison_response.get('rows', [])
+            for row in self._search_rows(comparison_request, max_rows=1000)
         }
 
         trending = []
-        for row in recent_response.get('rows', []):
+        for row in self._search_rows(recent_request, max_rows=1000):
             query = row['keys'][0]
             recent_impressions = row['impressions']
 

@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from data_sources.modules.simpro_vault_client import SimproVaultClient
+from data_sources.modules.artifact_runtime.content_store import write_context_trace
 
 
 REQUEST_PATH = ROOT / "research" / "context-request-best-field-service-management-software.json"
@@ -145,11 +146,10 @@ def main() -> None:
 
     write_json(PACK_PATH, pack)
     write_json(RECEIPT_PATH, receipt)
-    write_json(
+    write_context_trace(
         TRACE_PATH,
         {
             "schema": "simpro-fsm-12-tool-context-refresh/v1",
-            "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "status": status,
             "describe": describe,
             "searches": searches,
@@ -164,6 +164,8 @@ def main() -> None:
             "build_output": build_output,
             "validation": validation,
         },
+        workspace_root=ROOT,
+        generated_at=datetime.now(timezone.utc),
     )
     print(
         json.dumps(

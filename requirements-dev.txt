@@ -1,0 +1,4 @@
+# Deterministic structural checks and core-suite parallelism
+pytest>=9.0.3,<10.0
+pytest-xdist>=3.8.0,<4.0
+ruff>=0.15.12,<0.16

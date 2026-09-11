@@ -95,9 +95,9 @@ class StrictFrontmatterContractTests(unittest.TestCase):
                     lambda: wordpress.parse_draft_file(str(path)),
                     lambda: grav.parse_draft_file(str(path)),
                 )
-                for operation in operations:
+                for operation_index, operation in enumerate(operations):
                     with (
-                        self.subTest(label=label, operation=operation),
+                        self.subTest(label=label, operation=operation_index),
                         self.assertRaises(FrontmatterError),
                     ):
                         operation()

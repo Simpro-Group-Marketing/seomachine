@@ -2,6 +2,7 @@
 # ruff: noqa: F403, F405
 
 from .common import *  # noqa: F403
+from ..artifact_runtime.subprocesses import run_bounded_process
 
 
 def _load_classification_payload(
@@ -247,29 +248,28 @@ def _require_registry_matches_committed_head(
             f"source classification decisions must use {SOURCE_DECISIONS_PATH}"
         )
     try:
-        top = subprocess.run(
+        with run_bounded_process(
             ["git", "-C", str(root), "rev-parse", "--show-toplevel"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=False,
             timeout=10,
-        )
-        blob = subprocess.run(
+        ) as top:
+            top_stdout = top.stdout.read_bytes(max_bytes=1024 * 1024)
+            top_returncode = top.returncode
+        with run_bounded_process(
             ["git", "-C", str(root), "show", f"HEAD:{SOURCE_DECISIONS_PATH}"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=False,
             timeout=10,
-        )
-    except (OSError, subprocess.SubprocessError) as error:
+            max_output_bytes=8 * 1024 * 1024,
+        ) as blob:
+            blob_stdout = blob.stdout.read_bytes(max_bytes=8 * 1024 * 1024)
+            blob_returncode = blob.returncode
+    except (OSError, RuntimeError, UnicodeError, subprocess.SubprocessError) as error:
         raise ValueError(
             "source classification registry must match its committed HEAD blob"
         ) from error
     try:
-        top_path = Path(top.stdout.decode("utf-8").strip()).resolve()
+        top_path = Path(top_stdout.decode("utf-8").strip()).resolve()
     except (UnicodeDecodeError, OSError):
         top_path = Path()
-    if top.returncode != 0 or top_path != root or blob.returncode != 0 or blob.stdout != data:
+    if top_returncode != 0 or top_path != root or blob_returncode != 0 or blob_stdout != data:
         raise ValueError(
             "source classification registry must match its committed HEAD blob"
         )

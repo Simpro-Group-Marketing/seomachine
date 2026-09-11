@@ -20,9 +20,11 @@ from urllib.parse import urljoin, urlparse
 import requests
 
 try:
+    from .artifact_runtime.paths import cache_path
     from .public_url_safety import PublicUrlSafetyError, request_public_url
     from .public_http.url_cache import NullUrlResolutionCache, UrlResolutionCache
 except ImportError:  # pragma: no cover - supports direct script execution.
+    from artifact_runtime.paths import cache_path
     from public_url_safety import PublicUrlSafetyError, request_public_url
     from public_http.url_cache import NullUrlResolutionCache, UrlResolutionCache
 
@@ -132,7 +134,7 @@ class UrlValidator:
             self.cache = NullUrlResolutionCache()
         else:
             self.cache = UrlResolutionCache(
-                cache_dir or Path(".cache") / "url_validator",
+                cache_dir or cache_path("url_validator"),
                 result_factory=UrlValidationResult,
                 expire_seconds=RESOLUTION_CACHE_SECONDS,
             )

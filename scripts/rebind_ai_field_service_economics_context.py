@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from data_sources.modules.blog_assembly_contract import atomic_write_json
+from data_sources.modules.artifact_runtime.content_store import write_context_trace
 from data_sources.modules.simpro_vault_client import SimproVaultClient
 from scripts.build_ai_field_service_economics_context import (
     CONSTRAINTS,
@@ -97,20 +98,18 @@ def main() -> None:
         )
     atomic_write_json(SELECTOR_PACK_PATH, selector_pack)
     atomic_write_json(SELECTOR_RECEIPT_PATH, selector_receipt)
-    atomic_write_json(
+    write_context_trace(
         TRACE_PATH,
         {
             "schema": "simpro-ai-field-service-economics-context-rebind/v1",
-            "generated_at": datetime.now(timezone.utc).isoformat().replace(
-                "+00:00",
-                "Z",
-            ),
             "status": status,
             "selector_validation": selector_validation,
             "article_build_input": article_build_input,
             "article_build_output": article_build_output,
             "article_validation": article_validation,
         },
+        workspace_root=ROOT,
+        generated_at=datetime.now(timezone.utc),
     )
     print(json.dumps({
         "vault_status": status.get("status"),

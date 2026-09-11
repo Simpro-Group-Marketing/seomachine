@@ -10,11 +10,9 @@ from types import MappingProxyType
 from typing import Any, Mapping
 
 from ..blog_assembly_contract import artifact_inventory_snapshots, load_json_text
+from ..artifact_runtime.limits import JSON_MAX_BYTES, TEXT_MAX_BYTES
 from .telemetry import ReadinessTelemetry
 
-
-TEXT_MAX_BYTES = 1024 * 1024
-JSON_MAX_BYTES = 8 * 1024 * 1024
 HASH_CHUNK_BYTES = 1024 * 1024
 
 

@@ -1,0 +1,58 @@
+{
+  "schema": "simpro-p2-test-sharding-benchmark/v1",
+  "base_commit": "9b71700659c229cf59e28e283aadff07c21e1015",
+  "environment": {
+    "operating_system": "Windows",
+    "python": "3.14.4",
+    "pytest": "9.0.3",
+    "pytest_xdist": "3.8.0"
+  },
+  "qualification": {
+    "default_scheduler": "serial",
+    "qualified_opt_in_scheduler": "loadscope",
+    "reason": "The committed baseline suite is not green. Parallel execution is outcome-equivalent after worker isolation, but cannot become the repository default until those baseline failures are repaired."
+  },
+  "runs": [
+    {
+      "captured_at": "2026-09-10T19:26:35.8980204Z",
+      "scheduler": "serial",
+      "workers": 1,
+      "collected": 2065,
+      "passed": 1780,
+      "failed": 107,
+      "errors": 178,
+      "subtests_passed": 310,
+      "wall_time_seconds": 360.35,
+      "maximum_peak_rss_bytes": null,
+      "note": "Captured before dependency-free Windows peak-RSS reporting and one RSS contract test were added."
+    },
+    {
+      "captured_at": "2026-09-10T20:00:34.6606379Z",
+      "scheduler": "loadscope",
+      "workers": 4,
+      "collected": 2066,
+      "passed": 1781,
+      "failed": 107,
+      "errors": 178,
+      "subtests_passed": 310,
+      "wall_time_seconds": 142.16,
+      "maximum_peak_rss_bytes": 793972736,
+      "total_peak_rss_bytes": 1464037376,
+      "executed_calls_by_worker": [0, 1292, 832, 74]
+    },
+    {
+      "captured_at": "2026-09-10T20:03:09.6786495Z",
+      "scheduler": "load",
+      "workers": 4,
+      "collected": 2066,
+      "passed": 1781,
+      "failed": 107,
+      "errors": 178,
+      "subtests_passed": 310,
+      "wall_time_seconds": 129.79,
+      "maximum_peak_rss_bytes": 936116224,
+      "total_peak_rss_bytes": 2074669056,
+      "executed_calls_by_worker": [916, 363, 201, 718]
+    }
+  ]
+}

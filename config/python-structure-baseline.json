@@ -297,7 +297,6 @@
     "data_sources/modules/editorial_plan_guard.py": 2134,
     "data_sources/modules/eeat_strength_guard.py": 718,
     "data_sources/modules/fred_authority_guard.py": 1016,
-    "data_sources/modules/google_search_console.py": 555,
     "data_sources/modules/grav_publisher.py": 902,
     "data_sources/modules/industry_cluster_link_policy.py": 1073,
     "data_sources/modules/keyword_analyzer.py": 800,

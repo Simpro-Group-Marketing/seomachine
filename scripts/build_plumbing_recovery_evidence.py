@@ -10,13 +10,16 @@ import hashlib
 import json
 import os
 import re
+import sys
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-
 REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO))
+from data_sources.modules import gsc  # noqa: E402 - script path bootstrap
+
 SOURCE_DIR = REPO / "research" / "live-blog-performance-corrected-2026-09-03"
 OUTPUT_DIR = REPO / "research" / "best-plumbing-job-management-software-remediation-2026-09-03"
 SLUG = "best-plumbing-job-management-software"
@@ -168,12 +171,8 @@ def create_gsc_service():
 
 
 def gsc_query(
-    service,
-    start: date,
-    end: date,
-    dimensions: list[str],
-    *,
-    row_limit: int = 25_000,
+    service, start: date, end: date, dimensions: list[str], *,
+    row_limit: int = gsc.GSC_MAX_WORKFLOW_ROWS,
 ) -> dict[str, Any]:
     body = {
         "startDate": start.isoformat(),
@@ -181,7 +180,6 @@ def gsc_query(
         "dimensions": dimensions,
         "type": "web",
         "dataState": "final",
-        "rowLimit": row_limit,
         "dimensionFilterGroups": [
             {
                 "groupType": "and",
@@ -195,7 +193,9 @@ def gsc_query(
             }
         ],
     }
-    return service.searchanalytics().query(siteUrl=GSC_SITE, body=body).execute()
+    return gsc.query_search_analytics(
+        service, site_url=GSC_SITE, body=body, max_rows=row_limit,
+        mode=gsc.GscQueryMode.COMPLETE)
 
 
 def normalize_gsc_date(value: str) -> str:

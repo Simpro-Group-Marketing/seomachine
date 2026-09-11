@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from data_sources.modules.simpro_vault_client import SimproVaultClient
+from data_sources.modules.artifact_runtime.content_store import write_context_trace
 
 
 TOPIC_SLUG = "ai-field-service-economics"
@@ -280,11 +281,10 @@ def main() -> None:
 
     write_json(SELECTOR_PACK_PATH, selector_pack)
     write_json(SELECTOR_RECEIPT_PATH, selector_receipt)
-    write_json(
+    write_context_trace(
         TRACE_PATH,
         {
             "schema": "simpro-ai-field-service-economics-context-refresh/v1",
-            "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "status": status,
             "describe": describe,
             "searches": searches,
@@ -298,6 +298,8 @@ def main() -> None:
             "article_build_output": article_build_output,
             "article_validation": validation,
         },
+        workspace_root=ROOT,
+        generated_at=datetime.now(timezone.utc),
     )
     print(
         json.dumps(

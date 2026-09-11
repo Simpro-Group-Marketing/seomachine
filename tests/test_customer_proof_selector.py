@@ -3,6 +3,7 @@ import json
 import os
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
+from datetime import date
 from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -454,7 +455,7 @@ class CustomerProofSelectorTests(unittest.TestCase):
             )
             for index_path, message in cases:
                 with (
-                    self.subTest(index_path=index_path),
+                    self.subTest(index_path=str(index_path)),
                     self.assertRaisesRegex(
                         CustomerProofDataError,
                         message,
@@ -489,7 +490,7 @@ class CustomerProofSelectorTests(unittest.TestCase):
             )
             for ledger_path, message in cases:
                 with (
-                    self.subTest(ledger_path=ledger_path),
+                    self.subTest(ledger_path=str(ledger_path)),
                     self.assertRaisesRegex(
                         CustomerProofDataError,
                         message,
@@ -883,7 +884,7 @@ class CustomerProofSelectorTests(unittest.TestCase):
                 "best job quoting and invoicing software for small trade business",
                 index_path=index_path,
                 ledger_path=ledger_path,
-                limit=2,
+                limit=2, reference_date=date(2026, 9, 10),
             )
 
         self.assertEqual(results[0]["proof_id"], "reference-alarmquest-quote-invoice")
@@ -943,9 +944,8 @@ class CustomerProofSelectorTests(unittest.TestCase):
                 "quoting software",
                 index_path=index_path,
                 ledger_path=ledger_path,
-                limit=1,
+                limit=1, reference_date=date(2026, 9, 10),
             )[0]
-
         self.assertEqual(result["total_uses"], 1)
         self.assertEqual(result["recent_uses_90d"], 1)
         self.assertFalse(result["overused"])

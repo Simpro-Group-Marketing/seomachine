@@ -16,8 +16,10 @@ from urllib.parse import urlsplit, urlunsplit
 import requests
 
 try:
+    from ..artifact_runtime.paths import cache_path
     from ..public_url_safety import request_public_url, validate_public_url
 except ImportError:  # pragma: no cover - supports direct module-path execution.
+    from artifact_runtime.paths import cache_path
     from public_url_safety import request_public_url, validate_public_url
 from .cache import ResponseCache
 from .policies import (
@@ -89,7 +91,7 @@ class PublicHttpTransport:
     def __init__(
         self,
         *,
-        cache_dir: str | Path = Path(".cache") / "public_http" / "v1",
+        cache_dir: str | Path | None = None,
         persistent_cache: bool = True,
         requester=request_public_url,
         resolver=socket.getaddrinfo,
@@ -110,7 +112,10 @@ class PublicHttpTransport:
         self._closed = False
         self._counts = {"requests": 0, "cache_hits": 0, "cache_misses": 0}
         self._cache = (
-            ResponseCache(Path(cache_dir), size_limit=MAX_CACHE_BYTES)
+            ResponseCache(
+                Path(cache_dir) if cache_dir is not None else cache_path("public_http", "v1"),
+                size_limit=MAX_CACHE_BYTES,
+            )
             if persistent_cache
             else None
         )

@@ -1,0 +1,55 @@
+name: P2 runtime quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Install development checks
+        run: python -m pip install -r requirements-dev.txt
+      - name: Enforce declining structure limits
+        run: python tools/check_python_structure.py
+      - name: Enforce compact architectural memory
+        run: python tools/check_memory_contract.py
+      - name: Compile P2 runtime modules
+        run: >-
+          python -m compileall -q
+          data_sources/modules/artifact_runtime
+          data_sources/modules/gsc
+          tools/check_memory_contract.py
+          tools/check_worker_metrics.py
+          tools/prune_artifacts.py
+      - name: Run isolated P2 contract shard
+        env:
+          SEOMACHINE_WORKER_METRICS_DIR: ${{ runner.temp }}/p2-worker-metrics
+        run: >-
+          python -m pytest -q -n 4 --dist loadscope -p no:cacheprovider
+          --basetemp "${{ runner.temp }}/p2-pytest"
+          tests/test_artifact_runtime.py
+          tests/test_context_trace_store.py
+          tests/test_gsc_pagination.py
+          tests/test_gsc_script_migrations.py
+          tests/test_memory_contract.py
+          tests/test_worker_metrics.py
+          tests/test_worker_metrics_contract.py
+      - name: Validate worker metrics
+        run: >-
+          python tools/check_worker_metrics.py
+          "${{ runner.temp }}/p2-worker-metrics"
+          --expected-workers 4
