@@ -22,6 +22,7 @@ from data_sources.modules.nonvault_customer_proof_selector import (
 )
 from data_sources.modules.readiness.telemetry import ReadinessTelemetry
 from data_sources.modules.readiness.dependencies import ReadinessDependencies
+from data_sources.modules.readiness.finalization_dependencies import FinalizationDependencies
 from tests.nonvault_proof_fixture import write_nonvault_proof_inputs
 
 
@@ -579,14 +580,13 @@ def test_final_attestation_reuses_authenticated_preflight_without_running_gates(
             preflight,
             final_bom=final_path,
             workspace_root=article.parent,
+            dependencies=FinalizationDependencies(final_bom_guard=lambda *_a, **_k: []),
         )
 
     assert final["phase"] == "final"
     assert final["gates"] == preflight["gates"]
     assert final["scorecard"] == preflight["scorecard"]
-    assert final["input_hashes"]["assembly_bom"]["sha256"] == (
-        final["final_bom_sha256"]
-    )
+    assert final["input_hashes"]["assembly_bom"]["sha256"] == final["final_bom_sha256"]
 
 
 def test_final_attestation_rejects_caller_copied_preflight(files):
@@ -1367,7 +1367,7 @@ def test_cli_writes_optional_content_free_telemetry_for_blocked_run(files, tmp_p
 
     payload = json.loads(destination.read_text(encoding="utf-8"))
     assert exit_code == 1
-    assert payload["schema"] == "simpro-readiness-telemetry/v2"
+    assert payload["schema"] == "simpro-readiness-telemetry/v3"
     assert payload["phase"] == "preflight"
     assert payload["outcome"] == "blocked"
     assert payload["counters"]["full_readiness_executions"] == 1

@@ -14,6 +14,10 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from tools.python_import_architecture import import_architecture_errors
+
 BASELINE_PATH = ROOT / "config" / "python-structure-baseline.json"
 SCHEMA = "simpro-python-structure-baseline/v2"
 PRODUCTION_ROOTS = ("data_sources", "scripts", "tools", "mcp-gsc")
@@ -280,6 +284,7 @@ def _complexities(root: Path) -> dict[str, dict[str, int]]:
 
 def _errors(root: Path, baseline: Mapping[str, Any]) -> list[str]:
     maximum = int(baseline["maximum_lines"])
+    production_files = _production_files(root)
     lines = _production_lines(root)
     oversized = {path: count for path, count in lines.items() if count > maximum}
     errors = production_line_errors(
@@ -297,10 +302,11 @@ def _errors(root: Path, baseline: Mapping[str, Any]) -> list[str]:
         forbidden_structure_errors(
             {
                 path.relative_to(root).as_posix(): path.read_text(encoding="utf-8")
-                for path in _production_files(root)
+                for path in production_files
             }
         )
     )
+    errors.extend(import_architecture_errors(production_files, root=root))
     errors.extend(_test_line_errors(_test_lines(root), baseline, maximum=maximum))
     return sorted(errors)
 

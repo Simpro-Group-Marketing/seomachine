@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 
-from . import auth
+import mcp_gsc.auth as auth
 from .formatting import site_not_found_error
 
 logger = logging.getLogger(__name__)

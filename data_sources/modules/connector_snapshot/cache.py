@@ -9,6 +9,8 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any
 
+from ..artifact_runtime.limits import CONNECTOR_RESULT_CACHE_MAX_BYTES
+
 
 CACHEABLE_CONNECTOR_OPERATIONS = frozenset(
     {
@@ -41,10 +43,21 @@ CACHEABLE_CONNECTOR_OPERATIONS = frozenset(
 class ConnectorSnapshot:
     """Cache immutable successful connector results for one validation run."""
 
-    __slots__ = ("_cache", "_lock", "_observer")
+    __slots__ = ("_cache", "_bytes", "_byte_observer", "_lock", "_max_bytes", "_observer")
 
-    def __init__(self, observer: Callable[[str], None] | None = None) -> None:
+    def __init__(
+        self,
+        observer: Callable[[str], None] | None = None,
+        *,
+        max_bytes: int = CONNECTOR_RESULT_CACHE_MAX_BYTES,
+        byte_observer: Callable[[int], None] | None = None,
+    ) -> None:
+        if isinstance(max_bytes, bool) or not isinstance(max_bytes, int) or max_bytes < 1:
+            raise ValueError("connector cache budget must be a positive integer")
         self._cache: dict[str, Any] = {}
+        self._bytes = 0
+        self._max_bytes = max_bytes
+        self._byte_observer = byte_observer
         self._lock = threading.RLock()
         self._observer = observer
 
@@ -65,13 +78,37 @@ class ConnectorSnapshot:
                 self._observe("hit")
                 return self._cache[key]
             self._observe("miss")
-            value = freeze_connector_value(loader())
+            loaded = loader()
+            encoded = json.dumps(
+                canonical_connector_value(loaded),
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+            projected = self._bytes + len(encoded)
+            if projected > self._max_bytes:
+                raise ValueError("connector result cache byte budget exceeded")
+            value = freeze_connector_value(loaded)
             self._cache[key] = value
+            self._bytes = projected
+            self._observe_bytes(len(encoded))
             return value
 
     def clear(self) -> None:
         with self._lock:
             self._cache.clear()
+            if self._bytes:
+                self._observe_bytes(-self._bytes)
+            self._bytes = 0
+
+    @property
+    def retained_bytes(self) -> int:
+        with self._lock:
+            return self._bytes
+
+    def _observe_bytes(self, amount: int) -> None:
+        if self._byte_observer is not None:
+            self._byte_observer(amount)
 
     def _observe(self, event: str) -> None:
         if self._observer is not None:

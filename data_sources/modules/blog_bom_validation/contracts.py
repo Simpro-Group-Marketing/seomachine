@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from ..blog_assembly_bom import BOM_SCHEMA_V3
+from ..blog_assembly.common import BOM_SCHEMA_V3
 
 NORMAL_PROVISIONAL_STAGES = ("draft", "scrub", "context_binding")
 NONVAULT_CUSTOMER_PROOF_SCHEMA = (

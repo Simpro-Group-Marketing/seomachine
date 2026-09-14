@@ -15,7 +15,7 @@ REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from data_sources.modules.paa_provenance_guard import (
+from data_sources.modules.paa_provenance.collection import (
     build_answersocrates_artifact,
     write_answersocrates_artifact,
 )

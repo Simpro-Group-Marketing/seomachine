@@ -118,10 +118,9 @@ def test_retention_quarantine_is_recoverable(tmp_path: Path) -> None:
 
     assert not source.exists()
     manifest_payload = json.loads(manifest.read_text(encoding="utf-8"))
-    assert manifest_payload["schema"] == "simpro-artifact-quarantine/v2"
-    assert manifest_payload["artifacts"][0]["original_path"] == source.relative_to(
-        tmp_path
-    ).as_posix()
+    assert manifest_payload["schema"] == "simpro-artifact-quarantine/v3"
+    assert manifest_payload["artifacts"][0]["original_path"] == source.relative_to(tmp_path).as_posix()
+    assert (manifest_payload["compacted"], (manifest.parent / "base.json").exists(), (manifest.parent / "events").exists()) == (True, False, False)
 
     restored = restore_quarantine(manifest, workspace_root=tmp_path)
     assert restored == [source]

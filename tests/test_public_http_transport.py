@@ -11,7 +11,7 @@ import pytest
 import requests
 from diskcache import Cache
 from data_sources.modules.public_http import cache as cache_module
-from data_sources.modules.public_http.cache import ResponseCache
+from data_sources.modules.public_http.cache import ResponseCache, ResponseMemoryCache
 from data_sources.modules.public_http.transport import (
     PublicHttpTransport,
     _canonical_url,
@@ -52,6 +52,46 @@ def test_transport_memoizes_semantically_identical_requests() -> None:
     assert first is not second
     assert first.content == second.content == b"ok"
     assert transport.counters == {"requests": 1, "cache_hits": 1, "cache_misses": 1}
+
+
+def test_memory_memo_is_byte_bounded_and_lru_ordered() -> None:
+    cache = ResponseMemoryCache(max_bytes=6)
+    assert cache.set("one", "one", weight=3)
+    assert cache.set("two", "two", weight=3)
+    assert cache.get("one") == "one"
+    assert cache.set("three", "three", weight=3)
+    assert cache.get("two") is None
+    assert cache.get("one") == "one"
+    assert cache.retained_bytes == 6
+    assert cache.set("oversized", "value", weight=7) is False
+    assert cache.retained_bytes == 6
+
+
+def test_cache_hit_skips_dns_and_miss_resolves_once(tmp_path: Path) -> None:
+    resolver_calls = 0
+
+    def resolver(host: str, port: int, **kwargs):
+        nonlocal resolver_calls
+        del kwargs
+        resolver_calls += 1
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", port))]
+
+    def requester(session, method, url, **kwargs):
+        del session, method
+        kwargs["resolver"]("example.com", 443)
+        return _response(url)
+
+    options = {
+        "cache_dir": tmp_path / "cache",
+        "requester": requester,
+        "resolver": resolver,
+    }
+    with PublicHttpTransport(**options) as first:
+        first.request("GET", "https://example.com/source")
+    assert resolver_calls == 1
+    with PublicHttpTransport(**options) as second:
+        second.request("GET", "https://example.com/source")
+    assert resolver_calls == 1
 
 
 def test_transport_single_flight_deduplicates_concurrent_callers() -> None:

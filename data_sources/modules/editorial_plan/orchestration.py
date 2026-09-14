@@ -27,6 +27,7 @@ def check_file(
     serp_evidence_path: str | Path | None = None,
     assembly_date: str | None = None,
     expected_run_id: str | None = None,
+    workspace_root: str | Path | None = None,
     dependencies: EditorialPlanDependencies | None = None,
 ) -> list[Finding]:
     """Return blocking findings for one editorial-plan JSON file."""
@@ -51,6 +52,7 @@ def check_file(
         serp_evidence_path=serp_evidence_path,
         assembly_date=assembly_date,
         expected_run_id=expected_run_id,
+        workspace_root=workspace_root,
         dependencies=dependencies,
     )
 

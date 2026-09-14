@@ -13,7 +13,7 @@ from ..blog_assembly_contract import (
     verify_artifact,
 )
 from ..guard_common import Finding
-from . import snapshot_adapters as blog_assembly_bom_snapshot
+import data_sources.modules.blog_bom_validation.snapshot_adapters as blog_assembly_bom_snapshot
 from .common import _finding
 from .contracts import (
     NONVAULT_CUSTOMER_PROOF_SCHEMA,

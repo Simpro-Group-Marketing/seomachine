@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Mapping
 
-from . import snapshot_adapters as blog_assembly_bom_snapshot
+import data_sources.modules.blog_bom_validation.snapshot_adapters as blog_assembly_bom_snapshot
 
 
 def check_editorial_plan_dispatch(

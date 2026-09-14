@@ -14,7 +14,7 @@ from .artifacts import (
     _check_supplied_path,
     _is_workspace_file,
 )
-from . import snapshot_adapters as blog_assembly_bom_snapshot
+import data_sources.modules.blog_bom_validation.snapshot_adapters as blog_assembly_bom_snapshot
 from .hindsight import _check_hindsight_strategy_policy
 from .common import _check_topology, _finding, _sorted
 from .content_policy import (

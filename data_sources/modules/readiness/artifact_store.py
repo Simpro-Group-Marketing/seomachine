@@ -9,7 +9,11 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any
 
-from ..artifact_runtime.limits import JSON_MAX_BYTES, TEXT_MAX_BYTES
+from ..artifact_runtime.limits import (
+    ARTIFACT_STORE_MAX_BYTES,
+    JSON_MAX_BYTES,
+    TEXT_MAX_BYTES,
+)
 from ..blog_assembly_contract import artifact_inventory_snapshots, load_json_text
 from ..publishable_markdown import parse_publishable_markdown
 from .artifact_io import (
@@ -27,6 +31,7 @@ from .artifact_views import (
     freeze_mapping,
     thaw_value,
 )
+from .input_spec import ReadinessInputSpec
 from .telemetry import ReadinessTelemetry
 
 BoundedReader = Callable[..., bytes]
@@ -63,6 +68,7 @@ class _ArtifactRecord:
 
     def text(self, field: str) -> ArtifactTextView:
         with self.lock:
+            is_json = self.bytes_view.path.suffix.casefold() == ".json"
             if self.text_view is None:
                 try:
                     decoded = self.bytes_view.content.decode("utf-8", errors="strict")
@@ -70,12 +76,15 @@ class _ArtifactRecord:
                     raise ValueError(
                         f"readiness input {field} must use valid UTF-8: {error}"
                     ) from error
-                self.text_view = ArtifactTextView(
+                view = ArtifactTextView(
                     path=self.bytes_view.path,
                     relative_path=self.bytes_view.relative_path,
                     sha256=self.bytes_view.sha256,
                     text=decoded,
                 )
+                if not is_json:
+                    self.text_view = view
+                return view
             return self.text_view
 
     def json(self, field: str) -> ArtifactJsonView:
@@ -130,19 +139,30 @@ class InstrumentedArtifactStore:
     @classmethod
     def capture(
         cls,
-        inputs: Mapping[str, str | Path | None],
+        inputs: Mapping[str, str | Path | None] | ReadinessInputSpec,
         *,
         workspace_root: str | Path,
         telemetry: ReadinessTelemetry | None = None,
         reader: BoundedReader | None = None,
+        aggregate_budget_bytes: int = ARTIFACT_STORE_MAX_BYTES,
     ) -> "InstrumentedArtifactStore":
+        root = _resolve_workspace_root(workspace_root)
+        spec = (
+            inputs
+            if isinstance(inputs, ReadinessInputSpec)
+            else ReadinessInputSpec.from_mapping(inputs, workspace_root=root)
+        )
+        if spec.workspace_root != root:
+            raise ValueError("readiness input spec workspace_root does not match capture")
         builder = _StoreBuilder(
-            _resolve_workspace_root(workspace_root),
+            root,
             telemetry,
             reader or _read_bounded,
+            aggregate_budget_bytes,
         )
-        builder.bind_direct(inputs)
-        builder.bind_bom_inventory()
+        builder.bind_spec(spec)
+        if spec.expand_bom_inventory:
+            builder.bind_bom_inventory()
         store = builder.build()
         if telemetry is not None:
             telemetry.set_gauge("artifact_store_source_bytes", store.total_bytes)
@@ -176,6 +196,9 @@ class InstrumentedArtifactStore:
     def markdown_view(self, label: str) -> ArtifactMarkdownView:
         return self._record(label).markdown(label)
 
+    def file_identity(self, label: str) -> FileIdentity:
+        return self._record(label).identity
+
     def bytes(self, label: str) -> bytes:
         return self.bytes_view(label).content
 
@@ -191,7 +214,7 @@ class InstrumentedArtifactStore:
                 "path": self._by_label[label].bytes_view.relative_path,
                 "sha256": self._by_label[label].bytes_view.sha256,
             }
-            for label in sorted(self._by_label)
+            for label in sorted(key for key in self._by_label if not key.startswith("prior_preflight."))
         }
 
     def release_inventory(self) -> dict[str, dict[str, str | int]]:
@@ -201,7 +224,7 @@ class InstrumentedArtifactStore:
                 "sha256": self._by_label[label].bytes_view.sha256,
                 "bytes": self._by_label[label].bytes_view.byte_count,
             }
-            for label in sorted(self._by_label)
+            for label in sorted(key for key in self._by_label if not key.startswith("prior_preflight."))
         }
 
     def reseal(
@@ -248,25 +271,45 @@ class InstrumentedArtifactStore:
 class _StoreBuilder:
     """Mutable construction scope hidden behind the immutable store."""
 
-    __slots__ = ("by_label", "by_path", "reader", "root", "telemetry")
+    __slots__ = (
+        "aggregate_budget_bytes",
+        "by_label",
+        "by_path",
+        "reader",
+        "root",
+        "source_bytes",
+        "telemetry",
+    )
 
     def __init__(
         self,
         root: Path,
         telemetry: ReadinessTelemetry | None,
         reader: BoundedReader,
+        aggregate_budget_bytes: int,
     ) -> None:
         self.root = root
         self.telemetry = telemetry
         self.reader = reader
+        if (
+            isinstance(aggregate_budget_bytes, bool)
+            or not isinstance(aggregate_budget_bytes, int)
+            or aggregate_budget_bytes < 1
+        ):
+            raise ValueError("artifact aggregate budget must be a positive integer")
+        self.aggregate_budget_bytes = aggregate_budget_bytes
         self.by_label: dict[str, _ArtifactRecord] = {}
         self.by_path: dict[Path, _ArtifactRecord] = {}
+        self.source_bytes = 0
 
-    def bind_direct(self, inputs: Mapping[str, str | Path | None]) -> None:
-        for label in sorted(inputs, key=str):
-            raw_path = inputs[label]
-            if raw_path is not None:
-                self.bind(label, raw_path)
+    def bind_spec(self, spec: ReadinessInputSpec) -> None:
+        for binding in spec.bindings:
+            self.bind(
+                binding.label,
+                binding.path,
+                expected_sha256=binding.expected_sha256,
+                expected_bytes=binding.expected_bytes,
+            )
 
     def bind_bom_inventory(self) -> None:
         record = self.by_label.get("assembly_bom")
@@ -283,7 +326,12 @@ class _StoreBuilder:
         self._bind_machine_reviews(payload.get("machine_reviews"))
         self._bind_serp_raw_capture()
         self._bind_paa_raw_capture()
-        self._bind_historical(payload.get("preflight"))
+        self._bind_historical(payload.get("preflight"), prefix="historical_preflight")
+        prior = self.by_label.get("prior_preflight_readiness")
+        if prior is not None:
+            prior_inputs = prior.json("prior_preflight_readiness").payload.get("input_hashes")
+            if isinstance(prior_inputs, Mapping):
+                self._bind_historical_row("assembly_bom", prior_inputs.get("assembly_bom"), prefix="prior_preflight")
 
     def bind(
         self,
@@ -291,11 +339,18 @@ class _StoreBuilder:
         raw_path: str | Path,
         *,
         expected_sha256: str | None = None,
+        expected_bytes: int | None = None,
     ) -> None:
         _validate_label(label)
         path = _resolve_input(raw_path, workspace_root=self.root, field=label)
         record = self.by_path.get(path)
         if record is None:
+            try:
+                projected = self.source_bytes + path.stat().st_size
+            except OSError as error:
+                raise ValueError(f"readiness input {label} is unreadable: {error}") from error
+            if projected > self.aggregate_budget_bytes:
+                raise ValueError("artifact aggregate byte budget exceeded")
             record = _capture_record(
                 path,
                 workspace_root=self.root,
@@ -304,9 +359,19 @@ class _StoreBuilder:
                 reader=self.reader,
             )
             self.by_path[path] = record
+            self.source_bytes = projected
+            if self.telemetry is not None:
+                self.telemetry.set_gauge("artifact_store_source_bytes", projected)
+                self.telemetry.observe_peak(
+                    "peak_artifact_store_source_bytes", projected
+                )
         if expected_sha256 is not None and record.bytes_view.sha256 != expected_sha256:
             raise ValueError(
                 f"readiness input {label} does not match its declared SHA-256"
+            )
+        if expected_bytes is not None and record.bytes_view.byte_count != expected_bytes:
+            raise ValueError(
+                f"readiness input {label} does not match its declared byte count"
             )
         previous = self.by_label.get(label)
         if previous is not None and previous.bytes_view.path != path:
@@ -321,7 +386,7 @@ class _StoreBuilder:
             telemetry=self.telemetry,
         )
 
-    def _bind_historical(self, preflight: Any) -> None:
+    def _bind_historical(self, preflight: Any, *, prefix: str) -> None:
         if preflight is None:
             return
         if not isinstance(preflight, Mapping):
@@ -330,7 +395,7 @@ class _StoreBuilder:
         if not isinstance(historical, Mapping) or not historical:
             raise ValueError("assembly_bom preflight input_hashes must be an object")
         for label in sorted(historical, key=str):
-            self._bind_historical_row(label, historical[label])
+            self._bind_historical_row(label, historical[label], prefix=prefix)
 
     def _bind_serp_raw_capture(self) -> None:
         record = self.by_label.get("serp_evidence")
@@ -342,11 +407,7 @@ class _StoreBuilder:
         raw_path = raw_capture.get("path")
         sha256 = raw_capture.get("sha256")
         if isinstance(raw_path, str) and isinstance(sha256, str):
-            self.bind(
-                "serp_raw_capture",
-                raw_path,
-                expected_sha256=sha256,
-            )
+            self.bind("serp_raw_capture", raw_path, expected_sha256=sha256)
 
     def _bind_paa_raw_capture(self) -> None:
         record = self.by_label.get("paa_artifact")
@@ -358,11 +419,7 @@ class _StoreBuilder:
         raw_path = raw_capture.get("path")
         sha256 = raw_capture.get("sha256")
         if isinstance(raw_path, str) and isinstance(sha256, str):
-            self.bind(
-                "paa_raw_capture",
-                raw_path,
-                expected_sha256=sha256,
-            )
+            self.bind("paa_raw_capture", raw_path, expected_sha256=sha256)
 
     def _bind_machine_reviews(self, reviews: Any) -> None:
         if reviews is None:
@@ -381,7 +438,7 @@ class _StoreBuilder:
                 expected_sha256=str(row["sha256"]),
             )
 
-    def _bind_historical_row(self, label: Any, row: Any) -> None:
+    def _bind_historical_row(self, label: Any, row: Any, *, prefix: str) -> None:
         if not isinstance(label, str) or not isinstance(row, Mapping):
             raise ValueError("assembly_bom preflight input hashes are invalid")
         if set(row) != {"path", "sha256"}:
@@ -389,7 +446,7 @@ class _StoreBuilder:
                 f"assembly_bom preflight input {label} must contain path and sha256"
             )
         self.bind(
-            f"historical_preflight.{label}",
+            f"{prefix}.{label}",
             str(row["path"]),
             expected_sha256=str(row["sha256"]),
         )

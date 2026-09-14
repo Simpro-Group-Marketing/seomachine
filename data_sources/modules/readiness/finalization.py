@@ -3,11 +3,18 @@
 from __future__ import annotations
 
 import copy
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
 from .inputs import ReadinessInputs
+from .input_spec import ReadinessInputSpec
+from .finalization_dependencies import (
+    DEFAULT_FINALIZATION_DEPENDENCIES,
+    FinalizationDependencies,
+)
+from .release_lifecycle import artifact_release_policy
+from .artifact_views import thaw_value
+from .sealed_inventory import SealedInventory
 from .session import ValidationSession
 from .telemetry import ReadinessTelemetry
 
@@ -98,6 +105,8 @@ def build_final_attestation(
     readiness_run_id: Callable[[str | None, str], str],
     run_id: str | None = None,
     telemetry: ReadinessTelemetry | None = None,
+    vault_root: str | Path | None = None,
+    dependencies: FinalizationDependencies = DEFAULT_FINALIZATION_DEPENDENCIES,
 ) -> Mapping[str, Any]:
     """Reuse authenticated gates, then perform one complete final input reseal."""
     validate_execution(preflight_result, workspace_root=workspace_root)
@@ -106,9 +115,12 @@ def build_final_attestation(
         raise ValueError("final readiness attestation requires a passed preflight result")
 
     artifact_kind = preflight_result.get("artifact_kind")
-    if artifact_kind == "blog" and final_bom_path is None:
+    policy = artifact_release_policy(artifact_kind)
+    if policy.requires_final_bom and final_bom_path is None:
         raise ValueError("final blog readiness attestation requires a final assembly BOM")
-    started_at = _utc_now()
+    if not policy.requires_final_bom and final_bom_path is not None:
+        raise ValueError("landing-page final readiness does not use a blog assembly BOM")
+    started_at = dependencies.now()
     session = _capture_final_session(
         preflight_result,
         final_bom_path=final_bom_path,
@@ -123,12 +135,18 @@ def build_final_attestation(
             if final_bom_path is not None
             else None
         )
-        if final_bom is not None and final_bom.get("lifecycle_state") != "final":
-            raise ValueError("final readiness attestation requires a final assembly BOM")
-        if artifact_kind == "landing_page" and final_bom is not None:
-            raise ValueError("landing-page final readiness does not use a blog assembly BOM")
+        if final_bom is not None:
+            _validate_final_bom(
+                final_bom,
+                inputs=inputs,
+                preflight_result=preflight_result,
+                workspace_root=workspace_root,
+                vault_root=vault_root,
+                dependencies=dependencies,
+            )
 
         inputs.reseal()
+        sealed_inventory = SealedInventory.issue(inputs.artifacts)
         input_hashes = inputs.hash_inventory()
         final_result = copy.deepcopy(dict(preflight_result))
         final_result.update({
@@ -140,7 +158,7 @@ def build_final_attestation(
                 None, input_hashes["article"]["sha256"]
             ),
             "started_at": started_at,
-            "completed_at": _utc_now(),
+            "completed_at": dependencies.now(),
         })
         if final_bom is not None:
             final_result["final_bom_sha256"] = inputs.snapshot(
@@ -148,7 +166,11 @@ def build_final_attestation(
             ).sha256
         else:
             final_result.pop("final_bom_sha256", None)
-        executed = executed_result_factory(final_result, workspace_root=workspace_root)
+        executed = executed_result_factory(
+            final_result,
+            workspace_root=workspace_root,
+            sealed_inventory=sealed_inventory,
+        )
         validate_result(executed, workspace_root=workspace_root)
         return executed
 
@@ -160,35 +182,58 @@ def _capture_final_session(
     workspace_root: Path,
     telemetry: ReadinessTelemetry | None,
 ) -> ValidationSession:
-    paths = _preflight_input_paths(preflight_result)
-    paths.update({
-        "article": preflight_result["file"],
-        "validation_sidecar": _optional_path(preflight_result, "proof_sidecar"),
-        "context_request": _optional_path(preflight_result, "context_request"),
-        "context_pack": _optional_path(preflight_result, "context_pack"),
-        "context_receipt": _optional_path(preflight_result, "context_receipt"),
-        "assembly_bom": final_bom_path,
-    })
+    inventory = preflight_result.get("input_hashes")
+    if not isinstance(inventory, Mapping):
+        raise ValueError("passed readiness result requires input_hashes")
+    spec = ReadinessInputSpec.for_final_attestation(
+        inventory,
+        {
+            "article": preflight_result["file"],
+            "validation_sidecar": _optional_path(preflight_result, "proof_sidecar"),
+            "context_request": _optional_path(preflight_result, "context_request"),
+            "context_pack": _optional_path(preflight_result, "context_pack"),
+            "context_receipt": _optional_path(preflight_result, "context_receipt"),
+            "assembly_bom": final_bom_path,
+        },
+        workspace_root=workspace_root,
+    )
     return ValidationSession.capture(
-        paths,
+        spec,
         workspace_root=workspace_root,
         telemetry=telemetry,
     )
 
 
-def _preflight_input_paths(
+def _validate_final_bom(
+    final_bom: Mapping[str, Any],
+    *,
+    inputs: ReadinessInputs,
     preflight_result: Mapping[str, Any],
-) -> dict[str, str]:
-    inventory = preflight_result.get("input_hashes")
-    if not isinstance(inventory, Mapping):
-        return {}
-    return {
-        label: str(row["path"])
-        for label, row in inventory.items()
-        if isinstance(label, str)
-        and isinstance(row, Mapping)
-        and isinstance(row.get("path"), str)
-    }
+    workspace_root: Path,
+    vault_root: str | Path | None,
+    dependencies: FinalizationDependencies,
+) -> None:
+    sidecar = _optional_path(preflight_result, "proof_sidecar")
+    if sidecar is None:
+        raise ValueError("final blog readiness requires a validation sidecar")
+    try:
+        findings = dependencies.final_bom_guard(
+            thaw_value(final_bom),
+            article_path=str(preflight_result["file"]),
+            validation_sidecar_path=sidecar,
+            context_request_path=_optional_path(preflight_result, "context_request"),
+            context_pack_path=_optional_path(preflight_result, "context_pack"),
+            context_receipt_path=_optional_path(preflight_result, "context_receipt"),
+            workspace_root=workspace_root,
+            expected_lifecycle_state="final",
+            captured=inputs,
+            vault_root=vault_root,
+        )
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError(f"final BOM is invalid: {error}") from error
+    if findings:
+        rules = ", ".join(sorted({str(row.get("rule_id")) for row in findings}))
+        raise ValueError(f"final BOM is invalid: {rules}")
 
 
 def _validate_preflight_input_hashes(
@@ -223,7 +268,7 @@ def _optional_path(result: Mapping[str, Any], key: str) -> str | None:
 
 
 def _utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    return DEFAULT_FINALIZATION_DEPENDENCIES.now()
 
 
 __all__ = [

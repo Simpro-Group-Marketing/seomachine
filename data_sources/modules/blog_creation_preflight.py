@@ -64,6 +64,7 @@ def build_preflight_report(
     content_brief: str | Path | None = None,
     user_paa_csv: str | Path | None = None,
     answersocrates_blocker: str | Path | None = None,
+    workspace_root: str | Path | None = None,
 ) -> dict[str, Any]:
     """Return a strict readiness report for deciding whether BOM assembly may run."""
     artifact_paths = {
@@ -174,9 +175,8 @@ def build_preflight_report(
         )
     else:
         receipt_findings = check_stage_receipt_file(
-            scrub_receipt,
-            expected_tool_name="content_scrubber",
-            expected_tool_version="1.0.0",
+            scrub_receipt, expected_tool_name="content_scrubber",
+            expected_tool_version="1.0.0", workspace_root=workspace_root,
         )
         blockers.extend(
             _guard_blocker(finding, "scrub_receipt") for finding in receipt_findings

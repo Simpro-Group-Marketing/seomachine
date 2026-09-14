@@ -170,6 +170,24 @@ def validate_public_url(
     return _resolve_public_url(url, resolver=resolver).url
 
 
+def validate_public_url_syntax(url: str) -> str:
+    """Validate URL syntax without performing DNS resolution."""
+    candidate = str(url or "").strip()
+    parsed = urlsplit(candidate)
+    if parsed.scheme.casefold() not in {"http", "https"}:
+        raise PublicUrlSafetyError("Public evidence URLs must use HTTP or HTTPS.")
+    if not parsed.hostname:
+        raise PublicUrlSafetyError("Public evidence URL requires a hostname.")
+    if parsed.username is not None or parsed.password is not None:
+        raise PublicUrlSafetyError("Public evidence URLs must not contain credentials.")
+    try:
+        parsed.port
+        parsed.hostname.rstrip(".").encode("idna").decode("ascii")
+    except (UnicodeError, ValueError) as error:
+        raise PublicUrlSafetyError("Public evidence URL has an invalid hostname or port.") from error
+    return candidate
+
+
 def _remaining_seconds(deadline: float) -> float:
     """Return deadline budget remaining or fail with a stable transport error."""
     remaining = deadline - time.monotonic()

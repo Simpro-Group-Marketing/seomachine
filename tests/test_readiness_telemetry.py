@@ -20,7 +20,7 @@ def test_telemetry_records_stages_counters_and_atomic_output(tmp_path: Path):
     telemetry.write(output)
     payload = json.loads(output.read_text(encoding="utf-8"))
 
-    assert payload["schema"] == "simpro-readiness-telemetry/v2"
+    assert payload["schema"] == "simpro-readiness-telemetry/v3"
     assert payload["run_id"] == "run-1"
     assert payload["phase"] == "preflight"
     assert payload["outcome"] == "passed"

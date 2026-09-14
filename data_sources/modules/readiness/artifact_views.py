@@ -31,6 +31,15 @@ class FileIdentity:
             changed_ns=int(stat.st_ctime_ns),
         )
 
+    def as_tuple(self) -> tuple[int, int, int, int, int]:
+        return (
+            self.device,
+            self.inode,
+            self.byte_count,
+            self.modified_ns,
+            self.changed_ns,
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class ArtifactBytesView:

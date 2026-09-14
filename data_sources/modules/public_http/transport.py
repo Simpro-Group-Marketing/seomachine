@@ -16,11 +16,13 @@ import requests
 
 try:
     from ..artifact_runtime.paths import cache_path
-    from ..public_url_safety import request_public_url, validate_public_url
+    from ..artifact_runtime.limits import HTTP_MEMO_MAX_BYTES
+    from ..public_url_safety import request_public_url, validate_public_url_syntax
 except ImportError:  # pragma: no cover - supports direct module-path execution.
     from artifact_runtime.paths import cache_path
-    from public_url_safety import request_public_url, validate_public_url
-from .cache import ResponseCache
+    from artifact_runtime.limits import HTTP_MEMO_MAX_BYTES
+    from public_url_safety import request_public_url, validate_public_url_syntax
+from .cache import ResponseCache, ResponseMemoryCache
 from .batch import HttpBatchPolicy, Observer, execute_many, resolve_batch_policy
 from .policies import (
     MAX_CACHE_BYTES,
@@ -56,6 +58,7 @@ class PublicHttpTransport:
         max_per_host: int = MAX_PER_HOST,
         batch_policy: HttpBatchPolicy | None = None,
         observer: Observer | None = None,
+        memo_max_bytes: int = HTTP_MEMO_MAX_BYTES,
     ) -> None:
         resolved_batch = resolve_batch_policy(
             batch_policy,
@@ -72,7 +75,10 @@ class PublicHttpTransport:
         self._global_limit = threading.BoundedSemaphore(resolved_batch.max_workers)
         self._max_per_host = resolved_batch.max_per_host
         self._host_limits: dict[str, _Gate] = {}
-        self._memo: dict[str, ResponseSnapshot] = {}
+        self._memo = ResponseMemoryCache(
+            max_bytes=memo_max_bytes,
+            observer=lambda amount: self._observe("memo_bytes_delta", amount),
+        )
         self._flights: dict[str, _Gate] = {}
         self._sessions: list[requests.Session] = []
         self._local = threading.local()
@@ -127,7 +133,7 @@ class PublicHttpTransport:
         if body is not None:
             raise ValueError("public HTTP request body is prohibited")
         normalized_headers = _normalize_headers(headers, policy=policy)
-        validate_public_url(url, resolver=self._resolver)
+        validate_public_url_syntax(url)
         canonical = _canonical_url(url)
         key = _request_key(normalized_method, canonical, normalized_headers, policy)
         with self._single_flight(key):
@@ -164,6 +170,7 @@ class PublicHttpTransport:
             urls,
             request=self.request,
             key_for=_canonical_url,
+            host_for=_request_host,
             request_policy=policy,
             batch_policy=self._batch_policy,
             headers=headers,
@@ -209,7 +216,7 @@ class PublicHttpTransport:
         if snapshot is None:
             self._cache.delete(key)
             return None
-        self._memo[key] = snapshot
+        self._memo.set(key, snapshot, weight=_snapshot_weight(snapshot))
         self._increment("cache_hits")
         return snapshot
 
@@ -234,7 +241,7 @@ class PublicHttpTransport:
                 max_redirects=policy.redirect_limit,
                 max_response_bytes=policy.max_response_bytes,
                 total_timeout_seconds=policy.total_deadline,
-                resolver=self._resolver,
+                resolver=self._resolve,
                 request_guard=self._request_guard,
             )
             snapshot = ResponseSnapshot.capture(response, policy=policy)
@@ -246,7 +253,7 @@ class PublicHttpTransport:
         self._increment("requests")
         self._observe("response_bytes", len(snapshot.body))
         if policy.ttl_for(snapshot.status_code) is not None:
-            self._memo[key] = snapshot
+            self._memo.set(key, snapshot, weight=_snapshot_weight(snapshot))
             if allow_persist:
                 self._persist(key, snapshot, policy=policy)
         return snapshot.response()
@@ -294,6 +301,10 @@ class PublicHttpTransport:
             with self._lock:
                 self._sessions.append(session)
         return session
+
+    def _resolve(self, hostname: str, port: int, *args: object, **kwargs: object):
+        self._observe("dns_resolution", 1)
+        return self._resolver(hostname, port, *args, **kwargs)
 
     @contextmanager
     def _request_guard(self, hostname: str) -> Iterator[None]:
@@ -345,6 +356,10 @@ def _canonical_url(url: str) -> str:
     return urlunsplit((scheme, authority, parsed.path or "/", parsed.query, ""))
 
 
+def _request_host(url: str) -> str:
+    return (urlsplit(url).hostname or "").rstrip(".").casefold()
+
+
 def _normalize_headers(
     headers: Mapping[str, str] | None,
     *,
@@ -368,6 +383,14 @@ def _policy_digest(policy: HttpRequestPolicy) -> str:
         ensure_ascii=True,
     ).encode("utf-8")
     return hashlib.sha256(serialized).hexdigest()
+
+
+def _snapshot_weight(snapshot: ResponseSnapshot) -> int:
+    return (
+        len(snapshot.body)
+        + len(snapshot.content_type.encode("utf-8"))
+        + len(snapshot.final_url.encode("utf-8"))
+    )
 
 
 def _request_key(

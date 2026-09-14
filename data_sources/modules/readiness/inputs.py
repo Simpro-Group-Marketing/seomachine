@@ -9,21 +9,35 @@ from types import MappingProxyType
 from typing import Any, Mapping
 
 from .artifact_io import HASH_CHUNK_BYTES
+from ..artifact_runtime.limits import ARTIFACT_STORE_MAX_BYTES
 from .artifact_store import InstrumentedArtifactStore
+from .input_spec import ReadinessInputSpec
 from .artifact_views import ArtifactMarkdownView, thaw_value
 from .telemetry import ReadinessTelemetry
 
 
 @dataclass(frozen=True, slots=True)
 class InputSnapshot:
-    """Legacy immutable projection of one stored artifact."""
+    """Legacy immutable projection with lazy text and JSON compatibility views."""
 
     path: Path
     relative_path: str
     sha256: str
     byte_count: int
-    text: str | None
-    json_payload: Mapping[str, Any] | None
+    _store: InstrumentedArtifactStore | None = None
+    _label: str = ""
+
+    @property
+    def text(self) -> str | None:
+        if self._store is None or self.path.suffix.casefold() == ".json":
+            return None
+        return self._store.text(self._label)
+
+    @property
+    def json_payload(self) -> Mapping[str, Any] | None:
+        if self._store is None or self.path.suffix.casefold() != ".json":
+            return None
+        return self._store.json_object(self._label)
 
 
 class ReadinessInputs:
@@ -55,16 +69,18 @@ class ReadinessInputs:
     @classmethod
     def capture(
         cls,
-        inputs: Mapping[str, str | Path | None],
+        inputs: Mapping[str, str | Path | None] | ReadinessInputSpec,
         *,
         workspace_root: str | Path,
         telemetry: ReadinessTelemetry | None = None,
+        aggregate_budget_bytes: int = ARTIFACT_STORE_MAX_BYTES,
     ) -> "ReadinessInputs":
         store = InstrumentedArtifactStore.capture(
             inputs,
             workspace_root=workspace_root,
             telemetry=telemetry,
             reader=_read_bounded,
+            aggregate_budget_bytes=aggregate_budget_bytes,
         )
         return cls.from_store(store, telemetry=telemetry)
 
@@ -81,14 +97,13 @@ class ReadinessInputs:
             byte_view = store.bytes_view(label)
             snapshot = by_path.get(byte_view.path)
             if snapshot is None:
-                is_json = byte_view.path.suffix.casefold() == ".json"
                 snapshot = InputSnapshot(
                     path=byte_view.path,
                     relative_path=byte_view.relative_path,
                     sha256=byte_view.sha256,
                     byte_count=byte_view.byte_count,
-                    text=None if is_json else store.text(label),
-                    json_payload=store.json_object(label) if is_json else None,
+                    _store=store,
+                    _label=label,
                 )
                 by_path[byte_view.path] = snapshot
             by_label[label] = snapshot

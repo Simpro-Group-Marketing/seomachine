@@ -12,6 +12,12 @@ from .json_encoding import (
     bounded_canonical_json_bytes,
     bounded_json_bytes,
 )
+from .writers import (
+    OutputByteLimitError,
+    atomic_write_bytes,
+    atomic_write_canonical_json,
+    atomic_write_text,
+)
 from .http_responses import read_response_bytes, read_response_json
 from .readers import FileIdentity, file_identity, read_bounded
 
@@ -19,6 +25,10 @@ __all__ = [
     "FileIdentity",
     "HASH_CHUNK_BYTES",
     "JsonOutputLimitError",
+    "OutputByteLimitError",
+    "atomic_write_bytes",
+    "atomic_write_canonical_json",
+    "atomic_write_text",
     "bounded_canonical_json_bytes",
     "bounded_json_bytes",
     "canonical_json_bytes",

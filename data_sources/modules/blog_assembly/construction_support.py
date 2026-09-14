@@ -8,12 +8,12 @@ from .common import (
     NON_CONNECTOR_REASON,
     blog_assembly_capabilities,
     context_binding_guard,
-    editorial_plan_guard,
-    paa_provenance_guard,
     semrush_keyword_decision_guard,
     sidecar_evidence_binding_errors,
     validate_sha256,
 )
+from ..editorial_plan.orchestration import check_file as check_editorial_plan_file
+from ..paa_provenance.results import check_file as check_paa_provenance_file
 from .contracts import (
     _optional_json_schema,
     _validate_input_path,
@@ -94,13 +94,15 @@ def validate_plan_inputs(
     keyword_decision_path: str | Path,
     assembly_date: date,
     run_id: str,
+    workspace_root: Path,
 ) -> None:
-    plan_findings = editorial_plan_guard.check_file(
+    plan_findings = check_editorial_plan_file(
         editorial_plan_path,
         article_path=article_path,
         serp_evidence_path=serp_evidence_path,
         assembly_date=assembly_date.isoformat(),
         expected_run_id=run_id,
+        workspace_root=workspace_root,
     )
     if plan_findings:
         rules = ", ".join(sorted({str(row.get("rule_id") or "") for row in plan_findings}))
@@ -212,7 +214,7 @@ def derive_and_validate_paa(
         "brief_paa": content_brief_path,
         "user_csv": user_paa_csv_path,
     }.get(policy["source_kind"], paa_artifact_path)
-    findings = paa_provenance_guard.check_file(
+    findings = check_paa_provenance_file(
         str(article.path),
         proof_sidecar=str(validation_sidecar_path),
         workflow_mode=workflow_mode,

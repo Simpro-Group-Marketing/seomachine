@@ -17,8 +17,10 @@ from .common import (
 from .persistence import persist_new_result_pair, persist_result_pair
 from .result_validation import (
     _validate_actual_readiness_execution,
-    validate_passed_readiness_result,
+    validate_passed_readiness_structure,
+    verify_passed_readiness_inputs,
 )
+from .sealed_inventory import SealedInventory
 from .workspace_bindings import (
     _reject_output_input_collision,
     _resolve_workspace_input,
@@ -153,7 +155,21 @@ def write_readiness_result(
     if result.get("passed") is not True:
         atomic_write_json(output, result)
         return None
-    validate_passed_readiness_result(result, workspace_root=root)
+    validate_passed_readiness_structure(result, workspace_root=root)
+    verify_passed_readiness_inputs(result, workspace_root=root)
+    if result.get("schema") == FINAL_READINESS_RESULT_SCHEMA:
+        sealed = getattr(result, "sealed_inventory", None)
+        if not isinstance(sealed, SealedInventory):
+            raise ValueError(
+                "final readiness persistence requires its process-local sealed inventory"
+            )
+        current = sealed.reseal()
+        current_hashes = {
+            label: {"path": row["path"], "sha256": row["sha256"]}
+            for label, row in current.items()
+        }
+        if current_hashes != result.get("input_hashes"):
+            raise ValueError("sealed readiness inventory does not match final result")
     input_rows = result.get("input_hashes")
     input_hashes = {
         str(label): str(row.get("sha256"))

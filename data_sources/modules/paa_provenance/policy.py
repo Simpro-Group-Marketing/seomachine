@@ -30,7 +30,6 @@ from ..execution_attestation import attest_mapping, verify_mapping_attestation
 from ..faq_structure import detect_faq_structure
 from ..guard_common import Finding, should_fail, summarize_findings
 from ..proof_sidecar import compose_with_sidecar, load_sidecar_content
-from . import snapshot_validation as paa_provenance_snapshot
 
 from .contracts import (
     ANSWERSOCRATES_BLOCKER_STATES,

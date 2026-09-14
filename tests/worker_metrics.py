@@ -8,6 +8,8 @@ import re
 import tempfile
 from pathlib import Path
 
+from data_sources.modules.resource_metrics import process_peak_rss_bytes
+
 
 SCHEMA = "simpro-test-worker-metrics/v2"
 _IDENTITY_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
@@ -63,68 +65,6 @@ def write_worker_metrics(
         if temporary is not None:
             temporary.unlink(missing_ok=True)
     return destination
-
-
 def _validate_identity(value: str, *, field_name: str) -> None:
     if not isinstance(value, str) or _IDENTITY_PATTERN.fullmatch(value) is None:
         raise ValueError(f"{field_name} must be a safe non-empty identifier")
-
-
-def process_peak_rss_bytes() -> int | None:
-    """Return dependency-free peak RSS where the standard library exposes it."""
-    if os.name == "nt":
-        return _windows_peak_rss_bytes()
-    try:
-        import resource
-    except ImportError:
-        return None
-    peak = int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
-    if os.name == "posix" and not sys_platform_is_macos():
-        return peak * 1024
-    return peak
-
-
-def _windows_peak_rss_bytes() -> int | None:
-    import ctypes
-    from ctypes import wintypes
-
-    class _ProcessMemoryCounters(ctypes.Structure):
-        _fields_ = (
-            ("cb", wintypes.DWORD),
-            ("PageFaultCount", wintypes.DWORD),
-            ("PeakWorkingSetSize", ctypes.c_size_t),
-            ("WorkingSetSize", ctypes.c_size_t),
-            ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
-            ("QuotaPagedPoolUsage", ctypes.c_size_t),
-            ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
-            ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
-            ("PagefileUsage", ctypes.c_size_t),
-            ("PeakPagefileUsage", ctypes.c_size_t),
-        )
-
-    counters = _ProcessMemoryCounters()
-    counters.cb = ctypes.sizeof(counters)
-    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
-    psapi = ctypes.WinDLL("psapi", use_last_error=True)
-    get_current_process = kernel32.GetCurrentProcess
-    get_current_process.argtypes = ()
-    get_current_process.restype = wintypes.HANDLE
-    get_process_memory_info = psapi.GetProcessMemoryInfo
-    get_process_memory_info.argtypes = (
-        wintypes.HANDLE,
-        ctypes.POINTER(_ProcessMemoryCounters),
-        wintypes.DWORD,
-    )
-    get_process_memory_info.restype = wintypes.BOOL
-    success = get_process_memory_info(
-        get_current_process(),
-        ctypes.byref(counters),
-        counters.cb,
-    )
-    return int(counters.PeakWorkingSetSize) if success else None
-
-
-def sys_platform_is_macos() -> bool:
-    import sys
-
-    return sys.platform == "darwin"

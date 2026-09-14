@@ -28,9 +28,9 @@ class ScoringDependencies:
 
 def default_scoring_dependencies() -> ScoringDependencies:
     """Load scoring dependencies only when a scorer is instantiated."""
-    from data_sources.modules.aeo_geo_rater import rate_aeo_geo
     from data_sources.modules.ai_copy_linter import lint_content
-    from data_sources.modules.customer_proof_diversity_guard import (
+    from data_sources.modules.content_scoring.aeo_orchestration import rate_aeo_geo
+    from data_sources.modules.customer_proof.diversity import (
         check_content as check_customer_proof_diversity,
     )
     from data_sources.modules.frontmatter import split_frontmatter
@@ -46,7 +46,7 @@ def default_scoring_dependencies() -> ScoringDependencies:
     from data_sources.modules.review_story_identity_guard import (
         check_content as check_review_story_identity,
     )
-    from data_sources.modules.seo_quality_rater import SEOQualityRater
+    from data_sources.modules.content_scoring.seo_rater_orchestration import SEOQualityRater
     from data_sources.modules.source_support_guard import check_content as check_source_support
     from data_sources.modules.url_validator import validate_content_urls
 

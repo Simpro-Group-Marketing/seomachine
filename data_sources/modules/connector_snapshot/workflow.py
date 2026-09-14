@@ -6,6 +6,8 @@ import threading
 from collections.abc import Callable
 from typing import Any
 
+from ..artifact_runtime.limits import CONNECTOR_RESULT_CACHE_MAX_BYTES
+
 from .cache import ConnectorSnapshot
 
 
@@ -30,6 +32,8 @@ class ConnectorWorkflowSnapshot:
         client_factory: Callable[[], Any] | None,
         claim_loader: Callable[[Any], Any] | None,
         observer: Callable[[str], None] | None = None,
+        result_cache_budget_bytes: int = CONNECTOR_RESULT_CACHE_MAX_BYTES,
+        byte_observer: Callable[[int], None] | None = None,
     ) -> None:
         self._client_factory = client_factory
         self._claim_loader = claim_loader
@@ -37,7 +41,11 @@ class ConnectorWorkflowSnapshot:
         self._client: Any = None
         self._workflow_context: Any = None
         self._claim_set: Any = None
-        self._result_cache = ConnectorSnapshot(self._cache_event)
+        self._result_cache = ConnectorSnapshot(
+            self._cache_event,
+            max_bytes=result_cache_budget_bytes,
+            byte_observer=byte_observer,
+        )
         self._lock = threading.RLock()
         self._closed = False
 

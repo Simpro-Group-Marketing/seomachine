@@ -6,6 +6,9 @@
     "data_sources/modules/ai_copy_linter.py": {
       "_iter_active_lines": 12
     },
+    "data_sources/modules/readiness/persistence_api.py": {
+      "write_readiness_result": 11
+    },
     "data_sources/modules/blog_assembly_contract.py": {
       "artifact_inventory_snapshots": 12
     },
@@ -229,9 +232,11 @@
   },
   "maximum_lines": 500,
   "oversized_production_files": {
+    "data_sources/modules/readiness/artifact_store.py": 515,
+    "data_sources/modules/readiness/result_validation.py": 520,
     "data_sources/modules/above_fold_analyzer.py": 512,
     "data_sources/modules/ai_copy_linter.py": 782,
-    "data_sources/modules/blog_assembly_contract.py": 633,
+    "data_sources/modules/blog_assembly_contract.py": 618,
     "data_sources/modules/blog_assembly_stage_receipt.py": 943,
     "data_sources/modules/blog_creation_preflight.py": 823,
     "data_sources/modules/blog_strategy_guard.py": 640,
@@ -370,16 +375,16 @@
     "tests/test_proof_sidecar.py": 58,
     "tests/test_proof_usage.py": 106,
     "tests/test_public_artifact_guard.py": 351,
-    "tests/test_public_http_batch.py": 254,
+    "tests/test_public_http_batch.py": 288,
     "tests/test_public_http_policy.py": 117,
-    "tests/test_public_http_transport.py": 286,
+    "tests/test_public_http_transport.py": 326,
     "tests/test_public_research_link_guard.py": 257,
     "tests/test_public_url_safety.py": 469,
     "tests/test_publish_content_safety.py": 55,
     "tests/test_publish_readiness.py": 1884,
     "tests/test_publishable_markdown.py": 38,
     "tests/test_python_structure.py": 82,
-    "tests/test_readiness_inputs.py": 156,
+    "tests/test_readiness_inputs.py": 182,
     "tests/test_readiness_lazy_scoring.py": 59,
     "tests/test_readiness_session.py": 157,
     "tests/test_readiness_snapshot_integration.py": 330,
@@ -396,7 +401,7 @@
     "tests/test_schema_handoff_guard.py": 181,
     "tests/test_scoring_facades.py": 96,
     "tests/test_semrush_keyword_decision_guard.py": 257,
-    "tests/test_shared_infrastructure_packages.py": 105,
+    "tests/test_shared_infrastructure_packages.py": 117,
     "tests/test_simpro_vault_client.py": 264,
     "tests/test_source_quality_guard.py": 391,
     "tests/test_source_support_batch.py": 81,

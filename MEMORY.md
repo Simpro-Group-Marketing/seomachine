@@ -24,9 +24,12 @@
 | Limit key | Bytes |
 | --- | ---: |
 | `article_max_bytes` | 1048576 |
+| `artifact_store_max_bytes` | 33554432 |
+| `connector_result_cache_max_bytes` | 33554432 |
 | `hash_chunk_bytes` | 1048576 |
 | `http_batch_max_bytes` | 33554432 |
 | `http_cache_max_bytes` | 268435456 |
+| `http_memo_max_bytes` | 33554432 |
 | `json_max_bytes` | 8388608 |
 | `session_normalized_source_max_bytes` | 33554432 |
 | `sidecar_max_bytes` | 1048576 |

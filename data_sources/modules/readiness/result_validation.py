@@ -22,7 +22,6 @@ from .common import (
     is_json_number,
     load_json_object_snapshot,
     read_publishable_markdown,
-    resolve_artifact,
     validate_sha256,
 )
 from .workspace_bindings import (
@@ -33,6 +32,8 @@ from .workspace_bindings import (
     _same_path,
     _verify_result_inputs_unchanged,
 )
+from .contracts import is_registered_execution
+from .release_lifecycle import artifact_release_policy, validate_final_bom_binding
 
 
 def _validate_actual_readiness_execution(
@@ -44,6 +45,8 @@ def _validate_actual_readiness_execution(
         raise ValueError(
             "passed readiness output requires an actual publish-readiness execution"
         )
+    if not is_registered_execution(result):
+        raise ValueError("passed readiness output must be the original execution result")
     if os.path.normcase(str(result._workspace_root)) != os.path.normcase(
         str(workspace_root.resolve())
     ):
@@ -61,7 +64,8 @@ def _validate_result_envelope(result: Mapping[str, Any]) -> str:
     schema = result.get("schema")
     if schema == FINAL_READINESS_RESULT_SCHEMA:
         expected_fields.update(FINAL_RELEASE_FIELDS)
-    if phase == "final" and result.get("artifact_kind") == "blog":
+    policy = artifact_release_policy(result.get("artifact_kind"))
+    if phase == "final" and policy.requires_final_bom:
         expected_fields.add("final_bom_sha256")
     if set(result) != expected_fields:
         raise ValueError("passed readiness result must use the exact result field set")
@@ -263,11 +267,42 @@ def validate_passed_readiness_result(
     *,
     workspace_root: str | Path | None = None,
 ) -> None:
-    """Reject caller-invented pass payloads that do not match the closed contract."""
+    """Reject caller-invented pass payloads at both structural and live boundaries."""
+    validate_passed_readiness_structure(result, workspace_root=workspace_root)
+    verify_passed_readiness_inputs(result, workspace_root=workspace_root)
+
+
+def validate_passed_readiness_structure(
+    result: Mapping[str, Any],
+    *,
+    workspace_root: str | Path | None = None,
+) -> None:
+    """Validate the result envelope without reading any input artifact."""
     phase = _validate_result_envelope(result)
     root = _result_workspace_root(result, workspace_root)
+    artifact_kind = artifact_release_policy(result.get("artifact_kind")).artifact_kind
+    _validate_result_gates(result)
+    _validate_result_scores(result, artifact_kind)
+    _validate_input_inventory_shape(result)
+    if phase == "final":
+        rows = result.get("input_hashes")
+        if not isinstance(rows, Mapping):
+            raise ValueError("passed readiness result requires input_hashes")
+        validate_final_bom_binding(result, rows)
+    _verify_result_path_bindings(result, workspace_root=root)
+
+
+def verify_passed_readiness_inputs(
+    result: Mapping[str, Any],
+    *,
+    workspace_root: str | Path | None = None,
+) -> None:
+    """Verify the result against current files after structural validation."""
+    validate_passed_readiness_structure(result, workspace_root=workspace_root)
+    root = _result_workspace_root(result, workspace_root)
     article, artifact_kind = _validate_result_article(result, workspace_root=root)
-    names = _validate_result_gates(result)
+    phase = str(result.get("phase"))
+    names = [str(gate.get("name")) for gate in result["gates"]]
     _validate_blog_gate_inventory(
         result,
         article=article,
@@ -276,11 +311,23 @@ def validate_passed_readiness_result(
         names=names,
         workspace_root=root,
     )
-    _validate_result_scores(result, artifact_kind)
     _verify_result_inputs_unchanged(result, workspace_root=root)
-    _verify_result_path_bindings(result, workspace_root=root)
     _validate_complete_input_inventory(result, workspace_root=root)
     _validate_release_manifest_binding(result, workspace_root=root)
+
+
+def _validate_input_inventory_shape(result: Mapping[str, Any]) -> None:
+    rows = result.get("input_hashes")
+    if not isinstance(rows, Mapping) or not rows:
+        raise ValueError("passed readiness result requires input_hashes")
+    for label, row in rows.items():
+        if not isinstance(label, str) or not label:
+            raise ValueError("readiness input labels must be non-empty strings")
+        if not isinstance(row, Mapping) or set(row) != {"path", "sha256"}:
+            raise ValueError(f"readiness input {label} must contain only path and sha256")
+        if not isinstance(row.get("path"), str) or not row["path"]:
+            raise ValueError(f"readiness input {label} path is invalid")
+        validate_sha256(row.get("sha256"), field=f"input_hashes.{label}.sha256")
 
 def _validate_passed_scorecard(
     result: Mapping[str, Any],
@@ -434,19 +481,40 @@ def _verify_result_path_bindings(
         if not isinstance(stored, str):
             raise ValueError(f"readiness input {label} has an invalid path binding")
         try:
-            bound_path = _resolve_workspace_input(
-                declared,
-                workspace_root=root,
-                field=field,
-            )
-            stored_path = resolve_artifact(stored, workspace_root=root)
+            bound_path = _lexical_workspace_path(declared, root)
+            stored_path = _lexical_workspace_path(stored, root)
         except ValueError as error:
             raise ValueError(f"readiness input {label} has an invalid path binding") from error
         if not _same_path(bound_path, stored_path):
             raise ValueError(f"readiness input {label} does not match its declared path")
 
+
+def _lexical_workspace_path(value: str, root: Path) -> Path:
+    """Normalize a binding without consulting the filesystem."""
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("path is required")
+    raw = os.path.abspath(value if os.path.isabs(value) else os.path.join(root, value))
+    try:
+        common = os.path.commonpath((str(root), raw))
+    except ValueError as error:
+        raise ValueError("path is outside workspace") from error
+    if os.path.normcase(common) != os.path.normcase(str(root)):
+        raise ValueError("path is outside workspace")
+    return Path(raw)
+
 def _is_number(value: Any) -> bool:
     return is_json_number(value)
 
 
-__all__ = ['_is_number', '_same_number', '_scorecard_gate', '_validate_actual_readiness_execution', '_validate_passed_scorecard', '_validate_scorecard_gate', '_verify_result_path_bindings', 'validate_passed_readiness_result']
+__all__ = [
+    '_is_number',
+    '_same_number',
+    '_scorecard_gate',
+    '_validate_actual_readiness_execution',
+    '_validate_passed_scorecard',
+    '_validate_scorecard_gate',
+    '_verify_result_path_bindings',
+    'validate_passed_readiness_result',
+    'validate_passed_readiness_structure',
+    'verify_passed_readiness_inputs',
+]

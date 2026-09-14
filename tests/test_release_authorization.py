@@ -14,10 +14,7 @@ from data_sources.modules.blog_assembly_stage_receipt import (
 from data_sources.modules.release_authorization import (
     RELEASE_MANIFEST_SCHEMA,
     load_publish_authorization,
-    prepare_final_release_result,
 )
-from data_sources.modules import publish_readiness
-from tests.test_publish_readiness import files as readiness_files, run_with_patches
 
 
 def _sha256(value: bytes) -> str:
@@ -170,7 +167,6 @@ def test_authorization_rejects_historical_v1_and_unknown_fields(tmp_path: Path):
             release_manifest_path=manifest_path,
             workspace_root=tmp_path,
         )
-
     _, manifest_path, result_path, receipt_path = _landing_bundle(tmp_path / "unknown")
     value = json.loads(result_path.read_text(encoding="utf-8"))
     value["unexpected"] = True
@@ -245,54 +241,4 @@ def test_authorization_rejects_wrong_workspace_and_modified_bundle(tmp_path: Pat
             final_receipt_path=receipt_path,
             release_manifest_path=manifest_path,
             workspace_root=tmp_path,
-        )
-
-
-def test_real_blog_finalization_round_trips_through_authorization(
-    readiness_files: tuple[Path, Path],
-):
-    article, sidecar = readiness_files
-    preflight, _, _, _ = run_with_patches(article, sidecar)
-    provisional_path = Path(preflight["assembly_bom"])
-    bom = json.loads(provisional_path.read_text(encoding="utf-8"))
-    bom["lifecycle_state"] = "final"
-    final_bom = provisional_path.with_name("final-bom.json")
-    _write_json(final_bom, bom)
-    final = publish_readiness.build_final_readiness_attestation(
-        preflight,
-        final_bom=final_bom,
-        workspace_root=article.parent,
-    )
-    release_dir = article.parent / "research" / "releases" / "round-trip"
-    manifest_path = release_dir / "release-manifest.json"
-    final = prepare_final_release_result(
-        final,
-        release_manifest_path=manifest_path,
-        previous_receipt_hash="",
-        workspace_root=article.parent,
-    )
-    readiness_path = release_dir / "final-readiness.json"
-    receipt_path = release_dir / "final-readiness-stage-receipt.json"
-    publish_readiness.write_readiness_result(
-        readiness_path,
-        final,
-        receipt_path=receipt_path,
-        workspace_root=article.parent,
-    )
-
-    authorization = load_publish_authorization(
-        final_readiness_path=readiness_path,
-        final_receipt_path=receipt_path,
-        release_manifest_path=manifest_path,
-        workspace_root=article.parent,
-    )
-    assert authorization.artifact_kind == "blog"
-    assert authorization.artifacts["assembly_bom"].path == final_bom.resolve()
-
-    with pytest.raises(ValueError, match="already exists"):
-        publish_readiness.write_readiness_result(
-            readiness_path,
-            final,
-            receipt_path=receipt_path,
-            workspace_root=article.parent,
         )

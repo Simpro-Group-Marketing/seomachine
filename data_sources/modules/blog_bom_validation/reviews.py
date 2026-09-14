@@ -6,14 +6,14 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .. import machine_review
-from ..blog_assembly_bom import BOM_SCHEMA_V1, BOM_SCHEMA_V2, BOM_SCHEMA_V3
+from ..blog_assembly.common import BOM_SCHEMA_V1, BOM_SCHEMA_V2, BOM_SCHEMA_V3
 from ..blog_assembly_contract import resolve_artifact, verify_artifact
 from ..guard_common import Finding
 from .artifacts import _verify_row, _is_workspace_file
 from .common import _finding
 from .dependencies import BomValidationDependencies
-from . import review_validation as blog_assembly_bom_reviews
-from . import snapshot_adapters as blog_assembly_bom_snapshot
+import data_sources.modules.blog_bom_validation.review_validation as blog_assembly_bom_reviews
+import data_sources.modules.blog_bom_validation.snapshot_adapters as blog_assembly_bom_snapshot
 
 
 def _check_machine_reviews(

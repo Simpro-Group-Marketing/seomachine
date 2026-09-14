@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections import deque
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from dataclasses import dataclass, field
-from typing import Callable, Iterable, Iterator, Mapping
+from typing import Callable, Deque, Iterable, Iterator, Mapping
 
 import requests
 
@@ -34,9 +35,12 @@ class HttpBatchPolicy:
         )
         if self.max_per_host > self.max_workers:
             raise ValueError("max_per_host cannot exceed max_workers")
+
+
 @dataclass(slots=True)
 class _Pending:
     key: str
+    host: str
     reserved_bytes: int
 
 
@@ -47,7 +51,8 @@ class _BatchState:
     seen: set[str] = field(default_factory=set)
     responses: dict[str, ResponseSnapshot] = field(default_factory=dict)
     pending: dict[Future[requests.Response], _Pending] = field(default_factory=dict)
-    deferred: tuple[str, str] | None = None
+    buffered: Deque[tuple[str, str, str]] = field(default_factory=deque)
+    host_pending: dict[str, int] = field(default_factory=dict)
     response_bytes: int = 0
     exhausted: bool = False
 
@@ -62,6 +67,7 @@ def execute_many(
     *,
     request: Request,
     key_for: Callable[[str], str],
+    host_for: Callable[[str], str],
     request_policy: HttpRequestPolicy,
     batch_policy: HttpBatchPolicy,
     headers: Mapping[str, str] | None,
@@ -76,20 +82,25 @@ def execute_many(
     try:
         with ThreadPoolExecutor(max_workers=batch_policy.max_workers) as executor:
             try:
-                while not state.exhausted or state.pending or state.deferred is not None:
+                while (
+                    not state.exhausted
+                    or state.pending
+                    or state.buffered
+                ):
                     _fill_window(
                         state,
                         executor=executor,
                         method=method,
                         request=request,
                         key_for=key_for,
+                        host_for=host_for,
                         request_policy=request_policy,
                         batch_policy=batch_policy,
                         headers=headers,
                         observer=observer,
                     )
                     if not state.pending:
-                        if state.deferred is not None:
+                        if state.buffered:
                             raise ValueError(
                                 "public HTTP batch exceeds aggregate response byte limit"
                             )
@@ -131,27 +142,39 @@ def _fill_window(
     method: str,
     request: Request,
     key_for: Callable[[str], str],
+    host_for: Callable[[str], str],
     request_policy: HttpRequestPolicy,
     batch_policy: HttpBatchPolicy,
     headers: Mapping[str, str] | None,
     observer: Observer | None,
 ) -> None:
+    _drain_buffer(
+        state,
+        executor=executor,
+        method=method,
+        request=request,
+        request_policy=request_policy,
+        batch_policy=batch_policy,
+        headers=headers,
+        observer=observer,
+    )
     while len(state.pending) < batch_policy.max_workers and not state.exhausted:
         raw_url, key = _next_unique(state, key_for=key_for, observer=observer)
         if raw_url is None or key is None:
             continue
-        if not _can_reserve(state, request_policy=request_policy, batch_policy=batch_policy):
-            state.deferred = (raw_url, key)
-            return
-        future = executor.submit(
-            request,
-            method,
-            raw_url,
-            policy=request_policy,
+        state.buffered.append((raw_url, key, host_for(raw_url)))
+        _drain_buffer(
+            state,
+            executor=executor,
+            method=method,
+            request=request,
+            request_policy=request_policy,
+            batch_policy=batch_policy,
             headers=headers,
+            observer=observer,
         )
-        state.pending[future] = _Pending(key, request_policy.max_response_bytes)
-        _observe(observer, "reserved_bytes_delta", request_policy.max_response_bytes)
+        if len(state.pending) >= batch_policy.max_workers:
+            return
 
 
 def _next_unique(
@@ -160,10 +183,6 @@ def _next_unique(
     key_for: Callable[[str], str],
     observer: Observer | None,
 ) -> tuple[str | None, str | None]:
-    if state.deferred is not None:
-        value = state.deferred
-        state.deferred = None
-        return value
     try:
         raw_url = next(state.iterator)
     except StopIteration:
@@ -176,6 +195,39 @@ def _next_unique(
         return None, None
     state.seen.add(key)
     return raw_url, key
+
+
+def _drain_buffer(
+    state: _BatchState,
+    *,
+    executor: ThreadPoolExecutor,
+    method: str,
+    request: Request,
+    request_policy: HttpRequestPolicy,
+    batch_policy: HttpBatchPolicy,
+    headers: Mapping[str, str] | None,
+    observer: Observer | None,
+) -> None:
+    for _ in range(len(state.buffered)):
+        if len(state.pending) >= batch_policy.max_workers:
+            return
+        raw_url, key, host = state.buffered.popleft()
+        if state.host_pending.get(host, 0) >= batch_policy.max_per_host:
+            state.buffered.append((raw_url, key, host))
+            continue
+        if not _can_reserve(state, request_policy=request_policy, batch_policy=batch_policy):
+            state.buffered.appendleft((raw_url, key, host))
+            return
+        future = executor.submit(
+            request,
+            method,
+            raw_url,
+            policy=request_policy,
+            headers=headers,
+        )
+        state.pending[future] = _Pending(key, host, request_policy.max_response_bytes)
+        state.host_pending[host] = state.host_pending.get(host, 0) + 1
+        _observe(observer, "reserved_bytes_delta", request_policy.max_response_bytes)
 
 
 def _can_reserve(
@@ -201,6 +253,9 @@ def _collect_completed(
     completed, _ = wait(tuple(state.pending), return_when=FIRST_COMPLETED)
     for future in completed:
         pending = state.pending.pop(future)
+        state.host_pending[pending.host] -= 1
+        if state.host_pending[pending.host] == 0:
+            state.host_pending.pop(pending.host, None)
         _observe(observer, "reserved_bytes_delta", -pending.reserved_bytes)
         snapshot = ResponseSnapshot.capture(future.result(), policy=request_policy)
         state.response_bytes += len(snapshot.body)
@@ -213,6 +268,7 @@ def _cancel_pending(state: _BatchState, *, observer: Observer | None) -> None:
         future.cancel()
         _observe(observer, "reserved_bytes_delta", -pending.reserved_bytes)
     state.pending.clear()
+    state.host_pending.clear()
 
 
 def _positive_integer(value: object, *, field_name: str) -> None:

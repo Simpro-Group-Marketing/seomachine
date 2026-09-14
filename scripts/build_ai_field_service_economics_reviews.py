@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT))
 
 from data_sources.modules import ai_copy_linter
 from data_sources.modules.artifact_runtime.subprocesses import run_bounded_text_process
-from data_sources.modules.editorial_plan_guard import check_file as check_plan_file
+from data_sources.modules.editorial_plan.orchestration import check_file as check_plan_file
 from data_sources.modules.frontmatter import split_frontmatter
 from data_sources.modules.machine_review import (
     AGENT_ROSTER,

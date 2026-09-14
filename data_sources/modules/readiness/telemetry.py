@@ -15,9 +15,9 @@ from typing import Iterator
 from ..resource_metrics import process_peak_rss_bytes
 
 
-TELEMETRY_SCHEMA = "simpro-readiness-telemetry/v2"
+TELEMETRY_SCHEMA = "simpro-readiness-telemetry/v3"
 SUPPORTED_TELEMETRY_SCHEMAS = frozenset(
-    {"simpro-readiness-telemetry/v1", TELEMETRY_SCHEMA}
+    {"simpro-readiness-telemetry/v1", "simpro-readiness-telemetry/v2", TELEMETRY_SCHEMA}
 )
 COUNTERS = (
     "full_readiness_executions",
@@ -43,6 +43,7 @@ COUNTERS = (
     "http_unique_requests",
     "http_deduplicated_occurrences",
     "http_response_bytes",
+    "http_dns_resolutions",
 )
 GAUGES = (
     "current_http_requests",
@@ -50,8 +51,14 @@ GAUGES = (
     "current_http_reserved_bytes",
     "peak_http_reserved_bytes",
     "retained_http_response_bytes",
+    "http_memo_bytes",
+    "peak_http_memo_bytes",
     "normalized_source_bytes",
+    "peak_normalized_source_bytes",
+    "connector_result_cache_bytes",
+    "peak_connector_result_cache_bytes",
     "artifact_store_source_bytes",
+    "peak_artifact_store_source_bytes",
     "process_peak_rss_bytes",
     "peak_allocation_bytes",
 )
@@ -129,6 +136,12 @@ class ReadinessTelemetry:
             previous = self._gauges[gauge]
             self._gauges[gauge] = value if previous is None else max(previous, value)
 
+    def adjust_gauge(self, gauge: str, amount: int) -> int:
+        """Adjust a current gauge and return its new value."""
+        if not isinstance(amount, int) or isinstance(amount, bool):
+            raise ValueError("telemetry gauge amount must be an integer")
+        return self._adjust_gauge(gauge, amount, peak=None)
+
     def http_observer(self, event: str, amount: int) -> None:
         """Consume content-free transport lifecycle events in real time."""
         if not isinstance(amount, int) or isinstance(amount, bool):
@@ -139,6 +152,7 @@ class ReadinessTelemetry:
             "cache_misses": ("cache_misses",),
             "response_bytes": ("http_response_bytes",),
             "deduplicated_requests": ("http_deduplicated_occurrences",),
+            "dns_resolution": ("http_dns_resolutions",),
         }
         if event in counters:
             if amount < 0:
@@ -156,6 +170,7 @@ class ReadinessTelemetry:
                 "peak_http_reserved_bytes",
             ),
             "retained_bytes_delta": ("retained_http_response_bytes", None),
+            "memo_bytes_delta": ("http_memo_bytes", "peak_http_memo_bytes"),
         }
         try:
             current, peak = gauges[event]
@@ -169,7 +184,7 @@ class ReadinessTelemetry:
         amount: int,
         *,
         peak: str | None,
-    ) -> None:
+    ) -> int:
         with self._lock:
             previous = self._gauges[gauge]
             current = (previous or 0) + amount
@@ -179,6 +194,7 @@ class ReadinessTelemetry:
             if peak is not None:
                 prior_peak = self._gauges[peak]
                 self._gauges[peak] = max(prior_peak or 0, current)
+            return current
 
     @contextmanager
     def stage(self, name: str) -> Iterator[None]:

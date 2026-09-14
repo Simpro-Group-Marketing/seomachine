@@ -4,18 +4,18 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, Mapping
 
 from .. import (
-    editorial_plan_guard,
     eeat_strength_guard,
     industry_cluster_link_policy,
-    paa_provenance_guard,
     semrush_keyword_decision_guard,
 )
-from . import session_validation as blog_assembly_bom_session
-from . import snapshot_adapters as blog_assembly_bom_snapshot
-from ..blog_assembly_bom import EDITORIAL_PLAN_SCHEMA, _editorial_plan_summary
+import data_sources.modules.blog_bom_validation.session_validation as blog_assembly_bom_session
+import data_sources.modules.blog_bom_validation.snapshot_adapters as blog_assembly_bom_snapshot
+from ..blog_assembly.common import EDITORIAL_PLAN_SCHEMA
+from ..blog_assembly.policy import _editorial_plan_summary
 from ..blog_assembly_contract import (
     canonical_article_run_id,
     load_json_object_snapshot,
@@ -23,7 +23,10 @@ from ..blog_assembly_contract import (
     validate_sha256,
     verify_artifact,
 )
+from ..editorial_plan.orchestration import _check_loaded_plan
 from ..guard_common import Finding
+from ..paa_provenance.evaluation import check_content as check_paa_provenance_content
+from ..paa_provenance.results import check_file as check_paa_provenance_file
 from .common import _finding, _parse_date
 from .contracts import (
     OPTIMIZED_TAIL_FINAL_STAGES,
@@ -114,7 +117,7 @@ def _check_editorial_plan(
     workflow_run_id = _bom_serp_expected_run_id(
         bom, artifacts, root,
     ) or canonical_run_id
-    plan_findings = editorial_plan_guard._check_loaded_plan(
+    plan_findings = _check_loaded_plan(
         plan,
         article_path=article_path,
         serp_evidence_path=serp_path,
@@ -124,6 +127,7 @@ def _check_editorial_plan(
             else None
         ),
         expected_run_id=workflow_run_id,
+        workspace_root=root,
     )
     plan_findings.extend(
         semrush_keyword_decision_guard.check_file(
@@ -271,7 +275,7 @@ def _legacy_paa_findings(
         "brief_paa": "content_brief",
         "user_csv": "user_paa_csv",
     }.get(str(policy.get("source_kind") or ""))
-    result = paa_provenance_guard.check_file(
+    result = check_paa_provenance_file(
         str(article_path),
         proof_sidecar=_bound_path(artifacts, "validation_sidecar", root),
         workflow_mode=str(bom.get("workflow_mode") or ""),
@@ -347,10 +351,12 @@ def _session_dependencies(
         _finding=_finding,
         _parse_date=_parse_date,
         canonical_article_run_id=canonical_article_run_id,
-        editorial_plan_guard=editorial_plan_guard,
+        editorial_plan_guard=SimpleNamespace(_check_loaded_plan=_check_loaded_plan),
         eeat_strength_guard=eeat_strength_guard,
         industry_cluster_link_policy=industry_cluster_link_policy,
-        paa_provenance_guard=paa_provenance_guard,
+        paa_provenance_guard=SimpleNamespace(
+            check_content=check_paa_provenance_content,
+        ),
         semrush_keyword_decision_guard=semrush_keyword_decision_guard,
     )
 

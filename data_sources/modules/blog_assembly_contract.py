@@ -6,7 +6,6 @@ import hashlib
 import math
 import os
 import re
-import tempfile
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path, PurePosixPath
@@ -17,11 +16,13 @@ try:
     from .bounded_io import canonical_json_sha256 as _canonical_json_sha256
     from .bounded_io import parse_json as _parse_json
     from .bounded_io import stream_sha256 as _stream_sha256
+    from .bounded_io import atomic_write_canonical_json as _atomic_write_canonical_json
 except ImportError:  # pragma: no cover - supports direct script execution.
     from bounded_io import canonical_json_bytes as _canonical_json_bytes
     from bounded_io import canonical_json_sha256 as _canonical_json_sha256
     from bounded_io import parse_json as _parse_json
     from bounded_io import stream_sha256 as _stream_sha256
+    from bounded_io import atomic_write_canonical_json as _atomic_write_canonical_json
 
 
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -600,28 +601,12 @@ def verify_artifact(
 def atomic_write_json(path: str | Path, payload: Mapping[str, Any]) -> None:
     """Persist deterministic JSON atomically and durably in the target directory."""
     destination = validate_governance_output_path(path)
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    serialized = canonical_json_bytes(payload).decode("utf-8")
-    temp_path: Path | None = None
-    try:
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            encoding="utf-8",
-            newline="\n",
-            dir=destination.parent,
-            prefix=f".{destination.name}.",
-            suffix=".tmp",
-            delete=False,
-        ) as handle:
-            temp_path = Path(handle.name)
-            handle.write(serialized)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temp_path, destination)
-        temp_path = None
-    finally:
-        if temp_path is not None:
-            temp_path.unlink(missing_ok=True)
+    _atomic_write_canonical_json(
+        destination,
+        payload,
+        max_bytes=DEFAULT_JSON_MAX_BYTES,
+        field="governance JSON",
+    )
 
 
 def _within(candidate: Path, root: Path) -> bool:

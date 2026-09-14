@@ -10,12 +10,17 @@ from typing import Any
 
 from ..connector_snapshot import ConnectorWorkflowSnapshot
 from ..connector_snapshot.cache import canonical_connector_value
-from ..public_http import DEFAULT_HTTP_BATCH_POLICY
+from ..artifact_runtime.limits import (
+    ARTIFACT_STORE_MAX_BYTES,
+    CONNECTOR_RESULT_CACHE_MAX_BYTES,
+    NETWORK_MATERIAL_MAX_BYTES,
+)
 from .artifact_io import resolve_input
 from .artifact_store import InstrumentedArtifactStore
 from .artifact_views import freeze_value
 from .git_registry import GitRegistryState, capture_git_registry_state
 from .inputs import ReadinessInputs
+from .input_spec import ReadinessInputSpec
 from .telemetry import ReadinessTelemetry
 
 
@@ -26,6 +31,7 @@ class ValidationSession:
         "_cache_lock",
         "_closed",
         "_connector_workflow",
+        "_connector_cache_budget_bytes",
         "_context_result",
         "_findings",
         "_git_registry_states",
@@ -47,8 +53,10 @@ class ValidationSession:
         transport_factory: Callable[[], Any] | None = None,
         telemetry: ReadinessTelemetry | None = None,
         network_material_budget_bytes: int = (
-            DEFAULT_HTTP_BATCH_POLICY.max_aggregate_response_bytes
+            NETWORK_MATERIAL_MAX_BYTES
         ),
+        connector_cache_budget_bytes: int = CONNECTOR_RESULT_CACHE_MAX_BYTES,
+        artifact_budget_bytes: int = ARTIFACT_STORE_MAX_BYTES,
     ) -> None:
         if not isinstance(inputs, ReadinessInputs):
             raise TypeError("ValidationSession requires ReadinessInputs")
@@ -56,11 +64,16 @@ class ValidationSession:
         self.telemetry = telemetry
         self._transport_factory = transport_factory
         _validate_network_material_budget(network_material_budget_bytes)
+        _validate_network_material_budget(connector_cache_budget_bytes)
+        _validate_network_material_budget(artifact_budget_bytes)
         self._network_material_budget_bytes = network_material_budget_bytes
+        self._connector_cache_budget_bytes = connector_cache_budget_bytes
         self._connector_workflow = ConnectorWorkflowSnapshot(
             client_factory=connector_factory,
             claim_loader=claim_loader,
             observer=self._connector_event,
+            result_cache_budget_bytes=connector_cache_budget_bytes,
+            byte_observer=self._connector_cache_bytes_event,
         )
         self._context_result: Any = None
         self._findings: dict[str, tuple[dict[str, Any], ...]] = {}
@@ -74,7 +87,7 @@ class ValidationSession:
     @classmethod
     def capture(
         cls,
-        input_paths: Mapping[str, str | Path | None],
+        input_paths: Mapping[str, str | Path | None] | ReadinessInputSpec,
         *,
         workspace_root: str | Path,
         connector_factory: Callable[[], Any] | None = None,
@@ -82,14 +95,25 @@ class ValidationSession:
         transport_factory: Callable[[], Any] | None = None,
         telemetry: ReadinessTelemetry | None = None,
         network_material_budget_bytes: int = (
-            DEFAULT_HTTP_BATCH_POLICY.max_aggregate_response_bytes
+            NETWORK_MATERIAL_MAX_BYTES
         ),
+        connector_cache_budget_bytes: int = CONNECTOR_RESULT_CACHE_MAX_BYTES,
+        artifact_budget_bytes: int = ARTIFACT_STORE_MAX_BYTES,
     ) -> "ValidationSession":
         """Capture all inputs and transfer ownership to one session."""
+        spec = (
+            input_paths
+            if isinstance(input_paths, ReadinessInputSpec)
+            else ReadinessInputSpec.for_readiness(
+                input_paths,
+                workspace_root=workspace_root,
+            )
+        )
         inputs = ReadinessInputs.capture(
-            input_paths,
+            spec,
             workspace_root=workspace_root,
             telemetry=telemetry,
+            aggregate_budget_bytes=artifact_budget_bytes,
         )
         return cls(
             inputs,
@@ -98,6 +122,8 @@ class ValidationSession:
             transport_factory=transport_factory,
             telemetry=telemetry,
             network_material_budget_bytes=network_material_budget_bytes,
+            connector_cache_budget_bytes=connector_cache_budget_bytes,
+            artifact_budget_bytes=artifact_budget_bytes,
         )
 
     @property
@@ -154,6 +180,7 @@ class ValidationSession:
             self._increment("normalized_source_parses")
             if self.telemetry is not None:
                 self.telemetry.set_gauge("normalized_source_bytes", projected)
+                self.telemetry.observe_peak("peak_normalized_source_bytes", projected)
             return value
 
     def git_registry_state(
@@ -267,6 +294,12 @@ class ValidationSession:
         if counter is None:
             raise ValueError(f"unknown connector telemetry event: {event}")
         self._increment(counter)
+
+    def _connector_cache_bytes_event(self, amount: int) -> None:
+        if self.telemetry is None:
+            return
+        current = self.telemetry.adjust_gauge("connector_result_cache_bytes", amount)
+        self.telemetry.observe_peak("peak_connector_result_cache_bytes", current)
 
     def _require_open(self) -> None:
         if self._closed:

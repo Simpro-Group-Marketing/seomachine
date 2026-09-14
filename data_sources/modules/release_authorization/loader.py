@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 
-import hashlib
 import re
 from collections.abc import Mapping
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Any
 
-from ..artifact_runtime.limits import JSON_MAX_BYTES, TEXT_MAX_BYTES
 from ..blog_assembly_contract import ArtifactSnapshot, load_json_object_snapshot
 from ..blog_assembly_stage_receipt import check_stage_receipt
 from ..context_binding_guard import require_artifact_kind
 from ..readiness.contracts import PASSED_RESULT_FIELDS, READINESS_TOOL
+from ..readiness.release_lifecycle import (
+    artifact_release_policy,
+    validate_final_bom_binding,
+)
 from .contracts import (
     FINAL_READINESS_SCHEMA,
     RELEASE_MANIFEST_SCHEMA,
@@ -20,13 +22,13 @@ from .contracts import (
     SealedArtifact,
     freeze_artifacts,
 )
+from .artifact_capture import capture_manifest_inputs
 
 
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _MANIFEST_FIELDS = frozenset(
     {"schema", "artifact_kind", "run_id", "created_at", "inputs", "previous_receipt_hash"}
 )
-_INPUT_FIELDS = frozenset({"path", "sha256", "bytes"})
 _RELEASE_RESULT_FIELDS = frozenset(
     {*PASSED_RESULT_FIELDS, "release_manifest", "release_manifest_sha256"}
 )
@@ -69,7 +71,7 @@ def load_publish_authorization(
     if _bundle_path(result["release_manifest"], root=root, label="release manifest") != manifest_path:
         raise ValueError("final readiness release manifest path does not match")
 
-    artifacts = _capture_manifest_inputs(manifest["inputs"], root=root)
+    artifacts = capture_manifest_inputs(manifest["inputs"], root=root)
     if any(path in {item.path for item in artifacts.values()} for path in (
         manifest_path, readiness_path, receipt_path,
     )):
@@ -145,7 +147,7 @@ def _validate_result_envelope(result: Mapping[str, Any]) -> tuple[str, str]:
 
 def _result_fields(kind: Any) -> set[str]:
     fields = set(_RELEASE_RESULT_FIELDS)
-    if kind == "blog":
+    if artifact_release_policy(kind).requires_final_bom:
         fields.add("final_bom_sha256")
     return fields
 
@@ -158,40 +160,6 @@ def _validate_gate_inventory(result: Mapping[str, Any]) -> None:
     names = [gate.get("name") for gate in gates if isinstance(gate, Mapping)]
     if names != inventory or any(gate.get("passed") is not True for gate in gates):
         raise ValueError("final readiness contains an incomplete gate")
-
-
-def _capture_manifest_inputs(value: Any, *, root: Path) -> dict[str, SealedArtifact]:
-    if not isinstance(value, Mapping):
-        raise ValueError("release manifest inputs must be an object")
-    artifacts: dict[str, SealedArtifact] = {}
-    for label, row in value.items():
-        if not isinstance(label, str) or not label or not isinstance(row, Mapping):
-            raise ValueError("release manifest contains an invalid input row")
-        if set(row) != _INPUT_FIELDS:
-            raise ValueError(f"release manifest input {label} has an invalid field set")
-        path = _input_path(row.get("path"), root=root, label=label)
-        expected_hash = row.get("sha256")
-        expected_bytes = row.get("bytes")
-        if not isinstance(expected_hash, str) or not _SHA256_RE.fullmatch(expected_hash):
-            raise ValueError(f"release manifest input {label} sha256 is invalid")
-        if isinstance(expected_bytes, bool) or not isinstance(expected_bytes, int) or expected_bytes < 0:
-            raise ValueError(f"release manifest input {label} byte count is invalid")
-        limit = JSON_MAX_BYTES if path.suffix.casefold() == ".json" else TEXT_MAX_BYTES
-        snapshot, identity = _read_input(path, limit=limit, label=label)
-        if any(item.path == path for item in artifacts.values()):
-            raise ValueError("release manifest input paths must be distinct")
-        if snapshot.sha256 != expected_hash or len(snapshot.data) != expected_bytes:
-            raise ValueError(f"release manifest input {label} does not match current bytes")
-        artifacts[label] = SealedArtifact(
-            label=label,
-            path=path,
-            relative_path=str(row["path"]),
-            data=snapshot.data,
-            sha256=snapshot.sha256,
-            byte_count=len(snapshot.data),
-            file_identity=identity,
-        )
-    return artifacts
 
 
 def _validate_result_inventory(result: Mapping[str, Any], artifacts: Mapping[str, SealedArtifact]) -> None:
@@ -251,14 +219,11 @@ def _validate_bom(
     *,
     artifact_kind: str,
 ) -> None:
-    bom = artifacts.get("assembly_bom")
-    if artifact_kind == "blog":
-        if bom is None or result.get("assembly_bom") is None:
-            raise ValueError("final blog authorization requires a final BOM")
-        if result.get("final_bom_sha256") != bom.sha256:
-            raise ValueError("final blog BOM digest does not match")
-    elif bom is not None or result.get("assembly_bom") is not None:
-        raise ValueError("landing-page authorization must not contain a blog BOM")
+    rows = {
+        label: {"path": item.relative_path, "sha256": item.sha256}
+        for label, item in artifacts.items()
+    }
+    validate_final_bom_binding(result, rows)
 
 
 def _validate_receipt(
@@ -326,50 +291,6 @@ def _bundle_path(value: Any, *, root: Path, label: str) -> Path:
     if not resolved.is_file():
         raise ValueError(f"{label} must be a file inside the workspace")
     return resolved
-
-
-def _input_path(value: Any, *, root: Path, label: str) -> Path:
-    if not isinstance(value, str) or not value:
-        raise ValueError(f"release manifest input {label} path is invalid")
-    pure = PurePosixPath(value)
-    if pure.is_absolute() or "\\" in value or any(part in {"", ".", ".."} for part in pure.parts):
-        raise ValueError(f"release manifest input {label} path is invalid")
-    return _bundle_path(root.joinpath(*pure.parts), root=root, label=f"release input {label}")
-
-
-def _read_input(
-    path: Path,
-    *,
-    limit: int,
-    label: str,
-) -> tuple[ArtifactSnapshot, tuple[int, int, int, int, int]]:
-    before = _file_identity(path)
-    if path.suffix.casefold() == ".json":
-        snapshot = load_json_object_snapshot(
-            path, field=f"release input {label}", max_bytes=limit
-        )
-    else:
-        try:
-            with path.open("rb") as handle:
-                data = handle.read(limit + 1)
-        except OSError as error:
-            raise ValueError(f"release input {label} is unreadable: {error}") from error
-        if len(data) > limit:
-            raise ValueError(f"release input {label} exceeds {limit} bytes")
-        try:
-            data.decode("utf-8")
-        except UnicodeDecodeError as error:
-            raise ValueError(f"release input {label} must use valid UTF-8") from error
-        snapshot = ArtifactSnapshot(
-            path=path,
-            data=data,
-            sha256=hashlib.sha256(data).hexdigest(),
-            payload={},
-        )
-    after = _file_identity(path)
-    if before != after:
-        raise ValueError(f"release input {label} changed while it was read")
-    return snapshot, after
 
 
 def _load_bundle_snapshot(

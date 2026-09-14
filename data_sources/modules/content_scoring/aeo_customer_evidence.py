@@ -9,7 +9,7 @@ from .aeo_text import _paragraph_has_url_and_identity
 from .aeo_text import _plain_text
 from .aeo_text import _story_tokens
 from collections.abc import Mapping
-from data_sources.modules.customer_proof_evidence import verify_selector_evidence_roles
+from data_sources.modules.customer_proof.evidence import verify_selector_evidence_roles
 from typing import Any
 from typing import Dict
 from typing import Optional

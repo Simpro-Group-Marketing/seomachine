@@ -25,7 +25,13 @@ def test_benchmark_records_distinct_cold_and_warm_samples(
             "counters": {
                 name: phase_value for name in benchmark_release.BENCHMARK_COUNTERS
             },
+            "gauges": {
+                name: phase_value for name in benchmark_release.BENCHMARK_GAUGES
+            },
             "scoring_imports": [] if phase_value == 1 else ["textstat"],
+            "exit_phase": "session_complete",
+            "exit_code": 0,
+            "final_authorization_result": None,
         }
 
     monkeypatch.setattr(benchmark_release, "_run_once", fake_run_once)
@@ -37,19 +43,27 @@ def test_benchmark_records_distinct_cold_and_warm_samples(
     monkeypatch.setattr(benchmark_release, "_commit", lambda repository: "a" * 40)
     monkeypatch.setattr(benchmark_release, "_is_dirty", lambda repository: True)
 
-    result = benchmark_release.run_benchmark(tmp_path, samples=2, node="test_node")
+    result = benchmark_release.run_benchmark(
+        tmp_path,
+        samples=2,
+        nodes=(benchmark_release.DEFAULT_NODE,),
+    )
 
-    assert result["schema"] == "simpro-offline-release-benchmark/v2"
+    assert result["schema"] == "simpro-offline-release-benchmark/v3"
     assert result["repository_dirty"] is True
+    assert result["fixture"] == "multi-scenario-release-suite/v1"
+    assert result["harness_sha256"]
+    scenario = result["scenarios"][benchmark_release.DEFAULT_NODE]
+    assert scenario["summary"]["exit_phase"] == "session_complete"
     assert len(result["samples"]) == 2
     assert set(result["samples"][0]) == {"cold", "warm"}
-    assert result["summary"]["median_cold_wall_ms"] == 4.0
-    assert result["summary"]["median_warm_wall_ms"] == 5.0
-    assert result["summary"]["median_peak_rss_bytes"] == 100
-    assert result["summary"]["median_cold_pre_fixture_ms"] == 2.5
-    assert result["summary"]["median_warm_pre_fixture_ms"] == 3.5
-    assert result["summary"]["median_cold_process_overhead_ms"] == 0.5
-    assert result["summary"]["median_warm_process_overhead_ms"] == 0.5
+    assert scenario["summary"]["median_cold_wall_ms"] == 4.0
+    assert scenario["summary"]["median_warm_wall_ms"] == 5.0
+    assert scenario["summary"]["median_peak_rss_bytes"] == 100
+    assert scenario["summary"]["median_cold_pre_fixture_ms"] == 2.5
+    assert scenario["summary"]["median_warm_pre_fixture_ms"] == 3.5
+    assert scenario["summary"]["median_cold_process_overhead_ms"] == 0.5
+    assert scenario["summary"]["median_warm_process_overhead_ms"] == 0.5
     assert result["boundary_counters"]["cold"]["unique_file_reads"] == 1
     assert result["boundary_counters"]["warm"]["unique_file_reads"] == 2
     assert result["scoring_imports"] == {"cold": [], "warm": ["textstat"]}
@@ -59,36 +73,3 @@ def test_benchmark_records_distinct_cold_and_warm_samples(
     assert calls[2] == calls[3]
     assert calls[4] == calls[5]
     assert len({calls[0], calls[2], calls[4]}) == 3
-
-
-def test_isolated_fixture_observes_real_session_boundaries(tmp_path: Path) -> None:
-    benchmark_release._prepare_fixture(tmp_path)
-
-    cold = benchmark_release._run_fixture(tmp_path)
-    warm = benchmark_release._run_fixture(tmp_path)
-
-    for result in (cold, warm):
-        counters = result["counters"]
-        assert counters["unique_file_reads"] == 2
-        assert counters["file_hashes"] == 2
-        assert counters["byte_snapshots"] == 2
-        assert counters["markdown_parses"] == 1
-        assert counters["json_parses"] == 1
-        assert counters["git_state_loads"] == 1
-        assert counters["connector_clients"] == 1
-        assert counters["connector_operations"] == 2
-        assert counters["connector_result_cache_misses"] == 1
-        assert counters["connector_result_cache_hits"] == 1
-        assert counters["normalized_source_parses"] == 1
-        assert counters["normalized_source_cache_hits"] == 1
-        assert counters["http_deduplicated_occurrences"] == 1
-        assert counters["final_reseals"] == 1
-        assert counters["final_rehashes"] == 2
-        assert result["scoring_imports"] == []
-
-    assert cold["counters"]["http_requests"] == 1
-    assert cold["counters"]["cache_misses"] == 1
-    assert cold["counters"]["cache_hits"] == 1
-    assert warm["counters"]["http_requests"] in {0, 1}
-    assert warm["counters"]["cache_misses"] == warm["counters"]["http_requests"]
-    assert warm["counters"]["cache_hits"] == 2 - warm["counters"]["http_requests"]

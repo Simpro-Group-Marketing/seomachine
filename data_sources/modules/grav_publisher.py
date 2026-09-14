@@ -46,7 +46,7 @@ try:
         validate_publish_content,
         validate_publish_plain_text,
     )
-    from .publish_readiness import run_publish_readiness
+    from .readiness.api import run_publish_readiness
     from .source_support_guard import require_source_support
     from .url_validator import validate_file_urls
 except ImportError:
@@ -66,7 +66,7 @@ except ImportError:
         validate_publish_content,
         validate_publish_plain_text,
     )
-    from publish_readiness import run_publish_readiness
+    from readiness.api import run_publish_readiness
     from source_support_guard import require_source_support
     from url_validator import validate_file_urls
 

@@ -144,6 +144,40 @@ def test_request_many_consumes_a_sliding_window() -> None:
             assert len(future.result(timeout=5)) == 6
 
 
+def test_scheduler_does_not_occupy_workers_with_same_host_waiters() -> None:
+    first_host_started = threading.Event()
+    other_host_started = threading.Event()
+    release = threading.Event()
+
+    def requester(session, method, url, **kwargs):
+        del session, method, kwargs
+        if "example.com" in url:
+            first_host_started.set()
+            assert release.wait(timeout=5)
+        else:
+            other_host_started.set()
+        return _response(url)
+
+    urls = [
+        "https://example.com/one",
+        "https://example.com/two",
+        "https://example.com/three",
+        "https://other.example/fast",
+    ]
+    with PublicHttpTransport(
+        requester=requester,
+        resolver=_public_resolver,
+        persistent_cache=False,
+        batch_policy=HttpBatchPolicy(max_workers=3, max_per_host=1),
+    ) as transport:
+        with ThreadPoolExecutor(max_workers=1) as caller:
+            future = caller.submit(transport.request_many, "GET", urls)
+            assert first_host_started.wait(timeout=5)
+            assert other_host_started.wait(timeout=5)
+            release.set()
+            assert len(future.result(timeout=5)) == 4
+
+
 def test_request_many_rejects_work_that_cannot_fit_aggregate_budget() -> None:
     calls = 0
     request_policy = replace(URL_RESOLUTION_POLICY, max_response_bytes=8)

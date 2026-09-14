@@ -3,17 +3,23 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
-from . import blog_release, context_binding_guard, publish_readiness, release_authorization
+from . import blog_release_impl, context_binding_guard, release_authorization
 from .artifact_runtime.limits import ARTICLE_MAX_BYTES, SIDECAR_MAX_BYTES, validate_text_artifact
+from .artifact_runtime.release_invocation import ReleaseInvocationError, ReleaseResult
 from .blog_assembly_contract import load_json_object_snapshot, validate_sha256
 from .publishable_markdown import read_publishable_markdown
+from .readiness import api as readiness_api
+from .readiness import persistence_api as readiness_persistence_api
 from .readiness.telemetry import ReadinessTelemetry
 
-
-ReleaseInvocationError = blog_release.ReleaseInvocationError
-ReleaseResult = blog_release.ReleaseResult
+publish_readiness = SimpleNamespace(
+    build_final_readiness_attestation=readiness_api.build_final_readiness_attestation,
+    run_publish_readiness=readiness_api.run_publish_readiness,
+    write_readiness_result=readiness_persistence_api.write_readiness_result,
+)
 
 
 def run_artifact_release(
@@ -54,7 +60,7 @@ def run_artifact_release(
     if artifact_kind is not None and artifact_kind != detected:
         raise ReleaseInvocationError("artifact_kind conflicts with the article")
     if detected == "blog":
-        return blog_release._run_blog_release(
+        return blog_release_impl._run_blog_release(
             article=article_path,
             run_id=run_id,
             proof_sidecar=sidecar_path,
@@ -100,7 +106,7 @@ def _run_landing_release(
         run_id=run_id,
         phase="release",
         failure_output=paths["release_telemetry"],
-    )
+        )
     try:
         with telemetry.stage("preflight_readiness"):
             preflight = publish_readiness.run_publish_readiness(
@@ -145,6 +151,7 @@ def _run_landing_release(
                 run_id=run_id,
                 workspace_root=workspace_root,
                 telemetry=telemetry,
+                vault_root=vault_root,
             )
             final = release_authorization.prepare_final_release_result(
                 final,
@@ -228,4 +235,9 @@ def _required_run_id(value: str) -> str:
     return value.strip()
 
 
-__all__ = ["ReleaseInvocationError", "ReleaseResult", "run_artifact_release"]
+__all__ = [
+    "ReleaseInvocationError",
+    "ReleaseResult",
+    "publish_readiness",
+    "run_artifact_release",
+]

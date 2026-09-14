@@ -13,6 +13,10 @@ from .common import (
     load_validated_claim_set,
 )
 from .finalization import build_final_attestation
+from .finalization_dependencies import (
+    DEFAULT_FINALIZATION_DEPENDENCIES,
+    FinalizationDependencies,
+)
 from .dependencies import DEFAULT_READINESS_DEPENDENCIES, ReadinessDependencies
 from .orchestrator import run_in_session
 from .result_validation import (
@@ -99,6 +103,8 @@ def build_final_readiness_attestation(
     run_id: str | None = None,
     workspace_root: str | Path | None = None,
     telemetry: ReadinessTelemetry | None = None,
+    vault_root: str | Path | None = None,
+    dependencies: FinalizationDependencies = DEFAULT_FINALIZATION_DEPENDENCIES,
 ) -> ReadinessResult:
     """Bind an authenticated full preflight to one validated final BOM."""
     root = _result_workspace_root(preflight_result, workspace_root)
@@ -121,6 +127,8 @@ def build_final_readiness_attestation(
         readiness_run_id=_readiness_run_id,
         run_id=run_id,
         telemetry=telemetry,
+        vault_root=vault_root,
+        dependencies=dependencies,
     )
 
 def _run_publish_readiness_session(
@@ -141,22 +149,8 @@ def _run_publish_readiness_session(
     dependencies: ReadinessDependencies = DEFAULT_READINESS_DEPENDENCIES,
 ) -> ReadinessResult:
     """Create one immutable input/session boundary around the gate stack."""
-    try:
-        from ..publish_readiness_core import _run_publish_readiness as readiness_runner
-    except ImportError:  # pragma: no cover - direct script compatibility.
-        from publish_readiness_core import _run_publish_readiness as readiness_runner
-    source_decision_registry = _optional_workspace_artifact(
-        workspace_root,
-        "context/source-classification-decisions.json",
-    )
-    customer_proof_index = _optional_workspace_artifact(
-        workspace_root,
-        "context/customer-proof-index.json",
-    )
-    customer_proof_usage_ledger = _optional_workspace_artifact(
-        workspace_root,
-        "context/customer-proof-usage-ledger.json",
-    )
+    from .runner import _run_publish_readiness as readiness_runner
+
     runner_kwargs = {
         "file_path": file_path,
         "proof_sidecar": proof_sidecar,
@@ -179,9 +173,6 @@ def _run_publish_readiness_session(
             "context_pack": context_pack,
             "context_receipt": context_receipt,
             "assembly_bom": assembly_bom,
-            "source_decision_registry": source_decision_registry,
-            "customer_proof_index": customer_proof_index,
-            "customer_proof_usage_ledger": customer_proof_usage_ledger,
         },
         workspace_root=workspace_root,
         runner=readiness_runner,
@@ -216,6 +207,7 @@ def _optional_workspace_artifact(
     root = Path(workspace_root).resolve()
     candidate = (root / relative_path).resolve(strict=False)
     return candidate if candidate.is_file() else None
+
 
 def _load_session_claims(
     context_pack: str | Path | None,

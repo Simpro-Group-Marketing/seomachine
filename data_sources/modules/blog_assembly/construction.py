@@ -144,6 +144,7 @@ def build_blog_assembly_bom_from_files(
         keyword_decision_path=keyword_decision_path,
         assembly_date=assembled,
         run_id=workflow_run_id,
+        workspace_root=root,
     )
     machine_reviews = _machine_review_bindings(
         plan_review_path=plan_review_path,

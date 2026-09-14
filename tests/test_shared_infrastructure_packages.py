@@ -86,6 +86,18 @@ def test_connector_snapshot_rejects_mutation_capable_operations() -> None:
         ConnectorSnapshot().result("delete", None, lambda: None)
 
 
+def test_connector_snapshot_budget_is_exact_and_has_no_partial_entry() -> None:
+    payload = {"value": "x"}
+    encoded_size = len(json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8"))
+    snapshot = ConnectorSnapshot(max_bytes=encoded_size)
+    value = snapshot.result("search", {"query": "one"}, lambda: payload)
+    assert value["value"] == "x"
+    assert snapshot.retained_bytes == encoded_size
+    with pytest.raises(ValueError, match="byte budget"):
+        snapshot.result("search", {"query": "two"}, lambda: {"other": "y"})
+    assert snapshot.retained_bytes == encoded_size
+
+
 def test_process_peak_rss_is_optional_positive_measurement() -> None:
     value = process_peak_rss_bytes()
     assert value is None or (isinstance(value, int) and value > 0)

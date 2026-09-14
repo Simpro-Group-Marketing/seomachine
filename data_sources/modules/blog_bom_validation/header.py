@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, Mapping
 
 from .. import blog_assembly_contract
-from ..blog_assembly_bom import (
+from ..blog_assembly.common import (
     ARCHIVED_BOM_SCHEMAS,
     BOM_SCHEMA,
     BOM_SCHEMA_V1,

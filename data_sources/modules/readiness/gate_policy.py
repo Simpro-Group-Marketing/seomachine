@@ -25,13 +25,20 @@ def missing_gate_finding(
 def skip_article_gate(
     name: str,
     *,
+    artifact_kind: str,
     visible_faq: bool,
     simpro_context_required: bool,
 ) -> bool:
+    blog_only = artifact_kind != "blog" and name in {
+        "industry_cluster_link_policy",
+        "paa_provenance",
+        "editorial_plan",
+        "semrush_keyword_decision",
+    }
     faq_skipped = name in {"faq_answer_quality", "faq_proof"} and not visible_faq
     context_skipped = name in SIMPRO_CONTEXT_GATE_NAMES and not simpro_context_required
     fred_skipped = name == "fred_authority" and not simpro_context_required
-    return faq_skipped or context_skipped or fred_skipped
+    return blog_only or faq_skipped or context_skipped or fred_skipped
 
 
 def artifact_kind_rule_id(message: str) -> str:

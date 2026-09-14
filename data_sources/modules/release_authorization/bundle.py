@@ -14,10 +14,11 @@ from ..blog_assembly_contract import canonical_json_bytes, validate_sha256
 from ..readiness.contracts import (
     FINAL_READINESS_RESULT_SCHEMA,
     ExecutedReadinessResult,
+    is_registered_execution,
     sign_readiness_execution,
 )
-from ..readiness.inputs import ReadinessInputs
-from ..readiness.result_validation import validate_passed_readiness_result
+from ..readiness.sealed_inventory import SealedInventory
+from ..readiness.result_validation import validate_passed_readiness_structure
 from .contracts import RELEASE_MANIFEST_SCHEMA
 
 
@@ -36,17 +37,26 @@ def prepare_final_release_result(
     previous = str(previous_receipt_hash or "")
     if previous:
         validate_sha256(previous, field="previous_receipt_hash")
-    paths = _result_input_paths(result)
-    inputs = ReadinessInputs.capture(paths, workspace_root=root)
-    if inputs.hash_inventory() != result.get("input_hashes"):
-        raise ValueError("final readiness inputs changed before release manifest creation")
+    sealed = getattr(result, "sealed_inventory", None)
+    if not isinstance(sealed, SealedInventory):
+        raise ValueError("final readiness requires its process-local sealed inventory")
+    if sealed.workspace_root != root:
+        raise ValueError("sealed readiness inventory workspace_root changed")
+    release_inventory = sealed.reseal()
+    expected_hashes = result.get("input_hashes")
+    actual_hashes = {
+        label: {"path": row["path"], "sha256": row["sha256"]}
+        for label, row in release_inventory.items()
+    }
+    if actual_hashes != expected_hashes:
+        raise ValueError("sealed readiness inventory does not match final result")
     destination = _new_manifest_path(release_manifest_path, root=root)
     manifest = {
         "schema": RELEASE_MANIFEST_SCHEMA,
         "artifact_kind": result["artifact_kind"],
         "run_id": result["run_id"],
         "created_at": _utc_now(),
-        "inputs": inputs.release_inventory(),
+        "inputs": release_inventory,
         "previous_receipt_hash": previous,
     }
     manifest_bytes = canonical_json_bytes(manifest)
@@ -59,35 +69,26 @@ def prepare_final_release_result(
             "release_manifest_sha256": hashlib.sha256(manifest_bytes).hexdigest(),
         }
     )
-    executed = ExecutedReadinessResult(upgraded, workspace_root=root)
-    validate_passed_readiness_result(executed, workspace_root=root)
+    executed = ExecutedReadinessResult(
+        upgraded,
+        workspace_root=root,
+        sealed_inventory=sealed,
+    )
+    validate_passed_readiness_structure(executed, workspace_root=root)
     return executed
 
 
 def _validate_executed_result(result: Mapping[str, Any], *, root: Path) -> None:
     if not isinstance(result, ExecutedReadinessResult):
         raise ValueError("release manifest requires an actual readiness execution")
+    if not is_registered_execution(result):
+        raise ValueError("release manifest requires the original readiness result")
     if result._workspace_root != root:
         raise ValueError("readiness execution workspace_root changed")
     expected = sign_readiness_execution(result)
     if not hmac.compare_digest(result._execution_signature, expected):
         raise ValueError("readiness result changed after execution")
-    validate_passed_readiness_result(result, workspace_root=root)
-
-
-def _result_input_paths(result: Mapping[str, Any]) -> dict[str, str]:
-    rows = result.get("input_hashes")
-    if not isinstance(rows, Mapping) or not rows:
-        raise ValueError("final readiness requires a complete input inventory")
-    paths: dict[str, str] = {}
-    for label, row in rows.items():
-        if not isinstance(label, str) or not isinstance(row, Mapping):
-            raise ValueError("final readiness input inventory is invalid")
-        path = row.get("path")
-        if not isinstance(path, str) or not path:
-            raise ValueError(f"final readiness input {label} path is invalid")
-        paths[label] = path
-    return paths
+    validate_passed_readiness_structure(result, workspace_root=root)
 
 
 def _workspace_root(value: str | Path) -> Path:

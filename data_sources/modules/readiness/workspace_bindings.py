@@ -16,6 +16,8 @@ from .common import (
     validate_sha256,
 )
 from .artifact_views import thaw_value
+from .input_spec import ReadinessInputSpec
+from .release_lifecycle import validate_final_bom_binding
 
 
 def _same_path(left: str | Path, right: str | Path) -> bool:
@@ -111,12 +113,7 @@ def _verify_result_inputs_unchanged(
         if not candidate.is_file() or file_sha256(candidate) != digest:
             raise ValueError(f"readiness input {label} changed after gate execution")
     if result.get("phase") == "final":
-        assembly_row = rows.get("assembly_bom")
-        if (
-            not isinstance(assembly_row, Mapping)
-            or result.get("final_bom_sha256") != assembly_row.get("sha256")
-        ):
-            raise ValueError("final readiness must bind the exact final BOM hash")
+        validate_final_bom_binding(result, rows)
 
 def _reject_output_input_collision(
     output_path: str | Path,
@@ -258,7 +255,7 @@ def _capture_readiness_inputs(
     workspace_root: str | Path,
     telemetry: ReadinessTelemetry | None = None,
 ) -> ReadinessInputs:
-    return ReadinessInputs.capture(
+    spec = ReadinessInputSpec.for_readiness(
         {
             "article": article,
             "validation_sidecar": validation_sidecar,
@@ -268,8 +265,8 @@ def _capture_readiness_inputs(
             "assembly_bom": assembly_bom,
         },
         workspace_root=workspace_root,
-        telemetry=telemetry,
     )
+    return ReadinessInputs.capture(spec, workspace_root=workspace_root, telemetry=telemetry)
 
 def _captured_proof_content(
     inputs: ReadinessInputs | None,

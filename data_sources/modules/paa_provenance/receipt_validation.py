@@ -13,7 +13,6 @@ from ..blog_assembly_contract import (
     resolve_artifact,
 )
 from ..execution_attestation import verify_mapping_attestation
-from . import snapshot_validation
 from .contracts import (
     ANSWERSOCRATES_CAPTURE_CONTRACTS,
     ANSWERSOCRATES_CHROME_CONNECTOR_TOOL,
@@ -22,6 +21,8 @@ from .contracts import (
     ANSWERSOCRATES_RECEIPT_SCHEMA,
     ANSWERSOCRATES_TOOL,
 )
+from .observations import _derive_answersocrates_observations
+from .snapshot_validation import valid_raw_capture_binding
 
 
 def _parse_utc_timestamp(value: object) -> datetime | None:
@@ -99,9 +100,7 @@ def _valid_raw_capture_binding(
     expected_blocker: object,
     raw_capture_snapshot: Any = None,
 ) -> bool:
-    from .collection import _derive_answersocrates_observations
-
-    return snapshot_validation.valid_raw_capture_binding(
+    return valid_raw_capture_binding(
         binding,
         workspace_root=workspace_root,
         expected_query=expected_query,

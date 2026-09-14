@@ -5,9 +5,19 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta
 
-from . import auth
+import mcp_gsc.auth as auth
 from .contracts import DATA_STATE
 from .formatting import site_not_found_error
+from data_sources.modules.artifact_runtime.limits import (
+    GSC_WORKFLOW_MAX_BYTES,
+    MCP_TEXT_MAX_BYTES,
+)
+from data_sources.modules.bounded_io import OutputByteLimitError
+from data_sources.modules.gsc.pagination import (
+    GscQueryMode,
+    iter_search_analytics_rows,
+    query_search_analytics,
+)
 
 
 async def get_advanced_search_analytics(
@@ -62,9 +72,15 @@ async def get_advanced_search_analytics(
         if isinstance(filter_result, str):
             return filter_result
         active_filters = filter_result
-        response = service.searchanalytics().query(
-            siteUrl=site_url, body=request
-        ).execute()
+        response = query_search_analytics(
+            service,
+            site_url=site_url,
+            body=request,
+            max_rows=min(max(1, row_limit), 25000),
+            start_row=start_row,
+            mode=GscQueryMode.TOP_N,
+            max_workflow_bytes=GSC_WORKFLOW_MAX_BYTES,
+        )
         rows = response.get("rows", [])
         if not rows:
             return _no_data_message(
@@ -109,8 +125,6 @@ def _advanced_request(
         "startDate": start_date,
         "endDate": end_date,
         "dimensions": dimensions,
-        "rowLimit": min(row_limit, 25000),
-        "startRow": start_row,
         "searchType": search_type.upper(),
         "dataState": data_state,
     }
@@ -230,7 +244,7 @@ def _format_advanced_rows(
                 f"start_row: {start_row + row_limit}, row_limit: {row_limit}",
             )
         )
-    return "\n".join(lines)
+    return _bounded_text(lines)
 
 
 def _metric_row(row):
@@ -288,10 +302,19 @@ def _period_query(service, site_url, start_date, end_date, dimensions):
         "startDate": start_date,
         "endDate": end_date,
         "dimensions": dimensions,
-        "rowLimit": 1000,
         "dataState": DATA_STATE,
     }
-    return service.searchanalytics().query(siteUrl=site_url, body=request).execute()
+    return {
+        "rows": list(
+            iter_search_analytics_rows(
+                service,
+                site_url=site_url,
+                body=request,
+                max_rows=1000,
+                max_workflow_bytes=GSC_WORKFLOW_MAX_BYTES,
+            )
+        )
+    }
 
 
 def _compare_rows(first_rows, second_rows):
@@ -364,7 +387,16 @@ def _format_comparison(
             f"{item['p1_position']:.1f} | {item['p2_position']:.1f} | "
             f"{item['pos_diff']:+.1f}"
         )
-    return "\n".join(lines)
+    return _bounded_text(lines)
+
+
+def _bounded_text(lines):
+    text = "\n".join(lines)
+    if len(text.encode("utf-8")) > MCP_TEXT_MAX_BYTES:
+        raise OutputByteLimitError(
+            f"MCP text output exceeds {MCP_TEXT_MAX_BYTES} bytes"
+        )
+    return text
 
 
 __all__ = ["compare_search_periods", "get_advanced_search_analytics"]

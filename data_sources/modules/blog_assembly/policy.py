@@ -9,11 +9,11 @@ from .common import (
     blog_identity_guard,
     context_binding_guard,
     detect_faq_structure,
-    editorial_plan_guard,
     inspect_item_list_schema,
     inspect_video_embeds,
     is_named_person,
 )
+from ..editorial_plan.plan_validation import check_plan as check_editorial_plan
 from .contracts import (
     _required_article_scalar,
     _required_mapping,
@@ -184,7 +184,7 @@ def _editorial_plan_summary(plan: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 def _validate_editorial_plan(plan: Mapping[str, Any]) -> None:
-    findings = editorial_plan_guard.check_plan(plan)
+    findings = check_editorial_plan(plan)
     if findings:
         rule_ids = ", ".join(
             sorted({str(finding.get("rule_id") or "") for finding in findings})

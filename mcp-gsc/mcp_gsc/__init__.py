@@ -1,5 +1,3 @@
 """Google Search Console MCP server package."""
 
-from .server import mcp
-
-__all__ = ["mcp"]
+__all__: list[str] = []

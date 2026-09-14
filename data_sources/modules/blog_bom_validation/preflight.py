@@ -9,7 +9,7 @@ from typing import Any, Mapping
 from .. import (
     blog_assembly_contract,
 )
-from ..blog_assembly_bom import validate_preflight_stage_receipt_binding
+from ..blog_assembly.preflight_receipts import validate_preflight_stage_receipt_binding
 from ..blog_assembly_contract import (
     canonical_json_sha256,
     expected_blog_gate_inventory,
@@ -18,8 +18,8 @@ from ..blog_assembly_contract import (
     validate_sha256,
     verify_artifact,
 )
-from . import preflight_session as blog_assembly_bom_preflight_session
-from . import snapshot_adapters as blog_assembly_bom_snapshot
+import data_sources.modules.blog_bom_validation.preflight_session as blog_assembly_bom_preflight_session
+import data_sources.modules.blog_bom_validation.snapshot_adapters as blog_assembly_bom_snapshot
 from ..guard_common import Finding
 from .common import _finding, _is_number
 from .dependencies import BomValidationDependencies

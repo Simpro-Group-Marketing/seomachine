@@ -20,7 +20,7 @@ def test_telemetry_v2_updates_counters_safely_from_worker_threads() -> None:
     telemetry.finish("passed")
     payload = telemetry.to_dict()
 
-    assert payload["schema"] == "simpro-readiness-telemetry/v2"
+    assert payload["schema"] == "simpro-readiness-telemetry/v3"
     assert payload["counters"]["http_requests"] == 8_000
     assert payload["stages"][0]["counters"]["http_requests"] == 8_000
 

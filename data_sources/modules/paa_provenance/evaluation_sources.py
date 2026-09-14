@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from ..guard_common import Finding
-from . import snapshot_validation
+from .snapshot_validation import extract_csv_questions_content
 from .artifact import _extract_csv_questions, _parse_question_artifact
 from .contracts import FaqQuestion, ProvenanceBlock, _DuplicateBriefPaaSectionsError
 from .matching import (
@@ -143,7 +143,7 @@ def _user_csv_questions(
         return (), (), blocker_finding
     try:
         questions = (
-            snapshot_validation.extract_csv_questions_content(content)
+            extract_csv_questions_content(content)
             if content is not None
             else _extract_csv_questions(artifact_path)
         )

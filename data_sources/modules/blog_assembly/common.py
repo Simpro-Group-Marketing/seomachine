@@ -18,10 +18,8 @@ try:
         blog_identity_guard,
         context_binding_guard,
         eeat_strength_guard,
-        editorial_plan_guard,
         industry_cluster_link_policy,
         machine_review,
-        paa_provenance_guard,
         semrush_keyword_decision_guard,
     )
     from ..blog_assembly_contract import (
@@ -56,10 +54,8 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import blog_identity_guard
     import context_binding_guard
     import eeat_strength_guard
-    import editorial_plan_guard
     import industry_cluster_link_policy
     import machine_review
-    import paa_provenance_guard
     import semrush_keyword_decision_guard
     from blog_assembly_contract import (
         artifact_inventory_snapshots,

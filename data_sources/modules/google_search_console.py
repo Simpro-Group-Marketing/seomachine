@@ -5,22 +5,51 @@ Fetches search performance, keyword rankings, and SERP data.
 """
 
 import os
-from datetime import datetime, timedelta
 from typing import Any, Dict, Iterator, List, Optional
-from googleapiclient.discovery import build
+
 from google.oauth2 import service_account
+from googleapiclient.discovery import build
 
 try:
+    from .artifact_runtime.limits import GSC_WORKFLOW_MAX_BYTES
+    from .gsc.consumers import (
+        date_range as _date_range,
+        iter_keyword_positions as _iter_keyword_positions,
+        iter_low_ctr_page_rows as _iter_low_ctr_page_rows,
+        iter_page_keyword_rows as _iter_page_keyword_rows,
+        iter_position_change_rows as _iter_position_change_rows,
+        iter_quick_win_rows as _iter_quick_win_rows,
+        iter_trending_query_rows as _iter_trending_query_rows,
+        page_performance as _page_performance,
+        search_rows as _search_rows,
+        top_n,
+    )
     from .gsc.intent import commercial_intent_score, intent_category
-    from .gsc.pagination import iter_search_analytics_rows
 except ImportError:  # pragma: no cover - supports direct module-path execution.
+    from artifact_runtime.limits import GSC_WORKFLOW_MAX_BYTES
+    from gsc.consumers import (
+        date_range as _date_range,
+        iter_keyword_positions as _iter_keyword_positions,
+        iter_low_ctr_page_rows as _iter_low_ctr_page_rows,
+        iter_page_keyword_rows as _iter_page_keyword_rows,
+        iter_position_change_rows as _iter_position_change_rows,
+        iter_quick_win_rows as _iter_quick_win_rows,
+        iter_trending_query_rows as _iter_trending_query_rows,
+        page_performance as _page_performance,
+        search_rows as _search_rows,
+        top_n,
+    )
     from gsc.intent import commercial_intent_score, intent_category
-    from gsc.pagination import iter_search_analytics_rows
+
 
 class GoogleSearchConsole:
     """Google Search Console data fetcher"""
 
-    def __init__(self, site_url: Optional[str] = None, credentials_path: Optional[str] = None):
+    def __init__(
+        self,
+        site_url: Optional[str] = None,
+        credentials_path: Optional[str] = None,
+    ):
         """
         Initialize GSC client
 
@@ -28,8 +57,8 @@ class GoogleSearchConsole:
             site_url: Site URL (e.g., "https://castos.com")
             credentials_path: Path to credentials JSON
         """
-        self.site_url = site_url or os.getenv('GSC_SITE_URL')
-        credentials_path = credentials_path or os.getenv('GSC_CREDENTIALS_PATH')
+        self.site_url = site_url or os.getenv("GSC_SITE_URL")
+        credentials_path = credentials_path or os.getenv("GSC_CREDENTIALS_PATH")
 
         if not self.site_url:
             raise ValueError("GSC_SITE_URL must be provided or set in environment")
@@ -37,18 +66,19 @@ class GoogleSearchConsole:
         if not credentials_path or not os.path.exists(credentials_path):
             raise ValueError(f"Credentials file not found: {credentials_path}")
 
-        # Initialize client
         credentials = service_account.Credentials.from_service_account_file(
             credentials_path,
-            scopes=['https://www.googleapis.com/auth/webmasters.readonly']
+            scopes=["https://www.googleapis.com/auth/webmasters.readonly"],
         )
-
-        self.service = build('searchconsole', 'v1', credentials=credentials)
+        self.service = build("searchconsole", "v1", credentials=credentials)
 
     def get_keyword_positions(
         self,
         days: int = 30,
-        limit: int = 1000
+        limit: int = 1000,
+        *,
+        min_impressions: int = 0,
+        max_output_bytes: int = GSC_WORKFLOW_MAX_BYTES,
     ) -> List[Dict[str, Any]]:
         """
         Get keyword rankings and performance
@@ -60,31 +90,32 @@ class GoogleSearchConsole:
         Returns:
             List of keywords with position, clicks, impressions
         """
-        start_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
-        end_date = datetime.now().strftime('%Y-%m-%d')
-
-        request = {
-            'startDate': start_date,
-            'endDate': end_date,
-            'dimensions': ['query'],
-            'dimensionFilterGroups': []
-        }
-
-        results = []
-        for row in self._search_rows(request, max_rows=limit):
-            query = row['keys'][0]
-            results.append({
-                'keyword': query,
-                'clicks': row['clicks'],
-                'impressions': row['impressions'],
-                'ctr': row['ctr'],
-                'position': round(row['position'], 1)
-            })
-
-        # Sort by impressions (potential)
-        results.sort(key=lambda x: x['impressions'], reverse=True)
-
+        results = list(
+            self.iter_keyword_positions(
+                days=days,
+                max_rows=limit,
+                min_impressions=min_impressions,
+                max_output_bytes=max_output_bytes,
+            )
+        )
+        results.sort(key=lambda row: row["impressions"], reverse=True)
         return results
+
+    def iter_keyword_positions(
+        self,
+        *,
+        days: int = 30,
+        max_rows: int = 1000,
+        min_impressions: int = 0,
+        max_output_bytes: int = GSC_WORKFLOW_MAX_BYTES,
+    ) -> Iterator[Dict[str, Any]]:
+        return _iter_keyword_positions(
+            self,
+            days=days,
+            max_rows=max_rows,
+            min_impressions=min_impressions,
+            max_output_bytes=max_output_bytes,
+        )
 
     def get_quick_wins(
         self,
@@ -92,57 +123,47 @@ class GoogleSearchConsole:
         position_min: int = 11,
         position_max: int = 20,
         min_impressions: int = 50,
-        prioritize_commercial: bool = True
+        prioritize_commercial: bool = True,
+        *,
+        max_rows: int = 1000,
+        max_output_bytes: int = GSC_WORKFLOW_MAX_BYTES,
     ) -> List[Dict[str, Any]]:
-        """
-        Find "quick win" opportunities - keywords ranking 11-20
-
-        These are closest to page 1 and easiest to improve.
-
-        Args:
-            days: Number of days to analyze
-            position_min: Minimum position (default 11)
-            position_max: Maximum position (default 20)
-            min_impressions: Minimum impressions threshold
-            prioritize_commercial: Weight score by commercial intent (default True)
-
-        Returns:
-            List of quick win opportunities
-        """
-        all_keywords = self.get_keyword_positions(days=days)
-
-        quick_wins = []
-        for kw in all_keywords:
-            if (position_min <= kw['position'] <= position_max and
-                kw['impressions'] >= min_impressions):
-
-                keyword = kw['keyword'].lower()
-
-                # Calculate commercial intent score (0.1 to 3.0)
-                commercial_intent = self._calculate_commercial_intent(keyword)
-
-                # Calculate opportunity score
-                # Factors: impressions, proximity to page 1, commercial intent
-                distance_from_10 = kw['position'] - 10
-                base_score = kw['impressions'] / (distance_from_10 + 1)
-
-                if prioritize_commercial:
-                    opportunity_score = base_score * commercial_intent
-                else:
-                    opportunity_score = base_score
-
-                quick_wins.append({
-                    **kw,
-                    'commercial_intent': commercial_intent,
-                    'commercial_intent_category': self._get_intent_category(commercial_intent),
-                    'opportunity_score': round(opportunity_score, 2),
-                    'priority': 'high' if kw['position'] <= 15 else 'medium'
-                })
-
-        # Sort by opportunity score
-        quick_wins.sort(key=lambda x: x['opportunity_score'], reverse=True)
-
+        """Find keywords ranking 11-20 that are closest to page-one movement."""
+        quick_wins = list(
+            self.iter_quick_win_rows(
+                days=days,
+                position_min=position_min,
+                position_max=position_max,
+                min_impressions=min_impressions,
+                prioritize_commercial=prioritize_commercial,
+                max_rows=max_rows,
+                max_output_bytes=max_output_bytes,
+            )
+        )
+        quick_wins.sort(key=lambda row: row["opportunity_score"], reverse=True)
         return quick_wins
+
+    def iter_quick_win_rows(
+        self,
+        *,
+        days: int = 30,
+        position_min: int = 11,
+        position_max: int = 20,
+        min_impressions: int = 50,
+        prioritize_commercial: bool = True,
+        max_rows: int = 1000,
+        max_output_bytes: int = GSC_WORKFLOW_MAX_BYTES,
+    ) -> Iterator[Dict[str, Any]]:
+        return _iter_quick_win_rows(
+            self,
+            days=days,
+            position_min=position_min,
+            position_max=position_max,
+            min_impressions=min_impressions,
+            prioritize_commercial=prioritize_commercial,
+            max_rows=max_rows,
+            max_output_bytes=max_output_bytes,
+        )
 
     def _calculate_commercial_intent(self, keyword: str) -> float:
         """Calculate the existing deterministic commercial-intent score."""
@@ -157,317 +178,193 @@ class GoogleSearchConsole:
         request: Dict[str, Any],
         *,
         max_rows: int,
+        start_row: int = 0,
+        max_output_bytes: int = GSC_WORKFLOW_MAX_BYTES,
     ) -> Iterator[Dict[str, Any]]:
-        return iter_search_analytics_rows(
-            self.service,
-            site_url=self.site_url,
-            body=request,
+        return _search_rows(
+            self,
+            request,
             max_rows=max_rows,
+            start_row=start_row,
+            max_output_bytes=max_output_bytes,
         )
 
     def get_page_performance(
         self,
         url: str,
-        days: int = 30
+        days: int = 30,
+        *,
+        max_output_bytes: int = GSC_WORKFLOW_MAX_BYTES,
     ) -> Dict[str, Any]:
-        """
-        Get search performance for a specific page
+        """Get bounded search performance for a specific page."""
+        return _page_performance(
+            self,
+            url,
+            days=days,
+            max_output_bytes=max_output_bytes,
+        )
 
-        Args:
-            url: Page URL or path
-            days: Number of days to analyze
-
-        Returns:
-            Dict with page performance data
-        """
-        start_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
-        end_date = datetime.now().strftime('%Y-%m-%d')
-
-        # Get page-level data
-        request = {
-            'startDate': start_date,
-            'endDate': end_date,
-            'dimensions': ['page'],
-            'dimensionFilterGroups': [{
-                'filters': [{
-                    'dimension': 'page',
-                    'operator': 'equals' if url.startswith('http') else 'contains',
-                    'expression': url
-                }]
-            }]
-        }
-
-        row = next(self._search_rows(request, max_rows=1), None)
-        if row is None:
-            return {'url': url, 'error': 'No data found'}
-
-        page_data = {
-            'url': row['keys'][0],
-            'clicks': row['clicks'],
-            'impressions': row['impressions'],
-            'ctr': round(row['ctr'] * 100, 2),
-            'avg_position': round(row['position'], 1)
-        }
-
-        # Get keywords for this page
-        keywords_request = {
-            'startDate': start_date,
-            'endDate': end_date,
-            'dimensions': ['query'],
-            'dimensionFilterGroups': [{
-                'filters': [{
-                    'dimension': 'page',
-                    'operator': 'equals' if url.startswith('http') else 'contains',
-                    'expression': url
-                }]
-            }],
-        }
-
-        keywords = []
-        for kw_row in self._search_rows(keywords_request, max_rows=50):
-            keywords.append({
-                'keyword': kw_row['keys'][0],
-                'clicks': kw_row['clicks'],
-                'impressions': kw_row['impressions'],
-                'position': round(kw_row['position'], 1)
-            })
-
-        keywords.sort(key=lambda x: x['clicks'], reverse=True)
-        page_data['top_keywords'] = keywords[:10]
-
-        return page_data
+    def iter_page_keyword_rows(
+        self,
+        url: str,
+        *,
+        days: int = 30,
+        max_rows: int = 50,
+        max_output_bytes: int = GSC_WORKFLOW_MAX_BYTES,
+    ) -> Iterator[Dict[str, Any]]:
+        return _iter_page_keyword_rows(
+            self,
+            url,
+            days=days,
+            max_rows=max_rows,
+            max_output_bytes=max_output_bytes,
+        )
 
     def get_low_ctr_pages(
         self,
         days: int = 30,
-        ctr_threshold: float = 0.03,  # 3%
+        ctr_threshold: float = 0.03,
         min_impressions: int = 100,
-        path_filter: Optional[str] = "/blog/"
+        path_filter: Optional[str] = "/blog/",
+        *,
+        max_rows: int = 1000,
+        max_output_bytes: int = GSC_WORKFLOW_MAX_BYTES,
     ) -> List[Dict[str, Any]]:
-        """
-        Find pages with high impressions but low CTR
-
-        These need better titles/descriptions.
-
-        Args:
-            days: Number of days to analyze
-            ctr_threshold: CTR below this is considered low
-            min_impressions: Minimum impressions to consider
-            path_filter: Filter by path
-
-        Returns:
-            List of pages with low CTR
-        """
-        start_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
-        end_date = datetime.now().strftime('%Y-%m-%d')
-
-        request = {
-            'startDate': start_date,
-            'endDate': end_date,
-            'dimensions': ['page'],
-        }
-
-        if path_filter:
-            request['dimensionFilterGroups'] = [{
-                'filters': [{
-                    'dimension': 'page',
-                    'operator': 'contains',
-                    'expression': path_filter
-                }]
-            }]
-
-        low_ctr = []
-        for row in self._search_rows(request, max_rows=1000):
-            impressions = row['impressions']
-            ctr = row['ctr']
-
-            if impressions >= min_impressions and ctr < ctr_threshold:
-                # Calculate potential clicks if CTR improved
-                target_ctr = 0.05  # 5% target
-                potential_clicks = int(impressions * target_ctr)
-                missed_clicks = potential_clicks - row['clicks']
-
-                low_ctr.append({
-                    'url': row['keys'][0],
-                    'impressions': impressions,
-                    'clicks': row['clicks'],
-                    'ctr': round(ctr * 100, 2),
-                    'avg_position': round(row['position'], 1),
-                    'potential_clicks': potential_clicks,
-                    'missed_clicks': missed_clicks,
-                    'priority': 'high' if missed_clicks > 50 else 'medium'
-                })
-
-        # Sort by missed opportunity
-        low_ctr.sort(key=lambda x: x['missed_clicks'], reverse=True)
-
+        """Find pages with high impressions and low CTR."""
+        low_ctr = list(
+            self.iter_low_ctr_page_rows(
+                days=days,
+                ctr_threshold=ctr_threshold,
+                min_impressions=min_impressions,
+                path_filter=path_filter,
+                max_rows=max_rows,
+                max_output_bytes=max_output_bytes,
+            )
+        )
+        low_ctr.sort(key=lambda row: row["missed_clicks"], reverse=True)
         return low_ctr
+
+    def iter_low_ctr_page_rows(
+        self,
+        *,
+        days: int = 30,
+        ctr_threshold: float = 0.03,
+        min_impressions: int = 100,
+        path_filter: Optional[str] = "/blog/",
+        max_rows: int = 1000,
+        max_output_bytes: int = GSC_WORKFLOW_MAX_BYTES,
+    ) -> Iterator[Dict[str, Any]]:
+        return _iter_low_ctr_page_rows(
+            self,
+            days=days,
+            ctr_threshold=ctr_threshold,
+            min_impressions=min_impressions,
+            path_filter=path_filter,
+            max_rows=max_rows,
+            max_output_bytes=max_output_bytes,
+        )
 
     def get_trending_queries(
         self,
         days_recent: int = 7,
         days_comparison: int = 30,
-        min_impressions: int = 20
+        min_impressions: int = 20,
+        *,
+        max_rows: int = 1000,
+        max_output_bytes: int = GSC_WORKFLOW_MAX_BYTES,
     ) -> List[Dict[str, Any]]:
-        """
-        Find queries gaining traction (rising impressions)
-
-        Args:
-            days_recent: Recent period to analyze
-            days_comparison: Previous period to compare against
-            min_impressions: Minimum impressions in recent period
-
-        Returns:
-            List of trending queries
-        """
-        # Get recent data
-        recent_end = datetime.now().strftime('%Y-%m-%d')
-        recent_start = (datetime.now() - timedelta(days=days_recent)).strftime('%Y-%m-%d')
-
-        recent_request = {
-            'startDate': recent_start,
-            'endDate': recent_end,
-            'dimensions': ['query'],
-        }
-
-        # Get comparison data
-        comparison_end = (datetime.now() - timedelta(days=days_recent)).strftime('%Y-%m-%d')
-        comparison_start = (datetime.now() - timedelta(days=days_comparison)).strftime('%Y-%m-%d')
-
-        comparison_request = {
-            'startDate': comparison_start,
-            'endDate': comparison_end,
-            'dimensions': ['query'],
-        }
-
-        # Create lookup for comparison data
-        comparison_lookup = {
-            row['keys'][0]: row['impressions']
-            for row in self._search_rows(comparison_request, max_rows=1000)
-        }
-
-        trending = []
-        for row in self._search_rows(recent_request, max_rows=1000):
-            query = row['keys'][0]
-            recent_impressions = row['impressions']
-
-            if recent_impressions < min_impressions:
-                continue
-
-            previous_impressions = comparison_lookup.get(query, 0)
-
-            if previous_impressions > 0:
-                change_percent = ((recent_impressions - previous_impressions) / previous_impressions) * 100
-            else:
-                change_percent = 100  # New query
-
-            # Only include queries showing growth
-            if change_percent > 20:
-                trending.append({
-                    'query': query,
-                    'recent_impressions': recent_impressions,
-                    'previous_impressions': previous_impressions,
-                    'change_percent': round(change_percent, 1),
-                    'clicks': row['clicks'],
-                    'position': round(row['position'], 1)
-                })
-
-        # Sort by growth percentage
-        trending.sort(key=lambda x: x['change_percent'], reverse=True)
-
+        """Find queries with growing recent impressions."""
+        trending = list(
+            self.iter_trending_query_rows(
+                days_recent=days_recent,
+                days_comparison=days_comparison,
+                min_impressions=min_impressions,
+                max_rows=max_rows,
+                max_output_bytes=max_output_bytes,
+            )
+        )
+        trending.sort(key=lambda row: row["change_percent"], reverse=True)
         return trending
+
+    def iter_trending_query_rows(
+        self,
+        *,
+        days_recent: int = 7,
+        days_comparison: int = 30,
+        min_impressions: int = 20,
+        max_rows: int = 1000,
+        max_output_bytes: int = GSC_WORKFLOW_MAX_BYTES,
+    ) -> Iterator[Dict[str, Any]]:
+        return _iter_trending_query_rows(
+            self,
+            days_recent=days_recent,
+            days_comparison=days_comparison,
+            min_impressions=min_impressions,
+            max_rows=max_rows,
+            max_output_bytes=max_output_bytes,
+        )
 
     def get_position_changes(
         self,
         days_recent: int = 7,
-        days_comparison: int = 30
+        days_comparison: int = 30,
+        *,
+        max_rows: int = 1000,
+        max_output_bytes: int = GSC_WORKFLOW_MAX_BYTES,
     ) -> Dict[str, List[Dict[str, Any]]]:
-        """
-        Track keyword position changes
-
-        Args:
-            days_recent: Recent period
-            days_comparison: Previous period to compare
-
-        Returns:
-            Dict with 'improved', 'declined', and 'stable' lists
-        """
-        # Get recent positions
-        recent_data = self.get_keyword_positions(days=days_recent)
-
-        # Get comparison positions
-        comparison_data = self.get_keyword_positions(days=days_comparison)
-
-        # Create lookup
-        comparison_lookup = {
-            kw['keyword']: kw['position']
-            for kw in comparison_data
-        }
-
+        """Track keyword position changes across recent and comparison windows."""
         improved = []
         declined = []
         stable = []
-
-        for kw in recent_data:
-            keyword = kw['keyword']
-            current_pos = kw['position']
-            previous_pos = comparison_lookup.get(keyword)
-
-            if not previous_pos:
-                continue  # New keyword
-
-            position_change = previous_pos - current_pos  # Positive = improved
-
-            result = {
-                **kw,
-                'previous_position': previous_pos,
-                'position_change': round(position_change, 1)
-            }
-
-            if position_change >= 2:  # Improved by 2+ positions
+        for result in self.iter_position_change_rows(
+            days_recent=days_recent,
+            days_comparison=days_comparison,
+            max_rows=max_rows,
+            max_output_bytes=max_output_bytes,
+        ):
+            position_change = result["position_change"]
+            if position_change >= 2:
                 improved.append(result)
-            elif position_change <= -2:  # Declined by 2+ positions
+            elif position_change <= -2:
                 declined.append(result)
             else:
                 stable.append(result)
+        improved.sort(key=lambda row: row["position_change"], reverse=True)
+        declined.sort(key=lambda row: row["position_change"])
+        return {"improved": improved, "declined": declined, "stable": stable}
 
-        # Sort by magnitude of change
-        improved.sort(key=lambda x: x['position_change'], reverse=True)
-        declined.sort(key=lambda x: x['position_change'])
+    def iter_position_change_rows(
+        self,
+        *,
+        days_recent: int = 7,
+        days_comparison: int = 30,
+        max_rows: int = 1000,
+        max_output_bytes: int = GSC_WORKFLOW_MAX_BYTES,
+    ) -> Iterator[Dict[str, Any]]:
+        return _iter_position_change_rows(
+            self,
+            days_recent=days_recent,
+            days_comparison=days_comparison,
+            max_rows=max_rows,
+            max_output_bytes=max_output_bytes,
+        )
 
-        return {
-            'improved': improved,
-            'declined': declined,
-            'stable': stable
-        }
 
-
-# Example usage
 if __name__ == "__main__":
     from dotenv import load_dotenv
-    load_dotenv('data_sources/config/.env')
 
+    load_dotenv("data_sources/config/.env")
     gsc = GoogleSearchConsole()
-
     print("Quick Win Opportunities (Position 11-20):")
-    quick_wins = gsc.get_quick_wins()
-    for i, kw in enumerate(quick_wins[:10], 1):
-        print(f"{i}. {kw['keyword']}")
-        print(f"   Position: {kw['position']} | Impressions: {kw['impressions']:,}")
-        print(f"   Opportunity Score: {kw['opportunity_score']:.1f}")
+    for index, keyword in enumerate(gsc.get_quick_wins()[:10], 1):
+        print(f"{index}. {keyword['keyword']}")
+        print(
+            f"   Position: {keyword['position']} | "
+            f"Impressions: {keyword['impressions']:,}"
+        )
+        print(f"   Opportunity Score: {keyword['opportunity_score']:.1f}")
         print()
-
     print("\nLow CTR Pages (Need Better Meta):")
-    low_ctr = gsc.get_low_ctr_pages()
-    for page in low_ctr[:5]:
+    for page in gsc.get_low_ctr_pages()[:5]:
         print(f"- {page['url']}")
         print(f"  {page['impressions']:,} impressions | {page['ctr']:.2f}% CTR")
-        print(f"  Missing {page['missed_clicks']} potential clicks")
-        print()
-
-    print("\nTrending Queries:")
-    trending = gsc.get_trending_queries()
-    for query in trending[:5]:
-        print(f"- {query['query']}")
-        print(f"  +{query['change_percent']:.1f}% impressions")
-        print()

@@ -364,7 +364,6 @@ def test_query_rejects_a_repeated_page() -> None:
             mode=GscQueryMode.COMPLETE,
         )
 
-
 @pytest.mark.parametrize(
     "response",
     [None, [], {"rows": None}, {"rows": "invalid"}, {"rows": ["invalid"]}],

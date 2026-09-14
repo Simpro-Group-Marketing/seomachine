@@ -6,7 +6,7 @@ import hashlib
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Callable, Mapping, TypeVar
+from typing import Callable, Mapping, TypeVar
 
 from ..artifact_runtime.limits import JSON_MAX_BYTES, TEXT_MAX_BYTES
 

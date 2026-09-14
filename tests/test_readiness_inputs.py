@@ -95,8 +95,9 @@ def test_capture_rejects_oversized_text_and_invalid_utf8(tmp_path: Path):
 
     invalid = tmp_path / "invalid.md"
     invalid.write_bytes(b"\xff")
+    captured = ReadinessInputs.capture({"article": invalid}, workspace_root=tmp_path)
     with pytest.raises(ValueError, match="valid UTF-8"):
-        ReadinessInputs.capture({"article": invalid}, workspace_root=tmp_path)
+        captured.text("article")
 
 
 def test_reseal_hashes_each_unique_file_once_and_detects_change(
@@ -128,12 +129,37 @@ def test_reseal_hashes_each_unique_file_once_and_detects_change(
 
 def test_json_payload_is_deeply_immutable(tmp_path: Path):
     source = _write(tmp_path / "control.json", '{"nested":{"items":["one"]}}\n')
-    captured = ReadinessInputs.capture({"control": source}, workspace_root=tmp_path)
+    telemetry = ReadinessTelemetry(run_id="lazy-json", phase="preflight")
+    captured = ReadinessInputs.capture(
+        {"control": source}, workspace_root=tmp_path, telemetry=telemetry
+    )
+    telemetry.finish("passed")
+    assert telemetry.to_dict()["counters"]["json_parses"] == 0
     payload = captured.json_object("control")
+    assert telemetry.to_dict()["counters"]["json_parses"] == 1
     assert captured.snapshot("control").text is None
 
     with pytest.raises(TypeError):
         payload["nested"]["items"][0] = "changed"
+
+
+def test_artifact_budget_counts_aliases_once_and_rejects_overflow(tmp_path: Path):
+    article = tmp_path / "article.md"
+    article.write_bytes(b"abc")
+    captured = ReadinessInputs.capture(
+        {"article": article, "alias": article},
+        workspace_root=tmp_path,
+        aggregate_budget_bytes=3,
+    )
+    assert captured.total_bytes == 3
+    other = tmp_path / "other.md"
+    other.write_bytes(b"z")
+    with pytest.raises(ValueError, match="aggregate byte budget"):
+        ReadinessInputs.capture(
+            {"article": article, "other": other},
+            workspace_root=tmp_path,
+            aggregate_budget_bytes=3,
+        )
 
 
 def test_capture_and_reseal_report_exact_io_counters(tmp_path: Path):

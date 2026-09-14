@@ -10,11 +10,11 @@ from .common import (
     NO_FIT_CUSTOMER_PROOF_OUTCOME,
     FrontmatterError,
     ReadinessInputs,
-    editorial_plan_guard,
     load_json_object_snapshot,
     resolve_artifact,
     split_frontmatter,
 )
+from ..editorial_plan.link_policy import internal_link_guidelines_from_plan
 from .workspace_bindings import _resolve_workspace_input
 from .artifact_views import thaw_value
 
@@ -89,7 +89,7 @@ def _runtime_scoring_metadata(
             "meta_title", "meta_description", "primary_keyword", "secondary_keywords"
         )
     } if isinstance(meta, Mapping) else {}
-    metadata["seo_guidelines"] = editorial_plan_guard.internal_link_guidelines_from_plan(plan)
+    metadata["seo_guidelines"] = internal_link_guidelines_from_plan(plan)
     return metadata
 
 

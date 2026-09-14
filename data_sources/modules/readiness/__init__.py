@@ -14,8 +14,10 @@ from .artifact_views import (
     FileIdentity,
 )
 from .inputs import ReadinessInputs
+from .input_spec import ReadinessInputBinding, ReadinessInputSpec
 from .git_registry import GitRegistryState
 from .session import ValidationSession
+from .sealed_inventory import SealedInventory
 from .telemetry import ReadinessTelemetry
 
 __all__ = [
@@ -26,7 +28,10 @@ __all__ = [
     "FileIdentity",
     "GitRegistryState",
     "InstrumentedArtifactStore",
+    "ReadinessInputBinding",
+    "ReadinessInputSpec",
     "ReadinessInputs",
+    "SealedInventory",
     "ReadinessTelemetry",
     "ValidationSession",
 ]

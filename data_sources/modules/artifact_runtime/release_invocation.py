@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 
 from .release_inputs import validate_release_text_inputs
@@ -10,6 +11,15 @@ from .release_inputs import validate_release_text_inputs
 
 class ReleaseInvocationError(ValueError):
     """Raised when release arguments are incomplete, unsafe, or unreadable."""
+
+
+@dataclass(frozen=True)
+class ReleaseResult:
+    exit_code: int
+    output_dir: Path
+    phase: str
+    message: str
+    recovery_artifact: Path | None = None
 
 
 def validate_release_invocation(

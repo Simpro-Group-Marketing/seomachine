@@ -8,7 +8,8 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .. import blog_identity_guard, context_binding_guard
-from ..blog_assembly_bom import _schema_policy, _visible_faq_questions
+from ..blog_assembly.contracts import _visible_faq_questions
+from ..blog_assembly.policy import _schema_policy
 from ..guard_common import Finding
 from .common import _finding
 from .dependencies import BomValidationDependencies

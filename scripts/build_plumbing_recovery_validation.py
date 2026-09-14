@@ -14,12 +14,12 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from data_sources.modules.ai_copy_linter import lint_file
-from data_sources.modules.content_scorer import ContentScorer
+from data_sources.modules.content_scoring.scorer import ContentScorer
 from data_sources.modules.content_scrubber import scrub_content
 from data_sources.modules.context_binding_guard import check_file as check_context_binding
 from data_sources.modules.faq_proof_guard import check_file as check_faq_proof
 from data_sources.modules.metric_proof_pack_guard import check_file as check_metric_proof
-from data_sources.modules.paa_provenance_guard import check_file as check_paa_provenance
+from data_sources.modules.paa_provenance.results import check_file as check_paa_provenance
 from data_sources.modules.public_artifact_guard import check_file as check_public_artifact
 
 

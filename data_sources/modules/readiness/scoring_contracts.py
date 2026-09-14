@@ -14,9 +14,9 @@ SEO_TARGET_SCORE = 95
 def content_scorer_class() -> Type[Any]:
     """Load the blog scorer only after all pre-scoring gates pass."""
     try:
-        from ..content_scorer import ContentScorer
+        from ..content_scoring.scorer import ContentScorer
     except ImportError:  # pragma: no cover - direct script compatibility.
-        from content_scorer import ContentScorer
+        from content_scoring.scorer import ContentScorer
     return ContentScorer
 
 

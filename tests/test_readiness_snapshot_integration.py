@@ -299,8 +299,8 @@ def test_final_attestation_owns_a_validation_session_through_reseal(
         validate_result=lambda *args, **kwargs: None,
         executed_result_factory=lambda value, **kwargs: value,
         readiness_run_id=lambda bom, article_hash: f"{bom}:{article_hash}",
+        dependencies=finalization.FinalizationDependencies(final_bom_guard=lambda *_a, **_k: []),
     )
-
     assert result["input_seal"] == {"status": "verified"}
     assert "source_decision_registry" in result["input_hashes"]
     assert events == ["capture", "enter", "exit"]

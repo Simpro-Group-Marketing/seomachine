@@ -53,17 +53,31 @@ GATE_RESULT_FIELDS = frozenset(
 
 
 _READINESS_EXECUTION_KEY = os.urandom(32)
+_EXECUTION_OBJECTS: dict[int, object] = {}
 
 
 class ExecutedReadinessResult(dict[str, Any]):
     """Process-local proof that the result came from the complete gate runner."""
 
-    __slots__ = ("_execution_signature", "_workspace_root")
+    __slots__ = ("_execution_signature", "_sealed_inventory", "_workspace_root")
 
-    def __init__(self, value: Mapping[str, Any], *, workspace_root: Path) -> None:
+    def __init__(
+        self,
+        value: Mapping[str, Any],
+        *,
+        workspace_root: Path,
+        sealed_inventory: Any = None,
+    ) -> None:
         super().__init__(value)
         self._workspace_root = workspace_root.resolve()
+        self._sealed_inventory = sealed_inventory
         self._execution_signature = sign_readiness_execution(self)
+        _EXECUTION_OBJECTS[id(self)] = self
+
+    @property
+    def sealed_inventory(self) -> Any:
+        """Return the non-serializable final-session capability, when present."""
+        return self._sealed_inventory
 
 
 def sign_readiness_execution(value: Mapping[str, Any]) -> str:
@@ -72,3 +86,8 @@ def sign_readiness_execution(value: Mapping[str, Any]) -> str:
         canonical_json_bytes(value),
         hashlib.sha256,
     ).hexdigest()
+
+
+def is_registered_execution(value: object) -> bool:
+    """Require the original in-process result object, not a copied mapping."""
+    return _EXECUTION_OBJECTS.get(id(value)) is value

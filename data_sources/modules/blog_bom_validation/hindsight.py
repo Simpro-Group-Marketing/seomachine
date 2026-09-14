@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Any, Mapping
 
-from ..blog_assembly_bom import BOM_SCHEMA_V3
+from ..blog_assembly.common import BOM_SCHEMA_V3
 from ..blog_assembly_contract import verify_artifact
 from ..guard_common import Finding
 from .common import _finding

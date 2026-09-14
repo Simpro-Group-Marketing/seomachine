@@ -36,7 +36,11 @@ def _runtime_limits() -> dict[str, int]:
         sys.path.insert(0, str(ROOT))
     from data_sources.modules.artifact_runtime.limits import (
         ARTICLE_MAX_BYTES,
+        ARTIFACT_STORE_MAX_BYTES,
+        CONNECTOR_RESULT_CACHE_MAX_BYTES,
+        HTTP_MEMO_MAX_BYTES,
         JSON_MAX_BYTES,
+        NETWORK_MATERIAL_MAX_BYTES,
         SIDECAR_MAX_BYTES,
         SUBPROCESS_MAX_INPUT_BYTES,
         SUBPROCESS_MAX_OUTPUT_BYTES,
@@ -50,11 +54,14 @@ def _runtime_limits() -> dict[str, int]:
     network_budget = DEFAULT_HTTP_BATCH_POLICY.max_aggregate_response_bytes
     return {
         "article_max_bytes": ARTICLE_MAX_BYTES,
+        "artifact_store_max_bytes": ARTIFACT_STORE_MAX_BYTES,
+        "connector_result_cache_max_bytes": CONNECTOR_RESULT_CACHE_MAX_BYTES,
         "hash_chunk_bytes": HASH_CHUNK_BYTES,
         "http_batch_max_bytes": network_budget,
         "http_cache_max_bytes": MAX_CACHE_BYTES,
+        "http_memo_max_bytes": HTTP_MEMO_MAX_BYTES,
         "json_max_bytes": JSON_MAX_BYTES,
-        "session_normalized_source_max_bytes": network_budget,
+        "session_normalized_source_max_bytes": NETWORK_MATERIAL_MAX_BYTES,
         "sidecar_max_bytes": SIDECAR_MAX_BYTES,
         "subprocess_spool_threshold_bytes": SUBPROCESS_SPOOL_THRESHOLD_BYTES,
         "subprocess_input_max_bytes": SUBPROCESS_MAX_INPUT_BYTES,

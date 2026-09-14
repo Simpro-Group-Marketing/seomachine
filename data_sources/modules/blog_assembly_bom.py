@@ -52,9 +52,9 @@ try:
     from .blog_assembly.finalization import (
         build_blog_assembly_bom,
         finalize_blog_assembly_bom,
-        validate_preflight_stage_receipt_binding,
         write_blog_assembly_bom,
     )
+    from .blog_assembly.preflight_receipts import validate_preflight_stage_receipt_binding
     from .blog_assembly.policy import (
         _author_policy,
         _connector_binding,
@@ -126,9 +126,9 @@ except ImportError:  # pragma: no cover - direct script compatibility.
     from blog_assembly.finalization import (
         build_blog_assembly_bom,
         finalize_blog_assembly_bom,
-        validate_preflight_stage_receipt_binding,
         write_blog_assembly_bom,
     )
+    from blog_assembly.preflight_receipts import validate_preflight_stage_receipt_binding
     from blog_assembly.policy import (
         _author_policy,
         _connector_binding,

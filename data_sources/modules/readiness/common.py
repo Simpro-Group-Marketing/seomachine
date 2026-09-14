@@ -21,15 +21,12 @@ try:
     from .. import (
         ai_copy_linter,
         answer_withholding_guard,
-        blog_assembly_bom_guard,
         blog_identity_guard,
         chrome_review_evidence,
         context_binding_guard,
         competitive_shortlist_guard,
-        customer_proof_diversity_guard,
         early_artifact_guard,
         eeat_strength_guard,
-        editorial_plan_guard,
         faq_answer_quality_guard,
         fred_authority_guard,
         hindsight_boundary_guard,
@@ -38,7 +35,6 @@ try:
         metric_proof_pack_guard,
         named_feature_status_guard,
         numeric_claim_source_guard,
-        paa_provenance_guard,
         public_research_link_guard,
         public_artifact_guard,
         review_story_identity_guard,
@@ -86,7 +82,6 @@ try:
         ReadinessResult,
         sign_readiness_execution,
     )
-    from .finalization import build_final_attestation
     from .gates import CONTENT_GATE_NAMES, ContentGateInputs, run_content_gate
     from .session import ValidationSession
     from .orchestrator import run_in_session
@@ -101,18 +96,18 @@ try:
     )
     from ..guard_common import should_fail, summarize_findings
     from ..url_validator import UrlValidationSummary, UrlValidator, validate_file_urls
+    import data_sources.modules.customer_proof.diversity as customer_proof_diversity_guard
+    import data_sources.modules.editorial_plan.orchestration as editorial_plan_guard
+    import data_sources.modules.paa_provenance.evaluation as paa_provenance_guard
 except ImportError:  # pragma: no cover - supports direct script execution.
     import ai_copy_linter
     import answer_withholding_guard
-    import blog_assembly_bom_guard
     import blog_identity_guard
     import chrome_review_evidence
     import context_binding_guard
     import competitive_shortlist_guard
-    import customer_proof_diversity_guard
     import early_artifact_guard
     import eeat_strength_guard
-    import editorial_plan_guard
     import faq_answer_quality_guard
     import fred_authority_guard
     import hindsight_boundary_guard
@@ -121,7 +116,6 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import metric_proof_pack_guard
     import named_feature_status_guard
     import numeric_claim_source_guard
-    import paa_provenance_guard
     import public_research_link_guard
     import public_artifact_guard
     import review_story_identity_guard
@@ -168,7 +162,6 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         ReadinessResult,
         sign_readiness_execution,
     )
-    from readiness.finalization import build_final_attestation
     from readiness.gates import CONTENT_GATE_NAMES, ContentGateInputs, run_content_gate
     from readiness.session import ValidationSession
     from readiness.orchestrator import run_in_session
@@ -183,6 +176,9 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     )
     from guard_common import should_fail, summarize_findings
     from url_validator import UrlValidationSummary, UrlValidator, validate_file_urls
+    import customer_proof.diversity as customer_proof_diversity_guard
+    import editorial_plan.orchestration as editorial_plan_guard
+    import paa_provenance.evaluation as paa_provenance_guard
 
 
 _ExecutedReadinessResult = ExecutedReadinessResult

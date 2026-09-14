@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from . import auth
+import mcp_gsc.auth as auth
 from .formatting import site_not_found_error
 
 

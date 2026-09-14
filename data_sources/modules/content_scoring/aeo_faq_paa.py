@@ -10,7 +10,7 @@ from collections.abc import Sequence
 from data_sources.modules.faq_answer_quality_guard import check_content as check_faq_answer_quality
 from data_sources.modules.faq_proof_guard import check_content as check_faq_proof
 from data_sources.modules.faq_structure import detect_faq_structure
-from data_sources.modules.paa_provenance_guard import check_content as check_paa_provenance_content
+from data_sources.modules.paa_provenance.evaluation import check_content as check_paa_provenance_content
 from typing import Any
 from typing import Dict
 from typing import List

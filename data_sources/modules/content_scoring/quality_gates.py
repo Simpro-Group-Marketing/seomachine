@@ -4,7 +4,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from data_sources.modules.seo_quality_rater import (
+from data_sources.modules.content_scoring.seo_constants import (
     PUBLISHING_THRESHOLD as SEO_PUBLISHING_THRESHOLD,
     SEO_TARGET_SCORE,
 )

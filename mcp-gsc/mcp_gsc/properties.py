@@ -6,7 +6,7 @@ import json
 
 from googleapiclient.errors import HttpError
 
-from . import auth
+import mcp_gsc.auth as auth
 
 
 async def list_properties() -> str:

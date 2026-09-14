@@ -361,6 +361,7 @@ def _run_remaining_gates(
     for name, label, guard_module in ARTICLE_GATES:
         if _skip_article_gate(
             name,
+            artifact_kind=artifact_kind,
             visible_faq=bool(runtime_policy["visible_faq"]),
             simpro_context_required=simpro_context_required,
         ):

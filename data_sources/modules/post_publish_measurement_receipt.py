@@ -14,7 +14,7 @@ from typing import Any, Mapping, Sequence
 from urllib.parse import unquote, urlsplit
 
 try:
-    from . import blog_assembly_bom_guard
+    from .blog_bom_validation.api import check_archived_final_bom
     from .blog_assembly_contract import (
         atomic_write_json,
         canonical_artifact,
@@ -26,7 +26,7 @@ try:
     )
     from .guard_common import Finding, make_finding, should_fail
 except ImportError:  # pragma: no cover - supports direct script execution.
-    import blog_assembly_bom_guard
+    from blog_bom_validation.api import check_archived_final_bom
     from blog_assembly_contract import (
         atomic_write_json,
         canonical_artifact,
@@ -421,14 +421,14 @@ def _validate_final_bom(
     if not isinstance(bom, Mapping):
         raise ValueError(
             "final_bom must be a strict final "
-            f"{blog_assembly_bom_guard.BOM_SCHEMA} artifact or an archived final "
-            f"{blog_assembly_bom_guard.BOM_SCHEMA_V1}/{blog_assembly_bom_guard.BOM_SCHEMA_V2} artifact"
+            "simpro-blog-assembly-bom/v3 artifact or an archived final "
+            "simpro-blog-assembly-bom/v1/simpro-blog-assembly-bom/v2 artifact"
         )
     artifacts = bom.get("artifacts")
     if not isinstance(artifacts, Mapping) or artifacts.get("article") != dict(article):
         raise ValueError("final_bom.artifacts.article must exactly match the article snapshot")
     article_path = resolve_artifact(article.get("path"), workspace_root=root)
-    findings = blog_assembly_bom_guard.check_archived_final_bom(
+    findings = check_archived_final_bom(
         bom,
         article_path=article_path,
         workspace_root=root,
