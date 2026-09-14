@@ -1,7 +1,29 @@
 """Focused validation phases for provisional BOM construction."""
-# ruff: noqa: F403, F405
+from datetime import date
+from pathlib import Path
+from typing import Any, Callable, Mapping, Sequence
 
-from .common import *  # noqa: F403
+from .common import (
+    NONVAULT_CUSTOMER_PROOF_SCHEMA,
+    NON_CONNECTOR_REASON,
+    blog_assembly_capabilities,
+    context_binding_guard,
+    editorial_plan_guard,
+    paa_provenance_guard,
+    semrush_keyword_decision_guard,
+    sidecar_evidence_binding_errors,
+    validate_sha256,
+)
+from .contracts import (
+    _optional_json_schema,
+    _validate_input_path,
+    _validate_path_sequence,
+    _visible_faq_questions,
+)
+from .derivation import (
+    _execution_evidence_from_prior_preflight,
+)
+from .policy import _derive_paa_policy
 
 
 def normalize_construction_inputs(
@@ -125,6 +147,7 @@ def validate_connector_construction(
     plan: Mapping[str, Any],
     vault_root: str | Path | None,
     context_client: Any,
+    context_validator: Callable[..., Any],
 ) -> tuple[bool, Any, str | None]:
     required = context_binding_guard.requires_context(article.raw)
     context_paths = (context_request_path, context_pack_path, context_receipt_path)
@@ -140,7 +163,7 @@ def validate_connector_construction(
             customer_proof_selector_evidence_path=customer_proof_selector_evidence_path,
         )
         return False, None, NON_CONNECTOR_REASON
-    result = context_binding_guard.validate_context_artifacts(
+    result = context_validator(
         article.path,
         proof_sidecar=validation_sidecar_path,
         context_request=context_request_path,

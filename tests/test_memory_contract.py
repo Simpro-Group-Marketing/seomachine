@@ -2,11 +2,28 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from tools.check_memory_contract import REQUIRED_SECTIONS, memory_errors
+from tools.check_memory_contract import (
+    REQUIRED_SECTIONS,
+    RUNTIME_LIMITS,
+    memory_errors,
+)
 
 
 def _memory(link: str = "[Evidence](evidence.md)") -> str:
-    sections = "\n\n".join(f"## {heading}\n\n{link}" for heading in REQUIRED_SECTIONS)
+    limits = "\n".join(
+        f"| `{key}` | {value} |" for key, value in sorted(RUNTIME_LIMITS.items())
+    )
+    values = {
+        heading: (
+            "| Limit key | Bytes |\n| --- | ---: |\n" + limits
+            if heading == "Resource limits"
+            else link
+        )
+        for heading in REQUIRED_SECTIONS
+    }
+    sections = "\n\n".join(
+        f"## {heading}\n\n{values[heading]}" for heading in REQUIRED_SECTIONS
+    )
     return f"# Architectural Memory\n\n{sections}\n"
 
 
@@ -56,3 +73,28 @@ def test_memory_contract_rejects_crlf_and_external_links(tmp_path: Path) -> None
 
     assert "MEMORY.md must use LF line endings" in errors
     assert "MEMORY.md evidence pointers must be repository-relative" in errors
+
+
+def test_memory_contract_rejects_missing_stale_and_duplicate_runtime_limits(
+    tmp_path: Path,
+) -> None:
+    value = _memory()
+    key, expected = next(iter(sorted(RUNTIME_LIMITS.items())))
+    row = f"| `{key}` | {expected} |"
+    value = value.replace(row, f"| `{key}` | {expected + 1} |\n{row}")
+
+    errors = memory_errors(value, repository_root=tmp_path, tracked_paths=set())
+
+    assert f"MEMORY.md resource limit {key} must appear exactly once" in errors
+    assert f"MEMORY.md resource limit {key} is {expected + 1}; runtime is {expected}" in errors
+
+
+def test_memory_contract_rejects_unknown_runtime_limit(tmp_path: Path) -> None:
+    value = _memory().replace(
+        "| Limit key | Bytes |",
+        "| Limit key | Bytes |\n| `invented_limit` | 123 |",
+    )
+
+    errors = memory_errors(value, repository_root=tmp_path, tracked_paths=set())
+
+    assert "MEMORY.md has unknown resource limit invented_limit" in errors

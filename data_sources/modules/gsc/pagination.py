@@ -5,7 +5,9 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Iterator, Mapping
+from dataclasses import dataclass
 from enum import Enum
+from types import MappingProxyType
 from typing import Any
 
 GSC_MAX_PAGE_ROWS = 25_000
@@ -27,6 +29,17 @@ class GscQueryMode(str, Enum):
     COMPLETE = "complete"
 
 
+@dataclass(frozen=True, slots=True)
+class GscPage:
+    """One immutable Search Analytics page and its response metadata."""
+
+    start_row: int
+    requested_rows: int
+    rows: tuple[Mapping[str, Any], ...]
+    metadata: Mapping[str, Any]
+    rows_field_present: bool
+
+
 def query_search_analytics(
     service: Any,
     *,
@@ -37,10 +50,39 @@ def query_search_analytics(
     page_size: int = GSC_MAX_PAGE_ROWS,
 ) -> dict[str, Any]:
     """Return a bounded Search Analytics response with rows in API order."""
+    rows: list[dict[str, Any]] = []
+    first_metadata: dict[str, Any] | None = None
+    first_rows_field_present = False
+    for page in iter_search_analytics_pages(
+        service,
+        site_url=site_url,
+        body=body,
+        max_rows=max_rows,
+        page_size=page_size,
+        mode=mode,
+    ):
+        if first_metadata is None:
+            first_metadata = _thaw_mapping(page.metadata)
+            first_rows_field_present = page.rows_field_present
+        rows.extend(_thaw_mapping(row) for row in page.rows)
+    result = first_metadata or {}
+    if first_rows_field_present or rows:
+        result["rows"] = rows
+    return result
+
+
+def iter_search_analytics_pages(
+    service: Any,
+    *,
+    site_url: str,
+    body: Mapping[str, Any],
+    max_rows: int,
+    mode: GscQueryMode,
+    page_size: int = GSC_MAX_PAGE_ROWS,
+) -> Iterator[GscPage]:
+    """Yield immutable pages, fetching each page only as iteration advances."""
     _validate_query(body=body, max_rows=max_rows, page_size=page_size, mode=mode)
     offset = 0
-    rows: list[dict[str, Any]] = []
-    first_response: dict[str, Any] | None = None
     page_digests: set[str] = set()
     while offset < max_rows:
         requested = min(page_size, max_rows - offset)
@@ -51,14 +93,25 @@ def query_search_analytics(
             start_row=offset,
             row_limit=requested,
         )
-        if first_response is None:
-            first_response = response
-        if not page_rows:
+        if page_rows:
+            _reject_invalid_page(page_rows, requested=requested, digests=page_digests)
+        page = GscPage(
+            start_row=offset,
+            requested_rows=requested,
+            rows=tuple(_freeze_mapping(row) for row in page_rows),
+            metadata=_freeze_mapping(
+                {key: value for key, value in response.items() if key != "rows"}
+            ),
+            rows_field_present="rows" in response,
+        )
+        page_length = len(page_rows)
+        del response, page_rows
+        yield page
+        del page
+        if not page_length:
             break
-        _reject_invalid_page(page_rows, requested=requested, digests=page_digests)
-        rows.extend(dict(row) for row in page_rows)
-        offset += len(page_rows)
-        if len(page_rows) < requested:
+        offset += page_length
+        if page_length < requested:
             break
     if mode is GscQueryMode.COMPLETE and offset == max_rows:
         _, overflow_rows = _query_page(
@@ -72,10 +125,6 @@ def query_search_analytics(
             raise GscRowCapExceeded(
                 f"Search Console returned more than {max_rows} rows"
             )
-    result = first_response or {}
-    if "rows" in result or rows:
-        result["rows"] = rows
-    return result
 
 
 def iter_search_analytics_rows(
@@ -89,15 +138,16 @@ def iter_search_analytics_rows(
 ) -> Iterator[dict[str, Any]]:
     """Yield ordered Search Analytics rows without exceeding declared bounds."""
     mode = GscQueryMode.COMPLETE if require_complete else GscQueryMode.TOP_N
-    response = query_search_analytics(
+    for page in iter_search_analytics_pages(
         service,
         site_url=site_url,
         body=body,
         max_rows=max_rows,
         page_size=page_size,
         mode=mode,
-    )
-    yield from response.get("rows", [])
+    ):
+        for row in page.rows:
+            yield _thaw_mapping(row)
 
 
 def _query_page(
@@ -135,13 +185,39 @@ def _reject_invalid_page(
 
 
 def _page_digest(rows: list[Mapping[str, Any]]) -> str:
-    serialized = json.dumps(
-        rows,
+    encoder = json.JSONEncoder(
         ensure_ascii=False,
         sort_keys=True,
         separators=(",", ":"),
-    ).encode("utf-8")
-    return hashlib.sha256(serialized).hexdigest()
+    )
+    digest = hashlib.sha256()
+    for chunk in encoder.iterencode(rows):
+        digest.update(chunk.encode("utf-8"))
+    return digest.hexdigest()
+
+
+def _freeze_mapping(value: Mapping[str, Any]) -> Mapping[str, Any]:
+    return MappingProxyType({key: _freeze_value(item) for key, item in value.items()})
+
+
+def _freeze_value(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return _freeze_mapping(value)
+    if isinstance(value, list):
+        return tuple(_freeze_value(item) for item in value)
+    return value
+
+
+def _thaw_mapping(value: Mapping[str, Any]) -> dict[str, Any]:
+    return {key: _thaw_value(item) for key, item in value.items()}
+
+
+def _thaw_value(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return _thaw_mapping(value)
+    if isinstance(value, tuple):
+        return [_thaw_value(item) for item in value]
+    return value
 
 
 def _validate_bounds(*, max_rows: int, page_size: int) -> None:

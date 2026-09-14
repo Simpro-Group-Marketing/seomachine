@@ -151,7 +151,7 @@ def write_selector_fixture(root: Path) -> tuple[Path, Path]:
 class CustomerProofSelectorTests(unittest.TestCase):
     def setUp(self):
         validation_patch = patch(
-            "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+            "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
             new=load_validated_claim_set_for_unit_test,
         )
         validation_patch.start()
@@ -640,7 +640,7 @@ class CustomerProofSelectorTests(unittest.TestCase):
 
             with (
                 patch(
-                    "data_sources.modules.customer_proof_selector.build_customer_proof_slate",
+                    "data_sources.modules.customer_proof.selector_cli.build_customer_proof_slate",
                     side_effect=mutate_after_ranking,
                 ),
                 redirect_stdout(stdout),

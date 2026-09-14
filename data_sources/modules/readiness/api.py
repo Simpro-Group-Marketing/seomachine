@@ -1,7 +1,30 @@
 """Publish-readiness api responsibilities."""
-# ruff: noqa: F403, F405
+from pathlib import Path
+from typing import Any, Mapping
 
-from .common import *  # noqa: F403
+from .adapters import _gate_from_findings
+from .common import (
+    READINESS_RESULT_SCHEMA,
+    ReadinessResult,
+    ReadinessTelemetry,
+    ValidatedClaimSet,
+    VaultClaimReceiptError,
+    _ExecutedReadinessResult,
+    load_validated_claim_set,
+)
+from .finalization import build_final_attestation
+from .dependencies import DEFAULT_READINESS_DEPENDENCIES, ReadinessDependencies
+from .orchestrator import run_in_session
+from .result_validation import (
+    _validate_actual_readiness_execution,
+    validate_passed_readiness_result,
+)
+from .workspace_bindings import (
+    _readiness_run_id,
+    _resolve_optional_workspace_input,
+    _resolve_workspace_input,
+    _result_workspace_root,
+)
 
 
 def run_publish_readiness(
@@ -19,6 +42,7 @@ def run_publish_readiness(
     artifact_kind: str | None = None,
     run_id: str | None = None,
     telemetry: ReadinessTelemetry | None = None,
+    dependencies: ReadinessDependencies = DEFAULT_READINESS_DEPENDENCIES,
 ) -> ReadinessResult:
     """Run the complete gate stack inside one trusted workspace boundary."""
     if phase not in {"preflight", "final"}:
@@ -64,6 +88,7 @@ def run_publish_readiness(
         artifact_kind=artifact_kind,
         run_id=run_id,
         telemetry=telemetry,
+        dependencies=dependencies,
     )
     return _ExecutedReadinessResult(raw, workspace_root=root)
 
@@ -113,8 +138,25 @@ def _run_publish_readiness_session(
     artifact_kind: str | None = None,
     run_id: str | None = None,
     telemetry: ReadinessTelemetry | None = None,
+    dependencies: ReadinessDependencies = DEFAULT_READINESS_DEPENDENCIES,
 ) -> ReadinessResult:
     """Create one immutable input/session boundary around the gate stack."""
+    try:
+        from ..publish_readiness_core import _run_publish_readiness as readiness_runner
+    except ImportError:  # pragma: no cover - direct script compatibility.
+        from publish_readiness_core import _run_publish_readiness as readiness_runner
+    source_decision_registry = _optional_workspace_artifact(
+        workspace_root,
+        "context/source-classification-decisions.json",
+    )
+    customer_proof_index = _optional_workspace_artifact(
+        workspace_root,
+        "context/customer-proof-index.json",
+    )
+    customer_proof_usage_ledger = _optional_workspace_artifact(
+        workspace_root,
+        "context/customer-proof-usage-ledger.json",
+    )
     runner_kwargs = {
         "file_path": file_path,
         "proof_sidecar": proof_sidecar,
@@ -137,9 +179,12 @@ def _run_publish_readiness_session(
             "context_pack": context_pack,
             "context_receipt": context_receipt,
             "assembly_bom": assembly_bom,
+            "source_decision_registry": source_decision_registry,
+            "customer_proof_index": customer_proof_index,
+            "customer_proof_usage_ledger": customer_proof_usage_ledger,
         },
         workspace_root=workspace_root,
-        runner=_run_publish_readiness,
+        runner=readiness_runner,
         runner_kwargs=runner_kwargs,
         blocked_result=lambda error: _input_capture_blocked_result(
             error=error,
@@ -151,15 +196,26 @@ def _run_publish_readiness_session(
             assembly_bom=assembly_bom,
             phase=phase,
         ),
-        connector_factory=lambda: SimproVaultClient(vault_root=vault_root),
+        connector_factory=lambda: dependencies.connector_factory(vault_root=vault_root),
         claim_loader=lambda client: _load_session_claims(
             context_pack,
             context_receipt,
             vault_root=vault_root,
             client=client,
+            loader=dependencies.claim_set_loader,
         ),
         telemetry=telemetry,
     )
+
+
+def _optional_workspace_artifact(
+    workspace_root: str | Path,
+    relative_path: str,
+) -> Path | None:
+    """Return an existing fixed workspace input for authoritative capture."""
+    root = Path(workspace_root).resolve()
+    candidate = (root / relative_path).resolve(strict=False)
+    return candidate if candidate.is_file() else None
 
 def _load_session_claims(
     context_pack: str | Path | None,
@@ -167,9 +223,10 @@ def _load_session_claims(
     *,
     vault_root: str | Path | None,
     client: Any,
+    loader: Any = load_validated_claim_set,
 ) -> ValidatedClaimSet:
     try:
-        return load_validated_claim_set(
+        return loader(
             context_pack,
             context_receipt,
             vault_root=vault_root,

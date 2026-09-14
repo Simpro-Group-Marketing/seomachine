@@ -28,6 +28,42 @@ CREDENTIAL_PATTERNS = (
     re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
     re.compile(r"https?://[^/\s:@]+:[^/\s@]+@", re.IGNORECASE),
 )
+RESOURCE_LIMIT_RE = re.compile(r"(?m)^\| `([a-z][a-z0-9_]*)` \| ([0-9]+) \|$")
+
+
+def _runtime_limits() -> dict[str, int]:
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from data_sources.modules.artifact_runtime.limits import (
+        ARTICLE_MAX_BYTES,
+        JSON_MAX_BYTES,
+        SIDECAR_MAX_BYTES,
+        SUBPROCESS_MAX_INPUT_BYTES,
+        SUBPROCESS_MAX_OUTPUT_BYTES,
+        SUBPROCESS_SPOOL_THRESHOLD_BYTES,
+    )
+    from data_sources.modules.bounded_io import HASH_CHUNK_BYTES
+    from data_sources.modules.public_http import DEFAULT_HTTP_BATCH_POLICY
+    from data_sources.modules.public_http.policies import MAX_CACHE_BYTES
+    from tools.check_worker_metrics import DEFAULT_MAX_PEAK_RSS_BYTES
+
+    network_budget = DEFAULT_HTTP_BATCH_POLICY.max_aggregate_response_bytes
+    return {
+        "article_max_bytes": ARTICLE_MAX_BYTES,
+        "hash_chunk_bytes": HASH_CHUNK_BYTES,
+        "http_batch_max_bytes": network_budget,
+        "http_cache_max_bytes": MAX_CACHE_BYTES,
+        "json_max_bytes": JSON_MAX_BYTES,
+        "session_normalized_source_max_bytes": network_budget,
+        "sidecar_max_bytes": SIDECAR_MAX_BYTES,
+        "subprocess_spool_threshold_bytes": SUBPROCESS_SPOOL_THRESHOLD_BYTES,
+        "subprocess_input_max_bytes": SUBPROCESS_MAX_INPUT_BYTES,
+        "subprocess_stream_max_bytes": SUBPROCESS_MAX_OUTPUT_BYTES,
+        "xdist_worker_peak_rss_max_bytes": DEFAULT_MAX_PEAK_RSS_BYTES,
+    }
+
+
+RUNTIME_LIMITS = _runtime_limits()
 
 
 def memory_errors(
@@ -49,10 +85,39 @@ def memory_errors(
     if "\r" in content:
         errors.append("MEMORY.md must use LF line endings")
     errors.extend(_section_errors(content))
+    errors.extend(_resource_limit_errors(content, expected=RUNTIME_LIMITS))
     errors.extend(_link_errors(content, root=root, tracked=tracked))
     if any(pattern.search(content) for pattern in CREDENTIAL_PATTERNS):
         errors.append("MEMORY.md contains a credential-like token")
     return sorted(set(errors))
+
+
+def _resource_limit_errors(
+    content: str,
+    *,
+    expected: dict[str, int],
+) -> list[str]:
+    section_match = re.search(
+        r"(?ms)^## Resource limits\n(.*?)(?=^## |\Z)",
+        content,
+    )
+    section = section_match.group(1) if section_match is not None else ""
+    rows = RESOURCE_LIMIT_RE.findall(section)
+    keys = [key for key, _ in rows]
+    errors: list[str] = []
+    for key, runtime_value in sorted(expected.items()):
+        matches = [int(value) for row_key, value in rows if row_key == key]
+        if len(matches) != 1:
+            errors.append(f"MEMORY.md resource limit {key} must appear exactly once")
+        for documented in matches:
+            if documented != runtime_value:
+                errors.append(
+                    f"MEMORY.md resource limit {key} is {documented}; "
+                    f"runtime is {runtime_value}"
+                )
+    for key in sorted(set(keys) - set(expected)):
+        errors.append(f"MEMORY.md has unknown resource limit {key}")
+    return errors
 
 
 def _section_errors(content: str) -> list[str]:

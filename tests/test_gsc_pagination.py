@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from dataclasses import FrozenInstanceError
 
 import pytest
 
+from data_sources.modules.gsc import pagination
 from data_sources.modules.gsc.pagination import (
+    GscPage,
     GscPaginationError,
     GscQueryMode,
     GscRowCapExceeded,
+    iter_search_analytics_pages,
     iter_search_analytics_rows,
     query_search_analytics,
 )
@@ -63,6 +67,118 @@ def test_paginator_advances_start_row_and_preserves_input_order() -> None:
     assert actual == _rows(5)
     assert [request["startRow"] for request in service.analytics.requests] == [0, 2, 4]
     assert [request["rowLimit"] for request in service.analytics.requests] == [2, 2, 2]
+
+
+def test_row_iterator_is_lazy_and_fetches_only_the_page_being_consumed() -> None:
+    service = _Service(_rows(5))
+
+    iterator = iter_search_analytics_rows(
+        service,
+        site_url="sc-domain:example.com",
+        body={"dimensions": ["query"]},
+        max_rows=5,
+        page_size=2,
+    )
+
+    assert service.analytics.requests == []
+    assert next(iterator) == _rows(1)[0]
+    assert len(service.analytics.requests) == 1
+    assert next(iterator) == _rows(2)[1]
+    assert len(service.analytics.requests) == 1
+    assert next(iterator) == _rows(3)[2]
+    assert len(service.analytics.requests) == 2
+
+
+def test_stopping_row_iteration_does_not_fetch_remaining_pages() -> None:
+    service = _Service(_rows(5))
+    iterator = iter_search_analytics_rows(
+        service,
+        site_url="sc-domain:example.com",
+        body={},
+        max_rows=5,
+        page_size=2,
+    )
+
+    assert next(iterator) == _rows(1)[0]
+    iterator.close()
+
+    assert [request["startRow"] for request in service.analytics.requests] == [0]
+
+
+def test_row_iterator_does_not_delegate_to_materializing_query(monkeypatch) -> None:
+    service = _Service(_rows(1))
+
+    def reject_materialization(*args, **kwargs):
+        raise AssertionError("row iteration must not materialize the query response")
+
+    monkeypatch.setattr(pagination, "query_search_analytics", reject_materialization)
+
+    assert list(
+        iter_search_analytics_rows(
+            service,
+            site_url="sc-domain:example.com",
+            body={},
+            max_rows=1,
+        )
+    ) == _rows(1)
+
+
+def test_page_iterator_preserves_first_response_metadata() -> None:
+    service = _ScriptedService(
+        [
+            {
+                "rows": _rows(2),
+                "responseAggregationType": "byPage",
+                "metadata": {"first_incomplete_date": "2026-09-09"},
+            },
+            {"rows": []},
+        ]
+    )
+
+    iterator = iter_search_analytics_pages(
+        service,
+        site_url="sc-domain:example.com",
+        body={},
+        max_rows=10,
+        page_size=2,
+        mode=GscQueryMode.COMPLETE,
+    )
+
+    assert service.analytics.requests == []
+    page = next(iterator)
+    assert isinstance(page, GscPage)
+    assert page.start_row == 0
+    assert page.requested_rows == 2
+    assert [dict(row) | {"keys": list(row["keys"])} for row in page.rows] == _rows(2)
+    assert dict(page.metadata) == {
+        "responseAggregationType": "byPage",
+        "metadata": {"first_incomplete_date": "2026-09-09"},
+    }
+    assert len(service.analytics.requests) == 1
+
+    with pytest.raises(FrozenInstanceError):
+        page.start_row = 1  # type: ignore[misc]
+    with pytest.raises(TypeError):
+        page.metadata["responseAggregationType"] = "changed"  # type: ignore[index]
+    with pytest.raises(TypeError):
+        page.rows[0]["clicks"] = 99  # type: ignore[index]
+
+
+def test_row_iterator_propagates_a_later_page_error_after_yielding_first_page() -> None:
+    service = _ScriptedService([{"rows": _rows(2)}, RuntimeError("quota exhausted")])
+    iterator = iter_search_analytics_rows(
+        service,
+        site_url="sc-domain:example.com",
+        body={},
+        max_rows=4,
+        page_size=2,
+        require_complete=True,
+    )
+
+    assert [next(iterator), next(iterator)] == _rows(2)
+    assert len(service.analytics.requests) == 1
+    with pytest.raises(RuntimeError, match="quota exhausted"):
+        next(iterator)
 
 
 def test_paginator_does_not_mutate_the_callers_request() -> None:

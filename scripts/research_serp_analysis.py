@@ -17,7 +17,7 @@ import os
 import re
 import shutil
 import statistics
-import subprocess
+from subprocess import TimeoutExpired
 import sys
 import tempfile
 from collections import Counter
@@ -36,6 +36,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "data_sources")
 from modules.content_length_comparator import ContentLengthComparator  # noqa: E402
 from modules.dataforseo import DataForSEO  # noqa: E402
 from modules.blog_assembly_contract import atomic_write_json  # noqa: E402
+from modules.artifact_runtime.subprocesses import run_bounded_text_process  # noqa: E402
 from modules.editorial_plan_guard import (  # noqa: E402
     build_serp_evidence,
     load_normalized_serp_raw_capture,
@@ -84,7 +85,9 @@ def parse_cli_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         default="us",
         help="Google country code for the Playwright fallback (default: us)",
     )
-    return parser.parse_args(argv)
+    if (args := parser.parse_args(argv)).keyword and not args.run_id:
+        parser.error("--run-id is required when a keyword is supplied")
+    return args
 
 
 def main() -> None:
@@ -108,7 +111,6 @@ def main() -> None:
 
 def run_serp_analysis(
     keyword: str,
-    run_id: Optional[str] = None,
     output_dir: str | Path = "research",
     now: Optional[datetime] = None,
     dataforseo_factory: Callable[[], Any] = DataForSEO,
@@ -117,6 +119,7 @@ def run_serp_analysis(
     content_comparator_factory: Callable[[], Any] = ContentLengthComparator,
     print_fn: Callable[[str], None] = print,
     word_target: Optional[int] = None,
+    run_id: Optional[str] = None,
     location_code: int = 2840,
     google_country: str = "us",
 ) -> Dict[str, Any]:
@@ -189,7 +192,7 @@ def run_serp_analysis(
                 raise RuntimeError(
                     "DataForSEO client lacks the exact raw-response method"
                 )
-            raw_dataforseo_response = raw_method(keyword, limit=20)
+            raw_dataforseo_response = raw_method(keyword, location_code=location_code, limit=20)
             raw_capture_path = write_serp_raw_capture(
                 output_dir=output_dir,
                 workspace_root=workspace_root,
@@ -206,8 +209,7 @@ def run_serp_analysis(
                 workspace_root=workspace_root,
             )
             serp_data = normalize_serp_payload(
-                dfs.get_serp_data(keyword, location_code=location_code, limit=20),
-                source="DataForSEO",
+                normalized_dataforseo_response, source="DataForSEO"
             )
             if not serp_data or "organic_results" not in serp_data:
                 dataforseo_error = "No SERP data available from DataForSEO"
@@ -231,13 +233,11 @@ def run_serp_analysis(
             now=now,
             google_country=google_country,
         )
+        raw_capture_path = fallback_data.get("raw_capture_path")
         if fallback_data.get("fallback_blocker"):
             print_fn(f"   Playwright fallback blocker: {fallback_data['fallback_blocker']}")
         else:
-            print_fn(
-                "   Playwright fallback captured "
-                f"{len(fallback_data.get('organic_results', []))} organic results"
-            )
+            print_fn("   Playwright fallback captured " f"{len(fallback_data.get('organic_results', []))} organic results")
         serp_data = {
             "organic_results": fallback_data.get("organic_results", []),
             "features": fallback_data.get("features", []),
@@ -609,8 +609,8 @@ def normalize_serp_payload(
 def run_playwright_serp_fallback(
     keyword: str,
     *,
-    run_id: str,
-    workspace_root: str | Path,
+    run_id: str | None = None,
+    workspace_root: str | Path | None = None,
     output_dir: str | Path = "research",
     now: Optional[datetime] = None,
     cli_runner: Optional[Callable[[str], str]] = None,
@@ -620,6 +620,7 @@ def run_playwright_serp_fallback(
     """Capture visible Google SERP facts through Playwright CLI and save raw provenance."""
     now = now or datetime.now()
     output_dir = Path(output_dir)
+    run_id, workspace_root = run_id or f"serp-analysis-{sanitize_filename(keyword)}", Path(workspace_root or output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
     search_url = build_google_search_url(keyword, google_country)
     artifact_path = output_dir / (
@@ -748,15 +749,14 @@ def run_playwright_cli_serp_capture(keyword: str, google_country: str = "us") ->
     command_prefix = [npx_path, "--yes", "--package", "@playwright/cli", "playwright-cli"]
 
     try:
-        subprocess.run(
+        opened = run_bounded_text_process(
             command_prefix + ["open", "about:blank"],
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=True,
             timeout=PLAYWRIGHT_OPEN_TIMEOUT_SECONDS,
+            max_output_bytes=1024 * 1024,
         )
-    except subprocess.TimeoutExpired as exc:
+        if opened.returncode != 0:
+            raise RuntimeError((opened.stderr or opened.stdout).strip())
+    except TimeoutExpired as exc:
         raise RuntimeError(
             f"Playwright open timed out after {PLAYWRIGHT_OPEN_TIMEOUT_SECONDS} seconds"
         ) from exc
@@ -766,16 +766,14 @@ def run_playwright_cli_serp_capture(keyword: str, google_country: str = "us") ->
             code_path = temp_file.name
         try:
             try:
-                completed = subprocess.run(
+                completed = run_bounded_text_process(
                     command_prefix + ["run-code", "--filename", code_path, "--raw"],
-                    text=True,
                     encoding="utf-8",
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    check=False,
+                    errors="replace",
                     timeout=PLAYWRIGHT_RUN_TIMEOUT_SECONDS,
+                    max_output_bytes=8 * 1024 * 1024,
                 )
-            except subprocess.TimeoutExpired as exc:
+            except TimeoutExpired as exc:
                 raise RuntimeError(
                     "Playwright run-code timed out after "
                     f"{PLAYWRIGHT_RUN_TIMEOUT_SECONDS} seconds"
@@ -790,15 +788,12 @@ def run_playwright_cli_serp_capture(keyword: str, google_country: str = "us") ->
                 pass
     finally:
         try:
-            subprocess.run(
+            run_bounded_text_process(
                 command_prefix + ["close"],
-                text=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=False,
                 timeout=PLAYWRIGHT_CLOSE_TIMEOUT_SECONDS,
+                max_output_bytes=1024 * 1024,
             )
-        except subprocess.TimeoutExpired:
+        except TimeoutExpired:
             pass
 
 

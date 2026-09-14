@@ -860,7 +860,7 @@ class GitHubApiBoundaryTests(unittest.TestCase):
                 return_value="gh",
             ),
             patch(
-                "data_sources.modules.grav_publisher.subprocess.run",
+                "data_sources.modules.grav_publisher.run_bounded_text_process",
                 side_effect=completed,
             ) as run,
         ):
@@ -900,7 +900,7 @@ class GitHubApiBoundaryTests(unittest.TestCase):
                 return_value="gh",
             ),
             patch(
-                "data_sources.modules.grav_publisher.subprocess.run",
+                "data_sources.modules.grav_publisher.run_bounded_text_process",
                 side_effect=completed,
             ) as run,
         ):
@@ -962,7 +962,7 @@ class GitHubApiBoundaryTests(unittest.TestCase):
                 "data_sources.modules.grav_publisher.shutil.which", return_value="gh"
             ),
             patch(
-                "data_sources.modules.grav_publisher.subprocess.run",
+                "data_sources.modules.grav_publisher.run_bounded_text_process",
                 side_effect=subprocess.TimeoutExpired(["gh", "api"], 30),
             ),
         ):

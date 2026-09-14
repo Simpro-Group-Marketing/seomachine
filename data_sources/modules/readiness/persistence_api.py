@@ -1,7 +1,30 @@
 """Publish-readiness persistence api responsibilities."""
-# ruff: noqa: F403, F405
+import hashlib
+from pathlib import Path
+from typing import Any, Callable, Mapping, Sequence
 
-from .common import *  # noqa: F403
+from .common import (
+    FINAL_READINESS_RESULT_SCHEMA,
+    atomic_write_json,
+    build_stage_receipt,
+    canonical_article_run_id,
+    canonical_json_bytes,
+    check_receipt_chain,
+    file_sha256,
+    load_json_object_snapshot,
+    write_stage_receipt,
+)
+from .persistence import persist_new_result_pair, persist_result_pair
+from .result_validation import (
+    _validate_actual_readiness_execution,
+    validate_passed_readiness_result,
+)
+from .workspace_bindings import (
+    _reject_output_input_collision,
+    _resolve_workspace_input,
+    _result_workspace_root,
+    _same_path,
+)
 
 
 def readiness_stage_receipt_path(output_path: str | Path) -> Path:
@@ -108,6 +131,7 @@ def write_readiness_result(
     *,
     receipt_path: str | Path | None = None,
     workspace_root: str | Path | None = None,
+    execution_validator: Callable[..., None] = _validate_actual_readiness_execution,
 ) -> Path | None:
     """Write the result and, when passed, its non-circular stage receipt."""
     root = _result_workspace_root(result, workspace_root)
@@ -197,7 +221,7 @@ def write_readiness_result(
         assembly_date=bom_assembly_date,
         workspace_root=root,
     )
-    _validate_actual_readiness_execution(result, workspace_root=root)
+    execution_validator(result, workspace_root=root)
     if result.get("schema") == FINAL_READINESS_RESULT_SCHEMA:
         return persist_new_result_pair(
             output,

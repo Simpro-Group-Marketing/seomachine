@@ -106,6 +106,50 @@ def gsc_query(
     page_url: str | None = None,
     row_limit: int = 25_000, mode: gsc.GscQueryMode,
 ) -> dict[str, Any]:
+    body = _gsc_body(
+        start_date,
+        end_date,
+        dimensions,
+        page_url=page_url,
+    )
+    return gsc.query_search_analytics(
+        service, site_url=GSC_SITE, body=body, max_rows=row_limit, mode=mode
+    )
+
+
+def iter_gsc_rows(
+    service,
+    start_date: str,
+    end_date: str,
+    dimensions: list[str],
+    *,
+    page_url: str | None = None,
+    row_limit: int = 25_000,
+    mode: gsc.GscQueryMode,
+):
+    """Yield GSC rows without materializing an intermediate response."""
+    body = _gsc_body(
+        start_date,
+        end_date,
+        dimensions,
+        page_url=page_url,
+    )
+    return gsc.iter_search_analytics_rows(
+        service,
+        site_url=GSC_SITE,
+        body=body,
+        max_rows=row_limit,
+        require_complete=mode is gsc.GscQueryMode.COMPLETE,
+    )
+
+
+def _gsc_body(
+    start_date: str,
+    end_date: str,
+    dimensions: list[str],
+    *,
+    page_url: str | None,
+) -> dict[str, Any]:
     body: dict[str, Any] = {
         "startDate": start_date,
         "endDate": end_date,
@@ -126,9 +170,7 @@ def gsc_query(
                 ],
             }
         ]
-    return gsc.query_search_analytics(
-        service, site_url=GSC_SITE, body=body, max_rows=row_limit, mode=mode
-    )
+    return body
 
 
 def pull_gsc_period(service, url: str, start_date: str, end_date: str) -> dict[str, Any]:
@@ -165,7 +207,7 @@ def pull_gsc_period(service, url: str, start_date: str, end_date: str) -> dict[s
             "query_rows": [],
         }
     row = page_rows[0]
-    query_response = gsc_query(
+    query_source_rows = iter_gsc_rows(
         service,
         start_date,
         end_date,
@@ -174,7 +216,7 @@ def pull_gsc_period(service, url: str, start_date: str, end_date: str) -> dict[s
         row_limit=gsc.GSC_MAX_WORKFLOW_ROWS, mode=gsc.GscQueryMode.COMPLETE,
     )
     query_rows = []
-    for query_row in query_response.get("rows") or []:
+    for query_row in query_source_rows:
         query_rows.append(
             {
                 "query": (query_row.get("keys") or [""])[0],

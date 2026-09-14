@@ -10,7 +10,6 @@ from data_sources.modules.readiness.session import ValidationSession
 from data_sources.modules.readiness.telemetry import ReadinessTelemetry
 from data_sources.modules import readiness_gate_context
 
-
 def test_session_creates_connector_and_claim_set_once(tmp_path: Path):
     article = tmp_path / "article.md"
     article.write_text("# Article\n", encoding="utf-8")

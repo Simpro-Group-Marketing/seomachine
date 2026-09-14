@@ -10,7 +10,11 @@ from data_sources.modules.public_http.policies import (
     HttpRequestPolicy,
     URL_RESOLUTION_POLICY,
 )
-from data_sources.modules.public_http.transport import PublicHttpTransport, _request_key
+from data_sources.modules.public_http.transport import (
+    PublicHttpTransport,
+    _request_key,
+    canonical_request_identity,
+)
 
 
 def _resolver(host: str, port: int, **_: object):
@@ -31,6 +35,33 @@ def test_transport_policy_changes_cache_identity() -> None:
     first = _request_key("GET", "https://example.com/source", None, URL_RESOLUTION_POLICY)
     second = _request_key("GET", "https://example.com/source", None, COMPETITOR_CONTENT_POLICY)
     assert first != second
+
+
+def test_public_request_identity_binds_query_headers_and_complete_policy() -> None:
+    base = canonical_request_identity(
+        "GET",
+        "https://example.com/source?a=1",
+        headers={"User-Agent": "one"},
+        policy=URL_RESOLUTION_POLICY,
+    )
+    assert base != canonical_request_identity(
+        "GET",
+        "https://example.com/source?a=2",
+        headers={"User-Agent": "one"},
+        policy=URL_RESOLUTION_POLICY,
+    )
+    assert base != canonical_request_identity(
+        "GET",
+        "https://example.com/source?a=1",
+        headers={"User-Agent": "two"},
+        policy=URL_RESOLUTION_POLICY,
+    )
+    assert base != canonical_request_identity(
+        "GET",
+        "https://example.com/source?a=1",
+        headers={"User-Agent": "one"},
+        policy=COMPETITOR_CONTENT_POLICY,
+    )
 
 
 def test_transient_response_retries_within_same_transport() -> None:

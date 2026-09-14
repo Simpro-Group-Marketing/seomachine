@@ -1,7 +1,31 @@
 """Evidence Validation responsibilities."""
-# ruff: noqa: F403, F405
-
-from .common import *  # noqa: F403
+from .artifacts import _read_artifact_text
+from .capture_receipts import _validate_capture_receipt
+from .claim_matching import (
+    _validate_evidence_claim_fit,
+    _validate_source_text_contains_evidence,
+)
+from .classification import _validate_source_classification
+from .common import (
+    GENERAL_CLAIM_TYPES,
+    GENERAL_SOURCE_CLASSES,
+    INSUFFICIENT_SOURCE_RE,
+    OWNED_PRODUCT_GENERAL_CLAIM_TYPES,
+    SOURCE_CLASSES,
+    Callable,
+    ClaimCandidate,
+    Fetcher,
+    Finding,
+    List,
+    Optional,
+    Path,
+    ProofEntry,
+    Sequence,
+    _claim_text_for_detection,
+    re,
+)
+from .findings import _finding
+from .text_matching import _normalize_text, _proof_matches_customer, _text_overlaps
 
 
 def _matching_proofs(
@@ -29,6 +53,10 @@ def _validate_general_source(
     proof: ProofEntry,
     candidate: ClaimCandidate,
     base_path: Path,
+    *,
+    registry_state: object | None = None,
+    registry_snapshot: object | None = None,
+    registry_verifier: Callable[..., None] | None = None,
 ) -> Optional[Finding]:
     if proof.source_class not in SOURCE_CLASSES:
         return _finding(
@@ -45,7 +73,14 @@ def _validate_general_source(
     contract_finding = _validate_general_claim_contract(proof, candidate)
     if contract_finding:
         return contract_finding
-    classification_finding = _validate_source_classification(proof, candidate, base_path)
+    classification_finding = _validate_source_classification(
+        proof,
+        candidate,
+        base_path,
+        registry_state=registry_state,
+        registry_snapshot=registry_snapshot,
+        registry_verifier=registry_verifier,
+    )
     if classification_finding:
         return classification_finding
     allowed = set(GENERAL_SOURCE_CLASSES)
@@ -72,6 +107,9 @@ def _load_html_source_text(
     fetcher: Optional[Fetcher],
 ) -> tuple[Optional[str], Optional[Finding], bool]:
     try:
+        if fetcher is None:
+            from .retrieval import fetch_source_text
+
         return (
             fetcher(proof.url) if fetcher is not None else fetch_source_text(proof.url),
             None,
@@ -149,9 +187,20 @@ def _validate_proof_entry(
     candidate: ClaimCandidate,
     base_path: Path,
     fetcher: Optional[Fetcher],
+    *,
+    registry_state: object | None = None,
+    registry_snapshot: object | None = None,
+    registry_verifier: Callable[..., None] | None = None,
 ) -> Optional[Finding]:
     if candidate.claim_type in GENERAL_CLAIM_TYPES:
-        finding = _validate_general_source(proof, candidate, base_path)
+        finding = _validate_general_source(
+            proof,
+            candidate,
+            base_path,
+            registry_state=registry_state,
+            registry_snapshot=registry_snapshot,
+            registry_verifier=registry_verifier,
+        )
         if finding:
             return finding
     url_finding = _validate_public_source_url(proof, candidate)

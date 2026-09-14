@@ -2,15 +2,16 @@ from tests.fixture_text import fixture_text
 
 import json
 import unittest
+from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from data_sources.modules import content_scorer as content_scorer_module
 from data_sources.modules import seo_quality_rater as seo_quality_rater_module
 from data_sources.modules.content_scorer import ContentScorer
+from data_sources.modules.content_scoring.common import default_scoring_dependencies
 from data_sources.modules.seo_quality_rater import PUBLISHING_THRESHOLD
-from data_sources.modules.paa_provenance_guard import build_answersocrates_artifact
 from data_sources.modules.url_validator import UrlValidationResult, UrlValidationSummary
 from tests.research_provenance_fixtures import build_answersocrates_fixture
 from tests.test_aeo_geo_rater import (
@@ -108,6 +109,11 @@ def write_sidecar_fixture(test_case: unittest.TestCase, content: str) -> tuple[s
         encoding="utf-8",
     )
     return str(article_path), str(sidecar_path)
+
+
+def scorer_with_dependencies(**overrides) -> ContentScorer:
+    dependencies = replace(default_scoring_dependencies(), **overrides)
+    return ContentScorer(dependencies=dependencies)
 
 
 class ContentScorerAeoGeoGateTests(unittest.TestCase):
@@ -217,6 +223,7 @@ AI field service management starts with a measurable constraint and a bounded pi
 
 Use operating data to compare the same workflow before and after the pilot.
 """
+
 
         result = ContentScorer()._score_seo(
             content,
@@ -542,7 +549,7 @@ Use operating data to compare the same workflow before and after the pilot.
                 "_score_readability",
                 return_value={"score": 100, "issues": [], "details": {}, "flesch": 68},
             ), patch(
-                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
                 new=load_validated_claim_set_for_unit_test,
             ):
                 result = scorer.score(
@@ -698,7 +705,13 @@ Use operating data to compare the same workflow before and after the pilot.
         self.assertIn("Review story identity blockers detected", result["priority_fixes"][0]["issue"])
 
     def test_quality_gate_passes_resolved_proof_sidecar_path_to_aeo_rater(self):
-        scorer = ContentScorer()
+        rate = Mock(return_value={"passed": True, "checks": {}})
+        scorer = scorer_with_dependencies(
+            rate_aeo_geo=rate,
+            check_metric_proof_pack=Mock(return_value=[]),
+            check_customer_proof_diversity=Mock(return_value=[]),
+            check_review_story_identity=Mock(return_value=[]),
+        )
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             article = root / "drafts" / "article.md"
@@ -707,27 +720,14 @@ Use operating data to compare the same workflow before and after the pilot.
             sidecar.parent.mkdir(parents=True)
             article.write_text("# Article\n", encoding="utf-8")
             sidecar.write_text("# Validation\n", encoding="utf-8")
-            with patch(
-                "data_sources.modules.content_scorer.rate_aeo_geo",
-                return_value={"passed": True, "checks": {}},
-            ) as rate, patch(
-                "data_sources.modules.content_scorer.check_metric_proof_pack",
-                return_value=[],
-            ), patch(
-                "data_sources.modules.content_scorer.check_customer_proof_diversity",
-                return_value=[],
-            ), patch(
-                "data_sources.modules.content_scorer.check_review_story_identity",
-                return_value=[],
-            ):
-                scorer._run_quality_gates(
-                    "# Article\n",
-                    {},
-                    validate_urls=False,
-                    validate_source_support=False,
-                    source_path=str(article),
-                    proof_sidecar=str(sidecar),
-                )
+            scorer._run_quality_gates(
+                "# Article\n",
+                {},
+                validate_urls=False,
+                validate_source_support=False,
+                source_path=str(article),
+                proof_sidecar=str(sidecar),
+            )
 
         self.assertEqual(
             rate.call_args.kwargs["proof_sidecar_path"],
@@ -735,7 +735,13 @@ Use operating data to compare the same workflow before and after the pilot.
         )
 
     def test_quality_gate_forwards_bound_bom_and_strict_paa_inputs_to_aeo_rater(self):
-        scorer = ContentScorer()
+        rate = Mock(return_value={"passed": True, "checks": {}})
+        scorer = scorer_with_dependencies(
+            rate_aeo_geo=rate,
+            check_metric_proof_pack=Mock(return_value=[]),
+            check_customer_proof_diversity=Mock(return_value=[]),
+            check_review_story_identity=Mock(return_value=[]),
+        )
         finalized_bom = {
             "schema": "simpro-blog-assembly-bom/v1",
             "lifecycle_state": "final",
@@ -748,36 +754,23 @@ Use operating data to compare the same workflow before and after the pilot.
             },
         }
 
-        with patch(
-            "data_sources.modules.content_scorer.rate_aeo_geo",
-            return_value={"passed": True, "checks": {}},
-        ) as rate, patch(
-            "data_sources.modules.content_scorer.check_metric_proof_pack",
-            return_value=[],
-        ), patch(
-            "data_sources.modules.content_scorer.check_customer_proof_diversity",
-            return_value=[],
-        ), patch(
-            "data_sources.modules.content_scorer.check_review_story_identity",
-            return_value=[],
-        ):
-            scorer._run_quality_gates(
-                "# Article\n",
-                {},
-                validate_urls=False,
-                validate_source_support=False,
-                source_path="drafts/article.md",
-                proof_sidecar=None,
-                finalized_bom=finalized_bom,
-                assembly_date="2026-05-22",
-                paa_workflow_mode="refresh",
-                paa_content_brief="research/content-brief-article.md",
-                paa_answersocrates_blocker="collection unavailable",
-                paa_expected_query="field service scheduling",
-                paa_expected_collection_date="2026-05-21",
-                paa_expected_run_id="article-run-123",
-                paa_artifact="research/paa-questions-article-2026-05-21.md",
-            )
+        scorer._run_quality_gates(
+            "# Article\n",
+            {},
+            validate_urls=False,
+            validate_source_support=False,
+            source_path="drafts/article.md",
+            proof_sidecar=None,
+            finalized_bom=finalized_bom,
+            assembly_date="2026-05-22",
+            paa_workflow_mode="refresh",
+            paa_content_brief="research/content-brief-article.md",
+            paa_answersocrates_blocker="collection unavailable",
+            paa_expected_query="field service scheduling",
+            paa_expected_collection_date="2026-05-21",
+            paa_expected_run_id="article-run-123",
+            paa_artifact="research/paa-questions-article-2026-05-21.md",
+        )
 
         rate.assert_called_once_with(
             "# Article\n",
@@ -799,7 +792,13 @@ Use operating data to compare the same workflow before and after the pilot.
     def test_quality_gate_passes_resolved_proof_sidecar_path_to_customer_proof_guard(
         self,
     ):
-        scorer = ContentScorer()
+        check_customer_proof = Mock(return_value=[])
+        scorer = scorer_with_dependencies(
+            rate_aeo_geo=Mock(return_value={"passed": True, "checks": {}}),
+            check_metric_proof_pack=Mock(return_value=[]),
+            check_customer_proof_diversity=check_customer_proof,
+            check_review_story_identity=Mock(return_value=[]),
+        )
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             article = root / "drafts" / "article.md"
@@ -808,27 +807,14 @@ Use operating data to compare the same workflow before and after the pilot.
             sidecar.parent.mkdir(parents=True)
             article.write_text("# Article\n", encoding="utf-8")
             sidecar.write_text("# Validation\n", encoding="utf-8")
-            with patch(
-                "data_sources.modules.content_scorer.rate_aeo_geo",
-                return_value={"passed": True, "checks": {}},
-            ), patch(
-                "data_sources.modules.content_scorer.check_metric_proof_pack",
-                return_value=[],
-            ), patch(
-                "data_sources.modules.content_scorer.check_customer_proof_diversity",
-                return_value=[],
-            ) as check_customer_proof, patch(
-                "data_sources.modules.content_scorer.check_review_story_identity",
-                return_value=[],
-            ):
-                scorer._run_quality_gates(
-                    "# Article\n",
-                    {},
-                    validate_urls=False,
-                    validate_source_support=False,
-                    source_path=str(article),
-                    proof_sidecar=str(sidecar),
-                )
+            scorer._run_quality_gates(
+                "# Article\n",
+                {},
+                validate_urls=False,
+                validate_source_support=False,
+                source_path=str(article),
+                proof_sidecar=str(sidecar),
+            )
 
         self.assertEqual(
             check_customer_proof.call_args.kwargs["proof_sidecar_path"],
@@ -836,7 +822,6 @@ Use operating data to compare the same workflow before and after the pilot.
         )
 
     def test_url_validation_failure_blocks_content_scorer_when_enabled(self):
-        scorer = ContentScorer()
         blocked = UrlValidationResult(
             url="https://example.com/dead",
             status="unresolved",
@@ -845,11 +830,11 @@ Use operating data to compare the same workflow before and after the pilot.
             line=9,
             anchor="dead source",
         )
+        scorer = scorer_with_dependencies(
+            validate_content_urls=Mock(return_value=UrlValidationSummary([blocked]))
+        )
 
-        with patch(
-            "data_sources.modules.content_scorer.validate_content_urls",
-            return_value=UrlValidationSummary([blocked]),
-        ), patch.object(
+        with patch.object(
             ContentScorer,
             "_score_humanity",
             return_value={"score": 100, "issues": [], "details": {}},
@@ -937,7 +922,6 @@ Use operating data to compare the same workflow before and after the pilot.
         self.assertNotIn("or add question-specific", faq_fix)
 
     def test_source_support_failure_blocks_content_scorer_when_enabled(self):
-        scorer = ContentScorer()
         source_support_findings = [
             {
                 "rule_id": "source_evidence_not_found",
@@ -948,11 +932,11 @@ Use operating data to compare the same workflow before and after the pilot.
                 "message": "Proof evidence was not found in the cited source.",
             }
         ]
+        scorer = scorer_with_dependencies(
+            check_source_support=Mock(return_value=source_support_findings)
+        )
 
-        with patch(
-            "data_sources.modules.content_scorer.check_source_support",
-            return_value=source_support_findings,
-        ), patch.object(
+        with patch.object(
             ContentScorer,
             "_score_humanity",
             return_value={"score": 100, "issues": [], "details": {}},
@@ -987,7 +971,6 @@ Use operating data to compare the same workflow before and after the pilot.
         self.assertIn("Source support blockers detected", result["priority_fixes"][0]["issue"])
 
     def test_source_support_runs_before_url_validation_when_both_are_enabled(self):
-        scorer = ContentScorer()
         call_order = []
 
         def fake_source_support(*args, **kwargs):
@@ -1004,14 +987,12 @@ Use operating data to compare the same workflow before and after the pilot.
                     reason="HTTP 200",
                 )
             ])
+        scorer = scorer_with_dependencies(
+            check_source_support=fake_source_support,
+            validate_content_urls=fake_url_validation,
+        )
 
-        with patch(
-            "data_sources.modules.content_scorer.check_source_support",
-            side_effect=fake_source_support,
-        ), patch(
-            "data_sources.modules.content_scorer.validate_content_urls",
-            side_effect=fake_url_validation,
-        ), patch.object(
+        with patch.object(
             ContentScorer,
             "_score_humanity",
             return_value={"score": 100, "issues": [], "details": {}},
@@ -1157,7 +1138,6 @@ Use operating data to compare the same workflow before and after the pilot.
         self.assertIn("Customer proof diversity blockers detected", result["priority_fixes"][0]["issue"])
 
     def test_raw_prevalidated_findings_do_not_suppress_proof_gate_runs(self):
-        scorer = ContentScorer()
         aeo_result = {
             "score": 100,
             "passed": True,
@@ -1167,30 +1147,27 @@ Use operating data to compare the same workflow before and after the pilot.
             },
             "issues": [],
         }
-        with patch(
-            "data_sources.modules.content_scorer.rate_aeo_geo",
-            return_value=aeo_result,
-        ) as rate, patch(
-            "data_sources.modules.content_scorer.check_metric_proof_pack",
-            return_value=[],
-        ) as metric_gate, patch(
-            "data_sources.modules.content_scorer.check_customer_proof_diversity",
-            return_value=[],
-        ) as diversity_gate, patch(
-            "data_sources.modules.content_scorer.check_review_story_identity",
-            return_value=[],
-        ) as review_gate:
-            scorer.score(
-                COMPLIANT_ARTICLE,
-                {"primary_keyword": "hvac scheduling software"},
-                source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
-                paa_expected_run_id="content-scorer-fixture",
-                prevalidated_gate_findings={
-                    "metric_proof_pack": (),
-                    "customer_proof_diversity": (),
-                    "review_story_identity": (),
-                },
-            )
+        rate = Mock(return_value=aeo_result)
+        metric_gate = Mock(return_value=[])
+        diversity_gate = Mock(return_value=[])
+        review_gate = Mock(return_value=[])
+        scorer = scorer_with_dependencies(
+            rate_aeo_geo=rate,
+            check_metric_proof_pack=metric_gate,
+            check_customer_proof_diversity=diversity_gate,
+            check_review_story_identity=review_gate,
+        )
+        scorer.score(
+            COMPLIANT_ARTICLE,
+            {"primary_keyword": "hvac scheduling software"},
+            source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+            paa_expected_run_id="content-scorer-fixture",
+            prevalidated_gate_findings={
+                "metric_proof_pack": (),
+                "customer_proof_diversity": (),
+                "review_story_identity": (),
+            },
+        )
 
         metric_gate.assert_called_once()
         diversity_gate.assert_called_once()
@@ -1198,7 +1175,6 @@ Use operating data to compare the same workflow before and after the pilot.
         self.assertNotIn("prevalidated_gate_findings", rate.call_args.kwargs)
 
     def test_raw_prevalidated_findings_cannot_bypass_proof_gate_execution(self):
-        scorer = ContentScorer()
         blocker = {
             "rule_id": "metric_proof_missing",
             "severity": "error",
@@ -1207,18 +1183,15 @@ Use operating data to compare the same workflow before and after the pilot.
             "message": "Metric proof is missing.",
             "suggestion": "Add proof.",
         }
-
-        with patch(
-            "data_sources.modules.content_scorer.check_metric_proof_pack",
-            return_value=[blocker],
-        ) as metric_gate:
-            result = scorer.score(
-                COMPLIANT_ARTICLE,
-                {"primary_keyword": "hvac scheduling software"},
-                source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
-                paa_expected_run_id="content-scorer-fixture",
-                prevalidated_gate_findings={"metric_proof_pack": ()},
-            )
+        metric_gate = Mock(return_value=[blocker])
+        scorer = scorer_with_dependencies(check_metric_proof_pack=metric_gate)
+        result = scorer.score(
+            COMPLIANT_ARTICLE,
+            {"primary_keyword": "hvac scheduling software"},
+            source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+            paa_expected_run_id="content-scorer-fixture",
+            prevalidated_gate_findings={"metric_proof_pack": ()},
+        )
 
         metric_gate.assert_called_once()
         self.assertFalse(result["quality_gates"]["metric_proof_pack"]["passed"])

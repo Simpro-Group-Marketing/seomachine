@@ -17,6 +17,7 @@ if str(ROOT) not in sys.path:
 def main(argv: Sequence[str] | None = None) -> int:
     from data_sources.modules.artifact_runtime.retention import (
         apply_retention,
+        persist_retention_plan,
         plan_retention,
         purge_expired_quarantine,
         resume_retention,
@@ -33,7 +34,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0
         if args.restore is not None:
             restored = restore_quarantine(args.restore, workspace_root=root)
-            _print({"status": "restored", "paths": [_relative(path, root) for path in restored]})
+            restored_manifest = args.restore if args.restore.is_absolute() else root / args.restore
+            _print(
+                {
+                    "status": "restored",
+                    "manifest": _relative(restored_manifest, root),
+                    "restored_count": len(restored),
+                }
+            )
             return 0
         if args.purge_quarantine:
             paths = purge_expired_quarantine(root, now=datetime.now(timezone.utc), apply=args.apply)
@@ -42,7 +50,6 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "status": "purged" if args.apply else "planned",
                     "apply": args.apply,
                     "candidate_count": len(paths),
-                    "candidates": [_relative(path, root) for path in paths],
                 }
             )
             return 0
@@ -53,28 +60,23 @@ def main(argv: Sequence[str] | None = None) -> int:
             research_retention_days=args.research_days,
             tracked_paths=_tracked_paths(root),
         )
+        plan_manifest = persist_retention_plan(plan, workspace_root=root)
         payload: dict[str, object] = {
             "status": "planned",
             "apply": args.apply,
             "candidate_count": len(plan.candidates),
-            "candidates": [
-                {
-                    "path": _relative(item.path, root),
-                    "sha256": item.sha256,
-                    "bytes": item.byte_count,
-                    "age_days": item.age_days,
-                }
-                for item in plan.candidates
-            ],
+            "candidate_bytes": sum(item.byte_count for item in plan.candidates),
+            "manifest": _relative(plan_manifest, root),
         }
         if args.apply and plan.candidates:
             manifest = apply_retention(
-                plan,
+                plan_manifest,
                 workspace_root=root,
                 now=now,
                 quarantine_days=args.quarantine_days,
             )
             payload["status"] = "quarantined"
+            payload["plan_manifest"] = payload.pop("manifest")
             payload["manifest"] = _relative(manifest, root)
         _print(payload)
         return 0

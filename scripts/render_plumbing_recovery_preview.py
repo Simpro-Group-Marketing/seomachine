@@ -8,7 +8,6 @@ import html
 import json
 import re
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -18,6 +17,8 @@ from bs4 import BeautifulSoup, Tag
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+
+from data_sources.modules.artifact_runtime.subprocesses import run_bounded_text_process
 
 from data_sources.modules.frontmatter import split_frontmatter
 
@@ -76,13 +77,13 @@ def _render_markdown(body: str) -> str:
     npx = shutil.which("npx.cmd") or shutil.which("npx")
     if not npx:
         raise RuntimeError("npx is required to run the pinned marked renderer.")
-    result = subprocess.run(
+    result = run_bounded_text_process(
         [npx, "--yes", f"marked@{MARKED_VERSION}", "--gfm"],
-        input=body,
-        text=True,
+        input_text=body,
         encoding="utf-8",
-        capture_output=True,
-        check=False,
+        errors="replace",
+        timeout=120,
+        max_output_bytes=8 * 1024 * 1024,
     )
     if result.returncode:
         raise RuntimeError(result.stderr.strip() or "marked rendering failed")

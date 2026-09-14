@@ -59,6 +59,9 @@ topics/*
 
 research/*
 !research/.gitkeep
+!research/performance/
+research/performance/*
+!research/performance/p1-offline-release-benchmark-v2-final.json
 
 output/*
 !output/.gitkeep

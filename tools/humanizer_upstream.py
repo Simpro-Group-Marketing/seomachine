@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Manage the reviewed, vendored blader/humanizer snapshot."""
-
 from __future__ import annotations
 
 import argparse
@@ -8,13 +7,15 @@ import hashlib
 import json
 import os
 import re
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 from urllib.parse import urlparse
 from urllib.request import HTTPRedirectHandler, Request, build_opener
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from data_sources.modules.artifact_runtime.subprocesses import run_bounded_text_process
 
 
 MANIFEST_SCHEMA = "simpro-humanizer-upstream/v1"
@@ -263,14 +264,12 @@ def resolve_ref(ref: str) -> str:
         return ref
     source_ref = _source_ref(ref, "0" * 40)
     try:
-        completed = subprocess.run(
+        completed = run_bounded_text_process(
             ["git", "ls-remote", f"{REPOSITORY}.git", source_ref],
-            capture_output=True,
-            text=True,
-            check=False,
             timeout=30,
+            max_output_bytes=1024 * 1024,
         )
-    except (OSError, subprocess.SubprocessError) as error:
+    except (OSError, RuntimeError) as error:
         raise HumanizerUpstreamError("upstream_ref_unavailable", str(error)) from error
     _require(completed.returncode == 0, "upstream_ref_unavailable", completed.stderr.strip() or "git ls-remote failed")
     lines = [line for line in completed.stdout.splitlines() if line.strip()]

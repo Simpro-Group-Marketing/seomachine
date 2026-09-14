@@ -3,22 +3,39 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import os
 import re
 import shutil
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-
 ROOT = Path(__file__).resolve().parents[1]
 BASELINE_PATH = ROOT / "config" / "python-structure-baseline.json"
 SCHEMA = "simpro-python-structure-baseline/v2"
-PRODUCTION_ROOTS = ("data_sources", "scripts", "tools")
+PRODUCTION_ROOTS = ("data_sources", "scripts", "tools", "mcp-gsc")
+REQUIRED_PRODUCTION_PATHS = (
+    "mcp-gsc/gsc_server.py",
+    "mcp-gsc/mcp_gsc/__init__.py",
+)
+EXCLUDED_PRODUCTION_DIRECTORIES = frozenset(
+    {
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".venv",
+        "__pycache__",
+        "build",
+        "dist",
+        "venv",
+    }
+)
 C901_PATTERN = re.compile(r"`([^`]+)` is too complex \((\d+) > 10\)")
+SUBPROCESS_BOUNDARY = "data_sources/modules/artifact_runtime/subprocesses.py"
+SUBPROCESS_CALLS = frozenset({"Popen", "call", "check_call", "check_output", "run"})
 
 
 def production_line_errors(
@@ -74,17 +91,138 @@ def complexity_errors(
     return sorted(errors)
 
 
+def forbidden_structure_errors(sources: Mapping[str, str]) -> list[str]:
+    """Reject namespace coupling that defeats explicit package ownership."""
+    errors: list[str] = []
+    for path, source in sorted(sources.items()):
+        try:
+            tree = ast.parse(source, filename=path)
+        except SyntaxError:
+            continue
+        reported: set[tuple[int, str]] = set()
+        module_aliases, call_aliases = _subprocess_aliases(tree)
+        for node in ast.walk(tree):
+            namespace_message = _namespace_structure_message(node)
+            if namespace_message is not None:
+                reported.add((node.lineno, namespace_message))
+            if _is_subprocess_call(node, path, module_aliases, call_aliases):
+                reported.add((node.lineno, "bypasses bounded subprocess execution"))
+        errors.extend(
+            f"{path}:{line} {message}" for line, message in sorted(reported)
+        )
+    return sorted(errors)
+
+
+def _namespace_structure_message(node: ast.AST) -> str | None:
+    if isinstance(node, ast.ImportFrom) and any(alias.name == "*" for alias in node.names):
+        return "uses a wildcard import"
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+        if node.func.id == "globals":
+            return "uses globals() for dynamic dispatch"
+    if isinstance(node, ast.Assign) and any(
+        _contains_sys_modules(target) for target in node.targets
+    ):
+        return "uses sys.modules for dynamic dispatch"
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+        if node.func.attr == "get" and _is_sys_modules(node.func.value):
+            return "uses sys.modules for dynamic dispatch"
+    return None
+
+
+def _is_subprocess_call(
+    node: ast.AST,
+    path: str,
+    module_aliases: set[str],
+    call_aliases: set[str],
+) -> bool:
+    if path == SUBPROCESS_BOUNDARY or not isinstance(node, ast.Call):
+        return False
+    return _is_subprocess_attribute_call(node, path, module_aliases) or (
+        isinstance(node.func, ast.Name) and node.func.id in call_aliases
+    )
+
+
+def _subprocess_aliases(tree: ast.Module) -> tuple[set[str], set[str]]:
+    modules = {
+        alias.asname or alias.name
+        for node in tree.body
+        if isinstance(node, ast.Import)
+        for alias in node.names
+        if alias.name == "subprocess"
+    }
+    calls = {
+        alias.asname or alias.name
+        for node in tree.body
+        if isinstance(node, ast.ImportFrom) and node.module == "subprocess"
+        for alias in node.names
+        if alias.name in SUBPROCESS_CALLS
+    }
+    return modules, calls
+
+
+def _is_subprocess_attribute_call(
+    node: ast.Call,
+    path: str,
+    module_aliases: set[str],
+) -> bool:
+    function = node.func
+    return (
+        path != SUBPROCESS_BOUNDARY
+        and isinstance(function, ast.Attribute)
+        and function.attr in SUBPROCESS_CALLS
+        and isinstance(function.value, ast.Name)
+        and function.value.id in module_aliases
+    )
+
+
+def _contains_sys_modules(node: ast.AST) -> bool:
+    return any(_is_sys_modules(candidate) for candidate in ast.walk(node))
+
+
+def _is_sys_modules(node: ast.AST) -> bool:
+    return (
+        isinstance(node, ast.Attribute)
+        and node.attr == "modules"
+        and isinstance(node.value, ast.Name)
+        and node.value.id == "sys"
+    )
+
+
 def _production_lines(root: Path) -> dict[str, int]:
-    rows: dict[str, int] = {}
+    return {
+        path.relative_to(root).as_posix(): _physical_lines(path)
+        for path in _production_files(root)
+    }
+
+
+def _production_files(root: Path) -> tuple[Path, ...]:
+    files: set[Path] = set()
     for directory in PRODUCTION_ROOTS:
         base = root / directory
         if not base.is_dir():
             raise ValueError(f"production root is missing: {directory}")
-        for path in sorted(base.rglob("*.py")):
-            if "__pycache__" in path.parts:
-                continue
-            rows[path.relative_to(root).as_posix()] = _physical_lines(path)
-    return rows
+        files.update(
+            path
+            for path in base.rglob("*.py")
+            if not _is_excluded_production_path(path.relative_to(root))
+        )
+    for relative in REQUIRED_PRODUCTION_PATHS:
+        if not (root / relative).is_file():
+            raise ValueError(f"required production path is missing: {relative}")
+    return tuple(sorted(files))
+
+
+def _is_excluded_production_path(relative: Path) -> bool:
+    directories = relative.parts[:-1]
+    if "__pycache__" in directories:
+        return True
+    if not relative.parts or relative.parts[0].casefold() != "mcp-gsc":
+        return False
+    return any(
+        part.casefold() in EXCLUDED_PRODUCTION_DIRECTORIES
+        or part.casefold().endswith(".egg-info")
+        for part in directories
+    )
 
 
 def _test_lines(root: Path) -> dict[str, int]:
@@ -96,23 +234,34 @@ def _test_lines(root: Path) -> dict[str, int]:
 
 
 def _complexities(root: Path) -> dict[str, dict[str, int]]:
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from data_sources.modules.artifact_runtime.subprocesses import (
+        run_bounded_text_process,
+    )
+
     ruff = shutil.which("ruff")
     if ruff is None:
         raise ValueError("ruff is required for the structure check")
-    completed = subprocess.run(
+    targets = list(PRODUCTION_ROOTS[:-1])
+    targets.extend(
+        path.relative_to(root).as_posix()
+        for path in _production_files(root)
+        if path.relative_to(root).parts[0] == "mcp-gsc"
+    )
+    completed = run_bounded_text_process(
         [
             ruff,
             "check",
-            *PRODUCTION_ROOTS,
+            *targets,
             "--select",
             "C901",
             "--output-format",
             "json",
         ],
         cwd=root,
-        capture_output=True,
-        text=True,
-        check=False,
+        timeout=120,
+        max_output_bytes=8 * 1024 * 1024,
     )
     if completed.returncode not in {0, 1}:
         raise ValueError(completed.stderr.strip() or "ruff complexity scan failed")
@@ -142,6 +291,14 @@ def _errors(root: Path, baseline: Mapping[str, Any]) -> list[str]:
         complexity_errors(
             _complexities(root),
             _nested_int_map(baseline.get("complexity_violations")),
+        )
+    )
+    errors.extend(
+        forbidden_structure_errors(
+            {
+                path.relative_to(root).as_posix(): path.read_text(encoding="utf-8")
+                for path in _production_files(root)
+            }
         )
     )
     errors.extend(_test_line_errors(_test_lines(root), baseline, maximum=maximum))

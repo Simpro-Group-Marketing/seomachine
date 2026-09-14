@@ -1,30 +1,55 @@
 """Article gates, scoring, and final input sealing."""
-# ruff: noqa: F403, F405
+from pathlib import Path
+from typing import Any, Dict, List, Mapping, Sequence
 
-from .common import *  # noqa: F403
+from .adapters import (
+    _blocked_readiness_result,
+    _content_score,
+    _gate_from_findings,
+    _gate_from_score,
+    _gate_from_url_summary,
+    _score_content,
+    _scorecard_from_scorer_result,
+    _timed_call,
+)
+from .common import (
+    ARTICLE_GATES,
+    CONTENT_GATE_NAMES,
+    ContentGateInputs,
+    GateResult,
+    ReadinessInputs,
+    ReadinessResult,
+    ReadinessTelemetry,
+    UrlValidator,
+    ValidationSession,
+    _issue_readiness_gate_context,
+    ai_copy_linter,
+    chrome_review_evidence,
+    context_binding_guard,
+    file_sha256,
+    order_blog_gate_results,
+    public_artifact_guard,
+    public_research_link_guard,
+    run_content_gate,
+)
+from .runtime_policy import _no_fit_customer_proof_findings
+from .workspace_bindings import _captured_proof_content, _readiness_run_id
+from .gate_policy import (
+    missing_gate_finding as _missing_gate_finding,
+    skip_article_gate as _skip_article_gate,
+)
 
+try:
+    from ..url_validator import validate_content_urls
+except ImportError:  # pragma: no cover - direct script compatibility.
+    from url_validator import validate_content_urls
 
-def _missing_gate_finding(rule_id: str, message: str, suggestion: str) -> List[Dict[str, Any]]:
-    return [{
-        "rule_id": rule_id,
-        "severity": "error",
-        "line": 1,
-        "column": 1,
-        "message": message,
-        "suggestion": suggestion,
-    }]
-
-
-def _skip_article_gate(
-    name: str,
-    *,
-    visible_faq: bool,
-    simpro_context_required: bool,
-) -> bool:
-    faq_skipped = name in {"faq_answer_quality", "faq_proof"} and not visible_faq
-    context_skipped = name in SIMPRO_CONTEXT_GATE_NAMES and not simpro_context_required
-    fred_skipped = name == "fred_authority" and not simpro_context_required
-    return faq_skipped or context_skipped or fred_skipped
+from .finalization import _utc_now, finalize_blocked_result, reseal_readiness_inputs
+from .snapshot_gates import (
+    run_editorial_plan_gate,
+    run_keyword_gate,
+    source_registry_state,
+)
 
 
 def _guard_kwargs(
@@ -75,24 +100,17 @@ def _run_editorial_plan_gate(
     *,
     article_path: Path,
     runtime_policy: Mapping[str, Any],
+    content_gate_inputs: ContentGateInputs | None,
     telemetry: ReadinessTelemetry | None,
 ) -> List[Dict[str, Any]]:
-    editorial_path = runtime_policy.get("editorial_plan")
-    if not editorial_path:
-        return _missing_gate_finding(
-            "editorial_plan_missing",
-            "Blog readiness requires a bound editorial plan.",
-            "Regenerate the provisional BOM with --editorial-plan.",
-        )
-    return _timed_call(
-        telemetry,
-        "gate.editorial_plan",
-        guard_module.check_file,
-        editorial_path,
+    return run_editorial_plan_gate(
+        guard_module,
         article_path=article_path,
-        serp_evidence_path=runtime_policy.get("serp_evidence"),
-        assembly_date=runtime_policy.get("assembly_date"),
-        expected_run_id=runtime_policy.get("run_id"),
+        runtime_policy=runtime_policy,
+        content_gate_inputs=content_gate_inputs,
+        telemetry=telemetry,
+        timed_call=_timed_call,
+        missing_finding=_missing_gate_finding,
     )
 
 
@@ -101,24 +119,17 @@ def _run_keyword_gate(
     *,
     article_path: Path,
     runtime_policy: Mapping[str, Any],
+    content_gate_inputs: ContentGateInputs | None,
     telemetry: ReadinessTelemetry | None,
 ) -> List[Dict[str, Any]]:
-    keyword_path = runtime_policy.get("keyword_decision")
-    editorial_path = runtime_policy.get("editorial_plan")
-    if not keyword_path or not editorial_path:
-        return _missing_gate_finding(
-            "semrush_keyword_decision_missing",
-            "Blog readiness requires a bound Semrush keyword decision.",
-            "Regenerate the provisional BOM with --keyword-decision.",
-        )
-    return _timed_call(
-        telemetry,
-        "gate.semrush_keyword_decision",
-        guard_module.check_file,
-        keyword_path,
+    return run_keyword_gate(
+        guard_module,
         article_path=article_path,
-        editorial_plan_path=editorial_path,
-        assembly_date=runtime_policy.get("assembly_date"),
+        runtime_policy=runtime_policy,
+        content_gate_inputs=content_gate_inputs,
+        telemetry=telemetry,
+        timed_call=_timed_call,
+        missing_finding=_missing_gate_finding,
     )
 
 
@@ -141,6 +152,7 @@ def _execute_article_gate(
             guard_module,
             article_path=article_path,
             runtime_policy=runtime_policy,
+            content_gate_inputs=content_gate_inputs,
             telemetry=telemetry,
         )
     if name == "semrush_keyword_decision":
@@ -148,6 +160,7 @@ def _execute_article_gate(
             guard_module,
             article_path=article_path,
             runtime_policy=runtime_policy,
+            content_gate_inputs=content_gate_inputs,
             telemetry=telemetry,
         )
     return _timed_call(
@@ -177,25 +190,17 @@ def _reseal_inputs(
     sealed_input_hashes: Dict[str, Dict[str, str]] | None,
     input_capture_error: ValueError | None,
 ) -> tuple[Dict[str, Dict[str, str]], List[Dict[str, Any]]]:
-    try:
-        if input_capture_error is not None:
-            raise input_capture_error
-        if sealed_inputs is None:
-            raise ValueError("readiness input snapshot is unavailable")
-        sealed_inputs.reseal()
-        current_hashes = sealed_inputs.hash_inventory()
-        changed = artifact_kind == "blog" and current_hashes != sealed_input_hashes
-        if not changed:
-            return current_hashes, []
-        message = "One or more bound artifacts changed during readiness."
-    except ValueError as error:
-        current_hashes = sealed_input_hashes or {}
-        message = str(error)
-    return current_hashes, _missing_gate_finding(
-        "readiness_inputs_changed_during_run",
-        message,
-        "Resume at the mutation receipt, then rerun scrub, Context Binding, BOM build, and readiness.",
+    current_hashes, findings = reseal_readiness_inputs(
+        sealed_inputs,
+        capture_error=input_capture_error,
     )
+    if not findings and artifact_kind == "blog" and current_hashes != sealed_input_hashes:
+        return current_hashes, _missing_gate_finding(
+            "readiness_inputs_changed_during_run",
+            "One or more bound artifacts changed during readiness.",
+            "Resume at the mutation receipt, then rerun scrub, Context Binding, BOM build, and readiness.",
+        )
+    return current_hashes, findings
 
 
 def _order_final_gates(
@@ -265,9 +270,8 @@ def _run_remaining_gates(
             _timed_call(
                 telemetry,
                 "gate.public_artifact",
-                public_artifact_guard.check_file,
-                str(article_path),
-                fail_on="error",
+                public_artifact_guard.check_content,
+                article_content,
             ),
         )
     )
@@ -275,10 +279,9 @@ def _run_remaining_gates(
     ai_findings = _timed_call(
         telemetry,
         "gate.ai_copy_linter",
-        ai_copy_linter.lint_file,
-        str(article_path),
+        ai_copy_linter.lint_content,
+        article_content,
         profile=ai_profile,
-        fail_on="error",
     )
     gates.append(
         _gate_from_findings(
@@ -291,8 +294,8 @@ def _run_remaining_gates(
     url_summary = _timed_call(
         telemetry,
         "gate.url_validator",
-        validate_file_urls,
-        article_path,
+        validate_content_urls,
+        article_content,
         validator=UrlValidator(transport=session.transport()) if session is not None else None,
     )
     url_summary = chrome_review_evidence.apply_chrome_review_evidence_fallbacks(
@@ -309,10 +312,12 @@ def _run_remaining_gates(
             _timed_call(
                 telemetry,
                 "gate.public_research_links",
-                public_research_link_guard.check_file,
-                str(article_path),
-                fail_on="error",
-                proof_sidecar=proof_sidecar_path,
+                public_research_link_guard.check_content,
+                article_content,
+                proof_content=_captured_proof_content(
+                    sealed_inputs,
+                    proof_sidecar_path=proof_sidecar_path,
+                ),
                 url_summary=url_summary,
             ),
         )
@@ -341,6 +346,10 @@ def _run_remaining_gates(
             captured=sealed_inputs,
             validated_claim_set=validated_claim_set,
             transport=session.transport() if session is not None else None,
+            normalize_source=(
+                session.normalized_source if session is not None else None
+            ),
+            registry_state=source_registry_state(session, sealed_inputs),
         )
         if sealed_inputs is not None
         else None
@@ -379,13 +388,14 @@ def _run_remaining_gates(
                 *_no_fit_customer_proof_findings(
                     article_content,
                     runtime_policy=runtime_policy,
+                    inputs=sealed_inputs,
                 ),
             ]
         prevalidated_gate_findings[name] = _record_gate_findings(session, name, findings)
         gate = _gate_from_findings(name, label, findings)
         gates.append(gate)
         if name == "semrush_keyword_decision" and not gate["passed"]:
-            return _blocked_readiness_result(
+            blocked = _blocked_readiness_result(
                 phase=phase,
                 article_path=article_path,
                 proof_sidecar_path=proof_sidecar_path,
@@ -397,6 +407,11 @@ def _run_remaining_gates(
                 gates=gates,
                 score_threshold=score_threshold,
                 gate=gate,
+            )
+            return finalize_blocked_result(
+                blocked,
+                inputs=sealed_inputs,
+                capture_error=input_capture_error,
             )
 
     readiness_gate_context = _issue_readiness_gate_context(
@@ -413,6 +428,9 @@ def _run_remaining_gates(
         _score_content,
         article_path,
         proof_sidecar_path,
+        article_content=article_content,
+        article=article,
+        proof_content=proof_sidecar_content,
         artifact_kind=artifact_kind or "blog",
         assembly_bom=assembly_bom_path,
         runtime_policy=runtime_policy,

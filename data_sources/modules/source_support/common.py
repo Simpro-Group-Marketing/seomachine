@@ -19,7 +19,6 @@ import math
 import re
 import socket
 import subprocess
-import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -38,7 +37,11 @@ try:
     from ..execution_attestation import attest_mapping, verify_mapping_attestation
     from ..guard_common import Finding, should_fail, summarize_findings
     from ..image_placeholder import is_production_image_placeholder_line
-    from ..public_http import PublicHttpTransport, SOURCE_VISIBLE_TEXT_POLICY
+    from ..public_http import (
+        PublicHttpTransport,
+        SOURCE_VISIBLE_TEXT_POLICY,
+        canonical_request_identity,
+    )
     from ..proof_sidecar import compose_with_sidecar, load_sidecar_content
     from ..proof_link_policy import (
         CitationRequirement,
@@ -65,7 +68,11 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from execution_attestation import attest_mapping, verify_mapping_attestation
     from guard_common import Finding, should_fail, summarize_findings
     from image_placeholder import is_production_image_placeholder_line
-    from public_http import PublicHttpTransport, SOURCE_VISIBLE_TEXT_POLICY
+    from public_http import (
+        PublicHttpTransport,
+        SOURCE_VISIBLE_TEXT_POLICY,
+        canonical_request_identity,
+    )
     from proof_sidecar import compose_with_sidecar, load_sidecar_content
     from proof_link_policy import (
         CitationRequirement,
@@ -377,21 +384,4 @@ class SourceSupportError(Exception):
     """Raised when source-support validation blocks publishing."""
 
 
-
-
-_PROXY_NAMES = ['_attestation_workspace_root', '_blank_reader_supplied_worksheet_tables', '_candidate_is_proof_not_required', '_clean_field_value', '_contains_evidence', '_customer_names_in_text', '_evidence_contradicts_claim', '_extract_claim_candidates', '_extract_proof_entries', '_extract_visible_text', '_finding', '_general_claim_type', '_has_case_study_link', '_is_exact_quote_claim', '_is_general_claim_exempt', '_is_generic_name', '_is_nonempty_string', '_is_review_authority_claim', '_is_sha256', '_is_strict_capture_payload', '_is_strict_classification_payload', '_is_valid_utc_timestamp', '_known_customer_names', '_main', '_matching_proofs', '_normalize_key', '_normalize_section', '_normalize_text', '_parse_proof_fields', '_policy_aligned_candidates', '_proof_matches_customer', '_read_artifact_text', '_read_json_object', '_require_registry_matches_committed_head', '_required_emitter_text', '_requirement_has_candidate', '_resolve_local_artifact', '_sha256_file', '_significant_words', '_split_claim_sentences', '_text_overlaps', '_utc_timestamp_now', '_validate_capture_receipt', '_validate_classification_decision', '_validate_evidence_claim_fit', '_validate_general_claim_contract', '_validate_numeric_proof_cluster', '_validate_proof_entry', '_validate_source_classification', '_validate_source_text_contains_evidence', 'check_content', 'check_file', 'fetch_source_text', 'format_findings', 'require_source_support', 'validate_source_classification_binding', 'write_source_capture_receipt', 'write_source_classification_artifact']
-
-def _proxy(name: str):
-    def call(*args, **kwargs):
-        module = sys.modules.get("data_sources.modules.source_support_guard")
-        module = module or sys.modules.get("source_support_guard") or sys.modules.get("__main__")
-        target = getattr(module, name, None)
-        if target is None or target is call:
-            raise RuntimeError(f"source-support dependency is unavailable: {name}")
-        return target(*args, **kwargs)
-    return call
-
-for _proxy_name in _PROXY_NAMES:
-    globals()[_proxy_name] = _proxy(_proxy_name)
-
-__all__ = [name for name in globals() if not name.startswith("__")]
+__all__ = ["ClaimCandidate", "Fetcher", "ProofEntry", "SourceSupportError"]

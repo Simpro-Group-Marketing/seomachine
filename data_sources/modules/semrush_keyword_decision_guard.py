@@ -13,10 +13,12 @@ try:
     from .blog_assembly_contract import canonical_json_sha256
     from .execution_attestation import attest_mapping, verify_mapping_attestation
     from .frontmatter import FrontmatterError, split_frontmatter
+    from .semrush_keyword_snapshot import SemrushBindingDependencies, sorted_findings
 except ImportError:  # pragma: no cover - supports direct script execution.
     from blog_assembly_contract import canonical_json_sha256
     from execution_attestation import attest_mapping, verify_mapping_attestation
-    from frontmatter import FrontmatterError, split_frontmatter
+    from frontmatter import FrontmatterError, split_frontmatter  # noqa: F401
+    from semrush_keyword_snapshot import SemrushBindingDependencies, sorted_findings
 
 
 Finding = dict[str, Any]
@@ -202,7 +204,9 @@ def check_decision(
     payload: Mapping[str, Any],
     *,
     article_path: str | Path | None = None,
+    article_content: str | None = None,
     editorial_plan_path: str | Path | None = None,
+    editorial_plan: Mapping[str, Any] | None = None,
     assembly_date: str | None = None,
 ) -> list[Finding]:
     findings: list[Finding] = []
@@ -289,10 +293,24 @@ def check_decision(
     findings.extend(_check_rejected_keywords(payload.get("rejected_keywords")))
     _require_text(payload, "selection_rationale", findings, "/selection_rationale")
     findings.extend(_check_hash_and_attestation(payload))
-    if editorial_plan_path is not None:
-        findings.extend(_check_editorial_plan_binding(payload, editorial_plan_path))
-    if article_path is not None:
-        findings.extend(_check_article_binding(payload, article_path))
+    try:
+        from . import semrush_keyword_snapshot
+    except ImportError:  # pragma: no cover - direct script compatibility.
+        import semrush_keyword_snapshot
+    dependencies = SemrushBindingDependencies(
+        schema=SCHEMA,
+        finding=_finding,
+        normalize=_norm,
+        split_frontmatter=split_frontmatter,
+        frontmatter_error=FrontmatterError,
+    )
+    findings.extend(semrush_keyword_snapshot.check_bindings(
+        dependencies, payload,
+        editorial_plan_path=editorial_plan_path,
+        editorial_plan=editorial_plan,
+        article_path=article_path,
+        article_content=article_content,
+    ))
     return _sorted(findings)
 
 
@@ -496,95 +514,6 @@ def _check_hash_and_attestation(payload: Mapping[str, Any]) -> list[Finding]:
     return findings
 
 
-def _check_editorial_plan_binding(
-    payload: Mapping[str, Any],
-    editorial_plan_path: str | Path,
-) -> list[Finding]:
-    try:
-        plan = json.loads(Path(editorial_plan_path).read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
-        return [_finding(
-            "semrush_keyword_decision_plan_unreadable",
-            f"Bound editorial plan cannot be read: {error}",
-            "/",
-            "Regenerate the BOM with a readable editorial plan.",
-        )]
-    if not isinstance(plan, Mapping):
-        return [_finding(
-            "semrush_keyword_decision_plan_invalid",
-            "Bound editorial plan must be a JSON object.",
-            "/",
-            "Regenerate the editorial plan.",
-        )]
-    findings: list[Finding] = []
-    meta = plan.get("meta")
-    keyword_decision = plan.get("keyword_decision")
-    primary = str(payload.get("selected_primary_keyword") or "")
-    secondary = list(payload.get("selected_secondary_keywords") or [])
-    if isinstance(meta, Mapping):
-        if _norm(str(meta.get("primary_keyword") or "")) != _norm(primary):
-            findings.append(_finding(
-                "semrush_keyword_decision_plan_primary_mismatch",
-                "Editorial-plan primary keyword must match the Semrush-selected primary keyword.",
-                "/selected_primary_keyword",
-                "Regenerate the editorial plan from the current Semrush keyword decision.",
-            ))
-        if _normalized_list(meta.get("secondary_keywords")) != _normalized_list(secondary):
-            findings.append(_finding(
-                "semrush_keyword_decision_plan_secondary_mismatch",
-                "Editorial-plan secondary keywords must match the Semrush-selected secondary keywords.",
-                "/selected_secondary_keywords",
-                "Regenerate the editorial plan from the current Semrush keyword decision.",
-            ))
-    if isinstance(keyword_decision, Mapping):
-        if keyword_decision.get("artifact_schema") != SCHEMA:
-            findings.append(_finding(
-                "semrush_keyword_decision_plan_schema_mismatch",
-                "Editorial-plan keyword_decision must reference the current Semrush schema.",
-                "/keyword_decision/artifact_schema",
-                "Update the editorial-plan keyword_decision reference.",
-            ))
-        if _norm(str(keyword_decision.get("selected_primary_keyword") or "")) != _norm(primary):
-            findings.append(_finding(
-                "semrush_keyword_decision_plan_primary_mismatch",
-                "Editorial-plan keyword_decision reference must match the Semrush artifact.",
-                "/keyword_decision/selected_primary_keyword",
-                "Regenerate the editorial plan from the current Semrush keyword decision.",
-            ))
-    else:
-        findings.append(_finding(
-            "semrush_keyword_decision_plan_reference_missing",
-            "Editorial plan must include a keyword_decision reference.",
-            "/keyword_decision",
-            "Add the Semrush-backed keyword_decision object to the editorial plan.",
-        ))
-    return findings
-
-
-def _check_article_binding(payload: Mapping[str, Any], article_path: str | Path) -> list[Finding]:
-    try:
-        raw = Path(article_path).read_text(encoding="utf-8")
-        frontmatter, _, _ = split_frontmatter(raw)
-    except (OSError, UnicodeError, FrontmatterError) as error:
-        return [_finding(
-            "semrush_keyword_decision_article_unreadable",
-            f"Bound article cannot be read for keyword binding: {error}",
-            "/",
-            "Repair the article frontmatter before readiness.",
-        )]
-    primary = frontmatter.get("primary_keyword") or frontmatter.get("target_keyword")
-    if isinstance(primary, str) and primary.strip():
-        selected = str(payload.get("selected_primary_keyword") or "")
-        if _norm(primary) != _norm(selected):
-            return [_finding(
-                "semrush_keyword_decision_article_primary_mismatch",
-                "Article primary keyword metadata must match the Semrush-selected primary keyword.",
-                "/primary_keyword",
-                "Update article frontmatter or regenerate the Semrush keyword decision.",
-            )]
-    return []
-
-
 def _require_text(
     value: Mapping[str, Any],
     key: str,
@@ -664,26 +593,4 @@ def _normalize_token(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "", str(value).casefold())
 
 
-def _normalized_list(value: Any) -> list[str]:
-    if not isinstance(value, list):
-        return []
-    return [_norm(item) for item in value if isinstance(item, str)]
-
-
-def _sorted(findings: Sequence[Finding]) -> list[Finding]:
-    unique: dict[tuple[str, str, str], Finding] = {}
-    for finding in findings:
-        key = (
-            str(finding.get("rule_id") or ""),
-            str(finding.get("location") or ""),
-            str(finding.get("message") or ""),
-        )
-        unique[key] = dict(finding)
-    return sorted(
-        unique.values(),
-        key=lambda finding: (
-            str(finding.get("location") or ""),
-            str(finding.get("rule_id") or ""),
-            str(finding.get("message") or ""),
-        ),
-    )
+_sorted = sorted_findings

@@ -44,6 +44,8 @@ class ApprovedClaim:
 class ValidatedClaimSet:
     """Receipt-approved public claim lookup for selectors and guards."""
 
+    __slots__ = ("_blocker", "_claims", "_receipt_revision")
+
     def __init__(
         self,
         claims: Iterable[ApprovedClaim] = (),
@@ -51,9 +53,17 @@ class ValidatedClaimSet:
         blocker: str = "",
         receipt_revision: str = "",
     ) -> None:
-        self._claims = list(claims)
-        self.blocker = blocker
-        self.receipt_revision = receipt_revision
+        self._claims = tuple(claims)
+        self._blocker = blocker
+        self._receipt_revision = receipt_revision
+
+    @property
+    def blocker(self) -> str:
+        return self._blocker
+
+    @property
+    def receipt_revision(self) -> str:
+        return self._receipt_revision
 
     @property
     def available(self) -> bool:

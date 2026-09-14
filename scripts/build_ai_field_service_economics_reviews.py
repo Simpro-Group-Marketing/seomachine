@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import re
-import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -13,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from data_sources.modules import ai_copy_linter
+from data_sources.modules.artifact_runtime.subprocesses import run_bounded_text_process
 from data_sources.modules.editorial_plan_guard import check_file as check_plan_file
 from data_sources.modules.frontmatter import split_frontmatter
 from data_sources.modules.machine_review import (
@@ -173,11 +173,15 @@ def article_responses() -> list[dict]:
 
 
 def main() -> None:
-    repository_commit = subprocess.check_output(
+    completed = run_bounded_text_process(
         ["git", "rev-parse", "HEAD"],
         cwd=ROOT,
-        text=True,
-    ).strip()
+        timeout=30,
+        max_output_bytes=1024 * 1024,
+    )
+    if completed.returncode != 0:
+        raise RuntimeError(completed.stderr.strip() or "git rev-parse failed")
+    repository_commit = completed.stdout.strip()
     created_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     reviews = {
         PLAN_REVIEW: ("plan", plan_responses()),

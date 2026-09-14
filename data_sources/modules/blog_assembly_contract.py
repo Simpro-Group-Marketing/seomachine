@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import math
 import os
 import re
@@ -12,6 +11,17 @@ from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Mapping, Sequence
+
+try:
+    from .bounded_io import canonical_json_bytes as _canonical_json_bytes
+    from .bounded_io import canonical_json_sha256 as _canonical_json_sha256
+    from .bounded_io import parse_json as _parse_json
+    from .bounded_io import stream_sha256 as _stream_sha256
+except ImportError:  # pragma: no cover - supports direct script execution.
+    from bounded_io import canonical_json_bytes as _canonical_json_bytes
+    from bounded_io import canonical_json_sha256 as _canonical_json_sha256
+    from bounded_io import parse_json as _parse_json
+    from bounded_io import stream_sha256 as _stream_sha256
 
 
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -135,17 +145,7 @@ def load_json_object_snapshot(
 
 def load_json_text(text: str, *, field: str) -> Any:
     """Parse strict JSON already embedded in an immutable text artifact."""
-    if not isinstance(text, str):
-        raise ValueError(f"{field} must be strict JSON text")
-    try:
-        return json.loads(
-            text,
-            object_pairs_hook=_reject_duplicate_object_keys,
-            parse_constant=_reject_non_finite_constant,
-            parse_float=_finite_float,
-        )
-    except (json.JSONDecodeError, ValueError) as error:
-        raise ValueError(f"{field} must be strict JSON: {error}") from error
+    return _parse_json(text, field=field)
 
 
 def load_json_object_text(text: str, *, field: str) -> dict[str, Any]:
@@ -154,26 +154,6 @@ def load_json_object_text(text: str, *, field: str) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError(f"{field} must be a JSON object")
     return payload
-
-
-def _reject_duplicate_object_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
-    result: dict[str, Any] = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError(f"duplicate key: {key}")
-        result[key] = value
-    return result
-
-
-def _reject_non_finite_constant(value: str) -> Any:
-    raise ValueError(f"non-finite number: {value}")
-
-
-def _finite_float(value: str) -> float:
-    parsed = float(value)
-    if not math.isfinite(parsed):
-        raise ValueError(f"non-finite number: {value}")
-    return parsed
 
 
 def is_json_number(value: Any) -> bool:
@@ -301,11 +281,7 @@ def _gate_descriptor_enabled(
 
 def file_sha256(path: str | Path) -> str:
     """Return the SHA-256 digest of the exact bytes on disk."""
-    digest = hashlib.sha256()
-    with Path(path).open("rb") as handle:
-        while chunk := handle.read(1024 * 1024):
-            digest.update(chunk)
-    return digest.hexdigest()
+    return _stream_sha256(path)
 
 
 def normalized_text_sha256(value: Any, *, field: str) -> str:
@@ -317,23 +293,12 @@ def normalized_text_sha256(value: Any, *, field: str) -> str:
 
 def canonical_json_bytes(payload: Mapping[str, Any]) -> bytes:
     """Serialize one JSON object exactly as the durable artifact writer does."""
-    if not isinstance(payload, Mapping):
-        raise ValueError("payload must be an object")
-    return (
-        json.dumps(
-            dict(payload),
-            ensure_ascii=True,
-            indent=2,
-            sort_keys=True,
-            allow_nan=False,
-        )
-        + "\n"
-    ).encode("utf-8")
+    return _canonical_json_bytes(payload)
 
 
 def canonical_json_sha256(payload: Mapping[str, Any]) -> str:
     """Return the SHA-256 digest of canonical durable JSON bytes."""
-    return hashlib.sha256(canonical_json_bytes(payload)).hexdigest()
+    return _canonical_json_sha256(payload)
 
 
 def validate_sha256(value: Any, *, field: str = "sha256") -> str:

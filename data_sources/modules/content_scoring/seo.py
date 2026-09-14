@@ -1,7 +1,14 @@
 """Seo responsibilities."""
-# ruff: noqa: F403, F405
 
-from .common import *  # noqa: F403
+import re
+from collections.abc import Mapping
+from pathlib import Path
+from typing import Any, Dict, Optional, Tuple
+
+from data_sources.modules.seo_quality_rater import (
+    PUBLISHING_THRESHOLD as SEO_PUBLISHING_THRESHOLD,
+    SEO_TARGET_SCORE,
+)
 
 
 class SeoScoringMixin:
@@ -11,9 +18,10 @@ class SeoScoringMixin:
         metadata: Dict[str, Any],
         *,
         proof_sidecar: Optional[str] = None,
+        proof_content: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Score SEO once through the canonical :class:`SEOQualityRater`."""
-        frontmatter, visible_body, _ = split_frontmatter(content)
+        frontmatter, visible_body, _ = self.dependencies.split_frontmatter(content)
 
         meta_title = self._scoring_metadata_value(
             metadata, frontmatter, visible_body,
@@ -48,9 +56,10 @@ class SeoScoringMixin:
         seo_guidelines = self._seo_guidelines_with_link_policy_override(
             seo_guidelines,
             proof_sidecar=proof_sidecar,
+            proof_content=proof_content,
         )
         seo_rater = (
-            SEOQualityRater(seo_guidelines)
+            self.dependencies.seo_rater_factory(seo_guidelines)
             if isinstance(seo_guidelines, Mapping) and seo_guidelines
             else self.seo_rater
         )
@@ -135,9 +144,13 @@ class SeoScoringMixin:
         seo_guidelines: object,
         *,
         proof_sidecar: Optional[str],
+        proof_content: Optional[str] = None,
     ) -> object:
         """Apply a bound exact internal-link override to SEO link scoring."""
-        exact_count = self._exact_internal_link_override_count(proof_sidecar)
+        exact_count = self._exact_internal_link_override_count(
+            proof_sidecar,
+            proof_content=proof_content,
+        )
         if exact_count is None:
             return seo_guidelines
 
@@ -157,13 +170,19 @@ class SeoScoringMixin:
         resolved['require_down_funnel_link'] = False
         return resolved
     @staticmethod
-    def _exact_internal_link_override_count(proof_sidecar: Optional[str]) -> Optional[int]:
-        if not proof_sidecar:
+    def _exact_internal_link_override_count(
+        proof_sidecar: Optional[str],
+        *,
+        proof_content: Optional[str] = None,
+    ) -> Optional[int]:
+        if proof_content is None and not proof_sidecar:
             return None
-        try:
-            sidecar_text = Path(proof_sidecar).read_text(encoding='utf-8')
-        except (OSError, UnicodeError):
-            return None
+        if proof_content is None:
+            try:
+                proof_content = Path(str(proof_sidecar)).read_text(encoding='utf-8')
+            except (OSError, UnicodeError):
+                return None
+        sidecar_text = proof_content
         if not re.search(
             r"Override scope:\s*`?pre_faq_body`?",
             sidecar_text,

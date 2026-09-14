@@ -1,7 +1,36 @@
 """Orchestration responsibilities."""
-# ruff: noqa: F403, F405
+from collections.abc import Mapping
+from typing import Any, Callable, Optional
 
-from .common import *  # noqa: F403
+from .claim_matching import _general_claim_type
+from .common import (
+    GENERAL_CLAIM_TYPES,
+    CitationRequirement,
+    ClaimCandidate,
+    Fetcher,
+    Finding,
+    List,
+    Path,
+    ProofEntry,
+    ProofLinkReport,
+    Sequence,
+    _claim_text_for_detection,
+    _extract_numeric_tokens,
+    _normalize_numeric_token,
+    analyze_proof_links,
+    compose_with_sidecar,
+    load_sidecar_content,
+    should_fail,
+    summarize_findings,
+)
+from .evidence_validation import _matching_proofs, _validate_proof_entry
+from .findings import _finding, _known_customer_names
+from .proof_parsing import _extract_claim_candidates, _extract_proof_entries
+from .text_matching import (
+    _normalize_text,
+    _proof_matches_customer,
+    _text_overlaps,
+)
 
 
 def _quote_candidate_finding(
@@ -10,6 +39,7 @@ def _quote_candidate_finding(
     *,
     base_path: Path,
     fetcher: Optional[Fetcher],
+    classification_options: dict[str, object],
 ) -> tuple[bool, Optional[Finding]]:
     if not candidate.requires_approved_quote:
         return False, None
@@ -19,7 +49,8 @@ def _quote_candidate_finding(
     ]
     if approved:
         return True, _validate_proof_entry(
-            approved[0], candidate, base_path=base_path, fetcher=fetcher
+            approved[0], candidate, base_path=base_path, fetcher=fetcher,
+            **classification_options,
         )
     return True, _finding(
         "quote_requires_approved_quote", candidate,
@@ -34,6 +65,7 @@ def _customer_metric_finding(
     *,
     base_path: Path,
     fetcher: Optional[Fetcher],
+    classification_options: dict[str, object],
 ) -> tuple[bool, Optional[Finding]]:
     if not candidate.is_named_customer_metric:
         return False, None
@@ -43,11 +75,15 @@ def _customer_metric_finding(
     ]
     if approved:
         return True, _validate_proof_entry(
-            approved[0], candidate, base_path=base_path, fetcher=fetcher
+            approved[0], candidate, base_path=base_path, fetcher=fetcher,
+            **classification_options,
         )
     proof_findings = [
         finding for finding in (
-            _validate_proof_entry(proof, candidate, base_path=base_path, fetcher=fetcher)
+            _validate_proof_entry(
+                proof, candidate, base_path=base_path, fetcher=fetcher,
+                **classification_options,
+            )
             for proof in matching_proofs
         )
         if finding is not None
@@ -73,6 +109,7 @@ def _general_candidate_finding(
     *,
     base_path: Path,
     fetcher: Optional[Fetcher],
+    classification_options: dict[str, object],
 ) -> Optional[Finding]:
     if not matching_proofs:
         general = candidate.claim_type in GENERAL_CLAIM_TYPES
@@ -85,7 +122,10 @@ def _general_candidate_finding(
             if general else "Add a structured proof row with public URL, exact evidence snippet, and approved status.",
         )
     proof_findings = [
-        _validate_proof_entry(proof, candidate, base_path=base_path, fetcher=fetcher)
+        _validate_proof_entry(
+            proof, candidate, base_path=base_path, fetcher=fetcher,
+            **classification_options,
+        )
         for proof in matching_proofs
     ]
     if any(finding is None for finding in proof_findings):
@@ -98,6 +138,10 @@ def check_content(
     base_path: str | Path | None = None,
     fetcher: Optional[Fetcher] = None,
     proof_content: Optional[str] = None,
+    fetch_many: Optional[Callable[[Sequence[str]], Mapping[str, Any]]] = None,
+    registry_state: object | None = None,
+    registry_snapshot: object | None = None,
+    registry_verifier: Callable[..., None] | None = None,
 ) -> List[Finding]:
     """Return source-support findings for high-risk article claims."""
     base = Path(base_path) if base_path is not None else Path.cwd()
@@ -107,6 +151,17 @@ def check_content(
     candidates = _extract_claim_candidates(content, known_customer_names)
     policy_report = analyze_proof_links(content, proof_source)
     candidates = _policy_aligned_candidates(candidates, policy_report)
+    fetcher = _resolve_source_fetcher(
+        proof_entries,
+        candidates,
+        fetcher=fetcher,
+        fetch_many=fetch_many,
+    )
+    classification_options = {
+        "registry_state": registry_state,
+        "registry_snapshot": registry_snapshot,
+        "registry_verifier": registry_verifier,
+    }
 
     findings: List[Finding] = []
     for candidate in candidates:
@@ -117,32 +172,86 @@ def check_content(
                 proof_entries,
                 base_path=base,
                 fetcher=fetcher,
+                classification_options=classification_options,
             )
             if cluster_applies:
                 if cluster_finding is not None:
                     findings.append(cluster_finding)
                 continue
         handled, finding = _quote_candidate_finding(
-            candidate, matching_proofs, base_path=base, fetcher=fetcher
+            candidate, matching_proofs, base_path=base, fetcher=fetcher,
+            classification_options=classification_options,
         )
         if handled:
             if finding:
                 findings.append(finding)
             continue
         handled, finding = _customer_metric_finding(
-            candidate, matching_proofs, base_path=base, fetcher=fetcher
+            candidate, matching_proofs, base_path=base, fetcher=fetcher,
+            classification_options=classification_options,
         )
         if handled:
             if finding:
                 findings.append(finding)
             continue
         finding = _general_candidate_finding(
-            candidate, matching_proofs, base_path=base, fetcher=fetcher
+            candidate, matching_proofs, base_path=base, fetcher=fetcher,
+            classification_options=classification_options,
         )
         if finding:
             findings.append(finding)
 
     return sorted(findings, key=lambda finding: (finding["line"], finding["column"], finding["rule_id"]))
+
+
+def _resolve_source_fetcher(
+    proof_entries: Sequence[ProofEntry],
+    candidates: Sequence[ClaimCandidate],
+    *,
+    fetcher: Optional[Fetcher],
+    fetch_many: Optional[Callable[[Sequence[str]], Mapping[str, Any]]],
+) -> Optional[Fetcher]:
+    if fetch_many is None:
+        return fetcher
+    return _prefetched_source_fetcher(
+        proof_entries,
+        candidates,
+        fetch_many=fetch_many,
+    )
+
+
+def _prefetched_source_fetcher(
+    proof_entries: Sequence[ProofEntry],
+    candidates: Sequence[ClaimCandidate],
+    *,
+    fetch_many: Callable[[Sequence[str]], Mapping[str, Any]],
+) -> Fetcher:
+    """Fetch only candidate-matching HTML proof URLs once, preserving proof order."""
+    urls: list[str] = []
+    seen: set[str] = set()
+    for proof in proof_entries:
+        if (
+            not proof.is_approved
+            or proof.is_pdf
+            or not proof.is_public_url
+            or proof.url in seen
+        ):
+            continue
+        if not any(_text_overlaps(candidate.text, proof) for candidate in candidates):
+            continue
+        seen.add(proof.url)
+        urls.append(proof.url)
+    fetched = dict(fetch_many(tuple(urls))) if urls else {}
+
+    def fetch(url: str) -> str:
+        value = fetched.get(url, RuntimeError("batched source result is missing"))
+        if isinstance(value, Exception):
+            raise value
+        if not isinstance(value, str):
+            raise TypeError("batched source result must be text or an Exception")
+        return value
+
+    return fetch
 
 def _policy_aligned_candidates(
     candidates: Sequence[ClaimCandidate],
@@ -233,6 +342,7 @@ def _validate_numeric_proof_cluster(
     *,
     base_path: Path,
     fetcher: Optional[Fetcher],
+    classification_options: dict[str, object],
 ) -> tuple[bool, Optional[Finding]]:
     """Validate multiple exact snippets that collectively prove one numeric unit."""
     partial_proofs: List[tuple[ProofEntry, List[str]]] = []
@@ -274,6 +384,7 @@ def _validate_numeric_proof_cluster(
             proof_candidate,
             base_path=base_path,
             fetcher=fetcher,
+            **classification_options,
         )
         if finding is not None:
             return True, finding
@@ -334,28 +445,8 @@ def format_findings(findings: Sequence[Finding]) -> str:
             )
     return "\n".join(lines)
 
-def fetch_source_text(
-    url: str,
-    *,
-    resolver=socket.getaddrinfo,
-    transport=None,
-) -> str:
-    """Fetch and normalize visible source text from an HTML URL."""
-    if transport is None:
-        with PublicHttpTransport(resolver=resolver) as owned_transport:
-            return fetch_source_text(url, resolver=resolver, transport=owned_transport)
-    response = transport.request(
-        "GET",
-        url,
-        headers={"User-Agent": DEFAULT_USER_AGENT},
-        policy=SOURCE_VISIBLE_TEXT_POLICY,
-    )
-    response.raise_for_status()
-    return _extract_visible_text(response.text)
-
-
 __all__ = [
     "check_content", "_policy_aligned_candidates", "_candidate_is_proof_not_required",
     "_requirement_has_candidate", "_validate_numeric_proof_cluster", "check_file",
-    "require_source_support", "format_findings", "fetch_source_text",
+    "require_source_support", "format_findings",
 ]

@@ -1,7 +1,18 @@
 """Findings responsibilities."""
-# ruff: noqa: F403, F405
-
-from .common import *  # noqa: F403
+from .common import (
+    EXACT_QUOTE_RE,
+    MARKDOWN_LINK_RE,
+    QUOTE_ATTRIBUTION_SIGNAL_RE,
+    REVIEW_AUTHORITY_SIGNAL_RE,
+    ClaimCandidate,
+    Finding,
+    List,
+    Optional,
+    ProofEntry,
+    Sequence,
+    _claim_text_for_detection,
+)
+from .text_matching import _known_customer_names, _normalize_text
 
 
 def _finding(
@@ -29,22 +40,6 @@ def _finding(
         finding["proof_url"] = proof.url
         finding["evidence"] = proof.evidence
     return finding
-
-def _known_customer_names(proof_entries: Sequence[ProofEntry]) -> List[str]:
-    names = set()
-    for proof in proof_entries:
-        values = [proof.customer]
-        if (
-            proof.section == "customer proof pack"
-            or proof.source_class in {"customer_proof", "review_platform", "review_story"}
-            or any(token in proof.use.casefold() for token in ("customer", "review"))
-        ):
-            values.append(proof.claim)
-        for value in values:
-            for name in re.findall(r"\b[A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z&]+){1,4}\b", value):
-                if not _is_generic_name(name):
-                    names.add(name.strip())
-    return sorted(names, key=len, reverse=True)
 
 def _customer_names_in_text(text: str, known_customer_names: Sequence[str]) -> List[str]:
     normalized = _normalize_text(text)

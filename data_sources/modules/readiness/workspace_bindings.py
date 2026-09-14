@@ -1,7 +1,21 @@
 """Publish-readiness workspace bindings responsibilities."""
-# ruff: noqa: F403, F405
+import os
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, Mapping
 
-from .common import *  # noqa: F403
+from .common import (
+    ReadinessInputs,
+    ReadinessTelemetry,
+    _ExecutedReadinessResult,
+    artifact_inventory_snapshots,
+    canonical_artifact,
+    file_sha256,
+    load_json_object_snapshot,
+    resolve_artifact,
+    validate_sha256,
+)
+from .artifact_views import thaw_value
 
 
 def _same_path(left: str | Path, right: str | Path) -> bool:
@@ -268,6 +282,30 @@ def _captured_proof_content(
         return inputs.text("validation_sidecar")
     return Path(proof_sidecar_path).read_text(encoding="utf-8")
 
+
+def _captured_json(
+    inputs: ReadinessInputs,
+    label: str,
+) -> Mapping[str, Any] | None:
+    if inputs.optional_snapshot(label) is None:
+        return None
+    value = thaw_value(inputs.json_object(label))
+    return value if isinstance(value, Mapping) else None
+
+
+def _captured_context_payloads(inputs: ReadinessInputs) -> dict[str, Any]:
+    values: dict[str, Any] = {}
+    for short_label, label in (
+        ("request", "context_request"),
+        ("pack", "context_pack"),
+        ("receipt", "context_receipt"),
+    ):
+        snapshot = inputs.optional_snapshot(label)
+        values[short_label] = _captured_json(inputs, label)
+        values[f"{short_label}_path"] = snapshot.path if snapshot is not None else None
+        values[f"{short_label}_sha256"] = snapshot.sha256 if snapshot is not None else None
+    return values
+
 def _optional_result_path(result: Mapping[str, Any], key: str) -> str | None:
     value = result.get(key)
     return value if isinstance(value, str) else None
@@ -308,4 +346,4 @@ def _historical_preflight_input_snapshots(
     return snapshots
 
 
-__all__ = ['_capture_readiness_inputs', '_captured_proof_content', '_complete_readiness_input_hashes', '_historical_preflight_input_snapshots', '_optional_result_path', '_readiness_input_hashes', '_readiness_run_id', '_reject_output_input_collision', '_resolve_optional_workspace_input', '_resolve_workspace_input', '_result_workspace_root', '_same_path', '_utc_now', '_verify_result_inputs_unchanged']
+__all__ = ['_capture_readiness_inputs', '_captured_context_payloads', '_captured_json', '_captured_proof_content', '_complete_readiness_input_hashes', '_historical_preflight_input_snapshots', '_optional_result_path', '_readiness_input_hashes', '_readiness_run_id', '_reject_output_input_collision', '_resolve_optional_workspace_input', '_resolve_workspace_input', '_result_workspace_root', '_same_path', '_utc_now', '_verify_result_inputs_unchanged']

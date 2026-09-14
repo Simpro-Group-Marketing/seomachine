@@ -5,11 +5,15 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
-import subprocess
 import sys
 import urllib.request
 from pathlib import Path
 from typing import Any
+
+from data_sources.modules.artifact_runtime.subprocesses import (
+    BoundedTextProcess,
+    run_bounded_text_process,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -81,7 +85,7 @@ def _run_cli(
     *arguments: str,
     raw: bool = False,
     check: bool = True,
-) -> subprocess.CompletedProcess[str]:
+) -> BoundedTextProcess:
     command = [
         npx,
         "--yes",
@@ -90,14 +94,17 @@ def _run_cli(
     if raw:
         command.append("--raw")
     command.extend([f"-s={session}", *arguments])
-    return subprocess.run(
+    result = run_bounded_text_process(
         command,
         cwd=REPO_ROOT,
-        text=True,
         encoding="utf-8",
-        capture_output=True,
-        check=check,
+        errors="replace",
+        timeout=180,
+        max_output_bytes=8 * 1024 * 1024,
     )
+    if check and result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or result.stdout.strip())
+    return result
 
 
 def _http_status(url: str) -> int:
@@ -308,6 +315,6 @@ def main() -> int:
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except (subprocess.CalledProcessError, json.JSONDecodeError) as exc:
+    except (RuntimeError, json.JSONDecodeError) as exc:
         print(str(exc), file=sys.stderr)
         raise

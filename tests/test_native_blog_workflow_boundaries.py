@@ -178,8 +178,7 @@ def test_readiness_scorecard_fails_floor_when_critical_issues_exist_even_at_targ
     assert scorecard["seo_quality"]["critical_issue_count"] == 1
 
 
-def test_readiness_scorecard_uses_the_canonical_seo_threshold(monkeypatch):
-    monkeypatch.setattr(publish_readiness, "SEO_PUBLISHING_THRESHOLD", 91, raising=False)
+def test_readiness_scorecard_uses_the_canonical_seo_threshold():
     scorecard = publish_readiness._scorecard_from_scorer_result(
         {
             "content_quality_score": 95,
@@ -194,6 +193,7 @@ def test_readiness_scorecard_uses_the_canonical_seo_threshold(monkeypatch):
             },
         },
         artifact_kind="blog",
+        seo_threshold=91,
     )
 
     assert scorecard["seo_quality"]["threshold"] == 91

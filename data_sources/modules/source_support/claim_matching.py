@@ -1,7 +1,20 @@
 """Claim Matching responsibilities."""
-# ruff: noqa: F403, F405
-
-from .common import *  # noqa: F403
+from .common import (
+    GENERAL_CLAIM_PATTERNS,
+    IMPERATIVE_INSTRUCTION_RE,
+    OPINION_SIGNAL_RE,
+    OUTCOME_SIGNAL_RE,
+    SCENARIO_SIGNAL_RE,
+    SELF_NAVIGATION_RE,
+    ClaimCandidate,
+    Finding,
+    Optional,
+    ProofEntry,
+    _claim_text_for_detection,
+    math,
+)
+from .findings import _finding
+from .text_matching import _contains_evidence, _normalize_text, _significant_words
 
 
 def _general_claim_type(text: str) -> str:

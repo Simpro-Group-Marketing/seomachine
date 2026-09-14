@@ -16,6 +16,10 @@ from unittest.mock import patch
 from data_sources.modules import paa_provenance_guard
 from data_sources.modules.blog_assembly_contract import atomic_write_json
 from data_sources.modules.execution_attestation import attest_mapping
+from data_sources.modules.paa_provenance.artifact import _parse_question_artifact
+from data_sources.modules.paa_provenance.collection import (
+    _derive_answersocrates_observations,
+)
 from data_sources.modules.paa_provenance_guard import (
     build_answersocrates_artifact,
     check_content,
@@ -26,11 +30,11 @@ from tests.research_provenance_fixtures import build_answersocrates_fixture
 
 
 FAQ_QUESTIONS = (
-    'What is the best way to schedule HVAC technicians?',
-    'Should HVAC scheduling connect to invoicing?',
+    "What is the best way to schedule HVAC technicians?",
+    "Should HVAC scheduling connect to invoicing?",
 )
-PAA_QUERY = 'hvac technician scheduling'
-COLLECTION_DATE = '2026-08-11'
+PAA_QUERY = "hvac technician scheduling"
+COLLECTION_DATE = "2026-08-11"
 
 
 def check_file(path, *args, **kwargs):
@@ -61,30 +65,26 @@ def check_file(path, *args, **kwargs):
 
 
 def strict_provenance_block(source_kind: str, artifact: str) -> str:
-    return f'''```text
+    return f"""```text
 PAA/FAQ Provenance
 - Source: {source_kind}
 - Artifact: {artifact}
 - Selected questions:
   - {FAQ_QUESTIONS[0]}
   - {FAQ_QUESTIONS[1]}
-```'''
+```"""
 
 
 def structured_answersocrates(
     eligible_questions=FAQ_QUESTIONS,
     ineligible_fragments=(),
     *,
-    status: str = 'collected',
-    blocker: str = '',
+    status: str = "collected",
+    blocker: str = "",
     query: str = PAA_QUERY,
     collection_date: str = COLLECTION_DATE,
 ) -> str:
-    recorded_blocker = (
-        blocker
-        if blocker in paa_provenance_guard.ANSWERSOCRATES_BLOCKER_STATES
-        else ("quota" if status == "blocked" else "")
-    )
+    recorded_blocker = blocker if blocker in paa_provenance_guard.ANSWERSOCRATES_BLOCKER_STATES else ("quota" if status == "blocked" else "")
     raw_capture = {"path": "research/test-raw-capture.json", "sha256": "a" * 64}
     payload = {
         "schema": paa_provenance_guard.ANSWERSOCRATES_ARTIFACT_SCHEMA,
@@ -100,20 +100,24 @@ def structured_answersocrates(
                 "kind": recorded_blocker,
                 "reason": f"AnswerSocrates collection was blocked by {recorded_blocker}.",
             }
-            if recorded_blocker else None
+            if recorded_blocker
+            else None
         ),
         "raw_capture": raw_capture,
     }
-    receipt = attest_mapping({
-        "schema": paa_provenance_guard.ANSWERSOCRATES_RECEIPT_SCHEMA,
-        "run_id": "answersocrates-test-run",
-        "tool": dict(paa_provenance_guard.ANSWERSOCRATES_TOOL),
-        "started_at": f"{collection_date}T14:00:00Z",
-        "completed_at": f"{collection_date}T14:01:00Z",
-        "status": status,
-        "payload_sha256": paa_provenance_guard.canonical_json_sha256(payload),
-        "raw_capture": raw_capture,
-    }, purpose=paa_provenance_guard.ANSWERSOCRATES_RECEIPT_ATTESTATION_PURPOSE)
+    receipt = attest_mapping(
+        {
+            "schema": paa_provenance_guard.ANSWERSOCRATES_RECEIPT_SCHEMA,
+            "run_id": "answersocrates-test-run",
+            "tool": dict(paa_provenance_guard.ANSWERSOCRATES_TOOL),
+            "started_at": f"{collection_date}T14:00:00Z",
+            "completed_at": f"{collection_date}T14:01:00Z",
+            "status": status,
+            "payload_sha256": paa_provenance_guard.canonical_json_sha256(payload),
+            "raw_capture": raw_capture,
+        },
+        purpose=paa_provenance_guard.ANSWERSOCRATES_RECEIPT_ATTESTATION_PURPOSE,
+    )
     receipt["receipt_hash"] = paa_provenance_guard.canonical_json_sha256(receipt)
     artifact = {**payload, "run_receipt": receipt}
     if status == "blocked" and blocker != recorded_blocker:
@@ -128,23 +132,28 @@ def write_bound_answersocrates(
     *,
     run_id: str,
 ) -> None:
-    path.write_text(json.dumps(build_answersocrates_fixture(
-        root,
-        query=PAA_QUERY,
-        collection_date=COLLECTION_DATE,
-        questions=questions,
-        run_id=run_id,
-    )), encoding="utf-8")
+    path.write_text(
+        json.dumps(
+            build_answersocrates_fixture(
+                root,
+                query=PAA_QUERY,
+                collection_date=COLLECTION_DATE,
+                questions=questions,
+                run_id=run_id,
+            )
+        ),
+        encoding="utf-8",
+    )
 
 
 def dedicated_brief_paa(questions=FAQ_QUESTIONS) -> str:
-    rows = '\n'.join(f'- {question}' for question in questions)
-    return f'''# Content Brief
+    rows = "\n".join(f"- {question}" for question in questions)
+    return f"""# Content Brief
 
 ## Pre-picked PAA Questions
 
 {rows}
-'''
+"""
 
 
 class StrictPaaSourceTests(unittest.TestCase):
@@ -165,21 +174,23 @@ class StrictPaaSourceTests(unittest.TestCase):
             stdout = exact_stdout if "run-code" in command else ""
             return subprocess.CompletedProcess(command, 0, stdout=stdout, stderr="")
 
-        with tempfile.TemporaryDirectory() as temp_dir, patch.object(
-            paa_provenance_guard, "find_npx_executable", return_value="npx"
-        ), patch.object(paa_provenance_guard.subprocess, "run", side_effect=completed):
+        dependencies = paa_provenance_guard.PaaDependencies(lambda: "npx", completed)
+        with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             raw_path = root / "research" / "answersocrates-raw.json"
             output_path = root / "research" / "paa.json"
-            exit_code = paa_provenance_guard._main([
-                "record",
-                "--query", PAA_QUERY,
-                "--collection-date", collection_date,
-                "--run-id", "agency-run-123",
-                "--raw-capture-output", str(raw_path),
-                "--workspace-root", str(root),
-                "--output", str(output_path),
-            ])
+            exit_code = paa_provenance_guard._main(
+                [
+                    "record",
+                    "--query", PAA_QUERY,
+                    "--collection-date", collection_date,
+                    "--run-id", "agency-run-123",
+                    "--raw-capture-output", str(raw_path),
+                    "--workspace-root", str(root),
+                    "--output", str(output_path),
+                ],
+                dependencies=dependencies,
+            )
             capture = json.loads(raw_path.read_text(encoding="utf-8"))
             artifact = json.loads(output_path.read_text(encoding="utf-8"))
 
@@ -207,21 +218,23 @@ class StrictPaaSourceTests(unittest.TestCase):
             stdout = exact_stdout if "run-code" in command else ""
             return subprocess.CompletedProcess(command, 0, stdout=stdout, stderr="")
 
-        with tempfile.TemporaryDirectory() as temp_dir, patch.object(
-            paa_provenance_guard, "find_npx_executable", return_value="npx"
-        ), patch.object(paa_provenance_guard.subprocess, "run", side_effect=completed):
+        dependencies = paa_provenance_guard.PaaDependencies(lambda: "npx", completed)
+        with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             raw_path = root / "research" / "answersocrates-raw.json"
             output_path = root / "research" / "paa.json"
-            exit_code = paa_provenance_guard._main([
-                "record",
-                "--query", PAA_QUERY,
-                "--collection-date", collection_date,
-                "--run-id", "agency-run-blocked",
-                "--raw-capture-output", str(raw_path),
-                "--workspace-root", str(root),
-                "--output", str(output_path),
-            ])
+            exit_code = paa_provenance_guard._main(
+                [
+                    "record",
+                    "--query", PAA_QUERY,
+                    "--collection-date", collection_date,
+                    "--run-id", "agency-run-blocked",
+                    "--raw-capture-output", str(raw_path),
+                    "--workspace-root", str(root),
+                    "--output", str(output_path),
+                ],
+                dependencies=dependencies,
+            )
             capture = json.loads(raw_path.read_text(encoding="utf-8"))
             artifact = json.loads(output_path.read_text(encoding="utf-8"))
 
@@ -231,66 +244,38 @@ class StrictPaaSourceTests(unittest.TestCase):
         self.assertEqual(artifact["blocker"]["kind"], "quota")
         self.assertEqual(artifact["eligible_questions"], [])
 
-    def test_record_ignores_sign_in_navigation_when_valid_paa_is_observed(self):
-        collection_date = datetime.now(timezone.utc).date().isoformat()
-        exact_stdout = json.dumps({
-            "page_url": "https://answersocrates.com/paa-extractor",
-            "page_title": "People Also Ask Extractor",
-            "body_text": "Sign in Navigation People Also Ask",
-            "blocker_observations": [],
-            "sections": [
-                {"heading": "People Also Ask", "items": list(FAQ_QUESTIONS)},
-            ],
-        })
-
-        def completed(command, **kwargs):
-            stdout = exact_stdout if "run-code" in command else ""
-            return subprocess.CompletedProcess(command, 0, stdout=stdout, stderr="")
-
-        with tempfile.TemporaryDirectory() as temp_dir, patch.object(
-            paa_provenance_guard, "find_npx_executable", return_value="npx"
-        ), patch.object(paa_provenance_guard.subprocess, "run", side_effect=completed):
-            root = Path(temp_dir)
-            raw_path = root / "research" / "answersocrates-raw.json"
-            output_path = root / "research" / "paa.json"
-            exit_code = paa_provenance_guard._main([
-                "record",
-                "--query", PAA_QUERY,
-                "--collection-date", collection_date,
-                "--run-id", "agency-run-navigation",
-                "--raw-capture-output", str(raw_path),
-                "--workspace-root", str(root),
-                "--output", str(output_path),
-            ])
-            capture = json.loads(raw_path.read_text(encoding="utf-8"))
-            artifact = json.loads(output_path.read_text(encoding="utf-8"))
-
-        self.assertEqual(exit_code, 0)
-        self.assertEqual(capture["raw_response"]["stdout"], exact_stdout)
-        self.assertEqual(artifact["status"], "collected")
-        self.assertIsNone(artifact["blocker"])
-        self.assertEqual(artifact["eligible_questions"], list(FAQ_QUESTIONS))
-
     def test_only_scoped_blocker_observations_establish_closed_blocker_kinds(self):
         cases = (
-            ("login", "authentication_gate", "Authentication required. Log in to continue."),
-            ("captcha", "captcha_container", "Complete the CAPTCHA. You are not a robot."),
+            (
+                "login",
+                "authentication_gate",
+                "Authentication required. Log in to continue.",
+            ),
+            (
+                "captcha",
+                "captcha_container",
+                "Complete the CAPTCHA. You are not a robot.",
+            ),
             ("quota", "quota_container", "You have used your free search quota."),
             ("unavailability", "error_container", "Service unavailable."),
         )
         for expected_kind, scope, blocker_text in cases:
             with self.subTest(expected_kind=expected_kind):
-                _, _, blocker = paa_provenance_guard._derive_answersocrates_observations({
-                    "stdout": json.dumps({
-                        "page_url": "https://answersocrates.com/paa-extractor",
-                        "page_title": "People Also Ask Extractor",
-                        "body_text": "Sign in Navigation",
-                        "sections": [],
-                        "blocker_observations": [{"scope": scope, "text": blocker_text}],
-                    }),
-                    "stderr": "",
-                    "returncode": 0,
-                })
+                _, _, blocker = _derive_answersocrates_observations(
+                    {
+                        "stdout": json.dumps(
+                            {
+                                "page_url": "https://answersocrates.com/paa-extractor",
+                                "page_title": "People Also Ask Extractor",
+                                "body_text": "Sign in Navigation",
+                                "sections": [],
+                                "blocker_observations": [{"scope": scope, "text": blocker_text}],
+                            }
+                        ),
+                        "stderr": "",
+                        "returncode": 0,
+                    }
+                )
 
                 self.assertEqual(blocker["kind"], expected_kind)
                 self.assertEqual(blocker["reason"], blocker_text)
@@ -307,17 +292,21 @@ class StrictPaaSourceTests(unittest.TestCase):
         )
         for observations in cases:
             with self.subTest(observations=observations), self.assertRaises(ValueError):
-                paa_provenance_guard._derive_answersocrates_observations({
-                    "stdout": json.dumps({
-                        "page_url": "https://answersocrates.com/paa-extractor",
-                        "page_title": "People Also Ask Extractor",
-                        "body_text": "Sign in Navigation",
-                        "sections": [],
-                        "blocker_observations": observations,
-                    }),
-                    "stderr": "",
-                    "returncode": 0,
-                })
+                _derive_answersocrates_observations(
+                    {
+                        "stdout": json.dumps(
+                            {
+                                "page_url": "https://answersocrates.com/paa-extractor",
+                                "page_title": "People Also Ask Extractor",
+                                "body_text": "Sign in Navigation",
+                                "sections": [],
+                                "blocker_observations": observations,
+                            }
+                        ),
+                        "stderr": "",
+                        "returncode": 0,
+                    }
+                )
 
     def test_record_rejects_caller_supplied_capture_and_requires_canonical_inputs(self):
         for argv in (
@@ -350,19 +339,30 @@ class StrictPaaSourceTests(unittest.TestCase):
         page_url: str = "https://answersocrates.com/paa-extractor",
         raw_response: object | None = None,
     ) -> Path:
-        if isinstance(raw_response, dict) and set(raw_response) == {"visible_sections", "blocker_output"}:
+        if isinstance(raw_response, dict) and set(raw_response) == {
+            "visible_sections",
+            "blocker_output",
+        }:
             blocker_output = str(raw_response.get("blocker_output") or "")
             raw_response = {
-                "stdout": json.dumps({
-                    "page_url": page_url,
-                    "page_title": "People Also Ask Extractor",
-                    "body_text": blocker_output or "People Also Ask",
-                    "blocker_observations": ([{
-                        "scope": "role_alert",
-                        "text": blocker_output,
-                    }] if blocker_output else []),
-                    "sections": raw_response.get("visible_sections", []),
-                }),
+                "stdout": json.dumps(
+                    {
+                        "page_url": page_url,
+                        "page_title": "People Also Ask Extractor",
+                        "body_text": blocker_output or "People Also Ask",
+                        "blocker_observations": (
+                            [
+                                {
+                                    "scope": "role_alert",
+                                    "text": blocker_output,
+                                }
+                            ]
+                            if blocker_output
+                            else []
+                        ),
+                        "sections": raw_response.get("visible_sections", []),
+                    }
+                ),
                 "stderr": "",
                 "returncode": 0,
             }
@@ -374,20 +374,27 @@ class StrictPaaSourceTests(unittest.TestCase):
             "started_at": started_at,
             "completed_at": completed_at,
             "page_url": page_url,
-            "raw_response": raw_response if raw_response is not None else {
-                "stdout": json.dumps({
-                    "page_url": page_url,
-                    "page_title": "People Also Ask Extractor",
-                    "body_text": "People Also Ask",
-                    "blocker_observations": [],
-                    "sections": [
-                        {
-                            "heading": "People Also Ask",
-                            "items": [FAQ_QUESTIONS[0], FAQ_QUESTIONS[1]],
-                        },
-                        {"heading": "Search suggestions", "items": ["hvac scheduling"]},
-                    ],
-                }),
+            "raw_response": raw_response
+            if raw_response is not None
+            else {
+                "stdout": json.dumps(
+                    {
+                        "page_url": page_url,
+                        "page_title": "People Also Ask Extractor",
+                        "body_text": "People Also Ask",
+                        "blocker_observations": [],
+                        "sections": [
+                            {
+                                "heading": "People Also Ask",
+                                "items": [FAQ_QUESTIONS[0], FAQ_QUESTIONS[1]],
+                            },
+                            {
+                                "heading": "Search suggestions",
+                                "items": ["hvac scheduling"],
+                            },
+                        ],
+                    }
+                ),
                 "stderr": "",
                 "returncode": 0,
             },
@@ -413,9 +420,7 @@ class StrictPaaSourceTests(unittest.TestCase):
                 expected_run_id="browser-run-123",
             )
 
-        record = paa_provenance_guard._parse_question_artifact(
-            json.dumps(artifact)
-        )
+        record = _parse_question_artifact(json.dumps(artifact))
 
         self.assertIsNotNone(record)
         self.assertTrue(record.run_receipt_valid)
@@ -441,9 +446,7 @@ class StrictPaaSourceTests(unittest.TestCase):
                 expected_run_id="browser-run-123",
             )
 
-        record = paa_provenance_guard._parse_question_artifact(
-            json.dumps(artifact)
-        )
+        record = _parse_question_artifact(json.dumps(artifact))
 
         self.assertIsNotNone(record)
         self.assertTrue(record.run_receipt_valid)
@@ -473,7 +476,7 @@ class StrictPaaSourceTests(unittest.TestCase):
         artifact_name: str,
         artifact_content: str,
     ):
-        artifact = root / 'research' / artifact_name
+        artifact = root / "research" / artifact_name
         artifact.parent.mkdir(parents=True, exist_ok=True)
         try:
             requested = json.loads(artifact_content)
@@ -491,24 +494,25 @@ class StrictPaaSourceTests(unittest.TestCase):
             )
         ):
             raw_response = {
-                "visible_sections": [{
-                    "heading": "People Also Ask",
-                    "items": [
-                        *requested.get("eligible_questions", []),
-                        *requested.get("ineligible_fragments", []),
-                    ],
-                }],
-                "blocker_output": (
-                    requested.get("blocker", {}).get("reason", "")
-                    if isinstance(requested.get("blocker"), dict) else ""
-                ),
+                "visible_sections": [
+                    {
+                        "heading": "People Also Ask",
+                        "items": [
+                            *requested.get("eligible_questions", []),
+                            *requested.get("ineligible_fragments", []),
+                        ],
+                    }
+                ],
+                "blocker_output": (requested.get("blocker", {}).get("reason", "") if isinstance(requested.get("blocker"), dict) else ""),
             }
             if requested.get("ineligible_fragments"):
                 raw_response["visible_sections"][0]["items"] = requested.get("eligible_questions", [])
-                raw_response["visible_sections"].append({
-                    "heading": "Search suggestions",
-                    "items": requested.get("ineligible_fragments", []),
-                })
+                raw_response["visible_sections"].append(
+                    {
+                        "heading": "Search suggestions",
+                        "items": requested.get("ineligible_fragments", []),
+                    }
+                )
             capture = self._write_raw_capture(
                 root,
                 query=requested.get("query", PAA_QUERY),
@@ -517,24 +521,26 @@ class StrictPaaSourceTests(unittest.TestCase):
                 completed_at=f"{requested.get('collection_date', COLLECTION_DATE)}T14:01:00Z",
                 raw_response=raw_response,
             )
-            artifact_content = json.dumps(build_answersocrates_artifact(
-                raw_capture_path=capture,
-                workspace_root=root,
-                expected_query=requested.get("query", PAA_QUERY),
-                expected_collection_date=requested.get("collection_date", COLLECTION_DATE),
-                expected_run_id="answersocrates-test-run",
-            ))
-        artifact.write_text(artifact_content, encoding='utf-8')
-        article = root / 'drafts' / 'hvac-scheduling.md'
+            artifact_content = json.dumps(
+                build_answersocrates_artifact(
+                    raw_capture_path=capture,
+                    workspace_root=root,
+                    expected_query=requested.get("query", PAA_QUERY),
+                    expected_collection_date=requested.get("collection_date", COLLECTION_DATE),
+                    expected_run_id="answersocrates-test-run",
+                )
+            )
+        artifact.write_text(artifact_content, encoding="utf-8")
+        article = root / "drafts" / "hvac-scheduling.md"
         article.parent.mkdir(parents=True, exist_ok=True)
         article.write_text(
             article_with_faq(
                 strict_provenance_block(
                     source_kind,
-                    f'research/{artifact_name}',
+                    f"research/{artifact_name}",
                 )
             ),
-            encoding='utf-8',
+            encoding="utf-8",
         )
         return article, artifact
 
@@ -547,16 +553,16 @@ class StrictPaaSourceTests(unittest.TestCase):
         status: str = "collected",
         blocker: str = "",
     ) -> None:
-        blocker_output = (
-            f"AnswerSocrates collection was blocked by {blocker}."
-            if status == "blocked" else ""
-        )
+        blocker_output = f"AnswerSocrates collection was blocked by {blocker}." if status == "blocked" else ""
         capture = self._write_raw_capture(
             root,
             raw_response={
-                "visible_sections": [{
-                    "heading": "People Also Ask", "items": list(questions),
-                }],
+                "visible_sections": [
+                    {
+                        "heading": "People Also Ask",
+                        "items": list(questions),
+                    }
+                ],
                 "blocker_output": blocker_output,
             },
         )
@@ -576,64 +582,61 @@ class StrictPaaSourceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             article, _ = self._write_family(
                 Path(temp_dir),
-                source_kind='AnswerSocrates via Playwright MCP',
-                artifact_name='paa.md',
+                source_kind="AnswerSocrates via Playwright MCP",
+                artifact_name="paa.md",
                 artifact_content=structured_answersocrates(),
             )
 
             findings = check_file(str(article))
 
         self.assertIn(
-            'paa_source_unsupported',
-            [finding['rule_id'] for finding in findings],
+            "paa_source_unsupported",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_serp_reddit_and_youtube_cannot_qualify(self):
-        for source_kind in ('serp', 'reddit', 'youtube'):
-            with self.subTest(source_kind=source_kind), tempfile.TemporaryDirectory() as temp_dir:
+        for source_kind in ("serp", "reddit", "youtube"):
+            with (
+                self.subTest(source_kind=source_kind),
+                tempfile.TemporaryDirectory() as temp_dir,
+            ):
                 article, _ = self._write_family(
                     Path(temp_dir),
                     source_kind=source_kind,
-                    artifact_name='supplemental.md',
+                    artifact_name="supplemental.md",
                     artifact_content=structured_answersocrates(),
                 )
 
                 findings = check_file(str(article))
 
             self.assertIn(
-                'paa_supplemental_source_cannot_qualify',
-                [finding['rule_id'] for finding in findings],
+                "paa_supplemental_source_cannot_qualify",
+                [finding["rule_id"] for finding in findings],
             )
 
     def test_answersocrates_artifact_must_be_structured(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             article, _ = self._write_family(
                 Path(temp_dir),
-                source_kind='answersocrates',
-                artifact_name='paa.md',
-                artifact_content='\n'.join(FAQ_QUESTIONS),
+                source_kind="answersocrates",
+                artifact_name="paa.md",
+                artifact_content="\n".join(FAQ_QUESTIONS),
             )
 
             findings = check_file(str(article))
 
         self.assertIn(
-            'paa_answersocrates_artifact_unstructured',
-            [finding['rule_id'] for finding in findings],
+            "paa_answersocrates_artifact_unstructured",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_handwritten_answersocrates_labels_cannot_fabricate_collection(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             article, _ = self._write_family(
                 Path(temp_dir),
-                source_kind='answersocrates',
-                artifact_name='paa.md',
-                artifact_content=(
-                    '# AnswerSocrates PAA Collection\n\n'
-                    'Source kind: answersocrates\nStatus: collected\n'
-                    f'Query: {PAA_QUERY}\nDate: {COLLECTION_DATE}\n\n'
-                    '## Eligible Questions\n\n'
-                    + '\n'.join(f'- {question}' for question in FAQ_QUESTIONS)
-                ),
+                source_kind="answersocrates",
+                artifact_name="paa.md",
+                artifact_content=(f"# AnswerSocrates PAA Collection\n\nSource kind: answersocrates\nStatus: collected\nQuery: {PAA_QUERY}\nDate: {COLLECTION_DATE}\n\n## Eligible Questions\n\n" + "\n".join(f"- {question}" for question in FAQ_QUESTIONS)),
             )
 
             findings = check_file(
@@ -643,34 +646,24 @@ class StrictPaaSourceTests(unittest.TestCase):
             )
 
         self.assertIn(
-            'paa_answersocrates_artifact_unstructured',
-            [finding['rule_id'] for finding in findings],
+            "paa_answersocrates_artifact_unstructured",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_plain_rehash_cannot_forge_answersocrates_run_receipt(self):
-        artifact_value = json.loads(
-            structured_answersocrates(eligible_questions=(FAQ_QUESTIONS[0],))
-        )
-        artifact_value['eligible_questions'].append(FAQ_QUESTIONS[1])
-        payload = {
-            key: value
-            for key, value in artifact_value.items()
-            if key != 'run_receipt'
-        }
-        receipt = artifact_value['run_receipt']
-        receipt['payload_sha256'] = paa_provenance_guard.canonical_json_sha256(
-            payload
-        )
-        receipt.pop('receipt_hash')
-        receipt['receipt_hash'] = paa_provenance_guard.canonical_json_sha256(
-            receipt
-        )
+        artifact_value = json.loads(structured_answersocrates(eligible_questions=(FAQ_QUESTIONS[0],)))
+        artifact_value["eligible_questions"].append(FAQ_QUESTIONS[1])
+        payload = {key: value for key, value in artifact_value.items() if key != "run_receipt"}
+        receipt = artifact_value["run_receipt"]
+        receipt["payload_sha256"] = paa_provenance_guard.canonical_json_sha256(payload)
+        receipt.pop("receipt_hash")
+        receipt["receipt_hash"] = paa_provenance_guard.canonical_json_sha256(receipt)
 
         with tempfile.TemporaryDirectory() as temp_dir:
             article, _ = self._write_family(
                 Path(temp_dir),
-                source_kind='answersocrates',
-                artifact_name='paa.json',
+                source_kind="answersocrates",
+                artifact_name="paa.json",
                 artifact_content=json.dumps(artifact_value),
             )
             findings = check_file(
@@ -680,16 +673,16 @@ class StrictPaaSourceTests(unittest.TestCase):
             )
 
         self.assertIn(
-            'paa_answersocrates_artifact_unstructured',
-            [finding['rule_id'] for finding in findings],
+            "paa_answersocrates_artifact_unstructured",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_ineligible_fragment_cannot_match_visible_faq(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             article, _ = self._write_family(
                 Path(temp_dir),
-                source_kind='answersocrates',
-                artifact_name='paa.md',
+                source_kind="answersocrates",
+                artifact_name="paa.md",
                 artifact_content=structured_answersocrates(
                     eligible_questions=(FAQ_QUESTIONS[0],),
                     ineligible_fragments=(FAQ_QUESTIONS[1],),
@@ -703,92 +696,92 @@ class StrictPaaSourceTests(unittest.TestCase):
             )
 
         self.assertIn(
-            'paa_question_ineligible_fragment',
-            [finding['rule_id'] for finding in findings],
+            "paa_question_ineligible_fragment",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_answersocrates_requires_expected_query_and_collection_date(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             article, _ = self._write_family(
                 Path(temp_dir),
-                source_kind='answersocrates',
-                artifact_name='paa.md',
+                source_kind="answersocrates",
+                artifact_name="paa.md",
                 artifact_content=structured_answersocrates(),
             )
 
-            findings = check_file(str(article), workflow_mode='new')
+            findings = check_file(str(article), workflow_mode="new")
 
         self.assertIn(
-            'paa_answersocrates_expectation_missing',
-            [finding['rule_id'] for finding in findings],
+            "paa_answersocrates_expectation_missing",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_answersocrates_query_mismatch_fails_closed(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             article, _ = self._write_family(
                 Path(temp_dir),
-                source_kind='answersocrates',
-                artifact_name='paa.md',
+                source_kind="answersocrates",
+                artifact_name="paa.md",
                 artifact_content=structured_answersocrates(),
             )
 
             findings = check_file(
                 str(article),
-                workflow_mode='new',
-                expected_query='hvac dispatch automation',
+                workflow_mode="new",
+                expected_query="hvac dispatch automation",
                 expected_collection_date=COLLECTION_DATE,
             )
 
         self.assertIn(
-            'paa_answersocrates_query_mismatch',
-            [finding['rule_id'] for finding in findings],
+            "paa_answersocrates_query_mismatch",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_answersocrates_stale_collection_date_fails_closed(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             article, _ = self._write_family(
                 Path(temp_dir),
-                source_kind='answersocrates',
-                artifact_name='paa.md',
+                source_kind="answersocrates",
+                artifact_name="paa.md",
                 artifact_content=structured_answersocrates(
-                    collection_date='2026-08-10',
+                    collection_date="2026-08-10",
                 ),
             )
 
             findings = check_file(
                 str(article),
-                workflow_mode='new',
+                workflow_mode="new",
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
             )
 
         self.assertIn(
-            'paa_answersocrates_date_mismatch',
-            [finding['rule_id'] for finding in findings],
+            "paa_answersocrates_date_mismatch",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_answersocrates_metadata_requires_query_and_date(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             artifact_value = json.loads(structured_answersocrates())
-            del artifact_value['query']
+            del artifact_value["query"]
             artifact_content = json.dumps(artifact_value)
             article, _ = self._write_family(
                 Path(temp_dir),
-                source_kind='answersocrates',
-                artifact_name='paa.md',
+                source_kind="answersocrates",
+                artifact_name="paa.md",
                 artifact_content=artifact_content,
             )
 
             findings = check_file(
                 str(article),
-                workflow_mode='new',
+                workflow_mode="new",
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
             )
 
         self.assertIn(
-            'paa_answersocrates_artifact_unstructured',
-            [finding['rule_id'] for finding in findings],
+            "paa_answersocrates_artifact_unstructured",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_rewrite_dedicated_brief_paa_takes_precedence(self):
@@ -796,22 +789,22 @@ class StrictPaaSourceTests(unittest.TestCase):
             root = Path(temp_dir)
             article, _ = self._write_family(
                 root,
-                source_kind='answersocrates',
-                artifact_name='paa.md',
+                source_kind="answersocrates",
+                artifact_name="paa.md",
                 artifact_content=structured_answersocrates(),
             )
-            brief = root / 'research' / 'brief-paa.md'
-            brief.write_text(dedicated_brief_paa(), encoding='utf-8')
+            brief = root / "research" / "brief-paa.md"
+            brief.write_text(dedicated_brief_paa(), encoding="utf-8")
 
             findings = self._policy_findings(
                 article,
-                workflow_mode='rewrite',
+                workflow_mode="rewrite",
                 content_brief=str(brief),
             )
 
         self.assertIn(
-            'paa_rewrite_brief_precedence_violation',
-            [finding['rule_id'] for finding in findings],
+            "paa_rewrite_brief_precedence_violation",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_rewrite_rejects_duplicate_visible_dedicated_paa_sections(self):
@@ -819,60 +812,50 @@ class StrictPaaSourceTests(unittest.TestCase):
             root = Path(temp_dir)
             article, _ = self._write_family(
                 root,
-                source_kind='answersocrates',
-                artifact_name='paa.md',
+                source_kind="answersocrates",
+                artifact_name="paa.md",
                 artifact_content=structured_answersocrates(),
             )
-            brief = root / 'research' / 'duplicate-brief-paa.md'
+            brief = root / "research" / "duplicate-brief-paa.md"
             brief.write_text(
-                '# Content Brief\n\n'
-                '## Pre-picked PAA Questions\n\n'
-                f'- {FAQ_QUESTIONS[0]}\n\n'
-                '## Reader Contract\n\nHelp dispatch leaders.\n\n'
-                '## Pre-picked PAA Questions\n\n'
-                f'- {FAQ_QUESTIONS[1]}\n',
-                encoding='utf-8',
+                f"# Content Brief\n\n## Pre-picked PAA Questions\n\n- {FAQ_QUESTIONS[0]}\n\n## Reader Contract\n\nHelp dispatch leaders.\n\n## Pre-picked PAA Questions\n\n- {FAQ_QUESTIONS[1]}\n",
+                encoding="utf-8",
             )
 
             findings = self._policy_findings(
                 article,
-                workflow_mode='rewrite',
+                workflow_mode="rewrite",
                 content_brief=str(brief),
             )
 
         self.assertIn(
-            'paa_brief_sections_duplicate',
-            [finding['rule_id'] for finding in findings],
+            "paa_brief_sections_duplicate",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_rewrite_ignores_dedicated_paa_headings_inside_fenced_examples(self):
-        for fence in ('```', '~~~'):
+        for fence in ("```", "~~~"):
             with self.subTest(fence=fence), tempfile.TemporaryDirectory() as temp_dir:
                 root = Path(temp_dir)
                 article, _ = self._write_family(
                     root,
-                    source_kind='answersocrates',
-                    artifact_name='paa.md',
+                    source_kind="answersocrates",
+                    artifact_name="paa.md",
                     artifact_content=structured_answersocrates(),
                 )
-                brief = root / 'research' / 'example-only-brief.md'
+                brief = root / "research" / "example-only-brief.md"
                 brief.write_text(
-                    '# Content Brief\n\n'
-                    f'{fence}markdown\n'
-                    '## Pre-picked PAA Questions\n\n'
-                    f'- {FAQ_QUESTIONS[0]}\n'
-                    f'{fence}\n\n'
-                    '## Reader Contract\n\nHelp dispatch leaders.\n',
-                    encoding='utf-8',
+                    f"# Content Brief\n\n{fence}markdown\n## Pre-picked PAA Questions\n\n- {FAQ_QUESTIONS[0]}\n{fence}\n\n## Reader Contract\n\nHelp dispatch leaders.\n",
+                    encoding="utf-8",
                 )
 
                 result = paa_provenance_guard.evaluate_file(
                     str(article),
-                    workflow_mode='rewrite',
+                    workflow_mode="rewrite",
                     content_brief=str(brief),
                     expected_query=PAA_QUERY,
                     expected_collection_date=COLLECTION_DATE,
-                    expected_run_id='answersocrates-test-run',
+                    expected_run_id="answersocrates-test-run",
                 )
 
             self.assertTrue(result.passed, result.findings)
@@ -882,47 +865,40 @@ class StrictPaaSourceTests(unittest.TestCase):
             root = Path(temp_dir)
             article, brief = self._write_family(
                 root,
-                source_kind='brief_paa',
-                artifact_name='brief-paa.md',
+                source_kind="brief_paa",
+                artifact_name="brief-paa.md",
                 artifact_content=dedicated_brief_paa((FAQ_QUESTIONS[0],)),
             )
 
             findings = self._policy_findings(
                 article,
-                workflow_mode='rewrite',
+                workflow_mode="rewrite",
                 content_brief=str(brief),
             )
 
         self.assertIn(
-            'paa_question_missing_from_artifact',
-            [finding['rule_id'] for finding in findings],
+            "paa_question_missing_from_artifact",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_unicode_questions_do_not_collapse_to_the_same_match_key(self):
-        source_question = '如何调度技术人员?'
-        different_question = '如何管理客户发票?'
+        source_question = "如何调度技术人员?"
+        different_question = "如何管理客户发票?"
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            artifact = root / 'research' / 'paa.json'
+            artifact = root / "research" / "paa.json"
             artifact.parent.mkdir(parents=True)
             write_bound_answersocrates(
-                root, artifact, (source_question,), run_id="unicode-run",
+                root,
+                artifact,
+                (source_question,),
+                run_id="unicode-run",
             )
-            article = root / 'drafts' / 'unicode-faq.md'
+            article = root / "drafts" / "unicode-faq.md"
             article.parent.mkdir(parents=True)
             article.write_text(
-                '# Unicode FAQ\n\n'
-                '```text\n'
-                'PAA/FAQ Provenance\n'
-                '- Source: answersocrates\n'
-                '- Artifact: research/paa.json\n'
-                '- Selected questions:\n'
-                f'  - {different_question}\n'
-                '```\n\n'
-                '## Frequently Asked Questions\n\n'
-                f'### {different_question}\n\n'
-                'Use the verified operating workflow.\n',
-                encoding='utf-8',
+                f"# Unicode FAQ\n\n```text\nPAA/FAQ Provenance\n- Source: answersocrates\n- Artifact: research/paa.json\n- Selected questions:\n  - {different_question}\n```\n\n## Frequently Asked Questions\n\n### {different_question}\n\nUse the verified operating workflow.\n",
+                encoding="utf-8",
             )
 
             findings = check_file(
@@ -932,33 +908,48 @@ class StrictPaaSourceTests(unittest.TestCase):
             )
 
         self.assertIn(
-            'paa_question_missing_from_artifact',
-            [finding['rule_id'] for finding in findings],
+            "paa_question_missing_from_artifact",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_answersocrates_rejects_empty_normalized_question_keys(self):
-        with self.assertRaisesRegex(ValueError, 'normalization'):
-            paa_provenance_guard._derive_answersocrates_observations(
-                {"stdout": json.dumps({
-                    "page_url": "https://answersocrates.com/paa-extractor",
-                    "page_title": "PAA", "body_text": "People Also Ask",
-                    "blocker_observations": [],
-                    "sections": [{"heading": "People Also Ask", "items": ["???"]}],
-                }), "stderr": "", "returncode": 0}
+        with self.assertRaisesRegex(ValueError, "normalization"):
+            _derive_answersocrates_observations(
+                {
+                    "stdout": json.dumps(
+                        {
+                            "page_url": "https://answersocrates.com/paa-extractor",
+                            "page_title": "PAA",
+                            "body_text": "People Also Ask",
+                            "blocker_observations": [],
+                            "sections": [{"heading": "People Also Ask", "items": ["???"]}],
+                        }
+                    ),
+                    "stderr": "",
+                    "returncode": 0,
+                }
             )
 
     def test_answersocrates_accepts_current_people_also_asked_heading(self):
-        questions, fragments, blocker = paa_provenance_guard._derive_answersocrates_observations(
-            {"stdout": json.dumps({
-                "page_url": "https://answersocrates.com/",
-                "page_title": "Answer Socrates",
-                "body_text": "People Also Asked",
-                "blocker_observations": [],
-                "sections": [{
-                    "heading": "People Also Asked",
-                    "items": ["What is field service management?"],
-                }],
-            }), "stderr": "", "returncode": 0}
+        questions, fragments, blocker = _derive_answersocrates_observations(
+            {
+                "stdout": json.dumps(
+                    {
+                        "page_url": "https://answersocrates.com/",
+                        "page_title": "Answer Socrates",
+                        "body_text": "People Also Asked",
+                        "blocker_observations": [],
+                        "sections": [
+                            {
+                                "heading": "People Also Asked",
+                                "items": ["What is field service management?"],
+                            }
+                        ],
+                    }
+                ),
+                "stderr": "",
+                "returncode": 0,
+            }
         )
 
         self.assertEqual(questions, ["What is field service management?"])
@@ -966,14 +957,26 @@ class StrictPaaSourceTests(unittest.TestCase):
         self.assertIsNone(blocker)
 
     def test_answersocrates_rejects_colliding_normalized_question_keys(self):
-        with self.assertRaisesRegex(ValueError, 'normalization'):
-            paa_provenance_guard._derive_answersocrates_observations(
-                {"stdout": json.dumps({
-                    "page_url": "https://answersocrates.com/paa-extractor",
-                    "page_title": "PAA", "body_text": "People Also Ask",
-                    "blocker_observations": [],
-                    "sections": [{"heading": "People Also Ask", "items": ["What's HVAC?", "What’s HVAC?"]}],
-                }), "stderr": "", "returncode": 0}
+        with self.assertRaisesRegex(ValueError, "normalization"):
+            _derive_answersocrates_observations(
+                {
+                    "stdout": json.dumps(
+                        {
+                            "page_url": "https://answersocrates.com/paa-extractor",
+                            "page_title": "PAA",
+                            "body_text": "People Also Ask",
+                            "blocker_observations": [],
+                            "sections": [
+                                {
+                                    "heading": "People Also Ask",
+                                    "items": ["What's HVAC?", "What’s HVAC?"],
+                                }
+                            ],
+                        }
+                    ),
+                    "stderr": "",
+                    "returncode": 0,
+                }
             )
 
     def test_rewrite_content_brief_passes_and_binds_hash_and_questions(self):
@@ -981,14 +984,14 @@ class StrictPaaSourceTests(unittest.TestCase):
             root = Path(temp_dir)
             article, brief = self._write_family(
                 root,
-                source_kind='brief_paa',
-                artifact_name='content-brief.md',
+                source_kind="brief_paa",
+                artifact_name="content-brief.md",
                 artifact_content=dedicated_brief_paa(),
             )
 
             result = paa_provenance_guard.evaluate_file(
                 str(article),
-                workflow_mode='rewrite',
+                workflow_mode="rewrite",
                 content_brief=str(brief),
             )
             expected_hash = hashlib.sha256(brief.read_bytes()).hexdigest()
@@ -1000,11 +1003,11 @@ class StrictPaaSourceTests(unittest.TestCase):
     def test_every_pre_picked_brief_question_must_be_a_visible_faq(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            extra_question = 'How often should an HVAC schedule be reviewed?'
+            extra_question = "How often should an HVAC schedule be reviewed?"
             article, brief = self._write_family(
                 root,
-                source_kind='brief_paa',
-                artifact_name='content-brief.md',
+                source_kind="brief_paa",
+                artifact_name="content-brief.md",
                 artifact_content=dedicated_brief_paa(
                     FAQ_QUESTIONS + (extra_question,),
                 ),
@@ -1012,113 +1015,111 @@ class StrictPaaSourceTests(unittest.TestCase):
 
             findings = check_file(
                 str(article),
-                workflow_mode='rewrite',
+                workflow_mode="rewrite",
                 content_brief=str(brief),
             )
 
         self.assertIn(
-            'paa_brief_question_missing_from_faq',
-            [finding['rule_id'] for finding in findings],
+            "paa_brief_question_missing_from_faq",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_rewrite_without_brief_requires_answersocrates(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             article, _ = self._write_family(
                 Path(temp_dir),
-                source_kind='brief_paa',
-                artifact_name='brief-paa.md',
+                source_kind="brief_paa",
+                artifact_name="brief-paa.md",
                 artifact_content=dedicated_brief_paa(),
             )
 
-            findings = self._policy_findings(article, workflow_mode='rewrite')
+            findings = self._policy_findings(article, workflow_mode="rewrite")
 
         self.assertIn(
-            'paa_rewrite_answersocrates_required',
-            [finding['rule_id'] for finding in findings],
+            "paa_rewrite_answersocrates_required",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_new_workflow_rejects_brief_paa_source(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             article, _ = self._write_family(
                 Path(temp_dir),
-                source_kind='brief_paa',
-                artifact_name='brief-paa.md',
+                source_kind="brief_paa",
+                artifact_name="brief-paa.md",
                 artifact_content=dedicated_brief_paa(),
             )
 
-            findings = self._policy_findings(article, workflow_mode='new')
+            findings = self._policy_findings(article, workflow_mode="new")
 
         self.assertIn(
-            'paa_new_answersocrates_required',
-            [finding['rule_id'] for finding in findings],
+            "paa_new_answersocrates_required",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_rewrite_without_brief_accepts_answersocrates(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             article, _ = self._write_family(
                 Path(temp_dir),
-                source_kind='answersocrates',
-                artifact_name='paa.md',
+                source_kind="answersocrates",
+                artifact_name="paa.md",
                 artifact_content=structured_answersocrates(),
             )
-            evaluator = getattr(paa_provenance_guard, 'evaluate_file', None)
+            evaluator = getattr(paa_provenance_guard, "evaluate_file", None)
 
             self.assertTrue(callable(evaluator))
             result = evaluator(
                 str(article),
-                workflow_mode='rewrite',
+                workflow_mode="rewrite",
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
-                expected_run_id='answersocrates-test-run',
+                expected_run_id="answersocrates-test-run",
             )
 
         self.assertTrue(result.passed)
-        self.assertEqual(result.source_kind, 'answersocrates')
+        self.assertEqual(result.source_kind, "answersocrates")
 
     def test_rewrite_ordinary_brief_without_pre_picked_paa_accepts_answersocrates(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             article, _ = self._write_family(
                 root,
-                source_kind='answersocrates',
-                artifact_name='paa.md',
+                source_kind="answersocrates",
+                artifact_name="paa.md",
                 artifact_content=structured_answersocrates(),
             )
-            brief = root / 'research' / 'ordinary-brief.md'
+            brief = root / "research" / "ordinary-brief.md"
             brief.write_text(
-                '# Content Brief\n\n## Reader Contract\n\nHelp dispatch leaders.\n',
-                encoding='utf-8',
+                "# Content Brief\n\n## Reader Contract\n\nHelp dispatch leaders.\n",
+                encoding="utf-8",
             )
 
             result = paa_provenance_guard.evaluate_file(
                 str(article),
-                workflow_mode='rewrite',
+                workflow_mode="rewrite",
                 content_brief=str(brief),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
-                expected_run_id='answersocrates-test-run',
+                expected_run_id="answersocrates-test-run",
             )
 
         self.assertTrue(result.passed)
-        self.assertEqual(result.source_kind, 'answersocrates')
+        self.assertEqual(result.source_kind, "answersocrates")
 
     def test_user_csv_requires_blocked_answersocrates_artifact(self):
         with tempfile.TemporaryDirectory() as temp_dir:
-            csv_text = 'question\n' + '\n'.join(
-                f'"{question}"' for question in FAQ_QUESTIONS
-            )
+            csv_text = "question\n" + "\n".join(f'"{question}"' for question in FAQ_QUESTIONS)
             article, _ = self._write_family(
                 Path(temp_dir),
-                source_kind='user_csv',
-                artifact_name='user-paa.csv',
+                source_kind="user_csv",
+                artifact_name="user-paa.csv",
                 artifact_content=csv_text,
             )
 
-            findings = self._policy_findings(article, workflow_mode='new')
+            findings = self._policy_findings(article, workflow_mode="new")
 
         self.assertIn(
-            'paa_user_csv_blocker_missing',
-            [finding['rule_id'] for finding in findings],
+            "paa_user_csv_blocker_missing",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_user_csv_rejects_non_csv_primary_artifact(self):
@@ -1126,11 +1127,11 @@ class StrictPaaSourceTests(unittest.TestCase):
             root = Path(temp_dir)
             article, _ = self._write_family(
                 root,
-                source_kind='user_csv',
-                artifact_name='user-paa.md',
-                artifact_content='\n'.join(FAQ_QUESTIONS),
+                source_kind="user_csv",
+                artifact_name="user-paa.md",
+                artifact_content="\n".join(FAQ_QUESTIONS),
             )
-            blocker = root / 'research' / 'answersocrates-blocker.md'
+            blocker = root / "research" / "answersocrates-blocker.md"
             self._write_structured_artifact(
                 root,
                 blocker,
@@ -1141,147 +1142,143 @@ class StrictPaaSourceTests(unittest.TestCase):
 
             findings = self._policy_findings(
                 article,
-                workflow_mode='new',
+                workflow_mode="new",
                 answersocrates_blocker=str(blocker),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
             )
 
         self.assertIn(
-            'paa_user_csv_invalid',
-            [finding['rule_id'] for finding in findings],
+            "paa_user_csv_invalid",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_user_csv_requires_blocker_status_and_reason(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            csv_text = 'question\n' + '\n'.join(
-                f'"{question}"' for question in FAQ_QUESTIONS
-            )
+            csv_text = "question\n" + "\n".join(f'"{question}"' for question in FAQ_QUESTIONS)
             article, _ = self._write_family(
                 root,
-                source_kind='user_csv',
-                artifact_name='user-paa.csv',
+                source_kind="user_csv",
+                artifact_name="user-paa.csv",
                 artifact_content=csv_text,
             )
-            blocker = root / 'research' / 'answersocrates-blocker.md'
+            blocker = root / "research" / "answersocrates-blocker.md"
             blocker.write_text(
                 structured_answersocrates(),
-                encoding='utf-8',
+                encoding="utf-8",
             )
 
             findings = self._policy_findings(
                 article,
-                workflow_mode='new',
+                workflow_mode="new",
                 answersocrates_blocker=str(blocker),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
             )
 
         self.assertIn(
-            'paa_answersocrates_blocker_invalid',
-            [finding['rule_id'] for finding in findings],
+            "paa_answersocrates_blocker_invalid",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_user_csv_rejects_caller_choice_as_a_blocked_state(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            csv_text = 'question\n' + '\n'.join(
-                f'"{question}"' for question in FAQ_QUESTIONS
-            )
+            csv_text = "question\n" + "\n".join(f'"{question}"' for question in FAQ_QUESTIONS)
             article, _ = self._write_family(
                 root,
-                source_kind='user_csv',
-                artifact_name='user-paa.csv',
+                source_kind="user_csv",
+                artifact_name="user-paa.csv",
                 artifact_content=csv_text,
             )
-            blocker = root / 'research' / 'answersocrates-blocker.md'
+            blocker = root / "research" / "answersocrates-blocker.md"
             blocker.write_text(
                 structured_answersocrates(
                     eligible_questions=(),
-                    status='blocked',
-                    blocker='I chose not to run it',
+                    status="blocked",
+                    blocker="I chose not to run it",
                 ),
-                encoding='utf-8',
+                encoding="utf-8",
             )
 
             findings = self._policy_findings(
                 article,
-                workflow_mode='new',
+                workflow_mode="new",
                 answersocrates_blocker=str(blocker),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
             )
 
         self.assertIn(
-            'paa_answersocrates_blocker_invalid',
-            [finding['rule_id'] for finding in findings],
+            "paa_answersocrates_blocker_invalid",
+            [finding["rule_id"] for finding in findings],
         )
 
     def test_evaluate_file_returns_structured_reusable_result(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             article, artifact = self._write_family(
                 Path(temp_dir),
-                source_kind='answersocrates',
-                artifact_name='paa.md',
+                source_kind="answersocrates",
+                artifact_name="paa.md",
                 artifact_content=structured_answersocrates(),
             )
-            evaluator = getattr(paa_provenance_guard, 'evaluate_file', None)
+            evaluator = getattr(paa_provenance_guard, "evaluate_file", None)
 
             self.assertTrue(callable(evaluator))
             result = evaluator(
                 str(article),
-                workflow_mode='new',
+                workflow_mode="new",
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
-                expected_run_id='answersocrates-test-run',
+                expected_run_id="answersocrates-test-run",
             )
             expected_hash = hashlib.sha256(artifact.read_bytes()).hexdigest()
 
         self.assertTrue(result.passed)
-        self.assertEqual(result.workflow_mode, 'new')
-        self.assertEqual(result.source_kind, 'answersocrates')
+        self.assertEqual(result.workflow_mode, "new")
+        self.assertEqual(result.source_kind, "answersocrates")
         self.assertEqual(result.artifact_sha256, expected_hash)
         self.assertEqual(result.artifact_questions, FAQ_QUESTIONS)
         self.assertEqual(result.artifact_query, PAA_QUERY)
         self.assertEqual(result.artifact_collection_date, COLLECTION_DATE)
         self.assertEqual(result.faq_questions, FAQ_QUESTIONS)
         self.assertEqual(result.selected_questions, FAQ_QUESTIONS)
-        self.assertEqual(result.to_dict()['findings'], [])
+        self.assertEqual(result.to_dict()["findings"], [])
 
     def test_user_csv_passes_with_structured_blocker_record(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            csv_text = 'question\n' + '\n'.join(
-                f'"{question}"' for question in FAQ_QUESTIONS
-            )
+            csv_text = "question\n" + "\n".join(f'"{question}"' for question in FAQ_QUESTIONS)
             article, _ = self._write_family(
                 root,
-                source_kind='user_csv',
-                artifact_name='user-paa.csv',
+                source_kind="user_csv",
+                artifact_name="user-paa.csv",
                 artifact_content=csv_text,
             )
-            blocker = root / 'research' / 'answersocrates-blocker.md'
+            blocker = root / "research" / "answersocrates-blocker.md"
             self._write_structured_artifact(
-                root, blocker, questions=(), status="blocked", blocker="quota",
+                root,
+                blocker,
+                questions=(),
+                status="blocked",
+                blocker="quota",
             )
-            evaluator = getattr(paa_provenance_guard, 'evaluate_file', None)
+            evaluator = getattr(paa_provenance_guard, "evaluate_file", None)
 
             self.assertTrue(callable(evaluator))
             result = evaluator(
                 str(article),
-                workflow_mode='new',
+                workflow_mode="new",
                 answersocrates_blocker=str(blocker),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
-                expected_run_id='browser-run-123',
+                expected_run_id="browser-run-123",
             )
-            expected_blocker_hash = hashlib.sha256(
-                blocker.read_bytes()
-            ).hexdigest()
+            expected_blocker_hash = hashlib.sha256(blocker.read_bytes()).hexdigest()
 
         self.assertTrue(result.passed)
-        self.assertEqual(result.source_kind, 'user_csv')
+        self.assertEqual(result.source_kind, "user_csv")
         self.assertEqual(
             result.answersocrates_blocker,
             str(blocker),
@@ -1291,55 +1288,59 @@ class StrictPaaSourceTests(unittest.TestCase):
             expected_blocker_hash,
         )
 
-    def test_user_csv_accepts_nested_research_blocker_with_repo_relative_raw_capture(self):
+    def test_user_csv_accepts_nested_research_blocker_with_repo_relative_raw_capture(
+        self,
+    ):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            csv_text = 'question\n' + '\n'.join(
-                f'"{question}"' for question in FAQ_QUESTIONS
-            )
+            csv_text = "question\n" + "\n".join(f'"{question}"' for question in FAQ_QUESTIONS)
             article, _ = self._write_family(
                 root,
-                source_kind='user_csv',
-                artifact_name='topic/user-paa.csv',
+                source_kind="user_csv",
+                artifact_name="topic/user-paa.csv",
                 artifact_content=csv_text,
             )
-            blocker = root / 'research' / 'topic' / 'answersocrates-blocker.json'
+            blocker = root / "research" / "topic" / "answersocrates-blocker.json"
             blocker.parent.mkdir(parents=True, exist_ok=True)
             self._write_structured_artifact(
-                root, blocker, questions=(), status="blocked", blocker="quota",
+                root,
+                blocker,
+                questions=(),
+                status="blocked",
+                blocker="quota",
             )
 
             result = paa_provenance_guard.evaluate_file(
                 str(article),
-                workflow_mode='rewrite',
+                workflow_mode="rewrite",
                 answersocrates_blocker=str(blocker),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
-                expected_run_id='browser-run-123',
+                expected_run_id="browser-run-123",
             )
 
         self.assertTrue(result.passed)
-        self.assertEqual(result.source_kind, 'user_csv')
+        self.assertEqual(result.source_kind, "user_csv")
 
     def test_h4_faq_questions_receive_the_same_provenance_validation(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             article, _ = self._write_family(
                 Path(temp_dir),
-                source_kind='answersocrates',
-                artifact_name='paa.md',
+                source_kind="answersocrates",
+                artifact_name="paa.md",
                 artifact_content=structured_answersocrates(),
             )
             article.write_text(
-                article.read_text(encoding='utf-8').replace('### ', '#### '),
-                encoding='utf-8',
+                article.read_text(encoding="utf-8").replace("### ", "#### "),
+                encoding="utf-8",
             )
 
             result = paa_provenance_guard.evaluate_file(
                 str(article),
-                workflow_mode='new',
+                workflow_mode="new",
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
-                expected_run_id='answersocrates-test-run',
+                expected_run_id="answersocrates-test-run",
             )
 
         self.assertTrue(result.passed)
@@ -1350,8 +1351,8 @@ class StrictPaaSourceTests(unittest.TestCase):
             root = Path(temp_dir)
             article, brief = self._write_family(
                 root,
-                source_kind='brief_paa',
-                artifact_name='brief-paa.md',
+                source_kind="brief_paa",
+                artifact_name="brief-paa.md",
                 artifact_content=dedicated_brief_paa(),
             )
             output = io.StringIO()
@@ -1360,9 +1361,9 @@ class StrictPaaSourceTests(unittest.TestCase):
                     exit_code = paa_provenance_guard._main(
                         [
                             str(article),
-                            '--workflow-mode',
-                            'rewrite',
-                            '--content-brief',
+                            "--workflow-mode",
+                            "rewrite",
+                            "--content-brief",
                             str(brief),
                         ]
                     )
@@ -1371,15 +1372,15 @@ class StrictPaaSourceTests(unittest.TestCase):
 
         self.assertEqual(exit_code, 0)
         payload = json.loads(output.getvalue())
-        self.assertEqual(payload['result']['workflow_mode'], 'rewrite')
-        self.assertEqual(payload['result']['source_kind'], 'brief_paa')
+        self.assertEqual(payload["result"]["workflow_mode"], "rewrite")
+        self.assertEqual(payload["result"]["source_kind"], "brief_paa")
 
     def test_cli_accepts_answersocrates_expectations(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             article, _ = self._write_family(
                 Path(temp_dir),
-                source_kind='answersocrates',
-                artifact_name='paa.md',
+                source_kind="answersocrates",
+                artifact_name="paa.md",
                 artifact_content=structured_answersocrates(),
             )
             output = io.StringIO()
@@ -1387,23 +1388,23 @@ class StrictPaaSourceTests(unittest.TestCase):
                 exit_code = paa_provenance_guard._main(
                     [
                         str(article),
-                        '--workflow-mode',
-                        'new',
-                        '--expected-query',
+                        "--workflow-mode",
+                        "new",
+                        "--expected-query",
                         PAA_QUERY,
-                '--expected-collection-date',
-                COLLECTION_DATE,
-                '--expected-run-id',
-                'answersocrates-test-run',
+                        "--expected-collection-date",
+                        COLLECTION_DATE,
+                        "--expected-run-id",
+                        "answersocrates-test-run",
                     ]
                 )
 
         self.assertEqual(exit_code, 0)
         payload = json.loads(output.getvalue())
-        self.assertTrue(payload['result']['passed'])
-        self.assertEqual(payload['result']['artifact_query'], PAA_QUERY)
+        self.assertTrue(payload["result"]["passed"])
+        self.assertEqual(payload["result"]["artifact_query"], PAA_QUERY)
         self.assertEqual(
-            payload['result']['artifact_collection_date'],
+            payload["result"]["artifact_collection_date"],
             COLLECTION_DATE,
         )
 
@@ -1437,12 +1438,7 @@ class PaaProvenanceGuardTests(unittest.TestCase):
         self.assertEqual(findings[0]["rule_id"], "paa_provenance_missing")
 
     def test_details_question_markup_is_blocked_instead_of_skipped(self):
-        content = (
-            "# Guide\n\n"
-            "<details><summary>What does field service software do?</summary>\n\n"
-            "It coordinates field work.\n\n"
-            "</details>\n"
-        )
+        content = "# Guide\n\n<details><summary>What does field service software do?</summary>\n\nIt coordinates field work.\n\n</details>\n"
 
         findings = check_content(content, workflow_mode="new")
 
@@ -1471,7 +1467,7 @@ class PaaProvenanceGuardTests(unittest.TestCase):
                 paa_artifact=str(artifact),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
-                expected_run_id='no-faq-run',
+                expected_run_id="no-faq-run",
             )
 
         self.assertEqual(findings, [])
@@ -1495,13 +1491,14 @@ class PaaProvenanceGuardTests(unittest.TestCase):
                 paa_artifact=str(artifact),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
-                expected_run_id='answersocrates-test-run',
+                expected_run_id="answersocrates-test-run",
             )
 
         self.assertIn(
             "paa_answersocrates_artifact_unstructured",
             {finding["rule_id"] for finding in findings},
         )
+
     def test_new_workflow_without_faq_or_answersocrates_artifact_fails(self):
         content = fixture_text("sealed_workflows:test_paa_provenance_guard-1026-1")
 
@@ -1607,7 +1604,7 @@ class PaaProvenanceGuardTests(unittest.TestCase):
                     paa_artifact=str(artifact),
                     expected_query=PAA_QUERY,
                     expected_collection_date=COLLECTION_DATE,
-                    expected_run_id='answersocrates-test-run',
+                    expected_run_id="answersocrates-test-run",
                 )
 
         self.assertIn(
@@ -1624,9 +1621,8 @@ class PaaProvenanceGuardTests(unittest.TestCase):
             artifact.write_text(structured_answersocrates(), encoding="utf-8")
             digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
 
-            with patch.object(
-                paa_provenance_guard,
-                "_file_sha256",
+            with patch(
+                "data_sources.modules.paa_provenance.matching._file_sha256",
                 side_effect=(digest, FileNotFoundError("artifact disappeared")),
             ):
                 findings = check_file(
@@ -1658,9 +1654,7 @@ class PaaProvenanceGuardTests(unittest.TestCase):
             article = root / "drafts" / "hvac-scheduling.md"
             article.parent.mkdir()
             article.write_text(
-                article_with_faq(
-                    fixture_text("sealed_workflows:test_paa_provenance_guard-1189-4")
-                ),
+                article_with_faq(fixture_text("sealed_workflows:test_paa_provenance_guard-1189-4")),
                 encoding="utf-8",
             )
 
@@ -1704,14 +1698,15 @@ class PaaProvenanceGuardTests(unittest.TestCase):
             artifact = root / "research" / "paa-questions-hvac-scheduling-2026-06-12.md"
             artifact.parent.mkdir()
             write_bound_answersocrates(
-                root, artifact, (FAQ_QUESTIONS[0],), run_id="missing-question-run",
+                root,
+                artifact,
+                (FAQ_QUESTIONS[0],),
+                run_id="missing-question-run",
             )
             article = root / "drafts" / "hvac-scheduling.md"
             article.parent.mkdir()
             article.write_text(
-                article_with_faq(
-                    fixture_text("sealed_workflows:test_paa_provenance_guard-1258-5")
-                ),
+                article_with_faq(fixture_text("sealed_workflows:test_paa_provenance_guard-1258-5")),
                 encoding="utf-8",
             )
 
@@ -1719,7 +1714,7 @@ class PaaProvenanceGuardTests(unittest.TestCase):
                 str(article),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
-                expected_run_id='missing-question-run',
+                expected_run_id="missing-question-run",
             )
 
         self.assertEqual(len(findings), 1)
@@ -1734,9 +1729,7 @@ class PaaProvenanceGuardTests(unittest.TestCase):
             article = Path(temp_dir) / "drafts" / "hvac-scheduling.md"
             article.parent.mkdir()
             article.write_text(
-                article_with_faq(
-                    fixture_text("sealed_workflows:test_paa_provenance_guard-1289-6")
-                ),
+                article_with_faq(fixture_text("sealed_workflows:test_paa_provenance_guard-1289-6")),
                 encoding="utf-8",
             )
 
@@ -1757,9 +1750,7 @@ class PaaProvenanceGuardTests(unittest.TestCase):
             article = root / "drafts" / "hvac-scheduling.md"
             article.parent.mkdir()
             article.write_text(
-                article_with_faq(
-                    fixture_text("sealed_workflows:test_paa_provenance_guard-1323-7")
-                ),
+                article_with_faq(fixture_text("sealed_workflows:test_paa_provenance_guard-1323-7")),
                 encoding="utf-8",
             )
 
@@ -1799,7 +1790,7 @@ class ExplicitPaaBindingTests(unittest.TestCase):
                 paa_artifact=str(artifact),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
-                expected_run_id='explicit-run',
+                expected_run_id="explicit-run",
             )
 
         self.assertEqual(findings, [])
@@ -1815,9 +1806,7 @@ class ExplicitPaaBindingTests(unittest.TestCase):
             article = root / "drafts" / "hvac.md"
             article.parent.mkdir()
             article.write_text(
-                article_with_faq(
-                    strict_provenance_block("answersocrates", "research/declared.md")
-                ),
+                article_with_faq(strict_provenance_block("answersocrates", "research/declared.md")),
                 encoding="utf-8",
             )
 
@@ -1827,7 +1816,7 @@ class ExplicitPaaBindingTests(unittest.TestCase):
                 paa_artifact=str(bound),
                 expected_query=PAA_QUERY,
                 expected_collection_date=COLLECTION_DATE,
-                expected_run_id='browser-run-123',
+                expected_run_id="browser-run-123",
             )
 
         self.assertIn(

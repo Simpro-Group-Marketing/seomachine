@@ -1,7 +1,5 @@
 """Text Matching responsibilities."""
-# ruff: noqa: F403, F405
-
-from .common import *  # noqa: F403
+from .common import BeautifulSoup, ClaimCandidate, ProofEntry, _claim_text_for_detection, re
 
 
 def _proof_matches_customer(candidate: ClaimCandidate, proof: ProofEntry) -> bool:
@@ -84,8 +82,31 @@ def _is_generic_name(name: str) -> bool:
     return normalized in generic
 
 
+def _known_customer_names(
+    proof_entries: list[ProofEntry] | tuple[ProofEntry, ...],
+) -> list[str]:
+    names = set()
+    for proof in proof_entries:
+        values = [proof.customer]
+        if (
+            proof.section == "customer proof pack"
+            or proof.source_class in {"customer_proof", "review_platform", "review_story"}
+            or any(token in proof.use.casefold() for token in ("customer", "review"))
+        ):
+            values.append(proof.claim)
+        for value in values:
+            for name in re.findall(
+                r"\b[A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z&]+){1,4}\b",
+                value,
+            ):
+                if not _is_generic_name(name):
+                    names.add(name.strip())
+    return sorted(names, key=len, reverse=True)
+
+
 __all__ = [
     "_proof_matches_customer", "_text_overlaps", "_contains_evidence",
     "_extract_visible_text", "_normalize_key", "_clean_field_value",
     "_normalize_section", "_normalize_text", "_significant_words", "_is_generic_name",
+    "_known_customer_names",
 ]

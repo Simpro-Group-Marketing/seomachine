@@ -67,7 +67,10 @@ class FakeDataForSEO:
         )
         return self.serp_data
 
-    def get_serp_raw_response(self, keyword, limit=20):
+    def get_serp_raw_response(self, keyword, location_code=2840, limit=20):
+        self.serp_calls.append(
+            {"keyword": keyword, "location_code": location_code, "limit": limit}
+        )
         items = [
             {"type": "organic", **row}
             for row in self.serp_data.get("organic_results", [])
@@ -131,7 +134,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
         }
 
         class RawClient:
-            def get_serp_raw_response(self, keyword, limit=20):
+            def get_serp_raw_response(self, keyword, location_code=2840, limit=20):
                 return raw_response
 
             def get_serp_capture(self, keyword, limit=20):
@@ -197,7 +200,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
         }
 
         class CaptureDataForSEO:
-            def get_serp_raw_response(self, keyword, limit=20):
+            def get_serp_raw_response(self, keyword, location_code=2840, limit=20):
                 return raw_response
 
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -669,6 +672,8 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
         uk_args = module.parse_cli_args(
             [
                 "what is a job sheet",
+                "--run-id",
+                "agency-run-cli-uk",
                 "--location-code",
                 "2826",
                 "--google-country",
@@ -806,7 +811,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
             def __init__(self):
                 self.serp_calls = []
 
-            def get_serp_data(self, keyword, location_code=2840, limit=20):
+            def get_serp_raw_response(self, keyword, location_code=2840, limit=20):
                 self.serp_calls.append(
                     {
                         "keyword": keyword,
@@ -852,7 +857,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
             fallback_artifact = json.loads(
                 (
                     output_dir
-                    / "serp-playwright-what-is-a-job-sheet-2026-08-28.json"
+                    / "serp-raw-what-is-a-job-sheet-2026-08-28-playwright.json"
                 ).read_text(encoding="utf-8")
             )
             report_text = (
@@ -873,7 +878,7 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
             result["fallback_search_url"],
             "https://www.google.com/search?q=what+is+a+job+sheet&num=10&hl=en&gl=gb&pws=0",
         )
-        self.assertEqual(fallback_artifact["locale"]["gl"], "gb")
+        self.assertEqual(fallback_artifact["request"]["locale"]["gl"], "gb")
         self.assertIn("**Locale assumptions:** GB", report_text)
 
     def test_run_serp_analysis_rejects_blank_keyword_before_side_effects(self):
@@ -1012,7 +1017,42 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
     def test_missing_dataforseo_credentials_uses_playwright_fallback_and_writes_report(self):
         module = load_research_serp_module()
 
-        def fake_fallback(keyword, output_dir, now, google_country="us"):
+        def fake_fallback(
+            keyword,
+            output_dir,
+            now,
+            google_country="us",
+            run_id="agency-run-fallback",
+            workspace_root=None,
+        ):
+            raw_capture = module.write_serp_raw_capture(
+                output_dir=output_dir,
+                workspace_root=workspace_root or output_dir,
+                keyword=keyword,
+                run_id=run_id,
+                now=now,
+                collector_source="playwright",
+                request_url=(
+                    "https://www.google.com/search?q=labor+burden+rate+calculator"
+                    "&num=10&hl=en&gl=us&pws=0"
+                ),
+                locale={"hl": "en", "gl": google_country, "pws": "0"},
+                raw_response=json.dumps(
+                    {
+                        "organic_results": [
+                            {
+                                "title": "Labor Burden Calculator",
+                                "url": "https://example.com/labor-burden",
+                                "description": "Calculate true labor cost.",
+                            }
+                        ],
+                        "features": ["people_also_ask"],
+                        "paa_questions": [
+                            "How do you calculate labor burden rate?"
+                        ],
+                    }
+                ),
+            )
             return {
                 "fallback_used": True,
                 "fallback_blocker": None,

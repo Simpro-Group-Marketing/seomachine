@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from data_sources.modules import seo_quality_rater as seo_quality_rater_module
+from data_sources.modules.content_scoring.seo_link import _count_markdown_links
 from data_sources.modules.keyword_analyzer import KeywordAnalyzer
 from data_sources.modules.seo_quality_rater import SEOQualityRater
 from data_sources.modules.url_validator import UrlValidationResult, UrlValidationSummary
@@ -268,13 +269,12 @@ class OptimizerModuleTests(unittest.TestCase):
             internal_count=None,
             external_count=None,
         )
-
         findings = "\n".join(result["warnings"] + result["suggestions"])
         self.assertNotIn("Too few non-owned public research links", findings)
         self.assertNotIn("Could add more non-owned public research links", findings)
 
     def test_fragment_mail_and_phone_links_do_not_count_as_internal(self):
-        internal, external = seo_quality_rater_module._count_markdown_links(
+        internal, external = _count_markdown_links(
             "[FAQ](#faq) [Email](mailto:test@example.com) [Call](tel:+15551234567) "
             "[guide](https://www.simprogroup.com/blog/guide) "
             "[authority](https://example.org/rules)",
@@ -576,7 +576,7 @@ Use operating data to compare the same workflow before and after the pilot.
 
     def test_image_alt_and_placeholder_comment_do_not_trigger_keyword_stuffing(self):
         keyword = "Texas plumbing license"
-        content = f"""# Texas Plumbing License Guide
+        content = """# Texas Plumbing License Guide
 
 A Texas plumbing license follows credential-specific state requirements.
 
@@ -1137,7 +1137,7 @@ Use the regulator's current credential pages to compare experience, fees, and su
         )
 
         with patch(
-            "data_sources.modules.seo_quality_rater.validate_content_urls",
+            "data_sources.modules.content_scoring.seo_rater_orchestration.validate_content_urls",
             return_value=UrlValidationSummary([blocked]),
         ):
             result = SEOQualityRater().rate(

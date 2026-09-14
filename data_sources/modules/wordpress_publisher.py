@@ -14,6 +14,9 @@ from typing import Dict, Optional, List
 from pathlib import Path
 
 try:
+    from .artifact_runtime.limits import JSON_MAX_BYTES
+    from .bounded_io import bounded_json_bytes
+    from .publisher_transport import publisher_response_preview, read_wordpress_json
     from .publishable_markdown import (
         PublishableMarkdown,
         capture_file_snapshots,
@@ -31,6 +34,9 @@ try:
     from .source_support_guard import require_source_support
     from .url_validator import validate_file_urls
 except ImportError:
+    from artifact_runtime.limits import JSON_MAX_BYTES
+    from bounded_io import bounded_json_bytes
+    from publisher_transport import publisher_response_preview, read_wordpress_json
     from publishable_markdown import (
         PublishableMarkdown,
         capture_file_snapshots,
@@ -207,9 +213,10 @@ class WordPressPublisher:
                 f"{self.api_base}/categories",
                 params={'per_page': 100, 'page': page},
                 timeout=WORDPRESS_REQUEST_TIMEOUT,
+                stream=True,
             )
             response.raise_for_status()
-            items = response.json()
+            items = read_wordpress_json(response)
             if not items:
                 break
             for cat in items:
@@ -241,9 +248,10 @@ class WordPressPublisher:
                 f"{self.api_base}/tags",
                 params={'per_page': 100, 'page': page},
                 timeout=WORDPRESS_REQUEST_TIMEOUT,
+                stream=True,
             )
             response.raise_for_status()
-            items = response.json()
+            items = read_wordpress_json(response)
             if not items:
                 break
             for tag in items:
@@ -272,13 +280,16 @@ class WordPressPublisher:
             return categories[name_lower]
 
         # Create new category
+        category_payload = {'name': name.strip()}
+        bounded_json_bytes(category_payload, max_bytes=JSON_MAX_BYTES)
         response = self.session.post(
             f"{self.api_base}/categories",
-            json={'name': name.strip()},
+            json=category_payload,
             timeout=WORDPRESS_REQUEST_TIMEOUT,
+            stream=True,
         )
         response.raise_for_status()
-        new_cat = response.json()
+        new_cat = read_wordpress_json(response)
         self._categories_cache[name_lower] = new_cat['id']
         return new_cat['id']
 
@@ -291,13 +302,16 @@ class WordPressPublisher:
             return tags[name_lower]
 
         # Create new tag
+        tag_payload = {'name': name.strip()}
+        bounded_json_bytes(tag_payload, max_bytes=JSON_MAX_BYTES)
         response = self.session.post(
             f"{self.api_base}/tags",
-            json={'name': name.strip()},
+            json=tag_payload,
             timeout=WORDPRESS_REQUEST_TIMEOUT,
+            stream=True,
         )
         response.raise_for_status()
-        new_tag = response.json()
+        new_tag = read_wordpress_json(response)
         self._tags_cache[name_lower] = new_tag['id']
         return new_tag['id']
 
@@ -341,9 +355,10 @@ class WordPressPublisher:
                 f"{self.api_base}/{post_type}",
                 params=params,
                 timeout=WORDPRESS_REQUEST_TIMEOUT,
+                stream=True,
             )
             response.raise_for_status()
-            payload = response.json()
+            payload = read_wordpress_json(response)
             if not isinstance(payload, list):
                 raise RuntimeError("WordPress idempotency lookup did not return a list")
             for candidate in payload:
@@ -491,11 +506,14 @@ class WordPressPublisher:
         if normalized_template:
             post_data["template"] = normalized_template
 
+        bounded_json_bytes(post_data, max_bytes=JSON_MAX_BYTES)
+
         try:
             response = self.session.post(
                 f"{self.api_base}/{endpoint}",
                 json=post_data,
                 timeout=WORDPRESS_REQUEST_TIMEOUT,
+                stream=True,
             )
             response.raise_for_status()
         except (requests.Timeout, requests.ConnectionError) as exc:
@@ -516,7 +534,7 @@ class WordPressPublisher:
             raise
 
         try:
-            created = response.json()
+            created = read_wordpress_json(response)
         except (TypeError, ValueError) as exc:
             return self._reconcile_ambiguous_create(
                 lookup_args=lookup_args,
@@ -538,9 +556,10 @@ class WordPressPublisher:
                 f"{self.api_base}/{endpoint}/{post_id}",
                 params={"context": "edit"},
                 timeout=WORDPRESS_REQUEST_TIMEOUT,
+                stream=True,
             )
             readback_response.raise_for_status()
-            readback = readback_response.json()
+            readback = read_wordpress_json(readback_response)
             _validate_draft_readback(
                 readback,
                 post_id=post_id,
@@ -597,14 +616,16 @@ class WordPressPublisher:
                 'robots_noindex': bool(noindex),
             }
         }
+        bounded_json_bytes(yoast_data, max_bytes=JSON_MAX_BYTES)
 
         response = self.session.post(
             f"{self.api_base}/{post_type}/{post_id}",
             json=yoast_data,
             timeout=WORDPRESS_REQUEST_TIMEOUT,
+            stream=True,
         )
         response.raise_for_status()
-        result = response.json()
+        result = read_wordpress_json(response)
         returned = result.get('yoast_seo') if isinstance(result, dict) else None
         expected = yoast_data['yoast_seo']
         if not isinstance(returned, dict) or any(
@@ -1094,7 +1115,7 @@ def main():
         sys.exit(1)
     except requests.exceptions.HTTPError as e:
         print(f"WordPress API Error: {e}")
-        print(f"Response: {e.response.text if hasattr(e, 'response') else 'N/A'}")
+        print(f"Response: {publisher_response_preview(e.response) if e.response is not None else 'N/A'}")
         sys.exit(1)
     except requests.exceptions.RequestException as e:
         print(f"WordPress network error: {e}")

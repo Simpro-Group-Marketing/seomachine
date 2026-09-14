@@ -1,13 +1,16 @@
 """Orchestration responsibilities."""
-# ruff: noqa: F403, F405
 
-from .common import *  # noqa: F403
+from collections.abc import Mapping, Sequence
+from typing import Any, Dict, Optional
+
+from .common import ScoringDependencies, default_scoring_dependencies
 
 
 class ScoringOrchestrationMixin:
-    def __init__(self):
-        self.readability_scorer = ReadabilityScorer()
-        self.seo_rater = SEOQualityRater()
+    def __init__(self, dependencies: ScoringDependencies | None = None):
+        self.dependencies = dependencies or default_scoring_dependencies()
+        self.readability_scorer = self.dependencies.readability_scorer_factory()
+        self.seo_rater = self.dependencies.seo_rater_factory()
     def score(
         self,
         content: str,
@@ -16,6 +19,7 @@ class ScoringOrchestrationMixin:
         validate_source_support: bool = False,
         source_path: Optional[str] = None,
         proof_sidecar: Optional[str] = None,
+        proof_content: Optional[str] = None,
         finalized_bom: Optional[Mapping[str, Any]] = None,
         assembly_date: Optional[str] = None,
         paa_workflow_mode: Optional[str] = None,
@@ -62,7 +66,7 @@ class ScoringOrchestrationMixin:
         """
         metadata = metadata or {}
 
-        _, visible_body, _ = split_frontmatter(content)
+        _, visible_body, _ = self.dependencies.split_frontmatter(content)
 
         # Reader-facing dimensions are based on visible Markdown body only.
         clean_content = self._clean_for_analysis(visible_body)
@@ -71,7 +75,12 @@ class ScoringOrchestrationMixin:
         humanity = self._score_humanity(clean_content, lint_source=content)
         specificity = self._score_specificity(clean_content)
         structure = self._score_structure_balance(visible_body)
-        seo = self._score_seo(content, metadata, proof_sidecar=proof_sidecar)
+        seo = self._score_seo(
+            content,
+            metadata,
+            proof_sidecar=proof_sidecar,
+            proof_content=proof_content,
+        )
         readability = self._score_readability(clean_content)
 
         # Calculate composite score
@@ -93,6 +102,7 @@ class ScoringOrchestrationMixin:
             validate_source_support=validate_source_support,
             source_path=source_path,
             proof_sidecar=proof_sidecar,
+            proof_content=proof_content,
             finalized_bom=finalized_bom,
             assembly_date=assembly_date,
             paa_workflow_mode=paa_workflow_mode,

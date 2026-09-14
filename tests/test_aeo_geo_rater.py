@@ -11,14 +11,11 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from data_sources.modules.aeo_geo_rater import (
-    _check_direct_answer,
-    _check_eeat_proof,
-    _check_faq_proof,
-    _check_faq_questions,
-    _has_documented_no_fit_experience_boundary,
-    rate_aeo_geo,
-)
+from data_sources.modules.content_scoring.aeo_content import _check_direct_answer
+from data_sources.modules.content_scoring.aeo_eeat import _check_eeat_proof
+from data_sources.modules.content_scoring.aeo_faq_paa import _check_faq_proof, _check_faq_questions
+from data_sources.modules.content_scoring.aeo_no_fit import _has_documented_no_fit_experience_boundary
+from data_sources.modules.content_scoring.aeo_orchestration import rate_aeo_geo
 from data_sources.modules.customer_proof_selector import _main as run_customer_proof_selector
 from tests.research_provenance_fixtures import build_answersocrates_fixture
 from tests.test_customer_proof_selector import (
@@ -133,7 +130,7 @@ def write_bound_experience_story_evidence(
     stdout = StringIO()
     stderr = StringIO()
     with patch(
-        "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+        "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
         new=load_validated_claim_set_for_unit_test,
     ), redirect_stdout(stdout), redirect_stderr(stderr):
         exit_code = run_customer_proof_selector(
@@ -236,7 +233,7 @@ class AeoGeoRaterTests(unittest.TestCase):
         stdout = StringIO()
         stderr = StringIO()
         with patch(
-            "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+            "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
             new=load_validated_claim_set_for_unit_test,
         ), redirect_stdout(stdout), redirect_stderr(stderr):
             exit_code = run_customer_proof_selector(
@@ -296,7 +293,7 @@ class AeoGeoRaterTests(unittest.TestCase):
             root = Path(temp_dir)
             sidecar, sidecar_path, _index_path = self.write_no_fit_selector_evidence(root)
             with patch(
-                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
                 new=load_validated_claim_set_for_unit_test,
             ):
                 result = _has_documented_no_fit_experience_boundary(
@@ -318,7 +315,7 @@ class AeoGeoRaterTests(unittest.TestCase):
                 "A job sheet is a work record used to track job details and follow-up tasks.\n"
             )
             with patch(
-                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
                 new=load_validated_claim_set_for_unit_test,
             ):
                 result = rate_aeo_geo(
@@ -339,7 +336,7 @@ class AeoGeoRaterTests(unittest.TestCase):
                 empty_story_slate=True,
             )
             with patch(
-                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
                 new=load_validated_claim_set_for_unit_test,
             ):
                 result = _has_documented_no_fit_experience_boundary(
@@ -356,7 +353,7 @@ class AeoGeoRaterTests(unittest.TestCase):
             index["version"] = 2
             index_path.write_text(json.dumps(index), encoding="utf-8")
             with patch(
-                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
                 new=load_validated_claim_set_for_unit_test,
             ):
                 result = _has_documented_no_fit_experience_boundary(
@@ -385,7 +382,7 @@ class AeoGeoRaterTests(unittest.TestCase):
             )
             sidecar_path.write_text(sidecar, encoding="utf-8")
             with patch(
-                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
                 new=load_validated_claim_set_for_unit_test,
             ):
                 result = _has_documented_no_fit_experience_boundary(
@@ -415,7 +412,7 @@ class AeoGeoRaterTests(unittest.TestCase):
             )
             sidecar_path.write_text(sidecar, encoding="utf-8")
             with patch(
-                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
                 new=load_validated_claim_set_for_unit_test,
             ):
                 result = _has_documented_no_fit_experience_boundary(
@@ -456,7 +453,7 @@ class AeoGeoRaterTests(unittest.TestCase):
             )
             sidecar_path.write_text(sidecar, encoding="utf-8")
             with patch(
-                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
                 new=load_validated_claim_set_for_unit_test,
             ):
                 result = _has_documented_no_fit_experience_boundary(
@@ -517,7 +514,7 @@ class AeoGeoRaterTests(unittest.TestCase):
             proof_sidecar += proof_sidecar_suffix
             proof_sidecar_path.write_text(proof_sidecar, encoding="utf-8")
             with patch(
-                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
                 new=load_validated_claim_set_for_unit_test,
             ):
                 return rate_aeo_geo(
@@ -746,7 +743,7 @@ class AeoGeoRaterTests(unittest.TestCase):
                 self.write_bound_experience_story_evidence(root)
             )
             with patch(
-                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
                 new=load_validated_claim_set_for_unit_test,
             ):
                 result = rate_aeo_geo(
@@ -915,7 +912,7 @@ class AeoGeoRaterTests(unittest.TestCase):
                 self.write_bound_experience_story_evidence(root)
             )
             with patch(
-                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
                 new=load_validated_claim_set_for_unit_test,
             ):
                 result = rate_aeo_geo(
@@ -940,7 +937,7 @@ class AeoGeoRaterTests(unittest.TestCase):
         )
         proof_sidecar = "## Fred Voccola Authority Selection\n- Evaluation status: completed\n- Top candidates: [FVMI-0003]\n- Selected: [FVMI-0003]\n- Context receipt: research/context-receipt-what-is-an-end-to-end-solution.json\n- Claim IDs: [claim-fred-FVMI-0003]\n- Receipt revision: dd7488e21bcbeae9506147a29c9e5dd18f19d21d3051cc516a06e39d9b387319\n- Approval source: connector_claim_result\n- Fit decision: Selected for inline authority citation only.\n- Intended use: inline_citation\n- Target section: What Is an End to End Solution for Field Service?\n- Authority row: [res-7b30f511fc345ff2bb5fd9e515f03d06]\n- Public URL: https://youtube.com/watch?v=5pXio-zMXFI\n- Evidence status: receipt_approved\n- Verification method: not_applicable\n- Evidence excerpt: not applicable\n- Timestamp or locator: not applicable\n- Playback verified: not_applicable\n- Exact quote: not applicable\n- Embed decision: no\n- VideoObject: not applicable"
 
-        with patch("data_sources.modules.aeo_geo_rater._has_documented_no_fit_experience_boundary", return_value=True):
+        with patch("data_sources.modules.content_scoring.aeo_eeat._has_documented_no_fit_experience_boundary", return_value=True):
             result = _check_eeat_proof(
                 body,
                 body,
@@ -962,7 +959,7 @@ class AeoGeoRaterTests(unittest.TestCase):
                 self.write_bound_experience_story_evidence(root)
             )
             with patch(
-                "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+                "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
                 new=load_validated_claim_set_for_unit_test,
             ):
                 result = rate_aeo_geo(
@@ -1056,7 +1053,7 @@ Customer Proof Slate
                 self.assertFalse(result["checks"]["eeat_proof"]["passed"])
 
     @patch(
-        "data_sources.modules.aeo_geo_rater._customer_proof_ids",
+        "data_sources.modules.content_scoring.aeo_no_fit._customer_proof_ids",
         return_value=frozenset(),
     )
     def test_documented_no_fit_fails_closed_when_proof_index_is_unavailable(
@@ -1272,13 +1269,13 @@ E-E-A-T Proof Map
 
     def test_raw_prevalidated_findings_do_not_suppress_faq_and_paa_runs(self):
         with patch(
-            "data_sources.modules.aeo_geo_rater.check_faq_answer_quality",
+            "data_sources.modules.content_scoring.aeo_faq_paa.check_faq_answer_quality",
             return_value=[],
         ) as faq_answer_gate, patch(
-            "data_sources.modules.aeo_geo_rater.check_faq_proof",
+            "data_sources.modules.content_scoring.aeo_faq_paa.check_faq_proof",
             return_value=[],
         ) as faq_proof_gate, patch(
-            "data_sources.modules.aeo_geo_rater.check_paa_provenance_content",
+            "data_sources.modules.content_scoring.aeo_faq_paa.check_paa_provenance_content",
             return_value=[],
         ) as paa_gate:
             result = self.rate_with_bound_experience(

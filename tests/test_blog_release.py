@@ -68,7 +68,7 @@ def test_blog_release_writes_fixed_artifacts_for_blocker_and_initial_scorecard(
     blocked_telemetry = json.loads(
         (blocked.output_dir / "release-telemetry.json").read_text(encoding="utf-8")
     )
-    assert blocked_telemetry["schema"] == "simpro-readiness-telemetry/v1"
+    assert blocked_telemetry["schema"] == "simpro-readiness-telemetry/v2"
     assert blocked_telemetry["outcome"] == "blocked"
     assert not (blocked.output_dir / "provisional-bom.json").exists()
 

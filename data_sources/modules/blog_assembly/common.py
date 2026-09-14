@@ -8,7 +8,6 @@ import copy
 import json
 import os
 import re
-import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -110,32 +109,3 @@ PLACEHOLDER_VALUES = blog_identity_guard.PLACEHOLDER_VALUES
 NON_CONNECTOR_REASON = (
     "Final article contains no Simpro brand, URL, or connector-sensitive language."
 )
-
-
-
-
-_DEFAULT_LOAD_JSON_OBJECT_SNAPSHOT = load_json_object_snapshot
-
-def _legacy_value(name: str, default: Any = None) -> Any:
-    module = sys.modules.get("data_sources.modules.blog_assembly_bom")
-    module = module or sys.modules.get("blog_assembly_bom") or sys.modules.get("__main__")
-    return getattr(module, name, default)
-
-def load_json_object_snapshot(*args: Any, **kwargs: Any) -> Any:
-    target = _legacy_value("load_json_object_snapshot", _DEFAULT_LOAD_JSON_OBJECT_SNAPSHOT)
-    if target is load_json_object_snapshot:
-        target = _DEFAULT_LOAD_JSON_OBJECT_SNAPSHOT
-    return target(*args, **kwargs)
-
-def _proxy(name: str):
-    def call(*args, **kwargs):
-        target = _legacy_value(name)
-        if target is None or target is call:
-            raise RuntimeError(f"blog-assembly dependency is unavailable: {name}")
-        return target(*args, **kwargs)
-    return call
-
-for _proxy_name in ['_author_policy', '_connector_binding', '_derive_paa_policy', '_editorial_plan_summary', '_execution_evidence_from_prior_preflight', '_has_video_embed', '_hindsight_strategy_block', '_hindsight_strategy_policy', '_identity_from_article', '_is_number', '_is_supported_bom_schema', '_iso_date', '_label_paths', '_machine_review_bindings', '_nonempty', '_normalize_hindsight_block_text', '_optional_artifact', '_optional_json_schema', '_read_json_object', '_readiness_receipt_path', '_reject_bom_output_collision', '_required_article_scalar', '_required_enum', '_required_mapping', '_required_string', '_resolvable_receipt_evidence_hashes', '_schema_policy', '_string_list', '_validate_article_identity', '_validate_editorial_plan', '_validate_final_bom_guard', '_validate_input_path', '_validate_passed_preflight', '_validate_path_sequence', '_validate_persisted_readiness_contract', '_validate_preflight_stage_receipt', '_validate_prior_preflight_readiness', '_validate_provisional_bom_guard', '_validate_provisional_stage_receipts', '_verify_bom_artifacts_unchanged', '_visible_faq_questions', 'build_blog_assembly_bom', 'build_blog_assembly_bom_from_files', 'finalize_blog_assembly_bom', 'main', 'validate_preflight_stage_receipt_binding', 'write_blog_assembly_bom']:
-    globals()[_proxy_name] = _proxy(_proxy_name)
-
-__all__ = [name for name in globals() if not name.startswith("__")]

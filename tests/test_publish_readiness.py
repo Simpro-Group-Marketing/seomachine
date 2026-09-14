@@ -21,6 +21,7 @@ from data_sources.modules.nonvault_customer_proof_selector import (
     write_nonvault_selector_evidence,
 )
 from data_sources.modules.readiness.telemetry import ReadinessTelemetry
+from data_sources.modules.readiness.dependencies import ReadinessDependencies
 from tests.nonvault_proof_fixture import write_nonvault_proof_inputs
 
 
@@ -90,25 +91,25 @@ def files(tmp_path):
 
 
 CURRENT_GATES = [
-    ("context_binding", "context_binding_guard.validate_context_artifacts"),
-    ("public_artifact", "public_artifact_guard.check_file"),
-    ("ai_copy_linter", "ai_copy_linter.lint_file"),
-    ("public_research_links", "public_research_link_guard.check_file"),
+    ("context_binding", "context_binding_guard.validate_context_payloads"),
+    ("public_artifact", "public_artifact_guard.check_content"),
+    ("ai_copy_linter", "ai_copy_linter.lint_content"),
+    ("public_research_links", "public_research_link_guard.check_content"),
     ("industry_cluster_link_policy", "industry_cluster_link_policy.check_content"),
     ("metric_proof_pack", "metric_proof_pack_guard.check_content"),
     ("numeric_claim_source", "numeric_claim_source_guard.check_content"),
     ("faq_answer_quality", "faq_answer_quality_guard.check_content"),
     ("faq_proof", "faq_proof_guard.check_content"),
     ("paa_provenance", "paa_provenance_guard.check_content"),
-    ("editorial_plan", "editorial_plan_guard.check_file"),
-    ("semrush_keyword_decision", "semrush_keyword_decision_guard.check_file"),
+    ("editorial_plan", "editorial_plan_guard._check_loaded_plan"),
+    ("semrush_keyword_decision", "semrush_keyword_decision_guard.check_decision"),
     ("competitive_shortlist", "competitive_shortlist_guard.check_content"),
     ("hindsight_boundary", "hindsight_boundary_guard.check_content"),
     ("source_support", "source_support_guard.check_content"),
     ("source_quality", "source_quality_guard.check_content"),
     ("customer_proof_diversity", "customer_proof_diversity_guard.check_content"),
     ("review_story_identity", "review_story_identity_guard.check_content"),
-    ("eeat_strength", "eeat_strength_guard.check_file"),
+    ("eeat_strength", "eeat_strength_guard.check_content"),
     ("early_artifact", "early_artifact_guard.check_content"),
     ("answer_withholding", "answer_withholding_guard.check_content"),
     ("vault_brand_language", "vault_brand_language_guard.check_content"),
@@ -323,15 +324,15 @@ def run_with_patches(
             )
         mocks["blog_assembly_bom"] = stack.enter_context(
             patch(
-                "data_sources.modules.publish_readiness.blog_assembly_bom_guard.check_bom_file",
+                "data_sources.modules.publish_readiness.blog_assembly_bom_guard.check_bom",
                 side_effect=gate("blog_assembly_bom"),
             )
         )
         stack.enter_context(
-            patch("data_sources.modules.publish_readiness.validate_file_urls", side_effect=validate_urls)
+            patch("data_sources.modules.readiness.pipeline_tail.validate_content_urls", side_effect=validate_urls)
         )
         mocks["scorer"] = stack.enter_context(
-            patch("data_sources.modules.publish_readiness.ContentScorer", return_value=scorer)
+            patch("data_sources.modules.readiness.adapters.ContentScorer", return_value=scorer)
         )
         result = publish_readiness.run_publish_readiness(
             article,
@@ -488,7 +489,7 @@ def test_readiness_parses_the_captured_article_without_reopening_it(files):
     article, sidecar = files
 
     with patch(
-        "data_sources.modules.publish_readiness.read_publishable_markdown",
+        "data_sources.modules.publish_readiness_core.read_publishable_markdown",
         side_effect=AssertionError("article was reopened after immutable capture"),
     ):
         result, _, _, _ = run_with_patches(article, sidecar)
@@ -571,7 +572,7 @@ def test_final_attestation_reuses_authenticated_preflight_without_running_gates(
     final_path.write_text(json.dumps(final_bom), encoding="utf-8")
 
     with patch(
-        "data_sources.modules.publish_readiness._run_publish_readiness",
+        "data_sources.modules.publish_readiness_core._run_publish_readiness",
         side_effect=AssertionError("final attestation reran the full gate stack"),
     ):
         final = publish_readiness.build_final_readiness_attestation(
@@ -770,7 +771,7 @@ def test_blog_without_assembly_bom_fails_before_downstream_gates(files):
 
     gate_names = [gate["name"] for gate in result["gates"]]
     assert result["passed"] is False
-    assert gate_names == ["artifact_identity", "context_binding", "blog_assembly_bom"]
+    assert gate_names == ["artifact_identity", "context_binding", "blog_assembly_bom", "input_seal"]
     assert order == ["context_binding"]
     bom_gate = result["gates"][2]
     assert bom_gate["findings"][0]["rule_id"] == "bom_missing"
@@ -809,7 +810,7 @@ def test_missing_explicit_artifact_kind_fails_before_context_binding(files):
     )
 
     assert result["passed"] is False
-    assert [gate["name"] for gate in result["gates"]] == ["artifact_identity"]
+    assert [gate["name"] for gate in result["gates"]] == ["artifact_identity", "input_seal"]
     assert result["gates"][0]["findings"][0]["rule_id"] == "artifact_kind_missing"
     assert order == []
     mocks["context_binding"].assert_not_called()
@@ -955,6 +956,7 @@ def test_missing_context_binding_stops_before_other_gates_and_scoring(files):
     assert [gate["name"] for gate in result["gates"]] == [
         "artifact_identity",
         "context_binding",
+        "input_seal",
     ]
     assert result["score"] is None
     assert result["aeo_geo"]["score"] is None
@@ -1105,7 +1107,7 @@ def test_sidecar_is_forwarded_to_all_proof_gates_and_scorer(files):
         "fred_authority",
     }:
         assert mocks[name].call_args.kwargs["proof_content"] == proof_content
-    assert mocks["eeat_strength"].call_args.kwargs["proof_sidecar"] == str(sidecar)
+    assert mocks["eeat_strength"].call_args.kwargs["proof_content"] == proof_content
     assert scorer.score.call_args.kwargs["proof_sidecar"] == str(sidecar)
 
 
@@ -1116,34 +1118,27 @@ def test_context_artifacts_are_forwarded_to_claim_sensitive_gates(files):
     receipt = article.parent / "receipt.json"
     for artifact in (request, pack, receipt):
         artifact.write_text("{}\n", encoding="utf-8")
-    with patch(
-        "data_sources.modules.publish_readiness.SimproVaultClient",
-        return_value=Mock(),
-    ):
-        result, _, mocks, _ = run_with_patches(
-            article,
-            sidecar,
-            context_request=request,
-            context_pack=pack,
-            context_receipt=receipt,
-            vault_root=article.parent,
-        )
+    result, _, mocks, _ = run_with_patches(
+        article,
+        sidecar,
+        context_request=request,
+        context_pack=pack,
+        context_receipt=receipt,
+        vault_root=article.parent,
+        dependencies=ReadinessDependencies(connector_factory=lambda **kwargs: Mock()),
+    )
 
     assert result["passed"] is True
     context_kwargs = mocks["context_binding"].call_args.kwargs
-    assert context_kwargs["context_request"] == str(request)
-    assert context_kwargs["context_pack"] == str(pack)
-    assert context_kwargs["context_receipt"] == str(receipt)
+    assert context_kwargs["request"] == {}
+    assert context_kwargs["pack"] == {}
+    assert context_kwargs["receipt"] == {}
+    assert context_kwargs["request_path"] == request
     assert context_kwargs["vault_root"] == article.parent
-    for name in {
-        "named_feature_status",
-        "customer_proof_diversity",
-        "fred_authority",
-        "vault_brand_language",
-    }:
-        call_kwargs = mocks[name].call_args.kwargs
-        assert call_kwargs["context_pack"] == str(pack)
-        assert call_kwargs["context_receipt"] == str(receipt)
+    assert mocks["named_feature_status"].call_args.kwargs["context_pack"] == {}
+    assert mocks["vault_brand_language"].call_args.kwargs["context_receipt"] == {}
+    for name in {"customer_proof_diversity", "fred_authority"}:
+        assert mocks[name].call_args.kwargs["context_pack"] == str(pack)
     assert mocks["named_feature_status"].call_args.kwargs["vault_root"] == article.parent
     assert mocks["fred_authority"].call_args.kwargs["vault_root"] == article.parent
 
@@ -1158,21 +1153,20 @@ def test_connector_client_and_validated_claim_set_are_reused_once_per_run(files)
     client = Mock()
     claims = Mock()
 
-    with patch(
-        "data_sources.modules.publish_readiness.SimproVaultClient",
-        return_value=client,
-    ) as client_factory, patch(
-        "data_sources.modules.publish_readiness.load_validated_claim_set",
-        return_value=claims,
-    ) as claim_loader:
-        result, _, mocks, _ = run_with_patches(
-            article,
-            sidecar,
-            context_request=request,
-            context_pack=pack,
-            context_receipt=receipt,
-            vault_root=article.parent,
-        )
+    client_factory = Mock(return_value=client)
+    claim_loader = Mock(return_value=claims)
+    result, _, mocks, _ = run_with_patches(
+        article,
+        sidecar,
+        context_request=request,
+        context_pack=pack,
+        context_receipt=receipt,
+        vault_root=article.parent,
+        dependencies=ReadinessDependencies(
+            connector_factory=client_factory,
+            claim_set_loader=claim_loader,
+        ),
+    )
 
     assert result["passed"] is True
     client_factory.assert_called_once_with(vault_root=article.parent)
@@ -1217,9 +1211,7 @@ def test_semrush_keyword_decision_gate_receives_bom_bound_artifact(files):
 
     assert result["passed"] is True
     call = mocks["semrush_keyword_decision"].call_args
-    assert call.args[0].endswith("research\\semrush-keyword-decision-draft.json") or call.args[0].endswith(
-        "research/semrush-keyword-decision-draft.json"
-    )
+    assert call.args[0]["schema"] == "simpro-semrush-keyword-decision/v1"
     assert call.kwargs["article_path"] == article
     assert call.kwargs["assembly_date"] == CURRENT_DATE
     assert call.kwargs["editorial_plan_path"].endswith("research\\editorial-plan.json") or call.kwargs[
@@ -1279,7 +1271,7 @@ def test_assembly_bom_mismatch_blocks_before_downstream_gates(files, tmp_path):
     gate_names = [gate["name"] for gate in result["gates"]]
     bom_gate = next(gate for gate in result["gates"] if gate["name"] == "blog_assembly_bom")
     assert result["passed"] is False
-    assert gate_names == ["artifact_identity", "context_binding", "blog_assembly_bom"]
+    assert gate_names == ["artifact_identity", "context_binding", "blog_assembly_bom", "input_seal"]
     assert order == ["context_binding", "blog_assembly_bom"]
     assert any(
         finding["rule_id"] == "bom_context_receipt_path_mismatch"
@@ -1321,6 +1313,7 @@ def test_semrush_keyword_decision_blocks_before_downstream_gates(files):
         "paa_provenance",
         "editorial_plan",
         "semrush_keyword_decision",
+        "input_seal",
     ]
     assert order[-1] == "semrush_keyword_decision"
     assert semrush_gate["errors"] == 1
@@ -1331,7 +1324,7 @@ def test_semrush_keyword_decision_blocks_before_downstream_gates(files):
 def test_json_output_has_stable_scoring_keys(files):
     article, sidecar = files
     output = io.StringIO()
-    with patch("data_sources.modules.publish_readiness.run_publish_readiness") as runner:
+    with patch("data_sources.modules.readiness.reporting.run_publish_readiness") as runner:
         runner.return_value = {
             "file": str(article), "proof_sidecar": str(sidecar), "passed": True, "score": 91.2,
             "aeo_geo": {"score": 96}, "priority_fixes": [], "gates": [],
@@ -1356,7 +1349,7 @@ def test_cli_writes_optional_content_free_telemetry_for_blocked_run(files, tmp_p
         "gates": [{"name": "context_binding"}],
     }
     with patch(
-        "data_sources.modules.publish_readiness.run_publish_readiness",
+        "data_sources.modules.readiness.reporting.run_publish_readiness",
         return_value=blocked,
     ), redirect_stdout(io.StringIO()):
         exit_code = publish_readiness.main(
@@ -1374,7 +1367,7 @@ def test_cli_writes_optional_content_free_telemetry_for_blocked_run(files, tmp_p
 
     payload = json.loads(destination.read_text(encoding="utf-8"))
     assert exit_code == 1
-    assert payload["schema"] == "simpro-readiness-telemetry/v1"
+    assert payload["schema"] == "simpro-readiness-telemetry/v2"
     assert payload["phase"] == "preflight"
     assert payload["outcome"] == "blocked"
     assert payload["counters"]["full_readiness_executions"] == 1
@@ -1393,7 +1386,7 @@ def test_cli_telemetry_write_failure_is_operational_exit_two(files):
         "priority_fixes": [],
     }
     with patch(
-        "data_sources.modules.publish_readiness.run_publish_readiness",
+        "data_sources.modules.readiness.reporting.run_publish_readiness",
         return_value=blocked,
     ), patch(
         "data_sources.modules.publish_readiness.ReadinessTelemetry.write",
@@ -1439,7 +1432,7 @@ def test_cli_atomically_persists_readiness_output(files, tmp_path):
     destination = tmp_path / "readiness.json"
     expected, _, _, _ = run_with_patches(article, sidecar)
     with patch(
-        "data_sources.modules.publish_readiness.run_publish_readiness",
+        "data_sources.modules.readiness.reporting.run_publish_readiness",
         return_value=expected,
     ):
         with redirect_stdout(io.StringIO()):
@@ -1564,7 +1557,7 @@ def test_receipt_build_failure_does_not_leave_passed_readiness_output(files, tmp
     destination = tmp_path / "readiness.json"
 
     with patch(
-        "data_sources.modules.publish_readiness.build_stage_receipt",
+        "data_sources.modules.readiness.persistence_api.build_stage_receipt",
         side_effect=ValueError("receipt failed"),
     ):
         with pytest.raises(ValueError, match="receipt failed"):
@@ -1581,7 +1574,7 @@ def test_receipt_write_failure_restores_previous_readiness_output(files, tmp_pat
     destination.write_bytes(b"previous readiness bytes\n")
 
     with patch(
-        "data_sources.modules.publish_readiness.write_stage_receipt",
+        "data_sources.modules.readiness.persistence_api.write_stage_receipt",
         side_effect=OSError("receipt replace failed"),
     ):
         with pytest.raises(OSError, match="receipt replace failed"):
@@ -1873,7 +1866,7 @@ def test_landing_page_uses_landing_scorer_contract(tmp_path):
     }
 
     with patch(
-        "data_sources.modules.publish_readiness.LandingPageScorer",
+        "data_sources.modules.readiness.adapters.LandingPageScorer",
         return_value=scorer,
     ) as scorer_type:
         result = publish_readiness._score_content(

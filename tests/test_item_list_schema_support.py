@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from data_sources.modules import blog_assembly_contract
-from data_sources.modules.aeo_geo_rater import _check_schema
+from data_sources.modules.content_scoring.aeo_metadata_schema import _check_schema
 from data_sources.modules.blog_assembly_bom import _schema_policy
 from data_sources.modules.blog_assembly_bom_guard import check_bom
 from data_sources.modules.frontmatter import FrontmatterError, split_frontmatter

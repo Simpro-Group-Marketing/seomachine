@@ -9,7 +9,6 @@ import html
 import json
 import math
 import re
-import subprocess
 import sys
 import zipfile
 from collections import Counter
@@ -23,6 +22,14 @@ from urllib.parse import urlsplit
 REPO = Path(r"C:\Users\patrick.grueschow\Desktop\Repos\seomachine-main")
 MARKETINGSKILLS = Path(
     r"C:\Users\patrick.grueschow\Desktop\Repos\marketingskills-main"
+)
+
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+
+from data_sources.modules.artifact_runtime.subprocesses import (
+    BoundedTextProcess,
+    run_bounded_text_process,
 )
 RUN_DATE = "2026-09-03"
 OUTPUT_DIR = REPO / "research" / f"live-blog-performance-corrected-{RUN_DATE}"
@@ -88,16 +95,14 @@ ICP_TERMS = [
 ]
 
 
-def run(command: list[str], *, cwd: Path, timeout: int = 300) -> subprocess.CompletedProcess:
-    result = subprocess.run(
+def run(command: list[str], *, cwd: Path, timeout: int = 300) -> BoundedTextProcess:
+    result = run_bounded_text_process(
         command,
         cwd=str(cwd),
-        capture_output=True,
-        text=True,
         encoding="utf-8",
         errors="replace",
         timeout=timeout,
-        check=False,
+        max_output_bytes=32 * 1024 * 1024,
     )
     if result.returncode != 0:
         raise RuntimeError(

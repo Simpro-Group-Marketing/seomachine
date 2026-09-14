@@ -62,11 +62,16 @@ def test_live_blog_ranking_count_is_complete_and_probes_are_top_n(monkeypatch) -
         assert isinstance(service, _Service)
         calls.append(kwargs)
         dimensions = kwargs["body"]["dimensions"]
-        if dimensions == ["page"]:
-            return {"rows": [{"keys": ["https://example.com/blog/post"]}]}
-        return {"rows": [{"keys": ["query-a"], "impressions": 2}]}
+        assert dimensions == ["page"]
+        return {"rows": [{"keys": ["https://example.com/blog/post"]}]}
+
+    def fake_iter(service, **kwargs):
+        assert isinstance(service, _Service)
+        calls.append(kwargs)
+        return iter([{"keys": ["query-a"], "impressions": 2}])
 
     monkeypatch.setattr(live_blog.gsc, "query_search_analytics", fake_query)
+    monkeypatch.setattr(live_blog.gsc, "iter_search_analytics_rows", fake_iter)
 
     result = live_blog.pull_gsc_period(
         _Service(),
@@ -78,7 +83,7 @@ def test_live_blog_ranking_count_is_complete_and_probes_are_top_n(monkeypatch) -
     assert result["ranking_query_count"] == 1
     assert calls[0]["mode"] is GscQueryMode.TOP_N
     assert calls[0]["max_rows"] == 10
-    assert calls[1]["mode"] is GscQueryMode.COMPLETE
+    assert calls[1]["require_complete"] is True
     assert calls[1]["max_rows"] == GSC_MAX_WORKFLOW_ROWS
 
 

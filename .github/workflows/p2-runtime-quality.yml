@@ -31,25 +31,48 @@ jobs:
         run: >-
           python -m compileall -q
           data_sources/modules/artifact_runtime
+          data_sources/modules/bounded_io
           data_sources/modules/gsc
+          data_sources/modules/resource_metrics
+          data_sources/modules/publisher_transport.py
           tools/check_memory_contract.py
           tools/check_worker_metrics.py
           tools/prune_artifacts.py
-      - name: Run isolated P2 contract shard
-        env:
-          SEOMACHINE_WORKER_METRICS_DIR: ${{ runner.temp }}/p2-worker-metrics
+      - name: Run isolated P2 contract shard serially
         run: >-
-          python -m pytest -q -n 4 --dist loadscope -p no:cacheprovider
-          --basetemp "${{ runner.temp }}/p2-pytest"
+          python -m pytest -q -p no:cacheprovider
+          --basetemp "${{ runner.temp }}/p2-pytest-serial"
           tests/test_artifact_runtime.py
           tests/test_context_trace_store.py
+          tests/test_retention_plan_manifest.py
           tests/test_gsc_pagination.py
           tests/test_gsc_script_migrations.py
           tests/test_memory_contract.py
           tests/test_worker_metrics.py
           tests/test_worker_metrics_contract.py
+          tests/test_subprocess_structure.py
+          tests/test_publisher_io_limits.py
+      - name: Run identical P2 contract shard with four workers
+        env:
+          SEOMACHINE_WORKER_METRICS_DIR: ${{ runner.temp }}/p2-worker-metrics
+          SEOMACHINE_WORKER_METRICS_RUN_ID: p2-${{ github.run_id }}-${{ github.run_attempt }}
+        run: >-
+          python -m pytest -q -n 4 --dist loadscope -p no:cacheprovider
+          --basetemp "${{ runner.temp }}/p2-pytest"
+          tests/test_artifact_runtime.py
+          tests/test_context_trace_store.py
+          tests/test_retention_plan_manifest.py
+          tests/test_gsc_pagination.py
+          tests/test_gsc_script_migrations.py
+          tests/test_memory_contract.py
+          tests/test_worker_metrics.py
+          tests/test_worker_metrics_contract.py
+          tests/test_subprocess_structure.py
+          tests/test_publisher_io_limits.py
       - name: Validate worker metrics
         run: >-
           python tools/check_worker_metrics.py
           "${{ runner.temp }}/p2-worker-metrics"
           --expected-workers 4
+          --run-id "p2-${{ github.run_id }}-${{ github.run_attempt }}"
+          --max-peak-rss-mib 96

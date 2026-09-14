@@ -6,11 +6,10 @@ import hashlib
 import json
 import socket
 import threading
-from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Iterator, Mapping
+from typing import Iterable, Iterator, Mapping
 from urllib.parse import urlsplit, urlunsplit
 
 import requests
@@ -22,107 +21,19 @@ except ImportError:  # pragma: no cover - supports direct module-path execution.
     from artifact_runtime.paths import cache_path
     from public_url_safety import request_public_url, validate_public_url
 from .cache import ResponseCache
+from .batch import HttpBatchPolicy, Observer, execute_many, resolve_batch_policy
 from .policies import (
     MAX_CACHE_BYTES,
     MAX_PER_HOST,
     MAX_WORKERS,
-    TRANSIENT_STATUSES,
     TRANSPORT_VERSION,
     HttpRequestPolicy,
     URL_RESOLUTION_POLICY,
 )
+from .snapshot import ResponseSnapshot
 
 
-CACHE_SCHEMA = "simpro-public-http-cache/v2"
 SENSITIVE_HEADERS = frozenset({"authorization", "cookie", "proxy-authorization"})
-
-
-@dataclass(frozen=True, slots=True)
-class _ResponseSnapshot:
-    status_code: int
-    body: bytes
-    content_type: str
-    final_url: str
-
-    @classmethod
-    def capture(
-        cls,
-        response: Any,
-        *,
-        policy: HttpRequestPolicy,
-    ) -> "_ResponseSnapshot":
-        snapshot = cls(
-            status_code=int(response.status_code),
-            body=bytes(getattr(response, "content", b"")),
-            content_type=str(getattr(response, "headers", {}).get("Content-Type", "")),
-            final_url=str(getattr(response, "url", "")),
-        )
-        snapshot.validate(policy)
-        return snapshot
-
-    def validate(self, policy: HttpRequestPolicy) -> None:
-        if len(self.body) > policy.max_response_bytes:
-            raise ValueError("public HTTP response exceeds policy byte limit")
-        mime = self.content_type.partition(";")[0].strip().casefold()
-        accepted = {value.casefold() for value in policy.accepted_mime_types}
-        if "*/*" not in accepted and mime not in accepted:
-            raise ValueError("public HTTP response MIME type is not accepted by policy")
-
-    def response(self) -> requests.Response:
-        response = requests.Response()
-        response.status_code = self.status_code
-        response._content = self.body
-        response._content_consumed = True
-        response.url = self.final_url
-        if self.content_type:
-            response.headers["Content-Type"] = self.content_type
-        return response
-
-    def persistent_value(self, *, policy_digest: str) -> dict[str, Any]:
-        return {
-            "schema": CACHE_SCHEMA,
-            "policy_digest": policy_digest,
-            "status_code": self.status_code,
-            "body": self.body,
-            "body_digest": hashlib.sha256(self.body).hexdigest(),
-            "byte_count": len(self.body),
-            "content_type": self.content_type,
-            "final_url": self.final_url,
-        }
-
-    @classmethod
-    def from_value(
-        cls,
-        value: Mapping[str, Any],
-        *,
-        policy: HttpRequestPolicy,
-        policy_digest: str,
-    ) -> "_ResponseSnapshot" | None:
-        expected = {
-            "schema", "policy_digest", "status_code", "body", "body_digest",
-            "byte_count", "content_type", "final_url",
-        }
-        if set(value) != expected or value.get("schema") != CACHE_SCHEMA:
-            return None
-        status = value.get("status_code")
-        body = value.get("body")
-        if (
-            isinstance(status, bool)
-            or not isinstance(status, int)
-            or not isinstance(body, bytes)
-            or not isinstance(value.get("content_type"), str)
-            or not isinstance(value.get("final_url"), str)
-            or value.get("policy_digest") != policy_digest
-            or value.get("byte_count") != len(body)
-            or value.get("body_digest") != hashlib.sha256(body).hexdigest()
-        ):
-            return None
-        snapshot = cls(status, body, str(value["content_type"]), str(value["final_url"]))
-        try:
-            snapshot.validate(policy)
-        except ValueError:
-            return None
-        return snapshot
 
 
 @dataclass(slots=True)
@@ -143,23 +54,25 @@ class PublicHttpTransport:
         resolver=socket.getaddrinfo,
         max_workers: int = MAX_WORKERS,
         max_per_host: int = MAX_PER_HOST,
+        batch_policy: HttpBatchPolicy | None = None,
+        observer: Observer | None = None,
     ) -> None:
-        if isinstance(max_workers, bool) or not isinstance(max_workers, int) or max_workers < 1:
-            raise ValueError("max_workers must be a positive integer")
-        if (
-            isinstance(max_per_host, bool)
-            or not isinstance(max_per_host, int)
-            or max_per_host < 1
-            or max_per_host > max_workers
-        ):
-            raise ValueError("max_per_host must be between one and max_workers")
+        resolved_batch = resolve_batch_policy(
+            batch_policy,
+            max_workers=max_workers,
+            max_per_host=max_per_host,
+        )
+        if observer is not None and not callable(observer):
+            raise ValueError("observer must be callable")
         self._requester = requester
         self._resolver = resolver
-        self._max_workers = max_workers
-        self._global_limit = threading.BoundedSemaphore(max_workers)
-        self._max_per_host = max_per_host
+        self._batch_policy = resolved_batch
+        self._observer = observer
+        self._max_workers = resolved_batch.max_workers
+        self._global_limit = threading.BoundedSemaphore(resolved_batch.max_workers)
+        self._max_per_host = resolved_batch.max_per_host
         self._host_limits: dict[str, _Gate] = {}
-        self._memo: dict[str, _ResponseSnapshot] = {}
+        self._memo: dict[str, ResponseSnapshot] = {}
         self._flights: dict[str, _Gate] = {}
         self._sessions: list[requests.Session] = []
         self._local = threading.local()
@@ -186,6 +99,15 @@ class PublicHttpTransport:
     def counters(self) -> dict[str, int]:
         with self._lock:
             return dict(self._counts)
+
+    @property
+    def batch_policy(self) -> HttpBatchPolicy:
+        return self._batch_policy
+
+    @property
+    def reports_events(self) -> bool:
+        """Return whether lifecycle telemetry is emitted directly."""
+        return self._observer is not None
 
     def request(
         self,
@@ -236,13 +158,17 @@ class PublicHttpTransport:
         policy: HttpRequestPolicy = URL_RESOLUTION_POLICY,
         headers: Mapping[str, str] | None = None,
     ) -> list[requests.Response]:
-        ordered = list(urls)
-        with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
-            futures = [
-                executor.submit(self.request, method, url, policy=policy, headers=headers)
-                for url in ordered
-            ]
-            return [future.result() for future in futures]
+        self._require_open()
+        return execute_many(
+            method,
+            urls,
+            request=self.request,
+            key_for=_canonical_url,
+            request_policy=policy,
+            batch_policy=self._batch_policy,
+            headers=headers,
+            observer=self._observe,
+        )
 
     def close(self) -> None:
         with self._lock:
@@ -264,7 +190,7 @@ class PublicHttpTransport:
         key: str,
         *,
         policy: HttpRequestPolicy,
-    ) -> _ResponseSnapshot | None:
+    ) -> ResponseSnapshot | None:
         existing = self._memo.get(key)
         if existing is not None:
             self._increment("cache_hits")
@@ -275,7 +201,7 @@ class PublicHttpTransport:
         if value is None:
             return None
         digest = _policy_digest(policy)
-        snapshot = _ResponseSnapshot.from_value(
+        snapshot = ResponseSnapshot.from_value(
             value,
             policy=policy,
             policy_digest=digest,
@@ -297,6 +223,7 @@ class PublicHttpTransport:
         allow_persist: bool = True,
     ) -> requests.Response:
         self._increment("cache_misses")
+        self._observe("in_flight_requests_delta", 1)
         try:
             response = self._requester(
                 self._session(),
@@ -310,11 +237,14 @@ class PublicHttpTransport:
                 resolver=self._resolver,
                 request_guard=self._request_guard,
             )
-            snapshot = _ResponseSnapshot.capture(response, policy=policy)
+            snapshot = ResponseSnapshot.capture(response, policy=policy)
         except Exception:
             self._increment("requests")
             raise
+        finally:
+            self._observe("in_flight_requests_delta", -1)
         self._increment("requests")
+        self._observe("response_bytes", len(snapshot.body))
         if policy.ttl_for(snapshot.status_code) is not None:
             self._memo[key] = snapshot
             if allow_persist:
@@ -324,7 +254,7 @@ class PublicHttpTransport:
     def _persist(
         self,
         key: str,
-        snapshot: _ResponseSnapshot,
+        snapshot: ResponseSnapshot,
         *,
         policy: HttpRequestPolicy,
     ) -> None:
@@ -389,6 +319,16 @@ class PublicHttpTransport:
     def _increment(self, name: str) -> None:
         with self._lock:
             self._counts[name] += 1
+        self._observe(name, 1)
+
+    def _observe(self, name: str, amount: int) -> None:
+        observer = self._observer
+        if observer is None:
+            return
+        try:
+            observer(name, amount)
+        except Exception:
+            return
 
     def _require_open(self) -> None:
         if self._closed:
@@ -450,3 +390,25 @@ def _request_key(
         ensure_ascii=True,
     ).encode("utf-8")
     return hashlib.sha256(serialized).hexdigest()
+
+
+def canonical_request_identity(
+    method: str,
+    url: str,
+    *,
+    headers: Mapping[str, str] | None,
+    policy: HttpRequestPolicy,
+) -> str:
+    """Return the complete typed identity used by transport and derived caches."""
+    if not isinstance(policy, HttpRequestPolicy):
+        raise ValueError("HTTP request identity requires a declared typed policy")
+    normalized_method = method.upper()
+    if normalized_method not in policy.allowed_methods:
+        raise ValueError("HTTP method is not allowed by policy")
+    normalized_headers = _normalize_headers(headers, policy=policy)
+    return _request_key(
+        normalized_method,
+        _canonical_url(url),
+        normalized_headers,
+        policy,
+    )

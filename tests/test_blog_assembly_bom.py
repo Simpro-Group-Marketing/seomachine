@@ -10,6 +10,7 @@ from pathlib import Path
 import pytest
 from unittest.mock import patch
 from data_sources.modules.blog_assembly_bom import (
+    BomValidationDependencies,
     NON_CONNECTOR_REASON,
     _reject_bom_output_collision,
     _schema_policy,
@@ -28,13 +29,13 @@ from data_sources.modules.context_binding_generator import (
 )
 from data_sources.modules.publishable_markdown import read_publishable_markdown
 from data_sources.modules.publish_readiness import write_readiness_result
+from data_sources.modules.readiness.inputs import ReadinessInputs
 from data_sources.modules.blog_assembly_stage_receipt import (
     build_stage_receipt,
     write_stage_evidence,
     write_stage_receipt,
 )
 from data_sources.modules.blog_assembly_contract import (
-    artifact_inventory_snapshots,
     canonical_article_run_id,
     expected_blog_gate_inventory,
 )
@@ -1169,7 +1170,6 @@ def test_builder_rejects_tampered_stage_evidence_manifest(tmp_path: Path):
 
 def test_builder_detects_stage_receipt_replacement_after_immutable_snapshot(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
 ):
     paths = _fixture(tmp_path)
     original_loader = blog_assembly_bom.load_json_object_snapshot
@@ -1183,14 +1183,14 @@ def test_builder_detects_stage_receipt_replacement_after_immutable_snapshot(
             Path(path).write_text('{"replaced":true}\n', encoding="utf-8")
         return snapshot
 
-    monkeypatch.setattr(
-        blog_assembly_bom,
-        "load_json_object_snapshot",
-        snapshot_then_replace,
-    )
-
     with pytest.raises(ValueError, match="does not match current file contents"):
-        _build(tmp_path, paths)
+        _build(
+            tmp_path,
+            paths,
+            dependencies=BomValidationDependencies(
+                load_json_object_snapshot=snapshot_then_replace,
+            ),
+        )
 
 
 def test_guard_rejects_stage_evidence_changed_after_bom_build(tmp_path: Path):
@@ -1362,17 +1362,17 @@ def test_last_updated_must_not_be_after_assembly_date(
 
 def test_builder_uses_shared_provisional_stage_contract(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
 ):
     paths = _fixture(tmp_path)
-    monkeypatch.setattr(
-        blog_assembly_bom,
-        "NORMAL_PROVISIONAL_STAGES",
-        ("draft",),
-    )
 
     with pytest.raises(ValueError, match="provisional stage receipt sequence"):
-        _build(tmp_path, paths)
+        _build(
+            tmp_path,
+            paths,
+            dependencies=BomValidationDependencies(
+                normal_provisional_stages=("draft",),
+            ),
+        )
 
 
 def test_builder_rejects_past_or_future_assembly_date_against_utc_today(
@@ -1452,19 +1452,18 @@ def test_connector_summary_comes_only_from_structured_validated_result(tmp_path:
         revisions=(("manifest_revision", "manifest-r1"),),
     )
 
-    with patch(
-        "data_sources.modules.blog_assembly_bom.context_binding_guard.validate_context_artifacts",
-        return_value=validated,
-    ):
-        bom = _build(
-            tmp_path,
-            paths,
-            context_request_path=request,
-            context_pack_path=pack,
-            context_receipt_path=receipt,
-            customer_proof_selector_evidence_path=selector,
-            fred_authority_evidence_path=fred,
-        )
+    bom = _build(
+        tmp_path,
+        paths,
+        context_request_path=request,
+        context_pack_path=pack,
+        context_receipt_path=receipt,
+        customer_proof_selector_evidence_path=selector,
+        fred_authority_evidence_path=fred,
+        dependencies=BomValidationDependencies(
+            validate_context_artifacts=lambda *args, **kwargs: validated,
+        ),
+    )
 
     context = bom["connector_binding"]["context"]
     assert bom["connector_binding"]["status"] == "required"
@@ -1536,19 +1535,18 @@ def test_check_bom_connector_fallback_passes_bound_plan_to_context_guard(tmp_pat
         revisions=(("manifest_revision", "manifest-r1"),),
     )
 
-    with patch(
-        "data_sources.modules.blog_assembly_bom.context_binding_guard.validate_context_artifacts",
-        return_value=validated,
-    ):
-        bom = _build(
-            tmp_path,
-            paths,
-            context_request_path=request,
-            context_pack_path=pack,
-            context_receipt_path=receipt,
-            customer_proof_selector_evidence_path=selector,
-            fred_authority_evidence_path=fred,
-        )
+    bom = _build(
+        tmp_path,
+        paths,
+        context_request_path=request,
+        context_pack_path=pack,
+        context_receipt_path=receipt,
+        customer_proof_selector_evidence_path=selector,
+        fred_authority_evidence_path=fred,
+        dependencies=BomValidationDependencies(
+            validate_context_artifacts=lambda *args, **kwargs: validated,
+        ),
+    )
 
     with patch(
         "data_sources.modules.blog_assembly_bom_guard.context_binding_guard.validate_context_artifacts",
@@ -1600,20 +1598,19 @@ def test_connector_builder_rejects_orphaned_proof_and_fred_inventory(tmp_path: P
         revisions=(("manifest_revision", "manifest-r1"),),
     )
 
-    with patch(
-        "data_sources.modules.blog_assembly_bom.context_binding_guard.validate_context_artifacts",
-        return_value=validated,
-    ):
-        with pytest.raises(ValueError, match="bom_customer_proof_evidence_binding_missing"):
-            _build(
-                tmp_path,
-                paths,
-                context_request_path=request,
-                context_pack_path=pack,
-                context_receipt_path=receipt,
-                customer_proof_selector_evidence_path=selector,
-                fred_authority_evidence_path=fred,
-            )
+    with pytest.raises(ValueError, match="bom_customer_proof_evidence_binding_missing"):
+        _build(
+            tmp_path,
+            paths,
+            context_request_path=request,
+            context_pack_path=pack,
+            context_receipt_path=receipt,
+            customer_proof_selector_evidence_path=selector,
+            fred_authority_evidence_path=fred,
+            dependencies=BomValidationDependencies(
+                validate_context_artifacts=lambda *args, **kwargs: validated,
+            ),
+        )
 
 
 def test_rewrite_preselected_brief_paa_binds_brief_instead_of_answersocrates(tmp_path: Path):
@@ -1669,11 +1666,7 @@ def _preflight(
     filename: str = "preflight-readiness.json",
 ) -> Path:
     artifacts = bom["artifacts"]
-    input_hashes = artifact_inventory_snapshots(artifacts)
-    input_hashes["assembly_bom"] = {
-        "path": bom_path.relative_to(tmp_path).as_posix(),
-        "sha256": _sha256(bom_path),
-    }
+    input_hashes = ReadinessInputs.capture({"assembly_bom": bom_path}, workspace_root=tmp_path).hash_inventory()
     gate_inventory = expected_blog_gate_inventory(
         visible_faq=bool(bom["schema_policy"]["visible_faq"]),
         connector_required=bom["connector_binding"]["status"] == "required",
@@ -1742,7 +1735,8 @@ def _preflight(
                 "threshold": 90,
                 "passed": passed,
             },
-        },        "priority_fixes": [],
+        },
+        "priority_fixes": [],
         "input_seal": {"status": "verified" if passed else "failed"},
         "input_hashes": input_hashes,
         "run_id": _run_id(tmp_path / bom["artifacts"]["article"]["path"]),
@@ -1755,14 +1749,12 @@ def _preflight(
     }
     readiness_path = tmp_path / "research" / filename
     if passed:
-        with patch(
-            "data_sources.modules.publish_readiness._validate_actual_readiness_execution"
-        ):
-            write_readiness_result(
-                readiness_path,
-                readiness,
-                workspace_root=tmp_path,
-            )
+        write_readiness_result(
+            readiness_path,
+            readiness,
+            workspace_root=tmp_path,
+            execution_validator=lambda *_args, **_kwargs: None,
+        )
     else:
         _json(readiness_path, readiness)
     return readiness_path

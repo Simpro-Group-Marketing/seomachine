@@ -19,6 +19,7 @@ from .retention_planning import (
     resolve_relative,
     verify_candidate,
 )
+from .retention_plan_manifests import load_retention_plan_manifest
 from .workspace_lock import artifact_workspace_lock
 
 
@@ -29,7 +30,7 @@ TERMINAL_STATUSES = {"complete", "restored", "purged"}
 
 
 def apply_retention(
-    plan: RetentionPlan,
+    plan: RetentionPlan | str | Path,
     *,
     workspace_root: str | Path,
     now: datetime,
@@ -37,20 +38,25 @@ def apply_retention(
 ) -> Path:
     """Move verified objects through an exclusive, resumable transaction."""
     root = Path(workspace_root).resolve(strict=True)
-    if root != plan.workspace_root or quarantine_days < 1:
-        raise ValueError("retention plan does not match the workspace or policy")
     current = require_aware(now)
     with artifact_workspace_lock(root):
+        effective_plan = (
+            plan
+            if isinstance(plan, RetentionPlan)
+            else load_retention_plan_manifest(plan, workspace_root=root)
+        )
+        if root != effective_plan.workspace_root or quarantine_days < 1:
+            raise ValueError("retention plan does not match the workspace or policy")
         _reject_incomplete_transactions(root)
         current_references = referenced_objects(root)
-        for candidate in plan.candidates:
+        for candidate in effective_plan.candidates:
             if candidate.path in current_references:
                 relative = candidate.path.relative_to(root).as_posix()
                 raise ValueError(f"retention candidate became referenced: {relative}")
             verify_candidate(candidate, root=root)
         manifest_path, payload = _create_transaction(
             root,
-            candidates=plan.candidates,
+            candidates=effective_plan.candidates,
             now=current,
             quarantine_days=quarantine_days,
         )

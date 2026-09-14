@@ -7,7 +7,6 @@ import hashlib
 import html
 import json
 import re
-import sys
 import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
@@ -24,6 +23,8 @@ try:
     from .proof_claim_binding_guard import validate_proof_claim_bindings
     from .simpro_vault_client import SimproVaultClient, VaultClientError
     from . import industry_cluster_link_policy
+    from . import context_binding_snapshot
+    from .context_binding_snapshot import ContextBindingDependencies
 except ImportError:  # pragma: no cover - supports direct script execution.
     from artifact_detection import extract_frontmatter, strip_frontmatter
     from blog_assembly_contract import load_json_object_snapshot, load_json_text
@@ -31,8 +32,10 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from guard_common import Finding, make_finding, should_fail, summarize_findings
     from proof_sidecar import load_sidecar_content
     from proof_claim_binding_guard import validate_proof_claim_bindings
-    from simpro_vault_client import SimproVaultClient, VaultClientError
-    import industry_cluster_link_policy
+    from simpro_vault_client import SimproVaultClient, VaultClientError  # noqa: F401
+    import industry_cluster_link_policy  # noqa: F401
+    import context_binding_snapshot
+    from context_binding_snapshot import ContextBindingDependencies
 
 
 BINDING_SCHEMA = "seomachine-context-binding/v1"
@@ -115,6 +118,19 @@ class ContextValidationResult:
         }
 
 
+def _snapshot_dependencies() -> ContextBindingDependencies:
+    return ContextBindingDependencies(
+        binding_schema=BINDING_SCHEMA, pack_schema=PACK_SCHEMA,
+        receipt_schema=RECEIPT_SCHEMA,
+        required_revisions=frozenset(REQUIRED_REVISIONS),
+        validate_repo_context=_validate_repo_context,
+        validate_request_article=validate_request_article, validate_claim_map=validate_claim_map,
+        context_findings=industry_cluster_link_policy.context_findings,
+        finding=_finding, json_block=_json_block, client_factory=SimproVaultClient,
+        vault_error=VaultClientError, result_factory=ContextValidationResult,
+    )
+
+
 def requires_context(content: str) -> bool:
     """Return whether an article workflow requires Simpro vault context.
 
@@ -148,39 +164,20 @@ def build_binding(
     receipt_file = Path(receipt_path)
     pack = _read_json(pack_file)
     receipt = _read_json(receipt_file)
-    sections = pack.get("sections", {}) if isinstance(pack, dict) else {}
-    discovery = sections.get("Discovery Trace", {}) if isinstance(sections, dict) else {}
-    constraints = sections.get("Constraints and Unresolved Gaps", {}) if isinstance(sections, dict) else {}
-    task_scope = sections.get("Task and Scope", {}) if isinstance(sections, dict) else {}
-    normalized_repo_context = _validate_repo_context(repo_context)
-    revisions = receipt.get("revisions")
-    if not isinstance(revisions, dict):
-        revisions = {}
-    return {
-        "schema": BINDING_SCHEMA,
-        "article": {"file": article.name, "sha256": _file_hash(article)},
-        "request": {"file": request_file.name, "sha256": _file_hash(request_file)},
-        "pack": {
-            "file": pack_file.name,
-            "schema": pack.get("schema"),
-            "sha256": _file_hash(pack_file),
-            "canonical_sha256": receipt.get("pack_sha256"),
-        },
-        "receipt": {
-            "file": receipt_file.name,
-            "schema": receipt.get("schema"),
-            "sha256": _file_hash(receipt_file),
-            "canonical_sha256": receipt.get("receipt_sha256"),
-        },
-        "revisions": revisions,
-        "approval_policy_revision": revisions.get("approval_policy_revision"),
-        "claim_registry_revision": revisions.get("claim_registry_revision")
-        or receipt.get("claim_registry_revision"),
-        "resource_ids": discovery.get("selected_resource_ids", []),
-        "task_satisfaction": task_scope.get("task_satisfaction"),
-        "unresolved_gaps": constraints.get("unresolved_gaps", []),
-        "repo_context": normalized_repo_context,
-    }
+    return context_binding_snapshot.build_binding(
+        dependencies=_snapshot_dependencies(),
+        article_name=article.name,
+        article_sha256=_file_hash(article),
+        request_name=request_file.name,
+        request_sha256=_file_hash(request_file),
+        pack_name=pack_file.name,
+        pack_sha256=_file_hash(pack_file),
+        pack=pack,
+        receipt_name=receipt_file.name,
+        receipt_sha256=_file_hash(receipt_file),
+        receipt=receipt,
+        repo_context=repo_context,
+    )
 
 
 def render_generated_blocks(
@@ -218,110 +215,122 @@ def _check_file_impl(
     vault_root: str | Path | None = None,
     client: Any = None,
 ) -> List[Finding]:
-    """Validate live connector state and the exact article-sidecar binding."""
+    """Compatibility adapter that captures files before payload validation."""
     if fail_on not in {"error", "warning", "none"}:
         raise ValueError("fail_on must be one of: error, warning, none")
     article = Path(path)
     content = article.read_text(encoding="utf-8")
-    supplied = {
-        "request": context_request,
-        "pack": context_pack,
-        "receipt": context_receipt,
-    }
-    if not requires_context(content) and not any(value is not None for value in supplied.values()):
+    supplied = (context_request, context_pack, context_receipt)
+    if not requires_context(content) and not any(item is not None for item in supplied):
         return []
-    findings: List[Finding] = []
-    for label, value in supplied.items():
-        if value is None:
-            findings.append(_finding(f"context_{label}_missing", f"Simpro content requires a context {label} artifact."))
-    if findings:
-        return findings
+    if any(item is None for item in supplied):
+        return _missing_context_findings(context_request, context_pack, context_receipt)
     request_path = Path(str(context_request))
     pack_path = Path(str(context_pack))
     receipt_path = Path(str(context_receipt))
-    for label, artifact in (("request", request_path), ("pack", pack_path), ("receipt", receipt_path)):
-        if not artifact.is_file():
-            findings.append(_finding(f"context_{label}_unavailable", f"Context {label} artifact is unavailable: {artifact}"))
-    if findings:
-        return findings
     try:
         request = _read_json(request_path)
         pack = _read_json(pack_path)
         receipt = _read_json(receipt_path)
-    except (OSError, json.JSONDecodeError, ValueError) as error:
+        sidecar = load_sidecar_content(article, proof_sidecar)
+    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as error:
         return [_finding("context_artifact_invalid", f"Context artifact is invalid: {error}")]
-    findings.extend(validate_request_article(request, content, article_path=article))
-    pack_revisions = pack.get("revisions")
-    receipt_revisions = receipt.get("revisions")
-    if (
-        not isinstance(pack_revisions, dict)
-        or not isinstance(receipt_revisions, dict)
-        or set(pack_revisions) != REQUIRED_REVISIONS
-        or pack_revisions != receipt_revisions
-        or any(
-            not isinstance(pack_revisions.get(name), str)
-            or not pack_revisions.get(name)
-            for name in REQUIRED_REVISIONS
-        )
-    ):
-        findings.append(
-            _finding(
-                "context_revisions_invalid",
-                "Context pack and receipt must bind the same complete current revision set.",
-            )
-        )
-    if pack.get("schema") != PACK_SCHEMA:
-        findings.append(_finding("context_pack_schema_invalid", f"Context pack must use {PACK_SCHEMA}."))
-    if receipt.get("schema") != RECEIPT_SCHEMA:
-        findings.append(_finding("context_receipt_schema_invalid", f"Context receipt must use {RECEIPT_SCHEMA}."))
-    findings.extend(
-        industry_cluster_link_policy.context_findings(
-            content=content,
-            request=request,
-            pack=pack,
-            receipt=receipt,
-            plan=_load_editorial_plan(editorial_plan),
-        )
+    return context_binding_snapshot.validate_payload_findings(
+        dependencies=_snapshot_dependencies(),
+        article_content=content,
+        article_path=article,
+        article_sha256=_file_hash(article),
+        proof_content=sidecar,
+        request=request,
+        request_path=request_path,
+        request_sha256=_file_hash(request_path),
+        pack=pack,
+        pack_path=pack_path,
+        pack_sha256=_file_hash(pack_path),
+        receipt=receipt,
+        receipt_path=receipt_path,
+        receipt_sha256=_file_hash(receipt_path),
+        editorial_plan=_load_editorial_plan(editorial_plan),
+        vault_root=vault_root,
+        client=client,
     )
-    if findings:
-        return findings
-    try:
-        validator = client or SimproVaultClient(vault_root=vault_root)
-        validation = validator.validate_context(request, pack, receipt)
-    except VaultClientError as error:
-        rule = "context_pack_stale" if error.code == "pack_stale" else f"context_{error.code}"
-        return [_finding(rule, str(error), connector_error_code=error.code)]
-    except Exception as error:  # pragma: no cover - defensive fail-closed boundary.
-        return [_finding("context_validation_failed", f"Context validation failed: {error}")]
-    if not isinstance(validation, dict) or validation.get("valid") is not True or validation.get("errors"):
-        return [_finding("context_validation_failed", "The shared connector did not validate the context artifacts.")]
-    sidecar = load_sidecar_content(article, proof_sidecar)
-    try:
-        binding = _json_block(sidecar, "Context Binding")
-        claim_map = _json_block(sidecar, "Context Claim Use Map")
-    except ValueError as error:
-        return [_finding("context_binding_invalid", str(error))]
-    try:
-        expected = build_binding(
-            article,
-            request_path,
-            pack_path,
-            receipt_path,
-            repo_context=binding.get("repo_context", []) if isinstance(binding, dict) else [],
-        )
-    except ValueError as error:
-        return [_finding("context_binding_invalid", str(error))]
-    if not isinstance(binding, dict) or binding.get("schema") != BINDING_SCHEMA:
-        findings.append(_finding("context_binding_schema_invalid", f"Context Binding must use {BINDING_SCHEMA}."))
-    elif binding != expected:
-        if binding.get("article", {}).get("sha256") != expected["article"]["sha256"]:
-            findings.append(_finding("context_article_hash_mismatch", "The article changed after Context Binding was generated."))
+
+
+def validate_context_payloads(
+    *,
+    article_content: str,
+    article_path: str | Path,
+    article_sha256: str,
+    proof_content: str | None,
+    request: Mapping[str, Any] | None,
+    request_path: str | Path | None,
+    request_sha256: str | None,
+    pack: Mapping[str, Any] | None,
+    pack_path: str | Path | None,
+    pack_sha256: str | None,
+    receipt: Mapping[str, Any] | None,
+    receipt_path: str | Path | None,
+    receipt_sha256: str | None,
+    editorial_plan: Mapping[str, Any] | None = None,
+    vault_root: str | Path | None = None,
+    client: Any = None,
+) -> ContextValidationResult:
+    """Validate one immutable, hash-bound set of context payloads."""
+    required = requires_context(article_content) or any(
+        item is not None for item in (request, pack, receipt)
+    )
+    if not required:
+        return ContextValidationResult(required=False, findings=())
+    findings = _missing_context_findings(request, pack, receipt)
+    if not findings:
+        if not all(
+            isinstance(value, str) and value
+            for value in (request_sha256, pack_sha256, receipt_sha256)
+        ) or any(value is None for value in (request_path, pack_path, receipt_path)):
+            findings = [_finding(
+                "context_artifact_invalid",
+                "Captured context artifacts require paths and SHA-256 digests.",
+            )]
         else:
-            findings.append(_finding("context_binding_hash_mismatch", "Context Binding does not match the supplied artifacts."))
-    if expected.get("task_satisfaction") != "satisfied" or expected.get("unresolved_gaps"):
-        findings.append(_finding("context_task_unsatisfied", "Context task satisfaction must be satisfied with no unresolved gaps."))
-    findings.extend(validate_claim_map(content, pack, receipt, claim_map))
-    return findings
+            assert request is not None and pack is not None and receipt is not None
+            findings = context_binding_snapshot.validate_payload_findings(
+                dependencies=_snapshot_dependencies(),
+                article_content=article_content,
+                article_path=Path(article_path),
+                article_sha256=article_sha256,
+                proof_content=proof_content or "",
+                request=request,
+                request_path=Path(request_path),
+                request_sha256=str(request_sha256),
+                pack=pack,
+                pack_path=Path(pack_path),
+                pack_sha256=str(pack_sha256),
+                receipt=receipt,
+                receipt_path=Path(receipt_path),
+                receipt_sha256=str(receipt_sha256),
+                editorial_plan=editorial_plan,
+                vault_root=vault_root,
+                client=client,
+            )
+    return context_binding_snapshot.context_validation_result(
+        dependencies=_snapshot_dependencies(),
+        required=required,
+        findings=findings,
+        pack=pack,
+        receipt=receipt,
+    )
+
+
+def _missing_context_findings(*values: Any) -> list[Finding]:
+    labels = ("request", "pack", "receipt")
+    return [
+        _finding(
+            f"context_{label}_missing",
+            f"Simpro content requires a context {label} artifact.",
+        )
+        for label, value in zip(labels, values)
+        if value is None
+    ]
 
 
 def validate_context_artifacts(
@@ -352,44 +361,14 @@ def validate_context_artifacts(
         vault_root=vault_root,
         client=client,
     )
-    if findings or not required:
-        return ContextValidationResult(required=required, findings=tuple(findings))
-
-    pack = _read_json(Path(str(context_pack)))
-    receipt = _read_json(Path(str(context_receipt)))
-    sections = pack.get("sections")
-    discovery = sections.get("Discovery Trace") if isinstance(sections, Mapping) else None
-    raw_resources = discovery.get("selected_resource_ids") if isinstance(discovery, Mapping) else []
-    resource_ids = tuple(
-        dict.fromkeys(
-            item.strip()
-            for item in raw_resources
-            if isinstance(item, str) and item.strip()
-        )
-    )
-    decisions = receipt.get("claim_decisions")
-    approved_claim_ids = tuple(
-        dict.fromkeys(
-            str(row.get("claim_id")).strip()
-            for row in decisions if isinstance(row, Mapping)
-            and row.get("approved") is True
-            and isinstance(row.get("claim_id"), str)
-            and str(row.get("claim_id")).strip()
-        )
-    ) if isinstance(decisions, list) else ()
-    revisions = receipt.get("revisions")
-    revision_items = tuple(sorted(
-        (str(key), str(value))
-        for key, value in revisions.items()
-    )) if isinstance(revisions, Mapping) else ()
-    return ContextValidationResult(
-        required=True,
-        findings=(),
-        resource_ids=resource_ids,
-        approved_claim_ids=approved_claim_ids,
-        pack_canonical_sha256=str(receipt.get("pack_sha256") or ""),
-        receipt_canonical_sha256=str(receipt.get("receipt_sha256") or ""),
-        revisions=revision_items,
+    pack = None if findings or not required else _read_json(Path(str(context_pack)))
+    receipt = None if findings or not required else _read_json(Path(str(context_receipt)))
+    return context_binding_snapshot.context_validation_result(
+        dependencies=_snapshot_dependencies(),
+        required=required,
+        findings=findings,
+        pack=pack,
+        receipt=receipt,
     )
 
 
@@ -909,4 +888,4 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

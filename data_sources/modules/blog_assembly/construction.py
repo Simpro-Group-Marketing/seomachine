@@ -1,7 +1,20 @@
 """Construction responsibilities."""
-# ruff: noqa: F403, F405
+from pathlib import Path
+from typing import Any, Mapping, Sequence
 
-from .common import *  # noqa: F403
+from .common import (
+    BOM_SCHEMA,
+    WORKFLOW_MODES,
+    canonical_article_run_id,
+    canonical_artifact,
+    canonical_artifact_identity,
+    canonical_snapshot_artifact,
+    eeat_strength_guard,
+    industry_cluster_link_policy,
+    read_publishable_markdown,
+    stage_evidence_path,
+)
+from .dependencies import BomValidationDependencies, DEFAULT_BOM_VALIDATION_DEPENDENCIES
 from .construction_support import (
     derive_and_validate_paa,
     normalize_construction_inputs,
@@ -10,6 +23,24 @@ from .construction_support import (
     validate_connector_sidecar_bindings,
     validate_plan_inputs,
 )
+from .contracts import (
+    _iso_date,
+    _machine_review_bindings,
+    _required_enum,
+    _required_mapping,
+    _visible_faq_questions,
+)
+from .derivation import _hindsight_strategy_policy, _optional_artifact
+from .policy import (
+    _author_policy,
+    _connector_binding,
+    _editorial_plan_summary,
+    _identity_from_article,
+    _schema_policy,
+    _validate_article_identity,
+)
+from .preflight import _verify_bom_artifacts_unchanged
+from .stage_receipts import _validate_provisional_stage_receipts
 
 
 def build_blog_assembly_bom_from_files(
@@ -41,6 +72,7 @@ def build_blog_assembly_bom_from_files(
     workspace_root: str | Path | None = None,
     context_client: Any = None,
     vault_root: str | Path | None = None,
+    dependencies: BomValidationDependencies = DEFAULT_BOM_VALIDATION_DEPENDENCIES,
 ) -> dict[str, Any]:
     """Build a deterministic provisional BOM from exact current files."""
     stage_receipt_paths, optimizer_output_paths, normalized_agent_output_paths, root = (
@@ -84,13 +116,13 @@ def build_blog_assembly_bom_from_files(
         assembly_date=assembled,
     )
     workflow_run_id = expected_review_run_id or canonical_run_id
-    plan_snapshot = load_json_object_snapshot(
+    plan_snapshot = dependencies.load_json_object_snapshot(
         editorial_plan_path,
         field="editorial_plan",
     )
     plan = plan_snapshot.payload
     stage_receipt_snapshots = [
-        load_json_object_snapshot(path, field=f"stage_receipt[{index}]")
+        dependencies.load_json_object_snapshot(path, field=f"stage_receipt[{index}]")
         for index, path in enumerate(stage_receipt_paths)
     ]
     stage_receipts = [snapshot.payload for snapshot in stage_receipt_snapshots]
@@ -134,6 +166,7 @@ def build_blog_assembly_bom_from_files(
         plan=plan,
         vault_root=vault_root,
         context_client=context_client,
+        context_validator=dependencies.validate_context_artifacts,
     )
 
     paa_policy = derive_and_validate_paa(
@@ -224,6 +257,7 @@ def build_blog_assembly_bom_from_files(
         prior_preflight_readiness_path=prior_preflight_readiness_path,
         visible_faq=bool(_visible_faq_questions(article.raw)),
         workspace_root=root,
+        normal_provisional_stages=dependencies.normal_provisional_stages,
     )
     eeat_strength_policy = eeat_strength_guard.summarize_policy(
         article.raw,

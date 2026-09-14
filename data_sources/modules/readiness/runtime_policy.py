@@ -1,16 +1,40 @@
 """Publish-readiness runtime policy responsibilities."""
-# ruff: noqa: F403, F405
+import json
+from pathlib import Path
+from typing import Any, Dict, List, Mapping
 
-from .common import *  # noqa: F403
+from .common import (
+    CUSTOMER_PROOF_EXACT_QUOTE_RE,
+    CUSTOMER_PROOF_NO_FIT_MARKERS,
+    CUSTOMER_PROOF_QUOTE_CONTEXT_RE,
+    NO_FIT_CUSTOMER_PROOF_OUTCOME,
+    FrontmatterError,
+    ReadinessInputs,
+    editorial_plan_guard,
+    load_json_object_snapshot,
+    resolve_artifact,
+    split_frontmatter,
+)
+from .workspace_bindings import _resolve_workspace_input
+from .artifact_views import thaw_value
 
 
 def _load_runtime_bom(
     assembly_bom: str | None,
     *,
     workspace_root: str | Path,
+    inputs: ReadinessInputs | None = None,
 ) -> Mapping[str, Any] | None:
     if not assembly_bom:
         return None
+    if inputs is not None:
+        snapshot = inputs.optional_snapshot("assembly_bom")
+        value = (
+            thaw_value(inputs.json_object("assembly_bom"))
+            if snapshot is not None
+            else None
+        )
+        return value if isinstance(value, Mapping) else None
     try:
         source = _resolve_workspace_input(
             assembly_bom, workspace_root=workspace_root, field="assembly_bom"
@@ -40,15 +64,22 @@ def _artifact_path_resolver(
     return resolve
 
 
-def _runtime_scoring_metadata(editorial_plan_path: str | None) -> Dict[str, Any]:
+def _runtime_scoring_metadata(
+    editorial_plan_path: str | None,
+    *,
+    inputs: ReadinessInputs | None = None,
+) -> Dict[str, Any]:
     if not editorial_plan_path:
         return {}
-    try:
-        plan = load_json_object_snapshot(
-            editorial_plan_path, field="editorial plan"
-        ).payload
-    except ValueError:
-        return {}
+    if inputs is not None and inputs.optional_snapshot("editorial_plan") is not None:
+        plan = thaw_value(inputs.json_object("editorial_plan"))
+    else:
+        try:
+            plan = load_json_object_snapshot(
+                editorial_plan_path, field="editorial plan"
+            ).payload
+        except ValueError:
+            return {}
     if not isinstance(plan, Mapping):
         return {}
     meta = plan.get("meta")
@@ -66,6 +97,7 @@ def _bom_runtime_policy(
     assembly_bom: str | None,
     *,
     workspace_root: str | Path,
+    inputs: ReadinessInputs | None = None,
 ) -> Dict[str, Any]:
     default = {
         "visible_faq": True,
@@ -81,7 +113,11 @@ def _bom_runtime_policy(
         "scoring_metadata": {},
         "paa_kwargs": {},
     }
-    bom = _load_runtime_bom(assembly_bom, workspace_root=workspace_root)
+    bom = _load_runtime_bom(
+        assembly_bom,
+        workspace_root=workspace_root,
+        inputs=inputs,
+    )
     if bom is None:
         return default
     artifacts = bom.get("artifacts")
@@ -104,7 +140,10 @@ def _bom_runtime_policy(
     else:
         paa_artifact = artifact_path("paa_artifact")
     editorial_plan_path = artifact_path("editorial_plan")
-    scoring_metadata = _runtime_scoring_metadata(editorial_plan_path)
+    scoring_metadata = _runtime_scoring_metadata(
+        editorial_plan_path,
+        inputs=inputs,
+    )
     return {
         "visible_faq": bool(
             isinstance(schema_policy, Mapping) and schema_policy.get("visible_faq") is True
@@ -136,14 +175,20 @@ def _no_fit_customer_proof_findings(
     article_content: str,
     *,
     runtime_policy: Mapping[str, Any],
+    inputs: ReadinessInputs | None = None,
 ) -> List[Dict[str, Any]]:
     evidence_path = runtime_policy.get("customer_proof_selector_evidence")
     if not isinstance(evidence_path, str) or not evidence_path:
         return []
-    try:
-        evidence = json.loads(Path(evidence_path).read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
-        return []
+    if inputs is not None and inputs.optional_snapshot(
+        "customer_proof_selector_evidence"
+    ) is not None:
+        evidence = thaw_value(inputs.json_object("customer_proof_selector_evidence"))
+    else:
+        try:
+            evidence = json.loads(Path(evidence_path).read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError):
+            return []
     if not isinstance(evidence, Mapping):
         return []
     if evidence.get("selection_outcome") != NO_FIT_CUSTOMER_PROOF_OUTCOME:

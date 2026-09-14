@@ -6,7 +6,7 @@ Fetches search performance, keyword rankings, and SERP data.
 
 import os
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, Iterator, List, Optional
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 
@@ -157,14 +157,12 @@ class GoogleSearchConsole:
         request: Dict[str, Any],
         *,
         max_rows: int,
-    ) -> List[Dict[str, Any]]:
-        return list(
-            iter_search_analytics_rows(
-                self.service,
-                site_url=self.site_url,
-                body=request,
-                max_rows=max_rows,
-            )
+    ) -> Iterator[Dict[str, Any]]:
+        return iter_search_analytics_rows(
+            self.service,
+            site_url=self.site_url,
+            body=request,
+            max_rows=max_rows,
         )
 
     def get_page_performance(
@@ -199,10 +197,9 @@ class GoogleSearchConsole:
             }]
         }
 
-        page_rows = self._search_rows(request, max_rows=1)
-        if not page_rows:
+        row = next(self._search_rows(request, max_rows=1), None)
+        if row is None:
             return {'url': url, 'error': 'No data found'}
-        row = page_rows[0]
 
         page_data = {
             'url': row['keys'][0],

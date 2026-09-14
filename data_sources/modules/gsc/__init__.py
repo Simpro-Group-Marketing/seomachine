@@ -3,9 +3,11 @@
 from .pagination import (
     GSC_MAX_PAGE_ROWS,
     GSC_MAX_WORKFLOW_ROWS,
+    GscPage,
     GscPaginationError,
     GscQueryMode,
     GscRowCapExceeded,
+    iter_search_analytics_pages,
     iter_search_analytics_rows,
     query_search_analytics,
 )
@@ -13,9 +15,11 @@ from .pagination import (
 __all__ = [
     "GSC_MAX_PAGE_ROWS",
     "GSC_MAX_WORKFLOW_ROWS",
+    "GscPage",
     "GscPaginationError",
     "GscQueryMode",
     "GscRowCapExceeded",
+    "iter_search_analytics_pages",
     "iter_search_analytics_rows",
     "query_search_analytics",
 ]

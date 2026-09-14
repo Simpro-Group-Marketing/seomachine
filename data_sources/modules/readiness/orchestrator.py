@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
-from .inputs import ReadinessInputs
 from .session import ValidationSession
 from .telemetry import ReadinessTelemetry
 from ..public_http import PublicHttpTransport
@@ -25,21 +24,22 @@ def run_in_session(
 ) -> Mapping[str, Any]:
     """Capture first, fail closed, and close external resources on every exit."""
     try:
-        inputs = ReadinessInputs.capture(
+        session = ValidationSession.capture(
             input_paths,
             workspace_root=workspace_root,
+            connector_factory=connector_factory,
+            claim_loader=claim_loader,
+            transport_factory=transport_factory or (
+                lambda: PublicHttpTransport(
+                    observer=telemetry.http_observer if telemetry is not None else None
+                )
+            ),
             telemetry=telemetry,
         )
     except ValueError as error:
         return blocked_result(error)
 
-    with ValidationSession(
-        inputs,
-        connector_factory=connector_factory,
-        claim_loader=claim_loader,
-        transport_factory=transport_factory or PublicHttpTransport,
-        telemetry=telemetry,
-    ) as session:
+    with session:
         return runner(
             **dict(runner_kwargs),
             session=session,

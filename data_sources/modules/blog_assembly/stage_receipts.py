@@ -1,7 +1,27 @@
 """Stage Receipts responsibilities."""
-# ruff: noqa: F403, F405
+from datetime import date, datetime, timezone
+from pathlib import Path
+from typing import Any, Mapping, Sequence
 
-from .common import *  # noqa: F403
+from .common import (
+    NORMAL_PROVISIONAL_STAGES,
+    OPTIMIZED_PROVISIONAL_STAGES,
+    READINESS_SCHEMA,
+    artifact_inventory_snapshots,
+    blog_assembly_capabilities,
+    expected_blog_gate_inventory,
+    file_sha256,
+    normalized_text_sha256,
+    validate_sha256,
+    verify_artifact,
+)
+from .contracts import (
+    _is_number,
+    _is_supported_bom_schema,
+    _read_json_object,
+    _required_mapping,
+)
+from .preflight import _resolvable_receipt_evidence_hashes
 
 
 def _validate_receipt_sequence(
@@ -14,6 +34,7 @@ def _validate_receipt_sequence(
     execution_evidence: Mapping[str, Mapping[str, str]],
     prior_preflight_readiness_path: str | Path | None,
     workspace_root: Path,
+    normal_provisional_stages: tuple[str, ...] = NORMAL_PROVISIONAL_STAGES,
 ) -> tuple[bool, bool, list[Mapping[str, str]]]:
     try:
         from ..blog_assembly_stage_receipt import check_receipt_chain
@@ -45,7 +66,7 @@ def _validate_receipt_sequence(
             raise ValueError(f"stage receipt chain is invalid: {rules}")
     expected = stages if optimized_tail else (
         OPTIMIZED_PROVISIONAL_STAGES if optimized
-        else _legacy_value("NORMAL_PROVISIONAL_STAGES", NORMAL_PROVISIONAL_STAGES)
+        else normal_provisional_stages
     )
     if stages != expected:
         raise ValueError("provisional stage receipt sequence must be exactly: " + " -> ".join(expected))
@@ -189,6 +210,7 @@ def _validate_provisional_stage_receipts(
     prior_preflight_readiness_path: str | Path | None,
     visible_faq: bool,
     workspace_root: Path,
+    normal_provisional_stages: tuple[str, ...] = NORMAL_PROVISIONAL_STAGES,
 ) -> None:
     optimized_tail, optimized, expected_optimizer_rows = _validate_receipt_sequence(
         receipts,
@@ -199,6 +221,7 @@ def _validate_provisional_stage_receipts(
         execution_evidence=execution_evidence,
         prior_preflight_readiness_path=prior_preflight_readiness_path,
         workspace_root=workspace_root,
+        normal_provisional_stages=normal_provisional_stages,
     )
     outputs = receipts[-1].get("output_artifact_hashes")
     if not isinstance(outputs, Mapping) or outputs.get("article") != article_sha256:
@@ -259,6 +282,30 @@ def _validate_prior_preflight_readiness(
     except ValueError as error:
         raise ValueError("prior preflight BOM artifact is invalid") from error
     prior_bom = _read_json_object(prior_bom_path, "prior_preflight_bom")
+    return _validate_prior_preflight_payloads(
+        readiness,
+        prior_bom,
+        readiness_sha256=file_sha256(path),
+        receipt=receipt,
+        visible_faq=visible_faq,
+        connector_required=connector_required,
+    )
+
+
+def _validate_prior_preflight_payloads(
+    readiness: Mapping[str, Any],
+    prior_bom: Mapping[str, Any],
+    *,
+    readiness_sha256: str,
+    receipt: Mapping[str, Any],
+    visible_faq: bool,
+    connector_required: bool,
+) -> Mapping[str, Any]:
+    """Validate captured preflight and provisional-BOM payloads."""
+    inputs = _required_mapping(
+        readiness.get("input_hashes"),
+        "prior_preflight_readiness.input_hashes",
+    )
     if (
         not _is_supported_bom_schema(prior_bom.get("schema"))
         or prior_bom.get("lifecycle_state") != "provisional"
@@ -312,18 +359,7 @@ def _validate_prior_preflight_readiness(
         or aeo_geo["score"] < 90
     ):
         raise ValueError("prior preflight readiness scores are below the hard thresholds")
-    prior_artifacts = _required_mapping(
-        prior_bom.get("artifacts"),
-        "prior_preflight_bom.artifacts",
-    )
-    expected_inputs = artifact_inventory_snapshots(prior_artifacts)
-    actual_prior_inputs = {
-        str(label): dict(row)
-        for label, row in inputs.items()
-        if label != "assembly_bom" and isinstance(row, Mapping)
-    }
-    if actual_prior_inputs != expected_inputs:
-        raise ValueError("prior preflight inputs do not match its bound provisional BOM")
+    _validate_prior_input_inventory(inputs, prior_bom)
     input_hashes = {
         str(label): str(row.get("sha256"))
         for label, row in inputs.items()
@@ -341,7 +377,7 @@ def _validate_prior_preflight_readiness(
     )
     if (
         receipt.get("input_artifact_hashes") != input_hashes
-        or outputs.get("readiness_output") != file_sha256(path)
+        or outputs.get("readiness_output") != readiness_sha256
         or outputs.get("article") != article_input.get("sha256")
         or receipt.get("run_id") != readiness.get("run_id")
         or receipt.get("started_at") != readiness.get("started_at")
@@ -351,4 +387,34 @@ def _validate_prior_preflight_readiness(
     return readiness
 
 
-__all__ = ['_validate_prior_preflight_readiness', '_validate_provisional_stage_receipts']
+def _validate_prior_input_inventory(
+    inputs: Mapping[str, Any],
+    prior_bom: Mapping[str, Any],
+) -> None:
+    artifacts = _required_mapping(
+        prior_bom.get("artifacts"), "prior_preflight_bom.artifacts",
+    )
+    expected = artifact_inventory_snapshots(artifacts)
+    reviews = prior_bom.get("machine_reviews")
+    if isinstance(reviews, Mapping):
+        expected.update({
+            f"machine_reviews.{phase}": dict(row)
+            for phase, row in reviews.items()
+            if isinstance(row, Mapping)
+        })
+    actual = {
+        str(label): dict(row)
+        for label, row in inputs.items()
+        if label != "assembly_bom" and isinstance(row, Mapping)
+    }
+    extras = set(actual) - set(expected)
+    mismatch = any(actual.get(label) != row for label, row in expected.items())
+    if mismatch or extras - {"serp_raw_capture", "paa_raw_capture"}:
+        raise ValueError("prior preflight inputs do not match its bound provisional BOM")
+
+
+__all__ = [
+    '_validate_prior_preflight_payloads',
+    '_validate_prior_preflight_readiness',
+    '_validate_provisional_stage_receipts',
+]

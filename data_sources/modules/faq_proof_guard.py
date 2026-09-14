@@ -40,8 +40,6 @@ ALLOWED_FAQ_SOURCE_CLASSES = frozenset(
 FAQ_SOURCE_POLICY_HEADING = "## FAQ Source Policy"
 FAQ_PROOF_MAP_HEADING = "## FAQ Proof Map"
 
-
-
 @dataclass
 class FaqAnswer:
     question: str
@@ -64,6 +62,7 @@ def check_content(
     content: str,
     proof_content: Optional[str] = None,
     base_path: str | Path | None = None,
+    registry_state: object | None = None,
 ) -> List[Finding]:
     """
     Check FAQ answers against their machine-assigned risk-tier proof modes.
@@ -177,6 +176,7 @@ def check_content(
                 faq_answers,
                 proof_content,
                 base_path=Path(base_path) if base_path is not None else Path.cwd(),
+                registry_state=registry_state,
             )
         )
 
@@ -229,6 +229,7 @@ def _check_faq_source_policy(
     proof_content: str,
     *,
     base_path: Path,
+    registry_state: object | None,
 ) -> List[Finding]:
     if not any(_public_faq_urls(answer.answer) for answer in faq_answers):
         return []
@@ -346,6 +347,7 @@ def _check_faq_source_policy(
                 classification_artifact=source.classification_artifact,
                 classification_hash=source.classification_hash,
                 base_path=base_path,
+                registry_state=registry_state,
             )
             if classification_error is not None:
                 findings.append(

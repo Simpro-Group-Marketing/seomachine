@@ -213,7 +213,7 @@ def customer_link_sidecar(*, rows: str) -> str:
 class CustomerProofDiversityGuardTests(unittest.TestCase):
     def setUp(self):
         validation_patch = patch(
-            "data_sources.modules.customer_proof_selector.load_validated_claim_set",
+            "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
             new=load_validated_claim_set_for_unit_test,
         )
         validation_patch.start()
@@ -1468,7 +1468,7 @@ Customer Proof Selection Decision
             },
         }
         with patch(
-            "data_sources.modules.customer_proof_diversity_guard.verify_selector_evidence_roles",
+            "data_sources.modules.customer_proof.diversity_mining.verify_selector_evidence_roles",
             return_value=verified_roles,
         ):
             findings = check_content(

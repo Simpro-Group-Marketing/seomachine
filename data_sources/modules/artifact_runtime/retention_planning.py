@@ -33,6 +33,7 @@ class RetentionPlan:
     candidates: tuple[RetentionCandidate, ...]
     referenced: tuple[Path, ...]
     evaluated_at: datetime
+    research_retention_days: int
 
 
 def plan_retention(
@@ -79,6 +80,7 @@ def plan_retention(
         candidates=tuple(candidates),
         referenced=tuple(sorted(referenced)),
         evaluated_at=current,
+        research_retention_days=research_retention_days,
     )
 
 

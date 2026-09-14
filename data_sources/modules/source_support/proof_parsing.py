@@ -1,7 +1,32 @@
 """Proof Parsing responsibilities."""
-# ruff: noqa: F403, F405
-
-from .common import *  # noqa: F403
+from .claim_matching import _general_claim_type, _is_general_claim_exempt
+from .common import (
+    MARKDOWN_IMAGE_LINE_RE,
+    OUTCOME_SIGNAL_RE,
+    PROOF_ROW_RE,
+    SECTION_RE,
+    ClaimCandidate,
+    Dict,
+    List,
+    ProofEntry,
+    Sequence,
+    _blank_fenced_code,
+    _claim_text_for_detection,
+    _extract_numeric_tokens,
+    _is_candidate_claim,
+    _iter_paragraphs,
+    _normalize_numeric_token,
+    _strip_frontmatter_preserve_lines,
+    is_production_image_placeholder_line,
+    re,
+)
+from .findings import (
+    _customer_names_in_text,
+    _has_case_study_link,
+    _is_exact_quote_claim,
+    _is_review_authority_claim,
+)
+from .text_matching import _clean_field_value, _normalize_key, _normalize_section
 
 
 def _extract_proof_entries(content: str) -> List[ProofEntry]:

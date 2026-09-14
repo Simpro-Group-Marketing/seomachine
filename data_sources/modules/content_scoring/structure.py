@@ -1,7 +1,8 @@
 """Structure responsibilities."""
-# ruff: noqa: F403, F405
 
-from .common import *  # noqa: F403
+import html
+import re
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class StructureScoringMixin:
@@ -10,7 +11,7 @@ class StructureScoringMixin:
         issues = []
         details = {}
 
-        _, content, _ = split_frontmatter(content)
+        _, content, _ = self.dependencies.split_frontmatter(content)
 
         # Remove metadata block
         content = re.sub(r'^\*\*[^*]+\*\*:\s*.+$', '', content, flags=re.MULTILINE)

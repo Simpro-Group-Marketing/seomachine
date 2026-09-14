@@ -10,6 +10,7 @@ import pytest
 
 from data_sources.modules.artifact_runtime.limits import (
     ARTICLE_MAX_BYTES,
+    SUBPROCESS_MAX_INPUT_BYTES,
     validate_text_artifact,
 )
 from data_sources.modules.artifact_runtime.paths import cache_path, spool_path
@@ -17,6 +18,11 @@ from data_sources.modules.artifact_runtime.subprocesses import (
     ProcessCleanupError,
     SubprocessOutputLimitError,
     run_bounded_process,
+    run_bounded_text_process,
+)
+from data_sources.modules.bounded_io import (
+    JsonOutputLimitError,
+    bounded_canonical_json_bytes,
 )
 
 
@@ -82,6 +88,60 @@ def test_bounded_process_keeps_small_output_in_memory() -> None:
         assert completed.stderr.read_text() == "note"
         assert completed.stdout.spooled_to_disk is False
         assert completed.stderr.spooled_to_disk is False
+
+
+def test_bounded_canonical_json_stops_at_declared_limit() -> None:
+    assert bounded_canonical_json_bytes({"ok": True}, max_bytes=32) == (
+        b'{\n  "ok": true\n}\n'
+    )
+    with pytest.raises(JsonOutputLimitError, match="exceeds 8 bytes"):
+        bounded_canonical_json_bytes({"value": "x" * 100}, max_bytes=8)
+
+
+def test_bounded_text_process_materializes_and_closes_streams() -> None:
+    completed = run_bounded_text_process(
+        [sys.executable, "-c", "import sys;print('ok');print('note', file=sys.stderr)"],
+        timeout=5,
+        max_output_bytes=1024,
+    )
+
+    assert completed.returncode == 0
+    assert completed.stdout.splitlines() == ["ok"]
+    assert completed.stderr.splitlines() == ["note"]
+
+
+def test_bounded_process_supplies_bounded_stdin_bytes(tmp_path: Path) -> None:
+    payload = b"bounded input\x00with binary bytes"
+
+    with run_bounded_process(
+        [sys.executable, "-c", "import sys;sys.stdout.buffer.write(sys.stdin.buffer.read())"],
+        timeout=10,
+        input_bytes=payload,
+        spool_threshold_bytes=128,
+        max_output_bytes=1024,
+        spool_dir=tmp_path,
+    ) as completed:
+        assert completed.returncode == 0
+        assert completed.stdout.read_bytes() == payload
+
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_bounded_process_rejects_oversized_stdin_bytes(tmp_path: Path) -> None:
+    with pytest.raises(
+        ValueError,
+        match=f"input_bytes exceeds {SUBPROCESS_MAX_INPUT_BYTES} bytes",
+    ):
+        run_bounded_process(
+            [sys.executable, "-c", "pass"],
+            timeout=10,
+            input_bytes=b"x" * (SUBPROCESS_MAX_INPUT_BYTES + 1),
+            spool_threshold_bytes=128,
+            max_output_bytes=1024,
+            spool_dir=tmp_path,
+        )
+
+    assert list(tmp_path.iterdir()) == []
 
 
 def test_bounded_process_spools_large_output_without_losing_bytes() -> None:

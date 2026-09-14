@@ -13,7 +13,6 @@ import hmac
 import json
 import os
 import re
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence
@@ -324,37 +323,3 @@ SIMPRO_CONTEXT_GATE_NAMES = frozenset({
     "vault_brand_language",
     "named_feature_status",
 })
-
-
-
-
-_DIRECT_DEFAULTS = {name: globals()[name] for name in ['ContentScorer', 'LandingPageScorer', 'ReadinessTelemetry', 'SimproVaultClient', 'build_stage_receipt', 'load_validated_claim_set', 'read_publishable_markdown', 'validate_file_urls', 'write_stage_receipt']}
-
-def _legacy_value(name: str, default: Any = None) -> Any:
-    module = sys.modules.get("data_sources.modules.publish_readiness_core")
-    module = module or sys.modules.get("publish_readiness_core") or sys.modules.get("__main__")
-    return getattr(module, name, default)
-
-def _dependency_proxy(name: str):
-    default = _DIRECT_DEFAULTS[name]
-    def call(*args, **kwargs):
-        target = _legacy_value(name, default)
-        if target is call:
-            target = default
-        return target(*args, **kwargs)
-    return call
-
-def _function_proxy(name: str):
-    def call(*args, **kwargs):
-        target = _legacy_value(name)
-        if target is None or target is call:
-            raise RuntimeError(f"readiness dependency is unavailable: {name}")
-        return target(*args, **kwargs)
-    return call
-
-for _dependency_name in ['ContentScorer', 'LandingPageScorer', 'ReadinessTelemetry', 'SimproVaultClient', 'build_stage_receipt', 'load_validated_claim_set', 'read_publishable_markdown', 'validate_file_urls', 'write_stage_receipt']:
-    globals()[_dependency_name] = _dependency_proxy(_dependency_name)
-for _function_name in ['_blocked_readiness_result', '_bom_runtime_policy', '_canonical_bom_run_id', '_capture_readiness_inputs', '_captured_proof_content', '_complete_readiness_input_hashes', '_content_score', '_finding_lines', '_gate_from_findings', '_gate_from_score', '_gate_from_url_summary', '_historical_preflight_input_snapshots', '_input_capture_blocked_result', '_is_number', '_load_session_claims', '_no_fit_customer_proof_findings', '_optional_result_path', '_priority_fix_lines', '_readiness_input_hashes', '_readiness_run_id', '_reject_output_input_collision', '_reject_telemetry_output_collision', '_resolve_optional_workspace_input', '_resolve_workspace_input', '_result_workspace_root', '_run_publish_readiness', '_run_publish_readiness_session', '_same_number', '_same_path', '_score_content', '_score_report_line', '_scorecard_from_scorer_result', '_scorecard_gate', '_seo_score_report_line', '_timed_call', '_url_blocker_line', '_utc_now', '_validate_actual_readiness_execution', '_validate_passed_scorecard', '_validate_scorecard_gate', '_verify_result_inputs_unchanged', '_verify_result_path_bindings', 'build_final_readiness_attestation', 'format_text_report', 'main', 'readiness_stage_receipt_path', 'run_publish_readiness', 'validate_passed_readiness_result', 'write_readiness_result']:
-    globals()[_function_name] = _function_proxy(_function_name)
-
-__all__ = [name for name in globals() if not name.startswith("__")]

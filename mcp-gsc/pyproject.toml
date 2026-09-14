@@ -26,7 +26,7 @@ dependencies = [
 ]
 
 [project.scripts]
-mcp-gsc = "gsc_server:main"
+mcp-gsc = "mcp_gsc.server:main"
 
 [project.urls]
 "Homepage" = "https://github.com/aminfseo/mcp-gsc"
@@ -38,3 +38,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 py-modules = ["gsc_server"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mcp_gsc*"]

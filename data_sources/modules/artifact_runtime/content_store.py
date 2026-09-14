@@ -11,7 +11,11 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-from ..blog_assembly_contract import atomic_write_json, canonical_json_bytes
+from ..blog_assembly_contract import atomic_write_json
+from ..bounded_io import (
+    bounded_canonical_json_bytes,
+    read_bounded as _shared_read_bounded,
+)
 from .limits import JSON_MAX_BYTES
 from .workspace_lock import artifact_workspace_lock
 
@@ -34,9 +38,10 @@ def write_context_trace(
     trace_schema = payload.get("schema")
     if not isinstance(trace_schema, str) or not trace_schema:
         raise ValueError("context trace payload requires a schema")
-    serialized = canonical_json_bytes(payload)
-    if len(serialized) > JSON_MAX_BYTES:
-        raise ValueError(f"context trace exceeds {JSON_MAX_BYTES} bytes")
+    try:
+        serialized = bounded_canonical_json_bytes(payload, max_bytes=JSON_MAX_BYTES)
+    except ValueError as error:
+        raise ValueError(f"context trace exceeds {JSON_MAX_BYTES} bytes") from error
     digest = hashlib.sha256(serialized).hexdigest()
     relative_object = OBJECT_PREFIX / digest[:2] / f"{digest}.json"
     object_path = root.joinpath(*relative_object.parts)
@@ -100,7 +105,7 @@ def _store_immutable_object(path: Path, content: bytes, *, digest: str) -> None:
         with tempfile.NamedTemporaryFile(
             mode="wb",
             dir=path.parent,
-            prefix=f".{path.name}.",
+            prefix=".trace-",
             suffix=".tmp",
             delete=False,
         ) as handle:
@@ -132,14 +137,7 @@ def _load_json_object(path: Path, *, max_bytes: int, label: str) -> dict[str, An
 
 
 def _read_bounded(path: Path, *, max_bytes: int, label: str) -> bytes:
-    try:
-        with path.open("rb") as handle:
-            content = handle.read(max_bytes + 1)
-    except OSError as error:
-        raise ValueError(f"{label} is unreadable: {error}") from error
-    if len(content) > max_bytes:
-        raise ValueError(f"{label} exceeds {max_bytes} bytes")
-    return content
+    return _shared_read_bounded(path, max_bytes=max_bytes, field=label)
 
 
 def _parse_json_object(content: bytes, *, label: str) -> dict[str, Any]:

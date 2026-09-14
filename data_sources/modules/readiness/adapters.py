@@ -1,7 +1,27 @@
 """Publish-readiness adapters responsibilities."""
-# ruff: noqa: F403, F405
+import argparse
+import os
+from pathlib import Path
+from typing import Any, Dict, List, Mapping, Optional
 
-from .common import *  # noqa: F403
+from .common import (
+    ContentScorer,
+    GateResult,
+    LandingPageScorer,
+    READINESS_RESULT_SCHEMA,
+    ReadinessResult,
+    ReadinessTelemetry,
+    SEO_PUBLISHING_THRESHOLD,
+    SEO_TARGET_SCORE,
+    UrlValidationSummary,
+    read_publishable_markdown,
+    should_fail,
+    summarize_findings,
+)
+from .artifact_views import thaw_value
+from .result_validation import _is_number
+from .runtime_policy import _bom_runtime_policy
+from .workspace_bindings import _resolve_workspace_input
 
 
 def _reject_telemetry_output_collision(args: argparse.Namespace) -> None:
@@ -141,15 +161,20 @@ def _score_content(
     article_path: Path,
     proof_sidecar: Optional[str],
     *,
+    article_content: str | None = None,
+    article: Any | None = None,
+    proof_content: str | None = None,
     artifact_kind: str = "blog",
     assembly_bom: Optional[str] = None,
     runtime_policy: Mapping[str, Any] | None = None,
     workspace_root: str | Path,
     readiness_gate_context: object = None,
 ) -> Dict[str, Any]:
-    content = article_path.read_text(encoding="utf-8")
+    content = article_content if article_content is not None else article_path.read_text(
+        encoding="utf-8"
+    )
     if artifact_kind == "landing_page":
-        artifact = read_publishable_markdown(article_path)
+        artifact = article or read_publishable_markdown(article_path)
         page_type = artifact.scalar("page_type").casefold()
         conversion_goal = artifact.scalar("conversion_goal").casefold()
         if page_type not in {"seo", "ppc"} or conversion_goal not in {
@@ -214,7 +239,7 @@ def _score_content(
             workspace_root=workspace_root,
         )
     raw_metadata = policy.get("scoring_metadata")
-    metadata = dict(raw_metadata) if isinstance(raw_metadata, Mapping) else {}
+    metadata = thaw_value(raw_metadata) if isinstance(raw_metadata, Mapping) else {}
     metadata["faq_policy_status"] = str(policy.get("faq_policy_status") or "")
     raw_paa = policy.get("paa_kwargs")
     paa = dict(raw_paa) if isinstance(raw_paa, Mapping) else {}
@@ -225,6 +250,7 @@ def _score_content(
         validate_source_support=False,
         source_path=str(article_path),
         proof_sidecar=proof_sidecar,
+        proof_content=proof_content,
         finalized_bom=(
             policy.get("assembly_bom")
             if isinstance(policy.get("assembly_bom"), Mapping)
@@ -268,14 +294,14 @@ def _seo_scorecard_gate(
     source: Mapping[str, Any],
     *,
     applicable: bool,
+    threshold: int = SEO_PUBLISHING_THRESHOLD,
+    target: int = SEO_TARGET_SCORE,
 ) -> Dict[str, Any]:
     if not applicable:
         return {
             "score": None, "threshold": None, "passed": True,
             "critical_issue_count": 0, "not_applicable": True,
         }
-    threshold = _legacy_value("SEO_PUBLISHING_THRESHOLD", SEO_PUBLISHING_THRESHOLD)
-    target = _legacy_value("SEO_TARGET_SCORE", SEO_TARGET_SCORE)
     issues = source.get("critical_issues", [])
     critical_issues = issues if isinstance(issues, list) else []
     score = source.get("score")
@@ -322,6 +348,8 @@ def _scorecard_from_scorer_result(
     score_result: Mapping[str, Any],
     *,
     artifact_kind: str,
+    seo_threshold: int = SEO_PUBLISHING_THRESHOLD,
+    seo_target: int = SEO_TARGET_SCORE,
 ) -> Dict[str, Any]:
     """Return independent publish score gates from a scorer result."""
     gates = score_result.get("quality_gates")
@@ -340,7 +368,12 @@ def _scorecard_from_scorer_result(
 
     seo_not_applicable = artifact_kind != "blog" and not seo_source
     content_gate = _content_scorecard_gate(score_result, content_source, artifact_kind)
-    seo_gate = _seo_scorecard_gate(seo_source, applicable=not seo_not_applicable)
+    seo_gate = _seo_scorecard_gate(
+        seo_source,
+        applicable=not seo_not_applicable,
+        threshold=seo_threshold,
+        target=seo_target,
+    )
     aeo_gate = _aeo_scorecard_gate(aeo_source, artifact_kind=artifact_kind)
     return {
         "passed": bool(

@@ -1,6 +1,14 @@
 from __future__ import annotations
 
-from tools.check_python_structure import complexity_errors, production_line_errors
+from pathlib import Path
+
+import pytest
+
+from tools.check_python_structure import (
+    _production_files,
+    complexity_errors,
+    production_line_errors,
+)
 
 
 def test_production_line_baseline_rejects_growth_and_stale_debt() -> None:
@@ -33,3 +41,42 @@ def test_complexity_baseline_rejects_new_growth_and_stale_debt() -> None:
         "legacy.py:old no longer violates C901; remove its stale baseline",
         "new.py:new is a new C901 violation at complexity 11",
     ]
+
+
+def test_mcp_gsc_is_a_required_production_root(tmp_path: Path) -> None:
+    for directory in ("data_sources", "scripts", "tools"):
+        (tmp_path / directory).mkdir()
+
+    with pytest.raises(ValueError, match="production root is missing: mcp-gsc"):
+        _production_files(tmp_path)
+
+
+def test_mcp_gsc_scan_requires_facade_and_package_and_excludes_build_artifacts(
+    tmp_path: Path,
+) -> None:
+    for directory in ("data_sources", "scripts", "tools"):
+        (tmp_path / directory).mkdir()
+    package_root = tmp_path / "mcp-gsc"
+    package = package_root / "mcp_gsc"
+    package.mkdir(parents=True)
+    (package_root / "gsc_server.py").write_text("FACADE = True\n", encoding="utf-8")
+    (package / "__init__.py").write_text("PACKAGE = True\n", encoding="utf-8")
+    (package_root / "extra.py").write_text("EXTRA = True\n", encoding="utf-8")
+    for excluded in ("venv", ".venv", "build", "dist", "pkg.egg-info", "__pycache__"):
+        path = package_root / excluded
+        path.mkdir()
+        (path / "ignored.py").write_text("IGNORED = True\n", encoding="utf-8")
+
+    files = {
+        path.relative_to(tmp_path).as_posix() for path in _production_files(tmp_path)
+    }
+
+    assert files == {
+        "mcp-gsc/extra.py",
+        "mcp-gsc/gsc_server.py",
+        "mcp-gsc/mcp_gsc/__init__.py",
+    }
+
+    (package_root / "gsc_server.py").unlink()
+    with pytest.raises(ValueError, match="required production path is missing"):
+        _production_files(tmp_path)

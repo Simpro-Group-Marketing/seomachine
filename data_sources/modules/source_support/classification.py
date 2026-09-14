@@ -1,8 +1,37 @@
 """Classification responsibilities."""
-# ruff: noqa: F403, F405
+from collections.abc import Mapping
 
-from .common import *  # noqa: F403
+from .artifacts import (
+    _attestation_workspace_root,
+    _is_strict_classification_payload,
+    _resolve_local_artifact,
+)
+from .common import (
+    JSON_ARTIFACT_EXTENSION_RE,
+    SHA256_RE,
+    SOURCE_CLASSIFICATION_ATTESTATION_PURPOSE,
+    SOURCE_CLASS_RELATIONSHIPS,
+    SOURCE_DECISIONS_PATH,
+    SOURCE_DECISIONS_SCHEMA,
+    SOURCE_DECISION_FIELDS,
+    Callable,
+    ClaimCandidate,
+    Finding,
+    Optional,
+    Path,
+    ProofEntry,
+    load_json_object_snapshot,
+    resolve_artifact,
+    subprocess,
+    urlsplit,
+    verify_mapping_attestation,
+)
+from .findings import _finding
 from ..artifact_runtime.subprocesses import run_bounded_process
+try:
+    from ..readiness.git_registry import validate_git_registry_state
+except ImportError:  # pragma: no cover - direct script compatibility.
+    from readiness.git_registry import validate_git_registry_state
 
 
 def _load_classification_payload(
@@ -55,6 +84,10 @@ def _validate_source_classification(
     proof: ProofEntry,
     candidate: ClaimCandidate,
     base_path: Path,
+    *,
+    registry_state: object | None = None,
+    registry_snapshot: object | None = None,
+    registry_verifier: Callable[..., None] | None = None,
 ) -> Optional[Finding]:
     payload, classification_path, finding = _load_classification_payload(
         proof, candidate, base_path
@@ -121,6 +154,9 @@ def _validate_source_classification(
         payload,
         classification_path=classification_path,
         base_path=base_path,
+        registry_state=registry_state,
+        registry_snapshot=registry_snapshot,
+        registry_verifier=registry_verifier,
     )
     if decision_finding is not None:
         return _finding(
@@ -139,6 +175,9 @@ def validate_source_classification_binding(
     classification_artifact: str,
     classification_hash: str,
     base_path: str | Path,
+    registry_state: object | None = None,
+    registry_snapshot: object | None = None,
+    registry_verifier: Callable[..., None] | None = None,
 ) -> str | None:
     """Return the strict classification rule ID for another proof guard.
 
@@ -170,7 +209,14 @@ def validate_source_classification_binding(
         classification_artifact=classification_artifact,
         classification_hash=classification_hash,
     )
-    finding = _validate_source_classification(proof, candidate, Path(base_path))
+    finding = _validate_source_classification(
+        proof,
+        candidate,
+        Path(base_path),
+        registry_state=registry_state,
+        registry_snapshot=registry_snapshot,
+        registry_verifier=registry_verifier,
+    )
     return str(finding["rule_id"]) if finding is not None else None
 
 def _validate_classification_decision(
@@ -178,6 +224,9 @@ def _validate_classification_decision(
     *,
     classification_path: Path,
     base_path: Path,
+    registry_state: object | None = None,
+    registry_snapshot: object | None = None,
+    registry_verifier: Callable[..., None] | None = None,
 ) -> str | None:
     registry = payload.get("registry")
     if not isinstance(registry, dict) or registry.get("authority_mode") != "repository_decision":
@@ -188,34 +237,40 @@ def _validate_classification_decision(
             registry.get("decision_path"),
             workspace_root=workspace_root,
         )
-        snapshot = load_json_object_snapshot(
-            decision_path,
-            field="source classification decision registry",
-        )
     except ValueError:
         return "source_classification_decision_missing"
-    if snapshot.sha256 != registry.get("decision_sha256"):
-        return "source_classification_decision_tampered"
     if registry.get("decision_path") != SOURCE_DECISIONS_PATH:
         return "source_classification_authority_unsupported"
+    if registry_state is None and registry_snapshot is None:
+        try:
+            registry_snapshot = load_json_object_snapshot(
+                decision_path,
+                field="source classification decision registry",
+            )
+        except ValueError:
+            return "source_classification_decision_missing"
     try:
-        _require_registry_matches_committed_head(
-            snapshot,
+        decision_registry = _verified_registry_payload(
+            decision_path=decision_path,
             workspace_root=workspace_root,
+            expected_sha256=str(registry.get("decision_sha256") or ""),
+            registry_state=registry_state,
+            registry_snapshot=registry_snapshot,
+            registry_verifier=registry_verifier,
         )
-    except ValueError:
+    except (TypeError, ValueError):
         return "source_classification_decision_tampered"
-    decision_registry = snapshot.payload
+    decisions = decision_registry.get("decisions")
     if (
         set(decision_registry) != {"schema", "revision", "decisions"}
         or decision_registry.get("schema") != SOURCE_DECISIONS_SCHEMA
         or decision_registry.get("revision") != registry.get("revision")
-        or not isinstance(decision_registry.get("decisions"), list)
+        or not isinstance(decisions, (list, tuple))
     ):
         return "source_classification_decision_revision_mismatch"
     matches = [
-        row for row in decision_registry["decisions"]
-        if isinstance(row, dict) and row.get("decision_id") == registry.get("record_id")
+        row for row in decisions
+        if isinstance(row, Mapping) and row.get("decision_id") == registry.get("record_id")
     ]
     if len(matches) != 1 or set(matches[0]) != SOURCE_DECISION_FIELDS:
         return "source_classification_decision_missing"
@@ -230,6 +285,40 @@ def _validate_classification_decision(
     if any(decision.get(key) != value for key, value in expected.items()):
         return "source_classification_decision_mismatch"
     return None
+
+
+def _verified_registry_payload(
+    *,
+    decision_path: Path,
+    workspace_root: Path,
+    expected_sha256: str,
+    registry_state: object | None,
+    registry_snapshot: object | None,
+    registry_verifier: Callable[..., None] | None,
+) -> Mapping:
+    if registry_state is not None:
+        if registry_snapshot is not None:
+            raise ValueError("registry state and snapshot are mutually exclusive")
+        resolved_state = registry_state() if callable(registry_state) else registry_state
+        state = validate_git_registry_state(
+            resolved_state,
+            registry_path=decision_path,
+            workspace_root=workspace_root,
+            expected_sha256=expected_sha256,
+        )
+        return state.payload
+    snapshot = registry_snapshot
+    if snapshot is None:
+        raise ValueError("source decision registry snapshot is missing")
+    if (
+        getattr(snapshot, "path", None) != decision_path
+        or getattr(snapshot, "sha256", None) != expected_sha256
+        or not isinstance(getattr(snapshot, "payload", None), Mapping)
+    ):
+        raise ValueError("source decision registry snapshot does not match")
+    verifier = registry_verifier or _require_registry_matches_committed_head
+    verifier(snapshot, workspace_root=workspace_root)
+    return snapshot.payload
 
 def _require_registry_matches_committed_head(
     snapshot: object,

@@ -1,13 +1,14 @@
 """Humanity responsibilities."""
-# ruff: noqa: F403, F405
 
-from .common import *  # noqa: F403
+import html
+import re
+from typing import Any, Dict, Optional
 
 
 class HumanityScoringMixin:
     def _clean_for_analysis(self, content: str) -> str:
         """Remove markdown formatting for text analysis"""
-        _, text, _ = split_frontmatter(content)
+        _, text, _ = self.dependencies.split_frontmatter(content)
 
         # Remove frontmatter/metadata block
         text = re.sub(r'^\*\*[^*]+\*\*:\s*.+$', '', text, flags=re.MULTILINE)
@@ -49,7 +50,7 @@ class HumanityScoringMixin:
 
         # Use the shared deterministic AI copy linter so scoring and lint gates
         # do not drift into separate phrase lists.
-        copy_lint_findings = lint_content(lint_source or content)
+        copy_lint_findings = self.dependencies.lint_content(lint_source or content)
         copy_lint_errors = [
             finding for finding in copy_lint_findings
             if finding["severity"] == "error"

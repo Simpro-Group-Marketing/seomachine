@@ -30,6 +30,9 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 try:
+    from .artifact_runtime.limits import JSON_MAX_BYTES
+    from .artifact_runtime.subprocesses import run_bounded_text_process
+    from .bounded_io import bounded_json_bytes
     from .publishable_markdown import (
         PublishableMarkdown,
         capture_file_snapshots,
@@ -47,6 +50,9 @@ try:
     from .source_support_guard import require_source_support
     from .url_validator import validate_file_urls
 except ImportError:
+    from artifact_runtime.limits import JSON_MAX_BYTES
+    from artifact_runtime.subprocesses import run_bounded_text_process
+    from bounded_io import bounded_json_bytes
     from publishable_markdown import (
         PublishableMarkdown,
         capture_file_snapshots,
@@ -290,12 +296,16 @@ class GravPublisher:
             raise GravPublishError("GitHub CLI ('gh') not found on PATH.")
         cmd = ["gh", "api", *args]
         try:
-            result = subprocess.run(
+            encoded_payload = None if payload is None else bounded_json_bytes(
+                payload, max_bytes=JSON_MAX_BYTES
+            ).decode("utf-8")
+            result = run_bounded_text_process(
                 cmd,
-                input=json.dumps(payload) if payload is not None else None,
-                capture_output=True,
-                text=True,
+                input_text=encoded_payload,
+                encoding="utf-8",
+                errors="replace",
                 timeout=GH_TIMEOUT_SECONDS,
+                max_output_bytes=JSON_MAX_BYTES,
             )
         except subprocess.TimeoutExpired as exc:
             raise GravRequestTimeout(

@@ -1,7 +1,13 @@
 """Quality Gates responsibilities."""
-# ruff: noqa: F403, F405
 
-from .common import *  # noqa: F403
+from collections.abc import Mapping, Sequence
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+from data_sources.modules.seo_quality_rater import (
+    PUBLISHING_THRESHOLD as SEO_PUBLISHING_THRESHOLD,
+    SEO_TARGET_SCORE,
+)
 
 
 class QualityGatesMixin:
@@ -14,6 +20,7 @@ class QualityGatesMixin:
         validate_source_support: bool,
         source_path: Optional[str],
         proof_sidecar: Optional[str],
+        proof_content: Optional[str] = None,
         finalized_bom: Optional[Mapping[str, Any]] = None,
         assembly_date: Optional[str] = None,
         paa_workflow_mode: Optional[str] = None,
@@ -29,13 +36,21 @@ class QualityGatesMixin:
         readiness_gate_context: object = None,
     ) -> Dict[str, Any]:
         """Run proof-aware quality gates and keep scorer orchestration local."""
-        proof_sidecar_content = load_sidecar_content(source_path, proof_sidecar)
-        resolved_sidecar = resolve_sidecar_path(source_path, proof_sidecar)
-        proof_sidecar_path = (
-            str(resolved_sidecar.resolve())
-            if resolved_sidecar is not None and resolved_sidecar.is_file()
-            else None
-        )
+        if proof_content is None:
+            proof_sidecar_content = self.dependencies.load_sidecar_content(
+                source_path, proof_sidecar
+            )
+            resolved_sidecar = self.dependencies.resolve_sidecar_path(
+                source_path, proof_sidecar
+            )
+            proof_sidecar_path = (
+                str(resolved_sidecar.resolve())
+                if resolved_sidecar is not None and resolved_sidecar.is_file()
+                else None
+            )
+        else:
+            proof_sidecar_content = proof_content
+            proof_sidecar_path = proof_sidecar
         aeo_kwargs: Dict[str, Any] = {
             "source_path": source_path,
             "proof_sidecar_content": proof_sidecar_content,
@@ -52,42 +67,42 @@ class QualityGatesMixin:
         }
         if readiness_gate_context is not None:
             aeo_kwargs["readiness_gate_context"] = readiness_gate_context
-        aeo_geo = rate_aeo_geo(content, metadata, **aeo_kwargs)
+        aeo_geo = self.dependencies.rate_aeo_geo(content, metadata, **aeo_kwargs)
         faq_proof_check = aeo_geo.get('checks', {}).get('faq_proof', {})
         paa_provenance_check = aeo_geo.get('checks', {}).get('paa_provenance', {})
-        metric_proof_pack_findings = trusted_readiness_findings(
+        metric_proof_pack_findings = self.dependencies.trusted_readiness_findings(
             readiness_gate_context,
             "metric_proof_pack",
             article_content=content,
             proof_sidecar_content=proof_sidecar_content,
         )
         if metric_proof_pack_findings is None:
-            metric_proof_pack_findings = check_metric_proof_pack(
+            metric_proof_pack_findings = self.dependencies.check_metric_proof_pack(
                 content,
                 source_path=source_path,
                 proof_content=proof_sidecar_content,
             )
-        customer_proof_findings = trusted_readiness_findings(
+        customer_proof_findings = self.dependencies.trusted_readiness_findings(
             readiness_gate_context,
             "customer_proof_diversity",
             article_content=content,
             proof_sidecar_content=proof_sidecar_content,
         )
         if customer_proof_findings is None:
-            customer_proof_findings = check_customer_proof_diversity(
+            customer_proof_findings = self.dependencies.check_customer_proof_diversity(
                 content,
                 source_path=source_path,
                 proof_content=proof_sidecar_content,
                 proof_sidecar_path=proof_sidecar_path,
             )
-        review_story_findings = trusted_readiness_findings(
+        review_story_findings = self.dependencies.trusted_readiness_findings(
             readiness_gate_context,
             "review_story_identity",
             article_content=content,
             proof_sidecar_content=proof_sidecar_content,
         )
         if review_story_findings is None:
-            review_story_findings = check_review_story_identity(
+            review_story_findings = self.dependencies.check_review_story_identity(
                 content,
                 source_path=source_path,
                 proof_content=proof_sidecar_content,
@@ -95,7 +110,7 @@ class QualityGatesMixin:
 
         source_support_findings = []
         if validate_source_support:
-            source_support_findings = check_source_support(
+            source_support_findings = self.dependencies.check_source_support(
                 content,
                 base_path=Path(source_path).parent if source_path else None,
                 proof_content=proof_sidecar_content,
@@ -105,7 +120,7 @@ class QualityGatesMixin:
         # starved by a burst of URL-resolution requests to the same domain.
         url_validation = None
         if validate_urls:
-            url_validation = validate_content_urls(content)
+            url_validation = self.dependencies.validate_content_urls(content)
 
         return {
             'aeo_geo': aeo_geo,

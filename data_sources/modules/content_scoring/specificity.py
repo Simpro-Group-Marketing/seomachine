@@ -1,7 +1,7 @@
 """Specificity responsibilities."""
-# ruff: noqa: F403, F405
 
-from .common import *  # noqa: F403
+import re
+from typing import Any, Dict
 
 
 class SpecificityScoringMixin:

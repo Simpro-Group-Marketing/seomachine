@@ -1,7 +1,25 @@
 """Finalization responsibilities."""
-# ruff: noqa: F403, F405
+import copy
+from datetime import date
+from pathlib import Path
+from typing import Any, Mapping, Sequence
 
-from .common import *  # noqa: F403
+from .common import (
+    BOM_SCHEMA_V1,
+    BOM_SCHEMA_V2,
+    BOM_SCHEMA_V3,
+    atomic_write_json,
+    canonical_article_run_id,
+    canonical_artifact,
+    canonical_json_sha256,
+    file_sha256,
+    load_json_object_snapshot,
+    resolve_artifact,
+    validate_sha256,
+)
+from .construction import build_blog_assembly_bom_from_files
+from .contracts import _is_supported_bom_schema, _read_json_object, _required_mapping
+from .preflight import _validate_passed_preflight, _verify_bom_artifacts_unchanged
 
 
 def build_blog_assembly_bom(**kwargs: Any) -> dict[str, Any]:
@@ -228,11 +246,11 @@ def _validate_receipt_readiness_bindings(
     receipt: Mapping[str, Any],
     readiness: Mapping[str, Any],
     *,
-    readiness_path: Path,
+    readiness_sha256: str,
     article_sha256: str,
 ) -> None:
     outputs = receipt.get("output_artifact_hashes")
-    if not isinstance(outputs, Mapping) or outputs.get("readiness_output") != file_sha256(readiness_path):
+    if not isinstance(outputs, Mapping) or outputs.get("readiness_output") != readiness_sha256:
         raise ValueError("preflight stage receipt does not bind the readiness output")
     expected_inputs = _readiness_input_digests(readiness)
     if receipt.get("input_artifact_hashes") != expected_inputs:
@@ -262,6 +280,8 @@ def validate_preflight_stage_receipt_binding(
     article_path: str | Path,
     workspace_root: str | Path,
     assembly_date: str | date,
+    readiness_payload: Mapping[str, Any] | None = None,
+    readiness_sha256: str | None = None,
 ) -> None:
     """Validate one readiness receipt against its exact run, inputs, and outputs."""
     try:
@@ -314,11 +334,20 @@ def validate_preflight_stage_receipt_binding(
             + ", ".join(sorted({str(finding["rule_id"]) for finding in findings}))
         )
     readiness_file = Path(readiness_path)
-    readiness = _read_json_object(readiness_file, "preflight_readiness")
+    readiness = (
+        readiness_payload
+        if readiness_payload is not None
+        else _read_json_object(readiness_file, "preflight_readiness")
+    )
+    observed_sha256 = (
+        validate_sha256(readiness_sha256, field="readiness_sha256")
+        if readiness_sha256 is not None
+        else file_sha256(readiness_file)
+    )
     _validate_receipt_readiness_bindings(
         receipt,
         readiness,
-        readiness_path=readiness_file,
+        readiness_sha256=observed_sha256,
         article_sha256=final_article_sha256,
     )
 

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import importlib
 
-from data_sources.modules.aeo_geo_rater import (
-    _check_direct_answer,
+from data_sources.modules.content_scoring.aeo_content import _check_direct_answer
+from data_sources.modules.content_scoring.aeo_no_fit import (
     _has_documented_no_fit_experience_boundary,
 )
 

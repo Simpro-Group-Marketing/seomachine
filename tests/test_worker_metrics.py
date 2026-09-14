@@ -17,6 +17,7 @@ def test_worker_metrics_are_atomic_and_content_free(
     monkeypatch.setattr("tests.worker_metrics.os.getpid", lambda: 4321)
     destination = write_worker_metrics(
         tmp_path,
+        run_id="run-abc",
         worker_id="gw2",
         elapsed_ms=12.5,
         collected=40,
@@ -26,9 +27,10 @@ def test_worker_metrics_are_atomic_and_content_free(
     )
 
     payload = json.loads(destination.read_text(encoding="utf-8"))
-    assert destination.name == "gw2-4321.json"
+    assert destination.name == "run-abc-gw2-4321.json"
     assert payload == {
-        "schema": "simpro-test-worker-metrics/v1",
+        "schema": "simpro-test-worker-metrics/v2",
+        "run_id": "run-abc",
         "worker_id": "gw2",
         "elapsed_ms": 12.5,
         "collected": 40,
@@ -38,6 +40,22 @@ def test_worker_metrics_are_atomic_and_content_free(
         "process_id": 4321,
     }
     assert not list(tmp_path.glob("*.tmp"))
+
+
+def test_worker_metric_filename_rejects_unsafe_run_identity(tmp_path: Path) -> None:
+    import pytest
+
+    with pytest.raises(ValueError, match="run_id"):
+        write_worker_metrics(
+            tmp_path,
+            run_id="../stale",
+            worker_id="gw0",
+            elapsed_ms=1,
+            collected=1,
+            executed=1,
+            exit_status=0,
+            peak_rss_bytes=1,
+        )
 
 
 def test_peak_rss_is_available_on_supported_workers() -> None:

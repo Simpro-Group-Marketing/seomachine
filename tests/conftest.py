@@ -24,8 +24,9 @@ def pytest_configure(config: pytest.Config) -> None:
 
 
 def pytest_sessionstart(session: pytest.Session) -> None:
-    global _SESSION_STARTED_NS
+    global _SESSION_STARTED_NS, _TESTS_EXECUTED
     _SESSION_STARTED_NS = time.perf_counter_ns()
+    _TESTS_EXECUTED = 0
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
@@ -38,9 +39,15 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     ):
         return
     worker_id = _worker_id(session.config)
+    run_id = os.getenv("SEOMACHINE_WORKER_METRICS_RUN_ID")
+    if not run_id:
+        raise pytest.UsageError(
+            "SEOMACHINE_WORKER_METRICS_RUN_ID is required when worker metrics are enabled"
+        )
     elapsed_ms = (time.perf_counter_ns() - _SESSION_STARTED_NS) / 1_000_000
     write_worker_metrics(
         output,
+        run_id=run_id,
         worker_id=worker_id,
         elapsed_ms=elapsed_ms,
         collected=session.testscollected,

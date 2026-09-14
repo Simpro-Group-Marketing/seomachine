@@ -1,36 +1,51 @@
 """Compatibility facade and serial gate runner for publish readiness."""
-# ruff: noqa: F403, F405
+# ruff: noqa: F401
 
-try:
-    from .readiness.common import *  # noqa: F403
-    from .readiness.api import *  # noqa: F403
-    from .readiness.persistence_api import *  # noqa: F403
-    from .readiness.result_validation import *  # noqa: F403
-    from .readiness.workspace_bindings import *  # noqa: F403
-    from .readiness.runtime_policy import *  # noqa: F403
-    from .readiness.reporting import *  # noqa: F403
-    from .readiness.adapters import *  # noqa: F403
-    from .readiness.pipeline_tail import _run_remaining_gates
-except ImportError:  # pragma: no cover - direct script compatibility.
-    from readiness.common import *  # noqa: F403
-    from readiness.api import *  # noqa: F403
-    from readiness.persistence_api import *  # noqa: F403
-    from readiness.result_validation import *  # noqa: F403
-    from readiness.workspace_bindings import *  # noqa: F403
-    from readiness.runtime_policy import *  # noqa: F403
-    from readiness.reporting import *  # noqa: F403
-    from readiness.adapters import *  # noqa: F403
-    from readiness.pipeline_tail import _run_remaining_gates
+from pathlib import Path
+from typing import Any, Dict, List, Mapping
 
-ContentScorer = _DIRECT_DEFAULTS["ContentScorer"]
-LandingPageScorer = _DIRECT_DEFAULTS["LandingPageScorer"]
-ReadinessTelemetry = _DIRECT_DEFAULTS["ReadinessTelemetry"]
-SimproVaultClient = _DIRECT_DEFAULTS["SimproVaultClient"]
-build_stage_receipt = _DIRECT_DEFAULTS["build_stage_receipt"]
-load_validated_claim_set = _DIRECT_DEFAULTS["load_validated_claim_set"]
-read_publishable_markdown = _DIRECT_DEFAULTS["read_publishable_markdown"]
-validate_file_urls = _DIRECT_DEFAULTS["validate_file_urls"]
-write_stage_receipt = _DIRECT_DEFAULTS["write_stage_receipt"]
+from .readiness.adapters import (
+    _blocked_readiness_result,
+    _gate_from_findings,
+    _score_content,
+    _scorecard_from_scorer_result,
+    _timed_call,
+)
+from .readiness.api import build_final_readiness_attestation, run_publish_readiness
+from .readiness.common import (
+    ContentScorer,
+    FrontmatterError,
+    GateResult,
+    LandingPageScorer,
+    ReadinessResult,
+    ReadinessTelemetry,
+    SimproVaultClient,
+    ValidationSession,
+    blog_assembly_bom_guard,
+    blog_identity_guard,
+    build_stage_receipt,
+    context_binding_guard,
+    load_validated_claim_set,
+    parse_publishable_markdown,
+    read_publishable_markdown,
+    validate_file_urls,
+    write_stage_receipt,
+)
+from .readiness.finalization import _utc_now, finalize_blocked_result
+from .readiness.gate_policy import artifact_kind_rule_id as _artifact_kind_rule_id
+from .readiness.persistence_api import readiness_stage_receipt_path, write_readiness_result
+from .readiness.pipeline_tail import _run_remaining_gates
+from .readiness.reporting import format_text_report, main
+from .readiness.result_validation import (
+    _validate_actual_readiness_execution,
+    validate_passed_readiness_result,
+)
+from .readiness.runtime_policy import _bom_runtime_policy, _no_fit_customer_proof_findings
+from .readiness.workspace_bindings import (
+    _captured_context_payloads,
+    _captured_json,
+    _captured_proof_content,
+)
 
 
 def _read_article_snapshot(
@@ -70,15 +85,6 @@ def _resolve_artifact_kind_value(
         return requested or detected, None
     except ValueError as error:
         return None, error
-
-
-def _artifact_kind_rule_id(message: str) -> str:
-    normalized = message.casefold()
-    if "unsupported" in normalized:
-        return "artifact_kind_unsupported"
-    if "conflict" in normalized:
-        return "artifact_kind_conflict"
-    return "artifact_kind_missing"
 
 
 def _failure_gate(
@@ -124,6 +130,19 @@ def _blocked_for_gate(
     )
 
 
+def _sealed_blocked_result(
+    result: ReadinessResult,
+    *,
+    session: ValidationSession | None,
+    input_capture_error: ValueError | None,
+) -> ReadinessResult:
+    return finalize_blocked_result(
+        result,
+        inputs=session.inputs if session is not None else None,
+        capture_error=input_capture_error,
+    )
+
+
 def _run_context_gate(
     *,
     article_path: Path,
@@ -141,20 +160,40 @@ def _run_context_gate(
     client = session.connector() if session is not None and connector_required else None
     if client is not None and session is not None and session.telemetry is not None:
         session.telemetry.increment("connector_operations")
-    result = _timed_call(
-        telemetry,
-        "gate.context_binding",
-        context_binding_guard.validate_context_artifacts,
-        str(article_path),
-        fail_on="error",
-        proof_sidecar=paths["proof_sidecar"],
-        context_request=paths["context_request"],
-        context_pack=paths["context_pack"],
-        context_receipt=paths["context_receipt"],
-        editorial_plan=runtime_policy.get("editorial_plan"),
-        vault_root=vault_root,
-        client=client,
-    )
+    inputs = session.inputs if session is not None else None
+    if inputs is None:
+        result = _timed_call(
+            telemetry,
+            "gate.context_binding",
+            context_binding_guard.validate_context_artifacts,
+            str(article_path),
+            fail_on="error",
+            proof_sidecar=paths["proof_sidecar"],
+            context_request=paths["context_request"],
+            context_pack=paths["context_pack"],
+            context_receipt=paths["context_receipt"],
+            editorial_plan=runtime_policy.get("editorial_plan"),
+            vault_root=vault_root,
+            client=client,
+        )
+    else:
+        article_snapshot = inputs.snapshot("article")
+        result = _timed_call(
+            telemetry,
+            "gate.context_binding",
+            context_binding_guard.validate_context_payloads,
+            article_content=article_content,
+            article_path=article_path,
+            article_sha256=article_snapshot.sha256,
+            proof_content=_captured_proof_content(
+                inputs,
+                proof_sidecar_path=paths["proof_sidecar"],
+            ),
+            **_captured_context_payloads(inputs),
+            editorial_plan=_captured_json(inputs, "editorial_plan"),
+            vault_root=vault_root,
+            client=client,
+        )
     if session is not None:
         session.set_context_result(result)
         session.record_findings("context_binding", result.findings)
@@ -197,14 +236,16 @@ def _validate_bom_and_capture_hashes(
         ), None
     if bom_path is None:
         return None, None
+    if session is None:
+        raise ValueError("readiness input snapshot is unavailable")
     gate = _gate_from_findings(
         "blog_assembly_bom",
         "Blog Assembly BOM",
         _timed_call(
             telemetry,
             "gate.blog_assembly_bom",
-            blog_assembly_bom_guard.check_bom_file,
-            bom_path,
+            blog_assembly_bom_guard.check_bom,
+            _captured_json(session.inputs, "assembly_bom"),
             article_path=article_path,
             validation_sidecar_path=paths["proof_sidecar"] or "",
             context_request_path=paths["context_request"],
@@ -215,6 +256,7 @@ def _validate_bom_and_capture_hashes(
             require_current_schema=True,
             context_result=context_result,
             vault_root=vault_root,
+            captured=session.inputs,
         ),
     )
     gates.append(gate)
@@ -294,14 +336,18 @@ def _run_publish_readiness(
             message=str(article_error),
             suggestion="Repair the YAML frontmatter before publishing.",
         )
-        return _blocked_for_gate(
-            gate,
-            phase=phase,
-            article_path=article_path,
-            paths=paths,
-            artifact_kind=None,
-            gates=[gate],
-            score_threshold=85,
+        return _sealed_blocked_result(
+            _blocked_for_gate(
+                gate,
+                phase=phase,
+                article_path=article_path,
+                paths=paths,
+                artifact_kind=None,
+                gates=[gate],
+                score_threshold=85,
+            ),
+            session=session,
+            input_capture_error=input_capture_error,
         )
     assert article is not None
     article_content = article.raw
@@ -317,14 +363,18 @@ def _run_publish_readiness(
             message=message,
             suggestion="Declare one supported artifact_type in frontmatter.",
         )
-        return _blocked_for_gate(
-            gate,
-            phase=phase,
-            article_path=article_path,
-            paths=paths,
-            artifact_kind=None,
-            gates=[gate],
-            score_threshold=85,
+        return _sealed_blocked_result(
+            _blocked_for_gate(
+                gate,
+                phase=phase,
+                article_path=article_path,
+                paths=paths,
+                artifact_kind=None,
+                gates=[gate],
+                score_threshold=85,
+            ),
+            session=session,
+            input_capture_error=input_capture_error,
         )
     assert resolved_kind is not None
     artifact_kind = resolved_kind
@@ -338,6 +388,7 @@ def _run_publish_readiness(
     runtime_policy = _bom_runtime_policy(
         assembly_bom_path,
         workspace_root=readiness_root,
+        inputs=session.inputs if session is not None else None,
     )
     identity_gate = _gate_from_findings(
         "artifact_identity",
@@ -352,14 +403,18 @@ def _run_publish_readiness(
     )
     gates.append(identity_gate)
     if not identity_gate["passed"]:
-        return _blocked_for_gate(
-            identity_gate,
-            phase=phase,
-            article_path=article_path,
-            paths=paths,
-            artifact_kind=artifact_kind,
-            gates=gates,
-            score_threshold=score_threshold,
+        return _sealed_blocked_result(
+            _blocked_for_gate(
+                identity_gate,
+                phase=phase,
+                article_path=article_path,
+                paths=paths,
+                artifact_kind=artifact_kind,
+                gates=gates,
+                score_threshold=score_threshold,
+            ),
+            session=session,
+            input_capture_error=input_capture_error,
         )
 
     context_result, context_gate = _run_context_gate(
@@ -373,14 +428,18 @@ def _run_publish_readiness(
     )
     gates.append(context_gate)
     if not context_gate["passed"]:
-        return _blocked_for_gate(
-            context_gate,
-            phase=phase,
-            article_path=article_path,
-            paths=paths,
-            artifact_kind=artifact_kind,
-            gates=gates,
-            score_threshold=score_threshold,
+        return _sealed_blocked_result(
+            _blocked_for_gate(
+                context_gate,
+                phase=phase,
+                article_path=article_path,
+                paths=paths,
+                artifact_kind=artifact_kind,
+                gates=gates,
+                score_threshold=score_threshold,
+            ),
+            session=session,
+            input_capture_error=input_capture_error,
         )
 
     sealed_inputs = session.inputs if session is not None else None
@@ -399,7 +458,11 @@ def _run_publish_readiness(
         score_threshold=score_threshold,
     )
     if blocked is not None:
-        return blocked
+        return _sealed_blocked_result(
+            blocked,
+            session=session,
+            input_capture_error=input_capture_error,
+        )
 
     return _run_remaining_gates(
         run_started_at=run_started_at,

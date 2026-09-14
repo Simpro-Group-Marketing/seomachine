@@ -127,7 +127,7 @@ def check_content(
     proof_content: str | None = None,
     vault_path: str | Path | None = None,
     vault_root: str | Path | None = None,
-    context_pack: str | Path | None = None,
+    context_pack: Mapping[str, Any] | str | Path | None = None,
     context_receipt: str | Path | None = None,
     validated_claim_set: ValidatedClaimSet | None = None,
 ) -> List[Finding]:
@@ -325,14 +325,14 @@ def _detect_features(content: str) -> Dict[str, int]:
     return detected
 
 
-def _load_context_pack_object(context_pack: str | Path) -> dict[str, Any]:
+def _load_context_pack_object(context_pack: Mapping[str, Any] | str | Path) -> dict[str, Any]:
+    if isinstance(context_pack, Mapping):
+        return dict(context_pack)
     try:
         value = json.loads(Path(context_pack).read_text(encoding="utf-8-sig"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         return {}
     return value if isinstance(value, dict) else {}
-
-
 def _detect_context_features(
     content: str,
     pack: Mapping[str, Any],

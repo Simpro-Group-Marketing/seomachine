@@ -9,13 +9,11 @@ proof review still decide whether the page supports the article claim.
 from __future__ import annotations
 
 import argparse
-import re
 import socket
 import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, List, Optional
-from urllib.parse import urljoin, urlparse
 
 import requests
 
@@ -23,15 +21,20 @@ try:
     from .artifact_runtime.paths import cache_path
     from .public_http import URL_RESOLUTION_POLICY
     from .public_url_safety import PublicUrlSafetyError, request_public_url
+    from .public_http import markdown_urls as _markdown_urls
     from .public_http.url_cache import NullUrlResolutionCache, UrlResolutionCache
 except ImportError:  # pragma: no cover - supports direct script execution.
     from artifact_runtime.paths import cache_path
     from public_http import URL_RESOLUTION_POLICY
     from public_url_safety import PublicUrlSafetyError, request_public_url
+    import public_http.markdown_urls as _markdown_urls
     from public_http.url_cache import NullUrlResolutionCache, UrlResolutionCache
 
+DEFAULT_BASE_URL = _markdown_urls.DEFAULT_BASE_URL
+ExtractedUrl = _markdown_urls.ExtractedUrl
+extract_urls = _markdown_urls.extract_urls
 
-DEFAULT_BASE_URL = "https://www.simprogroup.com"
+
 DEFAULT_TIMEOUT_SECONDS = 10
 DEFAULT_USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -41,27 +44,6 @@ DEFAULT_USER_AGENT = (
 RESOLUTION_CACHE_SECONDS = 60 * 60 * 24
 RESOLUTION_CACHE_FUTURE_SKEW_SECONDS = 60
 RATE_LIMIT_RETRY_SECONDS = 1.0
-
-MARKDOWN_LINK_RE = re.compile(r"(?<!!)\[([^\]]+)\]\(([^)]+)\)")
-MARKDOWN_IMAGE_RE = re.compile(r"!\[[^\]]*\]\([^)]+\)")
-BARE_URL_RE = re.compile(r"https?://[^\s<>\]\"')]+")
-FENCED_CODE_RE = re.compile(r"```.*?```", re.DOTALL)
-INLINE_CODE_RE = re.compile(r"`[^`\n]*`")
-FRONTMATTER_RE = re.compile(r"\A---\s*\n.*?\n---\s*", re.DOTALL)
-
-SKIPPED_SCHEMES = {"mailto", "tel"}
-
-
-@dataclass(frozen=True)
-class ExtractedUrl:
-    """A URL found in article content."""
-
-    url: str
-    line: int
-    source: str
-    anchor: str = ""
-    raw_url: str = ""
-
 
 @dataclass(frozen=True)
 class UrlValidationResult:
@@ -202,6 +184,75 @@ class UrlValidator:
             final_url=final_url,
         )
 
+    def validate_many(self, urls: Iterable[str]) -> list[UrlValidationResult]:
+        """Validate unique URLs in two stable HEAD-then-GET batch phases."""
+        ordered = list(urls)
+        unique = list(dict.fromkeys(ordered))
+        resolved = self._cached_results(unique)
+        uncached = [url for url in unique if url not in resolved]
+        heads = dict(zip(uncached, self._request_many("HEAD", uncached)))
+        fallback = [
+            url
+            for url in uncached
+            if not isinstance(heads[url], UrlValidationResult)
+            and not _is_resolved_status(heads[url].status_code)
+        ]
+        gets = dict(zip(fallback, self._request_many("GET", fallback)))
+        for url in uncached:
+            resolved[url] = self._result_from_phases(url, heads[url], gets.get(url))
+        return [_copy_context(resolved[url], line=None, anchor="") for url in ordered]
+
+    def _cached_results(self, urls: Iterable[str]) -> dict[str, UrlValidationResult]:
+        values: dict[str, UrlValidationResult] = {}
+        for url in urls:
+            cached = self.cache.get(url)
+            if cached is not None:
+                values[url] = cached
+        return values
+
+    def _request_many(self, method: str, urls: list[str]) -> list[object]:
+        if not urls:
+            return []
+        if self.transport is None:
+            return [self._request(method, url) for url in urls]
+        responses = self.transport.request_many(
+            method,
+            urls,
+            headers=self.headers,
+            policy=URL_RESOLUTION_POLICY,
+        )
+        return [
+            self._retry_rate_limited(method, url, response)
+            for url, response in zip(urls, responses)
+        ]
+
+    def _retry_rate_limited(self, method: str, url: str, response: object) -> object:
+        if getattr(response, "status_code", None) != 429:
+            return response
+        self._sleep_after_rate_limit(response)
+        return self._request(method, url)
+
+    def _result_from_phases(
+        self,
+        url: str,
+        head: object,
+        get: object | None,
+    ) -> UrlValidationResult:
+        outcome = head if get is None else get
+        if isinstance(outcome, UrlValidationResult):
+            return outcome
+        status_code = int(outcome.status_code)
+        result = UrlValidationResult(
+            url=url,
+            status=_status_for_http_code(status_code),
+            status_code=status_code,
+            reason=f"HTTP {status_code}",
+            final_url=getattr(outcome, "url", "") or url,
+        )
+        if result.passed:
+            self.cache.set(result)
+        return result
+
     def _request(self, method: str, url: str):
         try:
             response = self._send(method, url)
@@ -246,50 +297,6 @@ class UrlValidator:
             time.sleep(delay)
 
 
-def extract_urls(content: str, base_url: str = DEFAULT_BASE_URL) -> List[ExtractedUrl]:
-    """Extract Markdown and bare URLs from article body content."""
-    prepared = _strip_frontmatter_preserve_lines(content)
-    prepared = _blank_fenced_code(prepared)
-    prepared = INLINE_CODE_RE.sub("", prepared)
-    prepared = MARKDOWN_IMAGE_RE.sub(lambda match: " " * (match.end() - match.start()), prepared)
-
-    markdown_links: List[ExtractedUrl] = []
-
-    def blank_markdown_link(match: re.Match) -> str:
-        anchor = match.group(1).strip()
-        raw_url = _normalize_markdown_destination(match.group(2))
-        normalized = _normalize_url(raw_url, base_url)
-        if normalized:
-            markdown_links.append(
-                ExtractedUrl(
-                    url=normalized,
-                    line=_line_number(prepared, match.start()),
-                    source="markdown",
-                    anchor=anchor,
-                    raw_url=raw_url,
-                )
-            )
-        return " " * (match.end() - match.start())
-
-    without_markdown = MARKDOWN_LINK_RE.sub(blank_markdown_link, prepared)
-
-    bare_links = []
-    for match in BARE_URL_RE.finditer(without_markdown):
-        raw_url = _strip_trailing_url_punctuation(match.group(0))
-        normalized = _normalize_url(raw_url, base_url)
-        if normalized:
-            bare_links.append(
-                ExtractedUrl(
-                    url=normalized,
-                    line=_line_number(without_markdown, match.start()),
-                    source="bare",
-                    raw_url=raw_url,
-                )
-            )
-
-    return markdown_links + bare_links
-
-
 def validate_content_urls(
     content: str,
     validator: Optional[UrlValidator] = None,
@@ -297,29 +304,12 @@ def validate_content_urls(
 ) -> UrlValidationSummary:
     """Validate all URLs in a content string."""
     validator = validator or UrlValidator()
-    results = []
-    cache = {}
-
-    for extracted in extract_urls(content, base_url=base_url):
-        if extracted.url not in cache:
-            cache[extracted.url] = validator.validate_url(
-                extracted.url,
-                line=extracted.line,
-                anchor=extracted.anchor,
-            )
-        result = cache[extracted.url]
-        if result.line != extracted.line or result.anchor != extracted.anchor:
-            result = UrlValidationResult(
-                url=result.url,
-                status=result.status,
-                status_code=result.status_code,
-                reason=result.reason,
-                line=extracted.line,
-                anchor=extracted.anchor,
-                final_url=result.final_url,
-            )
-        results.append(result)
-
+    extracted_urls = extract_urls(content, base_url=base_url)
+    validated = validator.validate_many(item.url for item in extracted_urls)
+    results = [
+        _copy_context(result, line=item.line, anchor=item.anchor)
+        for item, result in zip(extracted_urls, validated)
+    ]
     return UrlValidationSummary(results)
 
 
@@ -396,49 +386,6 @@ def _copy_context(
         anchor=anchor,
         final_url=result.final_url,
     )
-
-
-def _strip_frontmatter_preserve_lines(content: str) -> str:
-    match = FRONTMATTER_RE.match(content)
-    if not match:
-        return content
-    return "\n" * match.group(0).count("\n") + content[match.end():]
-
-
-def _blank_fenced_code(content: str) -> str:
-    return FENCED_CODE_RE.sub(lambda match: "\n" * match.group(0).count("\n"), content)
-
-
-def _line_number(content: str, index: int) -> int:
-    return content.count("\n", 0, index) + 1
-
-
-def _normalize_markdown_destination(destination: str) -> str:
-    cleaned = destination.strip()
-    if cleaned.startswith("<") and ">" in cleaned:
-        return cleaned[1:cleaned.index(">")]
-    return cleaned.split()[0].strip("<>") if cleaned else ""
-
-
-def _normalize_url(raw_url: str, base_url: str) -> str:
-    cleaned = _strip_trailing_url_punctuation(raw_url.strip())
-    if not cleaned:
-        return ""
-
-    parsed = urlparse(cleaned)
-    if parsed.scheme in SKIPPED_SCHEMES or cleaned.startswith("#"):
-        return ""
-    if parsed.scheme in {"http", "https"}:
-        return cleaned
-    if cleaned.startswith("www."):
-        return f"https://{cleaned}"
-    if parsed.scheme:
-        return ""
-    return urljoin(base_url.rstrip("/") + "/", cleaned)
-
-
-def _strip_trailing_url_punctuation(url: str) -> str:
-    return url.rstrip(".,;:!?")
 
 
 def main(argv: Optional[List[str]] = None) -> int:

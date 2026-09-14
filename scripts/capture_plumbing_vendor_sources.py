@@ -5,10 +5,14 @@ from __future__ import annotations
 
 import csv
 import json
-import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+from data_sources.modules.artifact_runtime.subprocesses import (
+    BoundedTextProcess,
+    run_bounded_text_process,
+)
 
 
 REPO = Path(__file__).resolve().parents[1]
@@ -60,16 +64,14 @@ def cli_path() -> Path:
     return candidates[0]
 
 
-def run_cli(*args: str, timeout: int = 420) -> subprocess.CompletedProcess[str]:
-    result = subprocess.run(
+def run_cli(*args: str, timeout: int = 420) -> BoundedTextProcess:
+    result = run_bounded_text_process(
         ["node", str(cli_path()), f"-s={SESSION}", *args],
         cwd=REPO,
-        check=False,
-        capture_output=True,
-        text=True,
         encoding="utf-8",
         errors="replace",
         timeout=timeout,
+        max_output_bytes=8 * 1024 * 1024,
     )
     if result.returncode != 0:
         raise RuntimeError(f"Playwright CLI failed:\n{result.stderr}\n{result.stdout}")

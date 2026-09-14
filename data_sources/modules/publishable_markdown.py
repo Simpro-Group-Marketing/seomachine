@@ -11,12 +11,16 @@ from typing import Any, Dict, Mapping
 from urllib.parse import urlparse
 
 try:
+    from .artifact_runtime.limits import ARTICLE_MAX_BYTES
+    from .bounded_io import read_bounded, stream_sha256
     from .frontmatter import (
         FrontmatterError,
         normalize_key as normalize_frontmatter_key,
         split_frontmatter,
     )
 except ImportError:  # pragma: no cover - supports direct script execution.
+    from artifact_runtime.limits import ARTICLE_MAX_BYTES
+    from bounded_io import read_bounded, stream_sha256
     from frontmatter import (
         FrontmatterError,
         normalize_key as normalize_frontmatter_key,
@@ -97,7 +101,7 @@ class PublishableMarkdown:
 def read_publishable_markdown(path: str | Path) -> PublishableMarkdown:
     """Read and parse one artifact into an immutable snapshot."""
     source = Path(path)
-    raw_bytes = source.read_bytes()
+    raw_bytes = read_bounded(source, max_bytes=ARTICLE_MAX_BYTES, field="article")
     try:
         raw = raw_bytes.decode("utf-8")
     except UnicodeDecodeError as exc:
@@ -149,11 +153,9 @@ def capture_file_snapshots(
             continue
         path = Path(value)
         try:
-            raw = path.read_bytes()
+            digest = stream_sha256(path)
         except FileNotFoundError:
             digest = None
-        else:
-            digest = hashlib.sha256(raw).hexdigest()
         snapshots[label] = FileSnapshot(label=label, path=path, sha256=digest)
     return snapshots
 
