@@ -2,7 +2,7 @@
 
 ## Architecture
 
-- The atomic release owner is [blog_release.py](data_sources/modules/blog_release.py). It performs one full preflight readiness execution followed by receipt-backed finalization.
+- The public artifact release owner is [artifact_release.py](data_sources/modules/artifact_release.py). Blog release implementation lives in [blog_release_impl.py](data_sources/modules/blog_release_impl.py), while [blog_release.py](data_sources/modules/blog_release.py) remains a terminal compatibility entry point.
 - Readiness orchestration enters through [readiness/api.py](data_sources/modules/readiness/api.py). One `ValidationSession` owns its `InstrumentedArtifactStore`, parsed views, connector and Git state, source text, transport, and telemetry; compatibility facades preserve established imports and result schemas.
 - Proof gates, connector revision checks, parsing, and lazy scoring remain serial. Only deduplicated public HTTP retrieval uses bounded worker threads behind [public_http/transport.py](data_sources/modules/public_http/transport.py), with stable result ordering.
 
@@ -45,9 +45,7 @@
 ## Evidence index
 
 - Structural debt and declining limits: [python-structure-baseline.json](config/python-structure-baseline.json).
-- P0 release characterization: [p0-offline-release-baseline.json](research/performance/p0-offline-release-baseline.json).
-- P1 release characterization: [p1-offline-release-benchmark.json](research/performance/p1-offline-release-benchmark.json).
-- Authoritative-session cold/warm characterization: [p1-offline-release-benchmark-v2-final.json](research/performance/p1-offline-release-benchmark-v2-final.json).
+- Authoritative P2 release characterization: [p2-offline-release-benchmark-v3.json](research/performance/p2-offline-release-benchmark-v3.json).
 - P2 test-sharding characterization: [p2-test-sharding-benchmark.json](research/performance/p2-test-sharding-benchmark.json).
 - Repository reliability method: [2026-08-10-repository-reliability-review.md](docs/superpowers/plans/2026-08-10-repository-reliability-review.md).
 
