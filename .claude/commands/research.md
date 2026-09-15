@@ -18,7 +18,7 @@ Use `context/blog-editorial-strategy.md` for editorial planning, reader value, o
 1. Resolves topic, title, objective, audience, region, target keyword, and article intent.
 2. Builds the connector-backed research context when required, or an explicit nonconnector decision for qualifying AroFlo, BigChange, and ClockShark work.
 3. Performs keyword, SERP, competitor, PAA/FAQ, proof, source, and internal-link research.
-4. Identifies reader-payoff gaps, Simpro angle, proof needs, and article structure.
+4. Identifies reader-payoff gaps, Simpro angle, proof needs, optional Hindsight-informed private reader angle, and article structure.
 5. Saves a research brief and frozen editorial-plan v2 for `/write`.
 
 ## Process
@@ -45,6 +45,7 @@ Use `context/blog-editorial-strategy.md` for editorial planning, reader value, o
 
 ### 4. Brand Context and Proof Planning
 - For connector-bound work, identify relevant Simpro product, solution, industry, feature, add-on, and internal-link context through connector-backed research. For nonconnector work, use task-approved brand sources and current public evidence.
+- When Hindsight internal-strategy evidence is relevant to the topic, use the connector internal-strategy lane to shape only the private reader angle, section emphasis, planned contribution purposes, objections, and commercial framing. Record `Hindsight Strategy Selection` in the validation sidecar with `public_claim_use: prohibited` and `claim_support_allowed: false`, bind `hindsight_strategy_evidence`, and keep Hindsight out of public proof, claims, citations, metrics, quotes, rankings, and source links. If it is not relevant, record `Status: not_applicable` or omit the block.
 - Plan only the validation sidecar evidence applicable to the binding branch. Omit Vault Brand Language Alignment, Named Feature/Add-On Link Check, Customer Proof Pack selector evidence, and Fred Voccola Authority Selection from nonconnector workflows.
 - Do not select, quote, paraphrase, or metricize customer proof unless the required governance evidence exists.
 - For commercial-investigation topics, plan E-E-A-T strength early: use a positive signal when available, or the internal `proof_unavailable_safe_to_publish` sidecar decision when no approved signal fits.

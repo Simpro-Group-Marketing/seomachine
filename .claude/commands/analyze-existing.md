@@ -18,7 +18,7 @@ When routing to `/rewrite`, `/analyze-existing` creates and freezes the complete
 1. Reads the existing URL or local article file and captures current structure.
 2. Evaluates content health, SEO quality, and AEO/GEO rewrite readiness.
 3. Identifies outdated claims, unsupported proof, structural gaps, and intent mismatches.
-4. Creates a validation sidecar for proof evidence and a frozen editorial-plan v2 for the rewrite.
+4. Creates a validation sidecar for proof evidence and a frozen editorial-plan v2 for the rewrite, including an optional Hindsight-informed private reader angle when applicable.
 5. Recommends `/rewrite`, `/optimize`, or archive with evidence-bound reasoning.
 
 ## Process
@@ -45,6 +45,7 @@ When routing to `/rewrite`, `/analyze-existing` creates and freezes the complete
 ### 4. AEO/GEO and Proof Readiness
 - Audit direct-answer intro, early artifact, key takeaways, Capsule Method coverage, FAQ/PAA structure, schema notes, source-backed claims, and one-idea-per-section structure.
 - Identify missing Source Map, Metric Proof Pack, FAQ Proof Map, E-E-A-T strength decision, and branch-applicable proof evidence. Require Customer Proof Pack, Vault Brand Language Alignment, Named Feature/Add-On Link Check, and Fred Voccola Authority Selection only when Context Binding requires the connector. For commercial-investigation rewrites, `no_fit_customer_proof` is anti-invention only; plan a positive signal or the internal `proof_unavailable_safe_to_publish` sidecar decision.
+- When Hindsight internal-strategy evidence is relevant to the rewrite angle, use the connector internal-strategy lane to shape only the private reader angle, section emphasis, planned contribution purposes, objections, and commercial framing. Record `Hindsight Strategy Selection` in the validation sidecar with `public_claim_use: prohibited` and `claim_support_allowed: false`, bind `hindsight_strategy_evidence`, and keep Hindsight out of public proof, claims, citations, metrics, quotes, rankings, and source links. If it is not relevant, record `Status: not_applicable` or omit the block.
 - Treat content quality 85/100+, SEO quality release floor 90/100+ and optimization target 95/100, and AEO/GEO 90/100+ as rewrite or optimization acceptance targets.
 - Do not invent replacement PAA questions, customer proof, author names, reviewer names, search-volume data, ranking data, traffic forecasts, or external claims.
 

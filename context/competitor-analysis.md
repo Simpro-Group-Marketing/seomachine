@@ -27,7 +27,7 @@ Required validation sidecar evidence: every workflow records a generated Context
 
 - `Competitive Shortlist Decision`: competitor-aware posts must document selected competitors, rejected competitors, connector-discovered competitive-context resources, approved claim IDs where public proof is used, and why the shortlist fits the article objective.
 - Public competitor pages may shape SERP/article format, but cannot decide named competitors for Simpro public copy.
-- `Hindsight Boundary`: Hindsight/deal intelligence can inform internal strategy, but cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified through the claim registry. Keep raw deal counts out of public copy.
+- `Hindsight Boundary`: Hindsight/deal intelligence can inform the private blog strategy, reader angle, section emphasis, objections, and commercial framing, but cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified through the claim registry. Keep raw deal counts out of public copy.
 
 ## How to Use This File
 

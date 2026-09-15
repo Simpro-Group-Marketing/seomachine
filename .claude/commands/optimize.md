@@ -19,11 +19,12 @@ Python may run guards and write governance artifacts such as scorer output, sele
 3. Classify each issue as a public-copy gap, validation-sidecar/proof gap, or scorer/parser false negative.
 4. Run the Reader-Facing Copy Firewall as part of optimization diagnosis. If public body copy contains brief rationale, source-fit notes, feature-omission reasoning, command status, or `editorial_process_leakage`, classify it as a public-copy gap and repair it through `/optimize`; never record a no-op optimizer output while this blocker remains.
 5. If `semrush_keyword_decision` fails, repair or rerun the live Semrush keyword decision artifact and regenerate the editorial plan/BOM before optimizing copy.
-6. Apply only the highest-impact 3 to 5 fixes. Do not invent PAA questions, proof, metrics, rankings, customer stories, quotes, or unsupported product claims to gain points.
-7. If no source-safe edits are needed, write a no-op `simpro-optimizer-output/v1` artifact with the inspected scorecard, failed gates or blocker, `aeo_geo.checks`, `priority_fixes`, and a concise no-change reason.
-8. Freeze the article bytes and run the required machine reviewers for the affected issue classes. If the article bytes change, rerun the full six-agent article review before release.
-9. Run `/scrub [article]` as read-only diagnostics and make any required copy edits through the command/agent workflow.
-10. Rerun the atomic release wrapper or `/publish-readiness` with the current sidecar, machine reviews, context artifacts, BOM, optimizer output when present, and the current scrub receipt.
+6. Preserve the frozen plan's Hindsight-informed reader angle, section emphasis, planned contribution purposes, objections, and commercial framing when `Hindsight Strategy Selection` is `internal_strategy_only`. Do not quote, cite, disclose, paraphrase, metricize, or convert Hindsight or deal-intelligence data into public claims. If optimization needs a new Hindsight-derived angle, route the plan defect back to `/research` or `/analyze-existing`.
+7. Apply only the highest-impact 3 to 5 fixes. Do not invent PAA questions, proof, metrics, rankings, customer stories, quotes, or unsupported product claims to gain points.
+8. If no source-safe edits are needed, write a no-op `simpro-optimizer-output/v1` artifact with the inspected scorecard, failed gates or blocker, `aeo_geo.checks`, `priority_fixes`, and a concise no-change reason.
+9. Freeze the article bytes and run the required machine reviewers for the affected issue classes. If the article bytes change, rerun the full six-agent article review before release.
+10. Run `/scrub [article]` as read-only diagnostics and make any required copy edits through the command/agent workflow.
+11. Rerun the atomic release wrapper or `/publish-readiness` with the current sidecar, machine reviews, context artifacts, BOM, optimizer output when present, and the current scrub receipt.
 
 ## SEO target handling
 

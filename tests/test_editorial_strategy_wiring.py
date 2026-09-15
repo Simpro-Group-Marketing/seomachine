@@ -64,3 +64,34 @@ def test_current_strategy_docs_name_plan_v2_and_bom_v4() -> None:
     assert "simpro-blog-assembly-bom/v4" in aeo
     assert "simpro-blog-plan-fulfillment/v1" in aeo
     assert "simpro-blog-editorial-plan/v2" in editorial
+
+
+def test_hindsight_can_shape_private_angle_but_not_public_claims() -> None:
+    planning_docs = (
+        "context/blog-editorial-strategy.md",
+        "context/aeo-geo-blog-strategy.md",
+        ".claude/commands/research.md",
+        ".claude/commands/analyze-existing.md",
+    )
+    writing_docs = (
+        ".claude/commands/write.md",
+        ".claude/commands/rewrite.md",
+        ".claude/commands/optimize.md",
+    )
+
+    for path in planning_docs:
+        content = text(path)
+        assert "private" in content
+        assert "reader angle" in content
+        assert "section emphasis" in content
+        assert "commercial framing" in content
+        assert "public_claim_use: prohibited" in content
+        assert "claim_support_allowed: false" in content
+
+    for path in writing_docs:
+        content = text(path)
+        assert "Hindsight-informed" in content
+        assert "planned reader angle" in content or "reader angle" in content
+        assert "Do not quote, cite, disclose, paraphrase, metricize" in content
+        assert "public claims" in content
+        assert "route the plan defect" in content

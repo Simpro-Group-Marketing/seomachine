@@ -22,6 +22,8 @@ After every article-byte change, the writer records `simpro-blog-plan-fulfillmen
 
 The plan should specify what must become true for the reader, not sentence-by-sentence wording. Preserve creative latitude by planning contributions, purposes, evidence sources, payoffs, and transitions while leaving examples, rhythm, explanation, and final expression to the writer.
 
+For connector-bound Simpro work, approved Hindsight internal-strategy evidence may shape the private reader angle when it is relevant to the reader task. Use it to refine `reader_contract.distinctive_angle`, section emphasis, section `strategic_angle`, planned contribution purpose, search framing, commercial framing, and what the article should make clear. Bound evidence must keep `public_claim_use: prohibited` and `claim_support_allowed: false`. Do not turn Hindsight or deal-intelligence data into public proof, visible claims, metrics, rankings, comparisons, quotes, citations, or source links. If the writer finds the Hindsight-informed angle missing or wrong, route the defect to `/research` or `/analyze-existing` for a new frozen plan instead of creating a new angle during prose writing.
+
 ## Reader Contract
 
 Resolve this internal planning block before recommending an outline or drafting public copy. Keep it in the research brief, analysis, or article plan. Do not place it in public article frontmatter or a proof-validation sidecar.
