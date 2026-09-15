@@ -16,6 +16,8 @@ def _inputs(tmp_path: Path) -> dict[str, object]:
         "article": _touch(tmp_path / "rewrites" / "article.md", "---\nartifact_type: blog\n---\n# Article\n"),
         "proof_sidecar": _touch(tmp_path / "research" / "sidecar.md"),
         "editorial_plan": _touch(tmp_path / "research" / "plan.json"),
+        "plan_fulfillment": _touch(tmp_path / "research" / "fulfillment.json"),
+        "commercial_pillar_index": _touch(tmp_path / "context" / "commercial-pillar-index.json"),
         "plan_review": _touch(tmp_path / "research" / "plan-review.json"),
         "article_review": _touch(tmp_path / "research" / "article-review.json"),
         "keyword_decision": _touch(tmp_path / "research" / "keyword.json"),
@@ -24,10 +26,8 @@ def _inputs(tmp_path: Path) -> dict[str, object]:
         "stage_receipts": [_touch(tmp_path / "research" / "stage.json")],
     }
 
-
 def _run(tmp_path: Path, **kwargs):
     return blog_release.run_blog_release(run_id="run-1", workflow_mode="rewrite", assembly_date="2026-08-26", output_dir=tmp_path / "research" / "releases" / "run", workspace_root=tmp_path, **_inputs(tmp_path), **kwargs)
-
 
 def test_blog_release_rejects_reused_output_directory(tmp_path: Path):
     (tmp_path / "research" / "releases" / "run").mkdir(parents=True)
@@ -280,7 +280,7 @@ def test_blog_release_forwards_nonvault_customer_proof_evidence(tmp_path: Path, 
 
 
 def test_blog_release_cli_exit_codes_distinguish_policy_from_operational_failure(monkeypatch: pytest.MonkeyPatch):
-    args = ["rewrites/article.md", "--run-id", "run-1", "--proof-sidecar", "research/sidecar.md", "--editorial-plan", "research/plan.json", "--plan-review", "research/plan-review.json", "--article-review", "research/article-review.json", "--keyword-decision", "research/keyword.json", "--scrub-receipt", "research/scrub.json", "--serp-evidence", "research/serp.json", "--stage-receipt", "research/stage.json", "--workflow-mode", "rewrite", "--assembly-date", "2026-08-26", "--output-dir", "research/releases/run"]
+    args = ["rewrites/article.md", "--run-id", "run-1", "--proof-sidecar", "research/sidecar.md", "--editorial-plan", "research/plan.json", "--plan-fulfillment", "research/fulfillment.json", "--commercial-pillar-index", "context/commercial-pillar-index.json", "--plan-review", "research/plan-review.json", "--article-review", "research/article-review.json", "--keyword-decision", "research/keyword.json", "--scrub-receipt", "research/scrub.json", "--serp-evidence", "research/serp.json", "--stage-receipt", "research/stage.json", "--workflow-mode", "rewrite", "--assembly-date", "2026-08-26", "--output-dir", "research/releases/run"]
     monkeypatch.setattr(blog_release, "run_blog_release", lambda **k: (_ for _ in ()).throw(ValueError("policy blocker")))
     assert blog_release.main(args) == 1
     monkeypatch.setattr(blog_release, "run_blog_release", lambda **k: (_ for _ in ()).throw(OSError("disk write failed")))

@@ -27,6 +27,8 @@ def run_release_cli(
             keyword_decision=args.keyword_decision,
             scrub_receipt=args.scrub_receipt,
             serp_evidence=args.serp_evidence,
+            plan_fulfillment=args.plan_fulfillment,
+            commercial_pillar_index=args.commercial_pillar_index,
             stage_receipts=args.stage_receipts,
             workflow_mode=args.workflow_mode,
             assembly_date=args.assembly_date,
@@ -67,6 +69,8 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--keyword-decision", required=True)
     parser.add_argument("--scrub-receipt", required=True)
     parser.add_argument("--serp-evidence", required=True)
+    parser.add_argument("--plan-fulfillment", required=True)
+    parser.add_argument("--commercial-pillar-index", required=True)
     parser.add_argument("--stage-receipt", action="append", required=True, dest="stage_receipts")
     parser.add_argument("--workflow-mode", choices=("new", "rewrite"), required=True)
     parser.add_argument("--assembly-date", required=True)

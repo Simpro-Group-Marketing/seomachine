@@ -4,6 +4,7 @@ from typing import Any, Mapping, Sequence
 
 from .common import (
     BOM_SCHEMA,
+    BOM_SCHEMA_V3,
     WORKFLOW_MODES,
     canonical_article_run_id,
     canonical_artifact,
@@ -16,12 +17,14 @@ from .common import (
 )
 from .dependencies import BomValidationDependencies, DEFAULT_BOM_VALIDATION_DEPENDENCIES
 from .construction_support import (
+    EDITORIAL_PLAN_SCHEMA_V2,
     derive_and_validate_paa,
     normalize_construction_inputs,
     resolve_construction_execution_evidence,
     validate_connector_construction,
     validate_connector_sidecar_bindings,
     validate_plan_inputs,
+    validate_plan_fulfillment_inputs,
 )
 from .contracts import (
     _iso_date,
@@ -35,6 +38,7 @@ from .policy import (
     _author_policy,
     _connector_binding,
     _editorial_plan_summary,
+    _editorial_fulfillment,
     _identity_from_article,
     _schema_policy,
     _validate_article_identity,
@@ -50,6 +54,8 @@ def build_blog_assembly_bom_from_files(
     editorial_plan_path: str | Path,
     keyword_decision_path: str | Path,
     serp_evidence_path: str | Path,
+    plan_fulfillment_path: str | Path | None = None,
+    commercial_pillar_index_path: str | Path | None = None,
     stage_receipt_paths: Sequence[str | Path],
     workflow_mode: str,
     assembly_date: str,
@@ -75,6 +81,11 @@ def build_blog_assembly_bom_from_files(
     dependencies: BomValidationDependencies = DEFAULT_BOM_VALIDATION_DEPENDENCIES,
 ) -> dict[str, Any]:
     """Build a deterministic provisional BOM from exact current files."""
+    current_inputs = plan_fulfillment_path is not None or commercial_pillar_index_path is not None
+    if current_inputs and not (plan_fulfillment_path and commercial_pillar_index_path):
+        raise ValueError(
+            "current BOM construction requires both plan_fulfillment_path and commercial_pillar_index_path"
+        )
     stage_receipt_paths, optimizer_output_paths, normalized_agent_output_paths, root = (
         normalize_construction_inputs(
             required_paths={
@@ -83,6 +94,14 @@ def build_blog_assembly_bom_from_files(
                 "editorial_plan_path": editorial_plan_path,
                 "keyword_decision_path": keyword_decision_path,
                 "serp_evidence_path": serp_evidence_path,
+                **(
+                    {
+                        "plan_fulfillment_path": plan_fulfillment_path,
+                        "commercial_pillar_index_path": commercial_pillar_index_path,
+                    }
+                    if current_inputs
+                    else {}
+                ),
             },
             optional_paths={
                 "plan_review_path": plan_review_path,
@@ -121,6 +140,18 @@ def build_blog_assembly_bom_from_files(
         field="editorial_plan",
     )
     plan = plan_snapshot.payload
+    if plan.get("schema") == EDITORIAL_PLAN_SCHEMA_V2 and not current_inputs:
+        raise ValueError(
+            "editorial-plan v2 requires plan_fulfillment_path and commercial_pillar_index_path"
+        )
+    fulfillment_snapshot = (
+        dependencies.load_json_object_snapshot(
+            plan_fulfillment_path,
+            field="plan_fulfillment",
+        )
+        if plan_fulfillment_path is not None
+        else None
+    )
     stage_receipt_snapshots = [
         dependencies.load_json_object_snapshot(path, field=f"stage_receipt[{index}]")
         for index, path in enumerate(stage_receipt_paths)
@@ -145,7 +176,14 @@ def build_blog_assembly_bom_from_files(
         assembly_date=assembled,
         run_id=workflow_run_id,
         workspace_root=root,
+        require_v2=current_inputs,
     )
+    if fulfillment_snapshot is not None:
+        validate_plan_fulfillment_inputs(
+            editorial_plan_snapshot=plan_snapshot,
+            fulfillment_snapshot=fulfillment_snapshot,
+            article=article,
+        )
     machine_reviews = _machine_review_bindings(
         plan_review_path=plan_review_path,
         article_review_path=article_review_path,
@@ -195,6 +233,20 @@ def build_blog_assembly_bom_from_files(
         "editorial_plan": canonical_artifact(editorial_plan_path, workspace_root=root),
         "keyword_decision": canonical_artifact(keyword_decision_path, workspace_root=root),
         "serp_evidence": canonical_artifact(serp_evidence_path, workspace_root=root),
+        **(
+            {
+                "plan_fulfillment": canonical_snapshot_artifact(
+                    fulfillment_snapshot,
+                    workspace_root=root,
+                ),
+                "commercial_pillar_index": canonical_artifact(
+                    commercial_pillar_index_path,
+                    workspace_root=root,
+                ),
+            }
+            if fulfillment_snapshot is not None
+            else {}
+        ),
         "paa_artifact": _optional_artifact(paa_artifact_path, root),
         "content_brief": _optional_artifact(content_brief_path, root),
         "user_paa_csv": _optional_artifact(user_paa_csv_path, root),
@@ -281,7 +333,7 @@ def build_blog_assembly_bom_from_files(
     )
 
     bom = {
-        "schema": BOM_SCHEMA,
+        "schema": BOM_SCHEMA if current_inputs else BOM_SCHEMA_V3,
         "lifecycle_state": "provisional",
         "workflow_mode": mode,
         "assembly_date": assembled.isoformat(),
@@ -310,6 +362,11 @@ def build_blog_assembly_bom_from_files(
         "faq_policy": _required_mapping(plan.get("faq_policy"), "editorial_plan.faq_policy"),
         "paa_policy": paa_policy,
         "editorial_plan_summary": _editorial_plan_summary(plan),
+        **(
+            {"editorial_fulfillment": _editorial_fulfillment(plan, fulfillment_snapshot.payload)}
+            if fulfillment_snapshot is not None
+            else {}
+        ),
         "workflow": {
             "stage_receipts": stage_receipts,
         },

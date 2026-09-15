@@ -48,6 +48,8 @@ from .contracts import (
     V1_V2_REQUIRED_ARTIFACT_FIELDS,
     V2_REQUIRED_TOP_LEVEL_FIELDS,
     V3_REQUIRED_TOP_LEVEL_FIELDS,
+    V4_REQUIRED_ARTIFACT_FIELDS,
+    V4_REQUIRED_TOP_LEVEL_FIELDS,
     required_artifact_fields as _required_artifact_fields,
 )
 from .dependencies import BomValidationDependencies

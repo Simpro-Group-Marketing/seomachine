@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Any, Mapping
 
-from ..blog_assembly.common import BOM_SCHEMA_V3
+from ..blog_assembly.common import BOM_SCHEMA_V3, BOM_SCHEMA_V4
 from ..blog_assembly_contract import verify_artifact
 from ..guard_common import Finding
 from .common import _finding
@@ -16,7 +16,7 @@ def _check_hindsight_strategy_policy(
     artifacts: Mapping[str, Any],
     root: Path,
 ) -> list[Finding]:
-    if bom.get("schema") != BOM_SCHEMA_V3:
+    if bom.get("schema") not in {BOM_SCHEMA_V3, BOM_SCHEMA_V4}:
         return []
     policy = bom.get("hindsight_strategy_policy")
     if not isinstance(policy, Mapping):

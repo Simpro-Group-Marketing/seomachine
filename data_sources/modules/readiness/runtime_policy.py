@@ -104,6 +104,8 @@ def _bom_runtime_policy(
         "editorial_plan": None,
         "keyword_decision": None,
         "serp_evidence": None,
+        "commercial_pillar_index": None,
+        "current_strategy": False,
         "assembly_date": None,
         "run_id": None,
         "assembly_bom": None,
@@ -151,6 +153,8 @@ def _bom_runtime_policy(
         "editorial_plan": editorial_plan_path,
         "keyword_decision": artifact_path("keyword_decision"),
         "serp_evidence": artifact_path("serp_evidence"),
+        "commercial_pillar_index": artifact_path("commercial_pillar_index"),
+        "current_strategy": bom.get("schema") == "simpro-blog-assembly-bom/v4",
         "customer_proof_selector_evidence": artifact_path(
             "customer_proof_selector_evidence"
         ),

@@ -1,5 +1,7 @@
 # Publish Readiness Command
 
+Consume `context/blog-editorial-strategy.md` for the frozen editorial contract and `context/aeo-geo-blog-strategy.md` for AEO and proof governance. Current blog readiness requires editorial-plan v2, plan-fulfillment v1, BOM v4, and its immutable commercial-pillar index binding. It executes both `blog_strategy` and `schema_handoff`; it never edits the plan or public copy.
+
 Run the complete source-artifact gate stack for a blog draft, rewrite, published article artifact, or landing page.
 
 ## Ownership

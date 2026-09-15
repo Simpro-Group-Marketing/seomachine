@@ -10,13 +10,15 @@ Use this command to review an existing blog post for SEO opportunities, content 
 
 The original rewrite route remains `/analyze-existing [URL or file path]` followed by `/rewrite [topic]` for substantial work or `/optimize [file]` for light polish. `/rewrite` and `/optimize` own public Markdown edits. Python owns governance artifacts only: scoring, guards, Semrush keyword decision JSON, receipts, BOM assembly, scrub/readiness diagnostics, and publishing transport.
 
-Use `context/aeo-geo-blog-strategy.md` and repo instructions as the canonical governance source for vault context, Customer Proof Pack, Fred Voccola Authority Selection, feature/competitor guardrails, FAQ/PAA policy, source maps, BOM, score gates, and recovery loops.
+Use `context/blog-editorial-strategy.md` for editorial planning, reader value, originality, structure, and narrative throughlines. Use `context/aeo-geo-blog-strategy.md` for AEO, proof, vault, citation, schema, BOM, score-gate, and recovery-loop policy.
+
+When routing to `/rewrite`, `/analyze-existing` creates and freezes the complete `simpro-blog-editorial-plan/v2`. The plan owns metadata, preservation decisions, and structured search, commercial-pillar, anchor, cannibalization, and lifecycle decisions. A plan-level reviewer finding returns here and produces a new plan hash.
 
 ## What This Command Does
 1. Reads the existing URL or local article file and captures current structure.
 2. Evaluates content health, SEO quality, and AEO/GEO rewrite readiness.
 3. Identifies outdated claims, unsupported proof, structural gaps, and intent mismatches.
-4. Creates a validation sidecar plan for proof, context, source, FAQ, and BOM requirements.
+4. Creates a validation sidecar for proof evidence and a frozen editorial-plan v2 for the rewrite.
 5. Recommends `/rewrite`, `/optimize`, or archive with evidence-bound reasoning.
 
 ## Process

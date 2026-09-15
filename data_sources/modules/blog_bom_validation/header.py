@@ -11,6 +11,7 @@ from ..blog_assembly.common import (
     BOM_SCHEMA_V1,
     BOM_SCHEMA_V2,
     BOM_SCHEMA_V3,
+    BOM_SCHEMA_V4,
     LIFECYCLE_STATES,
     WORKFLOW_MODES,
 )
@@ -20,11 +21,14 @@ from .contracts import (
     REQUIRED_TOP_LEVEL_FIELDS,
     V2_REQUIRED_TOP_LEVEL_FIELDS,
     V3_REQUIRED_TOP_LEVEL_FIELDS,
+    V4_REQUIRED_TOP_LEVEL_FIELDS,
     required_artifact_fields,
 )
 
 
 def expected_top_fields(bom: Mapping[str, Any]) -> frozenset[str]:
+    if bom.get("schema") == BOM_SCHEMA_V4:
+        return V4_REQUIRED_TOP_LEVEL_FIELDS
     if bom.get("schema") == BOM_SCHEMA_V3:
         return V3_REQUIRED_TOP_LEVEL_FIELDS
     if bom.get("schema") == BOM_SCHEMA_V2:
@@ -124,7 +128,7 @@ def _check_schema(
         return [
             _finding(
                 "bom_schema_invalid",
-                f"BOM must use {BOM_SCHEMA_V1}, {BOM_SCHEMA_V2}, or {BOM_SCHEMA_V3}.",
+                f"BOM must use {BOM_SCHEMA_V1}, {BOM_SCHEMA_V2}, {BOM_SCHEMA_V3}, or {BOM_SCHEMA_V4}.",
             )
         ]
     if require_current and schema != BOM_SCHEMA:

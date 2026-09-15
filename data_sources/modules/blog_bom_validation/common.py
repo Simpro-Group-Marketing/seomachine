@@ -13,6 +13,7 @@ from .contracts import (
     FORBIDDEN_TOPOLOGY_PATTERNS,
     PATH_SHAPED_RE,
     REQUIRED_ARTIFACT_FIELDS,
+    V4_REQUIRED_ARTIFACT_FIELDS,
 )
 
 
@@ -65,7 +66,13 @@ def _inspect_topology_text(
 
 
 def _is_declared_artifact_path(field_path: tuple[str, ...]) -> bool:
-    singleton_fields = set(REQUIRED_ARTIFACT_FIELDS) - {
+    if field_path in {
+        ("editorial_plan_summary", "search_strategy", "serp_evidence_artifact"),
+        ("editorial_plan_summary", "search_strategy", "related_query_paa_artifact"),
+        ("editorial_plan_summary", "lifecycle", "review_command"),
+    }:
+        return True
+    singleton_fields = set(V4_REQUIRED_ARTIFACT_FIELDS) - {
         "execution_evidence",
         "optimizer_outputs",
         "stage_receipts",
@@ -113,7 +120,7 @@ def _is_declared_artifact_path(field_path: tuple[str, ...]) -> bool:
 def _is_artifact_snapshot_label(label: str) -> bool:
     if label.startswith(blog_assembly_capabilities.EXECUTION_EVIDENCE_PREFIXES):
         return True
-    if label in set(REQUIRED_ARTIFACT_FIELDS) - {
+    if label in set(V4_REQUIRED_ARTIFACT_FIELDS) - {
         "execution_evidence",
         "optimizer_outputs",
         "stage_receipts",

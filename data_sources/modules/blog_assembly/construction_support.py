@@ -12,8 +12,16 @@ from .common import (
     sidecar_evidence_binding_errors,
     validate_sha256,
 )
-from ..editorial_plan.orchestration import check_file as check_editorial_plan_file
-from ..paa_provenance.results import check_file as check_paa_provenance_file
+try:
+    from ..editorial_plan.orchestration import check_file as check_editorial_plan_file
+    from ..editorial_plan.plan_fulfillment import check_fulfillment
+    from ..editorial_plan.v2 import EDITORIAL_PLAN_SCHEMA_V2
+    from ..paa_provenance.results import check_file as check_paa_provenance_file
+except ImportError:  # pragma: no cover - direct script execution.
+    from editorial_plan.orchestration import check_file as check_editorial_plan_file
+    from editorial_plan.plan_fulfillment import check_fulfillment
+    from editorial_plan.v2 import EDITORIAL_PLAN_SCHEMA_V2
+    from paa_provenance.results import check_file as check_paa_provenance_file
 from .contracts import (
     _optional_json_schema,
     _validate_input_path,
@@ -95,6 +103,7 @@ def validate_plan_inputs(
     assembly_date: date,
     run_id: str,
     workspace_root: Path,
+    require_v2: bool = False,
 ) -> None:
     plan_findings = check_editorial_plan_file(
         editorial_plan_path,
@@ -107,6 +116,10 @@ def validate_plan_inputs(
     if plan_findings:
         rules = ", ".join(sorted({str(row.get("rule_id") or "") for row in plan_findings}))
         raise ValueError(f"editorial plan is invalid: {rules}")
+    if require_v2:
+        plan = _load_json(editorial_plan_path, "editorial plan")
+        if plan.get("schema") != EDITORIAL_PLAN_SCHEMA_V2:
+            raise ValueError(f"current BOM construction requires {EDITORIAL_PLAN_SCHEMA_V2}")
     keyword_findings = semrush_keyword_decision_guard.check_file(
         keyword_decision_path,
         article_path=article_path,
@@ -116,6 +129,35 @@ def validate_plan_inputs(
     if keyword_findings:
         rules = ", ".join(sorted({str(row.get("rule_id") or "") for row in keyword_findings}))
         raise ValueError(f"Semrush keyword decision is invalid: {rules}")
+
+
+def validate_plan_fulfillment_inputs(
+    *,
+    editorial_plan_snapshot: Any,
+    fulfillment_snapshot: Any,
+    article: Any,
+) -> None:
+    findings = check_fulfillment(
+        fulfillment_snapshot.payload,
+        editorial_plan=editorial_plan_snapshot.payload,
+        editorial_plan_sha256=editorial_plan_snapshot.sha256,
+        article_content=article.raw,
+    )
+    if findings:
+        rules = ", ".join(sorted({str(row.get("rule_id") or "") for row in findings}))
+        raise ValueError(f"plan fulfillment is invalid: {rules}")
+
+
+def _load_json(path: str | Path, field: str) -> Mapping[str, Any]:
+    import json
+
+    try:
+        value = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise ValueError(f"{field} is unreadable: {error}") from error
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{field} must be a JSON object")
+    return value
 
 
 def _validate_nonconnector_evidence(
@@ -260,4 +302,5 @@ __all__ = [
     "validate_connector_construction",
     "validate_connector_sidecar_bindings",
     "validate_plan_inputs",
+    "validate_plan_fulfillment_inputs",
 ]

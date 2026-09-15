@@ -1,6 +1,6 @@
 # Production SEO Blog Strategy Contract
 
-All new or changed Simpro blogs, rewrites, optimizations, analyze-existing passes, and the next publish-readiness pass for an existing blog use `blog-strategy-contract/v1`. The validation sidecar is the executable record. Instructions without a passing guard do not authorize publishing.
+All new or changed Simpro blogs, rewrites, optimizations, analyze-existing passes, and the next publish-readiness pass for an existing blog use `simpro-blog-editorial-plan/v2`. Its structured strategy objects are the executable record. Legacy sidecar `blog-strategy-contract/v1` blocks remain archive-readable only. Instructions without a passing guard do not authorize publishing.
 
 ## Verified Commercial Destination
 
@@ -16,15 +16,15 @@ The article `Brand`, `Market`, destination record, canonical domain, title evide
 
 The exact canonical URL must appear as a visible Markdown body link in the planned H2. At least 1 occurrence must use the planned anchor text exactly after whitespace, emphasis, punctuation, case, and HTML-entity normalization; that anchor must contain the indexed main keyword as one contiguous phrase. Bare URLs, comments, code, images, frontmatter, sidecars, tracking parameters, fragments, redirects, unsupported synonyms, and generic anchors do not pass. Additional natural anchor variants remain allowed after the approved occurrence. The commercial pillar counts toward the existing internal-link total. It never overrides vault brand language, availability, named-feature, proof, FAQ, or source-routing rules.
 
-## Required Sidecar Contract
+## Required Plan Contract
 
-Each section and field appears exactly once. Duplicate sections, duplicate fields, conflicting values, placeholders, unknown enums, stale evidence, and unsupported versions fail closed.
+Each structured object and field appears exactly once in the frozen editorial plan. Duplicate fields, conflicting values, placeholders, unknown enums, stale evidence, blocked statuses, and unsupported versions fail closed.
 
 Both the SERP evidence artifact and related-query/PAA artifact must resolve to nonempty files inside this repository; a path string in the sidecar is not evidence by itself.
 
-### Search Intent and Format Decision
+### `search_strategy`
 
-- Contract version: blog-strategy-contract/v1
+- Plan schema: simpro-blog-editorial-plan/v2
 - Primary query or prompt:
 - Searcher task:
 - Intent class:
@@ -38,9 +38,9 @@ Both the SERP evidence artifact and related-query/PAA artifact must resolve to n
 - Exception reason:
 - Status: ready | blocked
 
-### Commercial Pillar and Anchor Decision
+### `commercial_strategy`
 
-- Contract version: blog-strategy-contract/v1
+- Plan schema: simpro-blog-editorial-plan/v2
 - Article title:
 - Article primary keyword:
 - Article intent:
@@ -54,11 +54,11 @@ Both the SERP evidence artifact and related-query/PAA artifact must resolve to n
 - Incoming-link candidates:
 - Status: aligned | blocked
 
-Do not copy Semrush metrics into this block. The guard resolves `Destination ID` against the verified index.
+Do not copy Semrush metrics into this object. The guard resolves `Destination ID` against the BOM-bound immutable index.
 
-### Lifecycle Refresh Record
+### `lifecycle`
 
-- Contract version: blog-strategy-contract/v1
+- Plan schema: simpro-blog-editorial-plan/v2
 - Last-updated date:
 - Volatility: high | standard
 - Next review date:

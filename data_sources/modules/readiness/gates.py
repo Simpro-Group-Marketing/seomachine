@@ -10,6 +10,9 @@ from types import SimpleNamespace
 from typing import Any, Callable, Mapping
 
 from ..vault_claim_receipts import ValidatedClaimSet
+from ..commercial_pillar_snapshot import index_from_payload
+from ..commercial_pillar_index import CommercialPillarIndexError
+from .. import source_quality_guard as legacy_source_quality_guard
 from .artifact_views import thaw_value
 from .inputs import ReadinessInputs
 
@@ -29,6 +32,7 @@ class ContentGateInputs:
     transport: Any | None
     normalize_source: Callable[[str, Callable[[], Any]], Any] | None = None
     registry_state: object | None = None
+    url_summary: Any | None = None
 
 
 def run_content_gate(
@@ -140,10 +144,55 @@ def _source_support(module: Any, value: ContentGateInputs) -> list[dict[str, Any
 def _source_quality(module: Any, value: ContentGateInputs) -> list[dict[str, Any]]:
     raw_date = value.runtime_policy.get("assembly_date")
     assembly_date = date.fromisoformat(str(raw_date)) if raw_date else date.today()
+    if not value.runtime_policy.get("current_strategy"):
+        return legacy_source_quality_guard.check_content(
+            value.article_content,
+            proof_content=value.proof_content or "",
+            today=assembly_date,
+        )
     return module.check_content(
         value.article_content,
         proof_content=value.proof_content or "",
+        editorial_plan=_json(value.captured, "editorial_plan"),
         today=assembly_date,
+    )
+
+
+def _blog_strategy(module: Any, value: ContentGateInputs) -> list[dict[str, Any]]:
+    raw_date = value.runtime_policy.get("assembly_date")
+    assembly_date = date.fromisoformat(str(raw_date)) if raw_date else date.today()
+    try:
+        index = index_from_payload(
+            _json(value.captured, "commercial_pillar_index"),
+            source_path=value.runtime_policy.get("commercial_pillar_index"),
+        )
+    except CommercialPillarIndexError as error:
+        return [
+            {
+                "rule_id": "blog_strategy_index_load_failed",
+                "severity": "error",
+                "line": 1,
+                "column": 1,
+                "message": str(error),
+                "suggestion": "Rebuild the BOM from a valid commercial pillar index.",
+            }
+        ]
+    return module.check_content(
+        value.article_content,
+        editorial_plan=_json(value.captured, "editorial_plan"),
+        index=index,
+        today=assembly_date,
+        url_summary=value.url_summary,
+        context_request=_json(value.captured, "context_request"),
+        article_path=value.article_path,
+        artifact_root=value.captured.workspace_root,
+    )
+
+
+def _schema_handoff(module: Any, value: ContentGateInputs) -> list[dict[str, Any]]:
+    return module.check_content(
+        value.article_content,
+        proof_content=value.proof_content,
     )
 
 
@@ -267,11 +316,13 @@ _ADAPTERS: dict[str, Callable[[Any, ContentGateInputs], list[dict[str, Any]]]] =
     "hindsight_boundary": _proof_only,
     "source_support": _source_support,
     "source_quality": _source_quality,
+    "blog_strategy": _blog_strategy,
     "customer_proof_diversity": _customer_proof,
     "review_story_identity": _review_story,
     "eeat_strength": _eeat_strength,
     "early_artifact": _proof_only,
     "answer_withholding": _proof_only,
+    "schema_handoff": _schema_handoff,
     "vault_brand_language": _vault_language,
     "named_feature_status": _named_feature,
     "fred_authority": _fred,

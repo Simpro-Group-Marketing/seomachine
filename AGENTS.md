@@ -122,7 +122,7 @@ Proof-only infrastructure belongs in `research/validation-[topic-slug]-[YYYY-MM-
 Preferred publish readiness command:
 
 ```powershell
-/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json
+/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --plan-fulfillment research/blog-plan-fulfillment-[topic-slug]-[YYYY-MM-DD].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json
 ```
 
 The customer proof diversity gate is mandatory before scoring or publish readiness and runs inside `/publish-readiness`.
@@ -170,7 +170,7 @@ Use `context/aeo-geo-blog-strategy.md` as the canonical policy for Review Story 
 
 ## Production SEO Blog Strategy Contract
 
-Every new or changed Simpro blog, rewrite, optimization, analyze-existing pass, and existing blog on its next publish-readiness pass must use `blog-strategy-contract/v1`. Research writes exactly 1 `Search Intent and Format Decision`, `Commercial Pillar and Anchor Decision`, and `Lifecycle Refresh Record` to the validation sidecar. Duplicate sections or fields, placeholders, unsupported values, blocked decisions, and stale evidence fail closed. The exact field contract lives in `context/aeo-geo-blog-strategy.md` and the mirrored `seo-blog-strategy` rule files.
+Every new or changed Simpro blog, rewrite, optimization, analyze-existing pass, and existing blog on its next publish-readiness pass must use `simpro-blog-editorial-plan/v2`. `/research` or `/analyze-existing` writes exactly 1 structured `search_strategy`, `commercial_strategy`, and `lifecycle` object into the frozen plan. Duplicate fields, placeholders, unsupported values, blocked decisions, cross-field disagreement, and stale evidence fail closed. Sidecar `blog-strategy-contract/v1` sections remain readable only for archived v1 workflows and cannot authorize a current release. The exact current field contract lives in `context/aeo-geo-blog-strategy.md` and the mirrored `seo-blog-strategy` rule files.
 
 `context/commercial-pillar-index.json` is the only executable commercial-destination source. Every Simpro blog requires exactly 1 commercial pillar: a specific industry page for a vertical topic, solution page for a category or cross-workflow topic, or feature page for a capability-led topic. The industries hub requires a documented no-specific-fit reason. A blog cannot be the commercial pillar; an informational hub is only an optional supporting blog link. The article Brand and Market must match the verified record and Semrush database. Current US evidence cannot authorize another market. The article primary keyword must differ from the indexed main keyword; exact collisions fail, and containment requires verified SERP evidence of different intent and format.
 

@@ -9,6 +9,8 @@ Generate multiple compelling meta title and description options for the Reader C
 
 Return advisory findings only. Do not edit public copy or assign release status. Final release status comes only from `/publish-readiness`.
 
+Consume `context/blog-editorial-strategy.md` and `context/aeo-geo-blog-strategy.md`. In a v2 workflow, planned `title_options`, `meta_title`, `meta_description`, keywords, and `url_slug` are frozen. Diagnose mismatches without replacing those values; a plan-level metadata defect returns to `/research` or `/analyze-existing` for a new plan hash.
+
 ## Reader-Facing Copy Boundary
 
 Flag `editorial_process_leakage` in titles, descriptions, excerpts, or body-adjacent copy when the wording explains brief instructions, source selection, feature omissions, command status, schema notes, or readiness status. Metadata should sell the reader payoff, not expose workflow rationale.

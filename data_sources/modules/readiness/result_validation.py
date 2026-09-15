@@ -17,10 +17,8 @@ from .common import (
     _ExecutedReadinessResult,
     _sign_readiness_execution,
     context_binding_guard,
-    expected_blog_gate_inventory,
     file_sha256,
     is_json_number,
-    load_json_object_snapshot,
     read_publishable_markdown,
     validate_sha256,
 )
@@ -33,6 +31,7 @@ from .workspace_bindings import (
     _verify_result_inputs_unchanged,
 )
 from .contracts import is_registered_execution
+from .gate_inventory_validation import validate_blog_gate_inventory
 from .release_lifecycle import artifact_release_policy, validate_final_bom_binding
 
 
@@ -157,42 +156,15 @@ def _validate_blog_gate_inventory(
     names: Sequence[str],
     workspace_root: Path,
 ) -> None:
-    if artifact_kind != "blog":
-        return
-    bom_path = result.get("assembly_bom")
-    if not isinstance(bom_path, str):
-        raise ValueError("passed blog readiness requires the bound assembly BOM")
-    resolved = _resolve_workspace_input(
-        bom_path, workspace_root=workspace_root, field="readiness assembly_bom"
+    validate_blog_gate_inventory(
+        result,
+        article=article,
+        artifact_kind=artifact_kind,
+        phase=phase,
+        names=names,
+        workspace_root=workspace_root,
+        resolve_workspace_input=_resolve_workspace_input,
     )
-    if not resolved.is_file():
-        raise ValueError("passed blog readiness requires the bound assembly BOM")
-    try:
-        bom = load_json_object_snapshot(resolved, field="assembly BOM").payload
-    except ValueError as error:
-        raise ValueError(f"passed readiness BOM is unavailable: {error}") from error
-    if not isinstance(bom, Mapping):
-        raise ValueError("passed readiness BOM must be an object")
-    expected_lifecycle = "provisional" if phase == "preflight" else "final"
-    if bom.get("lifecycle_state") != expected_lifecycle:
-        raise ValueError(f"{phase} readiness requires a {expected_lifecycle} assembly BOM")
-    schema_policy = bom.get("schema_policy")
-    connector_binding = bom.get("connector_binding")
-    expected = expected_blog_gate_inventory(
-        visible_faq=bool(
-            isinstance(schema_policy, Mapping)
-            and schema_policy.get("visible_faq") is True
-        ),
-        connector_required=bool(
-            context_binding_guard.requires_context(article.raw)
-            or (
-                isinstance(connector_binding, Mapping)
-                and connector_binding.get("status") == "required"
-            )
-        ),
-    )
-    if list(names) != expected:
-        raise ValueError("passed readiness result does not contain the expected gate inventory")
 
 
 def _validate_result_scores(result: Mapping[str, Any], artifact_kind: str) -> None:

@@ -6,7 +6,12 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .. import machine_review
-from ..blog_assembly.common import BOM_SCHEMA_V1, BOM_SCHEMA_V2, BOM_SCHEMA_V3
+from ..blog_assembly.common import (
+    BOM_SCHEMA_V1,
+    BOM_SCHEMA_V2,
+    BOM_SCHEMA_V3,
+    BOM_SCHEMA_V4,
+)
 from ..blog_assembly_contract import resolve_artifact, verify_artifact
 from ..guard_common import Finding
 from .artifacts import _verify_row, _is_workspace_file
@@ -30,6 +35,7 @@ def _check_machine_reviews(
         BOM_SCHEMA_V1=BOM_SCHEMA_V1,
         BOM_SCHEMA_V2=BOM_SCHEMA_V2,
         BOM_SCHEMA_V3=BOM_SCHEMA_V3,
+        BOM_SCHEMA_V4=BOM_SCHEMA_V4,
         _finding=_finding,
         _is_workspace_file=_is_workspace_file,
         _verify_row=_verify_row,

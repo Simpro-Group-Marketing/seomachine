@@ -17,26 +17,32 @@ try:
     from .bounded_io import parse_json as _parse_json
     from .bounded_io import stream_sha256 as _stream_sha256
     from .bounded_io import atomic_write_canonical_json as _atomic_write_canonical_json
+    from .blog_gate_inventory import (
+        BLOG_GATE_DESCRIPTORS,
+        BlogGateDescriptor,
+        expected_blog_gate_inventory,
+        order_blog_gate_results,
+    )
+    from .blog_sidecar_bindings import binding_errors as _sidecar_binding_errors
 except ImportError:  # pragma: no cover - supports direct script execution.
     from bounded_io import canonical_json_bytes as _canonical_json_bytes
     from bounded_io import canonical_json_sha256 as _canonical_json_sha256
     from bounded_io import parse_json as _parse_json
     from bounded_io import stream_sha256 as _stream_sha256
     from bounded_io import atomic_write_canonical_json as _atomic_write_canonical_json
+    from blog_gate_inventory import (
+        BLOG_GATE_DESCRIPTORS,
+        BlogGateDescriptor,
+        expected_blog_gate_inventory,
+        order_blog_gate_results,
+    )
+    from blog_sidecar_bindings import binding_errors as _sidecar_binding_errors
 
 
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 WINDOWS_DRIVE_RE = re.compile(r"^[A-Za-z]:")
 PUBLIC_ARTICLE_DIRECTORIES = frozenset(
     {"drafts", "rewrites", "published", "review-required"}
-)
-SELECTOR_EVIDENCE_LINE_RE = re.compile(
-    r"(?im)^[-*+]\s*Selector evidence:\s*(.+?)\s*\|\s*"
-    r"SHA-256:\s*([0-9a-f]{64})\s*$"
-)
-FRED_SELECTION_SECTION_RE = re.compile(
-    r"(?ms)^##[ \t]+Fred Voccola Authority Selection[ \t]*\r?\n"
-    r".*?(?=^##[ \t]+|\Z)"
 )
 DEFAULT_JSON_MAX_BYTES = 8 * 1024 * 1024
 NORMAL_STAGE_SEQUENCE = (
@@ -61,45 +67,6 @@ NORMAL_PROVISIONAL_STAGES = NORMAL_STAGE_SEQUENCE[:3]
 NORMAL_FINAL_STAGES = NORMAL_STAGE_SEQUENCE[:4]
 OPTIMIZED_PROVISIONAL_STAGES = OPTIMIZED_STAGE_SEQUENCE[:7]
 OPTIMIZED_FINAL_STAGES = OPTIMIZED_STAGE_SEQUENCE[:8]
-
-
-@dataclass(frozen=True, slots=True)
-class BlogGateDescriptor:
-    name: str
-    condition: str = "always"
-
-
-BLOG_GATE_DESCRIPTORS = (
-    BlogGateDescriptor("artifact_identity"),
-    BlogGateDescriptor("context_binding"),
-    BlogGateDescriptor("blog_assembly_bom"),
-    BlogGateDescriptor("public_artifact"),
-    BlogGateDescriptor("ai_copy_linter"),
-    BlogGateDescriptor("url_validator"),
-    BlogGateDescriptor("public_research_links"),
-    BlogGateDescriptor("industry_cluster_link_policy"),
-    BlogGateDescriptor("metric_proof_pack"),
-    BlogGateDescriptor("numeric_claim_source"),
-    BlogGateDescriptor("faq_answer_quality", "visible_faq"),
-    BlogGateDescriptor("faq_proof", "visible_faq"),
-    BlogGateDescriptor("paa_provenance"),
-    BlogGateDescriptor("editorial_plan"),
-    BlogGateDescriptor("semrush_keyword_decision"),
-    BlogGateDescriptor("competitive_shortlist"),
-    BlogGateDescriptor("hindsight_boundary"),
-    BlogGateDescriptor("source_support"),
-    BlogGateDescriptor("source_quality"),
-    BlogGateDescriptor("customer_proof_diversity"),
-    BlogGateDescriptor("review_story_identity"),
-    BlogGateDescriptor("eeat_strength"),
-    BlogGateDescriptor("early_artifact"),
-    BlogGateDescriptor("answer_withholding"),
-    BlogGateDescriptor("vault_brand_language", "connector_required"),
-    BlogGateDescriptor("named_feature_status", "connector_required"),
-    BlogGateDescriptor("fred_authority", "connector_required"),
-    BlogGateDescriptor("content_scorer"),
-    BlogGateDescriptor("input_seal"),
-)
 
 
 @dataclass(frozen=True, slots=True)
@@ -224,60 +191,6 @@ def validate_current_assembly_date(
     if parsed != current_utc_date():
         raise ValueError(f"{field} must equal the current UTC date")
     return parsed
-
-
-def expected_blog_gate_inventory(
-    *,
-    visible_faq: bool,
-    connector_required: bool,
-) -> list[str]:
-    """Return the closed, ordered gate inventory for a passed blog run."""
-    return [
-        descriptor.name
-        for descriptor in BLOG_GATE_DESCRIPTORS
-        if _gate_descriptor_enabled(
-            descriptor,
-            visible_faq=visible_faq,
-            connector_required=connector_required,
-        )
-    ]
-
-
-def order_blog_gate_results(
-    gates: Sequence[Mapping[str, Any]],
-    *,
-    visible_faq: bool,
-    connector_required: bool,
-) -> list[Mapping[str, Any]]:
-    """Order complete executor results using the canonical conditional inventory."""
-    expected = expected_blog_gate_inventory(
-        visible_faq=visible_faq,
-        connector_required=connector_required,
-    )
-    by_name: dict[str, Mapping[str, Any]] = {}
-    for row in gates:
-        name = row.get("name") if isinstance(row, Mapping) else None
-        if not isinstance(name, str) or not name or name in by_name:
-            raise ValueError("blog gate results contain an invalid or duplicate name")
-        by_name[name] = row
-    if set(by_name) != set(expected):
-        raise ValueError("blog gate results do not match the expected conditional inventory")
-    return [by_name[name] for name in expected]
-
-
-def _gate_descriptor_enabled(
-    descriptor: BlogGateDescriptor,
-    *,
-    visible_faq: bool,
-    connector_required: bool,
-) -> bool:
-    if descriptor.condition == "always":
-        return True
-    if descriptor.condition == "visible_faq":
-        return visible_faq
-    if descriptor.condition == "connector_required":
-        return connector_required
-    raise ValueError(f"unsupported blog gate condition: {descriptor.condition}")
 
 
 def file_sha256(path: str | Path) -> str:
@@ -443,73 +356,13 @@ def sidecar_evidence_binding_errors(
     required: bool,
 ) -> list[tuple[str, str]]:
     """Bind connector proof/Fred evidence inventory to exact sidecar evidence."""
-    if not required:
-        return []
-    errors: list[tuple[str, str]] = []
-    selector = artifacts.get("customer_proof_selector_evidence")
-    selector_matches = list(SELECTOR_EVIDENCE_LINE_RE.finditer(sidecar_content))
-    if len(selector_matches) != 1:
-        errors.append(
-            (
-                "bom_customer_proof_evidence_binding_missing",
-                "Connector-bound sidecar must contain exactly one selector evidence path/hash binding.",
-            )
-        )
-    elif not isinstance(selector, Mapping):
-        errors.append(
-            (
-                "bom_customer_proof_evidence_binding_mismatch",
-                "Selector evidence binding has no matching BOM artifact.",
-            )
-        )
-    else:
-        match = selector_matches[0]
-        sidecar_path = match.group(1).strip().strip("\"'")
-        sidecar_hash = match.group(2)
-        if (
-            sidecar_path != selector.get("path")
-            or sidecar_hash != selector.get("sha256")
-        ):
-            errors.append(
-                (
-                    "bom_customer_proof_evidence_binding_mismatch",
-                    "Sidecar selector evidence path/hash does not match the BOM inventory.",
-                )
-            )
-
-    fred = artifacts.get("fred_authority_evidence")
-    fred_sections = [match.group(0).strip() for match in FRED_SELECTION_SECTION_RE.finditer(sidecar_content)]
-    if len(fred_sections) != 1:
-        errors.append(
-            (
-                "bom_fred_evidence_binding_missing",
-                "Connector-bound sidecar must contain exactly one Fred Voccola Authority Selection block.",
-            )
-        )
-    elif not isinstance(fred, Mapping):
-        errors.append(
-            (
-                "bom_fred_evidence_binding_mismatch",
-                "Fred selection evidence has no matching BOM artifact.",
-            )
-        )
-    else:
-        try:
-            fred_path = resolve_artifact(
-                fred.get("path"),
-                workspace_root=workspace_root,
-            )
-            fred_content = fred_path.read_text(encoding="utf-8").strip()
-        except (OSError, UnicodeError, ValueError):
-            fred_content = ""
-        if not fred_content or fred_content != fred_sections[0]:
-            errors.append(
-                (
-                    "bom_fred_evidence_binding_mismatch",
-                    "Sidecar Fred selection block does not exactly match the BOM evidence artifact.",
-                )
-            )
-    return errors
+    return _sidecar_binding_errors(
+        sidecar_content,
+        artifacts,
+        workspace_root=workspace_root,
+        required=required,
+        resolve_artifact=resolve_artifact,
+    )
 
 
 def _snapshot_row(value: Any, *, field: str) -> dict[str, str]:

@@ -9,6 +9,8 @@ Analyze article content and recommend specific internal links on the owning bran
 
 Return advisory findings only. Do not edit public copy or assign release status. Final release status comes only from `/publish-readiness`.
 
+Consume `context/blog-editorial-strategy.md` and `context/aeo-geo-blog-strategy.md`. Treat the v2 plan's commercial destination, exact approved anchor, planned H2, and link policy as immutable inputs. Diagnose article execution separately from plan defects, and route plan changes to `/research` or `/analyze-existing` for a new hash.
+
 ## Reader-Facing Copy Boundary
 
 Flag `editorial_process_leakage` when anchor text or surrounding link copy explains why a link, source, proof point, product mention, or omission was selected for the draft. Recommend audience-facing anchor context, or move the workflow rationale to the validation sidecar, editorial plan, optimizer output, release BOM, or command receipt.

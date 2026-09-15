@@ -322,6 +322,9 @@ def _validate_prior_preflight_payloads(
     expected_inventory = expected_blog_gate_inventory(
         visible_faq=prior_schema.get("visible_faq") is True,
         connector_required=prior_connector.get("status") == "required",
+        current_strategy=(
+            prior_bom.get("schema") == "simpro-blog-assembly-bom/v4"
+        ),
     )
     if (
         readiness.get("schema") != READINESS_SCHEMA

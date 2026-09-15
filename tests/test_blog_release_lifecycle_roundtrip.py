@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import hashlib
+import shutil
 from datetime import date
 from pathlib import Path
 from types import SimpleNamespace
@@ -31,7 +33,12 @@ artifact_type: blog
 brand: BigChange
 title: Scheduling guide
 meta_title: Field Service Scheduling Guide for Dispatch | BigChange
+meta_description: A practical field service scheduling guide for reviewing requests, capacity, dispatch choices, technician handoffs, schedule changes, and completion follow-up.
+url_slug: scheduling-guide
 primary_keyword: field service scheduling guide
+secondary_keywords:
+  - capacity planning
+  - dispatch constraints
 objective: Help service leaders improve scheduling decisions
 audience: Field service leaders
 region: US
@@ -155,19 +162,50 @@ def test_unmocked_blog_release_lifecycle_round_trip(
         "_utc_now",
         lambda: "2026-08-11T14:07:00Z",
     )
+    monkeypatch.setattr(
+        readiness_pipeline_tail,
+        "_score_content",
+        lambda *args, **kwargs: {
+            "passed": True,
+            "content_quality_score": 95,
+            "threshold": 85,
+            "priority_fixes": [],
+            "aeo_geo": {"score": 95, "threshold": 90, "passed": True},
+            "quality_gates": {
+                "content_quality": {"score": 95, "threshold": 85, "passed": True},
+                "seo_quality": {
+                    "score": 95,
+                    "threshold": 90,
+                    "passed": True,
+                    "critical_issues": [],
+                },
+                "aeo_geo": {"score": 95, "threshold": 90, "passed": True},
+            },
+        },
+    )
     paths = _fixture(tmp_path)
     Path(paths["article"]).write_text(_ARTICLE, encoding="utf-8")
     Path(paths["sidecar"]).write_text(_SIDECAR, encoding="utf-8")
     plan = json.loads(Path(paths["editorial_plan"]).read_text(encoding="utf-8"))
-    plan["original_contributions"][0].update(
+    plan["schema"] = "simpro-blog-editorial-plan/v2"
+    plan["original_contributions"] = [
         {
-            "visible_evidence": (
-                "This guide helps readers use a repeatable dispatch routine."
-            ),
-            "final_section": "Field service scheduling guide",
+            "contribution_id": "repeatable-dispatch-routine",
+            "planned_contribution": "A repeatable dispatch review routine.",
+            "purpose": "Help readers make scheduling decisions consistently.",
+            "evidence_source": "Bound article research and workflow evidence.",
+            "target_section": "Field service scheduling guide",
+        }
+    ]
+    plan["sections"][0].update(
+        {
+            "heading": "Field service scheduling guide",
+            "reader_question": "How can I make dispatch decisions consistently?",
+            "section_payoff": "A repeatable routine for reviewing dispatch constraints.",
+            "bridge_from_previous": None,
+            "bridge_to_next": None,
         }
     )
-    plan["sections"][0]["heading"] = "Field service scheduling guide"
     plan["meta"].update(
         {
             "meta_title": "Field Service Scheduling Guide for Dispatch | BigChange",
@@ -176,15 +214,94 @@ def test_unmocked_blog_release_lifecycle_round_trip(
                 "capacity, dispatch choices, technician handoffs, schedule changes, "
                 "and completion follow-up."
             ),
+            "title_options": ["Scheduling guide", "Field service scheduling guide"],
         }
     )
+    plan["search_strategy"] = {
+        "primary_query": "field service scheduling guide",
+        "searcher_task": "Choose a repeatable scheduling workflow.",
+        "intent_class": "informational",
+        "funnel_stage": "tofu",
+        "serp_evidence_artifact": "research/serp-evidence.json",
+        "dominant_content_type": "General Article",
+        "selected_content_type": "General Article",
+        "observed_serp_features": ["featured snippet"],
+        "related_query_paa_artifact": "research/paa.json",
+        "format_decision": "match_dominant",
+        "exception_reason": "none",
+        "status": "ready",
+    }
+    plan["commercial_strategy"] = {
+        "article_title": "Scheduling guide",
+        "article_primary_keyword": "field service scheduling guide",
+        "article_intent": "informational",
+        "destination_id": "bigchange-field-service-management-software",
+        "commercial_pillar_url": "https://www.bigchange.com/field-service-management-software/",
+        "planned_anchor_text": "BigChange field service management software",
+        "planned_h2_section": "Field service scheduling guide",
+        "existing_overlapping_urls_checked": ["https://www.bigchange.com/blog/"],
+        "pillar_versus_blog_intent_difference": "The article informs while the destination supports product evaluation.",
+        "cannibalization_decision": "different_intent",
+        "incoming_link_candidates": ["https://www.bigchange.com/blog/"],
+        "status": "aligned",
+    }
+    plan["lifecycle"] = {
+        "last_updated_date": "2026-08-11",
+        "volatility": "standard",
+        "next_review_date": "2027-02-01",
+        "review_command": "/performance-review published/scheduling-guide.md",
+        "gsc_lane": "unavailable: new article has no performance data",
+        "ga4_lane": "unavailable: new article has no performance data",
+        "semrush_lane": "available: bound keyword decision",
+        "ai_citation_lane": "unavailable: new article has no citation data",
+        "decision": "retain",
+        "status": "scheduled",
+    }
+    del plan["serp_strategy"]
+    del plan["query_ownership"]
     Path(paths["editorial_plan"]).write_text(
         json.dumps(plan, indent=2) + "\n",
         encoding="utf-8",
     )
+    fulfillment = tmp_path / "research" / "plan-fulfillment.json"
+    fulfillment.write_text(
+        json.dumps(
+            {
+                "schema": "simpro-blog-plan-fulfillment/v1",
+                "editorial_plan_sha256": hashlib.sha256(
+                    Path(paths["editorial_plan"]).read_bytes()
+                ).hexdigest(),
+                "article_sha256": hashlib.sha256(
+                    Path(paths["article"]).read_bytes()
+                ).hexdigest(),
+                "contributions": [
+                    {
+                        "contribution_id": "repeatable-dispatch-routine",
+                        "actual_excerpt": "This guide helps readers use a repeatable dispatch routine.",
+                    }
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    commercial_index = tmp_path / "context" / "commercial-pillar-index.json"
+    commercial_index.parent.mkdir(exist_ok=True)
+    shutil.copyfile(
+        Path(__file__).resolve().parents[1] / "context" / "commercial-pillar-index.json",
+        commercial_index,
+    )
+    paths["plan_fulfillment"] = fulfillment
+    paths["commercial_pillar_index"] = commercial_index
     _refresh_normal_stage_receipts(paths)
 
-    provisional = _build(tmp_path, paths)
+    provisional = _build(
+        tmp_path,
+        paths,
+        plan_fulfillment_path=fulfillment,
+        commercial_pillar_index_path=commercial_index,
+    )
     bom_path = tmp_path / "research" / "real-provisional-bom.json"
     write_blog_assembly_bom(bom_path, provisional)
     preflight = publish_readiness.run_publish_readiness(

@@ -10,14 +10,16 @@ Use this command to conduct SEO keyword research, competitor review, and evidenc
 
 The original new-blog route remains `/research [topic]` followed by `/write [topic]`. `/write` owns the public draft. Python owns governance artifacts only: context packs and receipts, selector evidence, verified Semrush keyword decisions, verified SERP/PAA artifacts, BOM assembly, scrub/readiness diagnostics, receipts, and publishing transport.
 
-Use `context/aeo-geo-blog-strategy.md` and repo instructions as the canonical governance source for vault context, Customer Proof Pack, Fred Voccola Authority Selection, feature/competitor guardrails, FAQ/PAA policy, source maps, BOM, score gates, and recovery loops.
+Use `context/blog-editorial-strategy.md` for editorial planning, reader value, originality, structure, and narrative throughlines. Use `context/aeo-geo-blog-strategy.md` for AEO, proof, vault, citation, schema, BOM, score-gate, and recovery-loop policy.
+
+`/research` creates and freezes the complete `simpro-blog-editorial-plan/v2` for a new article. The plan owns metadata plus structured search, commercial-pillar, anchor, cannibalization, and lifecycle decisions. It defines what the article must accomplish without prescribing final sentences. A plan-level reviewer finding returns here and produces a new plan hash.
 
 ## What This Command Does
 1. Resolves topic, title, objective, audience, region, target keyword, and article intent.
 2. Builds the connector-backed research context when required, or an explicit nonconnector decision for qualifying AroFlo, BigChange, and ClockShark work.
 3. Performs keyword, SERP, competitor, PAA/FAQ, proof, source, and internal-link research.
 4. Identifies reader-payoff gaps, Simpro angle, proof needs, and article structure.
-5. Saves a research brief for `/write`.
+5. Saves a research brief and frozen editorial-plan v2 for `/write`.
 
 ## Process
 

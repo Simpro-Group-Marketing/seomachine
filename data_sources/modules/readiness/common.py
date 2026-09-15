@@ -22,6 +22,7 @@ try:
         ai_copy_linter,
         answer_withholding_guard,
         blog_identity_guard,
+        blog_strategy_plan_guard,
         chrome_review_evidence,
         context_binding_guard,
         competitive_shortlist_guard,
@@ -39,7 +40,8 @@ try:
         public_artifact_guard,
         review_story_identity_guard,
         semrush_keyword_decision_guard,
-        source_quality_guard,
+        schema_handoff_guard,
+        source_quality_plan_guard,
         source_support_guard,
         vault_brand_language_guard,
     )
@@ -103,6 +105,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import ai_copy_linter
     import answer_withholding_guard
     import blog_identity_guard
+    import blog_strategy_plan_guard
     import chrome_review_evidence
     import context_binding_guard
     import competitive_shortlist_guard
@@ -120,7 +123,8 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import public_artifact_guard
     import review_story_identity_guard
     import semrush_keyword_decision_guard
-    import source_quality_guard
+    import schema_handoff_guard
+    import source_quality_plan_guard
     import source_support_guard
     import vault_brand_language_guard
     from blog_assembly_contract import (
@@ -251,6 +255,11 @@ ARTICLE_GATES = (
         semrush_keyword_decision_guard,
     ),
     (
+        "blog_strategy",
+        "Blog Strategy",
+        blog_strategy_plan_guard,
+    ),
+    (
         "competitive_shortlist",
         "Competitive Shortlist",
         competitive_shortlist_guard,
@@ -268,7 +277,7 @@ ARTICLE_GATES = (
     (
         "source_quality",
         "Source Quality and Lifecycle",
-        source_quality_guard,
+        source_quality_plan_guard,
     ),
     (
         "customer_proof_diversity",
@@ -296,6 +305,11 @@ ARTICLE_GATES = (
         answer_withholding_guard,
     ),
     (
+        "schema_handoff",
+        "Schema Handoff",
+        schema_handoff_guard,
+    ),
+    (
         "vault_brand_language",
         "Vault Brand Language",
         vault_brand_language_guard,
@@ -312,10 +326,14 @@ ARTICLE_GATES = (
     ),
 )
 
-BLOG_ONLY_GATES = {"source_quality", "blog_strategy", "schema_handoff"}
-
-
 SIMPRO_CONTEXT_GATE_NAMES = frozenset({
     "vault_brand_language",
     "named_feature_status",
 })
+
+from .gate_registry import assert_gate_executor_invariant
+
+assert_gate_executor_invariant(
+    (name for name, _, _ in ARTICLE_GATES),
+    CONTENT_GATE_NAMES,
+)

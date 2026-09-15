@@ -93,22 +93,22 @@ Python remains responsible for governance and workflow assistance: selector evid
 
 `/scrub` is read-only diagnostics. If scrub diagnostics find Unicode marks, em dashes, or whitespace issues, the command/agent applies the copy edit and reruns `/scrub`. The scrubber may write governance diagnostics or receipts when explicitly requested, but it must not overwrite the article.
 
-Every new or changed machine-reviewed blog requires a strict `simpro-blog-assembly-bom/v3`. Existing finalized BOM v1/v2 artifacts remain readable as archived evidence. The vault is the knowledge graph and active evidence source only for connector-bound work. The BOM is the article-specific execution record for final article, validation sidecar, context request/pack/receipt when applicable, customer-proof selector evidence, Fred authority evidence, nullable Hindsight internal-strategy evidence, editorial plan, plan/article machine reviews, Semrush keyword decision, verified SERP evidence, PAA or rewrite-brief evidence, governance receipts, provisional/final BOM, readiness outputs, and input hashes.
+Every new or changed machine-reviewed blog requires a strict `simpro-blog-assembly-bom/v4`. Existing finalized BOM v1-v3 artifacts remain readable as archived evidence but cannot authorize a new release. The vault is the knowledge graph and active evidence source only for connector-bound work. BOM v4 binds the final article, validation sidecar, context request/pack/receipt when applicable, customer-proof selector evidence, Fred authority evidence, nullable Hindsight internal-strategy evidence, editorial plan v2, plan fulfillment v1, immutable commercial-pillar index, plan/article machine reviews, Semrush keyword decision, verified SERP evidence, PAA or rewrite-brief evidence, governance receipts, provisional/final BOM, readiness outputs, and input hashes.
 
-Hindsight Strategy Selection is sidecar-only. If Hindsight is not relevant, record `Status: not_applicable` or omit the block so BOM v3 records `not_applicable`. If Hindsight internal strategy informs the private plan, bind the internal-strategy pack/receipt/sidecar as `hindsight_strategy_evidence`, record `public_claim_use: prohibited` and `claim_support_allowed: false`, and do not cite it in public copy.
+Hindsight Strategy Selection is sidecar-only. If Hindsight is not relevant, record `Status: not_applicable` or omit the block so BOM v4 records `not_applicable`. If Hindsight internal strategy informs the private plan, bind the internal-strategy pack/receipt/sidecar as `hindsight_strategy_evidence`, record `public_claim_use: prohibited` and `claim_support_allowed: false`, and do not cite it in public copy.
 
 BOM build currently accepts `--stage-receipt` for retained machine-owned governance receipts, such as Context Binding or readiness receipts. Do not use receipt tooling as a public-copy authoring proxy. Do not require a Python-generated article mutation receipt for prose written by the native command/agent workflow.
 
 Use this sequence after article copy, sidecar evidence, context evidence, editorial plan, Semrush keyword decision, SERP/PAA evidence, customer-proof selector evidence, Fred authority evidence when connector-bound, and required governance receipts exist:
 
 ```powershell
-python data_sources/modules/blog_release.py "[article]" --run-id "[uuid]" --proof-sidecar "[sidecar]" --editorial-plan "[plan]" --plan-review "[plan-review]" --article-review "[article-review]" --keyword-decision "[keyword-decision]" --scrub-receipt "[scrub-receipt]" --serp-evidence "[serp-evidence]" --stage-receipt "[receipt]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output-dir "research/releases/[slug]-[date]-[run-id]"
+python data_sources/modules/blog_release.py "[article]" --run-id "[uuid]" --proof-sidecar "[sidecar]" --editorial-plan "[plan]" --plan-fulfillment "[fulfillment]" --commercial-pillar-index "context/commercial-pillar-index.json" --plan-review "[plan-review]" --article-review "[article-review]" --keyword-decision "[keyword-decision]" --scrub-receipt "[scrub-receipt]" --serp-evidence "[serp-evidence]" --stage-receipt "[receipt]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output-dir "research/releases/[slug]-[date]-[run-id]"
 ```
 
 The first wrapper run must advance missing optimizer evidence into `optimization_started`, not a dead-end exit. It writes `optimization-recovery.json` after the initial readiness output so `/optimize` has the exact blocker or scorecard. When the initial readiness result passes, it also writes `optimization-state.json` from the predecessor receipt; when readiness blocks before a passed receipt exists, it does not mint a fake optimization state. A passing preflight scorecard alone is not final release approval. After `/optimize`, rerun with the post-optimization scrub receipt, post-optimization stage receipts, optimizer output, and the prior preflight readiness output:
 
 ```powershell
-python data_sources/modules/blog_release.py "[article]" --run-id "[uuid]" --proof-sidecar "[sidecar]" --editorial-plan "[plan]" --plan-review "[plan-review]" --article-review "[article-review]" --keyword-decision "[keyword-decision]" --scrub-receipt "[post-optimization-scrub-receipt]" --serp-evidence "[serp-evidence]" --stage-receipt "[receipt]" --optimizer-output "[optimizer-output]" --prior-preflight-readiness "[preflight-readiness]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output-dir "research/releases/[slug]-[date]-[run-id]-final"
+python data_sources/modules/blog_release.py "[article]" --run-id "[uuid]" --proof-sidecar "[sidecar]" --editorial-plan "[plan]" --plan-fulfillment "[fulfillment]" --commercial-pillar-index "context/commercial-pillar-index.json" --plan-review "[plan-review]" --article-review "[article-review]" --keyword-decision "[keyword-decision]" --scrub-receipt "[post-optimization-scrub-receipt]" --serp-evidence "[serp-evidence]" --stage-receipt "[receipt]" --optimizer-output "[optimizer-output]" --prior-preflight-readiness "[preflight-readiness]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output-dir "research/releases/[slug]-[date]-[run-id]-final"
 ```
 
 Proceed to BOM build only when the pre-BOM report has `ready_for_bom: true`. This report blocks stale Semrush decisions, missing or mismatched scrub receipts, missing customer proof selector evidence when the connector branch or the approved non-vault proof contract makes selector evidence applicable, invalid selector evidence when applicable, unexpected vault-dependent customer-proof or Fred artifacts on nonconnector workflows, missing expertise evidence, missing commercial-page E-E-A-T strength decisions, and missing BOM dependency inputs before BOM assembly.
@@ -176,21 +176,23 @@ An AEO/GEO or content score below threshold is a repair trigger, not a reporting
 
 ## Editorial Plan Contract
 
-Every new or changed blog requires `simpro-blog-editorial-plan/v1`, created through the native command/agent planning workflow rather than a parallel Python writing system. It must contain:
+Every new or changed blog requires `simpro-blog-editorial-plan/v2`, created and frozen by `/research` for new work or `/analyze-existing` for rewrites rather than by a parallel Python writing system. It must contain:
 
 - the complete Reader Contract;
 - a `keyword_decision` reference bound to `simpro-semrush-keyword-decision/v1`, including source `semrush_connector`, database, selected primary keyword, selected secondary keywords, and selection rationale;
+- structured `search_strategy`, `commercial_strategy`, and `lifecycle` decisions bound to verified evidence and the immutable commercial-pillar index;
 - verified intent and SERP decisions bound to `simpro-serp-evidence/v1`, including exact result observations, collection metadata, evidence path, canonical evidence hash, and observed features/structure; metadata-only verified labels do not qualify;
-- at least 1 original contribution mapped to an exact visible final section with a substantive exact `visible_evidence` excerpt that appears there;
+- section throughlines with reader question, payoff, and adjacent-section bridges;
+- at least 1 original contribution with a stable ID, planned contribution, purpose, planning evidence source, and exact target section;
 - primary and supporting entity coverage mapped to sections without density targets;
-- a query ownership/cannibalization decision of `clear | differentiated | blocked`, where `blocked` prevents readiness;
+- a structured cannibalization decision, where `update_existing` and `consolidate` prevent a new article;
 - intent-appropriate internal links using the 3 to 5 standard-blog target, including the required contextual down-funnel or cluster link counted inside that total unless a brief-bound override narrows the supporting-link count;
 - `FAQ policy: required | not_applicable` with its rationale; and
 - the PAA source/binding/selected-question decision required by the workflow mode.
 
 The plan may include `rewrite_decisions`, `audience_language_research`, and `link_policy_override` when the workflow needs them. `rewrite_decisions` records evidence-bound preserve, update, add, and remove decisions from `/analyze-existing`. `audience_language_research` is conditional: use genuine Reddit, YouTube, or trade-community language only when it improves reader comprehension, never as regulatory, product, metric, PAA, or public-claim proof. Regulatory and licensing articles default to `not_applicable` unless the brief explicitly requests audience-language research. A valid `link_policy_override` binds the exact brief sentence, brief hash, count, and pre-FAQ body scope when the brief requires an exact internal-link count; it may replace the 3 to 5 default supporting-link target but can never exceed the hard maximum of 7. For single-trade Simpro posts, the matching industry-cluster link remains additive unless the bound brief explicitly prohibits the industry page.
 
-The BOM binds the final serialized plan path/hash. Publish readiness validates the plan against the final article rather than accepting marker-only planning text.
+The writer chooses final language independently. After every article-byte change it regenerates `simpro-blog-plan-fulfillment/v1` with one substantive verbatim visible excerpt per contribution, bound to the plan and article hashes and located in the planned section. Content Analyzer and Editor judge purpose fulfillment; Python checks identity, hashes, visibility, and placement. The BOM binds the plan, fulfillment, article, and commercial-pillar index and recomputes its summaries from those immutable inputs.
 
 ## Semrush Keyword Decision Contract
 

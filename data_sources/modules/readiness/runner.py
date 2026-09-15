@@ -62,8 +62,8 @@ def _read_article_snapshot(
             else read_publishable_markdown(article_path)
         )
         return article, None
-    except FrontmatterError as error:
-        return None, error
+    except ValueError as error:
+        return None, error if isinstance(error, FrontmatterError) else FrontmatterError(str(error))
 
 
 def _resolve_artifact_kind_value(

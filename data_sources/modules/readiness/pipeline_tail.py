@@ -38,7 +38,6 @@ from .gate_policy import (
     missing_gate_finding as _missing_gate_finding,
     skip_article_gate as _skip_article_gate,
 )
-
 try:
     from ..url_validator import validate_content_urls
 except ImportError:  # pragma: no cover - direct script compatibility.
@@ -221,6 +220,7 @@ def _order_final_gates(
                 gates,
                 visible_faq=bool(runtime_policy["visible_faq"]),
                 connector_required=simpro_context_required,
+                current_strategy=bool(runtime_policy.get("current_strategy")),
             )
         ]
     except ValueError:
@@ -350,6 +350,7 @@ def _run_remaining_gates(
                 session.normalized_source if session is not None else None
             ),
             registry_state=source_registry_state(session, sealed_inputs),
+            url_summary=url_summary,
         )
         if sealed_inputs is not None
         else None
@@ -359,6 +360,10 @@ def _run_remaining_gates(
         tuple[Mapping[str, Any], ...],
     ] = {}
     for name, label, guard_module in ARTICLE_GATES:
+        if name in {"blog_strategy", "schema_handoff"} and not runtime_policy.get(
+            "current_strategy"
+        ):
+            continue
         if _skip_article_gate(
             name,
             artifact_kind=artifact_kind,

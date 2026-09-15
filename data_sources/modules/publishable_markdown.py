@@ -45,6 +45,7 @@ LEGACY_METADATA_KEYS = frozenset(
         "primary_keyword",
         "rewrite_date",
         "secondary_keywords",
+        "slug",
         "tags",
         "target_keyword",
         "target_url",
@@ -76,6 +77,11 @@ class PublishableMarkdown:
 
     def scalar(self, *keys: str) -> str:
         """Return the first non-empty metadata value as a scalar string."""
+        normalized_keys = tuple(normalize_key(key) for key in keys)
+        if "url_slug" in normalized_keys or "target_url" in normalized_keys:
+            slug, _ = resolve_slug_aliases(self.metadata)
+            if slug:
+                return slug
         for key in keys:
             value = self.metadata.get(normalize_key(key))
             if isinstance(value, list):
@@ -191,6 +197,25 @@ def metadata_path_tail(value: str) -> str:
     parsed = urlparse(candidate)
     path = parsed.path or candidate
     return path.rstrip("/").replace("\\", "/").split("/")[-1]
+
+
+def resolve_slug_aliases(metadata: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
+    """Resolve canonical and legacy slug fields and report conflicting aliases."""
+    resolved: list[tuple[str, str, str]] = []
+    for key in ("url_slug", "slug", "target_url"):
+        value = metadata.get(key)
+        if value is None or not str(value).strip():
+            continue
+        raw = str(value).strip()
+        normalized = metadata_path_tail(raw).casefold()
+        if normalized:
+            resolved.append((key, raw, normalized))
+    if not resolved:
+        return "", ()
+    canonical = resolved[0][1]
+    baseline = resolved[0][2]
+    conflicts = tuple(key for key, _, normalized in resolved[1:] if normalized != baseline)
+    return canonical, conflicts
 
 
 def normalize_key(value: str) -> str:

@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from ..blog_assembly.common import BOM_SCHEMA_V3
+from ..blog_assembly.common import BOM_SCHEMA_V3, BOM_SCHEMA_V4
 
 NORMAL_PROVISIONAL_STAGES = ("draft", "scrub", "context_binding")
 NONVAULT_CUSTOMER_PROOF_SCHEMA = (
@@ -59,6 +59,10 @@ REQUIRED_ARTIFACT_FIELDS = (
     "prior_preflight_readiness",
     "preflight_readiness",
 )
+V4_REQUIRED_ARTIFACT_FIELDS = REQUIRED_ARTIFACT_FIELDS + (
+    "plan_fulfillment",
+    "commercial_pillar_index",
+)
 V1_V2_REQUIRED_ARTIFACT_FIELDS = tuple(
     field for field in REQUIRED_ARTIFACT_FIELDS
     if field != "hindsight_strategy_evidence"
@@ -89,6 +93,9 @@ V2_REQUIRED_TOP_LEVEL_FIELDS = REQUIRED_TOP_LEVEL_FIELDS | frozenset(
 V3_REQUIRED_TOP_LEVEL_FIELDS = V2_REQUIRED_TOP_LEVEL_FIELDS | frozenset(
     {"hindsight_strategy_policy"}
 )
+V4_REQUIRED_TOP_LEVEL_FIELDS = V3_REQUIRED_TOP_LEVEL_FIELDS | frozenset(
+    {"editorial_fulfillment"}
+)
 POST_PUBLISH_MEASUREMENT_RECEIPT_SCHEMA = (
     "simpro-post-publish-measurement-receipt/v1"
 )
@@ -96,6 +103,8 @@ POST_PUBLISH_MEASUREMENT_RECEIPT_SCHEMA = (
 
 def required_artifact_fields(schema: Any) -> tuple[str, ...]:
     """Return the strict inventory contract for one BOM schema."""
+    if schema == BOM_SCHEMA_V4:
+        return V4_REQUIRED_ARTIFACT_FIELDS
     if schema == BOM_SCHEMA_V3:
         return REQUIRED_ARTIFACT_FIELDS
     return V1_V2_REQUIRED_ARTIFACT_FIELDS
@@ -117,5 +126,7 @@ __all__ = [
     "V1_V2_REQUIRED_ARTIFACT_FIELDS",
     "V2_REQUIRED_TOP_LEVEL_FIELDS",
     "V3_REQUIRED_TOP_LEVEL_FIELDS",
+    "V4_REQUIRED_ARTIFACT_FIELDS",
+    "V4_REQUIRED_TOP_LEVEL_FIELDS",
     "required_artifact_fields",
 ]

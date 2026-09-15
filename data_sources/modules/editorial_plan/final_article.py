@@ -8,6 +8,8 @@ from typing import Any
 import re
 
 from ..frontmatter import FrontmatterError
+from ..publishable_markdown import metadata_path_tail
+from ..publishable_markdown import resolve_slug_aliases
 from .contracts import FAQ_POLICY_FIELDS
 from .contracts import FAQ_SECTION_TYPE
 from .contracts import PAA_POLICY_FIELDS
@@ -24,6 +26,7 @@ from .text import _contains_entity
 from .text import _normalize_visible_text
 from .text import _visible_article_text
 from .text import _visible_sections_by_heading
+from .v2 import EDITORIAL_PLAN_SCHEMA_V2
 
 
 
@@ -114,14 +117,84 @@ def _check_final_article_bindings(
         assembly_date=assembly_date,
     )
     headings, section_text = _article_structure(body)
-    findings.extend(_contribution_findings(
-        plan.get('original_contributions'),
-        headings,
-        section_text,
-    ))
+    if plan.get('schema') == EDITORIAL_PLAN_SCHEMA_V2:
+        findings.extend(_check_v2_metadata_binding(plan, frontmatter, body))
+    else:
+        findings.extend(_contribution_findings(
+            plan.get('original_contributions'),
+            headings,
+            section_text,
+        ))
     findings.extend(_entity_findings(plan.get('entity_map'), body))
     findings.extend(_link_findings(plan.get('internal_link_plan'), body))
     return findings
+
+
+def _check_v2_metadata_binding(
+    plan: Mapping[str, Any],
+    frontmatter: Mapping[str, Any],
+    body: str,
+) -> list[Finding]:
+    meta = plan.get('meta')
+    if not isinstance(meta, Mapping):
+        return []
+    findings: list[Finding] = []
+    title_options = meta.get('title_options') if isinstance(meta.get('title_options'), list) else []
+    h1_match = re.search(r'^#(?!#)\s+(.+?)\s*$', body, re.MULTILINE)
+    article_title = frontmatter.get('title')
+    h1 = h1_match.group(1).strip() if h1_match else ''
+    for location, value in (('/title', article_title), ('/h1', h1)):
+        if value not in title_options:
+            findings.append(_metadata_mismatch(
+                location,
+                'Final title and H1 must each match one planned title option.',
+            ))
+    for key in ('meta_title', 'meta_description'):
+        if frontmatter.get(key) != meta.get(key):
+            findings.append(_metadata_mismatch(
+                f'/{key}',
+                f'Final {key} must exactly match the editorial plan.',
+            ))
+    for key in ('primary_keyword', 'secondary_keywords'):
+        if _normalized_metadata(frontmatter.get(key)) != _normalized_metadata(meta.get(key)):
+            findings.append(_metadata_mismatch(
+                f'/{key}',
+                f'Final {key} must match the editorial plan after normalization.',
+            ))
+    slug, conflicts = resolve_slug_aliases(frontmatter)
+    if conflicts:
+        findings.append(_finding(
+            'editorial_plan_slug_alias_conflict',
+            f'Final article contains conflicting slug aliases: {", ".join(conflicts)}.',
+            '/url_slug',
+            'Keep one canonical URL slug or make every legacy alias resolve to it.',
+        ))
+    planned_slug = metadata_path_tail(str(meta.get('url_slug') or '')).casefold()
+    actual_slug = metadata_path_tail(slug).casefold()
+    if not actual_slug or actual_slug != planned_slug:
+        findings.append(_metadata_mismatch(
+            '/url_slug',
+            'Final URL slug must match the canonical planned url_slug.',
+        ))
+    return findings
+
+
+def _normalized_metadata(value: Any) -> tuple[str, ...]:
+    values = value if isinstance(value, list) else [value]
+    return tuple(
+        re.sub(r'\s+', ' ', str(item).strip()).casefold()
+        for item in values
+        if item is not None and str(item).strip()
+    )
+
+
+def _metadata_mismatch(location: str, message: str) -> Finding:
+    return _finding(
+        'editorial_plan_metadata_mismatch',
+        message,
+        location,
+        'Regenerate the article from the frozen editorial plan.',
+    )
 
 
 def _article_structure(body: str) -> tuple[set[str], dict[str, str]]:

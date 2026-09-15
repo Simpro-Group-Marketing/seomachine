@@ -43,7 +43,7 @@ def check_file(
             "editorial_plan_json_invalid",
             f"Editorial plan contains invalid JSON: {error}.",
             "/",
-            "Write a valid simpro-blog-editorial-plan/v1 JSON object.",
+            "Write a valid simpro-blog-editorial-plan/v2 JSON object.",
         )]
     return _check_loaded_plan(
         payload,
@@ -132,11 +132,17 @@ def _serp_findings(
         raw_capture_snapshot=raw_capture_snapshot,
         dependencies=dependencies,
     )
-    strategy = payload.get("serp_strategy")
+    is_v2 = payload.get("schema") == "simpro-blog-editorial-plan/v2"
+    strategy = payload.get("search_strategy" if is_v2 else "serp_strategy")
     if isinstance(strategy, Mapping) and isinstance(serp_payload, Mapping):
-        from .field_validation import _check_serp_strategy_evidence_binding
+        if is_v2:
+            from .v2 import check_search_evidence_binding
 
-        findings.extend(_check_serp_strategy_evidence_binding(strategy, serp_payload))
+            findings.extend(check_search_evidence_binding(strategy, serp_payload))
+        else:
+            from .field_validation import _check_serp_strategy_evidence_binding
+
+            findings.extend(_check_serp_strategy_evidence_binding(strategy, serp_payload))
     if isinstance(strategy, Mapping) and str(strategy.get("status") or "").startswith(
         "unresolved"
     ):

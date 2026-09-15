@@ -12,6 +12,16 @@
 
 This is the canonical non-AEO editorial contract for Simpro, ClockShark, BigChange, AroFlo, and other blog brands supported by this repository. It governs reader focus, article coherence, story safety, editorial stakes, headline integrity, and CTA pressure. It does not replace brand-specific voice, proof, product, competitor, SEO, or AEO sources.
 
+## Editorial Plan Ownership
+
+Current work uses `simpro-blog-editorial-plan/v2` as the authoritative pre-writing contract. `/research` owns the plan for new articles and `/analyze-existing` owns it for rewrites. They freeze reader outcomes, metadata, section throughlines, planned contributions, evidence provenance, search strategy, commercial strategy, and lifecycle decisions before public prose is written.
+
+`/write`, `/rewrite`, and `/optimize` are the only prose writers. They consume the frozen plan and choose the language independently. A plan-level defect returns to its owning planning command and produces a new plan hash; a prose-level defect stays with the active native writing command.
+
+After every article-byte change, the writer records `simpro-blog-plan-fulfillment/v1`: one substantive verbatim visible excerpt per contribution, inside its planned section and bound to both plan and article hashes. Content Analyzer and Editor judge whether those excerpts accomplish the planned purposes. Deterministic Python validates identity, hashes, visibility, and placement only. `evidence_source` records planning provenance and never substitutes for public claim proof, Source Map, claim-registry, vault, or citation gates.
+
+The plan should specify what must become true for the reader, not sentence-by-sentence wording. Preserve creative latitude by planning contributions, purposes, evidence sources, payoffs, and transitions while leaving examples, rhythm, explanation, and final expression to the writer.
+
 ## Reader Contract
 
 Resolve this internal planning block before recommending an outline or drafting public copy. Keep it in the research brief, analysis, or article plan. Do not place it in public article frontmatter or a proof-validation sidecar.

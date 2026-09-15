@@ -14,7 +14,7 @@ from .. import (
 )
 import data_sources.modules.blog_bom_validation.session_validation as blog_assembly_bom_session
 import data_sources.modules.blog_bom_validation.snapshot_adapters as blog_assembly_bom_snapshot
-from ..blog_assembly.common import EDITORIAL_PLAN_SCHEMA
+from ..blog_assembly.common import BOM_SCHEMA_V4, EDITORIAL_PLAN_SCHEMA
 from ..blog_assembly.policy import _editorial_plan_summary
 from ..blog_assembly_contract import (
     canonical_article_run_id,
@@ -33,6 +33,10 @@ from .contracts import (
     OPTIMIZED_TAIL_PROVISIONAL_STAGES,
 )
 from .dependencies import BomValidationDependencies
+from .fulfillment import check_editorial_fulfillment
+
+
+LEGACY_EDITORIAL_PLAN_SCHEMA = "simpro-blog-editorial-plan/v1"
 
 def _load_bound_editorial_plan(
     artifacts: Mapping[str, Any],
@@ -50,7 +54,10 @@ def _load_bound_editorial_plan(
         plan = json.loads(path.read_text(encoding="utf-8"))
     except (ValueError, OSError, UnicodeError, json.JSONDecodeError):
         return None
-    if not isinstance(plan, Mapping) or plan.get("schema") != EDITORIAL_PLAN_SCHEMA:
+    if not isinstance(plan, Mapping) or plan.get("schema") not in {
+        LEGACY_EDITORIAL_PLAN_SCHEMA,
+        EDITORIAL_PLAN_SCHEMA,
+    }:
         return None
     return plan
 
@@ -89,8 +96,13 @@ def _check_editorial_plan(
         )
     except ValueError as error:
         return [_finding("bom_editorial_plan_invalid", f"Editorial plan is invalid: {error}")]
-    if not isinstance(plan, Mapping) or plan.get("schema") != EDITORIAL_PLAN_SCHEMA:
-        return [_finding("bom_editorial_plan_schema_invalid", f"Editorial plan must use {EDITORIAL_PLAN_SCHEMA}.")]
+    expected_plan_schema = (
+        EDITORIAL_PLAN_SCHEMA
+        if bom.get("schema") == BOM_SCHEMA_V4
+        else LEGACY_EDITORIAL_PLAN_SCHEMA
+    )
+    if not isinstance(plan, Mapping) or plan.get("schema") != expected_plan_schema:
+        return [_finding("bom_editorial_plan_schema_invalid", f"Editorial plan must use {expected_plan_schema}.")]
     article_row = artifacts.get("article")
     serp_row = artifacts.get("serp_evidence")
     keyword_row = artifacts.get("keyword_decision")
@@ -177,9 +189,16 @@ def _check_editorial_policy_bindings(
     if bom.get("editorial_plan_summary") != expected:
         findings.append(_finding("bom_editorial_plan_summary_mismatch", "BOM editorial plan summary does not match the bound plan."))
     try:
-        article_content = article_path.read_text(encoding="utf-8")
+        article_content = article_path.read_bytes().decode("utf-8")
     except (OSError, UnicodeError) as error:
         return [_finding("bom_article_unreadable", f"Article cannot be read for industry cluster policy: {error}")]
+    findings.extend(check_editorial_fulfillment(
+        bom,
+        artifacts,
+        root,
+        plan=plan,
+        article_content=article_content,
+    ))
     connector = bom.get("connector_binding")
     context = connector.get("context") if isinstance(connector, Mapping) else None
     resource_ids = (
@@ -331,7 +350,14 @@ def _check_research_provenance(
 ) -> list[Finding]:
     dependencies = dependencies or BomValidationDependencies()
     return blog_assembly_bom_session.check_editorial_plan_dispatch(
-        _session_dependencies(dependencies),
+        _session_dependencies(
+            dependencies,
+            editorial_plan_schema=(
+                EDITORIAL_PLAN_SCHEMA
+                if bom.get("schema") == BOM_SCHEMA_V4
+                else LEGACY_EDITORIAL_PLAN_SCHEMA
+            ),
+        ),
         _check_editorial_plan,
         bom,
         artifacts,
@@ -343,9 +369,11 @@ def _check_research_provenance(
 
 def _session_dependencies(
     dependencies: BomValidationDependencies,
+    *,
+    editorial_plan_schema: str = EDITORIAL_PLAN_SCHEMA,
 ) -> BomValidationDependencies:
     return dependencies.bind(
-        EDITORIAL_PLAN_SCHEMA=EDITORIAL_PLAN_SCHEMA,
+        EDITORIAL_PLAN_SCHEMA=editorial_plan_schema,
         _bom_serp_expected_run_id=_bom_serp_expected_run_id,
         _editorial_plan_summary=_editorial_plan_summary,
         _finding=_finding,

@@ -25,12 +25,16 @@ def check_machine_reviews(
                 "BOM v1 cannot include machine_reviews.",
             )]
         return []
-    if schema not in {guard["BOM_SCHEMA_V2"], guard["BOM_SCHEMA_V3"]}:
+    if schema not in {
+        guard["BOM_SCHEMA_V2"],
+        guard["BOM_SCHEMA_V3"],
+        guard["BOM_SCHEMA_V4"],
+    }:
         return []
     if not isinstance(reviews, Mapping) or set(reviews) != {"plan", "article"}:
         return [guard["_finding"](
             "bom_machine_reviews_invalid",
-            "BOM v2 and v3 require machine_reviews.plan and machine_reviews.article path/hash bindings.",
+            "BOM v2 through v4 require machine_reviews.plan and machine_reviews.article path/hash bindings.",
         )]
     if captured is not None:
         return guard["blog_assembly_bom_snapshot"].check_captured_machine_reviews(

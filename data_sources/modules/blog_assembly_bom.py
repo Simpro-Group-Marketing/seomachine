@@ -1,6 +1,13 @@
 """Compatibility API and CLI for deterministic blog assembly BOMs."""
 # ruff: noqa: F401
 
+if __package__ in {None, ""}:  # pragma: no cover - direct script bootstrap.
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    __package__ = "data_sources.modules"
+
 try:
     from .blog_assembly.cli import _reject_bom_output_collision, main
     from .blog_assembly.common import (
@@ -9,6 +16,7 @@ try:
         BOM_SCHEMA_V1,
         BOM_SCHEMA_V2,
         BOM_SCHEMA_V3,
+        BOM_SCHEMA_V4,
         CONNECTOR_CUSTOMER_PROOF_SCHEMA,
         EDITORIAL_PLAN_SCHEMA,
         LIFECYCLE_STATES,
@@ -60,6 +68,7 @@ try:
         _connector_binding,
         _derive_paa_policy,
         _editorial_plan_summary,
+        _editorial_fulfillment,
         _identity_from_article,
         _schema_policy,
         _validate_article_identity,
@@ -83,6 +92,7 @@ except ImportError:  # pragma: no cover - direct script compatibility.
         BOM_SCHEMA_V1,
         BOM_SCHEMA_V2,
         BOM_SCHEMA_V3,
+        BOM_SCHEMA_V4,
         CONNECTOR_CUSTOMER_PROOF_SCHEMA,
         EDITORIAL_PLAN_SCHEMA,
         LIFECYCLE_STATES,
@@ -134,6 +144,7 @@ except ImportError:  # pragma: no cover - direct script compatibility.
         _connector_binding,
         _derive_paa_policy,
         _editorial_plan_summary,
+        _editorial_fulfillment,
         _identity_from_article,
         _schema_policy,
         _validate_article_identity,

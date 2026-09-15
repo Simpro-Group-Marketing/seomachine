@@ -50,6 +50,7 @@ def _validate_preflight_gates(
     expected = expected_blog_gate_inventory(
         visible_faq=schema_policy.get("visible_faq") is True,
         connector_required=connector.get("status") == "required",
+        current_strategy=(bom.get("schema") == "simpro-blog-assembly-bom/v4"),
     )
     if readiness.get("gate_inventory") != expected:
         raise ValueError("preflight readiness gate inventory is not the exact expected inventory")

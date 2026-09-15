@@ -34,6 +34,9 @@ from .link_policy import _has_syntactic_link_policy_override
 from .link_policy import _resolve_plan_brand
 from .sections import _check_engagement_map
 from .sections import _check_sections
+from .v2 import EDITORIAL_PLAN_SCHEMA_V2
+from .v2 import adapt_to_v1
+from .v2 import check_v2
 
 
 
@@ -54,6 +57,20 @@ def check_plan(
             )
         ]
 
+    if value.get('schema') == EDITORIAL_PLAN_SCHEMA_V2:
+        common_findings = _check_v1_plan(
+            adapt_to_v1(value),
+            dependencies=dependencies,
+        )
+        return _sorted_findings(common_findings + check_v2(value))
+    return _check_v1_plan(value, dependencies=dependencies)
+
+
+def _check_v1_plan(
+    value: Mapping[str, Any],
+    *,
+    dependencies: EditorialPlanDependencies,
+) -> list[Finding]:
     findings: list[Finding] = []
     if value.get('schema') != EDITORIAL_PLAN_SCHEMA:
         findings.append(

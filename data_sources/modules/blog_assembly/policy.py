@@ -161,6 +161,28 @@ def _connector_binding(
     }
 
 def _editorial_plan_summary(plan: Mapping[str, Any]) -> dict[str, Any]:
+    if plan.get("schema") == "simpro-blog-editorial-plan/v2":
+        return {
+            "schema": plan["schema"],
+            "meta": copy.deepcopy(plan["meta"]),
+            "reader_contract": copy.deepcopy(plan["reader_contract"]),
+            "search_strategy": copy.deepcopy(plan["search_strategy"]),
+            "commercial_strategy": copy.deepcopy(plan["commercial_strategy"]),
+            "lifecycle": copy.deepcopy(plan["lifecycle"]),
+            "keyword_decision": copy.deepcopy(plan["keyword_decision"]),
+            "original_contributions": copy.deepcopy(plan["original_contributions"]),
+            "entity_map": copy.deepcopy(plan["entity_map"]),
+            "internal_link_plan": copy.deepcopy(plan["internal_link_plan"]),
+            "industry_cluster_link_policy": copy.deepcopy(
+                plan.get(
+                    "industry_cluster_link_policy",
+                    {
+                        "status": "not_applicable",
+                        "reason": "No single-trade Simpro industry cluster link is required.",
+                    },
+                )
+            ),
+        }
     return {
         "schema": plan["schema"],
         "reader_contract": copy.deepcopy(plan["reader_contract"]),
@@ -183,6 +205,31 @@ def _editorial_plan_summary(plan: Mapping[str, Any]) -> dict[str, Any]:
         ),
     }
 
+
+def _editorial_fulfillment(
+    plan: Mapping[str, Any],
+    fulfillment: Mapping[str, Any],
+) -> list[dict[str, str]]:
+    excerpts = {
+        str(row["contribution_id"]): str(row["actual_excerpt"])
+        for row in fulfillment.get("contributions", [])
+        if isinstance(row, Mapping)
+        and isinstance(row.get("contribution_id"), str)
+        and isinstance(row.get("actual_excerpt"), str)
+    }
+    return [
+        {
+            "contribution_id": str(row["contribution_id"]),
+            "planned_contribution": str(row["planned_contribution"]),
+            "purpose": str(row["purpose"]),
+            "evidence_source": str(row["evidence_source"]),
+            "target_section": str(row["target_section"]),
+            "actual_excerpt": excerpts[str(row["contribution_id"])],
+        }
+        for row in plan.get("original_contributions", [])
+        if isinstance(row, Mapping) and str(row.get("contribution_id")) in excerpts
+    ]
+
 def _validate_editorial_plan(plan: Mapping[str, Any]) -> None:
     findings = check_editorial_plan(plan)
     if findings:
@@ -192,4 +239,4 @@ def _validate_editorial_plan(plan: Mapping[str, Any]) -> None:
         raise ValueError(f"editorial plan is invalid: {rule_ids}")
 
 
-__all__ = ['_author_policy', '_connector_binding', '_derive_paa_policy', '_editorial_plan_summary', '_identity_from_article', '_schema_policy', '_validate_article_identity', '_validate_editorial_plan']
+__all__ = ['_author_policy', '_connector_binding', '_derive_paa_policy', '_editorial_fulfillment', '_editorial_plan_summary', '_identity_from_article', '_schema_policy', '_validate_article_identity', '_validate_editorial_plan']

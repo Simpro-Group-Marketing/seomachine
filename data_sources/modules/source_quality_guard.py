@@ -1,9 +1,5 @@
 """Claim-level source quality and lifecycle refresh guard."""
-
 from __future__ import annotations
-
-import argparse
-import json
 import re
 import sys
 from dataclasses import dataclass
@@ -13,20 +9,25 @@ from typing import Optional, Sequence
 from urllib.parse import urlparse
 
 try:
-    from .artifact_detection import extract_frontmatter, strip_frontmatter
     from .blog_strategy_contract import BlogStrategyContract, validate_contract
-    from .guard_common import Finding, make_finding, should_fail, summarize_findings
+    from .guard_common import Finding, make_finding
     from .proof_sidecar import load_sidecar_content
+    from .source_quality_lifecycle import (
+        findings as _lifecycle_findings_impl,
+        requires_contract as _requires_lifecycle_contract,
+    )
 except ImportError:  # pragma: no cover - direct script execution.
-    from artifact_detection import extract_frontmatter, strip_frontmatter
     from blog_strategy_contract import BlogStrategyContract, validate_contract
-    from guard_common import Finding, make_finding, should_fail, summarize_findings
+    from guard_common import Finding, make_finding
     from proof_sidecar import load_sidecar_content
+    from source_quality_lifecycle import (
+        findings as _lifecycle_findings_impl,
+        requires_contract as _requires_lifecycle_contract,
+    )
 
 
 SOURCE_MAP_HEADING_RE = re.compile(r"^\s*(?:#{1,6}\s+)?Source Map:?\s*$", re.IGNORECASE)
 ANY_HEADING_RE = re.compile(r"^\s*#{1,6}\s+")
-HEADING_RE = re.compile(r"^\s*#{1,6}\s+(?P<title>.*?)\s*$")
 SIDECAR_SECTION_HEADING_RE = re.compile(
     r"^\s*(?:#{1,6}\s+)?(?:"
     r"Editorial Validation Appendix|PAA/FAQ Provenance|Metric Proof Pack|Source Map|Customer Proof Pack|"
@@ -45,16 +46,7 @@ ROW_RE = re.compile(r"^\s*[-*+]\s+(?P<body>Claim\s*:.*)$", re.IGNORECASE)
 FAQ_MAP_HEADING_RE = re.compile(r"^\s*(?:#{1,6}\s+)?FAQ Proof Map:?\s*$", re.IGNORECASE)
 URL_FIELD_RE = re.compile(r"(?:^|\|)\s*URL\s*:\s*(?P<url>https?://[^|\s]+)", re.IGNORECASE)
 ISO_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-DATED_EVIDENCE_RE = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
 PLACEHOLDER_RE = re.compile(r"\b(?:tbd|todo|placeholder|fill[ -]?in|unknown)\b", re.IGNORECASE)
-PERFORMANCE_CLAIM_RE = re.compile(
-    r"\b(?:improv(?:e|ed|ement)|increase[sd]?|decrease[sd]?|lift(?:ed)?|grew|growth|gain(?:ed)?|outperform(?:ed)?|"
-    r"(?:traffic|clicks?|sessions?|impressions?|rankings?|positions?).{0,50}?\b(?:up|down|rose|jump(?:ed)?|grew|fell|dropped|increased|decreased|improved))\b",
-    re.IGNORECASE,
-)
-URL_RE = re.compile(r"https?://\S+", re.IGNORECASE)
-H1_RE = re.compile(r"^\s{0,3}#(?!#)\s+(?P<title>.+?)\s*#*\s*$", re.MULTILINE)
-HIGH_VOLATILITY_TOPIC_RE = re.compile(r"\b(?:pricing|price|prices|cost|costs|regulation|standard|comparison|compare|vs|statistics?|stats?|product status)\b", re.IGNORECASE)
 
 REQUIRED_FIELDS = (
     "claim",
@@ -312,63 +304,16 @@ def _lifecycle_findings(
     *,
     today: date,
 ) -> list[Finding]:
-    findings: list[Finding] = []
-    lifecycle = contract.lifecycle
-    frontmatter = extract_frontmatter(content)
-    article_updated = (
-        frontmatter.get("last_updated")
-        or frontmatter.get("last_update")
-        or ""
-    ).strip()
-    try:
-        last_updated = date.fromisoformat(lifecycle.last_updated_date)
-        next_review = date.fromisoformat(lifecycle.next_review_date)
-    except ValueError:
-        return [_finding("lifecycle_date_invalid", 1, "Lifecycle dates must use YYYY-MM-DD.")]
-
-    if article_updated and article_updated != lifecycle.last_updated_date:
-        findings.append(_finding("lifecycle_article_date_mismatch", 1, "Lifecycle Last-updated date does not match article frontmatter."))
-    if next_review <= last_updated:
-        findings.append(_finding("lifecycle_next_review_not_after_update", 1, "Next review date must be after Last-updated date."))
-    if next_review < today:
-        findings.append(_finding("lifecycle_next_review_overdue", 1, "Next review date is already overdue."))
-
-    source_rows = _extract_source_rows(proof_content)
-    high_volatility = any(row.claim_type in HIGH_VOLATILITY_TYPES for row in source_rows) or _is_high_volatility_topic(content, contract)
-    if high_volatility and lifecycle.volatility != "high":
-        findings.append(_finding("lifecycle_high_volatility_required", 1, "Pricing, regulation, product-status, comparison, standards, and statistics-led articles require high volatility."))
-    allowed_days = 90 if high_volatility or lifecycle.volatility == "high" else 180
-    if (next_review - last_updated).days > allowed_days:
-        findings.append(_finding("lifecycle_review_cadence_exceeded", 1, f"Next review exceeds the {allowed_days}-day lifecycle cadence."))
-
-    lane_values = {
-        "GSC lane": lifecycle.gsc_lane,
-        "GA4 lane": lifecycle.ga4_lane,
-        "Semrush lane": lifecycle.semrush_lane,
-        "AI-citation lane": lifecycle.ai_citation_lane,
-    }
-    for lane_name, value in lane_values.items():
-        if PERFORMANCE_CLAIM_RE.search(value) and not (
-            DATED_EVIDENCE_RE.search(value) and URL_RE.search(value)
-        ):
-            findings.append(_finding("lifecycle_performance_claim_unproved", 1, f"{lane_name} claims performance change without dated source evidence."))
-        if ":" not in value:
-            findings.append(_finding("lifecycle_lane_reason_missing", 1, f"{lane_name} requires status: reason."))
-            if _normalize(value) in {"0", "zero"}:
-                findings.append(_finding("lifecycle_lane_status_invalid", 1, f"{lane_name} cannot use zero as a data-availability status."))
-            continue
-        status, reason = (part.strip() for part in value.split(":", 1))
-        if status.casefold() not in {"available", "unavailable", "not_applicable"}:
-            findings.append(_finding("lifecycle_lane_status_invalid", 1, f"{lane_name} has unsupported availability status: {status}."))
-        if not reason:
-            findings.append(_finding("lifecycle_lane_reason_missing", 1, f"{lane_name} requires a non-empty reason."))
-        if status.casefold() == "unavailable" and re.search(r"\b(?:0|zero)\b", reason, re.IGNORECASE):
-            findings.append(_finding("lifecycle_unavailable_as_zero", 1, f"{lane_name} converts unavailable data into zero."))
-    if PERFORMANCE_CLAIM_RE.search(lifecycle.decision) and not (
-        DATED_EVIDENCE_RE.search(lifecycle.decision) and URL_RE.search(lifecycle.decision)
-    ):
-        findings.append(_finding("lifecycle_performance_claim_unproved", 1, "Lifecycle decision claims performance change without dated source evidence."))
-    return findings
+    return _lifecycle_findings_impl(
+        content,
+        proof_content,
+        contract,
+        today=today,
+        source_rows=_extract_source_rows,
+        finding=_finding,
+        normalize=_normalize,
+        high_volatility_types=HIGH_VOLATILITY_TYPES,
+    )
 
 
 def _extract_source_rows(content: str) -> list[SourceMapRow]:
@@ -496,42 +441,6 @@ def _normalize(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", value.casefold()).strip()
 
 
-def _requires_lifecycle_contract(content: str, proof_content: str) -> bool:
-    brand = extract_frontmatter(content).get("brand", "").strip()
-    if brand.casefold() == "simpro":
-        return True
-    if "simprogroup.com" in content.casefold():
-        return True
-    headings = {
-        "search intent and format decision",
-        "commercial pillar and anchor decision",
-        "lifecycle refresh record",
-    }
-    return any(
-        HEADING_RE.match(line) and HEADING_RE.match(line).group("title").strip().rstrip(":").casefold() in headings
-        for _, line in _executable_lines(proof_content)
-    )
-
-
-def _is_high_volatility_topic(content: str, contract: BlogStrategyContract) -> bool:
-    frontmatter = extract_frontmatter(content)
-    body, _ = strip_frontmatter(content)
-    h1_match = H1_RE.search(body)
-    text = " ".join(
-        value
-        for value in (
-            frontmatter.get("title", ""),
-            frontmatter.get("primary_keyword", ""),
-            frontmatter.get("target_keyword", ""),
-            h1_match.group("title") if h1_match else "",
-            contract.commercial_pillar.article_title,
-            contract.commercial_pillar.article_primary_keyword,
-        )
-        if value
-    )
-    return bool(HIGH_VOLATILITY_TOPIC_RE.search(text))
-
-
 def _executable_lines(content: str) -> list[tuple[int, str]]:
     lines: list[tuple[int, str]] = []
     in_fence = False
@@ -574,19 +483,17 @@ def _finding(rule_id: str, line: int, message: str) -> Finding:
 
 
 def _sort_findings(findings: list[Finding]) -> list[Finding]:
-    return sorted(findings, key=lambda finding: (int(finding["line"]), str(finding["rule_id"])))
+    return sorted(
+        findings, key=lambda finding: (int(finding["line"]), str(finding["rule_id"]))
+    )
 
 
 def _main(argv: Optional[Sequence[str]] = None) -> int:
-    parser = argparse.ArgumentParser(description="Validate Source Map quality and lifecycle scheduling.")
-    parser.add_argument("path")
-    parser.add_argument("--proof-sidecar", required=True)
-    parser.add_argument("--fail-on", choices=["error", "warning", "none"], default="error")
-    args = parser.parse_args(argv)
-    findings = check_file(args.path, proof_sidecar=args.proof_sidecar, fail_on=args.fail_on)
-    payload = {"path": args.path, "summary": summarize_findings(findings), "findings": findings}
-    print(json.dumps(payload, indent=2))
-    return 1 if should_fail(findings, fail_on=args.fail_on) else 0
+    try:
+        from .source_quality_cli import main
+    except ImportError:  # pragma: no cover - direct script execution.
+        from source_quality_cli import main
+    return main(argv, check_file=check_file)
 
 
 if __name__ == "__main__":

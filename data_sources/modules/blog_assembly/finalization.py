@@ -8,6 +8,7 @@ from .common import (
     BOM_SCHEMA_V1,
     BOM_SCHEMA_V2,
     BOM_SCHEMA_V3,
+    BOM_SCHEMA_V4,
     atomic_write_json,
     canonical_article_run_id,
     canonical_artifact,
@@ -42,7 +43,7 @@ def finalize_blog_assembly_bom(
     bom = bom_snapshot.payload
     if not _is_supported_bom_schema(bom.get("schema")):
         raise ValueError(
-            f"bom.schema must be {BOM_SCHEMA_V1}, {BOM_SCHEMA_V2}, or {BOM_SCHEMA_V3}"
+            f"bom.schema must be {BOM_SCHEMA_V1}, {BOM_SCHEMA_V2}, {BOM_SCHEMA_V3}, or {BOM_SCHEMA_V4}"
         )
     if bom.get("lifecycle_state") != "provisional":
         raise ValueError("only a provisional BOM can be finalized")

@@ -171,6 +171,7 @@ def _expected_gate_inventory(bom: Mapping[str, Any]) -> list[str]:
         connector_required=(
             isinstance(connector, Mapping) and connector.get("status") == "required"
         ),
+        current_strategy=(bom.get("schema") == "simpro-blog-assembly-bom/v4"),
     )
 
 

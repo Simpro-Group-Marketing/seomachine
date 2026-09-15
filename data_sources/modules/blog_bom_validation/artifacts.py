@@ -90,6 +90,12 @@ def _check_required_inputs(
     for field in ("article", "validation_sidecar", "editorial_plan", "keyword_decision", "serp_evidence"):
         if artifacts.get(field) is None:
             findings.append(_finding(f"bom_{field}_missing", f"artifacts.{field} is required."))
+    if bom.get("schema") == "simpro-blog-assembly-bom/v4":
+        for field in ("plan_fulfillment", "commercial_pillar_index"):
+            if artifacts.get(field) is None:
+                findings.append(
+                    _finding(f"bom_{field}_missing", f"artifacts.{field} is required.")
+                )
     paa = bom.get("paa_policy")
     source_kind = paa.get("source_kind") if isinstance(paa, Mapping) else None
     required_paa_artifact = {

@@ -1,5 +1,9 @@
 # Optimize Command
 
+Consume `context/blog-editorial-strategy.md` for editorial decisions and `context/aeo-geo-blog-strategy.md` for AEO and proof governance. `/optimize` may edit public prose through the native command, but it must preserve the frozen `simpro-blog-editorial-plan/v2`. Route plan-level defects back to `/research` or `/analyze-existing` for a new plan hash.
+
+After every article-byte change, regenerate the hash-bound `simpro-blog-plan-fulfillment/v1` artifact and rerun article review. Content Analyzer and Editor assess whether each actual excerpt still accomplishes its planned purpose; Python validates only hashes, IDs, visibility, and target-section placement.
+
 Use `/optimize [article file]` for findings and targeted edits after an article exists. Optimization is a findings and targeted edit loop, not a separate finalization path.
 
 ## Ownership

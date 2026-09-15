@@ -25,6 +25,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     build.add_argument("--editorial-plan", required=True)
     build.add_argument("--keyword-decision", required=True)
     build.add_argument("--serp-evidence", required=True)
+    build.add_argument("--plan-fulfillment")
+    build.add_argument("--commercial-pillar-index")
     build.add_argument("--plan-review")
     build.add_argument("--article-review")
     build.add_argument("--paa-artifact")
@@ -64,6 +66,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 editorial_plan_path=args.editorial_plan,
                 keyword_decision_path=args.keyword_decision,
                 serp_evidence_path=args.serp_evidence,
+                plan_fulfillment_path=args.plan_fulfillment,
+                commercial_pillar_index_path=args.commercial_pillar_index,
                 plan_review_path=args.plan_review,
                 article_review_path=args.article_review,
                 paa_artifact_path=args.paa_artifact,
