@@ -1,5 +1,6 @@
 """Quality Gates responsibilities."""
 
+import re
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -51,6 +52,7 @@ class QualityGatesMixin:
         else:
             proof_sidecar_content = proof_content
             proof_sidecar_path = proof_sidecar
+        minimum_visible_words = self._check_minimum_visible_words(content)
         aeo_kwargs: Dict[str, Any] = {
             "source_path": source_path,
             "proof_sidecar_content": proof_sidecar_content,
@@ -141,6 +143,8 @@ class QualityGatesMixin:
             'url_validation_passed': True if url_validation is None else url_validation.passed,
             'source_support_findings': source_support_findings,
             'source_support_passed': not source_support_findings,
+            'minimum_visible_words': minimum_visible_words,
+            'minimum_visible_words_passed': bool(minimum_visible_words['passed']),
         }
     def _quality_gates_passed(
         self,
@@ -159,6 +163,7 @@ class QualityGatesMixin:
             and gate_context['review_story_passed']
             and gate_context['url_validation_passed']
             and gate_context['source_support_passed']
+            and gate_context['minimum_visible_words_passed']
         )
     def _build_priority_fixes(
         self,
@@ -320,6 +325,22 @@ class QualityGatesMixin:
             })
             priority_fixes = priority_fixes[:5]
 
+        minimum_visible_words = gate_context['minimum_visible_words']
+        if not gate_context['minimum_visible_words_passed']:
+            priority_fixes.insert(0, {
+                'issue': 'Minimum visible article length blocker detected',
+                'fix': (
+                    'Expand the reader-facing article body to at least '
+                    f"{minimum_visible_words['threshold']} words before final release. "
+                    f"Current visible words: {minimum_visible_words['word_count']}."
+                ),
+                'severity': 'high',
+                'dimension': 'minimum_visible_words',
+                'dimension_score': 0,
+                'impact': 100
+            })
+            priority_fixes = priority_fixes[:5]
+
         return priority_fixes
     def _build_quality_gates(
         self,
@@ -337,6 +358,7 @@ class QualityGatesMixin:
         metric_proof_pack_findings = gate_context['metric_proof_pack_findings']
         customer_proof_findings = gate_context['customer_proof_findings']
         review_story_findings = gate_context['review_story_findings']
+        minimum_visible_words = gate_context['minimum_visible_words']
         seo_score = seo.get('score', 0)
         seo_target_met = (
             isinstance(seo_score, (int, float))
@@ -394,6 +416,11 @@ class QualityGatesMixin:
                 'finding_count': len(review_story_findings),
                 'passed': gate_context['review_story_passed'],
                 'findings': review_story_findings
+            },
+            'minimum_visible_words': {
+                'word_count': minimum_visible_words['word_count'],
+                'threshold': minimum_visible_words['threshold'],
+                'passed': gate_context['minimum_visible_words_passed'],
             }
         }
         url_validation = gate_context['url_validation']
@@ -419,3 +446,15 @@ class QualityGatesMixin:
             str(finding.get("severity", "error")).casefold() == "error"
             for finding in findings
         )
+
+    def _check_minimum_visible_words(self, content: str) -> Dict[str, Any]:
+        """Require a small release floor while keeping SEO word counts diagnostic."""
+        _frontmatter, visible_body, _sidecar = self.dependencies.split_frontmatter(content)
+        clean = self._clean_for_analysis(visible_body)
+        word_count = len(re.findall(r"\b[\w'-]+\b", clean))
+        threshold = 150
+        return {
+            'word_count': word_count,
+            'threshold': threshold,
+            'passed': word_count >= threshold,
+        }

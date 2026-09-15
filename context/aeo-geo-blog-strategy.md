@@ -28,6 +28,8 @@ Required validation evidence: every workflow records a generated Context Binding
 
 For every Simpro blog, retrieve current voice and tone guidance through the vault connector by semantic search and `resource_id` reads. Named-author Simpro blogs and thought leadership may use first-person judgment, contractions, operational scenes, decisive opinions, and short punchlines. Author opinion must remain distinguishable from empirical fact. Metrics, market comparisons, product status, roadmap statements, and commercial claims remain proof gated. Em dashes are prohibited. Product pages and landing pages retain their existing restrained channel treatment.
 
+Author metadata controls public identity, Person schema, and whether first-person author voice is allowed; it provides zero Expertise and zero Experience credit without selected, source-visible evidence that satisfies the corresponding proof boundary.
+
 When `author_policy.status` is `no_author` or the legacy value `not_provided`, first-person singular author judgment outside quotes is prohibited.
 
 ## Named Feature Status And Commercial Treatment
@@ -250,7 +252,7 @@ Every `/write` and `/rewrite` plan must resolve an E-E-A-T Proof Map before draf
 | Dimension | Approved inputs | Public-copy rule |
 |---|---|---|
 | Experience | Customer case studies, customer outcomes, identity-backed Review Story Selection rows, review-site experience evidence / VoC themes, implementation/support themes, user pain, and field workflow examples | Cite the public case-study URL, approved review-site/source URL, or verified source page. Review-derived E-E-A-T stories need a public review URL in the same paragraph as the paraphrase. Do not cite internal context language. |
-| Expertise | Product/feature knowledge, source-backed workflow explanations, expert quotes, author/reviewer metadata, and Simpro workflow specificity | Use Simpro product/workflow links and source-backed explanations. Do not invent author, reviewer, or expert claims. |
+| Expertise | Product/feature knowledge, source-backed workflow explanations, source-visible expert evidence, and Simpro workflow specificity | Use Simpro product/workflow links and source-backed explanations. Do not invent author, reviewer, or expert claims. |
 | Authority/Trust | Public research, case-study URLs, review-site/source links, limitations, caveats, and no invented proof | Follow the claim's machine-assigned citation mode. For `inline_required`, use a natural descriptive anchor to the public source in the claim's paragraph; lower-risk claims may use `section_source_allowed`, `sidecar_only`, or `proof_not_required` when assigned. |
 
 Required proof sources:

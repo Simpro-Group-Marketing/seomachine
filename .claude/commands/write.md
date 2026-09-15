@@ -8,6 +8,8 @@ The command/agent writes the public Markdown. Python must not draft, rewrite, or
 
 Python may write governance artifacts only: selector output, context binding evidence, Semrush keyword decision JSON, SERP/PAA artifacts, editorial-plan JSON, BOM JSON, readiness JSON, and publisher transport payloads.
 
+Follow the canonical policy in `context/aeo-geo-blog-strategy.md`. Author metadata controls public identity, Person schema, and whether first-person author voice is allowed; it provides zero Expertise and zero Experience credit without selected, source-visible evidence that satisfies the corresponding proof boundary. Expertise proof requires source-visible expert evidence alongside product/workflow support.
+
 ## Required workflow
 
 1. Read the user request and any supplied brief.

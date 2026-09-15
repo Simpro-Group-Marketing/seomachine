@@ -29,7 +29,7 @@ from .common import (
     validate_file_urls,
     write_stage_receipt,
 )
-from ..blog_bom_validation.api import check_bom, missing_bom_finding
+from ..blog_bom_validation import api as blog_bom_validation_api
 from .finalization import _utc_now, finalize_blocked_result
 from .gate_policy import artifact_kind_rule_id as _artifact_kind_rule_id
 from .persistence_api import readiness_stage_receipt_path, write_readiness_result
@@ -220,7 +220,7 @@ def _validate_bom_and_capture_hashes(
         gate = _gate_from_findings(
             "blog_assembly_bom",
             "Blog Assembly BOM",
-            [missing_bom_finding()],
+            [blog_bom_validation_api.missing_bom_finding()],
         )
         gates.append(gate)
         return _blocked_for_gate(
@@ -242,7 +242,7 @@ def _validate_bom_and_capture_hashes(
         _timed_call(
             telemetry,
             "gate.blog_assembly_bom",
-            check_bom,
+            blog_bom_validation_api.check_bom,
             _captured_json(session.inputs, "assembly_bom"),
             article_path=article_path,
             validation_sidecar_path=paths["proof_sidecar"] or "",
