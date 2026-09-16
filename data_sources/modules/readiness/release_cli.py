@@ -20,7 +20,12 @@ def run_release_cli(
     runner: Callable[..., Any],
     invocation_error: type[Exception],
 ) -> int:
-    args = _parser().parse_args(argv)
+    raw_argv = list(sys.argv[1:] if argv is None else argv)
+    try:
+        args = _parser().parse_args(raw_argv)
+    except SystemExit as error:
+        _report_cli_parse_error(raw_argv, error)
+        raise
     try:
         result = runner(
             article=args.article,
@@ -107,6 +112,11 @@ def _error_exit(error: Exception, code: int) -> int:
 
 
 def _report_cli_error(args: argparse.Namespace, error: Exception) -> None:
+    if error_reporting.error_report_path(
+        args.run_id,
+        workspace_root=args.workspace_root,
+    ).exists():
+        return
     error_reporting.report_exception(
         error,
         run_id=args.run_id,
@@ -116,6 +126,52 @@ def _report_cli_error(args: argparse.Namespace, error: Exception) -> None:
         artifact="blog",
         output_dir=args.output_dir,
     )
+
+
+def _report_cli_parse_error(argv: Sequence[str], error: SystemExit) -> None:
+    context = _parse_error_context(argv)
+    if context is None:
+        return
+    run_id, workspace_root, output_dir = context
+    if error_reporting.error_report_path(run_id, workspace_root=workspace_root).exists():
+        return
+    error_reporting.report_exception(
+        error,
+        run_id=run_id,
+        workspace_root=workspace_root,
+        phase="cli_parse",
+        module="release_cli",
+        artifact="blog",
+        output_dir=output_dir,
+    )
+
+
+def _parse_error_context(argv: Sequence[str]) -> tuple[str, str, str] | None:
+    values = {
+        "run_id": _option_value(argv, "--run-id"),
+        "workspace_root": _option_value(argv, "--workspace-root"),
+        "output_dir": _option_value(argv, "--output-dir"),
+    }
+    if not all(values.values()):
+        return None
+    return (
+        values["run_id"] or "",
+        values["workspace_root"] or "",
+        values["output_dir"] or "",
+    )
+
+
+def _option_value(argv: Sequence[str], option: str) -> str | None:
+    prefix = f"{option}="
+    for index, value in enumerate(argv):
+        if value.startswith(prefix):
+            candidate = value[len(prefix) :].strip()
+            return candidate or None
+        if value == option and index + 1 < len(argv):
+            candidate = argv[index + 1].strip()
+            if candidate and not candidate.startswith("--"):
+                return candidate
+    return None
 
 
 def _label_paths(

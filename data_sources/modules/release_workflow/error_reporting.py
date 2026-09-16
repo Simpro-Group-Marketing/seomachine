@@ -59,7 +59,7 @@ def report_exception(
         workspace_root=root,
         failure_kind="exception",
         exception_type=type(error).__name__,
-        message=str(error),
+        message=_exception_message(error),
         phase=phase,
         module=module,
         artifact=artifact,
@@ -135,6 +135,8 @@ def _next_command_for_result(phase: str) -> str:
 def _next_command_for_exception(phase: str) -> str:
     if phase == "invocation":
         return "Fix the release invocation inputs, then rerun the blog release command."
+    if phase == "cli_parse":
+        return "Fix the CLI arguments, then rerun the blog release command."
     if phase == "cli":
         return "Fix the CLI release error, then rerun the blog release command."
     return "Inspect the release artifacts and telemetry, repair the error, then rerun the blog release command."
@@ -155,6 +157,12 @@ def _run_id_value(value: object) -> str:
     if isinstance(value, str) and value.strip():
         return value.strip()
     return "missing-run-id"
+
+
+def _exception_message(error: BaseException) -> str:
+    if isinstance(error, SystemExit):
+        return f"argparse exited with code {error.code}"
+    return str(error)
 
 
 def _safe_run_id_stem(value: object) -> str:
