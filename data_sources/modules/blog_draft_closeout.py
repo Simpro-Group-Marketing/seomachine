@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping
 
 try:
     from .ai_copy_linter import (
@@ -14,6 +13,15 @@ try:
         summarize_findings as lint_summarize_findings,
     )
     from .blog_assembly_contract import atomic_write_json
+    from .blog_draft_closeout_support import (
+        artifact_row,
+        collect_blockers,
+        collect_warnings,
+        failed_tool_check,
+        finding_blockers,
+        url_result_row,
+        validate_closeout_output_path,
+    )
     from .content_scrubber import scrub_file
     from .content_scoring.scorer import ContentScorer
     from .source_classification_preflight import build_preflight_report
@@ -30,6 +38,15 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         summarize_findings as lint_summarize_findings,
     )
     from blog_assembly_contract import atomic_write_json
+    from blog_draft_closeout_support import (
+        artifact_row,
+        collect_blockers,
+        collect_warnings,
+        failed_tool_check,
+        finding_blockers,
+        url_result_row,
+        validate_closeout_output_path,
+    )
     from content_scrubber import scrub_file
     from content_scoring.scorer import ContentScorer
     from source_classification_preflight import build_preflight_report
@@ -107,12 +124,12 @@ def build_report(
     checks["scoring"] = _scoring_check(scorecard)
     checks["paa"] = _paa_check(scorecard, paa_args)
 
-    blockers = _collect_blockers(checks)
-    warnings = _collect_warnings(checks)
+    blockers = collect_blockers(checks, CHECK_NAMES)
+    warnings = collect_warnings(checks, CHECK_NAMES)
     return {
         "schema": REPORT_SCHEMA,
-        "article": _artifact_row(article, root=root),
-        "sidecar": _artifact_row(sidecar, root=root),
+        "article": artifact_row(article, root=root),
+        "sidecar": artifact_row(sidecar, root=root),
         "release_artifacts_created": False,
         "checks": {name: checks[name] for name in CHECK_NAMES},
         "scorecard": scorecard,
@@ -126,7 +143,7 @@ def _scrub_check(article: Path) -> dict[str, Any]:
     try:
         result = scrub_file(str(article))
     except Exception as error:  # noqa: BLE001 - report all closeout tool failures.
-        return _failed_tool_check("scrub_failed", error)
+        return failed_tool_check("scrub_failed", error)
     check = {
         "status": "failed" if result.get("would_change") else "passed",
         "passed": not bool(result.get("would_change")),
@@ -151,7 +168,7 @@ def _ai_lint_check(article: Path, *, fail_on: str) -> dict[str, Any]:
         summary = lint_summarize_findings(findings)
         failed = lint_should_fail(findings, fail_on=fail_on)
     except Exception as error:  # noqa: BLE001
-        return _failed_tool_check("ai_lint_failed", error)
+        return failed_tool_check("ai_lint_failed", error)
     return {
         "status": "failed" if failed else "passed",
         "passed": not failed,
@@ -159,7 +176,7 @@ def _ai_lint_check(article: Path, *, fail_on: str) -> dict[str, Any]:
         "fail_on": fail_on,
         "summary": summary,
         "findings": findings,
-        "blockers": _finding_blockers("ai_lint", findings, failed=failed),
+        "blockers": finding_blockers("ai_lint", findings, failed=failed),
     }
 
 
@@ -174,7 +191,10 @@ def _source_classification_check(
         return {
             "status": "not_applicable",
             "passed": True,
-            "reason": "No source inventory was supplied.",
+            "reason": (
+                "No source inventory was supplied; source classification is optional "
+                "for this closeout run."
+            ),
             "blockers": [],
         }
     directory = classification_directory or workspace_root / "research" / "source-classifications"
@@ -186,7 +206,7 @@ def _source_classification_check(
             workspace_root=workspace_root,
         )
     except Exception as error:  # noqa: BLE001
-        return _failed_tool_check("source_classification_preflight_failed", error)
+        return failed_tool_check("source_classification_preflight_failed", error)
     blockers = list(report.get("blockers", []))
     return {
         "status": "passed" if report.get("ready_for_drafting") else "failed",
@@ -211,14 +231,14 @@ def _source_support_check(
         summary = source_support_summarize_findings(findings)
         failed = source_support_should_fail(findings, fail_on=fail_on)
     except Exception as error:  # noqa: BLE001
-        return _failed_tool_check("source_support_failed", error)
+        return failed_tool_check("source_support_failed", error)
     return {
         "status": "failed" if failed else "passed",
         "passed": not failed,
         "fail_on": fail_on,
         "summary": summary,
         "findings": findings,
-        "blockers": _finding_blockers("source_support", findings, failed=failed),
+        "blockers": finding_blockers("source_support", findings, failed=failed),
     }
 
 
@@ -226,7 +246,7 @@ def _url_validation_check(article: Path) -> dict[str, Any]:
     try:
         summary = validate_file_urls(article)
     except Exception as error:  # noqa: BLE001
-        return _failed_tool_check("url_validation_failed", error)
+        return failed_tool_check("url_validation_failed", error)
     blockers = [
         {
             "rule_id": "url_validation_failed",
@@ -246,7 +266,7 @@ def _url_validation_check(article: Path) -> dict[str, Any]:
         "resolved": summary.resolved_count,
         "unresolved": summary.unresolved_count,
         "manual_review": summary.manual_review_count,
-        "results": [_url_result_row(result) for result in summary.results],
+        "results": [url_result_row(result) for result in summary.results],
         "blockers": blockers,
     }
 
@@ -262,8 +282,8 @@ def _score_article(
     try:
         return ContentScorer().score(
             article_text,
-            validate_urls=True,
-            validate_source_support=True,
+            validate_urls=False,
+            validate_source_support=False,
             source_path=str(article),
             proof_sidecar=str(sidecar),
             paa_workflow_mode=paa_args.get("paa_workflow_mode"),
@@ -358,92 +378,6 @@ def _paa_blocker(paa_check: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def _artifact_row(path: Path, *, root: Path) -> dict[str, str]:
-    resolved = path.resolve()
-    try:
-        stored_path = resolved.relative_to(root).as_posix()
-    except ValueError:
-        stored_path = str(resolved)
-    return {"path": stored_path, "sha256": _sha256_file(resolved)}
-
-
-def _sha256_file(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def _failed_tool_check(rule_id: str, error: Exception) -> dict[str, Any]:
-    return {
-        "status": "failed",
-        "passed": False,
-        "blockers": [
-            {
-                "rule_id": rule_id,
-                "message": str(error),
-            }
-        ],
-    }
-
-
-def _finding_blockers(
-    check_name: str,
-    findings: Sequence[Mapping[str, Any]],
-    *,
-    failed: bool,
-) -> list[dict[str, Any]]:
-    if not failed:
-        return []
-    return [
-        {
-            "rule_id": str(finding.get("rule_id") or f"{check_name}_finding"),
-            "severity": str(finding.get("severity") or "error"),
-            "line": finding.get("line"),
-            "message": str(finding.get("message") or ""),
-        }
-        for finding in findings
-    ] or [
-        {
-            "rule_id": f"{check_name}_failed",
-            "message": f"{check_name} reported a blocking failure.",
-        }
-    ]
-
-
-def _url_result_row(result: Any) -> dict[str, Any]:
-    return {
-        "url": result.url,
-        "status": result.status,
-        "status_code": result.status_code,
-        "reason": result.reason,
-        "line": result.line,
-        "anchor": result.anchor,
-        "final_url": result.final_url,
-    }
-
-
-def _collect_blockers(checks: Mapping[str, Mapping[str, Any]]) -> list[dict[str, Any]]:
-    blockers: list[dict[str, Any]] = []
-    for check_name in CHECK_NAMES:
-        for blocker in checks[check_name].get("blockers", []):
-            row = dict(blocker)
-            row.setdefault("check", check_name)
-            if row.get("check") != check_name:
-                row["check"] = check_name
-            blockers.append(row)
-    return blockers
-
-
-def _collect_warnings(checks: Mapping[str, Mapping[str, Any]]) -> list[dict[str, Any]]:
-    warnings: list[dict[str, Any]] = []
-    for check_name in CHECK_NAMES:
-        for finding in checks[check_name].get("findings", []):
-            if str(finding.get("severity", "")).casefold() != "warning":
-                continue
-            row = dict(finding)
-            row["check"] = check_name
-            warnings.append(row)
-    return warnings
-
-
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="blog_draft_closeout",
@@ -468,8 +402,18 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    args = _parser().parse_args(argv)
+def main(argv: list[str] | None = None) -> int:
+    parser = _parser()
+    args = parser.parse_args(argv)
+    try:
+        output = validate_closeout_output_path(
+            args.output,
+            article_path=args.article_path,
+            proof_sidecar=args.proof_sidecar,
+            workspace_root=args.workspace_root,
+        )
+    except ValueError as error:
+        parser.error(str(error))
     report = build_report(
         args.article_path,
         proof_sidecar=args.proof_sidecar,
@@ -487,7 +431,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         paa_artifact=args.paa_artifact,
         assembly_date=args.assembly_date,
     )
-    atomic_write_json(args.output, report)
+    atomic_write_json(output, report)
     return 0 if report["passed"] else 1
 
 

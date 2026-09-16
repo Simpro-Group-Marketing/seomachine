@@ -6,6 +6,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 
 def _write_article_and_sidecar(root: Path) -> tuple[Path, Path]:
     article = root / "drafts" / "closeout.md"
@@ -144,6 +146,108 @@ def test_successful_closeout_binds_inputs_and_creates_no_release_artifacts(
     assert not list(tmp_path.rglob("*receipt*.json"))
 
 
+def test_output_cannot_overwrite_sidecar_and_sidecar_bytes_are_unchanged(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    blog_draft_closeout = _patch_clean_dependencies(monkeypatch)
+    article, sidecar = _write_article_and_sidecar(tmp_path)
+    original_sidecar = sidecar.read_bytes()
+
+    with pytest.raises(SystemExit) as raised:
+        blog_draft_closeout.main(
+            [
+                str(article),
+                "--proof-sidecar",
+                str(sidecar),
+                "--output",
+                str(sidecar),
+                "--workspace-root",
+                str(tmp_path),
+            ]
+        )
+
+    assert raised.value.code == 2
+    assert sidecar.read_bytes() == original_sidecar
+
+
+def test_output_outside_workspace_is_rejected(tmp_path: Path, monkeypatch) -> None:
+    blog_draft_closeout = _patch_clean_dependencies(monkeypatch)
+    article, sidecar = _write_article_and_sidecar(tmp_path)
+    outside_output = tmp_path.parent / f"{tmp_path.name}-outside-closeout.json"
+
+    with pytest.raises(SystemExit) as raised:
+        blog_draft_closeout.main(
+            [
+                str(article),
+                "--proof-sidecar",
+                str(sidecar),
+                "--output",
+                str(outside_output),
+                "--workspace-root",
+                str(tmp_path),
+            ]
+        )
+
+    assert raised.value.code == 2
+    assert not outside_output.exists()
+
+
+def test_scorer_skips_duplicate_url_and_source_support_checks_while_explicit_checks_run(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    blog_draft_closeout = _patch_clean_dependencies(monkeypatch)
+    article, sidecar = _write_article_and_sidecar(tmp_path)
+    output = tmp_path / "research" / "closeout.json"
+    calls = {"source_support": 0, "url_validation": 0}
+    scorer_kwargs = {}
+
+    def record_source_support(*args, **kwargs):
+        calls["source_support"] += 1
+        return []
+
+    class EmptyUrlSummary:
+        passed = True
+        total = 0
+        resolved_count = 0
+        unresolved_count = 0
+        manual_review_count = 0
+        blockers = []
+        results = []
+
+    def record_url_validation(path):
+        calls["url_validation"] += 1
+        return EmptyUrlSummary()
+
+    def record_score(self, content, **kwargs):
+        scorer_kwargs.update(kwargs)
+        return _passing_scorecard()
+
+    monkeypatch.setattr(blog_draft_closeout, "source_support_check_file", record_source_support)
+    monkeypatch.setattr(blog_draft_closeout, "validate_file_urls", record_url_validation)
+    monkeypatch.setattr(blog_draft_closeout.ContentScorer, "score", record_score)
+
+    assert blog_draft_closeout.main(
+        [
+            str(article),
+            "--proof-sidecar",
+            str(sidecar),
+            "--output",
+            str(output),
+            "--workspace-root",
+            str(tmp_path),
+        ]
+    ) == 0
+
+    assert calls == {"source_support": 1, "url_validation": 1}
+    assert scorer_kwargs["validate_urls"] is False
+    assert scorer_kwargs["validate_source_support"] is False
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["checks"]["source_support"]["passed"] is True
+    assert payload["checks"]["url_validation"]["passed"] is True
+
+
 def test_source_classification_missing_decision_blocks_without_release_artifacts(
     tmp_path: Path,
     monkeypatch,
@@ -189,6 +293,42 @@ def test_source_classification_missing_decision_blocks_without_release_artifacts
     )
     assert payload["blockers"][0]["rule_id"] == "source_classification_decision_missing"
     assert not (tmp_path / "release").exists()
+
+
+def test_paa_inputs_without_scorer_paa_check_block_closeout(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    blog_draft_closeout = _patch_clean_dependencies(monkeypatch)
+    article, sidecar = _write_article_and_sidecar(tmp_path)
+    output = tmp_path / "research" / "closeout.json"
+    scorecard = _passing_scorecard()
+    scorecard["aeo_geo"]["checks"] = {}
+
+    monkeypatch.setattr(
+        blog_draft_closeout.ContentScorer,
+        "score",
+        lambda self, content, **kwargs: scorecard,
+    )
+
+    exit_code = blog_draft_closeout.main(
+        [
+            str(article),
+            "--proof-sidecar",
+            str(sidecar),
+            "--output",
+            str(output),
+            "--workspace-root",
+            str(tmp_path),
+            "--paa-expected-run-id",
+            "answersocrates-run-1",
+        ]
+    )
+
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert exit_code == 1
+    assert payload["checks"]["paa"]["status"] == "failed"
+    assert payload["checks"]["paa"]["blockers"][0]["rule_id"] == "paa_check_unavailable"
 
 
 def test_closeout_surfaces_scrub_lint_source_url_and_scoring_results(
