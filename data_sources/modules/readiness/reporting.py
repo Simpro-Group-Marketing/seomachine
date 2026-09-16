@@ -110,6 +110,20 @@ def format_text_report(result: ReadinessResult) -> str:
             dimension = fix.get("dimension", "unknown")
             lines.append(f"  {index}. [{dimension}] {issue}")
 
+    warnings = [
+        (gate["label"], finding)
+        for gate in result["gates"]
+        for finding in gate.get("findings", [])
+        if finding.get("severity") == "warning"
+    ]
+    if warnings:
+        lines.append("")
+        lines.append("Warnings:")
+        for label, finding in warnings[:5]:
+            rule_id = finding.get("rule_id", "unknown")
+            message = finding.get("message", "Unknown warning")
+            lines.append(f"  - [{label}] {rule_id}: {message}")
+
     lines.append("=" * 50)
     return "\n".join(lines)
 
