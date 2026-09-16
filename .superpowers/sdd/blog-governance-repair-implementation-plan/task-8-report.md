@@ -91,4 +91,56 @@ Priority Fixes:
 
 ## Concerns
 
-No known concerns. The legacy fallback marks hard gates from `aeo_geo` when a result has no `quality_gates` mapping; current scorer results provide the full mapping.
+No blocking concerns. The legacy fallback marks hard gates from `aeo_geo` when a result has no `quality_gates` mapping; current scorer results provide the full mapping.
+
+## Fix Round 1: Empty Hard-Gate Evidence
+
+### Finding Addressed
+
+An empty `quality_gates` mapping with no `aeo_geo` fallback previously passed through `all([])`, which incorrectly rendered `Hard Gates: PASSED`. The formatter now renders `Hard Gates: UNKNOWN` when no hard-gate result is available. `Overall` continues to reflect `result['passed']`.
+
+### RED Evidence
+
+Added `test_report_marks_missing_hard_gate_evidence_unknown` to the existing reporting test module before changing the implementation. The required focused command failed:
+
+```text
+pytest -q tests/test_content_scoring_reporting.py
+.F                                                                       [100%]
+____________ test_report_marks_missing_hard_gate_evidence_unknown ____________
+E       AssertionError: assert 'Hard Gates: UNKNOWN' in '... Overall: PASSED ...'
+1 failed, 1 passed in 0.09s
+```
+
+### GREEN Evidence
+
+Required focused test command:
+
+```text
+pytest -q tests/test_content_scoring_reporting.py
+..                                                                       [100%]
+2 passed in 0.05s
+```
+
+Required line-limit command:
+
+```text
+python tools/check_changed_python_lines.py --base 69471e5 --limit 500
+```
+
+Result: exit code `0`; no oversized changed Python files were reported.
+
+`git diff --check` also passed. The original 92-point failed-AEO regression remains passing in the focused suite.
+
+### Round 1 Files
+
+- `data_sources/modules/content_scoring/reporting.py`
+- `tests/test_content_scoring_reporting.py`
+- `.superpowers/sdd/blog-governance-repair-implementation-plan/task-8-report.md`
+
+### Round 1 Self-Review
+
+- Empty hard-gate evidence now fails closed to an explicit `UNKNOWN` status.
+- The above-threshold composite still reports `Content Quality: PASSED`.
+- The supplied aggregate result still controls `Overall` status.
+- The original failed-AEO behavior remains covered by the first regression test.
+- No articles, proof data, or unrelated workflows were edited.

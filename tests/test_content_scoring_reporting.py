@@ -25,3 +25,21 @@ def test_report_separates_content_quality_hard_gates_and_overall_statuses():
     assert "Overall: FAILED" in report
     assert "BELOW THRESHOLD" not in report
     assert "Priority Fixes:" in report
+
+
+def test_report_marks_missing_hard_gate_evidence_unknown():
+    result = {
+        "composite_score": 92,
+        "passed": True,
+        "threshold": 90,
+        "quality_gates": {},
+        "dimensions": {},
+        "priority_fixes": [],
+    }
+
+    report = ScoringReportingMixin().format_report(result)
+
+    assert "Content Quality: PASSED" in report
+    assert "Hard Gates: UNKNOWN" in report
+    assert "Overall: PASSED" in report
+    assert "Hard Gates: PASSED" not in report

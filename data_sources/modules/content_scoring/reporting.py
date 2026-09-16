@@ -21,9 +21,12 @@ class ScoringReportingMixin:
         ]
         if not hard_gate_results and result.get('aeo_geo'):
             hard_gate_results.append(result['aeo_geo'].get('passed', False))
-        hard_gates_passed = all(hard_gate_results)
         content_quality_status = "PASSED" if content_quality_passed else "BELOW THRESHOLD"
-        hard_gates_status = "PASSED" if hard_gates_passed else "FAILED"
+        hard_gates_status = (
+            "UNKNOWN"
+            if not hard_gate_results
+            else "PASSED" if all(hard_gate_results) else "FAILED"
+        )
         overall_status = "PASSED" if result['passed'] else "FAILED"
         lines.append(
             f"Composite Score: {result['composite_score']}/100 ({content_quality_status})"
