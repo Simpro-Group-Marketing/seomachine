@@ -40,6 +40,10 @@ def test_what_to_write_table_is_not_an_unsupported_recommendation() -> None:
         "State that customers are eligible for the add-on.",
         "State that the reader is eligible for the add-on.",
         "State that the add-on can be accessed only through enterprise plans.",
+        "State that every customer is eligible.",
+        "State that the reader is eligible.",
+        "State that eligible readers can access the add-on.",
+        "State that users can access the add-on.",
     ),
 )
 def test_product_eligibility_and_access_status_in_a_checklist_require_support(

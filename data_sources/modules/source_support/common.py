@@ -223,7 +223,9 @@ GENERAL_CLAIM_PATTERNS = (
             r"\b(?:add[- ]on|feature|product|platform|software)\b[^.!?]{0,90}\b"
             r"(?:is|are|can|cannot|may|must)?\s*(?:be\s+)?access(?:ed|ible)\b|"
             r"\b(?:access|availability|eligibility)\b[^.!?]{0,90}\b"
-            r"(?:is|are|remains?|becomes?|requires?|restricted|limited|available|unavailable)\b",
+            r"(?:is|are|remains?|becomes?|requires?|restricted|limited|available|unavailable)\b|"
+            r"\b(?:eligible|ineligible|eligibility)\b|"
+            r"\b(?:can|cannot|may|must)\s+access\b",
             re.IGNORECASE,
         ),
     ),

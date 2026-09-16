@@ -74,3 +74,28 @@ No article or unrelated files changed. The new detector is limited to markdown-c
 - `data_sources/modules/source_support/common.py`
 - `tests/test_source_support_instructional_context.py`
 - `.superpowers/sdd/blog-governance-repair-implementation-plan/task-4-report.md`
+
+## Fix Round 3/5: Concept-Level Eligibility and Access
+
+### RED
+
+- Command: `pytest -q tests/test_source_support_instructional_context.py`
+- Output: `4 failed, 12 passed in 0.51s`.
+- Failures: every-customer eligibility, reader eligibility, eligible-reader access, and user access produced no `commercial` candidate.
+
+### GREEN
+
+- Command: `pytest -q tests/test_source_support_instructional_context.py`
+- Output: `16 passed in 0.41s`.
+- Command: `pytest -q tests/test_source_support_guard.py tests/test_source_support_batch.py tests/test_source_support_cli.py tests/test_proof_link_policy.py tests/test_numeric_claim_source_guard.py`
+- Output: `144 passed, 44 subtests passed in 7.40s`.
+- Command: `python tools/check_changed_python_lines.py --base 1a2809e`
+- Output: passed.
+- Command: `git diff --check`
+- Output: passed.
+
+### Files Changed
+
+- `data_sources/modules/source_support/common.py`
+- `tests/test_source_support_instructional_context.py`
+- `.superpowers/sdd/blog-governance-repair-implementation-plan/task-4-report.md`
