@@ -213,9 +213,9 @@ GENERAL_CLAIM_PATTERNS = (
     (
         "commercial",
         re.compile(
-            r"\b(?:pricing|price|costs?|subscription|plan|package|premium|trial|"
+            r"\b(?:pricing|price|costs?|fees?|charges?|subscription|plan|package|premium|trial|"
             r"add[- ]on|upgrade|license|licence)\b[^.!?]{0,90}\b"
-            r"(?:is|are|costs?|includes?|included|requires?|available|free|paid)\b|"
+            r"(?:is|are|costs?|includes?|included|requires?|available|free|paid|waived)\b|"
             r"\b(?:is|are)\s+included\s+in\s+(?:the\s+)?(?:paid|premium|"
             r"enterprise|standard|basic)?\s*(?:plan|package|subscription)\b",
             re.IGNORECASE,

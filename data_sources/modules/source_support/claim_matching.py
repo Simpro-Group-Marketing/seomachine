@@ -1,4 +1,6 @@
 """Claim Matching responsibilities."""
+import re
+
 from .common import (
     GENERAL_CLAIM_PATTERNS,
     IMPERATIVE_INSTRUCTION_RE,
@@ -46,8 +48,24 @@ def _is_general_claim_exempt(sentence: str) -> bool:
     return False
 
 
+def _is_contextual_instruction_exempt(sentence: str, claim_type: str) -> bool:
+    """Keep writing guidance exempt without weakening high-risk claim checks."""
+    if claim_type in {"absolute", "causal", "commercial", "comparative", "guarantee"}:
+        return False
+    text = _claim_text_for_detection(sentence)
+    return not re.search(
+        r"\b(?:law|legal|regulation|regulatory|licen[cs]e|permit(?:ting)?|"
+        r"compliance|statute|code)\b[^.!?]{0,100}\b(?:requires?|must|may|cannot|"
+        r"prohibits?|allows?)\b|\b(?:product|platform|software|app|add[- ]on|"
+        r"feature|Simpro)\b[^.!?]{0,100}\b(?:available|unavailable|offers?|"
+        r"includes?|supports?)\b",
+        text,
+        re.IGNORECASE,
+    )
+
+
 __all__ = [
-    "_general_claim_type", "_is_general_claim_exempt",
+    "_general_claim_type", "_is_general_claim_exempt", "_is_contextual_instruction_exempt",
     "_validate_source_text_contains_evidence", "_validate_evidence_claim_fit",
     "_evidence_contradicts_claim",
 ]

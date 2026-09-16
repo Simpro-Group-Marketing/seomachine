@@ -1,5 +1,10 @@
 """Proof Parsing responsibilities."""
-from .claim_matching import _general_claim_type, _is_general_claim_exempt
+from .claim_matching import (
+    _general_claim_type,
+    _is_contextual_instruction_exempt,
+    _is_general_claim_exempt,
+)
+from .instructional_context import instructional_line_numbers
 from .common import (
     MARKDOWN_IMAGE_LINE_RE,
     OUTCOME_SIGNAL_RE,
@@ -101,6 +106,7 @@ def _extract_claim_candidates(
     body = _strip_frontmatter_preserve_lines(content)
     body = _blank_fenced_code(body)
     body = _blank_reader_supplied_worksheet_tables(body)
+    instructional_lines = instructional_line_numbers(body)
     candidates: List[ClaimCandidate] = []
 
     for paragraph in _iter_paragraphs(body):
@@ -132,6 +138,12 @@ def _extract_claim_candidates(
                 if _is_general_claim_exempt(sentence):
                     continue
                 claim_type = _general_claim_type(_claim_text_for_detection(sentence))
+                if (
+                    claim_type
+                    and paragraph.line in instructional_lines
+                    and _is_contextual_instruction_exempt(sentence, claim_type)
+                ):
+                    continue
                 if claim_type:
                     general_candidates.append(
                         ClaimCandidate(
