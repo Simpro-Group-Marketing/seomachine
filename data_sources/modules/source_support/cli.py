@@ -29,4 +29,12 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
     return 1 if should_fail(findings, fail_on=args.fail_on) else 0
 
 
-__all__ = ["_main"]
+def main(argv: Optional[Sequence[str]] = None) -> int:
+    return _main(argv)
+
+
+__all__ = ["_main", "main"]
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
