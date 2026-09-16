@@ -13,6 +13,15 @@ INSTRUCTIONAL_VERB_RE = re.compile(
     r"make|name|note|outline|show|state|summarize|tell|write)\b",
     re.IGNORECASE,
 )
+NONASSERTIVE_ELIGIBILITY_PROMPT_RE = re.compile(
+    r"^explain\s+who\s+(?:is\s+eligible|qualifies)\s+for\s+the\s+program[.!?]?$",
+    re.IGNORECASE,
+)
+NONASSERTIVE_RESOURCE_ACCESS_PROMPT_RE = re.compile(
+    r"^tell\s+readers\s+where\s+they\s+can\s+(?:access|find)\s+the\s+"
+    r"(?:worksheet|checklist|guide|template|resource|document|form|file)[.!?]?$",
+    re.IGNORECASE,
+)
 
 
 def instructional_line_numbers(content: str) -> frozenset[int]:
@@ -34,6 +43,19 @@ def instructional_line_numbers(content: str) -> frozenset[int]:
             instructional.add(line_number)
 
     return frozenset(instructional)
+
+
+def is_nonassertive_status_prompt(sentence: str) -> bool:
+    """Return whether an instruction asks for, but does not supply, status facts."""
+    text = re.sub(
+        r"^\s*(?:[-*+]\s+)?(?:\[[ xX]\]\s+)?",
+        "",
+        sentence,
+    ).strip()
+    return bool(
+        NONASSERTIVE_ELIGIBILITY_PROMPT_RE.fullmatch(text)
+        or NONASSERTIVE_RESOURCE_ACCESS_PROMPT_RE.fullmatch(text)
+    )
 
 
 def _what_to_write_table_lines(lines: list[str]) -> set[int]:
@@ -60,4 +82,4 @@ def _is_checklist_item(line: str) -> bool:
     return bool(re.match(r"^(?:[-*+]\s+)?\[[ xX]\]\s+", line))
 
 
-__all__ = ["instructional_line_numbers"]
+__all__ = ["instructional_line_numbers", "is_nonassertive_status_prompt"]

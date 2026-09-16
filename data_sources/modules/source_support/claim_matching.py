@@ -16,6 +16,7 @@ from .common import (
     math,
 )
 from .findings import _finding
+from .instructional_context import is_nonassertive_status_prompt
 from .text_matching import _contains_evidence, _normalize_text, _significant_words
 
 
@@ -50,7 +51,9 @@ def _is_general_claim_exempt(sentence: str) -> bool:
 
 def _is_contextual_instruction_exempt(sentence: str, claim_type: str) -> bool:
     """Keep writing guidance exempt without weakening high-risk claim checks."""
-    if claim_type in {"absolute", "causal", "commercial", "comparative", "guarantee"}:
+    if claim_type == "commercial":
+        return is_nonassertive_status_prompt(sentence)
+    if claim_type in {"absolute", "causal", "comparative", "guarantee"}:
         return False
     text = _claim_text_for_detection(sentence)
     return not re.search(

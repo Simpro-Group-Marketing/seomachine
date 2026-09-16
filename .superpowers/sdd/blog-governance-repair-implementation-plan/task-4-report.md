@@ -99,3 +99,33 @@ No article or unrelated files changed. The new detector is limited to markdown-c
 - `data_sources/modules/source_support/common.py`
 - `tests/test_source_support_instructional_context.py`
 - `.superpowers/sdd/blog-governance-repair-implementation-plan/task-4-report.md`
+
+## Fix Round 4/5: Non-Assertive Eligibility and Access Prompts
+
+### RED
+
+- Command: `pytest -q tests/test_source_support_instructional_context.py`
+- Output: `2 failed, 16 passed in 0.47s`.
+- Failures: `Explain who is eligible for the program.` and `Tell readers where they can access the worksheet.` each emitted `general_claim_source_missing`.
+
+### GREEN
+
+- Command: `pytest -q tests/test_source_support_instructional_context.py`
+- Output: `18 passed in 0.40s`.
+- Command: `pytest -q tests/test_source_support_guard.py tests/test_source_support_batch.py tests/test_source_support_cli.py tests/test_proof_link_policy.py tests/test_numeric_claim_source_guard.py`
+- Output: `144 passed, 44 subtests passed in 6.34s`.
+- Command: `python tools/check_changed_python_lines.py --base 1a2809e`
+- Output: passed.
+- Command: `git diff --check`
+- Output: passed.
+
+### Implementation
+
+The contextual detector now recognizes only the non-assertive `who is eligible` and `where readers can access` prompt shapes. Asserted `State that ...` propositions and the existing high-risk boundaries continue through source-support enforcement.
+
+### Files Changed
+
+- `data_sources/modules/source_support/claim_matching.py`
+- `data_sources/modules/source_support/instructional_context.py`
+- `tests/test_source_support_instructional_context.py`
+- `.superpowers/sdd/blog-governance-repair-implementation-plan/task-4-report.md`

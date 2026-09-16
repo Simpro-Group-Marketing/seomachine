@@ -34,6 +34,21 @@ def test_what_to_write_table_is_not_an_unsupported_recommendation() -> None:
     assert check_content(content) == []
 
 
+def test_eligibility_explanation_prompt_is_not_an_asserted_status_claim() -> None:
+    content = "# Drafting guide\n\nExplain who is eligible for the program.\n"
+
+    assert check_content(content) == []
+
+
+def test_resource_access_prompt_is_not_an_asserted_status_claim() -> None:
+    content = (
+        "# Drafting guide\n\n"
+        "Tell readers where they can access the worksheet.\n"
+    )
+
+    assert check_content(content) == []
+
+
 @pytest.mark.parametrize(
     "instruction",
     (
