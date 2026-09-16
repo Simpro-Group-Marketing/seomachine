@@ -132,3 +132,47 @@ Results:
 - Scorer output: composite `86.6`, SEO `92`, AEO/GEO `100`, hard gates passed.
 - Module help exited `0` and listed all required PAA and assembly-date options.
 - Changed-Python-line check and `git diff --check` exited `0`.
+
+## Fix Round 5
+
+### TDD Characterization
+
+Added a focused unit-style CLI test that invokes `content_scoring.cli.main(...)` with all eight required options and mocks `ContentScorer`. The test asserts the complete `ContentScorer.score()` keyword contract for:
+
+- `paa_workflow_mode`
+- `paa_content_brief`
+- `paa_answersocrates_blocker`
+- `paa_expected_query`
+- `paa_expected_collection_date`
+- `paa_expected_run_id`
+- `paa_artifact`
+- `assembly_date`
+
+It also verifies that `main(...)` returns `0` when the mocked scorer returns `passed: True` and that the result is sent to `format_report(...)`.
+
+Command:
+
+```powershell
+python -m pytest tests/test_content_scorer_cli.py::ContentScorerCliTests::test_main_forwards_all_paa_and_assembly_options_to_scorer -q
+```
+
+Result: `1 passed`. The new assertion passed immediately against the existing implementation, proving this reviewer finding was a test-coverage gap only. No production code changed.
+
+### GREEN Evidence
+
+Commands run:
+
+```powershell
+python -m pytest tests/test_content_scorer_cli.py tests/test_content_scorer_aeo_geo_gate.py tests/test_paa_provenance_guard.py -q
+python -m data_sources.modules.content_scorer --help
+python tools/check_changed_python_lines.py --base 6ca8de6 --limit 500
+git diff --check
+```
+
+Results:
+
+- Focused suite: `104 passed, 20 subtests passed`.
+- Module help exited `0` and listed all eight required PAA and assembly-date options.
+- Changed-Python-line check exited `0`.
+- `git diff --check` exited `0`.
+- The existing passing subprocess guard-and-scorer test remains intact.

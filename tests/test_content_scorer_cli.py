@@ -12,7 +12,9 @@ from datetime import date
 from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
+from data_sources.modules.content_scoring.cli import main as content_scorer_main
 from data_sources.modules.nonvault_customer_proof_selector import _main
 from tests.nonvault_proof_fixture import write_nonvault_proof_inputs
 from tests.test_content_scorer_aeo_geo_gate import (
@@ -33,6 +35,59 @@ PAA_RUN_ID = "content-scorer-fixture"
 
 
 class ContentScorerCliTests(unittest.TestCase):
+    def test_main_forwards_all_paa_and_assembly_options_to_scorer(self):
+        with TemporaryDirectory() as temp_dir:
+            article_path = Path(temp_dir) / "article.md"
+            article_path.write_text("# CLI transport fixture\n", encoding="utf-8")
+            scorer_result = {"passed": True}
+
+            with patch(
+                "data_sources.modules.content_scoring.cli.ContentScorer"
+            ) as scorer_class:
+                scorer = scorer_class.return_value
+                scorer.score.return_value = scorer_result
+                scorer.format_report.return_value = "mock scorer report"
+
+                exit_code = content_scorer_main(
+                    [
+                        str(article_path),
+                        "--paa-workflow-mode",
+                        "rewrite",
+                        "--paa-content-brief",
+                        "research/content-brief.json",
+                        "--paa-answersocrates-blocker",
+                        "research/answersocrates-blocker.json",
+                        "--paa-expected-query",
+                        "commercial hvac scheduling",
+                        "--paa-expected-collection-date",
+                        "2026-09-15",
+                        "--paa-expected-run-id",
+                        "cli-contract-run",
+                        "--paa-artifact",
+                        "research/paa-artifact.json",
+                        "--assembly-date",
+                        "2026-09-16",
+                    ]
+                )
+
+        self.assertEqual(exit_code, 0)
+        scorer.score.assert_called_once_with(
+            "# CLI transport fixture\n",
+            validate_urls=False,
+            validate_source_support=False,
+            source_path=str(article_path),
+            proof_sidecar=None,
+            paa_workflow_mode="rewrite",
+            paa_content_brief="research/content-brief.json",
+            paa_answersocrates_blocker="research/answersocrates-blocker.json",
+            paa_expected_query="commercial hvac scheduling",
+            paa_expected_collection_date="2026-09-15",
+            paa_expected_run_id="cli-contract-run",
+            paa_artifact="research/paa-artifact.json",
+            assembly_date="2026-09-16",
+        )
+        scorer.format_report.assert_called_once_with(scorer_result)
+
     def test_bound_paa_fixture_passes_guard_and_reaches_scorer_aeo_gate(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
