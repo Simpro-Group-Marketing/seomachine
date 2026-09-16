@@ -169,11 +169,30 @@ def _has_independent_aeo_geo_blocker(gate_context: Mapping[str, Any]) -> bool:
     """Avoid duplicating AEO/GEO failures represented by dedicated gate fixes."""
     if gate_context["aeo_geo_passed"]:
         return False
-    delegated_checks = {"eeat_proof", "faq_proof", "paa_provenance"}
-    return any(
-        not isinstance(issue, Mapping) or issue.get("check") not in delegated_checks
-        for issue in gate_context["aeo_geo"].get("issues", [])
+    aeo_issues = gate_context["aeo_geo"].get("issues", [])
+    if not aeo_issues:
+        return True
+
+    concrete_gate_failed = any(
+        not gate_context[passed_key]
+        for passed_key in (
+            "source_support_passed",
+            "faq_proof_passed",
+            "paa_provenance_passed",
+            "metric_proof_pack_passed",
+            "customer_proof_passed",
+            "review_story_passed",
+            "minimum_visible_words_passed",
+        )
+    ) or (
+        gate_context["url_validation"] is not None
+        and not gate_context["url_validation"].passed
     )
+    for issue in aeo_issues:
+        check = issue.get("check") if isinstance(issue, Mapping) else None
+        if check not in {"eeat_proof", "faq_proof", "paa_provenance"}:
+            return True
+    return not concrete_gate_failed
 
 
 def _issue_summary(issues: Sequence[Any], *, key: str) -> str:

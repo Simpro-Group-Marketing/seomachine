@@ -100,3 +100,78 @@ Result: exit 0 with no findings.
 No functional concerns. The full repository test suite was not run because the
 task requested focused tests; the directly related regression suites and the
 required changed-line guard passed.
+
+## Fix Round 1: Behavioral TDD Correction
+
+The initial RED evidence above was non-behavioral: it recorded the missing
+module import rather than the priority-order defect. This round adds and records
+behavioral RED coverage against the already-extracted implementation.
+
+### RED Evidence
+
+Added these behavioral tests before changing `priorities.py`:
+
+- `test_eeat_only_aeo_geo_failure_precedes_soft_dimension_advice`
+- `test_metric_review_and_customer_proof_blockers_precede_soft_advice_in_order`
+
+Command:
+
+```powershell
+python -m pytest -q tests/test_content_scoring_priorities.py
+```
+
+Result before the round-one implementation change:
+
+```text
+1 failed, 2 passed in 0.09s
+```
+
+The failing assertion showed the defect directly:
+
+```text
+assert ['seo', 'readability'] == ['aeo_geo', 'seo', 'readability']
+```
+
+That run proves an `eeat_proof`-only AEO/GEO failure was suppressed even though
+every dedicated gate passed, allowing soft metadata and readability advice to
+lead the priority list.
+
+### Implementation
+
+Updated `_has_independent_aeo_geo_blocker()` to retain the AEO/GEO priority when
+the aggregate gate is the only failed hard gate. It suppresses the aggregate
+entry only when a concrete, more actionable gate is also failed. Direct AEO/GEO
+issues remain independently prioritized.
+
+The new metric, review-story, and customer-proof behavioral test verifies the
+deterministic order `metric_proof_pack`, `review_story_identity`, and
+`customer_proof_diversity` before SEO metadata and readability advice.
+
+### GREEN Evidence
+
+Command:
+
+```powershell
+python -m pytest -q tests/test_content_scoring_priorities.py tests/test_content_scorer_aeo_geo_gate.py tests/test_content_scorer_minimum_word_gate.py tests/test_content_scoring_reporting.py
+```
+
+Result:
+
+```text
+44 passed, 5 subtests passed in 3.01s
+```
+
+Command:
+
+```powershell
+python tools/check_changed_python_lines.py --base eb42738 --limit 500
+```
+
+Result: exit 0 with no findings. `priorities.py` is 205 lines and
+`test_content_scoring_priorities.py` is 136 lines.
+
+### Fix Round 1 Concerns
+
+No functional concerns. The unrelated working-tree marker on
+`tests/test_content_scorer_aeo_geo_gate.py` still has no textual diff and is
+excluded from this commit.
