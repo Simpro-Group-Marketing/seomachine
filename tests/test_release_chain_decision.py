@@ -15,7 +15,9 @@ from data_sources.modules.blog_assembly.common import (
 )
 from data_sources.modules.blog_assembly_stage_receipt import (
     build_stage_receipt,
+    load_stage_receipt,
     receipt_hash,
+    stage_evidence_path,
     write_stage_receipt,
 )
 from data_sources.modules.machine_review import (
@@ -33,6 +35,7 @@ from data_sources.modules.release_workflow.chain_decision import (
     OPTIMIZED_TAIL_ALLOWED,
     decide_release_chain,
 )
+from tests.release_chain_test_support import write_optimized_tail_receipts
 
 def _write_text(path: Path, content: str) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -170,51 +173,6 @@ def _write_prior_preflight(
     return readiness_path
 
 
-def _write_tail_receipts(
-    tmp_path: Path,
-    *,
-    article: Path,
-    sidecar: Path,
-) -> tuple[Path, Path]:
-    article_hash = file_sha256(article)
-    scrub = build_stage_receipt(
-        run_id="run-123",
-        stage="post_optimization_scrub",
-        tool_name="content_scrubber",
-        tool_version="1.0.0",
-        started_at="2026-01-15T12:02:00Z",
-        completed_at="2026-01-15T12:03:00Z",
-        mutation=False,
-        input_artifact_hashes={"article": article_hash},
-        output_artifact_hashes={"article": article_hash},
-        evidence_hashes={"scrub_statistics": "d" * 64},
-        previous_receipt_hash="a" * 64,
-        workspace_root=tmp_path,
-    )
-    scrub_path = tmp_path / "research" / "stage-post-optimization-scrub.json"
-    write_stage_receipt(scrub_path, scrub, workspace_root=tmp_path)
-    binding = build_stage_receipt(
-        run_id="run-123",
-        stage="post_optimization_context_binding",
-        tool_name="context_binding_generator",
-        tool_version="1.0.0",
-        started_at="2026-01-15T12:04:00Z",
-        completed_at="2026-01-15T12:05:00Z",
-        mutation=False,
-        input_artifact_hashes={"article": article_hash},
-        output_artifact_hashes={
-            "article": article_hash,
-            "validation_sidecar": file_sha256(sidecar),
-        },
-        evidence_hashes={"context_binding": "c" * 64},
-        previous_receipt_hash=scrub["receipt_hash"],
-        workspace_root=tmp_path,
-    )
-    binding_path = tmp_path / "research" / "stage-post-optimization-binding.json"
-    write_stage_receipt(binding_path, binding, workspace_root=tmp_path)
-    return scrub_path, binding_path
-
-
 def _case_inputs(tmp_path: Path) -> dict[str, Any]:
     plan = _write_json(
         tmp_path / "research" / "plan.json",
@@ -240,6 +198,10 @@ def _case_inputs(tmp_path: Path) -> dict[str, Any]:
         tmp_path,
         article=article,
         agent_output=agent_output,
+    )
+    article.write_text(
+        "---\nartifact_type: blog\n---\n# Current optimized article\n",
+        encoding="utf-8",
     )
     optimizer_output = _write_json(
         tmp_path / "research" / "optimizer-output.json",
@@ -284,10 +246,11 @@ def _case_inputs(tmp_path: Path) -> dict[str, Any]:
             article=article,
             sidecar=sidecar,
         )
-    receipt_paths = _write_tail_receipts(
+    receipt_paths = write_optimized_tail_receipts(
         tmp_path,
         article=article,
         sidecar=sidecar,
+        prior_preflight=prior_preflight,
     )
     return {
         "article_path": article,
@@ -412,12 +375,65 @@ def test_mismatched_current_machine_review_is_not_release_ready(tmp_path: Path) 
 
 def test_tampered_receipt_chain_requires_normal_chain(tmp_path: Path) -> None:
     inputs = _case_inputs(tmp_path)
-    binding_path = inputs["stage_receipt_paths"][1]
+    binding_path = inputs["stage_receipt_paths"][2]
     payload = json.loads(binding_path.read_text(encoding="utf-8"))
     payload["previous_receipt_hash"] = "0" * 64
     payload.pop("receipt_hash")
     payload["receipt_hash"] = receipt_hash(payload)
     _write_json(binding_path, payload)
+
+    result = decide_release_chain(**inputs)
+
+    assert result.decision == NORMAL_CHAIN_REQUIRED
+    assert result.code == "optimized_tail_receipts_invalid"
+
+
+def test_missing_tail_evidence_requires_normal_chain(tmp_path: Path) -> None:
+    inputs = _case_inputs(tmp_path)
+    stage_evidence_path(inputs["stage_receipt_paths"][1]).unlink()
+
+    result = decide_release_chain(**inputs)
+
+    assert result.decision == NORMAL_CHAIN_REQUIRED
+    assert result.code == "optimized_tail_receipts_invalid"
+
+
+def test_arbitrary_external_predecessor_requires_normal_chain(tmp_path: Path) -> None:
+    inputs = _case_inputs(tmp_path)
+    scrub_path, binding_path = inputs["stage_receipt_paths"][1:]
+    scrub = load_stage_receipt(scrub_path, workspace_root=tmp_path)
+    replacement_scrub = build_stage_receipt(
+        run_id=scrub["run_id"],
+        stage=scrub["stage"],
+        tool_name=scrub["tool"]["name"],
+        tool_version=scrub["tool"]["version"],
+        started_at=scrub["started_at"],
+        completed_at=scrub["completed_at"],
+        mutation=scrub["mutation"],
+        input_artifact_hashes=scrub["input_artifact_hashes"],
+        output_artifact_hashes=scrub["output_artifact_hashes"],
+        evidence_hashes=scrub["evidence_hashes"],
+        previous_receipt_hash="a" * 64,
+        workspace_root=tmp_path,
+    )
+    write_stage_receipt(scrub_path, replacement_scrub, workspace_root=tmp_path)
+    binding = load_stage_receipt(binding_path, workspace_root=tmp_path)
+    replacement_binding = build_stage_receipt(
+        run_id=binding["run_id"],
+        stage=binding["stage"],
+        tool_name=binding["tool"]["name"],
+        tool_version=binding["tool"]["version"],
+        started_at=binding["started_at"],
+        completed_at=binding["completed_at"],
+        mutation=binding["mutation"],
+        input_artifact_hashes=binding["input_artifact_hashes"],
+        output_artifact_hashes=binding["output_artifact_hashes"],
+        evidence_hashes=binding["evidence_hashes"],
+        previous_receipt_hash=replacement_scrub["receipt_hash"],
+        workspace_root=tmp_path,
+    )
+    write_stage_receipt(binding_path, replacement_binding, workspace_root=tmp_path)
+    inputs["stage_receipt_paths"] = (scrub_path, binding_path)
 
     result = decide_release_chain(**inputs)
 

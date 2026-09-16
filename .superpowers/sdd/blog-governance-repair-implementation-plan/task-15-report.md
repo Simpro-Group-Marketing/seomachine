@@ -167,3 +167,59 @@ No known functional concerns remain in PM-02. The pre-existing unrelated edits
 in `tests/test_content_scorer_aeo_geo_gate.py` and
 `tests/test_publish_readiness.py` remain untouched and are excluded from this
 fix commit.
+
+## Fix Round 2
+
+### Status
+
+The remaining PM-02 critical finding is fixed. Optimized-tail authorization now
+requires real stage-evidence artifacts and a verified predecessor chain. PM-03
+and PM-17 remain out of scope, and the genuine prior-preflight and PM-16
+collection-report validation from Fix Round 1 is preserved.
+
+### Changes
+
+- The decider validates the genuine prior `preflight_readiness` receipt and
+  uses it as the trusted predecessor root.
+- When optimization changed article bytes, the supplied `optimization` receipt
+  must link to that readiness receipt before the chain can continue through
+  `post_optimization_scrub` and `post_optimization_context_binding`.
+- A no-change optimization tail may link directly to the validated readiness
+  receipt, but an arbitrary external predecessor hash is rejected with
+  `normal_chain_required`.
+- Both optimized-tail receipts must bind their deterministic
+  `*-evidence.json` artifacts by file hash. Their logical evidence hashes must
+  exactly match those manifests and resolve through the existing receipt
+  evidence helper before `check_receipt_chain(...)` can authorize the tail.
+- The success fixture now uses real optimization/readiness linkage and real
+  scrub/context evidence artifacts. Focused tests cover missing evidence,
+  arbitrary external predecessor linkage, and the previously covered broken
+  internal tail link.
+- Receipt fixture construction moved to
+  `tests/release_chain_test_support.py` so every changed Python file remains
+  within the repository's 500-line ceiling.
+
+### Verification
+
+```powershell
+python -m pytest tests/test_release_chain_decision.py tests/test_blog_release.py tests/test_blog_assembly_execution_evidence.py tests/test_machine_review_workflow.py tests/test_machine_review.py -q
+```
+
+Result: `46 passed in 3.84s`.
+
+```powershell
+python -m ruff check data_sources/modules/release_workflow/chain_decision.py tests/test_release_chain_decision.py tests/release_chain_test_support.py
+python -m compileall -q data_sources/modules/release_workflow/chain_decision.py tests/test_release_chain_decision.py tests/release_chain_test_support.py
+python tools/check_changed_python_lines.py --base 3479caf --limit 500
+git diff --check
+```
+
+All returned exit code `0`. `git diff --check` printed only expected line-ending
+warnings for tracked working-tree files and no whitespace errors.
+
+### Concerns
+
+No known PM-02 functional concerns remain. The pre-existing unrelated edits in
+`tests/test_content_scorer_aeo_geo_gate.py` and
+`tests/test_publish_readiness.py` remain untouched and are excluded from this
+fix commit.

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -20,8 +21,9 @@ from ..blog_assembly.common import (
     verify_artifact,
 )
 from ..blog_assembly.execution_evidence import resolve_execution_evidence
+from ..blog_assembly.preflight import _resolvable_receipt_evidence_hashes
 from ..blog_assembly.stage_receipts import _validate_prior_preflight_readiness
-from ..blog_assembly_stage_receipt import check_receipt_chain, load_stage_receipt
+from ..blog_assembly_stage_receipt import check_receipt_chain, load_stage_receipt, stage_evidence_path
 from ..readiness.persistence_api import readiness_stage_receipt_path
 
 
@@ -108,15 +110,17 @@ def decide_release_chain(
 
     root = Path(workspace_root).resolve()
     try:
+        prior_preflight_receipt = _validate_prior_preflight(
+            prior_preflight_readiness_path,
+            run_id=run_id,
+            workspace_root=root,
+        )
         stage_receipts = _load_optimized_tail_receipts(
             stage_receipt_paths,
             article_path=article_path,
             proof_sidecar_path=proof_sidecar_path,
-            run_id=run_id,
-            workspace_root=root,
-        )
-        _validate_prior_preflight(
-            prior_preflight_readiness_path,
+            prior_preflight_readiness_path=prior_preflight_readiness_path,
+            prior_preflight_receipt=prior_preflight_receipt,
             run_id=run_id,
             workspace_root=root,
         )
@@ -265,23 +269,64 @@ def _load_optimized_tail_receipts(
     *,
     article_path: str | Path,
     proof_sidecar_path: str | Path,
+    prior_preflight_readiness_path: str | Path | None,
+    prior_preflight_receipt: Mapping[str, Any],
     run_id: str,
     workspace_root: Path,
 ) -> list[Mapping[str, Any]]:
-    if len(paths) != len(OPTIMIZED_TAIL_STAGES):
+    if len(paths) not in {len(OPTIMIZED_TAIL_STAGES), len(OPTIMIZED_TAIL_STAGES) + 1}:
         raise ValueError(
-            "optimized-tail authorization requires exactly the current scrub and context-binding receipt files"
+            "optimized-tail authorization requires the current scrub and context-binding "
+            "receipt files plus an optimization receipt when article bytes changed"
         )
-    receipts = [
-        load_stage_receipt(path, workspace_root=workspace_root)
-        for path in paths
-    ]
+    loaded = [load_stage_receipt(path, workspace_root=workspace_root) for path in paths]
+    receipts = loaded[-len(OPTIMIZED_TAIL_STAGES):]
     stages = tuple(str(receipt.get("stage") or "") for receipt in receipts)
     if stages != OPTIMIZED_TAIL_STAGES:
         raise ValueError("optimized-tail receipt stages are out of order")
+    predecessor = prior_preflight_receipt
+    if len(loaded) == len(OPTIMIZED_TAIL_STAGES) + 1:
+        predecessor = loaded[0]
+        if predecessor.get("stage") != "optimization":
+            raise ValueError("optimized-tail predecessor must be an optimization receipt")
+        _validate_receipt_link(prior_preflight_receipt, predecessor)
+    _validate_receipt_link(predecessor, receipts[0])
+    evidence_rows = []
+    for receipt_path, receipt in zip(paths[-len(OPTIMIZED_TAIL_STAGES):], receipts):
+        evidence_row = canonical_artifact(
+            stage_evidence_path(receipt_path),
+            workspace_root=workspace_root,
+        )
+        if receipt["output_artifact_hashes"].get("stage_evidence") != evidence_row["sha256"]:
+            raise ValueError(
+                f"{receipt['stage']} receipt does not bind its stage evidence artifact"
+            )
+        manifest = load_json_object_snapshot(
+            stage_evidence_path(receipt_path),
+            field=f"{receipt['stage']} stage evidence",
+        ).payload
+        if manifest.get("evidence_hashes") != receipt["evidence_hashes"]:
+            raise ValueError(
+                f"{receipt['stage']} receipt evidence hashes do not match its artifact"
+            )
+        evidence_rows.append(evidence_row)
+    if prior_preflight_readiness_path is None:
+        raise ValueError("optimized-tail workflow requires prior preflight readiness evidence")
+    resolvable_evidence_hashes = _resolvable_receipt_evidence_hashes(
+        receipts,
+        artifacts={
+            "prior_preflight_readiness": canonical_artifact(
+                prior_preflight_readiness_path,
+                workspace_root=workspace_root,
+            ),
+            "stage_evidence": evidence_rows,
+        },
+        workspace_root=workspace_root,
+    )
     findings = check_receipt_chain(
         receipts,
         expected_run_id=run_id,
+        resolvable_evidence_hashes=resolvable_evidence_hashes,
         workspace_root=workspace_root,
     )
     if findings:
@@ -305,12 +350,33 @@ def _load_optimized_tail_receipts(
     return receipts
 
 
+def _validate_receipt_link(
+    predecessor: Mapping[str, Any], receipt: Mapping[str, Any]
+) -> None:
+    if receipt.get("previous_receipt_hash") != predecessor.get("receipt_hash"):
+        raise ValueError("optimized-tail receipt predecessor hash is not verified")
+    if receipt.get("run_id") != predecessor.get("run_id"):
+        raise ValueError("optimized-tail receipt predecessor run_id does not match")
+    predecessor_outputs = predecessor.get("output_artifact_hashes")
+    receipt_inputs = receipt.get("input_artifact_hashes")
+    if (
+        not isinstance(predecessor_outputs, Mapping)
+        or not isinstance(receipt_inputs, Mapping)
+        or receipt_inputs.get("article") != predecessor_outputs.get("article")
+    ):
+        raise ValueError("optimized-tail receipt predecessor article hash is not continuous")
+    predecessor_completed = datetime.fromisoformat(str(predecessor.get("completed_at")).replace("Z", "+00:00"))
+    receipt_started = datetime.fromisoformat(str(receipt.get("started_at")).replace("Z", "+00:00"))
+    if receipt_started <= predecessor_completed:
+        raise ValueError("optimized-tail receipt predecessor timestamps are not monotonic")
+
+
 def _validate_prior_preflight(
     path: str | Path | None,
     *,
     run_id: str,
     workspace_root: Path,
-) -> None:
+) -> Mapping[str, Any]:
     if path is None:
         raise ValueError("optimized-tail workflow requires prior preflight readiness evidence")
     canonical_artifact(path, workspace_root=workspace_root)
@@ -343,6 +409,8 @@ def _validate_prior_preflight(
         readiness_stage_receipt_path(path),
         workspace_root=workspace_root,
     )
+    if receipt.get("stage") != "preflight_readiness":
+        raise ValueError("prior preflight readiness receipt stage is invalid")
     validated = _validate_prior_preflight_readiness(
         path,
         receipt=receipt,
@@ -352,6 +420,7 @@ def _validate_prior_preflight(
     )
     if validated.get("run_id") != run_id:
         raise ValueError("prior preflight readiness run_id does not match the release run")
+    return receipt
 
 
 def _check_collection_report(
