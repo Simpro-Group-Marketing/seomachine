@@ -91,6 +91,29 @@ def test_blog_release_cli_reports_parse_errors_when_run_context_is_available(
     assert payload["paths"]["output_dir"] == "research/releases/run"
 
 
+def test_blog_release_cli_parse_error_uses_cwd_when_workspace_root_is_omitted(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    args = _cli_args(tmp_path, workflow_mode="invalid")
+    workspace_flag = args.index("--workspace-root")
+    del args[workspace_flag : workspace_flag + 2]
+    monkeypatch.chdir(tmp_path)
+
+    with pytest.raises(SystemExit) as raised:
+        blog_release.main(args)
+
+    assert raised.value.code == 2
+    payload = json.loads(
+        (tmp_path / "research" / "release-errors" / "run-1.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert payload["phase"] == "cli_parse"
+    assert payload["module"] == "release_cli"
+    assert payload["paths"]["output_dir"] == "research/releases/run"
+
+
 def test_blog_release_cli_does_not_overwrite_direct_blog_release_error(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

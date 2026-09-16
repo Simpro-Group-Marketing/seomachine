@@ -149,7 +149,7 @@ def _report_cli_parse_error(argv: Sequence[str], error: SystemExit) -> None:
 def _parse_error_context(argv: Sequence[str]) -> tuple[str, str, str] | None:
     values = {
         "run_id": _option_value(argv, "--run-id"),
-        "workspace_root": _option_value(argv, "--workspace-root"),
+        "workspace_root": _option_value(argv, "--workspace-root") or str(Path.cwd()),
         "output_dir": _option_value(argv, "--output-dir"),
     }
     if not all(values.values()):
