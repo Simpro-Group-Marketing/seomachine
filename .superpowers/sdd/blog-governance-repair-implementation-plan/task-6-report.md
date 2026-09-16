@@ -73,6 +73,45 @@ git diff --check
 
 Result: exit `0`.
 
+## Fix Round 2
+
+### RED Evidence
+
+Added regression tests for declarative repeated openers in both recognized instructional forms, then ran:
+
+```text
+python -m pytest tests/test_ai_copy_linter_repetition.py -k "table_declarative or checklist_declarative" -q
+```
+
+Result: `2 failed, 4 deselected in 0.16s`.
+
+- `Status remains...` repetitions in a `What to write` table incorrectly returned `warning`.
+- `Status remains...` repetitions in a recognized checklist incorrectly returned `warning`.
+
+### Fix
+
+The repetition diagnostic now requires both shared instructional context and an imperative opener. It normalizes leading table and checklist syntax before matching a deliberately broad instructional-verb set that includes `Add` and `Review`, while declarative openers such as `Status remains` stay errors.
+
+### GREEN Evidence
+
+```text
+python -m pytest -q tests/test_ai_copy_linter_repetition.py tests/test_ai_copy_linter.py tests/test_source_support_instructional_context.py
+```
+
+Result: `80 passed in 0.74s`.
+
+```text
+python tools/check_changed_python_lines.py --base d43c124 --limit 500
+```
+
+Result: exit `0`; no changed Python file exceeded 500 physical lines.
+
+```text
+git diff --check
+```
+
+Result: exit `0`.
+
 ## Files Changed
 
 - `data_sources/modules/ai_copy_linter.py`

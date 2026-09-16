@@ -67,3 +67,30 @@ def test_repeated_checklist_imperative_starts_are_warnings() -> None:
     assert len(findings) == 1
     assert findings[0]["severity"] == "warning"
     assert findings[0]["lines"] == [3, 4, 5]
+
+
+def test_repeated_what_to_write_table_declarative_starts_are_errors() -> None:
+    findings = repeated_start_findings(
+        "| What to write |\n"
+        "|---|\n"
+        "| Status remains visible after review. |\n"
+        "| Status remains assigned after review. |\n"
+        "| Status remains current after review. |"
+    )
+
+    assert len(findings) == 1
+    assert findings[0]["severity"] == "error"
+    assert findings[0]["lines"] == [3, 4, 5]
+
+
+def test_repeated_checklist_declarative_starts_are_errors() -> None:
+    findings = repeated_start_findings(
+        "## Draft Checklist\n\n"
+        "- [ ] Status remains visible after review.\n"
+        "- [ ] Status remains assigned after review.\n"
+        "- [ ] Status remains current after review."
+    )
+
+    assert len(findings) == 1
+    assert findings[0]["severity"] == "error"
+    assert findings[0]["lines"] == [3, 4, 5]

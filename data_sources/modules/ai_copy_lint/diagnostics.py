@@ -27,6 +27,13 @@ from .scanning import iter_active_lines
 
 
 Finding = dict[str, object]
+INSTRUCTIONAL_IMPERATIVE_RE = re.compile(
+    r"^(?:add|apply|check|clarify|compare|confirm|create|define|describe|"
+    r"document|draft|ensure|explain|identify|include|list|make|name|note|"
+    r"outline|prepare|provide|record|review|revise|select|show|state|"
+    r"summarize|update|use|verify|write)\b",
+    re.IGNORECASE,
+)
 
 
 def finding(
@@ -111,8 +118,12 @@ def find_repeated_sentence_starts(content: str) -> list[Finding]:
         if len(occurrences) < 3:
             continue
         lines = [line_number for line_number, _, _ in occurrences]
-        first_line, first_column, _ = occurrences[0]
-        severity = _repeated_opener_severity(lines, instructional_lines)
+        first_line, first_column, first_sentence = occurrences[0]
+        severity = _repeated_opener_severity(
+            first_sentence,
+            lines,
+            instructional_lines,
+        )
         findings.append(finding(
             "repeated_sentence_start", severity, first_line, first_column, key,
             f"Repeated sentence start '{key}' appears on lines {', '.join(map(str, lines))}.",
@@ -122,12 +133,24 @@ def find_repeated_sentence_starts(content: str) -> list[Finding]:
 
 
 def _repeated_opener_severity(
+    first_sentence: str,
     lines: list[int],
     instructional_lines: frozenset[int],
 ) -> str:
-    if all(line_number in instructional_lines for line_number in lines):
+    if (
+        all(line_number in instructional_lines for line_number in lines)
+        and INSTRUCTIONAL_IMPERATIVE_RE.match(
+            _normalized_instructional_sentence(first_sentence)
+        )
+    ):
         return "warning"
     return "error"
+
+
+def _normalized_instructional_sentence(sentence: str) -> str:
+    """Remove leading markdown row or checklist syntax before verb matching."""
+    normalized = re.sub(r"^\s*\|\s*", "", sentence)
+    return re.sub(r"^\s*(?:[-*+]\s+)?(?:\[[ xX]\]\s+)?", "", normalized)
 
 
 def find_capitalized_title_prepositions(content: str) -> list[Finding]:
