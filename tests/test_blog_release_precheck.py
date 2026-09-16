@@ -365,6 +365,41 @@ def test_existing_passed_precheck_is_overwritten_by_exception_report(
     assert payload["message"] == "current failure"
 
 
+def test_relative_precheck_output_failure_report_uses_workspace_root(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.chdir(tmp_path.parent)
+    monkeypatch.setattr(
+        blog_release.blog_creation_preflight,
+        "build_preflight_report",
+        lambda *args, **kwargs: {
+            "schema": "simpro-blog-creation-preflight/v1",
+            "ready_for_bom": True,
+            "blockers": [],
+        },
+    )
+    monkeypatch.setattr(
+        blog_release.blog_assembly_bom,
+        "build_blog_assembly_bom_from_files",
+        lambda **kwargs: (_ for _ in ()).throw(ValueError("relative failure")),
+    )
+
+    with pytest.raises(ValueError, match="relative failure"):
+        _run(
+            tmp_path,
+            precheck_output="research/prechecks/run-1.json",
+        )
+
+    payload = json.loads(
+        (tmp_path / "research" / "prechecks" / "run-1.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert payload["passed"] is False
+    assert payload["phase"] == "provisional_bom"
+
+
 def test_release_pre_bom_output_path_is_repaired_after_precheck(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

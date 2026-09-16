@@ -76,7 +76,10 @@ def _report_requested_precheck_exception(
         return
     if _requested_precheck_path_is_unsafe(kwargs):
         return
-    if _requested_precheck_is_current_failure(kwargs.get("precheck_output")):
+    if _requested_precheck_is_current_failure(
+        kwargs.get("precheck_output"),
+        workspace_root=kwargs.get("workspace_root") or Path.cwd(),
+    ):
         return
     try:
         release_precheck.write_exception_report(
@@ -156,10 +159,16 @@ def _optional_collision_paths(kwargs: dict[str, object]) -> dict[str, str | Path
     }
 
 
-def _requested_precheck_is_current_failure(value: object) -> bool:
+def _requested_precheck_is_current_failure(
+    value: object,
+    *,
+    workspace_root: object,
+) -> bool:
     if not isinstance(value, (str, Path)) or not str(value).strip():
         return False
     path = Path(value)
+    if not path.is_absolute():
+        path = Path(workspace_root) / path
     if not path.is_file():
         return False
     try:
