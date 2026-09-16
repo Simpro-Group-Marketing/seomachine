@@ -77,3 +77,19 @@ Results:
 ## Concern
 
 The requested subprocess fixture cannot produce the scorer's global exit `0` without a test-only vault claim-set patch used by existing in-process scorer tests. The real subprocess correctly reports a passing AEO score but exits `1` because the separate customer-proof diversity gate cannot validate that test-only claim fixture. This task does not change that unrelated gate or its dependency contract.
+
+## Fix Round 1 RED
+
+Updated the subprocess contract locally to assert scorer exit `0`, then ran:
+
+```powershell
+pytest -q tests/test_content_scorer_cli.py
+```
+
+Result: failed as required for RED. The standalone PAA provenance guard exited `0`; the scorer exited `1` despite `AEO/GEO Score: 90/100`.
+
+The scorer reported independent release failures for review-story identity and content quality. Removing the review-derived paragraph removes the review gate but activates the required first-hand-experience path. A valid connector no-fit selector artifact must use all selector roles and a `reference_date` equal to the current date. Repository evidence is historical and intentionally fails this freshness validation. The only deterministic generator available in the test suite uses a test-only claim-set patch, which Fix Round 1 prohibits.
+
+## Fix Round 1 Decision
+
+No production proof rule, customer-proof artifact, or subprocess internals were changed. The test was restored to its passing assertion that verifies explicit PAA transport reaches a passing AEO result, while accurately retaining the scorer's global exit `1` for independent gates.
