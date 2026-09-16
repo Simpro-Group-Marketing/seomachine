@@ -24,3 +24,28 @@ The contextual exemption applies only after existing extraction identifies a gen
 ## Self-Review
 
 No article or unrelated files changed. The new detector is limited to markdown-context identification, and policy decisions remain in the existing claim extraction and matching flow. All changed and new Python files are below the 500-line ceiling.
+
+## Fix Round 1/5: Eligibility Boundary
+
+### RED
+
+- Command: `pytest -q tests/test_source_support_instructional_context.py`
+- Output: `1 failed, 9 passed in 0.50s`.
+- Failure: `State that customers are eligible for the add-on.` in a checklist context returned no findings.
+
+### GREEN
+
+- Command: `pytest -q tests/test_source_support_instructional_context.py`
+- Output: `10 passed in 0.38s`.
+- Command: `pytest -q tests/test_source_support_guard.py tests/test_source_support_batch.py tests/test_source_support_cli.py tests/test_proof_link_policy.py tests/test_numeric_claim_source_guard.py`
+- Output: `144 passed, 44 subtests passed in 7.44s`.
+- Command: `python tools/check_changed_python_lines.py --base 1a2809e`
+- Output: passed.
+- Command: `git diff --check`
+- Output: passed.
+
+### Files Changed
+
+- `data_sources/modules/source_support/common.py`
+- `tests/test_source_support_instructional_context.py`
+- `.superpowers/sdd/blog-governance-repair-implementation-plan/task-4-report.md`

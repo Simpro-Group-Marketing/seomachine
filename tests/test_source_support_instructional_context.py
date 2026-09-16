@@ -33,6 +33,17 @@ def test_what_to_write_table_is_not_an_unsupported_recommendation() -> None:
     assert check_content(content) == []
 
 
+def test_eligibility_for_an_add_on_in_a_checklist_requires_support() -> None:
+    content = """# Drafting guide
+
+## Draft checklist
+
+- [ ] State that customers are eligible for the add-on.
+"""
+
+    assert check_content(content)
+
+
 @pytest.mark.parametrize(
     "instruction",
     (
