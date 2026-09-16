@@ -215,6 +215,7 @@ class AeoGeoRaterTests(unittest.TestCase):
         root: Path,
         *,
         empty_story_slate: bool = False,
+        rejection_reason: str | None = None,
     ) -> tuple[str, Path, Path]:
         index_path, ledger_path = write_selector_fixture(root)
         if empty_story_slate:
@@ -229,6 +230,15 @@ class AeoGeoRaterTests(unittest.TestCase):
             "none"
             if empty_story_slate
             else "review-capterra-qbo-service-jobs-quotes-invoices"
+        )
+        rejection_reason = rejection_reason or (
+            "no eligible candidate exists because the approved proof inventory "
+            "has no identity-backed story for this article objective"
+            if empty_story_slate
+            else (
+                "omitted because this software-user story does not substantiate "
+                "the article's job-sheet definition objective"
+            )
         )
         stdout = StringIO()
         stderr = StringIO()
@@ -260,18 +270,7 @@ class AeoGeoRaterTests(unittest.TestCase):
                     "--selected",
                     "experience_story=none",
                     "--reject",
-                    (
-                        f"experience_story={story_id}:"
-                        + (
-                            "no eligible candidate exists because the approved proof inventory "
-                            "has no identity-backed story for this article objective"
-                            if empty_story_slate
-                            else (
-                                "omitted because this software-user story does not substantiate "
-                                "the article's job-sheet definition objective"
-                            )
-                        )
-                    ),
+                    f"experience_story={story_id}:{rejection_reason}",
                     "--evidence-output",
                     str(evidence_path),
                 ]
@@ -292,6 +291,28 @@ class AeoGeoRaterTests(unittest.TestCase):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             sidecar, sidecar_path, _index_path = self.write_no_fit_selector_evidence(root)
+            with patch(
+                "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
+                new=load_validated_claim_set_for_unit_test,
+            ):
+                result = _has_documented_no_fit_experience_boundary(
+                    sidecar,
+                    proof_sidecar_path=str(sidecar_path),
+                )
+
+        self.assertTrue(result)
+
+    def test_no_fit_boundary_accepts_hash_verified_rejection_reason_with_commas(self):
+        rejection_reason = (
+            "omitted because this software-user story covers invoicing, dispatch, and "
+            "field scheduling rather than the article's job-sheet definition objective"
+        )
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            sidecar, sidecar_path, _index_path = self.write_no_fit_selector_evidence(
+                root,
+                rejection_reason=rejection_reason,
+            )
             with patch(
                 "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
                 new=load_validated_claim_set_for_unit_test,
@@ -443,13 +464,18 @@ class AeoGeoRaterTests(unittest.TestCase):
                 )
             )
 
-    def test_no_fit_boundary_rejects_sidecar_candidate_list_mismatch(self):
+    def test_no_fit_boundary_ignores_sidecar_candidate_and_rejection_mismatches(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             sidecar, sidecar_path, _index_path = self.write_no_fit_selector_evidence(root)
             sidecar = sidecar.replace(
                 "Top candidates: [review-capterra-qbo-service-jobs-quotes-invoices]",
                 "Top candidates: [invented-proof]",
+            )
+            sidecar = sidecar.replace(
+                "omitted because this software-user story does not substantiate "
+                "the article's job-sheet definition objective",
+                "invented sidecar rejection reason",
             )
             sidecar_path.write_text(sidecar, encoding="utf-8")
             with patch(
@@ -461,7 +487,7 @@ class AeoGeoRaterTests(unittest.TestCase):
                     proof_sidecar_path=str(sidecar_path),
                 )
 
-        self.assertFalse(result)
+        self.assertTrue(result)
     def test_no_fit_boundary_rejects_unverifiable_typed_hash(self):
         sidecar = fixture_text("content_evidence:test_aeo_geo_rater-548-5")
 

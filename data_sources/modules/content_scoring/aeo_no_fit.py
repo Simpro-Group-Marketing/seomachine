@@ -6,11 +6,9 @@ from .aeo_customer_evidence import _verified_selector_roles
 from .aeo_text import _normalize_text
 from .aeo_text import _word_count
 from pathlib import Path
-from typing import Dict
 from typing import FrozenSet
 from typing import List
 from typing import Optional
-from typing import Tuple
 import json
 import re
 
@@ -41,19 +39,11 @@ def _has_documented_no_fit_experience_boundary(
     has_substantive_decision = _has_substantive_no_fit_decision(
         _section_lines(proof_sidecar_content, "E-E-A-T Proof Map")
     )
-    has_verified_rejections = _has_verified_slate_rejections(
-        _section_lines(proof_sidecar_content, "Customer Proof Slate"),
+    has_verified_rejections = _has_verified_selector_rejections(
         expected_candidates,
         expected_rejections,
+        str(verified_story.get("no_fit_reason", "")),
     )
-    if not expected_candidates and not expected_rejections:
-        no_fit_reason = str(verified_story.get("no_fit_reason", ""))
-        normalized_no_fit = _normalize_text(no_fit_reason)
-        has_verified_rejections = has_verified_rejections or (
-            _word_count(no_fit_reason) >= 8
-            and "no customer proof selected" in normalized_no_fit
-            and "public copy must omit" in normalized_no_fit
-        )
 
     return has_substantive_decision and has_verified_rejections
 
@@ -101,64 +91,23 @@ def _has_substantive_no_fit_decision(lines: List[str]) -> bool:
     return False
 
 
-def _has_verified_slate_rejections(
-    lines: List[str],
+def _has_verified_selector_rejections(
     expected_candidates: List[str],
-    expected_rejections: Dict[str, str],
+    expected_rejections: dict[str, str],
+    no_fit_reason: str,
 ) -> bool:
-    for line in lines:
-        parsed = _parse_experience_slate(line)
-        if parsed is None or parsed[0] != expected_candidates:
-            continue
-        rejections = parsed[1]
-        empty_slate = not expected_candidates and not expected_rejections
-        if rejections != expected_rejections and not (
-            empty_slate and set(rejections) == {"none"}
-        ):
-            continue
-        return _rejections_are_substantive(rejections, expected_candidates)
-    return False
-
-
-def _parse_experience_slate(
-    line: str,
-) -> Optional[Tuple[List[str], Dict[str, str]]]:
-    if not re.match(r"^[-*+]\s*Role:\s*experience_story\b", line, re.IGNORECASE):
-        return None
-    if not re.search(r"\|\s*Selected:\s*\[none\]", line, re.IGNORECASE):
-        return None
-    candidates_match = re.search(
-        r"\|\s*Top candidates:\s*\[([^\]]*)\]", line, re.IGNORECASE
+    if expected_candidates or expected_rejections:
+        return _rejections_are_substantive(expected_rejections, expected_candidates)
+    normalized_no_fit = _normalize_text(no_fit_reason)
+    return (
+        _word_count(no_fit_reason) >= 8
+        and "no customer proof selected" in normalized_no_fit
+        and "public copy must omit" in normalized_no_fit
     )
-    rejected_match = re.search(
-        r"\|\s*Rejected stronger candidates:\s*\[([^\]]*)\]", line, re.IGNORECASE
-    )
-    if not candidates_match or not rejected_match:
-        return None
-    raw_candidates = [
-        value.strip().strip("\"'").casefold()
-        for value in candidates_match.group(1).split(",")
-        if value.strip()
-    ]
-    candidates = [] if raw_candidates == ["none"] else raw_candidates
-    rejections = _parse_rejections(rejected_match.group(1))
-    return None if rejections is None else (candidates, rejections)
-
-
-def _parse_rejections(value: str) -> Optional[Dict[str, str]]:
-    parsed: Dict[str, str] = {}
-    for raw_rejection in value.split(","):
-        candidate, separator, reason = raw_rejection.partition(":")
-        key = candidate.strip().strip("\"'").casefold()
-        reason = reason.strip()
-        if not separator or not key or not reason:
-            return None
-        parsed[key] = reason
-    return parsed
 
 
 def _rejections_are_substantive(
-    rejections: Dict[str, str],
+    rejections: dict[str, str],
     expected_candidates: List[str],
 ) -> bool:
     if expected_candidates:
