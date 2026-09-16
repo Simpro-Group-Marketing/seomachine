@@ -98,6 +98,18 @@ def check_agent_response(
     expected_bindings: Mapping[str, str],
 ) -> list[dict[str, str]]:
     """Return deterministic issues for one response artifact."""
+    issues = [
+        *_response_shape_issues(payload),
+        *_response_binding_value_issues(payload),
+        *_response_binding_mismatch_issues(payload, expected_bindings=expected_bindings),
+    ]
+    response = {field: payload.get(field) for field in AGENT_RESPONSE_FIELDS}
+    issues.extend(check_review_response(response))
+    issues.extend(_response_artifact_hash_issues(payload))
+    return _sorted_issues(issues)
+
+
+def _response_shape_issues(payload: Mapping[str, Any]) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     missing = RESPONSE_FIELDS - set(payload)
     unknown = set(payload) - RESPONSE_FIELDS
@@ -112,6 +124,11 @@ def check_agent_response(
                 f"Response must use {AGENT_RESPONSE_SCHEMA}.",
             )
         )
+    return issues
+
+
+def _response_binding_value_issues(payload: Mapping[str, Any]) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
     for field in RESPONSE_BINDING_FIELDS[:5]:
         if not isinstance(payload.get(field), str) or not str(payload.get(field)).strip():
             issues.append(_issue(f"machine_review_response_{field}_invalid", f"{field} must be a non-empty string."))
@@ -120,27 +137,36 @@ def check_agent_response(
             validate_sha256(payload.get(field), field=field)
         except ValueError:
             issues.append(_issue(f"machine_review_response_{field}_invalid", f"{field} must be a lowercase SHA-256 digest."))
-    for field in RESPONSE_BINDING_FIELDS:
-        if payload.get(field) != expected_bindings.get(field):
-            issues.append(
-                _issue(
-                    f"machine_review_response_{field}_mismatch",
-                    f"Response {field} does not match the current collection input.",
-                )
-            )
-    response = {field: payload.get(field) for field in AGENT_RESPONSE_FIELDS}
-    issues.extend(check_review_response(response))
+    return issues
+
+
+def _response_binding_mismatch_issues(
+    payload: Mapping[str, Any],
+    *,
+    expected_bindings: Mapping[str, str],
+) -> list[dict[str, str]]:
+    return [
+        _issue(
+            f"machine_review_response_{field}_mismatch",
+            f"Response {field} does not match the current collection input.",
+        )
+        for field in RESPONSE_BINDING_FIELDS
+        if payload.get(field) != expected_bindings.get(field)
+    ]
+
+
+def _response_artifact_hash_issues(payload: Mapping[str, Any]) -> list[dict[str, str]]:
     stored_hash = payload.get("artifact_hash")
     unsigned = dict(payload)
     unsigned.pop("artifact_hash", None)
-    if not isinstance(stored_hash, str) or stored_hash != canonical_json_sha256(unsigned):
-        issues.append(
-            _issue(
-                "machine_review_response_artifact_hash_invalid",
-                "Response artifact_hash does not match its canonical payload.",
-            )
+    if isinstance(stored_hash, str) and stored_hash == canonical_json_sha256(unsigned):
+        return []
+    return [
+        _issue(
+            "machine_review_response_artifact_hash_invalid",
+            "Response artifact_hash does not match its canonical payload.",
         )
-    return _sorted_issues(issues)
+    ]
 
 
 def collect_machine_review(

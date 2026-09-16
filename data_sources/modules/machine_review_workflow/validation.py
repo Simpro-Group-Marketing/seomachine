@@ -77,59 +77,109 @@ def _check_findings(value: Any, *, agent: str) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     seen_ids: set[str] = set()
     for index, finding in enumerate(value):
-        if not isinstance(finding, Mapping):
+        finding_issues, finding_id = _check_finding(
+            finding,
+            index=index,
+            agent=agent,
+            seen_ids=seen_ids,
+        )
+        issues.extend(finding_issues)
+        if finding_id is not None:
+            seen_ids.add(finding_id)
+    return issues
+
+
+def _check_finding(
+    finding: Any,
+    *,
+    index: int,
+    agent: str,
+    seen_ids: set[str],
+) -> tuple[list[dict[str, str]], str | None]:
+    if not isinstance(finding, Mapping):
+        return [
+            _issue(
+                "machine_review_finding_invalid",
+                f"Machine review finding {index} for {agent} must be an object.",
+            )
+        ], None
+    finding_id = finding.get("id")
+    issues = [
+        *_finding_shape_issues(finding, index=index, agent=agent),
+        *_finding_id_issues(finding_id, index=index, agent=agent, seen_ids=seen_ids),
+        *_finding_field_issues(finding, finding_id=finding_id or index),
+    ]
+    return issues, str(finding_id) if isinstance(finding_id, str) else None
+
+
+def _finding_shape_issues(
+    finding: Mapping[str, Any],
+    *,
+    index: int,
+    agent: str,
+) -> list[dict[str, str]]:
+    if set(finding) == FINDING_FIELDS:
+        return []
+    return [
+        _issue(
+            "machine_review_finding_shape_invalid",
+            f"Machine review finding {index} for {agent} has an invalid shape.",
+        )
+    ]
+
+
+def _finding_id_issues(
+    finding_id: Any,
+    *,
+    index: int,
+    agent: str,
+    seen_ids: set[str],
+) -> list[dict[str, str]]:
+    if not isinstance(finding_id, str) or not finding_id.strip():
+        return [
+            _issue(
+                "machine_review_finding_id_invalid",
+                f"Machine review finding {index} for {agent} needs a stable ID.",
+            )
+        ]
+    if finding_id in seen_ids:
+        return [
+            _issue(
+                "machine_review_finding_id_duplicate",
+                f"Machine review finding ID {finding_id} is duplicated for {agent}.",
+            )
+        ]
+    return []
+
+
+def _finding_field_issues(
+    finding: Mapping[str, Any],
+    *,
+    finding_id: object,
+) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    if finding.get("priority") not in {"low", "medium", "high", "critical"}:
+        issues.append(
+            _issue(
+                "machine_review_finding_priority_invalid",
+                f"Machine review finding {finding_id} has an invalid priority.",
+            )
+        )
+    for field in ("category", "location", "evidence_anchor", "recommendation", "proof_risk"):
+        if not isinstance(finding.get(field), str) or not str(finding.get(field)).strip():
             issues.append(
                 _issue(
-                    "machine_review_finding_invalid",
-                    f"Machine review finding {index} for {agent} must be an object.",
+                    "machine_review_finding_field_invalid",
+                    f"Machine review finding {finding_id} {field} must be a non-empty string.",
                 )
             )
-            continue
-        if set(finding) != FINDING_FIELDS:
-            issues.append(
-                _issue(
-                    "machine_review_finding_shape_invalid",
-                    f"Machine review finding {index} for {agent} has an invalid shape.",
-                )
+    if not isinstance(finding.get("protected_span"), bool):
+        issues.append(
+            _issue(
+                "machine_review_finding_protected_span_invalid",
+                f"Machine review finding {finding_id} protected_span must be a boolean.",
             )
-        finding_id = finding.get("id")
-        if not isinstance(finding_id, str) or not finding_id.strip():
-            issues.append(
-                _issue(
-                    "machine_review_finding_id_invalid",
-                    f"Machine review finding {index} for {agent} needs a stable ID.",
-                )
-            )
-        elif finding_id in seen_ids:
-            issues.append(
-                _issue(
-                    "machine_review_finding_id_duplicate",
-                    f"Machine review finding ID {finding_id} is duplicated for {agent}.",
-                )
-            )
-        seen_ids.add(str(finding_id))
-        if finding.get("priority") not in {"low", "medium", "high", "critical"}:
-            issues.append(
-                _issue(
-                    "machine_review_finding_priority_invalid",
-                    f"Machine review finding {finding_id or index} has an invalid priority.",
-                )
-            )
-        for field in ("category", "location", "evidence_anchor", "recommendation", "proof_risk"):
-            if not isinstance(finding.get(field), str) or not str(finding.get(field)).strip():
-                issues.append(
-                    _issue(
-                        "machine_review_finding_field_invalid",
-                        f"Machine review finding {finding_id or index} {field} must be a non-empty string.",
-                    )
-                )
-        if not isinstance(finding.get("protected_span"), bool):
-            issues.append(
-                _issue(
-                    "machine_review_finding_protected_span_invalid",
-                    f"Machine review finding {finding_id or index} protected_span must be a boolean.",
-                )
-            )
+        )
     return issues
 
 

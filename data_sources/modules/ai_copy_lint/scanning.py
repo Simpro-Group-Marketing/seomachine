@@ -33,30 +33,50 @@ def iter_active_lines(content: str) -> list[ActiveLine]:
 
     for line_number, line in enumerate(content.splitlines(), start=1):
         stripped = line.strip()
-        if line_number == 1 and stripped == "---":
-            in_frontmatter = True
+        in_frontmatter, skip_frontmatter = _frontmatter_state(
+            line_number,
+            stripped,
+            in_frontmatter,
+        )
+        if skip_frontmatter:
             continue
-        if in_frontmatter:
-            if stripped == "---":
-                in_frontmatter = False
+        in_code_fence, skip_code = _code_fence_state(stripped, in_code_fence)
+        if skip_code:
             continue
-        if stripped.startswith("```"):
-            in_code_fence = not in_code_fence
-            continue
-        if in_code_fence:
-            continue
-        if in_non_visible_html:
-            if NON_VISIBLE_HTML_CLOSE_RE.search(line):
-                in_non_visible_html = False
-            continue
-        if NON_VISIBLE_HTML_OPEN_RE.search(line):
-            if not NON_VISIBLE_HTML_CLOSE_RE.search(line):
-                in_non_visible_html = True
-            continue
-        if is_production_image_placeholder_line(stripped):
+        in_non_visible_html, skip_html = _html_comment_state(
+            line,
+            in_non_visible_html,
+        )
+        if skip_html or is_production_image_placeholder_line(stripped):
             continue
         active.append((line_number, line, mask_ignored_spans(line)))
     return active
+
+
+def _frontmatter_state(
+    line_number: int,
+    stripped: str,
+    in_frontmatter: bool,
+) -> tuple[bool, bool]:
+    if line_number == 1 and stripped == "---":
+        return True, True
+    if not in_frontmatter:
+        return False, False
+    return stripped != "---", True
+
+
+def _code_fence_state(stripped: str, in_code_fence: bool) -> tuple[bool, bool]:
+    if stripped.startswith("```"):
+        return not in_code_fence, True
+    return in_code_fence, in_code_fence
+
+
+def _html_comment_state(line: str, in_non_visible_html: bool) -> tuple[bool, bool]:
+    if in_non_visible_html:
+        return not bool(NON_VISIBLE_HTML_CLOSE_RE.search(line)), True
+    if not NON_VISIBLE_HTML_OPEN_RE.search(line):
+        return False, False
+    return not bool(NON_VISIBLE_HTML_CLOSE_RE.search(line)), True
 
 
 def mask_ignored_spans(line: str) -> str:

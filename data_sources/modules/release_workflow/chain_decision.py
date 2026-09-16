@@ -2,47 +2,32 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from .. import (
     blog_assembly_capabilities,
     machine_review,
-    machine_review_workflow,
     optimizer_evidence,
 )
 from ..blog_assembly.common import (
     canonical_artifact,
-    canonical_json_sha256,
-    file_sha256,
     load_json_object_snapshot,
-    normalized_text_sha256,
     verify_artifact,
 )
 from ..blog_assembly.execution_evidence import resolve_execution_evidence
-from ..blog_assembly.preflight import _resolvable_receipt_evidence_hashes
 from ..blog_assembly.stage_receipts import _validate_prior_preflight_readiness
-from ..blog_assembly_stage_receipt import check_receipt_chain, load_stage_receipt, stage_evidence_path
+from ..blog_assembly_stage_receipt import load_stage_receipt
+from .collection_reports import check_collection_report
+from .optimized_tail import load_optimized_tail_receipts
 from ..readiness.persistence_api import readiness_stage_receipt_path
 
 
 NORMAL_CHAIN_REQUIRED = "normal_chain_required"
 OPTIMIZED_TAIL_ALLOWED = "optimized_tail_allowed"
 DRAFT_READY_NOT_RELEASE_READY = "draft_ready_not_release_ready"
-REVIEW_COLLECTED = "review_collected"
 REVIEW_PHASES = frozenset({"plan", "article"})
-OPTIMIZED_TAIL_STAGES = ("post_optimization_scrub", "post_optimization_context_binding")
-NOT_APPLICABLE_BINDING_SCHEMA = "seomachine-context-binding-not-applicable/v1"
-COLLECTION_REPORT_FIELDS = frozenset({
-    "schema", "status", "run_id", "workflow_stage", "phase", "command",
-    "repository_commit", "editorial_plan_sha256", "article_sha256",
-    "proof_sidecar_sha256", "collected_agents", "issues", "review_path",
-    "review_sha256", "artifact_hash",
-})
 
 
 @dataclass(frozen=True, slots=True)
@@ -103,7 +88,7 @@ def decide_release_chain(
             run_id=run_id,
             workspace_root=root,
         )
-        stage_receipts = _load_optimized_tail_receipts(
+        stage_receipts = load_optimized_tail_receipts(
             stage_receipt_paths,
             article_path=article_path,
             proof_sidecar_path=proof_sidecar_path,
@@ -196,7 +181,7 @@ def _machine_review_decision(
         )
     findings = []
     for phase in sorted(REVIEW_PHASES):
-        report_findings = _check_collection_report(
+        report_findings = check_collection_report(
             collection_report_paths[phase],
             review_path=machine_review_paths[phase],
             editorial_plan_path=editorial_plan_path,
@@ -252,133 +237,6 @@ def _machine_review_decision(
     return None
 
 
-def _load_optimized_tail_receipts(
-    paths: Sequence[str | Path], *, article_path: str | Path,
-    proof_sidecar_path: str | Path, prior_preflight_readiness_path: str | Path | None,
-    prior_preflight_receipt: Mapping[str, Any], run_id: str, workspace_root: Path,
-) -> list[Mapping[str, Any]]:
-    if len(paths) not in {len(OPTIMIZED_TAIL_STAGES), len(OPTIMIZED_TAIL_STAGES) + 1}:
-        raise ValueError("optimized-tail authorization requires current scrub and context-binding "
-                         "receipts plus an optimization receipt when article bytes changed")
-    loaded = [load_stage_receipt(path, workspace_root=workspace_root) for path in paths]
-    receipts = loaded[-len(OPTIMIZED_TAIL_STAGES):]
-    stages = tuple(str(receipt.get("stage") or "") for receipt in receipts)
-    if stages != OPTIMIZED_TAIL_STAGES:
-        raise ValueError("optimized-tail receipt stages are out of order")
-    predecessor = prior_preflight_receipt
-    if len(loaded) == len(OPTIMIZED_TAIL_STAGES) + 1:
-        predecessor = loaded[0]
-        if predecessor.get("stage") != "optimization":
-            raise ValueError("optimized-tail predecessor must be an optimization receipt")
-        _validate_receipt_link(prior_preflight_receipt, predecessor)
-    _validate_receipt_link(predecessor, receipts[0])
-    evidence_rows = []
-    for receipt_path, receipt in zip(paths[-len(OPTIMIZED_TAIL_STAGES):], receipts):
-        evidence_rows.append(_validate_tail_stage_evidence(
-            receipt_path, receipt=receipt, workspace_root=workspace_root,
-        ))
-    if prior_preflight_readiness_path is None:
-        raise ValueError("optimized-tail workflow requires prior preflight readiness evidence")
-    resolvable_evidence_hashes = _resolvable_receipt_evidence_hashes(
-        receipts,
-        artifacts={
-            "prior_preflight_readiness": canonical_artifact(
-                prior_preflight_readiness_path,
-                workspace_root=workspace_root,
-            ),
-            "stage_evidence": evidence_rows,
-        },
-        workspace_root=workspace_root,
-    )
-    findings = check_receipt_chain(receipts, expected_run_id=run_id,
-                                   resolvable_evidence_hashes=resolvable_evidence_hashes,
-                                   workspace_root=workspace_root)
-    if findings:
-        rules = ", ".join(sorted({str(row["rule_id"]) for row in findings}))
-        raise ValueError(f"optimized-tail receipt chain is invalid: {rules}")
-    article_sha256 = file_sha256(article_path)
-    for receipt in receipts:
-        if (receipt["input_artifact_hashes"].get("article") != article_sha256
-                or receipt["output_artifact_hashes"].get("article") != article_sha256):
-            raise ValueError("optimized-tail receipts do not bind the current article")
-    if "scrub_statistics" not in receipts[0]["evidence_hashes"]:
-        raise ValueError("post-optimization scrub receipt lacks scrub statistics")
-    if (receipts[1]["output_artifact_hashes"].get("validation_sidecar")
-            != file_sha256(proof_sidecar_path)
-            or "context_binding" not in receipts[1]["evidence_hashes"]):
-        raise ValueError("post-optimization context receipt does not bind the current sidecar")
-    return receipts
-
-
-def _validate_tail_stage_evidence(
-    receipt_path: str | Path, *, receipt: Mapping[str, Any], workspace_root: Path,
-) -> Mapping[str, str]:
-    stage = str(receipt.get("stage") or "")
-    evidence_path = stage_evidence_path(receipt_path)
-    evidence_row = canonical_artifact(evidence_path, workspace_root=workspace_root)
-    outputs = receipt.get("output_artifact_hashes")
-    if not isinstance(outputs, Mapping) or outputs.get("stage_evidence") != evidence_row["sha256"]:
-        raise ValueError(f"{stage} receipt does not bind its stage evidence artifact")
-    manifest = load_json_object_snapshot(
-        evidence_path, field=f"{stage} stage evidence",
-    ).payload
-    declared = manifest.get("evidence_hashes")
-    if declared != receipt.get("evidence_hashes"):
-        raise ValueError(f"{stage} receipt evidence hashes do not match its artifact")
-    payload = manifest.get("payload")
-    if not isinstance(payload, Mapping):
-        raise ValueError(f"{stage} evidence payload is invalid")
-    if stage == "post_optimization_scrub":
-        statistics = payload.get("statistics")
-        if (set(payload) != {"statistics", "would_change"}
-                or not isinstance(statistics, Mapping)
-                or payload.get("would_change") is not False):
-            raise ValueError("post-optimization scrub evidence payload is invalid")
-        expected = {"scrub_statistics": _logical_evidence_sha256(statistics)}
-    else:
-        expected = {"context_binding": _logical_evidence_sha256(payload)}
-        if payload.get("schema") == NOT_APPLICABLE_BINDING_SCHEMA:
-            required = {"article_sha256", "reason", "schema", "status", "validation_sidecar_sha256"}
-            if set(payload) != required or payload.get("status") != "not_applicable":
-                raise ValueError("post-optimization context evidence payload is invalid")
-            expected["not_applicable_reason"] = normalized_text_sha256(
-                payload.get("reason"), field="not_applicable_reason",
-            )
-        elif (set(payload) != {"binding", "claim_use_map"}
-              or not isinstance(payload.get("binding"), Mapping)
-              or not isinstance(payload.get("claim_use_map"), list)):
-            raise ValueError("post-optimization context evidence payload is invalid")
-    if declared != expected:
-        raise ValueError(f"{stage} logical evidence hashes do not match its payload")
-    return evidence_row
-
-
-def _logical_evidence_sha256(payload: Mapping[str, Any]) -> str:
-    encoded = json.dumps(
-        dict(payload), ensure_ascii=True, separators=(",", ":"), sort_keys=True,
-    ).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
-
-
-def _validate_receipt_link(predecessor: Mapping[str, Any], receipt: Mapping[str, Any]) -> None:
-    if receipt.get("previous_receipt_hash") != predecessor.get("receipt_hash"):
-        raise ValueError("optimized-tail receipt predecessor hash is not verified")
-    if receipt.get("run_id") != predecessor.get("run_id"):
-        raise ValueError("optimized-tail receipt predecessor run_id does not match")
-    predecessor_outputs = predecessor.get("output_artifact_hashes")
-    receipt_inputs = receipt.get("input_artifact_hashes")
-    if (
-        not isinstance(predecessor_outputs, Mapping)
-        or not isinstance(receipt_inputs, Mapping)
-        or receipt_inputs.get("article") != predecessor_outputs.get("article")
-    ):
-        raise ValueError("optimized-tail receipt predecessor article hash is not continuous")
-    predecessor_completed = datetime.fromisoformat(str(predecessor.get("completed_at")).replace("Z", "+00:00"))
-    receipt_started = datetime.fromisoformat(str(receipt.get("started_at")).replace("Z", "+00:00"))
-    if receipt_started <= predecessor_completed:
-        raise ValueError("optimized-tail receipt predecessor timestamps are not monotonic")
-
-
 def _validate_prior_preflight(
     path: str | Path | None, *, run_id: str, workspace_root: Path,
 ) -> Mapping[str, Any]:
@@ -418,72 +276,6 @@ def _validate_prior_preflight(
     if validated.get("run_id") != run_id:
         raise ValueError("prior preflight readiness run_id does not match the release run")
     return receipt
-
-
-def _check_collection_report(
-    report_path: str | Path,
-    *,
-    review_path: str | Path,
-    editorial_plan_path: str | Path,
-    article_path: str | Path,
-    proof_sidecar_path: str | Path,
-    expected_run_id: str,
-    expected_phase: str,
-) -> list[str]:
-    try:
-        report = load_json_object_snapshot(
-            report_path,
-            field="machine review collection report",
-        ).payload
-    except (OSError, TypeError, ValueError):
-        return ["machine_review_collection_report_unreadable"]
-    if report.get("status") != REVIEW_COLLECTED:
-        return ["machine_review_collection_incomplete"]
-    issues: list[str] = []
-    if set(report) != COLLECTION_REPORT_FIELDS:
-        issues.append("machine_review_collection_report_shape_invalid")
-    unsigned = dict(report)
-    stored_hash = unsigned.pop("artifact_hash", None)
-    if stored_hash != canonical_json_sha256(unsigned):
-        issues.append("machine_review_collection_report_hash_invalid")
-    try:
-        expected_bindings = {
-            "run_id": expected_run_id,
-            "phase": expected_phase,
-            "editorial_plan_sha256": file_sha256(editorial_plan_path),
-            "article_sha256": file_sha256(article_path),
-            "proof_sidecar_sha256": file_sha256(proof_sidecar_path),
-        }
-        expected_review = Path(review_path).resolve()
-        expected_review_sha256 = file_sha256(expected_review)
-    except (OSError, TypeError, ValueError):
-        return ["machine_review_collection_report_binding_unavailable"]
-    if any(report.get(field) != value for field, value in expected_bindings.items()):
-        issues.append("machine_review_collection_report_binding_mismatch")
-    if (
-        report.get("schema") != machine_review_workflow.COLLECTION_REPORT_SCHEMA
-        or report.get("collected_agents") != list(machine_review.AGENT_ROSTER)
-        or report.get("issues") != []
-    ):
-        issues.append("machine_review_collection_report_contract_invalid")
-    for field in ("workflow_stage", "command", "repository_commit"):
-        if not isinstance(report.get(field), str) or not report[field].strip():
-            issues.append("machine_review_collection_report_contract_invalid")
-            break
-    reported_review = report.get("review_path")
-    try:
-        reported_review_matches = (
-            isinstance(reported_review, str)
-            and Path(reported_review).resolve() == expected_review
-        )
-    except (OSError, ValueError):
-        reported_review_matches = False
-    if (
-        not reported_review_matches
-        or report.get("review_sha256") != expected_review_sha256
-    ):
-        issues.append("machine_review_collection_report_review_mismatch")
-    return sorted(set(issues))
 
 
 __all__ = [
