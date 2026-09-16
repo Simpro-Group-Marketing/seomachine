@@ -112,3 +112,58 @@ The pre-existing unrelated modifications in
 `tests/test_publish_readiness.py` were not edited or included. Git status also
 continues to report an unrelated permission warning for
 `.testtmp-retention-final/`.
+
+## Fix Round 1
+
+### Status
+
+All three critical reviewer findings are fixed. The decider remains pure and
+does not perform PM-03 persistence or PM-17 orchestration.
+
+### Changes
+
+- Replaced caller-supplied stage mappings with `stage_receipt_paths`.
+  Optimized-tail receipts are loaded through `load_stage_receipt(...)`, checked
+  as the exact two-stage tail through `check_receipt_chain(...)`, and required
+  to bind the current run, article, validation sidecar, scrub statistics, and
+  context-binding evidence.
+- Added prior-preflight validation through
+  `blog_assembly.stage_receipts._validate_prior_preflight_readiness(...)` and
+  the deterministic detached readiness receipt. Minimal or non-passed payloads,
+  stale BOM bindings, invalid gates/scores, receipt mismatches, and run-ID
+  mismatches now return `normal_chain_required`.
+- Replaced `machine_review_collection_statuses` with
+  `machine_review_collection_report_paths`. Each PM-16 report must use the
+  collection-report schema, have a valid self-hash, report
+  `review_collected`, bind the current plan/article/sidecar/run/phase, identify
+  all required review agents, and match the supplied review path and SHA-256.
+  The bound review artifacts are then validated with the existing machine
+  review validators.
+- Added fail-closed coverage for stage-name-only receipts, a minimal fake prior
+  preflight, broken receipt linkage, incomplete or missing reports, a tampered
+  report hash/binding, stale current inputs, and an invalid review behind an
+  otherwise valid rehashed collection report.
+
+### Verification
+
+```powershell
+python -m pytest tests/test_release_chain_decision.py tests/test_blog_release.py tests/test_blog_assembly_execution_evidence.py tests/test_machine_review_workflow.py tests/test_machine_review.py -q
+```
+
+Result: `44 passed in 2.58s`.
+
+```powershell
+python tools/check_changed_python_lines.py --base 3479caf --limit 500
+python -m ruff check data_sources/modules/release_workflow/chain_decision.py tests/test_release_chain_decision.py
+python -m compileall -q data_sources/modules/release_workflow/chain_decision.py tests/test_release_chain_decision.py
+```
+
+All returned exit code `0`. `git diff --check` also returned exit code `0`;
+only expected Git line-ending warnings were printed.
+
+### Concerns
+
+No known functional concerns remain in PM-02. The pre-existing unrelated edits
+in `tests/test_content_scorer_aeo_geo_gate.py` and
+`tests/test_publish_readiness.py` remain untouched and are excluded from this
+fix commit.

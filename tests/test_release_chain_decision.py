@@ -6,11 +6,26 @@ from typing import Any
 
 import pytest
 
-from data_sources.modules.blog_assembly.common import canonical_artifact
+from data_sources.modules.blog_assembly.common import (
+    artifact_inventory_snapshots,
+    canonical_artifact,
+    canonical_json_sha256,
+    expected_blog_gate_inventory,
+    file_sha256,
+)
+from data_sources.modules.blog_assembly_stage_receipt import (
+    build_stage_receipt,
+    receipt_hash,
+    write_stage_receipt,
+)
 from data_sources.modules.machine_review import (
     AGENT_ROSTER,
     build_machine_review,
     write_machine_review,
+)
+from data_sources.modules.machine_review_workflow import COLLECTION_REPORT_SCHEMA
+from data_sources.modules.readiness.persistence_api import (
+    readiness_stage_receipt_path,
 )
 from data_sources.modules.release_workflow.chain_decision import (
     DRAFT_READY_NOT_RELEASE_READY,
@@ -18,13 +33,6 @@ from data_sources.modules.release_workflow.chain_decision import (
     OPTIMIZED_TAIL_ALLOWED,
     decide_release_chain,
 )
-
-
-OPTIMIZED_TAIL_RECEIPTS = (
-    {"stage": "post_optimization_scrub"},
-    {"stage": "post_optimization_context_binding"},
-)
-
 
 def _write_text(path: Path, content: str) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -41,6 +49,170 @@ def _completed_responses() -> list[dict[str, Any]]:
         {"agent": agent, "status": "completed", "findings": []}
         for agent in AGENT_ROSTER
     ]
+
+
+def _write_collection_report(
+    path: Path,
+    *,
+    phase: str,
+    review_path: Path,
+    plan: Path,
+    article: Path,
+    sidecar: Path,
+) -> Path:
+    payload = {
+        "schema": COLLECTION_REPORT_SCHEMA,
+        "status": "review_collected",
+        "run_id": "run-123",
+        "workflow_stage": "rewrite",
+        "phase": phase,
+        "command": "/rewrite",
+        "repository_commit": "abc123",
+        "editorial_plan_sha256": file_sha256(plan),
+        "article_sha256": file_sha256(article),
+        "proof_sidecar_sha256": file_sha256(sidecar),
+        "collected_agents": list(AGENT_ROSTER),
+        "issues": [],
+        "review_path": str(review_path),
+        "review_sha256": file_sha256(review_path),
+    }
+    payload["artifact_hash"] = canonical_json_sha256(payload)
+    return _write_json(path, payload)
+
+
+def _write_prior_preflight(
+    tmp_path: Path,
+    *,
+    article: Path,
+    agent_output: Path,
+) -> Path:
+    artifacts = {
+        "article": canonical_artifact(article, workspace_root=tmp_path),
+        "execution_evidence": {
+            "agent_output.content-analyzer": canonical_artifact(
+                agent_output,
+                workspace_root=tmp_path,
+            ),
+        },
+    }
+    prior_bom = _write_json(
+        tmp_path / "research" / "prior-bom.json",
+        {
+            "schema": "simpro-blog-assembly-bom/v4",
+            "lifecycle_state": "provisional",
+            "schema_policy": {"visible_faq": False},
+            "connector_binding": {"status": "not_required"},
+            "artifacts": artifacts,
+        },
+    )
+    input_rows = {
+        "assembly_bom": canonical_artifact(prior_bom, workspace_root=tmp_path),
+        **artifact_inventory_snapshots(artifacts),
+    }
+    gate_inventory = expected_blog_gate_inventory(
+        visible_faq=False,
+        connector_required=False,
+        current_strategy=True,
+    )
+    readiness = {
+        "schema": "simpro-publish-readiness-result/v1",
+        "tool": {"name": "publish_readiness", "version": "1.0.0"},
+        "phase": "preflight",
+        "passed": True,
+        "artifact_kind": "blog",
+        "verification_scope": "source_artifact",
+        "input_seal": {"status": "verified"},
+        "gate_inventory": gate_inventory,
+        "gates": [
+            {
+                "name": name,
+                "passed": True,
+                "errors": 0,
+                "blockers": [],
+            }
+            for name in gate_inventory
+        ],
+        "score": 95,
+        "score_threshold": 85,
+        "aeo_geo": {"score": 95, "threshold": 90, "passed": True},
+        "input_hashes": input_rows,
+        "run_id": "run-123",
+        "started_at": "2026-01-15T12:00:00Z",
+        "completed_at": "2026-01-15T12:01:00Z",
+    }
+    readiness_path = _write_json(
+        tmp_path / "research" / "prior-preflight.json",
+        readiness,
+    )
+    input_hashes = {
+        label: row["sha256"] for label, row in input_rows.items()
+    }
+    receipt = build_stage_receipt(
+        run_id="run-123",
+        stage="preflight_readiness",
+        tool_name="publish_readiness",
+        tool_version="1.0.0",
+        started_at=readiness["started_at"],
+        completed_at=readiness["completed_at"],
+        mutation=False,
+        input_artifact_hashes=input_hashes,
+        output_artifact_hashes={
+            "article": input_hashes["article"],
+            "readiness_output": file_sha256(readiness_path),
+        },
+        workspace_root=tmp_path,
+    )
+    write_stage_receipt(
+        readiness_stage_receipt_path(readiness_path),
+        receipt,
+        workspace_root=tmp_path,
+    )
+    return readiness_path
+
+
+def _write_tail_receipts(
+    tmp_path: Path,
+    *,
+    article: Path,
+    sidecar: Path,
+) -> tuple[Path, Path]:
+    article_hash = file_sha256(article)
+    scrub = build_stage_receipt(
+        run_id="run-123",
+        stage="post_optimization_scrub",
+        tool_name="content_scrubber",
+        tool_version="1.0.0",
+        started_at="2026-01-15T12:02:00Z",
+        completed_at="2026-01-15T12:03:00Z",
+        mutation=False,
+        input_artifact_hashes={"article": article_hash},
+        output_artifact_hashes={"article": article_hash},
+        evidence_hashes={"scrub_statistics": "d" * 64},
+        previous_receipt_hash="a" * 64,
+        workspace_root=tmp_path,
+    )
+    scrub_path = tmp_path / "research" / "stage-post-optimization-scrub.json"
+    write_stage_receipt(scrub_path, scrub, workspace_root=tmp_path)
+    binding = build_stage_receipt(
+        run_id="run-123",
+        stage="post_optimization_context_binding",
+        tool_name="context_binding_generator",
+        tool_version="1.0.0",
+        started_at="2026-01-15T12:04:00Z",
+        completed_at="2026-01-15T12:05:00Z",
+        mutation=False,
+        input_artifact_hashes={"article": article_hash},
+        output_artifact_hashes={
+            "article": article_hash,
+            "validation_sidecar": file_sha256(sidecar),
+        },
+        evidence_hashes={"context_binding": "c" * 64},
+        previous_receipt_hash=scrub["receipt_hash"],
+        workspace_root=tmp_path,
+    )
+    binding_path = tmp_path / "research" / "stage-post-optimization-binding.json"
+    write_stage_receipt(binding_path, binding, workspace_root=tmp_path)
+    return scrub_path, binding_path
 
 
 def _case_inputs(tmp_path: Path) -> dict[str, Any]:
@@ -64,30 +236,10 @@ def _case_inputs(tmp_path: Path) -> dict[str, Any]:
         tmp_path / "research" / "agent-outputs" / "content-analyzer.md",
         "# Current diagnostics\n",
     )
-    execution_evidence = {
-        "command_definition.write-command": {
-            "path": ".claude/commands/write.md",
-            "sha256": "a" * 64,
-        },
-        "agent_output.content-analyzer": canonical_artifact(
-            agent_output,
-            workspace_root=tmp_path,
-        ),
-    }
-    prior_bom = _write_json(
-        tmp_path / "research" / "prior-bom.json",
-        {"artifacts": {"execution_evidence": execution_evidence}},
-    )
-    prior_preflight = _write_json(
-        tmp_path / "research" / "prior-preflight.json",
-        {
-            "input_hashes": {
-                "assembly_bom": canonical_artifact(
-                    prior_bom,
-                    workspace_root=tmp_path,
-                )
-            }
-        },
+    prior_preflight = _write_prior_preflight(
+        tmp_path,
+        article=article,
+        agent_output=agent_output,
     )
     optimizer_output = _write_json(
         tmp_path / "research" / "optimizer-output.json",
@@ -107,6 +259,7 @@ def _case_inputs(tmp_path: Path) -> dict[str, Any]:
         },
     )
     review_paths: dict[str, Path] = {}
+    report_paths: dict[str, Path] = {}
     for phase in ("plan", "article"):
         review_path = tmp_path / "research" / f"machine-review-{phase}.json"
         review = build_machine_review(
@@ -123,18 +276,28 @@ def _case_inputs(tmp_path: Path) -> dict[str, Any]:
         )
         write_machine_review(review_path, review)
         review_paths[phase] = review_path
+        report_paths[phase] = _write_collection_report(
+            tmp_path / "research" / f"machine-review-{phase}-collection.json",
+            phase=phase,
+            review_path=review_path,
+            plan=plan,
+            article=article,
+            sidecar=sidecar,
+        )
+    receipt_paths = _write_tail_receipts(
+        tmp_path,
+        article=article,
+        sidecar=sidecar,
+    )
     return {
         "article_path": article,
         "editorial_plan_path": plan,
         "proof_sidecar_path": sidecar,
         "machine_review_paths": review_paths,
-        "machine_review_collection_statuses": {
-            "plan": "review_collected",
-            "article": "review_collected",
-        },
+        "machine_review_collection_report_paths": report_paths,
         "optimizer_output_paths": (optimizer_output,),
         "prior_preflight_readiness_path": prior_preflight,
-        "stage_receipts": OPTIMIZED_TAIL_RECEIPTS,
+        "stage_receipt_paths": receipt_paths,
         "agent_output_paths": {"content-analyzer": agent_output},
         "run_id": "run-123",
         "workspace_root": tmp_path,
@@ -157,6 +320,21 @@ def _case_inputs(tmp_path: Path) -> dict[str, Any]:
             "mismatched_review_collection",
             DRAFT_READY_NOT_RELEASE_READY,
             "machine_review_collection_mismatch",
+        ),
+        (
+            "tampered_collection_report",
+            DRAFT_READY_NOT_RELEASE_READY,
+            "machine_review_collection_invalid",
+        ),
+        (
+            "minimal_receipts",
+            NORMAL_CHAIN_REQUIRED,
+            "optimized_tail_receipts_invalid",
+        ),
+        (
+            "minimal_prior_preflight",
+            NORMAL_CHAIN_REQUIRED,
+            "optimized_tail_receipts_invalid",
         ),
     ),
 )
@@ -181,11 +359,35 @@ def test_release_chain_decision_table(
             encoding="utf-8",
         )
     elif case == "incomplete_review_collection":
-        inputs["machine_review_collection_statuses"]["article"] = (
-            DRAFT_READY_NOT_RELEASE_READY
-        )
+        report_path = inputs["machine_review_collection_report_paths"]["article"]
+        payload = json.loads(report_path.read_text(encoding="utf-8"))
+        payload["status"] = DRAFT_READY_NOT_RELEASE_READY
+        payload.pop("artifact_hash")
+        payload["artifact_hash"] = canonical_json_sha256(payload)
+        _write_json(report_path, payload)
     elif case == "mismatched_review_collection":
-        inputs["machine_review_collection_statuses"].pop("article")
+        inputs["machine_review_collection_report_paths"].pop("article")
+    elif case == "tampered_collection_report":
+        report_path = inputs["machine_review_collection_report_paths"]["article"]
+        payload = json.loads(report_path.read_text(encoding="utf-8"))
+        payload["review_sha256"] = "0" * 64
+        _write_json(report_path, payload)
+    elif case == "minimal_receipts":
+        inputs["stage_receipt_paths"] = (
+            _write_json(
+                tmp_path / "research" / "minimal-scrub.json",
+                {"stage": "post_optimization_scrub"},
+            ),
+            _write_json(
+                tmp_path / "research" / "minimal-binding.json",
+                {"stage": "post_optimization_context_binding"},
+            ),
+        )
+    elif case == "minimal_prior_preflight":
+        _write_json(
+            inputs["prior_preflight_readiness_path"],
+            {"input_hashes": {}},
+        )
 
     result = decide_release_chain(**inputs)
 
@@ -200,6 +402,41 @@ def test_mismatched_current_machine_review_is_not_release_ready(tmp_path: Path) 
         "---\nartifact_type: blog\n---\n# Changed after review\n",
         encoding="utf-8",
     )
+
+    result = decide_release_chain(**inputs)
+
+    assert result.decision == DRAFT_READY_NOT_RELEASE_READY
+    assert result.code == "machine_review_collection_invalid"
+    assert "machine_review_collection_report_binding_mismatch" in result.blockers
+
+
+def test_tampered_receipt_chain_requires_normal_chain(tmp_path: Path) -> None:
+    inputs = _case_inputs(tmp_path)
+    binding_path = inputs["stage_receipt_paths"][1]
+    payload = json.loads(binding_path.read_text(encoding="utf-8"))
+    payload["previous_receipt_hash"] = "0" * 64
+    payload.pop("receipt_hash")
+    payload["receipt_hash"] = receipt_hash(payload)
+    _write_json(binding_path, payload)
+
+    result = decide_release_chain(**inputs)
+
+    assert result.decision == NORMAL_CHAIN_REQUIRED
+    assert result.code == "optimized_tail_receipts_invalid"
+
+
+def test_collection_report_does_not_replace_review_validation(tmp_path: Path) -> None:
+    inputs = _case_inputs(tmp_path)
+    review_path = inputs["machine_review_paths"]["article"]
+    review = json.loads(review_path.read_text(encoding="utf-8"))
+    review["article_sha256"] = "0" * 64
+    write_machine_review(review_path, review)
+    report_path = inputs["machine_review_collection_report_paths"]["article"]
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    report["review_sha256"] = file_sha256(review_path)
+    report.pop("artifact_hash")
+    report["artifact_hash"] = canonical_json_sha256(report)
+    _write_json(report_path, report)
 
     result = decide_release_chain(**inputs)
 
