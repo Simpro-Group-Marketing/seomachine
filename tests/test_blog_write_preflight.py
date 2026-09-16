@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from data_sources.modules import blog_write_preflight
 
 
@@ -60,3 +62,35 @@ def test_write_preflight_blocks_before_drafting_when_source_decision_is_missing(
     assert not draft.exists()
     assert not classifications.exists()
     assert not (tmp_path / "research" / "stage-receipts" / "draft-state.json").exists()
+
+
+@pytest.mark.parametrize("collision", ["inventory", "decision_registry"])
+def test_write_preflight_rejects_source_output_that_overwrites_an_input(
+    tmp_path: Path,
+    collision: str,
+) -> None:
+    inventory = _write_inventory(tmp_path)
+    decision_registry = tmp_path / "context" / "source-classification-decisions.json"
+    decision_registry.parent.mkdir()
+    decision_registry.write_text('{"schema":"registry"}\n', encoding="utf-8")
+    protected_input = inventory if collision == "inventory" else decision_registry
+    original = protected_input.read_bytes()
+    output = tmp_path / "research" / "write-preflight.json"
+    classifications = tmp_path / "research" / "source-classifications"
+
+    with pytest.raises(ValueError, match="cannot overwrite input"):
+        blog_write_preflight.main(
+            [
+                "--draft", str(tmp_path / "drafts" / "field-service-guide.md"),
+                "--source-candidate-inventory", str(inventory),
+                "--classification-directory", str(classifications),
+                "--source-classification-output", str(protected_input),
+                "--decision-path", str(decision_registry),
+                "--output", str(output),
+                "--workspace-root", str(tmp_path),
+            ]
+        )
+
+    assert protected_input.read_bytes() == original
+    assert not output.exists()
+    assert not classifications.exists()

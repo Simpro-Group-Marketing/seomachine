@@ -10,9 +10,11 @@ from typing import Any, Sequence
 try:
     from .blog_assembly_contract import atomic_write_json, file_sha256, validate_governance_output_path
     from .source_classification_preflight import build_preflight_report
+    from .source_support.common import SOURCE_DECISIONS_PATH
 except ImportError:  # pragma: no cover - supports direct script execution.
     from blog_assembly_contract import atomic_write_json, file_sha256, validate_governance_output_path
     from source_classification_preflight import build_preflight_report
+    from source_support.common import SOURCE_DECISIONS_PATH
 
 
 SCHEMA = "simpro-blog-write-preflight/v1"
@@ -30,11 +32,15 @@ def build_write_preflight_report(
     """Create classification evidence before the native writer may create a draft."""
     root = Path(workspace_root).resolve()
     draft = _workspace_path(draft_path, root=root)
-    source_output = _workspace_path(source_classification_output, root=root)
+    decision = decision_path or root / SOURCE_DECISIONS_PATH
+    source_output = validate_governance_output_path(
+        _workspace_path(source_classification_output, root=root),
+        inputs=_source_inputs(source_candidate_inventory, decision),
+    )
     classification = build_preflight_report(
         source_candidate_inventory,
         classification_directory=classification_directory,
-        decision_path=decision_path,
+        decision_path=decision,
         workspace_root=root,
     )
     atomic_write_json(source_output, classification)
@@ -60,6 +66,16 @@ def _workspace_path(path: str | Path, *, root: Path) -> Path:
     return resolved
 
 
+def _source_inputs(
+    inventory: str | Path,
+    decision_path: str | Path,
+) -> dict[str, str | Path]:
+    return {
+        "source_candidate_inventory": inventory,
+        "source_decision_registry": decision_path,
+    }
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Prepare source-classification evidence before native blog drafting."
@@ -79,7 +95,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     root = Path(args.workspace_root).resolve()
     output = validate_governance_output_path(
         args.output,
-        inputs={"source_classification_output": args.source_classification_output},
+        inputs={
+            **_source_inputs(
+                args.source_candidate_inventory,
+                args.decision_path or root / SOURCE_DECISIONS_PATH,
+            ),
+            "source_classification_output": args.source_classification_output,
+        },
     )
     report = build_write_preflight_report(
         args.draft,
