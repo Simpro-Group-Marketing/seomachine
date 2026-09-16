@@ -11,6 +11,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+from data_sources.modules.content_scoring.aeo_content import _check_capsule_coverage
 from data_sources.modules.content_scoring.aeo_content import _check_direct_answer
 from data_sources.modules.content_scoring.aeo_eeat import _check_eeat_proof
 from data_sources.modules.content_scoring.aeo_faq_paa import _check_faq_proof, _check_faq_questions
@@ -37,6 +38,41 @@ from tests.aeo_geo_rater_support import (
 )
 
 class AeoGeoRaterContentTests(AeoGeoRaterTestCase):
+    def test_capsule_coverage_reports_each_non_faq_h2_at_word_boundaries(self):
+        def paragraph(word_count):
+            first_sentence = " ".join(f"word{index}" for index in range(word_count - 1))
+            return f"{first_sentence}. Final."
+
+        content = "\n\n".join(
+            [
+                f"## Section {word_count}\n\n{paragraph(word_count)}"
+                for word_count in (49, 50, 60, 61)
+            ]
+            + ["## Frequently Asked Questions\n\n" + paragraph(50)]
+        )
+
+        result = _check_capsule_coverage(content)
+
+        self.assertEqual(result["details"]["h2_count"], 4)
+        self.assertEqual(result["details"]["capsule_count"], 2)
+        self.assertEqual(
+            result["details"]["sections"],
+            [
+                {
+                    "heading": f"Section {word_count}",
+                    "word_count": word_count,
+                    "sentence_count": 2,
+                    "passed": word_count in (50, 60),
+                    "reason": (
+                        "First paragraph is a 50-60 word capsule."
+                        if word_count in (50, 60)
+                        else "First paragraph must contain 50-60 words."
+                    ),
+                }
+                for word_count in (49, 50, 60, 61)
+            ],
+        )
+
     def test_compliant_article_passes_90_point_gate(self):
         result = self.rate_with_bound_experience(
             proof_sidecar_suffix=FAQ_PROOF_BLOCK,
