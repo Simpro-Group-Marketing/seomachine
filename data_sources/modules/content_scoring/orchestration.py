@@ -4,6 +4,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any, Dict, Optional
 
 from .common import ScoringDependencies, default_scoring_dependencies
+from .priorities import build_priority_fixes
 
 
 class ScoringOrchestrationMixin:
@@ -124,7 +125,7 @@ class ScoringOrchestrationMixin:
         )
 
         # Collect all issues and prioritize
-        priority_fixes = self._build_priority_fixes(
+        priority_fixes = build_priority_fixes(
             [
                 ('humanity', humanity),
                 ('specificity', specificity),
@@ -133,6 +134,7 @@ class ScoringOrchestrationMixin:
                 ('readability', readability)
             ],
             gate_context,
+            weights=self.WEIGHTS,
         )
         quality_gates = self._build_quality_gates(
             composite,
