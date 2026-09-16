@@ -40,3 +40,30 @@ def test_repeated_instructional_imperative_starts_are_warnings() -> None:
     assert len(findings) == 1
     assert findings[0]["severity"] == "warning"
     assert findings[0]["lines"] == [3, 4, 5]
+
+
+def test_repeated_what_to_write_table_imperative_starts_are_warnings() -> None:
+    findings = repeated_start_findings(
+        "| What to write |\n"
+        "|---|\n"
+        "| Add the job number to the request. |\n"
+        "| Add the requested amount to the request. |\n"
+        "| Add the approval date to the request. |"
+    )
+
+    assert len(findings) == 1
+    assert findings[0]["severity"] == "warning"
+    assert findings[0]["lines"] == [3, 4, 5]
+
+
+def test_repeated_checklist_imperative_starts_are_warnings() -> None:
+    findings = repeated_start_findings(
+        "## Draft Checklist\n\n"
+        "- [ ] Review the job scope before drafting.\n"
+        "- [ ] Review the proof before drafting.\n"
+        "- [ ] Review the call to action before drafting."
+    )
+
+    assert len(findings) == 1
+    assert findings[0]["severity"] == "warning"
+    assert findings[0]["lines"] == [3, 4, 5]

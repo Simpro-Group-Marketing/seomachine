@@ -93,3 +93,42 @@ Result: exit `0`.
 ## Concerns
 
 None. The `git diff --no-index` inspection command used during final review returned exit code 1 by Git design when showing a new file; it was not a test or implementation failure.
+
+## Fix Round 1
+
+### RED Evidence
+
+Added regression tests for both recognized instructional forms before changing implementation, then ran:
+
+```text
+python -m pytest tests/test_ai_copy_linter_repetition.py -k "what_to_write_table or checklist_imperative" -q
+```
+
+Result: `2 failed, 2 deselected in 0.12s`.
+
+- Repeated `Add the...` rows in a `What to write` table returned `error` instead of `warning`.
+- Repeated `Review the...` checklist items returned `error` instead of `warning`.
+
+### Fix
+
+`_repeated_opener_severity` now derives warning severity from the shared PM-08 recognized instructional-line context for every occurrence in a cluster. It no longer tries to match the raw sentence, which retains table-row prefixes and excludes valid checklist imperatives such as `Review`.
+
+### GREEN Evidence
+
+```text
+python -m pytest tests/test_ai_copy_linter_repetition.py tests/test_ai_copy_linter.py tests/test_source_support_instructional_context.py -q
+```
+
+Result: `78 passed in 0.48s`.
+
+```text
+python tools/check_changed_python_lines.py --base d43c124 --limit 500
+```
+
+Result: exit `0`; no changed Python file exceeded 500 physical lines.
+
+```text
+git diff --check
+```
+
+Result: exit `0`.

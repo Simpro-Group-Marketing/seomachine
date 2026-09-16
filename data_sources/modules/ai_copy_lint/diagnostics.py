@@ -7,12 +7,10 @@ from typing import Pattern
 
 try:
     from data_sources.modules.source_support.instructional_context import (
-        INSTRUCTIONAL_VERB_RE,
         instructional_line_numbers,
     )
 except ModuleNotFoundError:
     from source_support.instructional_context import (
-        INSTRUCTIONAL_VERB_RE,
         instructional_line_numbers,
     )
 
@@ -113,12 +111,8 @@ def find_repeated_sentence_starts(content: str) -> list[Finding]:
         if len(occurrences) < 3:
             continue
         lines = [line_number for line_number, _, _ in occurrences]
-        first_line, first_column, first_sentence = occurrences[0]
-        severity = _repeated_opener_severity(
-            first_sentence,
-            lines,
-            instructional_lines,
-        )
+        first_line, first_column, _ = occurrences[0]
+        severity = _repeated_opener_severity(lines, instructional_lines)
         findings.append(finding(
             "repeated_sentence_start", severity, first_line, first_column, key,
             f"Repeated sentence start '{key}' appears on lines {', '.join(map(str, lines))}.",
@@ -128,11 +122,10 @@ def find_repeated_sentence_starts(content: str) -> list[Finding]:
 
 
 def _repeated_opener_severity(
-    first_sentence: str,
     lines: list[int],
     instructional_lines: frozenset[int],
 ) -> str:
-    if all(line_number in instructional_lines for line_number in lines) and INSTRUCTIONAL_VERB_RE.match(first_sentence):
+    if all(line_number in instructional_lines for line_number in lines):
         return "warning"
     return "error"
 
