@@ -218,9 +218,10 @@ GENERAL_CLAIM_PATTERNS = (
             r"(?:is|are|costs?|includes?|included|requires?|available|free|paid|waived)\b|"
             r"\b(?:is|are)\s+included\s+in\s+(?:the\s+)?(?:paid|premium|"
             r"enterprise|standard|basic)?\s*(?:plan|package|subscription)\b|"
-            r"\b(?:customers?|users?|accounts?|businesses?)\b[^.!?]{0,90}\b"
-            r"(?:are|remain)\s+(?:in)?eligible\b[^.!?]{0,90}\b"
-            r"(?:add[- ]on|feature|product|platform|software)\b|"
+            r"\b(?:eligible|ineligible)\b[^.!?]{0,90}\b(?:for|to)\b"
+            r"[^.!?]{0,90}\b(?:add[- ]on|feature|product|platform|software)\b|"
+            r"\b(?:add[- ]on|feature|product|platform|software)\b[^.!?]{0,90}\b"
+            r"(?:is|are|can|cannot|may|must)?\s*(?:be\s+)?access(?:ed|ible)\b|"
             r"\b(?:access|availability|eligibility)\b[^.!?]{0,90}\b"
             r"(?:is|are|remains?|becomes?|requires?|restricted|limited|available|unavailable)\b",
             re.IGNORECASE,

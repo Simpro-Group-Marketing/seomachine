@@ -1,6 +1,7 @@
 import pytest
 
 from data_sources.modules.source_support_guard import check_content
+from data_sources.modules.source_support.proof_parsing import _extract_claim_candidates
 
 
 def test_genuine_imperative_advice_is_not_an_unsupported_recommendation() -> None:
@@ -33,15 +34,31 @@ def test_what_to_write_table_is_not_an_unsupported_recommendation() -> None:
     assert check_content(content) == []
 
 
-def test_eligibility_for_an_add_on_in_a_checklist_requires_support() -> None:
-    content = """# Drafting guide
+@pytest.mark.parametrize(
+    "instruction",
+    (
+        "State that customers are eligible for the add-on.",
+        "State that the reader is eligible for the add-on.",
+        "State that the add-on can be accessed only through enterprise plans.",
+    ),
+)
+def test_product_eligibility_and_access_status_in_a_checklist_require_support(
+    instruction: str,
+) -> None:
+    content = f"""# Drafting guide
 
 ## Draft checklist
 
-- [ ] State that customers are eligible for the add-on.
+- [ ] {instruction}
 """
 
-    assert check_content(content)
+    candidates = _extract_claim_candidates(content, [])
+    findings = check_content(content)
+
+    assert [candidate.claim_type for candidate in candidates] == ["commercial"]
+    assert [finding["rule_id"] for finding in findings] == [
+        "general_claim_source_missing"
+    ]
 
 
 @pytest.mark.parametrize(
