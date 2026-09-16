@@ -11,6 +11,7 @@ try:
     from . import (
         blog_assembly_stage_receipt,
         blog_creation_preflight,
+        optimizer_evidence,
         release_authorization,
     )
     from .blog_assembly_contract import atomic_write_json, validate_sha256
@@ -27,6 +28,7 @@ try:
 except ImportError:  # pragma: no cover - supports direct script execution.
     import blog_assembly_stage_receipt
     import blog_creation_preflight
+    import optimizer_evidence
     import release_authorization
     from blog_assembly_contract import atomic_write_json, validate_sha256
     import blog_assembly.construction as blog_assembly_construction
@@ -125,6 +127,18 @@ def _run_blog_release(
         workflow_mode=workflow_mode,
         workspace_root=root,
     )
+    if optimized_release:
+        try:
+            optimizer_evidence.validate_optimizer_outputs(
+                optimizer_outputs,
+                article=article,
+                editorial_plan=editorial_plan,
+                proof_sidecar=proof_sidecar,
+                prior_preflight_readiness=prior_preflight_readiness,
+                workspace_root=root,
+            )
+        except optimizer_evidence.OptimizerEvidenceError as error:
+            raise ReleaseInvocationError(str(error)) from error
     destination = _new_output_dir(output_dir, workspace_root=root)
     release_stage_receipts = tuple(stage_receipts)
     if all(str(receipt) != str(scrub_receipt) for receipt in release_stage_receipts):
@@ -368,7 +382,7 @@ def _begin_optimization_run(
     native_edit_status = "not_started"
     recovery_steps = [
         "Run /optimize against the article using the initial readiness output.",
-        "Write a simpro-optimizer-output/v1 artifact with inspected scores, failed gates or blocker, aeo_geo checks, priority fixes, and the edit or no-op decision.",
+        "Write a simpro-optimizer-output/v2 artifact binding the current article, editorial plan, proof sidecar, scorecard, and prior-preflight readiness.",
         "Rerun /scrub and Context Binding after article or sidecar changes.",
     ]
     if preflight_receipt_path is not None:

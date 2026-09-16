@@ -1,8 +1,9 @@
 from __future__ import annotations
+import hashlib
 import json
 from pathlib import Path
 import pytest
-from data_sources.modules import blog_release
+from data_sources.modules import blog_release, optimizer_evidence
 from tests.release_test_support import mock_final_authorization
 
 def _touch(path: Path, payload: str = "{}\n") -> Path:
@@ -26,8 +27,170 @@ def _inputs(tmp_path: Path) -> dict[str, object]:
         "stage_receipts": [_touch(tmp_path / "research" / "stage.json")],
     }
 
-def _run(tmp_path: Path, **kwargs):
-    return blog_release.run_blog_release(run_id="run-1", workflow_mode="rewrite", assembly_date="2026-08-26", output_dir=tmp_path / "research" / "releases" / "run", workspace_root=tmp_path, **_inputs(tmp_path), **kwargs)
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _optimizer_v2(
+    tmp_path: Path,
+    inputs: dict[str, object],
+) -> tuple[Path, Path, Path]:
+    scorecard = _touch(tmp_path / "research" / "scorecard.json")
+    prior_readiness = _touch(tmp_path / "research" / "prior-preflight-readiness.json")
+    bindings = {}
+    for label, path in {
+        "article": inputs["article"],
+        "editorial_plan": inputs["editorial_plan"],
+        "proof_sidecar": inputs["proof_sidecar"],
+        "scorecard": scorecard,
+        "prior_preflight_readiness": prior_readiness,
+    }.items():
+        assert isinstance(path, Path)
+        bindings[label] = {
+            "path": path.relative_to(tmp_path).as_posix(),
+            "sha256": _sha256(path),
+        }
+    optimizer = _touch(
+        tmp_path / "research" / "optimizer-output.json",
+        json.dumps(
+            {
+                "schema": "simpro-optimizer-output/v2",
+                "status": "completed",
+                "input_bindings": bindings,
+            }
+        ),
+    )
+    return optimizer, scorecard, prior_readiness
+
+
+def _run(tmp_path: Path, *, inputs: dict[str, object] | None = None, **kwargs):
+    return blog_release.run_blog_release(run_id="run-1", workflow_mode="rewrite", assembly_date="2026-08-26", output_dir=tmp_path / "research" / "releases" / "run", workspace_root=tmp_path, **(inputs or _inputs(tmp_path)), **kwargs)
+
+
+def test_blog_release_rejects_stale_optimizer_before_creating_output_directory(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    inputs = _inputs(tmp_path)
+    optimizer, _, prior_readiness = _optimizer_v2(tmp_path, inputs)
+    article = inputs["article"]
+    assert isinstance(article, Path)
+    article.write_text(article.read_text(encoding="utf-8") + "Changed.\n", encoding="utf-8")
+    monkeypatch.setattr(
+        blog_release.blog_creation_preflight,
+        "build_preflight_report",
+        lambda *args, **kwargs: {
+            "schema": "simpro-blog-creation-preflight/v1",
+            "ready_for_bom": False,
+            "blockers": [],
+        },
+    )
+
+    with pytest.raises(blog_release.ReleaseInvocationError, match="optimizer_output_stale"):
+        _run(
+            tmp_path,
+            inputs=inputs,
+            optimizer_outputs=[optimizer],
+            prior_preflight_readiness=prior_readiness,
+        )
+
+    assert not (tmp_path / "research" / "releases" / "run").exists()
+
+
+@pytest.mark.parametrize(
+    "mutated_input",
+    [
+        "article",
+        "editorial_plan",
+        "proof_sidecar",
+        "scorecard",
+        "prior_preflight_readiness",
+    ],
+)
+def test_blog_release_rejects_each_stale_optimizer_binding_with_hashes(
+    tmp_path: Path,
+    mutated_input: str,
+):
+    inputs = _inputs(tmp_path)
+    optimizer, scorecard, prior_readiness = _optimizer_v2(tmp_path, inputs)
+    paths = {
+        "article": inputs["article"],
+        "editorial_plan": inputs["editorial_plan"],
+        "proof_sidecar": inputs["proof_sidecar"],
+        "scorecard": scorecard,
+        "prior_preflight_readiness": prior_readiness,
+    }
+    target = paths[mutated_input]
+    assert isinstance(target, Path)
+    expected_hash = _sha256(target)
+    target.write_bytes(target.read_bytes() + b"changed\n")
+    observed_hash = _sha256(target)
+
+    with pytest.raises(blog_release.ReleaseInvocationError) as raised:
+        _run(
+            tmp_path,
+            inputs=inputs,
+            optimizer_outputs=[optimizer],
+            prior_preflight_readiness=prior_readiness,
+        )
+
+    message = str(raised.value)
+    assert "optimizer_output_stale" in message
+    assert mutated_input in message
+    assert f"expected_sha256={expected_hash}" in message
+    assert f"observed_sha256={observed_hash}" in message
+    assert not (tmp_path / "research" / "releases" / "run").exists()
+
+
+def test_blog_release_rejects_v1_optimizer_before_creating_output_directory(
+    tmp_path: Path,
+):
+    inputs = _inputs(tmp_path)
+    prior_readiness = _touch(tmp_path / "research" / "prior-preflight-readiness.json")
+    optimizer = _touch(
+        tmp_path / "research" / "optimizer-output-v1.json",
+        json.dumps({"schema": "simpro-optimizer-output/v1", "status": "completed"}),
+    )
+
+    parsed = optimizer_evidence.read_optimizer_output(optimizer)
+    assert parsed.schema == "simpro-optimizer-output/v1"
+
+    with pytest.raises(
+        blog_release.ReleaseInvocationError,
+        match="optimizer_output_stale.*expected schema simpro-optimizer-output/v2",
+    ):
+        _run(
+            tmp_path,
+            inputs=inputs,
+            optimizer_outputs=[optimizer],
+            prior_preflight_readiness=prior_readiness,
+        )
+
+    assert not (tmp_path / "research" / "releases" / "run").exists()
+
+
+def test_blog_release_rejects_malformed_v2_optimizer_before_output_directory(
+    tmp_path: Path,
+):
+    inputs = _inputs(tmp_path)
+    optimizer, _, prior_readiness = _optimizer_v2(tmp_path, inputs)
+    payload = json.loads(optimizer.read_text(encoding="utf-8"))
+    del payload["input_bindings"]["scorecard"]
+    optimizer.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(
+        blog_release.ReleaseInvocationError,
+        match="optimizer_output_invalid.*input_bindings must contain exactly",
+    ):
+        _run(
+            tmp_path,
+            inputs=inputs,
+            optimizer_outputs=[optimizer],
+            prior_preflight_readiness=prior_readiness,
+        )
+
+    assert not (tmp_path / "research" / "releases" / "run").exists()
 
 def test_blog_release_rejects_reused_output_directory(tmp_path: Path):
     (tmp_path / "research" / "releases" / "run").mkdir(parents=True)
@@ -126,8 +289,8 @@ def test_blog_release_finalizes_only_with_optimizer_evidence(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ):
-    optimizer = _touch(tmp_path / "research" / "optimizer-output.json")
-    prior_readiness = _touch(tmp_path / "research" / "prior-preflight-readiness.json")
+    inputs = _inputs(tmp_path)
+    optimizer, _, prior_readiness = _optimizer_v2(tmp_path, inputs)
     observed = {}
 
     monkeypatch.setattr(blog_release.blog_creation_preflight, "build_preflight_report", lambda *a, **k: {"schema": "simpro-blog-creation-preflight/v1", "ready_for_bom": True, "blockers": []})
@@ -164,6 +327,7 @@ def test_blog_release_finalizes_only_with_optimizer_evidence(
 
     passed = _run(
         tmp_path,
+        inputs=inputs,
         optimizer_outputs=[optimizer],
         prior_preflight_readiness=prior_readiness,
     )
@@ -265,11 +429,12 @@ def test_blog_release_forwards_nonvault_customer_proof_evidence(tmp_path: Path, 
     )
     mock_final_authorization(monkeypatch, blog_release)
 
-    optimizer = _touch(tmp_path / "research" / "optimizer-output.json")
-    prior_readiness = _touch(tmp_path / "research" / "prior-preflight-readiness.json")
+    inputs = _inputs(tmp_path)
+    optimizer, _, prior_readiness = _optimizer_v2(tmp_path, inputs)
 
     result = _run(
         tmp_path,
+        inputs=inputs,
         customer_proof_evidence=evidence,
         optimizer_outputs=[optimizer],
         prior_preflight_readiness=prior_readiness,
