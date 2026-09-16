@@ -23,6 +23,8 @@ try:
         expected_blog_gate_inventory,
         order_blog_gate_results,
     )
+    from .blog_sidecar_bindings import FRED_SELECTION_SECTION_RE
+    from .blog_sidecar_bindings import SELECTOR_EVIDENCE_LINE_RE
     from .blog_sidecar_bindings import binding_errors as _sidecar_binding_errors
 except ImportError:  # pragma: no cover - supports direct script execution.
     from bounded_io import canonical_json_bytes as _canonical_json_bytes
@@ -36,6 +38,8 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         expected_blog_gate_inventory,
         order_blog_gate_results,
     )
+    from blog_sidecar_bindings import FRED_SELECTION_SECTION_RE
+    from blog_sidecar_bindings import SELECTOR_EVIDENCE_LINE_RE
     from blog_sidecar_bindings import binding_errors as _sidecar_binding_errors
 
 

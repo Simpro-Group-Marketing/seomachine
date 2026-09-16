@@ -1,21 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
   <title id="title">Digital worker and human judgment responsibilities in field service operations</title>
-  <desc id="desc">A three-column delegation matrix showing AI-owned routine work, AI-assisted decisions, and human-owned judgment.</desc>
+  <desc id="desc">A three-column delegation matrix showing supported routine work, assisted decisions, and human-owned judgment.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#071723"/>
-      <stop offset="0.55" stop-color="#102739"/>
-      <stop offset="1" stop-color="#172f3c"/>
+      <stop offset="0" stop-color="#061721"/>
+      <stop offset="0.56" stop-color="#102839"/>
+      <stop offset="1" stop-color="#16313e"/>
     </linearGradient>
-    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#153348" stop-opacity="0.96"/>
-      <stop offset="1" stop-color="#0d2231" stop-opacity="0.96"/>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#17374c"/>
+      <stop offset="1" stop-color="#0d2331"/>
     </linearGradient>
-    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#77e7ff"/>
-      <stop offset="1" stop-color="#1aa7c8"/>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8cf0ff"/>
+      <stop offset="1" stop-color="#23abc8"/>
     </linearGradient>
-    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#020b10" flood-opacity="0.42"/>
     </filter>
     <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
@@ -29,81 +29,98 @@
       <path d="M42 0H0V42" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.045"/>
     </pattern>
     <style>
-      .label { font-family: "Aptos", "Segoe UI", Arial, sans-serif; fill: #eef8fb; }
-      .muted { fill: #b7cad4; }
-      .small { font-size: 22px; }
-      .body { font-size: 25px; font-weight: 600; }
-      .head { font-size: 34px; font-weight: 750; }
-      .eyebrow { font-size: 17px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; fill: #75ddf1; }
+      .font { font-family: "Aptos", "Segoe UI", Arial, sans-serif; }
+      .eyebrow { fill: #72e5f7; font-size: 16px; font-weight: 800; letter-spacing: 2px; }
+      .title { fill: #f4fbfd; font-size: 34px; font-weight: 800; }
+      .subtitle { fill: #c9dbe3; font-size: 20px; font-weight: 540; }
+      .cardTitle { fill: #ffffff; font-size: 25px; font-weight: 800; }
+      .rowText { fill: #eef8fb; font-size: 18px; font-weight: 680; }
+      .note { fill: #dceff4; font-size: 19px; font-weight: 650; }
     </style>
   </defs>
 
   <rect width="1200" height="675" fill="url(#bg)"/>
   <rect width="1200" height="675" fill="url(#grid)"/>
-  <circle cx="993" cy="112" r="156" fill="#2baed0" opacity="0.09"/>
-  <circle cx="160" cy="563" r="210" fill="#8fd3ff" opacity="0.06"/>
+  <circle cx="1012" cy="116" r="156" fill="#2baed0" opacity="0.08"/>
+  <circle cx="150" cy="558" r="214" fill="#8fd3ff" opacity="0.055"/>
 
-  <text x="70" y="69" class="label eyebrow">Digital worker delegation matrix</text>
-  <text x="70" y="111" class="label head">Where AI work ends and human judgment begins</text>
-  <text x="70" y="145" class="label small muted">Use the matrix to assign repeatable field service work with clear review and escalation.</text>
-
-  <g filter="url(#softShadow)">
-    <rect x="58" y="190" width="330" height="402" rx="26" fill="url(#panel)" stroke="#58d8ef" stroke-opacity="0.38" stroke-width="2"/>
-    <rect x="435" y="190" width="330" height="402" rx="26" fill="url(#panel)" stroke="#58d8ef" stroke-opacity="0.38" stroke-width="2"/>
-    <rect x="812" y="190" width="330" height="402" rx="26" fill="url(#panel)" stroke="#58d8ef" stroke-opacity="0.38" stroke-width="2"/>
+  <g class="font">
+    <text x="70" y="70" class="eyebrow">DIGITAL WORKER BOUNDARY MAP</text>
+    <text x="70" y="112" class="title">Keep AI work bounded, reviewed, and escalated</text>
+    <text x="70" y="146" class="subtitle">Use this split to keep routine support visible while people retain accountability.</text>
   </g>
 
-  <g transform="translate(88 221)">
-    <circle cx="34" cy="34" r="34" fill="url(#cyan)" opacity="0.22"/>
-    <path d="M20 34h28M34 20v28" stroke="#83efff" stroke-width="5" stroke-linecap="round" filter="url(#glow)"/>
-    <text x="0" y="102" class="label head">AI-owned</text>
-    <text x="0" y="140" class="label head">routine work</text>
-    <line x1="0" y1="166" x2="270" y2="166" stroke="#6ce8ff" stroke-opacity="0.32" stroke-width="2"/>
-    <g class="label body">
-      <text x="0" y="215">Gather known records</text>
-      <text x="0" y="263">Monitor repeat triggers</text>
-      <text x="0" y="311">Prepare approved updates</text>
-      <text x="0" y="359">Log completed steps</text>
+  <g filter="url(#shadow)">
+    <rect x="68" y="194" width="330" height="404" rx="24" fill="url(#card)" stroke="#59dff4" stroke-opacity="0.42" stroke-width="2"/>
+    <rect x="435" y="194" width="330" height="404" rx="24" fill="url(#card)" stroke="#59dff4" stroke-opacity="0.42" stroke-width="2"/>
+    <rect x="802" y="194" width="330" height="404" rx="24" fill="url(#card)" stroke="#59dff4" stroke-opacity="0.42" stroke-width="2"/>
+  </g>
+
+  <g class="font">
+    <g transform="translate(100 226)">
+      <circle cx="24" cy="24" r="24" fill="#66e5f8" opacity="0.2"/>
+      <path d="M14 24h20M24 14v20" stroke="#8df2ff" stroke-width="5" stroke-linecap="round" filter="url(#glow)"/>
+      <text x="0" y="84" class="cardTitle">Routine support</text>
+      <text x="0" y="118" class="cardTitle">within guardrails</text>
+      <line x1="0" y1="145" x2="266" y2="145" stroke="#6ce8ff" stroke-opacity="0.34" stroke-width="2"/>
+      <g>
+        <rect x="10" y="157" width="246" height="42" rx="13" fill="#081722" opacity="0.46"/>
+        <rect x="10" y="209" width="246" height="42" rx="13" fill="#081722" opacity="0.46"/>
+        <rect x="10" y="261" width="246" height="42" rx="13" fill="#081722" opacity="0.46"/>
+        <rect x="10" y="313" width="246" height="42" rx="13" fill="#081722" opacity="0.46"/>
+        <text x="32" y="184" class="rowText">Known job records</text>
+        <text x="32" y="236" class="rowText">Repeat triggers</text>
+        <text x="32" y="288" class="rowText">Approved updates</text>
+        <text x="32" y="340" class="rowText">Completed work log</text>
+      </g>
+    </g>
+
+    <g transform="translate(467 226)">
+      <circle cx="24" cy="24" r="24" fill="#66e5f8" opacity="0.2"/>
+      <path d="M10 28c15-21 28-21 43 0M18 38h27" stroke="#8df2ff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+      <text x="0" y="84" class="cardTitle">AI-assisted</text>
+      <text x="0" y="118" class="cardTitle">decisions</text>
+      <line x1="0" y1="145" x2="266" y2="145" stroke="#6ce8ff" stroke-opacity="0.34" stroke-width="2"/>
+      <g>
+        <rect x="10" y="157" width="246" height="42" rx="13" fill="#081722" opacity="0.46"/>
+        <rect x="10" y="209" width="246" height="42" rx="13" fill="#081722" opacity="0.46"/>
+        <rect x="10" y="261" width="246" height="42" rx="13" fill="#081722" opacity="0.46"/>
+        <rect x="10" y="313" width="246" height="42" rx="13" fill="#081722" opacity="0.46"/>
+        <text x="32" y="184" class="rowText">Option ranking</text>
+        <text x="32" y="236" class="rowText">Missing-data flags</text>
+        <text x="32" y="288" class="rowText">Next-action prompt</text>
+        <text x="32" y="340" class="rowText">Pattern summary</text>
+      </g>
+    </g>
+
+    <g transform="translate(834 226)">
+      <circle cx="24" cy="24" r="24" fill="#66e5f8" opacity="0.2"/>
+      <path d="M24 9l18 7v15c0 14-7 23-18 31-11-8-18-17-18-31V16z" stroke="#8df2ff" stroke-width="5" fill="none" stroke-linejoin="round" filter="url(#glow)"/>
+      <text x="0" y="84" class="cardTitle">Human-owned</text>
+      <text x="0" y="118" class="cardTitle">judgment</text>
+      <line x1="0" y1="145" x2="266" y2="145" stroke="#6ce8ff" stroke-opacity="0.34" stroke-width="2"/>
+      <g>
+        <rect x="10" y="157" width="246" height="42" rx="13" fill="#081722" opacity="0.46"/>
+        <rect x="10" y="209" width="246" height="42" rx="13" fill="#081722" opacity="0.46"/>
+        <rect x="10" y="261" width="246" height="42" rx="13" fill="#081722" opacity="0.46"/>
+        <rect x="10" y="313" width="246" height="42" rx="13" fill="#081722" opacity="0.46"/>
+        <text x="32" y="184" class="rowText">Safety calls</text>
+        <text x="32" y="236" class="rowText">Customer disputes</text>
+        <text x="32" y="288" class="rowText">Policy boundaries</text>
+        <text x="32" y="340" class="rowText">Exception approval</text>
+      </g>
     </g>
   </g>
 
-  <g transform="translate(465 221)">
-    <circle cx="34" cy="34" r="34" fill="url(#cyan)" opacity="0.22"/>
-    <path d="M18 38c18-23 32-23 50 0M26 50h34" stroke="#83efff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
-    <text x="0" y="102" class="label head">AI-assisted</text>
-    <text x="0" y="140" class="label head">decisions</text>
-    <line x1="0" y1="166" x2="270" y2="166" stroke="#6ce8ff" stroke-opacity="0.32" stroke-width="2"/>
-    <g class="label body">
-      <text x="0" y="215">Rank options</text>
-      <text x="0" y="263">Flag missing data</text>
-      <text x="0" y="311">Recommend next action</text>
-      <text x="0" y="359">Surface patterns</text>
-    </g>
+  <g opacity="0.8">
+    <path d="M398 392h37" stroke="#6ce8ff" stroke-width="3" stroke-linecap="round"/>
+    <path d="M765 392h37" stroke="#6ce8ff" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="416" cy="392" r="6" fill="#6ce8ff"/>
+    <circle cx="784" cy="392" r="6" fill="#6ce8ff"/>
   </g>
 
-  <g transform="translate(842 221)">
-    <circle cx="34" cy="34" r="34" fill="url(#cyan)" opacity="0.22"/>
-    <path d="M34 17l20 8v16c0 15-8 25-20 33-12-8-20-18-20-33V25z" stroke="#83efff" stroke-width="5" fill="none" stroke-linejoin="round" filter="url(#glow)"/>
-    <text x="0" y="102" class="label head">Human-owned</text>
-    <text x="0" y="140" class="label head">judgment</text>
-    <line x1="0" y1="166" x2="270" y2="166" stroke="#6ce8ff" stroke-opacity="0.32" stroke-width="2"/>
-    <g class="label body">
-      <text x="0" y="215">Own safety calls</text>
-      <text x="0" y="263">Handle disputes</text>
-      <text x="0" y="311">Set policies</text>
-      <text x="0" y="359">Approve exceptions</text>
-    </g>
-  </g>
-
-  <g opacity="0.78">
-    <path d="M388 391h47" stroke="#6ce8ff" stroke-width="3" stroke-linecap="round"/>
-    <path d="M765 391h47" stroke="#6ce8ff" stroke-width="3" stroke-linecap="round"/>
-    <circle cx="410" cy="391" r="6" fill="#6ce8ff"/>
-    <circle cx="788" cy="391" r="6" fill="#6ce8ff"/>
-  </g>
-
-  <g transform="translate(271 619)">
-    <rect x="0" y="-24" width="658" height="42" rx="21" fill="#081722" opacity="0.72" stroke="#67e3f5" stroke-opacity="0.22"/>
-    <text x="329" y="4" text-anchor="middle" class="label small muted">Escalate when data is missing, risk rises, or accountability changes.</text>
+  <g class="font">
+    <rect x="278" y="617" width="644" height="42" rx="21" fill="#081722" opacity="0.78" stroke="#67e3f5" stroke-opacity="0.24"/>
+    <text x="600" y="644" text-anchor="middle" class="note">Escalate when data, risk, or accountability changes.</text>
   </g>
 </svg>
