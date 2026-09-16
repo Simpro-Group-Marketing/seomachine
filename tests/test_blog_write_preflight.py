@@ -94,3 +94,31 @@ def test_write_preflight_rejects_source_output_that_overwrites_an_input(
     assert protected_input.read_bytes() == original
     assert not output.exists()
     assert not classifications.exists()
+
+
+def test_write_preflight_resolves_relative_decision_collision_in_workspace(
+    tmp_path: Path,
+) -> None:
+    inventory = _write_inventory(tmp_path)
+    decision_registry = tmp_path / "context" / "source-classification-decisions.json"
+    decision_registry.parent.mkdir()
+    decision_registry.write_text('{"schema":"registry"}\n', encoding="utf-8")
+    original = decision_registry.read_bytes()
+    output = tmp_path / "research" / "write-preflight.json"
+
+    with pytest.raises(ValueError, match="cannot overwrite input"):
+        blog_write_preflight.main(
+            [
+                "--draft", "drafts/field-service-guide.md",
+                "--source-candidate-inventory", str(inventory),
+                "--classification-directory", "research/source-classifications",
+                "--source-classification-output", "context/source-classification-decisions.json",
+                "--decision-path", "context/source-classification-decisions.json",
+                "--output", str(output),
+                "--workspace-root", str(tmp_path),
+            ]
+        )
+
+    assert decision_registry.read_bytes() == original
+    assert not output.exists()
+    assert not (tmp_path / "research" / "source-classifications").exists()

@@ -32,13 +32,17 @@ def build_write_preflight_report(
     """Create classification evidence before the native writer may create a draft."""
     root = Path(workspace_root).resolve()
     draft = _workspace_path(draft_path, root=root)
-    decision = decision_path or root / SOURCE_DECISIONS_PATH
+    inventory = _collision_path(source_candidate_inventory, root=root)
+    decision = _workspace_path(
+        decision_path or root / SOURCE_DECISIONS_PATH,
+        root=root,
+    )
     source_output = validate_governance_output_path(
         _workspace_path(source_classification_output, root=root),
-        inputs=_source_inputs(source_candidate_inventory, decision),
+        inputs=_source_inputs(inventory, decision),
     )
     classification = build_preflight_report(
-        source_candidate_inventory,
+        inventory,
         classification_directory=classification_directory,
         decision_path=decision,
         workspace_root=root,
@@ -64,6 +68,11 @@ def _workspace_path(path: str | Path, *, root: Path) -> Path:
     except ValueError as error:
         raise ValueError("write preflight paths must stay in the workspace") from error
     return resolved
+
+
+def _collision_path(path: str | Path, *, root: Path) -> Path:
+    candidate = Path(path)
+    return (candidate if candidate.is_absolute() else root / candidate).resolve()
 
 
 def _source_inputs(
@@ -97,8 +106,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         args.output,
         inputs={
             **_source_inputs(
-                args.source_candidate_inventory,
-                args.decision_path or root / SOURCE_DECISIONS_PATH,
+                _collision_path(args.source_candidate_inventory, root=root),
+                _workspace_path(
+                    args.decision_path or root / SOURCE_DECISIONS_PATH,
+                    root=root,
+                ),
             ),
             "source_classification_output": args.source_classification_output,
         },
