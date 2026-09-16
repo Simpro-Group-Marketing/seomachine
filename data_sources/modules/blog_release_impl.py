@@ -20,6 +20,7 @@ try:
         begin_optimization_run,
     )
     from .release_workflow import precheck as release_precheck
+    from .release_workflow import precheck_checks
     from .release_workflow.paths import blog_release_paths, new_output_dir
     from .readiness import api as readiness_api
     from .readiness import persistence_api as readiness_persistence_api
@@ -36,6 +37,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         begin_optimization_run,
     )
     import release_workflow.precheck as release_precheck
+    import release_workflow.precheck_checks as precheck_checks
     from release_workflow.paths import blog_release_paths, new_output_dir
     import readiness.api as readiness_api
     import readiness.persistence_api as readiness_persistence_api
@@ -158,7 +160,10 @@ def _run_blog_release(
         return result
 
     with telemetry.stage("pre_bom"):
-        pre_bom = precheck_result.pre_bom or {}
+        pre_bom = precheck_checks.pre_bom_for_release(
+            precheck_result.pre_bom or {},
+            output=paths["pre_bom_report"],
+        )
         atomic_write_json(paths["pre_bom_report"], pre_bom)
 
     with telemetry.stage("provisional_bom"):

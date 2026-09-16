@@ -7,21 +7,22 @@ from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
 try:
-    from .. import optimizer_evidence
     from ..artifact_runtime.release_invocation import (
         ReleaseInvocationError,
         validate_release_invocation,
     )
     from ..blog_assembly_contract import atomic_write_json
-    from .paths import planned_output_dir, workspace_path
+    from . import precheck_checks, precheck_paths
+    from .paths import workspace_path
 except ImportError:  # pragma: no cover - supports direct script execution.
-    import optimizer_evidence
     from artifact_runtime.release_invocation import (
         ReleaseInvocationError,
         validate_release_invocation,
     )
     from blog_assembly_contract import atomic_write_json
-    from release_workflow.paths import planned_output_dir, workspace_path
+    import release_workflow.precheck_checks as precheck_checks
+    import release_workflow.precheck_paths as precheck_paths
+    from release_workflow.paths import workspace_path
 
 SCHEMA = "simpro-blog-release-precheck/v1"
 
@@ -75,47 +76,63 @@ def run_blog_release_precheck(
     provisional_builder: Callable[..., Mapping[str, Any]],
 ) -> BlogReleasePrecheckResult:
     root = Path(workspace_root).resolve()
-    report_path = _report_path(precheck_output, workspace_root=root)
+    report_path = precheck_paths.resolve_precheck_output(
+        precheck_output,
+        workspace_root=root,
+    )
+    required_files = {
+        "article": article,
+        "proof_sidecar": proof_sidecar,
+        "editorial_plan": editorial_plan,
+        "plan_review": plan_review,
+        "article_review": article_review,
+        "keyword_decision": keyword_decision,
+        "scrub_receipt": scrub_receipt,
+        "serp_evidence": serp_evidence,
+        "plan_fulfillment": plan_fulfillment,
+        "commercial_pillar_index": commercial_pillar_index,
+    }
+    optional_files = {
+        "context_request": context_request,
+        "context_pack": context_pack,
+        "context_receipt": context_receipt,
+        "customer_proof_evidence": customer_proof_evidence,
+        "fred_authority_evidence": fred_authority_evidence,
+        "paa_artifact": paa_artifact,
+        "content_brief": content_brief,
+        "user_paa_csv": user_paa_csv,
+        "answersocrates_blocker": answersocrates_blocker,
+    }
     try:
-        planned_dir = _planned_dir_for_report(output_dir, workspace_root=root)
-    except ReleaseInvocationError as error:
-        planned_dir = _safe_output_dir(output_dir, workspace_root=root)
-        _write_failure_report(
+        planned_dir = precheck_paths.validate_precheck_output_target(
             report_path,
-            run_id=run_id,
-            output_dir=planned_dir,
-            phase="invocation",
-            message=str(error),
-            blockers=[_blocker("invocation", str(error))],
+            output_dir=output_dir,
             workspace_root=root,
+            required_files=required_files,
+            optional_files=optional_files,
+            stage_receipts=stage_receipts,
+            optimizer_outputs=optimizer_outputs,
+            prior_preflight_readiness=prior_preflight_readiness,
+            agent_output_paths=agent_output_paths,
         )
+    except ReleaseInvocationError as error:
+        planned_dir = precheck_paths.safe_output_dir(output_dir, workspace_root=root)
+        if not str(error).startswith("precheck_output"):
+            _write_failure_report(
+                report_path,
+                run_id=run_id,
+                output_dir=planned_dir,
+                phase="invocation",
+                message=str(error),
+                blockers=[_blocker("invocation", str(error))],
+                workspace_root=root,
+            )
         raise
     release_stage_receipts = _release_stage_receipts(stage_receipts, scrub_receipt)
     try:
         optimized_release = validate_release_invocation(
-            required_files={
-                "article": article,
-                "proof_sidecar": proof_sidecar,
-                "editorial_plan": editorial_plan,
-                "plan_review": plan_review,
-                "article_review": article_review,
-                "keyword_decision": keyword_decision,
-                "scrub_receipt": scrub_receipt,
-                "serp_evidence": serp_evidence,
-                "plan_fulfillment": plan_fulfillment,
-                "commercial_pillar_index": commercial_pillar_index,
-            },
-            optional_files={
-                "context_request": context_request,
-                "context_pack": context_pack,
-                "context_receipt": context_receipt,
-                "customer_proof_evidence": customer_proof_evidence,
-                "fred_authority_evidence": fred_authority_evidence,
-                "paa_artifact": paa_artifact,
-                "content_brief": content_brief,
-                "user_paa_csv": user_paa_csv,
-                "answersocrates_blocker": answersocrates_blocker,
-            },
+            required_files=required_files,
+            optional_files=optional_files,
             stage_receipts=stage_receipts,
             optimizer_outputs=optimizer_outputs,
             prior_preflight_readiness=prior_preflight_readiness,
@@ -125,7 +142,7 @@ def run_blog_release_precheck(
             workspace_root=root,
         )
         if optimized_release:
-            _validate_optimizer_outputs(
+            precheck_checks.validate_optimizer_outputs(
                 optimizer_outputs,
                 article=article,
                 editorial_plan=editorial_plan,
@@ -232,7 +249,7 @@ def run_blog_release_precheck(
         )
         raise
 
-    provisional_findings = _provisional_findings(provisional)
+    provisional_findings = precheck_checks.provisional_findings(provisional)
     if provisional_findings:
         result = BlogReleasePrecheckResult(
             False,
@@ -278,10 +295,13 @@ def write_exception_report(
     phase: str,
 ) -> Path | None:
     root = Path(workspace_root).resolve(strict=False)
-    report_path = _report_path(precheck_output, workspace_root=root)
-    if report_path is None or report_path.exists():
+    report_path = precheck_paths.resolve_precheck_output(
+        precheck_output,
+        workspace_root=root,
+    )
+    if report_path is None:
         return report_path
-    output = _safe_output_dir(output_dir, workspace_root=root)
+    output = precheck_paths.safe_output_dir(output_dir, workspace_root=root)
     payload = _payload(
         run_id=run_id,
         passed=False,
@@ -294,28 +314,6 @@ def write_exception_report(
     payload["exception_type"] = type(error).__name__
     atomic_write_json(report_path, payload)
     return report_path
-
-
-def _validate_optimizer_outputs(
-    optimizer_outputs: Sequence[str | Path],
-    *,
-    article: str | Path,
-    editorial_plan: str | Path,
-    proof_sidecar: str | Path,
-    prior_preflight_readiness: str | Path | None,
-    workspace_root: Path,
-) -> None:
-    try:
-        optimizer_evidence.validate_optimizer_outputs(
-            optimizer_outputs,
-            article=article,
-            editorial_plan=editorial_plan,
-            proof_sidecar=proof_sidecar,
-            prior_preflight_readiness=prior_preflight_readiness,
-            workspace_root=workspace_root,
-        )
-    except optimizer_evidence.OptimizerEvidenceError as error:
-        raise ReleaseInvocationError(str(error)) from error
 
 
 def _write_result_report(
@@ -403,27 +401,6 @@ def _payload(
     }
 
 
-def _provisional_findings(provisional: object) -> list[dict[str, str]]:
-    findings: list[dict[str, str]] = []
-    if not isinstance(provisional, Mapping):
-        return [_blocker("provisional_bom_invalid", "Provisional BOM must be an object.")]
-    if provisional.get("schema") != "simpro-blog-assembly-bom/v2":
-        findings.append(
-            _blocker(
-                "provisional_bom_schema_invalid",
-                "Provisional BOM must use simpro-blog-assembly-bom/v2.",
-            )
-        )
-    if provisional.get("lifecycle_state") != "provisional":
-        findings.append(
-            _blocker(
-                "provisional_bom_lifecycle_invalid",
-                "Provisional BOM lifecycle_state must be provisional.",
-            )
-        )
-    return findings
-
-
 def _blockers_from_pre_bom(pre_bom: Mapping[str, Any] | None) -> list[Mapping[str, Any]]:
     if pre_bom is None:
         return []
@@ -447,40 +424,6 @@ def _release_stage_receipts(
     if all(str(receipt) != str(scrub_receipt) for receipt in receipts):
         return (scrub_receipt, *receipts)
     return receipts
-
-
-def _report_path(value: str | Path | None, *, workspace_root: Path) -> Path | None:
-    if value is None:
-        return None
-    if not isinstance(value, (str, Path)) or not str(value).strip():
-        raise ReleaseInvocationError("precheck_output path is required")
-    candidate = Path(value)
-    if not candidate.is_absolute():
-        candidate = workspace_root / candidate
-    resolved = candidate.resolve(strict=False)
-    try:
-        resolved.relative_to(workspace_root)
-    except ValueError as error:
-        raise ReleaseInvocationError("precheck_output must stay inside the workspace") from error
-    if resolved.exists() and resolved.is_dir():
-        raise ReleaseInvocationError("precheck_output must be a file path")
-    return resolved
-
-
-def _planned_dir_for_report(value: str | Path, *, workspace_root: Path) -> Path:
-    return planned_output_dir(value, workspace_root=workspace_root)
-
-
-def _safe_output_dir(value: str | Path | None, *, workspace_root: Path) -> Path:
-    if value is None:
-        return workspace_root
-    try:
-        return planned_output_dir(value, workspace_root=workspace_root)
-    except ReleaseInvocationError:
-        candidate = Path(value)
-        if not candidate.is_absolute():
-            candidate = workspace_root / candidate
-        return candidate.resolve(strict=False)
 
 
 def _run_id(value: object) -> str:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Sequence
 
@@ -11,7 +12,11 @@ try:
         ReleaseResult,
     )
     from . import blog_release_impl
-    from .release_workflow import error_reporting, precheck as release_precheck
+    from .release_workflow import (
+        error_reporting,
+        precheck as release_precheck,
+        precheck_paths,
+    )
 except ImportError:  # pragma: no cover - supports direct script execution.
     from artifact_runtime.release_invocation import (
         ReleaseInvocationError,
@@ -20,6 +25,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import blog_release_impl
     from release_workflow import error_reporting
     import release_workflow.precheck as release_precheck
+    import release_workflow.precheck_paths as precheck_paths
 
 ReleasePolicyError = blog_release_impl.ReleasePolicyError
 _run_blog_release = blog_release_impl._run_blog_release
@@ -66,6 +72,12 @@ def _report_requested_precheck_exception(
 ) -> None:
     if not (kwargs.get("precheck_output") or kwargs.get("precheck_only")):
         return
+    if isinstance(error, ReleaseInvocationError) and str(error).startswith("precheck_output"):
+        return
+    if _requested_precheck_path_is_unsafe(kwargs):
+        return
+    if _requested_precheck_is_current_failure(kwargs.get("precheck_output")):
+        return
     try:
         release_precheck.write_exception_report(
             error,
@@ -77,6 +89,84 @@ def _report_requested_precheck_exception(
         )
     except Exception:
         return
+
+
+def _requested_precheck_path_is_unsafe(kwargs: dict[str, object]) -> bool:
+    root = Path(kwargs.get("workspace_root") or Path.cwd()).resolve(strict=False)
+    output_dir = kwargs.get("output_dir")
+    if output_dir is None:
+        return False
+    try:
+        report_path = precheck_paths.resolve_precheck_output(
+            kwargs.get("precheck_output"),
+            workspace_root=root,
+        )
+        precheck_paths.validate_precheck_output_target(
+            report_path,
+            output_dir=output_dir,
+            workspace_root=root,
+            required_files=_required_collision_paths(kwargs),
+            optional_files=_optional_collision_paths(kwargs),
+            stage_receipts=tuple(kwargs.get("stage_receipts") or ()),
+            optimizer_outputs=tuple(kwargs.get("optimizer_outputs") or ()),
+            prior_preflight_readiness=kwargs.get("prior_preflight_readiness"),
+            agent_output_paths=dict(kwargs.get("agent_output_paths") or {}),
+        )
+    except ReleaseInvocationError as error:
+        return str(error).startswith("precheck_output")
+    return False
+
+
+def _required_collision_paths(kwargs: dict[str, object]) -> dict[str, str | Path]:
+    names = (
+        "article",
+        "proof_sidecar",
+        "editorial_plan",
+        "plan_review",
+        "article_review",
+        "keyword_decision",
+        "scrub_receipt",
+        "serp_evidence",
+        "plan_fulfillment",
+        "commercial_pillar_index",
+    )
+    return {
+        name: value
+        for name in names
+        if isinstance((value := kwargs.get(name)), (str, Path))
+    }
+
+
+def _optional_collision_paths(kwargs: dict[str, object]) -> dict[str, str | Path | None]:
+    names = (
+        "context_request",
+        "context_pack",
+        "context_receipt",
+        "customer_proof_evidence",
+        "fred_authority_evidence",
+        "paa_artifact",
+        "content_brief",
+        "user_paa_csv",
+        "answersocrates_blocker",
+    )
+    return {
+        name: value if isinstance(value, (str, Path)) else None
+        for name in names
+        for value in (kwargs.get(name),)
+    }
+
+
+def _requested_precheck_is_current_failure(value: object) -> bool:
+    if not isinstance(value, (str, Path)) or not str(value).strip():
+        return False
+    path = Path(value)
+    if not path.is_file():
+        return False
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return False
+    return isinstance(payload, dict) and payload.get("passed") is False
 
 
 def main(argv: Sequence[str] | None = None) -> int:

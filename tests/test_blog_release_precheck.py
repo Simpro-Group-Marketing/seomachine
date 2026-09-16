@@ -292,3 +292,121 @@ def test_release_cli_forwards_precheck_flags(tmp_path: Path):
     ) == 0
     assert observed["precheck_only"] is True
     assert observed["precheck_output"] == "research/prechecks/run-1.json"
+
+
+def test_precheck_output_inside_output_dir_is_rejected_without_writes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    _mock_passed_precheck(monkeypatch)
+    precheck_output = tmp_path / "research" / "releases" / "run" / "precheck.json"
+
+    with pytest.raises(blog_release.ReleaseInvocationError, match="precheck_output"):
+        _run(
+            tmp_path,
+            precheck_only=True,
+            precheck_output=precheck_output,
+        )
+
+    assert not precheck_output.exists()
+    assert not (tmp_path / "research" / "releases" / "run").exists()
+
+
+def test_precheck_output_cannot_overwrite_release_input(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    _mock_passed_precheck(monkeypatch)
+    inputs = _inputs(tmp_path)
+    proof_sidecar = inputs["proof_sidecar"]
+    assert isinstance(proof_sidecar, Path)
+    original = proof_sidecar.read_bytes()
+
+    with pytest.raises(blog_release.ReleaseInvocationError, match="precheck_output"):
+        _run(
+            tmp_path,
+            inputs=inputs,
+            precheck_only=True,
+            precheck_output=proof_sidecar,
+        )
+
+    assert proof_sidecar.read_bytes() == original
+    assert not (tmp_path / "research" / "releases" / "run").exists()
+
+
+def test_existing_passed_precheck_is_overwritten_by_exception_report(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    precheck_output = tmp_path / "research" / "prechecks" / "run-1.json"
+    _mock_passed_precheck(monkeypatch)
+    assert _run(
+        tmp_path,
+        precheck_only=True,
+        precheck_output=precheck_output,
+    ).exit_code == 0
+    assert json.loads(precheck_output.read_text(encoding="utf-8"))["passed"] is True
+    monkeypatch.setattr(
+        blog_release.blog_assembly_bom,
+        "build_blog_assembly_bom_from_files",
+        lambda **kwargs: (_ for _ in ()).throw(ValueError("current failure")),
+    )
+
+    with pytest.raises(ValueError, match="current failure"):
+        _run(
+            tmp_path,
+            precheck_output=precheck_output,
+        )
+
+    payload = json.loads(precheck_output.read_text(encoding="utf-8"))
+    assert payload["passed"] is False
+    assert payload["phase"] == "provisional_bom"
+    assert payload["exception_type"] == "ValueError"
+    assert payload["message"] == "current failure"
+
+
+def test_release_pre_bom_output_path_is_repaired_after_precheck(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    def preflight(*args, **kwargs):
+        return {
+            "schema": "simpro-blog-creation-preflight/v1",
+            "ready_for_bom": True,
+            "blockers": [],
+            "artifact_paths": {"output": str(Path(kwargs["output"]).resolve())},
+        }
+
+    monkeypatch.setattr(
+        blog_release.blog_creation_preflight,
+        "build_preflight_report",
+        preflight,
+    )
+    monkeypatch.setattr(
+        blog_release.blog_assembly_bom,
+        "build_blog_assembly_bom_from_files",
+        lambda **kwargs: {
+            "schema": "simpro-blog-assembly-bom/v2",
+            "lifecycle_state": "provisional",
+            "artifacts": {},
+            "workflow": {"stage_receipts": []},
+        },
+    )
+    _mock_final_release(monkeypatch)
+    inputs = _inputs(tmp_path)
+    optimizer, _, prior_readiness = _optimizer_v2(tmp_path, inputs)
+
+    result = _run(
+        tmp_path,
+        inputs=inputs,
+        optimizer_outputs=[optimizer],
+        prior_preflight_readiness=prior_readiness,
+        precheck_output=tmp_path / "research" / "prechecks" / "run-1.json",
+    )
+
+    release_pre_bom = json.loads(
+        (result.output_dir / "pre-bom-report.json").read_text(encoding="utf-8")
+    )
+    assert Path(release_pre_bom["artifact_paths"]["output"]) == (
+        result.output_dir / "pre-bom-report.json"
+    )
