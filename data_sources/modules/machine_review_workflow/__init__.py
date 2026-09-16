@@ -159,6 +159,7 @@ def collect_machine_review(
     created_at: str,
 ) -> int:
     """Collect six valid responses, or write a fail-closed collection report."""
+    Path(output_path).unlink(missing_ok=True)
     expected = _current_bindings(
         run_id=run_id,
         workflow_stage=workflow_stage,
@@ -228,6 +229,19 @@ def collect_machine_review(
         _issue(str(finding["rule_id"]), str(finding["message"]))
         for finding in check_machine_review(review)
     ]
+    changed_hashes = [
+        field
+        for field in RESPONSE_BINDING_FIELDS[5:]
+        if review.get(field) != expected[field]
+    ]
+    if changed_hashes:
+        final_issues.append(
+            _issue(
+                "machine_review_input_changed_during_collection",
+                "Final review hashes differ from the validated response bindings: "
+                + ", ".join(changed_hashes),
+            )
+        )
     if final_issues:
         _write_collection_report(
             report_path,

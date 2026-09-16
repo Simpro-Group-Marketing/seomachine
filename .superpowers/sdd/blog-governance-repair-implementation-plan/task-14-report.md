@@ -114,3 +114,71 @@ unrelated modifications in `tests/test_content_scorer_aeo_geo_gate.py` and
 `tests/test_publish_readiness.py`; they were not edited or included in this
 task. Git also reports an unrelated permission warning for
 `.testtmp-retention-final/` during status scans.
+
+## Fix Round 1
+
+### Status
+
+Implemented and verified the reviewer-requested fail-closed protections.
+
+### Changes
+
+- The collector removes any existing output review before reading current
+  bindings, so no failed collection path can leave a previous successful review
+  available to downstream BOM validation.
+- The collector compares the final review's editorial-plan, article, and proof-
+  sidecar hashes with the bindings captured before response validation. A
+  mismatch writes `draft_ready_not_release_ready`, reports
+  `machine_review_input_changed_during_collection`, returns nonzero, and leaves
+  no review output.
+- Added focused coverage for a pre-existing successful review followed by a
+  missing-role failure, input mutation between response validation and final
+  build, a blocked response, and an invalid response artifact hash.
+
+### RED Evidence
+
+Before the implementation change:
+
+```powershell
+python -m pytest tests/test_machine_review_workflow.py -q
+```
+
+Result: `2 failed, 6 passed in 0.47s`. The failures proved that a prior review
+survived a missing-role collection and that an article mutation before final
+build still returned success.
+
+### Verification
+
+```powershell
+python -m pytest tests/test_machine_review_workflow.py tests/test_machine_review.py -q
+```
+
+Result: `13 passed in 0.46s`.
+
+```powershell
+python -m pytest tests/test_blog_assembly_bom.py tests/test_blog_assembly_bom_v2.py tests/test_blog_bom_validation_package.py tests/test_bom_snapshot_store.py -q
+```
+
+Result: `81 passed in 28.73s`.
+
+```powershell
+python -m data_sources.modules.machine_review_workflow --help
+```
+
+Result: exit code `0`; all collection arguments were listed.
+
+```powershell
+python tools/check_changed_python_lines.py --base d53f960 --limit 500
+git diff --check
+```
+
+Result: both commands returned exit code `0` with no validation errors.
+
+### Scope and Concerns
+
+- No BOM construction, PM-02, PM-03, or PM-17 behavior changed.
+- Changed Python files remain under 500 physical lines:
+  `machine_review_workflow/__init__.py` is 396 lines and
+  `test_machine_review_workflow.py` is 282 lines.
+- The unrelated working-tree modifications and permission warning documented
+  above remain unchanged.
