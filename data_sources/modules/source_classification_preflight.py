@@ -13,11 +13,21 @@ from typing import Any, Sequence
 from urllib.parse import urlsplit
 
 try:
-    from .blog_assembly_contract import atomic_write_json
+    from .blog_assembly_contract import (
+        atomic_write_json,
+        load_json_object_snapshot,
+        validate_governance_output_path,
+    )
+    from .source_support.classification import validate_source_classification_binding
     from .source_support.common import SOURCE_DECISIONS_PATH
     from .source_support.persistence import write_source_classification_artifact
 except ImportError:  # pragma: no cover - supports direct script execution.
-    from blog_assembly_contract import atomic_write_json
+    from blog_assembly_contract import (
+        atomic_write_json,
+        load_json_object_snapshot,
+        validate_governance_output_path,
+    )
+    from source_support.classification import validate_source_classification_binding
     from source_support.common import SOURCE_DECISIONS_PATH
     from source_support.persistence import write_source_classification_artifact
 
@@ -61,6 +71,25 @@ def build_preflight_report(
     if missing:
         return _report(blockers=missing, artifacts=[])
 
+    destinations = [
+        (candidate, validate_governance_output_path(directory / _artifact_name(candidate.source_url)))
+        for candidate in candidates
+    ]
+    artifacts: dict[str, dict[str, str | None]] = {}
+    pending: list[tuple[SourceCandidate, Path]] = []
+    for candidate, final_path in destinations:
+        artifact = _current_classification_artifact(candidate, final_path, root=root)
+        if artifact is None:
+            pending.append((candidate, final_path))
+        else:
+            artifacts[candidate.source_url] = artifact
+
+    if not pending:
+        return _report(
+            blockers=[],
+            artifacts=[artifacts[candidate.source_url] for candidate in candidates],
+        )
+
     staged: list[tuple[SourceCandidate, Path, Path]] = []
     directory.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(
@@ -68,8 +97,7 @@ def build_preflight_report(
         prefix=".source-classification-preflight-",
     ) as temporary:
         temporary_directory = Path(temporary)
-        for candidate in candidates:
-            final_path = directory / _artifact_name(candidate.source_url)
+        for candidate, final_path in pending:
             staged_path = temporary_directory / final_path.name
             try:
                 write_source_classification_artifact(
@@ -94,16 +122,12 @@ def build_preflight_report(
         for _candidate, staged_path, final_path in staged:
             staged_path.replace(final_path)
 
-    artifacts = [
-        {
-            "source_url": candidate.source_url,
-            "decision_id": candidate.decision_id,
-            "path": final_path.relative_to(root).as_posix(),
-            "sha256": _sha256_file(final_path),
-        }
-        for candidate, _staged_path, final_path in staged
-    ]
-    return _report(blockers=[], artifacts=artifacts)
+    for candidate, _staged_path, final_path in staged:
+        artifacts[candidate.source_url] = _artifact_record(candidate, final_path, root=root)
+    return _report(
+        blockers=[],
+        artifacts=[artifacts[candidate.source_url] for candidate in candidates],
+    )
 
 
 def load_source_candidate_inventory(path: str | Path) -> tuple[SourceCandidate, ...]:
@@ -172,6 +196,47 @@ def _missing_authority_blockers(
 def _artifact_name(source_url: str) -> str:
     digest = hashlib.sha256(source_url.encode("utf-8")).hexdigest()
     return f"source-classification-{digest}.json"
+
+
+def _current_classification_artifact(
+    candidate: SourceCandidate,
+    path: Path,
+    *,
+    root: Path,
+) -> dict[str, str | None] | None:
+    if not path.is_file():
+        return None
+    try:
+        snapshot = load_json_object_snapshot(path, field="source classification artifact")
+        payload = snapshot.payload
+        source_class = payload.get("source_class")
+        record_id = payload.get("registry", {}).get("record_id")
+    except (AttributeError, ValueError):
+        return None
+    if source_class is None or record_id != candidate.decision_id:
+        return None
+    rule_id = validate_source_classification_binding(
+        source_url=candidate.source_url,
+        source_class=source_class,
+        classification_artifact=path.relative_to(root).as_posix(),
+        classification_hash=snapshot.sha256,
+        base_path=root,
+    )
+    return None if rule_id is not None else _artifact_record(candidate, path, root=root)
+
+
+def _artifact_record(
+    candidate: SourceCandidate,
+    path: Path,
+    *,
+    root: Path,
+) -> dict[str, str | None]:
+    return {
+        "source_url": candidate.source_url,
+        "decision_id": candidate.decision_id,
+        "path": path.relative_to(root).as_posix(),
+        "sha256": _sha256_file(path),
+    }
 
 
 def _sha256_file(path: Path) -> str:

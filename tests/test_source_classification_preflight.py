@@ -5,7 +5,10 @@ import json
 import subprocess
 from pathlib import Path
 
+import pytest
+
 from data_sources.modules import source_classification_preflight
+from data_sources.modules.source_support import persistence
 
 
 SOURCE_URL = "https://example.com/field-service-guidance"
@@ -183,3 +186,102 @@ def test_preflight_keeps_committed_registry_validation_intact(tmp_path: Path) ->
     assert report["ready_for_drafting"] is False
     assert report["blockers"][0]["rule_id"] == "source_classification_preflight_failed"
     assert report["classification_artifacts"] == []
+
+
+def test_preflight_reuses_a_current_classification_on_an_identical_repeat(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inventory = _write_inventory(
+        tmp_path,
+        [{"source_url": SOURCE_URL, "decision_id": DECISION_ID}],
+    )
+    decision_path = _commit_approved_decision(tmp_path)
+    output = tmp_path / "research" / "preflight.json"
+    classification_directory = tmp_path / "research" / "source-classifications"
+    arguments = [
+        "--inventory", str(inventory),
+        "--classification-directory", str(classification_directory),
+        "--decision-path", str(decision_path),
+        "--workspace-root", str(tmp_path),
+        "--output", str(output),
+    ]
+    timestamps = iter(["2026-09-16T12:00:00Z", "2026-09-16T12:00:01Z"])
+    monkeypatch.setattr(persistence, "_utc_timestamp_now", lambda: next(timestamps))
+
+    assert source_classification_preflight.main(arguments) == 0
+    first_report = output.read_bytes()
+    artifact = next(classification_directory.glob("*.json"))
+    first_artifact = artifact.read_bytes()
+
+    assert source_classification_preflight.main(arguments) == 0
+
+    assert output.read_bytes() == first_report
+    assert artifact.read_bytes() == first_artifact
+
+
+def test_preflight_blocks_an_omitted_decision_id_when_registry_exists(
+    tmp_path: Path,
+) -> None:
+    inventory = _write_inventory(tmp_path, [{"source_url": SOURCE_URL}])
+    decision_path = _commit_approved_decision(tmp_path)
+
+    report = source_classification_preflight.build_preflight_report(
+        inventory,
+        classification_directory=tmp_path / "research" / "source-classifications",
+        decision_path=decision_path,
+        workspace_root=tmp_path,
+    )
+
+    assert report["ready_for_drafting"] is False
+    assert report["blockers"][0]["rule_id"] == "source_classification_decision_missing"
+    assert not (tmp_path / "research" / "source-classifications").exists()
+
+
+def test_preflight_does_not_promote_partial_classifications(tmp_path: Path) -> None:
+    second_url = "https://example.com/second-source"
+    inventory = _write_inventory(
+        tmp_path,
+        [
+            {"source_url": SOURCE_URL, "decision_id": DECISION_ID},
+            {"source_url": second_url, "decision_id": "source:missing"},
+        ],
+    )
+    decision_path = _commit_approved_decision(tmp_path)
+    classification_directory = tmp_path / "research" / "source-classifications"
+
+    report = source_classification_preflight.build_preflight_report(
+        inventory,
+        classification_directory=classification_directory,
+        decision_path=decision_path,
+        workspace_root=tmp_path,
+    )
+
+    assert report["ready_for_drafting"] is False
+    assert report["blockers"][0]["rule_id"] == "source_classification_decision_missing"
+    assert report["blockers"][0]["source_url"] == second_url
+    assert report["classification_artifacts"] == []
+    assert not classification_directory.exists()
+
+
+@pytest.mark.parametrize("directory", ["drafts", "rewrites", "published", "review-required"])
+def test_preflight_rejects_protected_classification_destinations(
+    tmp_path: Path,
+    directory: str,
+) -> None:
+    inventory = _write_inventory(
+        tmp_path,
+        [{"source_url": SOURCE_URL, "decision_id": DECISION_ID}],
+    )
+    decision_path = _commit_approved_decision(tmp_path)
+    classification_directory = tmp_path / directory / "source-classifications"
+
+    with pytest.raises(ValueError, match="public article directory"):
+        source_classification_preflight.build_preflight_report(
+            inventory,
+            classification_directory=classification_directory,
+            decision_path=decision_path,
+            workspace_root=tmp_path,
+        )
+
+    assert not classification_directory.exists()
