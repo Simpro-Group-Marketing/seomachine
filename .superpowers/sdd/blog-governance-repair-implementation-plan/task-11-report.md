@@ -93,3 +93,42 @@ The scorer reported independent release failures for review-story identity and c
 ## Fix Round 1 Decision
 
 No production proof rule, customer-proof artifact, or subprocess internals were changed. The test was restored to its passing assertion that verifies explicit PAA transport reaches a passing AEO result, while accurately retaining the scorer's global exit `1` for independent gates.
+
+## Fix Round 4
+
+### RED Evidence
+
+Changed the scorer subprocess assertion from exit `1` to the required exit `0` before replacing the fixture, then ran:
+
+```powershell
+python -m pytest tests/test_content_scorer_cli.py -q
+```
+
+Result: failed as required for RED. The standalone PAA guard returned `0`, while the existing connector-backed Capterra fixture made the scorer return `1` with composite `84.8`, AEO/GEO `90`, and a review-story identity blocker.
+
+### Fixture Correction
+
+- Replaced the connector-backed customer-proof setup with `write_nonvault_proof_inputs` and `nonvault_customer_proof_selector._main`.
+- Generated hash-bound `simpro-nonvault-customer-proof-selector-evidence/v1` with all four roles, `--require-eeat-story`, `experience_story=none`, and substantive rejections for both ClockShark timekeeping stories.
+- Built the sidecar from the selector slate and evidence binding, an explicit no-fit E-E-A-T decision, and the existing FAQ and metric proof blocks.
+- Removed the customer-proof block and customer-story paragraph from the article fixture, refreshed `Last Updated`, and inserted the controller-proven prose and commercial link before the FAQ heading.
+- Kept both standalone PAA guard and scorer subprocess assertions at exit `0`. No production gate or scorer behavior changed.
+
+### GREEN Evidence
+
+Commands run:
+
+```powershell
+python -m pytest tests/test_content_scorer_cli.py tests/test_content_scorer_aeo_geo_gate.py tests/test_paa_provenance_guard.py -q
+python -m data_sources.modules.content_scorer --help
+python tools/check_changed_python_lines.py --base 6ca8de6 --limit 500
+git diff --check
+```
+
+Results:
+
+- Focused suite: `103 passed, 20 subtests passed`.
+- The shared fixture passed the standalone PAA guard and scorer subprocesses with exit `0`.
+- Scorer output: composite `86.6`, SEO `92`, AEO/GEO `100`, hard gates passed.
+- Module help exited `0` and listed all required PAA and assembly-date options.
+- Changed-Python-line check and `git diff --check` exited `0`.
