@@ -223,3 +223,72 @@ No known PM-02 functional concerns remain. The pre-existing unrelated edits in
 `tests/test_content_scorer_aeo_geo_gate.py` and
 `tests/test_publish_readiness.py` remain untouched and are excluded from this
 fix commit.
+
+## Fix Round 3
+
+### Status
+
+The remaining optimized-tail logical-evidence finding is fixed. Stage-evidence
+artifacts can no longer authorize the tail by repeating dummy hashes in both
+the manifest and receipt. Predecessor linkage, prior-preflight validation, and
+PM-16 collection-report validation remain intact. PM-03 and PM-17 remain out
+of scope.
+
+### Changes
+
+- The decider now recomputes `scrub_statistics` from the real `statistics`
+  payload using the compact, sorted JSON serialization emitted by
+  `content_scrubber` and requires `would_change: false`.
+- The decider recomputes `context_binding` from the complete context-binding
+  stage payload using the exact compact producer serialization.
+- Connector context evidence must use the generated `binding` and
+  `claim_use_map` payload shape.
+- Not-applicable context evidence must use the complete not-applicable payload
+  shape and must also bind `not_applicable_reason` to the normalized real
+  reason text.
+- Receipt-to-manifest equality, the stage-evidence file hash, current article
+  and sidecar bindings, and the predecessor chain are still validated before
+  optimized-tail authorization.
+- Regression coverage for scrub statistics, context binding, and the
+  not-applicable reason rebuilds internally consistent evidence artifacts and
+  receipts around dummy logical hashes. Every case now returns
+  `normal_chain_required` with `optimized_tail_receipts_invalid`.
+
+### RED Evidence
+
+Before the payload validation was implemented, the new regression produced
+two failures because forged scrub and context evidence both returned
+`optimized_tail_allowed`.
+
+### Verification
+
+```powershell
+python -m pytest tests/test_release_chain_decision.py tests/test_blog_release.py tests/test_blog_assembly_execution_evidence.py tests/test_machine_review_workflow.py tests/test_machine_review.py -q
+```
+
+Result: `49 passed in 5.03s`.
+
+Additional producer-focused verification:
+
+```powershell
+python -m pytest tests/test_release_chain_decision.py tests/test_content_scrubber.py tests/test_context_binding_guard.py -q
+```
+
+Result: `136 passed, 79 subtests passed in 10.85s`.
+
+```powershell
+python tools/check_changed_python_lines.py --base 3479caf --limit 500
+python -m ruff check data_sources/modules/release_workflow/chain_decision.py tests/test_release_chain_decision.py tests/release_chain_test_support.py
+python -m compileall -q data_sources/modules/release_workflow/chain_decision.py tests/test_release_chain_decision.py tests/release_chain_test_support.py
+git diff --check
+```
+
+All returned exit code `0`. `git diff --check` printed only expected line-ending
+warnings and no whitespace errors.
+
+### Concerns
+
+No known PM-02 functional concerns remain. The unrelated working-tree edits in
+`tests/test_content_scorer_aeo_geo_gate.py` and
+`tests/test_publish_readiness.py` remain untouched and are excluded from this
+fix commit.

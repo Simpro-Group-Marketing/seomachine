@@ -6,13 +6,7 @@ from typing import Any
 
 import pytest
 
-from data_sources.modules.blog_assembly.common import (
-    artifact_inventory_snapshots,
-    canonical_artifact,
-    canonical_json_sha256,
-    expected_blog_gate_inventory,
-    file_sha256,
-)
+from data_sources.modules.blog_assembly.common import artifact_inventory_snapshots, canonical_artifact, canonical_json_sha256, expected_blog_gate_inventory, file_sha256
 from data_sources.modules.blog_assembly_stage_receipt import (
     build_stage_receipt,
     load_stage_receipt,
@@ -35,7 +29,7 @@ from data_sources.modules.release_workflow.chain_decision import (
     OPTIMIZED_TAIL_ALLOWED,
     decide_release_chain,
 )
-from tests.release_chain_test_support import write_optimized_tail_receipts
+from tests.release_chain_test_support import rewrite_stage_receipt_evidence, write_optimized_tail_receipts
 
 def _write_text(path: Path, content: str) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -391,6 +385,50 @@ def test_tampered_receipt_chain_requires_normal_chain(tmp_path: Path) -> None:
 def test_missing_tail_evidence_requires_normal_chain(tmp_path: Path) -> None:
     inputs = _case_inputs(tmp_path)
     stage_evidence_path(inputs["stage_receipt_paths"][1]).unlink()
+
+    result = decide_release_chain(**inputs)
+
+    assert result.decision == NORMAL_CHAIN_REQUIRED
+    assert result.code == "optimized_tail_receipts_invalid"
+
+
+@pytest.mark.parametrize(
+    ("receipt_index", "evidence_label", "dummy_hash"),
+    (
+        (1, "scrub_statistics", "d" * 64),
+        (2, "context_binding", "c" * 64),
+        (2, "not_applicable_reason", "e" * 64),
+    ),
+)
+def test_dummy_logical_evidence_hash_requires_normal_chain(
+    tmp_path: Path,
+    receipt_index: int,
+    evidence_label: str,
+    dummy_hash: str,
+) -> None:
+    inputs = _case_inputs(tmp_path)
+    receipt_paths = list(inputs["stage_receipt_paths"])
+    receipt_path = receipt_paths[receipt_index]
+    receipt = load_stage_receipt(receipt_path, workspace_root=tmp_path)
+    manifest = json.loads(stage_evidence_path(receipt_path).read_text(encoding="utf-8"))
+    declared_hashes = {**receipt["evidence_hashes"], evidence_label: dummy_hash}
+    replacement = rewrite_stage_receipt_evidence(
+        receipt_path,
+        evidence_hashes=declared_hashes,
+        payload=manifest["payload"],
+        workspace_root=tmp_path,
+    )
+    if receipt_index == 1:
+        binding_path = receipt_paths[2]
+        binding = load_stage_receipt(binding_path, workspace_root=tmp_path)
+        binding_manifest = json.loads(stage_evidence_path(binding_path).read_text(encoding="utf-8"))
+        rewrite_stage_receipt_evidence(
+            binding_path,
+            evidence_hashes=binding["evidence_hashes"],
+            payload=binding_manifest["payload"],
+            workspace_root=tmp_path,
+            previous_receipt_hash=replacement["receipt_hash"],
+        )
 
     result = decide_release_chain(**inputs)
 
