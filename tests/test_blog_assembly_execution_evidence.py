@@ -102,3 +102,34 @@ def test_optimized_tail_requires_normal_chain_for_stale_agent_output(tmp_path: P
             agent_output_paths={"content-analyzer": agent_output},
             workspace_root=tmp_path,
         )
+
+
+def test_optimized_tail_validates_copied_output_omitted_from_current_paths(
+    tmp_path: Path,
+):
+    readiness, agent_output, copied_evidence = _prior_preflight_fixture(tmp_path)
+    copied_path = copied_evidence["agent_output.content-analyzer"]["path"]
+    agent_output.write_text("# Mutated diagnostics\n", encoding="utf-8")
+
+    result = resolve_execution_evidence(
+        OPTIMIZED_TAIL_RECEIPTS,
+        prior_preflight_readiness_path=readiness,
+        agent_output_paths={},
+        workspace_root=tmp_path,
+    )
+
+    assert result.decision == NORMAL_CHAIN_REQUIRED
+    assert result.evidence is None
+    assert result.stale_artifact is not None
+    assert result.stale_artifact.label == "agent_output.content-analyzer"
+    assert result.stale_artifact.path == copied_path
+    with pytest.raises(
+        ValueError,
+        match=rf"normal_chain_required.*agent_output\.content-analyzer.*{copied_path}",
+    ):
+        resolve_construction_execution_evidence(
+            OPTIMIZED_TAIL_RECEIPTS,
+            prior_preflight_readiness_path=readiness,
+            agent_output_paths={},
+            workspace_root=tmp_path,
+        )

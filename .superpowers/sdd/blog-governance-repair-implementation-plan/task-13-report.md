@@ -99,3 +99,57 @@ Git emitted only routine LF-to-CRLF working-copy warnings.
 No functional concerns. Existing unrelated working-tree edits in
 `tests/test_content_scorer_aeo_geo_gate.py` and `tests/test_publish_readiness.py`
 were not modified or staged for this task.
+
+## Fix Round 1
+
+### Reviewer Finding Addressed
+
+Optimized-tail resolution no longer skips a copied `agent_output.*` row when
+its ID is absent from `agent_output_paths`. For an omitted ID, the resolver now
+uses the copied row's recorded path and compares its current canonical path and
+SHA-256 against the copied row. A changed, missing, or otherwise unavailable
+current file returns `normal_chain_required` with the copied label and path.
+Caller-supplied agent-output paths retain their existing comparison behavior.
+
+### Regression Evidence
+
+Added
+`test_optimized_tail_validates_copied_output_omitted_from_current_paths`, which
+mutates the copied output after prior preflight, supplies an empty
+`agent_output_paths` mapping, and asserts both resolver and construction paths
+identify `agent_output.content-analyzer` and its copied path.
+
+Before the production change:
+
+```powershell
+python -m pytest tests/test_blog_assembly_execution_evidence.py::test_optimized_tail_validates_copied_output_omitted_from_current_paths -q
+```
+
+Result: `1 failed in 0.53s`; the resolver incorrectly returned
+`evidence_ready` instead of `normal_chain_required`.
+
+After the production change:
+
+```powershell
+python -m pytest tests/test_blog_assembly_execution_evidence.py -q
+```
+
+Result: `3 passed in 0.44s`.
+
+Affected optimized BOM subset:
+
+```powershell
+python -m pytest tests/test_blog_assembly_bom.py -k "optimized_bom or optimized_tail" -q
+```
+
+Result: `5 passed, 59 deselected in 7.45s`.
+
+Focused static check:
+
+```powershell
+python -m ruff check data_sources/modules/blog_assembly/execution_evidence.py tests/test_blog_assembly_execution_evidence.py
+```
+
+Result: passed.
+
+Scope remained limited to PM-15. PM-02, PM-03, and PM-17 were not changed.

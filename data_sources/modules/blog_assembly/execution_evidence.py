@@ -96,12 +96,23 @@ def _stale_agent_output(
         if not label.startswith("agent_output."):
             continue
         agent_id = label.removeprefix("agent_output.")
-        if agent_id not in agent_output_paths:
-            continue
-        current_row = canonical_artifact(
-            agent_output_paths[agent_id],
-            workspace_root=workspace_root,
+        current_path = agent_output_paths.get(
+            agent_id,
+            str(copied_row.get("path") or ""),
         )
+        try:
+            current_row = canonical_artifact(
+                current_path,
+                workspace_root=workspace_root,
+            )
+        except (OSError, TypeError, ValueError):
+            return StaleExecutionArtifact(
+                label=label,
+                path=str(current_path),
+                copied_path=str(copied_row.get("path") or ""),
+                copied_sha256=str(copied_row.get("sha256") or ""),
+                current_sha256="",
+            )
         if current_row == copied_row:
             continue
         return StaleExecutionArtifact(
