@@ -95,6 +95,18 @@ def test_blog_release_rejects_stale_optimizer_before_creating_output_directory(
             prior_preflight_readiness=prior_readiness,
         )
 
+    error_report = tmp_path / "research" / "release-errors" / "run-1.json"
+    payload = json.loads(error_report.read_text(encoding="utf-8"))
+    assert payload["schema"] == "simpro-blog-release-error/v1"
+    assert payload["run_id"] == "run-1"
+    assert payload["failure_kind"] == "exception"
+    assert payload["exception_type"] == "ReleaseInvocationError"
+    assert "optimizer_output_stale" in payload["message"]
+    assert payload["phase"] == "invocation"
+    assert payload["module"] == "blog_release"
+    assert payload["artifact"] == "blog"
+    assert payload["next_command"] == "Fix the release invocation inputs, then rerun the blog release command."
+    assert payload["reuse_status"] == "new"
     assert not (tmp_path / "research" / "releases" / "run").exists()
 
 
@@ -211,6 +223,18 @@ def test_blog_release_persists_telemetry_when_a_stage_raises(
     with pytest.raises(OSError, match="boundary failed"):
         _run(tmp_path)
 
+    error_payload = json.loads(
+        (tmp_path / "research" / "release-errors" / "run-1.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert error_payload["failure_kind"] == "exception"
+    assert error_payload["exception_type"] == "OSError"
+    assert error_payload["message"] == "boundary failed"
+    assert error_payload["phase"] == "exception"
+    assert error_payload["module"] == "blog_release"
+    assert error_payload["paths"]["output_dir"] == "research/releases/run"
+
     payload = json.loads(
         (tmp_path / "research" / "releases" / "run" / "release-telemetry.json").read_text(
             encoding="utf-8"
@@ -228,6 +252,18 @@ def test_blog_release_writes_fixed_artifacts_for_blocker_and_initial_scorecard(
     monkeypatch.setattr(blog_release.blog_creation_preflight, "build_preflight_report", lambda *a, **k: {"schema": "simpro-blog-creation-preflight/v1", "ready_for_bom": False, "blockers": [{"rule_id": "blocked"}]})
     blocked = _run(tmp_path)
     assert blocked.exit_code == 1 and (blocked.output_dir / "pre-bom-report.json").is_file()
+    error_report = tmp_path / "research" / "release-errors" / "run-1.json"
+    error_payload = json.loads(error_report.read_text(encoding="utf-8"))
+    assert error_payload["schema"] == "simpro-blog-release-error/v1"
+    assert error_payload["failure_kind"] == "nonzero_result"
+    assert error_payload["exception_type"] is None
+    assert error_payload["message"] == "pre-BOM report blocked release"
+    assert error_payload["phase"] == "pre_bom"
+    assert error_payload["module"] == "blog_release"
+    assert error_payload["artifact"] == "blog"
+    assert error_payload["next_command"] == "Inspect the pre_bom blocker artifacts, repair the blocker, then rerun the blog release command."
+    assert error_payload["reuse_status"] == "new"
+    assert error_payload["paths"]["output_dir"] == "research/releases/run"
     blocked_telemetry = json.loads(
         (blocked.output_dir / "release-telemetry.json").read_text(encoding="utf-8")
     )
@@ -443,10 +479,18 @@ def test_blog_release_forwards_nonvault_customer_proof_evidence(tmp_path: Path, 
     assert result.exit_code == 0
     assert observed == {"preflight": evidence, "bom": evidence}
 
-
-def test_blog_release_cli_exit_codes_distinguish_policy_from_operational_failure(monkeypatch: pytest.MonkeyPatch):
-    args = ["rewrites/article.md", "--run-id", "run-1", "--proof-sidecar", "research/sidecar.md", "--editorial-plan", "research/plan.json", "--plan-fulfillment", "research/fulfillment.json", "--commercial-pillar-index", "context/commercial-pillar-index.json", "--plan-review", "research/plan-review.json", "--article-review", "research/article-review.json", "--keyword-decision", "research/keyword.json", "--scrub-receipt", "research/scrub.json", "--serp-evidence", "research/serp.json", "--stage-receipt", "research/stage.json", "--workflow-mode", "rewrite", "--assembly-date", "2026-08-26", "--output-dir", "research/releases/run"]
+def test_blog_release_cli_exit_codes_distinguish_policy_from_operational_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    args = ["rewrites/article.md", "--run-id", "run-1", "--proof-sidecar", "research/sidecar.md", "--editorial-plan", "research/plan.json", "--plan-fulfillment", "research/fulfillment.json", "--commercial-pillar-index", "context/commercial-pillar-index.json", "--plan-review", "research/plan-review.json", "--article-review", "research/article-review.json", "--keyword-decision", "research/keyword.json", "--scrub-receipt", "research/scrub.json", "--serp-evidence", "research/serp.json", "--stage-receipt", "research/stage.json", "--workflow-mode", "rewrite", "--assembly-date", "2026-08-26", "--output-dir", "research/releases/run", "--workspace-root", str(tmp_path)]
     monkeypatch.setattr(blog_release, "run_blog_release", lambda **k: (_ for _ in ()).throw(ValueError("policy blocker")))
     assert blog_release.main(args) == 1
+    error_report = tmp_path / "research" / "release-errors" / "run-1.json"
+    payload = json.loads(error_report.read_text(encoding="utf-8"))
+    assert payload["failure_kind"] == "exception"
+    assert payload["exception_type"] == "ValueError"
+    assert payload["message"] == "policy blocker"
+    assert payload["phase"] == "cli"
+    assert payload["module"] == "release_cli"
+    assert payload["artifact"] == "blog"
+    assert payload["reuse_status"] == "new"
     monkeypatch.setattr(blog_release, "run_blog_release", lambda **k: (_ for _ in ()).throw(OSError("disk write failed")))
     assert blog_release.main(args) == 2

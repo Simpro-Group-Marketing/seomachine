@@ -11,12 +11,14 @@ try:
         ReleaseResult,
     )
     from . import blog_release_impl
+    from .release_workflow import error_reporting
 except ImportError:  # pragma: no cover - supports direct script execution.
     from artifact_runtime.release_invocation import (
         ReleaseInvocationError,
         ReleaseResult,
     )
     import blog_release_impl
+    from release_workflow import error_reporting
 
 ReleasePolicyError = blog_release_impl.ReleasePolicyError
 _run_blog_release = blog_release_impl._run_blog_release
@@ -32,7 +34,28 @@ def run_blog_release(**kwargs: object) -> ReleaseResult:
         from .artifact_release import run_artifact_release
     except ImportError:  # pragma: no cover - supports direct script execution.
         from artifact_release import run_artifact_release
-    return run_artifact_release(artifact_kind="blog", **kwargs)
+    try:
+        result = run_artifact_release(artifact_kind="blog", **kwargs)
+    except Exception as error:
+        error_reporting.report_exception(
+            error,
+            run_id=kwargs.get("run_id"),
+            workspace_root=kwargs.get("workspace_root") or Path.cwd(),
+            phase="invocation" if isinstance(error, ReleaseInvocationError) else "exception",
+            module="blog_release",
+            artifact="blog",
+            output_dir=kwargs.get("output_dir"),
+        )
+        raise
+    if result.exit_code != 0:
+        error_reporting.report_nonzero_result(
+            result,
+            run_id=kwargs.get("run_id"),
+            workspace_root=kwargs.get("workspace_root") or Path.cwd(),
+            module="blog_release",
+            artifact="blog",
+        )
+    return result
 
 
 def main(argv: Sequence[str] | None = None) -> int:

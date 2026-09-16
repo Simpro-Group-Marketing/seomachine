@@ -8,6 +8,11 @@ import sys
 from pathlib import Path
 from typing import Any, Callable, Sequence
 
+try:
+    from ..release_workflow import error_reporting
+except ImportError:  # pragma: no cover - supports direct script execution.
+    from release_workflow import error_reporting
+
 
 def run_release_cli(
     argv: Sequence[str] | None,
@@ -49,10 +54,13 @@ def run_release_cli(
             vault_root=args.vault_root,
         )
     except invocation_error as error:
+        _report_cli_error(args, error)
         return _error_exit(error, 2)
     except (OSError, UnicodeError) as error:
+        _report_cli_error(args, error)
         return _error_exit(error, 2)
     except (ValueError, RuntimeError) as error:
+        _report_cli_error(args, error)
         return _error_exit(error, 1)
     _print_result(result, as_json=args.json)
     return int(result.exit_code)
@@ -96,6 +104,18 @@ def _parser() -> argparse.ArgumentParser:
 def _error_exit(error: Exception, code: int) -> int:
     print(f"error: {error}", file=sys.stderr)
     return code
+
+
+def _report_cli_error(args: argparse.Namespace, error: Exception) -> None:
+    error_reporting.report_exception(
+        error,
+        run_id=args.run_id,
+        workspace_root=args.workspace_root,
+        phase="cli",
+        module="release_cli",
+        artifact="blog",
+        output_dir=args.output_dir,
+    )
 
 
 def _label_paths(
