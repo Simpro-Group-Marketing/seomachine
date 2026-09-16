@@ -9,41 +9,33 @@ from typing import Mapping, Sequence
 try:
     from . import (
         blog_creation_preflight,
-        optimizer_evidence,
         release_authorization,
     )
     from .blog_assembly_contract import atomic_write_json, validate_sha256
     from .blog_assembly import construction as blog_assembly_construction
     from .blog_assembly import finalization as blog_assembly_finalization
-    from .artifact_runtime.release_invocation import (
-        ReleaseInvocationError,
-        ReleaseResult,
-        validate_release_invocation,
-    )
+    from .artifact_runtime.release_invocation import ReleaseInvocationError, ReleaseResult
     from .release_workflow.optimization import (
         ReleasePolicyError,
         begin_optimization_run,
     )
+    from .release_workflow import precheck as release_precheck
     from .release_workflow.paths import blog_release_paths, new_output_dir
     from .readiness import api as readiness_api
     from .readiness import persistence_api as readiness_persistence_api
     from .readiness.telemetry import ReadinessTelemetry
 except ImportError:  # pragma: no cover - supports direct script execution.
     import blog_creation_preflight
-    import optimizer_evidence
     import release_authorization
     from blog_assembly_contract import atomic_write_json, validate_sha256
     import blog_assembly.construction as blog_assembly_construction
     import blog_assembly.finalization as blog_assembly_finalization
-    from artifact_runtime.release_invocation import (
-        ReleaseInvocationError,
-        ReleaseResult,
-        validate_release_invocation,
-    )
+    from artifact_runtime.release_invocation import ReleaseInvocationError, ReleaseResult
     from release_workflow.optimization import (
         ReleasePolicyError,
         begin_optimization_run,
     )
+    import release_workflow.precheck as release_precheck
     from release_workflow.paths import blog_release_paths, new_output_dir
     import readiness.api as readiness_api
     import readiness.persistence_api as readiness_persistence_api
@@ -93,59 +85,65 @@ def _run_blog_release(
     agent_output_paths: Mapping[str, str | Path] | None = None,
     workspace_root: str | Path | None = None,
     vault_root: str | Path | None = None,
+    precheck_only: bool = False,
+    precheck_output: str | Path | None = None,
 ) -> ReleaseResult:
     """Run the governed release sequence with mandatory optimization evidence."""
     root = Path(workspace_root or Path.cwd()).resolve()
     optimizer_outputs = tuple(optimizer_outputs or ())
     normalized_agent_output_paths = dict(agent_output_paths or {})
-    optimized_release = validate_release_invocation(
-        required_files={
-            "article": article,
-            "proof_sidecar": proof_sidecar,
-            "editorial_plan": editorial_plan,
-            "plan_review": plan_review,
-            "article_review": article_review,
-            "keyword_decision": keyword_decision,
-            "scrub_receipt": scrub_receipt,
-            "serp_evidence": serp_evidence,
-            "plan_fulfillment": plan_fulfillment,
-            "commercial_pillar_index": commercial_pillar_index,
-        },
-        optional_files={
-            "context_request": context_request,
-            "context_pack": context_pack,
-            "context_receipt": context_receipt,
-            "customer_proof_evidence": customer_proof_evidence,
-            "fred_authority_evidence": fred_authority_evidence,
-            "paa_artifact": paa_artifact,
-            "content_brief": content_brief,
-            "user_paa_csv": user_paa_csv,
-            "answersocrates_blocker": answersocrates_blocker,
-        },
+    if precheck_only and precheck_output is None:
+        raise ReleaseInvocationError("--precheck-output is required with --precheck-only")
+    precheck_result = release_precheck.run_blog_release_precheck(
+        article=article,
+        run_id=run_id,
+        proof_sidecar=proof_sidecar,
+        editorial_plan=editorial_plan,
+        plan_review=plan_review,
+        article_review=article_review,
+        keyword_decision=keyword_decision,
+        scrub_receipt=scrub_receipt,
+        serp_evidence=serp_evidence,
+        plan_fulfillment=plan_fulfillment,
+        commercial_pillar_index=commercial_pillar_index,
         stage_receipts=stage_receipts,
+        workflow_mode=workflow_mode,
+        assembly_date=assembly_date,
+        output_dir=output_dir,
+        context_request=context_request,
+        context_pack=context_pack,
+        context_receipt=context_receipt,
+        customer_proof_evidence=customer_proof_evidence,
+        fred_authority_evidence=fred_authority_evidence,
+        paa_artifact=paa_artifact,
+        content_brief=content_brief,
+        user_paa_csv=user_paa_csv,
+        answersocrates_blocker=answersocrates_blocker,
         optimizer_outputs=optimizer_outputs,
         prior_preflight_readiness=prior_preflight_readiness,
         agent_output_paths=normalized_agent_output_paths,
-        run_id=run_id,
-        workflow_mode=workflow_mode,
         workspace_root=root,
+        vault_root=vault_root,
+        precheck_output=precheck_output,
+        preflight_builder=blog_creation_preflight.build_preflight_report,
+        provisional_builder=blog_assembly_bom.build_blog_assembly_bom_from_files,
     )
-    if optimized_release:
-        try:
-            optimizer_evidence.validate_optimizer_outputs(
-                optimizer_outputs,
-                article=article,
-                editorial_plan=editorial_plan,
-                proof_sidecar=proof_sidecar,
-                prior_preflight_readiness=prior_preflight_readiness,
-                workspace_root=root,
-            )
-        except optimizer_evidence.OptimizerEvidenceError as error:
-            raise ReleaseInvocationError(str(error)) from error
+    if precheck_only:
+        return ReleaseResult(
+            0 if precheck_result.passed else 1,
+            precheck_result.output_dir,
+            "precheck",
+            precheck_result.message,
+        )
+    if not precheck_result.passed:
+        return ReleaseResult(
+            1,
+            precheck_result.output_dir,
+            precheck_result.phase,
+            precheck_result.message,
+        )
+    optimized_release = precheck_result.optimized_release
     destination = new_output_dir(output_dir, workspace_root=root)
-    release_stage_receipts = tuple(stage_receipts)
-    if all(str(receipt) != str(scrub_receipt) for receipt in release_stage_receipts):
-        release_stage_receipts = (scrub_receipt, *release_stage_receipts)
 
     paths = blog_release_paths(destination)
     telemetry = ReadinessTelemetry(
@@ -160,63 +158,11 @@ def _run_blog_release(
         return result
 
     with telemetry.stage("pre_bom"):
-        pre_bom = blog_creation_preflight.build_preflight_report(
-            article,
-            proof_sidecar=proof_sidecar,
-            context_request=context_request,
-            context_pack=context_pack,
-            context_receipt=context_receipt,
-            keyword_decision=keyword_decision,
-            assembly_date=assembly_date,
-            output=paths["pre_bom_report"],
-            scrub_receipt=scrub_receipt,
-            customer_proof_evidence=customer_proof_evidence,
-            fred_authority_evidence=fred_authority_evidence,
-            editorial_plan=editorial_plan,
-            serp_evidence=serp_evidence,
-            stage_receipts=release_stage_receipts,
-            paa_artifact=paa_artifact,
-            content_brief=content_brief,
-            user_paa_csv=user_paa_csv,
-            answersocrates_blocker=answersocrates_blocker,
-            workspace_root=root,
-        )
+        pre_bom = precheck_result.pre_bom or {}
         atomic_write_json(paths["pre_bom_report"], pre_bom)
-    if pre_bom.get("ready_for_bom") is not True:
-        return finish(
-            ReleaseResult(1, destination, "pre_bom", "pre-BOM report blocked release")
-        )
 
     with telemetry.stage("provisional_bom"):
-        provisional = blog_assembly_bom.build_blog_assembly_bom_from_files(
-            article_path=article,
-            validation_sidecar_path=proof_sidecar,
-            editorial_plan_path=editorial_plan,
-            keyword_decision_path=keyword_decision,
-            serp_evidence_path=serp_evidence,
-            plan_fulfillment_path=plan_fulfillment,
-            commercial_pillar_index_path=commercial_pillar_index,
-            plan_review_path=plan_review,
-            article_review_path=article_review,
-            expected_review_run_id=run_id,
-            stage_receipt_paths=release_stage_receipts,
-            workflow_mode=workflow_mode,
-            assembly_date=assembly_date,
-            paa_artifact_path=paa_artifact,
-            content_brief_path=content_brief,
-            user_paa_csv_path=user_paa_csv,
-            answersocrates_blocker_path=answersocrates_blocker,
-            context_request_path=context_request,
-            context_pack_path=context_pack,
-            context_receipt_path=context_receipt,
-            customer_proof_selector_evidence_path=customer_proof_evidence,
-            fred_authority_evidence_path=fred_authority_evidence,
-            agent_output_paths=normalized_agent_output_paths,
-            optimizer_output_paths=optimizer_outputs,
-            prior_preflight_readiness_path=prior_preflight_readiness,
-            workspace_root=root,
-            vault_root=vault_root,
-        )
+        provisional = precheck_result.provisional_bom or {}
         atomic_write_json(paths["provisional_bom"], provisional)
 
     telemetry.increment("full_readiness_executions")

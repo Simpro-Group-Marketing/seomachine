@@ -11,7 +11,7 @@ try:
         ReleaseResult,
     )
     from . import blog_release_impl
-    from .release_workflow import error_reporting
+    from .release_workflow import error_reporting, precheck as release_precheck
 except ImportError:  # pragma: no cover - supports direct script execution.
     from artifact_runtime.release_invocation import (
         ReleaseInvocationError,
@@ -19,6 +19,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     )
     import blog_release_impl
     from release_workflow import error_reporting
+    import release_workflow.precheck as release_precheck
 
 ReleasePolicyError = blog_release_impl.ReleasePolicyError
 _run_blog_release = blog_release_impl._run_blog_release
@@ -37,6 +38,7 @@ def run_blog_release(**kwargs: object) -> ReleaseResult:
     try:
         result = run_artifact_release(artifact_kind="blog", **kwargs)
     except Exception as error:
+        _report_requested_precheck_exception(error, kwargs)
         error_reporting.report_exception(
             error,
             run_id=kwargs.get("run_id"),
@@ -56,6 +58,25 @@ def run_blog_release(**kwargs: object) -> ReleaseResult:
             artifact="blog",
         )
     return result
+
+
+def _report_requested_precheck_exception(
+    error: BaseException,
+    kwargs: dict[str, object],
+) -> None:
+    if not (kwargs.get("precheck_output") or kwargs.get("precheck_only")):
+        return
+    try:
+        release_precheck.write_exception_report(
+            error,
+            run_id=kwargs.get("run_id"),
+            workspace_root=kwargs.get("workspace_root") or Path.cwd(),
+            output_dir=kwargs.get("output_dir"),
+            precheck_output=kwargs.get("precheck_output"),
+            phase="invocation" if isinstance(error, ReleaseInvocationError) else "exception",
+        )
+    except Exception:
+        return
 
 
 def main(argv: Sequence[str] | None = None) -> int:

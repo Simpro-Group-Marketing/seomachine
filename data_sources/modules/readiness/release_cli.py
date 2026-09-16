@@ -57,6 +57,8 @@ def run_release_cli(
             agent_output_paths=_label_paths(args.agent_outputs, invocation_error),
             workspace_root=args.workspace_root,
             vault_root=args.vault_root,
+            precheck_only=args.precheck_only,
+            precheck_output=args.precheck_output,
         )
     except invocation_error as error:
         _report_cli_error(args, error)
@@ -102,6 +104,8 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--agent-output", action="append", default=[], dest="agent_outputs")
     parser.add_argument("--workspace-root", default=str(Path.cwd()))
     parser.add_argument("--vault-root")
+    parser.add_argument("--precheck-only", action="store_true")
+    parser.add_argument("--precheck-output")
     parser.add_argument("--json", action="store_true")
     return parser
 

@@ -210,7 +210,7 @@ def test_blog_release_rejects_reused_output_directory(tmp_path: Path):
         _run(tmp_path)
 
 
-def test_blog_release_persists_telemetry_when_a_stage_raises(
+def test_blog_release_skips_release_directory_when_precheck_raises(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ):
@@ -234,15 +234,7 @@ def test_blog_release_persists_telemetry_when_a_stage_raises(
     assert error_payload["phase"] == "exception"
     assert error_payload["module"] == "blog_release"
     assert error_payload["paths"]["output_dir"] == "research/releases/run"
-
-    payload = json.loads(
-        (tmp_path / "research" / "releases" / "run" / "release-telemetry.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    assert payload["outcome"] == "operational_error"
-    assert payload["stages"][0]["name"] == "pre_bom"
-    assert payload["stages"][0]["outcome"] == "error"
+    assert not (tmp_path / "research" / "releases" / "run").exists()
 
 
 def test_blog_release_writes_fixed_artifacts_for_blocker_and_initial_scorecard(
@@ -251,7 +243,8 @@ def test_blog_release_writes_fixed_artifacts_for_blocker_and_initial_scorecard(
 ):
     monkeypatch.setattr(blog_release.blog_creation_preflight, "build_preflight_report", lambda *a, **k: {"schema": "simpro-blog-creation-preflight/v1", "ready_for_bom": False, "blockers": [{"rule_id": "blocked"}]})
     blocked = _run(tmp_path)
-    assert blocked.exit_code == 1 and (blocked.output_dir / "pre-bom-report.json").is_file()
+    assert blocked.exit_code == 1
+    assert not blocked.output_dir.exists()
     error_report = tmp_path / "research" / "release-errors" / "run-1.json"
     error_payload = json.loads(error_report.read_text(encoding="utf-8"))
     assert error_payload["schema"] == "simpro-blog-release-error/v1"
@@ -264,12 +257,6 @@ def test_blog_release_writes_fixed_artifacts_for_blocker_and_initial_scorecard(
     assert error_payload["next_command"] == "Inspect the pre_bom blocker artifacts, repair the blocker, then rerun the blog release command."
     assert error_payload["reuse_status"] == "new"
     assert error_payload["paths"]["output_dir"] == "research/releases/run"
-    blocked_telemetry = json.loads(
-        (blocked.output_dir / "release-telemetry.json").read_text(encoding="utf-8")
-    )
-    assert blocked_telemetry["schema"] == "simpro-readiness-telemetry/v3"
-    assert blocked_telemetry["outcome"] == "blocked"
-    assert not (blocked.output_dir / "provisional-bom.json").exists()
 
     tmp2 = tmp_path / "initial_scorecard"
     monkeypatch.setattr(blog_release.blog_creation_preflight, "build_preflight_report", lambda *a, **k: {"schema": "simpro-blog-creation-preflight/v1", "ready_for_bom": True, "blockers": []})

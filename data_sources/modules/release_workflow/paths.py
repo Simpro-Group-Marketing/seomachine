@@ -10,7 +10,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from artifact_runtime.release_invocation import ReleaseInvocationError
 
 
-def new_output_dir(path: str | Path, *, workspace_root: Path) -> Path:
+def planned_output_dir(path: str | Path, *, workspace_root: Path) -> Path:
     if not isinstance(path, (str, Path)) or not str(path).strip():
         raise ReleaseInvocationError("output_dir is required")
     candidate = Path(path)
@@ -23,6 +23,11 @@ def new_output_dir(path: str | Path, *, workspace_root: Path) -> Path:
         raise ReleaseInvocationError("output_dir must stay inside the workspace") from error
     if resolved.exists():
         raise ReleaseInvocationError("output_dir must not already exist")
+    return resolved
+
+
+def new_output_dir(path: str | Path, *, workspace_root: Path) -> Path:
+    resolved = planned_output_dir(path, workspace_root=workspace_root)
     resolved.mkdir(parents=True)
     return resolved
 
@@ -53,4 +58,4 @@ def workspace_path(path: str | Path, *, workspace_root: Path) -> str:
         return resolved.as_posix()
 
 
-__all__ = ["blog_release_paths", "new_output_dir", "workspace_path"]
+__all__ = ["blog_release_paths", "new_output_dir", "planned_output_dir", "workspace_path"]
