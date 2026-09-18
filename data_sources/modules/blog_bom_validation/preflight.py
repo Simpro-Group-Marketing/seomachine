@@ -270,7 +270,16 @@ def _check_preflight_inputs(
     except ValueError as error:
         return [_finding("bom_preflight_inputs_invalid", str(error))]
     findings: list[Finding] = []
+    allowed_extra_inputs = {
+        "customer_proof_index",
+        "customer_proof_usage_ledger",
+        "paa_raw_capture",
+        "serp_raw_capture",
+    }
     actual_bound = {key: value for key, value in inputs.items() if key != "assembly_bom"}
+    for key in (*allowed_extra_inputs, "stage_receipts[6]"):
+        if key not in expected_inputs:
+            actual_bound.pop(key, None)
     if actual_bound != expected_inputs:
         findings.append(
             _finding(

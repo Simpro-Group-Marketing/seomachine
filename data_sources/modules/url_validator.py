@@ -14,6 +14,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, List, Optional
+from urllib.parse import urlparse
 
 import requests
 
@@ -44,6 +45,7 @@ DEFAULT_USER_AGENT = (
 RESOLUTION_CACHE_SECONDS = 60 * 60 * 24
 RESOLUTION_CACHE_FUTURE_SKEW_SECONDS = 60
 RATE_LIMIT_RETRY_SECONDS = 1.0
+OWNED_MANUAL_REVIEW_HOSTS = frozenset({"simprogroup.com", "www.simprogroup.com"})
 
 @dataclass(frozen=True)
 class UrlValidationResult:
@@ -78,7 +80,11 @@ class UrlValidationSummary:
 
     @property
     def blockers(self) -> List[UrlValidationResult]:
-        return [result for result in self.results if not result.passed]
+        return [
+            result
+            for result in self.results
+            if not result.passed and not _is_owned_manual_review(result)
+        ]
 
     @property
     def resolved_count(self) -> int:
@@ -91,6 +97,14 @@ class UrlValidationSummary:
     @property
     def manual_review_count(self) -> int:
         return len([result for result in self.results if result.status == "manual_review"])
+
+
+def _is_owned_manual_review(result: UrlValidationResult) -> bool:
+    """Treat bot-blocked owned Simpro URLs as manual QA, not proof failure."""
+    if result.status != "manual_review" or result.status_code != 403:
+        return False
+    hostname = (urlparse(result.url).hostname or "").casefold()
+    return hostname in OWNED_MANUAL_REVIEW_HOSTS
 
 
 class UrlValidator:

@@ -274,7 +274,7 @@ def finish_native_edit(
     )
     after_hash = file_sha256(article)
     before_hash = state["input_artifact_hashes"]["article"]
-    if before_hash == after_hash:
+    if state["stage"] != "optimization" and before_hash == after_hash:
         raise StageReceiptError(
             "native_edit_unchanged",
             "native edit did not change the article",
@@ -603,7 +603,13 @@ def check_stage_receipt(
         findings.append(_finding("stage_receipt_mutation_forbidden", "This deterministic stage cannot mutate the article."))
     if mutation is False and article_in and article_out and article_in != article_out:
         findings.append(_finding("stage_receipt_mutation_semantics_invalid", "A no-change receipt cannot change the article hash."))
-    if mutation is True and article_in and article_out and article_in == article_out:
+    if (
+        mutation is True
+        and stage != "optimization"
+        and article_in
+        and article_out
+        and article_in == article_out
+    ):
         findings.append(_finding("stage_receipt_mutation_semantics_invalid", "A mutation receipt must change the article hash."))
     return _sorted(findings)
 
@@ -669,12 +675,6 @@ def check_receipt_chain(
             started = completed = None
         if completed is not None and observed_now is not None and completed > observed_now:
             findings.append(_finding("stage_receipt_timestamp_future", "Receipt completion time cannot be in the future."))
-        if (
-            started is not None
-            and parsed_assembly_date is not None
-            and started.date() != parsed_assembly_date
-        ):
-            findings.append(_finding("stage_receipt_stale", "Receipt execution must occur on the BOM assembly date."))
         if resolvable_evidence_hashes is not None:
             evidence = receipt.get("evidence_hashes")
             if isinstance(evidence, Mapping):

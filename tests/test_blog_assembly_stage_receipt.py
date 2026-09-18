@@ -505,18 +505,18 @@ def test_native_optimization_requires_an_existing_article(tmp_path: Path):
     assert raised.value.code == "native_edit_article_missing"
 
 
-def test_native_edit_finish_rejects_an_unchanged_article(tmp_path: Path):
+def test_native_draft_finish_rejects_an_unchanged_article(tmp_path: Path):
     article = tmp_path / "drafts" / "topic.md"
     article.parent.mkdir()
     article.write_text("# Existing\n", encoding="utf-8")
-    state_path = tmp_path / "research" / "optimization-state.json"
-    receipt_path = tmp_path / "research" / "optimization.json"
+    state_path = tmp_path / "research" / "draft-state.json"
+    receipt_path = tmp_path / "research" / "draft.json"
     stage_receipts.begin_native_edit(
         article_path=article,
         state_path=state_path,
         run_id="run-native",
-        stage="optimization",
-        tool_name="optimize-command",
+        stage="draft",
+        tool_name="rewrite-command",
         tool_version="1",
         started_at="2026-08-18T12:00:00Z",
     )
@@ -531,6 +531,39 @@ def test_native_edit_finish_rejects_an_unchanged_article(tmp_path: Path):
 
     assert raised.value.code == "native_edit_unchanged"
     assert not receipt_path.exists()
+
+
+def test_native_optimization_finish_allows_documented_noop(tmp_path: Path):
+    article = tmp_path / "drafts" / "topic.md"
+    article.parent.mkdir()
+    article.write_text("# Existing\n", encoding="utf-8")
+    evidence = tmp_path / "research" / "optimizer-output.json"
+    evidence.parent.mkdir()
+    evidence.write_text('{"schema":"simpro-optimizer-output/v2"}\n', encoding="utf-8")
+    state_path = tmp_path / "research" / "optimization-state.json"
+    receipt_path = tmp_path / "research" / "optimization.json"
+    stage_receipts.begin_native_edit(
+        article_path=article,
+        state_path=state_path,
+        run_id="run-native",
+        stage="optimization",
+        tool_name="optimize-command",
+        tool_version="1",
+        started_at="2026-08-18T12:00:00Z",
+    )
+
+    receipt = stage_receipts.finish_native_edit(
+        state_path=state_path,
+        article_path=article,
+        receipt_path=receipt_path,
+        evidence_artifacts={"optimizer_output": evidence},
+        completed_at="2026-08-18T12:01:00Z",
+    )
+
+    assert receipt["stage"] == "optimization"
+    assert receipt["mutation"] is True
+    assert receipt["input_artifact_hashes"]["article"] == receipt["output_artifact_hashes"]["article"]
+    assert receipt_path.exists()
 
 
 def test_native_edit_cli_records_draft_without_writing_public_markdown(tmp_path: Path):

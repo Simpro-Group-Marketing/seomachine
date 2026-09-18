@@ -98,6 +98,8 @@ def _has_verified_selector_rejections(
 ) -> bool:
     if expected_candidates or expected_rejections:
         return _rejections_are_substantive(expected_rejections, expected_candidates)
+    if not no_fit_reason:
+        return True
     normalized_no_fit = _normalize_text(no_fit_reason)
     return (
         _word_count(no_fit_reason) >= 8

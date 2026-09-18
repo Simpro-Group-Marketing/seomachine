@@ -272,7 +272,7 @@ def _parse_approved_metric(value: str, line: int) -> ApprovedMetric:
 
     return ApprovedMetric(
         claim=claim,
-        url=fields.get("url", "") or fields.get("proof artifact", ""),
+        url=fields.get("proof artifact", "") or fields.get("url", ""),
         evidence=_strip_wrapping_quotes(fields.get("evidence", "")),
         status=fields.get("status", ""),
         use=fields.get("use", ""),

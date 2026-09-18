@@ -8,9 +8,11 @@ from typing import Any, Mapping, Sequence
 try:
     from .. import optimizer_evidence
     from ..artifact_runtime.release_invocation import ReleaseInvocationError
+    from ..blog_assembly.common import ARCHIVED_BOM_SCHEMAS
 except ImportError:  # pragma: no cover - supports direct script execution.
     import optimizer_evidence
     from artifact_runtime.release_invocation import ReleaseInvocationError
+    from blog_assembly.common import ARCHIVED_BOM_SCHEMAS
 
 
 def validate_optimizer_outputs(
@@ -39,11 +41,11 @@ def provisional_findings(provisional: object) -> list[dict[str, str]]:
     findings: list[dict[str, str]] = []
     if not isinstance(provisional, Mapping):
         return [_blocker("provisional_bom_invalid", "Provisional BOM must be an object.")]
-    if provisional.get("schema") != "simpro-blog-assembly-bom/v2":
+    if provisional.get("schema") not in ARCHIVED_BOM_SCHEMAS:
         findings.append(
             _blocker(
                 "provisional_bom_schema_invalid",
-                "Provisional BOM must use simpro-blog-assembly-bom/v2.",
+                "Provisional BOM must use a supported Simpro blog assembly BOM schema.",
             )
         )
     if provisional.get("lifecycle_state") != "provisional":

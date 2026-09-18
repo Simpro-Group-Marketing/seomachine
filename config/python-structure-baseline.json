@@ -11,7 +11,7 @@
     },
     "data_sources/modules/blog_assembly_stage_receipt.py": {
       "_validate_native_edit_state": 12,
-      "check_receipt_chain": 23,
+      "check_receipt_chain": 22,
       "check_stage_receipt": 39
     },
     "data_sources/modules/blog_creation_preflight.py": {
@@ -286,7 +286,7 @@
     "tests/test_aeo_geo_rater.py": 1759,
     "tests/test_aeo_geo_workflow_docs.py": 470,
     "tests/test_agent_governance_docs.py": 40,
-    "tests/test_ai_copy_linter.py": 608,
+    "tests/test_ai_copy_linter.py": 663,
     "tests/test_answer_withholding_guard.py": 212,
     "tests/test_artifact_release.py": 98,
     "tests/test_artifact_runtime.py": 221,
@@ -298,7 +298,7 @@
     "tests/test_blog_assembly_bom_v2.py": 250,
     "tests/test_blog_assembly_capabilities.py": 174,
     "tests/test_blog_assembly_contract.py": 255,
-    "tests/test_blog_assembly_stage_receipt.py": 573,
+    "tests/test_blog_assembly_stage_receipt.py": 606,
     "tests/test_blog_bom_validation_package.py": 109,
     "tests/test_blog_creation_preflight.py": 575,
     "tests/test_blog_identity_guard.py": 90,
