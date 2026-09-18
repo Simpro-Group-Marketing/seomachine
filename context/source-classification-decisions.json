@@ -65,6 +65,14 @@
       "hostname": "www.clockshark.com",
       "source_class": "owned_product",
       "publisher_relationship": "owned"
+    },
+    {
+      "decision_id": "upcodes-ibc-chapter-17-special-inspections",
+      "status": "approved",
+      "source_url": "https://up.codes/s/ibc-chapter-17-special-inspections-and-tests",
+      "hostname": "up.codes",
+      "source_class": "non_competing_expert",
+      "publisher_relationship": "independent"
     }
   ]
 }
