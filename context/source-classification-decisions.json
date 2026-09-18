@@ -73,6 +73,126 @@
       "hostname": "up.codes",
       "source_class": "non_competing_expert",
       "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-agc-2026-workforce-survey",
+      "status": "approved",
+      "source_url": "https://www.agc.org/sites/default/files/users/user21902/2026%20Workforce%20Survey%20Analysis%20%284%29.pdf",
+      "hostname": "www.agc.org",
+      "source_class": "non_competing_expert",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-ca-dir-independent-contractor-faq",
+      "status": "approved",
+      "source_url": "https://www.dir.ca.gov/dlse/faq_independentcontractor.htm",
+      "hostname": "www.dir.ca.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-dol-fact-sheet-13",
+      "status": "approved",
+      "source_url": "https://www.dol.gov/agencies/whd/fact-sheets/13-flsa-employment-relationship",
+      "hostname": "www.dol.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-ecfr-part-795",
+      "status": "approved",
+      "source_url": "https://www.ecfr.gov/current/title-29/subtitle-B/chapter-V/subchapter-A/part-795",
+      "hostname": "www.ecfr.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-federalregister-ic-nprm-2026",
+      "status": "approved",
+      "source_url": "https://www.federalregister.gov/documents/2026/02/27/2026-03962/employee-or-independent-contractor-status-under-the-fair-labor-standards-act-family-and-medical",
+      "hostname": "www.federalregister.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-irs-1099-mec-instructions",
+      "status": "approved",
+      "source_url": "https://www.irs.gov/instructions/i1099mec",
+      "hostname": "www.irs.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-irs-about-form-ss-8",
+      "status": "approved",
+      "source_url": "https://www.irs.gov/forms-pubs/about-form-ss-8",
+      "hostname": "www.irs.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-irs-about-form-w-9",
+      "status": "approved",
+      "source_url": "https://www.irs.gov/forms-pubs/about-form-w-9",
+      "hostname": "www.irs.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-irs-independent-contractor-test",
+      "status": "approved",
+      "source_url": "https://www.irs.gov/businesses/small-businesses-self-employed/independent-contractor-self-employed-or-employee",
+      "hostname": "www.irs.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-naic-consumer",
+      "status": "approved",
+      "source_url": "https://content.naic.org/consumer",
+      "hostname": "content.naic.org",
+      "source_class": "non_competing_expert",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-ncci-abcs-of-experience-rating",
+      "status": "approved",
+      "source_url": "https://www.ncci.com/Articles/Documents/UW_ABC_Exp_Rating.pdf",
+      "hostname": "www.ncci.com",
+      "source_class": "non_competing_expert",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-osha-establishment-search",
+      "status": "approved",
+      "source_url": "https://www.osha.gov/ords/imis/establishment.html",
+      "hostname": "www.osha.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-osha-injury-tracking-data",
+      "status": "approved",
+      "source_url": "https://www.osha.gov/itadata",
+      "hostname": "www.osha.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-osha-multi-employer-citation-policy",
+      "status": "approved",
+      "source_url": "https://www.osha.gov/enforcement/directives/cpl-02-00-124",
+      "hostname": "www.osha.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-sba-prime-and-subcontracting",
+      "status": "approved",
+      "source_url": "https://www.sba.gov/counseling/prime-and-subcontracting/",
+      "hostname": "www.sba.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
     }
   ]
 }
