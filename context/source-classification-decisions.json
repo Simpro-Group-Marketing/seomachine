@@ -1,0 +1,70 @@
+{
+  "schema": "simpro-source-classification-decisions/v1",
+  "revision": "2026-09-18",
+  "decisions": [
+    {
+      "decision_id": "icc-ibc-2024-chapter-17-special-inspections",
+      "status": "approved",
+      "source_url": "https://codes.iccsafe.org/content/IBC2024V2.0/chapter-17-special-inspections-and-tests",
+      "hostname": "codes.iccsafe.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "osha-29cfr-1926-651-excavation-requirements",
+      "status": "approved",
+      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.651",
+      "hostname": "www.osha.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "osha-29cfr-1926-652-protective-systems",
+      "status": "approved",
+      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.652",
+      "hostname": "www.osha.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "aci-concrete-strength-acceptance-faq",
+      "status": "approved",
+      "source_url": "https://www.concrete.org/frequentlyaskedquestions.aspx?faqid=13",
+      "hostname": "www.concrete.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "astm-e1105-field-water-penetration",
+      "status": "approved",
+      "source_url": "https://store.astm.org/e1105-15r23.html",
+      "hostname": "store.astm.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "wbdg-ufgs-01-45-00-quality-control",
+      "status": "approved",
+      "source_url": "https://www.wbdg.org/dod/ufgs/ufgs-01-45-00-00-10",
+      "hostname": "www.wbdg.org",
+      "source_class": "neutral",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "clockshark-testimonial-mabrys-electrical-service",
+      "status": "approved",
+      "source_url": "https://www.clockshark.com/testimonials/mabry-s-electrical-service-inc",
+      "hostname": "www.clockshark.com",
+      "source_class": "customer_proof",
+      "publisher_relationship": "customer"
+    },
+    {
+      "decision_id": "clockshark-industries-construction-trades",
+      "status": "approved",
+      "source_url": "https://www.clockshark.com/industries/construction-trades",
+      "hostname": "www.clockshark.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
+    }
+  ]
+}
