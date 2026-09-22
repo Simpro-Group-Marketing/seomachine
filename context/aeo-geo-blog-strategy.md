@@ -534,6 +534,16 @@ Machine reviewers must preserve every `inline_required` link and every other spe
 
 When a PDF extraction or unreachable HTML fallback is necessary, also bind `Capture receipt` and `Capture receipt hash` from `simpro-source-capture-receipt/v1`. That receipt must identify the source URL, retrieval time, source and output hashes, extraction method, and exact capture tool. A locally authored evidence file without this receipt blocks readiness.
 
+### Known Vocabulary Drift
+
+Three source-class vocabularies are not yet reconciled, so two rows are currently unwritable. Do not work around this by relabelling a source to make a guard pass.
+
+- `neutral` is accepted by the classification registry but is missing from the list above. Treat the hash-bound registry export as authoritative.
+- `Claim type: regulation` and `Claim type: standard` require a `Source class` of `official`, `regulator`, `standards_body`, or `government`, but the registry classifies every government and regulator URL in this repo as `primary_authority`. No artifact can satisfy that rule today, which is why no row uses either claim type. Map a regulatory citation under the applicable general claim type and keep the official URL as the inline source.
+- The registry can emit `independent_research`, while the source-map quality gate accepts `original_research`. The two names are not interchangeable.
+
+Reconciling these vocabularies changes the release contract and needs its own review. Do not widen a guard's class list to make a single row pass.
+
 ## Drafting Rules
 
 - Open with a direct answer in the first 1-2 sentences. The answer comes before the hook.
