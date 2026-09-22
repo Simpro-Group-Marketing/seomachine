@@ -48,8 +48,8 @@ When the user runs `/research-performance [blog URL or path]`:
 7. Hash the finalized report through the receipt builder, then strictly validate the result:
 
    ```powershell
-   python data_sources/modules/post_publish_measurement_receipt.py build --metadata "[temporary measurement metadata]" --performance-report "research/performance-review-[slug]-[YYYY-MM-DD].md" [--article "[release article]" --final-bom "[final BOM]"] --output "research/performance-receipt-[slug]-[YYYY-MM-DD].json"
-   python data_sources/modules/post_publish_measurement_receipt.py check "research/performance-receipt-[slug]-[YYYY-MM-DD].json" [--article "[release article]" --final-bom "[final BOM]"] --performance-report "research/performance-review-[slug]-[YYYY-MM-DD].md" --fail-on error
+   python -m data_sources.modules.post_publish_measurement_receipt build --metadata "[temporary measurement metadata]" --performance-report "research/performance-review-[slug]-[YYYY-MM-DD].md" [--article "[release article]" --final-bom "[final BOM]"] --output "research/performance-receipt-[slug]-[YYYY-MM-DD].json"
+   python -m data_sources.modules.post_publish_measurement_receipt check "research/performance-receipt-[slug]-[YYYY-MM-DD].json" [--article "[release article]" --final-bom "[final BOM]"] --performance-report "research/performance-review-[slug]-[YYYY-MM-DD].md" --fail-on error
    ```
 
    The Markdown report and JSON receipt are the only durable target-specific workflow outputs, not public outputs; implementation metadata may be in memory or temporary storage. The validator checks the report's exact H2 contract against receipt status, requires that it reproduces every blocked source identity, property, blocker code, and blocker detail verbatim, and rejects metrics from a blocked first-party lane. Only rendered Markdown can satisfy headings, blocker evidence, or observed metrics; fenced examples and HTML comments do not count. Observed metric labels require non-empty observed values, numeric except for a non-empty query value. Blocked reports use only the documented data-only status and source rows, with no free-prose action field.

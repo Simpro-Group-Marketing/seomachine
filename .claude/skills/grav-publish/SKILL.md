@@ -62,7 +62,7 @@ If `GRAV_REPO` is unset, the publisher automatically runs in dry-run mode (no pu
 3. **Always preview first** with a dry run, and show the user the generated `article.en.md`:
 
    ```bash
-   python data_sources/modules/grav_publisher.py <path-to-draft-or-rewrite> --dry-run
+   python -m data_sources.modules.grav_publisher <path-to-draft-or-rewrite> --dry-run
    ```
 
    The preview is also written to `.grav-preview/<slug>/article.en.md` at the repo root.
@@ -70,7 +70,7 @@ If `GRAV_REPO` is unset, the publisher automatically runs in dry-run mode (no pu
 4. After the user confirms the frontmatter and slug look right (and `GRAV_REPO` is set), push:
 
    ```bash
-   python data_sources/modules/grav_publisher.py <path-to-draft-or-rewrite> --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json
+   python -m data_sources.modules.grav_publisher <path-to-draft-or-rewrite> --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json
    ```
 
 5. Report the slug, the `blogs/<slug>/article.en.md` path, and the returned commit URL.
