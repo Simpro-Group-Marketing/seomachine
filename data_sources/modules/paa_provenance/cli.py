@@ -130,17 +130,24 @@ def _record_main(
     parser.add_argument("--query", required=True)
     parser.add_argument("--collection-date", required=True)
     parser.add_argument("--run-id", required=True)
-    parser.add_argument("--raw-capture-output", required=True)
+    # Either collect a capture now, or record one an operator already captured
+    # through the approved Chrome-connector contract.
+    capture_mode = parser.add_mutually_exclusive_group(required=True)
+    capture_mode.add_argument("--raw-capture-output")
+    capture_mode.add_argument("--raw-capture-input")
     parser.add_argument("--workspace-root", required=True)
     parser.add_argument("--output", required=True)
     args = parser.parse_args(argv)
-    capture_path = collect_answersocrates_raw_capture(
-        query=args.query,
-        run_id=args.run_id,
-        raw_capture_output=args.raw_capture_output,
-        workspace_root=args.workspace_root,
-        dependencies=dependencies,
-    )
+    if args.raw_capture_input:
+        capture_path = args.raw_capture_input
+    else:
+        capture_path = collect_answersocrates_raw_capture(
+            query=args.query,
+            run_id=args.run_id,
+            raw_capture_output=args.raw_capture_output,
+            workspace_root=args.workspace_root,
+            dependencies=dependencies,
+        )
     artifact = build_answersocrates_artifact(
         raw_capture_path=capture_path,
         workspace_root=args.workspace_root,

@@ -499,6 +499,8 @@ python data_sources/modules/paa_provenance_guard.py record --query "[main questi
 
 The recorder emits `simpro-answersocrates-artifact/v1` with a nested `simpro-answersocrates-run-receipt/v1`, fixed `answersocrates_playwright_collector` version `1.0.0`, payload SHA-256, and receipt SHA-256. Handwritten labels, caller-authored captures, Markdown templates, and self-described browser blockers are invalid provenance.
 
+When the Playwright collector cannot complete a session, pass an already-collected Chrome-connector capture with `--raw-capture-input "research/answersocrates-chrome-raw-[topic-slug]-[YYYY-MM-DD].json"` in place of `--raw-capture-output`. The two flags are mutually exclusive and exactly one is required. The recorder then skips collection and validates the supplied capture's schema, execution attestation, query, collection date, and run ID exactly as it validates one it collected itself. A `simpro-answersocrates-chrome-connector-capture/v1` capture is operator-transcribed browser observation, not raw tool output, so record it as that lane and use it only when a live browser session is the only way to reach the page.
+
 ### Blocked AnswerSocrates Artifact Template
 
 Save the observed blocker before accepting a user CSV. The blocker reason must describe what the browser actually showed.
