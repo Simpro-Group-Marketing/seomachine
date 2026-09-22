@@ -19,6 +19,15 @@ from .diversity_contracts import (
     SELECTION_DECISION_HEADING_RE,
 )
 
+# Slate writers disagree on the separator between rejected candidates: the
+# nonconnector writer joins with "; " and the vault writer with ", ". Rejection
+# reasons are prose and routinely contain both. Split only where a new
+# "<proof-id>: " pair actually opens, anchored on the hyphenated proof-id slug,
+# so punctuation inside a reason stays with that reason.
+REJECTION_PAIR_SPLIT_RE = re.compile(
+    r"(?:^|[,;])\s*(?=[a-z0-9]+(?:-[a-z0-9]+)+\s*:\s)"
+)
+
 
 def _extract_customer_proof_pack(content: str) -> Optional[Dict[str, object]]:
     return _extract_bullet_block(
@@ -150,7 +159,7 @@ def _parse_proof_id_list(value: str) -> List[str]:
 def _parse_rejected_candidates(value: str) -> Dict[str, str]:
     cleaned = value.strip().strip("[]")
     rejected: Dict[str, str] = {}
-    for raw_item in cleaned.split(","):
+    for raw_item in REJECTION_PAIR_SPLIT_RE.split(cleaned):
         item = raw_item.strip()
         if not item or item.lower() in EMPTY_SELECTION_VALUES:
             continue
