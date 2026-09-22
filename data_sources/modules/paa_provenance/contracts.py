@@ -104,6 +104,16 @@ ANSWERSOCRATES_BLOCKER_SCOPES = frozenset(
 
 ANSWERSOCRATES_PAGE_URL = "https://answersocrates.com/paa-extractor"
 
+# The page the collector drives. It is deliberately NOT the same constant as
+# ANSWERSOCRATES_PAGE_URL: that value stays in ANSWERSOCRATES_PAGE_URLS so
+# captures already recorded against /paa-extractor keep validating. Only the
+# main page carries the "People Also Ask" heading observations.py requires.
+ANSWERSOCRATES_COLLECTOR_PAGE_URL = "https://answersocrates.com/"
+
+# The live control reads "Analyze Questions"; earlier labels are kept so a
+# vendor rollback does not break collection again.
+ANSWERSOCRATES_SUBMIT_BUTTON_PATTERN = "search|extract|submit|get questions|analyze"
+
 ANSWERSOCRATES_PAGE_URLS = frozenset(
     {
         ANSWERSOCRATES_PAGE_URL,
@@ -246,8 +256,10 @@ __all__ = [
     "ANSWERSOCRATES_CHROME_CONNECTOR_TOOL",
     "ANSWERSOCRATES_CLOSE_TIMEOUT_SECONDS",
     "ANSWERSOCRATES_OPEN_TIMEOUT_SECONDS",
+    "ANSWERSOCRATES_COLLECTOR_PAGE_URL",
     "ANSWERSOCRATES_PAGE_URL",
     "ANSWERSOCRATES_PAGE_URLS",
+    "ANSWERSOCRATES_SUBMIT_BUTTON_PATTERN",
     "ANSWERSOCRATES_RAW_CAPTURE_FIELDS",
     "ANSWERSOCRATES_RAW_CAPTURE_PURPOSE",
     "ANSWERSOCRATES_RAW_CAPTURE_SCHEMA",
