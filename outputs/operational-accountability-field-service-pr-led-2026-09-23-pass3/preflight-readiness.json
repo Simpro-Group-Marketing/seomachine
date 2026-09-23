@@ -1,0 +1,1276 @@
+{
+  "aeo_geo": {
+    "checks": {
+      "author_voice": {
+        "applicable": true,
+        "details": {
+          "author_policy_status": "",
+          "first_person_terms": [],
+          "has_author": false
+        },
+        "fix": "Add a source-bound named author or rewrite first-person singular judgment in an attributed or neutral channel voice. Quoted source language may remain quoted.",
+        "issue": "First-person singular author judgment appears without a named author.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "capsule_coverage": {
+        "applicable": true,
+        "details": {
+          "capsule_count": 7,
+          "coverage": 1.0,
+          "h2_count": 7,
+          "sections": [
+            {
+              "heading": "Start with one operating record",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 2,
+              "word_count": 54
+            },
+            {
+              "heading": "Use visibility to protect productivity and margin",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 3,
+              "word_count": 52
+            },
+            {
+              "heading": "The executive context behind staying close to the work",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 2,
+              "word_count": 60
+            },
+            {
+              "heading": "Where field service work starts to drift",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 3,
+              "word_count": 51
+            },
+            {
+              "heading": "Build a daily exception view",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 3,
+              "word_count": 50
+            },
+            {
+              "heading": "Use Simpro to connect the work",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 2,
+              "word_count": 50
+            },
+            {
+              "heading": "Start with one workflow this week",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 3,
+              "word_count": 52
+            }
+          ]
+        },
+        "fix": "Add a 50-60 word direct-answer paragraph immediately below the H1 and at least 60% of major H2s.",
+        "issue": "Fewer than 60% of major H2 sections have 50-60 word direct-answer capsules.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "direct_answer": {
+        "applicable": true,
+        "details": {
+          "first_two_sentences": "Field service operations software helps owners stay close to work by making job status, handoffs, documents, invoice blockers, callbacks and margin signals visible in one operating record. That operating view shows where active work is drifting early enough to protect productivity, cash flow, margin and customer experience without adding another layer of status chasing.",
+          "includes_target": true,
+          "word_count": 54
+        },
+        "fix": "Start with a concise answer that names the target query or primary keyword before the hook.",
+        "issue": "The article does not directly answer the target query in the first 1-2 sentences.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "eeat_proof": {
+        "applicable": true,
+        "details": {
+          "case_study_links": [],
+          "clockshark_workflow_links": [],
+          "experience_signals": [
+            "documented_no_fit_experience_boundary"
+          ],
+          "expertise_signals": [
+            "fred_authority"
+          ],
+          "has_documented_no_fit_boundary": true,
+          "has_experience": true,
+          "has_expertise": true,
+          "has_review_story_selection": false,
+          "review_site_links": [],
+          "simpro_product_links": [],
+          "validated_customer_experience": null
+        },
+        "fix": "Use a hash-verified customer-proof selector experience_story binding, an approved Selected Customer Proof Mining record, and the selected identity and public URL in the same visible article paragraph. A bare case-study link or self-asserted proof label does not establish Experience. If no story fits, document a substantive First-hand evidence decision with Selected: [none] in the E-E-A-T Proof Map and a matching experience_story slate row with rejected-candidate reasons. Generic review-site experience evidence and VoC themes are research inputs, not E-E-A-T story proof. Named authors and receipt-approved Fred authority are optional positive expertise signals, not required AEO pass conditions. A bare owned product link does not establish Expertise.",
+        "issue": "The draft is missing required first-hand experience proof.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "external_sources": {
+        "applicable": false,
+        "details": {
+          "external_link_count": 10,
+          "external_links": [
+            "https://www.simprogroup.com/",
+            "https://www.bmc.com/blogs/leading-vs-lagging-indicators/",
+            "https://www.youtube.com/watch?v=hSAYhv94Oq0",
+            "https://www.youtube.com/watch?v=eVlFAW3xLU8",
+            "https://www.youtube.com/watch?v=hSAYhv94Oq0",
+            "https://www.simprogroup.com/blog/field-service-metrics",
+            "https://www.simprogroup.com/",
+            "https://www.simprogroup.com/blog/field-service-operations",
+            "https://www.simprogroup.com/blog/best-field-service-management-software",
+            "https://www.techtarget.com/enterprise-software/definition/What-is-CRM-customer-relationship-management"
+          ],
+          "reason": "AEO fixed source-count scoring is disabled; release link policy owns the baseline and claim-level proof gates own additions."
+        },
+        "fix": "Use 2 distinct non-owned authority sources as the standard-post baseline. Add further claim-fit sources whenever evidence requires them, add no quota-only third source, and apply no maximum to required evidence.",
+        "issue": "External link totals are diagnostic in AEO scoring; release policy still uses a 2 distinct non-owned authority source baseline.",
+        "passed": true,
+        "severity": "info",
+        "status": "not_applicable"
+      },
+      "faq_answer_length": {
+        "applicable": true,
+        "details": {
+          "answer_lengths": [
+            {
+              "question": "What is field service software?",
+              "words": 42
+            },
+            {
+              "question": "How to streamline field service operations with software?",
+              "words": 45
+            },
+            {
+              "question": "What is the best software for field service management?",
+              "words": 44
+            },
+            {
+              "question": "What's the difference between CRM and FSM?",
+              "words": 47
+            }
+          ],
+          "failing_answers": []
+        },
+        "fix": "Rewrite each FAQ answer as a 40-60 word direct answer, then add context after it if needed.",
+        "issue": "One or more FAQ answers is outside the 40-60 word AEO snippet range.",
+        "passed": true,
+        "severity": "medium",
+        "status": "passed"
+      },
+      "faq_answer_quality": {
+        "applicable": true,
+        "details": {
+          "finding_count": 0,
+          "findings": [],
+          "prevalidated": true
+        },
+        "fix": "Lead with a supported number or range, named recommendation, definition, concrete action, or explained yes/no answer. Move limitations after the direct answer.",
+        "issue": "One or more FAQ answers opens with a generic non-answer.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "faq_policy": {
+        "applicable": true,
+        "details": {
+          "policy_status": "required",
+          "visible_faq": true
+        },
+        "fix": "Use required when a visible FAQ is planned. Use not_applicable with a rationale only when the final article has no visible FAQ.",
+        "issue": "The bound FAQ policy does not match visible FAQ content.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "faq_proof": {
+        "applicable": true,
+        "details": {
+          "finding_count": 0,
+          "findings": [],
+          "prevalidated": true
+        },
+        "fix": "Resolve each finding according to its machine-assigned citation_mode. For inline_required, add a natural descriptive anchor to an authoritative owned or non-owned source in the first visible answer paragraph, map it in the FAQ Proof Map, and do not use competitor-owned FAQ sources. For section_source_allowed, sidecar_only, or proof_not_required, satisfy the assigned mode without quota-only links; a sidecar cannot replace inline evidence when inline_required applies.",
+        "issue": "One or more FAQ answers does not satisfy its machine-assigned citation mode.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "faq_questions": {
+        "applicable": true,
+        "details": {
+          "question_count": 4,
+          "questions": [
+            "What is field service software?",
+            "How to streamline field service operations with software?",
+            "What is the best software for field service management?",
+            "What's the difference between CRM and FSM?"
+          ]
+        },
+        "fix": "Use the useful complete questions selected by the bound PAA policy, without a fixed count.",
+        "issue": "The selected FAQ/PAA section has no natural-language question headings.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "faq_structure": {
+        "applicable": true,
+        "details": {
+          "heading_present": true,
+          "unsupported_lines": []
+        },
+        "fix": "Use a recognized FAQ H2 followed by H3-H5 question headings.",
+        "issue": "FAQ-like question markup uses an unsupported structure.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "metadata": {
+        "applicable": true,
+        "details": {
+          "assembly_date": "2026-09-23",
+          "author_policy_status": "",
+          "freshness_status": "valid",
+          "has_author": false,
+          "has_last_updated": true,
+          "last_updated": "2026-09-23"
+        },
+        "fix": "Use a canonical YYYY-MM-DD last_updated value that is not later than the bound assembly date. Author metadata is optional for no-author blog workflows.",
+        "issue": "The draft is missing valid freshness metadata.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "paa_provenance": {
+        "applicable": true,
+        "details": {
+          "finding_count": 0,
+          "findings": [],
+          "prevalidated": true
+        },
+        "fix": "Pass the BOM-bound workflow mode, exact query, assembly collection date, and primary PAA artifact into the AEO rater.",
+        "issue": "PAA provenance does not match the bound workflow, query, or date.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "schema": {
+        "applicable": true,
+        "details": {
+          "author_policy_status": "",
+          "entities": [
+            "BlogPosting",
+            "BreadcrumbList",
+            "FAQPage",
+            "ImageObject for the featured image or logo",
+            "Organization as publisher reference only, not a separate full schema block",
+            "Question and Answer inside FAQPage",
+            "VideoObject"
+          ],
+          "has_supported_video_embed": true,
+          "missing_entities": [],
+          "unexpected_entities": [],
+          "unknown_entities": [],
+          "video_embed_errors": []
+        },
+        "fix": "Use exact canonical schema entity names. Include FAQPage and its Question and Answer entity only with a visible FAQ, Person only with a named author, and VideoObject only with a supported embed.",
+        "issue": "Schema notes do not match the exact conditional blog entity contract.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      }
+    },
+    "details": {
+      "capsule_count": 7,
+      "case_study_links": [],
+      "experience_signals": [
+        "documented_no_fit_experience_boundary"
+      ],
+      "expertise_signals": [
+        "fred_authority"
+      ],
+      "external_link_count": 10,
+      "faq_answer_quality_findings": [],
+      "faq_proof_findings": [],
+      "faq_question_count": 4,
+      "h2_count": 7,
+      "paa_provenance_findings": [],
+      "review_site_links": [],
+      "section_clarity": {
+        "details": {
+          "unclear_sections": []
+        },
+        "fix": "Keep one clear idea per major section, or split broad sections with focused H3s.",
+        "issue": "One or more major sections appears to cover too much without H3 structure.",
+        "passed": true,
+        "severity": "low"
+      }
+    },
+    "issues": [],
+    "passed": true,
+    "score": 100,
+    "threshold": 90
+  },
+  "artifact_kind": "blog",
+  "assembly_bom": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\outputs\\operational-accountability-field-service-pr-led-2026-09-23-pass3\\provisional-bom.json",
+  "completed_at": "2026-09-23T17:45:53.224161Z",
+  "context_pack": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-pack-operational-accountability-field-service-pr-led-2026-09-23.json",
+  "context_receipt": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-receipt-operational-accountability-field-service-pr-led-2026-09-23.json",
+  "context_request": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-request-operational-accountability-field-service-pr-led-2026-09-23.json",
+  "file": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\published\\operational-accountability-field-service-2026-09-17.md",
+  "gate_inventory": [
+    "artifact_identity",
+    "context_binding",
+    "blog_assembly_bom",
+    "public_artifact",
+    "ai_copy_linter",
+    "url_validator",
+    "public_research_links",
+    "industry_cluster_link_policy",
+    "metric_proof_pack",
+    "numeric_claim_source",
+    "faq_answer_quality",
+    "faq_proof",
+    "paa_provenance",
+    "editorial_plan",
+    "semrush_keyword_decision",
+    "blog_strategy",
+    "competitive_shortlist",
+    "hindsight_boundary",
+    "source_support",
+    "source_quality",
+    "customer_proof_diversity",
+    "review_story_identity",
+    "eeat_strength",
+    "early_artifact",
+    "answer_withholding",
+    "schema_handoff",
+    "vault_brand_language",
+    "named_feature_status",
+    "fred_authority",
+    "content_scorer",
+    "input_seal"
+  ],
+  "gates": [
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Artifact Identity",
+      "name": "artifact_identity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Context Binding",
+      "name": "context_binding",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Blog Assembly BOM",
+      "name": "blog_assembly_bom",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Public Artifact",
+      "name": "public_artifact",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "AI Copy Linter",
+      "name": "ai_copy_linter",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "URL Validator",
+      "name": "url_validator",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [
+        "line 45: public_research_inline_proof_missing - This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+        "line 48: public_research_inline_proof_missing - This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+        "line 60: public_research_inline_proof_missing - This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row."
+      ],
+      "errors": 9,
+      "findings": [
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 45,
+          "match": "| Callbacks | Repeat visits tied to unclear diagnosis, incomplete documentation or scope change | Better root-cause review and fewer preventable customer experi",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        },
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 48,
+          "match": "| Quote follow-up | Aging quotes with no next action, unanswered question or approval step | Better opportunity control before the work goes cold |",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        },
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 60,
+          "match": "The record does not remove judgment. It gives judgment better inputs: dispatch sees readiness issues, admin sees billing blockers and owners see margin movement",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        },
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 66,
+          "match": "That is why leading and lagging measures belong together. BMC's explanation of leading and lagging indicators separates signals that point forward from results ",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        },
+        {
+          "column": 1,
+          "line": 97,
+          "match": "https://www.youtube.com/watch?v=hSAYhv94Oq0",
+          "message": "The same external authority is cited repeatedly within one non-FAQ H2.",
+          "rule_id": "redundant_public_research_citation",
+          "section": "The executive context behind staying close to the work",
+          "severity": "warning",
+          "suggestion": "Keep one contextual citation for the contiguous claim cluster unless separate required claim bindings justify each occurrence."
+        },
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 101,
+          "match": "Work starts to drift in the handoffs between booking, dispatch, field execution, closeout, billing and review. Those handoffs decide how quickly the business re",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        },
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 111,
+          "match": "Margin drift deserves the same early view. Labor hours, parts use, subcontractor costs and scope changes need visibility before the job is only a completed resu",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        },
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 133,
+          "match": "The best software tie-back is not \"more oversight.\" It is fewer blind spots. Owners stay close to the work that shapes productivity, profitability, cash flow, c",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        },
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 137,
+          "match": "Start with one workflow where problems show up late: dispatch readiness, job closeout, invoice blockers, callbacks, margin drift or quote follow-up. Define the ",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        },
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 141,
+          "match": "Then adjust the view. Noisy signals need a narrower rule. Late signals need an upstream trigger. Repeated blockers need workflow improvement rather than another",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        }
+      ],
+      "label": "Public Research Links",
+      "name": "public_research_links",
+      "passed": false,
+      "warnings": 1
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Industry Cluster Link Policy",
+      "name": "industry_cluster_link_policy",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Metric Proof Pack",
+      "name": "metric_proof_pack",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Numeric Claim Source",
+      "name": "numeric_claim_source",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "FAQ Answer Quality",
+      "name": "faq_answer_quality",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "FAQ Proof",
+      "name": "faq_proof",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "PAA Provenance",
+      "name": "paa_provenance",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Editorial Plan",
+      "name": "editorial_plan",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Semrush Keyword Decision",
+      "name": "semrush_keyword_decision",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Blog Strategy",
+      "name": "blog_strategy",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [
+        "line 240: competitive_shortlist_authority_invalid - Competitive shortlist authority must be the vault connector.",
+        "line 240: competitive_shortlist_objective_mismatch - Competitive shortlist objective does not match the exact article objective.",
+        "line 240: competitive_shortlist_rows_missing - Competitive shortlist must contain at least one selected and one rejected decision."
+      ],
+      "errors": 4,
+      "findings": [
+        {
+          "column": 1,
+          "line": 240,
+          "message": "Competitive shortlist authority must be the vault connector.",
+          "rule_id": "competitive_shortlist_authority_invalid",
+          "severity": "error",
+          "suggestion": "Use public SERP pages for format research only, then select competitors from connector evidence."
+        },
+        {
+          "column": 1,
+          "line": 240,
+          "message": "Competitive shortlist objective does not match the exact article objective.",
+          "rule_id": "competitive_shortlist_objective_mismatch",
+          "severity": "error",
+          "suggestion": "Use the unchanged frontmatter objective in the shortlist decision."
+        },
+        {
+          "column": 1,
+          "line": 240,
+          "message": "Competitive shortlist must contain at least one selected and one rejected decision.",
+          "rule_id": "competitive_shortlist_rows_missing",
+          "severity": "error",
+          "suggestion": "Add objective-specific selected and rejected competitor rows."
+        },
+        {
+          "column": 1,
+          "line": 240,
+          "message": "Competitive shortlist status is not approved.",
+          "rule_id": "competitive_shortlist_status_invalid",
+          "severity": "error",
+          "suggestion": "Set Status: approved only after connector evidence and the article snapshot agree."
+        }
+      ],
+      "label": "Competitive Shortlist",
+      "name": "competitive_shortlist",
+      "passed": false,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Hindsight Boundary",
+      "name": "hindsight_boundary",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [
+        "line 35: source_claim_type_mismatch - Source Map Claim type does not fit the public claim.",
+        "line 45: general_claim_source_missing - General factual claims require a claim-fit approved Source Map row.",
+        "line 46: general_claim_source_missing - General factual claims require a claim-fit approved Source Map row."
+      ],
+      "errors": 25,
+      "findings": [
+        {
+          "column": 1,
+          "evidence": "claim-fred-FVMI-0015 selected through Fred authority selector with resource_id res-6b7481d0cd9e52d29eaf2859fbc9b6ad for selected embed.",
+          "line": 35,
+          "match": "Field service operations software helps owners stay close to work by making job status, handoffs, documents, invoice blockers, callbacks and margin signals visible in one operating record.",
+          "message": "Source Map Claim type does not fit the public claim.",
+          "proof_line": 325,
+          "proof_url": "https://www.youtube.com/watch?v=hSAYhv94Oq0",
+          "rule_id": "source_claim_type_mismatch",
+          "severity": "error",
+          "suggestion": "Set Claim type to causal or use a different supporting row."
+        },
+        {
+          "column": 1,
+          "line": 45,
+          "match": "| Callbacks | Repeat visits tied to unclear diagnosis, incomplete documentation or scope change | Better root-cause review and fewer preventable customer experience issues |",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 46,
+          "match": "| Invoicing blockers | Finished jobs sitting unbilled because records, costs or approvals are missing | Cleaner cash-flow path from completed work to invoice |",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 48,
+          "match": "| Quote follow-up | Aging quotes with no next action, unanswered question or approval step | Better opportunity control before the work goes cold |",
+          "message": "High-risk claims need an approved strict proof row with Claim, URL, Evidence, and Status: approved.",
+          "rule_id": "missing_strict_proof",
+          "severity": "error",
+          "suggestion": "Add a structured proof row with public URL, exact evidence snippet, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 50,
+          "match": "The operating habit is simple: choose the workflow, define the signal and review only the exceptions that need a business decision.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "evidence": "Vault context and homepage commercial pillar support the field service management software category and office-field workflow bridge.",
+          "line": 54,
+          "match": "One operating record gives field service owners a clearer way to see job status, schedule risk, closeout records, invoice blockers and margin signals without chasing updates across disconnected tools.",
+          "message": "Source Map Claim type does not fit the public claim.",
+          "proof_line": 328,
+          "proof_url": "https://www.simprogroup.com/",
+          "rule_id": "source_claim_type_mismatch",
+          "severity": "error",
+          "suggestion": "Set Claim type to factual or use a different supporting row."
+        },
+        {
+          "column": 1,
+          "evidence": "BMC page explains leading indicators as forward-looking and lagging indicators as backward-looking outcome measures.",
+          "line": 58,
+          "match": "An operating record changes the question from \"What happened this month?\" to \"Which active jobs need attention today?\"",
+          "message": "Source Map Claim type does not fit the public claim.",
+          "proof_line": 327,
+          "proof_url": "https://www.bmc.com/blogs/leading-vs-lagging-indicators/",
+          "rule_id": "source_claim_type_mismatch",
+          "severity": "error",
+          "suggestion": "Set Claim type to factual or use a different supporting row."
+        },
+        {
+          "column": 1,
+          "line": 60,
+          "match": "The record does not remove judgment.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "evidence": "BMC page explains leading indicators as forward-looking and lagging indicators as backward-looking outcome measures.",
+          "line": 66,
+          "match": "That is why leading and lagging measures belong together. BMC's explanation of leading and lagging indicators separates signals that point forward from results that look backward. In field service, the useful question is not whether the month-end number exists. The business needs upstream work signals that shape it",
+          "message": "Proof evidence was not found in the cited source.",
+          "proof_line": 327,
+          "proof_url": "https://www.bmc.com/blogs/leading-vs-lagging-indicators/",
+          "rule_id": "source_evidence_not_found",
+          "severity": "error",
+          "suggestion": "Replace the claim with source-visible wording, update Evidence to an exact visible snippet, or remove the claim."
+        },
+        {
+          "column": 1,
+          "evidence": "claim-fred-FVMI-0015 selected through Fred authority selector with resource_id res-6b7481d0cd9e52d29eaf2859fbc9b6ad for selected embed.",
+          "line": 84,
+          "match": "Staying close to the work means seeing those handoffs earlier, not turning the business into a running commentary on activity.",
+          "message": "Source Map Claim type does not fit the public claim.",
+          "proof_line": 325,
+          "proof_url": "https://www.youtube.com/watch?v=hSAYhv94Oq0",
+          "rule_id": "source_claim_type_mismatch",
+          "severity": "error",
+          "suggestion": "Set Claim type to definitional or use a different supporting row."
+        },
+        {
+          "column": 1,
+          "evidence": "Owned metrics article supports internal reader path for field service measures.",
+          "line": 101,
+          "match": "Work starts to drift in the handoffs between booking, dispatch, field execution, closeout, billing and review. Those handoffs decide how quickly the business responds, invoices, learns and protects margin. Owners get a better operating view by watching the work artifacts that show whether each handoff is ready for the next step",
+          "message": "Could not fetch cited source text: 403 Client Error: None for url: https://www.simprogroup.com/blog/field-service-metrics",
+          "proof_line": 330,
+          "proof_url": "https://www.simprogroup.com/blog/field-service-metrics",
+          "rule_id": "source_fetch_failed",
+          "severity": "error",
+          "suggestion": "Fix the source URL, add a local proof artifact for non-HTML evidence, or remove the claim."
+        },
+        {
+          "column": 1,
+          "line": 103,
+          "match": "A short readiness review prevents avoidable calls, route changes and customer frustration.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 103,
+          "match": "If tomorrow's schedule has missing access details, unconfirmed parts or unclear site requirements, the risk is already visible.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "evidence": "BMC page explains leading indicators as forward-looking and lagging indicators as backward-looking outcome measures.",
+          "line": 105,
+          "match": "They are the record that lets the business bill accurately, defend work quality, maintain service history and see what happened on site.",
+          "message": "Source Map Claim type does not fit the public claim.",
+          "proof_line": 327,
+          "proof_url": "https://www.bmc.com/blogs/leading-vs-lagging-indicators/",
+          "rule_id": "source_claim_type_mismatch",
+          "severity": "error",
+          "suggestion": "Set Claim type to factual or use a different supporting row."
+        },
+        {
+          "column": 1,
+          "line": 107,
+          "match": "Callbacks need a visible cause, not a reflexive label.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 107,
+          "match": "The operating record helps separate those causes so the business improves the right part of the workflow.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 109,
+          "match": "When a completed job does not move to invoice because a cost, approval or closeout note is missing, the cash-flow issue has already started.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 111,
+          "match": "Labor hours, parts use, subcontractor costs and scope changes need visibility before the job is only a completed result.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 115,
+          "match": "A daily exception view helps owners stay close to active work without reviewing every job in the same detail.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 121,
+          "match": "Monthly review connects signals to results.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "evidence": "Vault context and homepage commercial pillar support the field service management software category and office-field workflow bridge.",
+          "line": 131,
+          "match": "For measurement, the [field service metrics](https://www.simprogroup.com/blog/field-service-metrics) guide helps separate business results from the workflow signals that influence them.",
+          "message": "Source Map Claim type does not fit the public claim.",
+          "proof_line": 328,
+          "proof_url": "https://www.simprogroup.com/",
+          "rule_id": "source_claim_type_mismatch",
+          "severity": "error",
+          "suggestion": "Set Claim type to causal or use a different supporting row."
+        },
+        {
+          "column": 1,
+          "evidence": "Owned software-selection guide supports FAQ answer about choosing field service management software.",
+          "line": 133,
+          "match": "The best software tie-back is not \"more oversight.\" It is fewer blind spots. Owners stay close to the work that shapes productivity, profitability, cash flow, customer experience and margin while the business keeps moving",
+          "message": "Could not fetch cited source text: 403 Client Error: None for url: https://www.simprogroup.com/blog/best-field-service-management-software",
+          "proof_line": 331,
+          "proof_url": "https://www.simprogroup.com/blog/best-field-service-management-software",
+          "rule_id": "source_fetch_failed",
+          "severity": "error",
+          "suggestion": "Fix the source URL, add a local proof artifact for non-HTML evidence, or remove the claim."
+        },
+        {
+          "column": 1,
+          "line": 137,
+          "match": "Start with one workflow where problems show up late: dispatch readiness, job closeout, invoice blockers, callbacks, margin drift or quote follow-up. Define the signal, set the exception rule and review it daily for one week. Expand only after the operating view creates cleaner decisions and faster action for the next priority workflow",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 139,
+          "match": "If dispatch readiness is the priority, choose two or three fields that make tomorrow's schedule ready.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 141,
+          "match": "Then adjust the view. Noisy signals need a narrower rule. Late signals need an upstream trigger. Repeated blockers need workflow improvement rather than another status conversation",
+          "message": "High-risk claims need an approved strict proof row with Claim, URL, Evidence, and Status: approved.",
+          "rule_id": "missing_strict_proof",
+          "severity": "error",
+          "suggestion": "Add a structured proof row with public URL, exact evidence snippet, and approved status."
+        }
+      ],
+      "label": "Source Support",
+      "name": "source_support",
+      "passed": false,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Source Quality and Lifecycle",
+      "name": "source_quality",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Customer Proof Diversity",
+      "name": "customer_proof_diversity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Review Story Identity",
+      "name": "review_story_identity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "E-E-A-T Strength",
+      "name": "eeat_strength",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Early Artifact",
+      "name": "early_artifact",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Answer Withholding",
+      "name": "answer_withholding",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Schema Handoff",
+      "name": "schema_handoff",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Vault Brand Language",
+      "name": "vault_brand_language",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Named Feature Status",
+      "name": "named_feature_status",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Fred Voccola Authority",
+      "name": "fred_authority",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Content Scorer",
+      "name": "content_scorer",
+      "passed": true,
+      "warnings": 5
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Input Seal",
+      "name": "input_seal",
+      "passed": true,
+      "warnings": 0
+    }
+  ],
+  "input_hashes": {
+    "agent_definition.internal-linker": {
+      "path": ".claude/agents/internal-linker.md",
+      "sha256": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c"
+    },
+    "agent_definition.keyword-mapper": {
+      "path": ".claude/agents/keyword-mapper.md",
+      "sha256": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d"
+    },
+    "agent_definition.meta-creator": {
+      "path": ".claude/agents/meta-creator.md",
+      "sha256": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a"
+    },
+    "agent_definition.seo-optimizer": {
+      "path": ".claude/agents/seo-optimizer.md",
+      "sha256": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8"
+    },
+    "agent_output.internal-linker": {
+      "path": "research/agent-outputs/internal-linker-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "f7a6fa9ef7e1f1b18b9932264fd0ffb8842d4e23787e01360ffaa89046b91b45"
+    },
+    "agent_output.keyword-mapper": {
+      "path": "research/agent-outputs/keyword-mapper-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "b17f814887ab796ee3fc1b1d45a4dd73335d4495e0ee510ad75e3886ccd890ac"
+    },
+    "agent_output.meta-creator": {
+      "path": "research/agent-outputs/meta-creator-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "4ae071a8ec3770a4fa07c11bd9cfaaf8dc8372de09525211e33fba42e1067761"
+    },
+    "agent_output.seo-optimizer": {
+      "path": "research/agent-outputs/seo-optimizer-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "ff0344f80de17b9e6f2805c9e33f0eba722075c655f29f51142c62fea16e1ab7"
+    },
+    "article": {
+      "path": "published/operational-accountability-field-service-2026-09-17.md",
+      "sha256": "bba47c191074a7375887a5795c4fc3a4b1ffb2f1b8d3e20a347aebc989c61196"
+    },
+    "assembly_bom": {
+      "path": "outputs/operational-accountability-field-service-pr-led-2026-09-23-pass3/provisional-bom.json",
+      "sha256": "3a13a766b9526a5e323a8a370f1a35a6d0c1afbd0de7be6924c5d9b210b9310f"
+    },
+    "command_definition.rewrite-command": {
+      "path": ".claude/commands/rewrite.md",
+      "sha256": "e79221092f9b56213836ec37a70375fb4a5cf43ec75bc159cfd1d36d88575a56"
+    },
+    "commercial_pillar_index": {
+      "path": "context/commercial-pillar-index.json",
+      "sha256": "d122dbbab6c9f1dfa13715345bc9278f6a33b4e81f10bc4b17d410dc5da8a6f6"
+    },
+    "context_pack": {
+      "path": "research/context-pack-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "701940a84ac49210c80d2743a86888d9d0897a74c85fb5b12928d8a7fc0b6618"
+    },
+    "context_receipt": {
+      "path": "research/context-receipt-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "78e1558139c36fbb2c11a025f691289a86576fd00539fbfe9cfb7c0c223e5441"
+    },
+    "context_request": {
+      "path": "research/context-request-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "938d35038cae8795c66195caf7773d20048a9e2da51c103157c2ecaa34cc58b5"
+    },
+    "customer_proof_index": {
+      "path": "context/customer-proof-index.json",
+      "sha256": "fee695a0b32d20c3c12c155a590979f4352b3170925fe6f87654b75282125c62"
+    },
+    "customer_proof_selector_evidence": {
+      "path": "research/customer-proof-selector-evidence-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "02c157c2a0bc6d7bee8ba105aa9ea64cce67d808e04bad6a9e9b6aa12d0979c2"
+    },
+    "customer_proof_usage_ledger": {
+      "path": "context/customer-proof-usage-ledger.json",
+      "sha256": "a094f1c09757645a95da80b6666e9d6d4c72aaeb5e71ce307a3843960d098cad"
+    },
+    "editorial_plan": {
+      "path": "research/editorial-plan-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "46de798dd47114f718114fe57f66050c7e663afb28e71a4d29f2c1694323dc30"
+    },
+    "fred_authority_evidence": {
+      "path": "research/fred-authority-evidence-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "46a7d678aa878d8bd446d79721804c5e1eb40c35bc4beeb2c48a30d4721957d2"
+    },
+    "keyword_decision": {
+      "path": "research/semrush-keyword-decision-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "4baaa3e2d40f1eec65749da86b61184b8ae7075959e452846363a17720825cdf"
+    },
+    "machine_reviews.article": {
+      "path": "research/machine-review-article-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "74efb94bd99b210059f44a8495434ecab3ed1567eeb7db894645715b462cb857"
+    },
+    "machine_reviews.plan": {
+      "path": "research/machine-review-plan-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "8c25df99604e647175865474b0bddc7d8c0ad6982d81d4484d3f43edcb6ee9fa"
+    },
+    "paa_artifact": {
+      "path": "research/paa-questions-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "28c3f7293d3e8e0a82e4f96ea77cbc01711b52a7e4e8d289dd8bc03a1dce0127"
+    },
+    "paa_raw_capture": {
+      "path": "research/answersocrates-chrome-raw-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "5e127ea817427fff8502713f654247fa450e6f798e1ad95310f885b8124fe0e1"
+    },
+    "plan_fulfillment": {
+      "path": "research/blog-plan-fulfillment-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "a80c48e2aefd8ebee4207563ee42aa673f51a975010ceff1a45802f045196694"
+    },
+    "serp_evidence": {
+      "path": "research/serp-evidence-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "c073e7b660d4b1bc1f1561746944c9de4951fddb490e18dda139afa161e537ae"
+    },
+    "serp_raw_capture": {
+      "path": "research/serp-chrome-raw-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "11f0b7f795d5d4958f5689cc86dd55c835671b707f532202f7a6a335e8470a54"
+    },
+    "source_decision_registry": {
+      "path": "context/source-classification-decisions.json",
+      "sha256": "8beefea13de55bf1df63b92ac61ad896113cf48ddf55dd711c362569848162b8"
+    },
+    "stage_evidence[0]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-scrub-2026-09-23-evidence.json",
+      "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+    },
+    "stage_evidence[1]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-context-binding-2026-09-23-evidence.json",
+      "sha256": "23613760185be0671ea19909447e0f90471534322b84f00ecc59ebe91ed50c26"
+    },
+    "stage_receipts[0]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-draft-2026-09-23.json",
+      "sha256": "16c901c4f314b40c86344de84461a56a1576517a6e4089354855bc0c693d6dc3"
+    },
+    "stage_receipts[1]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-scrub-2026-09-23.json",
+      "sha256": "dc1759c10ef5534643a2a07981f7e061ce78e7962e236656b46a44ea41c8e73c"
+    },
+    "stage_receipts[2]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-context-binding-2026-09-23.json",
+      "sha256": "cb686966211c2f2d6dfde70699cb0d92c4319fa33986a1363e89e1d47cb0c57e"
+    },
+    "validation_sidecar": {
+      "path": "research/validation-operational-accountability-field-service-2026-09-23.md",
+      "sha256": "6b4cf8b37ffc2f3176035e4021dccb34c2463c3022a905c4f5e93c4b4c91d49e"
+    }
+  },
+  "input_seal": {
+    "status": "verified"
+  },
+  "passed": false,
+  "phase": "preflight",
+  "priority_fixes": [
+    {
+      "dimension": "humanity",
+      "dimension_score": 90,
+      "fix": "Use contractions like don't, can't, you're, it's",
+      "impact": 3.0,
+      "issue": "Lacks contractions (sounds formal)",
+      "severity": "low"
+    },
+    {
+      "dimension": "seo",
+      "dimension_score": 92,
+      "fix": "Primary keyword is missing from H2 headings. Add it to one relevant H2 where the wording is natural.",
+      "impact": 1.2,
+      "issue": "Primary keyword is missing from H2 headings. Add it to one relevant H2 where the wording is natural.",
+      "severity": "medium"
+    },
+    {
+      "dimension": "seo",
+      "dimension_score": 92,
+      "fix": "Meta title too short (41 chars). Target is 50-60 chars.",
+      "impact": 1.2,
+      "issue": "Meta title too short (41 chars). Target is 50-60 chars.",
+      "severity": "medium"
+    },
+    {
+      "dimension": "seo",
+      "dimension_score": 92,
+      "fix": "Primary keyword 'field service operations software' not in meta title",
+      "impact": 1.2,
+      "issue": "Primary keyword 'field service operations software' not in meta title",
+      "severity": "medium"
+    },
+    {
+      "dimension": "seo",
+      "dimension_score": 92,
+      "fix": "Primary keyword 'field service operations software' not in meta description",
+      "impact": 1.2,
+      "issue": "Primary keyword 'field service operations software' not in meta description",
+      "severity": "low"
+    }
+  ],
+  "proof_sidecar": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\validation-operational-accountability-field-service-2026-09-23.md",
+  "run_id": "80e44117-293a-480c-9100-ea4359c4ec9f",
+  "schema": "simpro-publish-readiness-result/v1",
+  "score": 93.6,
+  "score_threshold": 85,
+  "scorecard": {
+    "aeo_geo": {
+      "passed": true,
+      "score": 100,
+      "threshold": 90
+    },
+    "content_quality": {
+      "passed": true,
+      "score": 93.6,
+      "threshold": 85
+    },
+    "passed": true,
+    "seo_quality": {
+      "critical_issue_count": 0,
+      "passed": true,
+      "score": 92,
+      "target": 95,
+      "target_met": false,
+      "target_status": "below_target",
+      "threshold": 90
+    }
+  },
+  "started_at": "2026-09-23T17:45:20.700382Z",
+  "tool": {
+    "name": "publish_readiness",
+    "version": "1.0.0"
+  },
+  "verification_scope": "source_artifact"
+}

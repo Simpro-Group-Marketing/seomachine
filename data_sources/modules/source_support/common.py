@@ -244,7 +244,16 @@ GENERAL_CLAIM_PATTERNS = (
         "causal",
         re.compile(
             r"\b(?:causes?|leads? to|results? in|because of|therefore|drives?|"
-            r"contributes? to|helps?|improves?|reduces?|increases?|decreases?|prevents?|"
+            # "help" is also the noun in vendor destination names such as
+            # "help article", "help centre" and "help guide". Only the bare
+            # noun form takes that exemption: the inflected verb "helps" is
+            # always causal, so "helps guide the technician" and "helps pages
+            # load faster" still register as claims. Nouns listed here are the
+            # ones the article corpus actually uses.
+            r"contributes? to|helps|"
+            r"help(?![\s-]+(?:articles?|cent(?:re|er)s?|guides?|desks?|"
+            r"pages?|docs|documentation|content))|"
+            r"improves?|reduces?|increases?|decreases?|prevents?|"
             r"enables?|boosts?|cuts?|streamlines?)\b",
             re.IGNORECASE,
         ),

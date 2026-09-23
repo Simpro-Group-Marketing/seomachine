@@ -1,6 +1,6 @@
 {
   "schema_version": "commercial-pillar-index/v1",
-  "updated_at": "2026-09-08",
+  "updated_at": "2026-09-18",
   "records": [
     {
       "destination_id": "simpro-us-homepage-field-service-management-software",
@@ -154,6 +154,44 @@
         "wiki/messaging/Simpro Core Messaging Repository.md",
         "wiki/verticals/Vertical Profile Library.md",
         "wiki/features/source-docs/simpro-plumbing-datasheet-us-pdf-1itp8xk2.md"
+      ],
+      "status": "verified"
+    },
+    {
+      "destination_id": "simpro-uk-homepage-field-service-management-software",
+      "brand": "Simpro",
+      "market": "UK",
+      "pillar_type": "homepage",
+      "canonical_url": "https://www.simprogroup.com/",
+      "page_title": "Field Service Management Software | Simpro AI-First Platform",
+      "title_checked": "2026-09-18",
+      "title_valid_through": "2026-12-17",
+      "main_keyword": "field service management software",
+      "semrush_database": "uk",
+      "semrush_report": "phrase_these",
+      "semrush_checked": "2026-09-18",
+      "semrush_valid_through": "2026-12-17",
+      "semrush_result_status": "exact",
+      "volume": 1900,
+      "keyword_difficulty": 27,
+      "evidence_path": [
+        "research/semrush-commercial-pillar-simpro-uk-homepage-field-service-management-software-2026-09-18.md",
+        "research/semrush-commercial-pillar-simpro-uk-homepage-field-service-management-software-2026-09-18.md",
+        "research/semrush-commercial-pillar-simpro-uk-homepage-field-service-management-software-2026-09-18.md"
+      ],
+      "evidence_locator": [
+        "lines:3-4",
+        "line:5",
+        "line:6"
+      ],
+      "evidence_sha256": [
+        "684e31a354aad947247891e51fd5e30e4e56b033c31607edcff8c105fac744c7",
+        "be6e8ae5164d9bf8009477b1d3912a870bdc938d40a172a122540d2f484b3fd1",
+        "8e93f1d9bb1fa889b1c660788bc8dd5ad2e075f380ce4b773d24829ca92badd2"
+      ],
+      "vault_routes": [
+        "wiki/messaging/Simpro Core Messaging Repository.md",
+        "wiki/messaging/Tone Voice and Localization Rules.md"
       ],
       "status": "verified"
     }

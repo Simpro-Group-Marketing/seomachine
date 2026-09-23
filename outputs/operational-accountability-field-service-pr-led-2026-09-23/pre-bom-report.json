@@ -1,0 +1,32 @@
+{
+  "artifact_paths": {
+    "answersocrates_blocker": null,
+    "article": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\published\\operational-accountability-field-service-2026-09-17.md",
+    "content_brief": null,
+    "context_pack": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-pack-operational-accountability-field-service-pr-led-2026-09-23.json",
+    "context_receipt": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-receipt-operational-accountability-field-service-pr-led-2026-09-23.json",
+    "context_request": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-request-operational-accountability-field-service-pr-led-2026-09-23.json",
+    "customer_proof_evidence": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\customer-proof-selector-evidence-operational-accountability-field-service-pr-led-2026-09-23.json",
+    "editorial_plan": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\editorial-plan-operational-accountability-field-service-2026-09-23.json",
+    "fred_authority_evidence": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\fred-authority-evidence-operational-accountability-field-service-pr-led-2026-09-23.md",
+    "keyword_decision": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\semrush-keyword-decision-operational-accountability-field-service-2026-09-23.json",
+    "output": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\outputs\\operational-accountability-field-service-pr-led-2026-09-23\\pre-bom-report.json",
+    "paa_artifact": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\paa-questions-operational-accountability-field-service-2026-09-23.json",
+    "proof_sidecar": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\validation-operational-accountability-field-service-2026-09-23.md",
+    "scrub_receipt": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\stage-receipt-operational-accountability-field-service-scrub-2026-09-23.json",
+    "semrush_blocker": null,
+    "serp_evidence": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\serp-evidence-operational-accountability-field-service-2026-09-23.json",
+    "stage_receipts": [
+      "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\stage-receipt-operational-accountability-field-service-draft-2026-09-23.json",
+      "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\stage-receipt-operational-accountability-field-service-scrub-2026-09-23.json",
+      "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\stage-receipt-operational-accountability-field-service-context-binding-2026-09-23.json"
+    ],
+    "user_paa_csv": null
+  },
+  "blockers": [],
+  "next_required_commands": [],
+  "ready_for_bom": true,
+  "required_human_inputs": [],
+  "schema": "simpro-blog-creation-preflight/v1",
+  "warnings": []
+}

@@ -225,6 +225,12 @@ The BOM stores the artifact path/hash. Publish readiness runs `semrush_keyword_d
 
 If the main Chrome Semrush UI opens but DOM or screenshot extraction times out or resets, record `blocked_semrush_ui_refresh` and stop before BOM assembly. The blocker proves the UI lane was attempted, but it does not satisfy the current keyword decision requirement.
 
+## SERP Evidence Collector Provenance
+
+`research_serp_analysis:playwright` and `research_serp_analysis:chrome_connector` are both approved SERP evidence collectors, but they do not carry equal provenance strength. `playwright` requires `raw_response` to be the exact CLI text the tool printed, so the evidence is a machine-captured artifact. `chrome_connector` accepts a structured mapping assembled from what the connector observed on the results page; that mapping is agent-transcribed browser observation, not raw tool output, and no automated check can distinguish a faithful transcription from a fabricated one.
+
+Use `chrome_connector` only when a live browser session (already authenticated, human-driven navigation) is the only way to reach the locale or surface needed, and record it as such rather than presenting it as an equivalent-strength capture. This is a documented boundary, not a defect: `execution_attestation.py` itself states its HMAC signature is a local integrity check, not a claim that a remote publisher signed the underlying data, so no SERP evidence collector proves more than "this workspace attests it collected this."
+
 ## Required Variable Resolution
 
 Before drafting with `/write` or `/rewrite`, resolve these variables from the user prompt, research brief, generated vault context binding, and repo context files only as fallback/mirror inputs. `/analyze-existing` must audit which inputs are present, missing, or blocked before a rewrite proceeds.

@@ -1,0 +1,827 @@
+{
+  "artifacts": {
+    "answersocrates_blocker": null,
+    "article": {
+      "path": "published/operational-accountability-field-service-2026-09-17.md",
+      "sha256": "b0db1b5c816778290a34f76ffc1187b5aea994a70ff66aae925b4b20ed70ff32"
+    },
+    "commercial_pillar_index": {
+      "path": "context/commercial-pillar-index.json",
+      "sha256": "d122dbbab6c9f1dfa13715345bc9278f6a33b4e81f10bc4b17d410dc5da8a6f6"
+    },
+    "content_brief": null,
+    "context_pack": {
+      "path": "research/context-pack-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "701940a84ac49210c80d2743a86888d9d0897a74c85fb5b12928d8a7fc0b6618"
+    },
+    "context_receipt": {
+      "path": "research/context-receipt-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "78e1558139c36fbb2c11a025f691289a86576fd00539fbfe9cfb7c0c223e5441"
+    },
+    "context_request": {
+      "path": "research/context-request-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "938d35038cae8795c66195caf7773d20048a9e2da51c103157c2ecaa34cc58b5"
+    },
+    "customer_proof_selector_evidence": {
+      "path": "research/customer-proof-selector-evidence-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "02c157c2a0bc6d7bee8ba105aa9ea64cce67d808e04bad6a9e9b6aa12d0979c2"
+    },
+    "editorial_plan": {
+      "path": "research/editorial-plan-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "1e6cd35dbc54264f61c055f6bb190cc53f0f7d7b4ae4e7880188db3994ab1353"
+    },
+    "execution_evidence": {
+      "agent_definition.content-analyzer": {
+        "path": ".claude/agents/content-analyzer.md",
+        "sha256": "8a5253b8aa0d7cf5b6ce003dd9af504444f0cc0b963746d455910f549aa914d9"
+      },
+      "agent_definition.internal-linker": {
+        "path": ".claude/agents/internal-linker.md",
+        "sha256": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c"
+      },
+      "agent_definition.keyword-mapper": {
+        "path": ".claude/agents/keyword-mapper.md",
+        "sha256": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d"
+      },
+      "agent_definition.meta-creator": {
+        "path": ".claude/agents/meta-creator.md",
+        "sha256": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a"
+      },
+      "agent_definition.seo-optimizer": {
+        "path": ".claude/agents/seo-optimizer.md",
+        "sha256": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8"
+      },
+      "agent_output.content-analyzer": {
+        "path": "research/agent-outputs/content-analyzer-operational-accountability-field-service-pr-led-2026-09-23.md",
+        "sha256": "74469304353ed030cceeb2d9602595062592e4c3955177ca4a20927453f11859"
+      },
+      "agent_output.internal-linker": {
+        "path": "research/agent-outputs/internal-linker-operational-accountability-field-service-pr-led-2026-09-23.md",
+        "sha256": "9febd8f7637b876d2dd23f27dd45df77135421e24a257bcb251f9b018d877049"
+      },
+      "agent_output.keyword-mapper": {
+        "path": "research/agent-outputs/keyword-mapper-operational-accountability-field-service-pr-led-2026-09-23.md",
+        "sha256": "b17f814887ab796ee3fc1b1d45a4dd73335d4495e0ee510ad75e3886ccd890ac"
+      },
+      "agent_output.meta-creator": {
+        "path": "research/agent-outputs/meta-creator-operational-accountability-field-service-pr-led-2026-09-23.md",
+        "sha256": "4ae071a8ec3770a4fa07c11bd9cfaaf8dc8372de09525211e33fba42e1067761"
+      },
+      "agent_output.seo-optimizer": {
+        "path": "research/agent-outputs/seo-optimizer-operational-accountability-field-service-pr-led-2026-09-23.md",
+        "sha256": "d4a37b8443dadcf5d56451cb33e6af7985f46295ee17374f01f80f514937e674"
+      },
+      "command_definition.optimize-command": {
+        "path": ".claude/commands/optimize.md",
+        "sha256": "4c1c60954db2129a49c3a83564b44e49974c44d17708c2aa210542d3ee691cea"
+      },
+      "command_definition.rewrite-command": {
+        "path": ".claude/commands/rewrite.md",
+        "sha256": "e79221092f9b56213836ec37a70375fb4a5cf43ec75bc159cfd1d36d88575a56"
+      }
+    },
+    "fred_authority_evidence": {
+      "path": "research/fred-authority-evidence-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "46a7d678aa878d8bd446d79721804c5e1eb40c35bc4beeb2c48a30d4721957d2"
+    },
+    "hindsight_strategy_evidence": null,
+    "keyword_decision": {
+      "path": "research/semrush-keyword-decision-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "4baaa3e2d40f1eec65749da86b61184b8ae7075959e452846363a17720825cdf"
+    },
+    "optimizer_outputs": [
+      {
+        "path": "research/optimizer-output-operational-accountability-field-service-2026-09-23.json",
+        "sha256": "47c47b025ab663890db41611c3f120ed4dc173c2914d63c4c98475ac0d8e056a"
+      }
+    ],
+    "paa_artifact": {
+      "path": "research/paa-questions-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "28c3f7293d3e8e0a82e4f96ea77cbc01711b52a7e4e8d289dd8bc03a1dce0127"
+    },
+    "plan_fulfillment": {
+      "path": "research/blog-plan-fulfillment-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "6eb76945bb9b1f09b6d1e17a3645acaebab2e2b00754394deb2f18f1834ad0d6"
+    },
+    "preflight_readiness": null,
+    "prior_preflight_readiness": {
+      "path": "outputs/operational-accountability-field-service-pr-led-2026-09-23-pass6/preflight-readiness.json",
+      "sha256": "ee95f2e202245b9a2e47707961a452341d5400ec0f946a736f6ba1d2941d7f79"
+    },
+    "serp_evidence": {
+      "path": "research/serp-evidence-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "c073e7b660d4b1bc1f1561746944c9de4951fddb490e18dda139afa161e537ae"
+    },
+    "stage_evidence": [
+      {
+        "path": "research/stage-receipt-operational-accountability-field-service-scrub-2026-09-23-evidence.json",
+        "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+      },
+      {
+        "path": "research/stage-receipt-operational-accountability-field-service-context-binding-2026-09-23-evidence.json",
+        "sha256": "3a3ed1eb05b825fe8b02481ad6ddf968f1af792471da90290a55db0a96043437"
+      },
+      {
+        "path": "research/stage-receipt-operational-accountability-field-service-post-optimization-scrub-2026-09-23-evidence.json",
+        "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+      },
+      {
+        "path": "research/stage-receipt-operational-accountability-field-service-post-optimization-context-binding-2026-09-23-evidence.json",
+        "sha256": "3a3ed1eb05b825fe8b02481ad6ddf968f1af792471da90290a55db0a96043437"
+      }
+    ],
+    "stage_receipts": [
+      {
+        "path": "research/stage-receipt-operational-accountability-field-service-draft-2026-09-23.json",
+        "sha256": "8b21bfbc2ab2fbd411c761b4abf38aa8f83a678622172c106d72ad4c02e297c9"
+      },
+      {
+        "path": "research/stage-receipt-operational-accountability-field-service-scrub-2026-09-23.json",
+        "sha256": "8c7b2257e35dabe1eac2017b4280cfb1a51946592ad7da2b879d2cc3aa884b96"
+      },
+      {
+        "path": "research/stage-receipt-operational-accountability-field-service-context-binding-2026-09-23.json",
+        "sha256": "5df8170d664aa4bdd1d0583d6adacb41c1b0fcbaec5c2bdda344db52359deed1"
+      },
+      {
+        "path": "outputs/operational-accountability-field-service-pr-led-2026-09-23-pass6/preflight-readiness-stage-receipt.json",
+        "sha256": "8c09fd6ba065bef3ac23b0e9dae241a9123697442f3a8f45b14423c531afc1b0"
+      },
+      {
+        "path": "outputs/operational-accountability-field-service-pr-led-2026-09-23-pass6/optimization-stage-receipt.json",
+        "sha256": "c5f906b9e8ece1ff265923ef30f7acc1092b9da9184a2a1567c5ea4b130781c1"
+      },
+      {
+        "path": "research/stage-receipt-operational-accountability-field-service-post-optimization-scrub-2026-09-23.json",
+        "sha256": "786aa0d866b19597d6c06d398216efcae341e888e7f15489c973274072f88929"
+      },
+      {
+        "path": "research/stage-receipt-operational-accountability-field-service-post-optimization-context-binding-2026-09-23.json",
+        "sha256": "365d0acad1f8f1da871708fb54162a91d672e40783455e3be5fca492fb077260"
+      }
+    ],
+    "user_paa_csv": null,
+    "validation_sidecar": {
+      "path": "research/validation-operational-accountability-field-service-2026-09-23.md",
+      "sha256": "d8c60e8c71b76db5c501362f54865b215d03d31eab290f3ed02a020d92f4fe8f"
+    }
+  },
+  "assembly_date": "2026-09-23",
+  "author_policy": {
+    "frontmatter_author_required": false,
+    "name": "",
+    "named_author_voice_allowed": false,
+    "schema_person_required": false,
+    "status": "no_author"
+  },
+  "connector_binding": {
+    "context": {
+      "claim_ids": [
+        "claim-fred-FVMI-0015",
+        "claim-fred-FVMI-0016"
+      ],
+      "context_pack_hash": "07cb1122dab28bd82e5c8bf4c293076dc52b4378fe14ae712b026fbcb28c0ed3",
+      "pack_schema": "simpro-product-context-pack/v2",
+      "receipt_hash": "e355eb65aadde2958f29d09072257ca71f175117eedb7d046e11b113757c85d2",
+      "receipt_schema": "simpro-context-receipt/v1",
+      "revisions": {
+        "approval_policy_revision": "6945674b56933849678c70200ff29438700475eae6e794388bb88b6febedccb6",
+        "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+        "content_revision": "2b0fbff2335f086cc578aa92da8672dff6d2ac3098e796c6a96bb3b3cc213f25",
+        "contract_revision": "e4988a1775f0b2791163b584c36b0fd72b8ac604c448b044cc944a8a0e9934a4",
+        "inventory_revision": "374bdf14a4519293e50d7e1c5b7e886daece33e303c8ce087e77658244faf446",
+        "manifest_revision": "94dd66e9dfd6130fa8c1472c11df650d1b9e6590762409e61a9a89a3d15930c2"
+      },
+      "selected_resource_ids": [
+        "res-d31f057a305f51918055120d95b76c6a",
+        "res-e3ade596be645307ad4c1f84620ce021",
+        "res-b34b392d22b9507089ade3fec47ee9e0",
+        "res-92348f8056165d4ba81a3c91738604e2",
+        "res-ac34fbe2f00a50a69522c0864226ffb8",
+        "res-d4c1e70d33425b3aa5f3fc8501374152",
+        "res-f9a71aef0ea6593e80d9dfb1f73b342e",
+        "res-09b1f4509ed65855894bd5f481ec81b1",
+        "res-15f3055bbe9850d0974573791ce80840",
+        "res-6b7481d0cd9e52d29eaf2859fbc9b6ad",
+        "res-cadfd6ddda10555c94eb3c085fd9c23f"
+      ]
+    },
+    "status": "required"
+  },
+  "editorial_fulfillment": [
+    {
+      "actual_excerpt": "| Invoicing blockers | Missing record, cost or approval | Name the blocker before the invoice queue ages |",
+      "contribution_id": "workflow-signal-table",
+      "evidence_source": "PR-led brief, live Semrush UI keyword decision, AnswerSocrates capture and current SERP evidence.",
+      "planned_contribution": "A six-row early artifact mapping field-service workflow areas to visibility signals and business impact.",
+      "purpose": "Give readers usable operating guidance within the first 300 words.",
+      "target_section": "How Field Service Operations Software Helps You Stay Close to the Work"
+    },
+    {
+      "actual_excerpt": "A connected [field service management software](https://www.simprogroup.com/) platform makes office and field workflows easier to read as one daily business system for planning, billing and review.",
+      "contribution_id": "simpro-operating-record",
+      "evidence_source": "Vault-approved Simpro positioning and homepage commercial-pillar routing.",
+      "planned_contribution": "A first-H2 Simpro/software tie-back positioning connected office-field workflow visibility as the operating record.",
+      "purpose": "Address Millie's feedback by tying the leadership lens to software value immediately.",
+      "target_section": "Start with one operating record"
+    },
+    {
+      "actual_excerpt": "Daily reviews clear urgent blockers, weekly reviews find repeated patterns and monthly reviews connect those signals to results.",
+      "contribution_id": "exception-view-cadence",
+      "evidence_source": "PR-led editorial direction and field-service workflow examples.",
+      "planned_contribution": "A daily, weekly and monthly exception-view cadence that avoids people-performance framing.",
+      "purpose": "Translate workflow visibility into an operating rhythm.",
+      "target_section": "Build a daily exception view"
+    },
+    {
+      "actual_excerpt": "Two public August 2026 PR appearances from Simpro CEO Fred Voccola provide executive context for staying close to operating details",
+      "contribution_id": "pr-authority-context",
+      "evidence_source": "Fred authority selector and claim registry decisions claim-fred-FVMI-0015 and claim-fred-FVMI-0016.",
+      "planned_contribution": "An executive authority section using the two Fred PR appearances as context without unsupported quotes.",
+      "purpose": "Preserve E-E-A-T while removing accountability and supervision as the article promise.",
+      "target_section": "The executive context behind staying close to the work"
+    }
+  ],
+  "editorial_plan_summary": {
+    "commercial_strategy": {
+      "article_intent": "mixed",
+      "article_primary_keyword": "field service operations software",
+      "article_title": "How Field Service Operations Software Helps You Stay Close to the Work",
+      "cannibalization_decision": "different_intent",
+      "commercial_pillar_url": "https://www.simprogroup.com/",
+      "destination_id": "simpro-us-homepage-field-service-management-software",
+      "existing_overlapping_urls_checked": [
+        "https://www.simprogroup.com/",
+        "https://www.simprogroup.com/blog/field-service-operations",
+        "https://www.simprogroup.com/blog/best-field-service-management-software",
+        "https://www.simprogroup.com/blog/holding-people-accountable-without-micromanaging"
+      ],
+      "incoming_link_candidates": [
+        "https://www.simprogroup.com/",
+        "https://www.simprogroup.com/blog/field-service-operations",
+        "https://www.simprogroup.com/blog/field-service-metrics"
+      ],
+      "pillar_versus_blog_intent_difference": "The homepage owns the broad commercial field service management software query. This article is a PR-led software visibility guide for field-service owners who need an operating view of active work.",
+      "planned_anchor_text": "field service management software",
+      "planned_h2_section": "Start with one operating record",
+      "status": "aligned"
+    },
+    "entity_map": {
+      "primary": [
+        "field service operations software",
+        "field service software",
+        "workflow visibility",
+        "operating record",
+        "field service operations"
+      ],
+      "supporting": [
+        "dispatch readiness",
+        "job closeout",
+        "callbacks",
+        "invoicing blockers",
+        "margin drift",
+        "quote follow-up",
+        "cash flow",
+        "customer experience",
+        "Simpro",
+        "Fred Voccola"
+      ]
+    },
+    "industry_cluster_link_policy": {
+      "rationale": "The article is cross-trade field-service operations guidance rather than a single-trade industry article.",
+      "status": "not_applicable"
+    },
+    "internal_link_plan": [
+      {
+        "rationale": "Homepage is the verified US commercial pillar for field service management software and appears in the planned first H2.",
+        "role": "down_funnel",
+        "target": "https://www.simprogroup.com/"
+      },
+      {
+        "rationale": "Supports the broader operations lifecycle without taking over the revised software-visibility angle.",
+        "role": "supporting",
+        "target": "https://www.simprogroup.com/blog/field-service-operations"
+      },
+      {
+        "rationale": "Supports the distinction between workflow signals and business results.",
+        "role": "supporting",
+        "target": "https://www.simprogroup.com/blog/field-service-metrics"
+      }
+    ],
+    "keyword_decision": {
+      "artifact_schema": "simpro-semrush-keyword-decision/v1",
+      "database": "us",
+      "selected_primary_keyword": "field service operations software",
+      "selected_secondary_keywords": [
+        "field service operations",
+        "field service management software"
+      ],
+      "selection_rationale": "Authenticated Semrush UI in the main Chrome browser selected field service operations software because it has current US demand, fits the software-visibility PR direction and avoids the exact commercial-pillar collision.",
+      "source": "semrush_connector",
+      "status": "resolved"
+    },
+    "lifecycle": {
+      "ai_citation_lane": "unavailable: no post-publication AI citation tracking exists for this rewrite",
+      "decision": "update",
+      "ga4_lane": "unavailable: rewritten article has no post-publication engagement data for the revised PR-led angle",
+      "gsc_lane": "unavailable: rewritten article has no post-publication query data for the revised PR-led angle",
+      "last_updated_date": "2026-09-23",
+      "next_review_date": "2027-03-22",
+      "review_command": "/performance-review published/operational-accountability-field-service-2026-09-17.md",
+      "semrush_lane": "available: current Semrush UI keyword decision captured on 2026-09-23",
+      "status": "scheduled",
+      "volatility": "standard"
+    },
+    "meta": {
+      "meta_description": "See how field service software gives owners visibility across dispatch, closeout, invoicing, callbacks, and margin so they can improve productivity and profitability.",
+      "meta_title": "Stay Close to Field Service Work | Simpro",
+      "primary_keyword": "field service operations software",
+      "secondary_keywords": [
+        "field service operations",
+        "field service management software"
+      ],
+      "title_options": [
+        "How Field Service Operations Software Helps You Stay Close to the Work"
+      ],
+      "url_slug": "operational-accountability-field-service"
+    },
+    "original_contributions": [
+      {
+        "contribution_id": "workflow-signal-table",
+        "evidence_source": "PR-led brief, live Semrush UI keyword decision, AnswerSocrates capture and current SERP evidence.",
+        "planned_contribution": "A six-row early artifact mapping field-service workflow areas to visibility signals and business impact.",
+        "purpose": "Give readers usable operating guidance within the first 300 words.",
+        "target_section": "How Field Service Operations Software Helps You Stay Close to the Work"
+      },
+      {
+        "contribution_id": "simpro-operating-record",
+        "evidence_source": "Vault-approved Simpro positioning and homepage commercial-pillar routing.",
+        "planned_contribution": "A first-H2 Simpro/software tie-back positioning connected office-field workflow visibility as the operating record.",
+        "purpose": "Address Millie's feedback by tying the leadership lens to software value immediately.",
+        "target_section": "Start with one operating record"
+      },
+      {
+        "contribution_id": "exception-view-cadence",
+        "evidence_source": "PR-led editorial direction and field-service workflow examples.",
+        "planned_contribution": "A daily, weekly and monthly exception-view cadence that avoids people-performance framing.",
+        "purpose": "Translate workflow visibility into an operating rhythm.",
+        "target_section": "Build a daily exception view"
+      },
+      {
+        "contribution_id": "pr-authority-context",
+        "evidence_source": "Fred authority selector and claim registry decisions claim-fred-FVMI-0015 and claim-fred-FVMI-0016.",
+        "planned_contribution": "An executive authority section using the two Fred PR appearances as context without unsupported quotes.",
+        "purpose": "Preserve E-E-A-T while removing accountability and supervision as the article promise.",
+        "target_section": "The executive context behind staying close to the work"
+      }
+    ],
+    "reader_contract": {
+      "decision_task_helped": "Choose one workflow, define the signal that shows drift and review exceptions from a connected operating record.",
+      "distinctive_angle": "Simpro helps owners stay close to live work through connected workflow visibility rather than people-management theory.",
+      "exclusions": [
+        "people-accountability positioning",
+        "supervision or employee-performance advice",
+        "digital-worker framing",
+        "AI-agent taxonomy",
+        "unsupported Fred quotes or transcript paraphrases",
+        "customer metrics or testimonials"
+      ],
+      "existing_belief": "Staying close to the work requires more status chasing or more people oversight.",
+      "funnel_stage": "thought leadership",
+      "primary_reader": "US field-service owners, general managers, operations managers, service managers and dispatch leaders.",
+      "promised_payoff": "A practical operating view for protecting productivity, profitability, cash flow, customer experience and margin.",
+      "sophistication_level": "Operational leaders who already manage dispatch, closeout, invoicing, callbacks, quote follow-up and margin review.",
+      "trigger_problem": "Important work signals are spread across people, tools, inboxes and reports, so owners see problems after productivity, cash flow, margin or customer experience has already been affected."
+    },
+    "schema": "simpro-blog-editorial-plan/v2",
+    "search_strategy": {
+      "dominant_content_type": "Listicle",
+      "exception_reason": "The live SERP shows software list, review and vendor-page intent, but the PR-led rewrite must answer a narrower owner problem: staying close to active field-service work through connected workflow visibility.",
+      "format_decision": "documented_exception",
+      "funnel_stage": "thought_leadership",
+      "intent_class": "mixed",
+      "observed_serp_features": [
+        "AI Overview",
+        "People also ask",
+        "Sponsored results",
+        "Videos",
+        "Images",
+        "People also search for"
+      ],
+      "primary_query": "field service operations software",
+      "related_query_paa_artifact": "research/paa-questions-operational-accountability-field-service-2026-09-23.json",
+      "searcher_task": "Understand how software supports field service operations and helps owners see work status, exceptions and workflow handoffs.",
+      "selected_content_type": "software visibility guide",
+      "serp_evidence_artifact": "research/serp-evidence-operational-accountability-field-service-2026-09-23.json",
+      "status": "ready"
+    }
+  },
+  "eeat_strength_policy": {
+    "applicability": "required",
+    "customer_proof_selector_evidence": "research/customer-proof-selector-evidence-operational-accountability-field-service-pr-led-2026-09-23.json",
+    "decision": "",
+    "findings": [],
+    "fred_authority_evidence": "research/fred-authority-evidence-operational-accountability-field-service-pr-led-2026-09-23.md",
+    "intent": "commercial_investigation",
+    "intent_reasons": [
+      "commercial_cta",
+      "comparison_or_list_section"
+    ],
+    "positive_signals": [
+      "selected_fred_authority"
+    ],
+    "sidecar_status": "",
+    "status": "passed"
+  },
+  "faq_policy": {
+    "rationale": "AnswerSocrates and visible Google PAA showed software definition, field-service software user, operations and CRM-versus-FSM questions for the revised keyword.",
+    "status": "required"
+  },
+  "hindsight_strategy_policy": {
+    "claim_support_allowed": false,
+    "evidence_required": false,
+    "public_claim_use": "prohibited",
+    "rationale": "No Hindsight Strategy Selection block was used for this article.",
+    "status": "not_applicable"
+  },
+  "identity": {
+    "artifact_type": "blog",
+    "audience": "US field-service owners, general managers, operations managers, service managers, and dispatch leaders",
+    "brand": "Simpro",
+    "last_updated": "2026-09-23",
+    "objective": "Show how Simpro and field service software help owners stay close to active work through connected workflow visibility, operating records, exception views, dispatch, closeout, invoicing, callbacks, margin review, and quote follow-up while using Fred Voccola public PR media only as executive authority context.",
+    "region": "US",
+    "title": "How Field Service Operations Software Helps You Stay Close to the Work"
+  },
+  "industry_cluster_link_policy": {
+    "reason": "No single-trade Simpro industry cluster link is required.",
+    "status": "not_applicable"
+  },
+  "lifecycle_state": "provisional",
+  "machine_reviews": {
+    "article": {
+      "path": "research/machine-review-article-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "d937ec257efe2cd9371dd3e8112154f963b2f4fa1bb98acdb5b32007a9d08929"
+    },
+    "plan": {
+      "path": "research/machine-review-plan-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "6e387633ea28033d54eb5ca8153d6c4792fffb675428d738cf61553d85c98272"
+    }
+  },
+  "paa_policy": {
+    "query": "field service operations software",
+    "selected_questions": [
+      "What is field service software?",
+      "How to streamline field service operations with software?",
+      "Who uses field service management software?",
+      "What's the difference between CRM and FSM?"
+    ],
+    "source_kind": "answersocrates"
+  },
+  "preflight": null,
+  "schema": "simpro-blog-assembly-bom/v4",
+  "schema_policy": {
+    "declared_entities": [
+      "BlogPosting",
+      "BreadcrumbList",
+      "ImageObject for the featured image or logo",
+      "Organization as publisher reference only, not a separate full schema block",
+      "FAQPage",
+      "Question and Answer inside FAQPage",
+      "VideoObject"
+    ],
+    "faq_questions": [
+      "What is field service software?",
+      "How to streamline field service operations with software?",
+      "Who uses field service management software?",
+      "What's the difference between CRM and FSM?"
+    ],
+    "required_entities": [
+      "BlogPosting",
+      "BreadcrumbList",
+      "ImageObject for the featured image or logo",
+      "Organization as publisher reference only, not a separate full schema block",
+      "FAQPage",
+      "Question and Answer inside FAQPage",
+      "VideoObject"
+    ],
+    "video_embed": true,
+    "visible_faq": true
+  },
+  "workflow": {
+    "stage_receipts": [
+      {
+        "completed_at": "2026-09-23T18:01:50.820251Z",
+        "evidence_hashes": {
+          "keyword_decision": "4baaa3e2d40f1eec65749da86b61184b8ae7075959e452846363a17720825cdf",
+          "serp_evidence": "c073e7b660d4b1bc1f1561746944c9de4951fddb490e18dda139afa161e537ae"
+        },
+        "execution_attestation": {
+          "algorithm": "hmac-sha256",
+          "key_id": "88df9183fcb097c1",
+          "purpose": "simpro-blog-stage-receipt/v1",
+          "schema": "simpro-execution-attestation/v1",
+          "signature": "69cb80a1558e53226c4d00ed4e44de6cf9b30f81fa46179315d6d2395bd18fa6"
+        },
+        "input_artifact_hashes": {
+          "article": "0000000000000000000000000000000000000000000000000000000000000000",
+          "editorial_plan": "1e6cd35dbc54264f61c055f6bb190cc53f0f7d7b4ae4e7880188db3994ab1353"
+        },
+        "mutation": true,
+        "output_artifact_hashes": {
+          "article": "b0db1b5c816778290a34f76ffc1187b5aea994a70ff66aae925b4b20ed70ff32"
+        },
+        "previous_receipt_hash": "",
+        "receipt_hash": "51cec3b1ec5ca056188124aa5069431897b2b9d050b94e51a52724e349ea8952",
+        "run_id": "80e44117-293a-480c-9100-ea4359c4ec9f",
+        "schema": "simpro-blog-stage-receipt/v1",
+        "stage": "draft",
+        "started_at": "2026-09-23T18:01:49.820251Z",
+        "status": "completed",
+        "tool": {
+          "name": "rewrite-command",
+          "version": "1"
+        }
+      },
+      {
+        "completed_at": "2026-09-23T18:01:54.226325Z",
+        "evidence_hashes": {
+          "scrub_statistics": "9e4596bc68ff2e1592ceb025b5d3a29dd1c8534c30b9fc8c6fd0573e6ed7e683"
+        },
+        "execution_attestation": {
+          "algorithm": "hmac-sha256",
+          "key_id": "88df9183fcb097c1",
+          "purpose": "simpro-blog-stage-receipt/v1",
+          "schema": "simpro-execution-attestation/v1",
+          "signature": "c70eab479eedcaa6e00dd5960c0b283970e382e15fe9f64572af094e2bffeefa"
+        },
+        "input_artifact_hashes": {
+          "article": "b0db1b5c816778290a34f76ffc1187b5aea994a70ff66aae925b4b20ed70ff32"
+        },
+        "mutation": false,
+        "output_artifact_hashes": {
+          "article": "b0db1b5c816778290a34f76ffc1187b5aea994a70ff66aae925b4b20ed70ff32",
+          "stage_evidence": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+        },
+        "previous_receipt_hash": "51cec3b1ec5ca056188124aa5069431897b2b9d050b94e51a52724e349ea8952",
+        "receipt_hash": "95916b89e9d9fe397fe8f04a00d9f4a7a1a01fd1ed1986a7eaef82003cf1e353",
+        "run_id": "80e44117-293a-480c-9100-ea4359c4ec9f",
+        "schema": "simpro-blog-stage-receipt/v1",
+        "stage": "scrub",
+        "started_at": "2026-09-23T18:01:54.201603Z",
+        "status": "completed",
+        "tool": {
+          "name": "content_scrubber",
+          "version": "1.0.0"
+        }
+      },
+      {
+        "completed_at": "2026-09-23T18:07:13.997586Z",
+        "evidence_hashes": {
+          "context_binding": "89a9d88b9949ee396966c24bd8c247620353e345fbf03765703590b9fb31e0e9"
+        },
+        "execution_attestation": {
+          "algorithm": "hmac-sha256",
+          "key_id": "88df9183fcb097c1",
+          "purpose": "simpro-blog-stage-receipt/v1",
+          "schema": "simpro-execution-attestation/v1",
+          "signature": "fd34975755006c8918d3d302dfe79b4e66de44326c06026c5553c9cc405cb6b5"
+        },
+        "input_artifact_hashes": {
+          "article": "b0db1b5c816778290a34f76ffc1187b5aea994a70ff66aae925b4b20ed70ff32",
+          "context_pack": "701940a84ac49210c80d2743a86888d9d0897a74c85fb5b12928d8a7fc0b6618",
+          "context_receipt": "78e1558139c36fbb2c11a025f691289a86576fd00539fbfe9cfb7c0c223e5441",
+          "context_request": "938d35038cae8795c66195caf7773d20048a9e2da51c103157c2ecaa34cc58b5"
+        },
+        "mutation": false,
+        "output_artifact_hashes": {
+          "article": "b0db1b5c816778290a34f76ffc1187b5aea994a70ff66aae925b4b20ed70ff32",
+          "stage_evidence": "3a3ed1eb05b825fe8b02481ad6ddf968f1af792471da90290a55db0a96043437",
+          "validation_sidecar": "d8c60e8c71b76db5c501362f54865b215d03d31eab290f3ed02a020d92f4fe8f"
+        },
+        "previous_receipt_hash": "95916b89e9d9fe397fe8f04a00d9f4a7a1a01fd1ed1986a7eaef82003cf1e353",
+        "receipt_hash": "9d6bc026eaf7bf02039af03478d0aff7d628ccd02bc80a7eb6b9838ce827e15d",
+        "run_id": "80e44117-293a-480c-9100-ea4359c4ec9f",
+        "schema": "simpro-blog-stage-receipt/v1",
+        "stage": "context_binding",
+        "started_at": "2026-09-23T18:06:20.652368Z",
+        "status": "completed",
+        "tool": {
+          "name": "context_binding_generator",
+          "version": "1.0.0"
+        }
+      },
+      {
+        "completed_at": "2026-09-23T18:11:49.842594Z",
+        "evidence_hashes": {
+          "agent_definition.internal-linker": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c",
+          "agent_definition.keyword-mapper": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d",
+          "agent_definition.meta-creator": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a",
+          "agent_definition.seo-optimizer": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8",
+          "agent_output.internal-linker": "f7a6fa9ef7e1f1b18b9932264fd0ffb8842d4e23787e01360ffaa89046b91b45",
+          "agent_output.keyword-mapper": "b17f814887ab796ee3fc1b1d45a4dd73335d4495e0ee510ad75e3886ccd890ac",
+          "agent_output.meta-creator": "4ae071a8ec3770a4fa07c11bd9cfaaf8dc8372de09525211e33fba42e1067761",
+          "agent_output.seo-optimizer": "ff0344f80de17b9e6f2805c9e33f0eba722075c655f29f51142c62fea16e1ab7",
+          "command_definition.rewrite-command": "e79221092f9b56213836ec37a70375fb4a5cf43ec75bc159cfd1d36d88575a56",
+          "commercial_pillar_index": "d122dbbab6c9f1dfa13715345bc9278f6a33b4e81f10bc4b17d410dc5da8a6f6",
+          "context_pack": "701940a84ac49210c80d2743a86888d9d0897a74c85fb5b12928d8a7fc0b6618",
+          "context_receipt": "78e1558139c36fbb2c11a025f691289a86576fd00539fbfe9cfb7c0c223e5441",
+          "context_request": "938d35038cae8795c66195caf7773d20048a9e2da51c103157c2ecaa34cc58b5",
+          "customer_proof_index": "fee695a0b32d20c3c12c155a590979f4352b3170925fe6f87654b75282125c62",
+          "customer_proof_selector_evidence": "02c157c2a0bc6d7bee8ba105aa9ea64cce67d808e04bad6a9e9b6aa12d0979c2",
+          "customer_proof_usage_ledger": "a094f1c09757645a95da80b6666e9d6d4c72aaeb5e71ce307a3843960d098cad",
+          "editorial_plan": "1e6cd35dbc54264f61c055f6bb190cc53f0f7d7b4ae4e7880188db3994ab1353",
+          "fred_authority_evidence": "46a7d678aa878d8bd446d79721804c5e1eb40c35bc4beeb2c48a30d4721957d2",
+          "keyword_decision": "4baaa3e2d40f1eec65749da86b61184b8ae7075959e452846363a17720825cdf",
+          "machine_reviews.article": "d937ec257efe2cd9371dd3e8112154f963b2f4fa1bb98acdb5b32007a9d08929",
+          "machine_reviews.plan": "6e387633ea28033d54eb5ca8153d6c4792fffb675428d738cf61553d85c98272",
+          "paa_artifact": "28c3f7293d3e8e0a82e4f96ea77cbc01711b52a7e4e8d289dd8bc03a1dce0127",
+          "paa_raw_capture": "5e127ea817427fff8502713f654247fa450e6f798e1ad95310f885b8124fe0e1",
+          "plan_fulfillment": "6eb76945bb9b1f09b6d1e17a3645acaebab2e2b00754394deb2f18f1834ad0d6",
+          "serp_evidence": "c073e7b660d4b1bc1f1561746944c9de4951fddb490e18dda139afa161e537ae",
+          "serp_raw_capture": "11f0b7f795d5d4958f5689cc86dd55c835671b707f532202f7a6a335e8470a54",
+          "source_decision_registry": "8beefea13de55bf1df63b92ac61ad896113cf48ddf55dd711c362569848162b8",
+          "stage_evidence[0]": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485",
+          "stage_evidence[1]": "3a3ed1eb05b825fe8b02481ad6ddf968f1af792471da90290a55db0a96043437",
+          "stage_receipts[0]": "8b21bfbc2ab2fbd411c761b4abf38aa8f83a678622172c106d72ad4c02e297c9",
+          "stage_receipts[1]": "8c7b2257e35dabe1eac2017b4280cfb1a51946592ad7da2b879d2cc3aa884b96",
+          "stage_receipts[2]": "5df8170d664aa4bdd1d0583d6adacb41c1b0fcbaec5c2bdda344db52359deed1",
+          "validation_sidecar": "d8c60e8c71b76db5c501362f54865b215d03d31eab290f3ed02a020d92f4fe8f"
+        },
+        "execution_attestation": {
+          "algorithm": "hmac-sha256",
+          "key_id": "88df9183fcb097c1",
+          "purpose": "simpro-blog-stage-receipt/v1",
+          "schema": "simpro-execution-attestation/v1",
+          "signature": "e1bbf4b7385a214a09edf013e9e23d6a9a73557a2121c06e7c76f5f3afa10544"
+        },
+        "input_artifact_hashes": {
+          "agent_definition.internal-linker": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c",
+          "agent_definition.keyword-mapper": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d",
+          "agent_definition.meta-creator": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a",
+          "agent_definition.seo-optimizer": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8",
+          "agent_output.internal-linker": "f7a6fa9ef7e1f1b18b9932264fd0ffb8842d4e23787e01360ffaa89046b91b45",
+          "agent_output.keyword-mapper": "b17f814887ab796ee3fc1b1d45a4dd73335d4495e0ee510ad75e3886ccd890ac",
+          "agent_output.meta-creator": "4ae071a8ec3770a4fa07c11bd9cfaaf8dc8372de09525211e33fba42e1067761",
+          "agent_output.seo-optimizer": "ff0344f80de17b9e6f2805c9e33f0eba722075c655f29f51142c62fea16e1ab7",
+          "article": "b0db1b5c816778290a34f76ffc1187b5aea994a70ff66aae925b4b20ed70ff32",
+          "assembly_bom": "3257b3eb9155165bfb14b0837a01db91ddc1d4c50879ba25d105f4469f8c1e14",
+          "command_definition.rewrite-command": "e79221092f9b56213836ec37a70375fb4a5cf43ec75bc159cfd1d36d88575a56",
+          "commercial_pillar_index": "d122dbbab6c9f1dfa13715345bc9278f6a33b4e81f10bc4b17d410dc5da8a6f6",
+          "context_pack": "701940a84ac49210c80d2743a86888d9d0897a74c85fb5b12928d8a7fc0b6618",
+          "context_receipt": "78e1558139c36fbb2c11a025f691289a86576fd00539fbfe9cfb7c0c223e5441",
+          "context_request": "938d35038cae8795c66195caf7773d20048a9e2da51c103157c2ecaa34cc58b5",
+          "customer_proof_index": "fee695a0b32d20c3c12c155a590979f4352b3170925fe6f87654b75282125c62",
+          "customer_proof_selector_evidence": "02c157c2a0bc6d7bee8ba105aa9ea64cce67d808e04bad6a9e9b6aa12d0979c2",
+          "customer_proof_usage_ledger": "a094f1c09757645a95da80b6666e9d6d4c72aaeb5e71ce307a3843960d098cad",
+          "editorial_plan": "1e6cd35dbc54264f61c055f6bb190cc53f0f7d7b4ae4e7880188db3994ab1353",
+          "fred_authority_evidence": "46a7d678aa878d8bd446d79721804c5e1eb40c35bc4beeb2c48a30d4721957d2",
+          "keyword_decision": "4baaa3e2d40f1eec65749da86b61184b8ae7075959e452846363a17720825cdf",
+          "machine_reviews.article": "d937ec257efe2cd9371dd3e8112154f963b2f4fa1bb98acdb5b32007a9d08929",
+          "machine_reviews.plan": "6e387633ea28033d54eb5ca8153d6c4792fffb675428d738cf61553d85c98272",
+          "paa_artifact": "28c3f7293d3e8e0a82e4f96ea77cbc01711b52a7e4e8d289dd8bc03a1dce0127",
+          "paa_raw_capture": "5e127ea817427fff8502713f654247fa450e6f798e1ad95310f885b8124fe0e1",
+          "plan_fulfillment": "6eb76945bb9b1f09b6d1e17a3645acaebab2e2b00754394deb2f18f1834ad0d6",
+          "serp_evidence": "c073e7b660d4b1bc1f1561746944c9de4951fddb490e18dda139afa161e537ae",
+          "serp_raw_capture": "11f0b7f795d5d4958f5689cc86dd55c835671b707f532202f7a6a335e8470a54",
+          "source_decision_registry": "8beefea13de55bf1df63b92ac61ad896113cf48ddf55dd711c362569848162b8",
+          "stage_evidence[0]": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485",
+          "stage_evidence[1]": "3a3ed1eb05b825fe8b02481ad6ddf968f1af792471da90290a55db0a96043437",
+          "stage_receipts[0]": "8b21bfbc2ab2fbd411c761b4abf38aa8f83a678622172c106d72ad4c02e297c9",
+          "stage_receipts[1]": "8c7b2257e35dabe1eac2017b4280cfb1a51946592ad7da2b879d2cc3aa884b96",
+          "stage_receipts[2]": "5df8170d664aa4bdd1d0583d6adacb41c1b0fcbaec5c2bdda344db52359deed1",
+          "validation_sidecar": "d8c60e8c71b76db5c501362f54865b215d03d31eab290f3ed02a020d92f4fe8f"
+        },
+        "mutation": false,
+        "output_artifact_hashes": {
+          "article": "b0db1b5c816778290a34f76ffc1187b5aea994a70ff66aae925b4b20ed70ff32",
+          "readiness_output": "ee95f2e202245b9a2e47707961a452341d5400ec0f946a736f6ba1d2941d7f79"
+        },
+        "previous_receipt_hash": "9d6bc026eaf7bf02039af03478d0aff7d628ccd02bc80a7eb6b9838ce827e15d",
+        "receipt_hash": "5fc802f4473812ddc2da87d3a09be84563ad1da04953ae718e15e34429028868",
+        "run_id": "80e44117-293a-480c-9100-ea4359c4ec9f",
+        "schema": "simpro-blog-stage-receipt/v1",
+        "stage": "preflight_readiness",
+        "started_at": "2026-09-23T18:10:55.387067Z",
+        "status": "completed",
+        "tool": {
+          "name": "publish_readiness",
+          "version": "1.0.0"
+        }
+      },
+      {
+        "completed_at": "2026-09-23T18:15:45.842744Z",
+        "evidence_hashes": {
+          "agent_definition.content-analyzer": "8a5253b8aa0d7cf5b6ce003dd9af504444f0cc0b963746d455910f549aa914d9",
+          "agent_definition.internal-linker": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c",
+          "agent_definition.keyword-mapper": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d",
+          "agent_definition.meta-creator": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a",
+          "agent_definition.seo-optimizer": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8",
+          "agent_output.content-analyzer": "74469304353ed030cceeb2d9602595062592e4c3955177ca4a20927453f11859",
+          "agent_output.internal-linker": "9febd8f7637b876d2dd23f27dd45df77135421e24a257bcb251f9b018d877049",
+          "agent_output.keyword-mapper": "b17f814887ab796ee3fc1b1d45a4dd73335d4495e0ee510ad75e3886ccd890ac",
+          "agent_output.meta-creator": "4ae071a8ec3770a4fa07c11bd9cfaaf8dc8372de09525211e33fba42e1067761",
+          "agent_output.seo-optimizer": "d4a37b8443dadcf5d56451cb33e6af7985f46295ee17374f01f80f514937e674",
+          "command_definition.optimize-command": "4c1c60954db2129a49c3a83564b44e49974c44d17708c2aa210542d3ee691cea",
+          "optimizer_output": "47c47b025ab663890db41611c3f120ed4dc173c2914d63c4c98475ac0d8e056a"
+        },
+        "execution_attestation": {
+          "algorithm": "hmac-sha256",
+          "key_id": "88df9183fcb097c1",
+          "purpose": "simpro-blog-stage-receipt/v1",
+          "schema": "simpro-execution-attestation/v1",
+          "signature": "5712b3326c1f4c413c59bddbef7c8adba1a3c6641be19c625807f5681712517a"
+        },
+        "input_artifact_hashes": {
+          "article": "b0db1b5c816778290a34f76ffc1187b5aea994a70ff66aae925b4b20ed70ff32",
+          "preflight_readiness": "ee95f2e202245b9a2e47707961a452341d5400ec0f946a736f6ba1d2941d7f79",
+          "preflight_readiness_receipt": "8c09fd6ba065bef3ac23b0e9dae241a9123697442f3a8f45b14423c531afc1b0"
+        },
+        "mutation": true,
+        "output_artifact_hashes": {
+          "article": "b0db1b5c816778290a34f76ffc1187b5aea994a70ff66aae925b4b20ed70ff32"
+        },
+        "previous_receipt_hash": "5fc802f4473812ddc2da87d3a09be84563ad1da04953ae718e15e34429028868",
+        "receipt_hash": "b8ace6477325de5dea54c804ae369a310f934ff3bf52217ce22de24759a37620",
+        "run_id": "80e44117-293a-480c-9100-ea4359c4ec9f",
+        "schema": "simpro-blog-stage-receipt/v1",
+        "stage": "optimization",
+        "started_at": "2026-09-23T18:15:44.842744Z",
+        "status": "completed",
+        "tool": {
+          "name": "optimize-command",
+          "version": "1"
+        }
+      },
+      {
+        "completed_at": "2026-09-23T18:15:51.158731Z",
+        "evidence_hashes": {
+          "scrub_statistics": "9e4596bc68ff2e1592ceb025b5d3a29dd1c8534c30b9fc8c6fd0573e6ed7e683"
+        },
+        "execution_attestation": {
+          "algorithm": "hmac-sha256",
+          "key_id": "88df9183fcb097c1",
+          "purpose": "simpro-blog-stage-receipt/v1",
+          "schema": "simpro-execution-attestation/v1",
+          "signature": "4b05ea8bf2a2af6fd97829a1c6073ee6626fb46b9159bb009f2aadf0f676959c"
+        },
+        "input_artifact_hashes": {
+          "article": "b0db1b5c816778290a34f76ffc1187b5aea994a70ff66aae925b4b20ed70ff32"
+        },
+        "mutation": false,
+        "output_artifact_hashes": {
+          "article": "b0db1b5c816778290a34f76ffc1187b5aea994a70ff66aae925b4b20ed70ff32",
+          "stage_evidence": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+        },
+        "previous_receipt_hash": "b8ace6477325de5dea54c804ae369a310f934ff3bf52217ce22de24759a37620",
+        "receipt_hash": "52a238171ee9d9cd87047e4eb0274acb31184b5445a84ff95cc2bc10f3e8fa1b",
+        "run_id": "80e44117-293a-480c-9100-ea4359c4ec9f",
+        "schema": "simpro-blog-stage-receipt/v1",
+        "stage": "post_optimization_scrub",
+        "started_at": "2026-09-23T18:15:51.137504Z",
+        "status": "completed",
+        "tool": {
+          "name": "content_scrubber",
+          "version": "1.0.0"
+        }
+      },
+      {
+        "completed_at": "2026-09-23T18:16:33.042302Z",
+        "evidence_hashes": {
+          "context_binding": "89a9d88b9949ee396966c24bd8c247620353e345fbf03765703590b9fb31e0e9"
+        },
+        "execution_attestation": {
+          "algorithm": "hmac-sha256",
+          "key_id": "88df9183fcb097c1",
+          "purpose": "simpro-blog-stage-receipt/v1",
+          "schema": "simpro-execution-attestation/v1",
+          "signature": "1e5d3fc967526c2c9c164fd22178d42eed295408531c6290963534e8236ce3f2"
+        },
+        "input_artifact_hashes": {
+          "article": "b0db1b5c816778290a34f76ffc1187b5aea994a70ff66aae925b4b20ed70ff32",
+          "context_pack": "701940a84ac49210c80d2743a86888d9d0897a74c85fb5b12928d8a7fc0b6618",
+          "context_receipt": "78e1558139c36fbb2c11a025f691289a86576fd00539fbfe9cfb7c0c223e5441",
+          "context_request": "938d35038cae8795c66195caf7773d20048a9e2da51c103157c2ecaa34cc58b5"
+        },
+        "mutation": false,
+        "output_artifact_hashes": {
+          "article": "b0db1b5c816778290a34f76ffc1187b5aea994a70ff66aae925b4b20ed70ff32",
+          "stage_evidence": "3a3ed1eb05b825fe8b02481ad6ddf968f1af792471da90290a55db0a96043437",
+          "validation_sidecar": "d8c60e8c71b76db5c501362f54865b215d03d31eab290f3ed02a020d92f4fe8f"
+        },
+        "previous_receipt_hash": "52a238171ee9d9cd87047e4eb0274acb31184b5445a84ff95cc2bc10f3e8fa1b",
+        "receipt_hash": "0c68fcc02de2610a9002a6c4e1fe66b82f3e4bbc8a1cb99a42f1ec5260699ca3",
+        "run_id": "80e44117-293a-480c-9100-ea4359c4ec9f",
+        "schema": "simpro-blog-stage-receipt/v1",
+        "stage": "post_optimization_context_binding",
+        "started_at": "2026-09-23T18:15:59.172720Z",
+        "status": "completed",
+        "tool": {
+          "name": "context_binding_generator",
+          "version": "1.0.0"
+        }
+      }
+    ]
+  },
+  "workflow_mode": "rewrite"
+}

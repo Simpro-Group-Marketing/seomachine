@@ -81,30 +81,25 @@ class ShortlistRow:
     line: int
 
 
-def check_content(
-    content: str,
-    *,
-    proof_content: str | None = None,
-    context_pack: Mapping[str, Any] | str | Path | None = None,
-    context_receipt: Mapping[str, Any] | str | Path | None = None,
-    vault_root: str | Path | None = None,
-    validated_claim_set: ValidatedClaimSet | None = None,
-) -> list[Finding]:
-    """Return competitive-shortlist findings for the exact public snapshot."""
-    if not _is_competitor_aware(content):
-        return []
-    block = _extract_block(proof_content or "")
-    if block is None:
-        return [_finding(
-            "competitive_shortlist_missing",
-            1,
-            "Competitor-aware public copy has no Competitive Shortlist Decision.",
-            "Add a connector-bound selected and rejected shortlist decision to the validation sidecar.",
-        )]
+def _is_out_of_brand_scope(content: str) -> bool:
+    """Return whether this snapshot is outside the vault-authorized shortlist.
 
-    fields, rows, line = block
+    A nonconnector brand cannot hold the context pack, receipt and approved
+    claim IDs this gate requires, so scope it to Simpro-signalled copy.
+    """
+    brand = _frontmatter_field(content, "brand")
+    if not brand or brand.casefold() == "simpro":
+        return False
+    return "simprogroup.com" not in content.casefold()
+
+
+def _header_field_findings(
+    fields: Mapping[str, str],
+    objective: str,
+    line: int,
+) -> list[Finding]:
+    """Return findings for the shortlist block's objective, authority and status."""
     findings: list[Finding] = []
-    objective = _frontmatter_field(content, "objective")
     if fields.get("article objective", "") != objective:
         findings.append(_finding(
             "competitive_shortlist_objective_mismatch",
@@ -126,6 +121,36 @@ def check_content(
             "Competitive shortlist status is not approved.",
             "Set Status: approved only after connector evidence and the article snapshot agree.",
         ))
+    return findings
+
+
+def check_content(
+    content: str,
+    *,
+    proof_content: str | None = None,
+    context_pack: Mapping[str, Any] | str | Path | None = None,
+    context_receipt: Mapping[str, Any] | str | Path | None = None,
+    vault_root: str | Path | None = None,
+    validated_claim_set: ValidatedClaimSet | None = None,
+) -> list[Finding]:
+    """Return competitive-shortlist findings for the exact public snapshot."""
+    if _is_out_of_brand_scope(content):
+        return []
+    if not _is_competitor_aware(content):
+        return []
+    block = _extract_block(proof_content or "")
+    if block is None:
+        return [_finding(
+            "competitive_shortlist_missing",
+            1,
+            "Competitor-aware public copy has no Competitive Shortlist Decision.",
+            "Add a connector-bound selected and rejected shortlist decision to the validation sidecar.",
+        )]
+
+    fields, rows, line = block
+    findings: list[Finding] = []
+    objective = _frontmatter_field(content, "objective")
+    findings.extend(_header_field_findings(fields, objective, line))
     selected = [row for row in rows if row.decision == "selected"]
     rejected = [row for row in rows if row.decision == "rejected"]
     if not selected or not rejected:

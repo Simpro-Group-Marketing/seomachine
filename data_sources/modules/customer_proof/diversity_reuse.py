@@ -14,6 +14,7 @@ from ..proof_usage import count_customer_proof_usage
 from .contracts import CustomerProofDataError
 from .diversity_common import _finding, _normalize_text, _proof_id_from_url
 from .diversity_parsing import _first_field_value
+from .nonconnector_selection import select_nonvault_customer_proofs
 from .selection import select_customer_proofs
 
 
@@ -117,21 +118,39 @@ def _stronger_underused_candidate_findings(
         validated_claim_set,
     )
     try:
-        if proof_index_payload is not None and selector_snapshot is None:
-            raise CustomerProofDataError(
-                "validated customer proof claim set is unavailable"
+        nonconnector_brand = _nonconnector_brand_for_sources(overused_sources)
+        if selector_snapshot is None and nonconnector_brand:
+            nonconnector_role = (
+                proof_role
+                if proof_role in {"metric", "quote", "theme", "experience_story"}
+                else "experience_story"
             )
-        ranked = select_customer_proofs(
-            selector_query,
-            index_path=proof_index_path,
-            ledger_path=ledger_path,
-            context_pack=context_pack,
-            context_receipt=context_receipt,
-            proof_role=proof_role,
-            limit=25,
-            reference_date=reference,
-            _input_snapshot=selector_snapshot,
-        )
+            ranked = select_nonvault_customer_proofs(
+                selector_query,
+                brand=nonconnector_brand,
+                index_path=proof_index_path,
+                ledger_path=ledger_path,
+                proof_role=nonconnector_role,
+                require_eeat_story=nonconnector_role == "experience_story",
+                limit=25,
+                reference_date=reference,
+            )
+        else:
+            if proof_index_payload is not None and selector_snapshot is None:
+                raise CustomerProofDataError(
+                    "validated customer proof claim set is unavailable"
+                )
+            ranked = select_customer_proofs(
+                selector_query,
+                index_path=proof_index_path,
+                ledger_path=ledger_path,
+                context_pack=context_pack,
+                context_receipt=context_receipt,
+                proof_role=proof_role,
+                limit=25,
+                reference_date=reference,
+                _input_snapshot=selector_snapshot,
+            )
     except CustomerProofDataError as exc:
         return [
             _finding(
@@ -174,6 +193,19 @@ def _stronger_underused_candidate_findings(
                 )
             )
     return findings
+
+
+def _nonconnector_brand_for_sources(
+    overused_sources: Sequence[Dict[str, object]],
+) -> str:
+    hosts = {str(source.get("url", "")).lower() for source in overused_sources}
+    if hosts and all("clockshark.com/" in value for value in hosts):
+        return "ClockShark"
+    if hosts and all("aroflo.com/" in value for value in hosts):
+        return "AroFlo"
+    if hosts and all("bigchange.com/" in value for value in hosts):
+        return "BigChange"
+    return ""
 
 
 def _selector_query(decision: Optional[Dict[str, object]]) -> str:

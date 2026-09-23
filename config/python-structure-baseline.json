@@ -6,9 +6,6 @@
     "data_sources/modules/blog_assembly_contract.py": {
       "artifact_inventory_snapshots": 12
     },
-    "data_sources/modules/readiness/persistence_api.py": {
-      "write_readiness_result": 11
-    },
     "data_sources/modules/blog_assembly_stage_receipt.py": {
       "_validate_native_edit_state": 12,
       "check_receipt_chain": 22,
@@ -33,7 +30,7 @@
       "_validate_record": 19
     },
     "data_sources/modules/competitive_shortlist_guard.py": {
-      "check_content": 21
+      "check_content": 19
     },
     "data_sources/modules/content_length_comparator.py": {
       "analyze": 18
@@ -146,6 +143,9 @@
       "_calculate_overall_score": 19,
       "_generate_recommendations": 17
     },
+    "data_sources/modules/readiness/persistence_api.py": {
+      "write_readiness_result": 11
+    },
     "data_sources/modules/review_story_identity_guard.py": {
       "_review_story_selection_findings": 13,
       "_review_theme_findings": 11
@@ -228,7 +228,6 @@
   },
   "maximum_lines": 500,
   "oversized_production_files": {
-    "data_sources/modules/readiness/artifact_store.py": 515,
     "data_sources/modules/above_fold_analyzer.py": 512,
     "data_sources/modules/blog_assembly_stage_receipt.py": 943,
     "data_sources/modules/blog_creation_preflight.py": 823,
@@ -255,6 +254,7 @@
     "data_sources/modules/proof_link_policy.py": 1018,
     "data_sources/modules/public_research_link_guard.py": 592,
     "data_sources/modules/readability_scorer.py": 505,
+    "data_sources/modules/readiness/artifact_store.py": 515,
     "data_sources/modules/review_story_identity_guard.py": 673,
     "data_sources/modules/semrush_keyword_decision_guard.py": 596,
     "data_sources/modules/trust_signal_analyzer.py": 567,

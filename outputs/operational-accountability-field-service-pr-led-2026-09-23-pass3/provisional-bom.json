@@ -1,0 +1,579 @@
+{
+  "artifacts": {
+    "answersocrates_blocker": null,
+    "article": {
+      "path": "published/operational-accountability-field-service-2026-09-17.md",
+      "sha256": "bba47c191074a7375887a5795c4fc3a4b1ffb2f1b8d3e20a347aebc989c61196"
+    },
+    "commercial_pillar_index": {
+      "path": "context/commercial-pillar-index.json",
+      "sha256": "d122dbbab6c9f1dfa13715345bc9278f6a33b4e81f10bc4b17d410dc5da8a6f6"
+    },
+    "content_brief": null,
+    "context_pack": {
+      "path": "research/context-pack-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "701940a84ac49210c80d2743a86888d9d0897a74c85fb5b12928d8a7fc0b6618"
+    },
+    "context_receipt": {
+      "path": "research/context-receipt-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "78e1558139c36fbb2c11a025f691289a86576fd00539fbfe9cfb7c0c223e5441"
+    },
+    "context_request": {
+      "path": "research/context-request-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "938d35038cae8795c66195caf7773d20048a9e2da51c103157c2ecaa34cc58b5"
+    },
+    "customer_proof_selector_evidence": {
+      "path": "research/customer-proof-selector-evidence-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "02c157c2a0bc6d7bee8ba105aa9ea64cce67d808e04bad6a9e9b6aa12d0979c2"
+    },
+    "editorial_plan": {
+      "path": "research/editorial-plan-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "46de798dd47114f718114fe57f66050c7e663afb28e71a4d29f2c1694323dc30"
+    },
+    "execution_evidence": {
+      "agent_definition.internal-linker": {
+        "path": ".claude/agents/internal-linker.md",
+        "sha256": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c"
+      },
+      "agent_definition.keyword-mapper": {
+        "path": ".claude/agents/keyword-mapper.md",
+        "sha256": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d"
+      },
+      "agent_definition.meta-creator": {
+        "path": ".claude/agents/meta-creator.md",
+        "sha256": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a"
+      },
+      "agent_definition.seo-optimizer": {
+        "path": ".claude/agents/seo-optimizer.md",
+        "sha256": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8"
+      },
+      "agent_output.internal-linker": {
+        "path": "research/agent-outputs/internal-linker-operational-accountability-field-service-pr-led-2026-09-23.md",
+        "sha256": "f7a6fa9ef7e1f1b18b9932264fd0ffb8842d4e23787e01360ffaa89046b91b45"
+      },
+      "agent_output.keyword-mapper": {
+        "path": "research/agent-outputs/keyword-mapper-operational-accountability-field-service-pr-led-2026-09-23.md",
+        "sha256": "b17f814887ab796ee3fc1b1d45a4dd73335d4495e0ee510ad75e3886ccd890ac"
+      },
+      "agent_output.meta-creator": {
+        "path": "research/agent-outputs/meta-creator-operational-accountability-field-service-pr-led-2026-09-23.md",
+        "sha256": "4ae071a8ec3770a4fa07c11bd9cfaaf8dc8372de09525211e33fba42e1067761"
+      },
+      "agent_output.seo-optimizer": {
+        "path": "research/agent-outputs/seo-optimizer-operational-accountability-field-service-pr-led-2026-09-23.md",
+        "sha256": "ff0344f80de17b9e6f2805c9e33f0eba722075c655f29f51142c62fea16e1ab7"
+      },
+      "command_definition.rewrite-command": {
+        "path": ".claude/commands/rewrite.md",
+        "sha256": "e79221092f9b56213836ec37a70375fb4a5cf43ec75bc159cfd1d36d88575a56"
+      }
+    },
+    "fred_authority_evidence": {
+      "path": "research/fred-authority-evidence-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "46a7d678aa878d8bd446d79721804c5e1eb40c35bc4beeb2c48a30d4721957d2"
+    },
+    "hindsight_strategy_evidence": null,
+    "keyword_decision": {
+      "path": "research/semrush-keyword-decision-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "4baaa3e2d40f1eec65749da86b61184b8ae7075959e452846363a17720825cdf"
+    },
+    "optimizer_outputs": [],
+    "paa_artifact": {
+      "path": "research/paa-questions-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "28c3f7293d3e8e0a82e4f96ea77cbc01711b52a7e4e8d289dd8bc03a1dce0127"
+    },
+    "plan_fulfillment": {
+      "path": "research/blog-plan-fulfillment-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "a80c48e2aefd8ebee4207563ee42aa673f51a975010ceff1a45802f045196694"
+    },
+    "preflight_readiness": null,
+    "prior_preflight_readiness": null,
+    "serp_evidence": {
+      "path": "research/serp-evidence-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "c073e7b660d4b1bc1f1561746944c9de4951fddb490e18dda139afa161e537ae"
+    },
+    "stage_evidence": [
+      {
+        "path": "research/stage-receipt-operational-accountability-field-service-scrub-2026-09-23-evidence.json",
+        "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+      },
+      {
+        "path": "research/stage-receipt-operational-accountability-field-service-context-binding-2026-09-23-evidence.json",
+        "sha256": "23613760185be0671ea19909447e0f90471534322b84f00ecc59ebe91ed50c26"
+      }
+    ],
+    "stage_receipts": [
+      {
+        "path": "research/stage-receipt-operational-accountability-field-service-draft-2026-09-23.json",
+        "sha256": "16c901c4f314b40c86344de84461a56a1576517a6e4089354855bc0c693d6dc3"
+      },
+      {
+        "path": "research/stage-receipt-operational-accountability-field-service-scrub-2026-09-23.json",
+        "sha256": "dc1759c10ef5534643a2a07981f7e061ce78e7962e236656b46a44ea41c8e73c"
+      },
+      {
+        "path": "research/stage-receipt-operational-accountability-field-service-context-binding-2026-09-23.json",
+        "sha256": "cb686966211c2f2d6dfde70699cb0d92c4319fa33986a1363e89e1d47cb0c57e"
+      }
+    ],
+    "user_paa_csv": null,
+    "validation_sidecar": {
+      "path": "research/validation-operational-accountability-field-service-2026-09-23.md",
+      "sha256": "6b4cf8b37ffc2f3176035e4021dccb34c2463c3022a905c4f5e93c4b4c91d49e"
+    }
+  },
+  "assembly_date": "2026-09-23",
+  "author_policy": {
+    "frontmatter_author_required": false,
+    "name": "",
+    "named_author_voice_allowed": false,
+    "schema_person_required": false,
+    "status": "no_author"
+  },
+  "connector_binding": {
+    "context": {
+      "claim_ids": [
+        "claim-fred-FVMI-0015",
+        "claim-fred-FVMI-0016"
+      ],
+      "context_pack_hash": "07cb1122dab28bd82e5c8bf4c293076dc52b4378fe14ae712b026fbcb28c0ed3",
+      "pack_schema": "simpro-product-context-pack/v2",
+      "receipt_hash": "e355eb65aadde2958f29d09072257ca71f175117eedb7d046e11b113757c85d2",
+      "receipt_schema": "simpro-context-receipt/v1",
+      "revisions": {
+        "approval_policy_revision": "6945674b56933849678c70200ff29438700475eae6e794388bb88b6febedccb6",
+        "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+        "content_revision": "2b0fbff2335f086cc578aa92da8672dff6d2ac3098e796c6a96bb3b3cc213f25",
+        "contract_revision": "e4988a1775f0b2791163b584c36b0fd72b8ac604c448b044cc944a8a0e9934a4",
+        "inventory_revision": "374bdf14a4519293e50d7e1c5b7e886daece33e303c8ce087e77658244faf446",
+        "manifest_revision": "94dd66e9dfd6130fa8c1472c11df650d1b9e6590762409e61a9a89a3d15930c2"
+      },
+      "selected_resource_ids": [
+        "res-d31f057a305f51918055120d95b76c6a",
+        "res-e3ade596be645307ad4c1f84620ce021",
+        "res-b34b392d22b9507089ade3fec47ee9e0",
+        "res-92348f8056165d4ba81a3c91738604e2",
+        "res-ac34fbe2f00a50a69522c0864226ffb8",
+        "res-d4c1e70d33425b3aa5f3fc8501374152",
+        "res-f9a71aef0ea6593e80d9dfb1f73b342e",
+        "res-09b1f4509ed65855894bd5f481ec81b1",
+        "res-15f3055bbe9850d0974573791ce80840",
+        "res-6b7481d0cd9e52d29eaf2859fbc9b6ad",
+        "res-cadfd6ddda10555c94eb3c085fd9c23f"
+      ]
+    },
+    "status": "required"
+  },
+  "editorial_fulfillment": [
+    {
+      "actual_excerpt": "| Invoicing blockers | Finished jobs sitting unbilled because records, costs or approvals are missing | Cleaner cash-flow path from completed work to invoice |",
+      "contribution_id": "workflow-signal-table",
+      "evidence_source": "PR-led brief, live Semrush UI keyword decision, AnswerSocrates capture and current SERP evidence.",
+      "planned_contribution": "A six-row early artifact mapping field-service workflow areas to visibility signals and business impact.",
+      "purpose": "Give readers usable operating guidance within the first 300 words.",
+      "target_section": "How Field Service Operations Software Helps You Stay Close to the Work"
+    },
+    {
+      "actual_excerpt": "A connected [field service management software](https://www.simprogroup.com/) platform makes office and field workflows easier to read as one daily business system for planning, billing and review.",
+      "contribution_id": "simpro-operating-record",
+      "evidence_source": "Vault-approved Simpro positioning and homepage commercial-pillar routing.",
+      "planned_contribution": "A first-H2 Simpro/software tie-back positioning connected office-field workflow visibility as the operating record.",
+      "purpose": "Address Millie's feedback by tying the leadership lens to software value immediately.",
+      "target_section": "Start with one operating record"
+    },
+    {
+      "actual_excerpt": "Daily reviews clear urgent blockers, weekly reviews find repeated patterns and monthly reviews connect those signals to results.",
+      "contribution_id": "exception-view-cadence",
+      "evidence_source": "PR-led editorial direction and field-service workflow examples.",
+      "planned_contribution": "A daily, weekly and monthly exception-view cadence that avoids people-performance framing.",
+      "purpose": "Translate workflow visibility into an operating rhythm.",
+      "target_section": "Build a daily exception view"
+    },
+    {
+      "actual_excerpt": "Two public August 2026 PR appearances from Simpro CEO Fred Voccola provide executive context for staying close to operating details",
+      "contribution_id": "pr-authority-context",
+      "evidence_source": "Fred authority selector and claim registry decisions claim-fred-FVMI-0015 and claim-fred-FVMI-0016.",
+      "planned_contribution": "An executive authority section using the two Fred PR appearances as context without unsupported quotes.",
+      "purpose": "Preserve E-E-A-T while removing accountability and supervision as the article promise.",
+      "target_section": "The executive context behind staying close to the work"
+    }
+  ],
+  "editorial_plan_summary": {
+    "commercial_strategy": {
+      "article_intent": "mixed",
+      "article_primary_keyword": "field service operations software",
+      "article_title": "How Field Service Operations Software Helps You Stay Close to the Work",
+      "cannibalization_decision": "different_intent",
+      "commercial_pillar_url": "https://www.simprogroup.com/",
+      "destination_id": "simpro-us-homepage-field-service-management-software",
+      "existing_overlapping_urls_checked": [
+        "https://www.simprogroup.com/",
+        "https://www.simprogroup.com/blog/field-service-operations",
+        "https://www.simprogroup.com/blog/best-field-service-management-software",
+        "https://www.simprogroup.com/blog/holding-people-accountable-without-micromanaging"
+      ],
+      "incoming_link_candidates": [
+        "https://www.simprogroup.com/",
+        "https://www.simprogroup.com/blog/field-service-operations",
+        "https://www.simprogroup.com/blog/field-service-metrics",
+        "https://www.simprogroup.com/blog/best-field-service-management-software"
+      ],
+      "pillar_versus_blog_intent_difference": "The homepage owns the broad commercial field service management software query. This article is a PR-led software visibility guide for field-service owners who need an operating view of active work.",
+      "planned_anchor_text": "field service management software",
+      "planned_h2_section": "Start with one operating record",
+      "status": "aligned"
+    },
+    "entity_map": {
+      "primary": [
+        "field service operations software",
+        "field service software",
+        "workflow visibility",
+        "operating record",
+        "field service operations"
+      ],
+      "supporting": [
+        "dispatch readiness",
+        "job closeout",
+        "callbacks",
+        "invoicing blockers",
+        "margin drift",
+        "quote follow-up",
+        "cash flow",
+        "customer experience",
+        "Simpro",
+        "Fred Voccola"
+      ]
+    },
+    "industry_cluster_link_policy": {
+      "rationale": "The article is cross-trade field-service operations guidance rather than a single-trade industry article.",
+      "status": "not_applicable"
+    },
+    "internal_link_plan": [
+      {
+        "rationale": "Homepage is the verified US commercial pillar for field service management software and appears in the planned first H2.",
+        "role": "down_funnel",
+        "target": "https://www.simprogroup.com/"
+      },
+      {
+        "rationale": "Supports the broader operations lifecycle without taking over the revised software-visibility angle.",
+        "role": "supporting",
+        "target": "https://www.simprogroup.com/blog/field-service-operations"
+      },
+      {
+        "rationale": "Supports the distinction between workflow signals and business results.",
+        "role": "supporting",
+        "target": "https://www.simprogroup.com/blog/field-service-metrics"
+      },
+      {
+        "rationale": "Supports the PAA question about selecting field service management software.",
+        "role": "supporting",
+        "target": "https://www.simprogroup.com/blog/best-field-service-management-software"
+      }
+    ],
+    "keyword_decision": {
+      "artifact_schema": "simpro-semrush-keyword-decision/v1",
+      "database": "us",
+      "selected_primary_keyword": "field service operations software",
+      "selected_secondary_keywords": [
+        "field service operations",
+        "field service management software"
+      ],
+      "selection_rationale": "Authenticated Semrush UI in the main Chrome browser selected field service operations software because it has current US demand, fits the software-visibility PR direction and avoids the exact commercial-pillar collision.",
+      "source": "semrush_connector",
+      "status": "resolved"
+    },
+    "lifecycle": {
+      "ai_citation_lane": "unavailable: no post-publication AI citation tracking exists for this rewrite",
+      "decision": "update",
+      "ga4_lane": "unavailable: rewritten article has no post-publication engagement data for the revised PR-led angle",
+      "gsc_lane": "unavailable: rewritten article has no post-publication query data for the revised PR-led angle",
+      "last_updated_date": "2026-09-23",
+      "next_review_date": "2027-03-22",
+      "review_command": "/performance-review published/operational-accountability-field-service-2026-09-17.md",
+      "semrush_lane": "available: current Semrush UI keyword decision captured on 2026-09-23",
+      "status": "scheduled",
+      "volatility": "standard"
+    },
+    "meta": {
+      "meta_description": "See how field service software gives owners visibility across dispatch, closeout, invoicing, callbacks, and margin so they can improve productivity and profitability.",
+      "meta_title": "Stay Close to Field Service Work | Simpro",
+      "primary_keyword": "field service operations software",
+      "secondary_keywords": [
+        "field service operations",
+        "field service management software"
+      ],
+      "title_options": [
+        "How Field Service Operations Software Helps You Stay Close to the Work"
+      ],
+      "url_slug": "operational-accountability-field-service"
+    },
+    "original_contributions": [
+      {
+        "contribution_id": "workflow-signal-table",
+        "evidence_source": "PR-led brief, live Semrush UI keyword decision, AnswerSocrates capture and current SERP evidence.",
+        "planned_contribution": "A six-row early artifact mapping field-service workflow areas to visibility signals and business impact.",
+        "purpose": "Give readers usable operating guidance within the first 300 words.",
+        "target_section": "How Field Service Operations Software Helps You Stay Close to the Work"
+      },
+      {
+        "contribution_id": "simpro-operating-record",
+        "evidence_source": "Vault-approved Simpro positioning and homepage commercial-pillar routing.",
+        "planned_contribution": "A first-H2 Simpro/software tie-back positioning connected office-field workflow visibility as the operating record.",
+        "purpose": "Address Millie's feedback by tying the leadership lens to software value immediately.",
+        "target_section": "Start with one operating record"
+      },
+      {
+        "contribution_id": "exception-view-cadence",
+        "evidence_source": "PR-led editorial direction and field-service workflow examples.",
+        "planned_contribution": "A daily, weekly and monthly exception-view cadence that avoids people-performance framing.",
+        "purpose": "Translate workflow visibility into an operating rhythm.",
+        "target_section": "Build a daily exception view"
+      },
+      {
+        "contribution_id": "pr-authority-context",
+        "evidence_source": "Fred authority selector and claim registry decisions claim-fred-FVMI-0015 and claim-fred-FVMI-0016.",
+        "planned_contribution": "An executive authority section using the two Fred PR appearances as context without unsupported quotes.",
+        "purpose": "Preserve E-E-A-T while removing accountability and supervision as the article promise.",
+        "target_section": "The executive context behind staying close to the work"
+      }
+    ],
+    "reader_contract": {
+      "decision_task_helped": "Choose one workflow, define the signal that shows drift and review exceptions from a connected operating record.",
+      "distinctive_angle": "Simpro helps owners stay close to live work through connected workflow visibility rather than people-management theory.",
+      "exclusions": [
+        "people-accountability positioning",
+        "supervision or employee-performance advice",
+        "digital-worker framing",
+        "AI-agent taxonomy",
+        "unsupported Fred quotes or transcript paraphrases",
+        "customer metrics or testimonials"
+      ],
+      "existing_belief": "Staying close to the work requires more status chasing or more people oversight.",
+      "funnel_stage": "thought leadership",
+      "primary_reader": "US field-service owners, general managers, operations managers, service managers and dispatch leaders.",
+      "promised_payoff": "A practical operating view for protecting productivity, profitability, cash flow, customer experience and margin.",
+      "sophistication_level": "Operational leaders who already manage dispatch, closeout, invoicing, callbacks, quote follow-up and margin review.",
+      "trigger_problem": "Important work signals are spread across people, tools, inboxes and reports, so owners see problems after productivity, cash flow, margin or customer experience has already been affected."
+    },
+    "schema": "simpro-blog-editorial-plan/v2",
+    "search_strategy": {
+      "dominant_content_type": "Listicle",
+      "exception_reason": "The live SERP shows software list, review and vendor-page intent, but the PR-led rewrite must answer a narrower owner problem: staying close to active field-service work through connected workflow visibility.",
+      "format_decision": "documented_exception",
+      "funnel_stage": "thought_leadership",
+      "intent_class": "mixed",
+      "observed_serp_features": [
+        "AI Overview",
+        "People also ask",
+        "Sponsored results",
+        "Videos",
+        "Images",
+        "People also search for"
+      ],
+      "primary_query": "field service operations software",
+      "related_query_paa_artifact": "research/paa-questions-operational-accountability-field-service-2026-09-23.json",
+      "searcher_task": "Understand how software supports field service operations and helps owners see work status, exceptions and workflow handoffs.",
+      "selected_content_type": "software visibility guide",
+      "serp_evidence_artifact": "research/serp-evidence-operational-accountability-field-service-2026-09-23.json",
+      "status": "ready"
+    }
+  },
+  "eeat_strength_policy": {
+    "applicability": "required",
+    "customer_proof_selector_evidence": "research/customer-proof-selector-evidence-operational-accountability-field-service-pr-led-2026-09-23.json",
+    "decision": "",
+    "findings": [],
+    "fred_authority_evidence": "research/fred-authority-evidence-operational-accountability-field-service-pr-led-2026-09-23.md",
+    "intent": "commercial_investigation",
+    "intent_reasons": [
+      "commercial_cta",
+      "comparison_or_list_section"
+    ],
+    "positive_signals": [
+      "selected_fred_authority"
+    ],
+    "sidecar_status": "",
+    "status": "passed"
+  },
+  "faq_policy": {
+    "rationale": "AnswerSocrates and visible Google PAA showed software definition, best-software and CRM-versus-FSM questions for the revised keyword.",
+    "status": "required"
+  },
+  "hindsight_strategy_policy": {
+    "claim_support_allowed": false,
+    "evidence_required": false,
+    "public_claim_use": "prohibited",
+    "rationale": "No Hindsight Strategy Selection block was used for this article.",
+    "status": "not_applicable"
+  },
+  "identity": {
+    "artifact_type": "blog",
+    "audience": "US field-service owners, general managers, operations managers, service managers, and dispatch leaders",
+    "brand": "Simpro",
+    "last_updated": "2026-09-23",
+    "objective": "Show how Simpro and field service software help owners stay close to active work through connected workflow visibility, operating records, exception views, dispatch, closeout, invoicing, callbacks, margin review, and quote follow-up while using Fred Voccola public PR media only as executive authority context.",
+    "region": "US",
+    "title": "How Field Service Operations Software Helps You Stay Close to the Work"
+  },
+  "industry_cluster_link_policy": {
+    "reason": "No single-trade Simpro industry cluster link is required.",
+    "status": "not_applicable"
+  },
+  "lifecycle_state": "provisional",
+  "machine_reviews": {
+    "article": {
+      "path": "research/machine-review-article-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "74efb94bd99b210059f44a8495434ecab3ed1567eeb7db894645715b462cb857"
+    },
+    "plan": {
+      "path": "research/machine-review-plan-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "8c25df99604e647175865474b0bddc7d8c0ad6982d81d4484d3f43edcb6ee9fa"
+    }
+  },
+  "paa_policy": {
+    "query": "field service operations software",
+    "selected_questions": [
+      "What is field service software?",
+      "How to streamline field service operations with software?",
+      "What is the best software for field service management?",
+      "What's the difference between CRM and FSM?"
+    ],
+    "source_kind": "answersocrates"
+  },
+  "preflight": null,
+  "schema": "simpro-blog-assembly-bom/v4",
+  "schema_policy": {
+    "declared_entities": [
+      "BlogPosting",
+      "BreadcrumbList",
+      "ImageObject for the featured image or logo",
+      "Organization as publisher reference only, not a separate full schema block",
+      "FAQPage",
+      "Question and Answer inside FAQPage",
+      "VideoObject"
+    ],
+    "faq_questions": [
+      "What is field service software?",
+      "How to streamline field service operations with software?",
+      "What is the best software for field service management?",
+      "What's the difference between CRM and FSM?"
+    ],
+    "required_entities": [
+      "BlogPosting",
+      "BreadcrumbList",
+      "ImageObject for the featured image or logo",
+      "Organization as publisher reference only, not a separate full schema block",
+      "FAQPage",
+      "Question and Answer inside FAQPage",
+      "VideoObject"
+    ],
+    "video_embed": true,
+    "visible_faq": true
+  },
+  "workflow": {
+    "stage_receipts": [
+      {
+        "completed_at": "2026-09-23T17:42:53.477023Z",
+        "evidence_hashes": {
+          "keyword_decision": "4baaa3e2d40f1eec65749da86b61184b8ae7075959e452846363a17720825cdf",
+          "serp_evidence": "c073e7b660d4b1bc1f1561746944c9de4951fddb490e18dda139afa161e537ae"
+        },
+        "execution_attestation": {
+          "algorithm": "hmac-sha256",
+          "key_id": "88df9183fcb097c1",
+          "purpose": "simpro-blog-stage-receipt/v1",
+          "schema": "simpro-execution-attestation/v1",
+          "signature": "3eaa12d21c2736f31e70238f0c59581e6eaf301722b012a92b841ad9e185f1e4"
+        },
+        "input_artifact_hashes": {
+          "article": "0000000000000000000000000000000000000000000000000000000000000000",
+          "editorial_plan": "46de798dd47114f718114fe57f66050c7e663afb28e71a4d29f2c1694323dc30"
+        },
+        "mutation": true,
+        "output_artifact_hashes": {
+          "article": "bba47c191074a7375887a5795c4fc3a4b1ffb2f1b8d3e20a347aebc989c61196"
+        },
+        "previous_receipt_hash": "",
+        "receipt_hash": "ebe48bc5d8bfb99cd45e66518be4333407fa0589e35eb43ad4f18f3e065bbc57",
+        "run_id": "80e44117-293a-480c-9100-ea4359c4ec9f",
+        "schema": "simpro-blog-stage-receipt/v1",
+        "stage": "draft",
+        "started_at": "2026-09-23T17:42:52.477023Z",
+        "status": "completed",
+        "tool": {
+          "name": "rewrite-command",
+          "version": "1"
+        }
+      },
+      {
+        "completed_at": "2026-09-23T17:42:58.617762Z",
+        "evidence_hashes": {
+          "scrub_statistics": "9e4596bc68ff2e1592ceb025b5d3a29dd1c8534c30b9fc8c6fd0573e6ed7e683"
+        },
+        "execution_attestation": {
+          "algorithm": "hmac-sha256",
+          "key_id": "88df9183fcb097c1",
+          "purpose": "simpro-blog-stage-receipt/v1",
+          "schema": "simpro-execution-attestation/v1",
+          "signature": "320e5f08b18d8be1b21c4c505570834a94ec69f8b2de1247a6b3b1141e495c48"
+        },
+        "input_artifact_hashes": {
+          "article": "bba47c191074a7375887a5795c4fc3a4b1ffb2f1b8d3e20a347aebc989c61196"
+        },
+        "mutation": false,
+        "output_artifact_hashes": {
+          "article": "bba47c191074a7375887a5795c4fc3a4b1ffb2f1b8d3e20a347aebc989c61196",
+          "stage_evidence": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+        },
+        "previous_receipt_hash": "ebe48bc5d8bfb99cd45e66518be4333407fa0589e35eb43ad4f18f3e065bbc57",
+        "receipt_hash": "e9fc778ea56a1c35082696c1f0ef2181cc386cba695ccef676762e8f97870dba",
+        "run_id": "80e44117-293a-480c-9100-ea4359c4ec9f",
+        "schema": "simpro-blog-stage-receipt/v1",
+        "stage": "scrub",
+        "started_at": "2026-09-23T17:42:58.595710Z",
+        "status": "completed",
+        "tool": {
+          "name": "content_scrubber",
+          "version": "1.0.0"
+        }
+      },
+      {
+        "completed_at": "2026-09-23T17:43:36.080295Z",
+        "evidence_hashes": {
+          "context_binding": "f70b1f4308a58a589eb51d8510f57029daa5fbd6247244a76034ad0efe21264d"
+        },
+        "execution_attestation": {
+          "algorithm": "hmac-sha256",
+          "key_id": "88df9183fcb097c1",
+          "purpose": "simpro-blog-stage-receipt/v1",
+          "schema": "simpro-execution-attestation/v1",
+          "signature": "8236a4edb6aef92248ec6a1ab02d02c1d242f4ca2e4af9f8144d5b816488cd7d"
+        },
+        "input_artifact_hashes": {
+          "article": "bba47c191074a7375887a5795c4fc3a4b1ffb2f1b8d3e20a347aebc989c61196",
+          "context_pack": "701940a84ac49210c80d2743a86888d9d0897a74c85fb5b12928d8a7fc0b6618",
+          "context_receipt": "78e1558139c36fbb2c11a025f691289a86576fd00539fbfe9cfb7c0c223e5441",
+          "context_request": "938d35038cae8795c66195caf7773d20048a9e2da51c103157c2ecaa34cc58b5"
+        },
+        "mutation": false,
+        "output_artifact_hashes": {
+          "article": "bba47c191074a7375887a5795c4fc3a4b1ffb2f1b8d3e20a347aebc989c61196",
+          "stage_evidence": "23613760185be0671ea19909447e0f90471534322b84f00ecc59ebe91ed50c26",
+          "validation_sidecar": "6b4cf8b37ffc2f3176035e4021dccb34c2463c3022a905c4f5e93c4b4c91d49e"
+        },
+        "previous_receipt_hash": "e9fc778ea56a1c35082696c1f0ef2181cc386cba695ccef676762e8f97870dba",
+        "receipt_hash": "6af98d77ce1e0717e359545504ff8d587b2b36466e53aecd330db77628a469d1",
+        "run_id": "80e44117-293a-480c-9100-ea4359c4ec9f",
+        "schema": "simpro-blog-stage-receipt/v1",
+        "stage": "context_binding",
+        "started_at": "2026-09-23T17:43:06.613348Z",
+        "status": "completed",
+        "tool": {
+          "name": "context_binding_generator",
+          "version": "1.0.0"
+        }
+      }
+    ]
+  },
+  "workflow_mode": "rewrite"
+}

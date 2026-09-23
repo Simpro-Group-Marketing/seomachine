@@ -1,0 +1,2336 @@
+{
+  "aeo_geo": {
+    "checks": {
+      "author_voice": {
+        "applicable": true,
+        "details": {
+          "author_policy_status": "",
+          "first_person_terms": [],
+          "has_author": false
+        },
+        "fix": "Add a source-bound named author or rewrite first-person singular judgment in an attributed or neutral channel voice. Quoted source language may remain quoted.",
+        "issue": "First-person singular author judgment appears without a named author.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "capsule_coverage": {
+        "applicable": true,
+        "details": {
+          "capsule_count": 2,
+          "coverage": 0.29,
+          "h2_count": 7,
+          "sections": [
+            {
+              "heading": "Start with one operating record",
+              "passed": false,
+              "reason": "First paragraph must contain 50-60 words.",
+              "sentence_count": 2,
+              "word_count": 49
+            },
+            {
+              "heading": "Use visibility to protect productivity and margin",
+              "passed": false,
+              "reason": "First paragraph must contain 50-60 words.",
+              "sentence_count": 3,
+              "word_count": 49
+            },
+            {
+              "heading": "The executive context behind staying close to the work",
+              "passed": false,
+              "reason": "First paragraph must contain 50-60 words.",
+              "sentence_count": 2,
+              "word_count": 62
+            },
+            {
+              "heading": "Where field service work starts to drift",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 3,
+              "word_count": 50
+            },
+            {
+              "heading": "Build a daily exception view",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 3,
+              "word_count": 51
+            },
+            {
+              "heading": "Use Simpro to connect the work",
+              "passed": false,
+              "reason": "First paragraph must contain 50-60 words.",
+              "sentence_count": 1,
+              "word_count": 31
+            },
+            {
+              "heading": "Start with one workflow this week",
+              "passed": false,
+              "reason": "First paragraph must contain 50-60 words.",
+              "sentence_count": 3,
+              "word_count": 44
+            }
+          ]
+        },
+        "fix": "Add a 50-60 word direct-answer paragraph immediately below the H1 and at least 60% of major H2s.",
+        "issue": "Fewer than 60% of major H2 sections have 50-60 word direct-answer capsules.",
+        "passed": false,
+        "severity": "high",
+        "status": "failed"
+      },
+      "direct_answer": {
+        "applicable": true,
+        "details": {
+          "first_two_sentences": "Field service operations software helps owners stay close to work by making job status, handoffs, documents, invoice blockers, callbacks and margin signals visible in one operating record. That operating view shows where active work is drifting early enough to protect productivity, cash flow, margin and customer experience without adding another layer of status chasing.",
+          "includes_target": true,
+          "word_count": 54
+        },
+        "fix": "Start with a concise answer that names the target query or primary keyword before the hook.",
+        "issue": "The article does not directly answer the target query in the first 1-2 sentences.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "eeat_proof": {
+        "applicable": true,
+        "details": {
+          "case_study_links": [],
+          "clockshark_workflow_links": [],
+          "experience_signals": [
+            "documented_no_fit_experience_boundary"
+          ],
+          "expertise_signals": [
+            "fred_authority"
+          ],
+          "has_documented_no_fit_boundary": true,
+          "has_experience": true,
+          "has_expertise": true,
+          "has_review_story_selection": false,
+          "review_site_links": [],
+          "simpro_product_links": [],
+          "validated_customer_experience": null
+        },
+        "fix": "Use a hash-verified customer-proof selector experience_story binding, an approved Selected Customer Proof Mining record, and the selected identity and public URL in the same visible article paragraph. A bare case-study link or self-asserted proof label does not establish Experience. If no story fits, document a substantive First-hand evidence decision with Selected: [none] in the E-E-A-T Proof Map and a matching experience_story slate row with rejected-candidate reasons. Generic review-site experience evidence and VoC themes are research inputs, not E-E-A-T story proof. Named authors and receipt-approved Fred authority are optional positive expertise signals, not required AEO pass conditions. A bare owned product link does not establish Expertise.",
+        "issue": "The draft is missing required first-hand experience proof.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "external_sources": {
+        "applicable": false,
+        "details": {
+          "external_link_count": 10,
+          "external_links": [
+            "https://www.simprogroup.com/",
+            "https://www.bmc.com/blogs/leading-vs-lagging-indicators/",
+            "https://www.youtube.com/watch?v=hSAYhv94Oq0",
+            "https://www.youtube.com/watch?v=eVlFAW3xLU8",
+            "https://www.youtube.com/watch?v=hSAYhv94Oq0",
+            "https://www.simprogroup.com/blog/field-service-metrics",
+            "https://www.simprogroup.com/",
+            "https://www.simprogroup.com/blog/field-service-operations",
+            "https://www.simprogroup.com/blog/best-field-service-management-software",
+            "https://www.techtarget.com/enterprise-software/definition/What-is-CRM-customer-relationship-management"
+          ],
+          "reason": "AEO fixed source-count scoring is disabled; release link policy owns the baseline and claim-level proof gates own additions."
+        },
+        "fix": "Use 2 distinct non-owned authority sources as the standard-post baseline. Add further claim-fit sources whenever evidence requires them, add no quota-only third source, and apply no maximum to required evidence.",
+        "issue": "External link totals are diagnostic in AEO scoring; release policy still uses a 2 distinct non-owned authority source baseline.",
+        "passed": true,
+        "severity": "info",
+        "status": "not_applicable"
+      },
+      "faq_answer_length": {
+        "applicable": true,
+        "details": {
+          "answer_lengths": [
+            {
+              "question": "What is field service software?",
+              "words": 45
+            },
+            {
+              "question": "How to streamline field service operations with software?",
+              "words": 45
+            },
+            {
+              "question": "What is the best software for field service management?",
+              "words": 44
+            },
+            {
+              "question": "What's the difference between CRM and FSM?",
+              "words": 47
+            }
+          ],
+          "failing_answers": []
+        },
+        "fix": "Rewrite each FAQ answer as a 40-60 word direct answer, then add context after it if needed.",
+        "issue": "One or more FAQ answers is outside the 40-60 word AEO snippet range.",
+        "passed": true,
+        "severity": "medium",
+        "status": "passed"
+      },
+      "faq_answer_quality": {
+        "applicable": true,
+        "details": {
+          "finding_count": 0,
+          "findings": [],
+          "prevalidated": true
+        },
+        "fix": "Lead with a supported number or range, named recommendation, definition, concrete action, or explained yes/no answer. Move limitations after the direct answer.",
+        "issue": "One or more FAQ answers opens with a generic non-answer.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "faq_policy": {
+        "applicable": true,
+        "details": {
+          "policy_status": "required",
+          "visible_faq": true
+        },
+        "fix": "Use required when a visible FAQ is planned. Use not_applicable with a rationale only when the final article has no visible FAQ.",
+        "issue": "The bound FAQ policy does not match visible FAQ content.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "faq_proof": {
+        "applicable": true,
+        "details": {
+          "finding_count": 0,
+          "findings": [],
+          "prevalidated": true
+        },
+        "fix": "Resolve each finding according to its machine-assigned citation_mode. For inline_required, add a natural descriptive anchor to an authoritative owned or non-owned source in the first visible answer paragraph, map it in the FAQ Proof Map, and do not use competitor-owned FAQ sources. For section_source_allowed, sidecar_only, or proof_not_required, satisfy the assigned mode without quota-only links; a sidecar cannot replace inline evidence when inline_required applies.",
+        "issue": "One or more FAQ answers does not satisfy its machine-assigned citation mode.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "faq_questions": {
+        "applicable": true,
+        "details": {
+          "question_count": 4,
+          "questions": [
+            "What is field service software?",
+            "How to streamline field service operations with software?",
+            "What is the best software for field service management?",
+            "What's the difference between CRM and FSM?"
+          ]
+        },
+        "fix": "Use the useful complete questions selected by the bound PAA policy, without a fixed count.",
+        "issue": "The selected FAQ/PAA section has no natural-language question headings.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "faq_structure": {
+        "applicable": true,
+        "details": {
+          "heading_present": true,
+          "unsupported_lines": []
+        },
+        "fix": "Use a recognized FAQ H2 followed by H3-H5 question headings.",
+        "issue": "FAQ-like question markup uses an unsupported structure.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "metadata": {
+        "applicable": true,
+        "details": {
+          "assembly_date": "2026-09-23",
+          "author_policy_status": "",
+          "freshness_status": "valid",
+          "has_author": false,
+          "has_last_updated": true,
+          "last_updated": "2026-09-23"
+        },
+        "fix": "Use a canonical YYYY-MM-DD last_updated value that is not later than the bound assembly date. Author metadata is optional for no-author blog workflows.",
+        "issue": "The draft is missing valid freshness metadata.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "paa_provenance": {
+        "applicable": true,
+        "details": {
+          "finding_count": 0,
+          "findings": [],
+          "prevalidated": true
+        },
+        "fix": "Pass the BOM-bound workflow mode, exact query, assembly collection date, and primary PAA artifact into the AEO rater.",
+        "issue": "PAA provenance does not match the bound workflow, query, or date.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "schema": {
+        "applicable": true,
+        "details": {
+          "author_policy_status": "",
+          "entities": [
+            "BlogPosting",
+            "BreadcrumbList",
+            "FAQPage",
+            "ImageObject for the featured image or logo",
+            "Organization as publisher reference only, not a separate full schema block",
+            "Question and Answer inside FAQPage",
+            "VideoObject"
+          ],
+          "has_supported_video_embed": true,
+          "missing_entities": [],
+          "unexpected_entities": [],
+          "unknown_entities": [],
+          "video_embed_errors": []
+        },
+        "fix": "Use exact canonical schema entity names. Include FAQPage and its Question and Answer entity only with a visible FAQ, Person only with a named author, and VideoObject only with a supported embed.",
+        "issue": "Schema notes do not match the exact conditional blog entity contract.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      }
+    },
+    "details": {
+      "capsule_count": 2,
+      "case_study_links": [],
+      "experience_signals": [
+        "documented_no_fit_experience_boundary"
+      ],
+      "expertise_signals": [
+        "fred_authority"
+      ],
+      "external_link_count": 10,
+      "faq_answer_quality_findings": [],
+      "faq_proof_findings": [],
+      "faq_question_count": 4,
+      "h2_count": 7,
+      "paa_provenance_findings": [],
+      "review_site_links": [],
+      "section_clarity": {
+        "details": {
+          "unclear_sections": []
+        },
+        "fix": "Keep one clear idea per major section, or split broad sections with focused H3s.",
+        "issue": "One or more major sections appears to cover too much without H3 structure.",
+        "passed": true,
+        "severity": "low"
+      }
+    },
+    "issues": [
+      {
+        "check": "capsule_coverage",
+        "fix": "Add a 50-60 word direct-answer paragraph immediately below the H1 and at least 60% of major H2s.",
+        "issue": "Fewer than 60% of major H2 sections have 50-60 word direct-answer capsules.",
+        "severity": "high"
+      }
+    ],
+    "passed": false,
+    "score": 82,
+    "threshold": 90
+  },
+  "artifact_kind": "blog",
+  "assembly_bom": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\outputs\\operational-accountability-field-service-pr-led-2026-09-23-pass2\\provisional-bom.json",
+  "completed_at": "2026-09-23T17:21:58.577842Z",
+  "context_pack": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-pack-operational-accountability-field-service-pr-led-2026-09-23.json",
+  "context_receipt": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-receipt-operational-accountability-field-service-pr-led-2026-09-23.json",
+  "context_request": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-request-operational-accountability-field-service-pr-led-2026-09-23.json",
+  "file": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\published\\operational-accountability-field-service-2026-09-17.md",
+  "gate_inventory": [
+    "artifact_identity",
+    "context_binding",
+    "blog_assembly_bom",
+    "public_artifact",
+    "ai_copy_linter",
+    "url_validator",
+    "public_research_links",
+    "industry_cluster_link_policy",
+    "metric_proof_pack",
+    "numeric_claim_source",
+    "faq_answer_quality",
+    "faq_proof",
+    "paa_provenance",
+    "editorial_plan",
+    "semrush_keyword_decision",
+    "blog_strategy",
+    "competitive_shortlist",
+    "hindsight_boundary",
+    "source_support",
+    "source_quality",
+    "customer_proof_diversity",
+    "review_story_identity",
+    "eeat_strength",
+    "early_artifact",
+    "answer_withholding",
+    "schema_handoff",
+    "vault_brand_language",
+    "named_feature_status",
+    "fred_authority",
+    "content_scorer",
+    "input_seal"
+  ],
+  "gates": [
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Artifact Identity",
+      "name": "artifact_identity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Context Binding",
+      "name": "context_binding",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Blog Assembly BOM",
+      "name": "blog_assembly_bom",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Public Artifact",
+      "name": "public_artifact",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [
+        "line 35: repeated_sentence_start - Repeated sentence start 'field service' appears on lines 35, 101, 151.",
+        "line 54: modal_verb - Modal verbs weaken copy and often hide uncertainty.",
+        "line 56: long_sentence - Sentence is 39 words; Simpro copy should stay tighter."
+      ],
+      "errors": 35,
+      "findings": [
+        {
+          "column": 1,
+          "line": 35,
+          "lines": [
+            35,
+            101,
+            151
+          ],
+          "match": "field service",
+          "message": "Repeated sentence start 'field service' appears on lines 35, 101, 151.",
+          "rule_id": "repeated_sentence_start",
+          "severity": "error",
+          "suggestion": "Vary the sentence opening or combine related ideas."
+        },
+        {
+          "column": 289,
+          "line": 54,
+          "match": "should",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 78,
+          "line": 56,
+          "match": "It usually drifts through small gaps: a visit is booked before access is confirmed, a technician finishes work before every cost is captured, a quote waits for review, or an invoice stalls because the job record is not complete.",
+          "message": "Sentence is 39 words; Simpro copy should stay tighter.",
+          "rule_id": "long_sentence",
+          "severity": "error",
+          "suggestion": "Split the sentence or remove filler."
+        },
+        {
+          "column": 82,
+          "line": 56,
+          "match": "usually",
+          "message": "Vague language needs proof or a concrete example.",
+          "rule_id": "vague_generalization",
+          "severity": "error",
+          "suggestion": "Use approved proof or a specific unnamed operational detail."
+        },
+        {
+          "column": 125,
+          "line": 56,
+          "match": "is booked",
+          "message": "Passive voice weakens the sentence.",
+          "rule_id": "passive_voice",
+          "severity": "error",
+          "suggestion": "Rewrite with a clear actor and active verb."
+        },
+        {
+          "column": 149,
+          "line": 56,
+          "match": "is confirmed",
+          "message": "Passive voice weakens the sentence.",
+          "rule_id": "passive_voice",
+          "severity": "error",
+          "suggestion": "Rewrite with a clear actor and active verb."
+        },
+        {
+          "column": 208,
+          "line": 56,
+          "match": "is captured",
+          "message": "Passive voice weakens the sentence.",
+          "rule_id": "passive_voice",
+          "severity": "error",
+          "suggestion": "Rewrite with a clear actor and active verb."
+        },
+        {
+          "column": 84,
+          "line": 60,
+          "match": "can",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 116,
+          "line": 60,
+          "match": "can",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 161,
+          "line": 60,
+          "match": "can",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 322,
+          "line": 66,
+          "lines": [
+            66,
+            131,
+            135,
+            145
+          ],
+          "match": "it is",
+          "message": "Repeated sentence start 'it is' appears on lines 66, 131, 135, 145.",
+          "rule_id": "repeated_sentence_start",
+          "severity": "error",
+          "suggestion": "Vary the sentence opening or combine related ideas."
+        },
+        {
+          "column": 350,
+          "line": 66,
+          "match": "can",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 165,
+          "line": 84,
+          "match": "often",
+          "message": "Vague language needs proof or a concrete example.",
+          "rule_id": "vague_generalization",
+          "severity": "error",
+          "suggestion": "Use approved proof or a specific unnamed operational detail."
+        },
+        {
+          "column": 185,
+          "line": 84,
+          "match": "several",
+          "message": "Vague language needs proof or a concrete example.",
+          "rule_id": "vague_generalization",
+          "severity": "error",
+          "suggestion": "Use approved proof or a specific unnamed operational detail."
+        },
+        {
+          "column": 173,
+          "line": 101,
+          "match": "can",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 23,
+          "line": 103,
+          "match": "usually",
+          "message": "Vague language needs proof or a concrete example.",
+          "rule_id": "vague_generalization",
+          "severity": "error",
+          "suggestion": "Use approved proof or a specific unnamed operational detail."
+        },
+        {
+          "column": 209,
+          "line": 103,
+          "match": "can",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 71,
+          "line": 107,
+          "match": "might",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 213,
+          "line": 107,
+          "match": "should",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 216,
+          "line": 109,
+          "match": "just",
+          "message": "This filler word often adds no useful meaning.",
+          "rule_id": "filler_word",
+          "severity": "error",
+          "suggestion": "Delete it or replace it with a specific detail."
+        },
+        {
+          "column": 106,
+          "line": 111,
+          "match": "should",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 120,
+          "line": 115,
+          "match": "should",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 1,
+          "line": 117,
+          "lines": [
+            117,
+            119,
+            121
+          ],
+          "match": "use the",
+          "message": "Repeated sentence start 'use the' appears on lines 117, 119, 121.",
+          "rule_id": "repeated_sentence_start",
+          "severity": "error",
+          "suggestion": "Vary the sentence opening or combine related ideas."
+        },
+        {
+          "column": 34,
+          "line": 117,
+          "match": "can",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 44,
+          "line": 117,
+          "match": "be changed",
+          "message": "Passive voice weakens the sentence.",
+          "rule_id": "passive_voice",
+          "severity": "error",
+          "suggestion": "Rewrite with a clear actor and active verb."
+        },
+        {
+          "column": 253,
+          "line": 117,
+          "match": "could",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 106,
+          "line": 119,
+          "match": "may",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 213,
+          "line": 119,
+          "match": "may",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 144,
+          "line": 121,
+          "lines": [
+            121,
+            121,
+            143,
+            143
+          ],
+          "match": "if the",
+          "message": "Repeated sentence start 'if the' appears on lines 121, 121, 143, 143.",
+          "rule_id": "repeated_sentence_start",
+          "severity": "error",
+          "suggestion": "Vary the sentence opening or combine related ideas."
+        },
+        {
+          "column": 1,
+          "line": 129,
+          "match": "For owners, the operating value is practical: job status, billing readiness, quote movement and reporting live closer to the same operating record instead of scattered updates, late reports or disconnected systems.",
+          "message": "Sentence is 31 words; Simpro copy should stay tighter.",
+          "rule_id": "long_sentence",
+          "severity": "error",
+          "suggestion": "Split the sentence or remove filler."
+        },
+        {
+          "column": 108,
+          "line": 133,
+          "match": "can",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 85,
+          "line": 135,
+          "match": "can",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 138,
+          "line": 141,
+          "match": "is considered",
+          "message": "Passive voice weakens the sentence.",
+          "rule_id": "passive_voice",
+          "severity": "error",
+          "suggestion": "Rewrite with a clear actor and active verb."
+        },
+        {
+          "column": 310,
+          "line": 151,
+          "match": "can",
+          "message": "Modal verbs weaken copy and often hide uncertainty.",
+          "rule_id": "modal_verb",
+          "severity": "error",
+          "suggestion": "Use a direct verb when the claim is supported."
+        },
+        {
+          "column": 343,
+          "line": 163,
+          "match": ";",
+          "message": "Semicolons are not allowed in Simpro web copy.",
+          "rule_id": "semicolon",
+          "severity": "error",
+          "suggestion": "Split the sentence or use a comma or period."
+        }
+      ],
+      "label": "AI Copy Linter",
+      "name": "ai_copy_linter",
+      "passed": false,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "URL Validator",
+      "name": "url_validator",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [
+        "line 45: public_research_inline_proof_missing - This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+        "line 48: public_research_inline_proof_missing - This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+        "line 60: public_research_inline_proof_missing - This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row."
+      ],
+      "errors": 9,
+      "findings": [
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 45,
+          "match": "| Callbacks | Repeat visits tied to unclear diagnosis, incomplete documentation or scope change | Better root-cause review and fewer preventable customer experi",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        },
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 48,
+          "match": "| Quote follow-up | Aging quotes with no next action, unanswered question or approval step | Better opportunity control before the work goes cold |",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        },
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 60,
+          "match": "The record does not remove judgment. It gives judgment better inputs. A dispatcher can see readiness issues. Admin can see what keeps jobs from billing. Owners ",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        },
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 66,
+          "match": "That is why leading and lagging measures belong together. BMC's explanation of leading and lagging indicators separates signals that point forward from results ",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        },
+        {
+          "column": 1,
+          "line": 97,
+          "match": "https://www.youtube.com/watch?v=hSAYhv94Oq0",
+          "message": "The same external authority is cited repeatedly within one non-FAQ H2.",
+          "rule_id": "redundant_public_research_citation",
+          "section": "The executive context behind staying close to the work",
+          "severity": "warning",
+          "suggestion": "Keep one contextual citation for the contiguous claim cluster unless separate required claim bindings justify each occurrence."
+        },
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 101,
+          "match": "Field service work starts to drift in the handoffs between booking, dispatch, field execution, closeout, billing and review. Those handoffs decide how quickly t",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        },
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 109,
+          "match": "Invoicing is another common blind spot. If a completed job cannot move to invoice because a cost, approval or closeout note is missing, the cash-flow issue has ",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        },
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 111,
+          "match": "Margin drift deserves the same early view. Labor hours, parts use, subcontractor costs and scope changes should be visible before the job is only a completed re",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        },
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 135,
+          "match": "The best software tie-back is not \"more oversight.\" It is fewer blind spots. Owners can stay close to the work that shapes productivity, profitability, cash flo",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        },
+        {
+          "citation_mode": "inline_required",
+          "citation_owner": "public_research",
+          "column": 1,
+          "line": 141,
+          "match": "Keep the test narrow. If dispatch readiness is the priority, choose two or three fields that must be complete before tomorrow's schedule is considered ready. If",
+          "message": "This public research claim has no resolved, approved non-owned authority link in the same paragraph or Markdown table row.",
+          "rule_id": "public_research_inline_proof_missing",
+          "severity": "error",
+          "suggestion": "Map the authority in the validation sidecar and add a descriptive reader-visible link in the same paragraph or Markdown table row, or remove the claim. Owned ClockShark/Simpro product links do not count as external research."
+        }
+      ],
+      "label": "Public Research Links",
+      "name": "public_research_links",
+      "passed": false,
+      "warnings": 1
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Industry Cluster Link Policy",
+      "name": "industry_cluster_link_policy",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [
+        "line 366: metric_search_log_missing - Metric Proof Pack does not include a Search log.",
+        "line 366: metric_proof_pack_no_approved_metrics - Metric Proof Pack has no approved metrics."
+      ],
+      "errors": 2,
+      "findings": [
+        {
+          "column": 1,
+          "line": 366,
+          "message": "Metric Proof Pack does not include a Search log.",
+          "rule_id": "metric_search_log_missing",
+          "severity": "error",
+          "suggestion": "Document the public pages or local artifacts checked for usable metrics."
+        },
+        {
+          "column": 1,
+          "line": 366,
+          "message": "Metric Proof Pack has no approved metrics.",
+          "rule_id": "metric_proof_pack_no_approved_metrics",
+          "severity": "error",
+          "suggestion": "Add at least one source-backed Approved metric row, or mark Metric requirement: not applicable with a documented reason."
+        }
+      ],
+      "label": "Metric Proof Pack",
+      "name": "metric_proof_pack",
+      "passed": false,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Numeric Claim Source",
+      "name": "numeric_claim_source",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "FAQ Answer Quality",
+      "name": "faq_answer_quality",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "FAQ Proof",
+      "name": "faq_proof",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "PAA Provenance",
+      "name": "paa_provenance",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Editorial Plan",
+      "name": "editorial_plan",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Semrush Keyword Decision",
+      "name": "semrush_keyword_decision",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Blog Strategy",
+      "name": "blog_strategy",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [
+        "line 193: competitive_shortlist_authority_invalid - Competitive shortlist authority must be the vault connector.",
+        "line 193: competitive_shortlist_objective_mismatch - Competitive shortlist objective does not match the exact article objective.",
+        "line 193: competitive_shortlist_rows_missing - Competitive shortlist must contain at least one selected and one rejected decision."
+      ],
+      "errors": 4,
+      "findings": [
+        {
+          "column": 1,
+          "line": 193,
+          "message": "Competitive shortlist authority must be the vault connector.",
+          "rule_id": "competitive_shortlist_authority_invalid",
+          "severity": "error",
+          "suggestion": "Use public SERP pages for format research only, then select competitors from connector evidence."
+        },
+        {
+          "column": 1,
+          "line": 193,
+          "message": "Competitive shortlist objective does not match the exact article objective.",
+          "rule_id": "competitive_shortlist_objective_mismatch",
+          "severity": "error",
+          "suggestion": "Use the unchanged frontmatter objective in the shortlist decision."
+        },
+        {
+          "column": 1,
+          "line": 193,
+          "message": "Competitive shortlist must contain at least one selected and one rejected decision.",
+          "rule_id": "competitive_shortlist_rows_missing",
+          "severity": "error",
+          "suggestion": "Add objective-specific selected and rejected competitor rows."
+        },
+        {
+          "column": 1,
+          "line": 193,
+          "message": "Competitive shortlist status is not approved.",
+          "rule_id": "competitive_shortlist_status_invalid",
+          "severity": "error",
+          "suggestion": "Set Status: approved only after connector evidence and the article snapshot agree."
+        }
+      ],
+      "label": "Competitive Shortlist",
+      "name": "competitive_shortlist",
+      "passed": false,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Hindsight Boundary",
+      "name": "hindsight_boundary",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [
+        "line 35: source_class_invalid - General claim proof must use one exact supported Source class.",
+        "line 45: general_claim_source_missing - General factual claims require a claim-fit approved Source Map row.",
+        "line 46: general_claim_source_missing - General factual claims require a claim-fit approved Source Map row."
+      ],
+      "errors": 28,
+      "findings": [
+        {
+          "column": 1,
+          "evidence": "`claim-fred-FVMI-0015`; resource_id `res-6b7481d0cd9e52d29eaf2859fbc9b6ad`; selected embed.",
+          "line": 35,
+          "match": "Field service operations software helps owners stay close to work by making job status, handoffs, documents, invoice blockers, callbacks and margin signals visible in one operating record.",
+          "message": "General claim proof must use one exact supported Source class.",
+          "proof_line": 280,
+          "proof_url": "https://www.youtube.com/watch?v=hSAYhv94Oq0",
+          "rule_id": "source_class_invalid",
+          "severity": "error",
+          "suggestion": "Use primary_authority, independent_research, non_competing_expert, or another contract class that fits the claim."
+        },
+        {
+          "column": 1,
+          "line": 45,
+          "match": "| Callbacks | Repeat visits tied to unclear diagnosis, incomplete documentation or scope change | Better root-cause review and fewer preventable customer experience issues |",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 46,
+          "match": "| Invoicing blockers | Finished jobs sitting unbilled because records, costs or approvals are missing | Cleaner cash-flow path from completed work to invoice |",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 48,
+          "match": "| Quote follow-up | Aging quotes with no next action, unanswered question or approval step | Better opportunity control before the work goes cold |",
+          "message": "High-risk claims need an approved strict proof row with Claim, URL, Evidence, and Status: approved.",
+          "rule_id": "missing_strict_proof",
+          "severity": "error",
+          "suggestion": "Add a structured proof row with public URL, exact evidence snippet, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 50,
+          "match": "The operating habit is simple: choose the workflow, define the signal and review only the exceptions that need a business decision.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 54,
+          "match": "A connected [field service management software](https://www.simprogroup.com/) platform should make office and field workflows easier to read as one business system.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 54,
+          "match": "One operating record gives field service owners a clearer way to see job status, schedule risk, closeout records, invoice blockers and margin signals without chasing updates across disconnected tools.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 56,
+          "match": "It usually drifts through small gaps: a visit is booked before access is confirmed, a technician finishes work before every cost is captured, a quote waits for review, or an invoice stalls because the job record is not complete.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 58,
+          "match": "An operating record changes the question from \"What happened this month?\" to \"Which active jobs need attention today?\"",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 60,
+          "match": "The record does not remove judgment.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 66,
+          "match": "That is why leading and lagging measures belong together. BMC's explanation of leading and lagging indicators separates signals that point forward from results that look backward. In field service, the useful question is not whether the month-end number exists. It is whether the business can see the upstream work that shapes it",
+          "message": "High-risk claims need an approved strict proof row with Claim, URL, Evidence, and Status: approved.",
+          "rule_id": "missing_strict_proof",
+          "severity": "error",
+          "suggestion": "Add a structured proof row with public URL, exact evidence snippet, and approved status."
+        },
+        {
+          "column": 1,
+          "evidence": "`claim-fred-FVMI-0015`; resource_id `res-6b7481d0cd9e52d29eaf2859fbc9b6ad`; selected embed.",
+          "line": 84,
+          "match": "Staying close to the work means seeing those handoffs earlier, not turning the business into a running commentary on activity.",
+          "message": "General claim proof must use one exact supported Source class.",
+          "proof_line": 280,
+          "proof_url": "https://www.youtube.com/watch?v=hSAYhv94Oq0",
+          "rule_id": "source_class_invalid",
+          "severity": "error",
+          "suggestion": "Use primary_authority, independent_research, non_competing_expert, or another contract class that fits the claim."
+        },
+        {
+          "column": 1,
+          "line": 101,
+          "match": "Field service work starts to drift in the handoffs between booking, dispatch, field execution, closeout, billing and review. Those handoffs decide how quickly the business can respond, invoice, learn and protect margin. Owners get a better operating view by watching the work artifacts that show whether each handoff is ready",
+          "message": "High-risk claims need an approved strict proof row with Claim, URL, Evidence, and Status: approved.",
+          "rule_id": "missing_strict_proof",
+          "severity": "error",
+          "suggestion": "Add a structured proof row with public URL, exact evidence snippet, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 103,
+          "match": "A short readiness review can prevent avoidable calls, route changes and customer frustration.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 103,
+          "match": "If tomorrow's schedule has missing access details, unconfirmed parts or unclear site requirements, the risk is already visible.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 105,
+          "match": "They are the record that lets the business bill accurately, defend work quality, maintain service history and see what happened on site.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 107,
+          "match": "Callbacks need a visible cause, not a reflexive label.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 107,
+          "match": "The operating record should help separate those causes so the business improves the right part of the workflow.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 109,
+          "match": "If a completed job cannot move to invoice because a cost, approval or closeout note is missing, the cash-flow issue has already started.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 111,
+          "match": "Labor hours, parts use, subcontractor costs and scope changes should be visible before the job is only a completed result.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 115,
+          "match": "A daily exception view helps owners stay close to active work without reviewing every job in the same detail.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 115,
+          "match": "The view should surface only the jobs, quotes, invoices and costs that need attention.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 119,
+          "match": "If invoice blockers repeat in the same job type, the closeout standard may need to change.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 121,
+          "match": "If the result missed but the signal never appeared, the view is too late or too vague.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 133,
+          "match": "For measurement, the [field service metrics](https://www.simprogroup.com/blog/field-service-metrics) guide can help separate business results from the workflow signals that influence them.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 135,
+          "match": "The best software tie-back is not \"more oversight.\" It is fewer blind spots. Owners can stay close to the work that shapes productivity, profitability, cash flow, customer experience and margin while the business keeps moving",
+          "message": "High-risk claims need an approved strict proof row with Claim, URL, Evidence, and Status: approved.",
+          "rule_id": "missing_strict_proof",
+          "severity": "error",
+          "suggestion": "Add a structured proof row with public URL, exact evidence snippet, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 141,
+          "match": "If dispatch readiness is the priority, choose two or three fields that must be complete before tomorrow's schedule is considered ready.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        },
+        {
+          "column": 1,
+          "line": 143,
+          "match": "If the view shows the same blocker every week, improve the workflow rather than adding another status conversation.",
+          "message": "General factual claims require a claim-fit approved Source Map row.",
+          "rule_id": "general_claim_source_missing",
+          "severity": "error",
+          "suggestion": "Add Claim type, Source class, public URL, exact evidence, and approved status."
+        }
+      ],
+      "label": "Source Support",
+      "name": "source_support",
+      "passed": false,
+      "warnings": 0
+    },
+    {
+      "blockers": [
+        "line 114: source_quality_checked_date_invalid - Checked date must use YYYY-MM-DD.",
+        "line 114: source_quality_claim_type_invalid - Unsupported Source Map claim type: fred authority.",
+        "line 114: source_quality_freshness_decision_invalid - Unsupported freshness decision: current for 2026 rewrite."
+      ],
+      "errors": 79,
+      "findings": [
+        {
+          "column": 1,
+          "line": 114,
+          "message": "Checked date must use YYYY-MM-DD.",
+          "rule_id": "source_quality_checked_date_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 114,
+          "message": "Unsupported Source Map claim type: fred authority.",
+          "rule_id": "source_quality_claim_type_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 114,
+          "message": "Unsupported freshness decision: current for 2026 rewrite.",
+          "rule_id": "source_quality_freshness_decision_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 114,
+          "message": "Unsupported original-source status: original public source.",
+          "rule_id": "source_quality_original_status_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 114,
+          "message": "Source Map row is missing required field: source date.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 114,
+          "message": "Source Map row is missing required field: checked date.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 114,
+          "message": "Source Map row is missing required field: claim fit.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 114,
+          "message": "Source Map row is missing required field: freshness reason.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 114,
+          "message": "Unsupported Source Map source class: connector-approved public authority.",
+          "rule_id": "source_quality_source_class_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 114,
+          "message": "Source date must use YYYY-MM-DD, undated, or historical.",
+          "rule_id": "source_quality_source_date_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 115,
+          "message": "Checked date must use YYYY-MM-DD.",
+          "rule_id": "source_quality_checked_date_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 115,
+          "message": "Unsupported Source Map claim type: fred authority.",
+          "rule_id": "source_quality_claim_type_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 115,
+          "message": "Unsupported freshness decision: current for 2026 rewrite.",
+          "rule_id": "source_quality_freshness_decision_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 115,
+          "message": "Unsupported original-source status: original public source.",
+          "rule_id": "source_quality_original_status_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 115,
+          "message": "Source Map row is missing required field: source date.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 115,
+          "message": "Source Map row is missing required field: checked date.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 115,
+          "message": "Source Map row is missing required field: claim fit.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 115,
+          "message": "Source Map row is missing required field: freshness reason.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 115,
+          "message": "Unsupported Source Map source class: connector-approved public authority.",
+          "rule_id": "source_quality_source_class_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 115,
+          "message": "Source date must use YYYY-MM-DD, undated, or historical.",
+          "rule_id": "source_quality_source_date_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 116,
+          "message": "Checked date must use YYYY-MM-DD.",
+          "rule_id": "source_quality_checked_date_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 116,
+          "message": "Unsupported freshness decision: current enough for standard management guidance.",
+          "rule_id": "source_quality_freshness_decision_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 116,
+          "message": "Unsupported original-source status: original public source.",
+          "rule_id": "source_quality_original_status_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 116,
+          "message": "Source Map row is missing required field: evidence.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 116,
+          "message": "Source Map row is missing required field: source date.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 116,
+          "message": "Source Map row is missing required field: checked date.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 116,
+          "message": "Source Map row is missing required field: claim fit.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 116,
+          "message": "Source Map row is missing required field: freshness reason.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 116,
+          "message": "Source date must use YYYY-MM-DD, undated, or historical.",
+          "rule_id": "source_quality_source_date_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 117,
+          "message": "Checked date must use YYYY-MM-DD.",
+          "rule_id": "source_quality_checked_date_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 117,
+          "message": "Unsupported Source Map claim type: product_context.",
+          "rule_id": "source_quality_claim_type_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 117,
+          "message": "Unsupported freshness decision: bound through vault context.",
+          "rule_id": "source_quality_freshness_decision_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 117,
+          "message": "Unsupported original-source status: owned commercial pillar.",
+          "rule_id": "source_quality_original_status_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 117,
+          "message": "Source Map row is missing required field: evidence.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 117,
+          "message": "Source Map row is missing required field: source date.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 117,
+          "message": "Source Map row is missing required field: checked date.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 117,
+          "message": "Source Map row is missing required field: claim fit.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 117,
+          "message": "Source Map row is missing required field: freshness reason.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 117,
+          "message": "Source date must use YYYY-MM-DD, undated, or historical.",
+          "rule_id": "source_quality_source_date_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 118,
+          "message": "Checked date must use YYYY-MM-DD.",
+          "rule_id": "source_quality_checked_date_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 118,
+          "message": "Unsupported Source Map claim type: owned_support.",
+          "rule_id": "source_quality_claim_type_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 118,
+          "message": "Unsupported freshness decision: standard owned support.",
+          "rule_id": "source_quality_freshness_decision_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 118,
+          "message": "Unsupported original-source status: owned article.",
+          "rule_id": "source_quality_original_status_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 118,
+          "message": "Source Map row is missing required field: evidence.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 118,
+          "message": "Source Map row is missing required field: source date.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 118,
+          "message": "Source Map row is missing required field: checked date.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 118,
+          "message": "Source Map row is missing required field: claim fit.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 118,
+          "message": "Source Map row is missing required field: freshness reason.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 118,
+          "message": "Source date must use YYYY-MM-DD, undated, or historical.",
+          "rule_id": "source_quality_source_date_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 119,
+          "message": "Checked date must use YYYY-MM-DD.",
+          "rule_id": "source_quality_checked_date_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 119,
+          "message": "Unsupported Source Map claim type: owned_support.",
+          "rule_id": "source_quality_claim_type_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 119,
+          "message": "Unsupported freshness decision: standard owned support.",
+          "rule_id": "source_quality_freshness_decision_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 119,
+          "message": "Unsupported original-source status: owned article.",
+          "rule_id": "source_quality_original_status_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 119,
+          "message": "Source Map row is missing required field: evidence.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 119,
+          "message": "Source Map row is missing required field: source date.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 119,
+          "message": "Source Map row is missing required field: checked date.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 119,
+          "message": "Source Map row is missing required field: claim fit.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 119,
+          "message": "Source Map row is missing required field: freshness reason.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 119,
+          "message": "Source date must use YYYY-MM-DD, undated, or historical.",
+          "rule_id": "source_quality_source_date_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 120,
+          "message": "Checked date must use YYYY-MM-DD.",
+          "rule_id": "source_quality_checked_date_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 120,
+          "message": "Unsupported Source Map claim type: owned_support.",
+          "rule_id": "source_quality_claim_type_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 120,
+          "message": "Unsupported freshness decision: standard owned support.",
+          "rule_id": "source_quality_freshness_decision_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 120,
+          "message": "Unsupported original-source status: owned article.",
+          "rule_id": "source_quality_original_status_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 120,
+          "message": "Source Map row is missing required field: evidence.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 120,
+          "message": "Source Map row is missing required field: source date.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 120,
+          "message": "Source Map row is missing required field: checked date.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 120,
+          "message": "Source Map row is missing required field: claim fit.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 120,
+          "message": "Source Map row is missing required field: freshness reason.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 120,
+          "message": "Source date must use YYYY-MM-DD, undated, or historical.",
+          "rule_id": "source_quality_source_date_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 121,
+          "message": "Checked date must use YYYY-MM-DD.",
+          "rule_id": "source_quality_checked_date_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 121,
+          "message": "Unsupported Source Map claim type: faq definition.",
+          "rule_id": "source_quality_claim_type_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 121,
+          "message": "Unsupported freshness decision: current enough for terminology definition.",
+          "rule_id": "source_quality_freshness_decision_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 121,
+          "message": "Unsupported original-source status: public reference.",
+          "rule_id": "source_quality_original_status_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 121,
+          "message": "Source Map row is missing required field: evidence.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 121,
+          "message": "Source Map row is missing required field: source date.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 121,
+          "message": "Source Map row is missing required field: checked date.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 121,
+          "message": "Source Map row is missing required field: claim fit.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 121,
+          "message": "Source Map row is missing required field: freshness reason.",
+          "rule_id": "source_quality_required_field_missing",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        },
+        {
+          "column": 1,
+          "line": 121,
+          "message": "Source date must use YYYY-MM-DD, undated, or historical.",
+          "rule_id": "source_quality_source_date_invalid",
+          "severity": "error",
+          "suggestion": "Correct the Source Map or lifecycle record with direct, current, claim-fit evidence; do not bypass stricter proof gates."
+        }
+      ],
+      "label": "Source Quality and Lifecycle",
+      "name": "source_quality",
+      "passed": false,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Customer Proof Diversity",
+      "name": "customer_proof_diversity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Review Story Identity",
+      "name": "review_story_identity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "E-E-A-T Strength",
+      "name": "eeat_strength",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Early Artifact",
+      "name": "early_artifact",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Answer Withholding",
+      "name": "answer_withholding",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Schema Handoff",
+      "name": "schema_handoff",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [
+        "line 43: vault_brand_language_claim_id_missing - Proof-sensitive language is declared without a connector claim_id.",
+        "line 43: vault_brand_language_fallback_without_blocker - Repo-local fallback context was used without documenting a vault-unavailable blocker.",
+        "line 43: vault_brand_language_invalid_scope - Vault Brand Language Alignment has an invalid product/solution language scope."
+      ],
+      "errors": 4,
+      "findings": [
+        {
+          "column": 1,
+          "line": 43,
+          "match": "context_pack_hash `2c9e8c27ae24d35b1d9753d7fc1f9ed20d75f7b4e089dd1b711582df85f94330`; receipt_hash `7423bbb6f3b1202f7e551dbe2956648064dbceee7ac01a6543867fc84b05b796`; manifest_revision `94dd66e9dfd6130fa8c1472c11df650d1b9e6590762409e61a9a89a3d15930c2`; voice resource_id `res-d31f057a305f51918055120d95b76c6a`; voice resource_id `res-e3ade596be645307ad4c1f84620ce021`; product context resource_id `res-92348f8056165d4ba81a3c91738604e2`; value-pillar resource_id `res-ac34fbe2f00a50a69522c0864226ffb8`; product positioning resource_id `res-d4c1e70d33425b3aa5f3fc8501374152`.",
+          "message": "Proof-sensitive language is declared without a connector claim_id.",
+          "rule_id": "vault_brand_language_claim_id_missing",
+          "severity": "error",
+          "suggestion": "Record the receipt-approved connector claim_id used for the declared proof. This sidecar evidence does not replace live Context Binding validation."
+        },
+        {
+          "column": 1,
+          "line": 43,
+          "match": "none.",
+          "message": "Repo-local fallback context was used without documenting a vault-unavailable blocker.",
+          "rule_id": "vault_brand_language_fallback_without_blocker",
+          "severity": "error",
+          "suggestion": "Use the vault first, or document the vault-unavailable blocker alongside the fallback context used."
+        },
+        {
+          "column": 1,
+          "line": 43,
+          "match": "product/category language and office-field workflow visibility.",
+          "message": "Vault Brand Language Alignment has an invalid product/solution language scope.",
+          "rule_id": "vault_brand_language_invalid_scope",
+          "severity": "error",
+          "suggestion": "Use product/feature, solution/industry, or mixed."
+        },
+        {
+          "column": 1,
+          "line": 43,
+          "match": "solution/industry language applied",
+          "message": "Vault Brand Language Alignment is missing required field: solution/industry language applied.",
+          "rule_id": "vault_brand_language_required_field_missing",
+          "severity": "error",
+          "suggestion": "Add the complete Vault Brand Language Alignment block to the validation sidecar."
+        }
+      ],
+      "label": "Vault Brand Language",
+      "name": "vault_brand_language",
+      "passed": false,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Named Feature Status",
+      "name": "named_feature_status",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Fred Voccola Authority",
+      "name": "fred_authority",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [
+        "aeo_geo: AEO/GEO blockers detected",
+        "metric_proof_pack: Metric Proof Pack blockers detected",
+        "humanity: AI copy lint errors detected (35 instances)"
+      ],
+      "errors": 1,
+      "findings": [],
+      "label": "Content Scorer",
+      "name": "content_scorer",
+      "passed": false,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Input Seal",
+      "name": "input_seal",
+      "passed": true,
+      "warnings": 0
+    }
+  ],
+  "input_hashes": {
+    "agent_definition.internal-linker": {
+      "path": ".claude/agents/internal-linker.md",
+      "sha256": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c"
+    },
+    "agent_definition.keyword-mapper": {
+      "path": ".claude/agents/keyword-mapper.md",
+      "sha256": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d"
+    },
+    "agent_definition.meta-creator": {
+      "path": ".claude/agents/meta-creator.md",
+      "sha256": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a"
+    },
+    "agent_definition.seo-optimizer": {
+      "path": ".claude/agents/seo-optimizer.md",
+      "sha256": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8"
+    },
+    "agent_output.internal-linker": {
+      "path": "research/agent-outputs/internal-linker-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "f7a6fa9ef7e1f1b18b9932264fd0ffb8842d4e23787e01360ffaa89046b91b45"
+    },
+    "agent_output.keyword-mapper": {
+      "path": "research/agent-outputs/keyword-mapper-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "b17f814887ab796ee3fc1b1d45a4dd73335d4495e0ee510ad75e3886ccd890ac"
+    },
+    "agent_output.meta-creator": {
+      "path": "research/agent-outputs/meta-creator-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "49501df3bc0b7330d7e53e94d87e394332b2738528570b867127281f1e6baf6e"
+    },
+    "agent_output.seo-optimizer": {
+      "path": "research/agent-outputs/seo-optimizer-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "ff0344f80de17b9e6f2805c9e33f0eba722075c655f29f51142c62fea16e1ab7"
+    },
+    "article": {
+      "path": "published/operational-accountability-field-service-2026-09-17.md",
+      "sha256": "eb424e38ab8789d5b138286a018c85116a0636edd32acf01dbe9bed1d287bd0d"
+    },
+    "assembly_bom": {
+      "path": "outputs/operational-accountability-field-service-pr-led-2026-09-23-pass2/provisional-bom.json",
+      "sha256": "23e65ed34dd0879eff6bcc8c1695f838f432d8f15f44ee53117632f18b9a4f29"
+    },
+    "command_definition.rewrite-command": {
+      "path": ".claude/commands/rewrite.md",
+      "sha256": "e79221092f9b56213836ec37a70375fb4a5cf43ec75bc159cfd1d36d88575a56"
+    },
+    "commercial_pillar_index": {
+      "path": "context/commercial-pillar-index.json",
+      "sha256": "d122dbbab6c9f1dfa13715345bc9278f6a33b4e81f10bc4b17d410dc5da8a6f6"
+    },
+    "context_pack": {
+      "path": "research/context-pack-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "200edd152d5ecadb91a590cd783a5d24bd51fe657997881505af9fda67f605a4"
+    },
+    "context_receipt": {
+      "path": "research/context-receipt-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "ce9b00b9538b51a2aad7daa8f10da46400bd17f866729ad66c61f1d8f1769114"
+    },
+    "context_request": {
+      "path": "research/context-request-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "2bfe8844e491f611ac0ab2a55f856d2dba8c1d719573a21e0f754a0ee3099f4b"
+    },
+    "customer_proof_index": {
+      "path": "context/customer-proof-index.json",
+      "sha256": "fee695a0b32d20c3c12c155a590979f4352b3170925fe6f87654b75282125c62"
+    },
+    "customer_proof_selector_evidence": {
+      "path": "research/customer-proof-selector-evidence-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "02c157c2a0bc6d7bee8ba105aa9ea64cce67d808e04bad6a9e9b6aa12d0979c2"
+    },
+    "customer_proof_usage_ledger": {
+      "path": "context/customer-proof-usage-ledger.json",
+      "sha256": "a094f1c09757645a95da80b6666e9d6d4c72aaeb5e71ce307a3843960d098cad"
+    },
+    "editorial_plan": {
+      "path": "research/editorial-plan-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "56c139a7095540eb1550f0f7c512d7e4cd1b63dcd4803e5ed3f4e88099c8ccf1"
+    },
+    "fred_authority_evidence": {
+      "path": "research/fred-authority-evidence-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "a949cc467b4cde188af3ddb7bb7be1b1fe9a0971bed182a1a9957f4f29ea7a3b"
+    },
+    "keyword_decision": {
+      "path": "research/semrush-keyword-decision-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "4baaa3e2d40f1eec65749da86b61184b8ae7075959e452846363a17720825cdf"
+    },
+    "machine_reviews.article": {
+      "path": "research/machine-review-article-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "c38a59715055440d04b5fc8aa0501194754c6e2666990c158acccf8638f56df4"
+    },
+    "machine_reviews.plan": {
+      "path": "research/machine-review-plan-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "7742527ecdb7504d72e3b126fa766a8e78052266c2028b86d92f9c25f0105db6"
+    },
+    "paa_artifact": {
+      "path": "research/paa-questions-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "28c3f7293d3e8e0a82e4f96ea77cbc01711b52a7e4e8d289dd8bc03a1dce0127"
+    },
+    "paa_raw_capture": {
+      "path": "research/answersocrates-chrome-raw-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "5e127ea817427fff8502713f654247fa450e6f798e1ad95310f885b8124fe0e1"
+    },
+    "plan_fulfillment": {
+      "path": "research/blog-plan-fulfillment-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "e30651c1dacb5e94caddca2d6e15eaca56260a78c20b6b73e10345112ef87d25"
+    },
+    "serp_evidence": {
+      "path": "research/serp-evidence-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "0eb78e00338ae6fa4f3c87f9956c9e6477fa12966e195a78ceb03d408d89febe"
+    },
+    "serp_raw_capture": {
+      "path": "research/serp-chrome-raw-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "37159fb85c2c623f6c6eb86cec6110a3e8513d852236c6d76e90ab71ace39123"
+    },
+    "source_decision_registry": {
+      "path": "context/source-classification-decisions.json",
+      "sha256": "8beefea13de55bf1df63b92ac61ad896113cf48ddf55dd711c362569848162b8"
+    },
+    "stage_evidence[0]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-scrub-2026-09-23-evidence.json",
+      "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+    },
+    "stage_evidence[1]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-context-binding-2026-09-23-evidence.json",
+      "sha256": "3f4bd90d7557129f3270c2216721385095b9e835a3e09028a290abf47a5ee2d1"
+    },
+    "stage_receipts[0]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-draft-2026-09-23.json",
+      "sha256": "65ae1291e8a18a26188dc62dd1a79cc2dd941170348b275e15d39308ae6f48bb"
+    },
+    "stage_receipts[1]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-scrub-2026-09-23.json",
+      "sha256": "a56631c1ba1498c54653564ab3806179989a1973feb3da402b766173d7428a71"
+    },
+    "stage_receipts[2]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-context-binding-2026-09-23.json",
+      "sha256": "c994782f42a2708a68833cf5b487d5104c98dcc3baa411893417f716510e8372"
+    },
+    "validation_sidecar": {
+      "path": "research/validation-operational-accountability-field-service-2026-09-23.md",
+      "sha256": "bb1d8b02db60cc9c4ace8320fd00a8c0b6c8a7bddd13de9d596fd2d81458ff8c"
+    }
+  },
+  "input_seal": {
+    "status": "verified"
+  },
+  "passed": false,
+  "phase": "preflight",
+  "priority_fixes": [
+    {
+      "dimension": "aeo_geo",
+      "dimension_score": 0,
+      "fix": "Resolve the failed AEO/GEO checks before optimizing soft content issues: Fewer than 60% of major H2 sections have 50-60 word direct-answer capsules.",
+      "impact": 100,
+      "issue": "AEO/GEO blockers detected",
+      "severity": "high"
+    },
+    {
+      "dimension": "metric_proof_pack",
+      "dimension_score": 0,
+      "fix": "Add a Metric Proof Pack with a search log and approved metrics with source-visible Evidence, or document not applicable: line 366, line 366",
+      "impact": 100,
+      "issue": "Metric Proof Pack blockers detected",
+      "severity": "high"
+    },
+    {
+      "dimension": "humanity",
+      "dimension_score": 58,
+      "fix": "Remove or rephrase: field service, should, It usually drifts through small gaps: a visit is booked before access is confirmed, a technician finishes work before every cost is captured, a quote waits for review, or an invoice stalls because the job record is not complete.",
+      "impact": 12.6,
+      "issue": "AI copy lint errors detected (35 instances)",
+      "severity": "high"
+    },
+    {
+      "dimension": "humanity",
+      "dimension_score": 58,
+      "fix": "Use contractions like don't, can't, you're, it's",
+      "impact": 12.6,
+      "issue": "Lacks contractions (sounds formal)",
+      "severity": "low"
+    },
+    {
+      "dimension": "seo",
+      "dimension_score": 86,
+      "fix": "Primary topic 'field service operations software' missing from H1 heading",
+      "impact": 2.1,
+      "issue": "Primary topic 'field service operations software' missing from H1 heading",
+      "severity": "high"
+    }
+  ],
+  "proof_sidecar": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\validation-operational-accountability-field-service-2026-09-23.md",
+  "run_id": "80e44117-293a-480c-9100-ea4359c4ec9f",
+  "schema": "simpro-publish-readiness-result/v1",
+  "score": 82.1,
+  "score_threshold": 85,
+  "scorecard": {
+    "aeo_geo": {
+      "passed": false,
+      "score": 82,
+      "threshold": 90
+    },
+    "content_quality": {
+      "passed": false,
+      "score": 82.1,
+      "threshold": 85
+    },
+    "passed": false,
+    "seo_quality": {
+      "critical_issue_count": 1,
+      "critical_issues": [
+        "Primary topic 'field service operations software' missing from H1 heading"
+      ],
+      "passed": false,
+      "score": 86,
+      "target": 95,
+      "target_met": false,
+      "target_status": "failed_floor",
+      "threshold": 90
+    }
+  },
+  "started_at": "2026-09-23T17:21:14.845565Z",
+  "tool": {
+    "name": "publish_readiness",
+    "version": "1.0.0"
+  },
+  "verification_scope": "source_artifact"
+}

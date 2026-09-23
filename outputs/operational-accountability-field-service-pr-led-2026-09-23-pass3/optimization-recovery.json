@@ -1,0 +1,18 @@
+{
+  "native_edit_status": "not_started",
+  "optimization_stage_receipt": null,
+  "optimization_state": null,
+  "preflight_passed": false,
+  "preflight_readiness": "outputs/operational-accountability-field-service-pr-led-2026-09-23-pass3/preflight-readiness.json",
+  "preflight_readiness_stage_receipt": null,
+  "reason": "Optimizer evidence was not supplied to the release wrapper.",
+  "required_next_steps": [
+    "Run /optimize against the article using the initial readiness output.",
+    "Write a simpro-optimizer-output/v2 artifact binding the current article, editorial plan, proof sidecar, scorecard, and prior-preflight readiness.",
+    "Rerun /scrub and Context Binding after article or sidecar changes.",
+    "Resolve the preflight blocker, then rerun /scrub and Context Binding when needed.",
+    "Rerun the release wrapper to produce the required passed initial scorecard before final release."
+  ],
+  "schema": "simpro-blog-optimization-recovery/v1",
+  "status": "started"
+}

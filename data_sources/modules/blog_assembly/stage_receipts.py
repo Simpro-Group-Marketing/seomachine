@@ -22,6 +22,7 @@ from .contracts import (
     _required_mapping,
 )
 from .preflight import _resolvable_receipt_evidence_hashes
+from ..readiness.input_spec import FIXED_WORKSPACE_INPUT_LABELS
 
 
 def _validate_receipt_sequence(
@@ -415,6 +416,14 @@ def _validate_prior_preflight_payloads(
     return readiness
 
 
+# Readiness inputs the assembly BOM never inventories, so they are expected
+# as extras when preflight bindings are compared against it.
+ALLOWED_EXTRA_INPUTS = FIXED_WORKSPACE_INPUT_LABELS | {
+    "paa_raw_capture",
+    "serp_raw_capture",
+}
+
+
 def _validate_prior_input_inventory(
     inputs: Mapping[str, Any],
     prior_bom: Mapping[str, Any],
@@ -437,12 +446,7 @@ def _validate_prior_input_inventory(
     }
     extras = set(actual) - set(expected)
     mismatch = any(actual.get(label) != row for label, row in expected.items())
-    allowed_extras = {
-        "customer_proof_index",
-        "customer_proof_usage_ledger",
-        "paa_raw_capture",
-        "serp_raw_capture",
-    }
+    allowed_extras = ALLOWED_EXTRA_INPUTS
     if mismatch or extras - allowed_extras:
         raise ValueError("prior preflight inputs do not match its bound provisional BOM")
 

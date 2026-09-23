@@ -1,0 +1,878 @@
+{
+  "aeo_geo": {
+    "checks": {
+      "author_voice": {
+        "applicable": true,
+        "details": {
+          "author_policy_status": "",
+          "first_person_terms": [],
+          "has_author": false
+        },
+        "fix": "Add a source-bound named author or rewrite first-person singular judgment in an attributed or neutral channel voice. Quoted source language may remain quoted.",
+        "issue": "First-person singular author judgment appears without a named author.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "capsule_coverage": {
+        "applicable": true,
+        "details": {
+          "capsule_count": 6,
+          "coverage": 0.86,
+          "h2_count": 7,
+          "sections": [
+            {
+              "heading": "Start with one operating record",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 2,
+              "word_count": 55
+            },
+            {
+              "heading": "Use visibility to protect productivity and margin",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 3,
+              "word_count": 52
+            },
+            {
+              "heading": "The executive context behind staying close to the work",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 2,
+              "word_count": 60
+            },
+            {
+              "heading": "Where field service work starts to drift",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 3,
+              "word_count": 50
+            },
+            {
+              "heading": "Build a daily exception view",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 3,
+              "word_count": 50
+            },
+            {
+              "heading": "Use Simpro to connect the work",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 2,
+              "word_count": 50
+            },
+            {
+              "heading": "Start with one workflow this week",
+              "passed": false,
+              "reason": "First paragraph must contain 50-60 words.",
+              "sentence_count": 3,
+              "word_count": 44
+            }
+          ]
+        },
+        "fix": "Add a 50-60 word direct-answer paragraph immediately below the H1 and at least 60% of major H2s.",
+        "issue": "Fewer than 60% of major H2 sections have 50-60 word direct-answer capsules.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "direct_answer": {
+        "applicable": true,
+        "details": {
+          "first_two_sentences": "Use field service operations software to keep job status, handoffs, documents, invoice blockers, callbacks and margin signals visible in one operating record. The goal is an operating view that shows active-work drift early enough to protect productivity, cash flow, margin and customer experience without another layer of status chasing.",
+          "includes_target": true,
+          "word_count": 49
+        },
+        "fix": "Start with a concise answer that names the target query or primary keyword before the hook.",
+        "issue": "The article does not directly answer the target query in the first 1-2 sentences.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "eeat_proof": {
+        "applicable": true,
+        "details": {
+          "case_study_links": [],
+          "clockshark_workflow_links": [],
+          "experience_signals": [
+            "documented_no_fit_experience_boundary"
+          ],
+          "expertise_signals": [
+            "fred_authority"
+          ],
+          "has_documented_no_fit_boundary": true,
+          "has_experience": true,
+          "has_expertise": true,
+          "has_review_story_selection": false,
+          "review_site_links": [],
+          "simpro_product_links": [],
+          "validated_customer_experience": null
+        },
+        "fix": "Use a hash-verified customer-proof selector experience_story binding, an approved Selected Customer Proof Mining record, and the selected identity and public URL in the same visible article paragraph. A bare case-study link or self-asserted proof label does not establish Experience. If no story fits, document a substantive First-hand evidence decision with Selected: [none] in the E-E-A-T Proof Map and a matching experience_story slate row with rejected-candidate reasons. Generic review-site experience evidence and VoC themes are research inputs, not E-E-A-T story proof. Named authors and receipt-approved Fred authority are optional positive expertise signals, not required AEO pass conditions. A bare owned product link does not establish Expertise.",
+        "issue": "The draft is missing required first-hand experience proof.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "external_sources": {
+        "applicable": false,
+        "details": {
+          "external_link_count": 9,
+          "external_links": [
+            "https://www.simprogroup.com/",
+            "https://www.youtube.com/watch?v=hSAYhv94Oq0",
+            "https://www.youtube.com/watch?v=eVlFAW3xLU8",
+            "https://www.youtube.com/watch?v=hSAYhv94Oq0",
+            "https://www.simprogroup.com/blog/field-service-metrics",
+            "https://www.simprogroup.com/",
+            "https://www.simprogroup.com/blog/field-service-operations",
+            "https://www.simprogroup.com/",
+            "https://www.techtarget.com/enterprise-software/definition/What-is-CRM-customer-relationship-management"
+          ],
+          "reason": "AEO fixed source-count scoring is disabled; release link policy owns the baseline and claim-level proof gates own additions."
+        },
+        "fix": "Use 2 distinct non-owned authority sources as the standard-post baseline. Add further claim-fit sources whenever evidence requires them, add no quota-only third source, and apply no maximum to required evidence.",
+        "issue": "External link totals are diagnostic in AEO scoring; release policy still uses a 2 distinct non-owned authority source baseline.",
+        "passed": true,
+        "severity": "info",
+        "status": "not_applicable"
+      },
+      "faq_answer_length": {
+        "applicable": true,
+        "details": {
+          "answer_lengths": [
+            {
+              "question": "What is field service software?",
+              "words": 42
+            },
+            {
+              "question": "How to streamline field service operations with software?",
+              "words": 40
+            },
+            {
+              "question": "Who uses field service management software?",
+              "words": 44
+            },
+            {
+              "question": "What's the difference between CRM and FSM?",
+              "words": 47
+            }
+          ],
+          "failing_answers": []
+        },
+        "fix": "Rewrite each FAQ answer as a 40-60 word direct answer, then add context after it if needed.",
+        "issue": "One or more FAQ answers is outside the 40-60 word AEO snippet range.",
+        "passed": true,
+        "severity": "medium",
+        "status": "passed"
+      },
+      "faq_answer_quality": {
+        "applicable": true,
+        "details": {
+          "finding_count": 0,
+          "findings": [],
+          "prevalidated": true
+        },
+        "fix": "Lead with a supported number or range, named recommendation, definition, concrete action, or explained yes/no answer. Move limitations after the direct answer.",
+        "issue": "One or more FAQ answers opens with a generic non-answer.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "faq_policy": {
+        "applicable": true,
+        "details": {
+          "policy_status": "required",
+          "visible_faq": true
+        },
+        "fix": "Use required when a visible FAQ is planned. Use not_applicable with a rationale only when the final article has no visible FAQ.",
+        "issue": "The bound FAQ policy does not match visible FAQ content.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "faq_proof": {
+        "applicable": true,
+        "details": {
+          "finding_count": 0,
+          "findings": [],
+          "prevalidated": true
+        },
+        "fix": "Resolve each finding according to its machine-assigned citation_mode. For inline_required, add a natural descriptive anchor to an authoritative owned or non-owned source in the first visible answer paragraph, map it in the FAQ Proof Map, and do not use competitor-owned FAQ sources. For section_source_allowed, sidecar_only, or proof_not_required, satisfy the assigned mode without quota-only links; a sidecar cannot replace inline evidence when inline_required applies.",
+        "issue": "One or more FAQ answers does not satisfy its machine-assigned citation mode.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "faq_questions": {
+        "applicable": true,
+        "details": {
+          "question_count": 4,
+          "questions": [
+            "What is field service software?",
+            "How to streamline field service operations with software?",
+            "Who uses field service management software?",
+            "What's the difference between CRM and FSM?"
+          ]
+        },
+        "fix": "Use the useful complete questions selected by the bound PAA policy, without a fixed count.",
+        "issue": "The selected FAQ/PAA section has no natural-language question headings.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "faq_structure": {
+        "applicable": true,
+        "details": {
+          "heading_present": true,
+          "unsupported_lines": []
+        },
+        "fix": "Use a recognized FAQ H2 followed by H3-H5 question headings.",
+        "issue": "FAQ-like question markup uses an unsupported structure.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "metadata": {
+        "applicable": true,
+        "details": {
+          "assembly_date": "2026-09-23",
+          "author_policy_status": "",
+          "freshness_status": "valid",
+          "has_author": false,
+          "has_last_updated": true,
+          "last_updated": "2026-09-23"
+        },
+        "fix": "Use a canonical YYYY-MM-DD last_updated value that is not later than the bound assembly date. Author metadata is optional for no-author blog workflows.",
+        "issue": "The draft is missing valid freshness metadata.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "paa_provenance": {
+        "applicable": true,
+        "details": {
+          "finding_count": 0,
+          "findings": [],
+          "prevalidated": true
+        },
+        "fix": "Pass the BOM-bound workflow mode, exact query, assembly collection date, and primary PAA artifact into the AEO rater.",
+        "issue": "PAA provenance does not match the bound workflow, query, or date.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "schema": {
+        "applicable": true,
+        "details": {
+          "author_policy_status": "",
+          "entities": [
+            "BlogPosting",
+            "BreadcrumbList",
+            "FAQPage",
+            "ImageObject for the featured image or logo",
+            "Organization as publisher reference only, not a separate full schema block",
+            "Question and Answer inside FAQPage",
+            "VideoObject"
+          ],
+          "has_supported_video_embed": true,
+          "missing_entities": [],
+          "unexpected_entities": [],
+          "unknown_entities": [],
+          "video_embed_errors": []
+        },
+        "fix": "Use exact canonical schema entity names. Include FAQPage and its Question and Answer entity only with a visible FAQ, Person only with a named author, and VideoObject only with a supported embed.",
+        "issue": "Schema notes do not match the exact conditional blog entity contract.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      }
+    },
+    "details": {
+      "capsule_count": 6,
+      "case_study_links": [],
+      "experience_signals": [
+        "documented_no_fit_experience_boundary"
+      ],
+      "expertise_signals": [
+        "fred_authority"
+      ],
+      "external_link_count": 9,
+      "faq_answer_quality_findings": [],
+      "faq_proof_findings": [],
+      "faq_question_count": 4,
+      "h2_count": 7,
+      "paa_provenance_findings": [],
+      "review_site_links": [],
+      "section_clarity": {
+        "details": {
+          "unclear_sections": []
+        },
+        "fix": "Keep one clear idea per major section, or split broad sections with focused H3s.",
+        "issue": "One or more major sections appears to cover too much without H3 structure.",
+        "passed": true,
+        "severity": "low"
+      }
+    },
+    "issues": [],
+    "passed": true,
+    "score": 100,
+    "threshold": 90
+  },
+  "artifact_kind": "blog",
+  "assembly_bom": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\outputs\\operational-accountability-field-service-pr-led-2026-09-23-pass6\\provisional-bom.json",
+  "completed_at": "2026-09-23T18:11:49.842594Z",
+  "context_pack": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-pack-operational-accountability-field-service-pr-led-2026-09-23.json",
+  "context_receipt": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-receipt-operational-accountability-field-service-pr-led-2026-09-23.json",
+  "context_request": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-request-operational-accountability-field-service-pr-led-2026-09-23.json",
+  "file": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\published\\operational-accountability-field-service-2026-09-17.md",
+  "gate_inventory": [
+    "artifact_identity",
+    "context_binding",
+    "blog_assembly_bom",
+    "public_artifact",
+    "ai_copy_linter",
+    "url_validator",
+    "public_research_links",
+    "industry_cluster_link_policy",
+    "metric_proof_pack",
+    "numeric_claim_source",
+    "faq_answer_quality",
+    "faq_proof",
+    "paa_provenance",
+    "editorial_plan",
+    "semrush_keyword_decision",
+    "blog_strategy",
+    "competitive_shortlist",
+    "hindsight_boundary",
+    "source_support",
+    "source_quality",
+    "customer_proof_diversity",
+    "review_story_identity",
+    "eeat_strength",
+    "early_artifact",
+    "answer_withholding",
+    "schema_handoff",
+    "vault_brand_language",
+    "named_feature_status",
+    "fred_authority",
+    "content_scorer",
+    "input_seal"
+  ],
+  "gates": [
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Artifact Identity",
+      "name": "artifact_identity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Context Binding",
+      "name": "context_binding",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Blog Assembly BOM",
+      "name": "blog_assembly_bom",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Public Artifact",
+      "name": "public_artifact",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "AI Copy Linter",
+      "name": "ai_copy_linter",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "URL Validator",
+      "name": "url_validator",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [
+        {
+          "column": 1,
+          "line": 97,
+          "match": "https://www.youtube.com/watch?v=hSAYhv94Oq0",
+          "message": "The same external authority is cited repeatedly within one non-FAQ H2.",
+          "rule_id": "redundant_public_research_citation",
+          "section": "The executive context behind staying close to the work",
+          "severity": "warning",
+          "suggestion": "Keep one contextual citation for the contiguous claim cluster unless separate required claim bindings justify each occurrence."
+        }
+      ],
+      "label": "Public Research Links",
+      "name": "public_research_links",
+      "passed": true,
+      "warnings": 1
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Industry Cluster Link Policy",
+      "name": "industry_cluster_link_policy",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Metric Proof Pack",
+      "name": "metric_proof_pack",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Numeric Claim Source",
+      "name": "numeric_claim_source",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "FAQ Answer Quality",
+      "name": "faq_answer_quality",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "FAQ Proof",
+      "name": "faq_proof",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "PAA Provenance",
+      "name": "paa_provenance",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Editorial Plan",
+      "name": "editorial_plan",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Semrush Keyword Decision",
+      "name": "semrush_keyword_decision",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Blog Strategy",
+      "name": "blog_strategy",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Competitive Shortlist",
+      "name": "competitive_shortlist",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Hindsight Boundary",
+      "name": "hindsight_boundary",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Source Support",
+      "name": "source_support",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Source Quality and Lifecycle",
+      "name": "source_quality",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Customer Proof Diversity",
+      "name": "customer_proof_diversity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Review Story Identity",
+      "name": "review_story_identity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "E-E-A-T Strength",
+      "name": "eeat_strength",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Early Artifact",
+      "name": "early_artifact",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Answer Withholding",
+      "name": "answer_withholding",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Schema Handoff",
+      "name": "schema_handoff",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Vault Brand Language",
+      "name": "vault_brand_language",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Named Feature Status",
+      "name": "named_feature_status",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Fred Voccola Authority",
+      "name": "fred_authority",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Content Scorer",
+      "name": "content_scorer",
+      "passed": true,
+      "warnings": 5
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Input Seal",
+      "name": "input_seal",
+      "passed": true,
+      "warnings": 0
+    }
+  ],
+  "input_hashes": {
+    "agent_definition.internal-linker": {
+      "path": ".claude/agents/internal-linker.md",
+      "sha256": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c"
+    },
+    "agent_definition.keyword-mapper": {
+      "path": ".claude/agents/keyword-mapper.md",
+      "sha256": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d"
+    },
+    "agent_definition.meta-creator": {
+      "path": ".claude/agents/meta-creator.md",
+      "sha256": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a"
+    },
+    "agent_definition.seo-optimizer": {
+      "path": ".claude/agents/seo-optimizer.md",
+      "sha256": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8"
+    },
+    "agent_output.internal-linker": {
+      "path": "research/agent-outputs/internal-linker-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "f7a6fa9ef7e1f1b18b9932264fd0ffb8842d4e23787e01360ffaa89046b91b45"
+    },
+    "agent_output.keyword-mapper": {
+      "path": "research/agent-outputs/keyword-mapper-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "b17f814887ab796ee3fc1b1d45a4dd73335d4495e0ee510ad75e3886ccd890ac"
+    },
+    "agent_output.meta-creator": {
+      "path": "research/agent-outputs/meta-creator-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "4ae071a8ec3770a4fa07c11bd9cfaaf8dc8372de09525211e33fba42e1067761"
+    },
+    "agent_output.seo-optimizer": {
+      "path": "research/agent-outputs/seo-optimizer-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "ff0344f80de17b9e6f2805c9e33f0eba722075c655f29f51142c62fea16e1ab7"
+    },
+    "article": {
+      "path": "published/operational-accountability-field-service-2026-09-17.md",
+      "sha256": "b0db1b5c816778290a34f76ffc1187b5aea994a70ff66aae925b4b20ed70ff32"
+    },
+    "assembly_bom": {
+      "path": "outputs/operational-accountability-field-service-pr-led-2026-09-23-pass6/provisional-bom.json",
+      "sha256": "3257b3eb9155165bfb14b0837a01db91ddc1d4c50879ba25d105f4469f8c1e14"
+    },
+    "command_definition.rewrite-command": {
+      "path": ".claude/commands/rewrite.md",
+      "sha256": "e79221092f9b56213836ec37a70375fb4a5cf43ec75bc159cfd1d36d88575a56"
+    },
+    "commercial_pillar_index": {
+      "path": "context/commercial-pillar-index.json",
+      "sha256": "d122dbbab6c9f1dfa13715345bc9278f6a33b4e81f10bc4b17d410dc5da8a6f6"
+    },
+    "context_pack": {
+      "path": "research/context-pack-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "701940a84ac49210c80d2743a86888d9d0897a74c85fb5b12928d8a7fc0b6618"
+    },
+    "context_receipt": {
+      "path": "research/context-receipt-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "78e1558139c36fbb2c11a025f691289a86576fd00539fbfe9cfb7c0c223e5441"
+    },
+    "context_request": {
+      "path": "research/context-request-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "938d35038cae8795c66195caf7773d20048a9e2da51c103157c2ecaa34cc58b5"
+    },
+    "customer_proof_index": {
+      "path": "context/customer-proof-index.json",
+      "sha256": "fee695a0b32d20c3c12c155a590979f4352b3170925fe6f87654b75282125c62"
+    },
+    "customer_proof_selector_evidence": {
+      "path": "research/customer-proof-selector-evidence-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "02c157c2a0bc6d7bee8ba105aa9ea64cce67d808e04bad6a9e9b6aa12d0979c2"
+    },
+    "customer_proof_usage_ledger": {
+      "path": "context/customer-proof-usage-ledger.json",
+      "sha256": "a094f1c09757645a95da80b6666e9d6d4c72aaeb5e71ce307a3843960d098cad"
+    },
+    "editorial_plan": {
+      "path": "research/editorial-plan-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "1e6cd35dbc54264f61c055f6bb190cc53f0f7d7b4ae4e7880188db3994ab1353"
+    },
+    "fred_authority_evidence": {
+      "path": "research/fred-authority-evidence-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "46a7d678aa878d8bd446d79721804c5e1eb40c35bc4beeb2c48a30d4721957d2"
+    },
+    "keyword_decision": {
+      "path": "research/semrush-keyword-decision-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "4baaa3e2d40f1eec65749da86b61184b8ae7075959e452846363a17720825cdf"
+    },
+    "machine_reviews.article": {
+      "path": "research/machine-review-article-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "d937ec257efe2cd9371dd3e8112154f963b2f4fa1bb98acdb5b32007a9d08929"
+    },
+    "machine_reviews.plan": {
+      "path": "research/machine-review-plan-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "6e387633ea28033d54eb5ca8153d6c4792fffb675428d738cf61553d85c98272"
+    },
+    "paa_artifact": {
+      "path": "research/paa-questions-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "28c3f7293d3e8e0a82e4f96ea77cbc01711b52a7e4e8d289dd8bc03a1dce0127"
+    },
+    "paa_raw_capture": {
+      "path": "research/answersocrates-chrome-raw-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "5e127ea817427fff8502713f654247fa450e6f798e1ad95310f885b8124fe0e1"
+    },
+    "plan_fulfillment": {
+      "path": "research/blog-plan-fulfillment-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "6eb76945bb9b1f09b6d1e17a3645acaebab2e2b00754394deb2f18f1834ad0d6"
+    },
+    "serp_evidence": {
+      "path": "research/serp-evidence-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "c073e7b660d4b1bc1f1561746944c9de4951fddb490e18dda139afa161e537ae"
+    },
+    "serp_raw_capture": {
+      "path": "research/serp-chrome-raw-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "11f0b7f795d5d4958f5689cc86dd55c835671b707f532202f7a6a335e8470a54"
+    },
+    "source_decision_registry": {
+      "path": "context/source-classification-decisions.json",
+      "sha256": "8beefea13de55bf1df63b92ac61ad896113cf48ddf55dd711c362569848162b8"
+    },
+    "stage_evidence[0]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-scrub-2026-09-23-evidence.json",
+      "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+    },
+    "stage_evidence[1]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-context-binding-2026-09-23-evidence.json",
+      "sha256": "3a3ed1eb05b825fe8b02481ad6ddf968f1af792471da90290a55db0a96043437"
+    },
+    "stage_receipts[0]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-draft-2026-09-23.json",
+      "sha256": "8b21bfbc2ab2fbd411c761b4abf38aa8f83a678622172c106d72ad4c02e297c9"
+    },
+    "stage_receipts[1]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-scrub-2026-09-23.json",
+      "sha256": "8c7b2257e35dabe1eac2017b4280cfb1a51946592ad7da2b879d2cc3aa884b96"
+    },
+    "stage_receipts[2]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-context-binding-2026-09-23.json",
+      "sha256": "5df8170d664aa4bdd1d0583d6adacb41c1b0fcbaec5c2bdda344db52359deed1"
+    },
+    "validation_sidecar": {
+      "path": "research/validation-operational-accountability-field-service-2026-09-23.md",
+      "sha256": "d8c60e8c71b76db5c501362f54865b215d03d31eab290f3ed02a020d92f4fe8f"
+    }
+  },
+  "input_seal": {
+    "status": "verified"
+  },
+  "passed": true,
+  "phase": "preflight",
+  "priority_fixes": [
+    {
+      "dimension": "humanity",
+      "dimension_score": 90,
+      "fix": "Use contractions like don't, can't, you're, it's",
+      "impact": 3.0,
+      "issue": "Lacks contractions (sounds formal)",
+      "severity": "low"
+    },
+    {
+      "dimension": "seo",
+      "dimension_score": 92,
+      "fix": "Primary keyword is missing from H2 headings. Add it to one relevant H2 where the wording is natural.",
+      "impact": 1.2,
+      "issue": "Primary keyword is missing from H2 headings. Add it to one relevant H2 where the wording is natural.",
+      "severity": "medium"
+    },
+    {
+      "dimension": "seo",
+      "dimension_score": 92,
+      "fix": "Meta title too short (41 chars). Target is 50-60 chars.",
+      "impact": 1.2,
+      "issue": "Meta title too short (41 chars). Target is 50-60 chars.",
+      "severity": "medium"
+    },
+    {
+      "dimension": "seo",
+      "dimension_score": 92,
+      "fix": "Primary keyword 'field service operations software' not in meta title",
+      "impact": 1.2,
+      "issue": "Primary keyword 'field service operations software' not in meta title",
+      "severity": "medium"
+    },
+    {
+      "dimension": "seo",
+      "dimension_score": 92,
+      "fix": "Primary keyword 'field service operations software' not in meta description",
+      "impact": 1.2,
+      "issue": "Primary keyword 'field service operations software' not in meta description",
+      "severity": "low"
+    }
+  ],
+  "proof_sidecar": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\validation-operational-accountability-field-service-2026-09-23.md",
+  "run_id": "80e44117-293a-480c-9100-ea4359c4ec9f",
+  "schema": "simpro-publish-readiness-result/v1",
+  "score": 93.5,
+  "score_threshold": 85,
+  "scorecard": {
+    "aeo_geo": {
+      "passed": true,
+      "score": 100,
+      "threshold": 90
+    },
+    "content_quality": {
+      "passed": true,
+      "score": 93.5,
+      "threshold": 85
+    },
+    "passed": true,
+    "seo_quality": {
+      "critical_issue_count": 0,
+      "passed": true,
+      "score": 92,
+      "target": 95,
+      "target_met": false,
+      "target_status": "below_target",
+      "threshold": 90
+    }
+  },
+  "started_at": "2026-09-23T18:10:55.387067Z",
+  "tool": {
+    "name": "publish_readiness",
+    "version": "1.0.0"
+  },
+  "verification_scope": "source_artifact"
+}
