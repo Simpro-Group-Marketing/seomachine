@@ -1,0 +1,10 @@
+{
+  "generated_at": "2026-09-22T19:59:37.014236Z",
+  "object": {
+    "bytes": 2479781,
+    "path": "research/.objects/context-traces/v1/sha256/1f/1f67461a4a193452e3bc1cf34a6e6767513033c142fa1768a9ccaa39c032d03a.json",
+    "sha256": "1f67461a4a193452e3bc1cf34a6e6767513033c142fa1768a9ccaa39c032d03a"
+  },
+  "schema": "simpro-context-trace-pointer/v1",
+  "trace_schema": "simpro-fsm-12-tool-context-refresh/v1"
+}

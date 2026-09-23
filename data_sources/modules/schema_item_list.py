@@ -68,7 +68,7 @@ def inspect_item_list_schema(
         errors.append("schema_notes contains a noncanonical ItemList schema note")
 
     raw_entries = metadata.get("item_list_entries")
-    if not isinstance(raw_entries, list) or not raw_entries:
+    if not isinstance(raw_entries, (list, tuple)) or not raw_entries:
         errors.append("item_list_entries must be a nonempty YAML list")
         entries: tuple[str, ...] = ()
     else:

@@ -1,0 +1,63 @@
+{
+  "schema": "simpro-context-request/v1",
+  "task": "Build the current connector-bound context for a Simpro-owned US rewrite titled Best Field Service Management Software: 2026 Buyer's Guide to 12 Tools.",
+  "scope": {
+    "brand": "Simpro",
+    "market": "US",
+    "region": "US",
+    "artifact_type": "blog",
+    "workflow_mode": "rewrite",
+    "title": "Best Field Service Management Software: 2026 Buyer's Guide to 12 Tools",
+    "canonical_url": "https://www.simprogroup.com/blog/best-field-service-management-software",
+    "audience": "US growth-minded trade-business owners, operations leaders, finance and IT buyers, schedulers, administrators, and field users",
+    "objective": "Help US trade and field-service leaders build a fast, defensible 12-tool shortlist by business type, operating fit, workflow depth, implementation risk, and role needs.",
+    "voice_requirements": [
+      "current Simpro blog voice and tone",
+      "no named author",
+      "no first-person authority language",
+      "no em dash"
+    ],
+    "competitive_shortlist_requirements": [
+      "12-tool buyer guide",
+      "use current official vendor sources before public claims",
+      "use exactly Simpro, Jobber, Joblogic, FieldEdge, BuildOps, ServiceTitan, FieldPulse, Housecall Pro, Service Fusion, ServiceM8, Tradify, and Fergus",
+      "treat the shortlist as a user-directed scope, not a ranking or claim of universal superiority",
+      "add a five-route best-by-business-type decision surface using start-with language rather than universal-best claims",
+      "remove AroFlo, BigChange, Workiz, Field Promax, Arrivy, Skedulo, and Lark Suite without making negative status or quality claims"
+    ],
+    "product_language_requirements": [
+      "current Simpro field service management platform positioning",
+      "growth-minded trade and field-service fit",
+      "office-to-field workflow language",
+      "feature details require relevant source or approved claim evidence"
+    ],
+    "internal_link_ownership": [
+      "The exact anchor field service management software in the first public paragraph must link to https://www.simprogroup.com/.",
+      "The homepage owns the exact category term; this blog supports the homepage.",
+      "This user-authorized override replaces the planned FSM solution-page link and preserves the five-link target."
+    ],
+    "intended_public_use_modes": [
+      "guidance",
+      "context",
+      "public_paraphrase",
+      "authority_support"
+    ],
+    "public_proof_boundary": "No public proof claim is proposed in this context request. Before drafting any proof-sensitive product, feature, pricing, customer, competitor, ranking, rating, quote, metric, or availability statement, retrieve approved claims for that exact proposed use.",
+    "retrieval_evidence": {
+      "expansion_artifact": "research/context-refresh-best-field-service-management-software-12-tools-2026-09-22.json",
+      "expanded_source_resource_ids": [
+        "res-a5b3b47382b45490bf2bedbf16c0b76e",
+        "res-d31f057a305f51918055120d95b76c6a",
+        "res-e3ade596be645307ad4c1f84620ce021",
+        "res-f882ab230eb2563889e300d612c324bc",
+        "res-b34b392d22b9507089ade3fec47ee9e0",
+        "res-5c1b34d7d2175caab4fb29a208e59ac0"
+      ],
+      "expansion_followed_by_reads": [
+        "res-230f144aab93512e840167c4a25e60be",
+        "res-3887846244f05f16bfc0516889d340f3"
+      ]
+    }
+  },
+  "requested_at": "2026-09-22"
+}
