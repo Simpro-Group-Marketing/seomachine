@@ -1,6 +1,6 @@
 {
   "schema": "simpro-source-classification-decisions/v1",
-  "revision": "2026-09-18",
+  "revision": "2026-09-23",
   "decisions": [
     {
       "decision_id": "icc-ibc-2024-chapter-17-special-inspections",
@@ -193,6 +193,54 @@
       "hostname": "www.sba.gov",
       "source_class": "primary_authority",
       "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "overtime-tracker-2026-09-23-dol-fact-sheet-23",
+      "status": "approved",
+      "source_url": "https://www.dol.gov/agencies/whd/fact-sheets/23-flsa-overtime-pay",
+      "hostname": "www.dol.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "overtime-tracker-2026-09-23-ecfr-516-2",
+      "status": "approved",
+      "source_url": "https://www.ecfr.gov/current/title-29/subtitle-B/chapter-V/subchapter-A/part-516/subpart-A/section-516.2",
+      "hostname": "www.ecfr.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "overtime-tracker-2026-09-23-clockshark-time-tracking",
+      "status": "approved",
+      "source_url": "https://www.clockshark.com/tour/time-tracking-software",
+      "hostname": "www.clockshark.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
+    },
+    {
+      "decision_id": "overtime-tracker-2026-09-23-clockshark-mobile-time-tracking",
+      "status": "approved",
+      "source_url": "https://www.clockshark.com/tour/mobile-time-tracking",
+      "hostname": "www.clockshark.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
+    },
+    {
+      "decision_id": "overtime-tracker-2026-09-23-clockshark-timesheet-approvals",
+      "status": "approved",
+      "source_url": "https://www.clockshark.com/tour/timesheet-approvals",
+      "hostname": "www.clockshark.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
+    },
+    {
+      "decision_id": "overtime-tracker-2026-09-23-clockshark-overtime-rules",
+      "status": "approved",
+      "source_url": "https://www.clockshark.com/videos/overtime-rules-to-manage-california-overtime",
+      "hostname": "www.clockshark.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
     }
   ]
 }
