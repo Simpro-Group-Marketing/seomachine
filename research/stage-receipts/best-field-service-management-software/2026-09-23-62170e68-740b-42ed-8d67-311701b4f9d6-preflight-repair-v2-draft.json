@@ -1,0 +1,35 @@
+{
+  "completed_at": "2026-09-23T16:43:25.818650Z",
+  "evidence_hashes": {
+    "keyword_decision": "5ef4119304022a7b22b2471ec7e9eae5fad4019fdb0cb4d748a3c9383c3c8b17",
+    "proof_sidecar": "47dbf6ac6d1248bd4e991360cc93217accd92540dc31798237fc650e01ae3f22",
+    "serp_evidence": "65ee4bbfa858da39df193ff9daf7183b7d07cc169de0baac4e6888ffd9b44325"
+  },
+  "execution_attestation": {
+    "algorithm": "hmac-sha256",
+    "key_id": "88df9183fcb097c1",
+    "purpose": "simpro-blog-stage-receipt/v1",
+    "schema": "simpro-execution-attestation/v1",
+    "signature": "d92d88b0fcafca992acc825904856592f85e02c1a770d2b380963f9fb842e766"
+  },
+  "input_artifact_hashes": {
+    "article": "5774fb3d807ac6b84c287ed51c8cc037118e8bb1bca551af3e481087502a60a6",
+    "content_brief": "55ba252af6e72460c57e44e5d2d181dde211b211d01fe610aaeaba33b30db47b",
+    "editorial_plan": "ae78ddf48f7897ec1c50d607826588968c4778052881fed3678e9624abe71f1d"
+  },
+  "mutation": true,
+  "output_artifact_hashes": {
+    "article": "1be8c47f352c47f3b285be8bf64951d140a353c4113f8ffa37f75723508a141d"
+  },
+  "previous_receipt_hash": "",
+  "receipt_hash": "f82295fb63a77918e982c162da5dd1d9e61d0362a63d5d8cd79b3c520285ea5b",
+  "run_id": "62170e68-740b-42ed-8d67-311701b4f9d6",
+  "schema": "simpro-blog-stage-receipt/v1",
+  "stage": "draft",
+  "started_at": "2026-09-23T16:39:45.628963Z",
+  "status": "completed",
+  "tool": {
+    "name": "rewrite-command",
+    "version": "1"
+  }
+}

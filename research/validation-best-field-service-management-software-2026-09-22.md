@@ -8,7 +8,7 @@
 - Market: United States
 - Article objective: Help US trade and field-service leaders build a fast, defensible 12-tool shortlist by business type, operating fit, workflow depth, implementation risk, and role needs.
 - Public article: `rewrites/best-field-service-management-software-rewrite-2026-08-28.md`
-- Current article SHA-256 at sidecar assembly: `599f149847f8ceef0fa41460007d6743a758469daac5a8364cd41ae9853c446b`
+- Current article SHA-256 at sidecar assembly: `5de5ab0959b3bc5175efef1f828f4a5ca39b3f3a2532a0857bde06ef6751110f`
 - Context request: `research/context-request-best-field-service-management-software.json`
 - Context pack: `research/context-pack-best-field-service-management-software.json`
 - Context receipt: `research/context-receipt-best-field-service-management-software.json`
@@ -43,10 +43,10 @@
 - Vault status: ready.
 - Request canonical SHA-256: `ed86f145bbc077ada7edd27efce0e0611b855352c9286ae09d66251e56bf88ad`.
 - Context pack canonical SHA-256: `a354651eaed8f26c79aabf94698b2ff18c1956d5983851e47c45e3870c9cf418`.
-- Context receipt canonical SHA-256: `2a5e00593c8295572faa01460f75d22f9425c702df170172e810e8b088756fb6`.
+- Context receipt canonical SHA-256: `2771da4fac69983bd7e3cb28a49803d456fab135b18336b58682f17533570a75`.
 - Request file SHA-256: `1c69c6b6f879cec2b991c790d00562472a8b6b8613fe84b58b65d04a551867b3`.
 - Context pack file SHA-256: `8a4e4528acad8fea7020b67267100aeca63a7cde13082b83bd9971254229708a`.
-- Context receipt file SHA-256: `0a3f69dc64ab4615831be59a907b23ef58d7bf66e4765f125fcb2ba197e48e66`.
+- Context receipt file SHA-256: `3c22ad5dde9c9cc3bbce414df2634992944e1e8c118eddde6a81dbd71cae5fc8`.
 - Content revision: `2b0fbff2335f086cc578aa92da8672dff6d2ac3098e796c6a96bb3b3cc213f25`.
 - Contract revision: `e4988a1775f0b2791163b584c36b0fd72b8ac604c448b044cc944a8a0e9934a4`.
 - Inventory revision: `374bdf14a4519293e50d7e1c5b7e886daece33e303c8ce087e77658244faf446`.
@@ -70,7 +70,7 @@
 
 - Article title: Best Field Service Management Software: 2026 Buyer's Guide to 12 Tools
 - Product/solution language scope: mixed
-- Vault connector evidence: vault_status ready; vault_describe inspected; natural-language vault_search, vault_read, and vault_expand completed; vault_claims checked; context_pack_hash=a354651eaed8f26c79aabf94698b2ff18c1956d5983851e47c45e3870c9cf418; receipt_hash=2a5e00593c8295572faa01460f75d22f9425c702df170172e810e8b088756fb6; resource_id=res-a5b3b47382b45490bf2bedbf16c0b76e; resource_id=res-d31f057a305f51918055120d95b76c6a; resource_id=res-e3ade596be645307ad4c1f84620ce021; resource_id=res-f882ab230eb2563889e300d612c324bc; resource_id=res-5c1b34d7d2175caab4fb29a208e59ac0; vertical resource_id=res-d7e3d5ca80955407a9d06be5f129e11b; manifest_revision=94dd66e9dfd6130fa8c1472c11df650d1b9e6590762409e61a9a89a3d15930c2
+- Vault connector evidence: vault_status ready; vault_describe inspected; natural-language vault_search, vault_read, and vault_expand completed; vault_claims checked; context_pack_hash=a354651eaed8f26c79aabf94698b2ff18c1956d5983851e47c45e3870c9cf418; receipt_hash=2771da4fac69983bd7e3cb28a49803d456fab135b18336b58682f17533570a75; resource_id=res-a5b3b47382b45490bf2bedbf16c0b76e; resource_id=res-d31f057a305f51918055120d95b76c6a; resource_id=res-e3ade596be645307ad4c1f84620ce021; resource_id=res-f882ab230eb2563889e300d612c324bc; resource_id=res-5c1b34d7d2175caab4fb29a208e59ac0; vertical resource_id=res-d7e3d5ca80955407a9d06be5f129e11b; manifest_revision=94dd66e9dfd6130fa8c1472c11df650d1b9e6590762409e61a9a89a3d15930c2
 - Product/feature language applied: restrained field-service and trade-business language covering office-to-field work, service and project coordination, scheduling, inventory, purchasing, invoicing, and reporting; no universal-fit or superiority claim.
 - Solution/industry language applied: US trade and field-service context with a scoped service-and-project evaluation recommendation; no unsupported vertical leadership or outcome claim.
 - Fallback context use: none
@@ -118,11 +118,11 @@
 ## Customer Proof Slate
 
 - Selector command: `python data_sources/modules/customer_proof_selector.py "best field service management software" --title "Best Field Service Management Software: 2026 Buyer's Guide to 12 Tools" --objective "Help US trade and field-service leaders build a fast, defensible 12-tool shortlist by business type, operating fit, workflow depth, implementation risk, and role needs." --context-pack "research/context-pack-best-field-service-management-software-customer-selector-2026-09-22.json" --context-receipt "research/context-receipt-best-field-service-management-software-customer-selector-2026-09-22.json" --evidence-output "research/customer-proof-selector-evidence-best-field-service-management-software-2026-09-22.json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10 --allow-no-proof`
-- Selector evidence: research/customer-proof-selector-evidence-best-field-service-management-software-2026-09-22.json | SHA-256: 9178211b92a1bc697335a4465e1b64870c248c47f6b3be0186c1b5310e7e2f7d
+- Selector evidence: research/customer-proof-selector-evidence-best-field-service-management-software-2026-09-22.json | SHA-256: 820690d873983da011661b9e3895d5b0cb57581b41c6a0e5b26692c0fb8c6baa
 - Context receipt: research/context-receipt-best-field-service-management-software-customer-selector-2026-09-22.json
 - Approval source: connector_claim_result
 - Selection outcome: customer_proof_candidates_available
-- Role: metric | Top candidates: [case-study-teamwired] | Selected: [none] | Claim IDs: [claim-metric-MET-1482] | Receipt revision: ba718235f7df42e92f72eb8a99fd07011522785239319d5fb47b8aa33722199b | Rejected stronger candidates: [case-study-teamwired: single-customer invoicing metric does not improve a neutral twelve-vendor buyer-routing objective]
+- Role: metric | Top candidates: [case-study-teamwired] | Selected: [none] | Claim IDs: [claim-metric-MET-1482] | Receipt revision: 2a5aaaaf3ac9d44f990f630f5a609fe9533e023c20b3c9e5feab7b273b66516d | Rejected stronger candidates: [case-study-teamwired: single-customer invoicing metric does not improve a neutral twelve-vendor buyer-routing objective]
 - Role: quote | Top candidates: [none] | Selected: [none] | Claim IDs: [none] | Receipt revision: not available | Rejected stronger candidates: [none]
   - No-fit reason: No customer proof selected because the selector evaluated the current connector-bound proof inventory and found no article-relevant approved customer proof for this role; public copy must omit customer proof, named customer claims, review stories, exact quotes, testimonials, and customer metrics for the unsupported role.
 - Role: theme | Top candidates: [none] | Selected: [none] | Claim IDs: [none] | Receipt revision: not available | Rejected stronger candidates: [none]
@@ -353,6 +353,16 @@
 - Fragment links: excluded from the internal-link count.
 - Final requirement: preserve necessary links during optimization and verify no repeated destination or claim-proof link is removed.
 
+## Readability and keyword optimization decision
+
+- Baseline artifact: `research/readability-baseline-best-field-service-management-software-2026-09-23.json`.
+- Production-scope baseline: Flesch Reading Ease 25.4, Flesch-Kincaid grade 14.8, rhythm 23, and readability score 51 when tables and handoff placeholders were incorrectly treated as prose.
+- Corrected-scope pre-copy baseline: Flesch Reading Ease 30.5, Flesch-Kincaid grade 13.2, rhythm 33, and readability score 54 after excluding tables, canonical placeholders, and empty anchors from readability only.
+- Final article snapshot: Flesch Reading Ease 51.9, Flesch-Kincaid grade 9.3, rhythm 62, zero paragraphs above four sentences, and readability score 90.
+- Scope boundary: tables and handoff placeholders remain visible to structure, artifact, evidence, and release guards; only prose-oriented readability calculations exclude them.
+- Secondary-keyword decision: do not insert the exact phrase `best field service management software 2026` into public body copy. The title and metadata already express the year-qualified intent, while a body insertion would be awkward. Retain the low-impact exact-match scorer suggestion as a documented no-op.
+- Performance boundary: these are deterministic editorial-tool metrics, not evidence of search, Peec, conversion, or customer performance.
+
 ## Release blockers and status
 
 - Selector objective binding: the customer-proof and Fred artifacts are regenerated against the exact current objective; completed.
@@ -367,7 +377,7 @@
   "approval_policy_revision": "6945674b56933849678c70200ff29438700475eae6e794388bb88b6febedccb6",
   "article": {
     "file": "best-field-service-management-software-rewrite-2026-08-28.md",
-    "sha256": "599f149847f8ceef0fa41460007d6743a758469daac5a8364cd41ae9853c446b"
+    "sha256": "5de5ab0959b3bc5175efef1f828f4a5ca39b3f3a2532a0857bde06ef6751110f"
   },
   "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
   "pack": {
@@ -377,10 +387,10 @@
     "sha256": "8a4e4528acad8fea7020b67267100aeca63a7cde13082b83bd9971254229708a"
   },
   "receipt": {
-    "canonical_sha256": "2a5e00593c8295572faa01460f75d22f9425c702df170172e810e8b088756fb6",
+    "canonical_sha256": "2771da4fac69983bd7e3cb28a49803d456fab135b18336b58682f17533570a75",
     "file": "context-receipt-best-field-service-management-software.json",
     "schema": "simpro-context-receipt/v1",
-    "sha256": "0a3f69dc64ab4615831be59a907b23ef58d7bf66e4765f125fcb2ba197e48e66"
+    "sha256": "3c22ad5dde9c9cc3bbce414df2634992944e1e8c118eddde6a81dbd71cae5fc8"
   },
   "repo_context": [],
   "request": {

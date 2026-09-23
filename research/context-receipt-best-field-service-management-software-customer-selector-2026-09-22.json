@@ -1,7 +1,7 @@
 {
   "schema": "simpro-context-receipt/v1",
   "request_sha256": "ed86f145bbc077ada7edd27efce0e0611b855352c9286ae09d66251e56bf88ad",
-  "pack_sha256": "db3f2e8163b060d3a920d9cbf472f7e0f397b37ce3c4070bc326ffff49cbc0af",
+  "pack_sha256": "a312a334886e6a4494532573017f67276f04d8b6b87541bccde075606c447957",
   "revisions": {
     "content_revision": "2b0fbff2335f086cc578aa92da8672dff6d2ac3098e796c6a96bb3b3cc213f25",
     "contract_revision": "e4988a1775f0b2791163b584c36b0fd72b8ac604c448b044cc944a8a0e9934a4",
@@ -1767,7 +1767,7 @@
       "approved": true,
       "use_mode": "public_metric",
       "brand_scope": "Simpro",
-      "authority_date": "2026-09-22"
+      "authority_date": "2026-09-23"
     }
   ],
   "claim_searches": [],
@@ -2346,7 +2346,7 @@
   ],
   "unresolved_gaps": [],
   "task_satisfaction": "satisfied",
-  "validation_time": "2026-09-22T19:56:23.570117Z",
+  "validation_time": "2026-09-23T15:40:16.878447Z",
   "errors": [],
-  "receipt_sha256": "ba718235f7df42e92f72eb8a99fd07011522785239319d5fb47b8aa33722199b"
+  "receipt_sha256": "2a5aaaaf3ac9d44f990f630f5a609fe9533e023c20b3c9e5feab7b273b66516d"
 }

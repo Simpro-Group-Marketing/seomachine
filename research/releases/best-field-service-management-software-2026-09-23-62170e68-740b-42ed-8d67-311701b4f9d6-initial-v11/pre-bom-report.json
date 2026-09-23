@@ -1,0 +1,39 @@
+{
+  "artifact_paths": {
+    "answersocrates_blocker": null,
+    "article": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\rewrites\\best-field-service-management-software-rewrite-2026-08-28.md",
+    "content_brief": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\content-brief-best-field-service-management-software-2026-08-28.md",
+    "context_pack": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-pack-best-field-service-management-software.json",
+    "context_receipt": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-receipt-best-field-service-management-software.json",
+    "context_request": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-request-best-field-service-management-software.json",
+    "customer_proof_evidence": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\customer-proof-selector-evidence-best-field-service-management-software-2026-09-22.json",
+    "editorial_plan": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\editorial-plan-best-field-service-management-software-2026-09-22.json",
+    "fred_authority_evidence": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\fred-authority-selector-best-field-service-management-software-2026-09-22.md",
+    "keyword_decision": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\semrush-keyword-decision-best-field-service-management-software-2026-09-23.json",
+    "output": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\releases\\best-field-service-management-software-2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-initial-v11\\pre-bom-report.json",
+    "paa_artifact": null,
+    "proof_sidecar": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\validation-best-field-service-management-software-2026-09-22.md",
+    "scrub_receipt": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\stage-receipts\\best-field-service-management-software\\2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-preflight-repair-v2-scrub.json",
+    "semrush_blocker": null,
+    "serp_evidence": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\serp-evidence-best-field-service-management-software-2026-09-23.json",
+    "stage_receipts": [
+      "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\stage-receipts\\best-field-service-management-software\\2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-preflight-repair-v2-draft.json",
+      "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\stage-receipts\\best-field-service-management-software\\2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-preflight-repair-v2-scrub.json",
+      "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\stage-receipts\\best-field-service-management-software\\2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-preflight-repair-v2-context-binding.json"
+    ],
+    "user_paa_csv": null
+  },
+  "blockers": [],
+  "next_required_commands": [],
+  "ready_for_bom": true,
+  "required_human_inputs": [],
+  "schema": "simpro-blog-creation-preflight/v1",
+  "warnings": [
+    {
+      "artifact": "eeat_strength",
+      "message": "Commercial-investigation article has no positive E-E-A-T signal; the sidecar explicitly records proof_unavailable_safe_to_publish.",
+      "rule_id": "eeat_strength_safe_but_weak",
+      "suggestion": "Publish may proceed, but strengthen the article when selected customer proof, a named author, Fred authority, review-theme evidence, or SME review becomes available."
+    }
+  ]
+}

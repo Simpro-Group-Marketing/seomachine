@@ -82,7 +82,11 @@ class ScoringOrchestrationMixin:
             proof_sidecar=proof_sidecar,
             proof_content=proof_content,
         )
-        readability = self._score_readability(clean_content)
+        readability_content, readability_scope = self._prepare_readability_content(
+            visible_body
+        )
+        readability = self._score_readability(readability_content)
+        readability.setdefault('details', {}).update(readability_scope)
 
         # Calculate composite score
         composite = (

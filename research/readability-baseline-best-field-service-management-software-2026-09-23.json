@@ -1,0 +1,30 @@
+{
+  "schema": "simpro-readability-baseline/v1",
+  "recorded_at": "2026-09-23T15:45:37Z",
+  "article": "rewrites/best-field-service-management-software-rewrite-2026-08-28.md",
+  "article_sha256": "599f149847f8ceef0fa41460007d6743a758469daac5a8364cd41ae9853c446b",
+  "purpose": "Separate the metric effect of the readability-scope correction from later public-copy edits.",
+  "production_release_baseline": {
+    "analysis_scope": "visible_markdown_body_including_tables_and_handoff_placeholders",
+    "flesch_reading_ease": 25.4,
+    "flesch_kincaid_grade": 14.8,
+    "rhythm_score": 23,
+    "readability_score": 51
+  },
+  "corrected_scope_baseline": {
+    "analysis_scope": "visible_prose_excluding_tables_placeholders_and_empty_anchors",
+    "flesch_reading_ease": 30.5,
+    "flesch_kincaid_grade": 13.2,
+    "rhythm_score": 33,
+    "readability_score": 54,
+    "long_paragraphs": 0,
+    "excluded_markdown_tables": 3,
+    "excluded_html_tables": 0,
+    "excluded_image_placeholders": 1,
+    "excluded_video_placeholders": 0,
+    "excluded_cms_placeholders": 6,
+    "excluded_empty_anchors": 14,
+    "analyzed_words": 2769
+  },
+  "source_boundary": "These are deterministic editorial-tool metrics, not search-performance, conversion, Peec, or customer outcome evidence."
+}

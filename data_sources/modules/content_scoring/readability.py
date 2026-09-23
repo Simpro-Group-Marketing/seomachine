@@ -3,8 +3,104 @@
 import re
 from typing import Any, Dict
 
+from ..image_placeholder import (
+    is_production_image_placeholder_line,
+    is_production_video_placeholder_line,
+)
+
+
+HTML_TABLE_BLOCK_RE = re.compile(
+    r"<table\b[^>]*>.*?</table\s*>",
+    flags=re.IGNORECASE | re.DOTALL,
+)
+FENCED_CODE_BLOCK_RE = re.compile(r"```.*?```", flags=re.DOTALL)
+MARKDOWN_TABLE_ROW_RE = re.compile(r"^\s*\S.*\|.*\S\s*$")
+MARKDOWN_TABLE_DELIMITER_RE = re.compile(
+    r"^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$"
+)
+MARKDOWN_HEADING_LINE_RE = re.compile(r"^\s*#{1,6}\s+\S")
+EMPTY_ANCHOR_LINE_RE = re.compile(
+    r"<a\b[^>]*>\s*</a>",
+    flags=re.IGNORECASE,
+)
+CMS_PLACEHOLDER_LINE_RE = re.compile(
+    r"^\[CMS MODULE PLACEHOLDER(?:\s*[|:\-\u2014].*)?\]$",
+    flags=re.IGNORECASE,
+)
+
 
 class ReadabilityScoringMixin:
+    def _prepare_readability_content(self, content: str) -> tuple[str, Dict[str, Any]]:
+        """Return reader-facing prose without non-prose handoff structures."""
+        without_code = FENCED_CODE_BLOCK_RE.sub("", content)
+        without_html_tables, html_table_blocks = HTML_TABLE_BLOCK_RE.subn(
+            "", without_code
+        )
+        without_empty_anchors, empty_anchors = EMPTY_ANCHOR_LINE_RE.subn(
+            "", without_html_tables
+        )
+        excluded = {
+            "excluded_markdown_tables": 0,
+            "excluded_html_tables": html_table_blocks,
+            "excluded_image_placeholders": 0,
+            "excluded_video_placeholders": 0,
+            "excluded_cms_placeholders": 0,
+            "excluded_empty_anchors": empty_anchors,
+            "normalized_markdown_headings": 0,
+        }
+
+        lines = without_empty_anchors.splitlines()
+        retained_lines = []
+        index = 0
+        while index < len(lines):
+            line = lines[index]
+            stripped = line.strip()
+            next_stripped = lines[index + 1].strip() if index + 1 < len(lines) else ""
+            if (
+                MARKDOWN_TABLE_ROW_RE.fullmatch(stripped)
+                and MARKDOWN_TABLE_DELIMITER_RE.fullmatch(next_stripped)
+            ):
+                excluded["excluded_markdown_tables"] += 1
+                index += 2
+                while index < len(lines) and MARKDOWN_TABLE_ROW_RE.fullmatch(
+                    lines[index].strip()
+                ):
+                    index += 1
+                continue
+
+            if is_production_image_placeholder_line(stripped):
+                excluded["excluded_image_placeholders"] += 1
+                index += 1
+                continue
+
+            if is_production_video_placeholder_line(stripped):
+                excluded["excluded_video_placeholders"] += 1
+                index += 1
+                continue
+
+            if CMS_PLACEHOLDER_LINE_RE.fullmatch(stripped):
+                excluded["excluded_cms_placeholders"] += 1
+                index += 1
+                continue
+
+            if MARKDOWN_HEADING_LINE_RE.match(line) and not re.search(
+                r"[.!?]\s*$", line
+            ):
+                line = f"{line}."
+                excluded["normalized_markdown_headings"] += 1
+
+            retained_lines.append(line)
+            index += 1
+
+        prepared = self._clean_for_analysis("\n".join(retained_lines))
+        return prepared, {
+            "analysis_scope": (
+                "visible_prose_excluding_tables_placeholders_and_empty_anchors"
+            ),
+            **excluded,
+            "analyzed_words": len(prepared.split()),
+        }
+
     def _score_readability(self, content: str) -> Dict[str, Any]:
         """Score content for readability, rhythm, and paragraph length"""
         issues = []

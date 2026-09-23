@@ -125,7 +125,7 @@ def fulfillment_excerpts(article: str) -> dict[str, str]:
         "five-route-shortlist": exact_slice(
             article,
             "| Buyer situation | Starting shortlist | Why these tools merit evaluation | First disqualifying issue to test |",
-            "For trade contractors coordinating service and project work in one operating model",
+            "For trade contractors running service and project work in one workflow",
         ),
         "operating-model-matrix": exact_slice(
             article,
@@ -134,12 +134,12 @@ def fulfillment_excerpts(article: str) -> dict[str, str]:
         ),
         "role-based-demo-pack": exact_slice(
             article,
-            "Build one reusable demo pack before contacting vendors.",
-            "Ask each vendor to perform the work live.",
+            "Build one demo pack before contacting vendors.",
+            "Ask each vendor to perform the same work live.",
         ),
         "buyer-owned-scorecard": exact_slice(
             article,
-            "Use the buyer scorecard after pass-or-fail requirements remove obvious mismatches.",
+            "Apply the scorecard after pass-or-fail requirements remove obvious mismatches.",
             "## Frequently asked questions",
         ),
     }
