@@ -135,6 +135,82 @@ def write_bigchange_index(root: Path) -> Path:
     return index_path
 
 
+def write_two_reviewer_index(
+    root: Path, *, suzanne_quote: str = "Job scheduling got so much faster with JobWatch."
+) -> Path:
+    """Two Capterra reviewers sharing one product-page URL: Clare (paraphrase-only,
+    no approved_quotes) and Suzanne (a bound approved quote)."""
+    index_path = root / "context" / "customer-proof-index.json"
+    index_path.parent.mkdir(parents=True, exist_ok=True)
+    index_path.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "proof": [
+                    {
+                        "proof_id": "review-capterra-clare-onboarding",
+                        "source_type": "review_site",
+                        "public_url": BIGCHANGE_CAPTERRA_URL,
+                        "approved_quotes": [],
+                        "review_story": {
+                            "story_allowed": True,
+                            "identity_type": "person",
+                            "identity_display": "Clare",
+                            "person_name": "Clare",
+                            "platform": "Capterra",
+                            "public_url": BIGCHANGE_CAPTERRA_URL,
+                            "workflow_story": "Clare describes onboarding new team members quickly.",
+                        },
+                    },
+                    {
+                        "proof_id": "review-capterra-suzanne-job-scheduling",
+                        "source_type": "review_site",
+                        "public_url": BIGCHANGE_CAPTERRA_URL,
+                        "approved_quotes": [
+                            {"quote": suzanne_quote, "status": "approved"}
+                        ],
+                        "review_story": {
+                            "story_allowed": True,
+                            "identity_type": "person",
+                            "identity_display": "Suzanne",
+                            "person_name": "Suzanne",
+                            "platform": "Capterra",
+                            "public_url": BIGCHANGE_CAPTERRA_URL,
+                            "workflow_story": "Suzanne describes faster job scheduling with JobWatch.",
+                        },
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    return index_path
+
+
+TWO_REVIEWER_ARTICLE = (
+    "# Article\n\n"
+    f"[Clare's Capterra review]({BIGCHANGE_CAPTERRA_URL}) describes onboarding new team members quickly.\n\n"
+    f"[Suzanne's Capterra review]({BIGCHANGE_CAPTERRA_URL}), "
+    '"Job scheduling got so much faster with JobWatch."\n'
+)
+
+
+def two_reviewer_sidecar(
+    current_proof_id: str,
+    current_identity: str,
+    other_proof_id: str,
+    other_identity: str,
+    *,
+    url: str = BIGCHANGE_CAPTERRA_URL,
+) -> str:
+    return f"""Review Story Selection
+- Selected story: {current_proof_id} | Identity: {current_identity} | Platform: Capterra | URL: {url} | Status: approved | Use: E-E-A-T experience story
+
+Review Story Selection
+- Selected story: {other_proof_id} | Identity: {other_identity} | Platform: Capterra | URL: {url} | Status: approved | Use: E-E-A-T experience story
+"""
+
+
 def sidecar(proof_id: str, identity: str, platform: str, url: str, status: str = "approved") -> str:
     return f"""Review Story Selection
 - Article title: Best job quoting and invoicing software
@@ -466,6 +542,91 @@ class ReviewStoryIdentityGuardTests(unittest.TestCase):
                     "Dana R",
                     "Capterra",
                     BIGCHANGE_CAPTERRA_URL,
+                ),
+                proof_index_path=index_path,
+            )
+
+        self.assertTrue(
+            any(
+                finding["rule_id"] == "review_quote_requires_approved_quote"
+                for finding in findings
+            )
+        )
+
+    def test_two_reviewers_sharing_url_clare_row_has_no_finding_for_suzanne_bound_quote(self):
+        with TemporaryDirectory() as temp_dir:
+            index_path = write_two_reviewer_index(Path(temp_dir))
+
+            findings = check_content(
+                TWO_REVIEWER_ARTICLE,
+                proof_content=two_reviewer_sidecar(
+                    "review-capterra-clare-onboarding",
+                    "Clare",
+                    "review-capterra-suzanne-job-scheduling",
+                    "Suzanne",
+                ),
+                proof_index_path=index_path,
+            )
+
+        self.assertEqual(findings, [])
+
+    def test_two_reviewers_sharing_url_suzanne_row_has_no_finding_for_own_bound_quote(self):
+        with TemporaryDirectory() as temp_dir:
+            index_path = write_two_reviewer_index(Path(temp_dir))
+
+            findings = check_content(
+                TWO_REVIEWER_ARTICLE,
+                proof_content=two_reviewer_sidecar(
+                    "review-capterra-suzanne-job-scheduling",
+                    "Suzanne",
+                    "review-capterra-clare-onboarding",
+                    "Clare",
+                ),
+                proof_index_path=index_path,
+            )
+
+        self.assertEqual(findings, [])
+
+    def test_two_reviewers_sharing_url_suzannes_own_unbound_quote_still_fails(self):
+        with TemporaryDirectory() as temp_dir:
+            index_path = write_two_reviewer_index(
+                Path(temp_dir), suzanne_quote="A completely different approved snippet."
+            )
+
+            findings = check_content(
+                TWO_REVIEWER_ARTICLE,
+                proof_content=two_reviewer_sidecar(
+                    "review-capterra-suzanne-job-scheduling",
+                    "Suzanne",
+                    "review-capterra-clare-onboarding",
+                    "Clare",
+                ),
+                proof_index_path=index_path,
+            )
+
+        self.assertTrue(
+            any(
+                finding["rule_id"] == "review_quote_requires_approved_quote"
+                for finding in findings
+            )
+        )
+
+    def test_quote_paragraph_naming_no_selected_identity_still_fails_closed(self):
+        with TemporaryDirectory() as temp_dir:
+            index_path = write_two_reviewer_index(Path(temp_dir))
+            article = (
+                TWO_REVIEWER_ARTICLE
+                + '\nA reviewer on Capterra also said, "Support response times were '
+                'disappointing at first."\n'
+            )
+
+            findings = check_content(
+                article,
+                proof_content=two_reviewer_sidecar(
+                    "review-capterra-clare-onboarding",
+                    "Clare",
+                    "review-capterra-suzanne-job-scheduling",
+                    "Suzanne",
                 ),
                 proof_index_path=index_path,
             )

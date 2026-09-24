@@ -116,6 +116,7 @@ def check_content(
             selection,
             proof_content or "",
             proof_index_path,
+            all_identities=_all_selected_story_identities(composed),
         )
     )
 
@@ -157,6 +158,8 @@ def _review_story_selection_findings(
     selection: Dict[str, object],
     proof_content: str,
     proof_index_path: str | Path,
+    *,
+    all_identities: Sequence[str] = (),
 ) -> List[Finding]:
     findings: List[Finding] = []
     selected = selection.get("selected_story", {})
@@ -252,11 +255,15 @@ def _review_story_selection_findings(
                 )
             )
 
+    other_identities = _other_selected_identities(all_identities, identity)
+
     findings.extend(
         _review_story_link_and_rating_findings(public_content, public_url, identity)
     )
     findings.extend(
-        _review_story_quote_findings(content, public_content, public_url, identity, index_row)
+        _review_story_quote_findings(
+            content, public_content, public_url, identity, index_row, other_identities
+        )
     )
 
     return findings
@@ -290,15 +297,33 @@ def _review_story_link_and_rating_findings(
     return []
 
 
+def _other_selected_identities(
+    all_identities: Sequence[str], identity: str
+) -> tuple[str, ...]:
+    normalized_identity = _normalize_text(identity)
+    seen: set[str] = set()
+    others: list[str] = []
+    for other in all_identities:
+        normalized_other = _normalize_text(other)
+        if not normalized_other or normalized_other == normalized_identity or normalized_other in seen:
+            continue
+        seen.add(normalized_other)
+        others.append(other)
+    return tuple(others)
+
+
 def _review_story_quote_findings(
     content: str,
     public_content: str,
     public_url: str,
     identity: str,
     index_row: Optional[Dict[str, object]],
+    other_identities: Sequence[str] = (),
 ) -> List[Finding]:
     approved_quotes = index_row.get("approved_quotes") if isinstance(index_row, dict) else None
-    if not _has_unapproved_review_quote(public_content, public_url, identity, approved_quotes):
+    if not _has_unapproved_review_quote(
+        public_content, public_url, identity, approved_quotes, other_identities
+    ):
         return []
     return [
         _finding(
@@ -383,6 +408,25 @@ def _parse_selected_story(value: str) -> Dict[str, str]:
         key, item_value = part.split(":", 1)
         selected[_normalize_key(key).replace(" ", "_")] = item_value.strip()
     return selected
+
+
+def _all_selected_story_identities(content: str) -> List[str]:
+    """Every identity named on a ``Selected story:`` bullet anywhere in the document.
+
+    A document can carry more than one Review Story Selection block (one per
+    selected reviewer). Only the first block drives its own row's checks, but
+    every block's identity is used to keep one row's quote check from judging
+    a paragraph that actually belongs to a different selected reviewer.
+    """
+    identities: List[str] = []
+    for line in content.splitlines():
+        match = BULLET_FIELD_RE.match(line)
+        if not match or _normalize_key(match.group("key")) != "selected story":
+            continue
+        identity = str(_parse_selected_story(match.group("value").strip()).get("identity", "")).strip()
+        if identity:
+            identities.append(identity)
+    return identities
 
 
 def _find_index_row(path: str | Path, proof_id: str) -> Optional[Dict[str, object]]:
@@ -547,9 +591,13 @@ def _has_unapproved_review_quote(
     public_url: str,
     identity: str,
     approved_quotes: Optional[Sequence[Mapping[str, object]]],
+    other_identities: Sequence[str] = (),
 ) -> bool:
     normalized_identity = _normalize_text(identity)
     normalized_url = _normalize_url(public_url)
+    normalized_others = {
+        normalized for other in other_identities if (normalized := _normalize_text(other))
+    }
     for paragraph in _paragraphs(content):
         matches = list(EXACT_QUOTE_RE.finditer(paragraph))
         if not matches:
@@ -559,11 +607,16 @@ def _has_unapproved_review_quote(
             for match in matches
         ):
             continue
-        paragraph_url = _normalize_url(paragraph)
         paragraph_text = _normalize_text(paragraph)
+        names_this_identity = bool(normalized_identity and normalized_identity in paragraph_text)
+        if not names_this_identity and any(other in paragraph_text for other in normalized_others):
+            # This unbound quote belongs to a different selected story's identity;
+            # do not judge this row for a paragraph that names someone else.
+            continue
+        paragraph_url = _normalize_url(paragraph)
         if normalized_url and normalized_url in paragraph_url:
             return True
-        if normalized_identity and normalized_identity in paragraph_text and REVIEW_LANGUAGE_RE.search(paragraph):
+        if names_this_identity and REVIEW_LANGUAGE_RE.search(paragraph):
             return True
         if REVIEW_LANGUAGE_RE.search(paragraph):
             return True
