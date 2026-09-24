@@ -450,6 +450,33 @@ class ReviewStoryIdentityGuardTests(unittest.TestCase):
 
         self.assertEqual(findings, [])
 
+    def test_bigchange_capterra_second_unbound_quote_in_same_paragraph_fails(self):
+        with TemporaryDirectory() as temp_dir:
+            index_path = write_bigchange_index(Path(temp_dir))
+            content = (
+                f'# Article\n\n[Dana R said on Capterra]({BIGCHANGE_CAPTERRA_URL}), '
+                '"Job scheduling got so much faster with JobWatch." '
+                'She added, "Scheduling was a total mess before we switched to it."'
+            )
+
+            findings = check_content(
+                content,
+                proof_content=sidecar(
+                    "bigchange-review-capterra-owner-job-scheduling",
+                    "Dana R",
+                    "Capterra",
+                    BIGCHANGE_CAPTERRA_URL,
+                ),
+                proof_index_path=index_path,
+            )
+
+        self.assertTrue(
+            any(
+                finding["rule_id"] == "review_quote_requires_approved_quote"
+                for finding in findings
+            )
+        )
+
     def test_check_file_accepts_sidecar_and_index_paths(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

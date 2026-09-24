@@ -252,43 +252,65 @@ def _review_story_selection_findings(
                 )
             )
 
-    if public_url.startswith(("http://", "https://")) and identity:
-        linked_paragraph = _paragraph_with_url_and_identity(public_content, public_url, identity)
-        if linked_paragraph is None:
-            findings.append(
-                _finding(
-                    "review_story_link_missing",
-                    _first_review_signal_line(public_content),
-                    "Selected review story URL is not linked in the same public paragraph as the review-derived paraphrase.",
-                    "Link the selected public review URL in the same paragraph that names or paraphrases the review story.",
-                    match=public_url,
-                )
-            )
-        elif REVIEW_RATING_RANKING_CLAIM_RE.search(linked_paragraph):
-            findings.append(
-                _finding(
-                    "review_rating_claim_requires_approved_proof",
-                    _first_review_signal_line(public_content),
-                    "Review rating, ranking, reviewer-name, aggregate, or metric-style language appears in the paragraph that links the selected review story.",
-                    "Remove the rating or ranking language, or add a separate approved proof row for the exact rating, ranking, reviewer, or metric claim.",
-                )
-            )
-
-    approved_quotes = index_row.get("approved_quotes") if isinstance(index_row, dict) else None
-    if _has_unapproved_review_quote(public_content, public_url, identity, approved_quotes):
-        findings.append(
-            _finding(
-                "review_quote_requires_approved_quote",
-                _first_quote_line(content),
-                "Exact review wording appears without an approved quote row.",
-                (
-                    "Add an Approved quote row with source type, URL or source ref, "
-                    "Evidence, identity, Status: approved, and intended Use; otherwise paraphrase."
-                ),
-            )
-        )
+    findings.extend(
+        _review_story_link_and_rating_findings(public_content, public_url, identity)
+    )
+    findings.extend(
+        _review_story_quote_findings(content, public_content, public_url, identity, index_row)
+    )
 
     return findings
+
+
+def _review_story_link_and_rating_findings(
+    public_content: str, public_url: str, identity: str
+) -> List[Finding]:
+    if not (public_url.startswith(("http://", "https://")) and identity):
+        return []
+    linked_paragraph = _paragraph_with_url_and_identity(public_content, public_url, identity)
+    if linked_paragraph is None:
+        return [
+            _finding(
+                "review_story_link_missing",
+                _first_review_signal_line(public_content),
+                "Selected review story URL is not linked in the same public paragraph as the review-derived paraphrase.",
+                "Link the selected public review URL in the same paragraph that names or paraphrases the review story.",
+                match=public_url,
+            )
+        ]
+    if REVIEW_RATING_RANKING_CLAIM_RE.search(linked_paragraph):
+        return [
+            _finding(
+                "review_rating_claim_requires_approved_proof",
+                _first_review_signal_line(public_content),
+                "Review rating, ranking, reviewer-name, aggregate, or metric-style language appears in the paragraph that links the selected review story.",
+                "Remove the rating or ranking language, or add a separate approved proof row for the exact rating, ranking, reviewer, or metric claim.",
+            )
+        ]
+    return []
+
+
+def _review_story_quote_findings(
+    content: str,
+    public_content: str,
+    public_url: str,
+    identity: str,
+    index_row: Optional[Dict[str, object]],
+) -> List[Finding]:
+    approved_quotes = index_row.get("approved_quotes") if isinstance(index_row, dict) else None
+    if not _has_unapproved_review_quote(public_content, public_url, identity, approved_quotes):
+        return []
+    return [
+        _finding(
+            "review_quote_requires_approved_quote",
+            _first_quote_line(content),
+            "Exact review wording appears without an approved quote row.",
+            (
+                "Add an Approved quote row with source type, URL or source ref, "
+                "Evidence, identity, Status: approved, and intended Use; otherwise paraphrase."
+            ),
+        )
+    ]
 
 
 def check_file(
@@ -529,10 +551,13 @@ def _has_unapproved_review_quote(
     normalized_identity = _normalize_text(identity)
     normalized_url = _normalize_url(public_url)
     for paragraph in _paragraphs(content):
-        match = EXACT_QUOTE_RE.search(paragraph)
-        if not match:
+        matches = list(EXACT_QUOTE_RE.finditer(paragraph))
+        if not matches:
             continue
-        if _quote_bound_to_approved_quotes(match.group(0), approved_quotes):
+        if all(
+            _quote_bound_to_approved_quotes(match.group(0), approved_quotes)
+            for match in matches
+        ):
             continue
         paragraph_url = _normalize_url(paragraph)
         paragraph_text = _normalize_text(paragraph)
