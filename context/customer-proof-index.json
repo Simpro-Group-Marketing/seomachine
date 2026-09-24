@@ -3157,9 +3157,192 @@
         "onboarding",
         "adoption"
       ]
+    },
+    {
+      "approval_status": "approved",
+      "approved_metrics": [],
+      "approved_quotes": [],
+      "customer": "Clearground",
+      "evidence": "The ability to create customised, dynamic risk assessments and make their completion on-site mandatory goes beyond other systems we looked at.",
+      "industry": [
+        "waste management",
+        "window cleaning",
+        "drainage",
+        "field service"
+      ],
+      "internal_source_ref": "BigChange success story page read in Chrome 2026-09-24",
+      "last_verified": "2026-09-24",
+      "proof_id": "bigchange-clearground-dynamic-risk-assessments",
+      "public_copy_allowed": true,
+      "public_url": "https://www.bigchange.com/success-stories/bigchange-helps-clearground-clean-up-on-workforce-health-and-safety",
+      "region": [
+        "UK"
+      ],
+      "restrictions": [
+        "Paraphrased story use only",
+        "no exact quote or metric",
+        "do not imply COSHH-specific compliance outcomes."
+      ],
+      "review_story": {
+        "story_allowed": false
+      },
+      "source_type": "case_study",
+      "themes": [
+        "mandatory on-site dynamic risk assessments before work"
+      ],
+      "workflow_fit": [
+        "risk assessment",
+        "health and safety",
+        "mobile workforce"
+      ]
+    },
+    {
+      "approval_status": "approved",
+      "approved_metrics": [],
+      "approved_quotes": [],
+      "customer": "Rilmac",
+      "evidence": "BigChange ensures that we not only adhere to these regulations in the field we can also prove compliance.",
+      "industry": [
+        "asbestos services",
+        "construction",
+        "field service"
+      ],
+      "internal_source_ref": "BigChange success story page read in Chrome 2026-09-24",
+      "last_verified": "2026-09-24",
+      "proof_id": "bigchange-rilmac-prove-compliance-hse-inspection",
+      "public_copy_allowed": true,
+      "public_url": "https://www.bigchange.com/success-stories/bigchange-removes-inefficiency-for-rilmac-asbestos-services-division",
+      "region": [
+        "UK"
+      ],
+      "restrictions": [
+        "Paraphrased story use only",
+        "no exact quote or metric",
+        "asbestos regime (not COSHH)",
+        "do not imply COSHH-specific compliance."
+      ],
+      "review_story": {
+        "story_allowed": false
+      },
+      "source_type": "case_study",
+      "themes": [
+        "proving field compliance with guided step-by-step workflows"
+      ],
+      "workflow_fit": [
+        "compliance evidence",
+        "step-by-step field workflows",
+        "health and safety inspection"
+      ]
+    },
+    {
+      "approval_status": "approved",
+      "approved_metrics": [],
+      "approved_quotes": [],
+      "company_size": "11-50 employees",
+      "customer": "Capterra BigChange HSEQ-manager review",
+      "evidence": "you can design to meet your company needs for policies, procedures, health & safety",
+      "industry": [
+        "construction",
+        "field service"
+      ],
+      "internal_source_ref": "research/source-captures/coshh-regulations-2026-09-24/capterra-uk-bigchange-clare-hseq-page-6.md",
+      "last_verified": "2026-09-24",
+      "proof_id": "review-capterra-bigchange-clare-hseq-health-safety-worksheets",
+      "public_copy_allowed": true,
+      "public_url": "https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange",
+      "region": [
+        "UK"
+      ],
+      "restrictions": [
+        "Paraphrased review-story use only. No exact review wording, ratings, rankings, aggregate review claims, or metric claims. Review dated 2021-01-13: frame as workflow experience, not current product status."
+      ],
+      "review_story": {
+        "copy_use": "paraphrased E-E-A-T story with same-paragraph public review link",
+        "identity_display": "Clare",
+        "identity_type": "person",
+        "objective_fit": [
+          "health and safety",
+          "worksheets",
+          "risk assessment"
+        ],
+        "person_name": "Clare",
+        "platform": "Capterra",
+        "public_url": "https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange",
+        "role_title": "HSEQ Manager",
+        "source_row_ref": "Capterra UK BigChange reviews page 6, Clare review dated 13 January 2021, captured 2026-09-24",
+        "story_allowed": true,
+        "verification_status": "public Capterra UK review page captured in Chrome",
+        "workflow_story": "HSEQ manager in UK construction describes designing company policies, procedures, and health and safety worksheets in house in BigChange without software engineers."
+      },
+      "source_type": "review_site",
+      "themes": [
+        "health and safety worksheets built in house"
+      ],
+      "workflow_fit": [
+        "health and safety",
+        "worksheets",
+        "policies and procedures"
+      ]
+    },
+    {
+      "approval_status": "approved",
+      "approved_metrics": [],
+      "approved_quotes": [
+        {
+          "evidence": "keeping all documents together showing a stream from report to completion of faults and issues which keeps us compliant",
+          "quote": "keeping all documents together showing a stream from report to completion of faults and issues which keeps us compliant",
+          "status": "approved",
+          "url": "https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange"
+        }
+      ],
+      "company_size": "201-500 employees",
+      "customer": "Capterra BigChange transport-manager review",
+      "evidence": "keeping all documents together showing a stream from report to completion of faults and issues which keeps us compliant",
+      "industry": [
+        "building materials",
+        "field service"
+      ],
+      "internal_source_ref": "research/source-captures/coshh-regulations-2026-09-24/capterra-uk-bigchange-suzanne-transport-page-2.md",
+      "last_verified": "2026-09-24",
+      "proof_id": "review-capterra-bigchange-suzanne-transport-compliance-records",
+      "public_copy_allowed": true,
+      "public_url": "https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange",
+      "region": [
+        "UK"
+      ],
+      "restrictions": [
+        "Paraphrase or the single approved snippet only, with first name and role and a same-paragraph review link. No ratings, rankings, aggregate review claims, or metric claims. Review dated 2023-06-01: frame as workflow experience."
+      ],
+      "review_story": {
+        "copy_use": "paraphrased E-E-A-T story or approved snippet with same-paragraph public review link",
+        "identity_display": "Suzanne",
+        "identity_type": "person",
+        "objective_fit": [
+          "compliance records",
+          "audit trail",
+          "document control"
+        ],
+        "person_name": "Suzanne",
+        "platform": "Capterra",
+        "public_url": "https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange",
+        "role_title": "Transport Manager",
+        "source_row_ref": "Capterra UK BigChange reviews page 2, suzanne review dated 1 June 2023, captured 2026-09-24",
+        "story_allowed": true,
+        "verification_status": "public Capterra UK review page captured in Chrome",
+        "workflow_story": "Transport manager in UK building materials describes keeping fleet files and documents together in BigChange from fault report to completion, which keeps the business compliant."
+      },
+      "source_type": "review_site",
+      "themes": [
+        "keeping compliance documents together from report to completion"
+      ],
+      "workflow_fit": [
+        "compliance records",
+        "fleet documents",
+        "fault tracking"
+      ]
     }
   ],
   "source_boundary": "Curated customer proof index for selection and governance. This is not the full Quote Matrix. Exact quotes, review ratings, badges, rankings, and named reviewer claims require current source verification and approval before public copy use. Review-site rows may support public E-E-A-T stories only when review_story.story_allowed is true, the row has a real person or business identity, and a usable public review URL is linked in the same public paragraph as the paraphrase. Generic review themes remain VoC research only.",
-  "updated_at": "2026-09-18",
+  "updated_at": "2026-09-24",
   "version": 1
 }
