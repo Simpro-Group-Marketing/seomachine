@@ -1,6 +1,6 @@
 {
   "schema": "simpro-source-classification-decisions/v1",
-  "revision": "2026-09-23",
+  "revision": "2026-09-24",
   "decisions": [
     {
       "decision_id": "icc-ibc-2024-chapter-17-special-inspections",
@@ -255,6 +255,46 @@
       "status": "approved",
       "source_url": "https://www.clockshark.com/videos/overtime-rules-to-manage-california-overtime",
       "hostname": "www.clockshark.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
+    },
+    {
+      "decision_id": "plumbing-invoice-template-2026-09-24-bga-how-to-invoice",
+      "status": "approved",
+      "source_url": "https://business.gov.au/finance/payments-and-invoicing/how-to-invoice",
+      "hostname": "business.gov.au",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "plumbing-invoice-template-2026-09-24-bga-register-gst",
+      "status": "approved",
+      "source_url": "https://business.gov.au/registrations/register-for-taxes/register-for-goods-and-services-tax-gst",
+      "hostname": "business.gov.au",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "plumbing-invoice-template-2026-09-24-bgnz-prepare-invoice",
+      "status": "approved",
+      "source_url": "https://www.business.govt.nz/browse-our-resource-library/tips-for-tradies/how-to-prepare-an-invoice",
+      "hostname": "www.business.govt.nz",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "plumbing-invoice-template-2026-09-24-ird-gst",
+      "status": "approved",
+      "source_url": "https://www.ird.govt.nz/gst",
+      "hostname": "www.ird.govt.nz",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "plumbing-invoice-template-2026-09-24-aroflo-invoicing-billing",
+      "status": "approved",
+      "source_url": "https://aroflo.com/features/invoicing-billing-software",
+      "hostname": "aroflo.com",
       "source_class": "owned_product",
       "publisher_relationship": "owned"
     }
