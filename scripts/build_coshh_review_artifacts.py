@@ -36,13 +36,12 @@ REVIEW_ARTICLE = ROOT / "research" / f"machine-review-article-{SLUG}-{DATE}.json
 
 EXCERPTS = {
     "coshh-at-a-glance-table": (
-        "| [Regulation 9](https://www.legislation.gov.uk/uksi/2002/2677/regulation/9) | Keep control "
+        "| [Reg 9](https://www.legislation.gov.uk/uksi/2002/2677/regulation/9) | Keep control "
         "measures in efficient working order | Inspect extraction, respirators, and PPE before use | "
         "Examination and test results, kept at least 5 years |"
     ),
     "lev-and-record-retention": (
-        "Local exhaust ventilation needs a thorough examination at least once every 14 months, with "
-        "records kept at least 5 years"
+        "Local exhaust ventilation needs a thorough examination at least once every 14 months"
     ),
     "sds-is-not-an-assessment": (
         "The data sheet tells you about the product. The assessment tells you about your task, your "
@@ -53,7 +52,7 @@ EXCERPTS = {
         "starting | Report damaged or missing equipment |"
     ),
     "review-triggers": (
-        "The same regulation requires an immediate review if you suspect the assessment is no longer valid, the work changes significantly, or monitoring shows a need."
+        "The same regulation requires an immediate review if there is reason to suspect the assessment is no longer valid, the work changes significantly, or monitoring shows it to be necessary."
     ),
 }
 

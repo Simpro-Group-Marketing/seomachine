@@ -20,7 +20,7 @@ python data_sources/modules/content_scrubber.py "$A" --stage scrub --run-id "$RU
 
 python data_sources/modules/context_binding_generator.py "$A" \
   --proof-sidecar "research/validation-$SLUG-$DATE.md" \
-  --not-applicable-reason "BigChange nonconnector article: no Simpro brand, URL, or connector-sensitive language." \
+  --not-applicable-reason "Final article contains no Simpro brand, URL, or connector-sensitive language." \
   --stage context_binding --run-id "$RUN_ID" --previous-receipt "$R/scrub.json" \
   --stage-receipt-output "$R/context-binding.json" > /dev/null
 

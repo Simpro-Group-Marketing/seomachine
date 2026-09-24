@@ -22,9 +22,7 @@ OUT = ROOT / "research" / f"validation-{SLUG}-{DATE}.md"
 CLASS_DIR = ROOT / "research" / "source-classifications" / f"{SLUG}-{DATE}"
 CAPTURE_DIR = f"research/source-captures/{SLUG}-{DATE}"
 SELECTOR = ROOT / "research" / f"nonvault-customer-proof-selector-evidence-{SLUG}-{DATE}.json"
-L = "https://www.legislation.gov.uk/uksi/2002/2677/"
 CAP = "https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange"
-SENT = "https://sentencingcouncil.org.uk/guidelines/organisations-breach-of-duty-of-employer-towards-employees-and-non-employees-breach-of-duty-of-self-employed-to-others-breach-of-health-and-safety-regulations/"
 
 
 def sha(path: Path) -> str:
@@ -42,151 +40,30 @@ def source_class(url: str) -> str:
     return json.loads((ROOT / classification(url)[0]).read_text(encoding="utf-8"))["source_class"]
 
 
-# (claim, claim type, url, evidence, freshness decision, freshness reason, citation mode, intended use)
-CURRENT = "current"
 LIVE = "Authoritative page read live on the checked date."
-ROWS = [
-    ("COSHH regulations are the Control of Substances Hazardous to Health Regulations 2002", "definitional", L + "contents",
-     "Health surveillance", CURRENT, "The legislation.gov.uk contents page lists the current regulations and was read on the checked date.", "inline_required", "Introduction, opening definition"),
-    ("the UK law that requires employers to prevent or control exposure to harmful substances at work", "factual", L + "contents",
-     "Prevention or control of exposure to substances hazardous to health", CURRENT, LIVE, "inline_required", "Introduction, opening definition"),
-    ("The law asks you to assess the risk, control exposure, keep those controls working, and make sure every engineer understands them", "factual", "https://www.hse.gov.uk/coshh/law.htm",
-     "require employers to plan, manage and monitor the use of chemicals", CURRENT, LIVE, "inline_required", "Introduction, second paragraph"),
-    ("HSE's COSHH law summary puts it plainly", "factual", "https://www.hse.gov.uk/coshh/law.htm",
-     "require employers to plan, manage and monitor the use of chemicals", CURRENT, LIVE, "inline_required", "Introduction, second paragraph"),
-    ("the regulations require employers to plan, manage and monitor the use of hazardous substances", "factual", "https://www.hse.gov.uk/coshh/law.htm",
-     "require employers to plan, manage and monitor the use of chemicals", CURRENT, LIVE, "inline_required", "Introduction, second paragraph"),
-    ("A suitable and sufficient risk assessment before the work starts", "factual", L + "regulation/6",
-     "suitable and sufficient assessment", CURRENT, LIVE, "inline_required", "COSHH at a glance table, Regulation 6 row"),
-    ("Significant findings and control steps, for 5 or more employees", "factual", L + "regulation/6",
-     "Where the employer employs 5 or more employees, he shall record", CURRENT, LIVE, "inline_required", "COSHH at a glance table, Regulation 6 row"),
-    ("Prevent exposure, or control it adequately where prevention is not reasonably practicable", "factual", L + "regulation/7",
-     "either prevented or, where this is not reasonably practicable, adequately controlled", CURRENT, LIVE, "inline_required", "COSHH at a glance table, Regulation 7 row"),
-    ("Keep control measures in efficient working order", "factual", L + "regulation/9",
-     "efficient state, in efficient working order", CURRENT, LIVE, "inline_required", "COSHH at a glance table, Regulation 9 row"),
-    ("Examination and test results, kept at least 5 years", "factual", L + "regulation/9",
-     "at least 5 years", CURRENT, LIVE, "inline_required", "COSHH at a glance table, Regulation 9 row"),
-    ("Suitable and sufficient information, instruction and training", "factual", L + "regulation/12",
-     "suitable and sufficient information, instruction and training", CURRENT, LIVE, "inline_required", "COSHH at a glance table, Regulation 12 row"),
-    ("Brief the engineer on hazards, controls, and the safety data sheet", "process", L + "regulation/12",
-     "access to any relevant safety data sheet", CURRENT, LIVE, "inline_required", "COSHH at a glance table, Regulation 12 row"),
-    ("Arrangements for accidents, incidents and emergencies", "factual", L + "regulation/13",
-     "first-aid facilities", CURRENT, LIVE, "inline_required", "COSHH at a glance table, Regulation 13 row"),
-    ("It is the UK regulatory framework that makes every employer responsible for protecting workers from substances that damage health at work", "definitional", "https://www.hse.gov.uk/coshh/",
-     "Control of Substances Hazardous to Health (COSHH)", CURRENT, LIVE, "inline_required", "What is COSHH section, definition"),
-    ("estimate 11,000 lung disease deaths each year linked to past exposures at work", "statistic", "https://www.hse.gov.uk/statistics/causdis/overview.htm",
-     "lung disease deaths each year estimated to be linked to past exposure at work", CURRENT, "HSE statistics overview updated 2026-01-07 is the original publication of the figure.", "inline_required", "What is COSHH section, stakes paragraph"),
-    ("That summary also puts work-related ill health at 1.9 million workers in 2024/25", "statistic", "https://www.hse.gov.uk/statistics/causdis/overview.htm",
-     "1.9 million workers suffering from work-related ill health", CURRENT, "HSE statistics overview updated 2026-01-07 is the original publication of the figure.", "inline_required", "What is COSHH section, stakes paragraph"),
-    ("Courts sentence organisations under the Sentencing Council health and safety guideline", "factual", SENT,
-     "unlimited fine", CURRENT, "Definitive Sentencing Council guideline in force since 1 February 2016 and read on the checked date.", "inline_required", "What is COSHH section, penalty paragraph"),
-    ("which sets an unlimited fine as the maximum penalty for breaching health and safety regulations", "factual", SENT,
-     "unlimited fine", CURRENT, "Definitive Sentencing Council guideline in force since 1 February 2016 and read on the checked date.", "inline_required", "What is COSHH section, penalty paragraph"),
-    ("COSHH covers any substance or mix of substances that harms health through breathing it in, skin contact, or swallowing it", "definitional", "https://www.hse.gov.uk/coshh/basics/substance.htm",
-     "biological agents (germs)", CURRENT, LIVE, "inline_required", "Substances section, direct answer and list"),
-    ("If the packaging carries a hazard symbol, HSE treats it as a hazardous substance under COSHH", "factual", "https://www.hse.gov.uk/coshh/basics/substance.htm",
-     "If the packaging has any of the hazard symbols then it is classed as a hazardous substance", CURRENT, LIVE, "inline_required", "Substances section, hazard symbol test"),
-    ("COSHH does not cover lead, asbestos, or radioactive substances, because separate regulations govern them", "factual", "https://www.hse.gov.uk/coshh/basics/substance.htm",
-     "because these have their own specific regulations", CURRENT, LIVE, "inline_required", "Substances section, exclusions"),
-    ("The three COSHH regulations most commonly highlighted as the core employer duties are Regulation 6 on risk assessment, Regulation 7 on preventing or controlling exposure, and Regulation 12 on information, instruction and training", "factual", L + "contents",
-     "Information, instruction and training for persons who may be exposed to substances hazardous to health", CURRENT, LIVE, "inline_required", "Three main regulations section, direct answer"),
-    ("COSHH contains more regulations than these three", "factual", L + "contents",
-     "Monitoring exposure at the workplace", CURRENT, LIVE, "inline_required", "Three main regulations section, direct answer"),
-    ("The full list of COSHH regulations runs from definitions to health surveillance and emergencies", "factual", L + "contents",
-     "Health surveillance", CURRENT, LIVE, "inline_required", "Three main regulations section, direct answer"),
-    ("Regulation 6 says an employer shall not carry out work liable to expose employees to a hazardous substance without first making a suitable and sufficient assessment of the risk", "factual", L + "regulation/6",
-     "suitable and sufficient assessment", CURRENT, LIVE, "inline_required", "Regulation 6 section"),
-    ("That assessment then drives the steps you take to meet the rest of the regulations", "factual", L + "regulation/6",
-     "the steps that need to be taken to meet the requirements of these Regulations", CURRENT, LIVE, "inline_required", "Regulation 6 section"),
-    ("Employers with 5 or more employees need to record the significant findings and the steps taken to meet Regulation 7", "factual", "https://www.hse.gov.uk/coshh/basics/assessment.htm",
-     "If you have 5 or more employees, you must record your assessment", CURRENT, LIVE, "inline_required", "Regulation 6 section, recording rule"),
-    ("Regulation 7 requires every employer to ensure exposure is either prevented or, where this is not reasonably practicable, adequately controlled", "factual", L + "regulation/7",
-     "either prevented or, where this is not reasonably practicable, adequately controlled", CURRENT, LIVE, "inline_required", "Regulation 7 section"),
-    ("Prevention comes first, and substitution is the preferred route", "factual", L + "regulation/7",
-     "replacing it with a substance or process which, under the conditions of its use, either eliminates or reduces the risk", CURRENT, LIVE, "inline_required", "Regulation 7 section"),
-    ("Where substitution is not practicable, the regulation sets an order of controls", "process", L + "regulation/7",
-     "personal protective equipment", CURRENT, LIVE, "inline_required", "Regulation 7 section, order of controls"),
-    ("describe PPE as the final control option", "factual", "https://www.hse.gov.uk/coshh/detail/goodpractice.htm",
-     "the final control option", CURRENT, LIVE, "inline_required", "Regulation 7 section, PPE paragraph"),
-    ("Regulation 12 requires employers to give anyone who works with hazardous substances suitable and sufficient information, instruction and training", "factual", L + "regulation/12",
-     "suitable and sufficient information, instruction and training", CURRENT, LIVE, "inline_required", "Regulation 12 section"),
-    ("That includes the significant findings of the risk assessment and access to the relevant safety data sheet", "factual", L + "regulation/12",
-     "access to any relevant safety data sheet", CURRENT, LIVE, "inline_required", "Regulation 12 section"),
-    ("The core three regulations sit inside a wider set of duties", "factual", L + "contents",
-     "Use of control measures etc.", CURRENT, LIVE, "inline_required", "Other requirements section, introduction"),
-    ("The original eight-step approach to COSHH maps onto these regulations, and each one creates a record worth keeping", "factual", L + "contents",
-     "Maintenance, examination and testing of control measures", CURRENT, LIVE, "inline_required", "Other requirements section, introduction"),
-    ("Engineers use the controls and PPE you provide, and report defects", "factual", L + "regulation/8",
-     "make full and proper use of any control measure", CURRENT, LIVE, "inline_required", "Other requirements table, Regulation 8 row"),
-    ("Local exhaust ventilation needs a thorough examination at least once every 14 months, with records kept at least 5 years", "factual", L + "regulation/9",
-     "at least once every 14 months", CURRENT, LIVE, "inline_required", "Other requirements table, Regulation 9 row"),
-    ("Air monitoring records for identifiable employees stay on file for 40 years", "factual", L + "regulation/10",
-     "40 years", CURRENT, LIVE, "inline_required", "Other requirements table, Regulation 10 row"),
-    ("Health records stay on file for at least 40 years from the last entry", "factual", L + "regulation/11",
-     "at least 40 years from the date of the last entry", CURRENT, LIVE, "inline_required", "Other requirements table, Regulation 11 row"),
-    ("First aid, tested safety drills, and warning systems ready for each site", "factual", L + "regulation/13",
-     "safety drills", CURRENT, LIVE, "inline_required", "Other requirements table, Regulation 13 row"),
-    ("Check and review all control measures regularly for their continuing effectiveness", "factual", L + "schedule/2A",
-     "Check and review regularly all elements of control measures for their continuing effectiveness", CURRENT, LIVE, "inline_required", "Other requirements table, Schedule 2A row"),
-    ("It is the risk assessment Regulation 6 requires before the work starts", "definitional", L + "regulation/6",
-     "suitable and sufficient assessment", CURRENT, LIVE, "inline_required", "COSHH assessment definition"),
-    ("A COSHH assessment is not the same as a safety data sheet", "factual", "https://www.hse.gov.uk/coshh/basics/datasheets.htm",
-     "A safety data sheet is not a risk assessment", CURRENT, LIVE, "inline_required", "COSHH assessment definition, safety data sheet paragraph"),
-    ("HSE's safety data sheet guidance states that a safety data sheet is not a risk assessment", "factual", "https://www.hse.gov.uk/coshh/basics/datasheets.htm",
-     "A safety data sheet is not a risk assessment", CURRENT, LIVE, "inline_required", "COSHH assessment definition, safety data sheet paragraph"),
-    ("breaks the work into identifying the hazards, assessing the risks, and controlling them", "process", "https://www.hse.gov.uk/coshh/basics/assessment.htm",
-     "Identify which substances are harmful by reading the product labels and safety data sheets (SDS)", CURRENT, LIVE, "inline_required", "Assessment steps section"),
-    ("There is no fixed legal interval", "factual", L + "regulation/6",
-     "reviewed regularly", CURRENT, LIVE, "inline_required", "Review frequency section"),
-    ("Regulation 6 requires you to review the assessment regularly", "factual", L + "regulation/6",
-     "reviewed regularly", CURRENT, LIVE, "inline_required", "Review frequency section"),
-    ("The same regulation requires an immediate review if you suspect the assessment is no longer valid, the work changes significantly, or monitoring shows a need", "factual", L + "regulation/6",
-     "significant change in the work", CURRENT, LIVE, "inline_required", "Review frequency section, review triggers"),
-    ("Once you employ 5 or more people, Regulation 6 also requires a record of the significant findings, so update that record after each review", "factual", L + "regulation/6",
-     "Where the employer employs 5 or more employees, he shall record", CURRENT, LIVE, "inline_required", "Review frequency section, recording threshold"),
-    ("HSE's COSHH guidance sets out how to meet it", "factual", "https://www.hse.gov.uk/coshh/",
-     "Control of Substances Hazardous to Health (COSHH)", CURRENT, LIVE, "inline_required", "What is COSHH section, definition"),
-    ("The employer holds the legal duty, as HSE's COSHH law summary makes clear", "factual", "https://www.hse.gov.uk/coshh/law.htm",
-     "require employers to plan, manage and monitor the use of chemicals", CURRENT, LIVE, "inline_required", "Responsibility section"),
-    ("Any business that sends engineers to work with hazardous substances has to assess the risk and put controls in place", "factual", "https://www.hse.gov.uk/coshh/law.htm",
-     "require employers to plan, manage and monitor the use of chemicals", CURRENT, LIVE, "inline_required", "Responsibility section"),
-    ("It also maintains those controls and trains its people", "factual", "https://www.hse.gov.uk/coshh/law.htm",
-     "require employers to plan, manage and monitor the use of chemicals", CURRENT, LIVE, "inline_required", "Responsibility section"),
-    ("HSE's COSHH FAQ confirms that the person carrying out an assessment needs no particular qualifications, but must be competent", "factual", "https://www.hse.gov.uk/coshh/faq.htm",
-     "You don't need any particular qualifications but you must be competent", CURRENT, LIVE, "inline_required", "Responsibility section, competence paragraph"),
-    ("Competence means having the necessary knowledge, skills, and experience to do the job properly", "definitional", "https://www.hse.gov.uk/coshh/faq.htm",
-     "necessary knowledge, skills and experience", CURRENT, LIVE, "inline_required", "Responsibility section, competence paragraph"),
-    ("Under Regulation 8, engineers use the control measures and PPE provided, follow the procedures, and report defects", "factual", L + "regulation/8",
-     "make full and proper use of any control measure", CURRENT, LIVE, "inline_required", "Responsibility section, employee duties"),
-    ("engineers open the correct COSHH assessment on their mobile device and complete it before the job starts", "product_claim", "https://www.bigchange.com/features/risk-assessment",
-     "instant access to the right risk assessment", CURRENT, LIVE, "inline_required", "Field compliance section, digital workflow"),
-    ("Cleaning businesses keep a digital library of COSHH sheets for engineers to reference on site", "product_claim", "https://www.bigchange.com/industries/cleaning-software-crm",
-     "COSHH sheets", CURRENT, LIVE, "inline_required", "Field compliance section, cleaning paragraph"),
-    ("COSHH regulations come down to four habits: assess each task, control exposure, keep controls working, and make sure every engineer understands the risks", "factual", "https://www.hse.gov.uk/coshh/law.htm",
-     "require employers to plan, manage and monitor the use of chemicals", CURRENT, LIVE, "inline_required", "Conclusion"),
-    ("HSE's summary of what the law says sets out each duty in plain terms", "factual", "https://www.hse.gov.uk/coshh/law.htm",
-     "require employers to plan, manage and monitor the use of chemicals", CURRENT, LIVE, "inline_required", "Conclusion"),
-    ("employers make a suitable and sufficient assessment before any work that exposes employees to hazardous substances", "faq", L + "regulation/6",
-     "suitable and sufficient assessment", CURRENT, LIVE, "inline_required", "FAQ, legal requirement answer"),
-    ("states that a good safety data sheet does not substitute for carrying out and recording a COSHH risk assessment", "faq", "https://www.hse.gov.uk/coshh/faq.htm",
-     "does not substitute for carrying out and recording a COSHH risk assessment", CURRENT, LIVE, "inline_required", "FAQ, safety data sheet answer"),
-    ("classes a product as hazardous when its packaging carries a hazard symbol", "faq", "https://www.hse.gov.uk/cleaning/topics/coshh.htm",
-     "If the packaging has any of the hazard symbols, it is classed as a hazardous substance", CURRENT, LIVE, "inline_required", "FAQ, cleaning products answer"),
-    ("employers give anyone exposed to hazardous substances suitable and sufficient information, instruction and training", "faq", L + "regulation/12",
-     "suitable and sufficient information, instruction and training", CURRENT, LIVE, "inline_required", "FAQ, training answer"),
-]
+SOURCE_MAP_ROWS = ROOT / "research" / f"source-map-rows-{SLUG}-{DATE}.json"
+STAT_REASON = "HSE statistics overview updated 2026-01-07 is the original publication of the figure."
+SENT_REASON = "Definitive Sentencing Council guideline in force since 1 February 2016 and read on the checked date."
 
 
 def source_map() -> str:
+    """Render claim-bound rows derived by scripts/build_coshh_source_map.py."""
+    data = json.loads(SOURCE_MAP_ROWS.read_text(encoding="utf-8"))
     lines = []
-    for claim, ctype, url, evidence, fresh, reason, mode, use in ROWS:
+    for row in data["rows"]:
+        url = row["url"]
         cpath, chash = classification(url)
+        reason = STAT_REASON if "statistics" in url else SENT_REASON if "sentencingcouncil" in url else LIVE
+        evidence = " ".join(row["evidence"].split())
+        receipt_hash = sha(ROOT / row["receipt"])
         lines.append(
-            f"- Claim: {claim} | Claim type: {ctype} | Source class: {source_class(url)} | Evidence relation: directly_supports"
-            f" | URL: {url} | Evidence: {evidence} | Original-source status: original | Source date: {DATE}"
-            f" | Checked date: {DATE} | Claim fit: direct | Freshness decision: {fresh} | Freshness reason: {reason}"
-            f" | Classification artifact: {cpath} | Classification hash: {chash} | Citation mode: {mode}"
-            f" | Status: approved | Intended use: {use}"
+            f"- Claim: {row['claim']} | Claim type: {row['claim_type']} | Source class: {source_class(url)}"
+            f" | Evidence relation: directly_supports | URL: {url} | Evidence: {evidence}"
+            f" | Original-source status: original | Source date: {DATE} | Checked date: {DATE}"
+            f" | Claim fit: direct | Freshness decision: current | Freshness reason: {reason}"
+            f" | Artifact: {row['artifact']} | Capture receipt: {row['receipt']} | Capture receipt hash: {receipt_hash}"
+            f" | Classification artifact: {cpath} | Classification hash: {chash} | Citation mode: inline_required"
+            f" | Status: approved | Intended use: {row['claim_type']} claim at article line {row['line']}"
         )
     return "\n".join(lines)
 
@@ -204,14 +81,16 @@ def main() -> int:
     cap_cpath, cap_chash = classification(CAP)
     clg = "https://www.bigchange.com/success-stories/bigchange-helps-clearground-clean-up-on-workforce-health-and-safety"
     clg_cpath, clg_chash = classification(clg)
-    text = TEMPLATE.format(
+    slate_lines = (ROOT / "research" / f"nonvault-customer-proof-slate-{SLUG}-{DATE}.md").read_text(encoding="utf-8").splitlines()[1:]
+    slate = "\n".join(line.replace("research\\", "research/") for line in slate_lines if line.strip())
+    text = TEMPLATE.format(slate=slate, 
         run_id=RUN_ID, date=DATE, source_map=source_map(), selector_hash=selector_hash,
         cap=CAP, suz_art=suz_art, suz_rec=suz_rec, suz_hash=suz_hash,
         clare_art=clare_art, clare_rec=clare_rec, clare_hash=clare_hash,
         cap_cpath=cap_cpath, cap_chash=cap_chash, clg=clg, clg_cpath=clg_cpath, clg_chash=clg_chash,
     )
     OUT.write_bytes(text.encode("utf-8"))
-    print(f"sidecar: {OUT.relative_to(ROOT).as_posix()} rows={len(ROWS)}")
+    print(f"sidecar: {OUT.relative_to(ROOT).as_posix()} rows={source_map().count(chr(10)) + 1}")
     return 0
 
 
@@ -299,7 +178,7 @@ Decision: The brief primary is kept. Its UK SERP is regulator and explainer cont
 - Search log: HSE work-related ill health statistics were searched for a current figure. The original article's 1.6 million figure was rejected as stale. The original article's average fine of 150,000 pounds was rejected because its HSE enforcement PDF link returns 404 and HSE no longer publishes enforcement statistics in its annual release. The Sentencing Council guideline was accepted for the unlimited fine.
 - Status: approved
 
-- Approved metric: 11,000 lung disease deaths each year linked to past exposures at work | URL: https://www.hse.gov.uk/statistics/causdis/overview.htm | Evidence: lung disease deaths each year estimated to be linked to past exposure at work | Status: approved | Use: What is COSHH section, stakes paragraph
+- Approved metric: Health and Safety Executive statistics estimate 11,000 lung disease deaths each year linked to past exposures at work | URL: https://www.hse.gov.uk/statistics/causdis/overview.htm | Evidence: lung disease deaths each year estimated to be linked to past exposure at work | Status: approved | Use: What is COSHH section, stakes paragraph
 - Approved metric: 1.9 million workers suffering from work-related ill health in 2024/25 | URL: https://www.hse.gov.uk/statistics/causdis/overview.htm | Evidence: 1.9 million workers suffering from work-related ill health | Status: approved | Use: What is COSHH section, stakes paragraph
 
 Rejected metric rows:
@@ -324,42 +203,45 @@ Rejected metric rows:
 
 ## Customer Proof Slate
 
-- Selector command: python data_sources/modules/nonvault_customer_proof_selector.py "coshh regulations" --brand BigChange --roles metric,quote,theme,experience_story --require-eeat-story
-- Selector evidence: research/nonvault-customer-proof-selector-evidence-coshh-regulations-{date}.json | SHA-256: {selector_hash}
-- Role: metric | Top candidates: [none] | Selected: [none] | Rejected stronger candidates: [none]
-- Role: quote | Top candidates: [review-capterra-bigchange-suzanne-transport-compliance-records] | Selected: [review-capterra-bigchange-suzanne-transport-compliance-records] | Rejected stronger candidates: [none]
-- Role: theme | Top candidates: [bigchange-customer-story-hodge-clemco-paperless-jobs, bigchange-clearground-dynamic-risk-assessments] | Selected: [bigchange-clearground-dynamic-risk-assessments] | Rejected stronger candidates: [bigchange-customer-story-hodge-clemco-paperless-jobs: Paperless job story with no health and safety or risk assessment content for a COSHH article]
-- Role: experience_story | Top candidates: [review-capterra-bigchange-clare-hseq-health-safety-worksheets] | Selected: [review-capterra-bigchange-clare-hseq-health-safety-worksheets] | Rejected stronger candidates: [none]
+{slate}
 
 ## Customer Proof Pack
 
 - Pack status: selected
 - Topic or page fit: COSHH regulations and COSHH assessments for UK field service employers.
 - Quote Matrix candidates: Not applicable for this nonconnector brand.
-- Customer Story proof path: Clearground public success story at {clg}
-- Review-site experience evidence: Clare (HSEQ Manager) and Suzanne (Transport Manager) on the public Capterra UK BigChange page.
-- Selected Customer Proof Mining: See below.
-- Customer Proof Selection Decision: See below.
-- Approved quote: keeping all documents together showing a stream from report to completion of faults and issues which keeps us compliant | Customer/reviewer: Suzanne, Transport Manager | Source type: review_site | URL: {cap} | Evidence: keeping all documents together showing a stream from report to completion of faults and issues which keeps us compliant | Proof artifact: {suz_art} | Capture receipt: {suz_rec} | Capture receipt hash: {suz_hash} | Status: approved
-- Approved metrics: none used
-- Use in copy: Clearground paraphrased story, Clare paraphrased story, Suzanne approved snippet
+- Case-study proof paths: Clearground public success story at {clg}
+- Review-site experience evidence: Clare (HSEQ Manager, 13 January 2021) and Suzanne (Transport Manager, 1 June 2023) on the public Capterra UK BigChange page, captured 2026-09-24.
+- Approved quote: "keeping all documents together showing a stream from report to completion of faults and issues which keeps us compliant" | Source type: review_site | Identity: Suzanne, Transport Manager, UK building materials | URL: {cap} | Evidence: keeping all documents together showing a stream from report to completion of faults and issues which keeps us compliant | Proof artifact: {suz_art} | Capture receipt: {suz_rec} | Capture receipt hash: {suz_hash} | Status: approved | Use: exact snippet with first name, role, and a same-paragraph Capterra link in the field compliance section
+- Approved metrics: none used in public copy.
+- Use in copy: Clearground paraphrased story, Clare paraphrased story, Suzanne approved snippet.
 - Claims excluded: ratings, star claims, aggregate review claims, customer metrics, and the Clare review's staffing figure.
 
 ## Selected Customer Proof Mining
 
-- Selected proof: bigchange-clearground-dynamic-risk-assessments | URL: {clg} | Mined for: quote, metric, POV/story, theme | Decision: paraphrased POV/story | Reason: The page describes mandatory on-site dynamic risk assessments, which fits the field compliance section. No exact quote or metric is used under the nonvault contract.
-- Selected proof: review-capterra-bigchange-clare-hseq-health-safety-worksheets | URL: {cap} | Mined for: quote, metric, POV/story, theme | Decision: paraphrased POV/story | Reason: The review describes building health and safety worksheets in house. Her wording contains modal verbs and a staffing figure, so the story is paraphrased and the figure is omitted. Proof artifact: {clare_art} | Capture receipt hash: {clare_hash}
-- Selected proof: review-capterra-bigchange-suzanne-transport-compliance-records | URL: {cap} | Mined for: quote, metric, POV/story, theme | Decision: approved snippet | Reason: The snippet matches the row's approved_quotes entry verbatim and carries no rating or metric.
+- Proof: bigchange-clearground-dynamic-risk-assessments | Customer: Clearground | URL: {clg}
+- Proof: review-capterra-bigchange-suzanne-transport-compliance-records | Customer: Capterra reviewer Suzanne, Transport Manager | URL: {cap}
+- Proof: review-capterra-bigchange-clare-hseq-health-safety-worksheets | Customer: Capterra reviewer Clare, HSEQ Manager | URL: {cap}
+- Checked for: exact quotes, customer metrics, POV story, workflow themes
+- Usable quotes found: one approved snippet from Suzanne, stored in the row's approved_quotes. The Clearground quote is not used because nonvault copy paraphrases case studies, and Clare's wording contains modal verbs.
+- Usable metrics found: none found. Clare's staffing figure is not an approved metric.
+- Usable POV/story found: Clearground makes customised dynamic risk assessments mandatory on site; Clare's team builds its own health and safety worksheets in house.
+- Recommended use: paraphrased POV/story for Clearground and Clare, exact snippet for Suzanne
+- Final use in copy: Clare's experience story and the Clearground POV story, both paraphrased, plus the Suzanne exact quote from the row's approved_quotes, each with a same-paragraph public link in the field compliance section.
+- Excluded proof: star ratings, review counts, rankings, and any outcome figure.
+- Status: approved
 
 ## Customer Proof Selection Decision
 
-- Selected proof: bigchange-clearground-dynamic-risk-assessments, review-capterra-bigchange-clare-hseq-health-safety-worksheets, review-capterra-bigchange-suzanne-transport-compliance-records
-- Selection outcome: selected
-- Rejected: bigchange-customer-story-hodge-clemco-paperless-jobs | Role theme | Reason: Paperless job story with no health and safety or risk assessment content for a COSHH article
-- Rejected: bigchange-rilmac-prove-compliance-hse-inspection | Role theme | Reason: Asbestos services work falls under a separate regime from COSHH so the story risks implying COSHH-specific compliance
-- Rejected: review-capterra-bigchange-hannah-construction-one-system-workflow | Role experience_story | Reason: One-system workflow review with no health and safety content and four recent uses
-- Reuse reason: Not applicable. The three selected proof rows have no recorded prior public use; a live repo scan of drafts, rewrites, research and published found no public-copy use of Clearground, Clare or Suzanne.
-- Final use in copy: Field compliance section only
+- Selected proof: bigchange-clearground-dynamic-risk-assessments
+- Selected proof: review-capterra-bigchange-clare-hseq-health-safety-worksheets
+- Selected proof: review-capterra-bigchange-suzanne-transport-compliance-records
+- Use: Clearground paraphrased theme, Clare paraphrased experience story, Suzanne exact snippet
+- Reuse reason: not applicable. The three rows carry zero prior uses in context/customer-proof-usage-ledger.json, and a live repo scan of drafts, rewrites, research and published found no public-copy use.
+- Zero-use comparison: no stronger underused approved proof was displaced.
+- Rejected candidate: bigchange-customer-story-hodge-clemco-paperless-jobs | Reason: Paperless job story with no health and safety or risk assessment content for a COSHH article
+- Rejected candidate: bigchange-rilmac-prove-compliance-hse-inspection | Reason: asbestos services work falls under a separate regime from COSHH, so the story risks implying COSHH-specific compliance
+- Rejected candidate: review-capterra-bigchange-hannah-construction-one-system-workflow | Reason: one-system workflow review with no health and safety content and four recent uses
 - Status: approved
 
 ## E-E-A-T Strength Decision
@@ -388,33 +270,17 @@ Author decision: The 2022 byline "bigchangev3Admin" is a CMS account, not a name
 
 ## Review Story Selection
 
-- Decision: selected
-- Proof ID: review-capterra-bigchange-clare-hseq-health-safety-worksheets
-- Identity: Clare, HSEQ Manager
-- Platform: Capterra
+- Selected story: review-capterra-bigchange-clare-hseq-health-safety-worksheets | Identity: Clare | URL: {cap} | Status: approved
+- Selected story: review-capterra-bigchange-suzanne-transport-compliance-records | Identity: Suzanne | URL: {cap} | Status: approved
+- Review platform: Capterra
+- Identity type: person
+- Identity display: Clare, HSEQ Manager in UK construction; Suzanne, Transport Manager in UK building materials
+- Review date: 13 January 2021 (Clare); 1 June 2023 (Suzanne)
 - Public review URL: {cap}
-- Copy use: paraphrased E-E-A-T story with same-paragraph public review link
-- Proof artifact: {clare_art}
-- Capture receipt: {clare_rec}
-- Capture receipt hash: {clare_hash}
-- Classification artifact: {cap_cpath}
-- Classification hash: {cap_chash}
-- Public-copy boundary: No rating, star claim, aggregate rating, ranking, or review metric appears.
-- Status: approved
-
-- Decision: selected
-- Proof ID: review-capterra-bigchange-suzanne-transport-compliance-records
-- Identity: Suzanne, Transport Manager
-- Platform: Capterra
-- Public review URL: {cap}
-- Copy use: approved snippet with same-paragraph public review link
-- Approved quote: keeping all documents together showing a stream from report to completion of faults and issues which keeps us compliant | URL: {cap} | Status: approved
-- Proof artifact: {suz_art}
-- Capture receipt: {suz_rec}
-- Capture receipt hash: {suz_hash}
-- Classification artifact: {cap_cpath}
-- Classification hash: {cap_chash}
-- Public-copy boundary: No rating, star claim, aggregate rating, ranking, or review metric appears.
+- Permitted use mode: paraphrase (Clare); exact snippet bound to approved_quotes (Suzanne)
+- Same-paragraph article link: yes, each name and its Capterra link sit in one paragraph of the field compliance section.
+- Verification status: captured in Chrome 2026-09-24. Proof artifacts {clare_art} and {suz_art}, capture receipt hashes {clare_hash} and {suz_hash}. Classification artifact {cap_cpath} ({cap_chash}).
+- Boundary: each review is one user's workflow experience, not a BigChange-wide outcome, a rating, or current product status.
 - Status: approved
 
 ## Source Map
@@ -427,16 +293,16 @@ Author decision: The 2022 byline "bigchangev3Admin" is a CMS account, not a name
 
 ## FAQ Source Policy
 
-- Allowed source classes: primary_authority, neutral, non_competing_expert, owned_product.
+- Allowed source classes: neutral, non_competing_expert, owned_product.
 - Competitor-owned FAQ sources: prohibited.
 - Status: aligned.
 
 ## FAQ Proof Map
 
-- FAQ: Is a COSHH assessment a legal requirement? | URL: https://www.legislation.gov.uk/uksi/2002/2677/regulation/6 | Source class: primary_authority | Competitor check: passed | Support: Regulation 6 sets the duty to make a suitable and sufficient assessment and the 5 or more employees recording rule. | Status: approved
-- FAQ: Is a safety data sheet the same as a COSHH assessment? | URL: https://www.hse.gov.uk/coshh/faq.htm | Source class: primary_authority | Competitor check: passed | Support: HSE states a good safety data sheet does not substitute for carrying out and recording a COSHH risk assessment. | Status: approved
-- FAQ: Does COSHH apply to cleaning products? | URL: https://www.hse.gov.uk/cleaning/topics/coshh.htm | Source class: primary_authority | Competitor check: passed | Support: HSE classes a product as hazardous when its packaging carries a hazard symbol. | Status: approved
-- FAQ: Does COSHH training need to be provided to employees? | URL: https://www.legislation.gov.uk/uksi/2002/2677/regulation/12 | Source class: primary_authority | Competitor check: passed | Support: Regulation 12 requires suitable and sufficient information, instruction and training. | Status: approved
+- FAQ: Is a COSHH assessment a legal requirement? | URL: https://www.legislation.gov.uk/uksi/2002/2677/regulation/6 | Source class: neutral | Competitor check: passed | Support: Regulation 6 sets the duty to make a suitable and sufficient assessment and the 5 or more employees recording rule. | Status: approved
+- FAQ: Is a safety data sheet the same as a COSHH assessment? | URL: https://www.hse.gov.uk/coshh/faq.htm | Source class: neutral | Competitor check: passed | Support: HSE states a good safety data sheet does not substitute for carrying out and recording a COSHH risk assessment. | Status: approved
+- FAQ: Does COSHH apply to cleaning products? | URL: https://www.hse.gov.uk/cleaning/topics/coshh.htm | Source class: neutral | Competitor check: passed | Support: HSE classes a product as hazardous when its packaging carries a hazard symbol. | Status: approved
+- FAQ: Does COSHH training need to be provided to employees? | URL: https://www.legislation.gov.uk/uksi/2002/2677/regulation/12 | Source class: neutral | Competitor check: passed | Support: Regulation 12 requires suitable and sufficient information, instruction and training. | Status: approved
 
 ## PAA/FAQ Provenance
 
@@ -481,8 +347,19 @@ Video decision: The BigChange YouTube video https://www.youtube.com/watch?v=_YXi
 | https://www.bigchange.com/blog/field-service-excellence-bigchange-lightning | field service documentation | supporting | approved |
 | https://www.bigchange.com/blog/how-to-grow-facilities-management-business | facilities management businesses | supporting | approved |
 | https://www.bigchange.com/industries/cleaning-software-crm | digital library of COSHH sheets | supporting | approved |
+| https://www.bigchange.com/success-stories/bigchange-helps-clearground-clean-up-on-workforce-health-and-safety | Clearground | proof (same-paragraph customer story link) | approved |
+| https://www.bigchange.com/demo | Book a BigChange demo | conversion CTA | approved |
 
-Source of the set: three destinations are specified by the brief with their briefed anchors. The risk assessment feature page is the commercial pillar and the cleaning industry page names a COSHH sheets library. The brief's eicr-test and win-electrical-contracts links were left out because neither supports a COSHH claim, keeping the set at five. The demo CTA is a conversion link, not an editorial destination. Anchor deviation: the brief suggests "facilities management compliance" for the facilities management post. The public-research gate treats "compliance" in an owned-link anchor as an unsupported regulatory claim, so the anchor reads "facilities management businesses" instead. Every destination returned HTTP 200 on {date}.
+Source of the set: three destinations are specified by the brief with their briefed anchors. The risk assessment feature page is the commercial pillar and the cleaning industry page names a COSHH sheets library. The brief's eicr-test and win-electrical-contracts links were left out because neither supports a COSHH claim, keeping the set at five. The demo CTA is a conversion link, not an editorial destination. Anchor deviation: the brief suggests "facilities management compliance" for the facilities management post. The public-research gate treats "compliance" in an owned-link anchor as an unsupported regulatory claim, so the anchor reads "facilities management businesses" instead. Every destination, including the Clearground proof link and the demo CTA, returned HTTP 200 on {date}. Live total: 7 unique internal destinations, the hard maximum, so no further internal links fit without removing one.
+
+## Documented Style Exceptions
+
+- The brief's suggested direct answer ("the three COSHH regulations most commonly highlighted as the core employer duties") describes how guides frame COSHH, which no official source states. The article gives the same answer in the regulation titles' own terms, which the legislation.gov.uk contents page directly supports, and the next sentence makes clear COSHH has more than three regulations, as the brief requires.
+- The H2s "How often should a COSHH assessment be reviewed?" and "How can field service businesses manage COSHH compliance across multiple jobs and sites?" keep the brief's exact wording. Question headings are exempt from the modal and passive lint rules.
+- Readability sits near Grade 10 because of necessary regulatory terminology (Regulation, substitution, local exhaust ventilation, health surveillance).
+- Meta title adds the "| BigChange" suffix to the brief's recommended title (59 characters). Meta description extends the brief's text with "Includes a field-job checklist." (154 characters).
+- The contextual feature link and the closing demo CTA are the brief-required commercial pillar and conclusion CTA; see `engagement_map.cta_exception_reason` in the plan.
+- Secondary keyword "what are the 3 main regulations of coshh" is served by the H2 "What are the 3 main COSHH regulations?" as a close variant.
 
 ## Source Review Boundary
 
