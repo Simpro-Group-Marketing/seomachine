@@ -48,6 +48,7 @@ def run_release_cli(
             context_receipt=args.context_receipt,
             customer_proof_evidence=args.customer_proof_evidence,
             fred_authority_evidence=args.fred_authority_evidence,
+            hindsight_strategy_evidence=args.hindsight_strategy_evidence,
             paa_artifact=args.paa_artifact,
             content_brief=args.content_brief,
             user_paa_csv=args.user_paa_csv,
@@ -95,6 +96,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--context-receipt")
     parser.add_argument("--customer-proof-evidence")
     parser.add_argument("--fred-authority-evidence")
+    parser.add_argument("--hindsight-strategy-evidence")
     parser.add_argument("--paa-artifact")
     parser.add_argument("--content-brief")
     parser.add_argument("--user-paa-csv")

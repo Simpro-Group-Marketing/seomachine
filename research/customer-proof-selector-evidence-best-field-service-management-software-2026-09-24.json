@@ -1,0 +1,86 @@
+{
+  "artifacts": {
+    "context_pack": {
+      "path": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-pack-best-field-service-management-software-customer-selector-2026-09-24.json",
+      "sha256": "40239bb4a68723acac8850f7014c5990efd3f591922b489ffbac0c8df620bb73"
+    },
+    "context_receipt": {
+      "path": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-receipt-best-field-service-management-software-customer-selector-2026-09-24.json",
+      "sha256": "92c6dfd7320b4700a3d2746232cdc97555f23d4a80c70458b888ad72ed3ecc59"
+    },
+    "index": {
+      "path": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\context\\customer-proof-index.json",
+      "sha256": "fee695a0b32d20c3c12c155a590979f4352b3170925fe6f87654b75282125c62"
+    },
+    "ledger": {
+      "path": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\context\\customer-proof-usage-ledger.json",
+      "sha256": "a094f1c09757645a95da80b6666e9d6d4c72aaeb5e71ce307a3843960d098cad"
+    }
+  },
+  "inputs": {
+    "allow_no_proof": true,
+    "article_slug": "",
+    "limit": 10,
+    "objective": "Help US trade and field-service leaders build a fast, defensible 12-tool shortlist by business type, operating fit, workflow depth, implementation risk, and role needs.",
+    "reference_date": "2026-09-24",
+    "rejected_overrides": {
+      "metric": {
+        "case-study-teamwired": "single-customer invoicing metric does not improve a neutral twelve-vendor buyer-routing objective"
+      }
+    },
+    "require_eeat_story": true,
+    "roles": [
+      "metric",
+      "quote",
+      "theme",
+      "experience_story"
+    ],
+    "selected_overrides": {
+      "metric": "none"
+    },
+    "title": "Best Field Service Management Software: 2026 Buyer's Guide to 12 Tools",
+    "topic": "best field service management software"
+  },
+  "roles": [
+    {
+      "candidate_ids": [
+        "case-study-teamwired"
+      ],
+      "claim_ids": [
+        "claim-metric-MET-1482"
+      ],
+      "receipt_revision": "7c391b098dc1a4ef1511bd7a3084634dd500eca73017bed392698f9e539a70d8",
+      "role": "metric",
+      "selected_id": "none"
+    },
+    {
+      "candidate_ids": [],
+      "claim_ids": [],
+      "no_fit_reason": "No customer proof selected because the selector evaluated the current connector-bound proof inventory and found no article-relevant approved customer proof for this role; public copy must omit customer proof, named customer claims, review stories, exact quotes, testimonials, and customer metrics for the unsupported role.",
+      "receipt_revision": "not available",
+      "role": "quote",
+      "selected_id": "none",
+      "selection_outcome": "no_fit_customer_proof"
+    },
+    {
+      "candidate_ids": [],
+      "claim_ids": [],
+      "no_fit_reason": "No customer proof selected because the selector evaluated the current connector-bound proof inventory and found no article-relevant approved customer proof for this role; public copy must omit customer proof, named customer claims, review stories, exact quotes, testimonials, and customer metrics for the unsupported role.",
+      "receipt_revision": "not available",
+      "role": "theme",
+      "selected_id": "none",
+      "selection_outcome": "no_fit_customer_proof"
+    },
+    {
+      "candidate_ids": [],
+      "claim_ids": [],
+      "no_fit_reason": "No customer proof selected because the selector evaluated the current connector-bound proof inventory and found no article-relevant approved customer proof for this role; public copy must omit customer proof, named customer claims, review stories, exact quotes, testimonials, and customer metrics for the unsupported role.",
+      "receipt_revision": "not available",
+      "role": "experience_story",
+      "selected_id": "none",
+      "selection_outcome": "no_fit_customer_proof"
+    }
+  ],
+  "schema": "simpro-customer-proof-selector-evidence/v1",
+  "selection_outcome": "customer_proof_candidates_available"
+}

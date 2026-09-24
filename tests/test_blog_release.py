@@ -466,6 +466,68 @@ def test_blog_release_forwards_nonvault_customer_proof_evidence(tmp_path: Path, 
     assert result.exit_code == 0
     assert observed == {"preflight": evidence, "bom": evidence}
 
+
+def test_blog_release_forwards_hindsight_strategy_evidence_to_bom(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    evidence = _touch(
+        tmp_path / "research" / "hindsight-strategy-evidence.json",
+        '{"pack":{},"receipt":{},"sidecar":{}}\n',
+    )
+    observed = {}
+
+    monkeypatch.setattr(
+        blog_release.blog_creation_preflight,
+        "build_preflight_report",
+        lambda *args, **kwargs: {
+            "schema": "simpro-blog-creation-preflight/v1",
+            "ready_for_bom": True,
+            "blockers": [],
+        },
+    )
+
+    def provisional(**kwargs):
+        observed["hindsight_strategy_evidence_path"] = kwargs[
+            "hindsight_strategy_evidence_path"
+        ]
+        return {
+            "schema": "simpro-blog-assembly-bom/v2",
+            "lifecycle_state": "provisional",
+            "artifacts": {},
+            "workflow": {"stage_receipts": []},
+        }
+
+    monkeypatch.setattr(
+        blog_release.blog_assembly_bom,
+        "build_blog_assembly_bom_from_files",
+        provisional,
+    )
+    monkeypatch.setattr(
+        blog_release.publish_readiness,
+        "run_publish_readiness",
+        lambda *args, **kwargs: {
+            "schema": "simpro-publish-readiness-result/v1",
+            "passed": False,
+            "phase": kwargs["phase"],
+        },
+    )
+    monkeypatch.setattr(
+        blog_release.publish_readiness,
+        "write_readiness_result",
+        lambda output, result, **kwargs: (
+            _touch(Path(output), json.dumps(result)),
+            None,
+        )[1],
+    )
+
+    result = _run(tmp_path, hindsight_strategy_evidence=evidence)
+
+    assert result.exit_code == 0
+    assert result.phase == "optimization_started"
+    assert observed == {"hindsight_strategy_evidence_path": evidence}
+
+
 def test_blog_release_cli_exit_codes_distinguish_policy_from_operational_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     args = ["rewrites/article.md", "--run-id", "run-1", "--proof-sidecar", "research/sidecar.md", "--editorial-plan", "research/plan.json", "--plan-fulfillment", "research/fulfillment.json", "--commercial-pillar-index", "context/commercial-pillar-index.json", "--plan-review", "research/plan-review.json", "--article-review", "research/article-review.json", "--keyword-decision", "research/keyword.json", "--scrub-receipt", "research/scrub.json", "--serp-evidence", "research/serp.json", "--stage-receipt", "research/stage.json", "--workflow-mode", "rewrite", "--assembly-date", "2026-08-26", "--output-dir", "research/releases/run", "--workspace-root", str(tmp_path)]
     monkeypatch.setattr(blog_release, "run_blog_release", lambda **k: (_ for _ in ()).throw(ValueError("policy blocker")))

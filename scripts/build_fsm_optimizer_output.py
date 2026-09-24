@@ -21,8 +21,8 @@ from data_sources.modules.blog_assembly_contract import atomic_write_json, file_
 
 
 SLUG = "best-field-service-management-software"
-DATE = "2026-09-22"
-RELEASE_DATE = "2026-09-23"
+DATE = "2026-09-24"
+RELEASE_DATE = "2026-09-24"
 ARTICLE = ROOT / "rewrites" / "best-field-service-management-software-rewrite-2026-08-28.md"
 PLAN = ROOT / "research" / f"editorial-plan-{SLUG}-{DATE}.json"
 SIDECAR = ROOT / "research" / f"validation-{SLUG}-{DATE}.md"

@@ -1,0 +1,99 @@
+{
+  "collected_at": "2026-09-24T16:28:52Z",
+  "collector": {
+    "name": "research_serp_analysis:chrome_connector",
+    "version": "1.0.0"
+  },
+  "evidence_hash": "830a81e6dc3ff03ebfeb999fcbb3f8d20009873186b7e98b2913dc0dff9f2c7a",
+  "execution_attestation": {
+    "algorithm": "hmac-sha256",
+    "key_id": "88df9183fcb097c1",
+    "purpose": "simpro-serp-evidence/v1",
+    "schema": "simpro-execution-attestation/v1",
+    "signature": "9249900c3c42746d91890e4a9ec49bdceb547811b955c8511057455ea8d3cede"
+  },
+  "observations": {
+    "competitor_gaps": [
+      "The query best field service management software has comparison-listicle intent and a different content type from the field service management software homepage, which has different intent as a product proposition.",
+      "The current SERP retains comparison, review, and listicle intent, which differs from the indexed homepage product proposition.",
+      "The current AI Overview routes by business size and use case, but its visible price and scale bands are not evidence for public copy.",
+      "Current results commonly rank tools without giving each buyer a first disqualifying issue and common live-demo test.",
+      "Current results rarely give every vendor the same fit, mismatch, official evidence, and live-demo structure.",
+      "Broad results do not replace workflow-specific comparison pages for buyers choosing between finalists."
+    ],
+    "content_types": [
+      "Listicle",
+      "Review",
+      "Tool/Resource",
+      "Comparison",
+      "General Article"
+    ],
+    "must_have_sections": [
+      "scenario-based shortlist before the vendor cards",
+      "fit by operating model, team complexity, and workflow",
+      "consistent 12-tool comparison matrix",
+      "methodology and publisher disclosure",
+      "official-source vendor cards with mismatch and demo tests",
+      "buyer scorecard and role-based demo pack"
+    ],
+    "serp_features": [
+      "AI Overview",
+      "Sponsored results",
+      "People also ask",
+      "Discussions and forums",
+      "People also search for"
+    ]
+  },
+  "query": "best field service management software",
+  "raw_capture": {
+    "path": "research/serp-chrome-raw-best-field-service-management-software-2026-09-24.json",
+    "sha256": "8a05d4f0732525652e92a4af14c6e60a952af90c36d96fab9dfce1dcdec1e0a9"
+  },
+  "results": [
+    {
+      "position": 1,
+      "result_type": "organic",
+      "title": "6 Best Free Field Service Management Software",
+      "url": "https://connecteam.com/best-free-field-service-management-software/"
+    },
+    {
+      "position": 2,
+      "result_type": "organic",
+      "title": "Best Field Service Management Reviews 2026",
+      "url": "https://www.gartner.com/reviews/market/field-service-management"
+    },
+    {
+      "position": 3,
+      "result_type": "organic",
+      "title": "Best Field Service Management Tool?",
+      "url": "https://www.reddit.com/r/lowvoltage/comments/1bnl56d/best_field_service_management_tool/"
+    },
+    {
+      "position": 4,
+      "result_type": "organic",
+      "title": "Best Field Service Management Software: 2026 Compared",
+      "url": "https://elogii.com/blog/field-service-management-software"
+    },
+    {
+      "position": 5,
+      "result_type": "organic",
+      "title": "Best Field Service Management Software Picks for Growing Teams",
+      "url": "https://www.reachoutsuite.com/best-field-service-management-software"
+    },
+    {
+      "position": 6,
+      "result_type": "organic",
+      "title": "Top 10 field service management software 2026",
+      "url": "https://www.ifs.com/en/glossary/compare/top-10-field-service-management-software-2026"
+    },
+    {
+      "position": 7,
+      "result_type": "organic",
+      "title": "I Found the Best Field Service Management Software of 2026",
+      "url": "https://learn.g2.com/best-field-service-management-software"
+    }
+  ],
+  "run_id": "d946520a-f4f5-4a48-b11f-266852efb413",
+  "schema": "simpro-serp-evidence/v1",
+  "status": "verified"
+}

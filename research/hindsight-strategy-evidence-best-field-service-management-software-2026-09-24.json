@@ -1,0 +1,1391 @@
+{
+  "pack": {
+    "schema": "simpro-internal-strategy-pack/v1",
+    "revisions": {
+      "content_revision": "a99cbdff82d2af87868df8c61287308fb24f730b2867860a5b52cacaa3f27a1c",
+      "contract_revision": "e4988a1775f0b2791163b584c36b0fd72b8ac604c448b044cc944a8a0e9934a4",
+      "inventory_revision": "6c23d93ef8eebab6d496776ceaf1e2253d7c76b32aca201b26fa077a71b9bb58",
+      "manifest_revision": "0c1ad8c0b87d90e2d7bac6e70c21a6007fa45f6f342f50520d5ec337758d867b",
+      "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+      "approval_policy_revision": "6945674b56933849678c70200ff29438700475eae6e794388bb88b6febedccb6"
+    },
+    "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+    "sections": {
+      "Task and Scope": {
+        "request": {
+          "task": "Use internal Hindsight strategy to sharpen buyer-owned demo tests in the neutral 12-tool FSM guide without using internal material as public proof.",
+          "scope": {
+            "brand": "Simpro",
+            "market": "US",
+            "artifact_type": "blog",
+            "workflow_mode": "rewrite",
+            "title": "Best Field Service Management Software: 2026 Buyer's Guide to 12 Tools",
+            "article_path": "rewrites/best-field-service-management-software-rewrite-2026-08-28.md",
+            "article_sha256": "821f71b00ef82fb9e51c663bcfaea451751d0d377c61c4e8155296f05a63d25a",
+            "permitted_effects": [
+              "demo-test emphasis",
+              "buyer objections"
+            ]
+          }
+        },
+        "task": "Use internal Hindsight strategy to sharpen buyer-owned demo tests in the neutral 12-tool FSM guide without using internal material as public proof.",
+        "scope": {
+          "brand": "Simpro",
+          "market": "US",
+          "artifact_type": "blog",
+          "workflow_mode": "rewrite",
+          "title": "Best Field Service Management Software: 2026 Buyer's Guide to 12 Tools",
+          "article_path": "rewrites/best-field-service-management-software-rewrite-2026-08-28.md",
+          "article_sha256": "821f71b00ef82fb9e51c663bcfaea451751d0d377c61c4e8155296f05a63d25a",
+          "permitted_effects": [
+            "demo-test emphasis",
+            "buyer objections"
+          ]
+        },
+        "task_satisfaction": "satisfied"
+      },
+      "Discovery Trace": {
+        "entries": [
+          {
+            "operation": "vault_status",
+            "revisions": {
+              "content_revision": "a99cbdff82d2af87868df8c61287308fb24f730b2867860a5b52cacaa3f27a1c",
+              "contract_revision": "e4988a1775f0b2791163b584c36b0fd72b8ac604c448b044cc944a8a0e9934a4",
+              "inventory_revision": "6c23d93ef8eebab6d496776ceaf1e2253d7c76b32aca201b26fa077a71b9bb58",
+              "manifest_revision": "0c1ad8c0b87d90e2d7bac6e70c21a6007fa45f6f342f50520d5ec337758d867b",
+              "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+              "approval_policy_revision": "6945674b56933849678c70200ff29438700475eae6e794388bb88b6febedccb6"
+            },
+            "resource_count": 603,
+            "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+            "internal_strategy_resources": 15
+          },
+          {
+            "operation": "vault_describe",
+            "description_sha256": "caca1d948b613a3fa901c6f0e16c64bb0f047e8a2dbfc8ebed3799ed5a3a097d",
+            "capabilities": [
+              "vault_status",
+              "vault_describe",
+              "vault_search",
+              "vault_read",
+              "vault_expand",
+              "vault_claims",
+              "vault_build_context",
+              "vault_validate_context"
+            ]
+          },
+          {
+            "operation": "vault_search_internal_strategy",
+            "query": "field service management software buyer objections and first demo tests",
+            "result_resource_ids": [
+              "res-123f609e3a7b5666b5c1db6ccd9cab49",
+              "res-17c15b5543db589b87f6803e32251cdf",
+              "res-8e0e276d13c95a7ea5bfb45bd57dfde2",
+              "res-01a755c114965914b704f29dd70ae1fc",
+              "res-2fa37305ff98541b8fa0955da4dd3978",
+              "res-5ff3a414e5425f2eb78d66a76e50c22b",
+              "res-875500e42f1f5ffea0404dea699a69d3",
+              "res-a41eef7796d7534b93f3e38a7f1036f4",
+              "res-acdf63e464db5579a008beb136c20593",
+              "res-0c176526ba255cdc84781594dbcb1d1f",
+              "res-5b6e0f849f2c550db7cc292b35a64491",
+              "res-63a5bdfac2365ac880125f242ee83b4a",
+              "res-ab8acb78ff2050a787e8e17d234a3f3b",
+              "res-dd31b800a8c15dffbed1f1cba724e547",
+              "res-fdacd1c58e825d49b1e125b457d53e93"
+            ],
+            "results_sha256": "0e9533e2eb989153bec6ff2e86b5db031acb53c72def0295e1dc3f89b9ff1418"
+          },
+          {
+            "operation": "vault_search_internal_strategy",
+            "query": "Jobber Joblogic FieldEdge ServiceTitan FieldPulse Service Fusion Tradify buyer objections",
+            "result_resource_ids": [
+              "res-123f609e3a7b5666b5c1db6ccd9cab49",
+              "res-0c176526ba255cdc84781594dbcb1d1f",
+              "res-ab8acb78ff2050a787e8e17d234a3f3b",
+              "res-dd31b800a8c15dffbed1f1cba724e547",
+              "res-17c15b5543db589b87f6803e32251cdf",
+              "res-8e0e276d13c95a7ea5bfb45bd57dfde2",
+              "res-01a755c114965914b704f29dd70ae1fc",
+              "res-2fa37305ff98541b8fa0955da4dd3978",
+              "res-5ff3a414e5425f2eb78d66a76e50c22b",
+              "res-875500e42f1f5ffea0404dea699a69d3",
+              "res-a41eef7796d7534b93f3e38a7f1036f4",
+              "res-acdf63e464db5579a008beb136c20593"
+            ],
+            "results_sha256": "fef72e15c8cabd1549b1fc3c095ee9aad846665cb5e932c08cfe447975c500a4"
+          },
+          {
+            "operation": "vault_search_internal_strategy",
+            "query": "commercial asset-heavy service project workflow evaluation",
+            "result_resource_ids": [
+              "res-123f609e3a7b5666b5c1db6ccd9cab49",
+              "res-8e0e276d13c95a7ea5bfb45bd57dfde2",
+              "res-01a755c114965914b704f29dd70ae1fc",
+              "res-5ff3a414e5425f2eb78d66a76e50c22b",
+              "res-0c176526ba255cdc84781594dbcb1d1f",
+              "res-17c15b5543db589b87f6803e32251cdf",
+              "res-2fa37305ff98541b8fa0955da4dd3978",
+              "res-63a5bdfac2365ac880125f242ee83b4a",
+              "res-875500e42f1f5ffea0404dea699a69d3",
+              "res-a41eef7796d7534b93f3e38a7f1036f4",
+              "res-ab8acb78ff2050a787e8e17d234a3f3b",
+              "res-acdf63e464db5579a008beb136c20593",
+              "res-dd31b800a8c15dffbed1f1cba724e547"
+            ],
+            "results_sha256": "2f4c61bc71aaa268dbf6988912c8cc8d18c584ab221a4a12e3a52d2ecce89043"
+          },
+          {
+            "operation": "vault_read_internal_strategy",
+            "resource_id": "res-17c15b5543db589b87f6803e32251cdf",
+            "read_purpose": "internal_strategy",
+            "content_sha256": "1d4024de9e15f6018285f62011d2141f02ae7d04a29a3c4ab5e5c8cdb2a87b6a",
+            "public_claim_use": "prohibited"
+          },
+          {
+            "operation": "vault_read_internal_strategy",
+            "resource_id": "res-0c176526ba255cdc84781594dbcb1d1f",
+            "read_purpose": "internal_strategy",
+            "content_sha256": "c90378bdb1261849cb6d48f8b3bdd0cbad5b1f36be2a7c7c777ed46a0837769e",
+            "public_claim_use": "prohibited"
+          },
+          {
+            "operation": "vault_read_internal_strategy",
+            "resource_id": "res-ab8acb78ff2050a787e8e17d234a3f3b",
+            "read_purpose": "internal_strategy",
+            "content_sha256": "6d3bdeea59d98b65b671c975e17e674f4c8d8779c9cf95313ac3bd6d7f2efaef",
+            "public_claim_use": "prohibited"
+          },
+          {
+            "operation": "vault_read_internal_strategy",
+            "resource_id": "res-123f609e3a7b5666b5c1db6ccd9cab49",
+            "read_purpose": "internal_strategy",
+            "content_sha256": "595d7a0d5ab5a18c26b989b12d06bced2183b6e173fb074ed5e5e47ef44dba4e",
+            "public_claim_use": "prohibited"
+          },
+          {
+            "operation": "vault_read_internal_strategy",
+            "resource_id": "res-dd31b800a8c15dffbed1f1cba724e547",
+            "read_purpose": "internal_strategy",
+            "content_sha256": "acb8ac5ce2c83c0dfdccd34ba16d676cd4d2a2e73a719432593ee9e321674df8",
+            "public_claim_use": "prohibited"
+          },
+          {
+            "operation": "vault_read_internal_strategy",
+            "resource_id": "res-8e0e276d13c95a7ea5bfb45bd57dfde2",
+            "read_purpose": "internal_strategy",
+            "content_sha256": "a6e37456fea331a87b70d48dcbae0dcb46e8a0b92ac2f3895106cb1d6a50aef3",
+            "public_claim_use": "prohibited"
+          }
+        ],
+        "selected_resource_ids": [
+          "res-17c15b5543db589b87f6803e32251cdf",
+          "res-0c176526ba255cdc84781594dbcb1d1f",
+          "res-ab8acb78ff2050a787e8e17d234a3f3b",
+          "res-123f609e3a7b5666b5c1db6ccd9cab49",
+          "res-dd31b800a8c15dffbed1f1cba724e547",
+          "res-8e0e276d13c95a7ea5bfb45bd57dfde2"
+        ]
+      },
+      "Retrieved Internal Strategy": [
+        {
+          "resource_id": "res-17c15b5543db589b87f6803e32251cdf",
+          "title": "Hindsight Internal Strategy Hub",
+          "content": "---\r\ntype: internal-strategy-page\r\ntitle: Hindsight Internal Strategy Hub\r\nretrieval_tier: internal_strategy\r\nauthority_state: internal_strategy\r\nstatus: current\r\nbrand_scope: Simpro\r\nallowed_use: internal_strategy\r\npublic_use_status: prohibited\r\nsensitivity: confidential_internal\r\nsnapshot_revision: 9c1bd75ab190a0fa03499a514d6c39c13d7b56036da1027b68a2c5f95b1f260f\r\nvalid_until: 2026-10-29\r\nsource_resource_ids:\r\n  - res-aac0b0bf3b1856689002626195605235\r\nsignal_ids:\r\n  - HSI-029322436D521BA4\r\n  - HSI-038729007343C892\r\n  - HSI-0D502CB194EF1D17\r\n  - HSI-1677C2BF3898185B\r\n  - HSI-29BECFD746B300A6\r\n  - HSI-440827A451E871B4\r\n  - HSI-44C0B667ECCA9699\r\n  - HSI-46A58C10C5AE3EED\r\n  - HSI-51AB1B5C69D41BEF\r\n  - HSI-53D43E71FA285F40\r\n  - HSI-53D8F9AB9209E63D\r\n  - HSI-5474A2DB270D7127\r\n  - HSI-560AD45DBAB65796\r\n  - HSI-58BC59FCB27F7A64\r\n  - HSI-6A1B8CEC6961587D\r\n  - HSI-6FFAA291F921A3A2\r\n  - HSI-7009109D9E5F970C\r\n  - HSI-77519CFE491BB021\r\n  - HSI-78C37DA548B06535\r\n  - HSI-7A421B87315186F6\r\n  - HSI-A2DC5217166A8C86\r\n  - HSI-A9742AC6DD76E9D1\r\n  - HSI-ADDDBE66C430C41E\r\n  - HSI-AEA533473102696A\r\n  - HSI-B56C4AD809B2DCE8\r\n  - HSI-B9BB36D1FD3CFD46\r\n  - HSI-BBE3DF2D74E808DF\r\n  - HSI-CFEB99D8561A0033\r\n  - HSI-E4BA0B7C363B40A0\r\n  - HSI-EB3990411E7A90DF\r\n  - HSI-F2B3BD2B73DD0D77\r\n  - HSI-F6562508CE6328AF\r\n  - HSI-F6C46BB4CA3E4351\r\n  - HSI-F858A422CC003C46\r\n  - HSI-F9880ED3E955F300\r\n  - HSI-F9DC84D1944B4386\r\n---\r\n\r\n# Hindsight Internal Strategy Hub\r\n\r\nThis restricted compiled page is internal strategy context only. It may shape angles, priorities, FAQs, objection framing, and positioning hypotheses, but it is not public proof.\r\n\r\n## Approved Source Nodes\n\n- `wiki/sources/hindsight-simpro-intelligence-snapshot-2026-08-31.md`\n\n## Discovery Provenance\n\n- [[wiki/sources/fsm-buyers-guide-hindsight-synthesis-2026-09-23|FSM buyer's guide Hindsight synthesis]] (`wiki/sources/fsm-buyers-guide-hindsight-synthesis-2026-09-23.md`) is a secondary synthesis for question discovery only. It is prohibited from public use, cannot support claims, and does not validate individual vendor details.\n\n## Routes\n\r\n- [[wiki/internal-strategy/Portfolio Strategy Overview]]\r\n- [[wiki/internal-strategy/Proof Gap Map]]\r\n- [[wiki/internal-strategy/verticals/Electrical Data]]\r\n- [[wiki/internal-strategy/verticals/Plumbing]]\r\n- [[wiki/internal-strategy/verticals/HVAC Airconditioning]]\r\n- [[wiki/internal-strategy/verticals/Low Voltage]]\r\n- [[wiki/internal-strategy/verticals/Fire]]\r\n- [[wiki/internal-strategy/verticals/Multi Trade]]\r\n- [[wiki/internal-strategy/competitors/fergus]]\r\n- [[wiki/internal-strategy/competitors/jobber]]\r\n- [[wiki/internal-strategy/competitors/joblogic-service-management-software]]\r\n- [[wiki/internal-strategy/competitors/servicem8]]\r\n- [[wiki/internal-strategy/competitors/servicetitan]]\r\n- [[wiki/internal-strategy/competitors/tradify]]\r\n\r\n## Use Boundary\r\n\r\nUse these pages only when a task is clearly about Simpro vertical strategy, competitor context, objections, FAQs, positioning, or sales enablement. Public copy still requires approved claim-registry evidence.\r\n",
+          "read_purpose": "internal_strategy",
+          "content_available": true,
+          "content_truncated": false,
+          "retrieval_tier": "internal_strategy",
+          "authority_state": "internal_strategy",
+          "public_claim_use": "prohibited",
+          "aliases": [],
+          "headings": [
+            "Hindsight Internal Strategy Hub",
+            "Approved Source Nodes",
+            "Discovery Provenance",
+            "Routes",
+            "Use Boundary"
+          ],
+          "topics": [
+            "hindsight",
+            "internal",
+            "strategy",
+            "hub",
+            "approved",
+            "nodes",
+            "discovery",
+            "provenance",
+            "routes",
+            "boundary"
+          ],
+          "entities": [],
+          "semantic_roles": [
+            "internal_strategy"
+          ],
+          "relationships": [
+            {
+              "resource_id": "res-01a755c114965914b704f29dd70ae1fc",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-0c176526ba255cdc84781594dbcb1d1f",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-123f609e3a7b5666b5c1db6ccd9cab49",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-2fa37305ff98541b8fa0955da4dd3978",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-5b6e0f849f2c550db7cc292b35a64491",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-5ff3a414e5425f2eb78d66a76e50c22b",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-63a5bdfac2365ac880125f242ee83b4a",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-875500e42f1f5ffea0404dea699a69d3",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-8e0e276d13c95a7ea5bfb45bd57dfde2",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-a41eef7796d7534b93f3e38a7f1036f4",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-ab8acb78ff2050a787e8e17d234a3f3b",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-acdf63e464db5579a008beb136c20593",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-dd31b800a8c15dffbed1f1cba724e547",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-fdacd1c58e825d49b1e125b457d53e93",
+              "type": "links_to"
+            }
+          ]
+        },
+        {
+          "resource_id": "res-0c176526ba255cdc84781594dbcb1d1f",
+          "title": "Hindsight ServiceTitan Competitive Strategy",
+          "content": "---\r\ntype: internal-strategy-page\r\ntitle: Hindsight ServiceTitan Competitive Strategy\r\nretrieval_tier: internal_strategy\r\nauthority_state: internal_strategy\r\nstatus: current\r\nbrand_scope: Simpro\r\nallowed_use: internal_strategy\r\npublic_use_status: prohibited\r\nsensitivity: confidential_internal\r\nsnapshot_revision: 9c1bd75ab190a0fa03499a514d6c39c13d7b56036da1027b68a2c5f95b1f260f\r\nvalid_until: 2026-10-29\r\nsource_resource_ids:\r\n  - res-aac0b0bf3b1856689002626195605235\r\nsignal_ids:\r\n  - HSI-440827A451E871B4\r\n  - HSI-038729007343C892\r\n---\r\n\r\n# Hindsight ServiceTitan Competitive Strategy\r\n\r\nThis restricted compiled page is internal strategy context only. It may shape angles, priorities, FAQs, objection framing, and positioning hypotheses, but it is not public proof.\r\n\r\n## Approved Source Nodes\r\n\r\n- `wiki/sources/hindsight-simpro-intelligence-snapshot-2026-08-31.md`\r\n\r\n## Signals\r\n\r\n## HSI-038729007343C892\r\n\r\n- Signal type: loss_drivers\r\n- Evidence count: 128\r\n- Coverage status: established\r\n- Confidence: high\r\n- Synthesis: ServiceTitan competitive risk clusters around Missing Feature(s); No compelling event; Could not contact; Price; Incompatible workflow\r\n\r\n## HSI-440827A451E871B4\r\n\r\n- Signal type: comparison_themes\r\n- Evidence count: 128\r\n- Coverage status: established\r\n- Confidence: high\r\n- Synthesis: ServiceTitan comparisons most often involve Simpro Mobile; Product Fit; Pricing; Integrations; Implementation\r\n",
+          "read_purpose": "internal_strategy",
+          "content_available": true,
+          "content_truncated": false,
+          "retrieval_tier": "internal_strategy",
+          "authority_state": "internal_strategy",
+          "public_claim_use": "prohibited",
+          "aliases": [],
+          "headings": [
+            "Hindsight ServiceTitan Competitive Strategy",
+            "Approved Source Nodes",
+            "Signals",
+            "HSI-038729007343C892",
+            "HSI-440827A451E871B4"
+          ],
+          "topics": [
+            "hindsight",
+            "servicetitan",
+            "competitive",
+            "strategy",
+            "approved",
+            "nodes",
+            "signals",
+            "hsi",
+            "038729007343c892",
+            "440827a451e871b4"
+          ],
+          "entities": [],
+          "semantic_roles": [
+            "internal_strategy"
+          ],
+          "relationships": []
+        },
+        {
+          "resource_id": "res-ab8acb78ff2050a787e8e17d234a3f3b",
+          "title": "Hindsight Jobber Competitive Strategy",
+          "content": "---\r\ntype: internal-strategy-page\r\ntitle: Hindsight Jobber Competitive Strategy\r\nretrieval_tier: internal_strategy\r\nauthority_state: internal_strategy\r\nstatus: current\r\nbrand_scope: Simpro\r\nallowed_use: internal_strategy\r\npublic_use_status: prohibited\r\nsensitivity: confidential_internal\r\nsnapshot_revision: 9c1bd75ab190a0fa03499a514d6c39c13d7b56036da1027b68a2c5f95b1f260f\r\nvalid_until: 2026-10-29\r\nsource_resource_ids:\r\n  - res-aac0b0bf3b1856689002626195605235\r\nsignal_ids:\r\n  - HSI-77519CFE491BB021\r\n  - HSI-F9DC84D1944B4386\r\n---\r\n\r\n# Hindsight Jobber Competitive Strategy\r\n\r\nThis restricted compiled page is internal strategy context only. It may shape angles, priorities, FAQs, objection framing, and positioning hypotheses, but it is not public proof.\r\n\r\n## Approved Source Nodes\r\n\r\n- `wiki/sources/hindsight-simpro-intelligence-snapshot-2026-08-31.md`\r\n\r\n## Signals\r\n\r\n## HSI-77519CFE491BB021\r\n\r\n- Signal type: comparison_themes\r\n- Evidence count: 115\r\n- Coverage status: established\r\n- Confidence: high\r\n- Synthesis: Jobber comparisons most often involve Product Fit; Pricing; Simpro Mobile; Integrations; Implementation\r\n\r\n## HSI-F9DC84D1944B4386\r\n\r\n- Signal type: loss_drivers\r\n- Evidence count: 115\r\n- Coverage status: established\r\n- Confidence: high\r\n- Synthesis: Jobber competitive risk clusters around No compelling event; Could not contact; Price; Too Small; Incompatible workflow\r\n",
+          "read_purpose": "internal_strategy",
+          "content_available": true,
+          "content_truncated": false,
+          "retrieval_tier": "internal_strategy",
+          "authority_state": "internal_strategy",
+          "public_claim_use": "prohibited",
+          "aliases": [],
+          "headings": [
+            "Hindsight Jobber Competitive Strategy",
+            "Approved Source Nodes",
+            "Signals",
+            "HSI-77519CFE491BB021",
+            "HSI-F9DC84D1944B4386"
+          ],
+          "topics": [
+            "hindsight",
+            "jobber",
+            "competitive",
+            "strategy",
+            "approved",
+            "nodes",
+            "signals",
+            "hsi",
+            "77519cfe491bb021",
+            "f9dc84d1944b4386"
+          ],
+          "entities": [],
+          "semantic_roles": [
+            "internal_strategy"
+          ],
+          "relationships": []
+        },
+        {
+          "resource_id": "res-123f609e3a7b5666b5c1db6ccd9cab49",
+          "title": "Hindsight Joblogic Service Management Software Competitive Strategy",
+          "content": "---\r\ntype: internal-strategy-page\r\ntitle: Hindsight Joblogic Service Management Software Competitive Strategy\r\nretrieval_tier: internal_strategy\r\nauthority_state: internal_strategy\r\nstatus: current\r\nbrand_scope: Simpro\r\nallowed_use: internal_strategy\r\npublic_use_status: prohibited\r\nsensitivity: confidential_internal\r\nsnapshot_revision: 9c1bd75ab190a0fa03499a514d6c39c13d7b56036da1027b68a2c5f95b1f260f\r\nvalid_until: 2026-10-29\r\nsource_resource_ids:\r\n  - res-aac0b0bf3b1856689002626195605235\r\nsignal_ids:\r\n  - HSI-58BC59FCB27F7A64\r\n  - HSI-7009109D9E5F970C\r\n---\r\n\r\n# Hindsight Joblogic Service Management Software Competitive Strategy\r\n\r\nThis restricted compiled page is internal strategy context only. It may shape angles, priorities, FAQs, objection framing, and positioning hypotheses, but it is not public proof.\r\n\r\n## Approved Source Nodes\r\n\r\n- `wiki/sources/hindsight-simpro-intelligence-snapshot-2026-08-31.md`\r\n\r\n## Signals\r\n\r\n## HSI-58BC59FCB27F7A64\r\n\r\n- Signal type: comparison_themes\r\n- Evidence count: 106\r\n- Coverage status: established\r\n- Confidence: high\r\n- Synthesis: Joblogic Service Management Software comparisons most often involve Product Fit; Simpro Mobile; Integrations; Pricing; Lack of Compelling Event / Lack of Urgency\r\n\r\n## HSI-7009109D9E5F970C\r\n\r\n- Signal type: loss_drivers\r\n- Evidence count: 106\r\n- Coverage status: established\r\n- Confidence: high\r\n- Synthesis: Joblogic Service Management Software competitive risk clusters around No compelling event; Could not contact; Missing Feature(s); Price; Lost to Competitor\r\n",
+          "read_purpose": "internal_strategy",
+          "content_available": true,
+          "content_truncated": false,
+          "retrieval_tier": "internal_strategy",
+          "authority_state": "internal_strategy",
+          "public_claim_use": "prohibited",
+          "aliases": [],
+          "headings": [
+            "Hindsight Joblogic Service Management Software Competitive Strategy",
+            "Approved Source Nodes",
+            "Signals",
+            "HSI-58BC59FCB27F7A64",
+            "HSI-7009109D9E5F970C"
+          ],
+          "topics": [
+            "hindsight",
+            "joblogic",
+            "service",
+            "management",
+            "software",
+            "competitive",
+            "strategy",
+            "approved",
+            "nodes",
+            "signals",
+            "hsi",
+            "58bc59fcb27f7a64",
+            "7009109d9e5f970c"
+          ],
+          "entities": [],
+          "semantic_roles": [
+            "internal_strategy"
+          ],
+          "relationships": []
+        },
+        {
+          "resource_id": "res-dd31b800a8c15dffbed1f1cba724e547",
+          "title": "Hindsight Tradify Competitive Strategy",
+          "content": "---\r\ntype: internal-strategy-page\r\ntitle: Hindsight Tradify Competitive Strategy\r\nretrieval_tier: internal_strategy\r\nauthority_state: internal_strategy\r\nstatus: current\r\nbrand_scope: Simpro\r\nallowed_use: internal_strategy\r\npublic_use_status: prohibited\r\nsensitivity: confidential_internal\r\nsnapshot_revision: 9c1bd75ab190a0fa03499a514d6c39c13d7b56036da1027b68a2c5f95b1f260f\r\nvalid_until: 2026-10-29\r\nsource_resource_ids:\r\n  - res-aac0b0bf3b1856689002626195605235\r\nsignal_ids:\r\n  - HSI-6FFAA291F921A3A2\r\n  - HSI-F6562508CE6328AF\r\n---\r\n\r\n# Hindsight Tradify Competitive Strategy\r\n\r\nThis restricted compiled page is internal strategy context only. It may shape angles, priorities, FAQs, objection framing, and positioning hypotheses, but it is not public proof.\r\n\r\n## Approved Source Nodes\r\n\r\n- `wiki/sources/hindsight-simpro-intelligence-snapshot-2026-08-31.md`\r\n\r\n## Signals\r\n\r\n## HSI-6FFAA291F921A3A2\r\n\r\n- Signal type: comparison_themes\r\n- Evidence count: 290\r\n- Coverage status: established\r\n- Confidence: high\r\n- Synthesis: Tradify comparisons most often involve Simpro Mobile; Pricing; Product Fit; Integrations; Implementation\r\n\r\n## HSI-F6562508CE6328AF\r\n\r\n- Signal type: loss_drivers\r\n- Evidence count: 290\r\n- Coverage status: established\r\n- Confidence: high\r\n- Synthesis: Tradify competitive risk clusters around No compelling event; Price; Could not contact; Too Small; Incompatible workflow\r\n",
+          "read_purpose": "internal_strategy",
+          "content_available": true,
+          "content_truncated": false,
+          "retrieval_tier": "internal_strategy",
+          "authority_state": "internal_strategy",
+          "public_claim_use": "prohibited",
+          "aliases": [],
+          "headings": [
+            "Hindsight Tradify Competitive Strategy",
+            "Approved Source Nodes",
+            "Signals",
+            "HSI-6FFAA291F921A3A2",
+            "HSI-F6562508CE6328AF"
+          ],
+          "topics": [
+            "hindsight",
+            "tradify",
+            "competitive",
+            "strategy",
+            "approved",
+            "nodes",
+            "signals",
+            "hsi",
+            "6ffaa291f921a3a2",
+            "f6562508ce6328af"
+          ],
+          "entities": [],
+          "semantic_roles": [
+            "internal_strategy"
+          ],
+          "relationships": []
+        },
+        {
+          "resource_id": "res-8e0e276d13c95a7ea5bfb45bd57dfde2",
+          "title": "Hindsight Portfolio Strategy Overview",
+          "content": "---\r\ntype: internal-strategy-page\r\ntitle: Hindsight Portfolio Strategy Overview\r\nretrieval_tier: internal_strategy\r\nauthority_state: internal_strategy\r\nstatus: current\r\nbrand_scope: Simpro\r\nallowed_use: internal_strategy\r\npublic_use_status: prohibited\r\nsensitivity: confidential_internal\r\nsnapshot_revision: 9c1bd75ab190a0fa03499a514d6c39c13d7b56036da1027b68a2c5f95b1f260f\r\nvalid_until: 2026-10-29\r\nsource_resource_ids:\r\n  - res-aac0b0bf3b1856689002626195605235\r\nsignal_ids:\r\n  - HSI-0D502CB194EF1D17\r\n  - HSI-44C0B667ECCA9699\r\n  - HSI-ADDDBE66C430C41E\r\n  - HSI-A2DC5217166A8C86\r\n  - HSI-F858A422CC003C46\r\n  - HSI-46A58C10C5AE3EED\r\n---\r\n\r\n# Hindsight Portfolio Strategy Overview\r\n\r\nThis restricted compiled page is internal strategy context only. It may shape angles, priorities, FAQs, objection framing, and positioning hypotheses, but it is not public proof.\r\n\r\n## Approved Source Nodes\r\n\r\n- `wiki/sources/hindsight-simpro-intelligence-snapshot-2026-08-31.md`\r\n\r\n## Coverage\r\n\r\n| Scope | Distinct deals | Included deals | Excluded deals | Status | Notes |\r\n| --- | ---: | ---: | ---: | --- | --- |\r\n| Portfolio | 4702 | 4702 | 495 | usable | Simpro scoped closed won and closed lost analyzed records after company and status filtering. |\r\n| Electrical/Data | 1140 | 1140 | 0 | usable | Vertical classification used industry values and structured trade variants. |\r\n| Plumbing | 468 | 468 | 0 | usable | Vertical classification used industry values and structured trade variants. |\r\n| HVAC/Airconditioning | 425 | 425 | 0 | usable | Vertical classification used industry values and structured trade variants. |\r\n| Low Voltage | 456 | 456 | 0 | usable | Vertical classification used industry values and structured trade variants. |\r\n| Fire | 9 | 9 | 0 | thin_directional | Vertical classification used industry values and structured trade variants. |\r\n| Multi-Trade | 806 | 806 | 0 | usable | Vertical classification used industry values and structured trade variants. |\r\n| ServiceM8 | 318 | 318 | 0 | usable | Competitor met the ten relevant closed record threshold. |\r\n| Tradify | 290 | 290 | 0 | usable | Competitor met the ten relevant closed record threshold. |\r\n| ServiceTitan | 128 | 128 | 0 | usable | Competitor met the ten relevant closed record threshold. |\r\n| Jobber | 115 | 115 | 0 | usable | Competitor met the ten relevant closed record threshold. |\r\n| Joblogic Service Management Software | 106 | 106 | 0 | usable | Competitor met the ten relevant closed record threshold. |\r\n| Fergus | 92 | 92 | 0 | usable | Competitor met the ten relevant closed record threshold. |\r\n\r\n## Signals\r\n\r\n## HSI-0D502CB194EF1D17\r\n\r\n- Signal type: buyer_goals\r\n- Evidence count: 4702\r\n- Coverage status: established\r\n- Confidence: high\r\n- Synthesis: Structured drivers and need themes concentrate around Product Fit; Pricing; Lack of Compelling Event / Lack of Urgency; Implementation; Unified Platform\r\n\r\n## HSI-44C0B667ECCA9699\r\n\r\n- Signal type: decision_criteria\r\n- Evidence count: 4702\r\n- Coverage status: established\r\n- Confidence: high\r\n- Synthesis: Feature and product-fit signals concentrate around Simpro Mobile; Integrations; Schedules (Scheduling & Dispatching); Projects (Project Management); Business Intelligence (BI) Reporting. Product-fit score buckets are no repeated structured themes reached the promotion threshold\r\n\r\n## HSI-46A58C10C5AE3EED\r\n\r\n- Signal type: regional_differences\r\n- Evidence count: 4702\r\n- Coverage status: established\r\n- Confidence: high\r\n- Synthesis: Regional coverage is concentrated in simPRO AU 558; simPRO UK 486; simPRO US 406; simPRO NZ 139; NA - North East 67. Use region-specific proof before making geography-specific public claims\r\n\r\n## HSI-A2DC5217166A8C86\r\n\r\n- Signal type: incumbent_workflows\r\n- Evidence count: 4702\r\n- Coverage status: established\r\n- Confidence: high\r\n- Synthesis: Workflow fields most often repeat no repeated structured themes reached the promotion threshold\r\n\r\n## HSI-ADDDBE66C430C41E\r\n\r\n- Signal type: objections_and_loss_drivers\r\n- Evidence count: 4702\r\n- Coverage status: established\r\n- Confidence: high\r\n- Synthesis: Loss and missing-feature signals concentrate around No compelling event; Could not contact; Missing Feature(s); Price; Incompatible workflow. Price-fit score buckets are no repeated structured themes reached the promotion threshold\r\n\r\n## HSI-F858A422CC003C46\r\n\r\n- Signal type: sales_execution_patterns\r\n- Evidence count: 4702\r\n- Coverage status: established\r\n- Confidence: high\r\n- Synthesis: Sales-execution score buckets are no repeated structured themes reached the promotion threshold; messaging-fit buckets are no repeated structured themes reached the promotion threshold\r\n",
+          "read_purpose": "internal_strategy",
+          "content_available": true,
+          "content_truncated": false,
+          "retrieval_tier": "internal_strategy",
+          "authority_state": "internal_strategy",
+          "public_claim_use": "prohibited",
+          "aliases": [],
+          "headings": [
+            "Hindsight Portfolio Strategy Overview",
+            "Approved Source Nodes",
+            "Coverage",
+            "Signals",
+            "HSI-0D502CB194EF1D17",
+            "HSI-44C0B667ECCA9699",
+            "HSI-46A58C10C5AE3EED",
+            "HSI-A2DC5217166A8C86",
+            "HSI-ADDDBE66C430C41E",
+            "HSI-F858A422CC003C46"
+          ],
+          "topics": [
+            "hindsight",
+            "portfolio",
+            "strategy",
+            "approved",
+            "nodes",
+            "coverage",
+            "signals",
+            "hsi",
+            "0d502cb194ef1d17",
+            "44c0b667ecca9699",
+            "46a58c10c5ae3eed",
+            "a2dc5217166a8c86",
+            "adddbe66c430c41e",
+            "f858a422cc003c46"
+          ],
+          "entities": [],
+          "semantic_roles": [
+            "internal_strategy"
+          ],
+          "relationships": []
+        }
+      ],
+      "Public Claim Boundary": {
+        "claim_support_allowed": false,
+        "public_claim_use": "prohibited",
+        "allowed_influence": [
+          "blog angles",
+          "priorities",
+          "FAQs",
+          "objections",
+          "positioning"
+        ],
+        "prohibited_use": [
+          "publishable claims",
+          "customer proof",
+          "metrics",
+          "quotes",
+          "rankings"
+        ]
+      },
+      "Constraints and Unresolved Gaps": {
+        "constraints": [
+          "Internal strategy and discovery use only.",
+          "Public claim use is prohibited and claim support is not allowed.",
+          "Permit effects only on demo-test emphasis and buyer objections.",
+          "Do not expose names, amounts, URLs, direct quotes, deal IDs, or public claims.",
+          "Independently verify every publishable competitor fact against current official vendor documentation."
+        ],
+        "unresolved_gaps": []
+      },
+      "Selected Resource Inventory": [
+        {
+          "resource_id": "res-17c15b5543db589b87f6803e32251cdf",
+          "locator": "wiki/internal-strategy/Internal Strategy Hub.md",
+          "content_sha256": "1d4024de9e15f6018285f62011d2141f02ae7d04a29a3c4ab5e5c8cdb2a87b6a",
+          "read_purpose": "internal_strategy",
+          "retrieval_tier": "internal_strategy",
+          "authority_state": "internal_strategy",
+          "lifecycle_state": "current",
+          "media_type": "text/markdown",
+          "public_claim_use": "prohibited",
+          "content_available": true,
+          "content_truncated": false,
+          "aliases": [],
+          "headings": [
+            "Hindsight Internal Strategy Hub",
+            "Approved Source Nodes",
+            "Discovery Provenance",
+            "Routes",
+            "Use Boundary"
+          ],
+          "topics": [
+            "hindsight",
+            "internal",
+            "strategy",
+            "hub",
+            "approved",
+            "nodes",
+            "discovery",
+            "provenance",
+            "routes",
+            "boundary"
+          ],
+          "entities": [],
+          "semantic_roles": [
+            "internal_strategy"
+          ],
+          "relationships": [
+            {
+              "resource_id": "res-01a755c114965914b704f29dd70ae1fc",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-0c176526ba255cdc84781594dbcb1d1f",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-123f609e3a7b5666b5c1db6ccd9cab49",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-2fa37305ff98541b8fa0955da4dd3978",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-5b6e0f849f2c550db7cc292b35a64491",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-5ff3a414e5425f2eb78d66a76e50c22b",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-63a5bdfac2365ac880125f242ee83b4a",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-875500e42f1f5ffea0404dea699a69d3",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-8e0e276d13c95a7ea5bfb45bd57dfde2",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-a41eef7796d7534b93f3e38a7f1036f4",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-ab8acb78ff2050a787e8e17d234a3f3b",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-acdf63e464db5579a008beb136c20593",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-dd31b800a8c15dffbed1f1cba724e547",
+              "type": "links_to"
+            },
+            {
+              "resource_id": "res-fdacd1c58e825d49b1e125b457d53e93",
+              "type": "links_to"
+            }
+          ]
+        },
+        {
+          "resource_id": "res-0c176526ba255cdc84781594dbcb1d1f",
+          "locator": "wiki/internal-strategy/competitors/servicetitan.md",
+          "content_sha256": "c90378bdb1261849cb6d48f8b3bdd0cbad5b1f36be2a7c7c777ed46a0837769e",
+          "read_purpose": "internal_strategy",
+          "retrieval_tier": "internal_strategy",
+          "authority_state": "internal_strategy",
+          "lifecycle_state": "current",
+          "media_type": "text/markdown",
+          "public_claim_use": "prohibited",
+          "content_available": true,
+          "content_truncated": false,
+          "aliases": [],
+          "headings": [
+            "Hindsight ServiceTitan Competitive Strategy",
+            "Approved Source Nodes",
+            "Signals",
+            "HSI-038729007343C892",
+            "HSI-440827A451E871B4"
+          ],
+          "topics": [
+            "hindsight",
+            "servicetitan",
+            "competitive",
+            "strategy",
+            "approved",
+            "nodes",
+            "signals",
+            "hsi",
+            "038729007343c892",
+            "440827a451e871b4"
+          ],
+          "entities": [],
+          "semantic_roles": [
+            "internal_strategy"
+          ],
+          "relationships": []
+        },
+        {
+          "resource_id": "res-ab8acb78ff2050a787e8e17d234a3f3b",
+          "locator": "wiki/internal-strategy/competitors/jobber.md",
+          "content_sha256": "6d3bdeea59d98b65b671c975e17e674f4c8d8779c9cf95313ac3bd6d7f2efaef",
+          "read_purpose": "internal_strategy",
+          "retrieval_tier": "internal_strategy",
+          "authority_state": "internal_strategy",
+          "lifecycle_state": "current",
+          "media_type": "text/markdown",
+          "public_claim_use": "prohibited",
+          "content_available": true,
+          "content_truncated": false,
+          "aliases": [],
+          "headings": [
+            "Hindsight Jobber Competitive Strategy",
+            "Approved Source Nodes",
+            "Signals",
+            "HSI-77519CFE491BB021",
+            "HSI-F9DC84D1944B4386"
+          ],
+          "topics": [
+            "hindsight",
+            "jobber",
+            "competitive",
+            "strategy",
+            "approved",
+            "nodes",
+            "signals",
+            "hsi",
+            "77519cfe491bb021",
+            "f9dc84d1944b4386"
+          ],
+          "entities": [],
+          "semantic_roles": [
+            "internal_strategy"
+          ],
+          "relationships": []
+        },
+        {
+          "resource_id": "res-123f609e3a7b5666b5c1db6ccd9cab49",
+          "locator": "wiki/internal-strategy/competitors/joblogic-service-management-software.md",
+          "content_sha256": "595d7a0d5ab5a18c26b989b12d06bced2183b6e173fb074ed5e5e47ef44dba4e",
+          "read_purpose": "internal_strategy",
+          "retrieval_tier": "internal_strategy",
+          "authority_state": "internal_strategy",
+          "lifecycle_state": "current",
+          "media_type": "text/markdown",
+          "public_claim_use": "prohibited",
+          "content_available": true,
+          "content_truncated": false,
+          "aliases": [],
+          "headings": [
+            "Hindsight Joblogic Service Management Software Competitive Strategy",
+            "Approved Source Nodes",
+            "Signals",
+            "HSI-58BC59FCB27F7A64",
+            "HSI-7009109D9E5F970C"
+          ],
+          "topics": [
+            "hindsight",
+            "joblogic",
+            "service",
+            "management",
+            "software",
+            "competitive",
+            "strategy",
+            "approved",
+            "nodes",
+            "signals",
+            "hsi",
+            "58bc59fcb27f7a64",
+            "7009109d9e5f970c"
+          ],
+          "entities": [],
+          "semantic_roles": [
+            "internal_strategy"
+          ],
+          "relationships": []
+        },
+        {
+          "resource_id": "res-dd31b800a8c15dffbed1f1cba724e547",
+          "locator": "wiki/internal-strategy/competitors/tradify.md",
+          "content_sha256": "acb8ac5ce2c83c0dfdccd34ba16d676cd4d2a2e73a719432593ee9e321674df8",
+          "read_purpose": "internal_strategy",
+          "retrieval_tier": "internal_strategy",
+          "authority_state": "internal_strategy",
+          "lifecycle_state": "current",
+          "media_type": "text/markdown",
+          "public_claim_use": "prohibited",
+          "content_available": true,
+          "content_truncated": false,
+          "aliases": [],
+          "headings": [
+            "Hindsight Tradify Competitive Strategy",
+            "Approved Source Nodes",
+            "Signals",
+            "HSI-6FFAA291F921A3A2",
+            "HSI-F6562508CE6328AF"
+          ],
+          "topics": [
+            "hindsight",
+            "tradify",
+            "competitive",
+            "strategy",
+            "approved",
+            "nodes",
+            "signals",
+            "hsi",
+            "6ffaa291f921a3a2",
+            "f6562508ce6328af"
+          ],
+          "entities": [],
+          "semantic_roles": [
+            "internal_strategy"
+          ],
+          "relationships": []
+        },
+        {
+          "resource_id": "res-8e0e276d13c95a7ea5bfb45bd57dfde2",
+          "locator": "wiki/internal-strategy/Portfolio Strategy Overview.md",
+          "content_sha256": "a6e37456fea331a87b70d48dcbae0dcb46e8a0b92ac2f3895106cb1d6a50aef3",
+          "read_purpose": "internal_strategy",
+          "retrieval_tier": "internal_strategy",
+          "authority_state": "internal_strategy",
+          "lifecycle_state": "current",
+          "media_type": "text/markdown",
+          "public_claim_use": "prohibited",
+          "content_available": true,
+          "content_truncated": false,
+          "aliases": [],
+          "headings": [
+            "Hindsight Portfolio Strategy Overview",
+            "Approved Source Nodes",
+            "Coverage",
+            "Signals",
+            "HSI-0D502CB194EF1D17",
+            "HSI-44C0B667ECCA9699",
+            "HSI-46A58C10C5AE3EED",
+            "HSI-A2DC5217166A8C86",
+            "HSI-ADDDBE66C430C41E",
+            "HSI-F858A422CC003C46"
+          ],
+          "topics": [
+            "hindsight",
+            "portfolio",
+            "strategy",
+            "approved",
+            "nodes",
+            "coverage",
+            "signals",
+            "hsi",
+            "0d502cb194ef1d17",
+            "44c0b667ecca9699",
+            "46a58c10c5ae3eed",
+            "a2dc5217166a8c86",
+            "adddbe66c430c41e",
+            "f858a422cc003c46"
+          ],
+          "entities": [],
+          "semantic_roles": [
+            "internal_strategy"
+          ],
+          "relationships": []
+        }
+      ]
+    }
+  },
+  "receipt": {
+    "schema": "simpro-internal-strategy-receipt/v1",
+    "request_sha256": "dd7095e1847249bb444d35767f39a2ed5e2fa1923a1948cb833d4ffd6e3288d2",
+    "pack_sha256": "1849c3cea5fea6730891bc4cffa34bc4dfc1f8e914b5cee22824e88d2c5d93e4",
+    "revisions": {
+      "content_revision": "a99cbdff82d2af87868df8c61287308fb24f730b2867860a5b52cacaa3f27a1c",
+      "contract_revision": "e4988a1775f0b2791163b584c36b0fd72b8ac604c448b044cc944a8a0e9934a4",
+      "inventory_revision": "6c23d93ef8eebab6d496776ceaf1e2253d7c76b32aca201b26fa077a71b9bb58",
+      "manifest_revision": "0c1ad8c0b87d90e2d7bac6e70c21a6007fa45f6f342f50520d5ec337758d867b",
+      "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+      "approval_policy_revision": "6945674b56933849678c70200ff29438700475eae6e794388bb88b6febedccb6"
+    },
+    "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+    "resources": [
+      {
+        "resource_id": "res-17c15b5543db589b87f6803e32251cdf",
+        "locator": "wiki/internal-strategy/Internal Strategy Hub.md",
+        "content_sha256": "1d4024de9e15f6018285f62011d2141f02ae7d04a29a3c4ab5e5c8cdb2a87b6a",
+        "read_purpose": "internal_strategy",
+        "retrieval_tier": "internal_strategy",
+        "authority_state": "internal_strategy",
+        "lifecycle_state": "current",
+        "media_type": "text/markdown",
+        "public_claim_use": "prohibited",
+        "content_available": true,
+        "content_truncated": false,
+        "aliases": [],
+        "headings": [
+          "Hindsight Internal Strategy Hub",
+          "Approved Source Nodes",
+          "Discovery Provenance",
+          "Routes",
+          "Use Boundary"
+        ],
+        "topics": [
+          "hindsight",
+          "internal",
+          "strategy",
+          "hub",
+          "approved",
+          "nodes",
+          "discovery",
+          "provenance",
+          "routes",
+          "boundary"
+        ],
+        "entities": [],
+        "semantic_roles": [
+          "internal_strategy"
+        ],
+        "relationships": [
+          {
+            "resource_id": "res-01a755c114965914b704f29dd70ae1fc",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-0c176526ba255cdc84781594dbcb1d1f",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-123f609e3a7b5666b5c1db6ccd9cab49",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-2fa37305ff98541b8fa0955da4dd3978",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-5b6e0f849f2c550db7cc292b35a64491",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-5ff3a414e5425f2eb78d66a76e50c22b",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-63a5bdfac2365ac880125f242ee83b4a",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-875500e42f1f5ffea0404dea699a69d3",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-8e0e276d13c95a7ea5bfb45bd57dfde2",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-a41eef7796d7534b93f3e38a7f1036f4",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-ab8acb78ff2050a787e8e17d234a3f3b",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-acdf63e464db5579a008beb136c20593",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-dd31b800a8c15dffbed1f1cba724e547",
+            "type": "links_to"
+          },
+          {
+            "resource_id": "res-fdacd1c58e825d49b1e125b457d53e93",
+            "type": "links_to"
+          }
+        ]
+      },
+      {
+        "resource_id": "res-0c176526ba255cdc84781594dbcb1d1f",
+        "locator": "wiki/internal-strategy/competitors/servicetitan.md",
+        "content_sha256": "c90378bdb1261849cb6d48f8b3bdd0cbad5b1f36be2a7c7c777ed46a0837769e",
+        "read_purpose": "internal_strategy",
+        "retrieval_tier": "internal_strategy",
+        "authority_state": "internal_strategy",
+        "lifecycle_state": "current",
+        "media_type": "text/markdown",
+        "public_claim_use": "prohibited",
+        "content_available": true,
+        "content_truncated": false,
+        "aliases": [],
+        "headings": [
+          "Hindsight ServiceTitan Competitive Strategy",
+          "Approved Source Nodes",
+          "Signals",
+          "HSI-038729007343C892",
+          "HSI-440827A451E871B4"
+        ],
+        "topics": [
+          "hindsight",
+          "servicetitan",
+          "competitive",
+          "strategy",
+          "approved",
+          "nodes",
+          "signals",
+          "hsi",
+          "038729007343c892",
+          "440827a451e871b4"
+        ],
+        "entities": [],
+        "semantic_roles": [
+          "internal_strategy"
+        ],
+        "relationships": []
+      },
+      {
+        "resource_id": "res-ab8acb78ff2050a787e8e17d234a3f3b",
+        "locator": "wiki/internal-strategy/competitors/jobber.md",
+        "content_sha256": "6d3bdeea59d98b65b671c975e17e674f4c8d8779c9cf95313ac3bd6d7f2efaef",
+        "read_purpose": "internal_strategy",
+        "retrieval_tier": "internal_strategy",
+        "authority_state": "internal_strategy",
+        "lifecycle_state": "current",
+        "media_type": "text/markdown",
+        "public_claim_use": "prohibited",
+        "content_available": true,
+        "content_truncated": false,
+        "aliases": [],
+        "headings": [
+          "Hindsight Jobber Competitive Strategy",
+          "Approved Source Nodes",
+          "Signals",
+          "HSI-77519CFE491BB021",
+          "HSI-F9DC84D1944B4386"
+        ],
+        "topics": [
+          "hindsight",
+          "jobber",
+          "competitive",
+          "strategy",
+          "approved",
+          "nodes",
+          "signals",
+          "hsi",
+          "77519cfe491bb021",
+          "f9dc84d1944b4386"
+        ],
+        "entities": [],
+        "semantic_roles": [
+          "internal_strategy"
+        ],
+        "relationships": []
+      },
+      {
+        "resource_id": "res-123f609e3a7b5666b5c1db6ccd9cab49",
+        "locator": "wiki/internal-strategy/competitors/joblogic-service-management-software.md",
+        "content_sha256": "595d7a0d5ab5a18c26b989b12d06bced2183b6e173fb074ed5e5e47ef44dba4e",
+        "read_purpose": "internal_strategy",
+        "retrieval_tier": "internal_strategy",
+        "authority_state": "internal_strategy",
+        "lifecycle_state": "current",
+        "media_type": "text/markdown",
+        "public_claim_use": "prohibited",
+        "content_available": true,
+        "content_truncated": false,
+        "aliases": [],
+        "headings": [
+          "Hindsight Joblogic Service Management Software Competitive Strategy",
+          "Approved Source Nodes",
+          "Signals",
+          "HSI-58BC59FCB27F7A64",
+          "HSI-7009109D9E5F970C"
+        ],
+        "topics": [
+          "hindsight",
+          "joblogic",
+          "service",
+          "management",
+          "software",
+          "competitive",
+          "strategy",
+          "approved",
+          "nodes",
+          "signals",
+          "hsi",
+          "58bc59fcb27f7a64",
+          "7009109d9e5f970c"
+        ],
+        "entities": [],
+        "semantic_roles": [
+          "internal_strategy"
+        ],
+        "relationships": []
+      },
+      {
+        "resource_id": "res-dd31b800a8c15dffbed1f1cba724e547",
+        "locator": "wiki/internal-strategy/competitors/tradify.md",
+        "content_sha256": "acb8ac5ce2c83c0dfdccd34ba16d676cd4d2a2e73a719432593ee9e321674df8",
+        "read_purpose": "internal_strategy",
+        "retrieval_tier": "internal_strategy",
+        "authority_state": "internal_strategy",
+        "lifecycle_state": "current",
+        "media_type": "text/markdown",
+        "public_claim_use": "prohibited",
+        "content_available": true,
+        "content_truncated": false,
+        "aliases": [],
+        "headings": [
+          "Hindsight Tradify Competitive Strategy",
+          "Approved Source Nodes",
+          "Signals",
+          "HSI-6FFAA291F921A3A2",
+          "HSI-F6562508CE6328AF"
+        ],
+        "topics": [
+          "hindsight",
+          "tradify",
+          "competitive",
+          "strategy",
+          "approved",
+          "nodes",
+          "signals",
+          "hsi",
+          "6ffaa291f921a3a2",
+          "f6562508ce6328af"
+        ],
+        "entities": [],
+        "semantic_roles": [
+          "internal_strategy"
+        ],
+        "relationships": []
+      },
+      {
+        "resource_id": "res-8e0e276d13c95a7ea5bfb45bd57dfde2",
+        "locator": "wiki/internal-strategy/Portfolio Strategy Overview.md",
+        "content_sha256": "a6e37456fea331a87b70d48dcbae0dcb46e8a0b92ac2f3895106cb1d6a50aef3",
+        "read_purpose": "internal_strategy",
+        "retrieval_tier": "internal_strategy",
+        "authority_state": "internal_strategy",
+        "lifecycle_state": "current",
+        "media_type": "text/markdown",
+        "public_claim_use": "prohibited",
+        "content_available": true,
+        "content_truncated": false,
+        "aliases": [],
+        "headings": [
+          "Hindsight Portfolio Strategy Overview",
+          "Approved Source Nodes",
+          "Coverage",
+          "Signals",
+          "HSI-0D502CB194EF1D17",
+          "HSI-44C0B667ECCA9699",
+          "HSI-46A58C10C5AE3EED",
+          "HSI-A2DC5217166A8C86",
+          "HSI-ADDDBE66C430C41E",
+          "HSI-F858A422CC003C46"
+        ],
+        "topics": [
+          "hindsight",
+          "portfolio",
+          "strategy",
+          "approved",
+          "nodes",
+          "coverage",
+          "signals",
+          "hsi",
+          "0d502cb194ef1d17",
+          "44c0b667ecca9699",
+          "46a58c10c5ae3eed",
+          "a2dc5217166a8c86",
+          "adddbe66c430c41e",
+          "f858a422cc003c46"
+        ],
+        "entities": [],
+        "semantic_roles": [
+          "internal_strategy"
+        ],
+        "relationships": []
+      }
+    ],
+    "search_queries": [
+      "field service management software buyer objections and first demo tests",
+      "Jobber Joblogic FieldEdge ServiceTitan FieldPulse Service Fusion Tradify buyer objections",
+      "commercial asset-heavy service project workflow evaluation"
+    ],
+    "discovery_trace": [
+      {
+        "operation": "vault_status",
+        "revisions": {
+          "content_revision": "a99cbdff82d2af87868df8c61287308fb24f730b2867860a5b52cacaa3f27a1c",
+          "contract_revision": "e4988a1775f0b2791163b584c36b0fd72b8ac604c448b044cc944a8a0e9934a4",
+          "inventory_revision": "6c23d93ef8eebab6d496776ceaf1e2253d7c76b32aca201b26fa077a71b9bb58",
+          "manifest_revision": "0c1ad8c0b87d90e2d7bac6e70c21a6007fa45f6f342f50520d5ec337758d867b",
+          "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+          "approval_policy_revision": "6945674b56933849678c70200ff29438700475eae6e794388bb88b6febedccb6"
+        },
+        "resource_count": 603,
+        "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+        "internal_strategy_resources": 15
+      },
+      {
+        "operation": "vault_describe",
+        "description_sha256": "caca1d948b613a3fa901c6f0e16c64bb0f047e8a2dbfc8ebed3799ed5a3a097d",
+        "capabilities": [
+          "vault_status",
+          "vault_describe",
+          "vault_search",
+          "vault_read",
+          "vault_expand",
+          "vault_claims",
+          "vault_build_context",
+          "vault_validate_context"
+        ]
+      },
+      {
+        "operation": "vault_search_internal_strategy",
+        "query": "field service management software buyer objections and first demo tests",
+        "result_resource_ids": [
+          "res-123f609e3a7b5666b5c1db6ccd9cab49",
+          "res-17c15b5543db589b87f6803e32251cdf",
+          "res-8e0e276d13c95a7ea5bfb45bd57dfde2",
+          "res-01a755c114965914b704f29dd70ae1fc",
+          "res-2fa37305ff98541b8fa0955da4dd3978",
+          "res-5ff3a414e5425f2eb78d66a76e50c22b",
+          "res-875500e42f1f5ffea0404dea699a69d3",
+          "res-a41eef7796d7534b93f3e38a7f1036f4",
+          "res-acdf63e464db5579a008beb136c20593",
+          "res-0c176526ba255cdc84781594dbcb1d1f",
+          "res-5b6e0f849f2c550db7cc292b35a64491",
+          "res-63a5bdfac2365ac880125f242ee83b4a",
+          "res-ab8acb78ff2050a787e8e17d234a3f3b",
+          "res-dd31b800a8c15dffbed1f1cba724e547",
+          "res-fdacd1c58e825d49b1e125b457d53e93"
+        ],
+        "results_sha256": "0e9533e2eb989153bec6ff2e86b5db031acb53c72def0295e1dc3f89b9ff1418"
+      },
+      {
+        "operation": "vault_search_internal_strategy",
+        "query": "Jobber Joblogic FieldEdge ServiceTitan FieldPulse Service Fusion Tradify buyer objections",
+        "result_resource_ids": [
+          "res-123f609e3a7b5666b5c1db6ccd9cab49",
+          "res-0c176526ba255cdc84781594dbcb1d1f",
+          "res-ab8acb78ff2050a787e8e17d234a3f3b",
+          "res-dd31b800a8c15dffbed1f1cba724e547",
+          "res-17c15b5543db589b87f6803e32251cdf",
+          "res-8e0e276d13c95a7ea5bfb45bd57dfde2",
+          "res-01a755c114965914b704f29dd70ae1fc",
+          "res-2fa37305ff98541b8fa0955da4dd3978",
+          "res-5ff3a414e5425f2eb78d66a76e50c22b",
+          "res-875500e42f1f5ffea0404dea699a69d3",
+          "res-a41eef7796d7534b93f3e38a7f1036f4",
+          "res-acdf63e464db5579a008beb136c20593"
+        ],
+        "results_sha256": "fef72e15c8cabd1549b1fc3c095ee9aad846665cb5e932c08cfe447975c500a4"
+      },
+      {
+        "operation": "vault_search_internal_strategy",
+        "query": "commercial asset-heavy service project workflow evaluation",
+        "result_resource_ids": [
+          "res-123f609e3a7b5666b5c1db6ccd9cab49",
+          "res-8e0e276d13c95a7ea5bfb45bd57dfde2",
+          "res-01a755c114965914b704f29dd70ae1fc",
+          "res-5ff3a414e5425f2eb78d66a76e50c22b",
+          "res-0c176526ba255cdc84781594dbcb1d1f",
+          "res-17c15b5543db589b87f6803e32251cdf",
+          "res-2fa37305ff98541b8fa0955da4dd3978",
+          "res-63a5bdfac2365ac880125f242ee83b4a",
+          "res-875500e42f1f5ffea0404dea699a69d3",
+          "res-a41eef7796d7534b93f3e38a7f1036f4",
+          "res-ab8acb78ff2050a787e8e17d234a3f3b",
+          "res-acdf63e464db5579a008beb136c20593",
+          "res-dd31b800a8c15dffbed1f1cba724e547"
+        ],
+        "results_sha256": "2f4c61bc71aaa268dbf6988912c8cc8d18c584ab221a4a12e3a52d2ecce89043"
+      },
+      {
+        "operation": "vault_read_internal_strategy",
+        "resource_id": "res-17c15b5543db589b87f6803e32251cdf",
+        "read_purpose": "internal_strategy",
+        "content_sha256": "1d4024de9e15f6018285f62011d2141f02ae7d04a29a3c4ab5e5c8cdb2a87b6a",
+        "public_claim_use": "prohibited"
+      },
+      {
+        "operation": "vault_read_internal_strategy",
+        "resource_id": "res-0c176526ba255cdc84781594dbcb1d1f",
+        "read_purpose": "internal_strategy",
+        "content_sha256": "c90378bdb1261849cb6d48f8b3bdd0cbad5b1f36be2a7c7c777ed46a0837769e",
+        "public_claim_use": "prohibited"
+      },
+      {
+        "operation": "vault_read_internal_strategy",
+        "resource_id": "res-ab8acb78ff2050a787e8e17d234a3f3b",
+        "read_purpose": "internal_strategy",
+        "content_sha256": "6d3bdeea59d98b65b671c975e17e674f4c8d8779c9cf95313ac3bd6d7f2efaef",
+        "public_claim_use": "prohibited"
+      },
+      {
+        "operation": "vault_read_internal_strategy",
+        "resource_id": "res-123f609e3a7b5666b5c1db6ccd9cab49",
+        "read_purpose": "internal_strategy",
+        "content_sha256": "595d7a0d5ab5a18c26b989b12d06bced2183b6e173fb074ed5e5e47ef44dba4e",
+        "public_claim_use": "prohibited"
+      },
+      {
+        "operation": "vault_read_internal_strategy",
+        "resource_id": "res-dd31b800a8c15dffbed1f1cba724e547",
+        "read_purpose": "internal_strategy",
+        "content_sha256": "acb8ac5ce2c83c0dfdccd34ba16d676cd4d2a2e73a719432593ee9e321674df8",
+        "public_claim_use": "prohibited"
+      },
+      {
+        "operation": "vault_read_internal_strategy",
+        "resource_id": "res-8e0e276d13c95a7ea5bfb45bd57dfde2",
+        "read_purpose": "internal_strategy",
+        "content_sha256": "a6e37456fea331a87b70d48dcbae0dcb46e8a0b92ac2f3895106cb1d6a50aef3",
+        "public_claim_use": "prohibited"
+      }
+    ],
+    "constraints": [
+      "Internal strategy and discovery use only.",
+      "Public claim use is prohibited and claim support is not allowed.",
+      "Permit effects only on demo-test emphasis and buyer objections.",
+      "Do not expose names, amounts, URLs, direct quotes, deal IDs, or public claims.",
+      "Independently verify every publishable competitor fact against current official vendor documentation."
+    ],
+    "unresolved_gaps": [],
+    "task_satisfaction": "satisfied",
+    "validation_time": "2026-09-24T16:33:31.641206Z",
+    "errors": [],
+    "receipt_sha256": "c94d4b5e592f9e2e9db1b99e7fecec94e8f3354b9e26217cdd940443eda9ee2e"
+  },
+  "sidecar": {
+    "schema": "simpro-content-validation-sidecar/v1",
+    "source_pack_schema": "simpro-internal-strategy-pack/v1",
+    "source_pack_sha256": "1849c3cea5fea6730891bc4cffa34bc4dfc1f8e914b5cee22824e88d2c5d93e4",
+    "source_receipt_sha256": "c94d4b5e592f9e2e9db1b99e7fecec94e8f3354b9e26217cdd940443eda9ee2e",
+    "retrieval_tier": "internal_strategy",
+    "resource_ids": [
+      "res-17c15b5543db589b87f6803e32251cdf",
+      "res-0c176526ba255cdc84781594dbcb1d1f",
+      "res-ab8acb78ff2050a787e8e17d234a3f3b",
+      "res-123f609e3a7b5666b5c1db6ccd9cab49",
+      "res-dd31b800a8c15dffbed1f1cba724e547",
+      "res-8e0e276d13c95a7ea5bfb45bd57dfde2"
+    ],
+    "claim_support_allowed": false,
+    "public_claim_use": "prohibited",
+    "public_use_boundary": "Internal strategy may shape angles, priorities, FAQs, objections, and positioning only. It cannot support publishable claims.",
+    "generated_at": "2026-09-24T16:33:31.641206Z"
+  },
+  "discovery_provenance": {
+    "classification": "secondary_hindsight_synthesis",
+    "public_use_status": "prohibited",
+    "claim_support_allowed": false,
+    "google_doc_id": "1IIAz7beD0tqP3_zPud0pziwEYKq5q6N4LgtxwTESkoE",
+    "google_doc_revision_id": "ANLCKQlwNfXTT01x9fZxMWX-4ekO7ILz_mkquHyZOhsYXuzNC-VhGqhpOgwup7xoKwAY3QnWCpgDYtIAIuJUSwBGQffQQwX8LNkAGW_J5Pk",
+    "normalized_text_sha256": "5dd1185cd22e6ea9e6f912d2672dcfc53e449c818cfa247279e3dacbc7849fb4",
+    "source_ingestion_id": "ING-20260924-001",
+    "fresh_capture_ingestion_id": "ING-20260924-002",
+    "fresh_capture_id": "HSI-SIMPRO-20260831-8A075E9979",
+    "fresh_capture_period": {
+      "from": "2025-09-01",
+      "to": "2026-08-31"
+    },
+    "fresh_capture_markdown_sha256": "6edd11ba83504f49b03f1ca5bae6996659eb652599fc10ab08c5c720e81d647b",
+    "fresh_capture_json_sha256": "7d78321e9594572f6f72107e6eb651da36709e42aa5c4514f814cab89706a69a",
+    "article_sha256": "821f71b00ef82fb9e51c663bcfaea451751d0d377c61c4e8155296f05a63d25a",
+    "note": "The Google Doc source node records discovery provenance only. The formal internal-strategy pack does not validate every statement in that synthesis."
+  },
+  "retrieval_trace": {
+    "generated_at": "2026-09-24T16:33:47Z",
+    "vault_status": {
+      "status": "ready",
+      "root_configured": true,
+      "schema": "simpro-agent-retrieval-manifest/v2",
+      "revisions": {
+        "content_revision": "a99cbdff82d2af87868df8c61287308fb24f730b2867860a5b52cacaa3f27a1c",
+        "contract_revision": "e4988a1775f0b2791163b584c36b0fd72b8ac604c448b044cc944a8a0e9934a4",
+        "inventory_revision": "6c23d93ef8eebab6d496776ceaf1e2253d7c76b32aca201b26fa077a71b9bb58",
+        "manifest_revision": "0c1ad8c0b87d90e2d7bac6e70c21a6007fa45f6f342f50520d5ec337758d867b",
+        "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+        "approval_policy_revision": "6945674b56933849678c70200ff29438700475eae6e794388bb88b6febedccb6"
+      },
+      "resource_count": 603,
+      "manifest_resources": 603,
+      "public_manifest_resources": 588,
+      "searchable_resources": 588,
+      "search_index_eligible_resources": 603,
+      "indexed_resources": 603,
+      "declared_unindexed_resources": 0,
+      "metadata_only_resources": 5,
+      "context_readable_resources": 588,
+      "internal_strategy_resources": 15,
+      "internal_strategy_searchable_resources": 15,
+      "internal_strategy_readable_resources": 15,
+      "internal_strategy_packable_resources": 15,
+      "resource_access": {
+        "manifest_resources": 603,
+        "public_manifest_resources": 588,
+        "searchable_resources": 588,
+        "search_index_eligible_resources": 603,
+        "indexed_resources": 603,
+        "declared_unindexed_resources": 0,
+        "metadata_only_resources": 5,
+        "context_readable_resources": 588,
+        "internal_strategy_resources": 15,
+        "internal_strategy_searchable_resources": 15,
+        "internal_strategy_readable_resources": 15,
+        "internal_strategy_packable_resources": 15
+      },
+      "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+      "claim_health": {
+        "claim_count": 2805,
+        "approval_status_counts": {
+          "approved": 1463,
+          "blocked": 940,
+          "candidate": 379,
+          "superseded": 23
+        },
+        "approved_use_mode_counts": {
+          "authority_support": 86,
+          "exact_quote": 1153,
+          "public_metric": 215,
+          "public_paraphrase": 9
+        },
+        "approved_brand_scope_counts": {
+          "Simpro": 1463
+        },
+        "proof_retrieval_state": "available"
+      }
+    },
+    "search_queries": [
+      "field service management software buyer objections and first demo tests",
+      "Jobber Joblogic FieldEdge ServiceTitan FieldPulse Service Fusion Tradify buyer objections",
+      "commercial asset-heavy service project workflow evaluation"
+    ],
+    "selected_resource_ids": [
+      "res-17c15b5543db589b87f6803e32251cdf",
+      "res-0c176526ba255cdc84781594dbcb1d1f",
+      "res-ab8acb78ff2050a787e8e17d234a3f3b",
+      "res-123f609e3a7b5666b5c1db6ccd9cab49",
+      "res-dd31b800a8c15dffbed1f1cba724e547",
+      "res-8e0e276d13c95a7ea5bfb45bd57dfde2"
+    ],
+    "read_resource_ids": [
+      "res-0c176526ba255cdc84781594dbcb1d1f",
+      "res-123f609e3a7b5666b5c1db6ccd9cab49",
+      "res-17c15b5543db589b87f6803e32251cdf",
+      "res-8e0e276d13c95a7ea5bfb45bd57dfde2",
+      "res-ab8acb78ff2050a787e8e17d234a3f3b",
+      "res-dd31b800a8c15dffbed1f1cba724e547"
+    ]
+  }
+}

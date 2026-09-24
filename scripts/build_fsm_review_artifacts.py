@@ -39,15 +39,15 @@ from data_sources.modules.machine_review import (
 )
 
 SLUG = "best-field-service-management-software"
-DATE = "2026-09-22"
-ASSEMBLY_DATE = "2026-09-23"
-SERP_DATE = "2026-09-23"
+DATE = "2026-09-24"
+ASSEMBLY_DATE = "2026-09-24"
+SERP_DATE = "2026-09-24"
 
 ARTICLE = ROOT / "rewrites" / "best-field-service-management-software-rewrite-2026-08-28.md"
 PLAN = ROOT / "research" / f"editorial-plan-{SLUG}-{DATE}.json"
 SIDECAR = ROOT / "research" / f"validation-{SLUG}-{DATE}.md"
 SERP = ROOT / "research" / f"serp-evidence-{SLUG}-{SERP_DATE}.json"
-CONTEXT_REQUEST = ROOT / "research" / f"context-request-{SLUG}.json"
+CONTEXT_REQUEST = ROOT / "research" / f"context-request-{SLUG}-{DATE}.json"
 
 FULFILLMENT = ROOT / "research" / f"blog-plan-fulfillment-{SLUG}-{DATE}.json"
 REVIEW_PLAN = ROOT / "research" / f"machine-review-plan-{SLUG}-{DATE}.json"
@@ -141,6 +141,11 @@ def fulfillment_excerpts(article: str) -> dict[str, str]:
             article,
             "Apply the scorecard after pass-or-fail requirements remove obvious mismatches.",
             "## Frequently asked questions",
+        ),
+        "hindsight-guided-demo-tests": exact_slice(
+            article,
+            "**Test Jobber:**",
+            '<a id="fergus"></a>',
         ),
     }
 

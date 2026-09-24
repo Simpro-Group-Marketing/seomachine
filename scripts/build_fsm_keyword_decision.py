@@ -1,7 +1,7 @@
 """Build the dated Semrush keyword decision for the Simpro FSM buyer's guide.
 
 Every metric and SERP row below was read from the authenticated Semrush Keyword
-Overview UI in the main Chrome window on 2026-09-23, US desktop database. The
+Overview UI in the main Chrome window on 2026-09-24, US desktop database. The
 plain-text UI evidence artifact is hash-bound to every report log row. Nothing
 is estimated, and a missing Keyword Difficulty value remains ``None``.
 """
@@ -22,7 +22,7 @@ from data_sources.modules.semrush_keyword_decision_guard import (
 
 
 SLUG = "best-field-service-management-software"
-DATE = "2026-09-23"
+DATE = "2026-09-24"
 SURFACE = "semrush_ui_chrome_main_browser"
 UI_PATH = (
     ROOT
@@ -197,7 +197,7 @@ REJECTED = [
 ]
 
 RATIONALE = (
-    "The authenticated US desktop Semrush UI on September 23, 2026 confirms "
+    "The authenticated US desktop Semrush UI on September 24, 2026 confirms "
     "best field service management software as a commercial comparison query "
     "with 1.6K US volume, 2.7K global volume, and KD 31 Possible. The measured "
     "small-business and 2026 variations remain secondary queries because they "
@@ -235,7 +235,7 @@ def _connector_reports(evidence_sha256: str) -> list[dict[str, object]]:
                 "parameters": parameters,
                 "completion_basis": (
                     "Authenticated US desktop Keyword Overview fields were visible "
-                    "in the main Chrome browser on 2026-09-23."
+                    "in the main Chrome browser on 2026-09-24."
                 ),
                 "ui_evidence_path": UI_RELATIVE,
                 "ui_evidence_sha256": evidence_sha256,
