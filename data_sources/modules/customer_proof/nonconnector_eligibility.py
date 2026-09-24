@@ -10,23 +10,79 @@ from urllib.parse import urlsplit
 from .nonconnector_contracts import (
     STOPWORDS,
     SUPPORTED_BRAND_HOSTS,
+    SUPPORTED_REVIEW_PAGES,
     SUPPORTED_SOURCE_TYPES,
     NonVaultProofDataError,
 )
 
 
-def _eligible_source(source: Mapping[str, Any], *, expected_host: str) -> bool:
+def _eligible_source(
+    source: Mapping[str, Any], *, expected_host: str, brand_key: str = ""
+) -> bool:
     if str(source.get("approval_status") or "").casefold() != "approved":
         return False
     if source.get("public_copy_allowed") is not True:
         return False
-    if str(source.get("source_type") or "").casefold() not in SUPPORTED_SOURCE_TYPES:
+    source_type = str(source.get("source_type") or "").casefold()
+    if source_type not in SUPPORTED_SOURCE_TYPES:
         return False
     proof_id = str(source.get("proof_id") or "").strip()
     if not proof_id:
         return False
+    if source_type == "review_site":
+        return _eligible_review_site(source, brand_key=brand_key)
     hostname = (urlsplit(str(source.get("public_url") or "")).hostname or "").casefold()
     return hostname in {expected_host, f"www.{expected_host}"}
+
+
+def _eligible_review_site(source: Mapping[str, Any], *, brand_key: str) -> bool:
+    prefixes = SUPPORTED_REVIEW_PAGES.get(brand_key, ())
+    if not prefixes:
+        return False
+    story = source.get("review_story")
+    if not isinstance(story, Mapping) or story.get("story_allowed") is not True:
+        return False
+    if str(story.get("platform") or "").casefold() != "capterra":
+        return False
+    identity = str(
+        story.get("identity_display")
+        or story.get("business_name")
+        or story.get("person_name")
+        or source.get("customer")
+        or ""
+    ).strip()
+    if not identity:
+        return False
+    return _matches_review_prefix(
+        str(source.get("public_url") or ""), prefixes
+    ) and _matches_review_prefix(str(story.get("public_url") or ""), prefixes)
+
+
+def _normalize_review_url(url: str) -> str:
+    value = str(url or "").strip()
+    if not value:
+        return ""
+    if "://" not in value:
+        value = f"https://{value}"
+    parsed = urlsplit(value)
+    hostname = (parsed.hostname or "").casefold()
+    if hostname.startswith("www."):
+        hostname = hostname[4:]
+    path = parsed.path.rstrip("/")
+    return f"{hostname}{path}"
+
+
+def _matches_review_prefix(url: str, prefixes: tuple[str, ...]) -> bool:
+    normalized = _normalize_review_url(url)
+    if not normalized:
+        return False
+    for prefix in prefixes:
+        normalized_prefix = _normalize_review_url(prefix)
+        if normalized == normalized_prefix or normalized.startswith(
+            f"{normalized_prefix}/"
+        ):
+            return True
+    return False
 
 
 def _supports_role(
@@ -94,9 +150,12 @@ def _relevance_score(query_tokens: set[str], source: Mapping[str, Any]) -> int:
 
 
 def _source_weight(source_type: str) -> int:
-    return {"customer_story": 16, "reference": 14, "case_study": 12}.get(
-        source_type.casefold(), 0
-    )
+    return {
+        "customer_story": 16,
+        "reference": 14,
+        "case_study": 12,
+        "review_site": 10,
+    }.get(source_type.casefold(), 0)
 
 
 def _recent_uses(

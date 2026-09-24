@@ -43,7 +43,8 @@ def select_nonvault_customer_proofs(
         raise NonVaultProofDataError(f"unsupported proof role: {proof_role}")
     if isinstance(limit, bool) or not isinstance(limit, int) or not 0 <= limit <= 100:
         raise NonVaultProofDataError("limit must be an integer from 0 to 100")
-    expected_host = SUPPORTED_BRAND_HOSTS[_brand_key(brand)]
+    brand_key = _brand_key(brand)
+    expected_host = SUPPORTED_BRAND_HOSTS[brand_key]
     index = _read_json(index_path, "customer proof index")
     ledger = _read_json(ledger_path, "customer proof usage ledger")
     query_tokens = _tokens(" ".join((topic, title, objective)))
@@ -53,7 +54,7 @@ def select_nonvault_customer_proofs(
     for source in index.get("proof", []):
         if not isinstance(source, dict):
             continue
-        if not _eligible_source(source, expected_host=expected_host):
+        if not _eligible_source(source, expected_host=expected_host, brand_key=brand_key):
             continue
         if not _supports_role(source, proof_role, require_eeat_story=require_eeat_story):
             continue
