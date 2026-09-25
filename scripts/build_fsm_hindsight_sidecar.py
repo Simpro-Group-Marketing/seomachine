@@ -24,6 +24,15 @@ HINDSIGHT = RESEARCH / "hindsight-strategy-evidence-best-field-service-managemen
 CUSTOMER = RESEARCH / "customer-proof-selector-evidence-best-field-service-management-software-2026-09-25.json"
 FRED = RESEARCH / "fred-authority-selector-evidence-best-field-service-management-software-2026-09-25.md"
 
+SOURCE_MAP_HEADING = "## Source Map"
+SOURCE_MAP_NEXT_HEADING = "## Search Intent and Format Decision"
+OBSOLETE_FIELDEDGE_CLAIM = (
+    "FieldEdge offers custom forms and templates that can be used for a "
+    "failed-inspection demonstration."
+)
+OBSOLETE_FIELDEDGE_URL = "https://fieldedge.com/field-service-software/"
+FIELDEDGE_PRICING_URL = "https://fieldedge.com/pricing/"
+
 
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -68,6 +77,52 @@ def replace_full_section(
     updated, count = pattern.subn(f"{full_section.strip()}\n\n", content, count=1)
     if count != 1:
         raise ValueError(f"Could not replace full section {heading}")
+    return updated
+
+
+def remove_obsolete_fieldedge_source_row(content: str) -> str:
+    """Remove only the obsolete FieldEdge evidence row from the Source Map."""
+    pattern = re.compile(
+        rf"^{re.escape(SOURCE_MAP_HEADING)}\n.*?"
+        rf"(?=^{re.escape(SOURCE_MAP_NEXT_HEADING)}\n)",
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    match = pattern.search(content)
+    if match is None:
+        raise ValueError("Historical Source Map section is missing")
+
+    source_map = match.group(0)
+    rows = source_map.splitlines(keepends=True)
+    obsolete_rows = [
+        row
+        for row in rows
+        if row.startswith(f"- Claim: {OBSOLETE_FIELDEDGE_CLAIM} ")
+        and f"| URL: {OBSOLETE_FIELDEDGE_URL} |" in row
+    ]
+    if len(obsolete_rows) != 1:
+        raise ValueError(
+            "Expected exactly one obsolete FieldEdge custom-form Source Map row, "
+            f"found {len(obsolete_rows)}"
+        )
+
+    pricing_rows = [
+        row
+        for row in rows
+        if row.startswith("- Claim: FieldEdge ")
+        and f"| URL: {FIELDEDGE_PRICING_URL} |" in row
+    ]
+    if len(pricing_rows) != 1:
+        raise ValueError(
+            "Expected exactly one valid FieldEdge pricing Source Map row, "
+            f"found {len(pricing_rows)}"
+        )
+
+    updated_source_map = source_map.replace(obsolete_rows[0], "", 1)
+    updated = content[: match.start()] + updated_source_map + content[match.end() :]
+    if OBSOLETE_FIELDEDGE_CLAIM in updated or OBSOLETE_FIELDEDGE_URL in updated:
+        raise ValueError("Obsolete FieldEdge custom-form evidence remains in sidecar")
+    if pricing_rows[0] not in updated_source_map:
+        raise ValueError("Valid FieldEdge pricing Source Map row was not preserved")
     return updated
 
 
@@ -194,15 +249,7 @@ def main() -> int:
         fred_section,
     )
 
-    fieldedge_source_pattern = re.compile(
-        r"^- Claim: FieldEdge .*?(?:\n|$)",
-        flags=re.MULTILINE,
-    )
-    content, removed_rows = fieldedge_source_pattern.subn("", content, count=1)
-    if removed_rows != 1:
-        raise ValueError(
-            "Expected exactly one obsolete FieldEdge Source Map row in historical source"
-        )
+    content = remove_obsolete_fieldedge_source_row(content)
 
     resource_ids = [row["resource_id"] for row in receipt["resources"]]
     context_binding = {
@@ -246,9 +293,6 @@ def main() -> int:
         "## Context Claim Use Map",
         context_binding_section,
     )
-
-    if re.search(r"^- Claim: FieldEdge ", content, flags=re.MULTILINE):
-        raise ValueError("A FieldEdge Source Map row remains in the generated sidecar")
 
     OUTPUT.write_text(content, encoding="utf-8")
     print(f"wrote {OUTPUT.relative_to(ROOT).as_posix()} ({len(content)} characters)")
