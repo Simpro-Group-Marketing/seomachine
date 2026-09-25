@@ -23,6 +23,7 @@ RECEIPT = RESEARCH / "context-receipt-best-field-service-management-software-202
 HINDSIGHT = RESEARCH / "hindsight-strategy-evidence-best-field-service-management-software-2026-09-25.json"
 CUSTOMER = RESEARCH / "customer-proof-selector-evidence-best-field-service-management-software-2026-09-25.json"
 FRED = RESEARCH / "fred-authority-selector-evidence-best-field-service-management-software-2026-09-25.md"
+SERP = RESEARCH / "serp-evidence-best-field-service-management-software-2026-09-25.json"
 
 SOURCE_MAP_HEADING = "## Source Map"
 SOURCE_MAP_NEXT_HEADING = "## Search Intent and Format Decision"
@@ -32,6 +33,12 @@ OBSOLETE_FIELDEDGE_CLAIM = (
 )
 OBSOLETE_FIELDEDGE_URL = "https://fieldedge.com/field-service-software/"
 FIELDEDGE_PRICING_URL = "https://fieldedge.com/pricing/"
+CORRECTION_RECORD = """## Governed Correction and Supersession Record
+
+- Active artifact: `research/validation-best-field-service-management-software-2026-09-25.md` supersedes `research/validation-best-field-service-management-software-2026-09-24.md` for the corrected article.
+- Correction reason: the cited FieldEdge marketing page did not substantiate the removed downstream automation chain involving follow-up tasks, office notices, customer messages, or audit trails.
+- Historical boundary: the 2026-09-24 artifact remains immutable release history and is not active support for the corrected public copy.
+"""
 
 
 def sha256(path: Path) -> str:
@@ -126,6 +133,16 @@ def remove_obsolete_fieldedge_source_row(content: str) -> str:
     return updated
 
 
+def add_correction_record(content: str) -> str:
+    """Add the governed correction record before the attribution boundary."""
+    next_heading = "## Live-versus-local attribution boundary"
+    return replace_once(
+        content,
+        f"\n{next_heading}\n",
+        f"\n{CORRECTION_RECORD.strip()}\n\n{next_heading}\n",
+    )
+
+
 def main() -> int:
     content = SOURCE.read_text(encoding="utf-8")
     pack = json.loads(PACK.read_text(encoding="utf-8"))
@@ -143,6 +160,8 @@ def main() -> int:
     for old, new in simple_replacements.items():
         content = replace_once(content, old, new)
 
+    content = add_correction_record(content)
+
     dated_artifacts = (
         "context-request-best-field-service-management-software",
         "context-pack-best-field-service-management-software",
@@ -154,6 +173,7 @@ def main() -> int:
         "context-receipt-best-field-service-management-software-customer-selector",
         "customer-proof-selector-evidence-best-field-service-management-software",
         "fred-authority-selector-evidence-best-field-service-management-software",
+        "serp-evidence-best-field-service-management-software",
     )
     for stem in dated_artifacts:
         old = f"{stem}-2026-09-24"
@@ -180,6 +200,7 @@ def main() -> int:
             f"`{row['resource_id']}`" for row in receipt["resources"]
         )
         + ".",
+        "SERP evidence SHA-256": sha256(SERP),
     }
     for label, value in dynamic_lines.items():
         content = replace_markdown_line(content, label, value)

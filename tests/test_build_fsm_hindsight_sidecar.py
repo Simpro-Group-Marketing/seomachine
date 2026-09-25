@@ -51,6 +51,24 @@ def test_historical_source_transform_requires_fieldedge_pricing_row() -> None:
         )
 
 
+def test_correction_record_supersedes_active_2026_09_24_artifact() -> None:
+    historical = builder.SOURCE.read_text(encoding="utf-8")
+
+    transformed = builder.add_correction_record(historical)
+
+    assert transformed.count(builder.CORRECTION_RECORD.strip()) == 1
+    assert (
+        "2026-09-25.md` supersedes "
+        "`research/validation-best-field-service-management-software-2026-09-24.md`"
+        in transformed
+    )
+    assert "FieldEdge marketing page did not substantiate" in transformed
+    assert "follow-up tasks, office notices, customer messages, or audit trails" in transformed
+    assert transformed.index("## Governed Correction and Supersession Record") < transformed.index(
+        "## Live-versus-local attribution boundary"
+    )
+
+
 def test_corrected_article_and_sidecar_lifecycle_dates_align() -> None:
     historical = builder.SOURCE.read_text(encoding="utf-8")
     transformed = builder.remove_obsolete_fieldedge_source_row(historical)

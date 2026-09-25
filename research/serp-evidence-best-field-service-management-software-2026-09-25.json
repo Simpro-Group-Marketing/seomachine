@@ -1,0 +1,101 @@
+{
+  "collected_at": "2026-09-25T14:36:07Z",
+  "collector": {
+    "name": "research_serp_analysis:playwright",
+    "version": "1.0.0"
+  },
+  "evidence_hash": "a1d5d2bbf068b9ca085653048d990a5f7f96f8913ec4a267ccf1a18ae3b66447",
+  "execution_attestation": {
+    "algorithm": "hmac-sha256",
+    "key_id": "88df9183fcb097c1",
+    "purpose": "simpro-serp-evidence/v1",
+    "schema": "simpro-execution-attestation/v1",
+    "signature": "f8d86f532848bd01349fd717910f07d1be4aeee8493d97e24db4b09d66f06f22"
+  },
+  "observations": {
+    "competitor_gaps": [
+      "The query best field service management software has comparison-listicle intent and a different content type from the field service management software homepage, which has different intent as a product proposition.",
+      "The current SERP retains comparison, review, and listicle intent, which differs from the indexed homepage product proposition.",
+      "The current AI Overview routes by business size and use case, but its visible price and scale bands are not evidence for public copy.",
+      "Current results commonly rank tools without giving each buyer a first disqualifying issue and common live-demo test.",
+      "Current results rarely give every vendor the same fit, mismatch, official evidence, and live-demo structure.",
+      "Broad results do not replace workflow-specific comparison pages for buyers choosing between finalists."
+    ],
+    "content_types": [
+      "Listicle",
+      "Review",
+      "Tool/Resource",
+      "Comparison",
+      "General Article"
+    ],
+    "must_have_sections": [
+      "scenario-based shortlist before the vendor cards",
+      "fit by operating model, team complexity, and workflow",
+      "consistent 12-tool comparison matrix",
+      "methodology and publisher disclosure",
+      "official-source vendor cards with mismatch and demo tests",
+      "buyer scorecard and role-based demo pack"
+    ],
+    "serp_features": [
+      "ai_overview"
+    ]
+  },
+  "query": "best field service management software",
+  "raw_capture": {
+    "path": "research/serp-raw-best-field-service-management-software-2026-09-25-playwright.json",
+    "sha256": "ecd11970d5c9f0f1892ea0e820f51727024835127cde77d6f68a69a8ce076edc"
+  },
+  "results": [
+    {
+      "position": 1,
+      "result_type": "organic",
+      "title": "6 Best Free Field Service Management Software ...",
+      "url": "https://connecteam.com/best-free-field-service-management-software/"
+    },
+    {
+      "position": 2,
+      "result_type": "organic",
+      "title": "Best Field Service Management Reviews 2026",
+      "url": "https://www.gartner.com/reviews/market/field-service-management"
+    },
+    {
+      "position": 3,
+      "result_type": "organic",
+      "title": "Best Field Service Management Tool? : r/lowvoltage",
+      "url": "https://www.reddit.com/r/lowvoltage/comments/1bnl56d/best_field_service_management_tool/"
+    },
+    {
+      "position": 4,
+      "result_type": "organic",
+      "title": "Best Field Service Management Software: 2026 Compared",
+      "url": "https://elogii.com/blog/field-service-management-software"
+    },
+    {
+      "position": 5,
+      "result_type": "organic",
+      "title": "Best Field Service Management Software Picks for Growing ...",
+      "url": "https://www.reachoutsuite.com/best-field-service-management-software"
+    },
+    {
+      "position": 6,
+      "result_type": "organic",
+      "title": "Top 10 field service management software 2026",
+      "url": "https://www.ifs.com/en/glossary/compare/top-10-field-service-management-software-2026"
+    },
+    {
+      "position": 7,
+      "result_type": "organic",
+      "title": "I Found the Best Field Service Management Software of 2026",
+      "url": "https://learn.g2.com/best-field-service-management-software"
+    },
+    {
+      "position": 8,
+      "result_type": "organic",
+      "title": "10 Best Field Service Management Software for Small ...",
+      "url": "https://knockio.com/blog/best-field-service-management-software-small-business/"
+    }
+  ],
+  "run_id": "d946520a-f4f5-4a48-b11f-266852efb413",
+  "schema": "simpro-serp-evidence/v1",
+  "status": "verified"
+}

@@ -462,11 +462,11 @@
     "searcher_task": "Compare credible tools, identify a first demo list for the buyer's operating model, and learn what to test before purchasing.",
     "intent_class": "commercial",
     "funnel_stage": "mofu",
-    "serp_evidence_artifact": "research/serp-evidence-best-field-service-management-software-2026-09-24.json",
+    "serp_evidence_artifact": "research/serp-evidence-best-field-service-management-software-2026-09-25.json",
     "dominant_content_type": "Listicle",
     "selected_content_type": "Listicle",
     "observed_serp_features": [
-      "AI Overview"
+      "ai_overview"
     ],
     "related_query_paa_artifact": "research/user-paa-faq-best-field-service-management-software-2026-06-24.md",
     "format_decision": "match_dominant",

@@ -1,0 +1,59 @@
+{
+  "agent_responses": [
+    {
+      "agent": "Content Analyzer",
+      "findings": [],
+      "status": "completed"
+    },
+    {
+      "agent": "Editor",
+      "findings": [],
+      "status": "completed"
+    },
+    {
+      "agent": "Public Copy Boundary Reviewer",
+      "findings": [],
+      "status": "completed"
+    },
+    {
+      "agent": "SEO Optimizer",
+      "findings": [],
+      "status": "completed"
+    },
+    {
+      "agent": "Meta Creator",
+      "findings": [],
+      "status": "completed"
+    },
+    {
+      "agent": "Internal Linker",
+      "findings": [],
+      "status": "completed"
+    },
+    {
+      "agent": "Keyword Mapper",
+      "findings": [],
+      "status": "completed"
+    }
+  ],
+  "agent_roster": [
+    "Content Analyzer",
+    "Editor",
+    "Public Copy Boundary Reviewer",
+    "SEO Optimizer",
+    "Meta Creator",
+    "Internal Linker",
+    "Keyword Mapper"
+  ],
+  "article_sha256": "97db6792c92d63a20765a336d1546c6aa290a8bd5f62228ad15e27888b899045",
+  "artifact_hash": "ab8a5b2ef14c666a56e3b20c155d4bad120a7ac6fcb56c313115bcd6f84ed658",
+  "command": "scripts/build_fsm_review_artifacts.py",
+  "created_at": "2026-09-25T18:39:52Z",
+  "editorial_plan_sha256": "10f6839fe02ab42eedf3083e3a18c418546ae2203e39d4d0937ab9573c4db3b1",
+  "phase": "article",
+  "proof_sidecar_sha256": "69d6cf4a05eb5c20e57b0788d8d9d57f672c0972f1ee724bd7faa153963e80c4",
+  "repository_commit": "25cf10dae188d02192746c84eac1e0eabf1e7ca9",
+  "run_id": "d946520a-f4f5-4a48-b11f-266852efb413",
+  "schema": "simpro-blog-machine-review/v1",
+  "workflow_stage": "rewrite_review"
+}

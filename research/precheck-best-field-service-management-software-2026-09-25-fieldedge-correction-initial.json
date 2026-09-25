@@ -1,0 +1,39 @@
+{
+  "blockers": [
+    {
+      "artifact": "keyword_decision",
+      "message": "Semrush keyword decision must be collected on the workflow assembly date.",
+      "rule_id": "semrush_keyword_decision_stale",
+      "suggestion": "Rerun the Semrush connector reports for this assembly run."
+    }
+  ],
+  "message": "pre-BOM report blocked release",
+  "optimized_release": false,
+  "output_dir_created": false,
+  "passed": false,
+  "paths": {
+    "planned_output_dir": "research/blog-release-best-field-service-management-software-2026-09-25-fieldedge-correction-initial-v1"
+  },
+  "phase": "pre_bom",
+  "pre_bom": {
+    "blockers": [
+      {
+        "artifact": "keyword_decision",
+        "message": "Semrush keyword decision must be collected on the workflow assembly date.",
+        "rule_id": "semrush_keyword_decision_stale",
+        "suggestion": "Rerun the Semrush connector reports for this assembly run."
+      }
+    ],
+    "ready_for_bom": false,
+    "warnings": [
+      {
+        "artifact": "eeat_strength",
+        "message": "Commercial-investigation article has no positive E-E-A-T signal; the sidecar explicitly records proof_unavailable_safe_to_publish.",
+        "rule_id": "eeat_strength_safe_but_weak",
+        "suggestion": "Publish may proceed, but strengthen the article when selected customer proof, a named author, Fred authority, review-theme evidence, or SME review becomes available."
+      }
+    ]
+  },
+  "run_id": "d946520a-f4f5-4a48-b11f-266852efb413",
+  "schema": "simpro-blog-release-precheck/v1"
+}
