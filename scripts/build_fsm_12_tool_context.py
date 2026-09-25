@@ -16,24 +16,24 @@ from data_sources.modules.simpro_vault_client import SimproVaultClient
 from data_sources.modules.artifact_runtime.content_store import write_context_trace
 
 
-REQUEST_PATH = ROOT / "research" / "context-request-best-field-service-management-software-2026-09-24.json"
+REQUEST_PATH = ROOT / "research" / "context-request-best-field-service-management-software-2026-09-25.json"
 ARTICLE_PATH = ROOT / "rewrites" / "best-field-service-management-software-rewrite-2026-08-28.md"
-PACK_PATH = ROOT / "research" / "context-pack-best-field-service-management-software-2026-09-24.json"
-RECEIPT_PATH = ROOT / "research" / "context-receipt-best-field-service-management-software-2026-09-24.json"
+PACK_PATH = ROOT / "research" / "context-pack-best-field-service-management-software-2026-09-25.json"
+RECEIPT_PATH = ROOT / "research" / "context-receipt-best-field-service-management-software-2026-09-25.json"
 SELECTOR_PACK_PATH = (
     ROOT
     / "research"
-    / "context-pack-best-field-service-management-software-customer-selector-2026-09-24.json"
+    / "context-pack-best-field-service-management-software-customer-selector-2026-09-25.json"
 )
 SELECTOR_RECEIPT_PATH = (
     ROOT
     / "research"
-    / "context-receipt-best-field-service-management-software-customer-selector-2026-09-24.json"
+    / "context-receipt-best-field-service-management-software-customer-selector-2026-09-25.json"
 )
 TRACE_PATH = (
     ROOT
     / "research"
-    / "context-refresh-best-field-service-management-software-12-tools-2026-09-24.json"
+    / "context-refresh-best-field-service-management-software-12-tools-2026-09-25.json"
 )
 
 SEARCH_QUERIES = [

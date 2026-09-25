@@ -21,11 +21,11 @@ from data_sources.modules.simpro_vault_client import SimproVaultClient
 
 
 ARTICLE = ROOT / "rewrites" / "best-field-service-management-software-rewrite-2026-08-28.md"
-OUTPUT = ROOT / "research" / "hindsight-strategy-evidence-best-field-service-management-software-2026-09-24.json"
+OUTPUT = ROOT / "research" / "hindsight-strategy-evidence-best-field-service-management-software-2026-09-25.json"
 
 SEARCH_QUERIES = [
     "field service management software buyer objections and first demo tests",
-    "Jobber Joblogic FieldEdge ServiceTitan FieldPulse Service Fusion Tradify buyer objections",
+    "Jobber Joblogic ServiceTitan FieldPulse Service Fusion Tradify buyer objections",
     "commercial asset-heavy service project workflow evaluation",
 ]
 

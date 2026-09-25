@@ -11,7 +11,7 @@ audience: "US growth-minded trade-business owners, operations leaders, finance a
 region: US
 market: US
 date_published: 2026-06-24
-date_modified: 2026-09-24
+date_modified: 2026-09-25
 last_updated: 2026-09-24
 publisher: Simpro
 cms_semantic_container: article
@@ -75,7 +75,7 @@ For trade contractors running service and project work in one workflow, put Simp
 | [Simpro](#simpro) | Connected service and project work | Growing, multi-role operation | Trade service and projects | The buying case stops at basic scheduling | One service job and one project from estimate through reporting, including migrated customer, job, and asset data |
 | [Jobber](#jobber) | Quote-to-payment service | Streamlined team | Service | The shown plan or billing terms fail. | Book through payment. Inspect labor, materials, expenses, profit, and margin in the [job-costing view](https://www.getjobber.com/features/job-costing-software/), and confirm plan fit. |
 | [Joblogic](#joblogic) | Asset-led reactive and recurring work | Multi-role maintenance team | Service and maintenance | The accounting workflow fails the buyer's live test | Offline asset job through resync and accounting. If project work matters, run a phased job through variations, staged payments, retention, and final invoicing. |
-| [FieldEdge](#fieldedge) | Dispatch and service agreements | Growing service team | Field service trades | The demonstrated commercial model fails the buying policy | Agreement job through dispatch, invoice, and reporting. Then submit a failed-inspection form and verify the follow-up task, office notice, customer message, and audit trail. |
+| [FieldEdge](#fieldedge) | Dispatch and service agreements | Growing service team | Field service trades | The demonstrated commercial model fails the buying policy | Agreement job through dispatch, invoice, and reporting. |
 | [BuildOps](#buildops) | Commercial service and projects | Complex commercial operation | Commercial specialty contracting | The demonstrated workflow is too complex for the buying case | Maintenance job and project through the actual ERP |
 | [ServiceTitan](#servicetitan) | Technician-led service | Scaling, rollout-ready team | Field and home service | Limited internal rollout capacity. | Run call to invoice, reassignment, a permission change, and a failed sync. Then trace one equipment item's [service history](https://help.servicetitan.com/docs/view-equipment-history-in-fma), forms, repairs, and maintenance. |
 | [FieldPulse](#fieldpulse) | Office-to-field job workflows | Growing team with distinct roles | Field service | The demonstrated access and pricing model does not fit | Permissions and handoffs for every role. Then sync a representative invoice-and-payment batch through your QuickBooks edition, and change or fail one record to test reconciliation, duplicates, and recovery. |
@@ -177,7 +177,7 @@ If both tools reach the shortlist, use Simpro's [comparison with Jobber](https:/
 
 **FieldEdge mismatch:** Transparent self-serve pricing as a prerequisite to discussing features, company size, onboarding, and add-ons.
 
-**Test FieldEdge:** Run one service-agreement job through dispatch, billing, reports, package limits, onboarding, data migration, integrations, and current and planned-team quotes. Submit a [custom form](https://fieldedge.com/field-service-software/) for a failed inspection and verify the follow-up task, office notice, customer message, and audit trail.
+**Test FieldEdge:** Run one service-agreement job through dispatch, billing, reports, package limits, onboarding, data migration, integrations, and current and planned-team quotes.
 
 <a id="buildops"></a>
 

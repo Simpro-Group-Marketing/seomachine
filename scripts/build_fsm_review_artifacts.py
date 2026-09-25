@@ -39,8 +39,8 @@ from data_sources.modules.machine_review import (
 )
 
 SLUG = "best-field-service-management-software"
-DATE = "2026-09-24"
-ASSEMBLY_DATE = "2026-09-24"
+DATE = "2026-09-25"
+ASSEMBLY_DATE = "2026-09-25"
 SERP_DATE = "2026-09-24"
 
 ARTICLE = ROOT / "rewrites" / "best-field-service-management-software-rewrite-2026-08-28.md"
