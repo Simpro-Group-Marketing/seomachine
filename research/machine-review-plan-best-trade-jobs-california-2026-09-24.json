@@ -1,0 +1,59 @@
+{
+  "agent_responses": [
+    {
+      "agent": "Content Analyzer",
+      "findings": [],
+      "status": "completed"
+    },
+    {
+      "agent": "Editor",
+      "findings": [],
+      "status": "completed"
+    },
+    {
+      "agent": "Public Copy Boundary Reviewer",
+      "findings": [],
+      "status": "completed"
+    },
+    {
+      "agent": "SEO Optimizer",
+      "findings": [],
+      "status": "completed"
+    },
+    {
+      "agent": "Meta Creator",
+      "findings": [],
+      "status": "completed"
+    },
+    {
+      "agent": "Internal Linker",
+      "findings": [],
+      "status": "completed"
+    },
+    {
+      "agent": "Keyword Mapper",
+      "findings": [],
+      "status": "completed"
+    }
+  ],
+  "agent_roster": [
+    "Content Analyzer",
+    "Editor",
+    "Public Copy Boundary Reviewer",
+    "SEO Optimizer",
+    "Meta Creator",
+    "Internal Linker",
+    "Keyword Mapper"
+  ],
+  "article_sha256": "5e00913900bb1718dd4c13be6bc49cb653a2de5602518b1f4f832cc166b8f422",
+  "artifact_hash": "d2bc8a9e0e095ec94f408a2e895fb54839be04865e60d0723e413b63fdde5d2a",
+  "command": "scripts/build_trade_jobs_ca_review_artifacts.py",
+  "created_at": "2026-09-24T20:55:21Z",
+  "editorial_plan_sha256": "71b09b2b66f843de7e39ab0629a3bcf0a63a759623a7834d5cda404fb7c8b109",
+  "phase": "plan",
+  "proof_sidecar_sha256": "38d897c10a04aee98c2f7c977a8e6479da73294dc48adb7d865bdabd99730ca5",
+  "repository_commit": "179301cb3ce6226487fae44cb2bf5b808a964921",
+  "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+  "schema": "simpro-blog-machine-review/v1",
+  "workflow_stage": "rewrite_review"
+}

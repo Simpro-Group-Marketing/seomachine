@@ -1,0 +1,39 @@
+{
+  "artifact_paths": {
+    "answersocrates_blocker": null,
+    "article": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\rewrites\\best-trade-jobs-california-rewrite-2026-09-24.md",
+    "content_brief": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\content-brief-best-trade-jobs-california-2026-09-24.md",
+    "context_pack": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-pack-best-trade-jobs-california.json",
+    "context_receipt": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-receipt-best-trade-jobs-california.json",
+    "context_request": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-request-best-trade-jobs-california.json",
+    "customer_proof_evidence": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\customer-proof-selector-evidence-best-trade-jobs-california-decision-2026-09-24.json",
+    "editorial_plan": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\editorial-plan-best-trade-jobs-california-2026-09-24.json",
+    "fred_authority_evidence": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\fred-authority-selector-best-trade-jobs-california-2026-09-24.json",
+    "keyword_decision": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\semrush-keyword-decision-best-trade-jobs-california-2026-09-24.json",
+    "output": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\releases\\best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-initial-v3\\pre-bom-report.json",
+    "paa_artifact": null,
+    "proof_sidecar": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\validation-best-trade-jobs-california-2026-09-24.md",
+    "scrub_receipt": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\stage-receipts\\best-trade-jobs-california\\2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-scrub.json",
+    "semrush_blocker": null,
+    "serp_evidence": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\serp-evidence-best-trade-jobs-california-2026-09-24.json",
+    "stage_receipts": [
+      "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\stage-receipts\\best-trade-jobs-california\\2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-draft.json",
+      "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\stage-receipts\\best-trade-jobs-california\\2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-scrub.json",
+      "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\stage-receipts\\best-trade-jobs-california\\2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-context-binding.json"
+    ],
+    "user_paa_csv": null
+  },
+  "blockers": [],
+  "next_required_commands": [],
+  "ready_for_bom": true,
+  "required_human_inputs": [],
+  "schema": "simpro-blog-creation-preflight/v1",
+  "warnings": [
+    {
+      "artifact": "eeat_strength",
+      "message": "Commercial-investigation article has no positive E-E-A-T signal; the sidecar explicitly records proof_unavailable_safe_to_publish.",
+      "rule_id": "eeat_strength_safe_but_weak",
+      "suggestion": "Publish may proceed, but strengthen the article when selected customer proof, a named author, Fred authority, review-theme evidence, or SME review becomes available."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+## Fred Voccola Authority Selection
+- Selector command: python data_sources/modules/fred_authority_selector.py 'highest paying trades in california' --title '18 Highest-Paying Trades in California to Consider in 2026' --objective 'Help Californians choosing a skilled trade compare the highest-paying trades by 2025 California median pay, training route, licensing and demand, then show how licensed tradespeople grow into running their own contracting business with field service management software.' --context-pack research/context-pack-best-trade-jobs-california.json --context-receipt research/context-receipt-best-trade-jobs-california.json --slate --limit 5 --output research/fred-authority-selector-best-trade-jobs-california-2026-09-24.json
+- Evaluation status: completed
+- Top candidates: [none]
+- Selected: [none]
+- Context receipt: research/context-receipt-best-trade-jobs-california.json
+- Claim IDs: [none]
+- Receipt revision: not available
+- Approval source: connector_claim_result
+- Fit decision: No candidate has been editorially verified as directly supporting the article topic 'highest paying trades in california'; public use is rejected until that review occurs.
+- Intended use: none
+- Target section: not applicable
+- Authority row: [none]
+- Public URL: not applicable
+- Evidence status: not applicable
+- Verification method: not_applicable
+- Evidence excerpt: not applicable
+- Timestamp or locator: not applicable
+- Playback verified: not_applicable
+- Exact quote: not applicable
+- Embed decision: no
+- VideoObject: not applicable

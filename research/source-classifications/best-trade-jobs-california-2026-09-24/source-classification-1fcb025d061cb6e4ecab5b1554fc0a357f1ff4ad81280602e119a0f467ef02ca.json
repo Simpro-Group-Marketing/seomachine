@@ -1,0 +1,28 @@
+{
+  "classified_at": "2026-09-24T20:09:14Z",
+  "emitter": {
+    "name": "source_registry_export",
+    "version": "1.0.0"
+  },
+  "execution_attestation": {
+    "algorithm": "hmac-sha256",
+    "key_id": "88df9183fcb097c1",
+    "purpose": "simpro-source-classification/v1",
+    "schema": "simpro-execution-attestation/v1",
+    "signature": "523d7fc9b9c95efbf052bc10455fb4f27f06bb9d5004e6292913937ba9fb292c"
+  },
+  "publisher": {
+    "hostname": "www.onetonline.org",
+    "relationship": "independent"
+  },
+  "registry": {
+    "authority_mode": "repository_decision",
+    "decision_path": "context/source-classification-decisions.json",
+    "decision_sha256": "3c60f204150928cf01ab10d802e3627d36220c07a3b9803b06f7eaa5b4e05e9d",
+    "record_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-2095-00-st-ca",
+    "revision": "2026-09-24"
+  },
+  "schema": "simpro-source-classification/v1",
+  "source_class": "primary_authority",
+  "source_url": "https://www.onetonline.org/link/localwages/49-2095.00?st=CA"
+}

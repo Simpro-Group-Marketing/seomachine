@@ -1,0 +1,19 @@
+{
+  "bytes": 546,
+  "content_type": "application/json",
+  "file": "research/source-snapshots/ca-oews-best-trade-jobs-california-2026-09-24/bls-api-v2-batch-07577b130153.json",
+  "http_status": 200,
+  "method": "POST",
+  "request_payload": {
+    "endyear": "2025",
+    "seriesid": [
+      "OEUS060000000000047208211",
+      "OEUS060000000000047208213",
+      "OEUS060000000000047208215"
+    ],
+    "startyear": "2025"
+  },
+  "retrieved_at": "2026-09-24T16:02:18Z",
+  "sha256": "7fe07c6811be79d863467460e9526ad08ba2ee3678819ed05dacdcb446210816",
+  "url": "https://api.bls.gov/publicAPI/v2/timeseries/data/"
+}

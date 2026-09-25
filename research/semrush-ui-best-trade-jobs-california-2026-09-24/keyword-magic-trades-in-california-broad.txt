@@ -1,0 +1,58 @@
+Semrush UI capture (get_page_text, authenticated main Chrome profile)
+URL: https://www.semrush.com/analytics/keywordmagic/?q=trades+in+california&db=us&type=all&mode=0&fid=562608
+Captured at (UTC): within the verified capture window 2026-09-24T15:40:28Z to 2026-09-24T15:49:17Z (shell clock readings bracketing the Semrush session; exact per-view minute not recorded)
+Database: us | Match: All Keywords / Broad (default view, sorted by relevance) | Execution surface: semrush_ui_chrome_main_browser
+Run ID: 0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5
+Note: Semrush navigation chrome and the Topics sidebar group list are omitted. Keyword table rows are verbatim for page 1 rows 1-33 (of 100 on page 1; 669 pages); rows 34-100 on page 1 were long-tail trade-school/list-of-trades variants at 20 volume with KD n/a ("For metrics, refresh") and are not transcribed. Row format as rendered: keyword | intent code(s) | relevance | volume | KD % | CPC (USD) | updated.
+---
+Keyword Magic Tool:
+trades in california
+Database: United States
+Currency: USD
+All Keywords
+All keywords:
+66,857
+Total Volume:
+3,008,040
+Average KD:
+28%
+
+Keyword | Intent | Relevance | Volume | KD % | CPC (USD) | Updated
+trades in california | I C | 100 | 30 | 22 | 5.56 | 1 month
+top trades in california | n/a | 72 | 20 | n/a | 6.16 | For metrics, refresh
+best trade jobs in california | C | 68 | 50 | 9 | 4.58 | 1 month
+best trades in california | C | 65 | 50 | 17 | 10.14 | 1 month
+highest paying trades in california | I C | 61 | 70 | 22 | 8.85 | 1 month
+highest paid trades in california | n/a | 59 | 30 | n/a | 0.00 | For metrics, refresh
+trade schools in california | C | 57 | 1,000 | 27 | 4.65 | 1 month
+trades to get into | I | 57 | 320 | 38 | 3.23 | 1 month
+different types of trades jobs | C | 57 | 140 | 47 | 1.27 | 1 month
+highest paying trade jobs in california | C | 57 | 90 | 28 | 1.63 | 1 month
+lists of trades | n/a | 57 | 90 | n/a | 1.98 | For metrics, refresh
+what is a trades job | C | 57 | 90 | 40 | 1.84 (+2 SERP features) | 1 month
+examples of trades jobs | C | 57 | 70 | 29 | 0.69 | 1 month
+trade occupations list | I | 57 | 70 | 54 | 1.74 | 1 month
+common trades | I | 57 | 50 | 36 | 1.83 | 1 month
+affordable vocational schools southern california | n/a | 57 | 40 | n/a | 0.00 | For metrics, refresh
+jobs that are trades | C | 57 | 40 | 36 | 2.54 | 1 month
+list of vocational trades | I | 57 | 40 | 31 | 0.00 | 1 month
+type of trade jobs | n/a | 57 | 40 | n/a | 1.59 | For metrics, refresh
+a list of trades | I | 57 | 30 | 31 | 1.90 | 1 month
+all trade jobs list | C | 57 | 30 | 42 | 1.28 | 1 month
+common trade jobs | n/a | 57 | 30 | n/a | 0.00 | For metrics, refresh
+how much is trade school in california | n/a | 57 | 30 | n/a | 0.00 | For metrics, refresh
+leading trade schools in southern california | n/a | 57 | 30 | n/a | 0.00 | For metrics, refresh
+skill trade jobs list | C | 57 | 30 | 42 | 1.29 | 1 month
+top trade schools california rankings | n/a | 57 | 30 | n/a | 0.00 | For metrics, refresh
+trade jobs types | n/a | 57 | 30 | n/a | 1.59 | For metrics, refresh
+trade schools palmdale | n/a | 57 | 30 | n/a | 5.16 | For metrics, refresh
+trades job list | C | 57 | 30 | 41 | 1.74 | 1 month
+what are all the trades jobs | n/a | 57 | 30 | n/a | 1.68 | For metrics, refresh
+what are different trade jobs | n/a | 57 | 30 | n/a | 1.00 | For metrics, refresh
+what are some trades jobs | n/a | 57 | 30 | n/a | 1.72 | For metrics, refresh
+what trade jobs are there | n/a | 57 | 30 | n/a | 1.67 | For metrics, refresh
+Additional page-1 rows of note (verbatim): best trades to learn in california | n/a | 57 | 20 | n/a | 3.43 | For metrics, refresh
+different trades and their salaries | n/a | 57 | 20 | n/a | 0.00 | For metrics, refresh
+list of trades and salaries | n/a | 57 | 20 | n/a | 0.82 | For metrics, refresh
+highest paying vocational trades | n/a | 57 | 20 | n/a | 0.00 | For metrics, refresh
+Page: 1 of 669

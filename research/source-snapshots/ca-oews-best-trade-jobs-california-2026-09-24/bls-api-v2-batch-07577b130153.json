@@ -1,0 +1,6 @@
+{"status":"REQUEST_SUCCEEDED","responseTime":64,"message":[],"Results":{
+"series":
+[{"seriesID":"OEUS060000000000047208211","data":[{"year":"2025","period":"A01","periodName":"Annual","latest":"true","value":"45800","footnotes":[{}]}]},
+{"seriesID":"OEUS060000000000047208213","data":[{"year":"2025","period":"A01","periodName":"Annual","latest":"true","value":"73460","footnotes":[{}]}]},
+{"seriesID":"OEUS060000000000047208215","data":[{"year":"2025","period":"A01","periodName":"Annual","latest":"true","value":"115370","footnotes":[{}]}]}]
+}}

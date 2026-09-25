@@ -1,0 +1,7 @@
+{
+  "active_state_hash": "a8610f95bca4a5e98d24a7d66811c9313df288228e4792fe0db66baafcd3fc1c",
+  "consumed_at": "2026-09-24T20:12:34.798455Z",
+  "receipt_hash": "b9308159c44ae20dc665e926fdd0a24071dca91381859d5894b5f817b673f987",
+  "receipt_sha256": "2ef4a7de1f05117d3a284b610c7ac7434b7c40153bbba5294149131d0af54933",
+  "schema": "simpro-blog-native-edit-state-consumed/v1"
+}

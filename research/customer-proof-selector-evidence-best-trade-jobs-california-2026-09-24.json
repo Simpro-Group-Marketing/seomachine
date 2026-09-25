@@ -1,0 +1,78 @@
+{
+  "artifacts": {
+    "context_pack": {
+      "path": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-pack-best-trade-jobs-california-customer-selector-2026-09-24.json",
+      "sha256": "f2221d19fa0a8e3a1ea65639fbc5a0ca3a610d42ab13077dd14f4455537c73e5"
+    },
+    "context_receipt": {
+      "path": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-receipt-best-trade-jobs-california-customer-selector-2026-09-24.json",
+      "sha256": "bdfbfa3d5230d95d34144a68c4d338bc62959def4116f12fbadc02ed290c1872"
+    },
+    "index": {
+      "path": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\context\\customer-proof-index.json",
+      "sha256": "fee695a0b32d20c3c12c155a590979f4352b3170925fe6f87654b75282125c62"
+    },
+    "ledger": {
+      "path": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\context\\customer-proof-usage-ledger.json",
+      "sha256": "a094f1c09757645a95da80b6666e9d6d4c72aaeb5e71ce307a3843960d098cad"
+    }
+  },
+  "inputs": {
+    "allow_no_proof": false,
+    "article_slug": "best-trade-jobs-california",
+    "limit": 10,
+    "objective": "Help Californians choosing a skilled trade compare the highest-paying trades by 2025 California median pay, training route, licensing and demand, then show how licensed tradespeople grow into running their own contracting business with field service management software.",
+    "reference_date": "2026-09-24",
+    "rejected_overrides": {},
+    "require_eeat_story": true,
+    "roles": [
+      "metric",
+      "quote",
+      "theme",
+      "experience_story"
+    ],
+    "selected_overrides": {},
+    "title": "18 Highest-Paying Trade Jobs in California for 2026",
+    "topic": "highest paying trades in california"
+  },
+  "roles": [
+    {
+      "candidate_ids": [
+        "reference-ldn-security-solutions-scale",
+        "case-study-foster-plumbing-job-costing-exit",
+        "case-study-schaffer-beacon-mechanical"
+      ],
+      "claim_ids": [
+        "claim-metric-MET-1524",
+        "claim-metric-MET-0178",
+        "claim-metric-MET-1515"
+      ],
+      "receipt_revision": "93ee835800a7030f67ca45b3c5c737ec2bd67da87edad90342415e88479a8a6f",
+      "role": "metric",
+      "selected_id": "reference-ldn-security-solutions-scale"
+    },
+    {
+      "candidate_ids": [],
+      "claim_ids": [],
+      "receipt_revision": "not available",
+      "role": "quote",
+      "selected_id": "none"
+    },
+    {
+      "candidate_ids": [],
+      "claim_ids": [],
+      "receipt_revision": "not available",
+      "role": "theme",
+      "selected_id": "none"
+    },
+    {
+      "candidate_ids": [],
+      "claim_ids": [],
+      "receipt_revision": "not available",
+      "role": "experience_story",
+      "selected_id": "none"
+    }
+  ],
+  "schema": "simpro-customer-proof-selector-evidence/v1",
+  "selection_outcome": "customer_proof_candidates_available"
+}

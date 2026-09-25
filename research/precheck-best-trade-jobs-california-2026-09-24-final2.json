@@ -1,0 +1,29 @@
+{
+  "blockers": [],
+  "message": "release prechecks passed",
+  "optimized_release": true,
+  "output_dir_created": false,
+  "passed": true,
+  "paths": {
+    "planned_output_dir": "research/releases/best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-final-precheck2"
+  },
+  "phase": "precheck",
+  "pre_bom": {
+    "blockers": [],
+    "ready_for_bom": true,
+    "warnings": [
+      {
+        "artifact": "eeat_strength",
+        "message": "Commercial-investigation article has no positive E-E-A-T signal; the sidecar explicitly records proof_unavailable_safe_to_publish.",
+        "rule_id": "eeat_strength_safe_but_weak",
+        "suggestion": "Publish may proceed, but strengthen the article when selected customer proof, a named author, Fred authority, review-theme evidence, or SME review becomes available."
+      }
+    ]
+  },
+  "provisional_bom": {
+    "findings": [],
+    "valid": true
+  },
+  "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+  "schema": "simpro-blog-release-precheck/v1"
+}

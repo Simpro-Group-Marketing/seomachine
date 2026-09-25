@@ -1,0 +1,44 @@
+{
+  "completed_at": "2026-09-24T20:57:08.504206Z",
+  "evidence_hashes": {
+    "agent_definition.content-analyzer": "8a5253b8aa0d7cf5b6ce003dd9af504444f0cc0b963746d455910f549aa914d9",
+    "agent_definition.internal-linker": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c",
+    "agent_definition.keyword-mapper": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d",
+    "agent_definition.meta-creator": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a",
+    "agent_definition.seo-optimizer": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8",
+    "agent_output.content-analyzer": "5a70d9054b8e07b2845e257b2e169f55bfb06c520759174a6bf3a7d17979f8f4",
+    "agent_output.internal-linker": "d0f842ff61ee47080be87bc147fc9dceb9450548a2897590b8d0522a3e9a83ec",
+    "agent_output.keyword-mapper": "ca83fa95ae4220386c3cc30e4032a348aedbc71ad7f06dd1f0b94a31f97d6ddb",
+    "agent_output.meta-creator": "de63d096ab879a244b0be4329329f3d09fe6c26c53c46dd5d77dfbdee222a5ab",
+    "agent_output.seo-optimizer": "2c1ca67e1ebbb9c258981da36d8afba899fccfc659be6880fceccfe94778dee8",
+    "command_definition.optimize-command": "4c1c60954db2129a49c3a83564b44e49974c44d17708c2aa210542d3ee691cea",
+    "optimizer_output": "066f861c5963aede98e4a69070ee78e2e567061a4ef127b6ce96736cb44fe1d1",
+    "proof_sidecar": "38d897c10a04aee98c2f7c977a8e6479da73294dc48adb7d865bdabd99730ca5",
+    "scorecard": "3886c1dbb0804d26417e23d43a821d81f3cc2503688d7ec6ed597aa272e12146"
+  },
+  "execution_attestation": {
+    "algorithm": "hmac-sha256",
+    "key_id": "88df9183fcb097c1",
+    "purpose": "simpro-blog-stage-receipt/v1",
+    "schema": "simpro-execution-attestation/v1",
+    "signature": "db20c36cda2501fceaa3a37aec2fbb9ed6380c9d3b48c48b6706b6e3e7b42c27"
+  },
+  "input_artifact_hashes": {
+    "article": "e61f4684ba4201aef8f15de9ee13ac9ca687aeef9992daa34c2658472fa5ff22"
+  },
+  "mutation": true,
+  "output_artifact_hashes": {
+    "article": "5e00913900bb1718dd4c13be6bc49cb653a2de5602518b1f4f832cc166b8f422"
+  },
+  "previous_receipt_hash": "79fdaee21cc91ed8dd1abab1e974545911ab9803d251be964f6ec926ef475330",
+  "receipt_hash": "f9a5bffdc7a849cbbe1b8a63cb290e2f2e1c0e0ba3ae376d6f7b1c293f4ce27c",
+  "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+  "schema": "simpro-blog-stage-receipt/v1",
+  "stage": "optimization",
+  "started_at": "2026-09-24T20:53:25.865368Z",
+  "status": "completed",
+  "tool": {
+    "name": "optimize-command",
+    "version": "1"
+  }
+}

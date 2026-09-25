@@ -1,0 +1,190 @@
+Semrush UI capture (get_page_text, authenticated main Chrome profile)
+URL: https://www.semrush.com/analytics/keywordoverview/?q=best+trade+jobs+in+california&db=us&fid=562608
+Captured at (UTC): within the verified capture window 2026-09-24T15:40:28Z to 2026-09-24T15:49:17Z (shell clock readings bracketing the Semrush session; exact per-view minute not recorded)
+Database: us | Device: Desktop | Execution surface: semrush_ui_chrome_main_browser
+Run ID: 0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5
+Note: Semrush navigation chrome, toolbar buttons, promo banner, and SERP pagination links omitted; all data fields verbatim.
+---
+Keyword Overview:
+best trade jobs in california
+United States
+Desktop
+Sep 24, 2026
+USD
+Keyword summary
+Volume
+50
+Keyword Difficulty
+9%
+Very easy
+Your chance to start ranking new pages on Google as soon as possible without any backlinks.
+Global Volume
+50
+US
+UNITED STATES
+50
+AU
+AUSTRALIA
+0
+BR
+BRAZIL
+0
+CA
+CANADA
+0
+IT
+ITALY
+0
+TR
+TÜRKIYE
+0
+Intent
+Commercial
+Trend
+CPC
+$4.58
+Competitive Density
+0.13
+PLA
+n/a
+Ads
+n/a
+Keyword ideas
+Keyword Variations
+8
+Total Volume:
+100
+Keywords
+Volume
+KD %
+best trade jobs in california
+50
+9
+best paying trade jobs in california
+20
+n/a
+best trade schools in southern california for job training
+10
+n/a
+best vocational trade schools in southern california for job placement
+10
+n/a
+best vocational trade schools in southern california with job placement
+10
+n/a
+View all 8 keywords
+Questions
+n/a
+We have no data to show.
+Keyword Strategy
+Get topics, pillar and subpages automatically
+best trade jobs in california
+Intents: Commercial 100%
+best trades to learn
+Intents: Commercial 100%
+trade school jobs that pay well
+Intents: Informational 20%, Commercial 80%
+best paying trade jobs
+Intents: Commercial 100%
+highest paying trades in california
+Intents: Commercial 100%
+best trade school jobs
+View all clusters
+SERP Analysis
+Domain
+URL
+Export
+Results
+179
+SERP Features
+Sitelinks, Video, Discussions and forums
+Position on SERP
+URL
+Page AS
+Ref. Domains
+Backlinks
+Search Traffic
+URL Keywords
+1
+https://www.reddit.com/r/careerguidance/comments/16dfz0s/best_trade_job/
+reddit.com
+Sitelinks
+24
+1
+1
+744
+48
+2
+https://www.simprogroup.com/blog/best-trade-jobs-california
+simprogroup.com
+0
+0
+0
+68
+284
+3
+https://www.indeed.com/q-entry-level-trade-l-california-jobs.html
+indeed.com
+0
+0
+0
+29
+18
+Discussions and forums
+4
+https://abcnorcal.org/highest-paying-trade-jobs/
+abcnorcal.org
+5
+4
+5
+611
+586
+5
+https://tallo.com/careers/job-search/highest-paying-trade-jobs-in-california/
+tallo.com
+10
+2
+2
+438
+201
+6
+https://intercoast.edu/articles/trade-skills-california/
+intercoast.edu
+7
+2
+3
+0
+0
+7
+https://www.youtube.com/watch?v=Oi3psLTVs5k
+youtube.com
+Video
+0
+0
+0
+1
+83
+8
+https://www.simplyhired.com/search?q=trade&l=california
+simplyhired.com
+0
+0
+0
+1
+4
+9
+https://www.facebook.com/groups/569546850078738/posts/2691891697844232/
+facebook.com
+0
+0
+0
+1
+8
+10
+https://www.simplyhired.com/search?q=trade&l=california
+simplyhired.com
+0
+0
+0
+1
+4

@@ -1,0 +1,33 @@
+{
+  "applied_fixes": [
+    {
+      "dimension": "readability",
+      "issue": "Monotonous sentence rhythm (33 uniform sections)",
+      "change": "Split the core-service-trades capsule sentence into two sentences and the pay-factors capsule closing sentence into two sentences, adding short sentences without changing any claim.",
+      "location": "Core service trades outside the top 18; What affects trade salaries in California?"
+    },
+    {
+      "dimension": "readability",
+      "issue": "Monotonous sentence rhythm (33 uniform sections)",
+      "change": "Added the short framing sentence 'Pay is only half the picture, though.' to the reader paragraph after the answer capsule to vary rhythm and set up the non-pay criteria in each profile.",
+      "location": "Introduction reader paragraph"
+    }
+  ],
+  "not_applied": [
+    {
+      "dimension": "humanity",
+      "issue": "Lacks contractions (sounds formal)",
+      "reason": "Vault editorial voice reserves a contraction-heavy, first-person register for named authors; the article has no named author, so the neutral channel voice stays."
+    },
+    {
+      "dimension": "readability",
+      "issue": "Paragraphs exceed 4 sentences",
+      "reason": "The flagged blocks are the brief-mandated five-field trade profiles, which the scorer counts as single paragraphs; splitting them would break the required identical mini-structure."
+    },
+    {
+      "dimension": "seo",
+      "issue": "Primary keyword missing from H2 headings",
+      "reason": "H2 headings are frozen in the editorial plan and the at-a-glance H2 already carries the hyphenated keyword phrase; a heading change would require a new plan hash for a medium-severity note while SEO is 92 with zero critical issues (release-pass, below target)."
+    }
+  ]
+}

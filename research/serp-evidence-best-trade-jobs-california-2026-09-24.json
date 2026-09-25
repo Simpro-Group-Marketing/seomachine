@@ -1,0 +1,100 @@
+{
+  "collected_at": "2026-09-24T15:49:09Z",
+  "collector": {
+    "name": "research_serp_analysis:chrome_connector",
+    "version": "1.0.0"
+  },
+  "evidence_hash": "a0420c6dadd6e6094e4531645bf7ba2b0abe0beacb56c96989f5def4a2a0d00f",
+  "execution_attestation": {
+    "algorithm": "hmac-sha256",
+    "key_id": "88df9183fcb097c1",
+    "purpose": "simpro-serp-evidence/v1",
+    "schema": "simpro-execution-attestation/v1",
+    "signature": "5975dce8dfb440b04f81e88bedf01ec9bc3f7b0ae43818927a6d4e8589cb632e"
+  },
+  "observations": {
+    "competitor_gaps": [
+      "The AI Overview and several results mix salary sources and years; one consistent California dataset with a stated year is uncommon.",
+      "Several results mix non-trade occupations (dental hygienist, web developer, occupational therapy assistant, neurologists) into trade rankings.",
+      "Results rarely pair each California salary with training length, licensing, and overtime or union effects in the same structure.",
+      "People also ask and People also search for lean toward degree-free and $100K earning questions, which the ranked list can answer directly.",
+      "The current Simpro result is dated May 17, 2024 and its visible snippet mixes role titles (Electrical Systems Expert, Electrical Grid Worker) that do not match standard occupation names."
+    ],
+    "content_types": [
+      "Listicle",
+      "General Article",
+      "How-To Guide"
+    ],
+    "must_have_sections": [
+      "direct answer naming the top 3 to 5 highest-paying California trades before the list",
+      "at-a-glance comparison table ranked on one California salary dataset",
+      "salary methodology and data year stated early",
+      "consistent per-trade structure with pay, training route, and licensing",
+      "what affects trade salaries in California",
+      "how to choose a trade and apprenticeship entry routes"
+    ],
+    "serp_features": [
+      "AI Overview",
+      "People also ask",
+      "People also search for"
+    ]
+  },
+  "query": "highest paying trades in california",
+  "raw_capture": {
+    "path": "research/serp-chrome-raw-best-trade-jobs-california-2026-09-24.json",
+    "sha256": "0b40647906f311a15e0b71441738b6685598cbd5e99eff045d3523ef178417d2"
+  },
+  "results": [
+    {
+      "position": 1,
+      "result_type": "organic",
+      "title": "18 Best Trade Jobs in California: Descriptions & Salaries!",
+      "url": "https://www.simprogroup.com/blog/best-trade-jobs-california"
+    },
+    {
+      "position": 2,
+      "result_type": "organic",
+      "title": "Best trade job? : r/careerguidance",
+      "url": "https://www.reddit.com/r/careerguidance/comments/16dfz0s/best_trade_job/"
+    },
+    {
+      "position": 3,
+      "result_type": "organic",
+      "title": "Top 10 Highest Paying Trade Jobs for 2025",
+      "url": "https://abcnorcal.org/highest-paying-trade-jobs/"
+    },
+    {
+      "position": 4,
+      "result_type": "organic",
+      "title": "Highest Paying Careers",
+      "url": "https://www.careeronestop.org/Toolkit/Wages/highest-paying-careers.aspx?persist=true&location=CA"
+    },
+    {
+      "position": 5,
+      "result_type": "organic",
+      "title": "22 High-Paid Trade School Jobs in Los Angeles (With ...",
+      "url": "https://www.indeed.com/career-advice/finding-a-job/high-paid-trade-school-jobs-los-angeles"
+    },
+    {
+      "position": 6,
+      "result_type": "organic",
+      "title": "Highest Paying Trade Jobs in California",
+      "url": "https://tallo.com/careers/job-search/highest-paying-trade-jobs-in-california/"
+    },
+    {
+      "position": 7,
+      "result_type": "organic",
+      "title": "15 Highest-Paying Trade Jobs You Can Start Now (2026)",
+      "url": "https://techniciansofamerica.com/blog/highest-paying-trade-jobs"
+    },
+    {
+      "position": 8,
+      "result_type": "organic",
+      "title": "Skilled Trades Jobs: Your Guide to Construction Careers",
+      "url": "https://abcsocal.org/skilled-trades-jobs/"
+    }
+  ],
+  "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+  "schema": "simpro-serp-evidence/v1",
+  "status": "verified"
+}

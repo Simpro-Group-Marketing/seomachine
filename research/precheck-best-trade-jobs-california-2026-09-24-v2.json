@@ -1,0 +1,18 @@
+{
+  "blockers": [
+    {
+      "message": "stage receipt chain is invalid: stage_receipt_evidence_unresolved",
+      "rule_id": "provisional_bom"
+    }
+  ],
+  "exception_type": "ValueError",
+  "message": "stage receipt chain is invalid: stage_receipt_evidence_unresolved",
+  "output_dir_created": false,
+  "passed": false,
+  "paths": {
+    "planned_output_dir": "research/releases/best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-precheck-v2"
+  },
+  "phase": "provisional_bom",
+  "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+  "schema": "simpro-blog-release-precheck/v1"
+}

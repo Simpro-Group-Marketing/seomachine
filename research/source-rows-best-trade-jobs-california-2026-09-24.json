@@ -1,0 +1,883 @@
+{
+  "schema": "simpro-trade-jobs-ca-source-rows/v1",
+  "article": "rewrites/best-trade-jobs-california-rewrite-2026-09-24.md",
+  "article_sha256": "5e00913900bb1718dd4c13be6bc49cb653a2de5602518b1f4f832cc166b8f422",
+  "generated_on": "2026-09-24",
+  "rows": [
+    {
+      "claim": "Elevator and escalator installers lead at $141,180",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-4021.00?st=CA",
+      "evidence": "California $74,670 $120,900 $141,180 $161,230 $173,920",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: intro (line 33)",
+      "visible": true
+    },
+    {
+      "claim": "power-line installers follow at $129,040",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9051.00?st=CA",
+      "evidence": "California $77,350 $98,680 $129,040 $156,380 $167,090",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: intro (line 33)",
+      "visible": true
+    },
+    {
+      "claim": "Substation repairers earn $121,520",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2095.00?st=CA",
+      "evidence": "California $76,440 $103,220 $121,520 $146,760 $165,540",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: intro (line 33)",
+      "visible": true
+    },
+    {
+      "claim": "mechanical insulation workers $119,690",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2132.00?st=CA",
+      "evidence": "California $57,700 $63,570 $119,690 $151,370 $165,540",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: intro (line 33)",
+      "visible": true
+    },
+    {
+      "claim": "building inspectors $101,290",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-4011.00?st=CA",
+      "evidence": "California $56,220 $76,160 $101,290 $128,530 $161,550",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: intro (line 33)",
+      "visible": true
+    },
+    {
+      "claim": "$141,180 (top 10%: $173,920+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-4021.00?st=CA",
+      "evidence": "California $74,670 $120,900 $141,180 $161,230 $173,920",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 53)",
+      "visible": true
+    },
+    {
+      "claim": "Cal/OSHA conveyance mechanic certification",
+      "claim_type": "factual",
+      "url": "https://www.dir.ca.gov/dosh/elevatorcertification.html",
+      "evidence": "Submit a certificate of completion from an approved apprenticeship program",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the official page is undated, so approval is scoped to the live page state checked on 2026-09-24.",
+      "use": "credential cell: Highest-paying trades in California at a glance (line 53)",
+      "visible": true
+    },
+    {
+      "claim": "$129,040 (top 10%: $167,090+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9051.00?st=CA",
+      "evidence": "California $77,350 $98,680 $129,040 $156,380 $167,090",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 54)",
+      "visible": true
+    },
+    {
+      "claim": "$121,520 (top 10%: $165,540+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2095.00?st=CA",
+      "evidence": "California $76,440 $103,220 $121,520 $146,760 $165,540",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 55)",
+      "visible": true
+    },
+    {
+      "claim": "$119,690 (top 10%: $165,540+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2132.00?st=CA",
+      "evidence": "California $57,700 $63,570 $119,690 $151,370 $165,540",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 56)",
+      "visible": true
+    },
+    {
+      "claim": "$101,290 (top 10%: $161,550+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-4011.00?st=CA",
+      "evidence": "California $56,220 $76,160 $101,290 $128,530 $161,550",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 57)",
+      "visible": true
+    },
+    {
+      "claim": "$100,260 (top 10%: $137,030+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9012.00?st=CA",
+      "evidence": "California $60,360 $78,860 $100,260 $130,800 $137,030",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 58)",
+      "visible": true
+    },
+    {
+      "claim": "$97,980 (top 10%: $106,230+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9052.00?st=CA",
+      "evidence": "California $60,260 $81,130 $97,980 $102,540 $106,230",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 59)",
+      "visible": true
+    },
+    {
+      "claim": "$92,480 (top 10%: $126,600+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2091.00?st=CA",
+      "evidence": "California $58,670 $77,660 $92,480 $106,950 $126,600",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 60)",
+      "visible": true
+    },
+    {
+      "claim": "$87,160 (top 10%: $132,210+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2073.00?st=CA",
+      "evidence": "California $52,760 $65,230 $87,160 $125,560 $132,210",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 61)",
+      "visible": true
+    },
+    {
+      "claim": "$87,080 (top 10%: $129,910+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2094.00?st=CA",
+      "evidence": "California $52,790 $74,270 $87,080 $110,300 $129,910",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 62)",
+      "visible": true
+    },
+    {
+      "claim": "$86,100 (top 10%: $116,690+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-3011.00?st=CA",
+      "evidence": "California $53,860 $68,390 $86,100 $99,650 $116,690",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 63)",
+      "visible": true
+    },
+    {
+      "claim": "FAA mechanic certificate",
+      "claim_type": "factual",
+      "url": "https://www.faa.gov/mechanics/become",
+      "evidence": "18 months of practical experience",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the official page is undated, so approval is scoped to the live page state checked on 2026-09-24.",
+      "use": "credential cell: Highest-paying trades in California at a glance (line 63)",
+      "visible": true
+    },
+    {
+      "claim": "$85,730 (top 10%: $127,810+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9096.00?st=CA",
+      "evidence": "California $53,190 $67,180 $85,730 $102,050 $127,810",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 64)",
+      "visible": true
+    },
+    {
+      "claim": "$84,820 (top 10%: $122,590+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2093.00?st=CA",
+      "evidence": "California $47,880 $60,460 $84,820 $110,030 $122,590",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 65)",
+      "visible": true
+    },
+    {
+      "claim": "$83,130 (top 10%: $130,120+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2071.00?st=CA",
+      "evidence": "California $56,980 $64,270 $83,130 $126,640 $130,120",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 66)",
+      "visible": true
+    },
+    {
+      "claim": "$78,550 (top 10%: $129,310+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-3042.00?st=CA",
+      "evidence": "California $47,880 $63,830 $78,550 $94,620 $129,310",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 67)",
+      "visible": true
+    },
+    {
+      "claim": "$77,950 (top 10%: $127,890+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9044.00?st=CA",
+      "evidence": "California $49,340 $61,310 $77,950 $109,190 $127,890",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 68)",
+      "visible": true
+    },
+    {
+      "claim": "$76,630 (top 10%: $113,240+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2022.00?st=CA",
+      "evidence": "California $56,410 $65,480 $76,630 $97,400 $113,240",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 69)",
+      "visible": true
+    },
+    {
+      "claim": "$76,590 (top 10%: $132,190+)",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2211.00?st=CA",
+      "evidence": "California $47,410 $59,220 $76,590 $107,360 $132,190",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "comparison table row: Highest-paying trades in California at a glance (line 70)",
+      "visible": true
+    },
+    {
+      "claim": "Entry routes come from Bureau of Labor Statistics education and training data",
+      "claim_type": "process",
+      "url": "https://data.bls.gov/projections/occupationProj",
+      "evidence": "Typical Entry-Level Education",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the BLS Employment Projections table shows the 2025-2035 projection cycle and typical entry-level education and training, scoped to the version checked on 2026-09-24.",
+      "use": "training route background: Highest-paying trades in California at a glance (line 74)",
+      "visible": true
+    },
+    {
+      "claim": "Elevator installers earn a median of $141,180",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-4021.00?st=CA",
+      "evidence": "California $74,670 $120,900 $141,180 $161,230 $173,920",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 85)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $173,920 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-4021.00?st=CA",
+      "evidence": "10% of workers earn $173,920 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 85)",
+      "visible": true
+    },
+    {
+      "claim": "California adds a Cal/OSHA certification for conveyance mechanics, earned through an approved apprenticeship or a qualifying exam",
+      "claim_type": "factual",
+      "url": "https://www.dir.ca.gov/dosh/elevatorcertification.html",
+      "evidence": "Submit a certificate of completion from an approved apprenticeship program",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the official page is undated, so approval is scoped to the live page state checked on 2026-09-24.",
+      "use": "credential statement: 18 highest-paying trade jobs in California (line 89)",
+      "visible": true
+    },
+    {
+      "claim": "Lineworkers earn a median of $129,040",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9051.00?st=CA",
+      "evidence": "California $77,350 $98,680 $129,040 $156,380 $167,090",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 98)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $167,090 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9051.00?st=CA",
+      "evidence": "10% of workers earn $167,090 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 98)",
+      "visible": true
+    },
+    {
+      "claim": "Substation and relay technicians earn a median of $121,520",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2095.00?st=CA",
+      "evidence": "California $76,440 $103,220 $121,520 $146,760 $165,540",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 111)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $165,540 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2095.00?st=CA",
+      "evidence": "10% of workers earn $165,540 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 111)",
+      "visible": true
+    },
+    {
+      "claim": "Mechanical insulators earn a median of $119,690",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2132.00?st=CA",
+      "evidence": "California $57,700 $63,570 $119,690 $151,370 $165,540",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 124)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $165,540 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2132.00?st=CA",
+      "evidence": "10% of workers earn $165,540 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 124)",
+      "visible": true
+    },
+    {
+      "claim": "California's Division of Apprenticeship Standards oversees the registered programs that end in journeyperson status",
+      "claim_type": "factual",
+      "url": "https://www.dir.ca.gov/das/DAS_overview.html",
+      "evidence": "apprenticeship",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the official page is undated, so approval is scoped to the live page state checked on 2026-09-24.",
+      "use": "credential statement: 18 highest-paying trade jobs in California (line 128)",
+      "visible": true
+    },
+    {
+      "claim": "Building inspectors earn a median of $101,290",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-4011.00?st=CA",
+      "evidence": "California $56,220 $76,160 $101,290 $128,530 $161,550",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 137)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $161,550 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-4011.00?st=CA",
+      "evidence": "10% of workers earn $161,550 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 137)",
+      "visible": true
+    },
+    {
+      "claim": "Control and valve technicians earn a median of $100,260",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9012.00?st=CA",
+      "evidence": "California $60,360 $78,860 $100,260 $130,800 $137,030",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 150)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $137,030 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9012.00?st=CA",
+      "evidence": "10% of workers earn $137,030 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 150)",
+      "visible": true
+    },
+    {
+      "claim": "Telecom line installers earn a median of $97,980",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9052.00?st=CA",
+      "evidence": "California $60,260 $81,130 $97,980 $102,540 $106,230",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 163)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $106,230 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9052.00?st=CA",
+      "evidence": "10% of workers earn $106,230 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 163)",
+      "visible": true
+    },
+    {
+      "claim": "BLS projections point to a 3.4 percent",
+      "claim_type": "statistic",
+      "url": "https://data.bls.gov/projections/occupationProj",
+      "evidence": "49-9052 103.4 99.9 -3.5 -3.4",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the BLS Employment Projections table shows the 2025-2035 projection cycle and typical entry-level education and training, scoped to the version checked on 2026-09-24.",
+      "use": "national outlook: 18 highest-paying trade jobs in California (line 171)",
+      "visible": true
+    },
+    {
+      "claim": "Avionics technicians earn a median of $92,480",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2091.00?st=CA",
+      "evidence": "California $58,670 $77,660 $92,480 $106,950 $126,600",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 176)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $126,600 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2091.00?st=CA",
+      "evidence": "10% of workers earn $126,600 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 176)",
+      "visible": true
+    },
+    {
+      "claim": "Operating engineers earn a median of $87,160",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2073.00?st=CA",
+      "evidence": "California $52,760 $65,230 $87,160 $125,560 $132,210",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 189)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $132,210 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2073.00?st=CA",
+      "evidence": "10% of workers earn $132,210 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 189)",
+      "visible": true
+    },
+    {
+      "claim": "Industrial electronics repairers earn a median of $87,080",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2094.00?st=CA",
+      "evidence": "California $52,790 $74,270 $87,080 $110,300 $129,910",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 202)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $129,910 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2094.00?st=CA",
+      "evidence": "10% of workers earn $129,910 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 202)",
+      "visible": true
+    },
+    {
+      "claim": "Aircraft mechanics earn a median of $86,100",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-3011.00?st=CA",
+      "evidence": "California $53,860 $68,390 $86,100 $99,650 $116,690",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 215)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $116,690 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-3011.00?st=CA",
+      "evidence": "10% of workers earn $116,690 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 215)",
+      "visible": true
+    },
+    {
+      "claim": "The FAA mechanic certificate sets experience and testing standards for airframe and powerplant ratings",
+      "claim_type": "factual",
+      "url": "https://www.faa.gov/mechanics/become",
+      "evidence": "18 months of practical experience",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the official page is undated, so approval is scoped to the live page state checked on 2026-09-24.",
+      "use": "credential statement: 18 highest-paying trade jobs in California (line 219)",
+      "visible": true
+    },
+    {
+      "claim": "Riggers earn a median of $85,730",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9096.00?st=CA",
+      "evidence": "California $53,190 $67,180 $85,730 $102,050 $127,810",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 228)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $127,810 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9096.00?st=CA",
+      "evidence": "10% of workers earn $127,810 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 228)",
+      "visible": true
+    },
+    {
+      "claim": "Transportation electronics installers earn a median of $84,820",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2093.00?st=CA",
+      "evidence": "California $47,880 $60,460 $84,820 $110,030 $122,590",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 241)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $122,590 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2093.00?st=CA",
+      "evidence": "10% of workers earn $122,590 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 241)",
+      "visible": true
+    },
+    {
+      "claim": "Paving equipment operators earn a median of $83,130",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2071.00?st=CA",
+      "evidence": "California $56,980 $64,270 $83,130 $126,640 $130,120",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 254)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $130,120 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2071.00?st=CA",
+      "evidence": "10% of workers earn $130,120 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 254)",
+      "visible": true
+    },
+    {
+      "claim": "Heavy equipment mechanics earn a median of $78,550",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-3042.00?st=CA",
+      "evidence": "California $47,880 $63,830 $78,550 $94,620 $129,310",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 267)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $129,310 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-3042.00?st=CA",
+      "evidence": "10% of workers earn $129,310 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 267)",
+      "visible": true
+    },
+    {
+      "claim": "Millwrights earn a median of $77,950",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9044.00?st=CA",
+      "evidence": "California $49,340 $61,310 $77,950 $109,190 $127,890",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 280)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $127,890 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9044.00?st=CA",
+      "evidence": "10% of workers earn $127,890 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 280)",
+      "visible": true
+    },
+    {
+      "claim": "Telecom equipment technicians earn a median of $76,630",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2022.00?st=CA",
+      "evidence": "California $56,410 $65,480 $76,630 $97,400 $113,240",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 293)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $113,240 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2022.00?st=CA",
+      "evidence": "10% of workers earn $113,240 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 293)",
+      "visible": true
+    },
+    {
+      "claim": "Sheet metal workers earn a median of $76,590",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2211.00?st=CA",
+      "evidence": "California $47,410 $59,220 $76,590 $107,360 $132,190",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 306)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $132,190 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2211.00?st=CA",
+      "evidence": "10% of workers earn $132,190 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: 18 highest-paying trade jobs in California (line 306)",
+      "visible": true
+    },
+    {
+      "claim": "California electricians earn a median of $76,160",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2111.00?st=CA",
+      "evidence": "California $46,800 $59,280 $76,160 $103,000 $140,340",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: Core service trades outside the top 18 (line 321)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $140,340 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2111.00?st=CA",
+      "evidence": "10% of workers earn $140,340 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: Core service trades outside the top 18 (line 321)",
+      "visible": true
+    },
+    {
+      "claim": "Electricians working for a C-10 contractor need state electrician certification",
+      "claim_type": "factual",
+      "url": "https://www.dir.ca.gov/dlse/ecu/electricaltrade.html",
+      "evidence": "persons performing work as electrician under a C-10 licensed contractor be certified",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the official page is undated, so approval is scoped to the live page state checked on 2026-09-24.",
+      "use": "credential statement: Core service trades outside the top 18 (line 321)",
+      "visible": true
+    },
+    {
+      "claim": "Plumbers earn a median of $72,830",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2152.00?st=CA",
+      "evidence": "California $47,350 $58,980 $72,830 $100,200 $131,100",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: Core service trades outside the top 18 (line 323)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $131,100 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2152.00?st=CA",
+      "evidence": "10% of workers earn $131,100 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: Core service trades outside the top 18 (line 323)",
+      "visible": true
+    },
+    {
+      "claim": "HVAC technicians earn a median of $72,560",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9021.00?st=CA",
+      "evidence": "California $46,950 $58,280 $72,560 $90,780 $109,060",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: Core service trades outside the top 18 (line 325)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $109,060 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-9021.00?st=CA",
+      "evidence": "10% of workers earn $109,060 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: Core service trades outside the top 18 (line 325)",
+      "visible": true
+    },
+    {
+      "claim": "Refrigerant work calls for EPA Section 608 certification",
+      "claim_type": "factual",
+      "url": "https://www.epa.gov/section608/section-608-technician-certification-0",
+      "evidence": "Section 608 Technician Certification",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the official page is undated, so approval is scoped to the live page state checked on 2026-09-24.",
+      "use": "credential statement: Core service trades outside the top 18 (line 325)",
+      "visible": true
+    },
+    {
+      "claim": "Alarm installers earn a median of $71,570",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2098.00?st=CA",
+      "evidence": "California $46,090 $57,180 $71,570 $79,760 $98,710",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: Core service trades outside the top 18 (line 327)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $98,710 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/49-2098.00?st=CA",
+      "evidence": "10% of workers earn $98,710 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: Core service trades outside the top 18 (line 327)",
+      "visible": true
+    },
+    {
+      "claim": "Solar installers earn a median of $60,600",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2231.00?st=CA",
+      "evidence": "California $47,070 $50,140 $60,600 $72,660 $83,770",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: Core service trades outside the top 18 (line 329)",
+      "visible": true
+    },
+    {
+      "claim": "the top 10% make $83,770 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2231.00?st=CA",
+      "evidence": "10% of workers earn $83,770 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: Core service trades outside the top 18 (line 329)",
+      "visible": true
+    },
+    {
+      "claim": "Federal projections call for 36.5 percent",
+      "claim_type": "statistic",
+      "url": "https://data.bls.gov/projections/occupationProj",
+      "evidence": "47-2231 31.1 42.4 11.3 36.5",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the BLS Employment Projections table shows the 2025-2035 projection cycle and typical entry-level education and training, scoped to the version checked on 2026-09-24.",
+      "use": "national outlook: Core service trades outside the top 18 (line 329)",
+      "visible": true
+    },
+    {
+      "claim": "California's Division of Apprenticeship Standards registers the programs that set those steps",
+      "claim_type": "factual",
+      "url": "https://www.dir.ca.gov/das/DAS_overview.html",
+      "evidence": "apprenticeship",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the official page is undated, so approval is scoped to the live page state checked on 2026-09-24.",
+      "use": "credential statement: What affects trade salaries in California? (line 335)",
+      "visible": true
+    },
+    {
+      "claim": "**Union coverage:** Union members in construction and extraction jobs earned a national median of $1,561",
+      "claim_type": "statistic",
+      "url": "https://data.bls.gov/timeseries/LUU0254815900",
+      "evidence": "2024 1492 2025 1561",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the BLS Current Population Survey series shows the 2025 annual value, which BLS footnotes as an 11-month average; approval is scoped to the value checked on 2026-09-24.",
+      "use": "union pay: What affects trade salaries in California? (line 336)",
+      "visible": true
+    },
+    {
+      "claim": "Nonunion workers in the same jobs earned $1,004",
+      "claim_type": "statistic",
+      "url": "https://data.bls.gov/timeseries/LUU0254829700",
+      "evidence": "2024 974 2025 1004",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the BLS Current Population Survey series shows the 2025 annual value, which BLS footnotes as an 11-month average; approval is scoped to the value checked on 2026-09-24.",
+      "use": "union pay: What affects trade salaries in California? (line 336)",
+      "visible": true
+    },
+    {
+      "claim": "Under California overtime law, nonexempt workers earn one and one-half times their regular rate for hours over eight in a workday",
+      "claim_type": "factual",
+      "url": "https://www.dir.ca.gov/dlse/faq_overtime.htm",
+      "evidence": "one and one-half times his or her regular rate of pay for all hours worked over eight hours in any workday",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the official page is undated, so approval is scoped to the live page state checked on 2026-09-24.",
+      "use": "credential statement: What affects trade salaries in California? (line 337)",
+      "visible": true
+    },
+    {
+      "claim": "with median pay of $141,180",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-4021.00?st=CA",
+      "evidence": "California $74,670 $120,900 $141,180 $161,230 $173,920",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: Frequently asked questions (line 372)",
+      "visible": true
+    },
+    {
+      "claim": "The top 10% of these workers make $173,920 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-4021.00?st=CA",
+      "evidence": "10% of workers earn $173,920 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: Frequently asked questions (line 372)",
+      "visible": true
+    },
+    {
+      "claim": "elevator installers at $141,180",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-4021.00?st=CA",
+      "evidence": "California $74,670 $120,900 $141,180 $161,230 $173,920",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: Frequently asked questions (line 376)",
+      "visible": true
+    },
+    {
+      "claim": "mechanical insulation workers and building inspectors at $101,290",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-4011.00?st=CA",
+      "evidence": "California $56,220 $76,160 $101,290 $128,530 $161,550",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: Frequently asked questions (line 376)",
+      "visible": true
+    },
+    {
+      "claim": "California electricians in the highest-paid tenth make $140,340 or more",
+      "claim_type": "statistic",
+      "url": "https://www.onetonline.org/link/localwages/47-2111.00?st=CA",
+      "evidence": "10% of workers earn $140,340 or more",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: O*NET OnLine is the Department of Labor display of the original BLS May 2025 OEWS California estimates (page label: Bureau of Labor Statistics 2025 wage data); values match the BLS API series recorded in the wage source table, and approval is scoped to the latest release checked on 2026-09-24.",
+      "use": "California pay: Frequently asked questions (line 376)",
+      "visible": true
+    },
+    {
+      "claim": "The FAA mechanic certificate calls for 18 months of practical experience for one rating",
+      "claim_type": "factual",
+      "url": "https://www.faa.gov/mechanics/become",
+      "evidence": "18 months of practical experience",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the official page is undated, so approval is scoped to the live page state checked on 2026-09-24.",
+      "use": "credential statement: Frequently asked questions (line 384)",
+      "visible": true
+    },
+    {
+      "claim": "Cal/OSHA elevator mechanic certification calls for three years of conveyance industry work",
+      "claim_type": "factual",
+      "url": "https://www.dir.ca.gov/dosh/elevatorcertification.html",
+      "evidence": "Document a minimum of three years of work experience in the conveyance industry",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the official page is undated, so approval is scoped to the live page state checked on 2026-09-24.",
+      "use": "credential statement: Frequently asked questions (line 384)",
+      "visible": true
+    },
+    {
+      "claim": "A license from the Contractors State License Board takes four years of journey-level experience",
+      "claim_type": "factual",
+      "url": "https://www.cslb.ca.gov/contractors/applicants/contractors_license/exam_application/experience_for_exam.aspx",
+      "evidence": "must have at least four (4) years of experience, in the class you are applying for",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the official page is undated, so approval is scoped to the live page state checked on 2026-09-24.",
+      "use": "credential statement: Frequently asked questions (line 384)",
+      "visible": true
+    },
+    {
+      "claim": "union members in construction and extraction jobs earned a median of $1,561",
+      "claim_type": "statistic",
+      "url": "https://data.bls.gov/timeseries/LUU0254815900",
+      "evidence": "2024 1492 2025 1561",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the BLS Current Population Survey series shows the 2025 annual value, which BLS footnotes as an 11-month average; approval is scoped to the value checked on 2026-09-24.",
+      "use": "union pay: Frequently asked questions (line 388)",
+      "visible": true
+    },
+    {
+      "claim": "BLS projections show 2025 to 2035 national growth for HVAC technicians at 10.9 percent",
+      "claim_type": "statistic",
+      "url": "https://data.bls.gov/projections/occupationProj",
+      "evidence": "49-9021 440.9 489.1 48.2 10.9",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the BLS Employment Projections table shows the 2025-2035 projection cycle and typical entry-level education and training, scoped to the version checked on 2026-09-24.",
+      "use": "national outlook: Frequently asked questions (line 392)",
+      "visible": true
+    },
+    {
+      "claim": "power-line installers at 10.3 percent",
+      "claim_type": "statistic",
+      "url": "https://data.bls.gov/projections/occupationProj",
+      "evidence": "49-9051 131.9 145.5 13.6 10.3",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the BLS Employment Projections table shows the 2025-2035 projection cycle and typical entry-level education and training, scoped to the version checked on 2026-09-24.",
+      "use": "national outlook: Frequently asked questions (line 392)",
+      "visible": true
+    },
+    {
+      "claim": "electricians at 9.2 percent",
+      "claim_type": "statistic",
+      "url": "https://data.bls.gov/projections/occupationProj",
+      "evidence": "47-2111 821.0 896.9 75.9 9.2",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the BLS Employment Projections table shows the 2025-2035 projection cycle and typical entry-level education and training, scoped to the version checked on 2026-09-24.",
+      "use": "national outlook: Frequently asked questions (line 392)",
+      "visible": true
+    },
+    {
+      "claim": "Solar installers lead at 36.5 percent",
+      "claim_type": "statistic",
+      "url": "https://data.bls.gov/projections/occupationProj",
+      "evidence": "47-2231 31.1 42.4 11.3 36.5",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the BLS Employment Projections table shows the 2025-2035 projection cycle and typical entry-level education and training, scoped to the version checked on 2026-09-24.",
+      "use": "national outlook: Frequently asked questions (line 392)",
+      "visible": true
+    },
+    {
+      "claim": "while telecom line installer jobs shrink by 3.4 percent",
+      "claim_type": "statistic",
+      "url": "https://data.bls.gov/projections/occupationProj",
+      "evidence": "49-9052 103.4 99.9 -3.5 -3.4",
+      "cls": "Source class: primary_authority | Evidence relation: directly_supports | Original-source status: original | Source date: undated | Checked date: 2026-09-24 | Claim fit: direct | Freshness decision: historical_scoped | Freshness reason: the BLS Employment Projections table shows the 2025-2035 projection cycle and typical entry-level education and training, scoped to the version checked on 2026-09-24.",
+      "use": "national outlook: Frequently asked questions (line 392)",
+      "visible": true
+    }
+  ],
+  "metric_rows": 84,
+  "not_visible": []
+}

@@ -1,0 +1,532 @@
+{
+  "schema": "simpro-blog-editorial-plan/v2",
+  "brand": "Simpro",
+  "topic": "highest paying trades in california",
+  "date": "2026-09-24",
+  "meta": {
+    "title_options": [
+      "18 Highest-Paying Trades in California to Consider in 2026",
+      "18 Highest-Paying Trade Jobs in California for 2026"
+    ],
+    "meta_title": "Highest-Paying Trades in California: 18 Best Jobs for 2026",
+    "meta_description": "Compare the highest-paying trades in California, including 2025 salaries, training requirements, career paths, and factors that affect earning potential.",
+    "url_slug": "best-trade-jobs-california",
+    "primary_keyword": "highest paying trades in california",
+    "secondary_keywords": [
+      "trades that pay well in california",
+      "best trade jobs in california"
+    ]
+  },
+  "total_word_target": 3100,
+  "sections": [
+    {
+      "section_number": 1,
+      "type": "intro",
+      "heading": "Opening paragraph before first H2",
+      "word_target": 150,
+      "strategic_angle": "Speak to a Californian weighing a trade career, then answer the ranking query in a 40-to-60-word capsule that names the top trades with their California median pay and the data year.",
+      "engagement_hook": "The reader gets the top five trades and their median pay before any scrolling.",
+      "knowledge_gaps": [
+        "State the salary basis early: California statewide annual median wages from the BLS Occupational Employment and Wage Statistics survey, May 2025 data.",
+        "Cut the generic college-cost and career-choice setup from the 2024 version."
+      ],
+      "unique_data": [
+        "Top five California trades by 2025 median pay, each with its dollar figure and a same-paragraph BLS link.",
+        "Three to five Key Takeaways bullets covering the ranking basis, the six-figure trades, and the training routes."
+      ],
+      "internal_links": [],
+      "cta": null,
+      "next_action": null,
+      "mini_story": false,
+      "featured_snippet": true,
+      "reader_question": "Which trades pay the most in California right now, and where do the numbers come from?",
+      "section_payoff": "A direct, sourced answer naming the top-paying California trades and the dataset behind the ranking.",
+      "bridge_from_previous": null,
+      "bridge_to_next": "Move from the headline answer to the full 18-trade comparison table."
+    },
+    {
+      "section_number": 2,
+      "type": "body_comparison",
+      "heading": "Highest-paying trades in California at a glance",
+      "word_target": 320,
+      "strategic_angle": "Give the reader the whole answer in one ranked table built from a single California dataset, then define what counts as a trade in this ranking.",
+      "engagement_hook": "An 18-row table with median pay, top-10-percent pay, training route and license or certification for every trade.",
+      "knowledge_gaps": [
+        "Rank every row by the same statistic from the same release; never mix job-board salaries with BLS figures.",
+        "Explain the scope rule: hands-on construction, installation, maintenance, repair and plant-operation occupations with at least 1,000 California jobs, excluding supervisors, helpers, engineers and managers.",
+        "Note that mid-table ranks sit within a few thousand dollars of each other."
+      ],
+      "unique_data": [
+        "California median and 90th-percentile annual wages for 18 trades from BLS OEWS May 2025.",
+        "Typical training route and license or certification per trade from California DIR, CSLB, Cal/OSHA, FAA and EPA sources."
+      ],
+      "internal_links": [],
+      "cta": null,
+      "next_action": null,
+      "mini_story": false,
+      "featured_snippet": true,
+      "reader_question": "How do the highest-paying California trades compare on pay, training and licensing at a glance?",
+      "section_payoff": "A complete ranked comparison a reader or answer engine can use without reading further.",
+      "bridge_from_previous": "Expand the five-trade answer into the full ranked list.",
+      "bridge_to_next": "Open each ranked trade with the same five-part profile."
+    },
+    {
+      "section_number": 3,
+      "type": "body_list",
+      "heading": "18 highest-paying trade jobs in California",
+      "word_target": 1400,
+      "strategic_angle": "Profile each of the 18 trades in California-median order with an identical mini-structure: California salary, what they do, how to become one, why earnings can increase, and good to know.",
+      "engagement_hook": "Every entry answers pay, work, entry route, earning levers and working conditions in the same order, so trades compare side by side.",
+      "knowledge_gaps": [
+        "Use standard BLS occupation titles rather than informal job names.",
+        "Merge the three electrician entries from the 2024 version into one electrician profile with commercial and industrial specializations.",
+        "Cite licensing and certification requirements to official California or federal sources in the same paragraph.",
+        "Keep the ranking data-driven and avoid claims that one trade is better overall."
+      ],
+      "unique_data": [
+        "Median and 90th-percentile California pay per trade.",
+        "Apprenticeship, certification and licensing routes per trade.",
+        "National 2025 to 2035 job outlook from BLS employment projections where it helps the reader."
+      ],
+      "internal_links": [
+        "https://www.simprogroup.com/blog/electrical-industry-statistics-2026",
+        "https://www.simprogroup.com/blog/electrical-license-california"
+      ],
+      "cta": null,
+      "next_action": null,
+      "mini_story": false,
+      "featured_snippet": false,
+      "reader_question": "What does each high-paying California trade involve, and how do I get into it?",
+      "section_payoff": "Eighteen comparable trade profiles with a clear entry route and earning levers for each.",
+      "bridge_from_previous": "Unpack each table row into a short, consistent profile.",
+      "bridge_to_next": "Cover the large service trades that sit just below the top 18 on median pay."
+    },
+    {
+      "section_number": 4,
+      "type": "body_list",
+      "heading": "Core service trades outside the top 18",
+      "word_target": 270,
+      "strategic_angle": "Show plumbers, HVAC and refrigeration technicians, security and fire alarm installers, and solar installers with the same dataset, framed as large, in-demand service trades whose top earners clear six figures.",
+      "engagement_hook": "Four compact entries show how licensing, specialization and business ownership raise the ceiling in trades just outside the ranked list.",
+      "knowledge_gaps": [
+        "Use the same May 2025 California dataset so these rows stay comparable to the ranked list.",
+        "Merge the three plumbing entries from the 2024 version into one plumber, pipefitter and steamfitter profile.",
+        "Reframe the 2024 solar installation manager entry as the hands-on solar photovoltaic installer."
+      ],
+      "unique_data": [
+        "California median and 90th-percentile pay for plumbers, HVAC and refrigeration mechanics, security and fire alarm installers, and solar photovoltaic installers.",
+        "EPA Section 608 certification for refrigerant work."
+      ],
+      "internal_links": [
+        "https://www.simprogroup.com/blog/plumbing-industry-statistics-2026"
+      ],
+      "cta": null,
+      "next_action": null,
+      "mini_story": false,
+      "featured_snippet": false,
+      "reader_question": "Where do plumbing, HVAC, fire alarm and solar work land on California pay?",
+      "section_payoff": "Comparable pay and entry routes for four large service trades that many readers are already considering.",
+      "bridge_from_previous": "Extend the ranked list to the service trades just below the cutoff.",
+      "bridge_to_next": "Explain why pay varies so much within and between these trades."
+    },
+    {
+      "section_number": 5,
+      "type": "body_explanation",
+      "heading": "What affects trade salaries in California?",
+      "word_target": 220,
+      "strategic_angle": "Open with a one-sentence answer, then list the levers that move trade pay: licensing level, specialization, union coverage, overtime and shift work, region, experience, and self-employment.",
+      "engagement_hook": "A short bulleted list of pay levers the reader can act on.",
+      "knowledge_gaps": [
+        "Support union and licensing statements with official sources in the same bullet.",
+        "Present the apprentice to journeyperson to licensed contractor ladder as the main pay progression."
+      ],
+      "unique_data": [
+        "Gap between median and 90th-percentile pay in the ranked table as evidence of how far experience and specialization move earnings.",
+        "Union membership and earnings data from BLS."
+      ],
+      "internal_links": [],
+      "cta": null,
+      "next_action": null,
+      "mini_story": false,
+      "featured_snippet": true,
+      "reader_question": "Why do some California trade workers earn much more than others in the same trade?",
+      "section_payoff": "A clear list of the factors that raise trade pay and which ones the reader controls.",
+      "bridge_from_previous": "Connect the pay ranges in the profiles to the factors behind them.",
+      "bridge_to_next": "Turn the pay factors into a short decision checklist."
+    },
+    {
+      "section_number": 6,
+      "type": "body_how_to",
+      "heading": "How to choose the best trade job in California for you",
+      "word_target": 160,
+      "strategic_angle": "Give a short checklist that weighs pay against training time, licensing path, physical demands, working conditions, job outlook and the option to run a business later.",
+      "engagement_hook": "Six quick questions help the reader narrow the list to two or three trades.",
+      "knowledge_gaps": [
+        "Keep this section short and practical.",
+        "Point to state apprenticeship listings as the next research step."
+      ],
+      "unique_data": [
+        "A six-question trade-choice checklist tied to columns in the comparison table."
+      ],
+      "internal_links": [],
+      "cta": null,
+      "next_action": "educational_next_step",
+      "mini_story": false,
+      "featured_snippet": false,
+      "reader_question": "How do I pick the right trade for me, not only the highest-paid one?",
+      "section_payoff": "A short checklist that turns the ranking into a personal shortlist.",
+      "bridge_from_previous": "Apply the pay factors to the reader's own situation.",
+      "bridge_to_next": "Show where a trade career can lead after licensing."
+    },
+    {
+      "section_number": 7,
+      "type": "conclusion",
+      "heading": "Build a trade career with room to grow",
+      "word_target": 160,
+      "strategic_angle": "Close on the long-term path from apprentice to licensed tradesperson to lead technician, estimator, service manager or business owner, and introduce field service management software as the system owner-operators use to run jobs, crews and invoicing.",
+      "engagement_hook": "The reader sees the ceiling beyond the paycheck: running a shop of their own.",
+      "knowledge_gaps": [
+        "Restate the primary keyword naturally.",
+        "Keep the product mention to the owner path and avoid enterprise-only framing.",
+        "Use the exact commercial pillar anchor text once."
+      ],
+      "unique_data": [
+        "Career ladder from apprentice to business owner.",
+        "Commercial pillar link with the anchor field service management software and one industries link for trades businesses."
+      ],
+      "internal_links": [
+        "https://www.simprogroup.com/",
+        "https://www.simprogroup.com/industries"
+      ],
+      "cta": "commercial_contextual",
+      "next_action": null,
+      "mini_story": false,
+      "featured_snippet": false,
+      "reader_question": "Where can a high-paying trade career go after the first license?",
+      "section_payoff": "A long-term view of the trade career and a relevant next step for readers planning their own business.",
+      "bridge_from_previous": "Move from choosing a trade to growing within it.",
+      "bridge_to_next": "Answer the most common follow-up questions."
+    },
+    {
+      "section_number": 8,
+      "type": "faq",
+      "heading": "Frequently asked questions",
+      "word_target": 420,
+      "strategic_angle": "Answer the six adjacent questions from the brief with direct 40-to-60-word first paragraphs, each led by a number, named trade, definition or explained yes or no.",
+      "engagement_hook": "Every answer opens with the answer itself and a source the reader can check.",
+      "knowledge_gaps": [
+        "Fact-driven answers need an authoritative non-owned link in the first visible paragraph.",
+        "Use the same California median figures as the table."
+      ],
+      "unique_data": [
+        "Highest-paid trade, six-figure trades by median and by 90th percentile, no-degree routes, training length, union pay, and demand outlook."
+      ],
+      "internal_links": [],
+      "cta": null,
+      "next_action": null,
+      "mini_story": false,
+      "featured_snippet": true,
+      "reader_question": "What quick answers do Californians want about trade pay, training, unions and demand?",
+      "section_payoff": "Six short, sourced answers that match the questions searchers ask next.",
+      "bridge_from_previous": "Resolve the questions left after the career-path close.",
+      "bridge_to_next": null
+    }
+  ],
+  "engagement_map": {
+    "mini_stories": [],
+    "ctas": {
+      "commercial_contextual": 7
+    },
+    "featured_snippets": [
+      1,
+      2,
+      5,
+      8
+    ],
+    "next_actions": {
+      "educational_next_step": 6
+    },
+    "cta_exception_reason": null
+  },
+  "gap_mapping": {
+    "single-dataset California ranking with median and top-10-percent pay": 2,
+    "hands-on trade scope instead of engineering and management roles": 2,
+    "identical per-trade profile with entry route and earning levers": 3,
+    "large service trades shown with the same data": 4,
+    "pay levers the reader controls": 5,
+    "direct answers to adjacent California trade questions": 8
+  },
+  "insight_mapping": {
+    "the gap between median and top-10-percent pay shows how far skill and specialization move earnings": 5,
+    "power and utility trades lead California pay while core service trades cluster in a tight band": 2,
+    "licensing is the main pay ladder in most California trades": 3,
+    "the long-term ceiling for many tradespeople is running their own contracting business": 7
+  },
+  "reader_contract": {
+    "primary_reader": "A Californian considering a skilled-trade career: a recent graduate, a career changer, or an apprentice choosing a specialization.",
+    "sophistication_level": "Early-career or career-changing, comfortable with salary data but unfamiliar with California licensing and apprenticeship routes.",
+    "trigger_problem": "Salary lists online mix job-board estimates, national averages and non-trade roles, so the reader cannot tell which California trades actually pay the most or how to get into them.",
+    "existing_belief": "Trades pay well but the reader does not know which ones clear six figures in California or how long the training takes.",
+    "decision_task_helped": "Shortlist two or three California trades by pay, training time, licensing path and demand.",
+    "distinctive_angle": "A California-only ranking from one official 2025 dataset with median and top-10-percent pay, paired with the official training and licensing route for every trade.",
+    "promised_payoff": "A defensible, sourced shortlist of high-paying California trades and the first step into each.",
+    "funnel_stage": "tofu",
+    "exclusions": [
+      "job-board salary estimates or figures mixed from different datasets",
+      "engineering, management, coordinator and general contractor roles in the ranked list",
+      "links to the national highest-paying-trade-jobs blog or to competitor articles on the same topic",
+      "customer outcomes, reviews, testimonials or Hindsight deal data presented as proof",
+      "named author or Person schema without approved authorship evidence",
+      "first-person authority language, editorial-process commentary, or em dashes in public copy"
+    ]
+  },
+  "original_contributions": [
+    {
+      "contribution_id": "ca-median-ranking-table",
+      "planned_contribution": "An 18-row California ranking table with 2025 median pay, top-10-percent pay, training route and license or certification for each trade.",
+      "purpose": "Answer the ranking query in one table built from a single official California dataset.",
+      "evidence_source": "BLS OEWS May 2025 California statewide wage estimates plus official California DIR, CSLB, Cal/OSHA, FAA and EPA licensing sources.",
+      "target_section": "Highest-paying trades in California at a glance"
+    },
+    {
+      "contribution_id": "hands-on-trade-scope-rule",
+      "planned_contribution": "A stated scope rule defining which occupations count as trades in the ranking and why engineers, managers and small occupations are excluded.",
+      "purpose": "Make the ranking transparent and consistent with what searchers mean by a trade job.",
+      "evidence_source": "BLS Standard Occupational Classification groups and California employment counts from the same OEWS release.",
+      "target_section": "Highest-paying trades in California at a glance"
+    },
+    {
+      "contribution_id": "five-part-trade-profiles",
+      "planned_contribution": "Eighteen trade profiles using the same five-part structure: California salary, what they do, how to become one, why earnings can increase, and good to know.",
+      "purpose": "Let readers compare work, entry route and earning levers across trades in a consistent format.",
+      "evidence_source": "BLS OEWS California wages, BLS employment projections, and official licensing and apprenticeship sources.",
+      "target_section": "18 highest-paying trade jobs in California"
+    },
+    {
+      "contribution_id": "trade-choice-checklist",
+      "planned_contribution": "A six-question checklist for choosing a trade that weighs pay against training time, licensing, physical demands, outlook and business potential.",
+      "purpose": "Turn the ranking into a personal shortlist.",
+      "evidence_source": "Editorially framed guidance tied to the comparison table columns.",
+      "target_section": "How to choose the best trade job in California for you"
+    }
+  ],
+  "entity_map": {
+    "primary": [
+      "highest-paying trades in California",
+      "California",
+      "Bureau of Labor Statistics",
+      "Occupational Employment and Wage Statistics",
+      "elevator and escalator installers",
+      "power-line installers",
+      "electricians",
+      "plumbers, pipefitters and steamfitters",
+      "HVAC and refrigeration mechanics"
+    ],
+    "supporting": [
+      "apprenticeship",
+      "journeyperson",
+      "Division of Apprenticeship Standards",
+      "Contractors State License Board",
+      "Cal/OSHA",
+      "median wage",
+      "top 10%",
+      "union coverage",
+      "overtime",
+      "BLS projections",
+      "field service management software"
+    ]
+  },
+  "internal_link_plan": [
+    {
+      "target": "https://www.simprogroup.com/blog/electrical-industry-statistics-2026",
+      "role": "supporting",
+      "rationale": "Brief-required context on electrical demand and workforce conditions in the power-line installer profile."
+    },
+    {
+      "target": "https://www.simprogroup.com/blog/electrical-license-california",
+      "role": "supporting",
+      "rationale": "Brief-required qualification guide linked from the electrician profile without duplicating the salary focus."
+    },
+    {
+      "target": "https://www.simprogroup.com/blog/plumbing-industry-statistics-2026",
+      "role": "supporting",
+      "rationale": "Brief-required plumbing demand and workforce context in the plumber profile."
+    },
+    {
+      "target": "https://www.simprogroup.com/",
+      "role": "supporting",
+      "rationale": "Commercial pillar link with the exact anchor field service management software in the career-growth conclusion."
+    },
+    {
+      "target": "https://www.simprogroup.com/industries",
+      "role": "down_funnel",
+      "rationale": "Broad multi-trade topic, so the industries hub with the anchor software for trades businesses serves readers planning their own contracting business."
+    }
+  ],
+  "rewrite_decisions": {
+    "preserve": [
+      {
+        "item": "canonical URL and California trade-career intent",
+        "decision": "Keep the best-trade-jobs-california slug and the 18-trade list format that already ranks near the top for California trade-pay queries."
+      },
+      {
+        "item": "reader-first career framing",
+        "decision": "Keep speaking to someone considering a trade career and keep the closing nudge toward starting a trade business."
+      },
+      {
+        "item": "reusable trade descriptions",
+        "decision": "Reuse and tighten the electrical grid worker, commercial and industrial electrician, refrigeration technician, construction compliance inspector, fire systems technician, plumbing and solar descriptions inside the matching standard occupations."
+      }
+    ],
+    "update": [
+      {
+        "item": "salary figures and methodology",
+        "decision": "Replace unsourced 2024 averages with California median and 90th-percentile pay from BLS OEWS May 2025, cited in the same paragraph or row."
+      },
+      {
+        "item": "structure and H1",
+        "decision": "Replace industry-grouped H2s with one pay-ranked H2 and use the H1 18 Highest-Paying Trade Jobs in California for 2026."
+      },
+      {
+        "item": "FAQ set",
+        "decision": "Replace the three 2024 FAQs with the six brief questions answered in 40-to-60-word first paragraphs."
+      },
+      {
+        "item": "metadata and year references",
+        "decision": "Update the title, meta description, last-updated date and any 2024 references."
+      },
+      {
+        "item": "hero image",
+        "decision": "Replace the generic live hero with alt text Workers smiling by an original keyword-bearing hero image with descriptive alt text; the live asset path is recorded in the validation sidecar."
+      }
+    ],
+    "add": [
+      {
+        "item": "direct answer and comparison table",
+        "decision": "Add a 40-to-60-word answer capsule and an 18-row ranked table inside the first 300 words."
+      },
+      {
+        "item": "core service trades section",
+        "decision": "Add plumbers, HVAC and refrigeration, security and fire alarm, and solar installers with the same dataset because they fall just below the ranked cutoff."
+      },
+      {
+        "item": "pay factors and choice checklist",
+        "decision": "Add short sections on what affects California trade pay and how to choose a trade."
+      },
+      {
+        "item": "original images",
+        "decision": "Add a hero image, a salary chart built from the ranking data, a pay-factors graphic and an apprentice image with keyword-bearing filenames and alt text."
+      }
+    ],
+    "remove": [
+      {
+        "item": "non-trade and management roles",
+        "decision": "Remove HVAC service manager, HVAC design engineer, plumbing project manager, technical civil engineer, site construction coordinator, general contractor, safety compliance officer and solar installation manager from the ranked list."
+      },
+      {
+        "item": "duplicate plumbing and electrical entries",
+        "decision": "Merge plumbing specialist, master plumber and commercial plumber into one entry and electrical systems expert, commercial electrician and industrial electrician into one entry."
+      },
+      {
+        "item": "generic introduction",
+        "decision": "Remove the long college-cost and career-choice setup and the 2024 trends FAQ."
+      },
+      {
+        "item": "generic technology efficiency link",
+        "decision": "Replace the live link to the contractor efficiency article with the commercial pillar link in the career-growth conclusion."
+      },
+      {
+        "item": "live college versus trade school link",
+        "decision": "Remove the link because its URL slug contains a comparison token that the competitive shortlist gate treats as competitor-aware copy; five internal links remain inside the standard range."
+      }
+    ]
+  },
+  "audience_language_research": {
+    "status": "not_applicable",
+    "rationale": "The brief does not request community language research and the article is a data-led salary and licensing guide. Use plain career language from the current article, vault voice guidance, and official sources without fabricating quotes or frequency claims.",
+    "source_urls": [],
+    "observations": [],
+    "intended_section_use": []
+  },
+  "keyword_decision": {
+    "status": "resolved",
+    "artifact_schema": "simpro-semrush-keyword-decision/v1",
+    "source": "semrush_connector",
+    "database": "us",
+    "selected_primary_keyword": "highest paying trades in california",
+    "selected_secondary_keywords": [
+      "trades that pay well in california",
+      "best trade jobs in california"
+    ],
+    "selection_rationale": "Authenticated Semrush US desktop evidence dated 2026-09-24 confirms the brief primary keyword and contextual variants, with the canonical URL ranking second for the primary and California variants. The broader field service management software term remains assigned to the Simpro homepage. Bound artifact: research/semrush-keyword-decision-best-trade-jobs-california-2026-09-24.json."
+  },
+  "faq_policy": {
+    "status": "required",
+    "rationale": "The brief supplies six adjacent California trade questions, and each has a direct, officially sourced answer."
+  },
+  "paa_policy": {
+    "source_kind": "brief_paa",
+    "query": "highest paying trades in california",
+    "selected_questions": [
+      "What trade gets paid the most in California?",
+      "What trades can make $100,000 a year in California?",
+      "What are the best trade jobs in California without a four-year degree?",
+      "How long does it take to learn a trade in California?",
+      "Do union trade jobs pay more in California?",
+      "Are trade jobs in demand in California?"
+    ]
+  },
+  "search_strategy": {
+    "primary_query": "highest paying trades in california",
+    "searcher_task": "Find which trades pay the most in California, compare pay with training and licensing requirements, and decide which trades to pursue.",
+    "intent_class": "informational",
+    "funnel_stage": "tofu",
+    "serp_evidence_artifact": "research/serp-evidence-best-trade-jobs-california-2026-09-24.json",
+    "dominant_content_type": "Listicle",
+    "selected_content_type": "Listicle",
+    "observed_serp_features": [
+      "AI Overview",
+      "People also ask",
+      "People also search for"
+    ],
+    "related_query_paa_artifact": "research/content-brief-best-trade-jobs-california-2026-09-24.md",
+    "format_decision": "match_dominant",
+    "exception_reason": "No format exception; the article keeps the ranked listicle format and adds a single-dataset comparison table and consistent trade profiles.",
+    "status": "ready"
+  },
+  "commercial_strategy": {
+    "article_title": "18 Highest-Paying Trades in California to Consider in 2026",
+    "article_primary_keyword": "highest paying trades in california",
+    "article_intent": "informational",
+    "destination_id": "simpro-us-homepage-field-service-management-software",
+    "commercial_pillar_url": "https://www.simprogroup.com/",
+    "planned_anchor_text": "field service management software",
+    "planned_h2_section": "Build a trade career with room to grow",
+    "existing_overlapping_urls_checked": [
+      "https://www.simprogroup.com/blog/best-trade-jobs-california",
+      "https://www.simprogroup.com/blog/highest-paying-trade-jobs",
+      "https://www.simprogroup.com/blog/highest-paying-trades-australia",
+      "https://www.simprogroup.com/blog/electrical-license-california"
+    ],
+    "pillar_versus_blog_intent_difference": "The homepage has product-proposition intent for trade contractors buying software, while this blog has informational career intent for Californians choosing a trade. Different intent and different content type; lifecycle action is update because the canonical blog already exists.",
+    "cannibalization_decision": "different_intent",
+    "incoming_link_candidates": [
+      "https://www.simprogroup.com/blog/electrical-license-california",
+      "https://www.simprogroup.com/blog/electrical-industry-statistics-2026",
+      "https://www.simprogroup.com/blog/plumbing-industry-statistics-2026"
+    ],
+    "status": "aligned"
+  },
+  "lifecycle": {
+    "last_updated_date": "2026-09-24",
+    "volatility": "high",
+    "next_review_date": "2026-12-23",
+    "review_command": "/performance-review published/best-trade-jobs-california.md",
+    "gsc_lane": "available: GSC 90-day page query export read on 2026-09-24 shows 140 clicks and 1,583 impressions with California trade-pay queries at average positions 1.9 to 3.1",
+    "ga4_lane": "unavailable: no current GA4 export was collected for this assembly; do not infer engagement from missing observations",
+    "semrush_lane": "available: US keyword decision captured in the main Chrome Semrush UI on 2026-09-24 and verified homepage commercial-pillar record",
+    "ai_citation_lane": "unavailable: no AI-citation export was collected for this assembly; do not infer citation performance from missing observations",
+    "decision": "update",
+    "status": "scheduled"
+  }
+}

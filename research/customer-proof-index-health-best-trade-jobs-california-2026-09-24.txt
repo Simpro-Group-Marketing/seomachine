@@ -1,0 +1,31 @@
+Customer Proof Index Health
+- Index: context/customer-proof-index.json
+- Ledger: context/customer-proof-usage-ledger.json
+- Total rows: 57
+- Source types: case_study=8, customer_story=9, quote_matrix=6, reference=8, review_site=26
+- Approval statuses: approved=57
+- Public copy allowed: true=57
+- Approved proof assets: 8 rows with quotes (8 total), 10 rows with metrics (23 total)
+- Overused proof rows: 6
+  - review-capterra-bigchange-alexina-office-manager-job-lifecycle (capterra bigchange office-manager review): 4 recent uses, 4 raw occurrences
+  - review-capterra-bigchange-hannah-construction-one-system-workflow (capterra bigchange company-secretary review): 4 recent uses, 4 raw occurrences
+  - case-study-bge-digital (bge digital): 3 recent uses, 0 raw occurrences
+  - case-study-quorum (quorum): 3 recent uses, 0 raw occurrences
+  - case-study-schaffer-beacon-mechanical (shaffer beacon mechanical): 3 recent uses, 5 raw occurrences
+  - case-study-teamwired (teamwired): 3 recent uses, 4 raw occurrences
+- Recently used proof rows: 14
+  - review-capterra-bigchange-alexina-office-manager-job-lifecycle (capterra bigchange office-manager review): 4 recent uses, 4 raw occurrences
+  - review-capterra-bigchange-hannah-construction-one-system-workflow (capterra bigchange company-secretary review): 4 recent uses, 4 raw occurrences
+  - case-study-bge-digital (bge digital): 3 recent uses, baseline=3, 0 raw occurrences
+  - case-study-quorum (quorum): 3 recent uses, baseline=3, 0 raw occurrences
+  - case-study-schaffer-beacon-mechanical (shaffer beacon mechanical): 3 recent uses, baseline=3, 5 raw occurrences
+  - case-study-teamwired (teamwired): 3 recent uses, baseline=3, 4 raw occurrences
+  - case-study-foster-plumbing-job-costing-exit (foster plumbing): 2 recent uses, 2 raw occurrences
+  - quote-matrix-kiely-plumbing-estimates-invoicing (kiely plumbing): 2 recent uses, 3 raw occurrences
+  - bigchange-customer-story-blackhall-plumbing-job-lifecycle (blackhall): 1 recent uses, 1 raw occurrences
+  - bigchange-customer-story-cc-is-paperless-job-cards (cc infrastructure services (cc-is)): 1 recent uses, 1 raw occurrences
+- Rows without public web URLs: 0
+- Blocked from public copy: 0
+- Priority intake targets: 0
+- Priority workflow gaps: 0
+- Workflow gaps: 0

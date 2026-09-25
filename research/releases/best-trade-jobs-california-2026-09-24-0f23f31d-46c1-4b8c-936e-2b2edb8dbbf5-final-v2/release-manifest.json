@@ -1,0 +1,479 @@
+{
+  "artifact_kind": "blog",
+  "created_at": "2026-09-24T21:09:53.603853Z",
+  "inputs": {
+    "agent_definition.content-analyzer": {
+      "bytes": 6327,
+      "path": ".claude/agents/content-analyzer.md",
+      "sha256": "8a5253b8aa0d7cf5b6ce003dd9af504444f0cc0b963746d455910f549aa914d9"
+    },
+    "agent_definition.internal-linker": {
+      "bytes": 15876,
+      "path": ".claude/agents/internal-linker.md",
+      "sha256": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c"
+    },
+    "agent_definition.keyword-mapper": {
+      "bytes": 5178,
+      "path": ".claude/agents/keyword-mapper.md",
+      "sha256": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d"
+    },
+    "agent_definition.meta-creator": {
+      "bytes": 12484,
+      "path": ".claude/agents/meta-creator.md",
+      "sha256": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a"
+    },
+    "agent_definition.seo-optimizer": {
+      "bytes": 13771,
+      "path": ".claude/agents/seo-optimizer.md",
+      "sha256": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8"
+    },
+    "agent_output.content-analyzer": {
+      "bytes": 1977,
+      "path": "research/agent-outputs/content-analyzer-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "5a70d9054b8e07b2845e257b2e169f55bfb06c520759174a6bf3a7d17979f8f4"
+    },
+    "agent_output.internal-linker": {
+      "bytes": 1665,
+      "path": "research/agent-outputs/internal-linker-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "d0f842ff61ee47080be87bc147fc9dceb9450548a2897590b8d0522a3e9a83ec"
+    },
+    "agent_output.keyword-mapper": {
+      "bytes": 1408,
+      "path": "research/agent-outputs/keyword-mapper-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "ca83fa95ae4220386c3cc30e4032a348aedbc71ad7f06dd1f0b94a31f97d6ddb"
+    },
+    "agent_output.meta-creator": {
+      "bytes": 1353,
+      "path": "research/agent-outputs/meta-creator-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "de63d096ab879a244b0be4329329f3d09fe6c26c53c46dd5d77dfbdee222a5ab"
+    },
+    "agent_output.seo-optimizer": {
+      "bytes": 1432,
+      "path": "research/agent-outputs/seo-optimizer-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "2c1ca67e1ebbb9c258981da36d8afba899fccfc659be6880fceccfe94778dee8"
+    },
+    "article": {
+      "bytes": 34046,
+      "path": "rewrites/best-trade-jobs-california-rewrite-2026-09-24.md",
+      "sha256": "5e00913900bb1718dd4c13be6bc49cb653a2de5602518b1f4f832cc166b8f422"
+    },
+    "assembly_bom": {
+      "bytes": 76891,
+      "path": "research/releases/best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-final-v2/final-bom.json",
+      "sha256": "3d96f004aa71dfcf0591da58607e64efd765a0f15d7d00ae5a1ca30600fe2525"
+    },
+    "command_definition.optimize-command": {
+      "bytes": 9714,
+      "path": ".claude/commands/optimize.md",
+      "sha256": "4c1c60954db2129a49c3a83564b44e49974c44d17708c2aa210542d3ee691cea"
+    },
+    "command_definition.rewrite-command": {
+      "bytes": 11196,
+      "path": ".claude/commands/rewrite.md",
+      "sha256": "62258a38146b198cc564980f53166d2178298c7a73cc9988aa9be203d22e9d82"
+    },
+    "commercial_pillar_index": {
+      "bytes": 7737,
+      "path": "context/commercial-pillar-index.json",
+      "sha256": "d122dbbab6c9f1dfa13715345bc9278f6a33b4e81f10bc4b17d410dc5da8a6f6"
+    },
+    "content_brief": {
+      "bytes": 9017,
+      "path": "research/content-brief-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "45a7be4a7053d22ed8a98d126107b641847394ff91cb179417f58dbef91b8f1d"
+    },
+    "context_pack": {
+      "bytes": 422040,
+      "path": "research/context-pack-best-trade-jobs-california.json",
+      "sha256": "7fe07276f8788007222502bd17bae08acb3fed344ada4f474bf1cb460fd79601"
+    },
+    "context_receipt": {
+      "bytes": 108647,
+      "path": "research/context-receipt-best-trade-jobs-california.json",
+      "sha256": "00c28513ab90e4b5cd45ab91d0c9f31d0cf0a1e69300bd88f4645754cb1d7b08"
+    },
+    "context_request": {
+      "bytes": 4024,
+      "path": "research/context-request-best-trade-jobs-california.json",
+      "sha256": "717878a3fecc04f0d77ca7f05a8038654c4f574534454175f2e0e80218ac0f67"
+    },
+    "customer_proof_index": {
+      "bytes": 135152,
+      "path": "context/customer-proof-index.json",
+      "sha256": "fee695a0b32d20c3c12c155a590979f4352b3170925fe6f87654b75282125c62"
+    },
+    "customer_proof_selector_evidence": {
+      "bytes": 4710,
+      "path": "research/customer-proof-selector-evidence-best-trade-jobs-california-decision-2026-09-24.json",
+      "sha256": "e7113d05f1cdd6423aae040851969699323e3872c05fd5ad0fe9b6b14c232d59"
+    },
+    "customer_proof_usage_ledger": {
+      "bytes": 24638,
+      "path": "context/customer-proof-usage-ledger.json",
+      "sha256": "a094f1c09757645a95da80b6666e9d6d4c72aaeb5e71ce307a3843960d098cad"
+    },
+    "editorial_plan": {
+      "bytes": 29756,
+      "path": "research/editorial-plan-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "71b09b2b66f843de7e39ab0629a3bcf0a63a759623a7834d5cda404fb7c8b109"
+    },
+    "fred_authority_evidence": {
+      "bytes": 1555,
+      "path": "research/fred-authority-selector-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "d4de4430ce0408f2010657c52f685970ae1e9ba90d775b688d8a20dc9114efc3"
+    },
+    "hindsight_strategy_evidence": {
+      "bytes": 75596,
+      "path": "research/hindsight-strategy-evidence-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "2f14bf7d68d0247e4becb41e338b0cedcee8947cd2ebf7dfa251b4feec32f377"
+    },
+    "historical_preflight.agent_definition.content-analyzer": {
+      "bytes": 6327,
+      "path": ".claude/agents/content-analyzer.md",
+      "sha256": "8a5253b8aa0d7cf5b6ce003dd9af504444f0cc0b963746d455910f549aa914d9"
+    },
+    "historical_preflight.agent_definition.internal-linker": {
+      "bytes": 15876,
+      "path": ".claude/agents/internal-linker.md",
+      "sha256": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c"
+    },
+    "historical_preflight.agent_definition.keyword-mapper": {
+      "bytes": 5178,
+      "path": ".claude/agents/keyword-mapper.md",
+      "sha256": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d"
+    },
+    "historical_preflight.agent_definition.meta-creator": {
+      "bytes": 12484,
+      "path": ".claude/agents/meta-creator.md",
+      "sha256": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a"
+    },
+    "historical_preflight.agent_definition.seo-optimizer": {
+      "bytes": 13771,
+      "path": ".claude/agents/seo-optimizer.md",
+      "sha256": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8"
+    },
+    "historical_preflight.agent_output.content-analyzer": {
+      "bytes": 1977,
+      "path": "research/agent-outputs/content-analyzer-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "5a70d9054b8e07b2845e257b2e169f55bfb06c520759174a6bf3a7d17979f8f4"
+    },
+    "historical_preflight.agent_output.internal-linker": {
+      "bytes": 1665,
+      "path": "research/agent-outputs/internal-linker-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "d0f842ff61ee47080be87bc147fc9dceb9450548a2897590b8d0522a3e9a83ec"
+    },
+    "historical_preflight.agent_output.keyword-mapper": {
+      "bytes": 1408,
+      "path": "research/agent-outputs/keyword-mapper-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "ca83fa95ae4220386c3cc30e4032a348aedbc71ad7f06dd1f0b94a31f97d6ddb"
+    },
+    "historical_preflight.agent_output.meta-creator": {
+      "bytes": 1353,
+      "path": "research/agent-outputs/meta-creator-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "de63d096ab879a244b0be4329329f3d09fe6c26c53c46dd5d77dfbdee222a5ab"
+    },
+    "historical_preflight.agent_output.seo-optimizer": {
+      "bytes": 1432,
+      "path": "research/agent-outputs/seo-optimizer-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "2c1ca67e1ebbb9c258981da36d8afba899fccfc659be6880fceccfe94778dee8"
+    },
+    "historical_preflight.article": {
+      "bytes": 34046,
+      "path": "rewrites/best-trade-jobs-california-rewrite-2026-09-24.md",
+      "sha256": "5e00913900bb1718dd4c13be6bc49cb653a2de5602518b1f4f832cc166b8f422"
+    },
+    "historical_preflight.assembly_bom": {
+      "bytes": 54241,
+      "path": "research/releases/best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-final-v2/provisional-bom.json",
+      "sha256": "06f23c86d7c958edf76a9b21f322ed5bcd5a95bc22da9f5625d587643d59a9d8"
+    },
+    "historical_preflight.command_definition.optimize-command": {
+      "bytes": 9714,
+      "path": ".claude/commands/optimize.md",
+      "sha256": "4c1c60954db2129a49c3a83564b44e49974c44d17708c2aa210542d3ee691cea"
+    },
+    "historical_preflight.command_definition.rewrite-command": {
+      "bytes": 11196,
+      "path": ".claude/commands/rewrite.md",
+      "sha256": "62258a38146b198cc564980f53166d2178298c7a73cc9988aa9be203d22e9d82"
+    },
+    "historical_preflight.commercial_pillar_index": {
+      "bytes": 7737,
+      "path": "context/commercial-pillar-index.json",
+      "sha256": "d122dbbab6c9f1dfa13715345bc9278f6a33b4e81f10bc4b17d410dc5da8a6f6"
+    },
+    "historical_preflight.content_brief": {
+      "bytes": 9017,
+      "path": "research/content-brief-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "45a7be4a7053d22ed8a98d126107b641847394ff91cb179417f58dbef91b8f1d"
+    },
+    "historical_preflight.context_pack": {
+      "bytes": 422040,
+      "path": "research/context-pack-best-trade-jobs-california.json",
+      "sha256": "7fe07276f8788007222502bd17bae08acb3fed344ada4f474bf1cb460fd79601"
+    },
+    "historical_preflight.context_receipt": {
+      "bytes": 108647,
+      "path": "research/context-receipt-best-trade-jobs-california.json",
+      "sha256": "00c28513ab90e4b5cd45ab91d0c9f31d0cf0a1e69300bd88f4645754cb1d7b08"
+    },
+    "historical_preflight.context_request": {
+      "bytes": 4024,
+      "path": "research/context-request-best-trade-jobs-california.json",
+      "sha256": "717878a3fecc04f0d77ca7f05a8038654c4f574534454175f2e0e80218ac0f67"
+    },
+    "historical_preflight.customer_proof_index": {
+      "bytes": 135152,
+      "path": "context/customer-proof-index.json",
+      "sha256": "fee695a0b32d20c3c12c155a590979f4352b3170925fe6f87654b75282125c62"
+    },
+    "historical_preflight.customer_proof_selector_evidence": {
+      "bytes": 4710,
+      "path": "research/customer-proof-selector-evidence-best-trade-jobs-california-decision-2026-09-24.json",
+      "sha256": "e7113d05f1cdd6423aae040851969699323e3872c05fd5ad0fe9b6b14c232d59"
+    },
+    "historical_preflight.customer_proof_usage_ledger": {
+      "bytes": 24638,
+      "path": "context/customer-proof-usage-ledger.json",
+      "sha256": "a094f1c09757645a95da80b6666e9d6d4c72aaeb5e71ce307a3843960d098cad"
+    },
+    "historical_preflight.editorial_plan": {
+      "bytes": 29756,
+      "path": "research/editorial-plan-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "71b09b2b66f843de7e39ab0629a3bcf0a63a759623a7834d5cda404fb7c8b109"
+    },
+    "historical_preflight.fred_authority_evidence": {
+      "bytes": 1555,
+      "path": "research/fred-authority-selector-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "d4de4430ce0408f2010657c52f685970ae1e9ba90d775b688d8a20dc9114efc3"
+    },
+    "historical_preflight.hindsight_strategy_evidence": {
+      "bytes": 75596,
+      "path": "research/hindsight-strategy-evidence-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "2f14bf7d68d0247e4becb41e338b0cedcee8947cd2ebf7dfa251b4feec32f377"
+    },
+    "historical_preflight.keyword_decision": {
+      "bytes": 19390,
+      "path": "research/semrush-keyword-decision-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "c20893a679fd8271e23142ede8ded3ddfb0c61d302e56a32a379162f93ac20ff"
+    },
+    "historical_preflight.machine_reviews.article": {
+      "bytes": 1586,
+      "path": "research/machine-review-article-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "fc7863891533d4b948f1b3980c7c0d6acbffb7233f78d4efabe9358191421f10"
+    },
+    "historical_preflight.machine_reviews.plan": {
+      "bytes": 1583,
+      "path": "research/machine-review-plan-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "a69ad791662cee13b9397fd3011db68fa6a691bffe96e9e9397cc7f8369dac43"
+    },
+    "historical_preflight.optimizer_outputs[0]": {
+      "bytes": 29108,
+      "path": "research/optimizer-output-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "066f861c5963aede98e4a69070ee78e2e567061a4ef127b6ce96736cb44fe1d1"
+    },
+    "historical_preflight.plan_fulfillment": {
+      "bytes": 7050,
+      "path": "research/blog-plan-fulfillment-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "f483d8adbf26efff443140b71cd79e17ebde4dacb7955f5ce362d1d1b366d05f"
+    },
+    "historical_preflight.prior_preflight_readiness": {
+      "bytes": 36745,
+      "path": "research/releases/best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-initial-v3/preflight-readiness.json",
+      "sha256": "3886c1dbb0804d26417e23d43a821d81f3cc2503688d7ec6ed597aa272e12146"
+    },
+    "historical_preflight.serp_evidence": {
+      "bytes": 4076,
+      "path": "research/serp-evidence-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "ff726dcb8f667672a0663b95b16f74b6ce20220c5a179ac4ceb278cc4e43e834"
+    },
+    "historical_preflight.serp_raw_capture": {
+      "bytes": 5414,
+      "path": "research/serp-chrome-raw-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "0b40647906f311a15e0b71441738b6685598cbd5e99eff045d3523ef178417d2"
+    },
+    "historical_preflight.source_decision_registry": {
+      "bytes": 23846,
+      "path": "context/source-classification-decisions.json",
+      "sha256": "3c60f204150928cf01ab10d802e3627d36220c07a3b9803b06f7eaa5b4e05e9d"
+    },
+    "historical_preflight.stage_evidence[0]": {
+      "bytes": 364,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-scrub-evidence.json",
+      "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+    },
+    "historical_preflight.stage_evidence[1]": {
+      "bytes": 2962,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-context-binding-evidence.json",
+      "sha256": "c1d0c067b6bf9922a4bbcca1f780aa1edb81fc73c3f4be6c15bec59faa7ebc04"
+    },
+    "historical_preflight.stage_evidence[2]": {
+      "bytes": 364,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-post-optimization-scrub-evidence.json",
+      "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+    },
+    "historical_preflight.stage_evidence[3]": {
+      "bytes": 2962,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-post-optimization-context-binding-evidence.json",
+      "sha256": "e0176b9da785915e912e1e8b4b2d86f77a525f04c996d89a7eb8110e163b2af0"
+    },
+    "historical_preflight.stage_receipts[0]": {
+      "bytes": 1344,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-draft.json",
+      "sha256": "8c745e6824afdba4318f4564fbf9bf9ffb37dcb6541b8f334befe17e4b6bb6ac"
+    },
+    "historical_preflight.stage_receipts[1]": {
+      "bytes": 1236,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-scrub.json",
+      "sha256": "4abcf11878656375d0f818333a2c31470f802b66ac74763063acb08a581f7565"
+    },
+    "historical_preflight.stage_receipts[2]": {
+      "bytes": 1618,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-context-binding.json",
+      "sha256": "c1df110548ba9c451877ff298d75f73c7461de7bd6812af3ae922a089a45814c"
+    },
+    "historical_preflight.stage_receipts[3]": {
+      "bytes": 7693,
+      "path": "research/releases/best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-initial-v3/preflight-readiness-stage-receipt.json",
+      "sha256": "95e164b1b40bfa92d9eb127360ff8dcfba73b6aa9ec9710d656ae00cfea7156b"
+    },
+    "historical_preflight.stage_receipts[4]": {
+      "bytes": 2483,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-optimization.json",
+      "sha256": "46bea9dba820e6d09db3081681ec0ef3a2a300a63f2a4d52c6ee4e5c7b703856"
+    },
+    "historical_preflight.stage_receipts[5]": {
+      "bytes": 1254,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-post-optimization-scrub.json",
+      "sha256": "2ac815ad2abcb52821bd7e2e531aa7f81a7eee130a67ca8ca2d09fe8843d042f"
+    },
+    "historical_preflight.stage_receipts[6]": {
+      "bytes": 1636,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-post-optimization-context-binding.json",
+      "sha256": "80cada3ac2cb37a4781dc8b488316b29ad3e29349c650004a39575eedae8f05c"
+    },
+    "historical_preflight.validation_sidecar": {
+      "bytes": 169210,
+      "path": "research/validation-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "38d897c10a04aee98c2f7c977a8e6479da73294dc48adb7d865bdabd99730ca5"
+    },
+    "keyword_decision": {
+      "bytes": 19390,
+      "path": "research/semrush-keyword-decision-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "c20893a679fd8271e23142ede8ded3ddfb0c61d302e56a32a379162f93ac20ff"
+    },
+    "machine_reviews.article": {
+      "bytes": 1586,
+      "path": "research/machine-review-article-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "fc7863891533d4b948f1b3980c7c0d6acbffb7233f78d4efabe9358191421f10"
+    },
+    "machine_reviews.plan": {
+      "bytes": 1583,
+      "path": "research/machine-review-plan-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "a69ad791662cee13b9397fd3011db68fa6a691bffe96e9e9397cc7f8369dac43"
+    },
+    "optimizer_outputs[0]": {
+      "bytes": 29108,
+      "path": "research/optimizer-output-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "066f861c5963aede98e4a69070ee78e2e567061a4ef127b6ce96736cb44fe1d1"
+    },
+    "plan_fulfillment": {
+      "bytes": 7050,
+      "path": "research/blog-plan-fulfillment-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "f483d8adbf26efff443140b71cd79e17ebde4dacb7955f5ce362d1d1b366d05f"
+    },
+    "preflight_readiness": {
+      "bytes": 39438,
+      "path": "research/releases/best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-final-v2/preflight-readiness.json",
+      "sha256": "048da965200f6c6b57cfca770541cabc4eef4ec2b496766740bb5baba4cba34a"
+    },
+    "prior_preflight_readiness": {
+      "bytes": 36745,
+      "path": "research/releases/best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-initial-v3/preflight-readiness.json",
+      "sha256": "3886c1dbb0804d26417e23d43a821d81f3cc2503688d7ec6ed597aa272e12146"
+    },
+    "serp_evidence": {
+      "bytes": 4076,
+      "path": "research/serp-evidence-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "ff726dcb8f667672a0663b95b16f74b6ce20220c5a179ac4ceb278cc4e43e834"
+    },
+    "serp_raw_capture": {
+      "bytes": 5414,
+      "path": "research/serp-chrome-raw-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "0b40647906f311a15e0b71441738b6685598cbd5e99eff045d3523ef178417d2"
+    },
+    "source_decision_registry": {
+      "bytes": 23846,
+      "path": "context/source-classification-decisions.json",
+      "sha256": "3c60f204150928cf01ab10d802e3627d36220c07a3b9803b06f7eaa5b4e05e9d"
+    },
+    "stage_evidence[0]": {
+      "bytes": 364,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-scrub-evidence.json",
+      "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+    },
+    "stage_evidence[1]": {
+      "bytes": 2962,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-context-binding-evidence.json",
+      "sha256": "c1d0c067b6bf9922a4bbcca1f780aa1edb81fc73c3f4be6c15bec59faa7ebc04"
+    },
+    "stage_evidence[2]": {
+      "bytes": 364,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-post-optimization-scrub-evidence.json",
+      "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+    },
+    "stage_evidence[3]": {
+      "bytes": 2962,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-post-optimization-context-binding-evidence.json",
+      "sha256": "e0176b9da785915e912e1e8b4b2d86f77a525f04c996d89a7eb8110e163b2af0"
+    },
+    "stage_receipts[0]": {
+      "bytes": 1344,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-draft.json",
+      "sha256": "8c745e6824afdba4318f4564fbf9bf9ffb37dcb6541b8f334befe17e4b6bb6ac"
+    },
+    "stage_receipts[1]": {
+      "bytes": 1236,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-scrub.json",
+      "sha256": "4abcf11878656375d0f818333a2c31470f802b66ac74763063acb08a581f7565"
+    },
+    "stage_receipts[2]": {
+      "bytes": 1618,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-context-binding.json",
+      "sha256": "c1df110548ba9c451877ff298d75f73c7461de7bd6812af3ae922a089a45814c"
+    },
+    "stage_receipts[3]": {
+      "bytes": 7693,
+      "path": "research/releases/best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-initial-v3/preflight-readiness-stage-receipt.json",
+      "sha256": "95e164b1b40bfa92d9eb127360ff8dcfba73b6aa9ec9710d656ae00cfea7156b"
+    },
+    "stage_receipts[4]": {
+      "bytes": 2483,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-optimization.json",
+      "sha256": "46bea9dba820e6d09db3081681ec0ef3a2a300a63f2a4d52c6ee4e5c7b703856"
+    },
+    "stage_receipts[5]": {
+      "bytes": 1254,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-post-optimization-scrub.json",
+      "sha256": "2ac815ad2abcb52821bd7e2e531aa7f81a7eee130a67ca8ca2d09fe8843d042f"
+    },
+    "stage_receipts[6]": {
+      "bytes": 1636,
+      "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-post-optimization-context-binding.json",
+      "sha256": "80cada3ac2cb37a4781dc8b488316b29ad3e29349c650004a39575eedae8f05c"
+    },
+    "stage_receipts[7]": {
+      "bytes": 9859,
+      "path": "research/releases/best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-final-v2/preflight-readiness-stage-receipt.json",
+      "sha256": "bb070b880523b283cea61d764a97171e86d01c534205d24989d3b1eb953af2b0"
+    },
+    "validation_sidecar": {
+      "bytes": 169210,
+      "path": "research/validation-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "38d897c10a04aee98c2f7c977a8e6479da73294dc48adb7d865bdabd99730ca5"
+    }
+  },
+  "previous_receipt_hash": "4f69ebd6f6e97352277472f4673706537899b7d5d862557d46155c73124c0f1e",
+  "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+  "schema": "simpro-release-manifest/v1"
+}

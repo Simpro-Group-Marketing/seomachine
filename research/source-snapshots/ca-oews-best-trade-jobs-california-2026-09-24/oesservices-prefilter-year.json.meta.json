@@ -1,0 +1,11 @@
+{
+  "bytes": 52,
+  "content_type": "application/json",
+  "file": "research/source-snapshots/ca-oews-best-trade-jobs-california-2026-09-24/oesservices-prefilter-year.json",
+  "http_status": 200,
+  "method": "GET",
+  "request_payload": null,
+  "retrieved_at": "2026-09-24T15:49:33Z",
+  "sha256": "63bfc6884d37cd263a019a31fe576abc1ee3a028bb31e569a4c3792ba9b0d129",
+  "url": "https://data.bls.gov/OESServices/prefilter/year"
+}
