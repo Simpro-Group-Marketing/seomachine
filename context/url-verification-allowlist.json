@@ -104,6 +104,33 @@
       "observed_text_length": 765,
       "evidence": "Page 5 of the rendered certificate specification sets learning outcomes covering workplace hazard identification, control measures, the stages of a risk assessment, and circumstances requiring review.",
       "reason": "The PDF URL returned HTTP 403 to the validator client. The exact PDF loaded in the connected Chrome browser, where page 5 and its assessment-criteria table were visually verified."
+    },
+    {
+      "url": "https://www.bls.gov/cps/cpsaat11.htm",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-25T19:40:00Z",
+      "page_title": "Employed people by detailed occupation, sex, race, and Hispanic or Latino ethnicity : U.S. Bureau of Labor Statistics",
+      "observed_text_length": 39211,
+      "evidence": "Construction and extraction occupations 8,490 4.3 86.6 7.0 1.8 41.7",
+      "reason": "www.bls.gov returns HTTP 403 to the validator's request client. The page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.bls.gov/cps/cpsaat18.htm",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-25T19:42:00Z",
+      "page_title": "Employed people by detailed industry, sex, race, and Hispanic or Latino ethnicity : U.S. Bureau of Labor Statistics",
+      "observed_text_length": 25394,
+      "evidence": "Construction 12,121 11.3 86.8 6.6 2.3 35.4",
+      "reason": "www.bls.gov returns HTTP 403 to the validator's request client. The page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.dol.gov/sites/dolgov/files/ETA/opder/DASP/Trendlines/posts/2024_11/Trendlines_November_2024.html",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-25T19:44:00Z",
+      "page_title": "trendlines_november_2024",
+      "observed_text_length": 4917,
+      "evidence": "women still only made up about 14% of active apprentices in FY2024",
+      "reason": "dol.gov returns HTTP 403 to the validator's request client. The page loads normally in the Chrome connector."
     }
   ]
 }

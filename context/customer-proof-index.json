@@ -3211,6 +3211,238 @@
         "point-of-work safety",
         "field service compliance"
       ]
+    },
+    {
+      "approval_status": "approved",
+      "approved_metrics": [],
+      "approved_quotes": [
+        {
+          "evidence": "If someone had a question, I didn\u2019t want them bottlenecked by me. They went straight to support, got the answer, and brought it back to the team.",
+          "quote": "If someone had a question, I didn\u2019t want them bottlenecked by me. They went straight to support, got the answer, and brought it back to the team.",
+          "status": "approved",
+          "url": "https://www.simprogroup.com/blog/toolbox-tech-webinar"
+        }
+      ],
+      "customer": "Foster Plumbing",
+      "evidence": "If someone had a question, I didn\u2019t want them bottlenecked by me. They went straight to support, got the answer, and brought it back to the team.",
+      "industry": [
+        "plumbing"
+      ],
+      "internal_source_ref": "Live public Simpro customer story page read 2026-09-25; quote copied verbatim from page text.",
+      "last_verified": "2026-09-25",
+      "proof_id": "story-foster-plumbing-toolbox-to-tech-team-support",
+      "public_copy_allowed": true,
+      "public_url": "https://www.simprogroup.com/blog/toolbox-tech-webinar",
+      "region": [
+        "US"
+      ],
+      "restrictions": [
+        "Exact quote only as captured",
+        "attribute to Amy Carnrick, former owner, Foster Plumbing",
+        "link the public story URL in the same paragraph",
+        "no added metrics."
+      ],
+      "review_story": {
+        "story_allowed": false
+      },
+      "source_type": "customer_story",
+      "themes": [
+        "empowered team",
+        "adoption",
+        "flexible leadership"
+      ],
+      "workflow_fit": [
+        "team enablement",
+        "software adoption",
+        "support",
+        "operations leadership"
+      ]
+    },
+    {
+      "approval_status": "approved",
+      "approved_metrics": [],
+      "approved_quotes": [
+        {
+          "evidence": "I overbooked everyone because I didn\u2019t know any better. They thought I was chasing profit, but really I just didn\u2019t have visibility into what was happening.",
+          "quote": "I overbooked everyone because I didn\u2019t know any better. They thought I was chasing profit, but really I just didn\u2019t have visibility into what was happening.",
+          "status": "approved",
+          "url": "https://www.simprogroup.com/blog/toolbox-tech-webinar"
+        }
+      ],
+      "customer": "Foster Plumbing",
+      "evidence": "I overbooked everyone because I didn\u2019t know any better. They thought I was chasing profit, but really I just didn\u2019t have visibility into what was happening.",
+      "industry": [
+        "plumbing"
+      ],
+      "internal_source_ref": "Live public Simpro customer story page read 2026-09-25; quote copied verbatim from page text.",
+      "last_verified": "2026-09-25",
+      "proof_id": "story-foster-plumbing-toolbox-to-tech-scheduling-visibility",
+      "public_copy_allowed": true,
+      "public_url": "https://www.simprogroup.com/blog/toolbox-tech-webinar",
+      "region": [
+        "US"
+      ],
+      "restrictions": [
+        "Exact quote only as captured",
+        "attribute to Amy Carnrick, former owner, Foster Plumbing",
+        "link the public story URL in the same paragraph",
+        "no added metrics."
+      ],
+      "review_story": {
+        "story_allowed": false
+      },
+      "source_type": "customer_story",
+      "themes": [
+        "scheduling visibility",
+        "workload balance",
+        "retention"
+      ],
+      "workflow_fit": [
+        "scheduling",
+        "crew capacity",
+        "visibility",
+        "burnout"
+      ]
+    },
+    {
+      "approval_status": "approved",
+      "approved_metrics": [],
+      "approved_quotes": [
+        {
+          "evidence": "I\u2019ve worked in the trades since I was 16, and I\u2019ve seen how much it\u2019s changed. Everything used to be paper-based. Things have hugely evolved since then \u2014 it\u2019s so different now. Things are faster, things happen quicker, and the technology that comes along makes everything easier.",
+          "quote": "I\u2019ve worked in the trades since I was 16, and I\u2019ve seen how much it\u2019s changed. Everything used to be paper-based. Things have hugely evolved since then \u2014 it\u2019s so different now. Things are faster, things happen quicker, and the technology that comes along makes everything easier.",
+          "status": "approved",
+          "url": "https://www.simprogroup.com/blog/heroes-of-the-trade-dawn-lawrie"
+        }
+      ],
+      "customer": "Virtual FM (Virtual Services Group)",
+      "evidence": "I\u2019ve worked in the trades since I was 16, and I\u2019ve seen how much it\u2019s changed. Everything used to be paper-based. Things have hugely evolved since then \u2014 it\u2019s so different now. Things are faster, things happen quicker, and the technology that comes along makes everything easier.",
+      "industry": [
+        "facilities management",
+        "construction",
+        "electrical"
+      ],
+      "internal_source_ref": "Live public Simpro customer story page read 2026-09-25; quote copied verbatim from page text.",
+      "last_verified": "2026-09-25",
+      "proof_id": "story-virtual-fm-dawn-lawrie-trades-career",
+      "public_copy_allowed": true,
+      "public_url": "https://www.simprogroup.com/blog/heroes-of-the-trade-dawn-lawrie",
+      "region": [
+        "UK"
+      ],
+      "restrictions": [
+        "Exact quote only as captured",
+        "attribute to Dawn Lawrie, Group Systems Director, Virtual FM",
+        "link the public story URL in the same paragraph",
+        "no added metrics."
+      ],
+      "review_story": {
+        "story_allowed": false
+      },
+      "source_type": "customer_story",
+      "themes": [
+        "woman trades career",
+        "technology evolution",
+        "leadership pathway"
+      ],
+      "workflow_fit": [
+        "career pathway",
+        "technology adoption",
+        "operations leadership"
+      ]
+    },
+    {
+      "approval_status": "approved",
+      "approved_metrics": [],
+      "approved_quotes": [
+        {
+          "evidence": "People are the pillar of your business. If you don\u2019t have the right people, then you can\u2019t operate.",
+          "quote": "People are the pillar of your business. If you don\u2019t have the right people, then you can\u2019t operate.",
+          "status": "approved",
+          "url": "https://www.simprogroup.com/blog/heroes-of-the-trade-dawn-lawrie"
+        }
+      ],
+      "customer": "Virtual FM (Virtual Services Group)",
+      "evidence": "People are the pillar of your business. If you don\u2019t have the right people, then you can\u2019t operate.",
+      "industry": [
+        "facilities management",
+        "field service"
+      ],
+      "internal_source_ref": "Live public Simpro customer story page read 2026-09-25; quote copied verbatim from page text.",
+      "last_verified": "2026-09-25",
+      "proof_id": "story-virtual-fm-dawn-lawrie-people-pillar",
+      "public_copy_allowed": true,
+      "public_url": "https://www.simprogroup.com/blog/heroes-of-the-trade-dawn-lawrie",
+      "region": [
+        "UK"
+      ],
+      "restrictions": [
+        "Exact quote only as captured",
+        "attribute to Dawn Lawrie, Group Systems Director, Virtual FM",
+        "link the public story URL in the same paragraph",
+        "no added metrics."
+      ],
+      "review_story": {
+        "story_allowed": false
+      },
+      "source_type": "customer_story",
+      "themes": [
+        "people first",
+        "systems",
+        "processes"
+      ],
+      "workflow_fit": [
+        "workforce",
+        "people",
+        "systems",
+        "processes"
+      ]
+    },
+    {
+      "approval_status": "approved",
+      "approved_metrics": [],
+      "approved_quotes": [
+        {
+          "evidence": "My role is making sure the business supports them properly.",
+          "quote": "My role is making sure the business supports them properly.",
+          "status": "approved",
+          "url": "https://www.simprogroup.com/blog/heroes-of-the-trade-vertac"
+        }
+      ],
+      "customer": "Vertac Wellington",
+      "evidence": "My role is making sure the business supports them properly.",
+      "industry": [
+        "exterior facade maintenance",
+        "high-risk trades"
+      ],
+      "internal_source_ref": "Live public Simpro customer story page read 2026-09-25; quote copied verbatim from page text.",
+      "last_verified": "2026-09-25",
+      "proof_id": "story-vertac-frances-paku-support-technicians",
+      "public_copy_allowed": true,
+      "public_url": "https://www.simprogroup.com/blog/heroes-of-the-trade-vertac",
+      "region": [
+        "NZ"
+      ],
+      "restrictions": [
+        "Exact quote only as captured",
+        "attribute to Frances Paku, Co-Owner, Vertac Wellington",
+        "link the public story URL in the same paragraph",
+        "no added metrics."
+      ],
+      "review_story": {
+        "story_allowed": false
+      },
+      "source_type": "customer_story",
+      "themes": [
+        "supporting technicians",
+        "owner role",
+        "retention"
+      ],
+      "workflow_fit": [
+        "technician support",
+        "retention",
+        "operations leadership"
+      ]
     }
   ],
   "source_boundary": "Curated customer proof index for selection and governance. This is not the full Quote Matrix. Exact quotes, review ratings, badges, rankings, and named reviewer claims require current source verification and approval before public copy use. Review-site rows may support public E-E-A-T stories only when review_story.story_allowed is true, the row has a real person or business identity, and a usable public review URL is linked in the same public paragraph as the paraphrase. Generic review themes remain VoC research only.",

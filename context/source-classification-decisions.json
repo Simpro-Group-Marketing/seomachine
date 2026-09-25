@@ -609,6 +609,78 @@
       "hostname": "www.britsafe.org",
       "source_class": "non_competing_expert",
       "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "wic-2026-09-26-bls-cps-aat11-2025",
+      "status": "approved",
+      "source_url": "https://www.bls.gov/cps/cpsaat11.htm",
+      "hostname": "www.bls.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "wic-2026-09-26-bls-cps-aat18-2025",
+      "status": "approved",
+      "source_url": "https://www.bls.gov/cps/cpsaat18.htm",
+      "hostname": "www.bls.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "wic-2026-09-26-dol-trendlines-2024-11-women-apprenticeship",
+      "status": "approved",
+      "source_url": "https://www.dol.gov/sites/dolgov/files/ETA/opder/DASP/Trendlines/posts/2024_11/Trendlines_November_2024.html",
+      "hostname": "www.dol.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "wic-2026-09-26-nahb-eye-on-housing-women-share-2025",
+      "status": "approved",
+      "source_url": "https://eyeonhousing.org/2026/09/womens-share-of-construction-workforce-reaches-20-year-high-in-2025/",
+      "hostname": "eyeonhousing.org",
+      "source_class": "non_competing_expert",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "wic-2026-09-26-abc-2026-workforce-shortage-release",
+      "status": "approved",
+      "source_url": "https://www.abc.org/News-Media/News-Releases/abc-construction-industry-must-attract-349000-workers-in-2026-despite-macroeconomic-headwinds",
+      "hostname": "www.abc.org",
+      "source_class": "non_competing_expert",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "wic-2026-09-26-iwpr-women-in-construction-qf-2025",
+      "status": "approved",
+      "source_url": "https://iwpr.org/wp-content/uploads/2025/08/Women-in-Construction-QF_2025.pdf",
+      "hostname": "iwpr.org",
+      "source_class": "non_competing_expert",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "wic-2026-09-26-osha-29cfr-1926-95-ppe",
+      "status": "approved",
+      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.95",
+      "hostname": "www.osha.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "wic-2026-09-26-osha-fr-2024-12-12-ppe-fit-final-rule",
+      "status": "approved",
+      "source_url": "https://www.osha.gov/laws-regs/federalregister/2024-12-12",
+      "hostname": "www.osha.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "wic-2026-09-26-osha-29cfr-1926-51-sanitation",
+      "status": "approved",
+      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.51",
+      "hostname": "www.osha.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
     }
   ]
 }
