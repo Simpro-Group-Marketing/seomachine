@@ -569,6 +569,246 @@
       "hostname": "www.dir.ca.gov",
       "source_class": "primary_authority",
       "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-hse-coshh-hub",
+      "status": "approved",
+      "source_url": "https://www.hse.gov.uk/coshh/",
+      "hostname": "www.hse.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-hse-coshh-law",
+      "status": "approved",
+      "source_url": "https://www.hse.gov.uk/coshh/law.htm",
+      "hostname": "www.hse.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-hse-coshh-substance",
+      "status": "approved",
+      "source_url": "https://www.hse.gov.uk/coshh/basics/substance.htm",
+      "hostname": "www.hse.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-hse-coshh-assessment",
+      "status": "approved",
+      "source_url": "https://www.hse.gov.uk/coshh/basics/assessment.htm",
+      "hostname": "www.hse.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-hse-coshh-datasheets",
+      "status": "approved",
+      "source_url": "https://www.hse.gov.uk/coshh/basics/datasheets.htm",
+      "hostname": "www.hse.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-hse-coshh-faq",
+      "status": "approved",
+      "source_url": "https://www.hse.gov.uk/coshh/faq.htm",
+      "hostname": "www.hse.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-hse-coshh-cleaning-industry",
+      "status": "approved",
+      "source_url": "https://www.hse.gov.uk/coshh/industry/cleaning.htm",
+      "hostname": "www.hse.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-hse-cleaning-coshh",
+      "status": "approved",
+      "source_url": "https://www.hse.gov.uk/cleaning/topics/coshh.htm",
+      "hostname": "www.hse.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-hse-coshh-goodpractice",
+      "status": "approved",
+      "source_url": "https://www.hse.gov.uk/coshh/detail/goodpractice.htm",
+      "hostname": "www.hse.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-hse-statistics-causdis",
+      "status": "approved",
+      "source_url": "https://www.hse.gov.uk/statistics/causdis/overview.htm",
+      "hostname": "www.hse.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-hse-l5-acop",
+      "status": "approved",
+      "source_url": "https://www.hse.gov.uk/pubns/books/l5.htm",
+      "hostname": "www.hse.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-legislation-coshh-contents",
+      "status": "approved",
+      "source_url": "https://www.legislation.gov.uk/uksi/2002/2677/contents",
+      "hostname": "www.legislation.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-legislation-coshh-reg-6",
+      "status": "approved",
+      "source_url": "https://www.legislation.gov.uk/uksi/2002/2677/regulation/6",
+      "hostname": "www.legislation.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-legislation-coshh-reg-7",
+      "status": "approved",
+      "source_url": "https://www.legislation.gov.uk/uksi/2002/2677/regulation/7",
+      "hostname": "www.legislation.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-legislation-coshh-reg-8",
+      "status": "approved",
+      "source_url": "https://www.legislation.gov.uk/uksi/2002/2677/regulation/8",
+      "hostname": "www.legislation.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-legislation-coshh-reg-9",
+      "status": "approved",
+      "source_url": "https://www.legislation.gov.uk/uksi/2002/2677/regulation/9",
+      "hostname": "www.legislation.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-legislation-coshh-reg-10",
+      "status": "approved",
+      "source_url": "https://www.legislation.gov.uk/uksi/2002/2677/regulation/10",
+      "hostname": "www.legislation.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-legislation-coshh-reg-11",
+      "status": "approved",
+      "source_url": "https://www.legislation.gov.uk/uksi/2002/2677/regulation/11",
+      "hostname": "www.legislation.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-legislation-coshh-reg-12",
+      "status": "approved",
+      "source_url": "https://www.legislation.gov.uk/uksi/2002/2677/regulation/12",
+      "hostname": "www.legislation.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-legislation-coshh-reg-13",
+      "status": "approved",
+      "source_url": "https://www.legislation.gov.uk/uksi/2002/2677/regulation/13",
+      "hostname": "www.legislation.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-legislation-coshh-schedule-2a",
+      "status": "approved",
+      "source_url": "https://www.legislation.gov.uk/uksi/2002/2677/schedule/2A",
+      "hostname": "www.legislation.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-sentencing-council-hs-organisations",
+      "status": "approved",
+      "source_url": "https://sentencingcouncil.org.uk/guidelines/organisations-breach-of-duty-of-employer-towards-employees-and-non-employees-breach-of-duty-of-self-employed-to-others-breach-of-health-and-safety-regulations/",
+      "hostname": "sentencingcouncil.org.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-bigchange-risk-assessment",
+      "status": "approved",
+      "source_url": "https://www.bigchange.com/features/risk-assessment",
+      "hostname": "www.bigchange.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-bigchange-worksheets",
+      "status": "approved",
+      "source_url": "https://www.bigchange.com/features/worksheets",
+      "hostname": "www.bigchange.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-bigchange-asset-management",
+      "status": "approved",
+      "source_url": "https://www.bigchange.com/features/asset-management",
+      "hostname": "www.bigchange.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-bigchange-cleaning-industry",
+      "status": "approved",
+      "source_url": "https://www.bigchange.com/industries/cleaning-software-crm",
+      "hostname": "www.bigchange.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-bigchange-powra-video",
+      "status": "approved",
+      "source_url": "https://www.youtube.com/watch?v=_YXifF-nLxA",
+      "hostname": "www.youtube.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-bigchange-clearground-story",
+      "status": "approved",
+      "source_url": "https://www.bigchange.com/success-stories/bigchange-helps-clearground-clean-up-on-workforce-health-and-safety",
+      "hostname": "www.bigchange.com",
+      "source_class": "customer_proof",
+      "publisher_relationship": "customer"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-bigchange-rilmac-story",
+      "status": "approved",
+      "source_url": "https://www.bigchange.com/success-stories/bigchange-removes-inefficiency-for-rilmac-asbestos-services-division",
+      "hostname": "www.bigchange.com",
+      "source_class": "customer_proof",
+      "publisher_relationship": "customer"
+    },
+    {
+      "decision_id": "coshh-regulations-2026-09-24-capterra-uk-bigchange",
+      "status": "approved",
+      "source_url": "https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange",
+      "hostname": "www.capterra.co.uk",
+      "source_class": "review_platform",
+      "publisher_relationship": "independent"
     }
   ]
 }
