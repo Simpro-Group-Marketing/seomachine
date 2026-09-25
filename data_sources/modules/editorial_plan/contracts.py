@@ -178,6 +178,34 @@ SERP_APPROVED_COLLECTORS = frozenset({
     ('research_serp_analysis:dataforseo', '1.0.0'),
     ('research_serp_analysis:playwright', '1.0.0'),
     ('research_serp_analysis:semrush', '1.0.0'),
+    # Browser connector capture records its own provenance instead of
+    # borrowing Playwright's. This mirrors the existing
+    # ANSWERSOCRATES_CHROME_CONNECTOR_TOOL precedent in
+    # paa_provenance/contracts.py. It is validated against the same Google
+    # search URL, English-language, non-personalized locale contract as the
+    # Playwright collector.
+    ('research_serp_analysis:chrome_connector', '1.0.0'),
+})
+# Approved SERP capture locales, one per supported market. These mirror
+# commercial_pillar_index.ALLOWED_MARKETS so SERP evidence can be captured for
+# every market the commercial pillar index already accepts. English-language,
+# non-personalized search remains required for every market.
+# Google's gl parameter takes ISO 3166-1 alpha-2, where the United Kingdom is
+# 'gb'. research_serp_analysis.py passes --google-country straight through to
+# gl, and research-serp.md documents the UK run as --google-country gb, so 'gb'
+# is the value the collector actually emits. 'uk' is the repo's market label and
+# appears in hand-authored captures, so both are accepted here. This set tracks
+# the Google parameter vocabulary, not commercial_pillar_index.ALLOWED_MARKETS.
+SERP_APPROVED_GOOGLE_COUNTRIES = frozenset({'us', 'gb', 'uk', 'au', 'nz', 'ca', 'ie'})
+# Semrush database codes use the repo market vocabulary.
+SERP_APPROVED_SEMRUSH_DATABASES = frozenset({'us', 'uk', 'au', 'nz', 'ca', 'ie'})
+SERP_APPROVED_DATAFORSEO_LOCATION_CODES = frozenset({
+    2840,  # US
+    2826,  # UK
+    2036,  # AU
+    2554,  # NZ
+    2124,  # CA
+    2372,  # IE
 })
 SERP_RESULT_FIELDS = frozenset({'position', 'url', 'title', 'result_type'})
 SERP_OBSERVATION_FIELDS = frozenset(

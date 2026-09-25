@@ -30,6 +30,48 @@ from .rules import (
 from .scanning import iter_active_lines, mask_humanizer_protected_spans
 
 
+def copy_avoid_findings(
+    rule_id: str,
+    severity: str,
+    pattern,
+    line_number: int,
+    original_line: str,
+    masked_line: str,
+    protected_line: str,
+    message: str,
+    suggestion: str,
+) -> list[Finding]:
+    """Return COPY_AVOID findings, downgrading those inside quoted source text.
+
+    These rules describe how Simpro writes, so a verbatim quote from a review
+    or interview cannot be edited to satisfy them and must not block a release.
+    Suppressing them outright would let any prose clear the linter by being
+    wrapped in quotation marks, so a match inside a quoted or blockquoted span
+    is reported at warning severity instead of dropped.
+    """
+    outside = find_pattern(
+        rule_id, severity, pattern, line_number, original_line,
+        protected_line, message, suggestion,
+    )
+    unquoted_columns = {item["column"] for item in outside}
+    quoted = [
+        {
+            **item,
+            "severity": "warning",
+            "suggestion": (
+                f"{suggestion} This match is inside quoted source text, so it "
+                "does not block release; reword the surrounding copy instead."
+            ),
+        }
+        for item in find_pattern(
+            rule_id, severity, pattern, line_number, original_line,
+            masked_line, message, suggestion,
+        )
+        if item["column"] not in unquoted_columns
+    ]
+    return outside + quoted
+
+
 def lint_content(content: str, profile: str = "simpro-web") -> list[Finding]:
     """Lint markdown or plain text for AI writing tells and Simpro copy issues."""
     if profile != "simpro-web":
@@ -43,12 +85,13 @@ def lint_content(content: str, profile: str = "simpro-web") -> list[Finding]:
                 rule_id, "error", pattern, line_number, original_line,
                 masked_line, message, suggestion,
             ))
+        protected_line = mask_humanizer_protected_spans(original_line, masked_line)
         for rule_id, severity, pattern, message, suggestion in COPY_AVOID_RULES:
             if should_skip_copy_avoid_rule(rule_id, original_line):
                 continue
-            findings.extend(find_pattern(
+            findings.extend(copy_avoid_findings(
                 rule_id, severity, pattern, line_number, original_line,
-                masked_line, message, suggestion,
+                masked_line, protected_line, message, suggestion,
             ))
         match = RHETORICAL_QUESTION.search(masked_line)
         if match:
@@ -59,11 +102,10 @@ def lint_content(content: str, profile: str = "simpro-web") -> list[Finding]:
                 "Replace the question with a direct statement about the reader's job.",
             ))
         findings.extend(find_long_sentences(line_number, original_line, masked_line))
-        humanizer_masked_line = mask_humanizer_protected_spans(original_line, masked_line)
         for rule in humanizer_rules:
             findings.extend(find_pattern(
                 rule.rule_id, rule.severity, rule.pattern, line_number,
-                original_line, humanizer_masked_line, rule.message, rule.suggestion,
+                original_line, protected_line, rule.message, rule.suggestion,
             ))
 
     findings.extend(find_repeated_sentence_starts(content))

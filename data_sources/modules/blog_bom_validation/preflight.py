@@ -6,6 +6,7 @@ import copy
 from pathlib import Path
 from typing import Any, Mapping
 
+from ..readiness.input_spec import FIXED_WORKSPACE_INPUT_LABELS
 from .. import (
     blog_assembly_contract,
 )
@@ -237,6 +238,14 @@ def _check_scores(readiness: Mapping[str, Any]) -> list[Finding]:
     ]
 
 
+# Readiness inputs bound by preflight that the provisional BOM never
+# inventories, so they are expected as extras in that comparison.
+ALLOWED_EXTRA_INPUTS = FIXED_WORKSPACE_INPUT_LABELS | {
+    "paa_raw_capture",
+    "serp_raw_capture",
+}
+
+
 def _check_preflight_inputs(
     bom: Mapping[str, Any],
     artifacts: Mapping[str, Any],
@@ -270,12 +279,7 @@ def _check_preflight_inputs(
     except ValueError as error:
         return [_finding("bom_preflight_inputs_invalid", str(error))]
     findings: list[Finding] = []
-    allowed_extra_inputs = {
-        "customer_proof_index",
-        "customer_proof_usage_ledger",
-        "paa_raw_capture",
-        "serp_raw_capture",
-    }
+    allowed_extra_inputs = ALLOWED_EXTRA_INPUTS
     actual_bound = {key: value for key, value in inputs.items() if key != "assembly_bom"}
     for key in (*allowed_extra_inputs, "stage_receipts[6]"):
         if key not in expected_inputs:

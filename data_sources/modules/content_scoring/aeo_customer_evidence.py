@@ -140,6 +140,7 @@ def _validated_customer_experience_binding(
     return {
         key: selected[key]
         for key in ("proof_id", "claim_id", "identity", "public_url")
+        if selected.get(key)
     }
 
 
@@ -156,7 +157,8 @@ def _selected_experience_fields(
         key: str(selected.get(key, "")).strip()
         for key in ("proof_id", "claim_id", "identity", "public_url", "story")
     }
-    return fields if all(fields.values()) else None
+    required_fields = ("proof_id", "identity", "public_url", "story")
+    return fields if all(fields[key] for key in required_fields) else None
 
 
 def _mining_matches_selection(
