@@ -28,9 +28,7 @@ from .contracts import (
     _validate_path_sequence,
     _visible_faq_questions,
 )
-from .derivation import (
-    _execution_evidence_from_prior_preflight,
-)
+from .execution_evidence import resolve_execution_evidence
 from .policy import _derive_paa_policy
 
 
@@ -76,22 +74,26 @@ def resolve_construction_execution_evidence(
     agent_output_paths: Mapping[str, str | Path],
     workspace_root: Path,
 ) -> Mapping[str, Mapping[str, str]]:
-    stages = tuple(str(receipt.get("stage") or "") for receipt in stage_receipts)
-    optimized_tail = stages == (
-        "post_optimization_scrub", "post_optimization_context_binding"
-    )
     try:
-        if optimized_tail:
-            return _execution_evidence_from_prior_preflight(
-                prior_preflight_readiness_path, workspace_root=workspace_root
-            )
-        return blog_assembly_capabilities.resolve_execution_evidence(
+        result = resolve_execution_evidence(
             stage_receipts,
+            prior_preflight_readiness_path=prior_preflight_readiness_path,
             agent_output_paths=agent_output_paths,
             workspace_root=workspace_root,
         )
     except blog_assembly_capabilities.CapabilityRegistryError as error:
         raise ValueError(f"repository execution provenance is invalid: {error}") from error
+    if result.normal_chain_required:
+        stale = result.stale_artifact
+        if stale is None:  # pragma: no cover - result invariant.
+            raise ValueError("normal_chain_required: stale execution artifact")
+        raise ValueError(
+            f"normal_chain_required: stale execution artifact {stale.label} "
+            f"at {stale.path}"
+        )
+    if result.evidence is None:  # pragma: no cover - result invariant.
+        raise ValueError("repository execution provenance is unavailable")
+    return result.evidence
 
 
 def validate_plan_inputs(

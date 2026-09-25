@@ -26,13 +26,13 @@ try:
     from .guard_common import Finding, make_finding, should_fail, summarize_findings
     from .proof_link_policy import analyze_proof_links
     from .proof_sidecar import load_sidecar_content
-    from .url_validator import UrlValidationSummary, extract_urls, validate_file_urls
+    from .url_validator import UrlValidationSummary, extract_urls, is_effectively_resolved, validate_file_urls
 except ImportError:  # pragma: no cover - supports direct script execution.
     from faq_structure import detect_faq_structure
     from guard_common import Finding, make_finding, should_fail, summarize_findings
     from proof_link_policy import analyze_proof_links
     from proof_sidecar import load_sidecar_content
-    from url_validator import UrlValidationSummary, extract_urls, validate_file_urls
+    from url_validator import UrlValidationSummary, extract_urls, is_effectively_resolved, validate_file_urls
 
 
 OWNED_PUBLIC_DOMAINS = {
@@ -506,7 +506,7 @@ def _url_is_resolved(
     matches = [result for result in url_summary.results if result.url == url]
     if not matches:
         return False
-    return any(result.status == "resolved" for result in matches)
+    return any(is_effectively_resolved(result) for result in matches)
 
 
 def _is_non_owned_public_url(url: str) -> bool:

@@ -1,0 +1,80 @@
+{
+  "collected_at": "2026-09-24T16:28:52Z",
+  "collector": {
+    "name": "research_serp_analysis:chrome_connector",
+    "version": "1.0.0"
+  },
+  "execution_attestation": {
+    "algorithm": "hmac-sha256",
+    "key_id": "88df9183fcb097c1",
+    "purpose": "simpro-serp-raw-capture/v1",
+    "schema": "simpro-execution-attestation/v1",
+    "signature": "c3e87b6c002afdf748f042f5e6d3e550da7fc882e07855d682a43e31ecf4d4b8"
+  },
+  "query": "best field service management software",
+  "raw_response": {
+    "ai_overview": {
+      "answer_pattern": "Routes FSM software by business size and use case rather than naming one universal winner.",
+      "interpretation_boundary": "The AI Overview is a volatile observation, not proof that its rankings, prices, scale bands, or vendor claims are correct. The article uses only the scenario-routing pattern and verifies vendor facts independently.",
+      "visible_citations": [
+        "https://www.gartner.com/reviews/market/field-service-management",
+        "https://www.capterra.com/field-service-management-software/"
+      ],
+      "visible_route": "Small businesses and solo operators were routed toward Jobber and Housecall Pro."
+    },
+    "features": [
+      "AI Overview",
+      "Sponsored results",
+      "People also ask",
+      "Discussions and forums",
+      "People also search for"
+    ],
+    "organic_results": [
+      {
+        "title": "6 Best Free Field Service Management Software",
+        "url": "https://connecteam.com/best-free-field-service-management-software/"
+      },
+      {
+        "title": "Best Field Service Management Reviews 2026",
+        "url": "https://www.gartner.com/reviews/market/field-service-management"
+      },
+      {
+        "title": "Best Field Service Management Tool?",
+        "url": "https://www.reddit.com/r/lowvoltage/comments/1bnl56d/best_field_service_management_tool/"
+      },
+      {
+        "title": "Best Field Service Management Software: 2026 Compared",
+        "url": "https://elogii.com/blog/field-service-management-software"
+      },
+      {
+        "title": "Best Field Service Management Software Picks for Growing Teams",
+        "url": "https://www.reachoutsuite.com/best-field-service-management-software"
+      },
+      {
+        "title": "Top 10 field service management software 2026",
+        "url": "https://www.ifs.com/en/glossary/compare/top-10-field-service-management-software-2026"
+      },
+      {
+        "title": "I Found the Best Field Service Management Software of 2026",
+        "url": "https://learn.g2.com/best-field-service-management-software"
+      }
+    ],
+    "paa_questions": [
+      "What is the best software for field service management?",
+      "What are the top 5 ITSM tools?",
+      "Is there a free app for field service management?",
+      "Which bpm tool is the best?"
+    ],
+    "verification_note": "Chrome showed 'Results are not personalized' on the exact hl=en, gl=us, pws=0 request."
+  },
+  "request": {
+    "locale": {
+      "gl": "us",
+      "hl": "en",
+      "pws": "0"
+    },
+    "url": "https://www.google.com/search?q=best+field+service+management+software&num=10&hl=en&gl=us&pws=0"
+  },
+  "run_id": "d946520a-f4f5-4a48-b11f-266852efb413",
+  "schema": "simpro-serp-raw-capture/v1"
+}

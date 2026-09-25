@@ -101,7 +101,7 @@ The WordPress publisher also enforces this preflight internally. If readiness fa
 Run the WordPress publisher:
 ```bash
 cd /path/to/seomachine
-python data_sources/modules/wordpress_publisher.py "$FILE_PATH" --type "$POST_TYPE" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT" --assembly-bom "$ASSEMBLY_BOM"
+python -m data_sources.modules.wordpress_publisher "$FILE_PATH" --type "$POST_TYPE" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT" --assembly-bom "$ASSEMBLY_BOM"
 ```
 
 Where `$POST_TYPE` is `post`, `page`, or a custom post type.

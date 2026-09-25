@@ -17,6 +17,10 @@ FRED_SELECTION_SECTION_RE = re.compile(
 )
 
 
+def _logical_text(value: str) -> str:
+    return value.replace("\r\n", "\n").replace("\r", "\n").strip()
+
+
 def binding_errors(
     sidecar_content: str,
     artifacts: Mapping[str, Any],
@@ -85,7 +89,7 @@ def binding_errors(
             fred_content = fred_path.read_text(encoding="utf-8").strip()
         except (OSError, UnicodeError, ValueError):
             fred_content = ""
-        if not fred_content or fred_content != fred_sections[0]:
+        if not fred_content or _logical_text(fred_content) != _logical_text(fred_sections[0]):
             errors.append(
                 (
                     "bom_fred_evidence_binding_mismatch",

@@ -1,0 +1,859 @@
+{
+  "artifacts": {
+    "answersocrates_blocker": null,
+    "article": {
+      "path": "rewrites/best-field-service-management-software-rewrite-2026-08-28.md",
+      "sha256": "599f149847f8ceef0fa41460007d6743a758469daac5a8364cd41ae9853c446b"
+    },
+    "commercial_pillar_index": {
+      "path": "context/commercial-pillar-index.json",
+      "sha256": "d122dbbab6c9f1dfa13715345bc9278f6a33b4e81f10bc4b17d410dc5da8a6f6"
+    },
+    "content_brief": {
+      "path": "research/content-brief-best-field-service-management-software-2026-08-28.md",
+      "sha256": "55ba252af6e72460c57e44e5d2d181dde211b211d01fe610aaeaba33b30db47b"
+    },
+    "context_pack": {
+      "path": "research/context-pack-best-field-service-management-software.json",
+      "sha256": "8a4e4528acad8fea7020b67267100aeca63a7cde13082b83bd9971254229708a"
+    },
+    "context_receipt": {
+      "path": "research/context-receipt-best-field-service-management-software.json",
+      "sha256": "0a3f69dc64ab4615831be59a907b23ef58d7bf66e4765f125fcb2ba197e48e66"
+    },
+    "context_request": {
+      "path": "research/context-request-best-field-service-management-software.json",
+      "sha256": "1c69c6b6f879cec2b991c790d00562472a8b6b8613fe84b58b65d04a551867b3"
+    },
+    "customer_proof_selector_evidence": {
+      "path": "research/customer-proof-selector-evidence-best-field-service-management-software-2026-09-22.json",
+      "sha256": "9178211b92a1bc697335a4465e1b64870c248c47f6b3be0186c1b5310e7e2f7d"
+    },
+    "editorial_plan": {
+      "path": "research/editorial-plan-best-field-service-management-software-2026-09-22.json",
+      "sha256": "ae78ddf48f7897ec1c50d607826588968c4778052881fed3678e9624abe71f1d"
+    },
+    "execution_evidence": {
+      "agent_definition.internal-linker": {
+        "path": ".claude/agents/internal-linker.md",
+        "sha256": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c"
+      },
+      "agent_definition.keyword-mapper": {
+        "path": ".claude/agents/keyword-mapper.md",
+        "sha256": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d"
+      },
+      "agent_definition.meta-creator": {
+        "path": ".claude/agents/meta-creator.md",
+        "sha256": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a"
+      },
+      "agent_definition.seo-optimizer": {
+        "path": ".claude/agents/seo-optimizer.md",
+        "sha256": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8"
+      },
+      "agent_output.internal-linker": {
+        "path": "research/agent-outputs/internal-linker-best-field-service-management-software-2026-09-22.md",
+        "sha256": "234e91e9314e039517e69ccaf2191ffc3d8d12aafba1adef5485bbe85d17d997"
+      },
+      "agent_output.keyword-mapper": {
+        "path": "research/agent-outputs/keyword-mapper-best-field-service-management-software-2026-09-22.md",
+        "sha256": "64c34f8e8f98924fb0ee2e654160349c40b6f57bb821354e430ebf37d85b1463"
+      },
+      "agent_output.meta-creator": {
+        "path": "research/agent-outputs/meta-creator-best-field-service-management-software-2026-09-22.md",
+        "sha256": "4f890f1d14b4fa091583beaf43a3327fcb1129c22e4b9a36e03d7462b961685d"
+      },
+      "agent_output.seo-optimizer": {
+        "path": "research/agent-outputs/seo-optimizer-best-field-service-management-software-2026-09-22.md",
+        "sha256": "d7116369b4a2e26117cc79ad88182feba81ff16ca9f61247119711db4714a174"
+      },
+      "command_definition.rewrite-command": {
+        "path": ".claude/commands/rewrite.md",
+        "sha256": "e79221092f9b56213836ec37a70375fb4a5cf43ec75bc159cfd1d36d88575a56"
+      }
+    },
+    "fred_authority_evidence": {
+      "path": "research/fred-authority-selector-best-field-service-management-software-2026-09-22.md",
+      "sha256": "f50c70542fd99a4fdb6ea8f0ab7e108061cc3d93233d48c30dc66e3822c52a96"
+    },
+    "hindsight_strategy_evidence": null,
+    "keyword_decision": {
+      "path": "research/semrush-keyword-decision-best-field-service-management-software-2026-09-23.json",
+      "sha256": "5ef4119304022a7b22b2471ec7e9eae5fad4019fdb0cb4d748a3c9383c3c8b17"
+    },
+    "optimizer_outputs": [
+      {
+        "path": "research/optimizer-output-best-field-service-management-software-2026-09-23.json",
+        "sha256": "00c0fa9a8df261fd7bad3b17eb771e6b59e7881ef47ca6584e1ae5864a2cc473"
+      }
+    ],
+    "paa_artifact": null,
+    "plan_fulfillment": {
+      "path": "research/blog-plan-fulfillment-best-field-service-management-software-2026-09-22.json",
+      "sha256": "86a6525719671f91e3087e5384b1fcc6d558333a4a26119e6e9e591e8e533dcf"
+    },
+    "preflight_readiness": {
+      "path": "research/releases/best-field-service-management-software-2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-final-v2/preflight-readiness.json",
+      "sha256": "068513a3d92f1d42866068c8b8fb0fd1428be982505eae45a108797a791c2cdd"
+    },
+    "prior_preflight_readiness": {
+      "path": "research/releases/best-field-service-management-software-2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-initial-v9/preflight-readiness.json",
+      "sha256": "69b5a9b0ed90000205a9b9a47fcdaf7233c91c2daf62db5adf71e261931686cb"
+    },
+    "serp_evidence": {
+      "path": "research/serp-evidence-best-field-service-management-software-2026-09-23.json",
+      "sha256": "65ee4bbfa858da39df193ff9daf7183b7d07cc169de0baac4e6888ffd9b44325"
+    },
+    "stage_evidence": [
+      {
+        "path": "research/stage-receipts/best-field-service-management-software/2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-post-optimization-scrub-evidence.json",
+        "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+      },
+      {
+        "path": "research/stage-receipts/best-field-service-management-software/2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-post-optimization-context-binding-evidence.json",
+        "sha256": "679edd6b8ca596b8e7efb9235fca6fa5620cd3731b27d3e4ad971237de8e7e46"
+      }
+    ],
+    "stage_receipts": [
+      {
+        "path": "research/stage-receipts/best-field-service-management-software/2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-post-optimization-scrub.json",
+        "sha256": "a183d680c3265a361323ae9e66a5657e9fb9e9105d06ea02a0b2752679deefe4"
+      },
+      {
+        "path": "research/stage-receipts/best-field-service-management-software/2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-post-optimization-context-binding.json",
+        "sha256": "58fd28c6f09b563b5725ee1177de8b66c6cd01b6ef5b205a721b31dca9f4f0d7"
+      },
+      {
+        "path": "research/releases/best-field-service-management-software-2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-final-v2/preflight-readiness-stage-receipt.json",
+        "sha256": "c830cad8ea40b1b855fa8c38fba60041cd6ee929672f75e6767f19d346f6f09b"
+      }
+    ],
+    "user_paa_csv": null,
+    "validation_sidecar": {
+      "path": "research/validation-best-field-service-management-software-2026-09-22.md",
+      "sha256": "52dfb9d6071bc16717d43b74ad52a2df31b56ccff086461137ffb6e7e6396ad4"
+    }
+  },
+  "assembly_date": "2026-09-23",
+  "author_policy": {
+    "frontmatter_author_required": false,
+    "name": "",
+    "named_author_voice_allowed": false,
+    "schema_person_required": false,
+    "status": "no_author"
+  },
+  "connector_binding": {
+    "context": {
+      "claim_ids": [],
+      "context_pack_hash": "a354651eaed8f26c79aabf94698b2ff18c1956d5983851e47c45e3870c9cf418",
+      "pack_schema": "simpro-product-context-pack/v2",
+      "receipt_hash": "2a5e00593c8295572faa01460f75d22f9425c702df170172e810e8b088756fb6",
+      "receipt_schema": "simpro-context-receipt/v1",
+      "revisions": {
+        "approval_policy_revision": "6945674b56933849678c70200ff29438700475eae6e794388bb88b6febedccb6",
+        "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+        "content_revision": "2b0fbff2335f086cc578aa92da8672dff6d2ac3098e796c6a96bb3b3cc213f25",
+        "contract_revision": "e4988a1775f0b2791163b584c36b0fd72b8ac604c448b044cc944a8a0e9934a4",
+        "inventory_revision": "374bdf14a4519293e50d7e1c5b7e886daece33e303c8ce087e77658244faf446",
+        "manifest_revision": "94dd66e9dfd6130fa8c1472c11df650d1b9e6590762409e61a9a89a3d15930c2"
+      },
+      "selected_resource_ids": [
+        "res-230f144aab93512e840167c4a25e60be",
+        "res-3887846244f05f16bfc0516889d340f3",
+        "res-5c1b34d7d2175caab4fb29a208e59ac0",
+        "res-a5b3b47382b45490bf2bedbf16c0b76e",
+        "res-b34b392d22b9507089ade3fec47ee9e0",
+        "res-d31f057a305f51918055120d95b76c6a",
+        "res-d7e3d5ca80955407a9d06be5f129e11b",
+        "res-e3ade596be645307ad4c1f84620ce021",
+        "res-f882ab230eb2563889e300d612c324bc"
+      ]
+    },
+    "status": "required"
+  },
+  "editorial_fulfillment": [
+    {
+      "actual_excerpt": "| Buyer situation | Starting shortlist | Why these tools merit evaluation | First disqualifying issue to test |\n|---|---|---|---|\n| Small, streamlined service operation | [Jobber](#jobber), [Housecall Pro](#housecall-pro), [ServiceM8](#servicem8) | Test a focused request-to-payment workflow without assuming equivalent devices, packaging, or growth capacity. | Devices, user limits, package fit, and any workflow beyond straightforward service. |\n| Growing multi-crew trade business | [Simpro](#simpro), [FieldEdge](#fieldedge), [FieldPulse](#fieldpulse) | Test dispatch, field roles, office handoffs, permissions, and reporting. | Migration, onboarding, seats, and the package each role needs. |\n| Combined service and project contractor | [Simpro](#simpro), [BuildOps](#buildops), [ServiceTitan](#servicetitan) | Run one service job and one project through all three. Test purchasing, costing, change management, and progress billing separately. | Project depth, accounting or ERP behavior, implementation ownership, and commercial scope. |\n| Commercial or asset-heavy operation | [Simpro](#simpro), [Joblogic](#joblogic), [BuildOps](#buildops) | Test assets, recurring work, purchasing, commercial jobs, and project controls. | Asset history, offline behavior, accounting boundaries, and configuration ownership. |\n| Recurring maintenance operation | [Simpro](#simpro), [Joblogic](#joblogic), [FieldEdge](#fieldedge) | Use this shortlist to test recurring schedules, service history, agreements, failed-inspection follow-up, and billing under the same scenario. | Failed-inspection follow-up, asset records, field resync, agreement-cycle handling, and reporting. |\n\n[CMS MODULE PLACEHOLDER | type: responsive buyer-route matrix | desktop treatment: \"buyer situations as rows\" | narrow-screen treatment: \"one labeled buyer-situation card per row with all four fields\" | behavior: \"no horizontal scrolling or hidden cells\" | accessible label: \"Buyer routes for field service management software\"]",
+      "contribution_id": "five-route-shortlist",
+      "evidence_source": "Approved buyer-situation matrix, current official vendor evidence, and current vault-aligned Simpro language.",
+      "planned_contribution": "A five-row shortlist by business type and workflow with a first disqualifying issue for every route.",
+      "purpose": "Let buyers self-sort without reading all 12 vendor cards.",
+      "target_section": "Best field service management software by business type and workflow"
+    },
+    {
+      "actual_excerpt": "| Tool | Operating model | Team and workflow complexity | Orientation | Principal mismatch | First demo test |\n|---|---|---|---|---|---|\n| [Simpro](#simpro) | Connected service and project work | Growing, multi-role operation | Trade service and projects | The buying case stops at basic scheduling | One service job and one project from estimate through reporting, including migrated customer, job, and asset data |\n| [Jobber](#jobber) | Quote-to-payment service work | Small or streamlined team | Service business | The demonstrated tier, user, promotion, or billing terms fail the buying policy | Booking through payment, including users and add-ons |\n| [Joblogic](#joblogic) | Asset-led reactive and recurring work | Multi-role maintenance team | Service and maintenance | The accounting workflow fails the buyer's live test | Offline asset job through resync and accounting |\n| [FieldEdge](#fieldedge) | Dispatch and service agreements | Growing service team | Field service trades | The demonstrated commercial model fails the buying policy | Agreement job through dispatch, invoice, and reporting |\n| [BuildOps](#buildops) | Commercial service and projects | Complex commercial operation | Commercial specialty contracting | The demonstrated workflow is too complex for the buying case | Maintenance job and project through the actual ERP |\n| [ServiceTitan](#servicetitan) | Technician-led service workflows | Scaling, implementation-ready team | Field and home service | The buyer has little internal implementation capacity | Call through invoice with a reassignment, permission change, and failed integration sync |\n| [FieldPulse](#fieldpulse) | Office-to-field job workflows | Growing team with distinct roles | Field service | The demonstrated access and pricing model does not fit | Permissions and handoffs for every role |\n| [Housecall Pro](#housecall-pro) | Customer-to-payment home service | Small or growing team | Home service | The demonstrated workflow lacks needed project, asset, inventory, or multi-entity depth | Complete customer and technician journey with a reschedule |\n| [Service Fusion](#service-fusion) | Multi-user service workflow | Small-to-midsize service company | Field service | The demonstrated workflow is too broad or too shallow for the buying case | Estimate-to-payment job plus accounting error recovery |\n| [ServiceM8](#servicem8) | Job-volume-based service workflow | Small, device-compatible team | Service business | Needed device behavior or monthly job volume falls outside the demonstrated operating model | Full job on actual technician and office devices |\n| [Tradify](#tradify) | Mobile inquiry-to-payment workflow | Smaller trade team | Trade service | A representative local invoice fails the live test | Local accounting entry from one representative invoice |\n| [Fergus](#fergus) | Connected trade job management | Small trade contractor | Trade service | The demonstrated plan and user structure does not fit | Inquiry through payment with US support and plan boundaries |",
+      "contribution_id": "operating-model-matrix",
+      "evidence_source": "Current official vendor product, pricing, help, and platform pages reviewed for direct claim fit.",
+      "planned_contribution": "A 12-tool routing matrix that compares operating model, relative complexity, orientation, mismatch, and first demo test.",
+      "purpose": "Replace feature-count ranking with recognizable buying variables.",
+      "target_section": "Best field service management software by business type and workflow"
+    },
+    {
+      "actual_excerpt": "Build one reusable demo pack before contacting vendors. Give every seller the same inputs:\n\n- A common service job with an urgent reschedule, a return visit, parts used, field photos, customer approval, and an invoice.\n- A recurring maintenance job with asset history, a checklist, a failed inspection item, follow-up work, and customer communication.\n- A project or longer job with labor, materials, purchasing, progress billing, change handling, and a profitability report if that work matters to the business.\n- A roster of current users and expected hires, split by office, field, management, subcontractor, and limited-access roles.\n- Technician devices for hands-on field testing, a sample import file, and a map of accounting or ERP connections.\n- A worksheet for package components, onboarding work, ongoing services, and likely expansion.",
+      "contribution_id": "role-based-demo-pack",
+      "evidence_source": "Editorially framed buyer methodology with no unsupported product or performance claims.",
+      "planned_contribution": "A shared demo pack and role check that require each vendor to perform the same jobs, exceptions, integrations, and reports.",
+      "purpose": "Create comparable evidence across sellers and buyer roles.",
+      "target_section": "Evaluation methodology for the 12 tools"
+    },
+    {
+      "actual_excerpt": "Use the buyer scorecard after pass-or-fail requirements remove obvious mismatches. Score the remaining tools across workflow fit, field usability, implementation effort, integration needs, reporting and control, pricing structure, and support. Define each condition before a demo, keep evidence beside every score, and carry unresolved issues into the next round instead of treating them as assumptions.\n\n| Criterion | Evidence to collect | Pass signal |\n|---|---|---|\n| Workflow depth | One real job traced from intake through payment | Required handoffs work without duplicate entry |\n| Integrations and data | System map, data owners, import and export test | Required records move with clear ownership |\n| Implementation effort | Named owner, timeline, migration, training plan | Work and accountability fit available capacity |\n| Field adoption | Technician test on actual devices and conditions | Core steps stay clear in the field |\n| Reporting and control | Sample dashboards, exceptions, permissions | Each role gets actionable visibility |\n| Pricing and total cost | Written quote, add-ons, services, renewal terms | Current and future costs are comparable |\n| Support | Channels, hours, onboarding, escalation path | Support matches operational risk |\n\n[CMS MODULE PLACEHOLDER | type: responsive buyer scorecard | desktop treatment: \"criteria as rows\" | narrow-screen treatment: \"one labeled criterion card per row with all three fields\" | behavior: \"no horizontal scrolling or hidden cells\" | accessible label: \"Score field service management software demonstrations\"]\n\nKeep two or three finalists. Ask each vendor to demonstrate the same jobs, exceptions, integrations, and reports. Treat every unresolved item as a condition, not an assumption.",
+      "contribution_id": "buyer-owned-scorecard",
+      "evidence_source": "Editorially framed buying guidance and the article's common demonstration method.",
+      "planned_contribution": "A seven-criterion scorecard that keeps evidence beside every buyer-assigned score and carries unresolved issues forward.",
+      "purpose": "Prevent a vendor feature tour from becoming an unsupported selection decision.",
+      "target_section": "Use this buyer scorecard before you shortlist"
+    }
+  ],
+  "editorial_plan_summary": {
+    "commercial_strategy": {
+      "article_intent": "commercial",
+      "article_primary_keyword": "best field service management software",
+      "article_title": "Best Field Service Management Software: 2026 Buyer's Guide to 12 Tools",
+      "cannibalization_decision": "different_intent",
+      "commercial_pillar_url": "https://www.simprogroup.com/",
+      "destination_id": "simpro-us-homepage-field-service-management-software",
+      "existing_overlapping_urls_checked": [
+        "https://www.simprogroup.com/blog/best-field-service-management-software",
+        "https://www.simprogroup.com/comparisons/simpro-vs-servicetitan",
+        "https://www.simprogroup.com/comparisons/simpro-vs-buildops",
+        "https://www.simprogroup.com/comparisons/simpro-vs-joblogic",
+        "https://www.simprogroup.com/comparisons/simpro-vs-fieldpulse"
+      ],
+      "incoming_link_candidates": [
+        "https://www.simprogroup.com/comparisons/simpro-vs-servicetitan",
+        "https://www.simprogroup.com/comparisons/simpro-vs-buildops",
+        "https://www.simprogroup.com/comparisons/simpro-vs-joblogic",
+        "https://www.simprogroup.com/comparisons/simpro-vs-fieldpulse",
+        "https://www.simprogroup.com/blog/commercial-hvac-maintenance-at-scale"
+      ],
+      "pillar_versus_blog_intent_difference": "The homepage has product-proposition intent, while this existing blog has comparison and shortlist intent across 12 named tools. That is a different intent and different content type; lifecycle action remains update because the canonical blog already exists.",
+      "planned_anchor_text": "field service management software",
+      "planned_h2_section": "Opening paragraph before first H2",
+      "status": "aligned"
+    },
+    "entity_map": {
+      "primary": [
+        "field service management software",
+        "Simpro",
+        "Jobber",
+        "Joblogic",
+        "FieldEdge",
+        "BuildOps",
+        "ServiceTitan",
+        "FieldPulse",
+        "Housecall Pro",
+        "Service Fusion",
+        "ServiceM8",
+        "Tradify",
+        "Fergus"
+      ],
+      "supporting": [
+        "scheduling",
+        "dispatch",
+        "work orders",
+        "mobile",
+        "invoicing",
+        "inventory",
+        "projects",
+        "reporting",
+        "integrations",
+        "implementation",
+        "migration",
+        "buyer scorecard"
+      ]
+    },
+    "industry_cluster_link_policy": {
+      "reason": "No single-trade Simpro industry cluster link is required.",
+      "status": "not_applicable"
+    },
+    "internal_link_plan": [
+      {
+        "rationale": "Use the exact anchor field service management software in the opening paragraph to preserve homepage query ownership.",
+        "role": "supporting",
+        "target": "https://www.simprogroup.com/"
+      },
+      {
+        "rationale": "Help service-and-project contractors define the connected workflow they should test with every finalist.",
+        "role": "supporting",
+        "target": "https://www.simprogroup.com/solutions/job-management-software"
+      },
+      {
+        "rationale": "Bind the Simpro card's public product language to the current owned FSM solution page.",
+        "role": "supporting",
+        "target": "https://www.simprogroup.com/solutions/field-service-management-software"
+      },
+      {
+        "rationale": "Let readers inspect the current personalized pricing and package boundary on the official page.",
+        "role": "down_funnel",
+        "target": "https://www.simprogroup.com/pricing"
+      },
+      {
+        "rationale": "Provide an intent-matched follow-up when Simpro and Jobber both reach a buyer's shortlist.",
+        "role": "supporting",
+        "target": "https://www.simprogroup.com/comparisons/simpro-vs-jobber"
+      },
+      {
+        "rationale": "Offer a conditional demo action only after Simpro survives the same buying tests as every other finalist.",
+        "role": "down_funnel",
+        "target": "https://www.simprogroup.com/demo"
+      }
+    ],
+    "keyword_decision": {
+      "artifact_schema": "simpro-semrush-keyword-decision/v1",
+      "database": "us",
+      "selected_primary_keyword": "best field service management software",
+      "selected_secondary_keywords": [
+        "best field service management software for small business",
+        "best field service management software 2026"
+      ],
+      "selection_rationale": "Authenticated Semrush US desktop evidence dated 2026-09-23 selected the exact commercial comparison query and its measured small-business and 2026 variants. The broader field service management software term remains assigned to the Simpro homepage. Bound artifact: research/semrush-keyword-decision-best-field-service-management-software-2026-09-23.json.",
+      "source": "semrush_connector",
+      "status": "resolved"
+    },
+    "lifecycle": {
+      "ai_citation_lane": "available: Peec reporting for 2026-09-11 through 2026-09-18 provides a live-URL baseline of 58 citations and 66 retrievals for the broad live hub; counts measure citation intensity, not probability, and exported URL data does not expose the originating prompts",
+      "decision": "update",
+      "ga4_lane": "unavailable: no current GA4 export was supplied or collected for this assembly; do not infer performance from missing observations",
+      "gsc_lane": "unavailable: no current GSC export was supplied or collected for this assembly; do not infer performance from missing observations",
+      "last_updated_date": "2026-09-23",
+      "next_review_date": "2026-12-22",
+      "review_command": "/performance-review published/best-field-service-management-software.md",
+      "semrush_lane": "available: US keyword decision captured in the main Chrome Semrush UI on 2026-09-23 and verified homepage commercial-pillar record dated 2026-09-08",
+      "status": "scheduled",
+      "volatility": "high"
+    },
+    "meta": {
+      "meta_description": "Compare 12 field service management software tools for 2026 by business fit, workflow depth and buying criteria, with a practical evaluation checklist.",
+      "meta_title": "Best Field Service Management Software 2026 | Simpro",
+      "primary_keyword": "best field service management software",
+      "secondary_keywords": [
+        "best field service management software for small business",
+        "best field service management software 2026"
+      ],
+      "title_options": [
+        "Best Field Service Management Software: 2026 Buyer's Guide to 12 Tools",
+        "12 Field Service Management Software Tools Compared for 2026"
+      ],
+      "url_slug": "best-field-service-management-software"
+    },
+    "original_contributions": [
+      {
+        "contribution_id": "five-route-shortlist",
+        "evidence_source": "Approved buyer-situation matrix, current official vendor evidence, and current vault-aligned Simpro language.",
+        "planned_contribution": "A five-row shortlist by business type and workflow with a first disqualifying issue for every route.",
+        "purpose": "Let buyers self-sort without reading all 12 vendor cards.",
+        "target_section": "Best field service management software by business type and workflow"
+      },
+      {
+        "contribution_id": "operating-model-matrix",
+        "evidence_source": "Current official vendor product, pricing, help, and platform pages reviewed for direct claim fit.",
+        "planned_contribution": "A 12-tool routing matrix that compares operating model, relative complexity, orientation, mismatch, and first demo test.",
+        "purpose": "Replace feature-count ranking with recognizable buying variables.",
+        "target_section": "Best field service management software by business type and workflow"
+      },
+      {
+        "contribution_id": "role-based-demo-pack",
+        "evidence_source": "Editorially framed buyer methodology with no unsupported product or performance claims.",
+        "planned_contribution": "A shared demo pack and role check that require each vendor to perform the same jobs, exceptions, integrations, and reports.",
+        "purpose": "Create comparable evidence across sellers and buyer roles.",
+        "target_section": "Evaluation methodology for the 12 tools"
+      },
+      {
+        "contribution_id": "buyer-owned-scorecard",
+        "evidence_source": "Editorially framed buying guidance and the article's common demonstration method.",
+        "planned_contribution": "A seven-criterion scorecard that keeps evidence beside every buyer-assigned score and carries unresolved issues forward.",
+        "purpose": "Prevent a vendor feature tour from becoming an unsupported selection decision.",
+        "target_section": "Use this buyer scorecard before you shortlist"
+      }
+    ],
+    "reader_contract": {
+      "decision_task_helped": "Choose which of 12 products deserve a demo and which disqualifying issue and workflow test to apply first.",
+      "distinctive_angle": "A fit-first guide with five scenario routes, an operating-model matrix, source-verified text-only cards, and a buyer-owned scorecard instead of universal rankings.",
+      "exclusions": [
+        "universal winner, publisher-assigned vendor ranking, or unsupported best-in-class claim",
+        "star ratings, review-derived conclusions, testimonials, or customer outcome claims",
+        "unsupported prices, metrics, package claims, implementation durations, or cross-vendor superiority claims",
+        "products outside the approved 12-tool shortlist",
+        "vendor logos, vendor images, or unresolved vendor-image placeholders",
+        "named author or Person schema without approved authorship evidence",
+        "Peec counts presented as probability or prompt-level demand",
+        "first-person authority language, editorial-process commentary, or em dashes in public copy"
+      ],
+      "existing_belief": "Most comparison pages repeat feature lists or declare winners without showing how operating context changes the decision.",
+      "funnel_stage": "mofu",
+      "primary_reader": "A US trade-service owner or operations leader comparing a first FSM system or replacing a tool that no longer fits.",
+      "promised_payoff": "A practical starting shortlist and a consistent way to test every finalist against real work.",
+      "sophistication_level": "Operationally experienced and software-comparison literate, but seeking a faster and more defensible shortlist.",
+      "trigger_problem": "The buyer cannot tell which products fit a streamlined service team, a growing multi-crew contractor, a recurring-maintenance operation, or an asset-heavy commercial service and project business."
+    },
+    "schema": "simpro-blog-editorial-plan/v2",
+    "search_strategy": {
+      "dominant_content_type": "Listicle",
+      "exception_reason": "No format exception; the article uses the observed listicle format while improving scenario routing and validation depth.",
+      "format_decision": "match_dominant",
+      "funnel_stage": "mofu",
+      "intent_class": "commercial",
+      "observed_serp_features": [
+        "AI Overview"
+      ],
+      "primary_query": "best field service management software",
+      "related_query_paa_artifact": "research/user-paa-faq-best-field-service-management-software-2026-06-24.md",
+      "searcher_task": "Compare credible tools, identify a first demo list for the buyer's operating model, and learn what to test before purchasing.",
+      "selected_content_type": "Listicle",
+      "serp_evidence_artifact": "research/serp-evidence-best-field-service-management-software-2026-09-23.json",
+      "status": "ready"
+    }
+  },
+  "eeat_strength_policy": {
+    "applicability": "required",
+    "customer_proof_selector_evidence": "research/customer-proof-selector-evidence-best-field-service-management-software-2026-09-22.json",
+    "decision": "proof_unavailable_safe_to_publish",
+    "findings": [
+      "eeat_strength_safe_but_weak"
+    ],
+    "fred_authority_evidence": "research/fred-authority-selector-best-field-service-management-software-2026-09-22.md",
+    "intent": "commercial_investigation",
+    "intent_reasons": [
+      "title_or_query_commercial_term",
+      "mofu_bofu_buyer_intent",
+      "commercial_cta",
+      "comparison_or_list_section"
+    ],
+    "positive_signals": [],
+    "sidecar_status": "approved",
+    "status": "warning"
+  },
+  "faq_policy": {
+    "rationale": "The approved buyer-question set covers six shortlist-changing decisions and the article provides direct 40-to-60-word opening paragraphs with permitted source classes.",
+    "status": "required"
+  },
+  "hindsight_strategy_policy": {
+    "claim_support_allowed": false,
+    "evidence_required": false,
+    "public_claim_use": "prohibited",
+    "rationale": "No Hindsight Strategy Selection block was used for this article.",
+    "status": "not_applicable"
+  },
+  "identity": {
+    "artifact_type": "blog",
+    "audience": "US growth-minded trade-business owners, operations leaders, finance and IT buyers, schedulers, administrators, and field users",
+    "brand": "Simpro",
+    "last_updated": "2026-09-23",
+    "objective": "Help US trade and field-service leaders build a fast, defensible 12-tool shortlist by business type, operating fit, workflow depth, implementation risk, and role needs.",
+    "region": "US",
+    "title": "Best Field Service Management Software: 2026 Buyer's Guide to 12 Tools"
+  },
+  "industry_cluster_link_policy": {
+    "reason": "No single-trade Simpro industry cluster link is required.",
+    "status": "not_applicable"
+  },
+  "lifecycle_state": "final",
+  "machine_reviews": {
+    "article": {
+      "path": "research/machine-review-article-best-field-service-management-software-2026-09-22.json",
+      "sha256": "3bc8f6482d07b377fa4594a136f9a88c4610465bd7fe430382f9e48a33566ada"
+    },
+    "plan": {
+      "path": "research/machine-review-plan-best-field-service-management-software-2026-09-22.json",
+      "sha256": "ff1bd4750ffc6caf5414b9ce528c709fbcd09955022912fb219fb06936aa2dbc"
+    }
+  },
+  "paa_policy": {
+    "query": "best field service management software",
+    "selected_questions": [
+      "What is the best field service management software for small businesses?",
+      "What should small businesses look for in FSM software?",
+      "What is the difference between FSM software and job management software?",
+      "How much does field service management software cost?",
+      "Which field service management software is best for growing trade contractors?",
+      "Should I choose an all-in-one FSM platform or a simpler scheduling app?"
+    ],
+    "source_kind": "brief_paa"
+  },
+  "preflight": {
+    "gate_inventory": [
+      "artifact_identity",
+      "context_binding",
+      "blog_assembly_bom",
+      "public_artifact",
+      "ai_copy_linter",
+      "url_validator",
+      "public_research_links",
+      "industry_cluster_link_policy",
+      "metric_proof_pack",
+      "numeric_claim_source",
+      "faq_answer_quality",
+      "faq_proof",
+      "paa_provenance",
+      "editorial_plan",
+      "semrush_keyword_decision",
+      "blog_strategy",
+      "competitive_shortlist",
+      "hindsight_boundary",
+      "source_support",
+      "source_quality",
+      "customer_proof_diversity",
+      "review_story_identity",
+      "eeat_strength",
+      "early_artifact",
+      "answer_withholding",
+      "schema_handoff",
+      "vault_brand_language",
+      "named_feature_status",
+      "fred_authority",
+      "content_scorer",
+      "input_seal"
+    ],
+    "input_hashes": {
+      "agent_definition.internal-linker": {
+        "path": ".claude/agents/internal-linker.md",
+        "sha256": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c"
+      },
+      "agent_definition.keyword-mapper": {
+        "path": ".claude/agents/keyword-mapper.md",
+        "sha256": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d"
+      },
+      "agent_definition.meta-creator": {
+        "path": ".claude/agents/meta-creator.md",
+        "sha256": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a"
+      },
+      "agent_definition.seo-optimizer": {
+        "path": ".claude/agents/seo-optimizer.md",
+        "sha256": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8"
+      },
+      "agent_output.internal-linker": {
+        "path": "research/agent-outputs/internal-linker-best-field-service-management-software-2026-09-22.md",
+        "sha256": "234e91e9314e039517e69ccaf2191ffc3d8d12aafba1adef5485bbe85d17d997"
+      },
+      "agent_output.keyword-mapper": {
+        "path": "research/agent-outputs/keyword-mapper-best-field-service-management-software-2026-09-22.md",
+        "sha256": "64c34f8e8f98924fb0ee2e654160349c40b6f57bb821354e430ebf37d85b1463"
+      },
+      "agent_output.meta-creator": {
+        "path": "research/agent-outputs/meta-creator-best-field-service-management-software-2026-09-22.md",
+        "sha256": "4f890f1d14b4fa091583beaf43a3327fcb1129c22e4b9a36e03d7462b961685d"
+      },
+      "agent_output.seo-optimizer": {
+        "path": "research/agent-outputs/seo-optimizer-best-field-service-management-software-2026-09-22.md",
+        "sha256": "d7116369b4a2e26117cc79ad88182feba81ff16ca9f61247119711db4714a174"
+      },
+      "article": {
+        "path": "rewrites/best-field-service-management-software-rewrite-2026-08-28.md",
+        "sha256": "599f149847f8ceef0fa41460007d6743a758469daac5a8364cd41ae9853c446b"
+      },
+      "assembly_bom": {
+        "path": "research/releases/best-field-service-management-software-2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-final-v2/provisional-bom.json",
+        "sha256": "0d6c875e9a78f5ef636f0b8d9d6b4ee688545a5edd1cb673b62562d66beea4af"
+      },
+      "command_definition.rewrite-command": {
+        "path": ".claude/commands/rewrite.md",
+        "sha256": "e79221092f9b56213836ec37a70375fb4a5cf43ec75bc159cfd1d36d88575a56"
+      },
+      "commercial_pillar_index": {
+        "path": "context/commercial-pillar-index.json",
+        "sha256": "d122dbbab6c9f1dfa13715345bc9278f6a33b4e81f10bc4b17d410dc5da8a6f6"
+      },
+      "content_brief": {
+        "path": "research/content-brief-best-field-service-management-software-2026-08-28.md",
+        "sha256": "55ba252af6e72460c57e44e5d2d181dde211b211d01fe610aaeaba33b30db47b"
+      },
+      "context_pack": {
+        "path": "research/context-pack-best-field-service-management-software.json",
+        "sha256": "8a4e4528acad8fea7020b67267100aeca63a7cde13082b83bd9971254229708a"
+      },
+      "context_receipt": {
+        "path": "research/context-receipt-best-field-service-management-software.json",
+        "sha256": "0a3f69dc64ab4615831be59a907b23ef58d7bf66e4765f125fcb2ba197e48e66"
+      },
+      "context_request": {
+        "path": "research/context-request-best-field-service-management-software.json",
+        "sha256": "1c69c6b6f879cec2b991c790d00562472a8b6b8613fe84b58b65d04a551867b3"
+      },
+      "customer_proof_index": {
+        "path": "context/customer-proof-index.json",
+        "sha256": "fee695a0b32d20c3c12c155a590979f4352b3170925fe6f87654b75282125c62"
+      },
+      "customer_proof_selector_evidence": {
+        "path": "research/customer-proof-selector-evidence-best-field-service-management-software-2026-09-22.json",
+        "sha256": "9178211b92a1bc697335a4465e1b64870c248c47f6b3be0186c1b5310e7e2f7d"
+      },
+      "customer_proof_usage_ledger": {
+        "path": "context/customer-proof-usage-ledger.json",
+        "sha256": "a094f1c09757645a95da80b6666e9d6d4c72aaeb5e71ce307a3843960d098cad"
+      },
+      "editorial_plan": {
+        "path": "research/editorial-plan-best-field-service-management-software-2026-09-22.json",
+        "sha256": "ae78ddf48f7897ec1c50d607826588968c4778052881fed3678e9624abe71f1d"
+      },
+      "fred_authority_evidence": {
+        "path": "research/fred-authority-selector-best-field-service-management-software-2026-09-22.md",
+        "sha256": "f50c70542fd99a4fdb6ea8f0ab7e108061cc3d93233d48c30dc66e3822c52a96"
+      },
+      "keyword_decision": {
+        "path": "research/semrush-keyword-decision-best-field-service-management-software-2026-09-23.json",
+        "sha256": "5ef4119304022a7b22b2471ec7e9eae5fad4019fdb0cb4d748a3c9383c3c8b17"
+      },
+      "machine_reviews.article": {
+        "path": "research/machine-review-article-best-field-service-management-software-2026-09-22.json",
+        "sha256": "3bc8f6482d07b377fa4594a136f9a88c4610465bd7fe430382f9e48a33566ada"
+      },
+      "machine_reviews.plan": {
+        "path": "research/machine-review-plan-best-field-service-management-software-2026-09-22.json",
+        "sha256": "ff1bd4750ffc6caf5414b9ce528c709fbcd09955022912fb219fb06936aa2dbc"
+      },
+      "optimizer_outputs[0]": {
+        "path": "research/optimizer-output-best-field-service-management-software-2026-09-23.json",
+        "sha256": "00c0fa9a8df261fd7bad3b17eb771e6b59e7881ef47ca6584e1ae5864a2cc473"
+      },
+      "plan_fulfillment": {
+        "path": "research/blog-plan-fulfillment-best-field-service-management-software-2026-09-22.json",
+        "sha256": "86a6525719671f91e3087e5384b1fcc6d558333a4a26119e6e9e591e8e533dcf"
+      },
+      "prior_preflight_readiness": {
+        "path": "research/releases/best-field-service-management-software-2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-initial-v9/preflight-readiness.json",
+        "sha256": "69b5a9b0ed90000205a9b9a47fcdaf7233c91c2daf62db5adf71e261931686cb"
+      },
+      "serp_evidence": {
+        "path": "research/serp-evidence-best-field-service-management-software-2026-09-23.json",
+        "sha256": "65ee4bbfa858da39df193ff9daf7183b7d07cc169de0baac4e6888ffd9b44325"
+      },
+      "serp_raw_capture": {
+        "path": "research/serp-chrome-raw-best-field-service-management-software-2026-09-23.json",
+        "sha256": "471d02a989c142043606153c839c93bbae38d4ef995a960b13ca29c889636600"
+      },
+      "source_decision_registry": {
+        "path": "context/source-classification-decisions.json",
+        "sha256": "8beefea13de55bf1df63b92ac61ad896113cf48ddf55dd711c362569848162b8"
+      },
+      "stage_evidence[0]": {
+        "path": "research/stage-receipts/best-field-service-management-software/2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-post-optimization-scrub-evidence.json",
+        "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+      },
+      "stage_evidence[1]": {
+        "path": "research/stage-receipts/best-field-service-management-software/2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-post-optimization-context-binding-evidence.json",
+        "sha256": "679edd6b8ca596b8e7efb9235fca6fa5620cd3731b27d3e4ad971237de8e7e46"
+      },
+      "stage_receipts[0]": {
+        "path": "research/stage-receipts/best-field-service-management-software/2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-post-optimization-scrub.json",
+        "sha256": "a183d680c3265a361323ae9e66a5657e9fb9e9105d06ea02a0b2752679deefe4"
+      },
+      "stage_receipts[1]": {
+        "path": "research/stage-receipts/best-field-service-management-software/2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-post-optimization-context-binding.json",
+        "sha256": "58fd28c6f09b563b5725ee1177de8b66c6cd01b6ef5b205a721b31dca9f4f0d7"
+      },
+      "validation_sidecar": {
+        "path": "research/validation-best-field-service-management-software-2026-09-22.md",
+        "sha256": "52dfb9d6071bc16717d43b74ad52a2df31b56ccff086461137ffb6e7e6396ad4"
+      }
+    },
+    "path": "research/releases/best-field-service-management-software-2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-final-v2/preflight-readiness.json",
+    "sha256": "068513a3d92f1d42866068c8b8fb0fd1428be982505eae45a108797a791c2cdd",
+    "tool": {
+      "name": "publish_readiness",
+      "version": "1.0.0"
+    },
+    "verification_scope": "source_artifact"
+  },
+  "schema": "simpro-blog-assembly-bom/v4",
+  "schema_policy": {
+    "declared_entities": [
+      "BlogPosting",
+      "BreadcrumbList",
+      "FAQPage",
+      "ItemList for the 12 compared tools, with exactly 12 ListItem entries",
+      "Question and Answer inside FAQPage",
+      "ImageObject for the featured image or logo",
+      "Organization as publisher reference only, not a separate full schema block"
+    ],
+    "faq_questions": [
+      "What is the best field service management software for small businesses?",
+      "What should small businesses look for in FSM software?",
+      "What is the difference between FSM software and job management software?",
+      "How much does field service management software cost?",
+      "Which field service management software is best for growing trade contractors?",
+      "Should I choose an all-in-one FSM platform or a simpler scheduling app?"
+    ],
+    "required_entities": [
+      "BlogPosting",
+      "BreadcrumbList",
+      "ImageObject for the featured image or logo",
+      "Organization as publisher reference only, not a separate full schema block",
+      "FAQPage",
+      "Question and Answer inside FAQPage",
+      "ItemList for the 12 compared tools, with exactly 12 ListItem entries"
+    ],
+    "video_embed": false,
+    "visible_faq": true
+  },
+  "workflow": {
+    "stage_receipts": [
+      {
+        "completed_at": "2026-09-23T14:45:58.815243Z",
+        "evidence_hashes": {
+          "scrub_statistics": "9e4596bc68ff2e1592ceb025b5d3a29dd1c8534c30b9fc8c6fd0573e6ed7e683"
+        },
+        "execution_attestation": {
+          "algorithm": "hmac-sha256",
+          "key_id": "88df9183fcb097c1",
+          "purpose": "simpro-blog-stage-receipt/v1",
+          "schema": "simpro-execution-attestation/v1",
+          "signature": "453b28839dc8b084a8ddc181ae651cbed6ab02f42989c72fa9b171a2b502e1ca"
+        },
+        "input_artifact_hashes": {
+          "article": "599f149847f8ceef0fa41460007d6743a758469daac5a8364cd41ae9853c446b"
+        },
+        "mutation": false,
+        "output_artifact_hashes": {
+          "article": "599f149847f8ceef0fa41460007d6743a758469daac5a8364cd41ae9853c446b",
+          "stage_evidence": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+        },
+        "previous_receipt_hash": "715edbd4a6cbfc0959077880b5c02f410d1c717d5712d7833b627047ef87f77b",
+        "receipt_hash": "3a6acb5eca926e3b85e1e0bb6d1993b36d1c226a36338d0fdf888ac4c05fa7b5",
+        "run_id": "62170e68-740b-42ed-8d67-311701b4f9d6",
+        "schema": "simpro-blog-stage-receipt/v1",
+        "stage": "post_optimization_scrub",
+        "started_at": "2026-09-23T14:45:58.760432Z",
+        "status": "completed",
+        "tool": {
+          "name": "content_scrubber",
+          "version": "1.0.0"
+        }
+      },
+      {
+        "completed_at": "2026-09-23T14:46:47.082075Z",
+        "evidence_hashes": {
+          "context_binding": "8697e8010c05da55846841df93c92fd3da80740c7e3999d3c80587d443f59b1e"
+        },
+        "execution_attestation": {
+          "algorithm": "hmac-sha256",
+          "key_id": "88df9183fcb097c1",
+          "purpose": "simpro-blog-stage-receipt/v1",
+          "schema": "simpro-execution-attestation/v1",
+          "signature": "b545674d1cd6f64c3dd27f2eb36db5b6ef34ed4250358cee7e5acbb2d2006e2c"
+        },
+        "input_artifact_hashes": {
+          "article": "599f149847f8ceef0fa41460007d6743a758469daac5a8364cd41ae9853c446b",
+          "context_pack": "8a4e4528acad8fea7020b67267100aeca63a7cde13082b83bd9971254229708a",
+          "context_receipt": "0a3f69dc64ab4615831be59a907b23ef58d7bf66e4765f125fcb2ba197e48e66",
+          "context_request": "1c69c6b6f879cec2b991c790d00562472a8b6b8613fe84b58b65d04a551867b3"
+        },
+        "mutation": false,
+        "output_artifact_hashes": {
+          "article": "599f149847f8ceef0fa41460007d6743a758469daac5a8364cd41ae9853c446b",
+          "stage_evidence": "679edd6b8ca596b8e7efb9235fca6fa5620cd3731b27d3e4ad971237de8e7e46",
+          "validation_sidecar": "52dfb9d6071bc16717d43b74ad52a2df31b56ccff086461137ffb6e7e6396ad4"
+        },
+        "previous_receipt_hash": "3a6acb5eca926e3b85e1e0bb6d1993b36d1c226a36338d0fdf888ac4c05fa7b5",
+        "receipt_hash": "3cd74cb4ac0b0d889c2b6186152e3e9c4f0e68492e87f2c93fd4902c09cbd545",
+        "run_id": "62170e68-740b-42ed-8d67-311701b4f9d6",
+        "schema": "simpro-blog-stage-receipt/v1",
+        "stage": "post_optimization_context_binding",
+        "started_at": "2026-09-23T14:45:59.371303Z",
+        "status": "completed",
+        "tool": {
+          "name": "context_binding_generator",
+          "version": "1.0.0"
+        }
+      },
+      {
+        "completed_at": "2026-09-23T14:52:21.545766Z",
+        "evidence_hashes": {
+          "agent_definition.internal-linker": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c",
+          "agent_definition.keyword-mapper": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d",
+          "agent_definition.meta-creator": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a",
+          "agent_definition.seo-optimizer": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8",
+          "agent_output.internal-linker": "234e91e9314e039517e69ccaf2191ffc3d8d12aafba1adef5485bbe85d17d997",
+          "agent_output.keyword-mapper": "64c34f8e8f98924fb0ee2e654160349c40b6f57bb821354e430ebf37d85b1463",
+          "agent_output.meta-creator": "4f890f1d14b4fa091583beaf43a3327fcb1129c22e4b9a36e03d7462b961685d",
+          "agent_output.seo-optimizer": "d7116369b4a2e26117cc79ad88182feba81ff16ca9f61247119711db4714a174",
+          "command_definition.rewrite-command": "e79221092f9b56213836ec37a70375fb4a5cf43ec75bc159cfd1d36d88575a56",
+          "commercial_pillar_index": "d122dbbab6c9f1dfa13715345bc9278f6a33b4e81f10bc4b17d410dc5da8a6f6",
+          "content_brief": "55ba252af6e72460c57e44e5d2d181dde211b211d01fe610aaeaba33b30db47b",
+          "context_pack": "8a4e4528acad8fea7020b67267100aeca63a7cde13082b83bd9971254229708a",
+          "context_receipt": "0a3f69dc64ab4615831be59a907b23ef58d7bf66e4765f125fcb2ba197e48e66",
+          "context_request": "1c69c6b6f879cec2b991c790d00562472a8b6b8613fe84b58b65d04a551867b3",
+          "customer_proof_index": "fee695a0b32d20c3c12c155a590979f4352b3170925fe6f87654b75282125c62",
+          "customer_proof_selector_evidence": "9178211b92a1bc697335a4465e1b64870c248c47f6b3be0186c1b5310e7e2f7d",
+          "customer_proof_usage_ledger": "a094f1c09757645a95da80b6666e9d6d4c72aaeb5e71ce307a3843960d098cad",
+          "editorial_plan": "ae78ddf48f7897ec1c50d607826588968c4778052881fed3678e9624abe71f1d",
+          "fred_authority_evidence": "f50c70542fd99a4fdb6ea8f0ab7e108061cc3d93233d48c30dc66e3822c52a96",
+          "keyword_decision": "5ef4119304022a7b22b2471ec7e9eae5fad4019fdb0cb4d748a3c9383c3c8b17",
+          "machine_reviews.article": "3bc8f6482d07b377fa4594a136f9a88c4610465bd7fe430382f9e48a33566ada",
+          "machine_reviews.plan": "ff1bd4750ffc6caf5414b9ce528c709fbcd09955022912fb219fb06936aa2dbc",
+          "optimizer_outputs[0]": "00c0fa9a8df261fd7bad3b17eb771e6b59e7881ef47ca6584e1ae5864a2cc473",
+          "plan_fulfillment": "86a6525719671f91e3087e5384b1fcc6d558333a4a26119e6e9e591e8e533dcf",
+          "prior_preflight_readiness": "69b5a9b0ed90000205a9b9a47fcdaf7233c91c2daf62db5adf71e261931686cb",
+          "serp_evidence": "65ee4bbfa858da39df193ff9daf7183b7d07cc169de0baac4e6888ffd9b44325",
+          "serp_raw_capture": "471d02a989c142043606153c839c93bbae38d4ef995a960b13ca29c889636600",
+          "source_decision_registry": "8beefea13de55bf1df63b92ac61ad896113cf48ddf55dd711c362569848162b8",
+          "stage_evidence[0]": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485",
+          "stage_evidence[1]": "679edd6b8ca596b8e7efb9235fca6fa5620cd3731b27d3e4ad971237de8e7e46",
+          "stage_receipts[0]": "a183d680c3265a361323ae9e66a5657e9fb9e9105d06ea02a0b2752679deefe4",
+          "stage_receipts[1]": "58fd28c6f09b563b5725ee1177de8b66c6cd01b6ef5b205a721b31dca9f4f0d7",
+          "validation_sidecar": "52dfb9d6071bc16717d43b74ad52a2df31b56ccff086461137ffb6e7e6396ad4"
+        },
+        "execution_attestation": {
+          "algorithm": "hmac-sha256",
+          "key_id": "88df9183fcb097c1",
+          "purpose": "simpro-blog-stage-receipt/v1",
+          "schema": "simpro-execution-attestation/v1",
+          "signature": "6be9b58caed9c130daa8afbb641d171a8c73e460590f26eac3a4ee4563457142"
+        },
+        "input_artifact_hashes": {
+          "agent_definition.internal-linker": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c",
+          "agent_definition.keyword-mapper": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d",
+          "agent_definition.meta-creator": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a",
+          "agent_definition.seo-optimizer": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8",
+          "agent_output.internal-linker": "234e91e9314e039517e69ccaf2191ffc3d8d12aafba1adef5485bbe85d17d997",
+          "agent_output.keyword-mapper": "64c34f8e8f98924fb0ee2e654160349c40b6f57bb821354e430ebf37d85b1463",
+          "agent_output.meta-creator": "4f890f1d14b4fa091583beaf43a3327fcb1129c22e4b9a36e03d7462b961685d",
+          "agent_output.seo-optimizer": "d7116369b4a2e26117cc79ad88182feba81ff16ca9f61247119711db4714a174",
+          "article": "599f149847f8ceef0fa41460007d6743a758469daac5a8364cd41ae9853c446b",
+          "assembly_bom": "0d6c875e9a78f5ef636f0b8d9d6b4ee688545a5edd1cb673b62562d66beea4af",
+          "command_definition.rewrite-command": "e79221092f9b56213836ec37a70375fb4a5cf43ec75bc159cfd1d36d88575a56",
+          "commercial_pillar_index": "d122dbbab6c9f1dfa13715345bc9278f6a33b4e81f10bc4b17d410dc5da8a6f6",
+          "content_brief": "55ba252af6e72460c57e44e5d2d181dde211b211d01fe610aaeaba33b30db47b",
+          "context_pack": "8a4e4528acad8fea7020b67267100aeca63a7cde13082b83bd9971254229708a",
+          "context_receipt": "0a3f69dc64ab4615831be59a907b23ef58d7bf66e4765f125fcb2ba197e48e66",
+          "context_request": "1c69c6b6f879cec2b991c790d00562472a8b6b8613fe84b58b65d04a551867b3",
+          "customer_proof_index": "fee695a0b32d20c3c12c155a590979f4352b3170925fe6f87654b75282125c62",
+          "customer_proof_selector_evidence": "9178211b92a1bc697335a4465e1b64870c248c47f6b3be0186c1b5310e7e2f7d",
+          "customer_proof_usage_ledger": "a094f1c09757645a95da80b6666e9d6d4c72aaeb5e71ce307a3843960d098cad",
+          "editorial_plan": "ae78ddf48f7897ec1c50d607826588968c4778052881fed3678e9624abe71f1d",
+          "fred_authority_evidence": "f50c70542fd99a4fdb6ea8f0ab7e108061cc3d93233d48c30dc66e3822c52a96",
+          "keyword_decision": "5ef4119304022a7b22b2471ec7e9eae5fad4019fdb0cb4d748a3c9383c3c8b17",
+          "machine_reviews.article": "3bc8f6482d07b377fa4594a136f9a88c4610465bd7fe430382f9e48a33566ada",
+          "machine_reviews.plan": "ff1bd4750ffc6caf5414b9ce528c709fbcd09955022912fb219fb06936aa2dbc",
+          "optimizer_outputs[0]": "00c0fa9a8df261fd7bad3b17eb771e6b59e7881ef47ca6584e1ae5864a2cc473",
+          "plan_fulfillment": "86a6525719671f91e3087e5384b1fcc6d558333a4a26119e6e9e591e8e533dcf",
+          "prior_preflight_readiness": "69b5a9b0ed90000205a9b9a47fcdaf7233c91c2daf62db5adf71e261931686cb",
+          "serp_evidence": "65ee4bbfa858da39df193ff9daf7183b7d07cc169de0baac4e6888ffd9b44325",
+          "serp_raw_capture": "471d02a989c142043606153c839c93bbae38d4ef995a960b13ca29c889636600",
+          "source_decision_registry": "8beefea13de55bf1df63b92ac61ad896113cf48ddf55dd711c362569848162b8",
+          "stage_evidence[0]": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485",
+          "stage_evidence[1]": "679edd6b8ca596b8e7efb9235fca6fa5620cd3731b27d3e4ad971237de8e7e46",
+          "stage_receipts[0]": "a183d680c3265a361323ae9e66a5657e9fb9e9105d06ea02a0b2752679deefe4",
+          "stage_receipts[1]": "58fd28c6f09b563b5725ee1177de8b66c6cd01b6ef5b205a721b31dca9f4f0d7",
+          "validation_sidecar": "52dfb9d6071bc16717d43b74ad52a2df31b56ccff086461137ffb6e7e6396ad4"
+        },
+        "mutation": false,
+        "output_artifact_hashes": {
+          "article": "599f149847f8ceef0fa41460007d6743a758469daac5a8364cd41ae9853c446b",
+          "readiness_output": "068513a3d92f1d42866068c8b8fb0fd1428be982505eae45a108797a791c2cdd"
+        },
+        "previous_receipt_hash": "3cd74cb4ac0b0d889c2b6186152e3e9c4f0e68492e87f2c93fd4902c09cbd545",
+        "receipt_hash": "2f7a1876389f0319613c0af8d64442a267f2e53d95d58db2886fd1aa22bd58f0",
+        "run_id": "62170e68-740b-42ed-8d67-311701b4f9d6",
+        "schema": "simpro-blog-stage-receipt/v1",
+        "stage": "final_preflight_readiness",
+        "started_at": "2026-09-23T14:51:49.448261Z",
+        "status": "completed",
+        "tool": {
+          "name": "publish_readiness",
+          "version": "1.0.0"
+        }
+      }
+    ]
+  },
+  "workflow_mode": "rewrite"
+}

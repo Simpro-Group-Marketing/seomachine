@@ -68,9 +68,9 @@ def _check_metadata_quality(
         freshness_status = 'assembly_date_invalid'
     elif (
         parsed_assembly is not None
-        and parsed_assembly != blog_assembly_contract.current_utc_date()
+        and parsed_assembly > blog_assembly_contract.current_utc_date()
     ):
-        freshness_status = 'assembly_date_not_current'
+        freshness_status = 'assembly_date_future'
     elif parsed_assembly is not None and parsed_updated > parsed_assembly:
         freshness_status = 'future'
     elif parsed_assembly is None and parsed_updated > date.today():

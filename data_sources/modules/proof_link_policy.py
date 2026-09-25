@@ -16,12 +16,12 @@ try:
     from .faq_structure import detect_faq_structure
     from .frontmatter import FrontmatterError, split_frontmatter
     from .image_placeholder import is_production_image_placeholder_line
-    from .url_validator import UrlValidationSummary, extract_urls
+    from .url_validator import UrlValidationSummary, extract_urls, is_effectively_resolved
 except ImportError:  # pragma: no cover - supports direct script execution.
     from faq_structure import detect_faq_structure
     from frontmatter import FrontmatterError, split_frontmatter
     from image_placeholder import is_production_image_placeholder_line
-    from url_validator import UrlValidationSummary, extract_urls
+    from url_validator import UrlValidationSummary, extract_urls, is_effectively_resolved
 
 
 CitationMode = Literal[
@@ -167,9 +167,14 @@ STRUCTURED_CAPABILITY_RE = re.compile(
     r"(?:provides?|offers?|includes?|supports?|automates?|integrates?|allows?|enables?|lacks?|has)\b"
 )
 PURE_ADVICE_START_RE = re.compile(
-    r"^(?:please\s+)?(?:apply|ask|before|check|compare|complete|confirm|consult|contact|create|for|"
-    r"choose|do\s+not|follow|gather|keep|locate|maintain|match|open|organize|prepare|read|record|"
-    r"review|save|select|start|treat|use|verify|visit)\b",
+    r"^(?:please\s+)?(?:apply|ask|before|begin|bring|build|capture|check|compare|complete|"
+    r"confirm|consult|contact|create|demonstrate|for|choose|do\s+not|follow|gather|keep|list|"
+    r"locate|maintain|map|match|model|open|organize|prepare|read|record|request|review|run|save|"
+    r"select|start|test|trace|treat|use|verify|visit)\b",
+    re.IGNORECASE,
+)
+SHORTLIST_GUIDANCE_RE = re.compile(
+    r"^\*\*(?:30-second shortlist|Best fit):\*\*\s+(?P<body>Start with\b[\s\S]*)$",
     re.IGNORECASE,
 )
 ADVICE_FACT_ASSERTION_RE = re.compile(
@@ -515,7 +520,7 @@ def _link_occurrences(
                 ),
                 None,
             )
-            if result is not None and result.status == "resolved":
+            if result is not None and is_effectively_resolved(result):
                 final_url = result.final_url
         canonical = canonicalize_link_identity(extracted.url, final_url=final_url)
         if not canonical.startswith(("http://", "https://")):
@@ -883,6 +888,9 @@ def _is_pure_navigation_or_advice(text: str) -> bool:
 
 def _is_editorial_buyer_guidance(unit: _ArticleUnit, text: str) -> bool:
     plain = _plain_text(text).strip()
+    shortlist = SHORTLIST_GUIDANCE_RE.match(plain)
+    if shortlist:
+        return _structured_editorial_guidance_is_safe(shortlist.group("body"))
     if unit.editorial_table_contract:
         cells = [cell.strip() for cell in plain.strip("|").split("|")]
         if cells and cells[0].casefold() in {"tool", "criterion"}:
@@ -951,7 +959,7 @@ def _canonical_urls(
                 item
                 for item in url_summary.results
                 if canonicalize_link_identity(item.url) == identity
-                and item.status == "resolved"
+                and is_effectively_resolved(item)
             ),
             None,
         )

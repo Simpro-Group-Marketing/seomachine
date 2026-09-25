@@ -67,9 +67,9 @@ def test_target_receipt_hashes_the_report_before_a_strict_build_and_check() -> N
     target = section(COMMAND, "Target-Specific Mode")
 
     assert "Write and finalize the Markdown performance report first" in target
-    assert "post_publish_measurement_receipt.py build --metadata" in target
+    assert "python -m data_sources.modules.post_publish_measurement_receipt build --metadata" in target
     assert "--performance-report" in target
-    assert "post_publish_measurement_receipt.py check" in target
+    assert "python -m data_sources.modules.post_publish_measurement_receipt check" in target
     assert "--fail-on error" in target
     assert "validator checks the report's exact H2 contract against receipt status" in target
     assert "reproduces every blocked source identity, property, blocker code, and blocker detail verbatim" in target

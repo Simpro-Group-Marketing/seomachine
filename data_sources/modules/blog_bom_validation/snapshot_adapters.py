@@ -340,17 +340,23 @@ def sidecar_binding_errors(
         ))
     else:
         try:
-            fred_content = captured.text_row(
-                fred, field="artifacts.fred_authority_evidence",
-            ).strip()
+            fred_content = _logical_text(
+                captured.text_row(
+                    fred, field="artifacts.fred_authority_evidence",
+                )
+            )
         except ValueError:
             fred_content = ""
-        if not fred_content or fred_content != sections[0]:
+        if not fred_content or fred_content != _logical_text(sections[0]):
             errors.append((
                 "bom_fred_evidence_binding_mismatch",
                 "Sidecar Fred selection block does not exactly match the BOM evidence artifact.",
             ))
     return errors
+
+
+def _logical_text(value: str) -> str:
+    return value.replace("\r\n", "\n").replace("\r", "\n").strip()
 
 
 def _wrap_machine_findings(

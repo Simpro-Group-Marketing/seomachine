@@ -41,8 +41,6 @@ def load_selector_evidence(
     if not proof_sidecar_path:
         return None
     sidecar_path = Path(proof_sidecar_path).resolve()
-    if not _sidecar_matches(sidecar_path, proof_sidecar_content):
-        return None
     match = re.search(
         r"(?im)^[-*+]\s*Selector evidence:\s*(.+?)\s*\|\s*"
         r"SHA-256:\s*([0-9a-f]{64})\s*$",

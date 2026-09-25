@@ -98,6 +98,27 @@ def _check_capsule_coverage(body: str) -> Dict[str, Any]:
         if not is_faq_h2(f"## {heading}")
     ]
     h2_count = len(sections)
+    section_details = []
+    for heading, section in sections:
+        paragraph = _plain_text(_first_paragraph(section))
+        word_count = _word_count(paragraph)
+        sentence_count = len(_sentences(paragraph))
+        passed_section = _is_capsule(paragraph)
+        if passed_section:
+            reason = "First paragraph is a 50-60 word capsule."
+        elif word_count < 50 or word_count > 60:
+            reason = "First paragraph must contain 50-60 words."
+        else:
+            reason = "First paragraph must contain 2-4 sentences."
+        section_details.append(
+            {
+                "heading": heading,
+                "word_count": word_count,
+                "sentence_count": sentence_count,
+                "passed": passed_section,
+                "reason": reason,
+            }
+        )
     capsule_count = sum(
         1 for _, section in sections if _is_capsule(_first_paragraph(section))
     )
@@ -113,6 +134,7 @@ def _check_capsule_coverage(body: str) -> Dict[str, Any]:
             "h2_count": h2_count,
             "capsule_count": capsule_count,
             "coverage": round(coverage, 2),
+            "sections": section_details,
         },
     }
 

@@ -1,0 +1,91 @@
+{
+  "schema": "simpro-url-verification-allowlist/v1",
+  "purpose": "Hosts that refuse automated validators but serve the page normally to a real browser. Each entry records a Chrome connector observation so a bot-block does not masquerade as an unresolved source.",
+  "rules": [
+    "An entry is only valid when the page was actually loaded through the Chrome connector and its title and an on-page snippet were read back.",
+    "An entry exempts the URL from manual-review blocking. It does not exempt the claim from Source Map, evidence, or freshness requirements.",
+    "Re-verify an entry whenever the cited claim changes or the source is materially revised."
+  ],
+  "entries": [
+    {
+      "url": "https://www.dol.gov/agencies/whd/fact-sheets/13-flsa-employment-relationship",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-18T20:41:00Z",
+      "page_title": "Fact Sheet 13: Employment Relationship Under the Fair Labor Standards Act (FLSA) | U.S. Department of Labor",
+      "observed_text_length": 20003,
+      "evidence": "Employment under the FLSA is not determined by technical concepts or common law standards of control; it is broader than the common law standard often applied to determine employment status under other Federal laws.",
+      "reason": "dol.gov returns HTTP 403 to the validator's request client. The page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.dol.gov/agencies/whd/flsa/misclassification/2026rulemaking",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-18T20:42:00Z",
+      "page_title": "Notice of Proposed Rule: Employee or Independent Contractor Status Under the Fair Labor Standards Act, Family and Medical Leave Act, and Migrant and Seasonal Agricultural Worker Protection Act, RIN 1235-AA46 | U.S. Department of Labor",
+      "observed_text_length": 4538,
+      "evidence": "The NPRM's 60-day comment period closed at 11:59 pm ET on April 28, 2026.",
+      "reason": "dol.gov returns HTTP 403 to the validator's request client. The page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://content.naic.org/consumer",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-18T20:58:00Z",
+      "page_title": "Consumer",
+      "observed_text_length": 8499,
+      "evidence": "NAIC consumer hub served normally in the Chrome connector. It is the route to the state insurance department lookups a contractor uses to confirm a carrier named on a certificate.",
+      "reason": "content.naic.org returns HTTP 403 to the validator's request client. The page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.capterra.com/p/10529/Simpro-Enterprise/#Capterra___7152337",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-18T21:45:00Z",
+      "page_title": "Simpro Software Pricing, Alternatives & More 2026 | Capterra",
+      "observed_text_length": 27431,
+      "evidence": "Capterra serves this page normally in a real browser and refuses the validator client with HTTP 403 behind Cloudflare. Loaded through the Chrome connector and read back: the Joe H. review is present, Junior Project Manager, Construction, dated May 18, 2026, 5.0 overall rating, and its Pros text opens with the exact snippet bound to claim-metric-MET-0303: \"The user interface is very intuitive, making it easy to onboard new team members without extensive training.\""
+    },
+    {
+      "url": "https://www.getjobber.com/pricing/",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-22T21:10:14Z",
+      "page_title": "Jobber Pricing: Plans Starting at $29/Month | Free Trial",
+      "observed_text_length": 3963,
+      "evidence": "The rendered page showed a team-size selector, billing selector, and the Grow, Connect, and Core subscription tiers, including their distinct workflow feature lists.",
+      "reason": "getjobber.com returns HTTP 403 to the validator's request client. The exact pricing URL loaded normally and its rendered pricing content was read in the main connected Chrome window."
+    },
+    {
+      "url": "https://www.getjobber.com/features/job-costing-software/",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-24T16:41:45Z",
+      "page_title": "Job Costing Software for Field Service Businesses | Jobber",
+      "observed_text_length": 6290,
+      "evidence": "Jobber's job costing software tracks labor, materials, and expenses as work happens. Every job's profit margin stays current—no spreadsheets, no shoebox of receipts.",
+      "reason": "getjobber.com returns HTTP 403 to the validator's request client. The exact job-costing URL loaded normally and the claim-supporting sentence was read in the main connected Chrome window."
+    },
+    {
+      "url": "https://help.tradifyhq.com/hc/en-us/articles/360026625454-What-Countries-Can-Tradify-Be-Used-In",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-22T21:10:14Z",
+      "page_title": "What Countries Can Tradify Be Used In? – Tradify Help Centre",
+      "observed_text_length": 1958,
+      "evidence": "Tradify can be used in any country throughout the world. However, if your region requires a system with 'grouped tax functionality' (such as North America), please be aware that Tradify does not yet support this feature.",
+      "reason": "help.tradifyhq.com returns HTTP 403 to the validator's request client. The exact help article loaded normally and the claim-supporting sentence was read in the main connected Chrome window."
+    },
+    {
+      "url": "https://help.tradifyhq.com/hc/en-us/articles/360026848353-Does-Tradify-Work-Offline",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-24T16:06:00Z",
+      "page_title": "Does Tradify Work Offline? – Tradify Help Centre",
+      "observed_text_length": 1824,
+      "evidence": "Tradify does not work offline as, both the Web Console and the Mobile App are dependent on a live internet connection to operate.",
+      "reason": "help.tradifyhq.com returns HTTP 403 to the validator's request client. The exact support article loaded normally and the claim-supporting sentence was read in the main connected Chrome window."
+    },
+    {
+      "url": "https://www.serchen.com/blog/job-management-software-buyers-guide",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-22T21:10:14Z",
+      "page_title": "What Job Management Software Actually Fixes — Serchen Blog",
+      "observed_text_length": 9780,
+      "evidence": "Job management software sits at the intersection of scheduling, field operations, and billing. The core of any system in this category handles job creation, assignment, and tracking.",
+      "reason": "serchen.com returns HTTP 403 to the validator's request client. The exact guide URL loaded normally and the claim-supporting category definition was read in the main connected Chrome window."
+    }
+  ]
+}

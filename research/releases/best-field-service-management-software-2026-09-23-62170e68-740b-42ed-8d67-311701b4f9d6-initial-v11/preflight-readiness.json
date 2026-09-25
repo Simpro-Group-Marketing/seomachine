@@ -1,0 +1,888 @@
+{
+  "aeo_geo": {
+    "checks": {
+      "author_voice": {
+        "applicable": true,
+        "details": {
+          "author_policy_status": "",
+          "first_person_terms": [],
+          "has_author": false
+        },
+        "fix": "Add a source-bound named author or rewrite first-person singular judgment in an attributed or neutral channel voice. Quoted source language may remain quoted.",
+        "issue": "First-person singular author judgment appears without a named author.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "capsule_coverage": {
+        "applicable": true,
+        "details": {
+          "capsule_count": 5,
+          "coverage": 1.0,
+          "h2_count": 5,
+          "sections": [
+            {
+              "heading": "Best field service management software by business type and workflow",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 4,
+              "word_count": 51
+            },
+            {
+              "heading": "Evaluation methodology for the 12 tools",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 4,
+              "word_count": 56
+            },
+            {
+              "heading": "Compare 12 field service management software tools",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 4,
+              "word_count": 52
+            },
+            {
+              "heading": "Use this buyer scorecard before you shortlist",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 4,
+              "word_count": 53
+            },
+            {
+              "heading": "Choose the next step",
+              "passed": true,
+              "reason": "First paragraph is a 50-60 word capsule.",
+              "sentence_count": 4,
+              "word_count": 53
+            }
+          ]
+        },
+        "fix": "Add a 50-60 word direct-answer paragraph immediately below the H1 and at least 60% of major H2s.",
+        "issue": "Fewer than 60% of major H2 sections have 50-60 word direct-answer capsules.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "direct_answer": {
+        "applicable": true,
+        "details": {
+          "first_two_sentences": "The best field service management software is the platform that matches how a business sells, schedules, delivers, and bills work. Compare 12 tools for 2026.",
+          "includes_target": true,
+          "word_count": 25
+        },
+        "fix": "Start with a concise answer that names the target query or primary keyword before the hook.",
+        "issue": "The article does not directly answer the target query in the first 1-2 sentences.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "eeat_proof": {
+        "applicable": true,
+        "details": {
+          "case_study_links": [],
+          "clockshark_workflow_links": [],
+          "experience_signals": [
+            "documented_no_fit_experience_boundary"
+          ],
+          "expertise_signals": [],
+          "has_documented_no_fit_boundary": true,
+          "has_experience": true,
+          "has_expertise": false,
+          "has_review_story_selection": false,
+          "review_site_links": [],
+          "simpro_product_links": [
+            "https://www.simprogroup.com/solutions/job-management-software",
+            "https://www.simprogroup.com/solutions/field-service-management-software",
+            "https://www.simprogroup.com/solutions/field-service-management-software"
+          ],
+          "validated_customer_experience": null
+        },
+        "fix": "Use a hash-verified customer-proof selector experience_story binding, an approved Selected Customer Proof Mining record, and the selected identity and public URL in the same visible article paragraph. A bare case-study link or self-asserted proof label does not establish Experience. If no story fits, document a substantive First-hand evidence decision with Selected: [none] in the E-E-A-T Proof Map and a matching experience_story slate row with rejected-candidate reasons. Generic review-site experience evidence and VoC themes are research inputs, not E-E-A-T story proof. Named authors and receipt-approved Fred authority are optional positive expertise signals, not required AEO pass conditions. A bare owned product link does not establish Expertise.",
+        "issue": "The draft is missing required first-hand experience proof.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "external_sources": {
+        "applicable": false,
+        "details": {
+          "external_link_count": 30,
+          "external_links": [
+            "https://www.simprogroup.com/",
+            "https://www.simprogroup.com/solutions/job-management-software",
+            "https://www.simprogroup.com/solutions/field-service-management-software",
+            "https://www.simprogroup.com/solutions/field-service-management-software",
+            "https://www.simprogroup.com/pricing",
+            "https://www.getjobber.com/pricing/",
+            "https://www.simprogroup.com/comparisons/simpro-vs-jobber",
+            "https://www.joblogic.com/en-us/field-service-management-software/",
+            "https://support.joblogic.com/docs/quickbooks-integration-general-information",
+            "https://fieldedge.com/pricing/",
+            "https://buildops.com/platform",
+            "https://buildops.com/pricing",
+            "https://www.servicetitan.com/get-pricing",
+            "https://www.fieldpulse.com/pricing",
+            "https://www.housecallpro.com/pricing/",
+            "https://www.servicefusion.com/field-service-management-software",
+            "https://www.servicefusion.com/pricing",
+            "https://www.servicem8.com/us/pricing",
+            "https://www.servicem8.com/us/",
+            "https://www.tradifyhq.com/features",
+            "https://fergus.com/us/pricing/",
+            "https://fergus.com/us/llm-info/",
+            "https://www.techradar.com/pro/how-to-pick-hvac-field-service-management-software",
+            "https://www.techradar.com/pro/how-to-pick-hvac-field-service-management-software",
+            "https://www.techtarget.com/enterprise-software/definition/What-is-field-service-management-FSM",
+            "https://www.fsmadvisor.com/guides/how-much-does-fsm-software-cost",
+            "https://www.techradar.com/pro/how-to-pick-hvac-field-service-management-software",
+            "https://www.techradar.com/best/best-scheduling-apps",
+            "https://www.techtarget.com/enterprise-software/definition/What-is-field-service-management-FSM",
+            "https://www.simprogroup.com/demo"
+          ],
+          "reason": "AEO fixed source-count scoring is disabled; release link policy owns the baseline and claim-level proof gates own additions."
+        },
+        "fix": "Use 2 distinct non-owned authority sources as the standard-post baseline. Add further claim-fit sources whenever evidence requires them, add no quota-only third source, and apply no maximum to required evidence.",
+        "issue": "External link totals are diagnostic in AEO scoring; release policy still uses a 2 distinct non-owned authority source baseline.",
+        "passed": true,
+        "severity": "info",
+        "status": "not_applicable"
+      },
+      "faq_answer_length": {
+        "applicable": true,
+        "details": {
+          "answer_lengths": [
+            {
+              "question": "What is the best field service management software for small businesses?",
+              "words": 43
+            },
+            {
+              "question": "What should small businesses look for in FSM software?",
+              "words": 46
+            },
+            {
+              "question": "What is the difference between FSM software and job management software?",
+              "words": 46
+            },
+            {
+              "question": "How much does field service management software cost?",
+              "words": 43
+            },
+            {
+              "question": "Which field service management software is best for growing trade contractors?",
+              "words": 51
+            },
+            {
+              "question": "Should I choose an all-in-one FSM platform or a simpler scheduling app?",
+              "words": 49
+            }
+          ],
+          "failing_answers": []
+        },
+        "fix": "Rewrite each FAQ answer as a 40-60 word direct answer, then add context after it if needed.",
+        "issue": "One or more FAQ answers is outside the 40-60 word AEO snippet range.",
+        "passed": true,
+        "severity": "medium",
+        "status": "passed"
+      },
+      "faq_answer_quality": {
+        "applicable": true,
+        "details": {
+          "finding_count": 0,
+          "findings": [],
+          "prevalidated": true
+        },
+        "fix": "Lead with a supported number or range, named recommendation, definition, concrete action, or explained yes/no answer. Move limitations after the direct answer.",
+        "issue": "One or more FAQ answers opens with a generic non-answer.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "faq_policy": {
+        "applicable": true,
+        "details": {
+          "policy_status": "required",
+          "visible_faq": true
+        },
+        "fix": "Use required when a visible FAQ is planned. Use not_applicable with a rationale only when the final article has no visible FAQ.",
+        "issue": "The bound FAQ policy does not match visible FAQ content.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "faq_proof": {
+        "applicable": true,
+        "details": {
+          "finding_count": 0,
+          "findings": [],
+          "prevalidated": true
+        },
+        "fix": "Resolve each finding according to its machine-assigned citation_mode. For inline_required, add a natural descriptive anchor to an authoritative owned or non-owned source in the first visible answer paragraph, map it in the FAQ Proof Map, and do not use competitor-owned FAQ sources. For section_source_allowed, sidecar_only, or proof_not_required, satisfy the assigned mode without quota-only links; a sidecar cannot replace inline evidence when inline_required applies.",
+        "issue": "One or more FAQ answers does not satisfy its machine-assigned citation mode.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "faq_questions": {
+        "applicable": true,
+        "details": {
+          "question_count": 6,
+          "questions": [
+            "What is the best field service management software for small businesses?",
+            "What should small businesses look for in FSM software?",
+            "What is the difference between FSM software and job management software?",
+            "How much does field service management software cost?",
+            "Which field service management software is best for growing trade contractors?",
+            "Should I choose an all-in-one FSM platform or a simpler scheduling app?"
+          ]
+        },
+        "fix": "Use the useful complete questions selected by the bound PAA policy, without a fixed count.",
+        "issue": "The selected FAQ/PAA section has no natural-language question headings.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "faq_structure": {
+        "applicable": true,
+        "details": {
+          "heading_present": true,
+          "unsupported_lines": []
+        },
+        "fix": "Use a recognized FAQ H2 followed by H3-H5 question headings.",
+        "issue": "FAQ-like question markup uses an unsupported structure.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "metadata": {
+        "applicable": true,
+        "details": {
+          "assembly_date": "2026-09-23",
+          "author_policy_status": "",
+          "freshness_status": "valid",
+          "has_author": false,
+          "has_last_updated": true,
+          "last_updated": "2026-09-23"
+        },
+        "fix": "Use a canonical YYYY-MM-DD last_updated value that is not later than the bound assembly date. Author metadata is optional for no-author blog workflows.",
+        "issue": "The draft is missing valid freshness metadata.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "paa_provenance": {
+        "applicable": true,
+        "details": {
+          "finding_count": 0,
+          "findings": [],
+          "prevalidated": true
+        },
+        "fix": "Pass the BOM-bound workflow mode, exact query, assembly collection date, and primary PAA artifact into the AEO rater.",
+        "issue": "PAA provenance does not match the bound workflow, query, or date.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      },
+      "schema": {
+        "applicable": true,
+        "details": {
+          "author_policy_status": "",
+          "entities": [
+            "BlogPosting",
+            "BreadcrumbList",
+            "FAQPage",
+            "ImageObject for the featured image or logo",
+            "ItemList for the 12 compared tools, with exactly 12 ListItem entries",
+            "Organization as publisher reference only, not a separate full schema block",
+            "Question and Answer inside FAQPage"
+          ],
+          "has_supported_video_embed": false,
+          "item_list_entry_count": 12,
+          "item_list_errors": [],
+          "missing_entities": [],
+          "unexpected_entities": [],
+          "unknown_entities": [],
+          "video_embed_errors": []
+        },
+        "fix": "Use exact canonical schema entity names. Include FAQPage and its Question and Answer entity only with a visible FAQ, Person only with a named author, and VideoObject only with a supported embed.",
+        "issue": "Schema notes do not match the exact conditional blog entity contract.",
+        "passed": true,
+        "severity": "high",
+        "status": "passed"
+      }
+    },
+    "details": {
+      "capsule_count": 5,
+      "case_study_links": [],
+      "experience_signals": [
+        "documented_no_fit_experience_boundary"
+      ],
+      "expertise_signals": [],
+      "external_link_count": 30,
+      "faq_answer_quality_findings": [],
+      "faq_proof_findings": [],
+      "faq_question_count": 6,
+      "h2_count": 5,
+      "paa_provenance_findings": [],
+      "review_site_links": [],
+      "section_clarity": {
+        "details": {
+          "unclear_sections": [
+            {
+              "heading": "Best field service management software by business type and workflow",
+              "words": 927
+            }
+          ]
+        },
+        "fix": "Keep one clear idea per major section, or split broad sections with focused H3s.",
+        "issue": "One or more major sections appears to cover too much without H3 structure.",
+        "passed": false,
+        "severity": "low"
+      }
+    },
+    "issues": [],
+    "passed": true,
+    "score": 100,
+    "threshold": 90
+  },
+  "artifact_kind": "blog",
+  "assembly_bom": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\releases\\best-field-service-management-software-2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-initial-v11\\provisional-bom.json",
+  "completed_at": "2026-09-23T16:46:33.339334Z",
+  "context_pack": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-pack-best-field-service-management-software.json",
+  "context_receipt": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-receipt-best-field-service-management-software.json",
+  "context_request": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-request-best-field-service-management-software.json",
+  "file": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\rewrites\\best-field-service-management-software-rewrite-2026-08-28.md",
+  "gate_inventory": [
+    "artifact_identity",
+    "context_binding",
+    "blog_assembly_bom",
+    "public_artifact",
+    "ai_copy_linter",
+    "url_validator",
+    "public_research_links",
+    "industry_cluster_link_policy",
+    "metric_proof_pack",
+    "numeric_claim_source",
+    "faq_answer_quality",
+    "faq_proof",
+    "paa_provenance",
+    "editorial_plan",
+    "semrush_keyword_decision",
+    "blog_strategy",
+    "competitive_shortlist",
+    "hindsight_boundary",
+    "source_support",
+    "source_quality",
+    "customer_proof_diversity",
+    "review_story_identity",
+    "eeat_strength",
+    "early_artifact",
+    "answer_withholding",
+    "schema_handoff",
+    "vault_brand_language",
+    "named_feature_status",
+    "fred_authority",
+    "content_scorer",
+    "input_seal"
+  ],
+  "gates": [
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Artifact Identity",
+      "name": "artifact_identity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Context Binding",
+      "name": "context_binding",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Blog Assembly BOM",
+      "name": "blog_assembly_bom",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Public Artifact",
+      "name": "public_artifact",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "AI Copy Linter",
+      "name": "ai_copy_linter",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "URL Validator",
+      "name": "url_validator",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Public Research Links",
+      "name": "public_research_links",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Industry Cluster Link Policy",
+      "name": "industry_cluster_link_policy",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Metric Proof Pack",
+      "name": "metric_proof_pack",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Numeric Claim Source",
+      "name": "numeric_claim_source",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "FAQ Answer Quality",
+      "name": "faq_answer_quality",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "FAQ Proof",
+      "name": "faq_proof",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "PAA Provenance",
+      "name": "paa_provenance",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Editorial Plan",
+      "name": "editorial_plan",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Semrush Keyword Decision",
+      "name": "semrush_keyword_decision",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Blog Strategy",
+      "name": "blog_strategy",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Competitive Shortlist",
+      "name": "competitive_shortlist",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Hindsight Boundary",
+      "name": "hindsight_boundary",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Source Support",
+      "name": "source_support",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Source Quality and Lifecycle",
+      "name": "source_quality",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Customer Proof Diversity",
+      "name": "customer_proof_diversity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Review Story Identity",
+      "name": "review_story_identity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [
+        {
+          "column": 1,
+          "line": 159,
+          "message": "Commercial-investigation article has no positive E-E-A-T signal; the sidecar explicitly records proof_unavailable_safe_to_publish.",
+          "rule_id": "eeat_strength_safe_but_weak",
+          "severity": "warning",
+          "suggestion": "Publish may proceed, but strengthen the article when selected customer proof, a named author, Fred authority, review-theme evidence, or SME review becomes available."
+        }
+      ],
+      "label": "E-E-A-T Strength",
+      "name": "eeat_strength",
+      "passed": true,
+      "warnings": 1
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Early Artifact",
+      "name": "early_artifact",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Answer Withholding",
+      "name": "answer_withholding",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Schema Handoff",
+      "name": "schema_handoff",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Vault Brand Language",
+      "name": "vault_brand_language",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Named Feature Status",
+      "name": "named_feature_status",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Fred Voccola Authority",
+      "name": "fred_authority",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Content Scorer",
+      "name": "content_scorer",
+      "passed": true,
+      "warnings": 4
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Input Seal",
+      "name": "input_seal",
+      "passed": true,
+      "warnings": 0
+    }
+  ],
+  "input_hashes": {
+    "agent_definition.internal-linker": {
+      "path": ".claude/agents/internal-linker.md",
+      "sha256": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c"
+    },
+    "agent_definition.keyword-mapper": {
+      "path": ".claude/agents/keyword-mapper.md",
+      "sha256": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d"
+    },
+    "agent_definition.meta-creator": {
+      "path": ".claude/agents/meta-creator.md",
+      "sha256": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a"
+    },
+    "agent_definition.seo-optimizer": {
+      "path": ".claude/agents/seo-optimizer.md",
+      "sha256": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8"
+    },
+    "agent_output.internal-linker": {
+      "path": "research/agent-outputs/internal-linker-best-field-service-management-software-2026-09-22.md",
+      "sha256": "4a540489b922dbe879019ae2864f98666555e9fb2747bdf8ed4ff783cb839087"
+    },
+    "agent_output.keyword-mapper": {
+      "path": "research/agent-outputs/keyword-mapper-best-field-service-management-software-2026-09-22.md",
+      "sha256": "8da941b8723a966e55e8684416c3b05b6ef8c6940639d15b6b3121003868e066"
+    },
+    "agent_output.meta-creator": {
+      "path": "research/agent-outputs/meta-creator-best-field-service-management-software-2026-09-22.md",
+      "sha256": "55f1d7f637fb3ab4aa0d2ed13efb996e0c6545353ad7a932fbf1bd2becfecdb0"
+    },
+    "agent_output.seo-optimizer": {
+      "path": "research/agent-outputs/seo-optimizer-best-field-service-management-software-2026-09-22.md",
+      "sha256": "b678dc8a345e2fa775955a6dd4d139eef5223279481787235f23a2725946b3ec"
+    },
+    "article": {
+      "path": "rewrites/best-field-service-management-software-rewrite-2026-08-28.md",
+      "sha256": "1be8c47f352c47f3b285be8bf64951d140a353c4113f8ffa37f75723508a141d"
+    },
+    "assembly_bom": {
+      "path": "research/releases/best-field-service-management-software-2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-initial-v11/provisional-bom.json",
+      "sha256": "e7760e0d1d4f9fa0c2731fca88666b48deb3ea74dc61473b39935834e47af669"
+    },
+    "command_definition.rewrite-command": {
+      "path": ".claude/commands/rewrite.md",
+      "sha256": "e79221092f9b56213836ec37a70375fb4a5cf43ec75bc159cfd1d36d88575a56"
+    },
+    "commercial_pillar_index": {
+      "path": "context/commercial-pillar-index.json",
+      "sha256": "d122dbbab6c9f1dfa13715345bc9278f6a33b4e81f10bc4b17d410dc5da8a6f6"
+    },
+    "content_brief": {
+      "path": "research/content-brief-best-field-service-management-software-2026-08-28.md",
+      "sha256": "55ba252af6e72460c57e44e5d2d181dde211b211d01fe610aaeaba33b30db47b"
+    },
+    "context_pack": {
+      "path": "research/context-pack-best-field-service-management-software.json",
+      "sha256": "8a4e4528acad8fea7020b67267100aeca63a7cde13082b83bd9971254229708a"
+    },
+    "context_receipt": {
+      "path": "research/context-receipt-best-field-service-management-software.json",
+      "sha256": "3c22ad5dde9c9cc3bbce414df2634992944e1e8c118eddde6a81dbd71cae5fc8"
+    },
+    "context_request": {
+      "path": "research/context-request-best-field-service-management-software.json",
+      "sha256": "1c69c6b6f879cec2b991c790d00562472a8b6b8613fe84b58b65d04a551867b3"
+    },
+    "customer_proof_index": {
+      "path": "context/customer-proof-index.json",
+      "sha256": "fee695a0b32d20c3c12c155a590979f4352b3170925fe6f87654b75282125c62"
+    },
+    "customer_proof_selector_evidence": {
+      "path": "research/customer-proof-selector-evidence-best-field-service-management-software-2026-09-22.json",
+      "sha256": "820690d873983da011661b9e3895d5b0cb57581b41c6a0e5b26692c0fb8c6baa"
+    },
+    "customer_proof_usage_ledger": {
+      "path": "context/customer-proof-usage-ledger.json",
+      "sha256": "a094f1c09757645a95da80b6666e9d6d4c72aaeb5e71ce307a3843960d098cad"
+    },
+    "editorial_plan": {
+      "path": "research/editorial-plan-best-field-service-management-software-2026-09-22.json",
+      "sha256": "ae78ddf48f7897ec1c50d607826588968c4778052881fed3678e9624abe71f1d"
+    },
+    "fred_authority_evidence": {
+      "path": "research/fred-authority-selector-best-field-service-management-software-2026-09-22.md",
+      "sha256": "f50c70542fd99a4fdb6ea8f0ab7e108061cc3d93233d48c30dc66e3822c52a96"
+    },
+    "keyword_decision": {
+      "path": "research/semrush-keyword-decision-best-field-service-management-software-2026-09-23.json",
+      "sha256": "5ef4119304022a7b22b2471ec7e9eae5fad4019fdb0cb4d748a3c9383c3c8b17"
+    },
+    "machine_reviews.article": {
+      "path": "research/machine-review-article-best-field-service-management-software-2026-09-22.json",
+      "sha256": "8f508f10423a9aa60665c530794efef6b6df28497042b71cf36b6dbbd40a7551"
+    },
+    "machine_reviews.plan": {
+      "path": "research/machine-review-plan-best-field-service-management-software-2026-09-22.json",
+      "sha256": "b6ac83f072a79b5f237d6e141725eb15ca5ce6300eeadbb426836c8374723f16"
+    },
+    "plan_fulfillment": {
+      "path": "research/blog-plan-fulfillment-best-field-service-management-software-2026-09-22.json",
+      "sha256": "45bc403fbd90be854ab890b4c494c38310a165507ccfcb896d1ed39ab4a2ea96"
+    },
+    "serp_evidence": {
+      "path": "research/serp-evidence-best-field-service-management-software-2026-09-23.json",
+      "sha256": "65ee4bbfa858da39df193ff9daf7183b7d07cc169de0baac4e6888ffd9b44325"
+    },
+    "serp_raw_capture": {
+      "path": "research/serp-chrome-raw-best-field-service-management-software-2026-09-23.json",
+      "sha256": "471d02a989c142043606153c839c93bbae38d4ef995a960b13ca29c889636600"
+    },
+    "source_decision_registry": {
+      "path": "context/source-classification-decisions.json",
+      "sha256": "8beefea13de55bf1df63b92ac61ad896113cf48ddf55dd711c362569848162b8"
+    },
+    "stage_evidence[0]": {
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-preflight-repair-v2-scrub-evidence.json",
+      "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+    },
+    "stage_evidence[1]": {
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-preflight-repair-v2-context-binding-evidence.json",
+      "sha256": "ec0077cf4184e28331176a32b29e54647829c7b8798bc9e224a9c15929100dba"
+    },
+    "stage_receipts[0]": {
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-preflight-repair-v2-draft.json",
+      "sha256": "7aea39c531a70370faab468204476af2862b01ae866152d3c9723cabfe8fb1e5"
+    },
+    "stage_receipts[1]": {
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-preflight-repair-v2-scrub.json",
+      "sha256": "daf6cc4bb18472d5689f92a52edee9e408a313c043f92c80605144292a2cf242"
+    },
+    "stage_receipts[2]": {
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-23-62170e68-740b-42ed-8d67-311701b4f9d6-preflight-repair-v2-context-binding.json",
+      "sha256": "f52722908cf46d4ebd05365adf7762745d42d18ba1fe0beff9da905385bf857e"
+    },
+    "validation_sidecar": {
+      "path": "research/validation-best-field-service-management-software-2026-09-22.md",
+      "sha256": "47dbf6ac6d1248bd4e991360cc93217accd92540dc31798237fc650e01ae3f22"
+    }
+  },
+  "input_seal": {
+    "status": "verified"
+  },
+  "passed": true,
+  "phase": "preflight",
+  "priority_fixes": [
+    {
+      "dimension": "humanity",
+      "dimension_score": 90,
+      "fix": "Use contractions like don't, can't, you're, it's",
+      "impact": 3.0,
+      "issue": "Lacks contractions (sounds formal)",
+      "severity": "low"
+    },
+    {
+      "dimension": "readability",
+      "dimension_score": 90,
+      "fix": "Simplify some complex sentences",
+      "impact": 1.0,
+      "issue": "Content slightly difficult (Flesch: 51.9)",
+      "severity": "low"
+    },
+    {
+      "dimension": "seo",
+      "dimension_score": 97,
+      "fix": "Secondary keywords not found: best field service management software 2026",
+      "impact": 0.44999999999999996,
+      "issue": "Secondary keywords not found: best field service management software 2026",
+      "severity": "low"
+    },
+    {
+      "dimension": "seo",
+      "dimension_score": 97,
+      "fix": "Primary keyword 'best field service management software' not in meta description",
+      "impact": 0.44999999999999996,
+      "issue": "Primary keyword 'best field service management software' not in meta description",
+      "severity": "low"
+    }
+  ],
+  "proof_sidecar": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\validation-best-field-service-management-software-2026-09-22.md",
+  "run_id": "62170e68-740b-42ed-8d67-311701b4f9d6",
+  "schema": "simpro-publish-readiness-result/v1",
+  "score": 94.3,
+  "score_threshold": 85,
+  "scorecard": {
+    "aeo_geo": {
+      "passed": true,
+      "score": 100,
+      "threshold": 90
+    },
+    "content_quality": {
+      "passed": true,
+      "score": 94.3,
+      "threshold": 85
+    },
+    "passed": true,
+    "seo_quality": {
+      "critical_issue_count": 0,
+      "passed": true,
+      "score": 97,
+      "target": 95,
+      "target_met": true,
+      "target_status": "met",
+      "threshold": 90
+    }
+  },
+  "started_at": "2026-09-23T16:45:57.471477Z",
+  "tool": {
+    "name": "publish_readiness",
+    "version": "1.0.0"
+  },
+  "verification_scope": "source_artifact"
+}

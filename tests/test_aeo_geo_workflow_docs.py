@@ -329,7 +329,17 @@ def test_blog_workflow_requires_scrub_optimize_and_score_reporting_every_run():
 
     optimize = _read(COMMAND_DIR / "optimize.md")
     assert "If `/publish-readiness` stopped before scoring" in optimize
-    assert "no-op `simpro-optimizer-output/v1` artifact" in optimize
+    assert "`simpro-optimizer-output/v2` artifact" in optimize
+    assert all(
+        binding in optimize
+        for binding in (
+            "`article`",
+            "`editorial_plan`",
+            "`proof_sidecar`",
+            "`scorecard`",
+            "`prior_preflight_readiness`",
+        )
+    )
 
     readiness = _read(COMMAND_DIR / "publish-readiness.md")
     assert "If an upstream gate blocks scoring, report `scorecard: unavailable`" in readiness

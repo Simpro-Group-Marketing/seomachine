@@ -22,7 +22,7 @@ BLOCKER_SCHEMA = "simpro-blog-machine-review-blocker/v1"
 MAX_REPAIR_CYCLES = 2
 AGENT_ROSTER = (
     "Content Analyzer",
-    "Editor",
+    "Editor", "Public Copy Boundary Reviewer",
     "SEO Optimizer",
     "Meta Creator",
     "Internal Linker",
@@ -329,8 +329,8 @@ def check_machine_review(payload: Mapping[str, Any]) -> list[Finding]:
         findings.append(
             _finding(
                 "machine_review_roster_invalid",
-                "Machine review must use the fixed six-agent roster in order.",
-                "Run Content Analyzer, Editor, SEO Optimizer, Meta Creator, Internal Linker, and Keyword Mapper.",
+                "Machine review must use the fixed seven-agent roster in order.",
+                "Run Content Analyzer, Editor, Public Copy Boundary Reviewer, SEO Optimizer, Meta Creator, Internal Linker, and Keyword Mapper.",
             )
         )
     findings.extend(_check_agent_responses(payload.get("agent_responses")))

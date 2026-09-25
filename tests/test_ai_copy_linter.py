@@ -295,6 +295,39 @@ class AiCopyLinterTests(unittest.TestCase):
 
         self.assertNotIn("editorial_process_leakage", finding_ids(content))
 
+    def test_editorial_process_leakage_catches_approved_proof_instruction(self):
+        content = (
+            "Before demos, pick a customer outcome metric and keep the discussion narrow. "
+            "Review the approved Foster Plumbing outcome before you move into platform claims."
+        )
+
+        findings = lint_content(content)
+        process = [
+            finding
+            for finding in findings
+            if finding["rule_id"] == "editorial_process_leakage"
+        ]
+
+        self.assertGreaterEqual(len(process), 1)
+        self.assertTrue(all(finding["severity"] == "error" for finding in process))
+
+    def test_editorial_process_leakage_catches_article_architecture_copy(self):
+        content = (
+            "Keep the split clean. This article explains what to measure. "
+            "A comparison page evaluates one named vendor against Simpro. "
+            "Mixing those jobs creates thin strategy and noisy copy."
+        )
+
+        findings = lint_content(content)
+        process = [
+            finding
+            for finding in findings
+            if finding["rule_id"] == "editorial_process_leakage"
+        ]
+
+        self.assertGreaterEqual(len(process), 3)
+        self.assertTrue(all(finding["severity"] == "error" for finding in process))
+
     def test_source_meta_commentary_is_error(self):
         content = (
             "That case study is useful for this topic, since it links payment speed "
@@ -393,6 +426,28 @@ class AiCopyLinterTests(unittest.TestCase):
         passive = [finding for finding in findings if finding["rule_id"] == "passive_voice"]
         self.assertEqual(len(passive), 1)
         self.assertEqual(passive[0]["severity"], "error")
+
+    def test_compressed_passive_participle_is_error(self):
+        findings = lint_content(
+            "That reflects the shift from software people occasionally open to "
+            "role-shaped software assigned recurring responsibilities."
+        )
+
+        compressed = [
+            finding
+            for finding in findings
+            if finding["rule_id"] == "compressed_passive_participle"
+        ]
+        self.assertEqual(len(compressed), 1)
+        self.assertEqual(compressed[0]["severity"], "error")
+
+    def test_normal_assigned_job_phrase_is_allowed(self):
+        findings = lint_content("The scheduling view shows assigned jobs and open capacity.")
+
+        self.assertNotIn(
+            "compressed_passive_participle",
+            {finding["rule_id"] for finding in findings},
+        )
 
     def test_modal_verbs_are_errors(self):
         findings = lint_content("Teams can assign work faster when dispatchers see capacity.")

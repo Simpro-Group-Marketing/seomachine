@@ -1,0 +1,111 @@
+{
+  "completed_at": "2026-09-23T17:18:08.997450Z",
+  "counters": {
+    "byte_snapshots": 35,
+    "bytes_read": 615627,
+    "cache_hits": 0,
+    "cache_misses": 0,
+    "connector_clients": 1,
+    "connector_operations": 1,
+    "connector_result_cache_hits": 0,
+    "connector_result_cache_misses": 0,
+    "file_hashes": 35,
+    "final_rehashes": 35,
+    "final_reseals": 1,
+    "full_readiness_executions": 1,
+    "gate_invocations": 4,
+    "git_state_loads": 0,
+    "http_deduplicated_occurrences": 0,
+    "http_dns_resolutions": 0,
+    "http_requests": 0,
+    "http_response_bytes": 0,
+    "http_unique_requests": 0,
+    "json_parses": 20,
+    "markdown_parses": 1,
+    "normalized_source_cache_hits": 0,
+    "normalized_source_parses": 0,
+    "unique_file_reads": 35
+  },
+  "elapsed_ms": 3984.251,
+  "gauges": {
+    "artifact_store_source_bytes": 615627,
+    "connector_result_cache_bytes": 0,
+    "current_http_requests": 0,
+    "current_http_reserved_bytes": 0,
+    "http_memo_bytes": 0,
+    "normalized_source_bytes": 0,
+    "peak_allocation_bytes": null,
+    "peak_artifact_store_source_bytes": 615627,
+    "peak_connector_result_cache_bytes": 0,
+    "peak_http_memo_bytes": 0,
+    "peak_http_requests": 0,
+    "peak_http_reserved_bytes": 0,
+    "peak_normalized_source_bytes": 0,
+    "process_peak_rss_bytes": 282562560,
+    "retained_http_response_bytes": 0
+  },
+  "outcome": "passed",
+  "phase": "release",
+  "process_peak_rss_bytes": 282562560,
+  "run_id": "80e44117-293a-480c-9100-ea4359c4ec9f",
+  "schema": "simpro-readiness-telemetry/v3",
+  "stages": [
+    {
+      "counters": {},
+      "elapsed_ms": 2.499,
+      "name": "pre_bom",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 3.557,
+      "name": "provisional_bom",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 1.329,
+      "name": "gate.artifact_identity",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 2022.61,
+      "name": "gate.context_binding",
+      "outcome": "passed"
+    },
+    {
+      "counters": {
+        "json_parses": 13,
+        "markdown_parses": 1
+      },
+      "elapsed_ms": 29.474,
+      "name": "gate.blog_assembly_bom",
+      "outcome": "passed"
+    },
+    {
+      "counters": {
+        "byte_snapshots": 35,
+        "bytes_read": 615627,
+        "connector_clients": 1,
+        "connector_operations": 1,
+        "file_hashes": 35,
+        "final_rehashes": 35,
+        "final_reseals": 1,
+        "json_parses": 20,
+        "markdown_parses": 1,
+        "unique_file_reads": 35
+      },
+      "elapsed_ms": 3651.491,
+      "name": "preflight_readiness",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 323.035,
+      "name": "preflight_persistence",
+      "outcome": "passed"
+    }
+  ],
+  "started_at": "2026-09-23T17:18:05.013171Z"
+}

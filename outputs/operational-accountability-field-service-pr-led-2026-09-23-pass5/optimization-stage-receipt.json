@@ -1,0 +1,33 @@
+{
+  "completed_at": "2026-09-23T18:08:24.018367Z",
+  "evidence_hashes": {
+    "optimizer_output": "319c5c6deef007f1c8184b2af4c740475ba1d1d1a032063857e31bbd1c34f6d6"
+  },
+  "execution_attestation": {
+    "algorithm": "hmac-sha256",
+    "key_id": "88df9183fcb097c1",
+    "purpose": "simpro-blog-stage-receipt/v1",
+    "schema": "simpro-execution-attestation/v1",
+    "signature": "ead6844c7f21bf19dad284de3443a1e1c9a28b0c53d6363f717623d1df68b4a9"
+  },
+  "input_artifact_hashes": {
+    "article": "b0db1b5c816778290a34f76ffc1187b5aea994a70ff66aae925b4b20ed70ff32",
+    "preflight_readiness": "a75f7f4dc24558eb90b25da3035b19399fd2605ee520e5766449ee35ebef103b",
+    "preflight_readiness_receipt": "050a830fca4baab0fcfd1d5c1bbdea4ed61cdcd2bc65872cf6c0d28a0df2db39"
+  },
+  "mutation": true,
+  "output_artifact_hashes": {
+    "article": "b0db1b5c816778290a34f76ffc1187b5aea994a70ff66aae925b4b20ed70ff32"
+  },
+  "previous_receipt_hash": "a701a6ea20830bc190f3cde32c30c4effb2f730fa5052711a42612a71cc6f3eb",
+  "receipt_hash": "ff7768fa989b82e0f46c8e17e3108cb8306036885b45a14b6db98666d6111b04",
+  "run_id": "80e44117-293a-480c-9100-ea4359c4ec9f",
+  "schema": "simpro-blog-stage-receipt/v1",
+  "stage": "optimization",
+  "started_at": "2026-09-23T18:04:41.345908Z",
+  "status": "completed",
+  "tool": {
+    "name": "optimize-command",
+    "version": "1"
+  }
+}

@@ -3,18 +3,12 @@
     "data_sources/modules/above_fold_analyzer.py": {
       "_analyze_headline": 15
     },
-    "data_sources/modules/ai_copy_linter.py": {
-      "_iter_active_lines": 12
-    },
     "data_sources/modules/blog_assembly_contract.py": {
       "artifact_inventory_snapshots": 12
     },
-    "data_sources/modules/readiness/persistence_api.py": {
-      "write_readiness_result": 11
-    },
     "data_sources/modules/blog_assembly_stage_receipt.py": {
       "_validate_native_edit_state": 12,
-      "check_receipt_chain": 23,
+      "check_receipt_chain": 22,
       "check_stage_receipt": 39
     },
     "data_sources/modules/blog_creation_preflight.py": {
@@ -36,7 +30,7 @@
       "_validate_record": 19
     },
     "data_sources/modules/competitive_shortlist_guard.py": {
-      "check_content": 21
+      "check_content": 19
     },
     "data_sources/modules/content_length_comparator.py": {
       "analyze": 18
@@ -149,6 +143,9 @@
       "_calculate_overall_score": 19,
       "_generate_recommendations": 17
     },
+    "data_sources/modules/readiness/persistence_api.py": {
+      "write_readiness_result": 11
+    },
     "data_sources/modules/review_story_identity_guard.py": {
       "_review_story_selection_findings": 13,
       "_review_theme_findings": 11
@@ -231,9 +228,7 @@
   },
   "maximum_lines": 500,
   "oversized_production_files": {
-    "data_sources/modules/readiness/artifact_store.py": 515,
     "data_sources/modules/above_fold_analyzer.py": 512,
-    "data_sources/modules/ai_copy_linter.py": 782,
     "data_sources/modules/blog_assembly_stage_receipt.py": 943,
     "data_sources/modules/blog_creation_preflight.py": 823,
     "data_sources/modules/commercial_pillar_index.py": 811,
@@ -259,6 +254,7 @@
     "data_sources/modules/proof_link_policy.py": 1018,
     "data_sources/modules/public_research_link_guard.py": 592,
     "data_sources/modules/readability_scorer.py": 505,
+    "data_sources/modules/readiness/artifact_store.py": 515,
     "data_sources/modules/review_story_identity_guard.py": 673,
     "data_sources/modules/semrush_keyword_decision_guard.py": 596,
     "data_sources/modules/trust_signal_analyzer.py": 567,
@@ -288,9 +284,9 @@
     "tests/release_test_support.py": 35,
     "tests/research_provenance_fixtures.py": 107,
     "tests/test_aeo_geo_rater.py": 1759,
-    "tests/test_aeo_geo_workflow_docs.py": 460,
+    "tests/test_aeo_geo_workflow_docs.py": 470,
     "tests/test_agent_governance_docs.py": 40,
-    "tests/test_ai_copy_linter.py": 608,
+    "tests/test_ai_copy_linter.py": 663,
     "tests/test_answer_withholding_guard.py": 212,
     "tests/test_artifact_release.py": 98,
     "tests/test_artifact_runtime.py": 221,
@@ -302,11 +298,11 @@
     "tests/test_blog_assembly_bom_v2.py": 250,
     "tests/test_blog_assembly_capabilities.py": 174,
     "tests/test_blog_assembly_contract.py": 255,
-    "tests/test_blog_assembly_stage_receipt.py": 573,
+    "tests/test_blog_assembly_stage_receipt.py": 606,
     "tests/test_blog_bom_validation_package.py": 109,
     "tests/test_blog_creation_preflight.py": 575,
     "tests/test_blog_identity_guard.py": 90,
-    "tests/test_blog_release.py": 287,
+    "tests/test_blog_release.py": 483,
     "tests/test_blog_strategy_guard.py": 518,
     "tests/test_bom_snapshot_store.py": 159,
     "tests/test_chrome_review_evidence.py": 141,

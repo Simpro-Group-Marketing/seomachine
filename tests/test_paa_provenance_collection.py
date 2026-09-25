@@ -20,7 +20,7 @@ def test_record_ignores_navigation_login_text_when_valid_paa_is_observed(tmp_pat
     collection_date = datetime.now(timezone.utc).date().isoformat()
     exact_stdout = json.dumps(
         {
-            "page_url": "https://answersocrates.com/paa-extractor",
+            "page_url": "https://answersocrates.com/",
             "page_title": "People Also Ask Extractor",
             "body_text": "Sign in Navigation People Also Ask",
             "blocker_observations": [],

@@ -50,12 +50,12 @@ try:
         _visible_faq_questions,
     )
     from .blog_assembly.derivation import (
-        _execution_evidence_from_prior_preflight,
         _hindsight_strategy_block,
         _hindsight_strategy_policy,
         _normalize_hindsight_block_text,
         _optional_artifact,
     )
+    from .blog_assembly.execution_evidence import _execution_evidence_from_prior_preflight
     from .blog_assembly.dependencies import BomValidationDependencies
     from .blog_assembly.finalization import (
         build_blog_assembly_bom,
@@ -126,12 +126,12 @@ except ImportError:  # pragma: no cover - direct script compatibility.
         _visible_faq_questions,
     )
     from blog_assembly.derivation import (
-        _execution_evidence_from_prior_preflight,
         _hindsight_strategy_block,
         _hindsight_strategy_policy,
         _normalize_hindsight_block_text,
         _optional_artifact,
     )
+    from blog_assembly.execution_evidence import _execution_evidence_from_prior_preflight
     from blog_assembly.dependencies import BomValidationDependencies
     from blog_assembly.finalization import (
         build_blog_assembly_bom,

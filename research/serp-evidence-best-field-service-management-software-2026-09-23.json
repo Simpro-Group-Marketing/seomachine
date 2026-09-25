@@ -1,0 +1,91 @@
+{
+  "collected_at": "2026-09-23T14:23:54Z",
+  "collector": {
+    "name": "research_serp_analysis:chrome_connector",
+    "version": "1.0.0"
+  },
+  "evidence_hash": "a875641421d7562c71dbbff0caef8c34797488c276ab9509652894afb770759b",
+  "execution_attestation": {
+    "algorithm": "hmac-sha256",
+    "key_id": "88df9183fcb097c1",
+    "purpose": "simpro-serp-evidence/v1",
+    "schema": "simpro-execution-attestation/v1",
+    "signature": "7dfa888a1494e0280b9e82e2639795c2798fb4a9113496a8066754e286da6aa0"
+  },
+  "observations": {
+    "competitor_gaps": [
+      "The fresh best field service management software SERP has comparison, review, and listicle intent, which is a different intent and different content type from the indexed field service management software homepage product proposition in context/commercial-pillar-index.json.",
+      "Current results commonly rank tools without giving each buyer a first disqualifying issue to test.",
+      "The Google AI Overview routes by size and complexity, but its visible response uses unsupported price and scale bands that this guide must not repeat as fact.",
+      "Current results rarely give every vendor the same fit, mismatch, evidence, and live-demo structure.",
+      "The broad results do not replace workflow-specific comparison pages for buyers choosing between two finalists."
+    ],
+    "content_types": [
+      "Listicle",
+      "Review",
+      "Tool/Resource",
+      "General Article"
+    ],
+    "must_have_sections": [
+      "scenario-based shortlist before the vendor cards",
+      "fit by operating model, team complexity, and workflow",
+      "consistent 12-tool comparison matrix",
+      "methodology and publisher disclosure",
+      "official-source vendor cards with mismatch and demo tests",
+      "buyer scorecard and role-based demo pack"
+    ],
+    "serp_features": [
+      "AI Overview",
+      "Sponsored results",
+      "People also ask",
+      "Discussions and forums",
+      "People also search for"
+    ]
+  },
+  "query": "best field service management software",
+  "raw_capture": {
+    "path": "research/serp-chrome-raw-best-field-service-management-software-2026-09-23.json",
+    "sha256": "471d02a989c142043606153c839c93bbae38d4ef995a960b13ca29c889636600"
+  },
+  "results": [
+    {
+      "position": 1,
+      "result_type": "organic",
+      "title": "6 Best Free Field Service Management Software",
+      "url": "https://connecteam.com/best-free-field-service-management-software/"
+    },
+    {
+      "position": 2,
+      "result_type": "organic",
+      "title": "Best Field Service Management Reviews 2026",
+      "url": "https://www.gartner.com/reviews/market/field-service-management"
+    },
+    {
+      "position": 3,
+      "result_type": "organic",
+      "title": "Best Field Service Management Tool?",
+      "url": "https://www.reddit.com/r/lowvoltage/comments/1bnl56d/best_field_service_management_tool/"
+    },
+    {
+      "position": 4,
+      "result_type": "organic",
+      "title": "Top 10 field service management software 2026",
+      "url": "https://www.ifs.com/en/glossary/compare/top-10-field-service-management-software-2026"
+    },
+    {
+      "position": 5,
+      "result_type": "organic",
+      "title": "I Found the Best Field Service Management Software of 2026",
+      "url": "https://learn.g2.com/best-field-service-management-software"
+    },
+    {
+      "position": 6,
+      "result_type": "organic",
+      "title": "Best Field Service Management Software Picks for Growing Teams",
+      "url": "https://www.reachoutsuite.com/best-field-service-management-software"
+    }
+  ],
+  "run_id": "62170e68-740b-42ed-8d67-311701b4f9d6",
+  "schema": "simpro-serp-evidence/v1",
+  "status": "verified"
+}

@@ -3097,9 +3097,69 @@
         "invoicing",
         "follow-up"
       ]
+    },
+    {
+      "approval_status": "approved",
+      "approved_metrics": [],
+      "approved_quotes": [
+        {
+          "evidence": "The user interface is very intuitive, making it easy to onboard new team members without extensive training.",
+          "quote": "The user interface is very intuitive, making it easy to onboard new team members without extensive training.",
+          "status": "approved",
+          "url": "https://www.capterra.com/p/10529/Simpro-Enterprise/#Capterra___7152337"
+        }
+      ],
+      "company_size": "unknown",
+      "customer": "Capterra reviewer Joe H. on Simpro onboarding",
+      "evidence": "Capterra review dated 18 May 2026 states that the interface is intuitive and makes it easy to onboard new team members without extensive training. Bound to approved vault claim claim-metric-MET-0303 with exact_quote permitted use and attribution label Joe H.",
+      "industry": [
+        "trades",
+        "field service"
+      ],
+      "internal_source_ref": "indexes/metric-claim-matrix.csv#metric_id=MET-0303; Capterra positive review 17 of 111; claim LRM-0070; pros",
+      "last_verified": "2026-09-18",
+      "proof_id": "review-capterra-training-ease-of-adoption",
+      "public_copy_allowed": true,
+      "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/#Capterra___7152337",
+      "region": [
+        "unknown"
+      ],
+      "restrictions": [
+        "Use the exact snippet with the Joe H. attribution label and a same-paragraph link to the Capterra review URL",
+        "do not broaden the snippet into a generalised Simpro outcome or present it as describing the August 2026 learning material."
+      ],
+      "review_story": {
+        "copy_use": "exact quote with attribution and same-paragraph source link",
+        "identity_display": "Joe H., junior project manager in construction",
+        "identity_type": "person",
+        "objective_fit": [
+          "training",
+          "onboarding",
+          "adoption"
+        ],
+        "person_name": "Joe H.",
+        "platform": "Capterra",
+        "public_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/#Capterra___7152337",
+        "role_title": "Junior Project Manager, Construction, 2+ years using Simpro",
+        "source_row_ref": "Capterra positive review 17 of 111; claim LRM-0070; pros",
+        "story_allowed": true,
+        "verification_status": "verified 2026-06-17 against live review capture",
+        "workflow_story": "Reviewer reports the interface is intuitive enough to bring new team members onto the product without extensive training."
+      },
+      "source_type": "review_site",
+      "themes": [
+        "training",
+        "onboarding",
+        "ease of use"
+      ],
+      "workflow_fit": [
+        "training",
+        "onboarding",
+        "adoption"
+      ]
     }
   ],
   "source_boundary": "Curated customer proof index for selection and governance. This is not the full Quote Matrix. Exact quotes, review ratings, badges, rankings, and named reviewer claims require current source verification and approval before public copy use. Review-site rows may support public E-E-A-T stories only when review_story.story_allowed is true, the row has a real person or business identity, and a usable public review URL is linked in the same public paragraph as the paraphrase. Generic review themes remain VoC research only.",
-  "updated_at": "2026-08-31",
+  "updated_at": "2026-09-18",
   "version": 1
 }

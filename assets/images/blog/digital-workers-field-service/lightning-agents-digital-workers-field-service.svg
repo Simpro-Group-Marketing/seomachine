@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
-  <title id="title">Simpro Lightning AI agents supporting daily field service work</title>
-  <desc id="desc">Simpro Lightning connected to four role-based field service agents with visible human review and escalation checkpoints.</desc>
+  <title id="title">Simpro Lightning role agents supporting field service work</title>
+  <desc id="desc">Simpro Lightning connected to FieldReady, JobReady, JobScribe, and JobBrief with visible human review and escalation checkpoints.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#071723"/>
+      <stop offset="0" stop-color="#061721"/>
       <stop offset="0.58" stop-color="#10293b"/>
       <stop offset="1" stop-color="#173241"/>
     </linearGradient>
     <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#173c52" stop-opacity="0.97"/>
-      <stop offset="1" stop-color="#0d2331" stop-opacity="0.97"/>
+      <stop offset="0" stop-color="#173c52"/>
+      <stop offset="1" stop-color="#0d2331"/>
     </linearGradient>
     <linearGradient id="core" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#91f3ff"/>
@@ -17,14 +17,7 @@
       <stop offset="1" stop-color="#1586a3"/>
     </linearGradient>
     <filter id="shadow" x="-25%" y="-25%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#020b10" flood-opacity="0.46"/>
-    </filter>
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="4" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#020b10" flood-opacity="0.46"/>
     </filter>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto" markerUnits="strokeWidth">
       <path d="M2 2l8 4-8 4z" fill="#65e4f7"/>
@@ -33,98 +26,97 @@
       <path d="M42 0H0V42" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.043"/>
     </pattern>
     <style>
-      .label { font-family: "Aptos", "Segoe UI", Arial, sans-serif; fill: #eef8fb; }
-      .muted { fill: #bdd0d9; }
-      .eyebrow { font-size: 17px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; fill: #75ddf1; }
-      .head { font-size: 34px; font-weight: 760; }
-      .coreTitle { font-size: 32px; font-weight: 760; }
-      .cardTitle { font-size: 25px; font-weight: 760; }
-      .small { font-size: 20px; font-weight: 560; }
-      .tag { font-size: 18px; font-weight: 720; fill: #08212f; }
-      .noteDark { font-family: "Aptos", "Segoe UI", Arial, sans-serif; font-size: 17px; font-weight: 650; fill: #153348; }
+      .font { font-family: "Aptos", "Segoe UI", Arial, sans-serif; }
+      .eyebrow { fill: #72e5f7; font-size: 16px; font-weight: 800; letter-spacing: 2px; }
+      .title { fill: #f3fbfd; font-size: 34px; font-weight: 800; }
+      .subtitle { fill: #c9dbe3; font-size: 20px; font-weight: 540; }
+      .agentTitle { fill: #ffffff; font-size: 22px; font-weight: 800; }
+      .agentText { fill: #cfe2ea; font-size: 18px; font-weight: 620; }
+      .coreCaption { fill: #d7f8ff; font-size: 17px; font-weight: 760; }
+      .pillText { fill: #092230; font-size: 17px; font-weight: 800; }
+      .note { fill: #143243; font-size: 18px; font-weight: 700; }
     </style>
   </defs>
 
   <rect width="1200" height="675" fill="url(#bg)"/>
   <rect width="1200" height="675" fill="url(#grid)"/>
-  <circle cx="620" cy="335" r="250" fill="#28bfdc" opacity="0.06"/>
-  <circle cx="98" cy="108" r="180" fill="#8fd3ff" opacity="0.055"/>
-  <circle cx="1108" cy="565" r="170" fill="#2baed0" opacity="0.07"/>
+  <circle cx="606" cy="342" r="238" fill="#28bfdc" opacity="0.06"/>
+  <circle cx="104" cy="112" r="184" fill="#8fd3ff" opacity="0.052"/>
+  <circle cx="1115" cy="562" r="176" fill="#2baed0" opacity="0.07"/>
 
-  <text x="70" y="69" class="label eyebrow">Role-based AI agents</text>
-  <text x="70" y="111" class="label head">Simpro Lightning with review and escalation built in</text>
-  <text x="70" y="145" class="label small muted">A field service digital workforce works best when every agent has a boundary and a human owner.</text>
-
-  <g filter="url(#shadow)">
-    <rect x="430" y="238" width="340" height="170" rx="32" fill="url(#core)" opacity="0.96"/>
-    <rect x="447" y="255" width="306" height="136" rx="24" fill="#08202d" opacity="0.24"/>
-  </g>
-  <g transform="translate(480 272)">
-    <path d="M47 13l-20 46h40l-14 50 46-67H63l16-29z" fill="#ffffff" opacity="0.95" filter="url(#glow)"/>
-    <text x="102" y="45" class="label coreTitle">Simpro</text>
-    <text x="102" y="84" class="label coreTitle">Lightning</text>
-  </g>
-
-  <g stroke="#65e4f7" stroke-width="3" stroke-opacity="0.76" fill="none" marker-end="url(#arrow)">
-    <path d="M430 288H344"/>
-    <path d="M430 364H344"/>
-    <path d="M770 288h86"/>
-    <path d="M770 364h86"/>
-    <path d="M600 408v68"/>
+  <g class="font">
+    <text x="70" y="70" class="eyebrow">SIMPRO LIGHTNING ROLE AGENTS</text>
+    <text x="70" y="112" class="title">Actual agent roles with human checkpoints</text>
+    <text x="70" y="146" class="subtitle">Keep each Lightning role tied to a workflow, review point, and escalation path.</text>
   </g>
 
   <g filter="url(#shadow)">
-    <rect x="70" y="220" width="274" height="112" rx="24" fill="url(#card)" stroke="#65e4f7" stroke-opacity="0.34"/>
-    <rect x="70" y="356" width="274" height="112" rx="24" fill="url(#card)" stroke="#65e4f7" stroke-opacity="0.34"/>
-    <rect x="856" y="220" width="274" height="112" rx="24" fill="url(#card)" stroke="#65e4f7" stroke-opacity="0.34"/>
-    <rect x="856" y="356" width="274" height="112" rx="24" fill="url(#card)" stroke="#65e4f7" stroke-opacity="0.34"/>
+    <rect x="398" y="220" width="404" height="198" rx="34" fill="url(#core)"/>
+    <rect x="426" y="250" width="348" height="138" rx="26" fill="#071723" opacity="0.52"/>
+  </g>
+  <g class="font">
+    <image href="simpro-lightning-logo-vault.png" x="468" y="272" width="264" height="89" preserveAspectRatio="xMidYMid meet"/>
+    <text x="600" y="384" class="coreCaption" text-anchor="middle">Human checkpoints stay visible</text>
   </g>
 
-  <g class="label">
-    <g transform="translate(96 252)">
-      <circle cx="20" cy="18" r="18" fill="#66e5f8" opacity="0.18"/>
-      <path d="M10 19h20M20 9v20" stroke="#83efff" stroke-width="4" stroke-linecap="round"/>
-      <text x="52" y="8" class="cardTitle">Job preparation</text>
-      <text x="52" y="41" class="small muted">Gather records and context</text>
+  <g stroke="#65e4f7" stroke-width="3" stroke-opacity="0.78" fill="none" marker-end="url(#arrow)">
+    <path d="M398 286H362"/>
+    <path d="M398 350H362"/>
+    <path d="M802 286h8"/>
+    <path d="M802 350h8"/>
+    <path d="M600 418v34"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="70" y="220" width="292" height="116" rx="24" fill="url(#card)" stroke="#65e4f7" stroke-opacity="0.36"/>
+    <rect x="70" y="376" width="292" height="116" rx="24" fill="url(#card)" stroke="#65e4f7" stroke-opacity="0.36"/>
+    <rect x="810" y="220" width="330" height="116" rx="24" fill="url(#card)" stroke="#65e4f7" stroke-opacity="0.36"/>
+    <rect x="810" y="376" width="330" height="116" rx="24" fill="url(#card)" stroke="#65e4f7" stroke-opacity="0.36"/>
+  </g>
+
+  <g class="font">
+    <g transform="translate(98 251)">
+      <circle cx="22" cy="22" r="21" fill="#66e5f8" opacity="0.2"/>
+      <path d="M12 22h20M22 12v20" stroke="#8df2ff" stroke-width="5" stroke-linecap="round"/>
+      <text x="72" y="9" class="agentTitle">FieldReady</text>
+      <text x="72" y="42" class="agentText">Training support</text>
     </g>
-    <g transform="translate(96 388)">
-      <circle cx="20" cy="18" r="18" fill="#66e5f8" opacity="0.18"/>
-      <path d="M9 13h22M9 22h22M9 31h15" stroke="#83efff" stroke-width="4" stroke-linecap="round"/>
-      <text x="52" y="8" class="cardTitle">Documentation</text>
-      <text x="52" y="41" class="small muted">Draft notes and summaries</text>
+    <g transform="translate(98 407)">
+      <circle cx="22" cy="22" r="21" fill="#66e5f8" opacity="0.2"/>
+      <path d="M11 15h22M11 23h22M11 31h17" stroke="#8df2ff" stroke-width="4" stroke-linecap="round"/>
+      <text x="72" y="9" class="agentTitle">JobScribe</text>
+      <text x="72" y="42" class="agentText">Job documentation</text>
     </g>
-    <g transform="translate(882 252)">
-      <circle cx="20" cy="18" r="18" fill="#66e5f8" opacity="0.18"/>
-      <path d="M8 13h24v18H15l-7 7z" stroke="#83efff" stroke-width="4" fill="none" stroke-linejoin="round"/>
-      <text x="52" y="8" class="cardTitle">Customer updates</text>
-      <text x="52" y="41" class="small muted">Send approved messages</text>
+    <g transform="translate(842 251)">
+      <circle cx="22" cy="22" r="21" fill="#66e5f8" opacity="0.2"/>
+      <path d="M10 16h24v17H17l-7 7z" stroke="#8df2ff" stroke-width="4" fill="none" stroke-linejoin="round"/>
+      <text x="76" y="9" class="agentTitle">JobReady</text>
+      <text x="76" y="42" class="agentText">Job preparation</text>
     </g>
-    <g transform="translate(882 388)">
-      <circle cx="20" cy="18" r="18" fill="#66e5f8" opacity="0.18"/>
-      <path d="M20 6v11l8 5M20 36a18 18 0 1 0 0-36 18 18 0 0 0 0 36z" stroke="#83efff" stroke-width="4" fill="none" stroke-linecap="round"/>
-      <text x="52" y="8" class="cardTitle">Workflow monitor</text>
-      <text x="52" y="41" class="small muted">Watch triggers and status</text>
+    <g transform="translate(842 407)">
+      <circle cx="22" cy="22" r="21" fill="#66e5f8" opacity="0.2"/>
+      <path d="M22 9v12l8 5M22 40a18 18 0 1 0 0-36 18 18 0 0 0 0 36z" stroke="#8df2ff" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <text x="76" y="9" class="agentTitle">JobBrief</text>
+      <text x="76" y="42" class="agentText">Customer summary</text>
     </g>
   </g>
 
   <g filter="url(#shadow)">
-    <rect x="390" y="487" width="420" height="126" rx="26" fill="#eef8fb"/>
+    <rect x="382" y="468" width="436" height="150" rx="28" fill="#eef8fb"/>
   </g>
-  <g transform="translate(425 512)">
-    <rect x="0" y="0" width="148" height="44" rx="22" fill="#78e7f8"/>
-    <text x="74" y="29" text-anchor="middle" class="tag">Human review</text>
-    <rect x="174" y="0" width="176" height="44" rx="22" fill="#ffc857"/>
-    <text x="262" y="29" text-anchor="middle" class="tag">Escalation point</text>
-    <text x="175" y="69" text-anchor="middle" class="noteDark">
-      <tspan x="175" dy="0">People own safety, policy,</tspan>
-      <tspan x="175" dy="21">exceptions and outcomes.</tspan>
-    </text>
+  <g class="font" transform="translate(418 495)">
+    <rect x="0" y="0" width="156" height="44" rx="22" fill="#78e7f8"/>
+    <text x="78" y="29" text-anchor="middle" class="pillText">Human review</text>
+    <rect x="196" y="0" width="186" height="44" rx="22" fill="#ffc857"/>
+    <text x="289" y="29" text-anchor="middle" class="pillText">Escalation point</text>
+    <text x="191" y="78" text-anchor="middle" class="note">People own safety, policy,</text>
+    <text x="191" y="101" text-anchor="middle" class="note">exceptions, and outcomes.</text>
   </g>
 
   <g opacity="0.82">
-    <path d="M594 214c0-26 14-42 38-48M624 198c12 0 20-8 20-20M576 456c-21 18-43 25-69 21M642 456c22 18 44 25 70 21" stroke="#65e4f7" stroke-width="2" stroke-linecap="round" stroke-dasharray="8 11" fill="none"/>
-    <circle cx="632" cy="166" r="5" fill="#65e4f7"/>
-    <circle cx="507" cy="477" r="5" fill="#65e4f7"/>
-    <circle cx="712" cy="477" r="5" fill="#65e4f7"/>
+    <path d="M596 208c0-27 15-43 39-49M624 191c12 0 20-8 20-20M558 441c-19 20-41 30-67 28M642 441c19 20 41 30 67 28" stroke="#65e4f7" stroke-width="2" stroke-linecap="round" stroke-dasharray="8 11" fill="none"/>
+    <circle cx="635" cy="159" r="5" fill="#65e4f7"/>
+    <circle cx="491" cy="469" r="5" fill="#65e4f7"/>
+    <circle cx="709" cy="469" r="5" fill="#65e4f7"/>
   </g>
 </svg>

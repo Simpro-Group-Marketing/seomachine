@@ -1,0 +1,51 @@
+Semrush Keyword Overview UI evidence
+Collection date: 2026-09-23
+Database: US
+Device: Desktop
+Execution surface: semrush_ui_chrome_main_browser
+Source boundary: Authenticated browser-visible Semrush UI only. No API evidence is represented.
+
+Exact primary query
+Keyword: best field service management software
+Intent: Commercial
+US volume: 1.6K
+Global volume: 2.7K
+Keyword difficulty: 31
+Keyword difficulty label: Possible
+CPC: $42.48
+Competitive density: 0.24
+Results: 174
+SERP features: Sitelinks; AI Overview; Reviews; Video; Video carousel; Discussions/forums
+
+Visible keyword variations
+best field service management software for small business | Volume 480 | KD 5
+best field service management software 2025 | Volume 390 | KD 39
+best field service management software 2026 | Volume 110 | KD 25
+what is the best field service management software | Volume 110 | KD 25
+
+Visible questions
+Questions total: 11 keywords
+Questions total volume: 130
+what is the best field service management software | Volume 110 | KD 25
+what's the best field service management software for contractors | Volume 20 | KD n/a
+is it best field service management software | Volume 0 | KD n/a
+is it field service management software with best reviews | Volume 0 | KD n/a
+what field service management software offers the best mobile app | Volume 0 | KD n/a
+
+Organic SERP, positions 1-10
+1 | coastapp.com | https://coastapp.com/blog/field-service-management-software/ | Sitelinks
+2 | reddit.com | https://www.reddit.com/r/lowvoltage/comments/1bnl56d/best_field_service_management_tool/ | Sitelinks
+3 | gartner.com | https://www.gartner.com/reviews/market/field-service-management | none
+4 | servicepower.com | https://www.servicepower.com/resources/industry-guides/what-is-field-service-management-software | none
+5 | servicetitan.com | https://www.servicetitan.com/market/field-service-management-software | Reviews
+6 | fieldpulse.com | https://www.fieldpulse.com/ | none
+7 | infotech.com | https://www.infotech.com/software-reviews/categories/field-service-management | none
+8 | connecteam.com | https://connecteam.com/best-free-field-service-management-software/ | none
+9 | pipedrive.com | https://www.pipedrive.com/en/industries/crm-for-field-service | none
+10 | servicefusion.com | https://www.servicefusion.com/field-service-management-software | Reviews
+
+Decision boundary
+Select `best field service management software` as the primary commercial comparison query.
+Retain `best field service management software for small business` and `best field service management software 2026` as secondary queries.
+Reject `field service management software` because the broader category term is reserved for the Simpro commercial pillar.
+Reject the 2025 variation because the article is the current 2026 buyer's guide.

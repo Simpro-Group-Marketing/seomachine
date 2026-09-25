@@ -9,4 +9,4 @@ Apply this rule to every FAQ in a blog draft, rewrite, or published Markdown han
 - Fact-driven or high-risk FAQ claims use `inline_required`: add a natural descriptive anchor to an authoritative non-owned source in the first visible answer paragraph. Lower-risk answers follow their machine-assigned `section_source_allowed`, `sidecar_only`, or `proof_not_required` mode without quota-only links. A Source Map or FAQ Proof Map cannot replace the reader-facing link when `inline_required` applies.
 - Replace or remove a question when no defensible, evidence-backed answer is available.
 
-Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error` and `python data_sources/modules/faq_proof_guard.py [file] --fail-on error`. Both gates run inside `/publish-readiness`. Canonical policy lives in `context/aeo-geo-blog-strategy.md`.
+Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error` and `python -m data_sources.modules.faq_proof_guard [file] --fail-on error`. Both gates run inside `/publish-readiness`. Canonical policy lives in `context/aeo-geo-blog-strategy.md`.

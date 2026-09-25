@@ -8,6 +8,11 @@ import sys
 from pathlib import Path
 from typing import Any, Callable, Sequence
 
+try:
+    from ..release_workflow import error_reporting
+except ImportError:  # pragma: no cover - supports direct script execution.
+    from release_workflow import error_reporting
+
 
 def run_release_cli(
     argv: Sequence[str] | None,
@@ -15,7 +20,12 @@ def run_release_cli(
     runner: Callable[..., Any],
     invocation_error: type[Exception],
 ) -> int:
-    args = _parser().parse_args(argv)
+    raw_argv = list(sys.argv[1:] if argv is None else argv)
+    try:
+        args = _parser().parse_args(raw_argv)
+    except SystemExit as error:
+        _report_cli_parse_error(raw_argv, error)
+        raise
     try:
         result = runner(
             article=args.article,
@@ -38,6 +48,7 @@ def run_release_cli(
             context_receipt=args.context_receipt,
             customer_proof_evidence=args.customer_proof_evidence,
             fred_authority_evidence=args.fred_authority_evidence,
+            hindsight_strategy_evidence=args.hindsight_strategy_evidence,
             paa_artifact=args.paa_artifact,
             content_brief=args.content_brief,
             user_paa_csv=args.user_paa_csv,
@@ -47,12 +58,17 @@ def run_release_cli(
             agent_output_paths=_label_paths(args.agent_outputs, invocation_error),
             workspace_root=args.workspace_root,
             vault_root=args.vault_root,
+            precheck_only=args.precheck_only,
+            precheck_output=args.precheck_output,
         )
     except invocation_error as error:
+        _report_cli_error(args, error)
         return _error_exit(error, 2)
     except (OSError, UnicodeError) as error:
+        _report_cli_error(args, error)
         return _error_exit(error, 2)
     except (ValueError, RuntimeError) as error:
+        _report_cli_error(args, error)
         return _error_exit(error, 1)
     _print_result(result, as_json=args.json)
     return int(result.exit_code)
@@ -80,6 +96,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--context-receipt")
     parser.add_argument("--customer-proof-evidence")
     parser.add_argument("--fred-authority-evidence")
+    parser.add_argument("--hindsight-strategy-evidence")
     parser.add_argument("--paa-artifact")
     parser.add_argument("--content-brief")
     parser.add_argument("--user-paa-csv")
@@ -89,6 +106,8 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--agent-output", action="append", default=[], dest="agent_outputs")
     parser.add_argument("--workspace-root", default=str(Path.cwd()))
     parser.add_argument("--vault-root")
+    parser.add_argument("--precheck-only", action="store_true")
+    parser.add_argument("--precheck-output")
     parser.add_argument("--json", action="store_true")
     return parser
 
@@ -96,6 +115,69 @@ def _parser() -> argparse.ArgumentParser:
 def _error_exit(error: Exception, code: int) -> int:
     print(f"error: {error}", file=sys.stderr)
     return code
+
+
+def _report_cli_error(args: argparse.Namespace, error: Exception) -> None:
+    if error_reporting.error_report_path(
+        args.run_id,
+        workspace_root=args.workspace_root,
+    ).exists():
+        return
+    error_reporting.report_exception(
+        error,
+        run_id=args.run_id,
+        workspace_root=args.workspace_root,
+        phase="cli",
+        module="release_cli",
+        artifact="blog",
+        output_dir=args.output_dir,
+    )
+
+
+def _report_cli_parse_error(argv: Sequence[str], error: SystemExit) -> None:
+    context = _parse_error_context(argv)
+    if context is None:
+        return
+    run_id, workspace_root, output_dir = context
+    if error_reporting.error_report_path(run_id, workspace_root=workspace_root).exists():
+        return
+    error_reporting.report_exception(
+        error,
+        run_id=run_id,
+        workspace_root=workspace_root,
+        phase="cli_parse",
+        module="release_cli",
+        artifact="blog",
+        output_dir=output_dir,
+    )
+
+
+def _parse_error_context(argv: Sequence[str]) -> tuple[str, str, str] | None:
+    values = {
+        "run_id": _option_value(argv, "--run-id"),
+        "workspace_root": _option_value(argv, "--workspace-root") or str(Path.cwd()),
+        "output_dir": _option_value(argv, "--output-dir"),
+    }
+    if not all(values.values()):
+        return None
+    return (
+        values["run_id"] or "",
+        values["workspace_root"] or "",
+        values["output_dir"] or "",
+    )
+
+
+def _option_value(argv: Sequence[str], option: str) -> str | None:
+    prefix = f"{option}="
+    for index, value in enumerate(argv):
+        if value.startswith(prefix):
+            candidate = value[len(prefix) :].strip()
+            return candidate or None
+        if value == option and index + 1 < len(argv):
+            candidate = argv[index + 1].strip()
+            if candidate and not candidate.startswith("--"):
+                return candidate
+    return None
 
 
 def _label_paths(

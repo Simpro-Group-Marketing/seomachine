@@ -2,40 +2,43 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Mapping, Sequence
 
 try:
     from . import (
-        blog_assembly_stage_receipt,
         blog_creation_preflight,
         release_authorization,
     )
     from .blog_assembly_contract import atomic_write_json, validate_sha256
     from .blog_assembly import construction as blog_assembly_construction
     from .blog_assembly import finalization as blog_assembly_finalization
-    from .artifact_runtime.release_invocation import (
-        ReleaseInvocationError,
-        ReleaseResult,
-        validate_release_invocation,
+    from .artifact_runtime.release_invocation import ReleaseInvocationError, ReleaseResult
+    from .release_workflow.optimization import (
+        ReleasePolicyError,
+        begin_optimization_run,
     )
+    from .release_workflow import precheck as release_precheck
+    from .release_workflow import precheck_checks
+    from .release_workflow.paths import blog_release_paths, new_output_dir
     from .readiness import api as readiness_api
     from .readiness import persistence_api as readiness_persistence_api
     from .readiness.telemetry import ReadinessTelemetry
 except ImportError:  # pragma: no cover - supports direct script execution.
-    import blog_assembly_stage_receipt
     import blog_creation_preflight
     import release_authorization
     from blog_assembly_contract import atomic_write_json, validate_sha256
     import blog_assembly.construction as blog_assembly_construction
     import blog_assembly.finalization as blog_assembly_finalization
-    from artifact_runtime.release_invocation import (
-        ReleaseInvocationError,
-        ReleaseResult,
-        validate_release_invocation,
+    from artifact_runtime.release_invocation import ReleaseInvocationError, ReleaseResult
+    from release_workflow.optimization import (
+        ReleasePolicyError,
+        begin_optimization_run,
     )
+    import release_workflow.precheck as release_precheck
+    import release_workflow.precheck_checks as precheck_checks
+    from release_workflow.paths import blog_release_paths, new_output_dir
     import readiness.api as readiness_api
     import readiness.persistence_api as readiness_persistence_api
     from readiness.telemetry import ReadinessTelemetry
@@ -51,10 +54,6 @@ publish_readiness = SimpleNamespace(
     run_publish_readiness=readiness_api.run_publish_readiness,
     write_readiness_result=readiness_persistence_api.write_readiness_result,
 )
-
-
-class ReleasePolicyError(RuntimeError):
-    pass
 
 
 def _run_blog_release(
@@ -79,6 +78,7 @@ def _run_blog_release(
     context_receipt: str | Path | None = None,
     customer_proof_evidence: str | Path | None = None,
     fred_authority_evidence: str | Path | None = None,
+    hindsight_strategy_evidence: str | Path | None = None,
     paa_artifact: str | Path | None = None,
     content_brief: str | Path | None = None,
     user_paa_csv: str | Path | None = None,
@@ -88,49 +88,68 @@ def _run_blog_release(
     agent_output_paths: Mapping[str, str | Path] | None = None,
     workspace_root: str | Path | None = None,
     vault_root: str | Path | None = None,
+    precheck_only: bool = False,
+    precheck_output: str | Path | None = None,
 ) -> ReleaseResult:
     """Run the governed release sequence with mandatory optimization evidence."""
     root = Path(workspace_root or Path.cwd()).resolve()
     optimizer_outputs = tuple(optimizer_outputs or ())
     normalized_agent_output_paths = dict(agent_output_paths or {})
-    optimized_release = validate_release_invocation(
-        required_files={
-            "article": article,
-            "proof_sidecar": proof_sidecar,
-            "editorial_plan": editorial_plan,
-            "plan_review": plan_review,
-            "article_review": article_review,
-            "keyword_decision": keyword_decision,
-            "scrub_receipt": scrub_receipt,
-            "serp_evidence": serp_evidence,
-            "plan_fulfillment": plan_fulfillment,
-            "commercial_pillar_index": commercial_pillar_index,
-        },
-        optional_files={
-            "context_request": context_request,
-            "context_pack": context_pack,
-            "context_receipt": context_receipt,
-            "customer_proof_evidence": customer_proof_evidence,
-            "fred_authority_evidence": fred_authority_evidence,
-            "paa_artifact": paa_artifact,
-            "content_brief": content_brief,
-            "user_paa_csv": user_paa_csv,
-            "answersocrates_blocker": answersocrates_blocker,
-        },
+    if precheck_only and precheck_output is None:
+        raise ReleaseInvocationError("--precheck-output is required with --precheck-only")
+    precheck_result = release_precheck.run_blog_release_precheck(
+        article=article,
+        run_id=run_id,
+        proof_sidecar=proof_sidecar,
+        editorial_plan=editorial_plan,
+        plan_review=plan_review,
+        article_review=article_review,
+        keyword_decision=keyword_decision,
+        scrub_receipt=scrub_receipt,
+        serp_evidence=serp_evidence,
+        plan_fulfillment=plan_fulfillment,
+        commercial_pillar_index=commercial_pillar_index,
         stage_receipts=stage_receipts,
+        workflow_mode=workflow_mode,
+        assembly_date=assembly_date,
+        output_dir=output_dir,
+        context_request=context_request,
+        context_pack=context_pack,
+        context_receipt=context_receipt,
+        customer_proof_evidence=customer_proof_evidence,
+        fred_authority_evidence=fred_authority_evidence,
+        hindsight_strategy_evidence=hindsight_strategy_evidence,
+        paa_artifact=paa_artifact,
+        content_brief=content_brief,
+        user_paa_csv=user_paa_csv,
+        answersocrates_blocker=answersocrates_blocker,
         optimizer_outputs=optimizer_outputs,
         prior_preflight_readiness=prior_preflight_readiness,
         agent_output_paths=normalized_agent_output_paths,
-        run_id=run_id,
-        workflow_mode=workflow_mode,
         workspace_root=root,
+        vault_root=vault_root,
+        precheck_output=precheck_output,
+        preflight_builder=blog_creation_preflight.build_preflight_report,
+        provisional_builder=blog_assembly_bom.build_blog_assembly_bom_from_files,
     )
-    destination = _new_output_dir(output_dir, workspace_root=root)
-    release_stage_receipts = tuple(stage_receipts)
-    if all(str(receipt) != str(scrub_receipt) for receipt in release_stage_receipts):
-        release_stage_receipts = (scrub_receipt, *release_stage_receipts)
+    if precheck_only:
+        return ReleaseResult(
+            0 if precheck_result.passed else 1,
+            precheck_result.output_dir,
+            "precheck",
+            precheck_result.message,
+        )
+    if not precheck_result.passed:
+        return ReleaseResult(
+            1,
+            precheck_result.output_dir,
+            precheck_result.phase,
+            precheck_result.message,
+        )
+    optimized_release = precheck_result.optimized_release
+    destination = new_output_dir(output_dir, workspace_root=root)
 
-    paths = _release_paths(destination)
+    paths = blog_release_paths(destination)
     telemetry = ReadinessTelemetry(
         run_id=run_id,
         phase="release",
@@ -143,63 +162,14 @@ def _run_blog_release(
         return result
 
     with telemetry.stage("pre_bom"):
-        pre_bom = blog_creation_preflight.build_preflight_report(
-            article,
-            proof_sidecar=proof_sidecar,
-            context_request=context_request,
-            context_pack=context_pack,
-            context_receipt=context_receipt,
-            keyword_decision=keyword_decision,
-            assembly_date=assembly_date,
+        pre_bom = precheck_checks.pre_bom_for_release(
+            precheck_result.pre_bom or {},
             output=paths["pre_bom_report"],
-            scrub_receipt=scrub_receipt,
-            customer_proof_evidence=customer_proof_evidence,
-            fred_authority_evidence=fred_authority_evidence,
-            editorial_plan=editorial_plan,
-            serp_evidence=serp_evidence,
-            stage_receipts=release_stage_receipts,
-            paa_artifact=paa_artifact,
-            content_brief=content_brief,
-            user_paa_csv=user_paa_csv,
-            answersocrates_blocker=answersocrates_blocker,
-            workspace_root=root,
         )
         atomic_write_json(paths["pre_bom_report"], pre_bom)
-    if pre_bom.get("ready_for_bom") is not True:
-        return finish(
-            ReleaseResult(1, destination, "pre_bom", "pre-BOM report blocked release")
-        )
 
     with telemetry.stage("provisional_bom"):
-        provisional = blog_assembly_bom.build_blog_assembly_bom_from_files(
-            article_path=article,
-            validation_sidecar_path=proof_sidecar,
-            editorial_plan_path=editorial_plan,
-            keyword_decision_path=keyword_decision,
-            serp_evidence_path=serp_evidence,
-            plan_fulfillment_path=plan_fulfillment,
-            commercial_pillar_index_path=commercial_pillar_index,
-            plan_review_path=plan_review,
-            article_review_path=article_review,
-            expected_review_run_id=run_id,
-            stage_receipt_paths=release_stage_receipts,
-            workflow_mode=workflow_mode,
-            assembly_date=assembly_date,
-            paa_artifact_path=paa_artifact,
-            content_brief_path=content_brief,
-            user_paa_csv_path=user_paa_csv,
-            answersocrates_blocker_path=answersocrates_blocker,
-            context_request_path=context_request,
-            context_pack_path=context_pack,
-            context_receipt_path=context_receipt,
-            customer_proof_selector_evidence_path=customer_proof_evidence,
-            fred_authority_evidence_path=fred_authority_evidence,
-            agent_output_paths=normalized_agent_output_paths,
-            optimizer_output_paths=optimizer_outputs,
-            prior_preflight_readiness_path=prior_preflight_readiness,
-            workspace_root=root,
-            vault_root=vault_root,
-        )
+        provisional = precheck_result.provisional_bom or {}
         atomic_write_json(paths["provisional_bom"], provisional)
 
     telemetry.increment("full_readiness_executions")
@@ -226,7 +196,7 @@ def _run_blog_release(
             workspace_root=root,
         )
     if not optimized_release:
-        recovery_artifact = _begin_optimization_run(
+        recovery_artifact = begin_optimization_run(
             article=article,
             run_id=run_id,
             paths=paths,
@@ -305,40 +275,6 @@ def _run_blog_release(
     )
 
 
-def _release_paths(output_dir: Path) -> dict[str, Path]:
-    return {
-        "pre_bom_report": output_dir / "pre-bom-report.json",
-        "provisional_bom": output_dir / "provisional-bom.json",
-        "preflight_readiness": output_dir / "preflight-readiness.json",
-        "preflight_readiness_stage_receipt": output_dir / "preflight-readiness-stage-receipt.json",
-        "optimization_state": output_dir / "optimization-state.json",
-        "optimization_recovery": output_dir / "optimization-recovery.json",
-        "optimization_stage_receipt": output_dir / "optimization-stage-receipt.json",
-        "final_bom": output_dir / "final-bom.json",
-        "release_manifest": output_dir / "release-manifest.json",
-        "final_readiness": output_dir / "final-readiness.json",
-        "final_readiness_stage_receipt": output_dir / "final-readiness-stage-receipt.json",
-        "release_telemetry": output_dir / "release-telemetry.json",
-    }
-
-
-def _new_output_dir(path: str | Path, *, workspace_root: Path) -> Path:
-    if not isinstance(path, (str, Path)) or not str(path).strip():
-        raise ReleaseInvocationError("output_dir is required")
-    candidate = Path(path)
-    if not candidate.is_absolute():
-        candidate = workspace_root / candidate
-    resolved = candidate.resolve(strict=False)
-    try:
-        resolved.relative_to(workspace_root)
-    except ValueError as error:
-        raise ReleaseInvocationError("output_dir must stay inside the workspace") from error
-    if resolved.exists():
-        raise ReleaseInvocationError("output_dir must not already exist")
-    resolved.mkdir(parents=True)
-    return resolved
-
-
 def _final_chain_head(final_bom: Mapping[str, object]) -> str:
     workflow = final_bom.get("workflow")
     receipts = workflow.get("stage_receipts") if isinstance(workflow, Mapping) else None
@@ -351,117 +287,6 @@ def _final_chain_head(final_bom: Mapping[str, object]) -> str:
         return validate_sha256(last.get("receipt_hash"), field="receipt_hash")
     except ValueError as error:
         raise ReleasePolicyError("final BOM stage receipt chain head is invalid") from error
-
-
-def _begin_optimization_run(
-    *,
-    article: str | Path,
-    run_id: str,
-    paths: dict[str, Path],
-    preflight: dict[str, object],
-    preflight_receipt_path: Path | None,
-    workspace_root: Path,
-) -> Path:
-    optimization_state: str | None = None
-    optimization_stage_receipt: str | None = None
-    preflight_stage_receipt: str | None = None
-    native_edit_status = "not_started"
-    recovery_steps = [
-        "Run /optimize against the article using the initial readiness output.",
-        "Write a simpro-optimizer-output/v1 artifact with inspected scores, failed gates or blocker, aeo_geo checks, priority fixes, and the edit or no-op decision.",
-        "Rerun /scrub and Context Binding after article or sidecar changes.",
-    ]
-    if preflight_receipt_path is not None:
-        preflight_receipt = _read_json_object(
-            preflight_receipt_path,
-            "preflight_readiness_stage_receipt",
-        )
-        try:
-            previous_receipt_hash = validate_sha256(
-                preflight_receipt.get("receipt_hash"),
-                field="preflight_readiness_stage_receipt.receipt_hash",
-            )
-        except ValueError as error:
-            raise ReleasePolicyError(
-                "preflight readiness receipt is missing a valid receipt_hash; "
-                "cannot begin /optimize recovery"
-            ) from error
-
-        blog_assembly_stage_receipt.begin_native_edit(
-            article_path=article,
-            state_path=paths["optimization_state"],
-            run_id=run_id,
-            stage="optimization",
-            tool_name="optimize-command",
-            tool_version="1",
-            input_artifacts={
-                "preflight_readiness": paths["preflight_readiness"],
-                "preflight_readiness_receipt": preflight_receipt_path,
-            },
-            previous_receipt_hash=previous_receipt_hash,
-        )
-        native_edit_status = "started"
-        preflight_stage_receipt = _workspace_path(
-            preflight_receipt_path,
-            workspace_root=workspace_root,
-        )
-        optimization_state = _workspace_path(
-            paths["optimization_state"],
-            workspace_root=workspace_root,
-        )
-        optimization_stage_receipt = _workspace_path(
-            paths["optimization_stage_receipt"],
-            workspace_root=workspace_root,
-        )
-        recovery_steps.extend(
-            [
-                "Finish the optimization stage receipt if article bytes changed.",
-                "Rerun the release wrapper with --optimizer-output and --prior-preflight-readiness.",
-            ]
-        )
-    else:
-        recovery_steps.extend(
-            [
-                "Resolve the preflight blocker, then rerun /scrub and Context Binding when needed.",
-                "Rerun the release wrapper to produce the required passed initial scorecard before final release.",
-            ]
-        )
-    recovery = {
-        "schema": "simpro-blog-optimization-recovery/v1",
-        "status": "started",
-        "reason": "Optimizer evidence was not supplied to the release wrapper.",
-        "preflight_passed": preflight.get("passed") is True,
-        "native_edit_status": native_edit_status,
-        "preflight_readiness": _workspace_path(
-            paths["preflight_readiness"],
-            workspace_root=workspace_root,
-        ),
-        "preflight_readiness_stage_receipt": preflight_stage_receipt,
-        "optimization_state": optimization_state,
-        "optimization_stage_receipt": optimization_stage_receipt,
-        "required_next_steps": recovery_steps,
-    }
-    atomic_write_json(paths["optimization_recovery"], recovery)
-    return paths["optimization_recovery"]
-
-
-def _read_json_object(path: str | Path, label: str) -> dict[str, object]:
-    try:
-        value = json.loads(Path(path).read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
-        raise ReleasePolicyError(f"{label} is unreadable: {error}") from error
-    if not isinstance(value, dict):
-        raise ReleasePolicyError(f"{label} must be a JSON object")
-    return value
-
-
-def _workspace_path(path: str | Path, *, workspace_root: Path) -> str:
-    resolved = Path(path).resolve(strict=False)
-    try:
-        return resolved.relative_to(workspace_root).as_posix()
-    except ValueError:
-        return resolved.as_posix()
-
 
 __all__ = [
     "ReleaseInvocationError",

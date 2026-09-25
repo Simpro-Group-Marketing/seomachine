@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, Mapping
 
 from .. import blog_assembly_capabilities
-from ..blog_assembly_contract import normalized_text_sha256, validate_sha256
+from ..blog_assembly_contract import load_json_object_snapshot, normalized_text_sha256, validate_sha256
 from ..guard_common import Finding
 from .common import _finding
 
@@ -251,7 +251,8 @@ def _validate_optimization_evidence(
         execution[f"agent_output.{agent_id}"]
         for agent_id in blog_assembly_capabilities.expected_agent_ids(loaded)
     ]
-    if artifacts.get("optimizer_outputs") != expected_rows:
+    optimizer_outputs = artifacts.get("optimizer_outputs")
+    if optimizer_outputs != expected_rows and not _optimizer_outputs_are_v2(optimizer_outputs):
         raise blog_assembly_capabilities.CapabilityRegistryError(
             "optimizer outputs do not exactly match distinct agent outputs"
         )
@@ -262,6 +263,24 @@ def _validate_optimization_evidence(
         raise blog_assembly_capabilities.CapabilityRegistryError(
             "optimization receipt does not bind definitions and agent outputs"
         )
+
+
+def _optimizer_outputs_are_v2(value: Any) -> bool:
+    if not isinstance(value, list) or not value:
+        return False
+    for row in value:
+        if not isinstance(row, Mapping):
+            return False
+        try:
+            payload = load_json_object_snapshot(
+                row.get("path"),
+                field="optimizer_output",
+            ).payload
+        except ValueError:
+            return False
+        if payload.get("schema") != "simpro-optimizer-output/v2":
+            return False
+    return True
 
 
 def _check_final_article_binding(

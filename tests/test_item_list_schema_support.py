@@ -77,6 +77,19 @@ def test_aeo_schema_accepts_a_count_bound_item_list() -> None:
     assert ITEM_LIST_NOTE not in result["details"]["unknown_entities"]
 
 
+def test_aeo_schema_accepts_immutable_item_list_entries() -> None:
+    result = _check_schema(
+        "",
+        _metadata(entries=tuple(ITEM_LIST_ENTRIES)),
+        visible_faq=False,
+        finalized_bom=None,
+    )
+
+    assert result["passed"] is True
+    assert result["details"]["item_list_entry_count"] == 14
+    assert result["details"]["item_list_errors"] == []
+
+
 @pytest.mark.parametrize(
     ("note", "entries", "expected_error"),
     [

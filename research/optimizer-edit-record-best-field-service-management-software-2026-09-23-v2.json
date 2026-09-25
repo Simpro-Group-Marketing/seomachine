@@ -1,0 +1,34 @@
+{
+  "applied_fixes": [
+    {
+      "dimension": "readability",
+      "issue": "The methodology capsule ended with one dense 30-word sentence.",
+      "fix": "Recast the capsule as four shorter direct-answer sentences while preserving its 50-60-word coverage and the same buyer guidance.",
+      "severity": "low"
+    },
+    {
+      "dimension": "readability",
+      "issue": "The FieldPulse demo instruction used an unnecessarily long final list.",
+      "fix": "Shortened the list without removing seat, add-on, license, integration, multi-site, rollout, migration, support, quote, or staffing checks.",
+      "severity": "low"
+    },
+    {
+      "dimension": "readability",
+      "issue": "The Fergus demo instruction compressed commercial, rollout, contract, and support checks into one long sentence.",
+      "fix": "Split the checks into a sequential four-sentence test while preserving every requirement.",
+      "severity": "low"
+    }
+  ],
+  "not_applied": [
+    {
+      "dimension": "seo",
+      "issue": "Secondary keywords not found: best field service management software 2026.",
+      "reason": "Documented no-op: the title already expresses the year-qualified intent and forcing the unpunctuated phrase into body copy would weaken natural language."
+    },
+    {
+      "dimension": "humanity",
+      "issue": "The scorer requests a larger contraction ratio.",
+      "reason": "Documented no-op: the article already uses a small number of natural contractions, and a quota-driven rewrite would make source-bound vendor descriptions too casual."
+    }
+  ]
+}

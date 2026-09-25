@@ -85,7 +85,7 @@ Command ownership:
 - `/scrub` owns read-only diagnostics.
 - `/publish-readiness` owns release scoring, gates, readiness receipts, and final publish/no-publish status.
 
-Mandatory scrub, scorecard, and optimization pass: every new or changed blog run must include `/scrub`, an initial `/publish-readiness` scorecard or exact non-scoring blocker, `/optimize`, a post-optimization `/scrub` when article bytes change, and a final `/publish-readiness` handoff. `/optimize` is required even when no edits are needed; record a no-op `simpro-optimizer-output/v1` artifact with the inspected scorecard, failed gates or blocker, `aeo_geo.checks`, `priority_fixes`, and the reason no source-safe edit was made. Score absence is a workflow blocker unless a pre-scoring gate blocked readiness; in that case, report the blocker exactly and do not present the article as ready.
+Mandatory scrub, scorecard, and optimization pass: every new or changed blog run must include `/scrub`, an initial `/publish-readiness` scorecard or exact non-scoring blocker, `/optimize`, a post-optimization `/scrub` when article bytes change, and a final `/publish-readiness` handoff. `/optimize` is required even when no edits are needed; record a `simpro-optimizer-output/v2` artifact whose `input_bindings` contain exact workspace-relative paths and current SHA-256 hashes for `article`, `editorial_plan`, `proof_sidecar`, `scorecard`, and `prior_preflight_readiness`, plus the inspected scorecard, failed gates or blocker, `aeo_geo.checks`, `priority_fixes`, and the edit or no-op reason. V1 optimizer artifacts remain history-readable but cannot authorize a current release. Score absence is a workflow blocker unless a pre-scoring gate blocked readiness; in that case, report the blocker exactly and do not present the article as ready.
 
 `/write`, `/rewrite`, and `/optimize` own public blog copy. Python does not draft, rewrite, or patch Markdown in `drafts/`, `rewrites/`, or `published/`.
 
@@ -102,13 +102,13 @@ BOM build currently accepts `--stage-receipt` for retained machine-owned governa
 Use this sequence after article copy, sidecar evidence, context evidence, editorial plan, Semrush keyword decision, SERP/PAA evidence, customer-proof selector evidence, Fred authority evidence when connector-bound, and required governance receipts exist:
 
 ```powershell
-python data_sources/modules/blog_release.py "[article]" --run-id "[uuid]" --proof-sidecar "[sidecar]" --editorial-plan "[plan]" --plan-fulfillment "[fulfillment]" --commercial-pillar-index "context/commercial-pillar-index.json" --plan-review "[plan-review]" --article-review "[article-review]" --keyword-decision "[keyword-decision]" --scrub-receipt "[scrub-receipt]" --serp-evidence "[serp-evidence]" --stage-receipt "[receipt]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output-dir "research/releases/[slug]-[date]-[run-id]"
+python -m data_sources.modules.blog_release "[article]" --run-id "[uuid]" --proof-sidecar "[sidecar]" --editorial-plan "[plan]" --plan-fulfillment "[fulfillment]" --commercial-pillar-index "context/commercial-pillar-index.json" --plan-review "[plan-review]" --article-review "[article-review]" --keyword-decision "[keyword-decision]" --scrub-receipt "[scrub-receipt]" --serp-evidence "[serp-evidence]" --stage-receipt "[receipt]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output-dir "research/releases/[slug]-[date]-[run-id]"
 ```
 
 The first wrapper run must advance missing optimizer evidence into `optimization_started`, not a dead-end exit. It writes `optimization-recovery.json` after the initial readiness output so `/optimize` has the exact blocker or scorecard. When the initial readiness result passes, it also writes `optimization-state.json` from the predecessor receipt; when readiness blocks before a passed receipt exists, it does not mint a fake optimization state. A passing preflight scorecard alone is not final release approval. After `/optimize`, rerun with the post-optimization scrub receipt, post-optimization stage receipts, optimizer output, and the prior preflight readiness output:
 
 ```powershell
-python data_sources/modules/blog_release.py "[article]" --run-id "[uuid]" --proof-sidecar "[sidecar]" --editorial-plan "[plan]" --plan-fulfillment "[fulfillment]" --commercial-pillar-index "context/commercial-pillar-index.json" --plan-review "[plan-review]" --article-review "[article-review]" --keyword-decision "[keyword-decision]" --scrub-receipt "[post-optimization-scrub-receipt]" --serp-evidence "[serp-evidence]" --stage-receipt "[receipt]" --optimizer-output "[optimizer-output]" --prior-preflight-readiness "[preflight-readiness]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output-dir "research/releases/[slug]-[date]-[run-id]-final"
+python -m data_sources.modules.blog_release "[article]" --run-id "[uuid]" --proof-sidecar "[sidecar]" --editorial-plan "[plan]" --plan-fulfillment "[fulfillment]" --commercial-pillar-index "context/commercial-pillar-index.json" --plan-review "[plan-review]" --article-review "[article-review]" --keyword-decision "[keyword-decision]" --scrub-receipt "[post-optimization-scrub-receipt]" --serp-evidence "[serp-evidence]" --stage-receipt "[receipt]" --optimizer-output "[optimizer-output]" --prior-preflight-readiness "[preflight-readiness]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output-dir "research/releases/[slug]-[date]-[run-id]-final"
 ```
 
 Proceed to BOM build only when the pre-BOM report has `ready_for_bom: true`. This report blocks stale Semrush decisions, missing or mismatched scrub receipts, missing customer proof selector evidence when the connector branch or the approved non-vault proof contract makes selector evidence applicable, invalid selector evidence when applicable, unexpected vault-dependent customer-proof or Fred artifacts on nonconnector workflows, missing expertise evidence, missing commercial-page E-E-A-T strength decisions, and missing BOM dependency inputs before BOM assembly.
@@ -190,6 +190,8 @@ Every new or changed blog requires `simpro-blog-editorial-plan/v2`, created and 
 - `FAQ policy: required | not_applicable` with its rationale; and
 - the PAA source/binding/selected-question decision required by the workflow mode.
 
+During `/research` and `/analyze-existing`, consult `context/site-architecture-map.json` when the article needs homepage, industry, solution, or feature cluster context, especially for AUS-oriented Simpro blog planning. Use it to identify candidate cluster URLs and nearby supporting pages before the editorial plan freezes internal-link intent. Treat it as guidance-only sitemap inventory: commercial pillar ownership still comes only from `context/commercial-pillar-index.json`, editorial link treatment still comes from `context/internal-links-map.md`, and the site architecture map cannot support keyword ownership, Semrush evidence, product claims, customer proof, page performance, public claims, or publish readiness.
+
 The plan may include `rewrite_decisions`, `audience_language_research`, and `link_policy_override` when the workflow needs them. `rewrite_decisions` records evidence-bound preserve, update, add, and remove decisions from `/analyze-existing`. `audience_language_research` is conditional: use genuine Reddit, YouTube, or trade-community language only when it improves reader comprehension, never as regulatory, product, metric, PAA, or public-claim proof. Regulatory and licensing articles default to `not_applicable` unless the brief explicitly requests audience-language research. A valid `link_policy_override` binds the exact brief sentence, brief hash, count, and pre-FAQ body scope when the brief requires an exact internal-link count; it may replace the 3 to 5 default supporting-link target but can never exceed the hard maximum of 7. For single-trade Simpro posts, the matching industry-cluster link remains additive unless the bound brief explicitly prohibits the industry page.
 
 The writer chooses final language independently. After every article-byte change it regenerates `simpro-blog-plan-fulfillment/v1` with one substantive verbatim visible excerpt per contribution, bound to the plan and article hashes and located in the planned section. Content Analyzer and Editor judge purpose fulfillment; Python checks identity, hashes, visibility, and placement. The BOM binds the plan, fulfillment, article, and commercial-pillar index and recomputes its summaries from those immutable inputs.
@@ -222,6 +224,12 @@ The keyword artifact must include seed terms, candidate metrics, finalist SERP r
 The BOM stores the artifact path/hash. Publish readiness runs `semrush_keyword_decision` and fails when the editorial plan, article metadata, BOM hash, or keyword artifact disagree.
 
 If the main Chrome Semrush UI opens but DOM or screenshot extraction times out or resets, record `blocked_semrush_ui_refresh` and stop before BOM assembly. The blocker proves the UI lane was attempted, but it does not satisfy the current keyword decision requirement.
+
+## SERP Evidence Collector Provenance
+
+`research_serp_analysis:playwright` and `research_serp_analysis:chrome_connector` are both approved SERP evidence collectors, but they do not carry equal provenance strength. `playwright` requires `raw_response` to be the exact CLI text the tool printed, so the evidence is a machine-captured artifact. `chrome_connector` accepts a structured mapping assembled from what the connector observed on the results page; that mapping is agent-transcribed browser observation, not raw tool output, and no automated check can distinguish a faithful transcription from a fabricated one.
+
+Use `chrome_connector` only when a live browser session (already authenticated, human-driven navigation) is the only way to reach the locale or surface needed, and record it as such rather than presenting it as an equivalent-strength capture. This is a documented boundary, not a defect: `execution_attestation.py` itself states its HMAC signature is a local integrity check, not a claim that a remote publisher signed the underlying data, so no SERP evidence collector proves more than "this workspace attests it collected this."
 
 ## Required Variable Resolution
 
@@ -282,7 +290,7 @@ Required Metric Proof Pack shape:
 - **Rejected metrics**: [candidate metric, source checked, reason excluded]
 ```
 
-Run `python data_sources/modules/metric_proof_pack_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error` before scoring or `/optimize`. The guard blocks metric-free software-selection, buyer-guide, comparison, pricing, cost, ROI, KPI, profit, margin, guide, and vs topics unless `Metric requirement: not applicable` is documented with a reason and search log. Numeric claim source guard and source support guard still prove any numbers that appear in the final article.
+Run `python -m data_sources.modules.metric_proof_pack_guard [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error` before scoring or `/optimize`. The guard blocks metric-free software-selection, buyer-guide, comparison, pricing, cost, ROI, KPI, profit, margin, guide, and vs topics unless `Metric requirement: not applicable` is documented with a reason and search log. Numeric claim source guard and source support guard still prove any numbers that appear in the final article.
 
 ## Review-Site Experience Evidence and VoC Routing
 
@@ -497,6 +505,8 @@ python data_sources/modules/paa_provenance_guard.py record --query "[main questi
 
 The recorder emits `simpro-answersocrates-artifact/v1` with a nested `simpro-answersocrates-run-receipt/v1`, fixed `answersocrates_playwright_collector` version `1.0.0`, payload SHA-256, and receipt SHA-256. Handwritten labels, caller-authored captures, Markdown templates, and self-described browser blockers are invalid provenance.
 
+When the Playwright collector cannot complete a session, pass an already-collected Chrome-connector capture with `--raw-capture-input "research/answersocrates-chrome-raw-[topic-slug]-[YYYY-MM-DD].json"` in place of `--raw-capture-output`. The two flags are mutually exclusive and exactly one is required. The recorder then skips collection and validates the supplied capture's schema, execution attestation, query, collection date, and run ID exactly as it validates one it collected itself. A `simpro-answersocrates-chrome-connector-capture/v1` capture is operator-transcribed browser observation, not raw tool output, so record it as that lane and use it only when a live browser session is the only way to reach the page.
+
 ### Blocked AnswerSocrates Artifact Template
 
 Save the observed blocker before accepting a user CSV. The blocker reason must describe what the browser actually showed.
@@ -530,6 +540,16 @@ Machine reviewers must preserve every `inline_required` link and every other spe
 
 When a PDF extraction or unreachable HTML fallback is necessary, also bind `Capture receipt` and `Capture receipt hash` from `simpro-source-capture-receipt/v1`. That receipt must identify the source URL, retrieval time, source and output hashes, extraction method, and exact capture tool. A locally authored evidence file without this receipt blocks readiness.
 
+### Known Vocabulary Drift
+
+Three source-class vocabularies are not yet reconciled, so two rows are currently unwritable. Do not work around this by relabelling a source to make a guard pass.
+
+- `neutral` is accepted by the classification registry but is missing from the list above. Treat the hash-bound registry export as authoritative.
+- `Claim type: regulation` and `Claim type: standard` require a `Source class` of `official`, `regulator`, `standards_body`, or `government`, but the registry classifies every government and regulator URL in this repo as `primary_authority`. No artifact can satisfy that rule today, which is why no row uses either claim type. Map a regulatory citation under the applicable general claim type and keep the official URL as the inline source.
+- The registry can emit `independent_research`, while the source-map quality gate accepts `original_research`. The two names are not interchangeable.
+
+Reconciling these vocabularies changes the release contract and needs its own review. Do not widen a guard's class list to make a single row pass.
+
 ## Drafting Rules
 
 - Open with a direct answer in the first 1-2 sentences. The answer comes before the hook.
@@ -549,7 +569,7 @@ When a PDF extraction or unreachable HTML fallback is necessary, also bind `Capt
 - Include a visible FAQ only when `FAQ policy: required`; otherwise record `not_applicable` with a non-empty rationale and omit FAQ schema.
 - When visible FAQs exist, write each answer as a 40-60 word direct answer before supporting context.
 - FAQ answer quality is mandatory when visible FAQs exist: lead with a supported number or range, named recommendation, definition, concrete action, or explained yes/no response. Do not open with `There is no`, `It depends`, `Pricing depends`, `Costs vary`, `We do not know`, `It is unclear`, `No source ranks`, or an equivalent deflection. Put limitations after the direct answer. Replace or remove a question when no defensible answer exists. Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error` before scoring or `/optimize`.
-- FAQ proof is risk-tiered. Fact-driven or high-risk answers use `inline_required` and place a natural authoritative public evidence link in the first visible paragraph. FAQ support links may be owned or non-owned when they directly support the answer, but competitor-owned sources are prohibited. Lower-risk answers follow their machine-assigned mode and do not receive a visible link solely to satisfy a quota. A question-specific Source Map / FAQ Proof Map row documents the evidence but cannot replace a reader-facing link when `inline_required` applies. Context file paths do not satisfy an `inline_required` FAQ claim, and owned product links do not count toward the standard-blog non-owned external authority baseline. Run `python data_sources/modules/faq_proof_guard.py [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error` before scoring or `/optimize`.
+- FAQ proof is risk-tiered. Fact-driven or high-risk answers use `inline_required` and place a natural authoritative public evidence link in the first visible paragraph. FAQ support links may be owned or non-owned when they directly support the answer, but competitor-owned sources are prohibited. Lower-risk answers follow their machine-assigned mode and do not receive a visible link solely to satisfy a quota. A question-specific Source Map / FAQ Proof Map row documents the evidence but cannot replace a reader-facing link when `inline_required` applies. Context file paths do not satisfy an `inline_required` FAQ claim, and owned product links do not count toward the standard-blog non-owned external authority baseline. Run `python -m data_sources.modules.faq_proof_guard [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --fail-on error` before scoring or `/optimize`.
 - **FAQ Source Policy**: Every visible FAQ URL needs one exact `FAQ Proof Map` row with `FAQ`, `URL`, `Source class`, `Competitor check`, and source-grounded `Support`.
   - Allowed source classes: neutral, non_competing_expert, owned_product.
   - Competitor-owned FAQ sources: prohibited.

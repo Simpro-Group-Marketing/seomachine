@@ -1,0 +1,286 @@
+{
+  "completed_at": "2026-09-24T16:59:23.388673Z",
+  "counters": {
+    "byte_snapshots": 35,
+    "bytes_read": 889261,
+    "cache_hits": 0,
+    "cache_misses": 43,
+    "connector_clients": 1,
+    "connector_operations": 2,
+    "connector_result_cache_hits": 0,
+    "connector_result_cache_misses": 0,
+    "file_hashes": 35,
+    "final_rehashes": 35,
+    "final_reseals": 1,
+    "full_readiness_executions": 1,
+    "gate_invocations": 31,
+    "git_state_loads": 0,
+    "http_deduplicated_occurrences": 0,
+    "http_dns_resolutions": 43,
+    "http_requests": 43,
+    "http_response_bytes": 51805,
+    "http_unique_requests": 43,
+    "json_parses": 22,
+    "markdown_parses": 1,
+    "normalized_source_cache_hits": 0,
+    "normalized_source_parses": 0,
+    "unique_file_reads": 35
+  },
+  "elapsed_ms": 42028.283,
+  "gauges": {
+    "artifact_store_source_bytes": 889261,
+    "connector_result_cache_bytes": 0,
+    "current_http_requests": 0,
+    "current_http_reserved_bytes": 0,
+    "http_memo_bytes": 0,
+    "normalized_source_bytes": 0,
+    "peak_allocation_bytes": null,
+    "peak_artifact_store_source_bytes": 889261,
+    "peak_connector_result_cache_bytes": 0,
+    "peak_http_memo_bytes": 54986,
+    "peak_http_requests": 8,
+    "peak_http_reserved_bytes": 16777216,
+    "peak_normalized_source_bytes": 0,
+    "process_peak_rss_bytes": 514523136,
+    "retained_http_response_bytes": 0
+  },
+  "outcome": "passed",
+  "phase": "release",
+  "process_peak_rss_bytes": 514523136,
+  "run_id": "d946520a-f4f5-4a48-b11f-266852efb413",
+  "schema": "simpro-readiness-telemetry/v3",
+  "stages": [
+    {
+      "counters": {},
+      "elapsed_ms": 2.847,
+      "name": "pre_bom",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 3.912,
+      "name": "provisional_bom",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 1.954,
+      "name": "gate.artifact_identity",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 2007.387,
+      "name": "gate.context_binding",
+      "outcome": "passed"
+    },
+    {
+      "counters": {
+        "json_parses": 13,
+        "markdown_parses": 1
+      },
+      "elapsed_ms": 47.168,
+      "name": "gate.blog_assembly_bom",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 13.015,
+      "name": "gate.public_artifact",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 56.404,
+      "name": "gate.ai_copy_linter",
+      "outcome": "passed"
+    },
+    {
+      "counters": {
+        "cache_misses": 43,
+        "http_dns_resolutions": 43,
+        "http_requests": 43,
+        "http_response_bytes": 51805,
+        "http_unique_requests": 43
+      },
+      "elapsed_ms": 5418.326,
+      "name": "gate.url_validator",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 60.17,
+      "name": "gate.public_research_links",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 8.827,
+      "name": "gate.industry_cluster_link_policy",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 347.664,
+      "name": "gate.metric_proof_pack",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 21.43,
+      "name": "gate.numeric_claim_source",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 1.044,
+      "name": "gate.faq_answer_quality",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 49.359,
+      "name": "gate.faq_proof",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 2.119,
+      "name": "gate.paa_provenance",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 10.307,
+      "name": "gate.editorial_plan",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 2.73,
+      "name": "gate.semrush_keyword_decision",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 16.204,
+      "name": "gate.blog_strategy",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 12.616,
+      "name": "gate.competitive_shortlist",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 5.365,
+      "name": "gate.hindsight_boundary",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 93.119,
+      "name": "gate.source_support",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 15.942,
+      "name": "gate.source_quality",
+      "outcome": "passed"
+    },
+    {
+      "counters": {
+        "json_parses": 2
+      },
+      "elapsed_ms": 87.596,
+      "name": "gate.customer_proof_diversity",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 3.044,
+      "name": "gate.review_story_identity",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 3.523,
+      "name": "gate.eeat_strength",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 3.308,
+      "name": "gate.early_artifact",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 5.635,
+      "name": "gate.answer_withholding",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 4.107,
+      "name": "gate.schema_handoff",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 22.714,
+      "name": "gate.vault_brand_language",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 18.764,
+      "name": "gate.named_feature_status",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 8.625,
+      "name": "gate.fred_authority",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 31051.264,
+      "name": "gate.content_scorer",
+      "outcome": "passed"
+    },
+    {
+      "counters": {
+        "byte_snapshots": 35,
+        "bytes_read": 889261,
+        "cache_misses": 43,
+        "connector_clients": 1,
+        "connector_operations": 2,
+        "file_hashes": 35,
+        "final_rehashes": 35,
+        "final_reseals": 1,
+        "http_dns_resolutions": 43,
+        "http_requests": 43,
+        "http_response_bytes": 51805,
+        "http_unique_requests": 43,
+        "json_parses": 22,
+        "markdown_parses": 1,
+        "unique_file_reads": 35
+      },
+      "elapsed_ms": 41569.25,
+      "name": "preflight_readiness",
+      "outcome": "passed"
+    },
+    {
+      "counters": {},
+      "elapsed_ms": 404.712,
+      "name": "preflight_persistence",
+      "outcome": "passed"
+    }
+  ],
+  "started_at": "2026-09-24T16:58:41.360366Z"
+}

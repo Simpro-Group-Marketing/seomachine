@@ -14,8 +14,19 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, List, Optional
+from urllib.parse import urlparse
 
 import requests
+try:
+    from .url_verification_allowlist import (
+        URL_VERIFICATION_ALLOWLIST_PATH,
+        chrome_verified_urls,
+    )
+except ImportError:  # pragma: no cover - supports direct script execution.
+    from url_verification_allowlist import (
+        URL_VERIFICATION_ALLOWLIST_PATH,
+        chrome_verified_urls,
+    )
 
 try:
     from .artifact_runtime.paths import cache_path
@@ -44,6 +55,8 @@ DEFAULT_USER_AGENT = (
 RESOLUTION_CACHE_SECONDS = 60 * 60 * 24
 RESOLUTION_CACHE_FUTURE_SKEW_SECONDS = 60
 RATE_LIMIT_RETRY_SECONDS = 1.0
+OWNED_MANUAL_REVIEW_HOSTS = frozenset({"simprogroup.com", "www.simprogroup.com"})
+
 
 @dataclass(frozen=True)
 class UrlValidationResult:
@@ -78,7 +91,13 @@ class UrlValidationSummary:
 
     @property
     def blockers(self) -> List[UrlValidationResult]:
-        return [result for result in self.results if not result.passed]
+        return [
+            result
+            for result in self.results
+            if not result.passed
+            and not _is_owned_manual_review(result)
+            and not _is_chrome_verified_manual_review(result)
+        ]
 
     @property
     def resolved_count(self) -> int:
@@ -91,6 +110,32 @@ class UrlValidationSummary:
     @property
     def manual_review_count(self) -> int:
         return len([result for result in self.results if result.status == "manual_review"])
+
+
+def _is_owned_manual_review(result: UrlValidationResult) -> bool:
+    """Treat bot-blocked owned Simpro URLs as manual QA, not proof failure."""
+    if result.status != "manual_review" or result.status_code != 403:
+        return False
+    hostname = (urlparse(result.url).hostname or "").casefold()
+    return hostname in OWNED_MANUAL_REVIEW_HOSTS
+
+
+def _is_chrome_verified_manual_review(result: UrlValidationResult) -> bool:
+    """Treat a blocked or stalled URL as verified when Chrome observed it serving.
+
+    Bot protection on these hosts shows up as a 401, a 403, or a read timeout
+    depending on how the edge decides to refuse the request client. The
+    allowlist entry asserts the stronger fact, that the page was loaded and
+    read in a real browser, so any of those automated-client failures is
+    exempt. Genuinely dead URLs stay blocked because they never earn an entry.
+    """
+    if result.passed:
+        return False
+    if result.status == "manual_review" and result.status_code in {401, 403}:
+        return result.url.strip() in chrome_verified_urls()
+    if result.status == "unresolved":
+        return result.url.strip() in chrome_verified_urls()
+    return False
 
 
 class UrlValidator:
@@ -424,3 +469,19 @@ def main(argv: Optional[List[str]] = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+def is_effectively_resolved(result: UrlValidationResult) -> bool:
+    """Report whether a destination is proven reachable, however it was proven.
+
+    A plain resolved fetch is the usual case. An owned Simpro host and a
+    Chrome-verified host also count, because both were confirmed to serve by a
+    route this validator's request client cannot use. Callers that gate proof on
+    reachability should use this rather than comparing status directly, so a
+    bot-block does not read as a dead source.
+    """
+    return (
+        result.passed
+        or _is_owned_manual_review(result)
+        or _is_chrome_verified_manual_review(result)
+    )

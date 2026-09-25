@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Sequence
 from typing import Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .readability_scorer import ReadabilityScorer
@@ -90,32 +91,14 @@ def validate_content_urls(*args: Any, **kwargs: Any) -> Any:
     return default_scoring_dependencies().validate_content_urls(*args, **kwargs)
 
 
-def main() -> None:
-    """Score one Markdown file and print the existing text report."""
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Score markdown content quality.")
-    parser.add_argument("file_path", help="Path to the draft or rewrite markdown file.")
-    parser.add_argument("--validate-urls", action="store_true")
-    parser.add_argument("--validate-source-support", action="store_true")
-    parser.add_argument("--proof-sidecar")
-    args = parser.parse_args()
+def main(argv: Sequence[str] | None = None) -> None:
+    """Run the extracted standalone scorer CLI through this compatibility facade."""
     try:
-        with open(args.file_path, "r", encoding="utf-8") as handle:
-            content = handle.read()
-    except FileNotFoundError:
-        print(f"Error: File not found: {args.file_path}")
-        raise SystemExit(1) from None
-    scorer = ContentScorer()
-    result = scorer.score(
-        content,
-        validate_urls=args.validate_urls,
-        validate_source_support=args.validate_source_support,
-        source_path=args.file_path,
-        proof_sidecar=args.proof_sidecar,
-    )
-    print(scorer.format_report(result))
-    raise SystemExit(0 if result["passed"] else 1)
+        from .content_scoring.cli import main as cli_main
+    except ImportError:  # pragma: no cover - direct script compatibility.
+        from data_sources.modules.content_scoring.cli import main as cli_main
+
+    raise SystemExit(cli_main(argv))
 
 
 __all__ = [

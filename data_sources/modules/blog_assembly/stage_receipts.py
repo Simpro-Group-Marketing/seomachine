@@ -22,6 +22,7 @@ from .contracts import (
     _required_mapping,
 )
 from .preflight import _resolvable_receipt_evidence_hashes
+from ..readiness.input_spec import FIXED_WORKSPACE_INPUT_LABELS
 
 
 def _validate_receipt_sequence(
@@ -78,11 +79,36 @@ def _validate_receipt_sequence(
         execution_evidence[f"agent_output.{agent_id}"]
         for agent_id in blog_assembly_capabilities.expected_agent_ids(receipts)
     ] if optimized else []
-    if not optimized_tail and optimizer_outputs != expected_rows:
+    if (
+        not optimized_tail
+        and optimizer_outputs != expected_rows
+        and not _optimizer_outputs_are_v2(optimizer_outputs, workspace_root)
+    ):
         raise ValueError(
             "optimizer outputs must exactly match the ordered, distinct agent output artifacts in execution evidence"
         )
     return optimized_tail, optimized, expected_rows
+
+
+def _optimizer_outputs_are_v2(
+    optimizer_outputs: Sequence[Mapping[str, str]],
+    workspace_root: Path,
+) -> bool:
+    if not optimizer_outputs:
+        return False
+    for row in optimizer_outputs:
+        try:
+            artifact = verify_artifact(
+                row,
+                workspace_root=workspace_root,
+                field="artifacts.optimizer_outputs",
+            )
+            payload = _read_json_object(artifact, "optimizer_output")
+        except (OSError, TypeError, ValueError):
+            return False
+        if payload.get("schema") != "simpro-optimizer-output/v2":
+            return False
+    return True
 
 
 def _validate_draft_receipt(
@@ -390,6 +416,14 @@ def _validate_prior_preflight_payloads(
     return readiness
 
 
+# Readiness inputs the assembly BOM never inventories, so they are expected
+# as extras when preflight bindings are compared against it.
+ALLOWED_EXTRA_INPUTS = FIXED_WORKSPACE_INPUT_LABELS | {
+    "paa_raw_capture",
+    "serp_raw_capture",
+}
+
+
 def _validate_prior_input_inventory(
     inputs: Mapping[str, Any],
     prior_bom: Mapping[str, Any],
@@ -412,7 +446,8 @@ def _validate_prior_input_inventory(
     }
     extras = set(actual) - set(expected)
     mismatch = any(actual.get(label) != row for label, row in expected.items())
-    if mismatch or extras - {"serp_raw_capture", "paa_raw_capture"}:
+    allowed_extras = ALLOWED_EXTRA_INPUTS
+    if mismatch or extras - allowed_extras:
         raise ValueError("prior preflight inputs do not match its bound provisional BOM")
 
 

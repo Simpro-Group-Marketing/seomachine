@@ -4,10 +4,8 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .common import (
-    blog_assembly_capabilities,
     canonical_artifact,
     canonical_json_sha256,
-    verify_artifact,
 )
 from .contracts import _read_json_object, _required_mapping
 
@@ -139,55 +137,4 @@ def _normalize_hindsight_block_text(value: str) -> str:
     normalized = re.sub(r"\s*:\s*", ": ", normalized)
     return normalized
 
-def _execution_evidence_from_prior_preflight(
-    prior_preflight_readiness_path: str | Path | None,
-    *,
-    workspace_root: Path,
-) -> dict[str, dict[str, str]]:
-    if prior_preflight_readiness_path is None:
-        raise blog_assembly_capabilities.CapabilityRegistryError(
-            "optimized-tail workflow requires prior preflight readiness evidence"
-        )
-    try:
-        readiness = _read_json_object(
-            prior_preflight_readiness_path,
-            "prior_preflight_readiness",
-        )
-        inputs = _required_mapping(
-            readiness.get("input_hashes"),
-            "prior_preflight_readiness.input_hashes",
-        )
-        prior_bom_row = _required_mapping(
-            inputs.get("assembly_bom"),
-            "prior_preflight_readiness.input_hashes.assembly_bom",
-        )
-        prior_bom_path = verify_artifact(
-            prior_bom_row,
-            workspace_root=workspace_root,
-            field="prior_preflight_readiness.input_hashes.assembly_bom",
-        )
-        prior_bom = _read_json_object(prior_bom_path, "prior_preflight_bom")
-        prior_artifacts = _required_mapping(
-            prior_bom.get("artifacts"),
-            "prior_preflight_bom.artifacts",
-        )
-        evidence = _required_mapping(
-            prior_artifacts.get("execution_evidence"),
-            "prior_preflight_bom.artifacts.execution_evidence",
-        )
-        copied: dict[str, dict[str, str]] = {}
-        for label, row in evidence.items():
-            if not isinstance(label, str):
-                raise ValueError("execution evidence labels must be strings")
-            copied[label] = dict(
-                _required_mapping(
-                    row,
-                    f"prior_preflight_bom.artifacts.execution_evidence.{label}",
-                )
-            )
-        return copied
-    except ValueError as error:
-        raise blog_assembly_capabilities.CapabilityRegistryError(str(error)) from error
-
-
-__all__ = ['_execution_evidence_from_prior_preflight', '_hindsight_strategy_block', '_hindsight_strategy_policy', '_normalize_hindsight_block_text', '_optional_artifact']
+__all__ = ['_hindsight_strategy_block', '_hindsight_strategy_policy', '_normalize_hindsight_block_text', '_optional_artifact']

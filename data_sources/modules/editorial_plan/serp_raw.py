@@ -11,6 +11,9 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from .contracts import SERP_APPROVED_COLLECTORS
+from .contracts import SERP_APPROVED_DATAFORSEO_LOCATION_CODES
+from .contracts import SERP_APPROVED_GOOGLE_COUNTRIES
+from .contracts import SERP_APPROVED_SEMRUSH_DATABASES
 from .contracts import SERP_RAW_CAPTURE_ATTESTATION_PURPOSE
 from .contracts import SERP_RAW_CAPTURE_FIELDS
 from .contracts import SERP_RAW_CAPTURE_SCHEMA
@@ -162,14 +165,22 @@ def _validate_capture_request(
 
 
 def _dataforseo_request_valid(url: str, locale: Mapping[str, Any]) -> bool:
+    values = dict(locale)
     return (
         url == "dataforseo://serp/google/organic/live/advanced"
-        and dict(locale) == {"language_code": "en", "location_code": 2840}
+        and set(values) == {"language_code", "location_code"}
+        and values.get("language_code") == "en"
+        and values.get("location_code") in SERP_APPROVED_DATAFORSEO_LOCATION_CODES
     )
 
 
 def _semrush_request_valid(url: str, locale: Mapping[str, Any]) -> bool:
-    return url == "semrush://keyword/phrase_organic" and dict(locale) == {"database": "us"}
+    values = dict(locale)
+    return (
+        url == "semrush://keyword/phrase_organic"
+        and set(values) == {"database"}
+        and values.get("database") in SERP_APPROVED_SEMRUSH_DATABASES
+    )
 
 
 def _playwright_request_valid(
@@ -180,12 +191,19 @@ def _playwright_request_valid(
 ) -> bool:
     parsed_url = urlparse(url)
     query_values = parse_qs(parsed_url.query)
+    values = dict(locale)
     return (
         parsed_url.scheme == "https"
         and parsed_url.hostname in {"google.com", "www.google.com"}
         and parsed_url.path == "/search"
         and query_values.get("q") == [query]
-        and dict(locale) == {"hl": "en", "gl": "us", "pws": "0"}
+        and set(values) == {"hl", "gl", "pws"}
+        and values.get("hl") == "en"
+        and values.get("pws") == "0"
+        and values.get("gl") in SERP_APPROVED_GOOGLE_COUNTRIES
+        # The declared locale must agree with the URL actually fetched,
+        # otherwise a capture can claim one market and request another.
+        and query_values.get("gl", [values.get("gl")]) == [values.get("gl")]
     )
 
 

@@ -1,0 +1,262 @@
+{
+  "schema": "simpro-source-classification-decisions/v1",
+  "revision": "2026-09-23",
+  "decisions": [
+    {
+      "decision_id": "icc-ibc-2024-chapter-17-special-inspections",
+      "status": "approved",
+      "source_url": "https://codes.iccsafe.org/content/IBC2024V2.0/chapter-17-special-inspections-and-tests",
+      "hostname": "codes.iccsafe.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "osha-29cfr-1926-651-excavation-requirements",
+      "status": "approved",
+      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.651",
+      "hostname": "www.osha.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "osha-29cfr-1926-652-protective-systems",
+      "status": "approved",
+      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.652",
+      "hostname": "www.osha.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "aci-concrete-strength-acceptance-faq",
+      "status": "approved",
+      "source_url": "https://www.concrete.org/frequentlyaskedquestions.aspx?faqid=13",
+      "hostname": "www.concrete.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "astm-e1105-field-water-penetration",
+      "status": "approved",
+      "source_url": "https://store.astm.org/e1105-15r23.html",
+      "hostname": "store.astm.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "wbdg-ufgs-01-45-00-quality-control",
+      "status": "approved",
+      "source_url": "https://www.wbdg.org/dod/ufgs/ufgs-01-45-00-00-10",
+      "hostname": "www.wbdg.org",
+      "source_class": "neutral",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "clockshark-testimonial-mabrys-electrical-service",
+      "status": "approved",
+      "source_url": "https://www.clockshark.com/testimonials/mabry-s-electrical-service-inc",
+      "hostname": "www.clockshark.com",
+      "source_class": "customer_proof",
+      "publisher_relationship": "customer"
+    },
+    {
+      "decision_id": "clockshark-industries-construction-trades",
+      "status": "approved",
+      "source_url": "https://www.clockshark.com/industries/construction-trades",
+      "hostname": "www.clockshark.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
+    },
+    {
+      "decision_id": "upcodes-ibc-chapter-17-special-inspections",
+      "status": "approved",
+      "source_url": "https://up.codes/s/ibc-chapter-17-special-inspections-and-tests",
+      "hostname": "up.codes",
+      "source_class": "non_competing_expert",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-agc-2026-workforce-survey",
+      "status": "approved",
+      "source_url": "https://www.agc.org/sites/default/files/users/user21902/2026%20Workforce%20Survey%20Analysis%20%284%29.pdf",
+      "hostname": "www.agc.org",
+      "source_class": "non_competing_expert",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-ca-dir-independent-contractor-faq",
+      "status": "approved",
+      "source_url": "https://www.dir.ca.gov/dlse/faq_independentcontractor.htm",
+      "hostname": "www.dir.ca.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-dol-fact-sheet-13",
+      "status": "approved",
+      "source_url": "https://www.dol.gov/agencies/whd/fact-sheets/13-flsa-employment-relationship",
+      "hostname": "www.dol.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-ecfr-part-795",
+      "status": "approved",
+      "source_url": "https://www.ecfr.gov/current/title-29/subtitle-B/chapter-V/subchapter-A/part-795",
+      "hostname": "www.ecfr.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-federalregister-ic-nprm-2026",
+      "status": "approved",
+      "source_url": "https://www.federalregister.gov/documents/2026/02/27/2026-03962/employee-or-independent-contractor-status-under-the-fair-labor-standards-act-family-and-medical",
+      "hostname": "www.federalregister.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-irs-1099-mec-instructions",
+      "status": "approved",
+      "source_url": "https://www.irs.gov/instructions/i1099mec",
+      "hostname": "www.irs.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-irs-about-form-ss-8",
+      "status": "approved",
+      "source_url": "https://www.irs.gov/forms-pubs/about-form-ss-8",
+      "hostname": "www.irs.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-irs-about-form-w-9",
+      "status": "approved",
+      "source_url": "https://www.irs.gov/forms-pubs/about-form-w-9",
+      "hostname": "www.irs.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-irs-independent-contractor-test",
+      "status": "approved",
+      "source_url": "https://www.irs.gov/businesses/small-businesses-self-employed/independent-contractor-self-employed-or-employee",
+      "hostname": "www.irs.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-naic-consumer",
+      "status": "approved",
+      "source_url": "https://content.naic.org/consumer",
+      "hostname": "content.naic.org",
+      "source_class": "non_competing_expert",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-ncci-abcs-of-experience-rating",
+      "status": "approved",
+      "source_url": "https://www.ncci.com/Articles/Documents/UW_ABC_Exp_Rating.pdf",
+      "hostname": "www.ncci.com",
+      "source_class": "non_competing_expert",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-osha-establishment-search",
+      "status": "approved",
+      "source_url": "https://www.osha.gov/ords/imis/establishment.html",
+      "hostname": "www.osha.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-osha-injury-tracking-data",
+      "status": "approved",
+      "source_url": "https://www.osha.gov/itadata",
+      "hostname": "www.osha.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-osha-multi-employer-citation-policy",
+      "status": "approved",
+      "source_url": "https://www.osha.gov/enforcement/directives/cpl-02-00-124",
+      "hostname": "www.osha.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "subcontractors-2026-09-18-sba-prime-and-subcontracting",
+      "status": "approved",
+      "source_url": "https://www.sba.gov/counseling/prime-and-subcontracting/",
+      "hostname": "www.sba.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "overtime-tracker-2026-09-23-dol-fact-sheet-23",
+      "status": "approved",
+      "source_url": "https://www.dol.gov/agencies/whd/fact-sheets/23-flsa-overtime-pay",
+      "hostname": "www.dol.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "overtime-tracker-2026-09-23-ecfr-778-107",
+      "status": "approved",
+      "source_url": "https://www.ecfr.gov/current/title-29/subtitle-B/chapter-V/subchapter-B/part-778/subpart-B/section-778.107",
+      "hostname": "www.ecfr.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "overtime-tracker-2026-09-23-ecfr-778-101",
+      "status": "approved",
+      "source_url": "https://www.ecfr.gov/current/title-29/subtitle-B/chapter-V/subchapter-B/part-778/subpart-A/section-778.101",
+      "hostname": "www.ecfr.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "overtime-tracker-2026-09-23-ecfr-516-2",
+      "status": "approved",
+      "source_url": "https://www.ecfr.gov/current/title-29/subtitle-B/chapter-V/subchapter-A/part-516/subpart-A/section-516.2",
+      "hostname": "www.ecfr.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "overtime-tracker-2026-09-23-clockshark-time-tracking",
+      "status": "approved",
+      "source_url": "https://www.clockshark.com/tour/time-tracking-software",
+      "hostname": "www.clockshark.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
+    },
+    {
+      "decision_id": "overtime-tracker-2026-09-23-clockshark-mobile-time-tracking",
+      "status": "approved",
+      "source_url": "https://www.clockshark.com/tour/mobile-time-tracking",
+      "hostname": "www.clockshark.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
+    },
+    {
+      "decision_id": "overtime-tracker-2026-09-23-clockshark-timesheet-approvals",
+      "status": "approved",
+      "source_url": "https://www.clockshark.com/tour/timesheet-approvals",
+      "hostname": "www.clockshark.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
+    },
+    {
+      "decision_id": "overtime-tracker-2026-09-23-clockshark-overtime-rules",
+      "status": "approved",
+      "source_url": "https://www.clockshark.com/videos/overtime-rules-to-manage-california-overtime",
+      "hostname": "www.clockshark.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
+    }
+  ]
+}

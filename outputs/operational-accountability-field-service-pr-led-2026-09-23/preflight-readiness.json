@@ -1,0 +1,239 @@
+{
+  "aeo_geo": {
+    "passed": false,
+    "score": null,
+    "threshold": 90
+  },
+  "artifact_kind": "blog",
+  "assembly_bom": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\outputs\\operational-accountability-field-service-pr-led-2026-09-23\\provisional-bom.json",
+  "context_pack": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-pack-operational-accountability-field-service-pr-led-2026-09-23.json",
+  "context_receipt": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-receipt-operational-accountability-field-service-pr-led-2026-09-23.json",
+  "context_request": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\context-request-operational-accountability-field-service-pr-led-2026-09-23.json",
+  "file": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\published\\operational-accountability-field-service-2026-09-17.md",
+  "gate_inventory": [
+    "artifact_identity",
+    "context_binding",
+    "blog_assembly_bom",
+    "input_seal"
+  ],
+  "gates": [
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Artifact Identity",
+      "name": "artifact_identity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Context Binding",
+      "name": "context_binding",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [
+        "line 1: bom_author_policy_sidecar_missing - Validation sidecar must record the exact author policy.",
+        "line 1: bom_schema_entities_mismatch - Article schema_notes must exactly match visible author, FAQ, and video state."
+      ],
+      "errors": 2,
+      "findings": [
+        {
+          "column": 1,
+          "line": 1,
+          "message": "Validation sidecar must record the exact author policy.",
+          "rule_id": "bom_author_policy_sidecar_missing",
+          "severity": "error",
+          "suggestion": "Regenerate the BOM from current workflow artifacts."
+        },
+        {
+          "column": 1,
+          "line": 1,
+          "message": "Article schema_notes must exactly match visible author, FAQ, and video state.",
+          "rule_id": "bom_schema_entities_mismatch",
+          "severity": "error",
+          "suggestion": "Regenerate the BOM from current workflow artifacts."
+        }
+      ],
+      "label": "Blog Assembly BOM",
+      "name": "blog_assembly_bom",
+      "passed": false,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Input Seal",
+      "name": "input_seal",
+      "passed": true,
+      "warnings": 0
+    }
+  ],
+  "input_hashes": {
+    "agent_definition.internal-linker": {
+      "path": ".claude/agents/internal-linker.md",
+      "sha256": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c"
+    },
+    "agent_definition.keyword-mapper": {
+      "path": ".claude/agents/keyword-mapper.md",
+      "sha256": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d"
+    },
+    "agent_definition.meta-creator": {
+      "path": ".claude/agents/meta-creator.md",
+      "sha256": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a"
+    },
+    "agent_definition.seo-optimizer": {
+      "path": ".claude/agents/seo-optimizer.md",
+      "sha256": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8"
+    },
+    "agent_output.internal-linker": {
+      "path": "research/agent-outputs/internal-linker-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "f7a6fa9ef7e1f1b18b9932264fd0ffb8842d4e23787e01360ffaa89046b91b45"
+    },
+    "agent_output.keyword-mapper": {
+      "path": "research/agent-outputs/keyword-mapper-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "b17f814887ab796ee3fc1b1d45a4dd73335d4495e0ee510ad75e3886ccd890ac"
+    },
+    "agent_output.meta-creator": {
+      "path": "research/agent-outputs/meta-creator-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "49501df3bc0b7330d7e53e94d87e394332b2738528570b867127281f1e6baf6e"
+    },
+    "agent_output.seo-optimizer": {
+      "path": "research/agent-outputs/seo-optimizer-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "ff0344f80de17b9e6f2805c9e33f0eba722075c655f29f51142c62fea16e1ab7"
+    },
+    "article": {
+      "path": "published/operational-accountability-field-service-2026-09-17.md",
+      "sha256": "6c310bdb493d6b313ee8fdd0d680599ab3b08b6f627caf59a1ee2035b889d9ad"
+    },
+    "assembly_bom": {
+      "path": "outputs/operational-accountability-field-service-pr-led-2026-09-23/provisional-bom.json",
+      "sha256": "9715f2bf90cc3f036f67c9469cc59b0625492cfcf2dc1e00ab43425eeb9d9b74"
+    },
+    "command_definition.rewrite-command": {
+      "path": ".claude/commands/rewrite.md",
+      "sha256": "e79221092f9b56213836ec37a70375fb4a5cf43ec75bc159cfd1d36d88575a56"
+    },
+    "commercial_pillar_index": {
+      "path": "context/commercial-pillar-index.json",
+      "sha256": "d122dbbab6c9f1dfa13715345bc9278f6a33b4e81f10bc4b17d410dc5da8a6f6"
+    },
+    "context_pack": {
+      "path": "research/context-pack-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "200edd152d5ecadb91a590cd783a5d24bd51fe657997881505af9fda67f605a4"
+    },
+    "context_receipt": {
+      "path": "research/context-receipt-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "ce9b00b9538b51a2aad7daa8f10da46400bd17f866729ad66c61f1d8f1769114"
+    },
+    "context_request": {
+      "path": "research/context-request-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "2bfe8844e491f611ac0ab2a55f856d2dba8c1d719573a21e0f754a0ee3099f4b"
+    },
+    "customer_proof_index": {
+      "path": "context/customer-proof-index.json",
+      "sha256": "fee695a0b32d20c3c12c155a590979f4352b3170925fe6f87654b75282125c62"
+    },
+    "customer_proof_selector_evidence": {
+      "path": "research/customer-proof-selector-evidence-operational-accountability-field-service-pr-led-2026-09-23.json",
+      "sha256": "02c157c2a0bc6d7bee8ba105aa9ea64cce67d808e04bad6a9e9b6aa12d0979c2"
+    },
+    "customer_proof_usage_ledger": {
+      "path": "context/customer-proof-usage-ledger.json",
+      "sha256": "a094f1c09757645a95da80b6666e9d6d4c72aaeb5e71ce307a3843960d098cad"
+    },
+    "editorial_plan": {
+      "path": "research/editorial-plan-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "56c139a7095540eb1550f0f7c512d7e4cd1b63dcd4803e5ed3f4e88099c8ccf1"
+    },
+    "fred_authority_evidence": {
+      "path": "research/fred-authority-evidence-operational-accountability-field-service-pr-led-2026-09-23.md",
+      "sha256": "a949cc467b4cde188af3ddb7bb7be1b1fe9a0971bed182a1a9957f4f29ea7a3b"
+    },
+    "keyword_decision": {
+      "path": "research/semrush-keyword-decision-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "4baaa3e2d40f1eec65749da86b61184b8ae7075959e452846363a17720825cdf"
+    },
+    "machine_reviews.article": {
+      "path": "research/machine-review-article-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "0177ba299c83618ad5a27d95189f37d9fd92943396d2e4bb31e8400bb5e97107"
+    },
+    "machine_reviews.plan": {
+      "path": "research/machine-review-plan-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "d81c5126bddd0156345cc94d6d522f15d8c4798bda1fc12406c50b24abcf970a"
+    },
+    "paa_artifact": {
+      "path": "research/paa-questions-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "28c3f7293d3e8e0a82e4f96ea77cbc01711b52a7e4e8d289dd8bc03a1dce0127"
+    },
+    "paa_raw_capture": {
+      "path": "research/answersocrates-chrome-raw-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "5e127ea817427fff8502713f654247fa450e6f798e1ad95310f885b8124fe0e1"
+    },
+    "plan_fulfillment": {
+      "path": "research/blog-plan-fulfillment-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "ae8d3391ce19928c163620859b32debc2726178055830bb9b118e20143c05a0d"
+    },
+    "serp_evidence": {
+      "path": "research/serp-evidence-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "0eb78e00338ae6fa4f3c87f9956c9e6477fa12966e195a78ceb03d408d89febe"
+    },
+    "serp_raw_capture": {
+      "path": "research/serp-chrome-raw-operational-accountability-field-service-2026-09-23.json",
+      "sha256": "37159fb85c2c623f6c6eb86cec6110a3e8513d852236c6d76e90ab71ace39123"
+    },
+    "source_decision_registry": {
+      "path": "context/source-classification-decisions.json",
+      "sha256": "8beefea13de55bf1df63b92ac61ad896113cf48ddf55dd711c362569848162b8"
+    },
+    "stage_evidence[0]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-scrub-2026-09-23-evidence.json",
+      "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+    },
+    "stage_evidence[1]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-context-binding-2026-09-23-evidence.json",
+      "sha256": "790fccc2bbda9545faee04e6d0e2d54d38199cec53655b455a78e67371b30aa8"
+    },
+    "stage_receipts[0]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-draft-2026-09-23.json",
+      "sha256": "cc8d440d2a2bffc3d3bad8f474b0b727522d27d6eeda4d65feb4c9bb8c0d4f9a"
+    },
+    "stage_receipts[1]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-scrub-2026-09-23.json",
+      "sha256": "11ec3524ca6f1f1b1c8f230a1d9af39dd81f570e808d01ff5edc7c90bb148c5e"
+    },
+    "stage_receipts[2]": {
+      "path": "research/stage-receipt-operational-accountability-field-service-context-binding-2026-09-23.json",
+      "sha256": "742f42094b46a04839ada2915914ef66d08fe28af91bd237ecaf89b778a0bd5b"
+    },
+    "validation_sidecar": {
+      "path": "research/validation-operational-accountability-field-service-2026-09-23.md",
+      "sha256": "2579bb756b4b378730e585efc54e6f5ad6f0b84ccddd437cee4ea8aafbe1da26"
+    }
+  },
+  "input_seal": {
+    "status": "verified"
+  },
+  "passed": false,
+  "phase": "preflight",
+  "priority_fixes": [
+    {
+      "dimension": "blog_assembly_bom",
+      "issue": "line 1: bom_author_policy_sidecar_missing - Validation sidecar must record the exact author policy."
+    },
+    {
+      "dimension": "blog_assembly_bom",
+      "issue": "line 1: bom_schema_entities_mismatch - Article schema_notes must exactly match visible author, FAQ, and video state."
+    }
+  ],
+  "proof_sidecar": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-main\\research\\validation-operational-accountability-field-service-2026-09-23.md",
+  "schema": "simpro-publish-readiness-result/v1",
+  "score": null,
+  "score_threshold": 85,
+  "verification_scope": "source_artifact"
+}

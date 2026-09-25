@@ -213,11 +213,19 @@ GENERAL_CLAIM_PATTERNS = (
     (
         "commercial",
         re.compile(
-            r"\b(?:pricing|price|costs?|subscription|plan|package|premium|trial|"
+            r"\b(?:pricing|price|costs?|fees?|charges?|subscription|plan|package|premium|trial|"
             r"add[- ]on|upgrade|license|licence)\b[^.!?]{0,90}\b"
-            r"(?:is|are|costs?|includes?|included|requires?|available|free|paid)\b|"
+            r"(?:is|are|costs?|includes?|included|requires?|available|free|paid|waived)\b|"
             r"\b(?:is|are)\s+included\s+in\s+(?:the\s+)?(?:paid|premium|"
-            r"enterprise|standard|basic)?\s*(?:plan|package|subscription)\b",
+            r"enterprise|standard|basic)?\s*(?:plan|package|subscription)\b|"
+            r"\b(?:eligible|ineligible)\b[^.!?]{0,90}\b(?:for|to)\b"
+            r"[^.!?]{0,90}\b(?:add[- ]on|feature|product|platform|software)\b|"
+            r"\b(?:add[- ]on|feature|product|platform|software)\b[^.!?]{0,90}\b"
+            r"(?:is|are|can|cannot|may|must)?\s*(?:be\s+)?access(?:ed|ible)\b|"
+            r"\b(?:access|availability|eligibility)\b[^.!?]{0,90}\b"
+            r"(?:is|are|remains?|becomes?|requires?|restricted|limited|available|unavailable)\b|"
+            r"\b(?:eligible|ineligible|eligibility)\b|"
+            r"\b(?:can|cannot|may|must)\s+access\b",
             re.IGNORECASE,
         ),
     ),
@@ -236,7 +244,16 @@ GENERAL_CLAIM_PATTERNS = (
         "causal",
         re.compile(
             r"\b(?:causes?|leads? to|results? in|because of|therefore|drives?|"
-            r"contributes? to|helps?|improves?|reduces?|increases?|decreases?|prevents?|"
+            # "help" is also the noun in vendor destination names such as
+            # "help article", "help centre" and "help guide". Only the bare
+            # noun form takes that exemption: the inflected verb "helps" is
+            # always causal, so "helps guide the technician" and "helps pages
+            # load faster" still register as claims. Nouns listed here are the
+            # ones the article corpus actually uses.
+            r"contributes? to|helps|"
+            r"help(?![\s-]+(?:articles?|cent(?:re|er)s?|guides?|desks?|"
+            r"pages?|docs|documentation|content))|"
+            r"improves?|reduces?|increases?|decreases?|prevents?|"
             r"enables?|boosts?|cuts?|streamlines?)\b",
             re.IGNORECASE,
         ),

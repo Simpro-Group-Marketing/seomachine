@@ -1,0 +1,19 @@
+{
+  "article_existed": true,
+  "article_path": "C:/Users/patrick.grueschow/Desktop/Repos/seomachine-main/rewrites/best-field-service-management-software-rewrite-2026-08-28.md",
+  "input_artifact_hashes": {
+    "article": "599f149847f8ceef0fa41460007d6743a758469daac5a8364cd41ae9853c446b",
+    "preflight_readiness": "69b5a9b0ed90000205a9b9a47fcdaf7233c91c2daf62db5adf71e261931686cb",
+    "preflight_readiness_receipt": "17a58eb63187470ad744bcabb49a9cbeda082bdf456b52dcda272b0cc042244d"
+  },
+  "previous_receipt_hash": "715edbd4a6cbfc0959077880b5c02f410d1c717d5712d7833b627047ef87f77b",
+  "run_id": "62170e68-740b-42ed-8d67-311701b4f9d6",
+  "schema": "simpro-blog-native-edit-state/v1",
+  "stage": "optimization",
+  "started_at": "2026-09-23T14:45:41.877989Z",
+  "state_hash": "be86bfacdb9bbfb662d17ad11dd74d861bc68710871b79e366be70ab9f470b4a",
+  "tool": {
+    "name": "optimize-command",
+    "version": "1"
+  }
+}
