@@ -349,6 +349,26 @@ Use operating data to compare the same workflow before and after the pilot.
                 )
         self.assertEqual(with_frontmatter["composite_score"], baseline["composite_score"])
 
+    def test_contextual_keyword_repetition_ignores_frontmatter_metadata(self):
+        content = """---
+meta_title: Workplace Risk Assessment Guide
+meta_description: Workplace risk assessment guidance for service teams.
+primary_keyword: workplace risk assessment
+---
+
+# Workplace Risk Assessment Guide
+
+[IMAGE PLACEHOLDER | source: original illustration; filename: workplace-risk-assessment-guide.webp | alt: "Workplace risk assessment guide" | render target: 1200x675 WebP | resize and compress before upload]
+
+A workplace risk assessment gives a field team one practical decision.
+"""
+
+        result = ContentScorer()._score_seo(content, {})
+
+        self.assertFalse(
+            any("Contextual keyword stuffing" in issue for issue in result["critical_issues"])
+        )
+
     def test_score_seo_delegates_once_to_strengthened_seo_rater(self):
         scorer = ContentScorer()
         content = fixture_text("content_evidence:test_content_scorer_aeo_geo_gate-338-8")
