@@ -68,7 +68,9 @@ def _normalize_review_url(url: str) -> str:
     hostname = (parsed.hostname or "").casefold()
     if hostname.startswith("www."):
         hostname = hostname[4:]
-    path = parsed.path.rstrip("/")
+    path = parsed.path.rstrip("/").casefold()
+    if "/.." in path:
+        return ""
     return f"{hostname}{path}"
 
 
@@ -92,7 +94,9 @@ def _supports_role(
     require_eeat_story: bool,
 ) -> bool:
     if role == "metric":
-        return bool(source.get("approved_metrics"))
+        # Review metrics stay excluded from public copy, even when a row stores them.
+        is_review = str(source.get("source_type") or "").casefold() == "review_site"
+        return bool(source.get("approved_metrics")) and not is_review
     if role == "quote":
         return bool(source.get("approved_quotes"))
     if role == "theme":

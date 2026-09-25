@@ -61,7 +61,8 @@ REVIEW_LANGUAGE_RE = re.compile(
 REVIEW_RATING_RANKING_CLAIM_RE = re.compile(
     r"\b(?:star ratings?|ratings?|rated|ranking|rankings?|ranked|badges?|"
     r"named reviewer|reviewer name|reviewer-name|category claims?)\b|"
-    r"\b\d+(?:\.\d+)?\s*(?:out of\s*)?(?:stars?|ratings?|reviews?|%)\b",
+    r"\b(?:\d+(?:\.\d+)?|one|two|three|four|five)[\s-]*(?:out of\s*\w+\s*)?(?:stars?|ratings?|reviews?)\b|"
+    r"\b\d+(?:\.\d+)?\s*(?:%|out of\s*\d+\b)",
     re.IGNORECASE,
 )
 ALLOWED_IDENTITY_TYPES = {"person", "business", "person_and_business"}
@@ -79,7 +80,8 @@ def check_content(
     del source_path
     composed = compose_with_sidecar(content, proof_content)
     public_content = _public_copy_content(content)
-    selection = _extract_review_story_selection(composed)
+    selections = _extract_review_story_selections(composed)
+    selection = selections[0] if selections else None
     theme_selection = _extract_review_site_theme_selection(composed)
     findings: List[Finding] = []
     has_review_story_signal = _has_review_story_signal(public_content)
@@ -94,7 +96,7 @@ def check_content(
     if selection is None:
         return findings
 
-    if _review_story_selection_not_applicable(selection):
+    if all(_review_story_selection_not_applicable(item) for item in selections):
         if has_review_story_signal:
             return [
                 _finding(
@@ -109,16 +111,15 @@ def check_content(
             ]
         return findings
 
-    findings.extend(
-        _review_story_selection_findings(
-            content,
-            public_content,
-            selection,
-            proof_content or "",
-            proof_index_path,
-            all_identities=_all_selected_story_identities(composed),
-        )
-    )
+    identities = [str(item.get("selected_story", {}).get("identity", "")) for item in selections]
+    for item in selections:
+        if _review_story_selection_not_applicable(item):
+            continue
+        for finding in _review_story_selection_findings(
+            content, public_content, item, proof_content or "", proof_index_path, all_identities=identities
+        ):
+            if finding not in findings:
+                findings.append(finding)
 
     return sorted(findings, key=lambda finding: (finding["severity"] != "error", finding["line"], finding["rule_id"]))
 
@@ -329,10 +330,10 @@ def _review_story_quote_findings(
         _finding(
             "review_quote_requires_approved_quote",
             _first_quote_line(content),
-            "Exact review wording appears without an approved quote row.",
+            "Exact review wording appears without a quote bound to the selected review row.",
             (
-                "Add an Approved quote row with source type, URL or source ref, "
-                "Evidence, identity, Status: approved, and intended Use; otherwise paraphrase."
+                "Store the exact wording, live-captured, in the selected index row's "
+                "approved_quotes with status approved; otherwise paraphrase."
             ),
         )
     ]
@@ -358,26 +359,28 @@ def check_file(
     )
 
 
-def _extract_review_story_selection(content: str) -> Optional[Dict[str, object]]:
-    return _extract_selection_block(content, REVIEW_STORY_HEADING_RE, parse_selected_story=True)
+def _extract_review_story_selections(content: str) -> List[Dict[str, object]]:
+    """One selection per ``Selected story:`` bullet, across every Review Story Selection block."""
+    selections: List[Dict[str, object]] = []
+    for block in _iter_selection_blocks(content, REVIEW_STORY_HEADING_RE, parse_selected_story=True):
+        stories = block.pop("selected_stories", [])
+        selections.extend([{**block, "selected_story": story} for story in stories] or [block])
+    return selections
 
 
 def _extract_review_site_theme_selection(content: str) -> Optional[Dict[str, object]]:
-    return _extract_selection_block(content, REVIEW_SITE_THEME_HEADING_RE, parse_selected_story=False)
+    return next(_iter_selection_blocks(content, REVIEW_SITE_THEME_HEADING_RE, parse_selected_story=False), None)
 
 
-def _extract_selection_block(
-    content: str,
-    heading_re: re.Pattern[str],
-    *,
-    parse_selected_story: bool,
-) -> Optional[Dict[str, object]]:
+def _iter_selection_blocks(
+    content: str, heading_re: re.Pattern[str], *, parse_selected_story: bool
+) -> Iterable[Dict[str, object]]:
     lines = content.splitlines()
     for index, line in enumerate(lines):
         if not heading_re.match(line.strip()):
             continue
         fields: Dict[str, object] = {}
-        for offset, block_line in enumerate(lines[index + 1 :], start=index + 2):
+        for block_line in lines[index + 1 :]:
             stripped = block_line.strip()
             if stripped.startswith("```"):
                 break
@@ -391,12 +394,10 @@ def _extract_selection_block(
             key = _normalize_key(match.group("key"))
             value = match.group("value").strip()
             if parse_selected_story and key == "selected story":
-                fields["selected_story"] = _parse_selected_story(value)
-                fields["selected_story_line"] = offset
+                fields.setdefault("selected_stories", []).append(_parse_selected_story(value))
             else:
                 fields[key] = value
-        return {"line": index + 1, **fields}
-    return None
+        yield {"line": index + 1, **fields}
 
 
 def _parse_selected_story(value: str) -> Dict[str, str]:
@@ -408,25 +409,6 @@ def _parse_selected_story(value: str) -> Dict[str, str]:
         key, item_value = part.split(":", 1)
         selected[_normalize_key(key).replace(" ", "_")] = item_value.strip()
     return selected
-
-
-def _all_selected_story_identities(content: str) -> List[str]:
-    """Every identity named on a ``Selected story:`` bullet anywhere in the document.
-
-    A document can carry more than one Review Story Selection block (one per
-    selected reviewer). Only the first block drives its own row's checks, but
-    every block's identity is used to keep one row's quote check from judging
-    a paragraph that actually belongs to a different selected reviewer.
-    """
-    identities: List[str] = []
-    for line in content.splitlines():
-        match = BULLET_FIELD_RE.match(line)
-        if not match or _normalize_key(match.group("key")) != "selected story":
-            continue
-        identity = str(_parse_selected_story(match.group("value").strip()).get("identity", "")).strip()
-        if identity:
-            identities.append(identity)
-    return identities
 
 
 def _find_index_row(path: str | Path, proof_id: str) -> Optional[Dict[str, object]]:
@@ -555,11 +537,8 @@ def _review_theme_findings(
 
 
 def _paragraph_with_url_and_identity(content: str, public_url: str, identity: str) -> Optional[str]:
-    normalized_identity = _normalize_text(identity)
     for paragraph in _paragraphs(content):
-        if not _has_natural_canonical_link(paragraph, public_url):
-            continue
-        if normalized_identity and normalized_identity in _normalize_text(paragraph):
+        if _has_natural_canonical_link(paragraph, public_url) and _names_identity(paragraph, identity):
             return paragraph
     return None
 
@@ -593,11 +572,7 @@ def _has_unapproved_review_quote(
     approved_quotes: Optional[Sequence[Mapping[str, object]]],
     other_identities: Sequence[str] = (),
 ) -> bool:
-    normalized_identity = _normalize_text(identity)
     normalized_url = _normalize_url(public_url)
-    normalized_others = {
-        normalized for other in other_identities if (normalized := _normalize_text(other))
-    }
     for paragraph in _paragraphs(content):
         matches = list(EXACT_QUOTE_RE.finditer(paragraph))
         if not matches:
@@ -607,9 +582,8 @@ def _has_unapproved_review_quote(
             for match in matches
         ):
             continue
-        paragraph_text = _normalize_text(paragraph)
-        names_this_identity = bool(normalized_identity and normalized_identity in paragraph_text)
-        if not names_this_identity and any(other in paragraph_text for other in normalized_others):
+        names_this_identity = _names_identity(paragraph, identity)
+        if not names_this_identity and any(_names_identity(paragraph, other) for other in other_identities):
             # This unbound quote belongs to a different selected story's identity;
             # do not judge this row for a paragraph that names someone else.
             continue
@@ -719,6 +693,11 @@ def _normalize_key(value: str) -> str:
 
 def _normalize_text(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", value.lower()).strip()
+
+
+def _names_identity(text: str, identity: str) -> bool:
+    normalized_identity = _normalize_text(identity)
+    return bool(normalized_identity) and f" {normalized_identity} " in f" {_normalize_text(text)} "
 
 
 def _normalize_url(value: str) -> str:
