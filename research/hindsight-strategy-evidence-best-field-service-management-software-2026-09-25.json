@@ -1262,15 +1262,15 @@
     ],
     "unresolved_gaps": [],
     "task_satisfaction": "satisfied",
-    "validation_time": "2026-09-25T18:25:57.711154Z",
+    "validation_time": "2026-09-25T19:07:06.723022Z",
     "errors": [],
-    "receipt_sha256": "e91e93c6abfb1cf2bb91e4812f1ae3b98d1ea82b631209bd5cbeca70694d4893"
+    "receipt_sha256": "842b9435b0a192b49324fb135b8d629eaaa8ea8bdbde78ffb8c25b03580a9655"
   },
   "sidecar": {
     "schema": "simpro-content-validation-sidecar/v1",
     "source_pack_schema": "simpro-internal-strategy-pack/v1",
     "source_pack_sha256": "e7fa819854c12074ac0e9d2bf3d186432c888cdbe92855a8aff444de27c02a66",
-    "source_receipt_sha256": "e91e93c6abfb1cf2bb91e4812f1ae3b98d1ea82b631209bd5cbeca70694d4893",
+    "source_receipt_sha256": "842b9435b0a192b49324fb135b8d629eaaa8ea8bdbde78ffb8c25b03580a9655",
     "retrieval_tier": "internal_strategy",
     "resource_ids": [
       "res-17c15b5543db589b87f6803e32251cdf",
@@ -1283,7 +1283,7 @@
     "claim_support_allowed": false,
     "public_claim_use": "prohibited",
     "public_use_boundary": "Internal strategy may shape angles, priorities, FAQs, objections, and positioning only. It cannot support publishable claims.",
-    "generated_at": "2026-09-25T18:25:57.711154Z"
+    "generated_at": "2026-09-25T19:07:06.723022Z"
   },
   "discovery_provenance": {
     "classification": "secondary_hindsight_synthesis",
@@ -1305,7 +1305,7 @@
     "note": "The Google Doc source node records discovery provenance only. The formal internal-strategy pack does not validate every statement in that synthesis."
   },
   "retrieval_trace": {
-    "generated_at": "2026-09-25T18:26:12Z",
+    "generated_at": "2026-09-25T19:07:29Z",
     "vault_status": {
       "status": "ready",
       "root_configured": true,

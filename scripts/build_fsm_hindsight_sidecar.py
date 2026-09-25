@@ -39,6 +39,18 @@ CORRECTION_RECORD = """## Governed Correction and Supersession Record
 - Correction reason: the cited FieldEdge marketing page did not substantiate the removed downstream automation chain involving follow-up tasks, office notices, customer messages, or audit trails.
 - Historical boundary: the 2026-09-24 artifact remains immutable release history and is not active support for the corrected public copy.
 """
+SEMRUSH_REUSE_AUTHORIZATION = """## Semrush Prior Evidence Reuse Authorization
+
+- Status: authorized_by_user
+- User instruction date: 2026-09-25
+- Authorized stale rule: semrush_keyword_decision_stale
+- Keyword decision artifact: `research/semrush-keyword-decision-best-field-service-management-software-2026-09-24.json`
+- Collection date: 2026-09-24
+- Assembly date: 2026-09-25
+- Scope: FieldEdge evidence correction only; no keyword metrics, query selection, Semrush-derived public claims, or commercial-pillar decisions changed in this correction.
+- Reuse boundary: the keyword decision remains a 2026-09-24 authenticated main-Chrome Semrush artifact and must not be described as recollected on 2026-09-25.
+- Status rationale: Patrick directed the workflow to continue because Semrush had already been completed; the current correction removes unsupported FieldEdge automation evidence and does not alter keyword targeting.
+"""
 
 
 def sha256(path: Path) -> str:
@@ -161,6 +173,11 @@ def main() -> int:
         content = replace_once(content, old, new)
 
     content = add_correction_record(content)
+    content = replace_once(
+        content,
+        "\n## Author and Schema Decision\n",
+        f"\n{SEMRUSH_REUSE_AUTHORIZATION.strip()}\n\n## Author and Schema Decision\n",
+    )
 
     dated_artifacts = (
         "context-request-best-field-service-management-software",
@@ -315,7 +332,8 @@ def main() -> int:
         context_binding_section,
     )
 
-    OUTPUT.write_text(content, encoding="utf-8")
+    with OUTPUT.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(content)
     print(f"wrote {OUTPUT.relative_to(ROOT).as_posix()} ({len(content)} characters)")
     print(f"article_sha256={sha256(ARTICLE)}")
     print(f"sidecar_sha256={sha256(OUTPUT)}")

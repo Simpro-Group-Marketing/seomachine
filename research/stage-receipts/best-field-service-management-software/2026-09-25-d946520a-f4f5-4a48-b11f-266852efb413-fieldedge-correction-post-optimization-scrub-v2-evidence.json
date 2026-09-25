@@ -1,0 +1,15 @@
+{
+  "evidence_hashes": {
+    "scrub_statistics": "9e4596bc68ff2e1592ceb025b5d3a29dd1c8534c30b9fc8c6fd0573e6ed7e683"
+  },
+  "payload": {
+    "statistics": {
+      "ai_phrases_replaced": 0,
+      "emdashes_replaced": 0,
+      "format_control_removed": 0,
+      "unicode_removed": 0
+    },
+    "would_change": false
+  },
+  "schema": "simpro-blog-stage-evidence/v1"
+}

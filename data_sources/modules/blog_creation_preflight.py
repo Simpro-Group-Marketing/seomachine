@@ -141,6 +141,12 @@ def build_preflight_report(
             article_path=article if _is_file(article) else None,
             assembly_date=assembly_date,
         )
+        semrush_findings = semrush_keyword_decision_guard.filter_authorized_stale_findings(
+            semrush_findings,
+            authorization_text=_read_text(proof_sidecar),
+            keyword_decision_path=keyword_decision,
+            assembly_date=assembly_date,
+        )
         blockers.extend(
             _guard_blocker(finding, "keyword_decision") for finding in semrush_findings
         )
@@ -329,6 +335,15 @@ def _artifact_paths(paths: Sequence[str | Path] | None) -> list[str] | None:
 
 def _is_file(path: str | Path | None) -> bool:
     return bool(path) and Path(path).is_file()
+
+
+def _read_text(path: str | Path | None) -> str:
+    if path is None:
+        return ""
+    try:
+        return Path(path).read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return ""
 
 
 def _require_file(

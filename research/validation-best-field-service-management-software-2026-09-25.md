@@ -50,10 +50,10 @@
 - Vault status: ready.
 - Request canonical SHA-256: `d3b3b914460472b33098bd34078e0d80ed9403457f4f3c1d705535e4034fc720`.
 - Context pack canonical SHA-256: `85f56d1be1fd2e0cfdf447d69b77bfc2ad0f57f7d839d561afc7e4ad22d3af74`.
-- Context receipt canonical SHA-256: `9fbe6a5dd3abe20bff391bfb5b8af18241f60d811b58cd69da1f10064ec89dba`.
-- Request file SHA-256: `a5a6c36ee959fbe45f7ae5a40814c545e8410949ae5fed521cd333c340b8b83b`.
-- Context pack file SHA-256: `9ff9308bde0dd74db8fea030d30c8211958f9a96749132644560e349b0e3260a`.
-- Context receipt file SHA-256: `475083efcb869713797d2872ac2bfea9a431224e8264d34869495ca2f14cb097`.
+- Context receipt canonical SHA-256: `1870a60f42e2cbd65554ab84502d819bf900a2e0c5050cd55e698d7b8ce8f4bc`.
+- Request file SHA-256: `0463ed1e1f053ec868a8ab5c8091e18d412e07f218c2a9e57e669ed98a277940`.
+- Context pack file SHA-256: `a1fc15716e997e0ad46be71cbc7c09f55cec114f4bb6e0796818f8b72e004149`.
+- Context receipt file SHA-256: `8226153e0e8c7b9ac02dfeee0636b4a99dc9b813ba2dece31edd5a0f1222ae6a`.
 - Content revision: `a99cbdff82d2af87868df8c61287308fb24f730b2867860a5b52cacaa3f27a1c`.
 - Contract revision: `e4988a1775f0b2791163b584c36b0fd72b8ac604c448b044cc944a8a0e9934a4`.
 - Inventory revision: `6c23d93ef8eebab6d496776ceaf1e2253d7c76b32aca201b26fa077a71b9bb58`.
@@ -77,7 +77,7 @@
 
 - Article title: Best Field Service Management Software: 2026 Buyer's Guide to 12 Tools
 - Product/solution language scope: mixed
-- Vault connector evidence: vault_status ready; vault_describe inspected; natural-language vault_search, vault_read, and vault_expand completed; vault_claims checked; context_pack_hash=85f56d1be1fd2e0cfdf447d69b77bfc2ad0f57f7d839d561afc7e4ad22d3af74; receipt_hash=9fbe6a5dd3abe20bff391bfb5b8af18241f60d811b58cd69da1f10064ec89dba; resource_id=res-a5b3b47382b45490bf2bedbf16c0b76e; resource_id=res-d31f057a305f51918055120d95b76c6a; resource_id=res-e3ade596be645307ad4c1f84620ce021; resource_id=res-f882ab230eb2563889e300d612c324bc; resource_id=res-5c1b34d7d2175caab4fb29a208e59ac0; vertical resource_id=res-d7e3d5ca80955407a9d06be5f129e11b; manifest_revision=0c1ad8c0b87d90e2d7bac6e70c21a6007fa45f6f342f50520d5ec337758d867b
+- Vault connector evidence: vault_status ready; vault_describe inspected; natural-language vault_search, vault_read, and vault_expand completed; vault_claims checked; context_pack_hash=85f56d1be1fd2e0cfdf447d69b77bfc2ad0f57f7d839d561afc7e4ad22d3af74; receipt_hash=1870a60f42e2cbd65554ab84502d819bf900a2e0c5050cd55e698d7b8ce8f4bc; resource_id=res-a5b3b47382b45490bf2bedbf16c0b76e; resource_id=res-d31f057a305f51918055120d95b76c6a; resource_id=res-e3ade596be645307ad4c1f84620ce021; resource_id=res-f882ab230eb2563889e300d612c324bc; resource_id=res-5c1b34d7d2175caab4fb29a208e59ac0; vertical resource_id=res-d7e3d5ca80955407a9d06be5f129e11b; manifest_revision=0c1ad8c0b87d90e2d7bac6e70c21a6007fa45f6f342f50520d5ec337758d867b
 - Product/feature language applied: restrained field-service and trade-business language covering office-to-field work, service and project coordination, scheduling, inventory, purchasing, invoicing, and reporting; no universal-fit or superiority claim.
 - Solution/industry language applied: US trade and field-service context with a scoped service-and-project evaluation recommendation; no unsupported vertical leadership or outcome claim.
 - Fallback context use: none
@@ -120,7 +120,7 @@
 - evidence_output: research/hindsight-strategy-evidence-best-field-service-management-software-2026-09-25.json
 - Selected current resource IDs: `res-17c15b5543db589b87f6803e32251cdf`, `res-0c176526ba255cdc84781594dbcb1d1f`, `res-ab8acb78ff2050a787e8e17d234a3f3b`, `res-123f609e3a7b5666b5c1db6ccd9cab49`, `res-dd31b800a8c15dffbed1f1cba724e547`, `res-8e0e276d13c95a7ea5bfb45bd57dfde2`
 - Pack SHA-256: `e7fa819854c12074ac0e9d2bf3d186432c888cdbe92855a8aff444de27c02a66`
-- Receipt SHA-256: `e91e93c6abfb1cf2bb91e4812f1ae3b98d1ea82b631209bd5cbeca70694d4893`
+- Receipt SHA-256: `842b9435b0a192b49324fb135b8d629eaaa8ea8bdbde78ffb8c25b03580a9655`
 - public_claim_use: prohibited
 - claim_support_allowed: false
 - Permitted effects: demo-test emphasis and buyer objections only.
@@ -142,11 +142,11 @@
 ## Customer Proof Slate
 
 - Selector command: `python data_sources/modules/customer_proof_selector.py "best field service management software" --title "Best Field Service Management Software: 2026 Buyer's Guide to 12 Tools" --objective "Help US trade and field-service leaders build a fast, defensible 12-tool shortlist by business type, operating fit, workflow depth, implementation risk, and role needs." --context-pack "research/context-pack-best-field-service-management-software-customer-selector-2026-09-25.json" --context-receipt "research/context-receipt-best-field-service-management-software-customer-selector-2026-09-25.json" --evidence-output "research/customer-proof-selector-evidence-best-field-service-management-software-2026-09-25.json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10 --allow-no-proof --selected "metric=none" --reject "metric=case-study-teamwired:single-customer invoicing metric does not improve a neutral twelve-vendor buyer-routing objective"`
-- Selector evidence: research/customer-proof-selector-evidence-best-field-service-management-software-2026-09-25.json | SHA-256: f6150d7c9bf6bfefee19814b049f62d3044aae566c948118bfd66d7d74d6e85f
+- Selector evidence: research/customer-proof-selector-evidence-best-field-service-management-software-2026-09-25.json | SHA-256: d89fed31a0a7638a792337a0b06bf59a9e7d89942dda37094e89c49574ce0319
 - Context receipt: research/context-receipt-best-field-service-management-software-customer-selector-2026-09-25.json
 - Approval source: connector_claim_result
 - Selection outcome: customer_proof_candidates_available
-- Role: metric | Top candidates: [case-study-teamwired] | Selected: [none] | Claim IDs: [claim-metric-MET-1482] | Receipt revision: 37f890039bcc2629026d3378093d94d9ad66b93168cd3a1ef14af5ce57c6090d | Rejected stronger candidates: [case-study-teamwired: single-customer invoicing metric does not improve a neutral twelve-vendor buyer-routing objective]
+- Role: metric | Top candidates: [case-study-teamwired] | Selected: [none] | Claim IDs: [claim-metric-MET-1482] | Receipt revision: 8d9eb6414fd9b6fcc816cc2203c7b1f978e4e8b02c03fdec26b8cc85638a5d2f | Rejected stronger candidates: [case-study-teamwired: single-customer invoicing metric does not improve a neutral twelve-vendor buyer-routing objective]
 - Role: quote | Top candidates: [none] | Selected: [none] | Claim IDs: [none] | Receipt revision: not available | Rejected stronger candidates: [none]
   - No-fit reason: No customer proof selected because the selector evaluated the current connector-bound proof inventory and found no article-relevant approved customer proof for this role; public copy must omit customer proof, named customer claims, review stories, exact quotes, testimonials, and customer metrics for the unsupported role.
 - Role: theme | Top candidates: [none] | Selected: [none] | Claim IDs: [none] | Receipt revision: not available | Rejected stronger candidates: [none]
@@ -329,6 +329,18 @@
 - Decision: update
 - Status: scheduled
 
+## Semrush Prior Evidence Reuse Authorization
+
+- Status: authorized_by_user
+- User instruction date: 2026-09-25
+- Authorized stale rule: semrush_keyword_decision_stale
+- Keyword decision artifact: `research/semrush-keyword-decision-best-field-service-management-software-2026-09-24.json`
+- Collection date: 2026-09-24
+- Assembly date: 2026-09-25
+- Scope: FieldEdge evidence correction only; no keyword metrics, query selection, Semrush-derived public claims, or commercial-pillar decisions changed in this correction.
+- Reuse boundary: the keyword decision remains a 2026-09-24 authenticated main-Chrome Semrush artifact and must not be described as recollected on 2026-09-25.
+- Status rationale: Patrick directed the workflow to continue because Semrush had already been completed; the current correction removes unsupported FieldEdge automation evidence and does not alter keyword targeting.
+
 ## Author and Schema Decision
 
 - Author policy: no_author
@@ -417,18 +429,18 @@
     "canonical_sha256": "85f56d1be1fd2e0cfdf447d69b77bfc2ad0f57f7d839d561afc7e4ad22d3af74",
     "file": "context-pack-best-field-service-management-software-2026-09-25.json",
     "schema": "simpro-product-context-pack/v2",
-    "sha256": "9ff9308bde0dd74db8fea030d30c8211958f9a96749132644560e349b0e3260a"
+    "sha256": "a1fc15716e997e0ad46be71cbc7c09f55cec114f4bb6e0796818f8b72e004149"
   },
   "receipt": {
-    "canonical_sha256": "9fbe6a5dd3abe20bff391bfb5b8af18241f60d811b58cd69da1f10064ec89dba",
+    "canonical_sha256": "1870a60f42e2cbd65554ab84502d819bf900a2e0c5050cd55e698d7b8ce8f4bc",
     "file": "context-receipt-best-field-service-management-software-2026-09-25.json",
     "schema": "simpro-context-receipt/v1",
-    "sha256": "475083efcb869713797d2872ac2bfea9a431224e8264d34869495ca2f14cb097"
+    "sha256": "8226153e0e8c7b9ac02dfeee0636b4a99dc9b813ba2dece31edd5a0f1222ae6a"
   },
   "repo_context": [],
   "request": {
     "file": "context-request-best-field-service-management-software-2026-09-25.json",
-    "sha256": "a5a6c36ee959fbe45f7ae5a40814c545e8410949ae5fed521cd333c340b8b83b"
+    "sha256": "0463ed1e1f053ec868a8ab5c8091e18d412e07f218c2a9e57e669ed98a277940"
   },
   "resource_ids": [
     "res-230f144aab93512e840167c4a25e60be",

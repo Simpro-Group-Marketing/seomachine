@@ -1,0 +1,479 @@
+{
+  "artifact_kind": "blog",
+  "created_at": "2026-09-25T19:53:51.701128Z",
+  "inputs": {
+    "agent_definition.content-analyzer": {
+      "bytes": 6209,
+      "path": ".claude/agents/content-analyzer.md",
+      "sha256": "682a742a280adb2ee7e5b29a5e695c7459cfbfbdfdf2f53a6c586ba4ab13d83a"
+    },
+    "agent_definition.internal-linker": {
+      "bytes": 15557,
+      "path": ".claude/agents/internal-linker.md",
+      "sha256": "2e0f6834ea62fb5e6e73af5559c3881441c566f3ee0403de5a7a721ddf7ee4d1"
+    },
+    "agent_definition.keyword-mapper": {
+      "bytes": 5070,
+      "path": ".claude/agents/keyword-mapper.md",
+      "sha256": "035ca62510ac5db64ca3064adb93cd70decbed1b8456ec975300c8a5a8e3ddc2"
+    },
+    "agent_definition.meta-creator": {
+      "bytes": 12187,
+      "path": ".claude/agents/meta-creator.md",
+      "sha256": "61299fa882a0cf6ca45fb8c46c5ac5b5b5eb9d8505f47b36ec3af0d26e386c3c"
+    },
+    "agent_definition.seo-optimizer": {
+      "bytes": 13481,
+      "path": ".claude/agents/seo-optimizer.md",
+      "sha256": "13b05b1542728fc40bb6c5831937014aece2fc7550c67755fcb91432c94a43e3"
+    },
+    "agent_output.content-analyzer": {
+      "bytes": 972,
+      "path": "research/agent-outputs/content-analyzer-best-field-service-management-software-2026-09-25.md",
+      "sha256": "b4ad7e69c1d552aef43463cdbe5704c1d10a8f8eca081e2320360ead2f21db49"
+    },
+    "agent_output.internal-linker": {
+      "bytes": 902,
+      "path": "research/agent-outputs/internal-linker-best-field-service-management-software-2026-09-25.md",
+      "sha256": "e301dfea16a07d020f87baf84720e9ff40dca35f60581656c70319bac58d715f"
+    },
+    "agent_output.keyword-mapper": {
+      "bytes": 964,
+      "path": "research/agent-outputs/keyword-mapper-best-field-service-management-software-2026-09-25.md",
+      "sha256": "766bb954dc0a8e04a54fdd31d06678db57b05bf6e0f7f2a0896a11823b694a35"
+    },
+    "agent_output.meta-creator": {
+      "bytes": 890,
+      "path": "research/agent-outputs/meta-creator-best-field-service-management-software-2026-09-25.md",
+      "sha256": "958db415337acd710d0540d5b6100cc499dc48d59671e68dd5ab4a6b26110bc9"
+    },
+    "agent_output.seo-optimizer": {
+      "bytes": 960,
+      "path": "research/agent-outputs/seo-optimizer-best-field-service-management-software-2026-09-25.md",
+      "sha256": "0063dabe68bd09a1bb2881cfb6730d0cd30f1b323c4d648c0f88a99c36274ce5"
+    },
+    "article": {
+      "bytes": 30910,
+      "path": "rewrites/best-field-service-management-software-rewrite-2026-08-28.md",
+      "sha256": "97db6792c92d63a20765a336d1546c6aa290a8bd5f62228ad15e27888b899045"
+    },
+    "assembly_bom": {
+      "bytes": 90431,
+      "path": "research/blog-release-best-field-service-management-software-2026-09-25-fieldedge-correction-final-v7/final-bom.json",
+      "sha256": "eb5bb6eae02da276a4def583083d50e4509db65a2418eb107f0993d66203a0a0"
+    },
+    "command_definition.optimize-command": {
+      "bytes": 9642,
+      "path": ".claude/commands/optimize.md",
+      "sha256": "eae5f99fd706f0cd6f80601d085f059b910f21d9dda4fb13ca4fc02d10f85fdb"
+    },
+    "command_definition.rewrite-command": {
+      "bytes": 11160,
+      "path": ".claude/commands/rewrite.md",
+      "sha256": "d5e67bfc2330f1eb07dc412bb026fddc2868c18173abc67d15356da87c73ccad"
+    },
+    "commercial_pillar_index": {
+      "bytes": 7538,
+      "path": "context/commercial-pillar-index.json",
+      "sha256": "ecff75718c08f282924dee1dc60f8dd265b9f3910807709f5fd2f6cf570143b9"
+    },
+    "content_brief": {
+      "bytes": 37317,
+      "path": "research/content-brief-best-field-service-management-software-2026-08-28.md",
+      "sha256": "55ba252af6e72460c57e44e5d2d181dde211b211d01fe610aaeaba33b30db47b"
+    },
+    "context_pack": {
+      "bytes": 235591,
+      "path": "research/context-pack-best-field-service-management-software-2026-09-25.json",
+      "sha256": "a1fc15716e997e0ad46be71cbc7c09f55cec114f4bb6e0796818f8b72e004149"
+    },
+    "context_receipt": {
+      "bytes": 75966,
+      "path": "research/context-receipt-best-field-service-management-software-2026-09-25.json",
+      "sha256": "8226153e0e8c7b9ac02dfeee0636b4a99dc9b813ba2dece31edd5a0f1222ae6a"
+    },
+    "context_request": {
+      "bytes": 3784,
+      "path": "research/context-request-best-field-service-management-software-2026-09-25.json",
+      "sha256": "0463ed1e1f053ec868a8ab5c8091e18d412e07f218c2a9e57e669ed98a277940"
+    },
+    "customer_proof_index": {
+      "bytes": 131987,
+      "path": "context/customer-proof-index.json",
+      "sha256": "1d4517736447f0b4b0ee101e52f9d3d034854fc28ba7ff132a6bb83178d10fba"
+    },
+    "customer_proof_selector_evidence": {
+      "bytes": 3888,
+      "path": "research/customer-proof-selector-evidence-best-field-service-management-software-2026-09-25.json",
+      "sha256": "d89fed31a0a7638a792337a0b06bf59a9e7d89942dda37094e89c49574ce0319"
+    },
+    "customer_proof_usage_ledger": {
+      "bytes": 24199,
+      "path": "context/customer-proof-usage-ledger.json",
+      "sha256": "3e7225de71102ecbbb36fbce7a2a34cf2d66a885042d38ea1d4e724387b4b08d"
+    },
+    "editorial_plan": {
+      "bytes": 29060,
+      "path": "research/editorial-plan-best-field-service-management-software-2026-09-25.json",
+      "sha256": "10f6839fe02ab42eedf3083e3a18c418546ae2203e39d4d0937ab9573c4db3b1"
+    },
+    "fred_authority_evidence": {
+      "bytes": 1563,
+      "path": "research/fred-authority-selector-evidence-best-field-service-management-software-2026-09-25.md",
+      "sha256": "77cb1cb40dbf0f4a6fff3b0b452b25a43011b38f21206e02eb1bf5e1d62a817e"
+    },
+    "hindsight_strategy_evidence": {
+      "bytes": 66106,
+      "path": "research/hindsight-strategy-evidence-best-field-service-management-software-2026-09-25.json",
+      "sha256": "326ba499644929e93bdf19b2ca0ad2ef7f451816e23526e78cfd93bc2e06c029"
+    },
+    "historical_preflight.agent_definition.content-analyzer": {
+      "bytes": 6209,
+      "path": ".claude/agents/content-analyzer.md",
+      "sha256": "682a742a280adb2ee7e5b29a5e695c7459cfbfbdfdf2f53a6c586ba4ab13d83a"
+    },
+    "historical_preflight.agent_definition.internal-linker": {
+      "bytes": 15557,
+      "path": ".claude/agents/internal-linker.md",
+      "sha256": "2e0f6834ea62fb5e6e73af5559c3881441c566f3ee0403de5a7a721ddf7ee4d1"
+    },
+    "historical_preflight.agent_definition.keyword-mapper": {
+      "bytes": 5070,
+      "path": ".claude/agents/keyword-mapper.md",
+      "sha256": "035ca62510ac5db64ca3064adb93cd70decbed1b8456ec975300c8a5a8e3ddc2"
+    },
+    "historical_preflight.agent_definition.meta-creator": {
+      "bytes": 12187,
+      "path": ".claude/agents/meta-creator.md",
+      "sha256": "61299fa882a0cf6ca45fb8c46c5ac5b5b5eb9d8505f47b36ec3af0d26e386c3c"
+    },
+    "historical_preflight.agent_definition.seo-optimizer": {
+      "bytes": 13481,
+      "path": ".claude/agents/seo-optimizer.md",
+      "sha256": "13b05b1542728fc40bb6c5831937014aece2fc7550c67755fcb91432c94a43e3"
+    },
+    "historical_preflight.agent_output.content-analyzer": {
+      "bytes": 972,
+      "path": "research/agent-outputs/content-analyzer-best-field-service-management-software-2026-09-25.md",
+      "sha256": "b4ad7e69c1d552aef43463cdbe5704c1d10a8f8eca081e2320360ead2f21db49"
+    },
+    "historical_preflight.agent_output.internal-linker": {
+      "bytes": 902,
+      "path": "research/agent-outputs/internal-linker-best-field-service-management-software-2026-09-25.md",
+      "sha256": "e301dfea16a07d020f87baf84720e9ff40dca35f60581656c70319bac58d715f"
+    },
+    "historical_preflight.agent_output.keyword-mapper": {
+      "bytes": 964,
+      "path": "research/agent-outputs/keyword-mapper-best-field-service-management-software-2026-09-25.md",
+      "sha256": "766bb954dc0a8e04a54fdd31d06678db57b05bf6e0f7f2a0896a11823b694a35"
+    },
+    "historical_preflight.agent_output.meta-creator": {
+      "bytes": 890,
+      "path": "research/agent-outputs/meta-creator-best-field-service-management-software-2026-09-25.md",
+      "sha256": "958db415337acd710d0540d5b6100cc499dc48d59671e68dd5ab4a6b26110bc9"
+    },
+    "historical_preflight.agent_output.seo-optimizer": {
+      "bytes": 960,
+      "path": "research/agent-outputs/seo-optimizer-best-field-service-management-software-2026-09-25.md",
+      "sha256": "0063dabe68bd09a1bb2881cfb6730d0cd30f1b323c4d648c0f88a99c36274ce5"
+    },
+    "historical_preflight.article": {
+      "bytes": 30910,
+      "path": "rewrites/best-field-service-management-software-rewrite-2026-08-28.md",
+      "sha256": "97db6792c92d63a20765a336d1546c6aa290a8bd5f62228ad15e27888b899045"
+    },
+    "historical_preflight.assembly_bom": {
+      "bytes": 67131,
+      "path": "research/blog-release-best-field-service-management-software-2026-09-25-fieldedge-correction-final-v7/provisional-bom.json",
+      "sha256": "f02ea54da4ddaf0c76a3b6434fa193b04487220d4df49b4b6964939ae1fcea0f"
+    },
+    "historical_preflight.command_definition.optimize-command": {
+      "bytes": 9642,
+      "path": ".claude/commands/optimize.md",
+      "sha256": "eae5f99fd706f0cd6f80601d085f059b910f21d9dda4fb13ca4fc02d10f85fdb"
+    },
+    "historical_preflight.command_definition.rewrite-command": {
+      "bytes": 11160,
+      "path": ".claude/commands/rewrite.md",
+      "sha256": "d5e67bfc2330f1eb07dc412bb026fddc2868c18173abc67d15356da87c73ccad"
+    },
+    "historical_preflight.commercial_pillar_index": {
+      "bytes": 7538,
+      "path": "context/commercial-pillar-index.json",
+      "sha256": "ecff75718c08f282924dee1dc60f8dd265b9f3910807709f5fd2f6cf570143b9"
+    },
+    "historical_preflight.content_brief": {
+      "bytes": 37317,
+      "path": "research/content-brief-best-field-service-management-software-2026-08-28.md",
+      "sha256": "55ba252af6e72460c57e44e5d2d181dde211b211d01fe610aaeaba33b30db47b"
+    },
+    "historical_preflight.context_pack": {
+      "bytes": 235591,
+      "path": "research/context-pack-best-field-service-management-software-2026-09-25.json",
+      "sha256": "a1fc15716e997e0ad46be71cbc7c09f55cec114f4bb6e0796818f8b72e004149"
+    },
+    "historical_preflight.context_receipt": {
+      "bytes": 75966,
+      "path": "research/context-receipt-best-field-service-management-software-2026-09-25.json",
+      "sha256": "8226153e0e8c7b9ac02dfeee0636b4a99dc9b813ba2dece31edd5a0f1222ae6a"
+    },
+    "historical_preflight.context_request": {
+      "bytes": 3784,
+      "path": "research/context-request-best-field-service-management-software-2026-09-25.json",
+      "sha256": "0463ed1e1f053ec868a8ab5c8091e18d412e07f218c2a9e57e669ed98a277940"
+    },
+    "historical_preflight.customer_proof_index": {
+      "bytes": 131987,
+      "path": "context/customer-proof-index.json",
+      "sha256": "1d4517736447f0b4b0ee101e52f9d3d034854fc28ba7ff132a6bb83178d10fba"
+    },
+    "historical_preflight.customer_proof_selector_evidence": {
+      "bytes": 3888,
+      "path": "research/customer-proof-selector-evidence-best-field-service-management-software-2026-09-25.json",
+      "sha256": "d89fed31a0a7638a792337a0b06bf59a9e7d89942dda37094e89c49574ce0319"
+    },
+    "historical_preflight.customer_proof_usage_ledger": {
+      "bytes": 24199,
+      "path": "context/customer-proof-usage-ledger.json",
+      "sha256": "3e7225de71102ecbbb36fbce7a2a34cf2d66a885042d38ea1d4e724387b4b08d"
+    },
+    "historical_preflight.editorial_plan": {
+      "bytes": 29060,
+      "path": "research/editorial-plan-best-field-service-management-software-2026-09-25.json",
+      "sha256": "10f6839fe02ab42eedf3083e3a18c418546ae2203e39d4d0937ab9573c4db3b1"
+    },
+    "historical_preflight.fred_authority_evidence": {
+      "bytes": 1563,
+      "path": "research/fred-authority-selector-evidence-best-field-service-management-software-2026-09-25.md",
+      "sha256": "77cb1cb40dbf0f4a6fff3b0b452b25a43011b38f21206e02eb1bf5e1d62a817e"
+    },
+    "historical_preflight.hindsight_strategy_evidence": {
+      "bytes": 66106,
+      "path": "research/hindsight-strategy-evidence-best-field-service-management-software-2026-09-25.json",
+      "sha256": "326ba499644929e93bdf19b2ca0ad2ef7f451816e23526e78cfd93bc2e06c029"
+    },
+    "historical_preflight.keyword_decision": {
+      "bytes": 11748,
+      "path": "research/semrush-keyword-decision-best-field-service-management-software-2026-09-24.json",
+      "sha256": "e12d8349c6fbe034bd71c35cde877564a8bcae0bb45bf369c778544701e6b8d3"
+    },
+    "historical_preflight.machine_reviews.article": {
+      "bytes": 1576,
+      "path": "research/machine-review-article-best-field-service-management-software-2026-09-25.json",
+      "sha256": "d6df920bd2d8309a7dc383416ed2bf0161d433a897d1013de0ec345fba3fabca"
+    },
+    "historical_preflight.machine_reviews.plan": {
+      "bytes": 1573,
+      "path": "research/machine-review-plan-best-field-service-management-software-2026-09-25.json",
+      "sha256": "6f7f75662f32a681d4508f3aa4c2d6568e99f6b339a46382251b372cc70cee04"
+    },
+    "historical_preflight.optimizer_outputs[0]": {
+      "bytes": 24746,
+      "path": "research/optimizer-output-best-field-service-management-software-2026-09-25.json",
+      "sha256": "6af8858219ea3095215511377f0a04b247965516cd7421ddefe9602f231e53f3"
+    },
+    "historical_preflight.plan_fulfillment": {
+      "bytes": 17597,
+      "path": "research/blog-plan-fulfillment-best-field-service-management-software-2026-09-25.json",
+      "sha256": "064beccebc82b9689f4192f0fbaafc970027eae1b7f0510b94763de9e8fd198c"
+    },
+    "historical_preflight.prior_preflight_readiness": {
+      "bytes": 34328,
+      "path": "research/blog-release-best-field-service-management-software-2026-09-25-fieldedge-correction-initial-v14/preflight-readiness.json",
+      "sha256": "60816e5bae38f3c08230ae6bfcbdde3a6da2631b7a667d5a64ed0e13bae1a7f4"
+    },
+    "historical_preflight.serp_evidence": {
+      "bytes": 4137,
+      "path": "research/serp-evidence-best-field-service-management-software-2026-09-25.json",
+      "sha256": "7aaa6e82322d842d4e3b22b7f5ea13171811deb362637aa045766e19c5ccb7f8"
+    },
+    "historical_preflight.serp_raw_capture": {
+      "bytes": 5226,
+      "path": "research/serp-raw-best-field-service-management-software-2026-09-25-playwright.json",
+      "sha256": "ecd11970d5c9f0f1892ea0e820f51727024835127cde77d6f68a69a8ce076edc"
+    },
+    "historical_preflight.source_decision_registry": {
+      "bytes": 10611,
+      "path": "context/source-classification-decisions.json",
+      "sha256": "e20c3037211966d7ef3972619c28b8e6fe472a5acc0e32bf5b3abf7e20757707"
+    },
+    "historical_preflight.stage_evidence[0]": {
+      "bytes": 364,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-initial-scrub-evidence.json",
+      "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+    },
+    "historical_preflight.stage_evidence[1]": {
+      "bytes": 2755,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-initial-context-binding-evidence.json",
+      "sha256": "c874681d4842aef9c03c1501ca58087853907b7056778c7e4c4af3460f2dc392"
+    },
+    "historical_preflight.stage_evidence[2]": {
+      "bytes": 364,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-post-optimization-scrub-v2-evidence.json",
+      "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+    },
+    "historical_preflight.stage_evidence[3]": {
+      "bytes": 2755,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-post-optimization-context-binding-v2-evidence.json",
+      "sha256": "c874681d4842aef9c03c1501ca58087853907b7056778c7e4c4af3460f2dc392"
+    },
+    "historical_preflight.stage_receipts[0]": {
+      "bytes": 1344,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-draft.json",
+      "sha256": "0834260bb1489ea012391e31a28699e69971bef8bb7c79390ca7277de3505bed"
+    },
+    "historical_preflight.stage_receipts[1]": {
+      "bytes": 1236,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-initial-scrub.json",
+      "sha256": "16c4eed3199b396ff0ab01e84988d9ea9705718b85e5954eba4602bc5f188d81"
+    },
+    "historical_preflight.stage_receipts[2]": {
+      "bytes": 1618,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-initial-context-binding.json",
+      "sha256": "e88eacb5f466c6cc0caf8e0f912b27f56c4748db379109dd4d1afe2887df59c0"
+    },
+    "historical_preflight.stage_receipts[3]": {
+      "bytes": 7693,
+      "path": "research/blog-release-best-field-service-management-software-2026-09-25-fieldedge-correction-initial-v14/preflight-readiness-stage-receipt.json",
+      "sha256": "ecd6bc61ccb6f9084df66aa6c7c911a32c1c339a832408919b4d84e323139ae3"
+    },
+    "historical_preflight.stage_receipts[4]": {
+      "bytes": 2497,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-optimization-v3.json",
+      "sha256": "ed190e016ebe5ace3c399cf42516a1f5b5c4b44e36b669bed3478bec2d65ed72"
+    },
+    "historical_preflight.stage_receipts[5]": {
+      "bytes": 1254,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-post-optimization-scrub-v2.json",
+      "sha256": "ae8614a3b5bd98695052ea94b928e0920455c20d53b4e735210f85956eac0450"
+    },
+    "historical_preflight.stage_receipts[6]": {
+      "bytes": 1636,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-post-optimization-context-binding-v2.json",
+      "sha256": "09169d3813ff9091cd73cf87f6ddd5e9fde40786afc0f25ae0676a6bdbebb5ae"
+    },
+    "historical_preflight.validation_sidecar": {
+      "bytes": 64210,
+      "path": "research/validation-best-field-service-management-software-2026-09-25.md",
+      "sha256": "a3b84197789773ebc06a8363472615d5674462d9a94667b4543b8da630d717ec"
+    },
+    "keyword_decision": {
+      "bytes": 11748,
+      "path": "research/semrush-keyword-decision-best-field-service-management-software-2026-09-24.json",
+      "sha256": "e12d8349c6fbe034bd71c35cde877564a8bcae0bb45bf369c778544701e6b8d3"
+    },
+    "machine_reviews.article": {
+      "bytes": 1576,
+      "path": "research/machine-review-article-best-field-service-management-software-2026-09-25.json",
+      "sha256": "d6df920bd2d8309a7dc383416ed2bf0161d433a897d1013de0ec345fba3fabca"
+    },
+    "machine_reviews.plan": {
+      "bytes": 1573,
+      "path": "research/machine-review-plan-best-field-service-management-software-2026-09-25.json",
+      "sha256": "6f7f75662f32a681d4508f3aa4c2d6568e99f6b339a46382251b372cc70cee04"
+    },
+    "optimizer_outputs[0]": {
+      "bytes": 24746,
+      "path": "research/optimizer-output-best-field-service-management-software-2026-09-25.json",
+      "sha256": "6af8858219ea3095215511377f0a04b247965516cd7421ddefe9602f231e53f3"
+    },
+    "plan_fulfillment": {
+      "bytes": 17597,
+      "path": "research/blog-plan-fulfillment-best-field-service-management-software-2026-09-25.json",
+      "sha256": "064beccebc82b9689f4192f0fbaafc970027eae1b7f0510b94763de9e8fd198c"
+    },
+    "preflight_readiness": {
+      "bytes": 37212,
+      "path": "research/blog-release-best-field-service-management-software-2026-09-25-fieldedge-correction-final-v7/preflight-readiness.json",
+      "sha256": "3dd5d70b067759716db264f8dbad9e37e137be4dfe4a5be4977243f0642b4915"
+    },
+    "prior_preflight_readiness": {
+      "bytes": 34328,
+      "path": "research/blog-release-best-field-service-management-software-2026-09-25-fieldedge-correction-initial-v14/preflight-readiness.json",
+      "sha256": "60816e5bae38f3c08230ae6bfcbdde3a6da2631b7a667d5a64ed0e13bae1a7f4"
+    },
+    "serp_evidence": {
+      "bytes": 4137,
+      "path": "research/serp-evidence-best-field-service-management-software-2026-09-25.json",
+      "sha256": "7aaa6e82322d842d4e3b22b7f5ea13171811deb362637aa045766e19c5ccb7f8"
+    },
+    "serp_raw_capture": {
+      "bytes": 5226,
+      "path": "research/serp-raw-best-field-service-management-software-2026-09-25-playwright.json",
+      "sha256": "ecd11970d5c9f0f1892ea0e820f51727024835127cde77d6f68a69a8ce076edc"
+    },
+    "source_decision_registry": {
+      "bytes": 10611,
+      "path": "context/source-classification-decisions.json",
+      "sha256": "e20c3037211966d7ef3972619c28b8e6fe472a5acc0e32bf5b3abf7e20757707"
+    },
+    "stage_evidence[0]": {
+      "bytes": 364,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-initial-scrub-evidence.json",
+      "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+    },
+    "stage_evidence[1]": {
+      "bytes": 2755,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-initial-context-binding-evidence.json",
+      "sha256": "c874681d4842aef9c03c1501ca58087853907b7056778c7e4c4af3460f2dc392"
+    },
+    "stage_evidence[2]": {
+      "bytes": 364,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-post-optimization-scrub-v2-evidence.json",
+      "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+    },
+    "stage_evidence[3]": {
+      "bytes": 2755,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-post-optimization-context-binding-v2-evidence.json",
+      "sha256": "c874681d4842aef9c03c1501ca58087853907b7056778c7e4c4af3460f2dc392"
+    },
+    "stage_receipts[0]": {
+      "bytes": 1344,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-draft.json",
+      "sha256": "0834260bb1489ea012391e31a28699e69971bef8bb7c79390ca7277de3505bed"
+    },
+    "stage_receipts[1]": {
+      "bytes": 1236,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-initial-scrub.json",
+      "sha256": "16c4eed3199b396ff0ab01e84988d9ea9705718b85e5954eba4602bc5f188d81"
+    },
+    "stage_receipts[2]": {
+      "bytes": 1618,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-initial-context-binding.json",
+      "sha256": "e88eacb5f466c6cc0caf8e0f912b27f56c4748db379109dd4d1afe2887df59c0"
+    },
+    "stage_receipts[3]": {
+      "bytes": 7693,
+      "path": "research/blog-release-best-field-service-management-software-2026-09-25-fieldedge-correction-initial-v14/preflight-readiness-stage-receipt.json",
+      "sha256": "ecd6bc61ccb6f9084df66aa6c7c911a32c1c339a832408919b4d84e323139ae3"
+    },
+    "stage_receipts[4]": {
+      "bytes": 2497,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-optimization-v3.json",
+      "sha256": "ed190e016ebe5ace3c399cf42516a1f5b5c4b44e36b669bed3478bec2d65ed72"
+    },
+    "stage_receipts[5]": {
+      "bytes": 1254,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-post-optimization-scrub-v2.json",
+      "sha256": "ae8614a3b5bd98695052ea94b928e0920455c20d53b4e735210f85956eac0450"
+    },
+    "stage_receipts[6]": {
+      "bytes": 1636,
+      "path": "research/stage-receipts/best-field-service-management-software/2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-post-optimization-context-binding-v2.json",
+      "sha256": "09169d3813ff9091cd73cf87f6ddd5e9fde40786afc0f25ae0676a6bdbebb5ae"
+    },
+    "stage_receipts[7]": {
+      "bytes": 9859,
+      "path": "research/blog-release-best-field-service-management-software-2026-09-25-fieldedge-correction-final-v7/preflight-readiness-stage-receipt.json",
+      "sha256": "e9ef6574fa84f5009b6acdba47a750aa8e3f3202b889c653537d0275180643fa"
+    },
+    "validation_sidecar": {
+      "bytes": 64210,
+      "path": "research/validation-best-field-service-management-software-2026-09-25.md",
+      "sha256": "a3b84197789773ebc06a8363472615d5674462d9a94667b4543b8da630d717ec"
+    }
+  },
+  "previous_receipt_hash": "9629ea8edd76827b60988453d22a6015d48acbc0ec780c2a4a3a122dfebfddaa",
+  "run_id": "d946520a-f4f5-4a48-b11f-266852efb413",
+  "schema": "simpro-release-manifest/v1"
+}

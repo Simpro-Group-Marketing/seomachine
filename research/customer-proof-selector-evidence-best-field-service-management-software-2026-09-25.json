@@ -2,11 +2,11 @@
   "artifacts": {
     "context_pack": {
       "path": "C:\\Users\\patrick.grueschow\\fsmfe\\research\\context-pack-best-field-service-management-software-customer-selector-2026-09-25.json",
-      "sha256": "6b988cf1e81cbaa554e3a2cf2f02b520f46b88c004f8936de5228e87581ec94c"
+      "sha256": "1e69b0f2f289489aea52880bd9ebad74bfa808b3f8653718664e107b699227b4"
     },
     "context_receipt": {
       "path": "C:\\Users\\patrick.grueschow\\fsmfe\\research\\context-receipt-best-field-service-management-software-customer-selector-2026-09-25.json",
-      "sha256": "127bc5fab40a484beb6d9b6e8528f32d64b8fde3e3e3b12930d347d78ccc3189"
+      "sha256": "b7e97fcfb89315b2ecaacf657c7655a124ddfa728adb578759be3d69795b692c"
     },
     "index": {
       "path": "C:\\Users\\patrick.grueschow\\fsmfe\\context\\customer-proof-index.json",
@@ -49,7 +49,7 @@
       "claim_ids": [
         "claim-metric-MET-1482"
       ],
-      "receipt_revision": "37f890039bcc2629026d3378093d94d9ad66b93168cd3a1ef14af5ce57c6090d",
+      "receipt_revision": "8d9eb6414fd9b6fcc816cc2203c7b1f978e4e8b02c03fdec26b8cc85638a5d2f",
       "role": "metric",
       "selected_id": "none"
     },

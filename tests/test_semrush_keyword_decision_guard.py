@@ -198,6 +198,59 @@ def test_guard_rejects_stale_collection_date(tmp_path: Path):
     assert "semrush_keyword_decision_stale" in _rule_ids(findings)
 
 
+def test_authorized_prior_evidence_reuse_filters_only_stale_date(tmp_path: Path):
+    decision = _decision(tmp_path / "decision.json", collection_date="2026-08-10")
+    findings = semrush_keyword_decision_guard.check_file(decision, assembly_date="2026-08-11")
+    authorization = "\n".join(
+        [
+            "## Semrush Prior Evidence Reuse Authorization",
+            "- Status: authorized_by_user",
+            "- Authorized stale rule: semrush_keyword_decision_stale",
+            "- Keyword decision artifact: `decision.json`",
+            "- Collection date: 2026-08-10",
+            "- Assembly date: 2026-08-11",
+            "- Scope: FieldEdge evidence correction only; no keyword metrics changed.",
+        ]
+    )
+
+    filtered = semrush_keyword_decision_guard.filter_authorized_stale_findings(
+        findings,
+        authorization_text=authorization,
+        keyword_decision_path=decision,
+        assembly_date="2026-08-11",
+    )
+
+    assert filtered == []
+
+
+def test_prior_evidence_reuse_authorization_does_not_filter_other_errors(tmp_path: Path):
+    payload = _decision_payload(collection_date="2026-08-10")
+    payload["selected_primary_keyword"] = ""
+    decision = _write_json(tmp_path / "decision.json", payload)
+    findings = semrush_keyword_decision_guard.check_file(decision, assembly_date="2026-08-11")
+    authorization = "\n".join(
+        [
+            "## Semrush Prior Evidence Reuse Authorization",
+            "- Status: authorized_by_user",
+            "- Authorized stale rule: semrush_keyword_decision_stale",
+            "- Keyword decision artifact: `decision.json`",
+            "- Collection date: 2026-08-10",
+            "- Assembly date: 2026-08-11",
+            "- Scope: FieldEdge evidence correction only; no keyword metrics changed.",
+        ]
+    )
+
+    filtered = semrush_keyword_decision_guard.filter_authorized_stale_findings(
+        findings,
+        authorization_text=authorization,
+        keyword_decision_path=decision,
+        assembly_date="2026-08-11",
+    )
+
+    assert "semrush_keyword_decision_stale" not in _rule_ids(filtered)
+    assert "semrush_keyword_decision_primary_missing" in _rule_ids(filtered)
+
+
 def test_guard_rejects_missing_selected_primary_keyword(tmp_path: Path):
     payload = _decision_payload()
     payload["selected_primary_keyword"] = ""

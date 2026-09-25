@@ -100,6 +100,7 @@ def validate_plan_inputs(
     *,
     editorial_plan_path: str | Path,
     article_path: str | Path,
+    validation_sidecar_path: str | Path | None = None,
     serp_evidence_path: str | Path,
     keyword_decision_path: str | Path,
     assembly_date: date,
@@ -126,6 +127,12 @@ def validate_plan_inputs(
         keyword_decision_path,
         article_path=article_path,
         editorial_plan_path=editorial_plan_path,
+        assembly_date=assembly_date.isoformat(),
+    )
+    keyword_findings = semrush_keyword_decision_guard.filter_authorized_stale_findings(
+        keyword_findings,
+        authorization_text=_read_text(validation_sidecar_path),
+        keyword_decision_path=keyword_decision_path,
         assembly_date=assembly_date.isoformat(),
     )
     if keyword_findings:
@@ -160,6 +167,15 @@ def _load_json(path: str | Path, field: str) -> Mapping[str, Any]:
     if not isinstance(value, Mapping):
         raise ValueError(f"{field} must be a JSON object")
     return value
+
+
+def _read_text(path: str | Path | None) -> str:
+    if path is None:
+        return ""
+    try:
+        return Path(path).read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return ""
 
 
 def _validate_nonconnector_evidence(

@@ -92,10 +92,8 @@ CUSTOMER_PROOF_SELECTOR_CLAIM = {
 
 
 def write_json(path: Path, value: Any) -> None:
-    path.write_text(
-        json.dumps(value, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(json.dumps(value, indent=2, ensure_ascii=False) + "\n")
 
 
 def result_ids(rows: Any) -> set[str]:

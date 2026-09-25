@@ -1,0 +1,43 @@
+{
+  "artifact_paths": {
+    "answersocrates_blocker": null,
+    "article": "C:\\Users\\patrick.grueschow\\fsmfe\\rewrites\\best-field-service-management-software-rewrite-2026-08-28.md",
+    "content_brief": "C:\\Users\\patrick.grueschow\\fsmfe\\research\\content-brief-best-field-service-management-software-2026-08-28.md",
+    "context_pack": "C:\\Users\\patrick.grueschow\\fsmfe\\research\\context-pack-best-field-service-management-software-2026-09-25.json",
+    "context_receipt": "C:\\Users\\patrick.grueschow\\fsmfe\\research\\context-receipt-best-field-service-management-software-2026-09-25.json",
+    "context_request": "C:\\Users\\patrick.grueschow\\fsmfe\\research\\context-request-best-field-service-management-software-2026-09-25.json",
+    "customer_proof_evidence": "C:\\Users\\patrick.grueschow\\fsmfe\\research\\customer-proof-selector-evidence-best-field-service-management-software-2026-09-25.json",
+    "editorial_plan": "C:\\Users\\patrick.grueschow\\fsmfe\\research\\editorial-plan-best-field-service-management-software-2026-09-25.json",
+    "fred_authority_evidence": "C:\\Users\\patrick.grueschow\\fsmfe\\research\\fred-authority-selector-evidence-best-field-service-management-software-2026-09-25.md",
+    "keyword_decision": "C:\\Users\\patrick.grueschow\\fsmfe\\research\\semrush-keyword-decision-best-field-service-management-software-2026-09-24.json",
+    "output": "C:\\Users\\patrick.grueschow\\fsmfe\\research\\blog-release-best-field-service-management-software-2026-09-25-fieldedge-correction-final-v7\\pre-bom-report.json",
+    "paa_artifact": null,
+    "proof_sidecar": "C:\\Users\\patrick.grueschow\\fsmfe\\research\\validation-best-field-service-management-software-2026-09-25.md",
+    "scrub_receipt": "C:\\Users\\patrick.grueschow\\fsmfe\\research\\stage-receipts\\best-field-service-management-software\\2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-post-optimization-scrub-v2.json",
+    "semrush_blocker": null,
+    "serp_evidence": "C:\\Users\\patrick.grueschow\\fsmfe\\research\\serp-evidence-best-field-service-management-software-2026-09-25.json",
+    "stage_receipts": [
+      "C:\\Users\\patrick.grueschow\\fsmfe\\research\\stage-receipts\\best-field-service-management-software\\2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-draft.json",
+      "C:\\Users\\patrick.grueschow\\fsmfe\\research\\stage-receipts\\best-field-service-management-software\\2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-initial-scrub.json",
+      "C:\\Users\\patrick.grueschow\\fsmfe\\research\\stage-receipts\\best-field-service-management-software\\2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-initial-context-binding.json",
+      "C:\\Users\\patrick.grueschow\\fsmfe\\research\\blog-release-best-field-service-management-software-2026-09-25-fieldedge-correction-initial-v14\\preflight-readiness-stage-receipt.json",
+      "C:\\Users\\patrick.grueschow\\fsmfe\\research\\stage-receipts\\best-field-service-management-software\\2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-optimization-v3.json",
+      "C:\\Users\\patrick.grueschow\\fsmfe\\research\\stage-receipts\\best-field-service-management-software\\2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-post-optimization-scrub-v2.json",
+      "C:\\Users\\patrick.grueschow\\fsmfe\\research\\stage-receipts\\best-field-service-management-software\\2026-09-25-d946520a-f4f5-4a48-b11f-266852efb413-fieldedge-correction-post-optimization-context-binding-v2.json"
+    ],
+    "user_paa_csv": null
+  },
+  "blockers": [],
+  "next_required_commands": [],
+  "ready_for_bom": true,
+  "required_human_inputs": [],
+  "schema": "simpro-blog-creation-preflight/v1",
+  "warnings": [
+    {
+      "artifact": "eeat_strength",
+      "message": "Commercial-investigation article has no positive E-E-A-T signal; the sidecar explicitly records proof_unavailable_safe_to_publish.",
+      "rule_id": "eeat_strength_safe_but_weak",
+      "suggestion": "Publish may proceed, but strengthen the article when selected customer proof, a named author, Fred authority, review-theme evidence, or SME review becomes available."
+    }
+  ]
+}

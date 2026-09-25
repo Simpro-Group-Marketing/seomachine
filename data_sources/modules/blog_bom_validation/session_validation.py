@@ -139,7 +139,7 @@ def _plan_findings(
         brief_sha256=brief.sha256 if brief is not None else None,
         workspace_root=root,
     )
-    findings.extend(guard["semrush_keyword_decision_guard"].check_decision(
+    keyword_findings = guard["semrush_keyword_decision_guard"].check_decision(
         captured.json_row_copy(
             artifacts_row(captured, "keyword_decision"),
             field="artifacts.keyword_decision",
@@ -149,7 +149,19 @@ def _plan_findings(
         editorial_plan_path=plan_path,
         editorial_plan=plan,
         assembly_date=str(bom.get("assembly_date") or ""),
-    ))
+    )
+    keyword_findings = guard[
+        "semrush_keyword_decision_guard"
+    ].filter_authorized_stale_findings(
+        keyword_findings,
+        authorization_text=blog_assembly_bom_snapshot.optional_text(
+            captured,
+            "validation_sidecar",
+        ) or "",
+        keyword_decision_path=keyword_path,
+        assembly_date=str(bom.get("assembly_date") or ""),
+    )
+    findings.extend(keyword_findings)
     return findings
 
 

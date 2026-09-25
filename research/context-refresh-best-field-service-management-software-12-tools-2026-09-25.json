@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-09-25T18:24:29.269005Z",
+  "generated_at": "2026-09-25T19:06:45.032623Z",
   "object": {
     "bytes": 720783,
-    "path": "research/.objects/context-traces/v1/sha256/dd/dd9608cb1e0347ed6a337c0d7f2e766f1fc125490fba22ac15087965fe3d3c3c.json",
-    "sha256": "dd9608cb1e0347ed6a337c0d7f2e766f1fc125490fba22ac15087965fe3d3c3c"
+    "path": "research/.objects/context-traces/v1/sha256/1e/1ebf75acbbc9b6f4f0a7beb665bcd5e3b20e7eba6e14fb6dd7aabebb7de12940.json",
+    "sha256": "1ebf75acbbc9b6f4f0a7beb665bcd5e3b20e7eba6e14fb6dd7aabebb7de12940"
   },
   "schema": "simpro-context-trace-pointer/v1",
   "trace_schema": "simpro-fsm-12-tool-context-refresh/v1"
