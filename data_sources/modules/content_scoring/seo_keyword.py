@@ -6,7 +6,9 @@ from .seo_constants import FENCED_CODE_BLOCK_RE
 from .seo_constants import GEO_KEYWORD_TAIL_TOKENS
 from .seo_constants import HTML_COMMENT_RE
 from .seo_constants import MARKDOWN_IMAGE_RE
+from .seo_constants import READER_MEDIA_PLACEHOLDER_RE
 from .seo_metadata import _has_meta_title_brand_suffix
+from data_sources.modules.frontmatter import split_frontmatter
 from typing import Any
 from typing import Dict
 from typing import List
@@ -106,9 +108,11 @@ class SeoKeywordMixin:
                 rf"(?<!\w){escaped}(?!\w)",
                 re.IGNORECASE,
             )
-            reader_visible = HTML_COMMENT_RE.sub("", content)
+            _, body, _ = split_frontmatter(content)
+            reader_visible = HTML_COMMENT_RE.sub("", body)
             reader_visible = FENCED_CODE_BLOCK_RE.sub("", reader_visible)
             reader_visible = MARKDOWN_IMAGE_RE.sub("", reader_visible)
+            reader_visible = READER_MEDIA_PLACEHOLDER_RE.sub("", reader_visible)
             prose = "\n".join(
                 line
                 for line in reader_visible.splitlines()

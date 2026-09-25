@@ -38,6 +38,11 @@ HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
 
 MARKDOWN_IMAGE_RE = re.compile(r"!\[[^\]]*\]\([^)]+\)")
 
+READER_MEDIA_PLACEHOLDER_RE = re.compile(
+    r"^[ \t]*\[(?:IMAGE|VIDEO) PLACEHOLDER \|[^\r\n]*\][ \t]*$",
+    re.IGNORECASE | re.MULTILINE,
+)
+
 FENCED_CODE_BLOCK_RE = re.compile(
     r"^[ \t]*(?P<fence>`{3,}|~{3,})[^\r\n]*(?:\r?\n|\Z)"
     r".*?^[ \t]*(?P=fence)[ \t]*(?:\r?\n|\Z)",
