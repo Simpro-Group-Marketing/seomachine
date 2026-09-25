@@ -157,3 +157,9 @@ mcp-gsc/token.json
 # GA4 Credentials (additional explicit entry)
 ga4-credentials.json
 google-analytics-credentials.json
+
+# Local run state and scratch files
+.run-*.env
+.testtmp-transcripts/
+.superpowers/
+download.html
