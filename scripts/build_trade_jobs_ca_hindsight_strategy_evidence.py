@@ -163,7 +163,7 @@ def main() -> int:
             "classification": "compiled_internal_strategy_pages",
             "public_use_status": "prohibited",
             "claim_support_allowed": False,
-            "approved_source_node": "wiki/sources/hindsight-simpro-intelligence-snapshot-2026-08-31.md",
+            "approved_source_node": "Hindsight Simpro intelligence snapshot 2026-08-31 (connector-resolved approved source node)",
             "snapshot_revisions": sorted(
                 {
                     match.group(1)
