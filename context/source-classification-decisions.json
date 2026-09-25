@@ -1,6 +1,6 @@
 {
   "schema": "simpro-source-classification-decisions/v1",
-  "revision": "2026-09-24",
+  "revision": "2026-09-25",
   "decisions": [
     {
       "decision_id": "icc-ibc-2024-chapter-17-special-inspections",
@@ -568,6 +568,46 @@
       "source_url": "https://www.dir.ca.gov/databases/das/aigstart.asp",
       "hostname": "www.dir.ca.gov",
       "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "bigchange-wra-2026-09-25-hse-manage-risk-steps",
+      "status": "approved",
+      "source_url": "https://www.hse.gov.uk/simple-health-safety/risk/steps-needed-to-manage-risk.htm",
+      "hostname": "www.hse.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "bigchange-wra-2026-09-25-hse-competent-person",
+      "status": "approved",
+      "source_url": "https://www.hse.gov.uk/simple-health-safety/gettinghelp/",
+      "hostname": "www.hse.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "bigchange-wra-2026-09-25-hse-ladder-safety",
+      "status": "approved",
+      "source_url": "https://www.hse.gov.uk/work-at-height/ladders/index.htm",
+      "hostname": "www.hse.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "bigchange-wra-2026-09-25-hse-risk-assessment-template",
+      "status": "approved",
+      "source_url": "https://www.hse.gov.uk/simple-health-safety/risk/risk-assessment-template-and-examples.htm",
+      "hostname": "www.hse.gov.uk",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "bigchange-wra-2026-09-25-british-safety-council-risk-assessment-certificate",
+      "status": "approved",
+      "source_url": "https://www.britsafe.org/media/ddyfkihf/british-safety-council-certificate-in-risk-assessment.pdf",
+      "hostname": "www.britsafe.org",
+      "source_class": "non_competing_expert",
       "publisher_relationship": "independent"
     }
   ]
