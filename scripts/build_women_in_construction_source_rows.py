@@ -63,6 +63,7 @@ IWPR = "https://iwpr.org/wp-content/uploads/2025/08/Women-in-Construction-QF_202
 OSHA_PPE = "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.95"
 OSHA_PPE_RULE = "https://www.osha.gov/laws-regs/federalregister/2024-12-12"
 OSHA_SANITATION = "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.51"
+NAWIC = "https://nawic.org/wic-week/"
 NCCER = "https://www.nccer.org/media/2024/01/NCCER-Fact-Sheet-Gender-Composition-of-the-Construction-Industry.pdf"
 
 # Chrome connector readbacks (2026-09-25, UTC ~19:25-19:45). Table rows are the
@@ -114,7 +115,7 @@ PDFS = {IWPR: "iwpr-women-in-construction-qf-2025", AGC: "agc-2026-workforce-sur
 AGC_DOWNLOAD = "https://www.agc.org/sites/default/files/users/user21902/2026%20Workforce%20Survey%20Analysis%20(4).pdf"
 LIVE_HTML = {NAHB: "nahb-eye-on-housing-women-share-2025", ABC: "abc-2026-workforce-shortage-release",
              OSHA_PPE: "osha-29cfr-1926-95", OSHA_PPE_RULE: "osha-fr-2024-12-12-ppe-fit-final-rule",
-             OSHA_SANITATION: "osha-29cfr-1926-51"}
+             OSHA_SANITATION: "osha-29cfr-1926-51", NAWIC: "nawic-wic-week"}
 
 BLS_CLASS = dict(source_class="primary_authority", original="original", source_date="2026-02-20",
                  freshness="current",
@@ -142,6 +143,10 @@ OSHA_FR_CLASS = dict(source_class="primary_authority", original="original", sour
                      freshness="current",
                      reason="The OSHA Federal Register final rule dated December 12, 2024 remains the governing notice for the construction PPE fit requirement effective January 13, 2025.")
 
+NAWIC_CLASS = dict(source_class="non_competing_expert", original="original", source_date="undated",
+                   freshness="historical_scoped",
+                   reason="NAWIC founded and runs Women in Construction Week, so its own WIC Week page is the original source for the event timing; the page is undated, so approval is scoped to the live text checked on " + CHECKED + ".")
+
 # Planned claims: (claim, claim_type, url, evidence, class, intended use, metric?, citation mode)
 PLANNED = [
     # Early-artifact stats table cells (one unique cell per row).
@@ -168,6 +173,7 @@ PLANNED = [
     ("5.4 percent of construction apprentices in the 37 states", "statistic", IWPR, "women are still just 5.4 percent of construction apprentices in the 37 states with data for 2015 and 2024", IWPR_CLASS, "apprenticeship section: construction-specific share", True),
     ("OSHA requires construction employers to select personal protective equipment that properly fits each affected employee", "process", OSHA_PPE, "Is selected to ensure that it properly fits each affected employee.", OSHA_REG_CLASS, "PPE fit retention section", False),
     ("OSHA's construction PPE fit rule took effect January 13, 2025", "process", OSHA_PPE_RULE, "This final rule is effective January 13, 2025.", OSHA_FR_CLASS, "PPE fit retention section", False),
+    ("held annually during the first full week of March", "factual", NAWIC, "Held annually during the first full week of March", NAWIC_CLASS, "FAQ: how to recognize women in construction", False),
     ("OSHA's construction sanitation standard sets a minimum number of jobsite toilets by crew size", "process", OSHA_SANITATION, "Toilets shall be provided for employees according to the following table", OSHA_REG_CLASS, "sanitation facilities retention section", False),
 ]
 

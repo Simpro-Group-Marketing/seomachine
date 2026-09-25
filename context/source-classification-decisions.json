@@ -681,6 +681,14 @@
       "hostname": "www.osha.gov",
       "source_class": "primary_authority",
       "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "wic-2026-09-26-nawic-wic-week",
+      "status": "approved",
+      "source_url": "https://nawic.org/wic-week/",
+      "hostname": "nawic.org",
+      "source_class": "non_competing_expert",
+      "publisher_relationship": "independent"
     }
   ]
 }
