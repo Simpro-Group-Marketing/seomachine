@@ -3,13 +3,13 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
-import subprocess
 import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from data_sources.modules.artifact_runtime.subprocesses import run_bounded_process
 from data_sources.modules.machine_review import (
     AGENT_ROSTER,
     build_machine_review,
@@ -32,9 +32,13 @@ def now() -> str:
 
 
 def repository_commit() -> str:
-    return subprocess.check_output(
-        ["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, text=True
-    ).strip()
+    result = run_bounded_process(["git", "rev-parse", "--short", "HEAD"], timeout=30, cwd=ROOT)
+    try:
+        if result.returncode != 0:
+            raise RuntimeError("git rev-parse failed")
+        return result.stdout.read_text().strip()
+    finally:
+        result.close()
 
 
 def review(phase: str) -> dict:
