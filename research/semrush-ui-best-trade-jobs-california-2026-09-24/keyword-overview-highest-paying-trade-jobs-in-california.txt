@@ -1,0 +1,201 @@
+Semrush UI capture (get_page_text, authenticated main Chrome profile)
+URL: https://www.semrush.com/analytics/keywordoverview/?q=highest+paying+trade+jobs+in+california&db=us&fid=562608
+Captured at (UTC): within the verified capture window 2026-09-24T15:40:28Z to 2026-09-24T15:49:17Z (shell clock readings bracketing the Semrush session; exact per-view minute not recorded)
+Database: us | Device: Desktop | Execution surface: semrush_ui_chrome_main_browser
+Run ID: 0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5
+Note: Semrush navigation chrome, toolbar buttons, promo banner, and SERP pagination links omitted; all data fields verbatim.
+---
+Keyword Overview:
+highest paying trade jobs in california
+United States
+Desktop
+Sep 24, 2026
+USD
+Overview
+Bulk Analysis
+National metrics
+Keyword summary
+Volume
+90
+Keyword Difficulty
+28%
+Easy
+It is quite possible to rank for this keyword. You will need quality content focused on the keyword’s intent.
+Global Volume
+110
+US
+UNITED STATES
+90
+CA
+CANADA
+10
+UK
+UNITED KINGDOM
+10
+AU
+AUSTRALIA
+0
+BE
+BELGIUM
+0
+BR
+BRAZIL
+0
+Intent
+Commercial
+Trend
+CPC
+$1.63
+Competitive Density
+0.04
+PLA
+n/a
+Ads
+n/a
+Keyword ideas
+Keyword Variations
+5
+Total Volume:
+90
+Keywords
+Volume
+KD %
+highest paying trade jobs in california
+90
+28
+highest paying trade jobs in california 2025 or 2026
+0
+n/a
+highest paying trade jobs in california 2026
+0
+n/a
+highest paying trade school jobs in california
+0
+n/a
+whats us the highest paying trade job in california
+0
+n/a
+View all 5 keywords
+Questions
+n/a
+We have no data to show.
+Keyword Strategy
+Get topics, pillar and subpages automatically
+highest paying trade jobs in california
+Intents: Informational 30%, Commercial 70%
+best trades
+Intents: Informational 33%, Commercial 67%
+highest paying trades
+Intents: Informational 36%, Commercial 64%
+what trades are there
+Intents: Informational 45%, Commercial 55%
+trades in demand
+Intents: Informational 31%, Commercial 69%
+trade jobs in demand
+View all clusters
+SERP Analysis
+Domain
+URL
+Export
+Results
+151
+SERP Features
+Sitelinks, AI Overview, Video, People also ask, Discussions and forums
+1-10
+Position on SERP
+URL
+Page AS
+Ref. Domains
+Backlinks
+Search Traffic
+URL Keywords
+AI Overview
+1
+https://www.reddit.com/r/careerguidance/comments/16dfz0s/best_trade_job/
+reddit.com
+Sitelinks
+24
+1
+1
+744
+48
+People also ask
+2
+https://www.simprogroup.com/blog/best-trade-jobs-california
+simprogroup.com
+0
+0
+0
+68
+284
+Discussions and forums
+3
+https://abcnorcal.org/highest-paying-trade-jobs/
+abcnorcal.org
+Sitelinks
+5
+4
+5
+611
+586
+4
+https://www.youtube.com/watch?v=ooWoKmqrooU
+youtube.com
+Video
+43
+7
+12
+33
+380
+5
+https://www.ziprecruiter.com/Jobs/Trades/--in-California
+ziprecruiter.com
+0
+0
+0
+3
+50
+6
+https://www.indeed.com/career-advice/finding-a-job/high-paid-trade-school-jobs-los-angeles
+indeed.com
+0
+1
+1
+127
+45
+7
+https://www.forbes.com/sites/lucianapaulise/article/high-paying-trade-skills-and-jobs/
+forbes.com
+27
+32
+61
+3.6K
+609
+8
+https://tallo.com/careers/job-search/highest-paying-trade-jobs-in-california/
+tallo.com
+10
+2
+2
+438
+201
+9
+https://www.accreditedschoolsonline.org/vocational-trade-school/highest-paying-trade-jobs/
+accreditedschoolsonline.org
+14
+15
+22
+936
+574
+10
+https://www.ziprecruiter.com/Jobs/Trades/--in-California
+ziprecruiter.com
+0
+0
+0
+3
+50
+PLA Copies
+We have no data to show.
+Ad Copies
+We have no data to show.

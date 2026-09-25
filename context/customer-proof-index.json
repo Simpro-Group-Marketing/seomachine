@@ -3157,9 +3157,63 @@
         "onboarding",
         "adoption"
       ]
+    },
+    {
+      "approval_status": "approved",
+      "approved_metrics": [],
+      "approved_quotes": [],
+      "company_size": "SME",
+      "customer": "Clearground",
+      "evidence": "The public BigChange customer story states that Clearground uses customised dynamic risk assessments and makes their completion on site mandatory so operatives consider the environment and risks before working.",
+      "industry": [
+        "grounds maintenance",
+        "facilities management",
+        "field service"
+      ],
+      "internal_source_ref": "BigChange public Clearground customer story, checked 2026-09-25",
+      "last_verified": "2026-09-25",
+      "proof_id": "bigchange-customer-story-clearground-dynamic-risk-assessments",
+      "public_copy_allowed": true,
+      "public_url": "https://www.bigchange.com/success-stories/bigchange-helps-clearground-clean-up-on-workforce-health-and-safety",
+      "region": [
+        "UK"
+      ],
+      "restrictions": [
+        "Paraphrase the workflow only with a same-paragraph public customer-story link. Do not use exact quotes, named-person attribution, metrics, certification claims, comparative superiority, or measured safety outcomes."
+      ],
+      "review_story": {
+        "business_name": "Clearground",
+        "copy_use": "Paraphrased customer-story workflow only with same-paragraph public customer-story link.",
+        "identity_display": "Clearground",
+        "identity_type": "business",
+        "objective_fit": [
+          "workplace risk assessment",
+          "dynamic risk assessment",
+          "point-of-work safety",
+          "field service compliance"
+        ],
+        "platform": "BigChange customer story",
+        "public_url": "https://www.bigchange.com/success-stories/bigchange-helps-clearground-clean-up-on-workforce-health-and-safety",
+        "role_title": "BigChange customer story",
+        "source_row_ref": "BigChange public Clearground customer story, checked 2026-09-25",
+        "story_allowed": true,
+        "verification_status": "BigChange public customer story verified 2026-09-25",
+        "workflow_story": "Facilities-maintenance business uses customised dynamic risk assessments and requires operatives to complete them on site before work."
+      },
+      "source_type": "customer_story",
+      "themes": [
+        "mandatory on-site dynamic risk assessments",
+        "field-operatives considering site conditions before work"
+      ],
+      "workflow_fit": [
+        "workplace risk assessment",
+        "dynamic risk assessment",
+        "point-of-work safety",
+        "field service compliance"
+      ]
     }
   ],
   "source_boundary": "Curated customer proof index for selection and governance. This is not the full Quote Matrix. Exact quotes, review ratings, badges, rankings, and named reviewer claims require current source verification and approval before public copy use. Review-site rows may support public E-E-A-T stories only when review_story.story_allowed is true, the row has a real person or business identity, and a usable public review URL is linked in the same public paragraph as the paraphrase. Generic review themes remain VoC research only.",
-  "updated_at": "2026-09-18",
+  "updated_at": "2026-09-25",
   "version": 1
 }

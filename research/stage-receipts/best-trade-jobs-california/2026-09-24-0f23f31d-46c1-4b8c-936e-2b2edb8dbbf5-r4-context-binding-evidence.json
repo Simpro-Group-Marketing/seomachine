@@ -1,0 +1,62 @@
+{
+  "evidence_hashes": {
+    "context_binding": "48563899e51a4069ce6152b6666792fdcc4bb05bc76196f50677ccc9fb10fd13"
+  },
+  "payload": {
+    "binding": {
+      "approval_policy_revision": "6945674b56933849678c70200ff29438700475eae6e794388bb88b6febedccb6",
+      "article": {
+        "file": "best-trade-jobs-california-rewrite-2026-09-24.md",
+        "sha256": "e182367a144daf6dc9e2680e5cd7c930d5276d089ecdfb3c2bc89003f032dae5"
+      },
+      "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+      "pack": {
+        "canonical_sha256": "adf1e629f78dd098538b165de44a280a7a2b2ad7f3d444edef64f69a2268b521",
+        "file": "context-pack-best-trade-jobs-california.json",
+        "schema": "simpro-product-context-pack/v2",
+        "sha256": "9125e6d3446d3ba949806c8862a78ac60cb053d28e8ea9d59c774a4fdd0deb6e"
+      },
+      "receipt": {
+        "canonical_sha256": "2b43b38f9fdeb72fc738fd7374985ea936ac0d4fa489fe4b218faef3280c3d29",
+        "file": "context-receipt-best-trade-jobs-california.json",
+        "schema": "simpro-context-receipt/v1",
+        "sha256": "f721c2e6e68e0a11e1f770a8e29cc25924de40e9420817dc040ffd2cf33185ea"
+      },
+      "repo_context": [],
+      "request": {
+        "file": "context-request-best-trade-jobs-california.json",
+        "sha256": "aaafbfcb882f697a1a6d3b582e7c80d886d32c44cf87f6e3ab394a82bc828a26"
+      },
+      "resource_ids": [
+        "res-e3ade596be645307ad4c1f84620ce021",
+        "res-d31f057a305f51918055120d95b76c6a",
+        "res-b34b392d22b9507089ade3fec47ee9e0",
+        "res-09ebfff123cb5c5496e60c3a759a263d",
+        "res-230f144aab93512e840167c4a25e60be",
+        "res-a5b3b47382b45490bf2bedbf16c0b76e",
+        "res-69b54745e4715d75a655d5c86ba89c59",
+        "res-dfc67c5cef87541d856a765f2747a2cb",
+        "res-f882ab230eb2563889e300d612c324bc",
+        "res-ae4607729666509bb97813e66e18590b",
+        "res-f9f9499223a15d6a901806f30fb1a8ba",
+        "res-10b97eee1de25395bbf8b904111ca4b0",
+        "res-6a89de98838b57a3821bfaeb59403191",
+        "res-a88df898c8d0538088b73be0695a65dd",
+        "res-286ca2f7150b59398497f6b341b6c9b7"
+      ],
+      "revisions": {
+        "approval_policy_revision": "6945674b56933849678c70200ff29438700475eae6e794388bb88b6febedccb6",
+        "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+        "content_revision": "a99cbdff82d2af87868df8c61287308fb24f730b2867860a5b52cacaa3f27a1c",
+        "contract_revision": "e4988a1775f0b2791163b584c36b0fd72b8ac604c448b044cc944a8a0e9934a4",
+        "inventory_revision": "6c23d93ef8eebab6d496776ceaf1e2253d7c76b32aca201b26fa077a71b9bb58",
+        "manifest_revision": "0c1ad8c0b87d90e2d7bac6e70c21a6007fa45f6f342f50520d5ec337758d867b"
+      },
+      "schema": "seomachine-context-binding/v1",
+      "task_satisfaction": "satisfied",
+      "unresolved_gaps": []
+    },
+    "claim_use_map": []
+  },
+  "schema": "simpro-blog-stage-evidence/v1"
+}

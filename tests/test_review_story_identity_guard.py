@@ -12,6 +12,9 @@ from data_sources.modules.review_story_identity_guard import (
 
 G2_URL = "https://www.g2.com/products/simpro/reviews/simpro-review-4999668"
 CAPTERRA_URL = "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/"
+BIGCHANGE_CAPTERRA_URL = (
+    "https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange"
+)
 
 
 def write_index(root: Path) -> Path:
@@ -80,6 +83,48 @@ def write_index(root: Path) -> Path:
                             "objective_fit": ["quote-to-invoice"],
                             "copy_use": "internal research only",
                             "verification_status": "missing public URL",
+                        },
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    return index_path
+
+
+def write_bigchange_index(root: Path) -> Path:
+    index_path = root / "context" / "customer-proof-index.json"
+    index_path.parent.mkdir(parents=True, exist_ok=True)
+    index_path.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "proof": [
+                    {
+                        "proof_id": "bigchange-review-capterra-owner-job-scheduling",
+                        "source_type": "review_site",
+                        "public_url": BIGCHANGE_CAPTERRA_URL,
+                        "approved_quotes": [
+                            {
+                                "quote": "Job scheduling got so much faster with JobWatch.",
+                                "status": "approved",
+                            }
+                        ],
+                        "review_story": {
+                            "story_allowed": True,
+                            "identity_type": "person",
+                            "identity_display": "Dana R",
+                            "business_name": "",
+                            "person_name": "Dana R",
+                            "role_title": "Operations Manager",
+                            "platform": "Capterra",
+                            "source_row_ref": "Capterra row 12",
+                            "public_url": BIGCHANGE_CAPTERRA_URL,
+                            "workflow_story": "Dana R describes faster job scheduling after switching to JobWatch.",
+                            "objective_fit": ["job scheduling"],
+                            "copy_use": "paraphrased E-E-A-T story with same-paragraph source link",
+                            "verification_status": "brand-captured public review source",
                         },
                     },
                 ],
@@ -310,6 +355,100 @@ class ReviewStoryIdentityGuardTests(unittest.TestCase):
             )
 
         self.assertTrue(any(finding["rule_id"] == "review_rating_claim_requires_approved_proof" for finding in findings))
+
+    def test_bigchange_capterra_story_passes_with_name_and_link_in_same_paragraph(self):
+        with TemporaryDirectory() as temp_dir:
+            index_path = write_bigchange_index(Path(temp_dir))
+            content = (
+                "# Article\n\n[Dana R's Capterra review]"
+                f"({BIGCHANGE_CAPTERRA_URL}) describes faster job scheduling with JobWatch."
+            )
+
+            findings = check_content(
+                content,
+                proof_content=sidecar(
+                    "bigchange-review-capterra-owner-job-scheduling",
+                    "Dana R",
+                    "Capterra",
+                    BIGCHANGE_CAPTERRA_URL,
+                ),
+                proof_index_path=index_path,
+            )
+
+        self.assertEqual(findings, [])
+
+    def test_bigchange_capterra_story_with_rating_phrase_fails(self):
+        with TemporaryDirectory() as temp_dir:
+            index_path = write_bigchange_index(Path(temp_dir))
+            content = (
+                "# Article\n\n[Dana R's 5.0 star Capterra review]"
+                f"({BIGCHANGE_CAPTERRA_URL}) describes faster job scheduling with JobWatch."
+            )
+
+            findings = check_content(
+                content,
+                proof_content=sidecar(
+                    "bigchange-review-capterra-owner-job-scheduling",
+                    "Dana R",
+                    "Capterra",
+                    BIGCHANGE_CAPTERRA_URL,
+                ),
+                proof_index_path=index_path,
+            )
+
+        self.assertTrue(
+            any(
+                finding["rule_id"] == "review_rating_claim_requires_approved_proof"
+                for finding in findings
+            )
+        )
+
+    def test_bigchange_capterra_exact_quote_not_in_approved_quotes_fails(self):
+        with TemporaryDirectory() as temp_dir:
+            index_path = write_bigchange_index(Path(temp_dir))
+            content = (
+                f'# Article\n\n[Dana R said on Capterra]({BIGCHANGE_CAPTERRA_URL}), '
+                '"Scheduling was a total mess before we switched."'
+            )
+
+            findings = check_content(
+                content,
+                proof_content=sidecar(
+                    "bigchange-review-capterra-owner-job-scheduling",
+                    "Dana R",
+                    "Capterra",
+                    BIGCHANGE_CAPTERRA_URL,
+                ),
+                proof_index_path=index_path,
+            )
+
+        self.assertTrue(
+            any(
+                finding["rule_id"] == "review_quote_requires_approved_quote"
+                for finding in findings
+            )
+        )
+
+    def test_bigchange_capterra_exact_quote_bound_to_approved_quotes_passes(self):
+        with TemporaryDirectory() as temp_dir:
+            index_path = write_bigchange_index(Path(temp_dir))
+            content = (
+                f'# Article\n\n[Dana R said on Capterra]({BIGCHANGE_CAPTERRA_URL}), '
+                '"Job scheduling got so much faster with JobWatch."'
+            )
+
+            findings = check_content(
+                content,
+                proof_content=sidecar(
+                    "bigchange-review-capterra-owner-job-scheduling",
+                    "Dana R",
+                    "Capterra",
+                    BIGCHANGE_CAPTERRA_URL,
+                ),
+                proof_index_path=index_path,
+            )
+
+        self.assertEqual(findings, [])
 
     def test_check_file_accepts_sidecar_and_index_paths(self):
         with TemporaryDirectory() as temp_dir:

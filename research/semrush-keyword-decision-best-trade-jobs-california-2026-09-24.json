@@ -1,0 +1,513 @@
+{
+  "brand": "Simpro",
+  "candidate_metrics": [
+    {
+      "competitive_density": 0.11,
+      "cpc": 8.85,
+      "global_volume": 80,
+      "intent": [
+        "informational",
+        "commercial"
+      ],
+      "keyword": "highest paying trades in california",
+      "keyword_difficulty": 22,
+      "keyword_difficulty_label": "Easy",
+      "results": 144,
+      "serp_features": [
+        "Sitelinks",
+        "AI Overview",
+        "Video",
+        "Discussions and forums"
+      ],
+      "target_url_position": 2,
+      "volume": 70
+    },
+    {
+      "competitive_density": 0.04,
+      "cpc": 1.63,
+      "global_volume": 110,
+      "intent": [
+        "commercial"
+      ],
+      "keyword": "highest paying trade jobs in california",
+      "keyword_difficulty": 28,
+      "keyword_difficulty_label": "Easy",
+      "results": 151,
+      "serp_features": [
+        "Sitelinks",
+        "AI Overview",
+        "Video",
+        "People also ask",
+        "Discussions and forums"
+      ],
+      "target_url_position": 2,
+      "volume": 90
+    },
+    {
+      "competitive_density": 0.13,
+      "cpc": 4.58,
+      "global_volume": 50,
+      "intent": [
+        "commercial"
+      ],
+      "keyword": "best trade jobs in california",
+      "keyword_difficulty": 9,
+      "keyword_difficulty_label": "Very easy",
+      "results": 179,
+      "serp_features": [
+        "Sitelinks",
+        "Video",
+        "Discussions and forums"
+      ],
+      "target_url_position": 2,
+      "volume": 50
+    },
+    {
+      "competitive_density": 0.3,
+      "cpc": 3.16,
+      "global_volume": 30,
+      "intent": [
+        "informational"
+      ],
+      "keyword": "trades that pay well in california",
+      "keyword_difficulty": 28,
+      "keyword_difficulty_label": "Easy",
+      "results": 141,
+      "serp_features": [
+        "Sitelinks",
+        "AI Overview",
+        "Video",
+        "People also ask",
+        "Discussions and forums"
+      ],
+      "target_url_position": 1,
+      "volume": 30
+    },
+    {
+      "cpc": 10.14,
+      "intent": [
+        "commercial"
+      ],
+      "keyword": "best trades in california",
+      "keyword_difficulty": 17,
+      "target_url_position": 2,
+      "volume": 50
+    },
+    {
+      "cpc": 5.56,
+      "intent": [
+        "informational",
+        "commercial"
+      ],
+      "keyword": "trades in california",
+      "keyword_difficulty": 22,
+      "volume": 30
+    },
+    {
+      "cpc": 0.0,
+      "keyword": "highest paid trades in california",
+      "keyword_difficulty": null,
+      "volume": 30
+    },
+    {
+      "cpc": 4.65,
+      "intent": [
+        "commercial"
+      ],
+      "keyword": "trade schools in california",
+      "keyword_difficulty": 27,
+      "volume": 1000
+    },
+    {
+      "keyword": "highest paying trade jobs",
+      "keyword_difficulty": 23,
+      "target_url_position": 19,
+      "volume": 6600
+    }
+  ],
+  "collection_date": "2026-09-24",
+  "connector_reports": [
+    {
+      "completion_basis": "Authenticated US desktop Semrush UI fields were visible in the main Chrome browser on 2026-09-24.",
+      "parameters": {
+        "collection_date": "2026-09-24",
+        "database": "us",
+        "device": "desktop",
+        "execution_surface": "semrush_ui_chrome_main_browser",
+        "query": "highest paying trades in california",
+        "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+        "ui_url": "https://www.semrush.com/analytics/keywordoverview/?q=highest+paying+trades+in+california&db=us"
+      },
+      "report": "_keyword_research",
+      "status": "completed",
+      "ui_evidence_path": "research/semrush-ui-best-trade-jobs-california-2026-09-24/keyword-overview-highest-paying-trades-in-california.txt",
+      "ui_evidence_sha256": "eaec03ffac4aa67369f73a2a3678de28d641b752f67f2660604c50d6337dc1f8"
+    },
+    {
+      "completion_basis": "Authenticated US desktop Semrush UI fields were visible in the main Chrome browser on 2026-09-24.",
+      "parameters": {
+        "collection_date": "2026-09-24",
+        "database": "us",
+        "device": "desktop",
+        "execution_surface": "semrush_ui_chrome_main_browser",
+        "report": "phrase_these",
+        "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+        "schema_source": "repo guard shape mapped to source-visible Semrush UI fields"
+      },
+      "report": "_get_report_schema",
+      "status": "completed",
+      "ui_evidence_path": "research/semrush-ui-best-trade-jobs-california-2026-09-24/keyword-overview-highest-paying-trades-in-california.txt",
+      "ui_evidence_sha256": "eaec03ffac4aa67369f73a2a3678de28d641b752f67f2660604c50d6337dc1f8"
+    },
+    {
+      "completion_basis": "Authenticated US desktop Semrush UI fields were visible in the main Chrome browser on 2026-09-24.",
+      "parameters": {
+        "collection_date": "2026-09-24",
+        "database": "us",
+        "device": "desktop",
+        "execution_surface": "semrush_ui_chrome_main_browser",
+        "keywords": [
+          "highest paying trades in california",
+          "highest paying trade jobs in california",
+          "best trade jobs in california",
+          "trades that pay well in california",
+          "best trades in california",
+          "trades in california",
+          "highest paid trades in california",
+          "trade schools in california",
+          "highest paying trade jobs"
+        ],
+        "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+        "ui_views": [
+          "keyword-overview-highest-paying-trades-in-california.txt",
+          "keyword-overview-highest-paying-trade-jobs-in-california.txt",
+          "keyword-overview-best-trade-jobs-in-california.txt",
+          "keyword-overview-trades-that-pay-well-in-california.txt"
+        ]
+      },
+      "report": "phrase_these",
+      "status": "completed",
+      "ui_evidence_path": "research/semrush-ui-best-trade-jobs-california-2026-09-24/keyword-overview-highest-paying-trades-in-california.txt",
+      "ui_evidence_sha256": "eaec03ffac4aa67369f73a2a3678de28d641b752f67f2660604c50d6337dc1f8"
+    },
+    {
+      "completion_basis": "Authenticated US desktop Semrush UI fields were visible in the main Chrome browser on 2026-09-24.",
+      "parameters": {
+        "collection_date": "2026-09-24",
+        "database": "us",
+        "device": "desktop",
+        "execution_surface": "semrush_ui_chrome_main_browser",
+        "match": "phrase",
+        "phrase": "trades in california",
+        "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+        "ui_url": "https://www.semrush.com/analytics/keywordmagic/?q=trades+in+california&db=us&type=phrase&mode=1"
+      },
+      "report": "phrase_related",
+      "status": "completed",
+      "ui_evidence_path": "research/semrush-ui-best-trade-jobs-california-2026-09-24/keyword-magic-trades-in-california-phrase.txt",
+      "ui_evidence_sha256": "2def24a2a2216a0266bd0471cb037c16ed4f4312ea3c548ce893d915ca053f6e"
+    },
+    {
+      "completion_basis": "Authenticated US desktop Semrush UI fields were visible in the main Chrome browser on 2026-09-24.",
+      "parameters": {
+        "collection_date": "2026-09-24",
+        "database": "us",
+        "device": "desktop",
+        "execution_surface": "semrush_ui_chrome_main_browser",
+        "phrase": "highest paying trades in california",
+        "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+        "ui_basis": "Keyword Overview Questions panel (1 keyword, 20 total volume) plus question-form rows in the Keyword Magic phrase-match view"
+      },
+      "report": "phrase_questions",
+      "status": "completed",
+      "ui_evidence_path": "research/semrush-ui-best-trade-jobs-california-2026-09-24/keyword-overview-highest-paying-trades-in-california.txt",
+      "ui_evidence_sha256": "eaec03ffac4aa67369f73a2a3678de28d641b752f67f2660604c50d6337dc1f8"
+    },
+    {
+      "completion_basis": "Authenticated US desktop Semrush UI fields were visible in the main Chrome browser on 2026-09-24.",
+      "parameters": {
+        "collection_date": "2026-09-24",
+        "database": "us",
+        "device": "desktop",
+        "display_limit": 10,
+        "execution_surface": "semrush_ui_chrome_main_browser",
+        "phrase": "highest paying trades in california",
+        "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+        "ui_basis": "Keyword Overview SERP Analysis positions 1-10"
+      },
+      "report": "phrase_organic",
+      "status": "completed",
+      "ui_evidence_path": "research/semrush-ui-best-trade-jobs-california-2026-09-24/keyword-overview-highest-paying-trades-in-california.txt",
+      "ui_evidence_sha256": "eaec03ffac4aa67369f73a2a3678de28d641b752f67f2660604c50d6337dc1f8"
+    },
+    {
+      "completion_basis": "Authenticated US desktop Semrush UI fields were visible in the main Chrome browser on 2026-09-24.",
+      "parameters": {
+        "collection_date": "2026-09-24",
+        "database": "us",
+        "device": "desktop",
+        "execution_surface": "semrush_ui_chrome_main_browser",
+        "phrase": "highest paying trades in california",
+        "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5"
+      },
+      "report": "phrase_this",
+      "status": "completed",
+      "ui_evidence_path": "research/semrush-ui-best-trade-jobs-california-2026-09-24/keyword-overview-highest-paying-trades-in-california.txt",
+      "ui_evidence_sha256": "eaec03ffac4aa67369f73a2a3678de28d641b752f67f2660604c50d6337dc1f8"
+    },
+    {
+      "completion_basis": "Authenticated US desktop Semrush UI fields were visible in the main Chrome browser on 2026-09-24.",
+      "parameters": {
+        "collection_date": "2026-09-24",
+        "data_date_shown": "Sep 23, 2026",
+        "database": "us",
+        "device": "desktop",
+        "execution_surface": "semrush_ui_chrome_main_browser",
+        "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+        "url": "https://www.simprogroup.com/blog/best-trade-jobs-california"
+      },
+      "report": "url_organic_target",
+      "status": "completed",
+      "ui_evidence_path": "research/semrush-ui-best-trade-jobs-california-2026-09-24/organic-positions-best-trade-jobs-california.txt",
+      "ui_evidence_sha256": "6dd2b7525974b76a7e0f6418caea901c5c7be831a33b68852e1a77a6413a9765"
+    },
+    {
+      "completion_basis": "Authenticated US desktop Semrush UI fields were visible in the main Chrome browser on 2026-09-24.",
+      "parameters": {
+        "collection_date": "2026-09-24",
+        "data_date_shown": "Sep 23, 2026",
+        "database": "us",
+        "device": "desktop",
+        "execution_surface": "semrush_ui_chrome_main_browser",
+        "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+        "url": "https://www.simprogroup.com/blog/highest-paying-trade-jobs"
+      },
+      "report": "url_organic_sibling_cannibalization",
+      "status": "completed",
+      "ui_evidence_path": "research/semrush-ui-best-trade-jobs-california-2026-09-24/organic-positions-highest-paying-trade-jobs.txt",
+      "ui_evidence_sha256": "3023fab4e51c8dfe926bd89503621b1aab9ed604a406a65fafb46c9d0621cd75"
+    },
+    {
+      "completion_basis": "Authenticated US desktop Semrush UI fields were visible in the main Chrome browser on 2026-09-24.",
+      "parameters": {
+        "collection_date": "2026-09-24",
+        "database": "us",
+        "device": "desktop",
+        "execution_surface": "semrush_ui_chrome_main_browser",
+        "match": "all_keywords_broad",
+        "phrase": "trades in california",
+        "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5"
+      },
+      "report": "phrase_fullsearch_broad",
+      "status": "completed",
+      "ui_evidence_path": "research/semrush-ui-best-trade-jobs-california-2026-09-24/keyword-magic-trades-in-california-broad.txt",
+      "ui_evidence_sha256": "6dc35ef528cac57b04314d59f283b2a7aa97f011d27b61cd2938c67a1f48e3f1"
+    }
+  ],
+  "database": "us",
+  "evidence_hash": "1662e3432ebc504ecd76fbb1824981dbc8e4d47e35075740eeb2ce301f3c54f5",
+  "execution_attestation": {
+    "algorithm": "hmac-sha256",
+    "key_id": "88df9183fcb097c1",
+    "purpose": "simpro-semrush-keyword-decision/v1",
+    "schema": "simpro-execution-attestation/v1",
+    "signature": "32c421234d649ba4961b356088358f3d6e07d356ae92d76640a78f24792f838f"
+  },
+  "market": "US",
+  "question_candidates": [
+    {
+      "keyword": "what is the highest paying trade in california",
+      "keyword_difficulty": null,
+      "volume": 20
+    },
+    {
+      "keyword": "what trades are in demand in california",
+      "keyword_difficulty": null,
+      "volume": 20
+    },
+    {
+      "keyword": "what trades pay the most in california",
+      "keyword_difficulty": null,
+      "volume": 0
+    },
+    {
+      "keyword": "what trades makes the most money in california",
+      "keyword_difficulty": null,
+      "volume": 0
+    }
+  ],
+  "rejected_keywords": [
+    {
+      "keyword": "highest paying trade jobs in california",
+      "reason": "Measured at 90 US volume and KD 28 with the target URL at position 2, but it is not a tracked secondary because the locked brief contextual keyword set is trades that pay well in california and best trade jobs in california. It is covered by the brief-locked H1 wording instead."
+    },
+    {
+      "keyword": "highest paying trade jobs",
+      "reason": "National 6.6K-volume head term without California qualification; the target URL ranks at position 19 and the sibling highest-paying-trade-jobs URL targets near-identical national intent, so it stays out of this California rewrite."
+    },
+    {
+      "keyword": "trade schools in california",
+      "reason": "Highest phrase volume in the Keyword Magic set, but school-selection intent differs from the salary-ranked trade career guide."
+    },
+    {
+      "keyword": "best trades in california",
+      "reason": "Measured close variant with the target URL at position 2; kept as natural body coverage rather than a tracked secondary."
+    }
+  ],
+  "related_candidates": [
+    {
+      "keyword": "highest paying trade in california",
+      "keyword_difficulty": null,
+      "volume": 20
+    },
+    {
+      "keyword": "best paying trades in california",
+      "keyword_difficulty": null,
+      "volume": 20
+    },
+    {
+      "keyword": "high paying trades in california",
+      "keyword_difficulty": null,
+      "volume": 20
+    },
+    {
+      "keyword": "top paying trades in california",
+      "keyword_difficulty": null,
+      "volume": 20
+    },
+    {
+      "keyword": "trades in demand in california",
+      "keyword_difficulty": null,
+      "volume": 20
+    },
+    {
+      "keyword": "best trades to learn in california",
+      "keyword_difficulty": null,
+      "volume": 20
+    },
+    {
+      "keyword": "skilled trades jobs in california",
+      "keyword_difficulty": null,
+      "volume": 20
+    },
+    {
+      "keyword": "best paying trade jobs in california",
+      "keyword_difficulty": null,
+      "volume": 20
+    },
+    {
+      "keyword": "highest paid union trades in california",
+      "keyword_difficulty": null,
+      "volume": 0
+    },
+    {
+      "keyword": "highest paying skilled trades in california",
+      "keyword_difficulty": null,
+      "volume": 0
+    },
+    {
+      "keyword": "highest paying construction trades in california",
+      "keyword_difficulty": null,
+      "volume": 0
+    }
+  ],
+  "schema": "simpro-semrush-keyword-decision/v1",
+  "seed_terms": [
+    "highest paying trades in california",
+    "highest paying trade jobs in california",
+    "best trade jobs in california",
+    "trades that pay well in california",
+    "trades in california"
+  ],
+  "selected_primary_keyword": "highest paying trades in california",
+  "selected_secondary_keywords": [
+    "trades that pay well in california",
+    "best trade jobs in california"
+  ],
+  "selection_rationale": "The authenticated US desktop Semrush UI on September 24, 2026 confirms highest paying trades in california at 70 US volume, KD 22 Easy, CPC $8.85, informational plus commercial intent, with the rewrite target ranking at position 2 in the SERP Analysis table. It matches the brief's shift toward highest-paying intent and is the locked primary keyword. The two brief contextual keywords were measured in the same UI session: trades that pay well in california (30 volume, KD 28, target URL position 1) and best trade jobs in california (50 volume, KD 9, target URL position 2). The sibling highest-paying-trade-jobs URL ranks for 7 national keywords, none California-qualified, so cannibalization risk for the California set is low, and the brief prohibits linking to it.",
+  "serp_finalists": [
+    {
+      "database": "us",
+      "keyword": "highest paying trades in california",
+      "results": [
+        {
+          "domain": "reddit.com",
+          "position": 1,
+          "position_type": "organic",
+          "triggered_serp_features": [
+            "Sitelinks"
+          ],
+          "url": "https://www.reddit.com/r/careerguidance/comments/16dfz0s/best_trade_job/"
+        },
+        {
+          "domain": "simprogroup.com",
+          "position": 2,
+          "position_type": "organic",
+          "triggered_serp_features": [],
+          "url": "https://www.simprogroup.com/blog/best-trade-jobs-california"
+        },
+        {
+          "domain": "abcnorcal.org",
+          "position": 3,
+          "position_type": "organic",
+          "triggered_serp_features": [
+            "Sitelinks"
+          ],
+          "url": "https://abcnorcal.org/highest-paying-trade-jobs/"
+        },
+        {
+          "domain": "indeed.com",
+          "position": 4,
+          "position_type": "organic",
+          "triggered_serp_features": [],
+          "url": "https://www.indeed.com/career-advice/finding-a-job/high-paid-trade-school-jobs-los-angeles"
+        },
+        {
+          "domain": "careeronestop.org",
+          "position": 5,
+          "position_type": "organic",
+          "triggered_serp_features": [],
+          "url": "https://www.careeronestop.org/Toolkit/Wages/highest-paying-careers.aspx?persist=true&location=CA"
+        },
+        {
+          "domain": "tallo.com",
+          "position": 6,
+          "position_type": "organic",
+          "triggered_serp_features": [],
+          "url": "https://tallo.com/careers/job-search/highest-paying-trade-jobs-in-california/"
+        },
+        {
+          "domain": "youtube.com",
+          "position": 7,
+          "position_type": "organic",
+          "triggered_serp_features": [
+            "Video"
+          ],
+          "url": "https://www.youtube.com/watch?v=ooWoKmqrooU"
+        },
+        {
+          "domain": "forbes.com",
+          "position": 8,
+          "position_type": "organic",
+          "triggered_serp_features": [],
+          "url": "https://www.forbes.com/sites/lucianapaulise/article/high-paying-trade-skills-and-jobs/"
+        },
+        {
+          "domain": "accreditedschoolsonline.org",
+          "position": 9,
+          "position_type": "organic",
+          "triggered_serp_features": [],
+          "url": "https://www.accreditedschoolsonline.org/vocational-trade-school/highest-paying-trade-jobs/"
+        },
+        {
+          "domain": "intercoast.edu",
+          "position": 10,
+          "position_type": "organic",
+          "triggered_serp_features": [],
+          "url": "https://www.intercoast.edu/articles/trade-skills-california/"
+        }
+      ]
+    }
+  ],
+  "source_boundary": "Semrush is third-party opportunity/SERP context; GSC remains first-party performance truth."
+}

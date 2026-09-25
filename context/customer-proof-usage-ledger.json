@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-09-17",
+  "updated_at": "2026-09-25",
   "source_boundary": "Initialized from a repo scan of drafts, rewrites, and research proof artifacts on 2026-06-12. Each entry records a detected customer proof URL occurrence so selection tooling can penalize repeated proof unless a reuse reason is documented.",
   "overuse_baselines": [
     {
@@ -434,6 +434,19 @@
       "use_type": "metric",
       "claim_summary": "Same-paragraph Schaffer Beacon Mechanical metric sentence: The field-technician team increased by 40% with no office-staff increase.",
       "reuse_reason": "Selected from receipt-bound proof inventory as the strongest approved metric substitute for operating leverage in Coreys growth thesis; public copy does not generalize the customer result into a guaranteed Simpro outcome."
+    },
+    {
+      "proof_id": "bigchange-customer-story-clearground-dynamic-risk-assessments",
+      "source_type": "customer_story",
+      "customer": "Clearground",
+      "source_url": "https://www.bigchange.com/success-stories/bigchange-helps-clearground-clean-up-on-workforce-health-and-safety",
+      "article_slug": "how-to-conduct-a-workplace-risk-assessment",
+      "artifact_path": "rewrites/workplace-risk-assessment-rewrite-2026-09-25.md",
+      "date_used": "2026-09-25",
+      "section": "How to make workplace risk assessments easier to manage",
+      "use_type": "experience_story",
+      "claim_summary": "Paraphrased Clearground workflow showing customised dynamic risk assessments completed on site before work begins.",
+      "reuse_reason": "Selected as a zero-recent-use BigChange-owned customer story with the closest fit to point-of-work risk assessment; Mardon, CC-IS, GEM and existing Capterra proof were weaker topical matches."
     }
   ]
 }

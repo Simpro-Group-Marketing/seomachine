@@ -86,6 +86,15 @@
       "observed_text_length": 9780,
       "evidence": "Job management software sits at the intersection of scheduling, field operations, and billing. The core of any system in this category handles job creation, assignment, and tracking.",
       "reason": "serchen.com returns HTTP 403 to the validator's request client. The exact guide URL loaded normally and the claim-supporting category definition was read in the main connected Chrome window."
+    },
+    {
+      "url": "https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-24T00:00:00Z",
+      "page_title": "BigChange Pricing, Cost & Reviews - Capterra UK 2026",
+      "observed_text_length": 13362,
+      "evidence": "Capterra serves the BigChange product page normally in a real browser. Loaded through the Chrome connector and read back: overall rating 4.5 based on 270 reviews, Starting Price £14.95, About the vendor: Simpro Software, and named reviewer rows including David (Director, UK, 5.0, \"Tomkinson Heating Big Change Review\") and Terry Clark (MD, UK, 2.0, \"If you are an existing company and you take on this product, expect a disappointing Big Change!!\").",
+      "reason": "capterra.co.uk returns HTTP 403 to the validator's request client. The page loads normally in the Chrome connector."
     }
   ]
 }

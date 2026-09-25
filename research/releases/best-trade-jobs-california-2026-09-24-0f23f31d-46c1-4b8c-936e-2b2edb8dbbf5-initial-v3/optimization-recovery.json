@@ -1,0 +1,18 @@
+{
+  "native_edit_status": "started",
+  "optimization_stage_receipt": "research/releases/best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-initial-v3/optimization-stage-receipt.json",
+  "optimization_state": "research/releases/best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-initial-v3/optimization-state.json",
+  "preflight_passed": true,
+  "preflight_readiness": "research/releases/best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-initial-v3/preflight-readiness.json",
+  "preflight_readiness_stage_receipt": "research/releases/best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-initial-v3/preflight-readiness-stage-receipt.json",
+  "reason": "Optimizer evidence was not supplied to the release wrapper.",
+  "required_next_steps": [
+    "Run /optimize against the article using the initial readiness output.",
+    "Write a simpro-optimizer-output/v2 artifact binding the current article, editorial plan, proof sidecar, scorecard, and prior-preflight readiness.",
+    "Rerun /scrub and Context Binding after article or sidecar changes.",
+    "Finish the optimization stage receipt if article bytes changed.",
+    "Rerun the release wrapper with --optimizer-output and --prior-preflight-readiness."
+  ],
+  "schema": "simpro-blog-optimization-recovery/v1",
+  "status": "started"
+}

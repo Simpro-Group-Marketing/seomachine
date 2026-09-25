@@ -1,0 +1,19 @@
+Semrush UI capture (DOM innerText of <main> via javascript_tool, authenticated main Chrome profile)
+URL: https://www.semrush.com/analytics/organic/positions/?db=us&q=https%3A%2F%2Fwww.simprogroup.com%2Fblog%2Fhighest-paying-trade-jobs&searchType=url
+Captured at (UTC): within the verified capture window 2026-09-24T15:40:28Z to 2026-09-24T15:49:17Z (shell clock readings bracketing the Semrush session; exact per-view minute not recorded)
+Report: Organic Rankings > Positions (exact URL) | Database: US | Date shown: Sep 23, 2026 | Currency: USD | Execution surface: semrush_ui_chrome_main_browser
+Run ID: 0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5
+Purpose: cannibalization check against the rewrite target https://www.simprogroup.com/blog/best-trade-jobs-california
+---
+Keywords | 7 | -36.36% | Traffic | 0 | 0% | Traffic Cost | $0.0 | 0%
+Organic Search Positions: | 7
+Keyword | Intent | Position | SF | Traffic | Traffic % | Volume | KD % | URL | Updated
+what is the best trade job | C | 22 | +4 | 0 | < 0.01 | 50 | 30 | www.simprogroup.com/blog/highest-paying-trade-jobs | Aug 29
+best trades to make money | C | 9 | +2 | 0 | < 0.01 | 30 | 32 | www.simprogroup.com/blog/highest-paying-trade-jobs | Aug 21
+best paid tradesmen | C | 12 | +3 | 0 | < 0.01 | 30 | 5 | www.simprogroup.com/blog/highest-paying-trade-jobs | Aug 18
+highest paying jobs in trades | C | 19 | +3 | 0 | < 0.01 | 50 | 14 | www.simprogroup.com/blog/highest-paying-trade-jobs | Aug 06
+most profitable trades | I | 28 | +3 | 0 | < 0.01 | 140 | 33 | www.simprogroup.com/blog/highest-paying-trade-jobs | Aug 14
+easy trades that pay well | I | 37 | +3 | 0 | < 0.01 | 110 | 26 | www.simprogroup.com/blog/highest-paying-trade-jobs | Aug 03
+easy trades that pay well | I | 39 | +3 | 0 | < 0.01 | 110 | 26 | www.simprogroup.com/blog/highest-paying-trade-jobs | Aug 03
+
+Observation: none of the 7 ranking keywords contains "california"; the sibling URL does not rank for the primary keyword or the CA contextual keywords in this report.

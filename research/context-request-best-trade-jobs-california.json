@@ -1,0 +1,72 @@
+{
+  "schema": "simpro-context-request/v1",
+  "task": "Build the current connector-bound context for a Simpro-owned US rewrite titled 18 Highest-Paying Trades in California to Consider in 2026.",
+  "scope": {
+    "brand": "Simpro",
+    "market": "US",
+    "region": "US",
+    "artifact_type": "blog",
+    "workflow_mode": "rewrite",
+    "title": "18 Highest-Paying Trades in California to Consider in 2026",
+    "canonical_url": "https://www.simprogroup.com/blog/best-trade-jobs-california",
+    "audience": "People in California considering a skilled-trade career, including high school graduates, career changers, and apprentices choosing a specialization",
+    "objective": "Help Californians choosing a skilled trade compare the highest-paying trades by 2025 California median pay, training route, licensing and demand, then show how licensed tradespeople grow into running their own contracting business with field service management software.",
+    "voice_requirements": [
+      "current Simpro blog voice and tone",
+      "US spelling and localization",
+      "educational, reader-first career guidance",
+      "no named author",
+      "no first-person authority language",
+      "no em dash"
+    ],
+    "product_language_requirements": [
+      "Simpro mentioned only in the conclusion and CTA",
+      "owner-path framing: licensed tradespeople growing into running a contracting business",
+      "current Simpro field service management software positioning for trade contractors",
+      "trade vertical language for electrical, plumbing, HVAC, fire, security, low voltage, and solar drawn from vault vertical guidance",
+      "no named features or add-ons",
+      "feature details require relevant source or approved claim evidence"
+    ],
+    "internal_link_ownership": [
+      "The conclusion links https://www.simprogroup.com/ with the anchor field service management software; the homepage owns the general FSM category term.",
+      "At most one industry page link, such as https://www.simprogroup.com/industries/electrical-software, supports the owner-path CTA.",
+      "Do not link https://www.simprogroup.com/blog/highest-paying-trade-jobs from this article."
+    ],
+    "intended_public_use_modes": [
+      "guidance",
+      "context",
+      "public_paraphrase",
+      "authority_support"
+    ],
+    "public_proof_boundary": "No public proof claim is proposed in this context request. Salary, training, licensing, and demand facts come from current official public sources. Before drafting any proof-sensitive product, feature, pricing, customer, ranking, rating, quote, metric, or availability statement, retrieve approved claims for that exact proposed use.",
+    "retrieval_evidence": {
+      "expansion_artifact": "research/context-refresh-best-trade-jobs-california-2026-09-24.json",
+      "expanded_source_resource_ids": [
+        "res-e3ade596be645307ad4c1f84620ce021",
+        "res-d31f057a305f51918055120d95b76c6a",
+        "res-230f144aab93512e840167c4a25e60be",
+        "res-a5b3b47382b45490bf2bedbf16c0b76e",
+        "res-f9f9499223a15d6a901806f30fb1a8ba",
+        "res-ae4607729666509bb97813e66e18590b"
+      ],
+      "expansion_followed_by_reads": [
+        "res-09ebfff123cb5c5496e60c3a759a263d",
+        "res-10b97eee1de25395bbf8b904111ca4b0",
+        "res-230f144aab93512e840167c4a25e60be",
+        "res-286ca2f7150b59398497f6b341b6c9b7",
+        "res-69b54745e4715d75a655d5c86ba89c59",
+        "res-6a89de98838b57a3821bfaeb59403191",
+        "res-a5b3b47382b45490bf2bedbf16c0b76e",
+        "res-a88df898c8d0538088b73be0695a65dd",
+        "res-ae4607729666509bb97813e66e18590b",
+        "res-b34b392d22b9507089ade3fec47ee9e0",
+        "res-d31f057a305f51918055120d95b76c6a",
+        "res-dfc67c5cef87541d856a765f2747a2cb",
+        "res-e3ade596be645307ad4c1f84620ce021",
+        "res-f882ab230eb2563889e300d612c324bc",
+        "res-f9f9499223a15d6a901806f30fb1a8ba"
+      ]
+    }
+  },
+  "requested_at": "2026-09-24"
+}

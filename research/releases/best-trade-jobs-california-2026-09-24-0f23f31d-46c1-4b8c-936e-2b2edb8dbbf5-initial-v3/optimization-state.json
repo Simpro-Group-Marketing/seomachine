@@ -1,0 +1,19 @@
+{
+  "article_existed": true,
+  "article_path": "C:/Users/patrick.grueschow/Desktop/Repos/seomachine-main/rewrites/best-trade-jobs-california-rewrite-2026-09-24.md",
+  "input_artifact_hashes": {
+    "article": "e61f4684ba4201aef8f15de9ee13ac9ca687aeef9992daa34c2658472fa5ff22",
+    "preflight_readiness": "3886c1dbb0804d26417e23d43a821d81f3cc2503688d7ec6ed597aa272e12146",
+    "preflight_readiness_receipt": "95e164b1b40bfa92d9eb127360ff8dcfba73b6aa9ec9710d656ae00cfea7156b"
+  },
+  "previous_receipt_hash": "79fdaee21cc91ed8dd1abab1e974545911ab9803d251be964f6ec926ef475330",
+  "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+  "schema": "simpro-blog-native-edit-state/v1",
+  "stage": "optimization",
+  "started_at": "2026-09-24T20:51:43.491714Z",
+  "state_hash": "b8b456ae5e64776c795e4d245f2bce8905ad0c586e4db77fb52f24f5e438f9e0",
+  "tool": {
+    "name": "optimize-command",
+    "version": "1"
+  }
+}

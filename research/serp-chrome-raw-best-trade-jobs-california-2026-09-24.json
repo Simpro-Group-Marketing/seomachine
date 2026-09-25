@@ -1,0 +1,117 @@
+{
+  "collected_at": "2026-09-24T15:49:09Z",
+  "collector": {
+    "name": "research_serp_analysis:chrome_connector",
+    "version": "1.0.0"
+  },
+  "execution_attestation": {
+    "algorithm": "hmac-sha256",
+    "key_id": "88df9183fcb097c1",
+    "purpose": "simpro-serp-raw-capture/v1",
+    "schema": "simpro-execution-attestation/v1",
+    "signature": "a3e4d89f99fd766a9dbcaf7a366356526b3210e0f346a748d8a3a79f3f1998bc"
+  },
+  "query": "highest paying trades in california",
+  "raw_response": {
+    "ai_overview": {
+      "answer_pattern": "Names elevator installers and repairers, electrical power-line installers, and aircraft mechanics as the highest-paying California trades, then lists top-paying trades with one-line role descriptions and a How to Get Started section on apprenticeships.",
+      "interpretation_boundary": "The AI Overview is a volatile observation, not proof that its rankings, salary claims, or percentage comparisons are correct. The rewrite uses only the answer shape (top 3 named trades before a ranked list) and verifies every salary figure against BLS or California EDD data independently.",
+      "simpro_cited": true,
+      "visible_citations": [
+        "https://tallo.com/careers/job-search/highest-paying-trade-jobs-in-california/",
+        "https://abcnorcal.org/highest-paying-trade-jobs/",
+        "https://www.ziprecruiter.com/Jobs/Highest-Paying-Trade/-in-Los-Angeles,CA",
+        "https://www.reddit.com/r/careerguidance/comments/16dfz0s/best_trade_job/",
+        "https://www.indeed.com/q-entry-level-trade-l-california-jobs.html",
+        "https://www.simprogroup.com/blog/best-trade-jobs-california",
+        "https://techniciansofamerica.com/blog/highest-paying-trade-jobs",
+        "https://superiorskilledtrades.com/highest-paying-trade-jobs/",
+        "https://www.ziprecruiter.com/Jobs/Best-Paying-Trade/--in-California"
+      ],
+      "visible_list_items": [
+        "Elevator Installers and Repairers",
+        "Electrical Power-Line Installers and Repairers",
+        "Aircraft Mechanics and Service Technicians",
+        "Plumbers, Pipefitters, and Steamfitters",
+        "Electricians (Commercial and Industrial)"
+      ],
+      "visible_sections": [
+        "Top-Paying Trades in California",
+        "How to Get Started"
+      ]
+    },
+    "features": [
+      "AI Overview",
+      "People also ask",
+      "People also search for"
+    ],
+    "not_observed": [
+      "Sponsored results",
+      "Video carousel",
+      "Short videos module",
+      "Discussions and forums module (the Reddit thread appeared as a standard organic result with answer counts and two sub-threads)",
+      "Images pack"
+    ],
+    "organic_results": [
+      {
+        "title": "18 Best Trade Jobs in California: Descriptions & Salaries!",
+        "url": "https://www.simprogroup.com/blog/best-trade-jobs-california"
+      },
+      {
+        "title": "Best trade job? : r/careerguidance",
+        "url": "https://www.reddit.com/r/careerguidance/comments/16dfz0s/best_trade_job/"
+      },
+      {
+        "title": "Top 10 Highest Paying Trade Jobs for 2025",
+        "url": "https://abcnorcal.org/highest-paying-trade-jobs/"
+      },
+      {
+        "title": "Highest Paying Careers",
+        "url": "https://www.careeronestop.org/Toolkit/Wages/highest-paying-careers.aspx?persist=true&location=CA"
+      },
+      {
+        "title": "22 High-Paid Trade School Jobs in Los Angeles (With ...",
+        "url": "https://www.indeed.com/career-advice/finding-a-job/high-paid-trade-school-jobs-los-angeles"
+      },
+      {
+        "title": "Highest Paying Trade Jobs in California",
+        "url": "https://tallo.com/careers/job-search/highest-paying-trade-jobs-in-california/"
+      },
+      {
+        "title": "15 Highest-Paying Trade Jobs You Can Start Now (2026)",
+        "url": "https://techniciansofamerica.com/blog/highest-paying-trade-jobs"
+      },
+      {
+        "title": "Skilled Trades Jobs: Your Guide to Construction Careers",
+        "url": "https://abcsocal.org/skilled-trades-jobs/"
+      }
+    ],
+    "paa_questions": [
+      "What jobs pay $4000 a week without a degree?",
+      "What jobs make $500,000 a year in California?",
+      "What jobs make $200,000 in California?",
+      "What job makes $10,000 a month without a degree?"
+    ],
+    "people_also_search_for": [
+      "Top 10 highest paying trades in california",
+      "Highest paying trades in california without a degree",
+      "Highest paying trades in california reddit",
+      "Highest paying trades in california without a",
+      "Trade jobs that pay $100K",
+      "Highest paying trade jobs without a degree",
+      "Highest paying trades for women",
+      "Top 10 highest-paying trade jobs without a degree"
+    ],
+    "verification_note": "Chrome showed 'Results are not personalized' on the exact hl=en, gl=us, pws=0 request. Eight organic web results appeared on page 1. Semrush SERP Analysis for the same query (US desktop, 2026-09-24) separately reports Sitelinks, AI Overview, Video, and Discussions and forums; those Semrush features are recorded in the keyword decision artifact, not here."
+  },
+  "request": {
+    "locale": {
+      "gl": "us",
+      "hl": "en",
+      "pws": "0"
+    },
+    "url": "https://www.google.com/search?q=highest+paying+trades+in+california&num=10&hl=en&gl=us&pws=0"
+  },
+  "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+  "schema": "simpro-serp-raw-capture/v1"
+}

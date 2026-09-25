@@ -1,0 +1,10 @@
+{
+  "generated_at": "2026-09-24T20:39:37.641848Z",
+  "object": {
+    "bytes": 5469459,
+    "path": "research/.objects/context-traces/v1/sha256/26/26e632ef828d173481a8d4756ce84382f37965604c8bbfa9b4b0d3b82b01c37e.json",
+    "sha256": "26e632ef828d173481a8d4756ce84382f37965604c8bbfa9b4b0d3b82b01c37e"
+  },
+  "schema": "simpro-context-trace-pointer/v1",
+  "trace_schema": "simpro-trade-jobs-ca-context-refresh/v1"
+}

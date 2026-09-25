@@ -1,0 +1,597 @@
+{
+  "artifacts": {
+    "answersocrates_blocker": null,
+    "article": {
+      "path": "rewrites/best-trade-jobs-california-rewrite-2026-09-24.md",
+      "sha256": "e61f4684ba4201aef8f15de9ee13ac9ca687aeef9992daa34c2658472fa5ff22"
+    },
+    "commercial_pillar_index": {
+      "path": "context/commercial-pillar-index.json",
+      "sha256": "d122dbbab6c9f1dfa13715345bc9278f6a33b4e81f10bc4b17d410dc5da8a6f6"
+    },
+    "content_brief": {
+      "path": "research/content-brief-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "45a7be4a7053d22ed8a98d126107b641847394ff91cb179417f58dbef91b8f1d"
+    },
+    "context_pack": {
+      "path": "research/context-pack-best-trade-jobs-california.json",
+      "sha256": "7fe07276f8788007222502bd17bae08acb3fed344ada4f474bf1cb460fd79601"
+    },
+    "context_receipt": {
+      "path": "research/context-receipt-best-trade-jobs-california.json",
+      "sha256": "00c28513ab90e4b5cd45ab91d0c9f31d0cf0a1e69300bd88f4645754cb1d7b08"
+    },
+    "context_request": {
+      "path": "research/context-request-best-trade-jobs-california.json",
+      "sha256": "717878a3fecc04f0d77ca7f05a8038654c4f574534454175f2e0e80218ac0f67"
+    },
+    "customer_proof_selector_evidence": {
+      "path": "research/customer-proof-selector-evidence-best-trade-jobs-california-decision-2026-09-24.json",
+      "sha256": "e7113d05f1cdd6423aae040851969699323e3872c05fd5ad0fe9b6b14c232d59"
+    },
+    "editorial_plan": {
+      "path": "research/editorial-plan-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "71b09b2b66f843de7e39ab0629a3bcf0a63a759623a7834d5cda404fb7c8b109"
+    },
+    "execution_evidence": {
+      "agent_definition.internal-linker": {
+        "path": ".claude/agents/internal-linker.md",
+        "sha256": "581c58941fee734748dfa449679eb42d89c09e34e18a414bfbf817af5def3f5c"
+      },
+      "agent_definition.keyword-mapper": {
+        "path": ".claude/agents/keyword-mapper.md",
+        "sha256": "714bd397b8127c8e6923aa9850d34435cf8b4badc810c3e60ea2b0057306fd4d"
+      },
+      "agent_definition.meta-creator": {
+        "path": ".claude/agents/meta-creator.md",
+        "sha256": "505168b4342ef5125d49141ae5cda34162157b5f007a5791bab9a83240750e6a"
+      },
+      "agent_definition.seo-optimizer": {
+        "path": ".claude/agents/seo-optimizer.md",
+        "sha256": "779b0c2a17ac1a9ded2147067158d51b71bef73d6adb1c0836d25a229efbbeb8"
+      },
+      "agent_output.internal-linker": {
+        "path": "research/agent-outputs/internal-linker-best-trade-jobs-california-2026-09-24.md",
+        "sha256": "a77c459d4d0580ac274dfe433f44456fb84b009ffa39fc68baa70655cf802a70"
+      },
+      "agent_output.keyword-mapper": {
+        "path": "research/agent-outputs/keyword-mapper-best-trade-jobs-california-2026-09-24.md",
+        "sha256": "a555313d57a81be347a6e7c013731d57a7108fdb82019de55a9a564d1c7403b9"
+      },
+      "agent_output.meta-creator": {
+        "path": "research/agent-outputs/meta-creator-best-trade-jobs-california-2026-09-24.md",
+        "sha256": "7736e76af2181c935c9262b57d74943331036fa034cf6b6b8a7fba990b42cd93"
+      },
+      "agent_output.seo-optimizer": {
+        "path": "research/agent-outputs/seo-optimizer-best-trade-jobs-california-2026-09-24.md",
+        "sha256": "41499f0dea67f8b747786c904de196a0b398a4a672fca932a3dbdd1d4a3d665f"
+      },
+      "command_definition.rewrite-command": {
+        "path": ".claude/commands/rewrite.md",
+        "sha256": "62258a38146b198cc564980f53166d2178298c7a73cc9988aa9be203d22e9d82"
+      }
+    },
+    "fred_authority_evidence": {
+      "path": "research/fred-authority-selector-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "d4de4430ce0408f2010657c52f685970ae1e9ba90d775b688d8a20dc9114efc3"
+    },
+    "hindsight_strategy_evidence": {
+      "path": "research/hindsight-strategy-evidence-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "2f14bf7d68d0247e4becb41e338b0cedcee8947cd2ebf7dfa251b4feec32f377"
+    },
+    "keyword_decision": {
+      "path": "research/semrush-keyword-decision-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "c20893a679fd8271e23142ede8ded3ddfb0c61d302e56a32a379162f93ac20ff"
+    },
+    "optimizer_outputs": [],
+    "paa_artifact": null,
+    "plan_fulfillment": {
+      "path": "research/blog-plan-fulfillment-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "84171b53652bccecdf4b894997c2b40bcc5095b5ae99e88526808292e2396453"
+    },
+    "preflight_readiness": null,
+    "prior_preflight_readiness": null,
+    "serp_evidence": {
+      "path": "research/serp-evidence-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "ff726dcb8f667672a0663b95b16f74b6ce20220c5a179ac4ceb278cc4e43e834"
+    },
+    "stage_evidence": [
+      {
+        "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-scrub-evidence.json",
+        "sha256": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+      },
+      {
+        "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-context-binding-evidence.json",
+        "sha256": "c1d0c067b6bf9922a4bbcca1f780aa1edb81fc73c3f4be6c15bec59faa7ebc04"
+      }
+    ],
+    "stage_receipts": [
+      {
+        "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-draft.json",
+        "sha256": "8c745e6824afdba4318f4564fbf9bf9ffb37dcb6541b8f334befe17e4b6bb6ac"
+      },
+      {
+        "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-scrub.json",
+        "sha256": "4abcf11878656375d0f818333a2c31470f802b66ac74763063acb08a581f7565"
+      },
+      {
+        "path": "research/stage-receipts/best-trade-jobs-california/2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-r8-context-binding.json",
+        "sha256": "c1df110548ba9c451877ff298d75f73c7461de7bd6812af3ae922a089a45814c"
+      }
+    ],
+    "user_paa_csv": null,
+    "validation_sidecar": {
+      "path": "research/validation-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "0d1282df6dc96f08573f0f9b0dd8668312035381901c24a6a5a8eae94b1d6910"
+    }
+  },
+  "assembly_date": "2026-09-24",
+  "author_policy": {
+    "frontmatter_author_required": false,
+    "name": "",
+    "named_author_voice_allowed": false,
+    "schema_person_required": false,
+    "status": "no_author"
+  },
+  "connector_binding": {
+    "context": {
+      "claim_ids": [],
+      "context_pack_hash": "f899d3d3be1786a0748fcf82f3bf63ae280ed7824610f9d1ca825297bd592a74",
+      "pack_schema": "simpro-product-context-pack/v2",
+      "receipt_hash": "592c88e63fad870e6d6946f994ce555cb12b57b3920f97d77b7626f61746b77c",
+      "receipt_schema": "simpro-context-receipt/v1",
+      "revisions": {
+        "approval_policy_revision": "6945674b56933849678c70200ff29438700475eae6e794388bb88b6febedccb6",
+        "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+        "content_revision": "a99cbdff82d2af87868df8c61287308fb24f730b2867860a5b52cacaa3f27a1c",
+        "contract_revision": "e4988a1775f0b2791163b584c36b0fd72b8ac604c448b044cc944a8a0e9934a4",
+        "inventory_revision": "6c23d93ef8eebab6d496776ceaf1e2253d7c76b32aca201b26fa077a71b9bb58",
+        "manifest_revision": "0c1ad8c0b87d90e2d7bac6e70c21a6007fa45f6f342f50520d5ec337758d867b"
+      },
+      "selected_resource_ids": [
+        "res-e3ade596be645307ad4c1f84620ce021",
+        "res-d31f057a305f51918055120d95b76c6a",
+        "res-b34b392d22b9507089ade3fec47ee9e0",
+        "res-09ebfff123cb5c5496e60c3a759a263d",
+        "res-230f144aab93512e840167c4a25e60be",
+        "res-a5b3b47382b45490bf2bedbf16c0b76e",
+        "res-69b54745e4715d75a655d5c86ba89c59",
+        "res-dfc67c5cef87541d856a765f2747a2cb",
+        "res-f882ab230eb2563889e300d612c324bc",
+        "res-ae4607729666509bb97813e66e18590b",
+        "res-f9f9499223a15d6a901806f30fb1a8ba",
+        "res-10b97eee1de25395bbf8b904111ca4b0",
+        "res-6a89de98838b57a3821bfaeb59403191",
+        "res-a88df898c8d0538088b73be0695a65dd",
+        "res-286ca2f7150b59398497f6b341b6c9b7"
+      ]
+    },
+    "status": "required"
+  },
+  "editorial_fulfillment": [
+    {
+      "actual_excerpt": "| Rank | Trade | California median pay (top 10% earn) | Typical entry route | Credential or program to plan for |\n|---|---|---|---|---|\n| 1 | [Elevator and escalator installers and repairers](https://www.onetonline.org/link/localwages/47-4021.00?st=CA) | $141,180 (top 10%: $173,920+) | High school diploma, then an apprenticeship | [Cal/OSHA conveyance mechanic certification](https://www.dir.ca.gov/dosh/elevatorcertification.html) |\n| 2 | [Electrical power-line installers and repairers](https://www.onetonline.org/link/localwages/49-9051.00?st=CA) | $129,040 (top 10%: $167,090+) | High school diploma, then long-term on-the-job training | Utility or union lineworker program |\n| 3 | [Powerhouse, substation and relay electrical repairers](https://www.onetonline.org/link/localwages/49-2095.00?st=CA) | $121,520 (top 10%: $165,540+) | Postsecondary certificate, then moderate on-the-job training | Utility technical training |\n| 4 | [Mechanical insulation workers](https://www.onetonline.org/link/localwages/47-2132.00?st=CA) | $119,690 (top 10%: $165,540+) | High school diploma, then an apprenticeship | Journeyperson status after a registered apprenticeship |\n| 5 | [Construction and building inspectors](https://www.onetonline.org/link/localwages/47-4011.00?st=CA) | $101,290 (top 10%: $161,550+) | High school diploma, prior trade experience and moderate on-the-job training | Inspector credentials through an employer or local agency |\n| 6 | [Control and valve installers and repairers](https://www.onetonline.org/link/localwages/49-9012.00?st=CA) | $100,260 (top 10%: $137,030+) | High school diploma, then moderate on-the-job training | Employer or utility training |\n| 7 | [Telecommunications line installers and repairers](https://www.onetonline.org/link/localwages/49-9052.00?st=CA) | $97,980 (top 10%: $106,230+) | High school diploma, then long-term on-the-job training | Employer or union training |\n| 8 | [Avionics technicians](https://www.onetonline.org/link/localwages/49-2091.00?st=CA) | $92,480 (top 10%: $126,600+) | Postsecondary certificate | Aviation electronics program |\n| 9 | [Operating engineers and construction equipment operators](https://www.onetonline.org/link/localwages/47-2073.00?st=CA) | $87,160 (top 10%: $132,210+) | High school diploma, then moderate on-the-job training | Union or employer equipment training |\n| 10 | [Commercial and industrial electrical and electronics repairers](https://www.onetonline.org/link/localwages/49-2094.00?st=CA) | $87,080 (top 10%: $129,910+) | Postsecondary certificate, then long-term on-the-job training | Electronics technology program |\n| 11 | [Aircraft mechanics and service technicians](https://www.onetonline.org/link/localwages/49-3011.00?st=CA) | $86,100 (top 10%: $116,690+) | Postsecondary certificate | [FAA mechanic certificate](https://www.faa.gov/mechanics/become) |\n| 12 | [Riggers](https://www.onetonline.org/link/localwages/49-9096.00?st=CA) | $85,730 (top 10%: $127,810+) | High school diploma, then moderate on-the-job training | Employer rigging training |\n| 13 | [Transportation equipment electrical and electronics installers](https://www.onetonline.org/link/localwages/49-2093.00?st=CA) | $84,820 (top 10%: $122,590+) | Postsecondary certificate, then moderate on-the-job training | Electronics technology program |\n| 14 | [Paving, surfacing and tamping equipment operators](https://www.onetonline.org/link/localwages/47-2071.00?st=CA) | $83,130 (top 10%: $130,120+) | High school diploma, then moderate on-the-job training | Union or employer equipment training |\n| 15 | [Mobile heavy equipment mechanics](https://www.onetonline.org/link/localwages/49-3042.00?st=CA) | $78,550 (top 10%: $129,310+) | High school diploma, then long-term on-the-job training | Diesel or heavy equipment program |\n| 16 | [Millwrights](https://www.onetonline.org/link/localwages/49-9044.00?st=CA) | $77,950 (top 10%: $127,890+) | High school diploma, then an apprenticeship | Journeyperson status after a registered apprenticeship |\n| 17 | [Telecommunications equipment installers and repairers](https://www.onetonline.org/link/localwages/49-2022.00?st=CA) | $76,630 (top 10%: $113,240+) | Postsecondary certificate, then moderate on-the-job training | Electronics or network cabling program |\n| 18 | [Sheet metal workers](https://www.onetonline.org/link/localwages/47-2211.00?st=CA) | $76,590 (top 10%: $132,190+) | High school diploma, then an apprenticeship | Journeyperson status after a registered apprenticeship |",
+      "contribution_id": "ca-median-ranking-table",
+      "evidence_source": "BLS OEWS May 2025 California statewide wage estimates plus official California DIR, CSLB, Cal/OSHA, FAA and EPA licensing sources.",
+      "planned_contribution": "An 18-row California ranking table with 2025 median pay, top-10-percent pay, training route and license or certification for each trade.",
+      "purpose": "Answer the ranking query in one table built from a single official California dataset.",
+      "target_section": "Highest-paying trades in California at a glance"
+    },
+    {
+      "actual_excerpt": "Trades on this list are hands-on construction, installation, maintenance and repair occupations with at least 1,000 California jobs. Supervisors, helpers, engineers, managers and plant operators sit outside the list. Entry routes come from [Bureau of Labor Statistics education and training data](https://data.bls.gov/projections/occupationProj). Pay in the middle of the table sits close together, so treat neighboring rows as a near tie.",
+      "contribution_id": "hands-on-trade-scope-rule",
+      "evidence_source": "BLS Standard Occupational Classification groups and California employment counts from the same OEWS release.",
+      "planned_contribution": "A stated scope rule defining which occupations count as trades in the ranking and why engineers, managers and small occupations are excluded.",
+      "purpose": "Make the ranking transparent and consistent with what searchers mean by a trade job.",
+      "target_section": "Highest-paying trades in California at a glance"
+    },
+    {
+      "actual_excerpt": "### 1. Elevator and escalator installers and repairers\n\n- **California salary:**\n  Elevator installers earn a median of [$141,180 in California](https://www.onetonline.org/link/localwages/47-4021.00?st=CA), and the top 10% make $173,920 or more.\n- **What they do:**\n  Elevator mechanics assemble, test and repair elevators, escalators, moving walkways and wheelchair lifts in offices, hospitals, transit stations and apartment towers.\n- **How to become one:**\n  Union and employer apprenticeships are the standard start after high school. California adds a [Cal/OSHA certification for conveyance mechanics](https://www.dir.ca.gov/dosh/elevatorcertification.html), earned through an approved apprenticeship or a qualifying exam.\n- **Why earnings rise:**\n  Modernization work on older buildings keeps demand steady, and emergency callouts for stuck cars add premium hours.\n- **Good to know:**\n  Shafts, machine rooms and pits are the workplace. Expect tight spaces, heights and heavy components.",
+      "contribution_id": "five-part-trade-profiles",
+      "evidence_source": "BLS OEWS California wages, BLS employment projections, and official licensing and apprenticeship sources.",
+      "planned_contribution": "Eighteen trade profiles using the same five-part structure: California salary, what they do, how to become one, why earnings can increase, and good to know.",
+      "purpose": "Let readers compare work, entry route and earning levers across trades in a consistent format.",
+      "target_section": "18 highest-paying trade jobs in California"
+    },
+    {
+      "actual_excerpt": "1. How long a training route suits you, and does it pay while you learn?\n2. Which credential or license does the trade need, and how soon do you earn it?\n3. How do you feel about heights, confined spaces, weather and heavy lifting?\n4. Do you prefer steady service routes or project-based construction work?\n5. Is the trade growing, and does it open a path to estimator, inspector or owner?\n6. Would you rather skip a four-year degree and its student debt?",
+      "contribution_id": "trade-choice-checklist",
+      "evidence_source": "Editorially framed guidance tied to the comparison table columns.",
+      "planned_contribution": "A six-question checklist for choosing a trade that weighs pay against training time, licensing, physical demands, outlook and business potential.",
+      "purpose": "Turn the ranking into a personal shortlist.",
+      "target_section": "How to choose the best trade job in California for you"
+    }
+  ],
+  "editorial_plan_summary": {
+    "commercial_strategy": {
+      "article_intent": "informational",
+      "article_primary_keyword": "highest paying trades in california",
+      "article_title": "18 Highest-Paying Trades in California to Consider in 2026",
+      "cannibalization_decision": "different_intent",
+      "commercial_pillar_url": "https://www.simprogroup.com/",
+      "destination_id": "simpro-us-homepage-field-service-management-software",
+      "existing_overlapping_urls_checked": [
+        "https://www.simprogroup.com/blog/best-trade-jobs-california",
+        "https://www.simprogroup.com/blog/highest-paying-trade-jobs",
+        "https://www.simprogroup.com/blog/highest-paying-trades-australia",
+        "https://www.simprogroup.com/blog/electrical-license-california"
+      ],
+      "incoming_link_candidates": [
+        "https://www.simprogroup.com/blog/electrical-license-california",
+        "https://www.simprogroup.com/blog/electrical-industry-statistics-2026",
+        "https://www.simprogroup.com/blog/plumbing-industry-statistics-2026"
+      ],
+      "pillar_versus_blog_intent_difference": "The homepage has product-proposition intent for trade contractors buying software, while this blog has informational career intent for Californians choosing a trade. Different intent and different content type; lifecycle action is update because the canonical blog already exists.",
+      "planned_anchor_text": "field service management software",
+      "planned_h2_section": "Build a trade career with room to grow",
+      "status": "aligned"
+    },
+    "entity_map": {
+      "primary": [
+        "highest-paying trades in California",
+        "California",
+        "Bureau of Labor Statistics",
+        "Occupational Employment and Wage Statistics",
+        "elevator and escalator installers",
+        "power-line installers",
+        "electricians",
+        "plumbers, pipefitters and steamfitters",
+        "HVAC and refrigeration mechanics"
+      ],
+      "supporting": [
+        "apprenticeship",
+        "journeyperson",
+        "Division of Apprenticeship Standards",
+        "Contractors State License Board",
+        "Cal/OSHA",
+        "median wage",
+        "top 10%",
+        "union coverage",
+        "overtime",
+        "BLS projections",
+        "field service management software"
+      ]
+    },
+    "industry_cluster_link_policy": {
+      "reason": "No single-trade Simpro industry cluster link is required.",
+      "status": "not_applicable"
+    },
+    "internal_link_plan": [
+      {
+        "rationale": "Brief-required context on electrical demand and workforce conditions in the power-line installer profile.",
+        "role": "supporting",
+        "target": "https://www.simprogroup.com/blog/electrical-industry-statistics-2026"
+      },
+      {
+        "rationale": "Brief-required qualification guide linked from the electrician profile without duplicating the salary focus.",
+        "role": "supporting",
+        "target": "https://www.simprogroup.com/blog/electrical-license-california"
+      },
+      {
+        "rationale": "Brief-required plumbing demand and workforce context in the plumber profile.",
+        "role": "supporting",
+        "target": "https://www.simprogroup.com/blog/plumbing-industry-statistics-2026"
+      },
+      {
+        "rationale": "Commercial pillar link with the exact anchor field service management software in the career-growth conclusion.",
+        "role": "supporting",
+        "target": "https://www.simprogroup.com/"
+      },
+      {
+        "rationale": "Broad multi-trade topic, so the industries hub with the anchor software for trades businesses serves readers planning their own contracting business.",
+        "role": "down_funnel",
+        "target": "https://www.simprogroup.com/industries"
+      }
+    ],
+    "keyword_decision": {
+      "artifact_schema": "simpro-semrush-keyword-decision/v1",
+      "database": "us",
+      "selected_primary_keyword": "highest paying trades in california",
+      "selected_secondary_keywords": [
+        "trades that pay well in california",
+        "best trade jobs in california"
+      ],
+      "selection_rationale": "Authenticated Semrush US desktop evidence dated 2026-09-24 confirms the brief primary keyword and contextual variants, with the canonical URL ranking second for the primary and California variants. The broader field service management software term remains assigned to the Simpro homepage. Bound artifact: research/semrush-keyword-decision-best-trade-jobs-california-2026-09-24.json.",
+      "source": "semrush_connector",
+      "status": "resolved"
+    },
+    "lifecycle": {
+      "ai_citation_lane": "unavailable: no AI-citation export was collected for this assembly; do not infer citation performance from missing observations",
+      "decision": "update",
+      "ga4_lane": "unavailable: no current GA4 export was collected for this assembly; do not infer engagement from missing observations",
+      "gsc_lane": "available: GSC 90-day page query export read on 2026-09-24 shows 140 clicks and 1,583 impressions with California trade-pay queries at average positions 1.9 to 3.1",
+      "last_updated_date": "2026-09-24",
+      "next_review_date": "2026-12-23",
+      "review_command": "/performance-review published/best-trade-jobs-california.md",
+      "semrush_lane": "available: US keyword decision captured in the main Chrome Semrush UI on 2026-09-24 and verified homepage commercial-pillar record",
+      "status": "scheduled",
+      "volatility": "high"
+    },
+    "meta": {
+      "meta_description": "Compare the highest-paying trades in California, including 2025 salaries, training requirements, career paths, and factors that affect earning potential.",
+      "meta_title": "Highest-Paying Trades in California: 18 Best Jobs for 2026",
+      "primary_keyword": "highest paying trades in california",
+      "secondary_keywords": [
+        "trades that pay well in california",
+        "best trade jobs in california"
+      ],
+      "title_options": [
+        "18 Highest-Paying Trades in California to Consider in 2026",
+        "18 Highest-Paying Trade Jobs in California for 2026"
+      ],
+      "url_slug": "best-trade-jobs-california"
+    },
+    "original_contributions": [
+      {
+        "contribution_id": "ca-median-ranking-table",
+        "evidence_source": "BLS OEWS May 2025 California statewide wage estimates plus official California DIR, CSLB, Cal/OSHA, FAA and EPA licensing sources.",
+        "planned_contribution": "An 18-row California ranking table with 2025 median pay, top-10-percent pay, training route and license or certification for each trade.",
+        "purpose": "Answer the ranking query in one table built from a single official California dataset.",
+        "target_section": "Highest-paying trades in California at a glance"
+      },
+      {
+        "contribution_id": "hands-on-trade-scope-rule",
+        "evidence_source": "BLS Standard Occupational Classification groups and California employment counts from the same OEWS release.",
+        "planned_contribution": "A stated scope rule defining which occupations count as trades in the ranking and why engineers, managers and small occupations are excluded.",
+        "purpose": "Make the ranking transparent and consistent with what searchers mean by a trade job.",
+        "target_section": "Highest-paying trades in California at a glance"
+      },
+      {
+        "contribution_id": "five-part-trade-profiles",
+        "evidence_source": "BLS OEWS California wages, BLS employment projections, and official licensing and apprenticeship sources.",
+        "planned_contribution": "Eighteen trade profiles using the same five-part structure: California salary, what they do, how to become one, why earnings can increase, and good to know.",
+        "purpose": "Let readers compare work, entry route and earning levers across trades in a consistent format.",
+        "target_section": "18 highest-paying trade jobs in California"
+      },
+      {
+        "contribution_id": "trade-choice-checklist",
+        "evidence_source": "Editorially framed guidance tied to the comparison table columns.",
+        "planned_contribution": "A six-question checklist for choosing a trade that weighs pay against training time, licensing, physical demands, outlook and business potential.",
+        "purpose": "Turn the ranking into a personal shortlist.",
+        "target_section": "How to choose the best trade job in California for you"
+      }
+    ],
+    "reader_contract": {
+      "decision_task_helped": "Shortlist two or three California trades by pay, training time, licensing path and demand.",
+      "distinctive_angle": "A California-only ranking from one official 2025 dataset with median and top-10-percent pay, paired with the official training and licensing route for every trade.",
+      "exclusions": [
+        "job-board salary estimates or figures mixed from different datasets",
+        "engineering, management, coordinator and general contractor roles in the ranked list",
+        "links to the national highest-paying-trade-jobs blog or to competitor articles on the same topic",
+        "customer outcomes, reviews, testimonials or Hindsight deal data presented as proof",
+        "named author or Person schema without approved authorship evidence",
+        "first-person authority language, editorial-process commentary, or em dashes in public copy"
+      ],
+      "existing_belief": "Trades pay well but the reader does not know which ones clear six figures in California or how long the training takes.",
+      "funnel_stage": "tofu",
+      "primary_reader": "A Californian considering a skilled-trade career: a recent graduate, a career changer, or an apprentice choosing a specialization.",
+      "promised_payoff": "A defensible, sourced shortlist of high-paying California trades and the first step into each.",
+      "sophistication_level": "Early-career or career-changing, comfortable with salary data but unfamiliar with California licensing and apprenticeship routes.",
+      "trigger_problem": "Salary lists online mix job-board estimates, national averages and non-trade roles, so the reader cannot tell which California trades actually pay the most or how to get into them."
+    },
+    "schema": "simpro-blog-editorial-plan/v2",
+    "search_strategy": {
+      "dominant_content_type": "Listicle",
+      "exception_reason": "No format exception; the article keeps the ranked listicle format and adds a single-dataset comparison table and consistent trade profiles.",
+      "format_decision": "match_dominant",
+      "funnel_stage": "tofu",
+      "intent_class": "informational",
+      "observed_serp_features": [
+        "AI Overview",
+        "People also ask",
+        "People also search for"
+      ],
+      "primary_query": "highest paying trades in california",
+      "related_query_paa_artifact": "research/content-brief-best-trade-jobs-california-2026-09-24.md",
+      "searcher_task": "Find which trades pay the most in California, compare pay with training and licensing requirements, and decide which trades to pursue.",
+      "selected_content_type": "Listicle",
+      "serp_evidence_artifact": "research/serp-evidence-best-trade-jobs-california-2026-09-24.json",
+      "status": "ready"
+    }
+  },
+  "eeat_strength_policy": {
+    "applicability": "required",
+    "customer_proof_selector_evidence": "research/customer-proof-selector-evidence-best-trade-jobs-california-decision-2026-09-24.json",
+    "decision": "proof_unavailable_safe_to_publish",
+    "findings": [
+      "eeat_strength_safe_but_weak"
+    ],
+    "fred_authority_evidence": "research/fred-authority-selector-best-trade-jobs-california-2026-09-24.json",
+    "intent": "commercial_investigation",
+    "intent_reasons": [
+      "commercial_cta",
+      "comparison_or_list_section"
+    ],
+    "positive_signals": [],
+    "sidecar_status": "approved",
+    "status": "warning"
+  },
+  "faq_policy": {
+    "rationale": "The brief supplies six adjacent California trade questions, and each has a direct, officially sourced answer.",
+    "status": "required"
+  },
+  "hindsight_strategy_policy": {
+    "claim_support_allowed": false,
+    "evidence_required": true,
+    "evidence_schema": "simpro-internal-strategy-pack/v1",
+    "pack_sha256": "ba3ce0eb7678d20f249e30c0f3f46c6052ef38cd0e155371be66ea0cd3168352",
+    "public_claim_use": "prohibited",
+    "receipt_schema": "simpro-internal-strategy-receipt/v1",
+    "receipt_sha256": "dc3bd16785038590a1677745a6e446772f9172f361a25098e26a2963e1fa9650",
+    "sidecar_schema": "simpro-content-validation-sidecar/v1",
+    "status": "internal_strategy_only"
+  },
+  "identity": {
+    "artifact_type": "blog",
+    "audience": "People in California considering a skilled-trade career, including high school graduates, career changers, and apprentices choosing a specialization",
+    "brand": "Simpro",
+    "last_updated": "2026-09-24",
+    "objective": "Help Californians choosing a skilled trade compare the highest-paying trades by 2025 California median pay, training route, licensing and demand, then show how licensed tradespeople grow into running their own contracting business with field service management software.",
+    "region": "US",
+    "title": "18 Highest-Paying Trades in California to Consider in 2026"
+  },
+  "industry_cluster_link_policy": {
+    "reason": "No single-trade Simpro industry cluster link is required.",
+    "status": "not_applicable"
+  },
+  "lifecycle_state": "provisional",
+  "machine_reviews": {
+    "article": {
+      "path": "research/machine-review-article-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "6d50ce9c52e02b004d5e1b88a9ca8aee07026487f78f0ca912dc3f01c6431aeb"
+    },
+    "plan": {
+      "path": "research/machine-review-plan-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "94b8f4756854bad9f49f554fd9445ac7556ddd6b69621306f61317546029af16"
+    }
+  },
+  "paa_policy": {
+    "query": "highest paying trades in california",
+    "selected_questions": [
+      "What trade gets paid the most in California?",
+      "What trades can make $100,000 a year in California?",
+      "What are the best trade jobs in California without a four-year degree?",
+      "How long does it take to learn a trade in California?",
+      "Do union trade jobs pay more in California?",
+      "Are trade jobs in demand in California?"
+    ],
+    "source_kind": "brief_paa"
+  },
+  "preflight": null,
+  "schema": "simpro-blog-assembly-bom/v4",
+  "schema_policy": {
+    "declared_entities": [
+      "BlogPosting",
+      "BreadcrumbList",
+      "ImageObject for the featured image or logo",
+      "Organization as publisher reference only, not a separate full schema block",
+      "FAQPage",
+      "Question and Answer inside FAQPage"
+    ],
+    "faq_questions": [
+      "What trade gets paid the most in California?",
+      "What trades can make $100,000 a year in California?",
+      "What are the best trade jobs in California without a four-year degree?",
+      "How long does it take to learn a trade in California?",
+      "Do union trade jobs pay more in California?",
+      "Are trade jobs in demand in California?"
+    ],
+    "required_entities": [
+      "BlogPosting",
+      "BreadcrumbList",
+      "ImageObject for the featured image or logo",
+      "Organization as publisher reference only, not a separate full schema block",
+      "FAQPage",
+      "Question and Answer inside FAQPage"
+    ],
+    "video_embed": false,
+    "visible_faq": true
+  },
+  "workflow": {
+    "stage_receipts": [
+      {
+        "completed_at": "2026-09-24T20:48:57.862270Z",
+        "evidence_hashes": {
+          "keyword_decision": "c20893a679fd8271e23142ede8ded3ddfb0c61d302e56a32a379162f93ac20ff",
+          "serp_evidence": "ff726dcb8f667672a0663b95b16f74b6ce20220c5a179ac4ceb278cc4e43e834"
+        },
+        "execution_attestation": {
+          "algorithm": "hmac-sha256",
+          "key_id": "88df9183fcb097c1",
+          "purpose": "simpro-blog-stage-receipt/v1",
+          "schema": "simpro-execution-attestation/v1",
+          "signature": "95fb8bc761cfbb1a7f96819080997bd28460787cddc345d0449c58abd14274aa"
+        },
+        "input_artifact_hashes": {
+          "article": "5a24c59eee8c31dfbda4a36d0c72f558f037dd7914348ab592e110c7c5278268",
+          "content_brief": "45a7be4a7053d22ed8a98d126107b641847394ff91cb179417f58dbef91b8f1d",
+          "editorial_plan": "71b09b2b66f843de7e39ab0629a3bcf0a63a759623a7834d5cda404fb7c8b109"
+        },
+        "mutation": true,
+        "output_artifact_hashes": {
+          "article": "e61f4684ba4201aef8f15de9ee13ac9ca687aeef9992daa34c2658472fa5ff22"
+        },
+        "previous_receipt_hash": "",
+        "receipt_hash": "beb3aa143aea91dc5fe75a976945f1b63ec9892025d6ed7f96d885cea5744306",
+        "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+        "schema": "simpro-blog-stage-receipt/v1",
+        "stage": "draft",
+        "started_at": "2026-09-24T20:48:57.566206Z",
+        "status": "completed",
+        "tool": {
+          "name": "rewrite-command",
+          "version": "1"
+        }
+      },
+      {
+        "completed_at": "2026-09-24T20:48:58.017056Z",
+        "evidence_hashes": {
+          "scrub_statistics": "9e4596bc68ff2e1592ceb025b5d3a29dd1c8534c30b9fc8c6fd0573e6ed7e683"
+        },
+        "execution_attestation": {
+          "algorithm": "hmac-sha256",
+          "key_id": "88df9183fcb097c1",
+          "purpose": "simpro-blog-stage-receipt/v1",
+          "schema": "simpro-execution-attestation/v1",
+          "signature": "598ff4f23b1f1a42dfb8febc8c1b457fcb6269f4a40f2c4214b27cc9c93e9b84"
+        },
+        "input_artifact_hashes": {
+          "article": "e61f4684ba4201aef8f15de9ee13ac9ca687aeef9992daa34c2658472fa5ff22"
+        },
+        "mutation": false,
+        "output_artifact_hashes": {
+          "article": "e61f4684ba4201aef8f15de9ee13ac9ca687aeef9992daa34c2658472fa5ff22",
+          "stage_evidence": "48e1e56c5615c29bdca8b44bef85b9af64155a8584eb9b340d2f42b44d551485"
+        },
+        "previous_receipt_hash": "beb3aa143aea91dc5fe75a976945f1b63ec9892025d6ed7f96d885cea5744306",
+        "receipt_hash": "104b97d2bb3e465c7f5185893401511b34e98c9a2b4f5de8534f4f6f3eed7705",
+        "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+        "schema": "simpro-blog-stage-receipt/v1",
+        "stage": "scrub",
+        "started_at": "2026-09-24T20:48:57.975912Z",
+        "status": "completed",
+        "tool": {
+          "name": "content_scrubber",
+          "version": "1.0.0"
+        }
+      },
+      {
+        "completed_at": "2026-09-24T20:49:40.905536Z",
+        "evidence_hashes": {
+          "context_binding": "b3f4f8b6adfd8353e97a5d68c055abe99703036b7015113db1a0e3cafac785d0"
+        },
+        "execution_attestation": {
+          "algorithm": "hmac-sha256",
+          "key_id": "88df9183fcb097c1",
+          "purpose": "simpro-blog-stage-receipt/v1",
+          "schema": "simpro-execution-attestation/v1",
+          "signature": "2a7f8ebee2aae94ec08d81ac6932d06baf010b422d1a800a2ce7a24204065503"
+        },
+        "input_artifact_hashes": {
+          "article": "e61f4684ba4201aef8f15de9ee13ac9ca687aeef9992daa34c2658472fa5ff22",
+          "context_pack": "7fe07276f8788007222502bd17bae08acb3fed344ada4f474bf1cb460fd79601",
+          "context_receipt": "00c28513ab90e4b5cd45ab91d0c9f31d0cf0a1e69300bd88f4645754cb1d7b08",
+          "context_request": "717878a3fecc04f0d77ca7f05a8038654c4f574534454175f2e0e80218ac0f67"
+        },
+        "mutation": false,
+        "output_artifact_hashes": {
+          "article": "e61f4684ba4201aef8f15de9ee13ac9ca687aeef9992daa34c2658472fa5ff22",
+          "stage_evidence": "c1d0c067b6bf9922a4bbcca1f780aa1edb81fc73c3f4be6c15bec59faa7ebc04",
+          "validation_sidecar": "0d1282df6dc96f08573f0f9b0dd8668312035381901c24a6a5a8eae94b1d6910"
+        },
+        "previous_receipt_hash": "104b97d2bb3e465c7f5185893401511b34e98c9a2b4f5de8534f4f6f3eed7705",
+        "receipt_hash": "bdbad5da9ee970395d707c45cfce12fb82b6bc3793fd5d0ac798b24e8abe2bc4",
+        "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+        "schema": "simpro-blog-stage-receipt/v1",
+        "stage": "context_binding",
+        "started_at": "2026-09-24T20:49:00.278928Z",
+        "status": "completed",
+        "tool": {
+          "name": "context_binding_generator",
+          "version": "1.0.0"
+        }
+      }
+    ]
+  },
+  "workflow_mode": "rewrite"
+}

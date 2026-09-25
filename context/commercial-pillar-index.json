@@ -1,6 +1,6 @@
 {
   "schema_version": "commercial-pillar-index/v1",
-  "updated_at": "2026-09-18",
+  "updated_at": "2026-09-25",
   "records": [
     {
       "destination_id": "simpro-us-homepage-field-service-management-software",
@@ -193,6 +193,44 @@
         "wiki/messaging/Simpro Core Messaging Repository.md",
         "wiki/messaging/Tone Voice and Localization Rules.md"
       ],
+      "status": "verified"
+    },
+    {
+      "destination_id": "bigchange-uk-feature-risk-assessment-software",
+      "brand": "BigChange",
+      "market": "UK",
+      "pillar_type": "feature",
+      "canonical_url": "https://www.bigchange.com/features/risk-assessment",
+      "page_title": "Simplify Compliance with Digital Risk Assessments and RAMS at the Point of Work",
+      "title_checked": "2026-09-25",
+      "title_valid_through": "2026-12-24",
+      "main_keyword": "risk assessment software",
+      "semrush_database": "uk",
+      "semrush_report": "keyword_overview_ui",
+      "semrush_checked": "2026-09-25",
+      "semrush_valid_through": "2026-12-24",
+      "semrush_result_status": "exact",
+      "volume": 1300,
+      "keyword_difficulty": 19,
+      "evidence_path": [
+        "research/semrush-commercial-pillar-bigchange-uk-risk-assessment-software-2026-09-25.md",
+        "research/semrush-commercial-pillar-bigchange-uk-risk-assessment-software-2026-09-25.md",
+        "research/semrush-commercial-pillar-bigchange-uk-risk-assessment-software-2026-09-25.md",
+        "research/semrush-commercial-pillar-bigchange-uk-risk-assessment-software-2026-09-25.md"
+      ],
+      "evidence_locator": [
+        "line:4",
+        "line:5",
+        "line:6",
+        "line:7"
+      ],
+      "evidence_sha256": [
+        "bf643f2dc7e25d6dec983475d4c937860f08faca198ebcc8d85d02fdd726a431",
+        "d5ca8bbab2e1d577ea94b62733ba2fa3ce64cdc82f4be03f5632d5c41cbe1968",
+        "bb4821862dd5ef3b86e5722a754c51e4fe73d6613f3be7f0c487d3dcd7960f00",
+        "8e462e4c2abafa51540914bb5f76dc53e2543310cc69dd22a48720a5b31a7093"
+      ],
+      "vault_routes": [],
       "status": "verified"
     }
   ]

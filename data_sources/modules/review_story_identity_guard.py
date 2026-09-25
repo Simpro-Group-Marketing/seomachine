@@ -13,7 +13,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Sequence
+from typing import Dict, Iterable, List, Mapping, Optional, Sequence
 
 try:
     from .guard_common import Finding, should_fail, summarize_findings
@@ -47,7 +47,7 @@ EXACT_QUOTE_RE = re.compile(r"(?:\"[^\"]{20,}\"|\u201c[^\u201d]{20,}\u201d)")
 URL_RE = re.compile(r"https?://[^\s),|]+", re.IGNORECASE)
 MARKDOWN_LINK_RE = re.compile(r"(?<!!)\[([^\]]+)\]\((https?://[^)]+)\)", re.IGNORECASE)
 REVIEW_SITE_URL_RE = re.compile(
-    r"https?://[^\s)]*(?:g2\.com|capterra\.com|softwareadvice\.com|getapp\.com|"
+    r"https?://[^\s)]*(?:g2\.com|capterra\.(?:com|ca|co\.uk)|softwareadvice\.com|getapp\.com|"
     r"trustradius\.com|gartner(?:digitalmarkets)?\.com|trustpilot\.com|"
     r"apps\.apple\.com|play\.google\.com)[^\s)]*",
     re.IGNORECASE,
@@ -264,8 +264,18 @@ def _review_story_selection_findings(
                     match=public_url,
                 )
             )
+        elif REVIEW_RATING_RANKING_CLAIM_RE.search(linked_paragraph):
+            findings.append(
+                _finding(
+                    "review_rating_claim_requires_approved_proof",
+                    _first_review_signal_line(public_content),
+                    "Review rating, ranking, reviewer-name, aggregate, or metric-style language appears in the paragraph that links the selected review story.",
+                    "Remove the rating or ranking language, or add a separate approved proof row for the exact rating, ranking, reviewer, or metric claim.",
+                )
+            )
 
-    if _has_unapproved_review_quote(public_content, public_url, identity, proof_content or ""):
+    approved_quotes = index_row.get("approved_quotes") if isinstance(index_row, dict) else None
+    if _has_unapproved_review_quote(public_content, public_url, identity, approved_quotes):
         findings.append(
             _finding(
                 "review_quote_requires_approved_quote",
@@ -514,14 +524,15 @@ def _has_unapproved_review_quote(
     content: str,
     public_url: str,
     identity: str,
-    proof_content: str,
+    approved_quotes: Optional[Sequence[Mapping[str, object]]],
 ) -> bool:
-    if _has_approved_quote(proof_content):
-        return False
     normalized_identity = _normalize_text(identity)
     normalized_url = _normalize_url(public_url)
     for paragraph in _paragraphs(content):
-        if not EXACT_QUOTE_RE.search(paragraph):
+        match = EXACT_QUOTE_RE.search(paragraph)
+        if not match:
+            continue
+        if _quote_bound_to_approved_quotes(match.group(0), approved_quotes):
             continue
         paragraph_url = _normalize_url(paragraph)
         paragraph_text = _normalize_text(paragraph)
@@ -532,6 +543,32 @@ def _has_unapproved_review_quote(
         if REVIEW_LANGUAGE_RE.search(paragraph):
             return True
     return False
+
+
+def _quote_bound_to_approved_quotes(
+    quote_text: str, approved_quotes: Optional[Sequence[Mapping[str, object]]]
+) -> bool:
+    if not approved_quotes:
+        return False
+    normalized_quote = _normalize_quote_text(quote_text)
+    if not normalized_quote:
+        return False
+    for entry in approved_quotes:
+        if not isinstance(entry, Mapping):
+            continue
+        if str(entry.get("status", "")).strip().casefold() != "approved":
+            continue
+        candidate = str(entry.get("quote", ""))
+        if candidate and _normalize_quote_text(candidate) == normalized_quote:
+            return True
+    return False
+
+
+def _normalize_quote_text(value: str) -> str:
+    normalized = value.strip().strip("\"“”")
+    normalized = re.sub(r"[‘’]", "'", normalized)
+    normalized = re.sub(r"\s+", " ", normalized)
+    return normalized.strip().casefold()
 
 
 def _has_approved_quote(proof_content: str) -> bool:

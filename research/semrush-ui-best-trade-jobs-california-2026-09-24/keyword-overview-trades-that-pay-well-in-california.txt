@@ -1,0 +1,158 @@
+Semrush UI capture (get_page_text, authenticated main Chrome profile)
+URL: https://www.semrush.com/analytics/keywordoverview/?q=trades+that+pay+well+in+california&db=us&fid=562608
+Captured at (UTC): within the verified capture window 2026-09-24T15:40:28Z to 2026-09-24T15:49:17Z (shell clock readings bracketing the Semrush session; exact per-view minute not recorded)
+Database: us | Device: Desktop | Execution surface: semrush_ui_chrome_main_browser
+Run ID: 0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5
+Note: Semrush navigation chrome, toolbar buttons, promo banner, and SERP pagination links omitted; all data fields verbatim.
+---
+Keyword Overview:
+trades that pay well in california
+United States
+Desktop
+Sep 24, 2026
+USD
+Keyword summary
+Volume
+30
+Keyword Difficulty
+28%
+Easy
+It is quite possible to rank for this keyword. You will need quality content focused on the keyword’s intent.
+Global Volume
+30
+US
+UNITED STATES
+30
+AU
+AUSTRALIA
+0
+CA
+CANADA
+0
+Intent
+Informational
+Trend
+CPC
+$3.16
+Competitive Density
+0.30
+PLA
+n/a
+Ads
+n/a
+Keyword ideas
+Keyword Variations
+1
+Total Volume:
+30
+Keywords
+Volume
+KD %
+trades that pay well in california
+30
+28
+View all 1 keywords
+Questions
+n/a
+We have no data to show.
+Keyword Strategy
+We have no data to show.
+SERP Analysis
+Domain
+URL
+Export
+Results
+141
+SERP Features
+Sitelinks, AI Overview, Video, People also ask, Discussions and forums
+Position on SERP
+URL
+Page AS
+Ref. Domains
+Backlinks
+Search Traffic
+URL Keywords
+AI Overview
+1
+https://www.simprogroup.com/blog/best-trade-jobs-california
+simprogroup.com
+0
+0
+0
+68
+284
+2
+https://www.reddit.com/r/careerguidance/comments/16dfz0s/best_trade_job/
+reddit.com
+Sitelinks
+24
+1
+1
+744
+48
+People also ask
+3
+https://www.indeed.com/career-advice/finding-a-job/high-paid-trade-school-jobs-los-angeles
+indeed.com
+0
+1
+1
+127
+45
+Discussions and forums
+4
+https://abcnorcal.org/highest-paying-trade-jobs/
+abcnorcal.org
+5
+4
+5
+611
+586
+5
+https://tallo.com/careers/job-search/highest-paying-trade-jobs-in-california/
+tallo.com
+10
+2
+2
+438
+201
+6
+https://www.indeed.com/q-entry-level-trade-l-california-jobs.html
+indeed.com
+0
+0
+0
+29
+18
+7
+https://www.ziprecruiter.com/g/Highest-Paying-California-Jobs
+ziprecruiter.com
+18
+1
+1
+784
+197
+8
+https://www.facebook.com/groups/569546850078738/posts/2691891697844232/
+facebook.com
+0
+0
+0
+1
+8
+9
+https://intercoast.edu/articles/trade-skills-california/
+intercoast.edu
+7
+2
+3
+0
+0
+10
+https://www.indeed.com/career-advice/finding-a-job/highest-paying-trade-jobs
+indeed.com
+63
+161
+305
+1.9K
+283

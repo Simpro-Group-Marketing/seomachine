@@ -1,0 +1,779 @@
+{
+  "aeo_geo_checks": {
+    "author_voice": {
+      "applicable": true,
+      "details": {
+        "author_policy_status": "",
+        "first_person_terms": [],
+        "has_author": false
+      },
+      "fix": "Add a source-bound named author or rewrite first-person singular judgment in an attributed or neutral channel voice. Quoted source language may remain quoted.",
+      "issue": "First-person singular author judgment appears without a named author.",
+      "passed": true,
+      "severity": "high",
+      "status": "passed"
+    },
+    "capsule_coverage": {
+      "applicable": true,
+      "details": {
+        "capsule_count": 6,
+        "coverage": 1.0,
+        "h2_count": 6,
+        "sections": [
+          {
+            "heading": "Highest-paying trades in California at a glance",
+            "passed": true,
+            "reason": "First paragraph is a 50-60 word capsule.",
+            "sentence_count": 3,
+            "word_count": 51
+          },
+          {
+            "heading": "18 highest-paying trade jobs in California",
+            "passed": true,
+            "reason": "First paragraph is a 50-60 word capsule.",
+            "sentence_count": 3,
+            "word_count": 57
+          },
+          {
+            "heading": "Core service trades outside the top 18",
+            "passed": true,
+            "reason": "First paragraph is a 50-60 word capsule.",
+            "sentence_count": 3,
+            "word_count": 56
+          },
+          {
+            "heading": "What affects trade salaries in California?",
+            "passed": true,
+            "reason": "First paragraph is a 50-60 word capsule.",
+            "sentence_count": 3,
+            "word_count": 53
+          },
+          {
+            "heading": "How to choose the best trade job in California for you",
+            "passed": true,
+            "reason": "First paragraph is a 50-60 word capsule.",
+            "sentence_count": 4,
+            "word_count": 55
+          },
+          {
+            "heading": "Build a trade career with room to grow",
+            "passed": true,
+            "reason": "First paragraph is a 50-60 word capsule.",
+            "sentence_count": 3,
+            "word_count": 57
+          }
+        ]
+      },
+      "fix": "Add a 50-60 word direct-answer paragraph immediately below the H1 and at least 60% of major H2s.",
+      "issue": "Fewer than 60% of major H2 sections have 50-60 word direct-answer capsules.",
+      "passed": true,
+      "severity": "high",
+      "status": "passed"
+    },
+    "direct_answer": {
+      "applicable": true,
+      "details": {
+        "first_two_sentences": "The highest-paying trades in California are elevator installation, power-line work and substation repair, based on 2025 median pay. [Elevator and escalator installers](https://www.onetonline.org/link/localwages/47-4021.00?st=CA) lead at $141,180, and [power-line installers](https://www.onetonline.org/link/localwages/49-9051.00?st=CA) follow at $129,040.",
+        "includes_target": true,
+        "word_count": 53
+      },
+      "fix": "Start with a concise answer that names the target query or primary keyword before the hook.",
+      "issue": "The article does not directly answer the target query in the first 1-2 sentences.",
+      "passed": true,
+      "severity": "high",
+      "status": "passed"
+    },
+    "eeat_proof": {
+      "applicable": true,
+      "details": {
+        "case_study_links": [],
+        "clockshark_workflow_links": [],
+        "experience_signals": [
+          "documented_no_fit_experience_boundary"
+        ],
+        "expertise_signals": [],
+        "has_documented_no_fit_boundary": true,
+        "has_experience": true,
+        "has_expertise": false,
+        "has_review_story_selection": false,
+        "review_site_links": [],
+        "simpro_product_links": [],
+        "validated_customer_experience": null
+      },
+      "fix": "Use a hash-verified customer-proof selector experience_story binding, an approved Selected Customer Proof Mining record, and the selected identity and public URL in the same visible article paragraph. A bare case-study link or self-asserted proof label does not establish Experience. If no story fits, document a substantive First-hand evidence decision with Selected: [none] in the E-E-A-T Proof Map and a matching experience_story slate row with rejected-candidate reasons. Generic review-site experience evidence and VoC themes are research inputs, not E-E-A-T story proof. Named authors and receipt-approved Fred authority are optional positive expertise signals, not required AEO pass conditions. A bare owned product link does not establish Expertise.",
+      "issue": "The draft is missing required first-hand experience proof.",
+      "passed": true,
+      "severity": "high",
+      "status": "passed"
+    },
+    "external_sources": {
+      "applicable": false,
+      "details": {
+        "external_link_count": 80,
+        "external_links": [
+          "https://www.onetonline.org/link/localwages/47-4021.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-9051.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-2095.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-2132.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-4011.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-4021.00?st=CA",
+          "https://www.dir.ca.gov/dosh/elevatorcertification.html",
+          "https://www.onetonline.org/link/localwages/49-9051.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-2095.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-2132.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-4011.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-9012.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-9052.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-2091.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-2073.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-2094.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-3011.00?st=CA",
+          "https://www.faa.gov/mechanics/become",
+          "https://www.onetonline.org/link/localwages/49-9096.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-2093.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-2071.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-3042.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-9044.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-2022.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-2211.00?st=CA",
+          "https://data.bls.gov/projections/occupationProj",
+          "https://www.onetonline.org/link/localwages/47-4021.00?st=CA",
+          "https://www.dir.ca.gov/dosh/elevatorcertification.html",
+          "https://www.onetonline.org/link/localwages/49-9051.00?st=CA",
+          "https://www.simprogroup.com/blog/electrical-industry-statistics-2026",
+          "https://www.onetonline.org/link/localwages/49-2095.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-2132.00?st=CA",
+          "https://www.dir.ca.gov/das/DAS_overview.html",
+          "https://www.onetonline.org/link/localwages/47-4011.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-9012.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-9052.00?st=CA",
+          "https://data.bls.gov/projections/occupationProj",
+          "https://www.onetonline.org/link/localwages/49-2091.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-2073.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-2094.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-3011.00?st=CA",
+          "https://www.faa.gov/mechanics/become",
+          "https://www.onetonline.org/link/localwages/49-9096.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-2093.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-2071.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-3042.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-9044.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-2022.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-2211.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-2111.00?st=CA",
+          "https://www.dir.ca.gov/dlse/ecu/electricaltrade.html",
+          "https://www.simprogroup.com/blog/electrical-license-california",
+          "https://www.onetonline.org/link/localwages/47-2152.00?st=CA",
+          "https://www.simprogroup.com/blog/plumbing-industry-statistics-2026",
+          "https://www.onetonline.org/link/localwages/49-9021.00?st=CA",
+          "https://www.epa.gov/section608/section-608-technician-certification-0",
+          "https://www.onetonline.org/link/localwages/49-2098.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-2231.00?st=CA",
+          "https://data.bls.gov/projections/occupationProj",
+          "https://www.dir.ca.gov/das/DAS_overview.html",
+          "https://data.bls.gov/timeseries/LUU0254815900",
+          "https://data.bls.gov/timeseries/LUU0254829700",
+          "https://www.dir.ca.gov/dlse/faq_overtime.htm",
+          "https://www.dir.ca.gov/databases/das/aigstart.asp",
+          "https://www.simprogroup.com/",
+          "https://www.simprogroup.com/industries",
+          "https://www.onetonline.org/link/localwages/47-4021.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-4021.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-9051.00?st=CA",
+          "https://www.onetonline.org/link/localwages/49-2095.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-2132.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-4011.00?st=CA",
+          "https://www.onetonline.org/link/localwages/47-2111.00?st=CA",
+          "https://data.bls.gov/projections/occupationProj",
+          "https://www.faa.gov/mechanics/become",
+          "https://www.dir.ca.gov/dosh/elevatorcertification.html",
+          "https://www.cslb.ca.gov/contractors/applicants/contractors_license/exam_application/experience_for_exam.aspx",
+          "https://data.bls.gov/timeseries/LUU0254815900",
+          "https://data.bls.gov/timeseries/LUU0254829700",
+          "https://data.bls.gov/projections/occupationProj"
+        ],
+        "reason": "AEO fixed source-count scoring is disabled; release link policy owns the baseline and claim-level proof gates own additions."
+      },
+      "fix": "Use 2 distinct non-owned authority sources as the standard-post baseline. Add further claim-fit sources whenever evidence requires them, add no quota-only third source, and apply no maximum to required evidence.",
+      "issue": "External link totals are diagnostic in AEO scoring; release policy still uses a 2 distinct non-owned authority source baseline.",
+      "passed": true,
+      "severity": "info",
+      "status": "not_applicable"
+    },
+    "faq_answer_length": {
+      "applicable": true,
+      "details": {
+        "answer_lengths": [
+          {
+            "question": "What trade gets paid the most in California?",
+            "words": 48
+          },
+          {
+            "question": "What trades can make $100,000 a year in California?",
+            "words": 48
+          },
+          {
+            "question": "What are the best trade jobs in California without a four-year degree?",
+            "words": 53
+          },
+          {
+            "question": "How long does it take to learn a trade in California?",
+            "words": 51
+          },
+          {
+            "question": "Do union trade jobs pay more in California?",
+            "words": 59
+          },
+          {
+            "question": "Are trade jobs in demand in California?",
+            "words": 55
+          }
+        ],
+        "failing_answers": []
+      },
+      "fix": "Rewrite each FAQ answer as a 40-60 word direct answer, then add context after it if needed.",
+      "issue": "One or more FAQ answers is outside the 40-60 word AEO snippet range.",
+      "passed": true,
+      "severity": "medium",
+      "status": "passed"
+    },
+    "faq_answer_quality": {
+      "applicable": true,
+      "details": {
+        "finding_count": 0,
+        "findings": [],
+        "prevalidated": true
+      },
+      "fix": "Lead with a supported number or range, named recommendation, definition, concrete action, or explained yes/no answer. Move limitations after the direct answer.",
+      "issue": "One or more FAQ answers opens with a generic non-answer.",
+      "passed": true,
+      "severity": "high",
+      "status": "passed"
+    },
+    "faq_policy": {
+      "applicable": true,
+      "details": {
+        "policy_status": "required",
+        "visible_faq": true
+      },
+      "fix": "Use required when a visible FAQ is planned. Use not_applicable with a rationale only when the final article has no visible FAQ.",
+      "issue": "The bound FAQ policy does not match visible FAQ content.",
+      "passed": true,
+      "severity": "high",
+      "status": "passed"
+    },
+    "faq_proof": {
+      "applicable": true,
+      "details": {
+        "finding_count": 0,
+        "findings": [],
+        "prevalidated": true
+      },
+      "fix": "Resolve each finding according to its machine-assigned citation_mode. For inline_required, add a natural descriptive anchor to an authoritative owned or non-owned source in the first visible answer paragraph, map it in the FAQ Proof Map, and do not use competitor-owned FAQ sources. For section_source_allowed, sidecar_only, or proof_not_required, satisfy the assigned mode without quota-only links; a sidecar cannot replace inline evidence when inline_required applies.",
+      "issue": "One or more FAQ answers does not satisfy its machine-assigned citation mode.",
+      "passed": true,
+      "severity": "high",
+      "status": "passed"
+    },
+    "faq_questions": {
+      "applicable": true,
+      "details": {
+        "question_count": 6,
+        "questions": [
+          "What trade gets paid the most in California?",
+          "What trades can make $100,000 a year in California?",
+          "What are the best trade jobs in California without a four-year degree?",
+          "How long does it take to learn a trade in California?",
+          "Do union trade jobs pay more in California?",
+          "Are trade jobs in demand in California?"
+        ]
+      },
+      "fix": "Use the useful complete questions selected by the bound PAA policy, without a fixed count.",
+      "issue": "The selected FAQ/PAA section has no natural-language question headings.",
+      "passed": true,
+      "severity": "high",
+      "status": "passed"
+    },
+    "faq_structure": {
+      "applicable": true,
+      "details": {
+        "heading_present": true,
+        "unsupported_lines": []
+      },
+      "fix": "Use a recognized FAQ H2 followed by H3-H5 question headings.",
+      "issue": "FAQ-like question markup uses an unsupported structure.",
+      "passed": true,
+      "severity": "high",
+      "status": "passed"
+    },
+    "metadata": {
+      "applicable": true,
+      "details": {
+        "assembly_date": "2026-09-24",
+        "author_policy_status": "",
+        "freshness_status": "valid",
+        "has_author": false,
+        "has_last_updated": true,
+        "last_updated": "2026-09-24"
+      },
+      "fix": "Use a canonical YYYY-MM-DD last_updated value that is not later than the bound assembly date. Author metadata is optional for no-author blog workflows.",
+      "issue": "The draft is missing valid freshness metadata.",
+      "passed": true,
+      "severity": "high",
+      "status": "passed"
+    },
+    "paa_provenance": {
+      "applicable": true,
+      "details": {
+        "finding_count": 0,
+        "findings": [],
+        "prevalidated": true
+      },
+      "fix": "Pass the BOM-bound workflow mode, exact query, assembly collection date, and primary PAA artifact into the AEO rater.",
+      "issue": "PAA provenance does not match the bound workflow, query, or date.",
+      "passed": true,
+      "severity": "high",
+      "status": "passed"
+    },
+    "schema": {
+      "applicable": true,
+      "details": {
+        "author_policy_status": "",
+        "entities": [
+          "BlogPosting",
+          "BreadcrumbList",
+          "FAQPage",
+          "ImageObject for the featured image or logo",
+          "Organization as publisher reference only, not a separate full schema block",
+          "Question and Answer inside FAQPage"
+        ],
+        "has_supported_video_embed": false,
+        "missing_entities": [],
+        "unexpected_entities": [],
+        "unknown_entities": [],
+        "video_embed_errors": []
+      },
+      "fix": "Use exact canonical schema entity names. Include FAQPage and its Question and Answer entity only with a visible FAQ, Person only with a named author, and VideoObject only with a supported embed.",
+      "issue": "Schema notes do not match the exact conditional blog entity contract.",
+      "passed": true,
+      "severity": "high",
+      "status": "passed"
+    }
+  },
+  "applied_fixes": [
+    {
+      "change": "Split the core-service-trades capsule sentence into two sentences and the pay-factors capsule closing sentence into two sentences, adding short sentences without changing any claim.",
+      "dimension": "readability",
+      "issue": "Monotonous sentence rhythm (33 uniform sections)",
+      "location": "Core service trades outside the top 18; What affects trade salaries in California?"
+    },
+    {
+      "change": "Added the short framing sentence 'Pay is only half the picture, though.' to the reader paragraph after the answer capsule to vary rhythm and set up the non-pay criteria in each profile.",
+      "dimension": "readability",
+      "issue": "Monotonous sentence rhythm (33 uniform sections)",
+      "location": "Introduction reader paragraph"
+    }
+  ],
+  "completed_at": "2026-09-24T20:56:28Z",
+  "decision": "edited",
+  "decision_reason": "Initial preflight passed (content 92, SEO 92 with zero critical issues, AEO/GEO 100). One honest readability pass split three long sentences and added one short framing sentence to vary rhythm without changing claims; contractions, profile-list splitting and an H2 keyword change were not applied for the recorded voice, brief-structure and frozen-plan reasons.",
+  "input_bindings": {
+    "article": {
+      "path": "rewrites/best-trade-jobs-california-rewrite-2026-09-24.md",
+      "sha256": "5e00913900bb1718dd4c13be6bc49cb653a2de5602518b1f4f832cc166b8f422"
+    },
+    "editorial_plan": {
+      "path": "research/editorial-plan-best-trade-jobs-california-2026-09-24.json",
+      "sha256": "71b09b2b66f843de7e39ab0629a3bcf0a63a759623a7834d5cda404fb7c8b109"
+    },
+    "prior_preflight_readiness": {
+      "path": "research/releases/best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-initial-v3/preflight-readiness.json",
+      "sha256": "3886c1dbb0804d26417e23d43a821d81f3cc2503688d7ec6ed597aa272e12146"
+    },
+    "proof_sidecar": {
+      "path": "research/validation-best-trade-jobs-california-2026-09-24.md",
+      "sha256": "38d897c10a04aee98c2f7c977a8e6479da73294dc48adb7d865bdabd99730ca5"
+    },
+    "scorecard": {
+      "path": "research/releases/best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-initial-v3/preflight-readiness.json",
+      "sha256": "3886c1dbb0804d26417e23d43a821d81f3cc2503688d7ec6ed597aa272e12146"
+    }
+  },
+  "inspected_blockers": [],
+  "inspected_gates": [
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Artifact Identity",
+      "name": "artifact_identity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Context Binding",
+      "name": "context_binding",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Blog Assembly BOM",
+      "name": "blog_assembly_bom",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Public Artifact",
+      "name": "public_artifact",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "AI Copy Linter",
+      "name": "ai_copy_linter",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "URL Validator",
+      "name": "url_validator",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Public Research Links",
+      "name": "public_research_links",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Industry Cluster Link Policy",
+      "name": "industry_cluster_link_policy",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Metric Proof Pack",
+      "name": "metric_proof_pack",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Numeric Claim Source",
+      "name": "numeric_claim_source",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "FAQ Answer Quality",
+      "name": "faq_answer_quality",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "FAQ Proof",
+      "name": "faq_proof",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "PAA Provenance",
+      "name": "paa_provenance",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Editorial Plan",
+      "name": "editorial_plan",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Semrush Keyword Decision",
+      "name": "semrush_keyword_decision",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Blog Strategy",
+      "name": "blog_strategy",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Competitive Shortlist",
+      "name": "competitive_shortlist",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Hindsight Boundary",
+      "name": "hindsight_boundary",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Source Support",
+      "name": "source_support",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Source Quality and Lifecycle",
+      "name": "source_quality",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Customer Proof Diversity",
+      "name": "customer_proof_diversity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Review Story Identity",
+      "name": "review_story_identity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [
+        {
+          "column": 1,
+          "line": 140,
+          "message": "Commercial-investigation article has no positive E-E-A-T signal; the sidecar explicitly records proof_unavailable_safe_to_publish.",
+          "rule_id": "eeat_strength_safe_but_weak",
+          "severity": "warning",
+          "suggestion": "Publish may proceed, but strengthen the article when selected customer proof, a named author, Fred authority, review-theme evidence, or SME review becomes available."
+        }
+      ],
+      "label": "E-E-A-T Strength",
+      "name": "eeat_strength",
+      "passed": true,
+      "warnings": 1
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Early Artifact",
+      "name": "early_artifact",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Answer Withholding",
+      "name": "answer_withholding",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Schema Handoff",
+      "name": "schema_handoff",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Vault Brand Language",
+      "name": "vault_brand_language",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Named Feature Status",
+      "name": "named_feature_status",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Fred Voccola Authority",
+      "name": "fred_authority",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Content Scorer",
+      "name": "content_scorer",
+      "passed": true,
+      "warnings": 5
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Input Seal",
+      "name": "input_seal",
+      "passed": true,
+      "warnings": 0
+    }
+  ],
+  "inspected_scorecard": {
+    "aeo_geo": {
+      "passed": true,
+      "score": 100,
+      "threshold": 90
+    },
+    "content_quality": {
+      "passed": true,
+      "score": 92.0,
+      "threshold": 85
+    },
+    "passed": true,
+    "seo_quality": {
+      "critical_issue_count": 0,
+      "passed": true,
+      "score": 92,
+      "target": 95,
+      "target_met": false,
+      "target_status": "below_target",
+      "threshold": 90
+    }
+  },
+  "no_edit_reason": null,
+  "not_applied": [
+    {
+      "dimension": "humanity",
+      "issue": "Lacks contractions (sounds formal)",
+      "reason": "Vault editorial voice reserves a contraction-heavy, first-person register for named authors; the article has no named author, so the neutral channel voice stays."
+    },
+    {
+      "dimension": "readability",
+      "issue": "Paragraphs exceed 4 sentences",
+      "reason": "The flagged blocks are the brief-mandated five-field trade profiles, which the scorer counts as single paragraphs; splitting them would break the required identical mini-structure."
+    },
+    {
+      "dimension": "seo",
+      "issue": "Primary keyword missing from H2 headings",
+      "reason": "H2 headings are frozen in the editorial plan and the at-a-glance H2 already carries the hyphenated keyword phrase; a heading change would require a new plan hash for a medium-severity note while SEO is 92 with zero critical issues (release-pass, below target)."
+    }
+  ],
+  "priority_fixes": [
+    {
+      "dimension": "humanity",
+      "dimension_score": 90,
+      "fix": "Use contractions like don't, can't, you're, it's",
+      "impact": 3.0,
+      "issue": "Lacks contractions (sounds formal)",
+      "severity": "low"
+    },
+    {
+      "dimension": "readability",
+      "dimension_score": 74,
+      "fix": "Simplify some complex sentences",
+      "impact": 2.6,
+      "issue": "Content slightly difficult (Flesch: 50.6)",
+      "severity": "low"
+    },
+    {
+      "dimension": "readability",
+      "dimension_score": 74,
+      "fix": "Break long paragraphs into smaller chunks (2-4 sentences max)",
+      "impact": 2.6,
+      "issue": "2 paragraphs exceed 4 sentences (longest: 6)",
+      "severity": "medium"
+    },
+    {
+      "dimension": "readability",
+      "dimension_score": 74,
+      "fix": "Vary sentence length: mix short punchy (5-10 words) with longer flowing (15-25 words)",
+      "impact": 2.6,
+      "issue": "Monotonous sentence rhythm (33 uniform sections)",
+      "severity": "high"
+    },
+    {
+      "dimension": "seo",
+      "dimension_score": 92,
+      "fix": "Primary keyword is missing from H2 headings. Add it to one relevant H2 where the wording is natural.",
+      "impact": 1.2,
+      "issue": "Primary keyword is missing from H2 headings. Add it to one relevant H2 where the wording is natural.",
+      "severity": "medium"
+    }
+  ],
+  "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+  "schema": "simpro-optimizer-output/v2",
+  "status": "completed",
+  "workflow_mode": "rewrite"
+}

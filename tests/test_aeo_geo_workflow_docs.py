@@ -50,6 +50,21 @@ def test_nonconnector_customer_proof_docs_require_the_nonvault_selector_contract
     assert "vault-dependent customer-proof" in readiness
 
 
+def test_nonconnector_customer_proof_docs_describe_the_capterra_review_extension():
+    canonical = _read(ROOT / "context" / "aeo-geo-blog-strategy.md")
+    claude_rule = _read(ROOT / ".claude" / "rules" / "customer-proof.md")
+    agents_rule = _read(ROOT / ".agents" / "rules" / "customer-proof.md")
+    agents_md = _read(ROOT / "AGENTS.md")
+    rewrite = _read(COMMAND_DIR / "rewrite.md")
+
+    for content in (canonical, claude_rule, agents_rule, agents_md):
+        assert "approved Capterra `review_site` rows on the brand's listed product page" in content
+        assert "approved_quotes" in content
+        assert 'avoid the words "reviewer", "rated", and "stars"' in content
+
+    assert "approved Capterra `review_site` row" in rewrite
+
+
 def test_original_new_blog_route_replaces_the_redundant_article_command():
     assert not (COMMAND_DIR / "article.md").exists()
 

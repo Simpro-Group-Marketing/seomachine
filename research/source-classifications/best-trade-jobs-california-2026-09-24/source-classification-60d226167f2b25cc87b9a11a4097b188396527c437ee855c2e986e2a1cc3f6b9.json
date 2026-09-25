@@ -1,0 +1,28 @@
+{
+  "classified_at": "2026-09-24T20:09:14Z",
+  "emitter": {
+    "name": "source_registry_export",
+    "version": "1.0.0"
+  },
+  "execution_attestation": {
+    "algorithm": "hmac-sha256",
+    "key_id": "88df9183fcb097c1",
+    "purpose": "simpro-source-classification/v1",
+    "schema": "simpro-execution-attestation/v1",
+    "signature": "d94a89d0903ae7bc45e20e19669c29d62339536272bf78a0b93a3c49edf5e7ee"
+  },
+  "publisher": {
+    "hostname": "data.bls.gov",
+    "relationship": "independent"
+  },
+  "registry": {
+    "authority_mode": "repository_decision",
+    "decision_path": "context/source-classification-decisions.json",
+    "decision_sha256": "3c60f204150928cf01ab10d802e3627d36220c07a3b9803b06f7eaa5b4e05e9d",
+    "record_id": "trade-jobs-ca-2026-09-24-data-timeseries-luu0254815900",
+    "revision": "2026-09-24"
+  },
+  "schema": "simpro-source-classification/v1",
+  "source_class": "primary_authority",
+  "source_url": "https://data.bls.gov/timeseries/LUU0254815900"
+}

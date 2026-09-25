@@ -15,7 +15,7 @@ CASE_STUDY_URL_RE = re.compile(
 )
 
 ANY_CUSTOMER_PROOF_URL_RE = re.compile(
-    r"https?://[^\s),|]+(?:/case-studies/|/resources/case-study-|/reviews(?:/|$)|/customers?/|/customer-(?:story|stories|success|case-study|testimonials?)(?:/|$)|/testimonials?/)[^\s),|]*",
+    r"https?://[^\s),|]+(?:/case-studies/|/resources/case-study-|/reviews(?:/|$)|/customers?/|/customer-(?:story|stories|success|case-study|testimonials?)(?:/|$)|/testimonials?/|/software/\d+/)[^\s),|]*",
     re.IGNORECASE,
 )
 

@@ -1,0 +1,61 @@
+Semrush UI capture (get_page_text, authenticated main Chrome profile)
+URL: https://www.semrush.com/analytics/organic/positions/?db=us&q=https%3A%2F%2Fwww.simprogroup.com%2Fblog%2Fbest-trade-jobs-california&searchType=url
+Captured at (UTC): within the verified capture window 2026-09-24T15:40:28Z to 2026-09-24T15:49:17Z (shell clock readings bracketing the Semrush session; exact per-view minute not recorded)
+Report: Organic Rankings > Positions (exact URL) | Database: US | Device: Desktop | Data date shown: Sep 23, 2026 | Execution surface: semrush_ui_chrome_main_browser
+Run ID: 0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5
+Note: get_page_text omitted the column header row and the icon-only Intent column. The same Positions table header read via DOM innerText on the sibling URL report in the same session was: Keyword | Intent | Position | SF | Traffic | Traffic % | Volume | KD % | URL | Updated. Column order below: keyword | position | SF (+N, blank when none) | traffic | traffic % | volume | KD % | URL | updated. Page 1 of 3 (100 rows); rows 1-40 verbatim below, remaining page-1 rows are 0-traffic long-tail rows. Pages 2-3 not captured.
+---
+Organic Rankings:
+https://www.simprogroup.com/blog/best-trade-jobs-california
+Database: US | Device: Desktop | Date: Sep 23, 2026 | Currency: USD
+Keywords
+284
+-3.73%
+Traffic
+68
+-13.92%
+Traffic Cost
+$269.0
+-14.87%
+
+highest paying trade jobs | 19 | +2 | 9 | 13.23 | 6.6K | 23 | www.simprogroup.com/blog/best-trade-jobs-california | 1
+highest paying trade jobs | 20 | +2 | 9 | 13.23 | 6.6K | 23 | www.simprogroup.com/blog/best-trade-jobs-california | 1
+highest paying trade jobs in california | 2 | +3 | 5 | 7.35 | 90 | 23 | www.simprogroup.com/blog/best-trade-jobs-california | Aug 07
+trade salaries | 6 |  | 5 | 7.35 | 210 | 32 | www.simprogroup.com/blog/best-trade-jobs-california | Aug 28
+highest paying trades | 27 | +2 | 5 | 7.35 | 3.6K | 26 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 19
+highest paying trades in california | 2 | +3 | 4 | 5.88 | 70 | 22 | www.simprogroup.com/blog/best-trade-jobs-california | Jul 30
+top paying trades | 14 | +3 | 3 | 4.41 | 880 | 13 | www.simprogroup.com/blog/best-trade-jobs-california | Aug 11
+best trade jobs in california | 2 | +3 | 3 | 4.41 | 50 | 13 | www.simprogroup.com/blog/best-trade-jobs-california | Aug 19
+trade jobs that pay well | 29 |  | 3 | 4.41 | 4.4K | 27 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 19
+list of trade jobs | 17 | +2 | 3 | 4.41 | 1K | 41 | www.simprogroup.com/blog/best-trade-jobs-california | Aug 02
+good trade jobs | 27 |  | 3 | 4.41 | 2.4K | 47 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 19
+trades that pay well | 35 |  | 2 | 2.94 | 2.9K | 31 | www.simprogroup.com/blog/best-trade-jobs-california | 3
+top paid trades jobs | 19 | +2 | 1 | 1.47 | 880 | 24 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 15
+top paid trades jobs | 20 | +2 | 1 | 1.47 | 880 | 24 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 15
+trade jobs list | 22 | +2 | 1 | 1.47 | 880 | 47 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 09
+trades that make good money | 21 |  | 1 | 1.47 | 1.3K | 25 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 14
+best trades in california | 2 | +2 | 1 | 1.47 | 40 | 17 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 12
+what is the highest paying trade | 25 | +2 | 1 | 1.47 | 1K | 19 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 13
+top paying trade jobs | 18 |  | 1 | 1.47 | 1.3K | 24 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 06
+high paying jobs in trades | 22 | +2 | 1 | 1.47 | 720 | 31 | www.simprogroup.com/blog/best-trade-jobs-california | Aug 23
+good paying trade jobs | 29 |  | 1 | 1.47 | 1.6K | 28 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 15
+highest paid trade jobs | 19 |  | 1 | 1.47 | 1.3K | 35 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 16
+what trade pays the most | 22 | +3 | 1 | 1.47 | 720 | 26 | www.simprogroup.com/blog/best-trade-jobs-california | Aug 22
+trade school jobs that pay well | 14 | +4 | 1 | 1.47 | 880 | 23 | www.simprogroup.com/blog/best-trade-jobs-california | Aug 02
+trades that make the most money | 19 | +2 | 1 | 1.47 | 720 | 34 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 15
+highest paid trades | 25 |  | 1 | 1.47 | 880 | 30 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 11
+top trades | 17 | +4 | 0 | < 0.01 | 320 | 40 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 06
+best trade careers | 51 |  | 0 | < 0.01 | 880 | 42 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 13
+trade carrers | 32 | +2 | 0 | < 0.01 | 50 | 40 | www.simprogroup.com/blog/best-trade-jobs-california | Aug 19
+good trades to get into | 26 | +2 | 0 | < 0.01 | 590 | 32 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 09
+what is the highest paid trade | 21 | +2 | 0 | < 0.01 | 320 | 24 | www.simprogroup.com/blog/best-trade-jobs-california | Aug 08
+safest trade jobs | 18 | +3 | 0 | < 0.01 | 110 | 27 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 19
+best paid trade | 45 |  | 0 | < 0.01 | 320 | 16 | www.simprogroup.com/blog/best-trade-jobs-california | Aug 16
+best trade | 31 | +3 | 0 | < 0.01 | 720 | 25 | www.simprogroup.com/blog/best-trade-jobs-california | Aug 26
+most in demand trades | 21 | +2 | 0 | < 0.01 | 320 | 30 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 09
+best trades to get into | 39 | +4 | 0 | < 0.01 | 1.3K | 20 | www.simprogroup.com/blog/best-trade-jobs-california | Jul 31
+high earning trades | 32 | +2 | 0 | < 0.01 | 880 | 20 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 09
+trades in demand | 24 | +3 | 0 | < 0.01 | 590 | 36 | www.simprogroup.com/blog/best-trade-jobs-california | Aug 02
+trade jobs that pay $100k | 23 | +4 | 0 | < 0.01 | 1.3K | 14 | www.simprogroup.com/blog/best-trade-jobs-california | Aug 21
+most in demand jobs in california | 24 |  | 0 | < 0.01 | 90 | 27 | www.simprogroup.com/blog/best-trade-jobs-california | Sep 11
+Page: 1 of 3

@@ -1,0 +1,39 @@
+{
+  "blockers": [
+    {
+      "artifact": "scrub_receipt",
+      "message": "Scrub receipt does not bind the supplied article's current hash.",
+      "rule_id": "scrub_receipt_article_hash_mismatch",
+      "suggestion": "Rerun /scrub for this exact article and pass the generated receipt."
+    }
+  ],
+  "message": "pre-BOM report blocked release",
+  "optimized_release": true,
+  "output_dir_created": false,
+  "passed": false,
+  "paths": {
+    "planned_output_dir": "research/releases/best-trade-jobs-california-2026-09-24-0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5-final-precheck"
+  },
+  "phase": "pre_bom",
+  "pre_bom": {
+    "blockers": [
+      {
+        "artifact": "scrub_receipt",
+        "message": "Scrub receipt does not bind the supplied article's current hash.",
+        "rule_id": "scrub_receipt_article_hash_mismatch",
+        "suggestion": "Rerun /scrub for this exact article and pass the generated receipt."
+      }
+    ],
+    "ready_for_bom": false,
+    "warnings": [
+      {
+        "artifact": "eeat_strength",
+        "message": "Commercial-investigation article has no positive E-E-A-T signal; the sidecar explicitly records proof_unavailable_safe_to_publish.",
+        "rule_id": "eeat_strength_safe_but_weak",
+        "suggestion": "Publish may proceed, but strengthen the article when selected customer proof, a named author, Fred authority, review-theme evidence, or SME review becomes available."
+      }
+    ]
+  },
+  "run_id": "0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5",
+  "schema": "simpro-blog-release-precheck/v1"
+}

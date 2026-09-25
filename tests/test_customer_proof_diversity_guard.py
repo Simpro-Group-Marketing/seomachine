@@ -18,7 +18,10 @@ from data_sources.modules.nonvault_customer_proof_selector import (
     build_nonvault_customer_proof_slate,
     write_nonvault_selector_evidence,
 )
-from tests.nonvault_proof_fixture import write_nonvault_proof_inputs
+from tests.nonvault_proof_fixture import (
+    write_bigchange_review_proof_inputs,
+    write_nonvault_proof_inputs,
+)
 from tests.test_customer_proof_selector import write_context_receipt_fixture
 from tests.vault_context_fixture import load_validated_claim_set_for_unit_test
 
@@ -95,6 +98,82 @@ def test_nonconnector_customer_story_accepts_hash_bound_nonvault_selector(tmp_pa
         "## Customer Proof Selection Decision\n"
         "- Selector command: python data_sources/modules/nonvault_customer_proof_selector.py \"employee time theft\"\n"
         "- Selected proof: clockshark-customer-story-mabrys-electrical-service | Customer: Mabry's Electrical Service | URL: https://www.clockshark.com/testimonials/mabry-s-electrical-service-inc | Use: experience story\n"
+        "- Rejected stronger candidates: none\n"
+        "- Final use in copy: paraphrased experience story\n",
+        encoding="utf-8",
+    )
+
+    findings = check_file(
+        article,
+        proof_sidecar=sidecar,
+        ledger_path=ledger_path,
+        proof_index_path=index_path,
+    )
+
+    assert findings == []
+
+
+def test_nonconnector_bigchange_capterra_review_story_accepts_hash_bound_nonvault_selector(tmp_path):
+    index_path, ledger_path = write_bigchange_review_proof_inputs(tmp_path / "proof")
+    evidence_path = tmp_path / "research" / "nonvault-proof.json"
+    _, digest, roles = write_nonvault_selector_evidence(
+        evidence_path,
+        topic="job scheduling software",
+        brand="BigChange",
+        title="Job Scheduling Software for Field Teams",
+        objective="Help field service businesses evaluate job scheduling software.",
+        article_slug="job-scheduling-software",
+        roles=("metric", "quote", "theme", "experience_story"),
+        require_eeat_story=True,
+        limit=10,
+        reference_date=date(2026, 9, 24),
+        selected_overrides={
+            "theme": "bigchange-review-capterra-owner-job-scheduling",
+            "experience_story": "bigchange-review-capterra-owner-job-scheduling",
+        },
+        rejected_overrides={},
+        index_path=index_path,
+        ledger_path=ledger_path,
+    )
+    article = tmp_path / "article.md"
+    article.write_text(
+        "# Job Scheduling Software\n\n"
+        "[Dana R's Capterra review](https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange) "
+        "describes faster job scheduling and clearer engineer visibility after switching to JobWatch.\n",
+        encoding="utf-8",
+    )
+    sidecar = tmp_path / "validation.md"
+    sidecar.write_text(
+        "## "
+        + build_nonvault_customer_proof_slate(
+            selector_command=(
+                'python data_sources/modules/nonvault_customer_proof_selector.py '
+                '"job scheduling software"'
+            ),
+            roles=roles,
+            evidence_path=str(evidence_path),
+            evidence_sha256=digest,
+        )
+        + "\n## Selected Customer Proof Mining\n"
+        "- Proof: bigchange-review-capterra-owner-job-scheduling | Customer: Dana R | URL: https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange\n"
+        "- Checked for: exact quotes, customer metrics, POV story, workflow themes\n"
+        "- Usable quotes found: none found\n"
+        "- Usable metrics found: none found\n"
+        "- Usable POV/story found: job-scheduling workflow story\n"
+        "- Recommended use: paraphrased experience story\n"
+        "- Final use in copy: paraphrased experience story\n"
+        "- Excluded proof: exact quotes and metrics are not approved\n"
+        "- Status: approved\n\n"
+        "## Customer Proof Pack\n"
+        "- Pack status: ready\n"
+        "- Customer Story proof path: Dana R | URL: https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange\n"
+        "- Approved quotes: none used\n"
+        "- Approved metrics: none used\n"
+        "- Use in copy: paraphrased customer experience\n"
+        "- Claims excluded: exact quotes, metrics, and ratings\n\n"
+        "## Customer Proof Selection Decision\n"
+        "- Selector command: python data_sources/modules/nonvault_customer_proof_selector.py \"job scheduling software\"\n"
+        "- Selected proof: bigchange-review-capterra-owner-job-scheduling | Customer: Dana R | URL: https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange | Use: experience story\n"
         "- Rejected stronger candidates: none\n"
         "- Final use in copy: paraphrased experience story\n",
         encoding="utf-8",

@@ -11,7 +11,10 @@ from data_sources.modules.nonvault_customer_proof_selector import (
     _main,
     select_nonvault_customer_proofs,
 )
-from tests.nonvault_proof_fixture import write_nonvault_proof_inputs
+from tests.nonvault_proof_fixture import (
+    write_bigchange_review_proof_inputs,
+    write_nonvault_proof_inputs,
+)
 
 
 def test_selector_keeps_clockshark_customer_stories_and_excludes_reviews_and_cross_brand_rows():
@@ -102,6 +105,138 @@ def test_selector_counts_recent_ledger_uses_from_canonical_date_used_field():
         if row["proof_id"] == "clockshark-customer-story-mabrys-electrical-service"
     )
     assert mabry["recent_uses_90d"] == 1
+
+
+def test_bigchange_capterra_review_row_becomes_theme_and_experience_story_candidate():
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        index_path, ledger_path = write_bigchange_review_proof_inputs(root)
+
+        theme = select_nonvault_customer_proofs(
+            "job scheduling software",
+            brand="BigChange",
+            index_path=index_path,
+            ledger_path=ledger_path,
+            proof_role="theme",
+            reference_date=date(2026, 9, 24),
+        )
+        story = select_nonvault_customer_proofs(
+            "job scheduling software",
+            brand="BigChange",
+            index_path=index_path,
+            ledger_path=ledger_path,
+            proof_role="experience_story",
+            require_eeat_story=True,
+            reference_date=date(2026, 9, 24),
+        )
+
+    theme_ids = [row["proof_id"] for row in theme]
+    story_ids = [row["proof_id"] for row in story]
+    assert "bigchange-review-capterra-owner-job-scheduling" in theme_ids
+    assert story_ids == ["bigchange-review-capterra-owner-job-scheduling"]
+
+
+def test_bigchange_capterra_review_excludes_wrong_brand_platform_story_and_approval():
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        index_path, ledger_path = write_bigchange_review_proof_inputs(root)
+
+        results = select_nonvault_customer_proofs(
+            "job scheduling software",
+            brand="BigChange",
+            index_path=index_path,
+            ledger_path=ledger_path,
+            proof_role="theme",
+            reference_date=date(2026, 9, 24),
+        )
+
+    ids = {row["proof_id"] for row in results}
+    assert ids == {"bigchange-review-capterra-owner-job-scheduling"}
+
+
+def test_bigchange_capterra_review_quote_candidate_requires_approved_quotes():
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        index_path, ledger_path = write_bigchange_review_proof_inputs(root)
+
+        quote = select_nonvault_customer_proofs(
+            "job scheduling software",
+            brand="BigChange",
+            index_path=index_path,
+            ledger_path=ledger_path,
+            proof_role="quote",
+            reference_date=date(2026, 9, 24),
+        )
+
+    assert [row["proof_id"] for row in quote] == [
+        "bigchange-review-capterra-owner-job-scheduling"
+    ]
+
+
+def test_cli_review_round_trip_with_bigchange_capterra_story():
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        index_path, ledger_path = write_bigchange_review_proof_inputs(root)
+        evidence_path = root / "nonvault-evidence.json"
+        sidecar_path = root / "validation.md"
+        stdout = StringIO()
+        stderr = StringIO()
+        args = [
+            "job scheduling software",
+            "--brand",
+            "BigChange",
+            "--title",
+            "Job Scheduling Software for Field Teams",
+            "--objective",
+            "Help field service businesses evaluate job scheduling software.",
+            "--article-slug",
+            "job-scheduling-software",
+            "--index",
+            str(index_path),
+            "--ledger",
+            str(ledger_path),
+            "--roles",
+            "metric,quote,theme,experience_story",
+            "--require-eeat-story",
+            "--selected",
+            "theme=bigchange-review-capterra-owner-job-scheduling",
+            "--selected",
+            "experience_story=bigchange-review-capterra-owner-job-scheduling",
+            "--limit",
+            "10",
+            "--reference-date",
+            "2026-09-24",
+            "--slate",
+            "--evidence-output",
+            str(evidence_path),
+        ]
+
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            exit_code = _main(args)
+
+        payload = json.loads(evidence_path.read_text(encoding="utf-8"))
+        digest = hashlib.sha256(evidence_path.read_bytes()).hexdigest()
+        sidecar_path.write_text(
+            "Customer Proof Slate\n"
+            + stdout.getvalue().split("Customer Proof Slate\n", 1)[1]
+            + f"\n- Selector evidence: {evidence_path} | SHA-256: {digest}\n",
+            encoding="utf-8",
+        )
+        sidecar_content = sidecar_path.read_text(encoding="utf-8")
+        verified = verify_selector_evidence_roles(sidecar_content, str(sidecar_path))
+
+    assert exit_code == 0
+    assert stderr.getvalue() == ""
+    assert payload["schema"] == "simpro-nonvault-customer-proof-selector-evidence/v1"
+    assert payload["inputs"]["brand"] == "BigChange"
+    assert verified is not None
+    assert (
+        verified["theme"]["selected_id"]
+        == "bigchange-review-capterra-owner-job-scheduling"
+    )
+    assert (
+        verified["experience_story"]["selected_candidate"]["identity"] == "Dana R"
+    )
 
 
 def test_cli_writes_hash_bound_nonvault_evidence_and_verifier_replays_roles():

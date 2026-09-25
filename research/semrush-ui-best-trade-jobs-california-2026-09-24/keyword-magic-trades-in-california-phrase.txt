@@ -1,0 +1,64 @@
+Semrush UI capture (get_page_text, authenticated main Chrome profile)
+URL: https://www.semrush.com/analytics/keywordmagic/?q=trades+in+california&db=us&type=phrase&mode=1
+Captured at (UTC): within the verified capture window 2026-09-24T15:40:28Z to 2026-09-24T15:49:17Z (shell clock readings bracketing the Semrush session; exact per-view minute not recorded)
+Database: us | Match: Phrase Match (tab tooltip: "Exact keyword or keyword phrase in various orders.") | Execution surface: semrush_ui_chrome_main_browser
+Run ID: 0f23f31d-46c1-4b8c-936e-2b2edb8dbbf5
+Note: Semrush navigation chrome and Groups sidebar word counts omitted. All 44 keyword rows (1 page) verbatim. Row format: keyword | intent code(s) | volume | KD % | CPC (USD) | updated.
+---
+Keyword Magic Tool:
+trades in california
+Database: United States
+Currency: USD
+Phrase Match
+All keywords:
+44
+Total Volume:
+520
+Average KD:
+23%
+
+best trade schools in california trades | C | 90 | 26 | 0.00 | 1 month
+highest paying trades in california | I C | 70 | 22 | 8.85 | 1 month
+best trades in california | C | 50 | 17 | 10.14 | 1 month
+highest paid trades in california | n/a | 30 | n/a | 0.00 | For metrics, refresh
+trades in california | I C | 30 | 22 | 5.56 | 1 month
+trades that pay well in california | I | 30 | 28 | 3.16 | 1 month
+best paying trades in california | n/a | 20 | n/a | 12.06 | For metrics, refresh
+best trades to learn in california | n/a | 20 | n/a | 3.43 | For metrics, refresh
+good paying trades in california | n/a | 20 | n/a | 0.00 | For metrics, refresh
+high paying trades in california | n/a | 20 | n/a | 9.18 | For metrics, refresh
+list of trades in california | n/a | 20 | n/a | 0.00 | For metrics, refresh
+skilled trades jobs in california | n/a | 20 | n/a | 0.00 | For metrics, refresh
+top paying trades in california | n/a | 20 | n/a | 4.91 | For metrics, refresh
+top trades in california | n/a | 20 | n/a | 6.16 | For metrics, refresh
+trades in demand in california | n/a | 20 | n/a | 3.63 | For metrics, refresh
+what trades are in demand in california | n/a | 20 | n/a | 0.00 | For metrics, refresh
+fast-track programs in northern california trades | n/a | 10 | n/a | 0.00 | For metrics, refresh
+skilled trades schools in northern california | n/a | 10 | n/a | 0.00 | For metrics, refresh
+apprenticeable trades in california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+building trades in california unable to find new talent | n/a | 0 | n/a | 0.00 | For metrics, refresh
+careers in trades california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+fast track programs in northern california trades | n/a | 0 | n/a | 0.00 | For metrics, refresh
+highest paid union trades in california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+highest paying construction trades in california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+highest paying skilled trades in california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+labor market information on the trades in california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+list of trades needed in california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+most in demand trades in california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+schools with high placement rates for trades in northern california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+skilled trades education and training program in california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+skilled trades jobs in california craigslist | n/a | 0 | n/a | 0.00 | For metrics, refresh
+skilled trades jobs in fort bragg california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+skilled trades on craigslist in palm springs california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+southern california high school focused in trades | n/a | 0 | n/a | 0.00 | For metrics, refresh
+trades needed in california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+trades schools in california | n/a | 0 | n/a | 4.43 | For metrics, refresh
+trades that are in demand 2017 california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+trusted training for trades in southern california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+tv show about 2 guys in california who trades | n/a | 0 | n/a | 0.00 | For metrics, refresh
+what trades makes the most money in california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+what trades pay the most in california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+what trades require contractors license in california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+women in skilled trades california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+women in skilled trades southern california | n/a | 0 | n/a | 0.00 | For metrics, refresh
+Page: 1 of 1
