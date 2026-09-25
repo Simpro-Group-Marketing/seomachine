@@ -10,12 +10,94 @@ const MD_PATH = path.join(ROOT, "outputs", "bigchange-g2-digital-markets-copy-au
 const PREVIEW_PATH = path.join(OUTPUT_DIR, "bigchange-g2-digital-markets-copy-preview.png");
 
 const CHECKED_DATE = "2026-09-23";
+const STRUCTURED_CHECKED_DATE = "2026-09-24";
 const PORTAL_BASE = "https://app.g2digitalmarkets.com/products/4e18268f-3248-4693-a1e0-a6d200b2e0b2";
 const HOME_URL = "https://www.bigchange.com/";
 const PRICING_URL = "https://www.bigchange.com/pricing";
 const KEYWORD_MAP_URL = "https://docs.google.com/spreadsheets/d/1UbipLHa7N5TEIy7evqdyKLaHV87MBwX9W2g2vJaXc88/edit?pli=1&gid=905535356#gid=905535356";
 const OLD_VIDEO_URL = "https://www.youtube.com/watch?v=3-26Aa_8i9A";
 const NEW_VIDEO_URL = "https://www.youtube.com/watch?v=4fcnxzGWkN0";
+
+const VIDEO = {
+  core: {
+    title: "BigChange - the all-in-one Job Management System",
+    url: OLD_VIDEO_URL,
+    published: "2022-12-15",
+    duration: "1:25",
+    qualification: "Best available core-platform overview on the official channel and the portal's previous default. It is broader than the Lightning add-on demo, but its 2022 messaging includes award, ease-of-use, ROI and integration claims that should be refreshed. The video does not expose captions.",
+    status: "Approved as default with refresh note",
+  },
+  scheduling: {
+    title: "BigChange Feature Focus - Scheduling",
+    url: "https://www.youtube.com/watch?v=AsONURFw2vM",
+    published: "2023-09-20",
+    duration: "1:33",
+    qualification: "Blocked. Named customer testimony includes 1,957 jobs booked in hours, no extra office hours, money saved, more jobs, less human error and a best-system comparison without sufficient attribution or measurement context.",
+    status: "Blocked pending customer-proof documentation",
+    blocked: true,
+  },
+  fleet: {
+    title: "BigChange Feature Focus - Fleet Management",
+    url: "https://www.youtube.com/watch?v=2XB1VawHH68",
+    published: "2023-08-16",
+    duration: "1:34",
+    qualification: "Shows vehicle checks, service intervals, maintenance alerts and map-based fleet allocation. Customer statements include 45 vehicles versus seven viewed at a time and qualitative efficiency claims. No video claim is copied into listing text.",
+    status: "Approved with customer-context note",
+  },
+  tracking: {
+    title: "BigChange Feature Focus - Tracking",
+    url: "https://www.youtube.com/watch?v=6ih2Rhtx7oI",
+    published: "2023-08-16",
+    duration: "1:48",
+    qualification: "Blocked. The description causally claims tracking can reduce insurance premiums, while the video adds efficiency, service, safety, CO2-saving and job-cost outcomes that require substantiation.",
+    status: "Blocked pending claim substantiation",
+    blocked: true,
+  },
+  sherwoods: {
+    title: "Sherwoods Facilities Services - Success Stories",
+    url: "https://www.youtube.com/watch?v=lGeD_45cimM",
+    published: "2024-10-21",
+    duration: "1:39",
+    qualification: "Blocked. The description combines a 1970 founding date with a 48-year history in a 2024 upload and makes fastest-growing and operational-benefit claims. Captions were unavailable for a complete spoken-claim audit.",
+    status: "Blocked pending correction and proof",
+    blocked: true,
+  },
+  envirovent: {
+    title: "Revolutionising Workflow with EnviroVent",
+    url: "https://www.youtube.com/watch?v=g4rxWBq5Z8E",
+    published: "2024-04-25",
+    duration: "2:18",
+    qualification: "Blocked. The customer video includes biggest-team, revolutionised-workflow, efficiency, reporting, seamless and ease-of-use claims that require customer or source verification.",
+    status: "Blocked pending customer-proof documentation",
+    blocked: true,
+  },
+  templates: {
+    title: "Templates The Feature EVERYONE Needs",
+    url: "https://www.youtube.com/watch?v=C3YJ49pwtBY",
+    published: "2024-08-06",
+    duration: "29:05",
+    qualification: "Blocked. The 29-minute webinar includes current feature claims, unknown adoption counts and an unverified customer statement about £400 weekly and more than £20,000 annual fuel savings.",
+    status: "Blocked pending visual audit and claim proof",
+    blocked: true,
+  },
+};
+
+const categoryVideoMap = new Map([
+  ["Calendar", VIDEO.scheduling],
+  ["Scheduling", VIDEO.scheduling],
+  ["Service Dispatch", VIDEO.scheduling],
+  ["Work Order", VIDEO.scheduling],
+  ["Workforce Management", VIDEO.scheduling],
+  ["CMMS", VIDEO.fleet],
+  ["Equipment Maintenance", VIDEO.fleet],
+  ["Preventive Maintenance", VIDEO.fleet],
+  ["Delivery Management", VIDEO.tracking],
+  ["Building Maintenance", VIDEO.sherwoods],
+  ["Facility Management", VIDEO.sherwoods],
+  ["Maintenance Management", VIDEO.sherwoods],
+  ["HVAC", VIDEO.envirovent],
+  ["Forms Automation", VIDEO.templates],
+]);
 
 const PROOF = {
   rilmac: {
@@ -57,6 +139,21 @@ const PROOF = {
     customer: "CC Infrastructure Services | Specialist cleaning and infrastructure coatings | 20% less administrative resource for operational teams",
     qualification: "Named-customer result tied to replacing paper worksheets and job folders. Exclude the source's undefined '50% less waste' statement.",
     url: "https://www.bigchange.com/success-stories/cc-is-cleans-up-with-bigchange-paperless-working",
+  },
+  medlec: {
+    customer: "MEDLEC | Electrical contracting | around 40% greater productivity",
+    qualification: "Named-customer result. Preserve 'around'. MEDLEC implemented BigChange in 2018, the page uses legacy 5-in-1 language and no measurement period is published, so do not present the result as a current benchmark or typical outcome.",
+    url: "https://www.bigchange.com/success-stories/medlec-boosts-productivity-by-40-percent-with-bigchange-mobile-workforce-tech",
+  },
+  enviroventCaseStudy: {
+    customer: "EnviroVent | Domestic ventilation and HVAC | no-access visits reduced from 15% to regularly below its 5% KPI",
+    qualification: "Named-customer result tied to automated appointment messages, 24-hour reminders and same-day updates. Preserve 'regularly below' and do not restate the change as a 10% reduction.",
+    url: "https://www.bigchange.com/success-stories/envirovent-reduces-no-access-visits-with-bigchange",
+  },
+  specialised: {
+    customer: "Specialised Fire & Security | Fire and security | already automated around 80% of routine job-management workflows",
+    qualification: "Named-customer result. Preserve 'already' and 'around'. Exclude the page's planned 25% to 50% operational-workforce increase because it is a forecast, not an achieved outcome.",
+    url: "https://www.bigchange.com/success-stories/specialised-fire-security-detects-bigchanges-in-customer-service",
   },
 };
 
@@ -133,7 +230,7 @@ const getappCurrent = {
 
 const rows = [];
 
-function addRow({ channel, field, category, currentCopy, issue, priority, mappedKeyword, icpPain, feature, advantage, benefit, proposedCopy, fieldLimit, proof, sourceUrl, proofStatus }) {
+function addRow({ channel, field, category, currentCopy, issue, priority, mappedKeyword, icpPain, feature, advantage, benefit, proposedCopy, fieldLimit, proof, sourceUrl, proofStatus, checkedDate = CHECKED_DATE }) {
   rows.push({
     channel,
     field,
@@ -152,7 +249,7 @@ function addRow({ channel, field, category, currentCopy, issue, priority, mapped
     "customer proof": proof?.customer ?? "None",
     "proof qualification": proof?.qualification ?? "No customer metric used.",
     "source URL": [sourceUrl, proof?.url].filter(Boolean).join(" | "),
-    "checked date": CHECKED_DATE,
+    "checked date": checkedDate,
     "proof status": proofStatus ?? (proof ? "Verified on live BigChange case study" : "No customer proof required"),
   });
 }
@@ -241,7 +338,7 @@ const capterraProposed = {
     short: "Plan and track delivery work with mobile instructions, live status updates and digital completion records.",
   },
   "Electrical Contractor": {
-    long: "BigChange is job management software for electrical contractors that connects enquiries, quotes, scheduling, field job cards, forms, stock, invoicing and customer history. Office teams can plan engineers and see progress, while electricians receive job details and record work from site. This gives your business a clearer path from first contact to completed job, with less paper and fewer repeated updates.",
+    long: "BigChange is job management software for electrical contractors that connects enquiries, quotes, scheduling, field job cards, forms, stock, invoicing and customer history. Office teams can plan engineers and see progress, while electricians receive job details and record work from site. In an older published customer story, MEDLEC reported being around 40% more productive, allowing it to take on more work with the same resources. MEDLEC implemented BigChange in 2018, and its result is not a current benchmark or guaranteed outcome.",
     short: "Connect electrical quotes, engineer schedules, field job cards, forms, stock, customer history and invoicing.",
   },
   "Equipment Maintenance": {
@@ -297,7 +394,7 @@ const capterraProposed = {
     short: "Coordinate pest surveys, treatments, recurring visits, call-outs and mobile worksheets with connected customer records.",
   },
   "Plumbing": {
-    long: "BigChange is job management software for plumbing businesses that connects enquiries, quotes, engineer schedules, emergency call-outs, mobile job cards, customer history and invoicing. Office teams can see workloads and progress, while plumbers receive current job details and record work on site. This reduces repeated entry and gives your business a clearer view from first call to completed job.",
+    long: "BigChange is job management software for plumbing businesses that connects enquiries, quotes, engineer schedules, emergency call-outs, mobile job cards, customer history and invoicing. Office teams can see workloads and progress, while plumbers receive current job details and record work on site. SES Home Services, which provides plumbing, heating and drainage services, reported up to 20% greater daily job efficiency per engineer after adopting BigChange. This is SES's reported experience, not a guaranteed outcome.",
     short: "Connect plumbing enquiries, quotes, engineer schedules, call-outs, mobile job cards, customer history and invoicing.",
   },
   "Plumbing Estimating": {
@@ -345,12 +442,12 @@ addRow({ channel: "Capterra", field: "Target Market", category: "Default", curre
 const getappLong = `BigChange is job management software UK field teams can use to plan work, control operations and keep customers informed from one cloud platform. Bring CRM, job scheduling, live vehicle and resource tracking, mobile working, financial management and business intelligence together, so your office and field teams work from the same job information instead of paper and disconnected systems.\n\nWin and manage work with an integrated CRM, sales pipeline, quotes and customer records. Build schedules with drag and drop job and resource planning, then use live tracking to see progress and help dispatch the right engineer. Automated confirmations, ETA alerts, service reminders and a customer portal help you keep customers updated without adding more calls to the office.\n\nGive field teams the BigChange JobWatch app on Android and iOS. Engineers can access job details, complete digital job cards and worksheets, capture electronic signatures and watermarked photos, record expenses and timesheets, and carry out driver and vehicle checks while on the move. Completed information flows back to the office for faster reporting, invoicing and payment collection.\n\nConnect BigChange with tools including Sage, Xero, Microsoft Dynamics NAV, QuickBooks and SAP Business One. Use AI automations and digital workers to support repeatable admin tasks while your team stays in control.\n\nThe operational impact is documented by BigChange customers. Flow Free Drainage reports that two team members now handle around 60 jobs a day, compared with five to six people before. This before-and-after result is specific to Flow Free's operation and appears on a legacy JobWatch case study.\n\nChoose BigChange when you need one job management platform to connect customers, jobs, people, vehicles, finances and performance across your UK field operation.`;
 const getappShort = "BigChange brings CRM, job scheduling, live tracking, mobile working, invoicing and reporting into one job management platform, helping UK field teams replace paper, control every job and keep customers informed.";
 const getappTagline = "Job management software for UK field teams.";
-const getappBenefits = `- Control every job from one platform. Connect CRM, quotes, job scheduling, live tracking, mobile workflows, invoicing and business intelligence, so office and field teams work from the same information.\n\n- Schedule and dispatch with greater visibility. Drag and drop jobs and resources, track vehicles and engineers live, and use ETA alerts to keep customers informed when plans change.\n\n- Replace paper in the field. The BigChange JobWatch app lets engineers view jobs, complete digital job cards and worksheets, capture electronic signatures and watermarked photos, log expenses and timesheets, and complete driver and vehicle checks.\n\n- Turn completed work into cash sooner. Move job information back to the office for invoicing and payment collection. Serious Waste Management reports more than 60% less time creating and issuing invoices.\n\n- Make reporting less labour intensive. Use business intelligence and performance reporting to understand operations. EFT Systems reports saving 30 to 40 reporting hours each month using BigChange with Snowflake Data as a Service and Rathbone Results.\n\n- Allocate work faster. Baydale Control Systems reports 80% faster job allocation after connecting digital stock records with visibility into vehicle stock.\n\n- Give customers self-service visibility. A branded portal lets customers request work, check job status, and view service history and documents from any web-enabled device.\n\n- Connect the systems you already use. BigChange integrates with Sage, Xero, Microsoft Dynamics NAV, QuickBooks and SAP Business One.\n\nThese customer results are specific to each named operation and do not establish typical outcomes.`;
+const getappBenefits = `- Control every job from one platform. Connect CRM, quotes, job scheduling, live tracking, mobile workflows, invoicing and business intelligence, so office and field teams work from the same information.\n\n- Schedule and dispatch with greater visibility. Drag and drop jobs and resources, track vehicles and engineers live, and use ETA alerts to keep customers informed when plans change.\n\n- Replace paper in the field. The BigChange JobWatch app lets engineers view jobs, complete digital job cards and worksheets, capture electronic signatures and watermarked photos, log expenses and timesheets, and complete driver and vehicle checks.\n\n- Turn completed work into cash sooner. Move job information back to the office for invoicing and payment collection. Serious Waste Management reports more than 60% less time creating and issuing invoices.\n\n- Make reporting less labour intensive. Use business intelligence and performance reporting to understand operations. EFT Systems reports saving 30 to 40 reporting hours each month using BigChange with Snowflake Data as a Service and Rathbone Results.\n\n- Allocate work faster. Baydale Control Systems reports 80% faster job allocation after connecting digital stock records with visibility into vehicle stock.\n\n- Reduce missed HVAC appointments. EnviroVent reports that automated appointment communications reduced no-access visits from 15% to regularly below its 5% KPI.\n\n- Automate routine fire and security administration. Specialised Fire & Security reports that it had already automated around 80% of routine job-management workflows with BigChange.\n\n- Give customers self-service visibility. A branded portal lets customers request work, check job status, and view service history and documents from any web-enabled device.\n\n- Connect the systems you already use. BigChange integrates with Sage, Xero, Microsoft Dynamics NAV, QuickBooks and SAP Business One.\n\nThese customer results are specific to each named operation and do not establish typical outcomes.`;
 
 addRow({ channel: "GetApp", field: "Long Description", category: "Default", currentCopy: "BigChange provides all-in-one job management software for UK field teams.  It helps field service businesses across the UK to win more work, take control of their operations and deliver winning customer experiences. It combines customer relationship management (CRM), job scheduling, live tracking, field resource management, financial management, and business intelligence into 1 easy-to-use platform.\n\nNow with AI automations and digital workers (AI agents) that help you accomplish more with less.\n\nBigChange liberates you from inefficient paper-based processes and the complexity of multiple different technology systems that hold your business back. Loved by office and field teams alike, our customers are achieving industry leading results and return on investment.\n\nThe BigChange team is committed to customer success and no matter your sector or whether you have a mobile workforce of 10 or a 100, we’re here to make a big difference to the way you work and to help your business grow stronger.", issue: "The copy repeats broad outcomes, uses first-person language and unsupported industry-leading and ROI claims, and underuses GetApp's longer comparison field.", priority: "P1", mappedKeyword: "job management software uk (P1, confidence 95)", icpPain: "Buyers need enough workflow detail to compare how office, field, customer and finance work connects.", feature: "CRM, scheduling, tracking, mobile, finance, integrations and AI automations", advantage: "Explains the data flow from enquiry through field completion and reporting", benefit: "Your team can evaluate fit against specific operational problems", proposedCopy: getappLong, fieldLimit: 4000, proof: PROOF.flowfree, sourceUrl: `${HOME_URL} | ${KEYWORD_MAP_URL} | ${PORTAL_BASE}/getapp#content-header` });
 addRow({ channel: "GetApp", field: "Short Description", category: "Default", currentCopy: "BigChange is the complete Job Management Platform, helping building maintenance, construction, environmental and other field service companies to streamline operations, grow revenue and deliver winning customer experiences.", issue: "The copy lists sectors and generic growth outcomes rather than the connected product workflow.", priority: "P1", mappedKeyword: "job management software uk (P1, confidence 95)", icpPain: "Comparison buyers need a concise statement of category, capabilities and outcome.", feature: "CRM, scheduling, tracking, mobile work, invoicing and reporting", advantage: "Condenses the end-to-end workflow", benefit: "Your buyer can establish relevance quickly", proposedCopy: getappShort, fieldLimit: 300, sourceUrl: `${HOME_URL} | ${KEYWORD_MAP_URL}` });
 addRow({ channel: "GetApp", field: "Tagline", category: "Default", currentCopy: "BigChange provides AI-first job management software.", issue: "The tagline names AI but omits the verified UK field-team ICP.", priority: "P1", mappedKeyword: "job management software uk (P1, confidence 95)", icpPain: "Buyers need immediate ICP and category recognition.", feature: "Job management platform for UK field teams", advantage: "Aligns the entity with homepage positioning", benefit: "Improves clarity in a scan-heavy placement", proposedCopy: getappTagline, fieldLimit: 60, sourceUrl: `${HOME_URL} | ${KEYWORD_MAP_URL}` });
-addRow({ channel: "GetApp", field: "Benefits", category: "Default", currentCopy: "• BigChange Job Management Platform is a cloud-based field service management system that includes an integrated back-office CRM with drag and drop job / resource scheduling, customizable template-driven workflows, invoicing, health & safety and more.\n\n• BigChange Job Management Platform adds an integrated vehicle tracking component spanning back-office live Google Mapping, geofencing, journey history logs, fleet and resource management, timesheets and performance reporting with alerts.\n\n• An on-demand booking website is made available to customers, via which they can log into a branded portal from any web-enabled device to place new job bookings, check current job status, and view service histories and documentation.\n\n• BigChange integrates with other third-party management applications including Sage, Xero, Microsoft Dynamics NAV, QuickBooks and SAP Business One.\n\n• The companion BigChange JobWatch mobile app for Android and iOS devices adds field-based feature support along with electronic signatures, watermarked photo capture, expense logging, timesheets, holiday and absence recording, plus driver checking and vehicle maintenance.", issue: "The existing bullets are feature-led, contain dated wording and do not connect capabilities to operational pains or qualified customer evidence.", priority: "P1", mappedKeyword: "job management software uk plus supporting feature terms", icpPain: "Buyers need specific reasons the platform reduces paper, improves dispatch and shortens administrative handoffs.", feature: "Connected workflow, field app, customer portal, integrations, BI and automation", advantage: "Groups capabilities around real buyer jobs", benefit: "Your buyer can compare concrete benefits and source-qualified outcomes", proposedCopy: getappBenefits, fieldLimit: 4000, proof: { customer: `${PROOF.serious.customer}; ${PROOF.eft.customer}; ${PROOF.baydale.customer}`, qualification: `${PROOF.serious.qualification} ${PROOF.eft.qualification} ${PROOF.baydale.qualification}`, url: `${PROOF.serious.url} | ${PROOF.eft.url} | ${PROOF.baydale.url}` }, sourceUrl: HOME_URL });
+addRow({ channel: "GetApp", field: "Benefits", category: "Default", currentCopy: "• BigChange Job Management Platform is a cloud-based field service management system that includes an integrated back-office CRM with drag and drop job / resource scheduling, customizable template-driven workflows, invoicing, health & safety and more.\n\n• BigChange Job Management Platform adds an integrated vehicle tracking component spanning back-office live Google Mapping, geofencing, journey history logs, fleet and resource management, timesheets and performance reporting with alerts.\n\n• An on-demand booking website is made available to customers, via which they can log into a branded portal from any web-enabled device to place new job bookings, check current job status, and view service histories and documentation.\n\n• BigChange integrates with other third-party management applications including Sage, Xero, Microsoft Dynamics NAV, QuickBooks and SAP Business One.\n\n• The companion BigChange JobWatch mobile app for Android and iOS devices adds field-based feature support along with electronic signatures, watermarked photo capture, expense logging, timesheets, holiday and absence recording, plus driver checking and vehicle maintenance.", issue: "The existing bullets are feature-led, contain dated wording and do not connect capabilities to operational pains or qualified customer evidence.", priority: "P1", mappedKeyword: "job management software uk plus supporting feature terms", icpPain: "Buyers need specific reasons the platform reduces paper, improves dispatch and shortens administrative handoffs.", feature: "Connected workflow, field app, customer portal, integrations, BI and automation", advantage: "Groups capabilities around real buyer jobs", benefit: "Your buyer can compare concrete benefits and source-qualified outcomes", proposedCopy: getappBenefits, fieldLimit: 4000, proof: { customer: `${PROOF.serious.customer}; ${PROOF.eft.customer}; ${PROOF.baydale.customer}; ${PROOF.enviroventCaseStudy.customer}; ${PROOF.specialised.customer}`, qualification: `${PROOF.serious.qualification} ${PROOF.eft.qualification} ${PROOF.baydale.qualification} ${PROOF.enviroventCaseStudy.qualification} ${PROOF.specialised.qualification}`, url: `${PROOF.serious.url} | ${PROOF.eft.url} | ${PROOF.baydale.url} | ${PROOF.enviroventCaseStudy.url} | ${PROOF.specialised.url}` }, sourceUrl: HOME_URL });
 
 for (const category of categoryNames) {
   const meta = categoryMeta[category];
@@ -358,8 +455,10 @@ for (const category of categoryNames) {
 }
 
 const capterraProofByCategory = {
+  "Electrical Contractor": PROOF.medlec,
   "HVAC": PROOF.ebgas,
   "Janitorial": PROOF.ccis,
+  "Plumbing": PROOF.ses,
   "Security System Installer": PROOF.baydale,
 };
 
@@ -428,7 +527,117 @@ for (const [channel, field, currentCopy, proposedCopy] of captionRows) {
 }
 
 for (const channel of ["Capterra", "Software Advice", "GetApp"]) {
-  addRow({ channel, field: "Video Recommendation", category: "Media", currentCopy: OLD_VIDEO_URL, issue: "The shared overview was published 15 December 2022 and does not reflect BigChange Lightning or the current 2026 positioning.", priority: "P1", mappedKeyword: "job management software uk plus current product entity alignment", icpPain: "Buyers need a current product demonstration rather than a dated brand overview.", feature: "BigChange Lightning product demonstration", advantage: "Shows the current AI layer and connected field-service workflows", benefit: "Your buyer gets a clearer, current view of the product before conversion", proposedCopy: NEW_VIDEO_URL, fieldLimit: "URL field", sourceUrl: `${OLD_VIDEO_URL} | ${NEW_VIDEO_URL} | https://www.bigchange.com/lightning`, proofStatus: "Verified public and embeddable on 2026-09-23. Confirm channel fit and package availability at publication." });
+  addRow({ channel, field: "Video Recommendation", category: "Media", currentCopy: NEW_VIDEO_URL, issue: "The current Lightning demo presents an AI layer installed on top of BigChange rather than the base job management platform. It also contains material 6% versus 24% margin and 150-million-job claims.", priority: "P1", mappedKeyword: "job management software uk plus accurate product entity alignment", icpPain: "Buyers need a representative view of the core platform before evaluating optional intelligence layers.", feature: VIDEO.core.title, advantage: "Introduces the connected CRM, scheduling, tracking, mobile, finance and reporting workflow without positioning an add-on as the whole product", benefit: "Your buyer gets a clearer first view of the base BigChange platform", proposedCopy: VIDEO.core.url, fieldLimit: "URL field", sourceUrl: `${VIDEO.core.url} | ${NEW_VIDEO_URL} | https://www.bigchange.com/lightning`, proofStatus: `Official BigChange channel. Published ${VIDEO.core.published}; duration ${VIDEO.core.duration}; public and embeddable when checked ${CHECKED_DATE}. ${VIDEO.core.qualification}` });
+}
+
+for (const channel of ["Capterra"]) {
+  for (const [category, video] of categoryVideoMap) {
+    const customerProof = video === VIDEO.scheduling
+      ? { customer: "BigChange scheduling customers shown in official feature video", qualification: video.qualification }
+      : video === VIDEO.sherwoods
+        ? { customer: "Sherwoods Facilities Services | Facilities maintenance", qualification: video.qualification }
+        : video === VIDEO.envirovent
+          ? { customer: "EnviroVent | Ventilation and HVAC", qualification: video.qualification }
+          : undefined;
+    addRow({
+      channel,
+      field: "Category Video",
+      category,
+      currentCopy: `Default (inherits ${NEW_VIDEO_URL})`,
+      issue: `The inherited Lightning video is not the closest match for buyers evaluating ${category}.`,
+      priority: video.blocked ? "P0" : "P1",
+      mappedKeyword: categoryMeta[category].kw,
+      icpPain: categoryMeta[category].pain,
+      feature: video.title,
+      advantage: `Shows a workflow directly related to ${category} instead of a general AI add-on demonstration`,
+      benefit: `Your buyer can assess how BigChange supports ${category} before leaving the marketplace profile`,
+      proposedCopy: video.url,
+      fieldLimit: "URL field",
+      proof: customerProof,
+      sourceUrl: video.url,
+      proofStatus: `${video.status}. Official BigChange channel. Published ${video.published}; duration ${video.duration}; public and embeddable when checked ${CHECKED_DATE}. ${video.qualification}`,
+    });
+  }
+}
+
+const industrySelections = [
+  { name: "Automotive", action: "Remove selection: Automotive", priority: "P1", fit: "No current BigChange industry landing page supports automotive businesses as a priority ICP.", feature: "No direct current industry mapping", source: "https://www.bigchange.com/industries" },
+  { name: "Construction", action: "Retain selection: Construction", priority: "P1", fit: "BigChange has a current construction job management page covering multi-site allocation, schedule changes, labour time and compliance records.", feature: "Construction field operations", source: "https://www.bigchange.com/industries/construction-job-management-software" },
+  { name: "Consumer Services", action: "Retain selection: Consumer Services", priority: "P1", fit: "This is the closest broad portal label for several priority service trades, including plumbing, heating, HVAC, cleaning and pest control.", feature: "Trade and field service businesses", source: "https://www.bigchange.com/industries" },
+  { name: "Electrical/Electronic Manufacturing", action: "Remove selection: Electrical/Electronic Manufacturing", priority: "P0", fit: "The official vertical is electrical contracting. Manufacturing is a different buyer industry and risks attracting the wrong ICP.", feature: "Electrical contracting, not manufacturing", source: "https://www.bigchange.com/industries/job-management-software-for-electricians" },
+  { name: "Environmental Services", action: "Retain selection: Environmental Services", priority: "P1", fit: "Current drainage, waste, recycling and environmental pages support this portal mapping.", feature: "Drainage, waste and environmental field work", source: "https://www.bigchange.com/industries/waste-and-recycling-software" },
+  { name: "Facilities Services", action: "Retain selection: Facilities Services", priority: "P1", fit: "Facilities management and building maintenance are two of BigChange's eight priority industry groups.", feature: "Facilities and building maintenance", source: "https://www.bigchange.com/industries/facilities-management-software-crm" },
+  { name: "Food & Beverages", action: "Remove selection: Food & Beverages", priority: "P1", fit: "The current BigChange page targets companies that service catering equipment, not food and beverage producers as a general ICP.", feature: "Food and catering equipment service", source: "https://www.bigchange.com/industries/food-and-catering-software-crm" },
+  { name: "Food Production", action: "Remove selection: Food Production", priority: "P1", fit: "The current BigChange page supports catering-equipment service workflows rather than food production operations.", feature: "Catering equipment service, not production", source: "https://www.bigchange.com/industries/food-and-catering-software-crm" },
+  { name: "Government Administration", action: "Retain selection: Government Administration", priority: "P1", fit: "BigChange has a current public-sector field service page for mobile workforces, inspections, maintenance and service reporting.", feature: "Public-sector field service", source: "https://www.bigchange.com/industries/public-sector-software-crm" },
+  { name: "Hospitality", action: "Remove selection: Hospitality", priority: "P1", fit: "The public industry evidence supports businesses servicing catering equipment, not hospitality operators as a primary buyer segment.", feature: "Catering equipment service, not hospitality operations", source: "https://www.bigchange.com/industries/food-and-catering-software-crm" },
+  { name: "Industrial Automation", action: "Remove selection: Industrial Automation", priority: "P0", fit: "Industrial automation is not a current BigChange priority or secondary industry page and overstates the product's industrial positioning.", feature: "Field service workflow rather than industrial automation", source: "https://www.bigchange.com/industries" },
+  { name: "Logistics and Supply Chain", action: "Retain selection: Logistics and Supply Chain", priority: "P1", fit: "Current transport and logistics pages cover routes, fleet visibility, ETA updates, proof of delivery and job profitability.", feature: "Transport and logistics field operations", source: "https://www.bigchange.com/industries/transport-logistics-software-crm" },
+  { name: "Machinery", action: "Retain selection: Machinery", priority: "P1", fit: "This is a reasonable portal proxy for equipment rental, hire, servicing and maintenance businesses.", feature: "Equipment hire and service", source: "https://www.bigchange.com/industries/equipment-hire-software-crm" },
+  { name: "Mechanical or Industrial Engineering", action: "Retain selection: Mechanical or Industrial Engineering", priority: "P2", fit: "This is an imperfect but defensible proxy for industrial doors, equipment service and engineering-led field operations.", feature: "Industrial door and equipment service", source: "https://www.bigchange.com/industries/door-business-software-crm" },
+  { name: "Retail", action: "Remove selection: Retail", priority: "P1", fit: "Retailers may be customers of BigChange users, but retail is not a current first-party BigChange industry vertical.", feature: "No direct current industry mapping", source: "https://www.bigchange.com/industries" },
+  { name: "Security and Investigations", action: "Retain selection: Security and Investigations", priority: "P1", fit: "This is the closest portal label for BigChange's priority fire and security vertical.", feature: "Fire and security field service", source: "https://www.bigchange.com/industries/fire-and-security-software-crm" },
+  { name: "Transportation/Trucking/Railroad", action: "Retain selection: Transportation/Trucking/Railroad", priority: "P1", fit: "BigChange has current transportation, logistics and specialist transport industry pages.", feature: "Transport, fleet and delivery operations", source: "https://www.bigchange.com/industries/transport-management-software" },
+  { name: "Utilities", action: "Retain selection: Utilities", priority: "P1", fit: "BigChange has a current energy and utilities workforce page covering maintenance, repair, installation, safety and assets.", feature: "Energy and utilities workforce", source: "https://www.bigchange.com/industries/utilities-workforce-software-crm" },
+  { name: "Wholesale", action: "Remove selection: Wholesale", priority: "P1", fit: "Wholesale is not a current BigChange industry vertical and is broader than the supported equipment-hire and field-service use cases.", feature: "No direct current industry mapping", source: "https://www.bigchange.com/industries" },
+];
+
+for (const industry of industrySelections) {
+  addRow({
+    channel: "Cross-channel",
+    field: "Target Industry Selection",
+    category: industry.name,
+    currentCopy: "Selected in the live G2 Digital Markets product profile",
+    issue: industry.fit,
+    priority: industry.priority,
+    mappedKeyword: "Structured ICP relevance, not a keyword-density field",
+    icpPain: "Broad or mismatched industry labels can reduce buyer self-qualification.",
+    feature: industry.feature,
+    advantage: "Aligns the structured profile with BigChange's current public industry positioning",
+    benefit: industry.action.startsWith("Retain") ? "Relevant buyers can recognise their operating context more quickly" : "The profile avoids signalling fit to an unsupported buyer segment",
+    proposedCopy: industry.action,
+    fieldLimit: "Multi-select control",
+    sourceUrl: `${industry.source} | ${PORTAL_BASE}/product_details#content-header`,
+    proofStatus: industry.action.startsWith("Retain") ? `Supported by current official BigChange industry evidence checked ${STRUCTURED_CHECKED_DATE}` : `Removal recommendation based on absence or mismatch in current official BigChange industry evidence checked ${STRUCTURED_CHECKED_DATE}`,
+    checkedDate: STRUCTURED_CHECKED_DATE,
+  });
+}
+
+const integrationSelections = [
+  { name: "Google Maps", current: "Selected", action: "Retain selection: Google Maps", priority: "P1", type: "Mapping and routing", issue: "Current BigChange scheduling and tracking workflows use Google mapping for locations and routing.", source: "https://www.bigchange.com/features/job-scheduling", status: "Current product evidence" },
+  { name: "Microsoft Outlook", current: "Selected", action: "Retain selection: Microsoft Outlook", priority: "P1", type: "Email and productivity", issue: "Current official disclosures and product guidance document BigChange email and Outlook integration.", source: "https://www.bigchange.com/legal/privacy-policy", status: "Current product evidence" },
+  { name: "Microsoft Word", current: "Selected", action: "Retain selection: Microsoft Word", priority: "P1", type: "Document templates", issue: "Current official disclosures name BigChange Word for Templates as a Microsoft Office integration.", source: "https://www.bigchange.com/legal/privacy-policy", status: "Current product evidence" },
+  { name: "QuickBooks Online Advanced", current: "Selected", action: "Replace with QuickBooks Online only after product confirmation", priority: "P0", type: "Accounting", issue: "Current official sources say QuickBooks, but do not verify the Online Advanced edition or the same automated sync depth as Xero and Sage.", source: "https://www.bigchange.com/guide/job-management-software-for-electrical-contractors", status: "Blocked on edition and implementation-scope confirmation" },
+  { name: "SAP Business One", current: "Selected", action: "Retain conditionally: SAP Business One", priority: "P0", type: "ERP custom integration", issue: "A current customer story proves an implemented SAP Business One integration, but not a turnkey connector for every account.", source: "https://www.bigchange.com/success-stories/jbc-boosts-industrial-service-performance-with-bigchange-sap-b1-integration", status: "Custom or professional-services scope must be confirmed" },
+  { name: "Sage 50 Accounting", current: "Selected", action: "Retain selection: Sage 50 Accounting", priority: "P1", type: "Accounting", issue: "BigChange's current integrations page and official support documentation substantiate Sage 50 data exchange.", source: "https://www.bigchange.com/features/integrations", status: "Current product and support evidence" },
+  { name: "Xero", current: "Selected", action: "Retain selection: Xero", priority: "P1", type: "Accounting", issue: "The current integrations page documents invoice, contact and payment synchronisation with Xero.", source: "https://www.bigchange.com/features/integrations", status: "Current direct integration evidence" },
+  { name: "inspHire", current: "Selected", action: "Retain only after current product confirmation: inspHire", priority: "P0", type: "Equipment hire software", issue: "Official BigChange content describes inspHire data exchange, but no current dedicated product or support page was found.", source: "https://www.bigchange.com/blog/advanced-job-management-features", status: "Blocked on current availability confirmation" },
+  { name: "what3words", current: "Selected", action: "Retain selection: what3words", priority: "P1", type: "Location", issue: "The current job scheduling page explicitly documents what3words integration.", source: "https://www.bigchange.com/features/job-scheduling", status: "Current product evidence" },
+  { name: "Stripe", current: "Not selected", action: "Add selection: Stripe", priority: "P1", type: "Payments", issue: "The current BigChange Payments page identifies Stripe as the payment processor and the portal exposes an exact Stripe entity.", source: "https://www.bigchange.com/features/payments", status: "Current optional payments capability" },
+  { name: "Microsoft Entra ID", current: "Not selected", action: "Add selection: Microsoft Entra ID", priority: "P1", type: "Identity and SSO add-on", issue: "BigChange announced Microsoft Entra ID SSO as available now in March 2026, and the portal exposes an exact entity.", source: "https://www.bigchange.com/blog/one-login-full-access-no-friction", status: "Current optional monthly company add-on" },
+  { name: "Okta", current: "Not selected", action: "Add selection: Okta", priority: "P1", type: "Identity and SSO add-on", issue: "BigChange announced Okta SSO as available now in March 2026, and the portal exposes an exact entity.", source: "https://www.bigchange.com/blog/one-login-full-access-no-friction", status: "Current optional monthly company add-on" },
+  { name: "Google Workspace", current: "Not selected", action: "Add after G2 entity confirmation: Google Workspace", priority: "P0", type: "Identity and SSO add-on", issue: "BigChange announced Google Workspace SSO as available now, but the portal displays two indistinguishable Google Workspace entities.", source: "https://www.bigchange.com/blog/one-login-full-access-no-friction", status: "Blocked until G2 identifies the canonical duplicate entity" },
+];
+
+for (const integration of integrationSelections) {
+  addRow({
+    channel: "Cross-channel",
+    field: "Integration Selection",
+    category: integration.name,
+    currentCopy: `${integration.current} in the live G2 Digital Markets product profile`,
+    issue: integration.issue,
+    priority: integration.priority,
+    mappedKeyword: "Integration entity relevance, not a keyword-density field",
+    icpPain: "Buyers need to know whether BigChange connects to the tools that already run finance, documents, location, payments and access.",
+    feature: integration.type,
+    advantage: "Uses a verified product entity and distinguishes current, optional and custom integration scope",
+    benefit: "Buyers can assess ecosystem fit without assuming every API possibility is a native connector",
+    proposedCopy: integration.action,
+    fieldLimit: "Multi-select control",
+    sourceUrl: `${integration.source} | ${PORTAL_BASE}/integrations#content-header`,
+    proofStatus: `${integration.status}. Official BigChange source and portal entity checked ${STRUCTURED_CHECKED_DATE}`,
+    checkedDate: STRUCTURED_CHECKED_DATE,
+  });
 }
 
 const pricingRows = [
@@ -455,8 +664,8 @@ const headers = [
 const channelOrder = new Map([["Capterra", 1], ["Software Advice", 2], ["GetApp", 3], ["Cross-channel", 4]]);
 const fieldOrder = new Map([
   ["Long Description", 1], ["Short Description", 2], ["Target Market", 3], ["Tagline", 4], ["Benefits", 5],
-  ["Screenshot Caption 1", 6], ["Screenshot Caption 2", 7], ["Screenshot Caption 3", 8], ["Video Recommendation", 9],
-  ["Pricing Plan Description", 10], ["Pricing Details", 11],
+  ["Screenshot Caption 1", 6], ["Screenshot Caption 2", 7], ["Screenshot Caption 3", 8], ["Video Recommendation", 9], ["Category Video", 9],
+  ["Target Industry Selection", 10], ["Integration Selection", 11], ["Pricing Plan Description", 12], ["Pricing Details", 13],
 ]);
 const categoryOrder = new Map([["Default", 0], ...categoryNames.map((name, index) => [name, index + 1]), ["Media", 100]]);
 
@@ -480,7 +689,7 @@ function isNumericLimit(value) {
 }
 
 function validateRows() {
-  if (rows.length !== 109) fail(`expected 109 rows, found ${rows.length}`);
+  if (rows.length !== 155) fail(`expected 155 rows, found ${rows.length}`);
   for (const [index, row] of rows.entries()) {
     for (const header of headers) {
       if (row[header] === undefined || row[header] === null || row[header] === "") {
@@ -494,10 +703,11 @@ function validateRows() {
     if (/[;—–]/u.test(row["proposed copy"])) fail(`row ${index + 1} contains prohibited punctuation`);
     if (/\b(best|leading|industry[- ]leading|unbeatable|unstoppable)\b/iu.test(row["proposed copy"])) fail(`row ${index + 1} contains hype language`);
     if (row.channel === "Capterra" && /\b(we|our|us)\b/iu.test(row["proposed copy"])) fail(`row ${index + 1} uses first-person Capterra copy`);
-    if (["Short Description", "Tagline"].includes(row.field) || row.field.startsWith("Screenshot Caption")) {
-      if (/\b(?:Rilmac|SES|Baydale|EB Gas|Serious Waste|EFT Systems|Flow Free|CC Infrastructure)\b/u.test(row["proposed copy"])) {
-        fail(`row ${index + 1} puts customer proof in a short field`);
-      }
+    if (["Short Description", "Tagline", "Target Market"].includes(row.field) || row.field.startsWith("Screenshot Caption")) {
+      const containsProofSignal = /\b(?:Rilmac|SES|Baydale|EB Gas|Serious Waste|EFT Systems|Flow Free|CC Infrastructure|MEDLEC|EnviroVent|Specialised Fire)\b/u.test(row["proposed copy"])
+        || /(?:%|30 to 40 reporting hours|around 60 jobs)/u.test(row["proposed copy"])
+        || row["customer proof"] !== "None";
+      if (containsProofSignal) fail(`row ${index + 1} puts customer proof in a short field`);
     }
     const customerMetric = /(?:%|30 to 40 reporting hours|around 60 jobs|approximately 30%)/u.test(row["proposed copy"]);
     if (customerMetric && row["customer proof"] === "None") fail(`row ${index + 1} has a customer metric without proof metadata`);
@@ -506,7 +716,7 @@ function validateRows() {
     }
   }
 
-  const proseRows = rows.filter(row => !row.field.startsWith("Screenshot Caption") && row.field !== "Video Recommendation");
+  const proseRows = rows.filter(row => !row.field.startsWith("Screenshot Caption") && !row.field.includes("Video"));
   const seenCopy = new Map();
   for (const row of proseRows) {
     const key = row["proposed copy"].trim().toLowerCase();
@@ -523,10 +733,19 @@ function validateRows() {
   for (const [url, count] of proofUsage) {
     if (count > 2) fail(`proof source used ${count} times: ${url}`);
   }
+
+  const videoRows = rows.filter(row => row.field.includes("Video"));
+  if (videoRows.length !== 17) fail(`expected 17 video rows, found ${videoRows.length}`);
+  if (rows.filter(row => row.field === "Category Video" && row.channel === "Capterra").length !== 14) fail("expected 14 Capterra category videos");
+  if (rows.some(row => row.field === "Category Video" && row.channel === "GetApp")) fail("GetApp does not expose category video controls");
+  if (rows.some(row => row.field.includes("Video") && !row["source URL"].includes("youtube.com/watch?v="))) fail("video row missing direct YouTube source");
+  if (rows.filter(row => row.field === "Target Industry Selection").length !== 19) fail("expected 19 target-industry review rows");
+  if (rows.filter(row => row.field === "Integration Selection").length !== 13) fail("expected 13 integration review rows");
+  if (rows.filter(row => row.field === "Target Industry Selection" && row["proposed copy"].startsWith("Retain")).length !== 11) fail("expected 11 retained industry selections");
 }
 
 function buildCsv() {
-  return [headers.map(escapeCsv).join(","), ...rows.map(row => headers.map(header => escapeCsv(row[header])).join(","))].join("\r\n") + "\r\n";
+  return [headers.map(escapeCsv).join(","), ...rows.map(row => headers.map(header => escapeCsv(row[header])).join(","))].join("\n") + "\n";
 }
 
 function countCsvRecords(csvText) {
@@ -552,21 +771,26 @@ function channelCount(channel) {
   return rows.filter(row => row.channel === channel).length;
 }
 
+function fieldCount(field) {
+  return rows.filter(row => row.field === field).length;
+}
+
 function buildMarkdown() {
   return `# BigChange G2 Digital Markets SEO/AEO copy audit
 
-Reviewed and implemented ${CHECKED_DATE}. Scope: UK-English Capterra, Software Advice and GetApp listing copy in G2 Digital Markets. The authenticated Chrome session was used to save and reload-verify 104 eligible fields. Five pricing fields were deliberately left unchanged because the portal and public pricing evidence conflict.
+Copy and media were implemented ${CHECKED_DATE}. Structured industries and integrations were reviewed ${STRUCTURED_CHECKED_DATE}. Scope: UK-English Capterra, Software Advice and GetApp listings in G2 Digital Markets. The authenticated Chrome session was used to save and reload-verify all 107 eligible copy and media fields. The 32 structured-profile review rows are recommendations only and were not saved.
 
 ## Outcome
 
-The package contains 109 ready-to-review rows:
+The package contains ${rows.length} ready-to-review rows: 123 copy, media and pricing rows plus 32 structured industry and integration rows. All 107 eligible copy and media fields match the live portal. Five pricing fields, 11 category-video recommendations and four structured integration actions remain blocked or conditional.
 
 | Channel or field group | Rows | Coverage |
 |---|---:|---|
-| Capterra | ${channelCount("Capterra")} | Default long, short and target market; long and short copy for all 28 categories; three captions; one video URL |
+| Capterra | ${channelCount("Capterra")} | Default long, short and target market; long and short copy for all 28 categories; three captions; one default video; three approved and 11 blocked category-video recommendations |
 | Software Advice | ${channelCount("Software Advice")} | Long description; three captions; one video URL |
-| GetApp | ${channelCount("GetApp")} | Default long, short, tagline and benefits; one description for all 28 categories; three captions; one video URL |
-| Cross-channel pricing | ${channelCount("Cross-channel")} | Four plan descriptions and pricing details |
+| GetApp | ${channelCount("GetApp")} | Default long, short, tagline and benefits; one description for all 28 categories; three captions; one default video |
+| Structured profile | ${fieldCount("Target Industry Selection") + fieldCount("Integration Selection")} | Nineteen live industry selections and nine live integrations, plus four evidence-backed integration additions |
+| Cross-channel pricing | ${fieldCount("Pricing Plan Description") + fieldCount("Pricing Details")} | Four plan descriptions and pricing details |
 
 The XLSX and CSV matrices contain current copy, issue, priority, mapped keyword, ICP pain, feature, advantage, benefit, proposed copy, exact character count and proof provenance for every row.
 
@@ -575,6 +799,8 @@ The XLSX and CSV matrices contain current copy, issue, priority, mapped keyword,
 1. Calendar and Forms Automation now use custom copy on both Capterra and GetApp. The live listing-completion score increased from 96% to 100% after the description updates were saved.
 2. Pricing needs owner confirmation before publication. The active Job Management plan shows £79.95, while Pricing Details still says JobWatch costs £69.95 per vehicle per month. The portal pricing record was last updated 16 May 2024. BigChange's current public pricing page is quote-based and does not validate the portal amounts.
 3. BigChange has 28 selected categories, zero reviews in the last 90 days and a 0.0 average rating for that period. Copy cannot offset missing recent review evidence.
+4. Eight of the 19 live industry selections are broader than, or misaligned with, BigChange's current first-party industry positioning. Electrical/Electronic Manufacturing and Industrial Automation are the clearest mismatches.
+5. The integration list omits Stripe and three current SSO add-ons. QuickBooks Online Advanced, SAP Business One and inspHire need implementation-scope confirmation before any live change. The portal also exposes two indistinguishable Google Workspace entities.
 
 ## Copy strategy
 
@@ -591,24 +817,52 @@ The XLSX and CSV matrices contain current copy, issue, priority, mapped keyword,
 - [Capterra's research methodology](https://www.capterra.com/resources/proprietary-data-research/) uses recent ratings and popularity signals for Shortlist research. [Capterra's transparency guidance](https://www.capterra.com/resources/how-we-ensure-transparency/) explains that sponsored placements can affect marketplace position.
 - The practical order of operations is category accuracy, complete structured fields, fresh representative reviews, current media and consistent entity language. Keyword placement strengthens relevance and comprehension within that larger system.
 
+## Structured industry review
+
+The live profile selects 19 of 147 industry labels. BigChange's current Industries hub gives eight verticals first-class prominence: plumbing, heating and HVAC; industrial doors; fire and security; facilities management; electrical contracting; equipment rental and hire; drainage, waste and environmental; and building maintenance. The sitemap also exposes current secondary pages for construction, specialist cleaning, food and catering equipment service, grounds maintenance, highways, pest control, public sector, roofing, transport and logistics, specialist transport, utilities and waste management.
+
+| Live industry | Recommendation | Evidence decision |
+|---|---|---|
+${industrySelections.map(industry => `| ${industry.name} | ${industry.action.replace(":", "")} | ${industry.fit} |`).join("\n")}
+
+Industry labels should describe the buyer's own operating sector, not only the sectors their customers serve. That distinction is why Food & Beverages, Food Production, Hospitality, Retail and Wholesale are removal recommendations even though BigChange users may service organisations in those markets.
+
+## Structured integration review
+
+The live profile lists nine integrations and correctly marks the Open API as available. Current official evidence strongly supports Google Maps, Microsoft Outlook, Microsoft Word, Sage 50 Accounting, Xero and what3words. Stripe and the Microsoft Entra ID and Okta SSO add-ons are current additions. Google Workspace SSO is also current, but its duplicate portal entities need clarification before selection.
+
+| Integration | Live state | Recommendation | Evidence status |
+|---|---|---|---|
+${integrationSelections.map(integration => `| ${integration.name} | ${integration.current} | ${integration.action} | ${integration.status} |`).join("\n")}
+
+Do not treat every homepage ecosystem logo, API possibility, infrastructure provider or bespoke customer implementation as a native connector. Slack, Teams and Power Automate are documented as API-build examples. AWS is infrastructure. GitHub, Asana, LinkedIn and Workday have logo-level evidence only. Salesforce, Oracle, generic SAP, Power BI and Microsoft Dynamics NAV lack current packaged-integration proof.
+
 ## Customer proof controls
 
 | Customer | Approved metric used | Important qualification |
 |---|---|---|
 | Rilmac Asbestos Services | Approximately 30% less back-office administration resource | Named-customer result; used once; no typical-outcome claim |
-| SES Home Services | Up to 20% greater daily job efficiency per engineer | Retains "up to," daily and per-engineer context |
+| SES Home Services | Up to 20% greater daily job efficiency per engineer | Retains "up to," daily and per-engineer context; used in Software Advice and Capterra Plumbing |
 | Baydale Control Systems | 80% faster job allocation | Tied to stock visibility; used twice |
 | EB Gas Services | 20% more routine service jobs allocated | No published measurement period; attribution retained |
 | Serious Waste Management | More than 60% less time to create and issue invoices | Conflicting growth figures excluded |
 | EFT Systems | 30 to 40 reporting hours saved each month | Explicitly credits BigChange, Snowflake Data as a Service and Rathbone Results |
 | Flow Free Drainage | Two office staff handling about 60 jobs daily versus five or six before | Legacy JobWatch story; separate growth claim excluded |
 | CC Infrastructure Services | 20% less administrative resource | Undefined waste claim excluded |
+| MEDLEC | Around 40% greater productivity | Older proof; implemented in 2018; no visible measurement period; not a current benchmark |
+| EnviroVent | No-access visits reduced from 15% to regularly below its 5% KPI | Preserve "regularly below"; do not describe the change as a 10% reduction |
+| Specialised Fire & Security | Already automated around 80% of routine job-management workflows | Preserve "already" and "around"; planned workforce growth excluded |
 
-All eight source pages returned successfully and displayed the supporting metric on ${CHECKED_DATE}. None exposed a visible publication date, so the matrix records the verification date instead of inventing one.
+All eleven source pages returned successfully and displayed the supporting metric on ${CHECKED_DATE}. Where a page exposed no visible publication date or measurement period, the matrix records the verification date and a freshness caveat instead of inventing one.
 
 ## Media recommendations
 
-- The shared 2022 overview was replaced on all three channels with [BigChange Lightning Demo - Take a Look!](https://www.youtube.com/watch?v=4fcnxzGWkN0). The video was published 18 May 2026, runs 4 minutes 27 seconds and exposes an embeddable YouTube URL.
+- The [all-in-one Job Management System overview](${VIDEO.core.url}) is the default video on Capterra, Software Advice and GetApp. Although published in 2022, it remains the official channel's best short introduction to the base platform. The 2026 Lightning demo was removed as the universal default because Lightning is an AI layer installed on top of BigChange and its video contains material benchmark claims.
+- Capterra uses the Fleet Management video for CMMS, Equipment Maintenance and Preventive Maintenance. Eleven additional category-video matches remain in the matrix as blocked recommendations because their customer, causal, superlative, financial or product-status claims are not sufficiently supported for republication.
+- The blocked set covers the Scheduling video for Calendar, Scheduling, Service Dispatch, Work Order and Workforce Management; Tracking for Delivery Management; Sherwoods for Building Maintenance, Facility Management and Maintenance Management; EnviroVent for HVAC; and the Templates webinar for Forms Automation.
+- GetApp exposes default videos only, so it retains the single core-platform default. Category-specific videos are not added as unrelated GetApp defaults.
+- The Scheduling transcript's customer-reported 1,957-jobs statement is not reused in listing copy because the transcript does not establish sufficient speaker attribution or measurement context.
+- The official channel still needs a current, captioned 60-to-120-second core-platform overview that does not depend on Lightning positioning.
 - Generic screenshot labels were replaced with channel-specific captions that explain the scheduling, reporting and fleet-tracking workflow shown on screen.
 
 ## Pricing recommendation
@@ -621,30 +875,44 @@ Maintain a continuous, representative review programme. Invite a broad customer 
 
 ## Validation record
 
-- Matrix QA: 109 rows; ${priorityCount("P0")} P0, ${priorityCount("P1")} P1 and ${priorityCount("P2")} P2 recommendations.
+- Matrix QA: ${rows.length} rows; ${priorityCount("P0")} P0, ${priorityCount("P1")} P1 and ${priorityCount("P2")} P2 recommendations.
 - Limit QA: every numeric portal limit passes; each stored character count matches the proposed copy.
 - Proof QA: every metric-bearing row contains a named customer, sector, precise metric, qualifier, direct BigChange case-study URL, checked date and proof status.
 - Short-field QA: no named customer metric appears in a short description, tagline or screenshot caption.
 - Style QA: proposed copy contains no em dashes, en dashes, semicolons, unsupported superlatives or Capterra first-person brand language.
-- Uniqueness QA: all prose fields are distinct. The same verified YouTube URL is intentionally recommended across three channel-specific video fields.
-- Workbook QA: CSV and XLSX use the same 109-row source array. The workbook contains filterable, wrapped and frozen matrix headers plus summary and proof-ledger tabs.
+- Video QA: 17 video rows reconcile to three defaults, three approved Capterra category overrides and 11 blocked category-video recommendations. GetApp does not expose category video controls. All reviewed videos are official, public and embeddable, but availability alone does not approve their claims.
+- Uniqueness QA: all prose fields are distinct. Repeated video URLs are intentional category placements, not duplicate prose.
+- Structured-profile QA: 19 industry rows reconcile to the live selections, with 11 retain and eight remove recommendations. Thirteen integration rows reconcile to nine live selections and four proposed additions.
+- Workbook QA: CSV and XLSX use the same ${rows.length}-row source array. The workbook contains filterable, wrapped and frozen matrix headers plus summary and proof-ledger tabs.
 
 ## Live implementation record
 
-1. Saved and reload-verified all 59 Capterra description fields, including custom Calendar and Forms Automation copy.
+1. Saved and reload-verified all 59 Capterra description fields, including custom Calendar and Forms Automation copy plus the revised Electrical Contractor and Plumbing long descriptions.
 2. Saved and reload-verified the Software Advice long description.
-3. Saved and reload-verified all 32 GetApp description fields, including custom Calendar and Forms Automation copy.
-4. Saved and reload-verified nine screenshot captions and the 2026 Lightning video on all three channels.
+3. Saved and reload-verified all 32 GetApp description fields, including custom Calendar and Forms Automation copy plus the revised Benefits field.
+4. Saved and reload-verified nine screenshot captions, the core-platform default video on all three channels and the Fleet Management video for CMMS, Equipment Maintenance and Preventive Maintenance on Capterra. Eleven proof-blocked category videos were not saved. GetApp exposes default videos only.
 5. Confirmed the live listing-completion score is 100%.
 6. Left all five pricing-copy fields unchanged pending commercial verification of the conflicting plan amounts and terms.
-7. Re-audit category fit, structured fields and review recency quarterly.
+7. Reviewed all live target-industry and integration selections without saving structured-field changes. Live changes remain gated by product-owner confirmation for the conditional integrations and by G2 clarification of the duplicate Google Workspace entities.
+8. Re-audit category fit, structured fields and review recency quarterly.
 
 ## Primary sources
 
 - [BigChange homepage](${HOME_URL})
 - [BigChange pricing page](${PRICING_URL})
+- [BigChange industries hub](https://www.bigchange.com/industries)
+- [BigChange integrations](https://www.bigchange.com/features/integrations)
+- [BigChange Payments](https://www.bigchange.com/features/payments)
+- [BigChange SSO announcement](https://www.bigchange.com/blog/one-login-full-access-no-friction)
 - [BigChange keyword map](${KEYWORD_MAP_URL})
-- [Current BigChange YouTube demo](${NEW_VIDEO_URL})
+- [BigChange YouTube channel](https://www.youtube.com/@BigChange)
+- [Core BigChange overview](${VIDEO.core.url})
+- [Scheduling feature video](${VIDEO.scheduling.url})
+- [Fleet Management feature video](${VIDEO.fleet.url})
+- [Tracking feature video](${VIDEO.tracking.url})
+- [Sherwoods Facilities Services video](${VIDEO.sherwoods.url})
+- [EnviroVent workflow video](${VIDEO.envirovent.url})
+- [Templates deep-dive video](${VIDEO.templates.url})
 - Direct BigChange customer-story URLs are recorded beside every metric-bearing row in the matrix.
 `;
 }
@@ -669,39 +937,42 @@ async function buildWorkbook() {
   summary.getRange("A1").values = [["BigChange G2 Digital Markets SEO/AEO copy package"]];
   summary.getRange("A1:H1").format.font = { name: fontName, size: 18, bold: true, color: navy };
   summary.getRange("A2:H2").merge();
-  summary.getRange("A2").values = [["UK-English Capterra, Software Advice and GetApp implementation | Saved and verified 2026-09-23 | 104 eligible fields updated"]];
+  summary.getRange("A2").values = [["UK-English Capterra, Software Advice and GetApp | 107 copy/media fields verified | industries and integrations reviewed 2026-09-24"]];
   summary.getRange("A2:H2").format.font = { name: fontName, size: 10, italic: true, color: "#55636B" };
   summary.getRange("A3:H3").format.borders = { bottom: { style: "thin", color: orange } };
   summary.getRange("A5:C5").values = [["Decision", "Evidence", "Recommendation"]];
-  summary.getRange("A6:C10").values = [
-    ["Completion", "100%; Calendar and Forms Automation are customised on Capterra and GetApp", "Re-audit completeness and category fit quarterly"],
+  summary.getRange("A6:C12").values = [
+    ["Completion", "100%; all 107 eligible fields match the live portal", "Re-audit completeness, proof freshness and category fit quarterly"],
+    ["Industries", "19 live selections; 11 retain and 8 remove recommendations", "Remove mismatched manufacturing and downstream-customer labels after review"],
+    ["Integrations", "9 live selections; 4 evidence-backed additions; 4 conditional or blocked actions", "Add current entities and resolve edition, custom-scope and duplicate-record questions"],
     ["Pricing", "£79.95 active plan versus £69.95 Pricing Details; last updated 2024-05-16", "Block publication until the commercial owner confirms current terms"],
     ["Reviews", "0 reviews and 0.0 average rating in the last 90 days", "Run a continuous, representative and unscripted review programme"],
-    ["Video", "2026 Lightning demo is saved on Capterra, Software Advice and GetApp", "Revalidate the promoted capabilities when the package changes"],
+    ["Video", "Core default plus 3 approved Capterra overrides; 11 recommendations blocked", "Refresh proof and publish a current captioned core overview"],
     ["Keywords", "P1 terms are high-confidence; P2 ownership remains unresolved", "Use P1 naturally and treat P2 as supporting vocabulary"],
   ];
   summary.getRange("E5:F5").values = [["Package count", "Rows"]];
-  summary.getRange("E6:F11").values = [
+  summary.getRange("E6:F13").values = [
     ["All rows", rows.length], ["Capterra", channelCount("Capterra")], ["Software Advice", channelCount("Software Advice")],
-    ["GetApp", channelCount("GetApp")], ["Cross-channel pricing", channelCount("Cross-channel")], ["P0 recommendations", priorityCount("P0")],
+    ["GetApp", channelCount("GetApp")], ["Structured profile", fieldCount("Target Industry Selection") + fieldCount("Integration Selection")],
+    ["Cross-channel pricing", fieldCount("Pricing Plan Description") + fieldCount("Pricing Details")], ["P0 recommendations", priorityCount("P0")], ["P1 recommendations", priorityCount("P1")],
   ];
-  summary.getRange("A13:H13").merge();
-  summary.getRange("A13").values = [["Use the Copy Matrix for paste-ready drafts and row-level proof. Pricing rows remain verification-gated."]];
-  summary.getRange("A13:H13").format = { fill: lightOrange, font: { name: fontName, bold: true, color: navy }, wrapText: true };
+  summary.getRange("A15:H15").merge();
+  summary.getRange("A15").values = [["Use the Copy Matrix for paste-ready copy and structured-profile actions. No industry or integration changes were saved."]];
+  summary.getRange("A15:H15").format = { fill: lightOrange, font: { name: fontName, bold: true, color: navy }, wrapText: true };
   summary.getRange("A5:C5").format = { fill: navy, font: { name: fontName, bold: true, color: "#FFFFFF" }, horizontalAlignment: "center", verticalAlignment: "center" };
   summary.getRange("E5:F5").format = { fill: blue, font: { name: fontName, bold: true, color: "#FFFFFF" }, horizontalAlignment: "center" };
-  summary.getRange("A6:C10").format = { font: { name: fontName, size: 10, color: "#1F2933" }, wrapText: true, verticalAlignment: "top" };
-  summary.getRange("E6:F11").format = { font: { name: fontName, size: 10, color: "#1F2933" }, verticalAlignment: "center" };
-  summary.getRange("F6:F11").format.horizontalAlignment = "right";
-  summary.getRange("A5:C10").format.borders = {
+  summary.getRange("A6:C12").format = { font: { name: fontName, size: 10, color: "#1F2933" }, wrapText: true, verticalAlignment: "top" };
+  summary.getRange("E6:F13").format = { font: { name: fontName, size: 10, color: "#1F2933" }, verticalAlignment: "center" };
+  summary.getRange("F6:F13").format.horizontalAlignment = "right";
+  summary.getRange("A5:C12").format.borders = {
     top: { style: "thin", color: "#CBD5DB" },
     bottom: { style: "thin", color: "#CBD5DB" },
     left: { style: "thin", color: "#CBD5DB" },
     right: { style: "thin", color: "#CBD5DB" },
     insideVertical: { style: "thin", color: "#E1E7EA" },
   };
-  summary.getRange("E5:F11").format.borders = { preset: "outside", style: "thin", color: "#CBD5DB" };
-  summary.getRange("A1:H13").format.font.name = fontName;
+  summary.getRange("E5:F13").format.borders = { preset: "outside", style: "thin", color: "#CBD5DB" };
+  summary.getRange("A1:H15").format.font.name = fontName;
   summary.getRange("A:A").format.columnWidth = 24;
   summary.getRange("B:B").format.columnWidth = 44;
   summary.getRange("C:C").format.columnWidth = 46;
@@ -710,8 +981,8 @@ async function buildWorkbook() {
   summary.getRange("F:F").format.columnWidth = 12;
   summary.getRange("G:H").format.columnWidth = 4;
   summary.getRange("1:1").format.rowHeight = 28;
-  summary.getRange("6:10").format.rowHeight = 58;
-  summary.getRange("13:13").format.rowHeight = 36;
+  summary.getRange("6:12").format.rowHeight = 58;
+  summary.getRange("15:15").format.rowHeight = 36;
   summary.tabColor = orange;
 
   matrix.showGridLines = false;
@@ -719,7 +990,7 @@ async function buildWorkbook() {
   matrix.getRange("A1").values = [["BigChange listing rewrite matrix"]];
   matrix.getRange("A1:S1").format.font = { name: fontName, size: 16, bold: true, color: navy };
   matrix.getRange("A2:S2").merge();
-  matrix.getRange("A2").values = [["109 fields | UK English | character counts include spaces and punctuation | proof checked 2026-09-23"]];
+  matrix.getRange("A2").values = [[`${rows.length} rows | UK English | copy proof checked 2026-09-23 | structured profile checked 2026-09-24`]];
   matrix.getRange("A2:S2").format.font = { name: fontName, size: 10, italic: true, color: "#55636B" };
   matrix.getRange("A3:S3").format.borders = { bottom: { style: "thin", color: orange } };
   matrix.getRange("A4:S4").values = [headers];
@@ -747,12 +1018,12 @@ async function buildWorkbook() {
 
   proof.showGridLines = false;
   proof.getRange("A1:F1").merge();
-  proof.getRange("A1").values = [["BigChange customer proof ledger"]];
+  proof.getRange("A1").values = [["BigChange proof and video source ledger"]];
   proof.getRange("A1:F1").format.font = { name: fontName, size: 16, bold: true, color: navy };
   proof.getRange("A2:F2").merge();
-  proof.getRange("A2").values = [["Only the qualified treatment below is approved for this copy package. Live pages checked 2026-09-23."]];
+  proof.getRange("A2").values = [["Customer outcomes and selected official video sources. Claims and availability checked 2026-09-23."]];
   proof.getRange("A2:F2").format.font = { name: fontName, size: 10, italic: true, color: "#55636B" };
-  const proofHeaders = ["Customer", "Sector", "Approved metric", "Qualification", "Direct source URL", "Status"];
+  const proofHeaders = ["Source", "Context", "Approved evidence", "Qualification", "Direct source URL", "Status"];
   proof.getRange("A4:F4").values = [proofHeaders];
   const proofData = [
     ["Rilmac Asbestos Services Division", "Construction and asbestos abatement", "Approximately 30% less back-office administration resource", PROOF.rilmac.qualification, PROOF.rilmac.url, "Verified"],
@@ -763,30 +1034,42 @@ async function buildWorkbook() {
     ["EFT Systems", "Fire and security", "30 to 40 reporting hours saved each month", PROOF.eft.qualification, PROOF.eft.url, "Verified"],
     ["Flow Free Drainage", "Drainage, waste and environmental", "Two staff handling about 60 jobs daily versus five or six before", PROOF.flowfree.qualification, PROOF.flowfree.url, "Verified; legacy branding"],
     ["CC Infrastructure Services", "Specialist cleaning and infrastructure coatings", "20% less administrative resource", PROOF.ccis.qualification, PROOF.ccis.url, "Verified"],
+    ["MEDLEC", "Electrical contracting", "Around 40% greater productivity", PROOF.medlec.qualification, PROOF.medlec.url, "Verified; older proof"],
+    ["EnviroVent", "Domestic ventilation and HVAC", "No-access visits reduced from 15% to regularly below its 5% KPI", PROOF.enviroventCaseStudy.qualification, PROOF.enviroventCaseStudy.url, "Verified"],
+    ["Specialised Fire & Security", "Fire and security", "Already automated around 80% of routine job-management workflows", PROOF.specialised.qualification, PROOF.specialised.url, "Verified"],
+    [VIDEO.core.title, "Default on all three channels", `${VIDEO.core.published} | ${VIDEO.core.duration}`, VIDEO.core.qualification, VIDEO.core.url, VIDEO.core.status],
+    [VIDEO.scheduling.title, "Five scheduling and workforce categories", `${VIDEO.scheduling.published} | ${VIDEO.scheduling.duration}`, VIDEO.scheduling.qualification, VIDEO.scheduling.url, VIDEO.scheduling.status],
+    [VIDEO.fleet.title, "Three maintenance categories", `${VIDEO.fleet.published} | ${VIDEO.fleet.duration}`, VIDEO.fleet.qualification, VIDEO.fleet.url, VIDEO.fleet.status],
+    [VIDEO.tracking.title, "Delivery Management", `${VIDEO.tracking.published} | ${VIDEO.tracking.duration}`, VIDEO.tracking.qualification, VIDEO.tracking.url, VIDEO.tracking.status],
+    [VIDEO.sherwoods.title, "Three facilities and maintenance categories", `${VIDEO.sherwoods.published} | ${VIDEO.sherwoods.duration}`, VIDEO.sherwoods.qualification, VIDEO.sherwoods.url, VIDEO.sherwoods.status],
+    [VIDEO.envirovent.title, "HVAC", `${VIDEO.envirovent.published} | ${VIDEO.envirovent.duration}`, VIDEO.envirovent.qualification, VIDEO.envirovent.url, VIDEO.envirovent.status],
+    [VIDEO.templates.title, "Forms Automation", `${VIDEO.templates.published} | ${VIDEO.templates.duration}`, VIDEO.templates.qualification, VIDEO.templates.url, VIDEO.templates.status],
   ];
-  proof.getRange("A5:F12").values = proofData;
+  proof.getRange("A5:F22").values = proofData;
   proof.getRange("A4:F4").format = { fill: navy, font: { name: fontName, size: 10, bold: true, color: "#FFFFFF" }, wrapText: true, horizontalAlignment: "center", verticalAlignment: "center" };
-  proof.getRange("A5:F12").format = { font: { name: fontName, size: 9, color: "#1F2933" }, wrapText: true, verticalAlignment: "top", borders: { bottom: { style: "thin", color: "#E1E7EA" } } };
-  proof.tables.add("A4:F12", true, "BigChangeProofLedger");
+  proof.getRange("A5:F22").format = { font: { name: fontName, size: 9, color: "#1F2933" }, wrapText: true, verticalAlignment: "top", borders: { bottom: { style: "thin", color: "#E1E7EA" } } };
+  proof.tables.add("A4:F22", true, "BigChangeProofLedger");
   proof.freezePanes.freezeRows(4);
   proof.freezePanes.freezeColumns(1);
-  [26, 28, 42, 64, 72, 22].forEach((width, index) => proof.getRangeByIndexes(0, index, 12, 1).format.columnWidth = width);
+  [26, 28, 42, 64, 72, 22].forEach((width, index) => proof.getRangeByIndexes(0, index, 22, 1).format.columnWidth = width);
   proof.getRange("4:4").format.rowHeight = 34;
-  proof.getRange("5:12").format.rowHeight = 80;
+  proof.getRange("5:22").format.rowHeight = 80;
   proof.tabColor = "#3C8D6C";
 
   const matrixInspect = await workbook.inspect({ kind: "table", range: `Copy Matrix!A1:S14`, include: "values,formulas", tableMaxRows: 14, tableMaxCols: 19, maxChars: 12000 });
-  const summaryInspect = await workbook.inspect({ kind: "table", range: "Audit Summary!A1:F13", include: "values,formulas", tableMaxRows: 13, tableMaxCols: 6, maxChars: 6000 });
-  const proofInspect = await workbook.inspect({ kind: "table", range: "Proof Ledger!A1:F12", include: "values,formulas", tableMaxRows: 12, tableMaxCols: 6, maxChars: 8000 });
+  const structuredInspect = await workbook.inspect({ kind: "table", range: "Copy Matrix!A124:S155", include: "values,formulas", tableMaxRows: 32, tableMaxCols: 19, maxChars: 30000 });
+  const summaryInspect = await workbook.inspect({ kind: "table", range: "Audit Summary!A1:F15", include: "values,formulas", tableMaxRows: 15, tableMaxCols: 6, maxChars: 8000 });
+  const proofInspect = await workbook.inspect({ kind: "table", range: "Proof Ledger!A1:F22", include: "values,formulas", tableMaxRows: 22, tableMaxCols: 6, maxChars: 15000 });
   const errors = await workbook.inspect({ kind: "match", searchTerm: "#REF!|#DIV/0!|#VALUE!|#NAME\\?|#N/A|#NUM!|#NULL!|#SPILL!|#CALC!", options: { useRegex: true, maxResults: 300 }, summary: "final formula error scan" });
   if (errors.ndjson && errors.ndjson.includes('"value"')) fail("formula error string found in workbook");
 
   const tempDir = path.join(ROOT, "temp", "bigchange-g2-copy-qa");
   await fs.mkdir(tempDir, { recursive: true });
   for (const [sheetName, range, filename] of [
-    ["Audit Summary", "A1:H13", "summary.png"],
+    ["Audit Summary", "A1:H15", "summary.png"],
     ["Copy Matrix", "A1:S14", "matrix.png"],
-    ["Proof Ledger", "A1:F12", "proof.png"],
+    ["Copy Matrix", "A124:S155", "structured.png"],
+    ["Proof Ledger", "A1:F22", "proof.png"],
   ]) {
     const preview = await workbook.render({ sheetName, range, scale: 1.2, format: "png" });
     await fs.writeFile(path.join(tempDir, filename), new Uint8Array(await preview.arrayBuffer()));
@@ -795,9 +1078,9 @@ async function buildWorkbook() {
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
   const xlsx = await SpreadsheetFile.exportXlsx(workbook);
   await xlsx.save(XLSX_PATH);
-  const finalPreview = await workbook.render({ sheetName: "Audit Summary", range: "A1:H13", scale: 1.2, format: "png" });
+  const finalPreview = await workbook.render({ sheetName: "Audit Summary", range: "A1:H15", scale: 1.2, format: "png" });
   await fs.writeFile(PREVIEW_PATH, new Uint8Array(await finalPreview.arrayBuffer()));
-  return { matrixInspect: matrixInspect.ndjson, summaryInspect: summaryInspect.ndjson, proofInspect: proofInspect.ndjson, errorInspect: errors.ndjson };
+  return { matrixInspect: matrixInspect.ndjson, structuredInspect: structuredInspect.ndjson, summaryInspect: summaryInspect.ndjson, proofInspect: proofInspect.ndjson, errorInspect: errors.ndjson };
 }
 
 validateRows();

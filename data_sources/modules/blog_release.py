@@ -147,6 +147,7 @@ def _optional_collision_paths(kwargs: dict[str, object]) -> dict[str, str | Path
         "context_receipt",
         "customer_proof_evidence",
         "fred_authority_evidence",
+        "hindsight_strategy_evidence",
         "paa_artifact",
         "content_brief",
         "user_paa_csv",

@@ -297,6 +297,278 @@
       "hostname": "aroflo.com",
       "source_class": "owned_product",
       "publisher_relationship": "owned"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-data-projections-occupationproj",
+      "status": "approved",
+      "source_url": "https://data.bls.gov/projections/occupationProj",
+      "hostname": "data.bls.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-data-timeseries-luu0254815900",
+      "status": "approved",
+      "source_url": "https://data.bls.gov/timeseries/LUU0254815900",
+      "hostname": "data.bls.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-data-timeseries-luu0254829700",
+      "status": "approved",
+      "source_url": "https://data.bls.gov/timeseries/LUU0254829700",
+      "hostname": "data.bls.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-cslb-contractors-applicants-contractors-license-exam-application-",
+      "status": "approved",
+      "source_url": "https://www.cslb.ca.gov/contractors/applicants/contractors_license/exam_application/experience_for_exam.aspx",
+      "hostname": "www.cslb.ca.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-dir-das-das-overview-html",
+      "status": "approved",
+      "source_url": "https://www.dir.ca.gov/das/DAS_overview.html",
+      "hostname": "www.dir.ca.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-dir-dlse-ecu-electricaltrade-html",
+      "status": "approved",
+      "source_url": "https://www.dir.ca.gov/dlse/ecu/electricaltrade.html",
+      "hostname": "www.dir.ca.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-dir-dosh-elevatorcertification-html",
+      "status": "approved",
+      "source_url": "https://www.dir.ca.gov/dosh/elevatorcertification.html",
+      "hostname": "www.dir.ca.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-epa-section608-section-608-technician-certification-0",
+      "status": "approved",
+      "source_url": "https://www.epa.gov/section608/section-608-technician-certification-0",
+      "hostname": "www.epa.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-faa-mechanics-become",
+      "status": "approved",
+      "source_url": "https://www.faa.gov/mechanics/become",
+      "hostname": "www.faa.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-2071-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/47-2071.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-2073-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/47-2073.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-2111-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/47-2111.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-2132-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/47-2132.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-2152-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/47-2152.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-2211-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/47-2211.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-2231-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/47-2231.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-4011-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/47-4011.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-4021-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/47-4021.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-2022-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/49-2022.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-2091-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/49-2091.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-2093-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/49-2093.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-2094-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/49-2094.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-2095-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/49-2095.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-2098-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/49-2098.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-3011-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/49-3011.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-3042-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/49-3042.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-9012-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/49-9012.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-9021-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/49-9021.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-9044-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/49-9044.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-9051-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/49-9051.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-9052-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/49-9052.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-9096-00-st-ca",
+      "status": "approved",
+      "source_url": "https://www.onetonline.org/link/localwages/49-9096.00?st=CA",
+      "hostname": "www.onetonline.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-dir-dlse-faq-overtime",
+      "status": "approved",
+      "source_url": "https://www.dir.ca.gov/dlse/faq_overtime.htm",
+      "hostname": "www.dir.ca.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "trade-jobs-ca-2026-09-24-dir-das-apprenticeship-search",
+      "status": "approved",
+      "source_url": "https://www.dir.ca.gov/databases/das/aigstart.asp",
+      "hostname": "www.dir.ca.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
     }
   ]
 }

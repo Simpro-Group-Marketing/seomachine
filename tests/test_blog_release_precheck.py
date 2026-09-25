@@ -274,6 +274,8 @@ def test_release_cli_forwards_precheck_flags(tmp_path: Path):
         "2026-08-26",
         "--output-dir",
         "research/releases/run",
+        "--hindsight-strategy-evidence",
+        "research/hindsight-strategy-evidence.json",
         "--precheck-only",
         "--precheck-output",
         "research/prechecks/run-1.json",
@@ -292,6 +294,10 @@ def test_release_cli_forwards_precheck_flags(tmp_path: Path):
     ) == 0
     assert observed["precheck_only"] is True
     assert observed["precheck_output"] == "research/prechecks/run-1.json"
+    assert (
+        observed["hindsight_strategy_evidence"]
+        == "research/hindsight-strategy-evidence.json"
+    )
 
 
 def test_precheck_output_inside_output_dir_is_rejected_without_writes(
@@ -331,6 +337,29 @@ def test_precheck_output_cannot_overwrite_release_input(
         )
 
     assert proof_sidecar.read_bytes() == original
+    assert not (tmp_path / "research" / "releases" / "run").exists()
+
+
+def test_precheck_output_cannot_overwrite_hindsight_strategy_evidence(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    _mock_passed_precheck(monkeypatch)
+    evidence = _touch(
+        tmp_path / "research" / "hindsight-strategy-evidence.json",
+        '{"pack":{},"receipt":{},"sidecar":{}}\n',
+    )
+    original = evidence.read_bytes()
+
+    with pytest.raises(blog_release.ReleaseInvocationError, match="precheck_output"):
+        _run(
+            tmp_path,
+            hindsight_strategy_evidence=evidence,
+            precheck_only=True,
+            precheck_output=evidence,
+        )
+
+    assert evidence.read_bytes() == original
     assert not (tmp_path / "research" / "releases" / "run").exists()
 
 
