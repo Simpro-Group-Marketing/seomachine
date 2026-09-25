@@ -80,8 +80,11 @@ def main() -> int:
     if readiness.get("passed") is not True:
         raise ValueError("no-op optimization requires a passed initial preflight")
 
+    scorecard = readiness.get("scorecard", {})
+    scores = {key: scorecard.get(key, {}).get("score") for key in ("content_quality", "seo_quality", "aeo_geo")}
     reason = (
-        "Initial readiness passed every release gate with Content 94.3, SEO 99, and AEO/GEO 100. "
+        f"Initial readiness passed every release gate with Content {scores['content_quality']}, "
+        f"SEO {scores['seo_quality']}, and AEO/GEO {scores['aeo_geo']}. "
         "The optimizer found no source-safe article change that would materially improve the "
         "rewrite without weakening a bound claim or the approved brief, so article bytes remain "
         "unchanged. The only change is a sidecar wording correction naming the Suzanne exact quote "
