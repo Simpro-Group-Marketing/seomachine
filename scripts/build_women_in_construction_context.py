@@ -237,7 +237,10 @@ REQUEST = {
             "authority_support",
         ],
         "public_proof_boundary": (
-            "No public proof claim is bound in this public-copy context request. Workforce, "
+            "One public proof claim is bound in this public-copy context request: "
+            "claim-metric-MET-0178 (Foster Plumbing revenue grew from $1 million to $10 million), "
+            "used once as a public_metric with a same-paragraph link to "
+            "https://www.simprogroup.com/case-studies/foster-plumbing. Workforce, "
             "labor-shortage, demographic, apprenticeship, and pay facts come from current "
             "authoritative public sources. Before drafting any proof-sensitive product, feature, "
             "pricing, customer, ranking, rating, quote, metric, or availability statement, "
