@@ -711,6 +711,38 @@
       "source_class": "competitor",
       "source_url": "https://knowify.com/integrations/quickbooks/",
       "status": "approved"
+    },
+    {
+      "decision_id": "ai-estimating-2026-09-28-nist-ai-rmf",
+      "hostname": "www.nist.gov",
+      "publisher_relationship": "independent",
+      "source_class": "primary_authority",
+      "source_url": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "status": "approved"
+    },
+    {
+      "decision_id": "ai-estimating-2026-09-28-gao-cost-estimating-guide",
+      "hostname": "www.gao.gov",
+      "publisher_relationship": "independent",
+      "source_class": "primary_authority",
+      "source_url": "https://www.gao.gov/products/gao-20-195g",
+      "status": "approved"
+    },
+    {
+      "decision_id": "ai-estimating-2026-09-28-bls-ppi-methodology",
+      "hostname": "www.bls.gov",
+      "publisher_relationship": "independent",
+      "source_class": "primary_authority",
+      "source_url": "https://www.bls.gov/ppi/methodology-reports/methodology.htm",
+      "status": "approved"
+    },
+    {
+      "decision_id": "ai-estimating-2026-09-28-openai-chatgpt-data-analysis",
+      "hostname": "help.openai.com",
+      "publisher_relationship": "independent",
+      "source_class": "non_competing_expert",
+      "source_url": "https://help.openai.com/en/articles/8437071-data-analysis-with-chatgpt",
+      "status": "approved"
     }
   ],
   "revision": "2026-09-28",
