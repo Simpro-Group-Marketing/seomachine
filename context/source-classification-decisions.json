@@ -1,694 +1,718 @@
 {
-  "schema": "simpro-source-classification-decisions/v1",
-  "revision": "2026-09-25",
   "decisions": [
     {
       "decision_id": "icc-ibc-2024-chapter-17-special-inspections",
-      "status": "approved",
-      "source_url": "https://codes.iccsafe.org/content/IBC2024V2.0/chapter-17-special-inspections-and-tests",
       "hostname": "codes.iccsafe.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://codes.iccsafe.org/content/IBC2024V2.0/chapter-17-special-inspections-and-tests",
+      "status": "approved"
     },
     {
       "decision_id": "osha-29cfr-1926-651-excavation-requirements",
-      "status": "approved",
-      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.651",
       "hostname": "www.osha.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.651",
+      "status": "approved"
     },
     {
       "decision_id": "osha-29cfr-1926-652-protective-systems",
-      "status": "approved",
-      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.652",
       "hostname": "www.osha.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.652",
+      "status": "approved"
     },
     {
       "decision_id": "aci-concrete-strength-acceptance-faq",
-      "status": "approved",
-      "source_url": "https://www.concrete.org/frequentlyaskedquestions.aspx?faqid=13",
       "hostname": "www.concrete.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.concrete.org/frequentlyaskedquestions.aspx?faqid=13",
+      "status": "approved"
     },
     {
       "decision_id": "astm-e1105-field-water-penetration",
-      "status": "approved",
-      "source_url": "https://store.astm.org/e1105-15r23.html",
       "hostname": "store.astm.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://store.astm.org/e1105-15r23.html",
+      "status": "approved"
     },
     {
       "decision_id": "wbdg-ufgs-01-45-00-quality-control",
-      "status": "approved",
-      "source_url": "https://www.wbdg.org/dod/ufgs/ufgs-01-45-00-00-10",
       "hostname": "www.wbdg.org",
+      "publisher_relationship": "independent",
       "source_class": "neutral",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.wbdg.org/dod/ufgs/ufgs-01-45-00-00-10",
+      "status": "approved"
     },
     {
       "decision_id": "clockshark-testimonial-mabrys-electrical-service",
-      "status": "approved",
-      "source_url": "https://www.clockshark.com/testimonials/mabry-s-electrical-service-inc",
       "hostname": "www.clockshark.com",
+      "publisher_relationship": "customer",
       "source_class": "customer_proof",
-      "publisher_relationship": "customer"
+      "source_url": "https://www.clockshark.com/testimonials/mabry-s-electrical-service-inc",
+      "status": "approved"
     },
     {
       "decision_id": "clockshark-industries-construction-trades",
-      "status": "approved",
-      "source_url": "https://www.clockshark.com/industries/construction-trades",
       "hostname": "www.clockshark.com",
+      "publisher_relationship": "owned",
       "source_class": "owned_product",
-      "publisher_relationship": "owned"
+      "source_url": "https://www.clockshark.com/industries/construction-trades",
+      "status": "approved"
     },
     {
       "decision_id": "upcodes-ibc-chapter-17-special-inspections",
-      "status": "approved",
-      "source_url": "https://up.codes/s/ibc-chapter-17-special-inspections-and-tests",
       "hostname": "up.codes",
+      "publisher_relationship": "independent",
       "source_class": "non_competing_expert",
-      "publisher_relationship": "independent"
+      "source_url": "https://up.codes/s/ibc-chapter-17-special-inspections-and-tests",
+      "status": "approved"
     },
     {
       "decision_id": "subcontractors-2026-09-18-agc-2026-workforce-survey",
-      "status": "approved",
-      "source_url": "https://www.agc.org/sites/default/files/users/user21902/2026%20Workforce%20Survey%20Analysis%20%284%29.pdf",
       "hostname": "www.agc.org",
+      "publisher_relationship": "independent",
       "source_class": "non_competing_expert",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.agc.org/sites/default/files/users/user21902/2026%20Workforce%20Survey%20Analysis%20%284%29.pdf",
+      "status": "approved"
     },
     {
       "decision_id": "subcontractors-2026-09-18-ca-dir-independent-contractor-faq",
-      "status": "approved",
-      "source_url": "https://www.dir.ca.gov/dlse/faq_independentcontractor.htm",
       "hostname": "www.dir.ca.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.dir.ca.gov/dlse/faq_independentcontractor.htm",
+      "status": "approved"
     },
     {
       "decision_id": "subcontractors-2026-09-18-dol-fact-sheet-13",
-      "status": "approved",
-      "source_url": "https://www.dol.gov/agencies/whd/fact-sheets/13-flsa-employment-relationship",
       "hostname": "www.dol.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.dol.gov/agencies/whd/fact-sheets/13-flsa-employment-relationship",
+      "status": "approved"
     },
     {
       "decision_id": "subcontractors-2026-09-18-ecfr-part-795",
-      "status": "approved",
-      "source_url": "https://www.ecfr.gov/current/title-29/subtitle-B/chapter-V/subchapter-A/part-795",
       "hostname": "www.ecfr.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.ecfr.gov/current/title-29/subtitle-B/chapter-V/subchapter-A/part-795",
+      "status": "approved"
     },
     {
       "decision_id": "subcontractors-2026-09-18-federalregister-ic-nprm-2026",
-      "status": "approved",
-      "source_url": "https://www.federalregister.gov/documents/2026/02/27/2026-03962/employee-or-independent-contractor-status-under-the-fair-labor-standards-act-family-and-medical",
       "hostname": "www.federalregister.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.federalregister.gov/documents/2026/02/27/2026-03962/employee-or-independent-contractor-status-under-the-fair-labor-standards-act-family-and-medical",
+      "status": "approved"
     },
     {
       "decision_id": "subcontractors-2026-09-18-irs-1099-mec-instructions",
-      "status": "approved",
-      "source_url": "https://www.irs.gov/instructions/i1099mec",
       "hostname": "www.irs.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.irs.gov/instructions/i1099mec",
+      "status": "approved"
     },
     {
       "decision_id": "subcontractors-2026-09-18-irs-about-form-ss-8",
-      "status": "approved",
-      "source_url": "https://www.irs.gov/forms-pubs/about-form-ss-8",
       "hostname": "www.irs.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.irs.gov/forms-pubs/about-form-ss-8",
+      "status": "approved"
     },
     {
       "decision_id": "subcontractors-2026-09-18-irs-about-form-w-9",
-      "status": "approved",
-      "source_url": "https://www.irs.gov/forms-pubs/about-form-w-9",
       "hostname": "www.irs.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.irs.gov/forms-pubs/about-form-w-9",
+      "status": "approved"
     },
     {
       "decision_id": "subcontractors-2026-09-18-irs-independent-contractor-test",
-      "status": "approved",
-      "source_url": "https://www.irs.gov/businesses/small-businesses-self-employed/independent-contractor-self-employed-or-employee",
       "hostname": "www.irs.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.irs.gov/businesses/small-businesses-self-employed/independent-contractor-self-employed-or-employee",
+      "status": "approved"
     },
     {
       "decision_id": "subcontractors-2026-09-18-naic-consumer",
-      "status": "approved",
-      "source_url": "https://content.naic.org/consumer",
       "hostname": "content.naic.org",
+      "publisher_relationship": "independent",
       "source_class": "non_competing_expert",
-      "publisher_relationship": "independent"
+      "source_url": "https://content.naic.org/consumer",
+      "status": "approved"
     },
     {
       "decision_id": "subcontractors-2026-09-18-ncci-abcs-of-experience-rating",
-      "status": "approved",
-      "source_url": "https://www.ncci.com/Articles/Documents/UW_ABC_Exp_Rating.pdf",
       "hostname": "www.ncci.com",
+      "publisher_relationship": "independent",
       "source_class": "non_competing_expert",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.ncci.com/Articles/Documents/UW_ABC_Exp_Rating.pdf",
+      "status": "approved"
     },
     {
       "decision_id": "subcontractors-2026-09-18-osha-establishment-search",
-      "status": "approved",
-      "source_url": "https://www.osha.gov/ords/imis/establishment.html",
       "hostname": "www.osha.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.osha.gov/ords/imis/establishment.html",
+      "status": "approved"
     },
     {
       "decision_id": "subcontractors-2026-09-18-osha-injury-tracking-data",
-      "status": "approved",
-      "source_url": "https://www.osha.gov/itadata",
       "hostname": "www.osha.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.osha.gov/itadata",
+      "status": "approved"
     },
     {
       "decision_id": "subcontractors-2026-09-18-osha-multi-employer-citation-policy",
-      "status": "approved",
-      "source_url": "https://www.osha.gov/enforcement/directives/cpl-02-00-124",
       "hostname": "www.osha.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.osha.gov/enforcement/directives/cpl-02-00-124",
+      "status": "approved"
     },
     {
       "decision_id": "subcontractors-2026-09-18-sba-prime-and-subcontracting",
-      "status": "approved",
-      "source_url": "https://www.sba.gov/counseling/prime-and-subcontracting/",
       "hostname": "www.sba.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.sba.gov/counseling/prime-and-subcontracting/",
+      "status": "approved"
     },
     {
       "decision_id": "overtime-tracker-2026-09-23-dol-fact-sheet-23",
-      "status": "approved",
-      "source_url": "https://www.dol.gov/agencies/whd/fact-sheets/23-flsa-overtime-pay",
       "hostname": "www.dol.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.dol.gov/agencies/whd/fact-sheets/23-flsa-overtime-pay",
+      "status": "approved"
     },
     {
       "decision_id": "overtime-tracker-2026-09-23-ecfr-778-107",
-      "status": "approved",
-      "source_url": "https://www.ecfr.gov/current/title-29/subtitle-B/chapter-V/subchapter-B/part-778/subpart-B/section-778.107",
       "hostname": "www.ecfr.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.ecfr.gov/current/title-29/subtitle-B/chapter-V/subchapter-B/part-778/subpart-B/section-778.107",
+      "status": "approved"
     },
     {
       "decision_id": "overtime-tracker-2026-09-23-ecfr-778-101",
-      "status": "approved",
-      "source_url": "https://www.ecfr.gov/current/title-29/subtitle-B/chapter-V/subchapter-B/part-778/subpart-A/section-778.101",
       "hostname": "www.ecfr.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.ecfr.gov/current/title-29/subtitle-B/chapter-V/subchapter-B/part-778/subpart-A/section-778.101",
+      "status": "approved"
     },
     {
       "decision_id": "overtime-tracker-2026-09-23-ecfr-516-2",
-      "status": "approved",
-      "source_url": "https://www.ecfr.gov/current/title-29/subtitle-B/chapter-V/subchapter-A/part-516/subpart-A/section-516.2",
       "hostname": "www.ecfr.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.ecfr.gov/current/title-29/subtitle-B/chapter-V/subchapter-A/part-516/subpart-A/section-516.2",
+      "status": "approved"
     },
     {
       "decision_id": "overtime-tracker-2026-09-23-clockshark-time-tracking",
-      "status": "approved",
-      "source_url": "https://www.clockshark.com/tour/time-tracking-software",
       "hostname": "www.clockshark.com",
+      "publisher_relationship": "owned",
       "source_class": "owned_product",
-      "publisher_relationship": "owned"
+      "source_url": "https://www.clockshark.com/tour/time-tracking-software",
+      "status": "approved"
     },
     {
       "decision_id": "overtime-tracker-2026-09-23-clockshark-mobile-time-tracking",
-      "status": "approved",
-      "source_url": "https://www.clockshark.com/tour/mobile-time-tracking",
       "hostname": "www.clockshark.com",
+      "publisher_relationship": "owned",
       "source_class": "owned_product",
-      "publisher_relationship": "owned"
+      "source_url": "https://www.clockshark.com/tour/mobile-time-tracking",
+      "status": "approved"
     },
     {
       "decision_id": "overtime-tracker-2026-09-23-clockshark-timesheet-approvals",
-      "status": "approved",
-      "source_url": "https://www.clockshark.com/tour/timesheet-approvals",
       "hostname": "www.clockshark.com",
+      "publisher_relationship": "owned",
       "source_class": "owned_product",
-      "publisher_relationship": "owned"
+      "source_url": "https://www.clockshark.com/tour/timesheet-approvals",
+      "status": "approved"
     },
     {
       "decision_id": "overtime-tracker-2026-09-23-clockshark-overtime-rules",
-      "status": "approved",
-      "source_url": "https://www.clockshark.com/videos/overtime-rules-to-manage-california-overtime",
       "hostname": "www.clockshark.com",
+      "publisher_relationship": "owned",
       "source_class": "owned_product",
-      "publisher_relationship": "owned"
+      "source_url": "https://www.clockshark.com/videos/overtime-rules-to-manage-california-overtime",
+      "status": "approved"
     },
     {
       "decision_id": "plumbing-invoice-template-2026-09-24-bga-how-to-invoice",
-      "status": "approved",
-      "source_url": "https://business.gov.au/finance/payments-and-invoicing/how-to-invoice",
       "hostname": "business.gov.au",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://business.gov.au/finance/payments-and-invoicing/how-to-invoice",
+      "status": "approved"
     },
     {
       "decision_id": "plumbing-invoice-template-2026-09-24-bga-register-gst",
-      "status": "approved",
-      "source_url": "https://business.gov.au/registrations/register-for-taxes/register-for-goods-and-services-tax-gst",
       "hostname": "business.gov.au",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://business.gov.au/registrations/register-for-taxes/register-for-goods-and-services-tax-gst",
+      "status": "approved"
     },
     {
       "decision_id": "plumbing-invoice-template-2026-09-24-bgnz-prepare-invoice",
-      "status": "approved",
-      "source_url": "https://www.business.govt.nz/browse-our-resource-library/tips-for-tradies/how-to-prepare-an-invoice",
       "hostname": "www.business.govt.nz",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.business.govt.nz/browse-our-resource-library/tips-for-tradies/how-to-prepare-an-invoice",
+      "status": "approved"
     },
     {
       "decision_id": "plumbing-invoice-template-2026-09-24-ird-gst",
-      "status": "approved",
-      "source_url": "https://www.ird.govt.nz/gst",
       "hostname": "www.ird.govt.nz",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.ird.govt.nz/gst",
+      "status": "approved"
     },
     {
       "decision_id": "plumbing-invoice-template-2026-09-24-aroflo-invoicing-billing",
-      "status": "approved",
-      "source_url": "https://aroflo.com/features/invoicing-billing-software",
       "hostname": "aroflo.com",
+      "publisher_relationship": "owned",
       "source_class": "owned_product",
-      "publisher_relationship": "owned"
+      "source_url": "https://aroflo.com/features/invoicing-billing-software",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-data-projections-occupationproj",
-      "status": "approved",
-      "source_url": "https://data.bls.gov/projections/occupationProj",
       "hostname": "data.bls.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://data.bls.gov/projections/occupationProj",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-data-timeseries-luu0254815900",
-      "status": "approved",
-      "source_url": "https://data.bls.gov/timeseries/LUU0254815900",
       "hostname": "data.bls.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://data.bls.gov/timeseries/LUU0254815900",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-data-timeseries-luu0254829700",
-      "status": "approved",
-      "source_url": "https://data.bls.gov/timeseries/LUU0254829700",
       "hostname": "data.bls.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://data.bls.gov/timeseries/LUU0254829700",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-cslb-contractors-applicants-contractors-license-exam-application-",
-      "status": "approved",
-      "source_url": "https://www.cslb.ca.gov/contractors/applicants/contractors_license/exam_application/experience_for_exam.aspx",
       "hostname": "www.cslb.ca.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.cslb.ca.gov/contractors/applicants/contractors_license/exam_application/experience_for_exam.aspx",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-dir-das-das-overview-html",
-      "status": "approved",
-      "source_url": "https://www.dir.ca.gov/das/DAS_overview.html",
       "hostname": "www.dir.ca.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.dir.ca.gov/das/DAS_overview.html",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-dir-dlse-ecu-electricaltrade-html",
-      "status": "approved",
-      "source_url": "https://www.dir.ca.gov/dlse/ecu/electricaltrade.html",
       "hostname": "www.dir.ca.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.dir.ca.gov/dlse/ecu/electricaltrade.html",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-dir-dosh-elevatorcertification-html",
-      "status": "approved",
-      "source_url": "https://www.dir.ca.gov/dosh/elevatorcertification.html",
       "hostname": "www.dir.ca.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.dir.ca.gov/dosh/elevatorcertification.html",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-epa-section608-section-608-technician-certification-0",
-      "status": "approved",
-      "source_url": "https://www.epa.gov/section608/section-608-technician-certification-0",
       "hostname": "www.epa.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.epa.gov/section608/section-608-technician-certification-0",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-faa-mechanics-become",
-      "status": "approved",
-      "source_url": "https://www.faa.gov/mechanics/become",
       "hostname": "www.faa.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.faa.gov/mechanics/become",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-2071-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/47-2071.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/47-2071.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-2073-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/47-2073.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/47-2073.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-2111-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/47-2111.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/47-2111.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-2132-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/47-2132.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/47-2132.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-2152-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/47-2152.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/47-2152.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-2211-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/47-2211.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/47-2211.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-2231-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/47-2231.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/47-2231.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-4011-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/47-4011.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/47-4011.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-47-4021-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/47-4021.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/47-4021.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-2022-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/49-2022.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/49-2022.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-2091-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/49-2091.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/49-2091.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-2093-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/49-2093.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/49-2093.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-2094-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/49-2094.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/49-2094.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-2095-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/49-2095.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/49-2095.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-2098-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/49-2098.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/49-2098.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-3011-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/49-3011.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/49-3011.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-3042-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/49-3042.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/49-3042.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-9012-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/49-9012.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/49-9012.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-9021-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/49-9021.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/49-9021.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-9044-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/49-9044.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/49-9044.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-9051-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/49-9051.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/49-9051.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-9052-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/49-9052.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/49-9052.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-onetonline-link-localwages-49-9096-00-st-ca",
-      "status": "approved",
-      "source_url": "https://www.onetonline.org/link/localwages/49-9096.00?st=CA",
       "hostname": "www.onetonline.org",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.onetonline.org/link/localwages/49-9096.00?st=CA",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-dir-dlse-faq-overtime",
-      "status": "approved",
-      "source_url": "https://www.dir.ca.gov/dlse/faq_overtime.htm",
       "hostname": "www.dir.ca.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.dir.ca.gov/dlse/faq_overtime.htm",
+      "status": "approved"
     },
     {
       "decision_id": "trade-jobs-ca-2026-09-24-dir-das-apprenticeship-search",
-      "status": "approved",
-      "source_url": "https://www.dir.ca.gov/databases/das/aigstart.asp",
       "hostname": "www.dir.ca.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.dir.ca.gov/databases/das/aigstart.asp",
+      "status": "approved"
     },
     {
       "decision_id": "bigchange-wra-2026-09-25-hse-manage-risk-steps",
-      "status": "approved",
-      "source_url": "https://www.hse.gov.uk/simple-health-safety/risk/steps-needed-to-manage-risk.htm",
       "hostname": "www.hse.gov.uk",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.hse.gov.uk/simple-health-safety/risk/steps-needed-to-manage-risk.htm",
+      "status": "approved"
     },
     {
       "decision_id": "bigchange-wra-2026-09-25-hse-competent-person",
-      "status": "approved",
-      "source_url": "https://www.hse.gov.uk/simple-health-safety/gettinghelp/",
       "hostname": "www.hse.gov.uk",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.hse.gov.uk/simple-health-safety/gettinghelp/",
+      "status": "approved"
     },
     {
       "decision_id": "bigchange-wra-2026-09-25-hse-ladder-safety",
-      "status": "approved",
-      "source_url": "https://www.hse.gov.uk/work-at-height/ladders/index.htm",
       "hostname": "www.hse.gov.uk",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.hse.gov.uk/work-at-height/ladders/index.htm",
+      "status": "approved"
     },
     {
       "decision_id": "bigchange-wra-2026-09-25-hse-risk-assessment-template",
-      "status": "approved",
-      "source_url": "https://www.hse.gov.uk/simple-health-safety/risk/risk-assessment-template-and-examples.htm",
       "hostname": "www.hse.gov.uk",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.hse.gov.uk/simple-health-safety/risk/risk-assessment-template-and-examples.htm",
+      "status": "approved"
     },
     {
       "decision_id": "bigchange-wra-2026-09-25-british-safety-council-risk-assessment-certificate",
-      "status": "approved",
-      "source_url": "https://www.britsafe.org/media/ddyfkihf/british-safety-council-certificate-in-risk-assessment.pdf",
       "hostname": "www.britsafe.org",
+      "publisher_relationship": "independent",
       "source_class": "non_competing_expert",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.britsafe.org/media/ddyfkihf/british-safety-council-certificate-in-risk-assessment.pdf",
+      "status": "approved"
     },
     {
       "decision_id": "wic-2026-09-26-bls-cps-aat11-2025",
-      "status": "approved",
-      "source_url": "https://www.bls.gov/cps/cpsaat11.htm",
       "hostname": "www.bls.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.bls.gov/cps/cpsaat11.htm",
+      "status": "approved"
     },
     {
       "decision_id": "wic-2026-09-26-bls-cps-aat18-2025",
-      "status": "approved",
-      "source_url": "https://www.bls.gov/cps/cpsaat18.htm",
       "hostname": "www.bls.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.bls.gov/cps/cpsaat18.htm",
+      "status": "approved"
     },
     {
       "decision_id": "wic-2026-09-26-dol-trendlines-2024-11-women-apprenticeship",
-      "status": "approved",
-      "source_url": "https://www.dol.gov/sites/dolgov/files/ETA/opder/DASP/Trendlines/posts/2024_11/Trendlines_November_2024.html",
       "hostname": "www.dol.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.dol.gov/sites/dolgov/files/ETA/opder/DASP/Trendlines/posts/2024_11/Trendlines_November_2024.html",
+      "status": "approved"
     },
     {
       "decision_id": "wic-2026-09-26-nahb-eye-on-housing-women-share-2025",
-      "status": "approved",
-      "source_url": "https://eyeonhousing.org/2026/09/womens-share-of-construction-workforce-reaches-20-year-high-in-2025/",
       "hostname": "eyeonhousing.org",
+      "publisher_relationship": "independent",
       "source_class": "non_competing_expert",
-      "publisher_relationship": "independent"
+      "source_url": "https://eyeonhousing.org/2026/09/womens-share-of-construction-workforce-reaches-20-year-high-in-2025/",
+      "status": "approved"
     },
     {
       "decision_id": "wic-2026-09-26-abc-2026-workforce-shortage-release",
-      "status": "approved",
-      "source_url": "https://www.abc.org/News-Media/News-Releases/abc-construction-industry-must-attract-349000-workers-in-2026-despite-macroeconomic-headwinds",
       "hostname": "www.abc.org",
+      "publisher_relationship": "independent",
       "source_class": "non_competing_expert",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.abc.org/News-Media/News-Releases/abc-construction-industry-must-attract-349000-workers-in-2026-despite-macroeconomic-headwinds",
+      "status": "approved"
     },
     {
       "decision_id": "wic-2026-09-26-iwpr-women-in-construction-qf-2025",
-      "status": "approved",
-      "source_url": "https://iwpr.org/wp-content/uploads/2025/08/Women-in-Construction-QF_2025.pdf",
       "hostname": "iwpr.org",
+      "publisher_relationship": "independent",
       "source_class": "non_competing_expert",
-      "publisher_relationship": "independent"
+      "source_url": "https://iwpr.org/wp-content/uploads/2025/08/Women-in-Construction-QF_2025.pdf",
+      "status": "approved"
     },
     {
       "decision_id": "wic-2026-09-26-osha-29cfr-1926-95-ppe",
-      "status": "approved",
-      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.95",
       "hostname": "www.osha.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.95",
+      "status": "approved"
     },
     {
       "decision_id": "wic-2026-09-26-osha-fr-2024-12-12-ppe-fit-final-rule",
-      "status": "approved",
-      "source_url": "https://www.osha.gov/laws-regs/federalregister/2024-12-12",
       "hostname": "www.osha.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.osha.gov/laws-regs/federalregister/2024-12-12",
+      "status": "approved"
     },
     {
       "decision_id": "wic-2026-09-26-osha-29cfr-1926-51-sanitation",
-      "status": "approved",
-      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.51",
       "hostname": "www.osha.gov",
+      "publisher_relationship": "independent",
       "source_class": "primary_authority",
-      "publisher_relationship": "independent"
+      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.51",
+      "status": "approved"
     },
     {
       "decision_id": "wic-2026-09-26-nawic-wic-week",
-      "status": "approved",
-      "source_url": "https://nawic.org/wic-week/",
       "hostname": "nawic.org",
+      "publisher_relationship": "independent",
       "source_class": "non_competing_expert",
-      "publisher_relationship": "independent"
+      "source_url": "https://nawic.org/wic-week/",
+      "status": "approved"
+    },
+    {
+      "decision_id": "electrical-software-2026-09-28-knowify-electrical",
+      "hostname": "knowify.com",
+      "publisher_relationship": "competitor",
+      "source_class": "competitor",
+      "source_url": "https://knowify.com/electrical-contractors/",
+      "status": "approved"
+    },
+    {
+      "decision_id": "electrical-software-2026-09-28-knowify-pricing",
+      "hostname": "knowify.com",
+      "publisher_relationship": "competitor",
+      "source_class": "competitor",
+      "source_url": "https://knowify.com/pricing/",
+      "status": "approved"
+    },
+    {
+      "decision_id": "electrical-software-2026-09-28-knowify-quickbooks",
+      "hostname": "knowify.com",
+      "publisher_relationship": "competitor",
+      "source_class": "competitor",
+      "source_url": "https://knowify.com/integrations/quickbooks/",
+      "status": "approved"
     }
-  ]
+  ],
+  "revision": "2026-09-28",
+  "schema": "simpro-source-classification-decisions/v1"
 }
