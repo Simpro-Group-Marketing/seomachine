@@ -39,9 +39,9 @@ from data_sources.modules.machine_review import (
 )
 
 SLUG = "women-in-construction"
-DATE = "2026-09-26"
-ASSEMBLY_DATE = "2026-09-26"
-SERP_DATE = "2026-09-26"
+DATE = "2026-09-28"
+ASSEMBLY_DATE = "2026-09-28"
+SERP_DATE = "2026-09-28"
 
 ARTICLE = ROOT / "rewrites" / f"{SLUG}-rewrite-{DATE}.md"
 PLAN = ROOT / "research" / f"editorial-plan-{SLUG}-{DATE}.json"

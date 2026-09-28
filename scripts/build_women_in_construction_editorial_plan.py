@@ -17,7 +17,7 @@ sys.path.insert(0, str(ROOT))
 from data_sources.modules.blog_assembly_contract import atomic_write_json  # noqa: E402
 
 SLUG = "women-in-construction"
-DATE = "2026-09-26"
+DATE = "2026-09-28"
 OUT = ROOT / "research" / f"editorial-plan-{SLUG}-{DATE}.json"
 TITLE = "Bridging the Trades Labor Gap: A Contractor's Guide to Attracting and Retaining Women in Construction"
 PRIMARY = "women in construction"
@@ -301,7 +301,7 @@ PLAN = {
         "serp_evidence_artifact": f"research/serp-evidence-{SLUG}-{DATE}.json",
         "dominant_content_type": "General Article",
         "selected_content_type": "How-To Guide",
-        "observed_serp_features": ["AI Overview", "People also ask"],
+        "observed_serp_features": ["People also ask", "Things to know"],
         "related_query_paa_artifact": f"research/content-brief-{SLUG}-{DATE}.md",
         "format_decision": "documented_exception",
         "exception_reason": "The page-one SERP is dominated by association homepages, news and statistics roundups classed as general articles, and none serves the contractor who has to recruit and keep women. The guide format answers the statistics intent with an early role table and adds the missing employer playbook.",

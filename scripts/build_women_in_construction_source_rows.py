@@ -6,7 +6,7 @@ their public sources. Every planned claim string must later appear verbatim in
 the article unit it supports (or the row must be regenerated from the article).
 
 What the script does:
-1. Captures every source into research/source-snapshots/women-in-construction-2026-09-26/
+1. Captures every source into research/source-snapshots/women-in-construction-2026-09-28/
    (raw bytes + .meta.json, reused unless --refresh, same as the CA wage builder).
    - HTML sources the guard fetcher can read are fetched live.
    - PDFs are downloaded and text-extracted (pypdf), then bound with a
@@ -38,7 +38,7 @@ from data_sources.modules.source_support.persistence import write_source_capture
 from data_sources.modules.source_support.retrieval import fetch_source_text  # noqa: E402
 
 SLUG = "women-in-construction"
-DATE = "2026-09-26"  # assembly date (file suffix)
+DATE = "2026-09-28"  # assembly date (file suffix)
 CHECKED = "2026-09-25"  # date the sources were actually fetched and read back
 SNAP_DIR = ROOT / "research" / "source-snapshots" / f"{SLUG}-{DATE}"
 CAPTURE_DIR = ROOT / "research" / "source-captures" / f"{SLUG}-{DATE}"
@@ -171,7 +171,7 @@ PLANNED = [
     ("women made up about 14% of active apprentices in FY2024", "statistic", DOL_TRENDLINES, "women still only made up about 14% of active apprentices in FY2024", DOL_CLASS, "apprenticeship section: all-industry share", True),
     ("almost 100,000 women active in apprenticeship", "statistic", DOL_TRENDLINES, "In FY2024, there were almost 100,000 women active in apprenticeship in various industries across the country.", DOL_CLASS, "apprenticeship section: all-industry count", True),
     ("5.4 percent of construction apprentices in the 37 states", "statistic", IWPR, "women are still just 5.4 percent of construction apprentices in the 37 states with data for 2015 and 2024", IWPR_CLASS, "apprenticeship section: construction-specific share", True),
-    ("OSHA requires construction employers to select personal protective equipment that properly fits each affected employee", "process", OSHA_PPE, "Is selected to ensure that it properly fits each affected employee.", OSHA_REG_CLASS, "PPE fit retention section", False),
+    ("OSHA requires construction employers to select personal protective equipment that properly fits each affected employee", "process", OSHA_PPE, "Employers must ensure that all personal protective equipment: 1926.95(c)(1) Is of safe design and construction for the work to be performed; and 1926.95(c)(2) Is selected to ensure that it properly fits each affected employee.", OSHA_REG_CLASS, "PPE fit retention section", False),
     ("OSHA's construction PPE fit rule took effect January 13, 2025", "process", OSHA_PPE_RULE, "This final rule is effective January 13, 2025.", OSHA_FR_CLASS, "PPE fit retention section", False),
     ("held annually during the first full week of March", "factual", NAWIC, "Held annually during the first full week of March", NAWIC_CLASS, "FAQ: how to recognize women in construction", False),
     ("OSHA's construction sanitation standard sets a minimum number of jobsite toilets by crew size", "process", OSHA_SANITATION, "Toilets shall be provided for employees according to the following table", OSHA_REG_CLASS, "sanitation facilities retention section", False),

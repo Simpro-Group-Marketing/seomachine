@@ -29,7 +29,7 @@ from data_sources.modules.artifact_runtime.content_store import write_context_tr
 
 
 SLUG = "women-in-construction"
-DATE = "2026-09-26"
+DATE = "2026-09-28"
 RESEARCH = ROOT / "research"
 
 REQUEST_PATH = RESEARCH / f"context-request-{SLUG}.json"
@@ -237,10 +237,10 @@ REQUEST = {
             "authority_support",
         ],
         "public_proof_boundary": (
-            "One public proof claim is bound in this public-copy context request: "
-            "claim-metric-MET-0178 (Foster Plumbing revenue grew from $1 million to $10 million), "
-            "used once as a public_metric with a same-paragraph link to "
-            "https://www.simprogroup.com/case-studies/foster-plumbing. Workforce, "
+            "No approved claim is bound in this public-copy context request. The single Foster "
+            "Plumbing revenue metric reaches public copy through the selector-bound customer-proof "
+            "path (claim-metric-MET-0178 in the customer-selector pack) with source-visible case-study "
+            "evidence and a same-paragraph link. Workforce, "
             "labor-shortage, demographic, apprenticeship, and pay facts come from current "
             "authoritative public sources. Before drafting any proof-sensitive product, feature, "
             "pricing, customer, ranking, rating, quote, metric, or availability statement, "
@@ -387,7 +387,7 @@ def main() -> None:
         client, fred_build_input, "Fred evaluation"
     )
 
-    build_input = {**shared_build_input, "claim_requests": PUBLIC_COPY_CLAIMS}
+    build_input = {**shared_build_input, "claim_requests": []}
     build_output, pack, receipt, validation = build_and_validate(
         client, build_input, "Public-copy"
     )
@@ -413,8 +413,8 @@ def main() -> None:
             "fred_authority_claim_lookup": fred_claim_lookup,
             "approved_claim_use_decision": (
                 "The customer-selector pack binds one Foster Plumbing claim (MET-0178) per public "
-                "URL to avoid ambiguous URL binding. The public-copy context carries only "
-                "MET-0178, the single customer metric used in public copy. Fred authority claims "
+                "URL to avoid ambiguous URL binding. The public-copy context carries no approved "
+                "claims; the Foster metric uses the selector-bound customer-proof path. Fred authority claims "
                 "stay in the Fred evaluation pack and receipt. No "
                 "connector claim exists for the toolbox-tech webinar, Heroes of the Trade Dawn "
                 "Lawrie, or Heroes of the Trade Vertac pages, so those quotes are not "

@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = "women-in-construction"
-DATE = "2026-09-26"
+DATE = "2026-09-28"
 R = ROOT / "research"
 ARTICLE = ROOT / "rewrites" / f"{SLUG}-rewrite-{DATE}.md"
 SIDECAR = R / f"validation-{SLUG}-{DATE}.md"
@@ -110,6 +110,15 @@ def main() -> int:
     slate = slate.replace("research\\", "research/")
     if slate.startswith("Customer Proof Slate"):
         slate = "## " + slate
+    story_note = ("  - No-fit reason: The selector returned no experience_story candidate with an approved connector claim for this objective; the five story rows added on 2026-09-25 have no connector claim, so public copy omits customer stories, quotes and testimonials.")
+    lines = slate.splitlines()
+    for i, line in enumerate(lines):
+        if line.startswith("- Role: experience_story"):
+            if "| Reason:" not in line:
+                lines[i] = line + " | Reason: selector returned no experience_story candidate with an approved connector claim for this objective"
+            if i + 1 < len(lines) and lines[i + 1].strip().startswith("- No-fit reason:"):
+                lines[i + 1] = story_note
+    slate = "\n".join(lines)
     fred = (R / f"fred-authority-selector-{SLUG}-{DATE}.md").read_text(encoding="utf-8").strip()
     hindsight = hindsight_block()
     serp = f"research/serp-evidence-{SLUG}-{DATE}.json"
@@ -167,7 +176,7 @@ def main() -> int:
 - Claim registry revision: `{revisions['claim_registry_revision']}`.
 - Approval policy revision: `{revisions['approval_policy_revision']}`.
 - Selected resources: {', '.join(f'`{r}`' for r in resource_ids)}.
-- Approved public claim IDs used: `claim-metric-MET-0178` (public_metric, Foster Plumbing revenue growth).
+- Approved public claim IDs used: [none] in the public-copy context; the Foster Plumbing metric uses the selector-bound customer-proof path (`claim-metric-MET-0178` in the customer-selector pack).
 - Public evidence boundary: connector resources guide Simpro voice, positioning and trade language; every public workforce, apprenticeship, labor-demand, safety and event fact uses a current authoritative public source.
 - Context result: `task_satisfaction: {receipt['task_satisfaction']}`; unresolved gaps: [none].
 
@@ -176,7 +185,7 @@ def main() -> int:
 - Connector path: vault_status, vault_describe, natural-language vault_search, resource_id-bound vault_read and vault_expand, vault_claims, vault_build_context, and vault_validate_context through `data_sources.modules.simpro_vault_client.SimproVaultClient`.
 - Active artifacts: `research/context-request-{SLUG}.json`, `research/context-pack-{SLUG}.json`, and `research/context-receipt-{SLUG}.json`.
 - Selector-only packs: `research/context-pack-{SLUG}-customer-selector-{DATE}.json` (customer-proof claims) and `research/context-pack-{SLUG}-fred-evaluation-{DATE}.json` (Fred authority claims).
-- Public-use boundary: selected vault resources are guidance or context only, apart from the single public_metric claim `claim-metric-MET-0178`.
+- Public-use boundary: selected vault resources are guidance or context only; the Foster Plumbing metric is supported by the selector-bound claim and source-visible case-study evidence.
 - Status: validated.
 
 ## Vault Brand Language Alignment
@@ -213,6 +222,7 @@ def main() -> int:
 - Rejected stronger candidates: [reference-ldn-security-solutions-scale: UK security-business team growth metric sits outside this US contractor article and the brief names Amy Carnrick of Foster Plumbing as the leadership proof point]
 - Evaluated alternatives: case-study-schaffer-beacon-mechanical is overused with 3 recent uses and its software-outcome headcount metric fits the flexible leadership point less directly.
 - Reuse reason: case-study-foster-plumbing-job-costing-exit, Foster Plumbing, {FOSTER}, carries 2 recent uses (2026-09-08 best-plumbing-job-management-software and 2026-09-17 corey-field-service-software-comparison-busy-work). It stays selected because the Asana brief names Amy Carnrick of Foster Plumbing as a required leadership proof point, it is the only connector-approved US customer metric returned for this role, and no stronger underused approved proof fits the same role.
+- Zero-use comparison: no approved zero-use candidate fits the same US metric role; the zero-use VSG and Vertac sources carry no connector claim and LDN Security Solutions is a UK metric, so Foster Plumbing remains selected.
 - Live repo scan: drafts, rewrites, research and published were scanned on 2026-09-25 for the proof ID, public URL and customer name; public-copy uses match the two ledger entries, so no ledger backfill was needed.
 - Final use in copy: one linked metric sentence in `Use connected systems to open flexible leadership roles`.
 
@@ -234,8 +244,13 @@ def main() -> int:
 
 - Pack status: ready.
 - Selected proof source: case-study-foster-plumbing-job-costing-exit | Customer: Foster Plumbing | URL: {FOSTER} | Use: same-paragraph metric proof in the flexible leadership section.
-- Approved metric: Foster Plumbing scaled from $1 million to $10 million in revenue | Claim ID `claim-metric-MET-0178` | Claim type: customer_outcome_metric | Customer/brand: Foster Plumbing | Evidence relation: directly_supports | Source class: case_study_metric | Source type: case_study | URL: {FOSTER} | Evidence: generating just $1 million in revenue. Five years later, it had scaled to $10 million | Classification artifact: research/context-pack-{SLUG}.json | Status: approved | Use in this article: same-paragraph metric in the flexible leadership section.
+- Approved metric: Foster Plumbing scaled from $1 million to $10 million in revenue | Claim ID `claim-metric-MET-0178` | Claim type: customer_outcome_metric | Customer/brand: Foster Plumbing | Evidence relation: directly_supports | Source class: case_study_metric | Source type: case_study | URL: {FOSTER} | Evidence: generating just $1 million in revenue. Five years later, it had scaled to $10 million | Artifact: research/source-captures/{SLUG}-{DATE}/simpro-case-study-foster-plumbing.md | Capture receipt: research/source-captures/{SLUG}-{DATE}/simpro-case-study-foster-plumbing-capture-receipt.json | Capture receipt hash: {sha(R / 'source-captures' / f'{SLUG}-{DATE}' / 'simpro-case-study-foster-plumbing-capture-receipt.json')} | Classification artifact: research/context-pack-{SLUG}.json | Status: approved | Use in this article: same-paragraph metric in the flexible leadership section.
+- Quote Matrix candidates: the vault Quotes resource res-6716e1bab324565aa8a906b05b0aa502 lists Foster Plumbing and Virtual Services Group rows, but the connector returned no approved exact_quote claim for Amy Carnrick, Dawn Lawrie or Frances Paku, so no quote is used.
+- Reference candidates: reference-vsg-ignite-facilities-management (UK) and reference-ldn-security-solutions-scale (UK) were evaluated; neither has a connector claim that fits this US employer guide.
+- Customer Stories candidates: the five 2026-09-25 story rows (toolbox-tech webinar, Heroes of the Trade Dawn Lawrie, Heroes of the Trade Vertac) have no connector claim, so the selector returned no story candidate.
+- Review-site experience evidence: approved G2 and Capterra snippets exist in the vault but none addresses recruiting or retaining women, so review-derived proof is omitted.
 - Approved quotes: none used.
+- Zero-use comparison: no approved zero-use candidate fits the same US metric role; the zero-use VSG and Vertac sources carry no connector claim and LDN Security Solutions is a UK metric, so Foster Plumbing remains selected.
 - Use in copy: one same-paragraph linked Foster Plumbing case-study metric sentence.
 - Claims excluded: all Carnrick, Lawrie and Paku quotes, additional Foster metrics, review proof, ratings, rankings and testimonials.
 
@@ -296,7 +311,7 @@ def main() -> int:
 - SERP evidence SHA-256: {sha(ROOT / serp)}
 - Dominant content type: General Article
 - Selected content type: How-To Guide
-- Observed SERP features: AI Overview, People also ask
+- Observed SERP features: People also ask, Things to know
 - Related-query/PAA artifact: {BRIEF}
 - Format decision: documented_exception
 - Exception reason: The page-one SERP is dominated by association homepages, news and statistics roundups classed as general articles, and none serves the contractor who has to recruit and keep women. The guide format answers the statistics intent with an early role table and adds the missing employer playbook.

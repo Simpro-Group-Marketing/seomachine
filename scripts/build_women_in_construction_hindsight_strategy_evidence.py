@@ -23,7 +23,7 @@ from data_sources.modules.simpro_vault_client import SimproVaultClient
 
 
 SLUG = "women-in-construction"
-DATE = "2026-09-26"
+DATE = "2026-09-28"
 TITLE = (
     "Bridging the Trades Labor Gap: A Contractor's Guide to Attracting and "
     "Retaining Women in Construction"
