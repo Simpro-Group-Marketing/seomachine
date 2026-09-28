@@ -131,6 +131,15 @@
       "observed_text_length": 4917,
       "evidence": "women still only made up about 14% of active apprentices in FY2024",
       "reason": "dol.gov returns HTTP 403 to the validator's request client. The page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.g2.com/products/simpro/reviews/simpro-review-12271635",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-28T16:55:43Z",
+      "page_title": "G2",
+      "observed_text_length": 2539,
+      "evidence": "I find Simpro incredibly easy to use with its user-friendly interface, which lowers the barrier for our less tech-savvy employees",
+      "reason": "g2.com returns HTTP 403 to the validator's request client. The review page loads normally in the Chrome connector."
     }
   ]
 }

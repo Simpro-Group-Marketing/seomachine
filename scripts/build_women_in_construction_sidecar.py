@@ -158,7 +158,7 @@ def main() -> int:
 
 - Live source checked: `https://www.simprogroup.com/blog/women-in-construction-week` on 2026-09-25; baseline in `research/live-page-baseline-{SLUG}-{DATE}.md`.
 - Live page state: title `Women in Construction Week: Expanding the Workforce Powering the Trades | Simpro`, published 2026-03-03, 683 words, GSC `Crawled - currently not indexed` with no 90-day query data.
-- Removed live quotes: the Carnrick, Lawrie and Paku quotes were not verbatim on their linked source pages on 2026-09-25 and have no approved connector claim, so they are removed. The Foster Plumbing metric is also omitted because its approved wording has no source-visible public evidence.
+- Removed live quotes: the Carnrick, Lawrie and Paku quotes were not verbatim on their linked source pages on 2026-09-25 and have no approved connector claim, so they are removed. The Foster Plumbing metric is also omitted because its approved wording has no source-visible public evidence; connector-approved Orion and review proof replaces them.
 - Outcome rule: no indexing, ranking, traffic or engagement improvement may be attributed to the rewrite until dated post-publication evidence covers at least two equivalent reporting periods.
 
 ## Context request and validation
@@ -176,7 +176,7 @@ def main() -> int:
 - Claim registry revision: `{revisions['claim_registry_revision']}`.
 - Approval policy revision: `{revisions['approval_policy_revision']}`.
 - Selected resources: {', '.join(f'`{r}`' for r in resource_ids)}.
-- Approved public claim IDs used: [none].
+- Approved public claim IDs used: `claim-metric-MET-0085` (public_metric), `claim-metric-MET-0974` (exact_quote).
 - Public evidence boundary: connector resources guide Simpro voice, positioning and trade language; every public workforce, apprenticeship, labor-demand, safety and event fact uses a current authoritative public source.
 - Context result: `task_satisfaction: {receipt['task_satisfaction']}`; unresolved gaps: [none].
 
@@ -185,7 +185,7 @@ def main() -> int:
 - Connector path: vault_status, vault_describe, natural-language vault_search, resource_id-bound vault_read and vault_expand, vault_claims, vault_build_context, and vault_validate_context through `data_sources.modules.simpro_vault_client.SimproVaultClient`.
 - Active artifacts: `research/context-request-{SLUG}.json`, `research/context-pack-{SLUG}.json`, and `research/context-receipt-{SLUG}.json`.
 - Selector-only packs: `research/context-pack-{SLUG}-customer-selector-{DATE}.json` (customer-proof claims) and `research/context-pack-{SLUG}-fred-evaluation-{DATE}.json` (Fred authority claims).
-- Public-use boundary: selected vault resources are guidance or context only.
+- Public-use boundary: selected vault resources are guidance or context only, apart from the two approved claims above, each used once with a same-paragraph public link.
 - Status: validated.
 
 ## Vault Brand Language Alignment
@@ -212,27 +212,79 @@ def main() -> int:
 {hindsight}
 
 {slate}
-- Selection decision: all three metric candidates were evaluated and rejected with source-specific reasons. Foster Plumbing claim-metric-MET-0178 reads "a 10X increase in six years", but the public case study shows "Five years later" and never "10X", and the vault source node is not public-claim usable, so the approved wording has no source-visible public evidence. LDN Security Solutions is a UK security-business metric and Shaffer Beacon Mechanical is an overused software-outcome headcount metric; neither fits this US employer guide. Quote, theme and experience_story roles returned no connector-approved candidates.
-- Public-copy result: omit customer stories, customer metrics, testimonials, review stories, exact quotes, and customer outcomes.
-- Objective-binding note: the selector evidence is bound to the exact current objective and to the customer-selector context artifacts. The public-copy context pack intentionally contains no approved claims because no customer proof was selected for public use.
+- Selection decision: Orion Security Solutions is selected for the metric role because it is a US case study with zero recent uses and its connector-approved workforce metric (claim-metric-MET-0085) matches the page-visible sentence "The company expanded its workforce by 25%". Zachary M. (G2, claim-metric-MET-0974) is selected for the quote role because it is a zero-use, identity-backed, connector-approved exact snippet on lowering barriers for less tech-savvy employees, live on its public review page; the higher-ranked Joe H. snippet was used on 2026-09-18. Foster Plumbing is rejected because approved claim MET-0178 reads "a 10X increase in six years", which the public case study does not show. LDN Security Solutions is a UK metric outside this US guide.
+- Public-copy result: one Orion metric sentence and one individually attributed review quote, each with a same-paragraph public link; no composite persona, rating, star count, ranking or aggregate review claim.
 
 {fred}
 
-## E-E-A-T Strength Decision
+## Customer Proof Selection Decision
 
-- Applicability: required
-- Intent: commercial_investigation
-- Positive signals: [none]
-- Decision: proof_unavailable_safe_to_publish
-- Reason: The article is a top-of-funnel employer guide with a commercial CTA; the customer-proof selector found no objective-fit selection with source-visible public evidence across metric, quote, theme, and experience-story roles, the Fred authority selector found no verified topic-fit candidate, and no named author, reviewer, or approved SME review signal is available.
-- Public copy boundary: Public copy omits customer proof, named customer claims, review stories, exact quotes, testimonials, customer metrics, and unsupported SME claims.
+- Selector command: as recorded in the Customer Proof Slate.
+- Selected proof: `case-study-orion-security-workforce-growth` | Customer: Orion Security Solutions | URL: https://www.simprogroup.com/case-studies/orion | Role: metric | Claim ID: claim-metric-MET-0085.
+- Selected proof: `review-g2-zachary-m-less-tech-savvy-employees` | Customer: G2 reviewer Zachary M. | URL: https://www.g2.com/products/simpro/reviews/simpro-review-12271635 | Role: quote | Claim ID: claim-metric-MET-0974.
+- Rejected stronger candidates: [reference-ldn-security-solutions-scale: UK security-business team growth metric sits outside this US contractor employer guide; review-capterra-training-ease-of-adoption: used on 2026-09-18 in field-service-management-training and its onboarding snippet fits the barrier section less directly than the zero-use Zachary M. snippet]
+- Zero-use comparison: Orion Security Solutions and Zachary M. are zero-use sources and were preferred over the recently used Joe H. snippet; claim-metric-MET-1042 (G2 verified user, 2024) and claim-metric-MET-0360 (Capterra, 2022) were weaker and older onboarding snippets.
+- Live repo scan: drafts, rewrites, research and published were scanned on 2026-09-28 for the three proof IDs, public URLs and names; the only public-copy use found was the Joe H. Capterra row in published/field-service-management-training-2026-09-18.md, which was missing from the ledger and has been backfilled; Joe H. is not used here.
+- Final use in copy: Orion metric sentence in `Use connected systems to open flexible leadership roles`, and the Zachary M. exact quote in `Modernize jobsite technology to lower physical barriers`.
+
+## Selected Customer Proof Mining
+
+- Proof: case-study-orion-security-workforce-growth | Customer: Orion Security Solutions | URL: https://www.simprogroup.com/case-studies/orion
+- Checked: 2026-09-28.
+- Checked for: customer metric, exact quote, POV/story, and workflow theme.
+- Usable metrics found: approved connector claim `claim-metric-MET-0085`, `The workforce increased by 25%.` Source-visible evidence: `The company expanded its workforce by 25%`.
+- Usable quotes found: none found.
+- POV/story decision: none; the metric sentence is used without an individual story.
+- Recommended use: one same-paragraph linked metric sentence.
+- Final use in copy: public metric sentence in the flexible leadership section.
+- Excluded proof: staff names and quotes, revenue and jobs metrics, and any causal claim that Simpro produced the growth.
+- Status: approved
+
+## Selected Customer Proof Mining
+
+- Proof: review-g2-zachary-m-less-tech-savvy-employees | Customer: G2 reviewer Zachary M. | URL: https://www.g2.com/products/simpro/reviews/simpro-review-12271635
+- Checked: 2026-09-28.
+- Checked for: exact quotes, customer metrics, POV story, workflow themes.
+- Usable quotes found: one approved exact snippet under claim-metric-MET-0974, dated 28 January 2026.
+- Usable metrics found: none found.
+- Recommended use: exact quote
+- Final use in copy: exact quote with the Zachary M. attribution label and a same-paragraph link to the G2 review in the jobsite section.
+- Excluded proof: rating, star count, aggregate score and the rest of the review text.
+- Status: approved
+
+## Customer Proof Pack
+
+- Pack status: ready.
+- Quote Matrix candidates: the vault Quotes resource res-6716e1bab324565aa8a906b05b0aa502 has no approved exact_quote claim for Amy Carnrick, Dawn Lawrie or Frances Paku, so no customer-story quote is used.
+- Reference candidates: reference-ldn-security-solutions-scale (UK) was evaluated and rejected for market fit.
+- Customer Stories candidates: the five 2026-09-25 story rows have no connector claim; the Orion Security Solutions case study is selected instead.
+- Review-site experience evidence: review-g2-zachary-m-less-tech-savvy-employees (Zachary M., G2, 28 January 2026), a connector-approved exact snippet checked live; review-capterra-training-ease-of-adoption (Joe H.) was evaluated and not used because of recent reuse.
+- Approved metric: The workforce increased by 25% | Claim ID `claim-metric-MET-0085` | Claim type: customer_outcome_metric | Customer/brand: Orion Security Solutions | Evidence relation: directly_supports | Source class: case_study_metric | Source type: case_study | URL: https://www.simprogroup.com/case-studies/orion | Evidence: The company expanded its workforce by 25% | Artifact: research/source-captures/{SLUG}-{DATE}/simpro-case-study-orion.md | Capture receipt: research/source-captures/{SLUG}-{DATE}/simpro-case-study-orion-capture-receipt.json | Capture receipt hash: {sha(R / 'source-captures' / f'{SLUG}-{DATE}' / 'simpro-case-study-orion-capture-receipt.json')} | Status: approved | Use: same-paragraph customer metric in the flexible leadership section.
+- Approved quote: "I find Simpro incredibly easy to use with its user-friendly interface, which lowers the barrier for our less tech-savvy employees" | Source type: review_site | Identity: Zachary M. | URL: https://www.g2.com/products/simpro/reviews/simpro-review-12271635 | Evidence: "I find Simpro incredibly easy to use with its user-friendly interface, which lowers the barrier for our less tech-savvy employees" | Status: approved | Use: exact quote with attribution and a same-paragraph source link in the jobsite section
+- Zero-use comparison: Orion and Zachary M. are zero-use sources.
+- Use in copy: one Orion metric sentence and one attributed review quote, each with a same-paragraph link.
+- Claims excluded: Carnrick, Lawrie and Paku quotes, Foster Plumbing metrics, ratings, star counts, rankings, aggregate review claims and composite personas.
+
+## Review Story Selection
+
+- Selected story: review-g2-zachary-m-less-tech-savvy-employees | Identity: Zachary M. | URL: https://www.g2.com/products/simpro/reviews/simpro-review-12271635 | Status: approved
+- Review platform: G2
+- Identity type: person
+- Identity display: Zachary M.
+- Review date: 28 January 2026
+- Public review URL: https://www.g2.com/products/simpro/reviews/simpro-review-12271635
+- Claim ID: claim-metric-MET-0974
+- Permitted use mode: exact_quote
+- Same-paragraph article link: yes, the quote and the G2 link sit in one paragraph of the jobsite section.
+- Verification status: verified 2026-09-28 against the live G2 review page in Chrome.
+- Boundary: one reviewer's ease-of-use observation, quoted as an excerpt of the approved snippet; not a rating or Simpro-wide outcome.
 - Status: approved
 
 ## E-E-A-T Proof Map
 
-- First-hand evidence decision: Selected: [none] because the selector found no eligible experience story with source-visible public evidence for this article objective, so public copy omits customer experience claims.
-- Experience: Selected: [none]. The article contains no customer or reviewer story and no fictional persona.
-- Expertise: Selected: [none]. No named author, named reviewer, or Fred contribution is authorized.
+- First-hand evidence decision: Selected: [none] for experience_story because the selector returned no experience_story candidate with an approved connector claim for this objective; the Orion Security Solutions metric and the Zachary M. review quote are used as customer and review proof with same-paragraph links, not as an experience story, and no composite or fictional persona is used.
+- Experience: Zachary M. (G2) on lowering the barrier for less tech-savvy employees, plus the Orion Security Solutions workforce metric.
+- Expertise: Selected: [none]. No named author, named reviewer beyond the review attributions, or Fred contribution is authorized.
 - Authoritativeness: workforce shares link to BLS CPS 2025 Tables 11 and 18 and the NAHB tabulation; apprenticeship figures link to DOL and IWPR; labor demand links to ABC and the AGC and NCCER survey; PPE and sanitation link to OSHA; WIC Week timing links to NAWIC.
 - Trust: the article states the data year and table scope, warns against comparing the 11-month 2025 averages with earlier years, and removes quotes that could not be verified.
 
@@ -267,6 +319,7 @@ def main() -> int:
 - OSHA PPE fit and sanitation statements and the rule effective date: `inline_required`; the OSHA page appears in the same paragraph.
 - WIC Week timing: `inline_required`; the NAWIC page appears in the same FAQ paragraph.
 - Jobsite, career-ladder, recruiting, retention and roadmap guidance: `proof_not_required` when framed as employer guidance.
+- Orion Security Solutions workforce metric and the Zachary M. review quote: `inline_required`; the case-study or review link appears in the same paragraph.
 - Simpro product sentences: `sidecar_only` as low-risk owned product language aligned with vault guidance.
 
 {source_map}
@@ -351,8 +404,8 @@ def main() -> int:
 
 ## Internal Link Decision
 
-- Public-body Simpro links: skilled trades shortage; field service mobile app; field service scheduling; homepage field service management software (commercial pillar); top trades for women guide.
-- Total: five internal links, inside the standard three-to-five range.
+- Public-body Simpro links: skilled trades shortage; field service mobile app; Orion Security Solutions case study; field service scheduling; homepage field service management software (commercial pillar); top trades for women guide.
+- Total: six internal links, inside the seven-link maximum.
 - Removed live links: `/blog/toolbox-tech-webinar`, `/blog/heroes-of-the-trade-dawn-lawrie` and `/blog/heroes-of-the-trade-vertac`, which only supported the removed quotes.
 - Down-funnel destinations: `/features/field-service-mobile-app` and `/features/scheduling-software` with function-bearing anchors.
 - Exact commercial anchor: `field service management software` links to `https://www.simprogroup.com/` in the A 90-day roadmap for trade business owners section.

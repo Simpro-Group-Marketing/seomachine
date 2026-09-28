@@ -26,7 +26,7 @@ REPORTS = {
     "content-analyzer": (
         "Content Analyzer",
         [
-            "The Foster Plumbing metric was removed from public copy because approved claim MET-0178 (10X in six years) has no source-visible public evidence; the case study shows five years and no 10X figure. The user approved omitting customer proof on 2026-09-28.",
+            "The Foster Plumbing metric was removed because approved claim MET-0178 (10X in six years) has no source-visible public evidence. It is replaced by the connector-approved Orion Security Solutions workforce metric (MET-0085) and the live-checked Zachary M. G2 snippet (MET-0974), each with a same-paragraph link; no composite reviewer persona is used.",
             "Every body H2 now opens with a 50-to-60-word direct-answer capsule, which resolves the initial AEO/GEO blocker.",
             "The unsourced injury-risk and career-retention claims in the jobsite section were replaced with a concrete trial action.",
             "The IWPR apprenticeship sentence now states the 37-state scope with data for both 2015 and 2024 and no longer compares it with the national DOL share.",
@@ -53,7 +53,7 @@ REPORTS = {
     "internal-linker": (
         "Internal Linker",
         [
-            "All five internal links returned HTTP 200: skilled trades shortage, field service mobile app, field service scheduling, the homepage commercial pillar and the top trades for women guide; the Foster Plumbing case-study link left with the removed metric.",
+            "All six internal links returned HTTP 200: skilled trades shortage, field service mobile app, the Orion Security Solutions customer story, field service scheduling, the homepage commercial pillar and the top trades for women guide.",
             "Duplicate NAHB and DOL destinations inside one paragraph were merged into one link per claim cluster.",
             "Whole-sentence OSHA anchors were shortened to descriptive anchors while keeping each claim sentence intact.",
             "The three story links that only supported the removed quotes are gone; incoming-link candidates are recorded for the Web Development handoff.",

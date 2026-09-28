@@ -3443,9 +3443,115 @@
         "retention",
         "operations leadership"
       ]
+    },
+    {
+      "approval_status": "approved",
+      "approved_metrics": [
+        {
+          "claim": "The workforce increased by 25%",
+          "evidence": "The company expanded its workforce by 25%",
+          "status": "approved",
+          "url": "https://www.simprogroup.com/case-studies/orion"
+        }
+      ],
+      "approved_quotes": [],
+      "company_size": "100+",
+      "customer": "Orion Security Solutions",
+      "evidence": "The company expanded its workforce by 25%",
+      "industry": [
+        "security",
+        "low voltage",
+        "field service"
+      ],
+      "internal_source_ref": "Vault claim claim-metric-MET-0085 (public_metric); public case study read 2026-09-28.",
+      "last_verified": "2026-09-28",
+      "proof_id": "case-study-orion-security-workforce-growth",
+      "public_copy_allowed": true,
+      "public_url": "https://www.simprogroup.com/case-studies/orion",
+      "region": [
+        "US"
+      ],
+      "restrictions": [
+        "Use only the approved metric wording The workforce increased by 25% with a same-paragraph case-study link",
+        "do not imply Simpro caused the growth",
+        "do not name or quote individual staff."
+      ],
+      "review_story": {
+        "story_allowed": false
+      },
+      "source_type": "customer_story",
+      "themes": [
+        "workforce growth",
+        "technician access to job information"
+      ],
+      "workflow_fit": [
+        "workforce growth",
+        "field technicians",
+        "mobile app",
+        "project lifecycle"
+      ]
+    },
+    {
+      "approval_status": "approved",
+      "approved_metrics": [],
+      "approved_quotes": [
+        {
+          "evidence": "I find Simpro incredibly easy to use with its user-friendly interface, which lowers the barrier for our less tech-savvy employees",
+          "quote": "I find Simpro incredibly easy to use with its user-friendly interface, which lowers the barrier for our less tech-savvy employees",
+          "status": "approved",
+          "url": "https://www.g2.com/products/simpro/reviews/simpro-review-12271635"
+        }
+      ],
+      "company_size": "unknown",
+      "customer": "G2 reviewer Zachary M. on Simpro ease of use",
+      "evidence": "I find Simpro incredibly easy to use with its user-friendly interface, which lowers the barrier for our less tech-savvy employees",
+      "industry": [
+        "trades",
+        "field service"
+      ],
+      "internal_source_ref": "Vault claim claim-metric-MET-0974 (exact_quote); G2 review dated 1/28/2026 live-checked in Chrome 2026-09-28.",
+      "last_verified": "2026-09-28",
+      "proof_id": "review-g2-zachary-m-less-tech-savvy-employees",
+      "public_copy_allowed": true,
+      "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-12271635",
+      "region": [
+        "unknown"
+      ],
+      "restrictions": [
+        "Use the exact snippet with the Zachary M. attribution label and a same-paragraph link to the G2 review URL",
+        "no rating, star or aggregate claim",
+        "do not broaden into a generalised Simpro outcome."
+      ],
+      "review_story": {
+        "copy_use": "exact quote with attribution and same-paragraph source link",
+        "identity_display": "Zachary M.",
+        "identity_type": "person",
+        "objective_fit": [
+          "onboarding",
+          "adoption",
+          "lower barriers"
+        ],
+        "person_name": "Zachary M.",
+        "platform": "G2",
+        "public_url": "https://www.g2.com/products/simpro/reviews/simpro-review-12271635",
+        "role_title": "G2 reviewer, review dated 1/28/2026",
+        "source_row_ref": "indexes/metric-claim-matrix.csv#metric_id=MET-0974",
+        "story_allowed": true,
+        "verification_status": "verified 2026-09-28 against live G2 review page",
+        "workflow_story": "Reviewer reports the interface lowers the barrier for less tech-savvy employees while keeping a rich feature set."
+      },
+      "source_type": "review_site",
+      "themes": [
+        "lower barrier for less tech-savvy employees"
+      ],
+      "workflow_fit": [
+        "onboarding",
+        "adoption",
+        "ease of use"
+      ]
     }
   ],
   "source_boundary": "Curated customer proof index for selection and governance. This is not the full Quote Matrix. Exact quotes, review ratings, badges, rankings, and named reviewer claims require current source verification and approval before public copy use. Review-site rows may support public E-E-A-T stories only when review_story.story_allowed is true, the row has a real person or business identity, and a usable public review URL is linked in the same public paragraph as the paraphrase. Generic review themes remain VoC research only.",
-  "updated_at": "2026-09-25",
+  "updated_at": "2026-09-28",
   "version": 1
 }

@@ -110,10 +110,10 @@ SECTIONS = [
     section(6, "body_how_to", "Use connected systems to open flexible leadership roles", 200,
             "Show that scheduling, estimating and service management roles run on information, position office staff as a leadership bench, and connect scheduling software to flexible, fixed-hours leadership roles.",
             "Three concrete moves that open flexible leadership roles.",
-            ["Omit customer proof because no connector-approved claim has source-visible public evidence for this use.",
+            ["Use the connector-approved Orion Security Solutions workforce metric (claim-metric-MET-0085) with a same-paragraph case-study link.",
              "Use a function-bearing anchor for the scheduling feature link."],
             ["Three moves: map office decisions to data, move data into one shared system, and open one fixed-hours operations role."],
-            [SCHEDULING], "Which leadership roles open up when office and field share the same data?",
+            ["https://www.simprogroup.com/case-studies/orion", SCHEDULING], "Which leadership roles open up when office and field share the same data?",
             "A path from office support into operations leadership with flexible hours.",
             "Extend the ladder into office and operations leadership.", "Cover the recruiting and retention basics.", snippet=False),
     section(7, "body_how_to", "Recruit and retain women on your crews", 285,
@@ -196,7 +196,7 @@ PLAN = {
         "exclusions": [
             "event-dated Women in Construction Week framing as the core thesis",
             "job-seeker trade-choice guidance owned by the women-in-skilled-trades guide",
-            "unapproved customer quotes, including the removed Carnrick, Lawrie and Paku lines",
+            "unapproved customer quotes, including the removed Carnrick, Lawrie and Paku lines, and composite or stitched reviewer personas",
             "Hindsight or deal data presented as proof",
             "named author or Person schema without approved authorship evidence",
             "first-person authority language, editorial-process commentary, or em dashes in public copy",
@@ -245,6 +245,7 @@ PLAN = {
     "internal_link_plan": [
         {"target": SHORTAGE, "role": "supporting", "rationale": "Existing labor-shortage article owns shortage causes, so the operations section links to it instead of targeting construction labor shortage."},
         {"target": MOBILE, "role": "down_funnel", "rationale": "Mobile job notes, forms and photos support the information-barrier point in the jobsite section with a function-bearing anchor."},
+        {"target": "https://www.simprogroup.com/case-studies/orion", "role": "supporting", "rationale": "Same-paragraph public source for the approved Orion Security Solutions workforce metric."},
         {"target": SCHEDULING, "role": "down_funnel", "rationale": "Scheduling that balances crew workloads supports flexible leadership roles with a function-bearing anchor."},
         {"target": HOME, "role": "supporting", "rationale": "Commercial pillar link with the exact anchor field service management software in the roadmap conclusion."},
         {"target": WOMEN_GUIDE, "role": "supporting", "rationale": "Sibling job-seeker guide for candidates and school partners, keeping the cluster connected without competing for its keyword."},
@@ -259,7 +260,7 @@ PLAN = {
         "update": [
             {"item": "title, H1, slug and metadata", "decision": "Replace the event title with the evergreen H1 from the brief, move to the women-in-construction slug with a recommended 301, and update the meta title and description."},
             {"item": "statistics", "decision": "Replace the NCCER 11 percent (December 2023) and IWPR roughly 3 percent (2024) figures with BLS CPS 2025 figures and linked original sources."},
-            {"item": "leadership proof", "decision": "Remove the unverifiable Carnrick, Lawrie and Paku quotes; no connector-approved customer claim has source-visible public evidence for this article, so public copy carries no customer proof."},
+            {"item": "leadership proof", "decision": "Replace the unverifiable Carnrick, Lawrie and Paku quotes with connector-approved, source-visible proof: the Orion Security Solutions workforce metric and one individually attributed review snippet (Zachary M. on G2), each with a same-paragraph link."},
             {"item": "thesis", "decision": "Pivot from a seasonal observance to an employer guide on solving the skilled labor gap by recruiting and retaining women."},
         ],
         "add": [

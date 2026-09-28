@@ -150,13 +150,37 @@ CUSTOMER_PROOF_SELECTOR_CLAIMS = [
         "use_mode": "public_metric",
         "brand_scope": "Simpro",
     },
+    {
+        "claim_id": "claim-metric-MET-0085",
+        "query": "Orion Security Solutions workforce increased by 25%",
+        "use_mode": "public_metric",
+        "brand_scope": "Simpro",
+    },
+    {
+        "claim_id": "claim-metric-MET-0303",
+        "query": "onboard new team members without extensive training",
+        "use_mode": "exact_quote",
+        "brand_scope": "Simpro",
+    },
+    {
+        "claim_id": "claim-metric-MET-0974",
+        "query": "lowers the barrier for our less tech-savvy employees",
+        "use_mode": "exact_quote",
+        "brand_scope": "Simpro",
+    },
 ]
 
 PUBLIC_COPY_CLAIMS = [
     {
-        "claim_id": "claim-metric-MET-0178",
-        "query": "Foster Plumbing revenue grew from $1 million to $10 million",
+        "claim_id": "claim-metric-MET-0085",
+        "query": "Orion Security Solutions workforce increased by 25%",
         "use_mode": "public_metric",
+        "brand_scope": "Simpro",
+    },
+    {
+        "claim_id": "claim-metric-MET-0974",
+        "query": "lowers the barrier for our less tech-savvy employees",
+        "use_mode": "exact_quote",
         "brand_scope": "Simpro",
     },
 ]
@@ -237,10 +261,10 @@ REQUEST = {
             "authority_support",
         ],
         "public_proof_boundary": (
-            "No approved claim is bound in this public-copy context request, and public copy "
-            "carries no customer proof. Foster Plumbing claim-metric-MET-0178 was evaluated in the "
-            "customer-selector pack and omitted because its approved wording has no source-visible "
-            "public evidence. Workforce, "
+            "Two approved claims are bound in this public-copy context request: "
+            "claim-metric-MET-0085 (Orion Security Solutions workforce metric, public_metric, same-paragraph case-study link) and "
+            "claim-metric-MET-0974 (G2 review snippet from Zachary M., exact_quote), each with a same-paragraph public link. "
+            "Foster Plumbing claim-metric-MET-0178 is omitted because its approved wording has no source-visible public evidence. Workforce, "
             "labor-shortage, demographic, apprenticeship, and pay facts come from current "
             "authoritative public sources. Before drafting any proof-sensitive product, feature, "
             "pricing, customer, ranking, rating, quote, metric, or availability statement, "
@@ -387,7 +411,7 @@ def main() -> None:
         client, fred_build_input, "Fred evaluation"
     )
 
-    build_input = {**shared_build_input, "claim_requests": []}
+    build_input = {**shared_build_input, "claim_requests": PUBLIC_COPY_CLAIMS}
     build_output, pack, receipt, validation = build_and_validate(
         client, build_input, "Public-copy"
     )

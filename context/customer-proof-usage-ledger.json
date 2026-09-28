@@ -447,6 +447,19 @@
       "use_type": "experience_story",
       "claim_summary": "Paraphrased Clearground workflow showing customised dynamic risk assessments completed on site before work begins.",
       "reuse_reason": "Selected as a zero-recent-use BigChange-owned customer story with the closest fit to point-of-work risk assessment; Mardon, CC-IS, GEM and existing Capterra proof were weaker topical matches."
+    },
+    {
+      "proof_id": "review-capterra-training-ease-of-adoption",
+      "source_type": "review_site",
+      "customer": "Capterra reviewer Joe H. on Simpro onboarding",
+      "source_url": "https://www.capterra.com/p/10529/Simpro-Enterprise/#Capterra___7152337",
+      "article_slug": "field-service-management-training",
+      "artifact_path": "published/field-service-management-training-2026-09-18.md",
+      "date_used": "2026-09-18",
+      "section": "new starter section",
+      "use_type": "quote",
+      "claim_summary": "Exact Joe H. Capterra quote on onboarding new team members without extensive training, with same-paragraph review link.",
+      "reuse_reason": "Backfilled on 2026-09-28 after a live repo scan found this public-copy use missing from the ledger."
     }
   ]
 }
