@@ -260,7 +260,7 @@ PLAN = {
         "update": [
             {"item": "title, H1, slug and metadata", "decision": "Replace the event title with the evergreen H1 from the brief, move to the women-in-construction slug with a recommended 301, and update the meta title and description."},
             {"item": "statistics", "decision": "Replace the NCCER 11 percent (December 2023) and IWPR roughly 3 percent (2024) figures with BLS CPS 2025 figures and linked original sources."},
-            {"item": "leadership proof", "decision": "Replace the unverifiable Carnrick, Lawrie and Paku quotes with connector-approved, source-visible proof: the Orion Security Solutions workforce metric and one individually attributed review snippet (Zachary M. on G2), each with a same-paragraph link."},
+            {"item": "leadership proof", "decision": "Replace the unverifiable Carnrick, Lawrie and Paku quotes with connector-approved, source-visible proof: the Orion Security Solutions workforce metric with a same-paragraph link; quoted voices are reserved for women leaders pending vault exact_quote approval."},
             {"item": "thesis", "decision": "Pivot from a seasonal observance to an employer guide on solving the skilled labor gap by recruiting and retaining women."},
         ],
         "add": [

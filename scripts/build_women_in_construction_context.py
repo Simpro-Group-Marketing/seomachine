@@ -177,12 +177,6 @@ PUBLIC_COPY_CLAIMS = [
         "use_mode": "public_metric",
         "brand_scope": "Simpro",
     },
-    {
-        "claim_id": "claim-metric-MET-0974",
-        "query": "lowers the barrier for our less tech-savvy employees",
-        "use_mode": "exact_quote",
-        "brand_scope": "Simpro",
-    },
 ]
 
 FRED_EVALUATION_CLAIMS = [
@@ -261,9 +255,9 @@ REQUEST = {
             "authority_support",
         ],
         "public_proof_boundary": (
-            "Two approved claims are bound in this public-copy context request: "
-            "claim-metric-MET-0085 (Orion Security Solutions workforce metric, public_metric, same-paragraph case-study link) and "
-            "claim-metric-MET-0974 (G2 review snippet from Zachary M., exact_quote), each with a same-paragraph public link. "
+            "One approved claim is bound in this public-copy context request: "
+            "claim-metric-MET-0085 (Orion Security Solutions workforce metric, public_metric, same-paragraph case-study link). "
+            "Review quotes are omitted so the article's voices come from women leaders once their exact_quote claims are approved. "
             "Foster Plumbing claim-metric-MET-0178 is omitted because its approved wording has no source-visible public evidence. Workforce, "
             "labor-shortage, demographic, apprenticeship, and pay facts come from current "
             "authoritative public sources. Before drafting any proof-sensitive product, feature, "
