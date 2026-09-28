@@ -26,7 +26,8 @@ REPORTS = {
     "content-analyzer": (
         "Content Analyzer",
         [
-            "The Foster Plumbing sentence now carries only the connector-approved revenue metric with Amy Carnrick named as former CEO; the time period, Colorado location and streamlined-operations paraphrase were removed because the case study says five years and claim MET-0178 says six.",
+            "The Foster Plumbing metric was removed from public copy because approved claim MET-0178 (10X in six years) has no source-visible public evidence; the case study shows five years and no 10X figure. The user approved omitting customer proof on 2026-09-28.",
+            "Every body H2 now opens with a 50-to-60-word direct-answer capsule, which resolves the initial AEO/GEO blocker.",
             "The unsourced injury-risk and career-retention claims in the jobsite section were replaced with a concrete trial action.",
             "The IWPR apprenticeship sentence now states the 37-state scope with data for both 2015 and 2024 and no longer compares it with the national DOL share.",
             "The table lead now says inspector and manager roles run ahead of the field trades, because construction managers sit below the industry-wide share.",
@@ -52,7 +53,7 @@ REPORTS = {
     "internal-linker": (
         "Internal Linker",
         [
-            "All six internal links returned HTTP 200: skilled trades shortage, field service mobile app, Foster Plumbing case study, field service scheduling, the homepage commercial pillar and the top trades for women guide.",
+            "All five internal links returned HTTP 200: skilled trades shortage, field service mobile app, field service scheduling, the homepage commercial pillar and the top trades for women guide; the Foster Plumbing case-study link left with the removed metric.",
             "Duplicate NAHB and DOL destinations inside one paragraph were merged into one link per claim cluster.",
             "Whole-sentence OSHA anchors were shortened to descriptive anchors while keeping each claim sentence intact.",
             "The three story links that only supported the removed quotes are gone; incoming-link candidates are recorded for the Web Development handoff.",

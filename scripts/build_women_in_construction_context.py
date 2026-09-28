@@ -237,10 +237,10 @@ REQUEST = {
             "authority_support",
         ],
         "public_proof_boundary": (
-            "No approved claim is bound in this public-copy context request. The single Foster "
-            "Plumbing revenue metric reaches public copy through the selector-bound customer-proof "
-            "path (claim-metric-MET-0178 in the customer-selector pack) with source-visible case-study "
-            "evidence and a same-paragraph link. Workforce, "
+            "No approved claim is bound in this public-copy context request, and public copy "
+            "carries no customer proof. Foster Plumbing claim-metric-MET-0178 was evaluated in the "
+            "customer-selector pack and omitted because its approved wording has no source-visible "
+            "public evidence. Workforce, "
             "labor-shortage, demographic, apprenticeship, and pay facts come from current "
             "authoritative public sources. Before drafting any proof-sensitive product, feature, "
             "pricing, customer, ranking, rating, quote, metric, or availability statement, "
@@ -414,7 +414,7 @@ def main() -> None:
             "approved_claim_use_decision": (
                 "The customer-selector pack binds one Foster Plumbing claim (MET-0178) per public "
                 "URL to avoid ambiguous URL binding. The public-copy context carries no approved "
-                "claims; the Foster metric uses the selector-bound customer-proof path. Fred authority claims "
+                "claims and public copy omits customer proof. Fred authority claims "
                 "stay in the Fred evaluation pack and receipt. No "
                 "connector claim exists for the toolbox-tech webinar, Heroes of the Trade Dawn "
                 "Lawrie, or Heroes of the Trade Vertac pages, so those quotes are not "

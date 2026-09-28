@@ -27,7 +27,6 @@ OBJECTIVE = (
     "across field and office roles, using jobsite technology, transparent career pathways, and connected "
     "field service software."
 )
-FOSTER = "https://www.simprogroup.com/case-studies/foster-plumbing"
 BLS18 = "https://www.bls.gov/cps/cpsaat18.htm"
 BLS11 = "https://www.bls.gov/cps/cpsaat11.htm"
 DOL = "https://www.dol.gov/sites/dolgov/files/ETA/opder/DASP/Trendlines/posts/2024_11/Trendlines_November_2024.html"
@@ -130,7 +129,8 @@ def main() -> int:
                 f"Support: {support} | Citation mode: inline_required | Status: approved"
             )
     questions = "\n".join(f"  - {q}" for q, _u, _s in FAQS)
-    rid = "; ".join(f"resource_id={r}" for r in resource_ids)
+    labels = {"res-33deaefa546b56358549b9dfe84f72c6": "feature ", "res-1825898a11855f89be9bb69c544a6aa3": "feature ", "res-f882ab230eb2563889e300d612c324bc": "feature ", "res-cb1c8e417b42532cb65e6e59893cf459": "vertical ", "res-ae4607729666509bb97813e66e18590b": "vertical "}
+    rid = "; ".join(f"{labels.get(r, '')}resource_id={r}" for r in resource_ids)
     text = f"""# Women in Construction Validation Sidecar
 
 ## Scope and artifact binding
@@ -158,13 +158,13 @@ def main() -> int:
 
 - Live source checked: `https://www.simprogroup.com/blog/women-in-construction-week` on 2026-09-25; baseline in `research/live-page-baseline-{SLUG}-{DATE}.md`.
 - Live page state: title `Women in Construction Week: Expanding the Workforce Powering the Trades | Simpro`, published 2026-03-03, 683 words, GSC `Crawled - currently not indexed` with no 90-day query data.
-- Removed live quotes: the Carnrick, Lawrie and Paku quotes were not verbatim on their linked source pages on 2026-09-25 and have no approved connector claim, so they are removed.
+- Removed live quotes: the Carnrick, Lawrie and Paku quotes were not verbatim on their linked source pages on 2026-09-25 and have no approved connector claim, so they are removed. The Foster Plumbing metric is also omitted because its approved wording has no source-visible public evidence.
 - Outcome rule: no indexing, ranking, traffic or engagement improvement may be attributed to the rewrite until dated post-publication evidence covers at least two equivalent reporting periods.
 
 ## Context request and validation
 
 - Binding: connector-bound.
-- Reason: the artifact is Simpro-owned, names Simpro customer proof, and links to official `simprogroup.com` pages.
+- Reason: the artifact is Simpro-owned, links to official `simprogroup.com` pages.
 - Vault access path: the plugin MCP index reported `manifest_stale`; the current-project `SimproVaultClient` fallback returned `status: ready` and served every operation.
 - Request SHA-256 (receipt-recorded): `{receipt['request_sha256']}`.
 - Context pack SHA-256 (receipt-recorded): `{pack_hash}`.
@@ -176,7 +176,7 @@ def main() -> int:
 - Claim registry revision: `{revisions['claim_registry_revision']}`.
 - Approval policy revision: `{revisions['approval_policy_revision']}`.
 - Selected resources: {', '.join(f'`{r}`' for r in resource_ids)}.
-- Approved public claim IDs used: [none] in the public-copy context; the Foster Plumbing metric uses the selector-bound customer-proof path (`claim-metric-MET-0178` in the customer-selector pack).
+- Approved public claim IDs used: [none].
 - Public evidence boundary: connector resources guide Simpro voice, positioning and trade language; every public workforce, apprenticeship, labor-demand, safety and event fact uses a current authoritative public source.
 - Context result: `task_satisfaction: {receipt['task_satisfaction']}`; unresolved gaps: [none].
 
@@ -185,7 +185,7 @@ def main() -> int:
 - Connector path: vault_status, vault_describe, natural-language vault_search, resource_id-bound vault_read and vault_expand, vault_claims, vault_build_context, and vault_validate_context through `data_sources.modules.simpro_vault_client.SimproVaultClient`.
 - Active artifacts: `research/context-request-{SLUG}.json`, `research/context-pack-{SLUG}.json`, and `research/context-receipt-{SLUG}.json`.
 - Selector-only packs: `research/context-pack-{SLUG}-customer-selector-{DATE}.json` (customer-proof claims) and `research/context-pack-{SLUG}-fred-evaluation-{DATE}.json` (Fred authority claims).
-- Public-use boundary: selected vault resources are guidance or context only; the Foster Plumbing metric is supported by the selector-bound claim and source-visible case-study evidence.
+- Public-use boundary: selected vault resources are guidance or context only.
 - Status: validated.
 
 ## Vault Brand Language Alignment
@@ -212,54 +212,26 @@ def main() -> int:
 {hindsight}
 
 {slate}
-- Selection decision: Foster Plumbing is selected for the metric role because it is the US case study the brief names through Amy Carnrick, and its connector-approved revenue metric fits the flexible leadership section. LDN Security Solutions ranks higher but is a UK security-business team metric outside this US contractor article. Quote, theme and experience_story roles returned no connector-approved candidates.
-- Public-copy result: one same-paragraph Foster Plumbing revenue metric linked to the case study; no quotes, testimonials, review stories or other customer outcomes.
-
-## Customer Proof Selection Decision
-
-- Selector command: as recorded in the Customer Proof Slate.
-- Selected proof: `case-study-foster-plumbing-job-costing-exit` | Customer: Foster Plumbing | URL: {FOSTER} | Role: metric.
-- Rejected stronger candidates: [reference-ldn-security-solutions-scale: UK security-business team growth metric sits outside this US contractor article and the brief names Amy Carnrick of Foster Plumbing as the leadership proof point]
-- Evaluated alternatives: case-study-schaffer-beacon-mechanical is overused with 3 recent uses and its software-outcome headcount metric fits the flexible leadership point less directly.
-- Reuse reason: case-study-foster-plumbing-job-costing-exit, Foster Plumbing, {FOSTER}, carries 2 recent uses (2026-09-08 best-plumbing-job-management-software and 2026-09-17 corey-field-service-software-comparison-busy-work). It stays selected because the Asana brief names Amy Carnrick of Foster Plumbing as a required leadership proof point, it is the only connector-approved US customer metric returned for this role, and no stronger underused approved proof fits the same role.
-- Zero-use comparison: no approved zero-use candidate fits the same US metric role; the zero-use VSG and Vertac sources carry no connector claim and LDN Security Solutions is a UK metric, so Foster Plumbing remains selected.
-- Live repo scan: drafts, rewrites, research and published were scanned on 2026-09-25 for the proof ID, public URL and customer name; public-copy uses match the two ledger entries, so no ledger backfill was needed.
-- Final use in copy: one linked metric sentence in `Use connected systems to open flexible leadership roles`.
-
-## Selected Customer Proof Mining
-
-- Proof: case-study-foster-plumbing-job-costing-exit | Customer: Foster Plumbing | URL: {FOSTER}
-- Checked: 2026-09-25.
-- Checked for: customer metric, exact quote, POV/story, and workflow theme.
-- Usable metrics found: approved connector claim `claim-metric-MET-0178`, `Revenue grew from $1 million to $10 million, a 10X increase in six years.` Source-visible evidence: `generating just $1 million in revenue. Five years later, it had scaled to $10 million`.
-- Usable quotes found: none; no connector exact_quote claim exists for Amy Carnrick or the Foster Plumbing case study.
-- POV/story decision: none; the selector returned no experience_story candidate.
-- Workflow theme found: the case study credits real-time job costing and streamlined operations. Source-visible evidence: `Simpro helped us achieve real-time job costing, streamline operations`.
-- Recommended use: one same-paragraph linked metric sentence with Amy Carnrick named as former CEO.
-- Final use in copy: public metric sentence in the flexible leadership section.
-- Excluded proof: exact quotes, the 6x EBITDA exit, margin and collection metrics, and the webinar, Virtual FM and Vertac story pages are excluded because they have no approved connector claim for this use or are not needed for the section.
-- Status: approved
-
-## Customer Proof Pack
-
-- Pack status: ready.
-- Selected proof source: case-study-foster-plumbing-job-costing-exit | Customer: Foster Plumbing | URL: {FOSTER} | Use: same-paragraph metric proof in the flexible leadership section.
-- Approved metric: Foster Plumbing scaled from $1 million to $10 million in revenue | Claim ID `claim-metric-MET-0178` | Claim type: customer_outcome_metric | Customer/brand: Foster Plumbing | Evidence relation: directly_supports | Source class: case_study_metric | Source type: case_study | URL: {FOSTER} | Evidence: generating just $1 million in revenue. Five years later, it had scaled to $10 million | Artifact: research/source-captures/{SLUG}-{DATE}/simpro-case-study-foster-plumbing.md | Capture receipt: research/source-captures/{SLUG}-{DATE}/simpro-case-study-foster-plumbing-capture-receipt.json | Capture receipt hash: {sha(R / 'source-captures' / f'{SLUG}-{DATE}' / 'simpro-case-study-foster-plumbing-capture-receipt.json')} | Classification artifact: research/context-pack-{SLUG}.json | Status: approved | Use in this article: same-paragraph metric in the flexible leadership section.
-- Quote Matrix candidates: the vault Quotes resource res-6716e1bab324565aa8a906b05b0aa502 lists Foster Plumbing and Virtual Services Group rows, but the connector returned no approved exact_quote claim for Amy Carnrick, Dawn Lawrie or Frances Paku, so no quote is used.
-- Reference candidates: reference-vsg-ignite-facilities-management (UK) and reference-ldn-security-solutions-scale (UK) were evaluated; neither has a connector claim that fits this US employer guide.
-- Customer Stories candidates: the five 2026-09-25 story rows (toolbox-tech webinar, Heroes of the Trade Dawn Lawrie, Heroes of the Trade Vertac) have no connector claim, so the selector returned no story candidate.
-- Review-site experience evidence: approved G2 and Capterra snippets exist in the vault but none addresses recruiting or retaining women, so review-derived proof is omitted.
-- Approved quotes: none used.
-- Zero-use comparison: no approved zero-use candidate fits the same US metric role; the zero-use VSG and Vertac sources carry no connector claim and LDN Security Solutions is a UK metric, so Foster Plumbing remains selected.
-- Use in copy: one same-paragraph linked Foster Plumbing case-study metric sentence.
-- Claims excluded: all Carnrick, Lawrie and Paku quotes, additional Foster metrics, review proof, ratings, rankings and testimonials.
+- Selection decision: all three metric candidates were evaluated and rejected with source-specific reasons. Foster Plumbing claim-metric-MET-0178 reads "a 10X increase in six years", but the public case study shows "Five years later" and never "10X", and the vault source node is not public-claim usable, so the approved wording has no source-visible public evidence. LDN Security Solutions is a UK security-business metric and Shaffer Beacon Mechanical is an overused software-outcome headcount metric; neither fits this US employer guide. Quote, theme and experience_story roles returned no connector-approved candidates.
+- Public-copy result: omit customer stories, customer metrics, testimonials, review stories, exact quotes, and customer outcomes.
+- Objective-binding note: the selector evidence is bound to the exact current objective and to the customer-selector context artifacts. The public-copy context pack intentionally contains no approved claims because no customer proof was selected for public use.
 
 {fred}
 
+## E-E-A-T Strength Decision
+
+- Applicability: required
+- Intent: commercial_investigation
+- Positive signals: [none]
+- Decision: proof_unavailable_safe_to_publish
+- Reason: The article is a top-of-funnel employer guide with a commercial CTA; the customer-proof selector found no objective-fit selection with source-visible public evidence across metric, quote, theme, and experience-story roles, the Fred authority selector found no verified topic-fit candidate, and no named author, reviewer, or approved SME review signal is available.
+- Public copy boundary: Public copy omits customer proof, named customer claims, review stories, exact quotes, testimonials, customer metrics, and unsupported SME claims.
+- Status: approved
+
 ## E-E-A-T Proof Map
 
-- First-hand evidence decision: Selected: [none] for experience_story because the selector found no connector-approved experience story for this objective; public copy omits customer stories and quotes.
-- Experience: one connector-approved customer outcome metric from Foster Plumbing, linked to the public case study in the same paragraph.
+- First-hand evidence decision: Selected: [none] because the selector found no eligible experience story with source-visible public evidence for this article objective, so public copy omits customer experience claims.
+- Experience: Selected: [none]. The article contains no customer or reviewer story and no fictional persona.
 - Expertise: Selected: [none]. No named author, named reviewer, or Fred contribution is authorized.
 - Authoritativeness: workforce shares link to BLS CPS 2025 Tables 11 and 18 and the NAHB tabulation; apprenticeship figures link to DOL and IWPR; labor demand links to ABC and the AGC and NCCER survey; PPE and sanitation link to OSHA; WIC Week timing links to NAWIC.
 - Trust: the article states the data year and table scope, warns against comparing the 11-month 2025 averages with earlier years, and removes quotes that could not be verified.
@@ -293,7 +265,6 @@ def main() -> int:
 
 - Workforce shares, apprenticeship figures, labor-demand estimates, survey results and the NAHB trend: `inline_required`; the linked source appears in the same paragraph or table row.
 - OSHA PPE fit and sanitation statements and the rule effective date: `inline_required`; the OSHA page appears in the same paragraph.
-- Foster Plumbing revenue metric: `inline_required`; the case-study link appears in the same paragraph.
 - WIC Week timing: `inline_required`; the NAWIC page appears in the same FAQ paragraph.
 - Jobsite, career-ladder, recruiting, retention and roadmap guidance: `proof_not_required` when framed as employer guidance.
 - Simpro product sentences: `sidecar_only` as low-risk owned product language aligned with vault guidance.
@@ -380,8 +351,8 @@ def main() -> int:
 
 ## Internal Link Decision
 
-- Public-body Simpro links: skilled trades shortage; field service mobile app; Foster Plumbing case study; field service scheduling; homepage field service management software (commercial pillar); top trades for women guide.
-- Total: six internal links, inside the seven-link maximum.
+- Public-body Simpro links: skilled trades shortage; field service mobile app; field service scheduling; homepage field service management software (commercial pillar); top trades for women guide.
+- Total: five internal links, inside the standard three-to-five range.
 - Removed live links: `/blog/toolbox-tech-webinar`, `/blog/heroes-of-the-trade-dawn-lawrie` and `/blog/heroes-of-the-trade-vertac`, which only supported the removed quotes.
 - Down-funnel destinations: `/features/field-service-mobile-app` and `/features/scheduling-software` with function-bearing anchors.
 - Exact commercial anchor: `field service management software` links to `https://www.simprogroup.com/` in the A 90-day roadmap for trade business owners section.

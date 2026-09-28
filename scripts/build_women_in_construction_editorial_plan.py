@@ -34,7 +34,6 @@ SCHEDULING = "https://www.simprogroup.com/features/scheduling-software"
 MOBILE = "https://www.simprogroup.com/features/field-service-mobile-app"
 SHORTAGE = "https://www.simprogroup.com/blog/skilled-trades-shortage"
 WOMEN_GUIDE = "https://www.simprogroup.com/blog/women-in-skilled-trades-the-ultimate-guide"
-FOSTER = "https://www.simprogroup.com/case-studies/foster-plumbing"
 
 
 def section(number, kind, heading, words, angle, hook, gaps, data, links, reader_q, payoff,
@@ -109,12 +108,12 @@ SECTIONS = [
             "A publishable career ladder that answers where the job leads.",
             "Move from jobsite changes to long-term progression.", "Show how connected systems open leadership roles."),
     section(6, "body_how_to", "Use connected systems to open flexible leadership roles", 200,
-            "Show that scheduling, estimating and service management roles run on information, cite one approved Foster Plumbing growth metric with its owner, and connect scheduling software to flexible, fixed-hours leadership roles.",
-            "One approved customer growth metric plus three concrete moves.",
-            ["Use only the vault-approved Foster Plumbing revenue metric (claim-metric-MET-0178) with a same-paragraph case-study link.",
+            "Show that scheduling, estimating and service management roles run on information, position office staff as a leadership bench, and connect scheduling software to flexible, fixed-hours leadership roles.",
+            "Three concrete moves that open flexible leadership roles.",
+            ["Omit customer proof because no connector-approved claim has source-visible public evidence for this use.",
              "Use a function-bearing anchor for the scheduling feature link."],
-            ["Foster Plumbing revenue growth from $1 million to $10 million, attributed to the case study with Amy Carnrick named as former CEO."],
-            [FOSTER, SCHEDULING], "Which leadership roles open up when office and field share the same data?",
+            ["Three moves: map office decisions to data, move data into one shared system, and open one fixed-hours operations role."],
+            [SCHEDULING], "Which leadership roles open up when office and field share the same data?",
             "A path from office support into operations leadership with flexible hours.",
             "Extend the ladder into office and operations leadership.", "Cover the recruiting and retention basics.", snippet=False),
     section(7, "body_how_to", "Recruit and retain women on your crews", 285,
@@ -241,12 +240,11 @@ PLAN = {
                        "Associated Builders and Contractors", "Associated General Contractors", "NCCER",
                        "Department of Labor", "IWPR", "NAHB", "personal protective equipment",
                        "career ladder", "field service management software", "scheduling software",
-                       "field service mobile app", "Foster Plumbing"],
+                       "field service mobile app"],
     },
     "internal_link_plan": [
         {"target": SHORTAGE, "role": "supporting", "rationale": "Existing labor-shortage article owns shortage causes, so the operations section links to it instead of targeting construction labor shortage."},
         {"target": MOBILE, "role": "down_funnel", "rationale": "Mobile job notes, forms and photos support the information-barrier point in the jobsite section with a function-bearing anchor."},
-        {"target": FOSTER, "role": "supporting", "rationale": "Same-paragraph public source for the approved Foster Plumbing revenue metric."},
         {"target": SCHEDULING, "role": "down_funnel", "rationale": "Scheduling that balances crew workloads supports flexible leadership roles with a function-bearing anchor."},
         {"target": HOME, "role": "supporting", "rationale": "Commercial pillar link with the exact anchor field service management software in the roadmap conclusion."},
         {"target": WOMEN_GUIDE, "role": "supporting", "rationale": "Sibling job-seeker guide for candidates and school partners, keeping the cluster connected without competing for its keyword."},
@@ -261,7 +259,7 @@ PLAN = {
         "update": [
             {"item": "title, H1, slug and metadata", "decision": "Replace the event title with the evergreen H1 from the brief, move to the women-in-construction slug with a recommended 301, and update the meta title and description."},
             {"item": "statistics", "decision": "Replace the NCCER 11 percent (December 2023) and IWPR roughly 3 percent (2024) figures with BLS CPS 2025 figures and linked original sources."},
-            {"item": "leadership proof", "decision": "Replace the unverifiable Carnrick, Lawrie and Paku quotes with the single vault-approved Foster Plumbing revenue metric and its case-study link."},
+            {"item": "leadership proof", "decision": "Remove the unverifiable Carnrick, Lawrie and Paku quotes; no connector-approved customer claim has source-visible public evidence for this article, so public copy carries no customer proof."},
             {"item": "thesis", "decision": "Pivot from a seasonal observance to an employer guide on solving the skilled labor gap by recruiting and retaining women."},
         ],
         "add": [
