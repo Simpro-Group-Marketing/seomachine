@@ -159,6 +159,15 @@ def article_plan():
     }
 
 
+def test_editorial_plan_allows_authenticated_semrush_chrome_ui_source():
+    plan = article_plan()
+    plan['keyword_decision']['source'] = 'semrush_chrome_ui'
+
+    findings = _guard().check_plan(plan)
+
+    assert 'editorial_plan_field_invalid' not in _rule_ids(findings)
+
+
 def test_guard_accepts_serialized_article_plan(tmp_path: Path):
     output = tmp_path / 'article-plan.json'
     output.write_text(

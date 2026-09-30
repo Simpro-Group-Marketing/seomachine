@@ -1,6 +1,6 @@
 {
   "schema_version": "commercial-pillar-index/v1",
-  "updated_at": "2026-09-25",
+  "updated_at": "2026-09-28",
   "records": [
     {
       "destination_id": "simpro-us-homepage-field-service-management-software",
@@ -37,6 +37,48 @@
       "vault_routes": [
         "wiki/messaging/Simpro Core Messaging Repository.md",
         "wiki/product/Product Positioning.md"
+      ],
+      "status": "verified"
+    },
+    {
+      "destination_id": "simpro-us-feature-estimating-software",
+      "brand": "Simpro",
+      "market": "US",
+      "pillar_type": "feature",
+      "canonical_url": "https://www.simprogroup.com/features/estimating-software",
+      "page_title": "Job Estimating & Quoting Software | Simpro",
+      "title_checked": "2026-09-28",
+      "title_valid_through": "2027-03-27",
+      "main_keyword": "estimating software",
+      "semrush_database": "us",
+      "semrush_report": "phrase_these",
+      "semrush_checked": "2026-09-28",
+      "semrush_valid_through": "2026-12-27",
+      "semrush_result_status": "exact",
+      "volume": 2900,
+      "keyword_difficulty": 55,
+      "evidence_path": [
+        "research/commercial-pillar-evidence-estimating-software-2026-09-28.md",
+        "research/commercial-pillar-evidence-estimating-software-2026-09-28.md",
+        "research/commercial-pillar-evidence-estimating-software-2026-09-28.md",
+        "research/commercial-pillar-evidence-estimating-software-2026-09-28.md"
+      ],
+      "evidence_locator": [
+        "line:1",
+        "line:2",
+        "line:3",
+        "line:4"
+      ],
+      "evidence_sha256": [
+        "9ae4bf9037252fc47524cd347787dec10d0c856e56de62b457ff977a512e7851",
+        "f276d004db6671cd351fdf6c5de1cebee688e3458c2c65886534d3f3e5d9678b",
+        "e232aeb03974361e3b19715e9d5b5be199bc63fa75e3e5764a134ff735ade1ea",
+        "1307ad7936fe564d6d4aafd84fbb4ffce35f00b180a12e14080e8f2ea8e5fd46"
+      ],
+      "vault_routes": [
+        "res-1825898a11855f89be9bb69c544a6aa3",
+        "res-a5b3b47382b45490bf2bedbf16c0b76e",
+        "res-0dd3c26cb00d5e63b80c10af80d114e1"
       ],
       "status": "verified"
     },
@@ -85,38 +127,41 @@
       "market": "US",
       "pillar_type": "industry",
       "canonical_url": "https://www.simprogroup.com/industries/electrical-software",
-      "page_title": "Electrical",
-      "title_checked": "2026-05-21",
-      "title_valid_through": "2026-11-17",
+      "page_title": "Electrical contractor software",
+      "title_checked": "2026-09-28",
+      "title_valid_through": "2027-03-27",
       "main_keyword": "electrical contractor software",
       "semrush_database": "us",
       "semrush_report": "phrase_these",
-      "semrush_checked": "2026-05-21",
-      "semrush_valid_through": "2026-08-19",
+      "semrush_checked": "2026-09-28",
+      "semrush_valid_through": "2026-12-27",
       "semrush_result_status": "exact",
       "volume": 1300,
-      "keyword_difficulty": 12,
+      "keyword_difficulty": 21,
       "evidence_path": [
-        "context/target-keywords.md",
-        "context/internal-links-map.md",
-        "context/internal-links-map.md"
+        "research/commercial-pillar-evidence-electrical-software-2026-09-28.md",
+        "research/commercial-pillar-evidence-electrical-software-2026-09-28.md",
+        "research/commercial-pillar-evidence-electrical-software-2026-09-28.md",
+        "research/commercial-pillar-evidence-electrical-software-2026-09-28.md"
       ],
       "evidence_locator": [
-        "lines:95-106",
-        "line:250",
-        "line:251"
+        "line:1",
+        "line:2",
+        "line:3",
+        "line:4"
       ],
       "evidence_sha256": [
-        "870ef087fcf62187ce9d99212a457e2cc87081719f17e4b0511e01c1bd76c07c",
-        "bb01b64c736397d0587f2bc3aa2e0ea4a39221f7591c512cef9bb15988af5cfc",
-        "3fb6169e7475a6bef0a61feb8d66c5913783fe141a832244be806e65fbdfe90b"
+        "e77f33d30aaaeb812ad56a7f7052435e6304f28806b6fa8c93933aa0fddef8da",
+        "333862860cc07aabd3d6503d0fcab6b4ac9a81413f9596ea0b56b9d5f8b35247",
+        "e232aeb03974361e3b19715e9d5b5be199bc63fa75e3e5764a134ff735ade1ea",
+        "e4f91acc8045084a105f2b6e982243679fe094d007a5754c770f0c5fea97fe60"
       ],
       "vault_routes": [
         "wiki/messaging/Simpro Core Messaging Repository.md",
         "wiki/verticals/Vertical Profile Library.md",
         "wiki/verticals/Electrical Vertical Profile.md"
       ],
-      "status": "stale"
+      "status": "verified"
     },
     {
       "destination_id": "simpro-us-industry-plumbing-software",
@@ -231,6 +276,48 @@
         "8e462e4c2abafa51540914bb5f76dc53e2543310cc69dd22a48720a5b31a7093"
       ],
       "vault_routes": [],
+      "status": "verified"
+    },
+    {
+      "destination_id": "simpro-us-feature-scheduling-software",
+      "brand": "Simpro",
+      "market": "US",
+      "pillar_type": "feature",
+      "canonical_url": "https://www.simprogroup.com/features/scheduling-software",
+      "page_title": "Service Scheduling Software for Field Teams | Simpro",
+      "title_checked": "2026-09-28",
+      "title_valid_through": "2027-03-27",
+      "main_keyword": "field service scheduling software",
+      "semrush_database": "us",
+      "semrush_report": "phrase_these",
+      "semrush_checked": "2026-09-28",
+      "semrush_valid_through": "2026-12-27",
+      "semrush_result_status": "exact",
+      "volume": 2400,
+      "keyword_difficulty": 39,
+      "evidence_path": [
+        "research/commercial-pillar-evidence-scheduling-software-2026-09-28.md",
+        "research/commercial-pillar-evidence-scheduling-software-2026-09-28.md",
+        "research/commercial-pillar-evidence-scheduling-software-2026-09-28.md",
+        "research/commercial-pillar-evidence-scheduling-software-2026-09-28.md"
+      ],
+      "evidence_locator": [
+        "line:1",
+        "line:2",
+        "line:3",
+        "line:4"
+      ],
+      "evidence_sha256": [
+        "1326aee060aca9906891d6c00781dab94f8ae00eaf300e08394b56de66f71891",
+        "0fd8a7f3c32bc06d58a2eb9ec42117dfcf37215084bd23ad4984605c4113f28e",
+        "e232aeb03974361e3b19715e9d5b5be199bc63fa75e3e5764a134ff735ade1ea",
+        "973b2dd07ce2da0daacd984a7f9b9b72b076f5c2ecb2c00fcd260e40d4c18140"
+      ],
+      "vault_routes": [
+        "res-a5b3b47382b45490bf2bedbf16c0b76e",
+        "res-25acc86e5a7703fc121ddb24af07cf98",
+        "res-c7a5463165fbd5f1b67fe1a80d3e9039"
+      ],
       "status": "verified"
     }
   ]

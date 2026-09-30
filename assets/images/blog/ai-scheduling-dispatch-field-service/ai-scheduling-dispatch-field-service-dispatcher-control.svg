@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-label="Dispatcher control workflow" font-family="Urbanist, Inter, Arial, Helvetica, sans-serif">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0A2240" flood-opacity="0.15"/>
+    </filter>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#D8E1E7" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="675" fill="#EEF3F6"/>
+  <rect width="1200" height="675" fill="url(#grid)" opacity="0.55"/>
+  <rect x="0" y="0" width="1200" height="18" fill="#FFC600"/>
+  <text x="72" y="78" fill="#0A2240" font-size="30" font-weight="800">Simpro</text>
+  <text x="72" y="142" fill="#0A2240" font-size="40" font-weight="800" text-anchor="start"><tspan x="72" dy="0">Dispatcher control workflow</tspan></text>
+  <text x="74" y="184" fill="#15314F" font-size="20" font-weight="500" text-anchor="start"><tspan x="74" dy="0">Human review stays visible before scheduling changes reach the field</tspan></text>
+
+    <path d="M 245 408 L 279 408" stroke="#BDC6CC" stroke-width="5" stroke-linecap="round" fill="none"/>
+<path d="M 279 408 L 266.38643584936614 414.0743723476458 M 279 408 L 266.38643584936614 401.9256276523542" stroke="#BDC6CC" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M 465 408 L 499 408" stroke="#BDC6CC" stroke-width="5" stroke-linecap="round" fill="none"/>
+<path d="M 499 408 L 486.38643584936614 414.0743723476458 M 499 408 L 486.38643584936614 401.9256276523542" stroke="#BDC6CC" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M 685 408 L 719 408" stroke="#BDC6CC" stroke-width="5" stroke-linecap="round" fill="none"/>
+<path d="M 719 408 L 706.3864358493661 414.0743723476458 M 719 408 L 706.3864358493661 401.9256276523542" stroke="#BDC6CC" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M 905 408 L 939 408" stroke="#BDC6CC" stroke-width="5" stroke-linecap="round" fill="none"/>
+<path d="M 939 408 L 926.3864358493661 414.0743723476458 M 939 408 L 926.3864358493661 401.9256276523542" stroke="#BDC6CC" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <path d="M 1030 302 C 930 238 274 238 170 302" stroke="#BDC6CC" stroke-width="5" stroke-linecap="round" fill="none" stroke-dasharray="12 16"/>
+
+      <g filter="url(#shadow)">
+        <rect x="60" y="320" width="206" height="176" rx="24" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+        <circle cx="163" cy="368" r="35" fill="#00A3D9"/><text x="163" y="378" fill="#FFFFFF" font-size="25" font-weight="800" text-anchor="middle"><tspan x="163" dy="0">1</tspan></text>
+        <text x="163" y="438" fill="#0A2240" font-size="20" font-weight="800" text-anchor="middle"><tspan x="163" dy="0">Schedule event</tspan></text>
+        <text x="163" y="468" fill="#15314F" font-size="15" font-weight="600" text-anchor="middle"><tspan x="163" dy="0">New job or change</tspan></text>
+      </g>
+
+      <g filter="url(#shadow)">
+        <rect x="280" y="320" width="206" height="176" rx="24" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+        <circle cx="383" cy="368" r="35" fill="#01B59A"/><text x="383" y="378" fill="#FFFFFF" font-size="25" font-weight="800" text-anchor="middle"><tspan x="383" dy="0">2</tspan></text>
+        <text x="383" y="438" fill="#0A2240" font-size="20" font-weight="800" text-anchor="middle"><tspan x="383" dy="0">AI recommendation</tspan></text>
+        <text x="383" y="468" fill="#15314F" font-size="15" font-weight="600" text-anchor="middle"><tspan x="383" dy="0">Valid options only</tspan></text>
+      </g>
+
+      <g filter="url(#shadow)">
+        <rect x="500" y="320" width="206" height="176" rx="24" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+        <circle cx="603" cy="368" r="35" fill="#E75C0D"/><text x="603" y="378" fill="#FFFFFF" font-size="25" font-weight="800" text-anchor="middle"><tspan x="603" dy="0">3</tspan></text>
+        <text x="603" y="438" fill="#0A2240" font-size="20" font-weight="800" text-anchor="middle"><tspan x="603" dy="0">Dispatcher approval</tspan></text>
+        <text x="603" y="468" fill="#15314F" font-size="15" font-weight="600" text-anchor="middle"><tspan x="603" dy="0">Promises checked</tspan></text>
+      </g>
+
+      <g filter="url(#shadow)">
+        <rect x="720" y="320" width="206" height="176" rx="24" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+        <circle cx="823" cy="368" r="35" fill="#0A2240"/><text x="823" y="378" fill="#FFFFFF" font-size="25" font-weight="800" text-anchor="middle"><tspan x="823" dy="0">4</tspan></text>
+        <text x="823" y="438" fill="#0A2240" font-size="20" font-weight="800" text-anchor="middle"><tspan x="823" dy="0">Field update</tspan></text>
+        <text x="823" y="468" fill="#15314F" font-size="15" font-weight="600" text-anchor="middle"><tspan x="823" dy="0">Write confirmed</tspan></text>
+      </g>
+
+      <g filter="url(#shadow)">
+        <rect x="940" y="320" width="206" height="176" rx="24" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+        <circle cx="1043" cy="368" r="35" fill="#FFC600"/><text x="1043" y="378" fill="#0A2240" font-size="25" font-weight="800" text-anchor="middle"><tspan x="1043" dy="0">5</tspan></text>
+        <text x="1043" y="438" fill="#0A2240" font-size="20" font-weight="800" text-anchor="middle"><tspan x="1043" dy="0">Manual fallback</tspan></text>
+        <text x="1043" y="468" fill="#15314F" font-size="15" font-weight="600" text-anchor="middle"><tspan x="1043" dy="0">Recover if needed</tspan></text>
+      </g>
+
+</svg>

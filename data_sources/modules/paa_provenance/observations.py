@@ -51,6 +51,8 @@ def _raw_response_parts(
         raise ValueError("AnswerSocrates raw returncode must be an integer")
     try:
         browser_output = json.loads(stdout) if stdout.strip() else None
+        if isinstance(browser_output, str):
+            browser_output = json.loads(browser_output)
     except json.JSONDecodeError:
         browser_output = None
     validated = _validate_browser_output(browser_output, returncode=returncode)
@@ -149,6 +151,7 @@ def _section_questions(
         raise ValueError("AnswerSocrates visible sections must be a list")
     eligible: list[str] = []
     ineligible: list[str] = []
+    seen_ineligible: set[str] = set()
     for section in sections:
         if not isinstance(section, Mapping) or set(section) != {"heading", "items"}:
             raise ValueError("AnswerSocrates visible section shape is invalid")
@@ -166,7 +169,10 @@ def _section_questions(
             if paa_section and item.endswith("?"):
                 eligible.append(item)
             else:
-                ineligible.append(item)
+                key = item.casefold()
+                if key not in seen_ineligible:
+                    seen_ineligible.add(key)
+                    ineligible.append(item)
     return eligible, ineligible
 
 

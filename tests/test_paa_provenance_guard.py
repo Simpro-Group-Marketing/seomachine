@@ -201,6 +201,47 @@ class StrictPaaSourceTests(unittest.TestCase):
         self.assertEqual(artifact["eligible_questions"], list(FAQ_QUESTIONS))
         self.assertEqual(artifact["ineligible_fragments"], ["hvac scheduling"])
 
+    def test_record_deduplicates_repeated_ineligible_browser_fragments(self):
+        collection_date = datetime.now(timezone.utc).date().isoformat()
+        exact_stdout = json.dumps({
+            "page_url": "https://answersocrates.com/paa-extractor",
+            "page_title": "People Also Ask Extractor",
+            "body_text": "People Also Ask",
+            "blocker_observations": [],
+            "sections": [
+                {"heading": "People Also Ask", "items": list(FAQ_QUESTIONS)},
+                {"heading": "Search suggestions", "items": ["hvac scheduling"]},
+                {"heading": "Repeated navigation", "items": ["hvac scheduling"]},
+            ],
+        })
+
+        def completed(command, **kwargs):
+            stdout = exact_stdout if "run-code" in command else ""
+            return subprocess.CompletedProcess(command, 0, stdout=stdout, stderr="")
+
+        dependencies = paa_provenance_guard.PaaDependencies(lambda: "npx", completed)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            raw_path = root / "research" / "answersocrates-raw.json"
+            output_path = root / "research" / "paa.json"
+            exit_code = paa_provenance_guard._main(
+                [
+                    "record",
+                    "--query", PAA_QUERY,
+                    "--collection-date", collection_date,
+                    "--run-id", "agency-run-duplicates",
+                    "--raw-capture-output", str(raw_path),
+                    "--workspace-root", str(root),
+                    "--output", str(output_path),
+                ],
+                dependencies=dependencies,
+            )
+            artifact = json.loads(output_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(artifact["eligible_questions"], list(FAQ_QUESTIONS))
+        self.assertEqual(artifact["ineligible_fragments"], ["hvac scheduling"])
+
     def test_record_derives_blocker_only_from_exact_persisted_collector_stdout(self):
         collection_date = datetime.now(timezone.utc).date().isoformat()
         exact_stdout = json.dumps({

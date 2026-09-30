@@ -63,3 +63,49 @@ def test_record_ignores_navigation_login_text_when_valid_paa_is_observed(tmp_pat
     assert artifact["status"] == "collected"
     assert artifact["blocker"] is None
     assert artifact["eligible_questions"] == list(FAQ_QUESTIONS)
+
+
+def test_record_accepts_playwright_raw_output_wrapped_as_a_json_string(tmp_path):
+    collection_date = datetime.now(timezone.utc).date().isoformat()
+    browser_output = {
+        "page_url": "https://answersocrates.com/",
+        "page_title": "People Also Ask Extractor",
+        "body_text": "People Also Asked results for HVAC scheduling.",
+        "blocker_observations": [],
+        "sections": [
+            {"heading": "People Also Asked", "items": list(FAQ_QUESTIONS)},
+        ],
+    }
+    exact_stdout = json.dumps(json.dumps(browser_output, ensure_ascii=False))
+
+    def completed(command, **kwargs):
+        stdout = exact_stdout if "run-code" in command else ""
+        return subprocess.CompletedProcess(command, 0, stdout=stdout, stderr="")
+
+    raw_path = tmp_path / "research" / "answersocrates-raw.json"
+    output_path = tmp_path / "research" / "paa.json"
+    dependencies = PaaDependencies(lambda: "npx", completed)
+    exit_code = _main(
+        [
+            "record",
+            "--query",
+            "hvac technician scheduling",
+            "--collection-date",
+            collection_date,
+            "--run-id",
+            "agency-run-json-string-wrapper",
+            "--raw-capture-output",
+            str(raw_path),
+            "--workspace-root",
+            str(tmp_path),
+            "--output",
+            str(output_path),
+        ],
+        dependencies=dependencies,
+    )
+
+    artifact = json.loads(output_path.read_text(encoding="utf-8"))
+    assert exit_code == 0
+    assert artifact["status"] == "collected"
+    assert artifact["blocker"] is None
+    assert artifact["eligible_questions"] == list(FAQ_QUESTIONS)

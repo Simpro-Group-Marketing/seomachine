@@ -37,6 +37,13 @@ def test_structured_plan_strategy_passes_without_sidecar_strategy_blocks() -> No
     assert findings() == []
 
 
+def test_structured_plan_accepts_verified_empty_serp_feature_list() -> None:
+    plan = deepcopy(v2_plan())
+    plan["search_strategy"]["observed_serp_features"] = []
+
+    assert findings(plan) == []
+
+
 @pytest.mark.parametrize(
     ("field", "value", "expected"),
     [
