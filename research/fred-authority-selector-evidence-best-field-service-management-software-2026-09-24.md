@@ -1,0 +1,22 @@
+## Fred Voccola Authority Selection
+- Selector command: python data_sources/modules/fred_authority_selector.py 'best field service management software' --title 'Best Field Service Management Software: 2026 Buyer'"'"'s Guide to 12 Tools' --objective 'Help US trade and field-service leaders build a fast, defensible 12-tool shortlist by business type, operating fit, workflow depth, implementation risk, and role needs.' --context-pack research/context-pack-best-field-service-management-software-2026-09-24.json --context-receipt research/context-receipt-best-field-service-management-software-2026-09-24.json --slate --limit 5 --output research/fred-authority-selector-evidence-best-field-service-management-software-2026-09-24.md
+- Evaluation status: completed
+- Top candidates: [none]
+- Selected: [none]
+- Context receipt: research/context-receipt-best-field-service-management-software-2026-09-24.json
+- Claim IDs: [none]
+- Receipt revision: not available
+- Approval source: connector_claim_result
+- Fit decision: No candidate has been editorially verified as directly supporting the article topic 'best field service management software'; public use is rejected until that review occurs.
+- Intended use: none
+- Target section: not applicable
+- Authority row: [none]
+- Public URL: not applicable
+- Evidence status: not applicable
+- Verification method: not_applicable
+- Evidence excerpt: not applicable
+- Timestamp or locator: not applicable
+- Playback verified: not_applicable
+- Exact quote: not applicable
+- Embed decision: no
+- VideoObject: not applicable

@@ -1,0 +1,302 @@
+{
+  "brand": "Simpro",
+  "candidate_metrics": [
+    {
+      "competitive_density": 0.24,
+      "cpc": 42.48,
+      "global_volume": 2700,
+      "intent": [
+        "commercial"
+      ],
+      "keyword": "best field service management software",
+      "keyword_difficulty": 31,
+      "keyword_difficulty_label": "Possible",
+      "results": 174,
+      "serp_features": [
+        "Sitelinks",
+        "AI Overview",
+        "Reviews",
+        "Video",
+        "Video carousel",
+        "Discussions/forums"
+      ],
+      "volume": 1600
+    },
+    {
+      "keyword": "best field service management software for small business",
+      "keyword_difficulty": 5,
+      "volume": 480
+    },
+    {
+      "keyword": "best field service management software 2025",
+      "keyword_difficulty": 39,
+      "volume": 390
+    },
+    {
+      "keyword": "best field service management software 2026",
+      "keyword_difficulty": 25,
+      "volume": 110
+    },
+    {
+      "keyword": "what is the best field service management software",
+      "keyword_difficulty": 25,
+      "volume": 110
+    }
+  ],
+  "collection_date": "2026-09-24",
+  "connector_reports": [
+    {
+      "completion_basis": "Authenticated US desktop Keyword Overview fields were visible in the main Chrome browser on 2026-09-24.",
+      "parameters": {
+        "collection_date": "2026-09-24",
+        "database": "us",
+        "device": "desktop",
+        "execution_surface": "semrush_ui_chrome_main_browser",
+        "query": "best field service management software"
+      },
+      "report": "_keyword_research",
+      "status": "completed",
+      "ui_evidence_path": "research/semrush-ui-best-field-service-management-software-2026-09-24/keyword-overview-2026-09-24.txt",
+      "ui_evidence_sha256": "cb964eff612ee7727ebf4196cdd00a464bbd7661e40bdea31379f7c09a53bbc7"
+    },
+    {
+      "completion_basis": "Authenticated US desktop Keyword Overview fields were visible in the main Chrome browser on 2026-09-24.",
+      "parameters": {
+        "collection_date": "2026-09-24",
+        "database": "us",
+        "device": "desktop",
+        "execution_surface": "semrush_ui_chrome_main_browser",
+        "report": "phrase_this"
+      },
+      "report": "_get_report_schema",
+      "status": "completed",
+      "ui_evidence_path": "research/semrush-ui-best-field-service-management-software-2026-09-24/keyword-overview-2026-09-24.txt",
+      "ui_evidence_sha256": "cb964eff612ee7727ebf4196cdd00a464bbd7661e40bdea31379f7c09a53bbc7"
+    },
+    {
+      "completion_basis": "Authenticated US desktop Keyword Overview fields were visible in the main Chrome browser on 2026-09-24.",
+      "parameters": {
+        "collection_date": "2026-09-24",
+        "database": "us",
+        "device": "desktop",
+        "execution_surface": "semrush_ui_chrome_main_browser",
+        "keywords": [
+          "best field service management software",
+          "best field service management software for small business",
+          "best field service management software 2025",
+          "best field service management software 2026",
+          "what is the best field service management software"
+        ]
+      },
+      "report": "phrase_these",
+      "status": "completed",
+      "ui_evidence_path": "research/semrush-ui-best-field-service-management-software-2026-09-24/keyword-overview-2026-09-24.txt",
+      "ui_evidence_sha256": "cb964eff612ee7727ebf4196cdd00a464bbd7661e40bdea31379f7c09a53bbc7"
+    },
+    {
+      "completion_basis": "Authenticated US desktop Keyword Overview fields were visible in the main Chrome browser on 2026-09-24.",
+      "parameters": {
+        "collection_date": "2026-09-24",
+        "database": "us",
+        "device": "desktop",
+        "execution_surface": "semrush_ui_chrome_main_browser",
+        "phrase": "best field service management software"
+      },
+      "report": "phrase_related",
+      "status": "completed",
+      "ui_evidence_path": "research/semrush-ui-best-field-service-management-software-2026-09-24/keyword-overview-2026-09-24.txt",
+      "ui_evidence_sha256": "cb964eff612ee7727ebf4196cdd00a464bbd7661e40bdea31379f7c09a53bbc7"
+    },
+    {
+      "completion_basis": "Authenticated US desktop Keyword Overview fields were visible in the main Chrome browser on 2026-09-24.",
+      "parameters": {
+        "collection_date": "2026-09-24",
+        "database": "us",
+        "device": "desktop",
+        "execution_surface": "semrush_ui_chrome_main_browser",
+        "phrase": "best field service management software"
+      },
+      "report": "phrase_questions",
+      "status": "completed",
+      "ui_evidence_path": "research/semrush-ui-best-field-service-management-software-2026-09-24/keyword-overview-2026-09-24.txt",
+      "ui_evidence_sha256": "cb964eff612ee7727ebf4196cdd00a464bbd7661e40bdea31379f7c09a53bbc7"
+    },
+    {
+      "completion_basis": "Authenticated US desktop Keyword Overview fields were visible in the main Chrome browser on 2026-09-24.",
+      "parameters": {
+        "collection_date": "2026-09-24",
+        "database": "us",
+        "device": "desktop",
+        "display_limit": 10,
+        "execution_surface": "semrush_ui_chrome_main_browser",
+        "phrase": "best field service management software"
+      },
+      "report": "phrase_organic",
+      "status": "completed",
+      "ui_evidence_path": "research/semrush-ui-best-field-service-management-software-2026-09-24/keyword-overview-2026-09-24.txt",
+      "ui_evidence_sha256": "cb964eff612ee7727ebf4196cdd00a464bbd7661e40bdea31379f7c09a53bbc7"
+    },
+    {
+      "completion_basis": "Authenticated US desktop Keyword Overview fields were visible in the main Chrome browser on 2026-09-24.",
+      "parameters": {
+        "collection_date": "2026-09-24",
+        "database": "us",
+        "device": "desktop",
+        "execution_surface": "semrush_ui_chrome_main_browser",
+        "phrase": "best field service management software"
+      },
+      "report": "phrase_this",
+      "status": "completed",
+      "ui_evidence_path": "research/semrush-ui-best-field-service-management-software-2026-09-24/keyword-overview-2026-09-24.txt",
+      "ui_evidence_sha256": "cb964eff612ee7727ebf4196cdd00a464bbd7661e40bdea31379f7c09a53bbc7"
+    }
+  ],
+  "database": "us",
+  "evidence_hash": "574050a454ba978d3e9a3bb6cd57b9db2beed5a1a58d549933b273e9af64872e",
+  "execution_attestation": {
+    "algorithm": "hmac-sha256",
+    "key_id": "88df9183fcb097c1",
+    "purpose": "simpro-semrush-keyword-decision/v1",
+    "schema": "simpro-execution-attestation/v1",
+    "signature": "c3178219caaa9c076e7e58df7c58589b5764d4f63be2a3c7647dac631f875e69"
+  },
+  "market": "US",
+  "question_candidates": [
+    {
+      "keyword": "what is the best field service management software",
+      "keyword_difficulty": 25,
+      "volume": 110
+    },
+    {
+      "keyword": "what's the best field service management software for contractors",
+      "keyword_difficulty": null,
+      "volume": 20
+    },
+    {
+      "keyword": "is it best field service management software",
+      "keyword_difficulty": null,
+      "volume": 0
+    },
+    {
+      "keyword": "is it field service management software with best reviews",
+      "keyword_difficulty": null,
+      "volume": 0
+    },
+    {
+      "keyword": "what field service management software offers the best mobile app",
+      "keyword_difficulty": null,
+      "volume": 0
+    }
+  ],
+  "rejected_keywords": [
+    {
+      "keyword": "field service management software",
+      "reason": "The broader category term is reserved for the Simpro commercial pillar; this article owns commercial comparison intent and links to that pillar."
+    },
+    {
+      "keyword": "best field service management software 2025",
+      "reason": "The dated 2025 variation does not fit the current 2026 buyer's guide."
+    }
+  ],
+  "related_candidates": [],
+  "schema": "simpro-semrush-keyword-decision/v1",
+  "seed_terms": [
+    "best field service management software",
+    "field service management software",
+    "best field service management software for small business",
+    "best field service management software 2026"
+  ],
+  "selected_primary_keyword": "best field service management software",
+  "selected_secondary_keywords": [
+    "best field service management software for small business",
+    "best field service management software 2026"
+  ],
+  "selection_rationale": "The authenticated US desktop Semrush UI on September 24, 2026 confirms best field service management software as a commercial comparison query with 1.6K US volume, 2.7K global volume, and KD 31 Possible. The measured small-business and 2026 variations remain secondary queries because they match the guide's scenario routing and current-year framing. The broader field service management software term remains assigned to the Simpro commercial pillar, while the 2025 variation is stale for this guide.",
+  "serp_finalists": [
+    {
+      "database": "us",
+      "keyword": "best field service management software",
+      "results": [
+        {
+          "domain": "coastapp.com",
+          "position": 1,
+          "position_type": "organic",
+          "triggered_serp_features": [
+            "Sitelinks"
+          ],
+          "url": "https://coastapp.com/blog/field-service-management-software/"
+        },
+        {
+          "domain": "reddit.com",
+          "position": 2,
+          "position_type": "organic",
+          "triggered_serp_features": [
+            "Sitelinks"
+          ],
+          "url": "https://www.reddit.com/r/lowvoltage/comments/1bnl56d/best_field_service_management_tool/"
+        },
+        {
+          "domain": "gartner.com",
+          "position": 3,
+          "position_type": "organic",
+          "triggered_serp_features": [],
+          "url": "https://www.gartner.com/reviews/market/field-service-management"
+        },
+        {
+          "domain": "servicepower.com",
+          "position": 4,
+          "position_type": "organic",
+          "triggered_serp_features": [],
+          "url": "https://www.servicepower.com/resources/industry-guides/what-is-field-service-management-software"
+        },
+        {
+          "domain": "servicetitan.com",
+          "position": 5,
+          "position_type": "organic",
+          "triggered_serp_features": [
+            "Reviews"
+          ],
+          "url": "https://www.servicetitan.com/market/field-service-management-software"
+        },
+        {
+          "domain": "fieldpulse.com",
+          "position": 6,
+          "position_type": "organic",
+          "triggered_serp_features": [],
+          "url": "https://www.fieldpulse.com/"
+        },
+        {
+          "domain": "infotech.com",
+          "position": 7,
+          "position_type": "organic",
+          "triggered_serp_features": [],
+          "url": "https://www.infotech.com/software-reviews/categories/field-service-management"
+        },
+        {
+          "domain": "connecteam.com",
+          "position": 8,
+          "position_type": "organic",
+          "triggered_serp_features": [],
+          "url": "https://connecteam.com/best-free-field-service-management-software/"
+        },
+        {
+          "domain": "pipedrive.com",
+          "position": 9,
+          "position_type": "organic",
+          "triggered_serp_features": [],
+          "url": "https://www.pipedrive.com/en/industries/crm-for-field-service"
+        },
+        {
+          "domain": "servicefusion.com",
+          "position": 10,
+          "position_type": "organic",
+          "triggered_serp_features": [
+            "Reviews"
+          ],
+          "url": "https://www.servicefusion.com/field-service-management-software"
+        }
+      ]
+    }
+  ],
+  "source_boundary": "Semrush is third-party opportunity/SERP context; GSC remains first-party performance truth."
+}

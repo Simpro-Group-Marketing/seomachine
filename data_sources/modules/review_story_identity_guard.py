@@ -61,7 +61,8 @@ REVIEW_LANGUAGE_RE = re.compile(
 REVIEW_RATING_RANKING_CLAIM_RE = re.compile(
     r"\b(?:star ratings?|ratings?|rated|ranking|rankings?|ranked|badges?|"
     r"named reviewer|reviewer name|reviewer-name|category claims?)\b|"
-    r"\b\d+(?:\.\d+)?\s*(?:out of\s*)?(?:stars?|ratings?|reviews?|%)\b",
+    r"\b(?:\d+(?:\.\d+)?|one|two|three|four|five)[\s-]*(?:out of\s*\w+\s*)?(?:stars?|ratings?|reviews?)\b|"
+    r"\b\d+(?:\.\d+)?\s*(?:%|out of\s*\d+\b)",
     re.IGNORECASE,
 )
 ALLOWED_IDENTITY_TYPES = {"person", "business", "person_and_business"}
@@ -79,7 +80,8 @@ def check_content(
     del source_path
     composed = compose_with_sidecar(content, proof_content)
     public_content = _public_copy_content(content)
-    selection = _extract_review_story_selection(composed)
+    selections = _extract_review_story_selections(composed)
+    selection = selections[0] if selections else None
     theme_selection = _extract_review_site_theme_selection(composed)
     findings: List[Finding] = []
     has_review_story_signal = _has_review_story_signal(public_content)
@@ -94,7 +96,7 @@ def check_content(
     if selection is None:
         return findings
 
-    if _review_story_selection_not_applicable(selection):
+    if all(_review_story_selection_not_applicable(item) for item in selections):
         if has_review_story_signal:
             return [
                 _finding(
@@ -109,15 +111,15 @@ def check_content(
             ]
         return findings
 
-    findings.extend(
-        _review_story_selection_findings(
-            content,
-            public_content,
-            selection,
-            proof_content or "",
-            proof_index_path,
-        )
-    )
+    identities = [str(item.get("selected_story", {}).get("identity", "")) for item in selections]
+    for item in selections:
+        if _review_story_selection_not_applicable(item):
+            continue
+        for finding in _review_story_selection_findings(
+            content, public_content, item, proof_content or "", proof_index_path, all_identities=identities
+        ):
+            if finding not in findings:
+                findings.append(finding)
 
     return sorted(findings, key=lambda finding: (finding["severity"] != "error", finding["line"], finding["rule_id"]))
 
@@ -157,6 +159,8 @@ def _review_story_selection_findings(
     selection: Dict[str, object],
     proof_content: str,
     proof_index_path: str | Path,
+    *,
+    all_identities: Sequence[str] = (),
 ) -> List[Finding]:
     findings: List[Finding] = []
     selected = selection.get("selected_story", {})
@@ -252,43 +256,87 @@ def _review_story_selection_findings(
                 )
             )
 
-    if public_url.startswith(("http://", "https://")) and identity:
-        linked_paragraph = _paragraph_with_url_and_identity(public_content, public_url, identity)
-        if linked_paragraph is None:
-            findings.append(
-                _finding(
-                    "review_story_link_missing",
-                    _first_review_signal_line(public_content),
-                    "Selected review story URL is not linked in the same public paragraph as the review-derived paraphrase.",
-                    "Link the selected public review URL in the same paragraph that names or paraphrases the review story.",
-                    match=public_url,
-                )
-            )
-        elif REVIEW_RATING_RANKING_CLAIM_RE.search(linked_paragraph):
-            findings.append(
-                _finding(
-                    "review_rating_claim_requires_approved_proof",
-                    _first_review_signal_line(public_content),
-                    "Review rating, ranking, reviewer-name, aggregate, or metric-style language appears in the paragraph that links the selected review story.",
-                    "Remove the rating or ranking language, or add a separate approved proof row for the exact rating, ranking, reviewer, or metric claim.",
-                )
-            )
+    other_identities = _other_selected_identities(all_identities, identity)
 
-    approved_quotes = index_row.get("approved_quotes") if isinstance(index_row, dict) else None
-    if _has_unapproved_review_quote(public_content, public_url, identity, approved_quotes):
-        findings.append(
-            _finding(
-                "review_quote_requires_approved_quote",
-                _first_quote_line(content),
-                "Exact review wording appears without an approved quote row.",
-                (
-                    "Add an Approved quote row with source type, URL or source ref, "
-                    "Evidence, identity, Status: approved, and intended Use; otherwise paraphrase."
-                ),
-            )
+    findings.extend(
+        _review_story_link_and_rating_findings(public_content, public_url, identity)
+    )
+    findings.extend(
+        _review_story_quote_findings(
+            content, public_content, public_url, identity, index_row, other_identities
         )
+    )
 
     return findings
+
+
+def _review_story_link_and_rating_findings(
+    public_content: str, public_url: str, identity: str
+) -> List[Finding]:
+    if not (public_url.startswith(("http://", "https://")) and identity):
+        return []
+    linked_paragraph = _paragraph_with_url_and_identity(public_content, public_url, identity)
+    if linked_paragraph is None:
+        return [
+            _finding(
+                "review_story_link_missing",
+                _first_review_signal_line(public_content),
+                "Selected review story URL is not linked in the same public paragraph as the review-derived paraphrase.",
+                "Link the selected public review URL in the same paragraph that names or paraphrases the review story.",
+                match=public_url,
+            )
+        ]
+    if REVIEW_RATING_RANKING_CLAIM_RE.search(linked_paragraph):
+        return [
+            _finding(
+                "review_rating_claim_requires_approved_proof",
+                _first_review_signal_line(public_content),
+                "Review rating, ranking, reviewer-name, aggregate, or metric-style language appears in the paragraph that links the selected review story.",
+                "Remove the rating or ranking language, or add a separate approved proof row for the exact rating, ranking, reviewer, or metric claim.",
+            )
+        ]
+    return []
+
+
+def _other_selected_identities(
+    all_identities: Sequence[str], identity: str
+) -> tuple[str, ...]:
+    normalized_identity = _normalize_text(identity)
+    seen: set[str] = set()
+    others: list[str] = []
+    for other in all_identities:
+        normalized_other = _normalize_text(other)
+        if not normalized_other or normalized_other == normalized_identity or normalized_other in seen:
+            continue
+        seen.add(normalized_other)
+        others.append(other)
+    return tuple(others)
+
+
+def _review_story_quote_findings(
+    content: str,
+    public_content: str,
+    public_url: str,
+    identity: str,
+    index_row: Optional[Dict[str, object]],
+    other_identities: Sequence[str] = (),
+) -> List[Finding]:
+    approved_quotes = index_row.get("approved_quotes") if isinstance(index_row, dict) else None
+    if not _has_unapproved_review_quote(
+        public_content, public_url, identity, approved_quotes, other_identities
+    ):
+        return []
+    return [
+        _finding(
+            "review_quote_requires_approved_quote",
+            _first_quote_line(content),
+            "Exact review wording appears without a quote bound to the selected review row.",
+            (
+                "Store the exact wording, live-captured, in the selected index row's "
+                "approved_quotes with status approved; otherwise paraphrase."
+            ),
+        )
+    ]
 
 
 def check_file(
@@ -311,26 +359,28 @@ def check_file(
     )
 
 
-def _extract_review_story_selection(content: str) -> Optional[Dict[str, object]]:
-    return _extract_selection_block(content, REVIEW_STORY_HEADING_RE, parse_selected_story=True)
+def _extract_review_story_selections(content: str) -> List[Dict[str, object]]:
+    """One selection per ``Selected story:`` bullet, across every Review Story Selection block."""
+    selections: List[Dict[str, object]] = []
+    for block in _iter_selection_blocks(content, REVIEW_STORY_HEADING_RE, parse_selected_story=True):
+        stories = block.pop("selected_stories", [])
+        selections.extend([{**block, "selected_story": story} for story in stories] or [block])
+    return selections
 
 
 def _extract_review_site_theme_selection(content: str) -> Optional[Dict[str, object]]:
-    return _extract_selection_block(content, REVIEW_SITE_THEME_HEADING_RE, parse_selected_story=False)
+    return next(_iter_selection_blocks(content, REVIEW_SITE_THEME_HEADING_RE, parse_selected_story=False), None)
 
 
-def _extract_selection_block(
-    content: str,
-    heading_re: re.Pattern[str],
-    *,
-    parse_selected_story: bool,
-) -> Optional[Dict[str, object]]:
+def _iter_selection_blocks(
+    content: str, heading_re: re.Pattern[str], *, parse_selected_story: bool
+) -> Iterable[Dict[str, object]]:
     lines = content.splitlines()
     for index, line in enumerate(lines):
         if not heading_re.match(line.strip()):
             continue
         fields: Dict[str, object] = {}
-        for offset, block_line in enumerate(lines[index + 1 :], start=index + 2):
+        for block_line in lines[index + 1 :]:
             stripped = block_line.strip()
             if stripped.startswith("```"):
                 break
@@ -344,12 +394,10 @@ def _extract_selection_block(
             key = _normalize_key(match.group("key"))
             value = match.group("value").strip()
             if parse_selected_story and key == "selected story":
-                fields["selected_story"] = _parse_selected_story(value)
-                fields["selected_story_line"] = offset
+                fields.setdefault("selected_stories", []).append(_parse_selected_story(value))
             else:
                 fields[key] = value
-        return {"line": index + 1, **fields}
-    return None
+        yield {"line": index + 1, **fields}
 
 
 def _parse_selected_story(value: str) -> Dict[str, str]:
@@ -489,11 +537,8 @@ def _review_theme_findings(
 
 
 def _paragraph_with_url_and_identity(content: str, public_url: str, identity: str) -> Optional[str]:
-    normalized_identity = _normalize_text(identity)
     for paragraph in _paragraphs(content):
-        if not _has_natural_canonical_link(paragraph, public_url):
-            continue
-        if normalized_identity and normalized_identity in _normalize_text(paragraph):
+        if _has_natural_canonical_link(paragraph, public_url) and _names_identity(paragraph, identity):
             return paragraph
     return None
 
@@ -525,20 +570,27 @@ def _has_unapproved_review_quote(
     public_url: str,
     identity: str,
     approved_quotes: Optional[Sequence[Mapping[str, object]]],
+    other_identities: Sequence[str] = (),
 ) -> bool:
-    normalized_identity = _normalize_text(identity)
     normalized_url = _normalize_url(public_url)
     for paragraph in _paragraphs(content):
-        match = EXACT_QUOTE_RE.search(paragraph)
-        if not match:
+        matches = list(EXACT_QUOTE_RE.finditer(paragraph))
+        if not matches:
             continue
-        if _quote_bound_to_approved_quotes(match.group(0), approved_quotes):
+        if all(
+            _quote_bound_to_approved_quotes(match.group(0), approved_quotes)
+            for match in matches
+        ):
+            continue
+        names_this_identity = _names_identity(paragraph, identity)
+        if not names_this_identity and any(_names_identity(paragraph, other) for other in other_identities):
+            # This unbound quote belongs to a different selected story's identity;
+            # do not judge this row for a paragraph that names someone else.
             continue
         paragraph_url = _normalize_url(paragraph)
-        paragraph_text = _normalize_text(paragraph)
         if normalized_url and normalized_url in paragraph_url:
             return True
-        if normalized_identity and normalized_identity in paragraph_text and REVIEW_LANGUAGE_RE.search(paragraph):
+        if names_this_identity and REVIEW_LANGUAGE_RE.search(paragraph):
             return True
         if REVIEW_LANGUAGE_RE.search(paragraph):
             return True
@@ -641,6 +693,11 @@ def _normalize_key(value: str) -> str:
 
 def _normalize_text(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", value.lower()).strip()
+
+
+def _names_identity(text: str, identity: str) -> bool:
+    normalized_identity = _normalize_text(identity)
+    return bool(normalized_identity) and f" {normalized_identity} " in f" {_normalize_text(text)} "
 
 
 def _normalize_url(value: str) -> str:

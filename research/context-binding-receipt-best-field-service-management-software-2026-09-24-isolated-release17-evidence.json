@@ -1,0 +1,56 @@
+{
+  "evidence_hashes": {
+    "context_binding": "4b42e3f301a9f0a37346859456bb83fa1b3cb6a90ea3389231c5290752146702"
+  },
+  "payload": {
+    "binding": {
+      "approval_policy_revision": "6945674b56933849678c70200ff29438700475eae6e794388bb88b6febedccb6",
+      "article": {
+        "file": "best-field-service-management-software-rewrite-2026-08-28.md",
+        "sha256": "821f71b00ef82fb9e51c663bcfaea451751d0d377c61c4e8155296f05a63d25a"
+      },
+      "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+      "pack": {
+        "canonical_sha256": "d969f3107883f8f6cf13a8862bb237f564fad355357a5fcfb0e2524efd176e02",
+        "file": "context-pack-best-field-service-management-software-2026-09-24.json",
+        "schema": "simpro-product-context-pack/v2",
+        "sha256": "5fadc472671829ef81aaf55b4bf9c53d1db29c49ab853bc52fba823eb42552fd"
+      },
+      "receipt": {
+        "canonical_sha256": "e45e2cc267da188b30988b5aa6cd60576b7b39e6f916d03200ef6898f008bbe4",
+        "file": "context-receipt-best-field-service-management-software-2026-09-24.json",
+        "schema": "simpro-context-receipt/v1",
+        "sha256": "830b8f98d87f3187b2caec7f2f2adebc75fffbc8eaa590d5976a41ee5d3e5d78"
+      },
+      "repo_context": [],
+      "request": {
+        "file": "context-request-best-field-service-management-software-2026-09-24.json",
+        "sha256": "262cbc6f5b2353af38ca7b0912bd2272f33cb063dcc7060c00879b9de729442c"
+      },
+      "resource_ids": [
+        "res-230f144aab93512e840167c4a25e60be",
+        "res-3887846244f05f16bfc0516889d340f3",
+        "res-5c1b34d7d2175caab4fb29a208e59ac0",
+        "res-a5b3b47382b45490bf2bedbf16c0b76e",
+        "res-b34b392d22b9507089ade3fec47ee9e0",
+        "res-d31f057a305f51918055120d95b76c6a",
+        "res-d7e3d5ca80955407a9d06be5f129e11b",
+        "res-e3ade596be645307ad4c1f84620ce021",
+        "res-f882ab230eb2563889e300d612c324bc"
+      ],
+      "revisions": {
+        "approval_policy_revision": "6945674b56933849678c70200ff29438700475eae6e794388bb88b6febedccb6",
+        "claim_registry_revision": "ec7c2e9f0ef2f57fbb51b48119ea5317575321b2e9073f6eeea3fe645d8a35eb",
+        "content_revision": "a99cbdff82d2af87868df8c61287308fb24f730b2867860a5b52cacaa3f27a1c",
+        "contract_revision": "e4988a1775f0b2791163b584c36b0fd72b8ac604c448b044cc944a8a0e9934a4",
+        "inventory_revision": "6c23d93ef8eebab6d496776ceaf1e2253d7c76b32aca201b26fa077a71b9bb58",
+        "manifest_revision": "0c1ad8c0b87d90e2d7bac6e70c21a6007fa45f6f342f50520d5ec337758d867b"
+      },
+      "schema": "seomachine-context-binding/v1",
+      "task_satisfaction": "satisfied",
+      "unresolved_gaps": []
+    },
+    "claim_use_map": []
+  },
+  "schema": "simpro-blog-stage-evidence/v1"
+}

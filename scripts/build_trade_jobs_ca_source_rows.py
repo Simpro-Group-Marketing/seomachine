@@ -106,101 +106,109 @@ def clause(plain: str, token_start: int, token_end: int, floor: int) -> str:
     return text.rstrip(",;: ")
 
 
-def main() -> int:
-    wages = json.loads(WAGES.read_text(encoding="utf-8"))
-    by_soc = {row["soc"]: row for row in wages["included"]}
-    article = ARTICLE.read_text(encoding="utf-8")
-    units = _article_units(article)
-    fetched: dict[str, str] = {}
+class RowCollector:
+    """Collect Source Map and Metric Proof Pack rows for one article."""
 
-    def page(url: str) -> str:
-        if url not in fetched:
+    def __init__(self, by_soc: dict) -> None:
+        self.by_soc = by_soc
+        self.fetched: dict[str, str] = {}
+        self.source_rows: list[dict] = []
+        self.metric_rows: list[dict] = []
+        self.seen: set[tuple[str, str]] = set()
+
+    def page(self, url: str) -> str:
+        if url not in self.fetched:
             raw = fetch_source_text(url)
             RAW[url] = raw
-            fetched[url] = normalize(raw)
-        return fetched[url]
+            self.fetched[url] = normalize(raw)
+        return self.fetched[url]
 
-    source_rows: list[dict] = []
-    metric_rows: list[dict] = []
-    seen_claims: set[str] = set()
-
-    def add(claim: str, claim_type: str, url: str, evidence: str, cls: str, use: str, metric: bool) -> None:
-        key = (claim, url)
-        if key in seen_claims:
+    def add(self, claim: str, claim_type: str, url: str, evidence: str, cls: str, use: str, metric: bool) -> None:
+        if (claim, url) in self.seen:
             return
-        seen_claims.add(key)
-        visible = normalize(evidence) in page(url)
-        source_rows.append({"claim": claim, "claim_type": claim_type, "url": url, "evidence": evidence,
-                            "cls": cls, "use": use, "visible": visible})
+        self.seen.add((claim, url))
+        visible = normalize(evidence) in self.page(url)
+        self.source_rows.append({"claim": claim, "claim_type": claim_type, "url": url, "evidence": evidence,
+                                 "cls": cls, "use": use, "visible": visible})
         if metric:
-            metric_rows.append({"claim": claim, "url": url, "evidence": evidence, "use": use, "visible": visible})
+            self.metric_rows.append({"claim": claim, "url": url, "evidence": evidence, "use": use, "visible": visible})
 
-    in_faq = False
-    for unit in units:
+    def table_row(self, plain: str, links: list, use_base: str) -> None:
+        match = next((ONET_RE.search(url) for _a, url in links if ONET_RE.search(url)), None)
+        if not match:
+            return
+        row = self.by_soc[match.group(1)]
+        cells = [cell.strip() for cell in plain.strip().strip("|").split("|")]
+        self.add(cells[2], "statistic", match.group(0), row["evidence_snippet"], ONET_CLASS,
+                 f"comparison table row: {use_base}", True)
+        for anchor, url in links:
+            if url in LICENSING:
+                self.add(anchor, "factual", url, LICENSING[url][0], GOV_CLASS, f"credential cell: {use_base}", False)
+
+    def money_figure(self, claim: str, token: str, onet_socs: list, line: int, use_base: str) -> None:
+        value = int(token[1:].replace(",", ""))
+        url = next((u for u, (label, _e) in UNION.items() if label == token[1:]), None)
+        if url:
+            self.add(claim, "statistic", url, UNION[url][1], UNION_CLASS, f"union pay: {use_base}", True)
+            return
+        soc = next((s for s in onet_socs if value in (self.by_soc[s]["annual_median"], self.by_soc[s]["annual_p90"])), None)
+        if soc is None:
+            raise SystemExit(f"unmapped figure {token} at line {line}")
+        row = self.by_soc[soc]
+        is_p90 = value == row["annual_p90"] and value != row["annual_median"]
+        evidence = f"10% of workers earn ${value:,} or more" if is_p90 else row["evidence_snippet"]
+        self.add(claim, "statistic", f"https://www.onetonline.org/link/localwages/{soc}.00?st=CA", evidence,
+                 ONET_CLASS, f"California pay: {use_base}", True)
+
+    def figures(self, plain: str, links: list, line: int, use_base: str) -> list:
+        found = sorted([(m.start(), m.end(), m.group(0)) for m in MONEY_RE.finditer(plain)]
+                       + [(m.start(), m.end(), m.group(0)) for m in PCT_RE.finditer(plain)])
+        onet_socs = [ONET_RE.search(url).group(1) for _a, url in links if ONET_RE.search(url)]
+        floor = 0
+        for start, end, token in found:
+            if token in ("10%", "$100,000"):
+                continue  # carried inside the following clause or FAQ threshold wording
+            claim = clause(plain, start, end, floor)
+            floor = end
+            if token.startswith("$") and token[1:].replace(",", "").isdigit():
+                self.money_figure(claim, token, onet_socs, line, use_base)
+            elif token in PROJ_PCT_SOC:
+                self.add(claim, "statistic", PROJ_URL, PROJ_PCT_SOC[token], PROJ_CLASS,
+                         f"national outlook: {use_base}", True)
+            else:
+                raise SystemExit(f"unmapped percentage {token} at line {line}")
+        return found
+
+    def link_claims(self, plain: str, links: list, has_figures: bool, in_faq: bool, use_base: str) -> None:
+        sentences = re.split(r"(?<=[.!?])\s+", plain)
+        for anchor, url in links:
+            sentence = next((s for s in sentences if anchor in s), anchor)
+            if url in LICENSING:
+                snippet = LICENSING[url][0]
+                if "three years" in sentence and "elevatorcertification" in url:
+                    snippet = "Document a minimum of three years of work experience in the conveyance industry"
+                kind = _general_claim_type(_claim_text_for_detection(sentence)) or "factual"
+                self.add(sentence.rstrip("."), kind, url, snippet, GOV_CLASS, f"credential statement: {use_base}", False)
+            if url == PROJ_URL and not has_figures and not in_faq:
+                self.add(sentence.rstrip("."), "process", url, "Typical Entry-Level Education", PROJ_CLASS,
+                         f"training route background: {use_base}", False)
+
+
+def main() -> int:
+    wages = json.loads(WAGES.read_text(encoding="utf-8"))
+    collector = RowCollector({row["soc"]: row for row in wages["included"]})
+    article = ARTICLE.read_text(encoding="utf-8")
+    for unit in _article_units(article):
         in_faq = unit.section.lower().startswith(("faqs about", "frequently asked questions"))
         plain = _plain_text(unit.text)
         links = LINK_RE.findall(unit.text)
         use_base = f"{unit.section} (line {unit.line})"
         if unit.is_table_row:
-            match = next((ONET_RE.search(url) for _a, url in links if ONET_RE.search(url)), None)
-            if not match:
-                continue
-            soc = match.group(1)
-            row = by_soc[soc]
-            cells = [cell.strip() for cell in plain.strip().strip("|").split("|")]
-            claim = cells[2]
-            evidence = row["evidence_snippet"]
-            add(claim, "statistic", match.group(0), evidence, ONET_CLASS, f"comparison table row: {use_base}", True)
-            for anchor, url in links:
-                if url in LICENSING:
-                    snippet, _ = LICENSING[url]
-                    add(anchor, "factual", url, snippet, GOV_CLASS, f"credential cell: {use_base}", False)
+            collector.table_row(plain, links, use_base)
             continue
-        floor = 0
-        figures = sorted([(m.start(), m.end(), m.group(0)) for m in MONEY_RE.finditer(plain)]
-                         + [(m.start(), m.end(), m.group(0)) for m in PCT_RE.finditer(plain)])
-        onet_socs = [ONET_RE.search(url).group(1) for _a, url in links if ONET_RE.search(url)]
-        for start, end, token in figures:
-            if token == "10%":
-                continue  # carried inside the 90th-percentile clause that follows it
-            if token == "$100,000":
-                continue  # threshold wording in the FAQ; each named trade figure is mapped separately
-            claim = clause(plain, start, end, floor)
-            floor = end
-            if token.startswith("$") and token[1:].replace(",", "").isdigit():
-                value = int(token[1:].replace(",", ""))
-                url = next((u for u, (label, _e) in UNION.items() if label == token[1:]), None)
-                if url:
-                    add(claim, "statistic", url, UNION[url][1], UNION_CLASS, f"union pay: {use_base}", True)
-                    continue
-                soc = next((s for s in onet_socs if value in (by_soc[s]["annual_median"], by_soc[s]["annual_p90"])), None)
-                if soc is None:
-                    raise SystemExit(f"unmapped figure {token} at line {unit.line}: {plain[:120]}")
-                row = by_soc[soc]
-                url = f"https://www.onetonline.org/link/localwages/{soc}.00?st=CA"
-                if value == row["annual_p90"] and value != row["annual_median"]:
-                    evidence = f"10% of workers earn ${value:,} or more"
-                else:
-                    evidence = row["evidence_snippet"]
-                add(claim, "statistic", url, evidence, ONET_CLASS, f"California pay: {use_base}", True)
-            elif token in PROJ_PCT_SOC:
-                soc = PROJ_PCT_SOC[token]
-                add(claim, "statistic", PROJ_URL, soc, PROJ_CLASS, f"national outlook: {use_base}", True)
-            else:
-                raise SystemExit(f"unmapped percentage {token} at line {unit.line}")
-        for anchor, url in links:
-            if url in LICENSING:
-                snippet, _ = LICENSING[url]
-                sentence = next((s for s in re.split(r"(?<=[.!?])\s+", plain) if anchor in s), anchor)
-                if "three years" in sentence and "elevatorcertification" in url:
-                    snippet = "Document a minimum of three years of work experience in the conveyance industry"
-                kind = _general_claim_type(_claim_text_for_detection(sentence)) or "factual"
-                add(sentence.rstrip("."), kind, url, snippet, GOV_CLASS, f"credential statement: {use_base}", False)
-            if url == PROJ_URL and not figures and not in_faq:
-                sentence = next((s for s in re.split(r"(?<=[.!?])\s+", plain) if anchor in s), anchor)
-                add(sentence.rstrip("."), "process", url, "Typical Entry-Level Education", PROJ_CLASS,
-                    f"training route background: {use_base}", False)
-    return write(source_rows, metric_rows, fetched, article)
+        found = collector.figures(plain, links, unit.line, use_base)
+        collector.link_claims(plain, links, bool(found), in_faq, use_base)
+    return write(collector.source_rows, collector.metric_rows, collector.fetched, article)
 
 
 RAW: dict[str, str] = {}

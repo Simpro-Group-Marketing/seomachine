@@ -68,11 +68,11 @@ SEARCH_QUERIES = [
 
 RESOURCE_PURPOSES = {
     # Voice, tone, localization, editorial blog voice
-    "res-e3ade596be645307ad4c1f84620ce021": "guidance",  # Voice and Tone
-    "res-d31f057a305f51918055120d95b76c6a": "guidance",  # Tone Voice and Localization Rules
-    "res-b34b392d22b9507089ade3fec47ee9e0": "context",  # COD Editorial Blog Voice - 2026-07-29
+    "res-e3ade596be645307ad4c1f84620ce021": "guidance",  # voice guidance
+    "res-d31f057a305f51918055120d95b76c6a": "guidance",  # localization guidance
+    "res-b34b392d22b9507089ade3fec47ee9e0": "context",  # editorial blog voice context
     # Core messaging, message house, product positioning, guardrails
-    "res-09ebfff123cb5c5496e60c3a759a263d": "context",  # Simpro Core Messaging Repository - 05132026
+    "res-09ebfff123cb5c5496e60c3a759a263d": "context",  # core messaging context
     "res-230f144aab93512e840167c4a25e60be": "guidance",  # Message House
     "res-a5b3b47382b45490bf2bedbf16c0b76e": "guidance",  # Product Positioning
     "res-69b54745e4715d75a655d5c86ba89c59": "guidance",  # Guardrails and Boundaries
@@ -80,8 +80,8 @@ RESOURCE_PURPOSES = {
     # Homepage / field service management software positioning
     "res-f882ab230eb2563889e300d612c324bc": "context",  # Simpro Trade Services datasheet (US)
     # Trades and industries positioning
-    "res-ae4607729666509bb97813e66e18590b": "context",  # Simpro Group Vertical Profile Library - 06082026
-    "res-f9f9499223a15d6a901806f30fb1a8ba": "context",  # Simpro Group Electrical Vertical Profile - 8 June 2026
+    "res-ae4607729666509bb97813e66e18590b": "context",  # vertical profile context
+    "res-f9f9499223a15d6a901806f30fb1a8ba": "context",  # electrical vertical context
     "res-10b97eee1de25395bbf8b904111ca4b0": "context",  # Simpro Electrical datasheet (US)
     "res-6a89de98838b57a3821bfaeb59403191": "context",  # Simpro Plumbing datasheet (US)
     "res-a88df898c8d0538088b73be0695a65dd": "context",  # Simpro HVAC datasheet (US)

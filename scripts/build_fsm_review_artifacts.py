@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,6 +26,7 @@ from data_sources.modules import (
     source_quality_guard,
 )
 from data_sources.modules.blog_assembly_contract import atomic_write_json
+from data_sources.modules.artifact_runtime.subprocesses import run_bounded_process
 from data_sources.modules.editorial_plan.orchestration import check_file as check_plan_file
 from data_sources.modules.editorial_plan.plan_fulfillment import (
     PLAN_FULFILLMENT_SCHEMA,
@@ -101,13 +101,13 @@ def responsive_table_handoffs(article: str) -> dict[str, int]:
 
 
 def repository_commit() -> str:
-    return subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.strip()
+    result = run_bounded_process(["git", "rev-parse", "HEAD"], timeout=30, cwd=ROOT)
+    try:
+        if result.returncode != 0:
+            raise RuntimeError("git rev-parse failed")
+        return result.stdout.read_text().strip()
+    finally:
+        result.close()
 
 
 def exact_slice(content: str, start: str, end: str) -> str:

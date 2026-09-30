@@ -1,0 +1,39 @@
+{
+  "artifact_paths": {
+    "answersocrates_blocker": null,
+    "article": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-fsm-release-worktree\\rewrites\\best-field-service-management-software-rewrite-2026-08-28.md",
+    "content_brief": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-fsm-release-worktree\\research\\content-brief-best-field-service-management-software-2026-08-28.md",
+    "context_pack": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-fsm-release-worktree\\research\\context-pack-best-field-service-management-software-2026-09-24.json",
+    "context_receipt": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-fsm-release-worktree\\research\\context-receipt-best-field-service-management-software-2026-09-24.json",
+    "context_request": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-fsm-release-worktree\\research\\context-request-best-field-service-management-software-2026-09-24.json",
+    "customer_proof_evidence": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-fsm-release-worktree\\research\\customer-proof-selector-evidence-best-field-service-management-software-2026-09-24.json",
+    "editorial_plan": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-fsm-release-worktree\\research\\editorial-plan-best-field-service-management-software-2026-09-24.json",
+    "fred_authority_evidence": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-fsm-release-worktree\\research\\fred-authority-selector-evidence-best-field-service-management-software-2026-09-24.md",
+    "keyword_decision": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-fsm-release-worktree\\research\\semrush-keyword-decision-best-field-service-management-software-2026-09-24.json",
+    "output": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-fsm-release-worktree\\research\\blog-release-best-field-service-management-software-2026-09-24-isolated-initial-v2\\pre-bom-report.json",
+    "paa_artifact": null,
+    "proof_sidecar": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-fsm-release-worktree\\research\\validation-best-field-service-management-software-2026-09-24.md",
+    "scrub_receipt": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-fsm-release-worktree\\research\\scrub-receipt-best-field-service-management-software-2026-09-24-isolated-release16.json",
+    "semrush_blocker": null,
+    "serp_evidence": "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-fsm-release-worktree\\research\\serp-evidence-best-field-service-management-software-2026-09-24.json",
+    "stage_receipts": [
+      "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-fsm-release-worktree\\research\\native-edit-receipt-best-field-service-management-software-2026-09-24-release10.json",
+      "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-fsm-release-worktree\\research\\scrub-receipt-best-field-service-management-software-2026-09-24-isolated-release16.json",
+      "C:\\Users\\patrick.grueschow\\Desktop\\Repos\\seomachine-fsm-release-worktree\\research\\context-binding-receipt-best-field-service-management-software-2026-09-24-isolated-release17.json"
+    ],
+    "user_paa_csv": null
+  },
+  "blockers": [],
+  "next_required_commands": [],
+  "ready_for_bom": true,
+  "required_human_inputs": [],
+  "schema": "simpro-blog-creation-preflight/v1",
+  "warnings": [
+    {
+      "artifact": "eeat_strength",
+      "message": "Commercial-investigation article has no positive E-E-A-T signal; the sidecar explicitly records proof_unavailable_safe_to_publish.",
+      "rule_id": "eeat_strength_safe_but_weak",
+      "suggestion": "Publish may proceed, but strengthen the article when selected customer proof, a named author, Fred authority, review-theme evidence, or SME review becomes available."
+    }
+  ]
+}

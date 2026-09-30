@@ -1,0 +1,25 @@
+{
+  "applied_fixes": [],
+  "not_applied": [
+    {
+      "suggestion": "Add more contractions",
+      "decision": "no_op",
+      "reason": "The article already uses natural editorial contractions where appropriate. Adding them to source-bound vendor descriptions would make neutral evidence language less precise."
+    },
+    {
+      "suggestion": "Simplify copy beyond the current readability result",
+      "decision": "no_op",
+      "reason": "The corrected prose scope already passes at Flesch 50.9, grade 9.5, rhythm 62, and zero paragraphs over four sentences. Further compression risks removing buyer tests or evidence boundaries."
+    },
+    {
+      "suggestion": "Insert the exact phrase best field service management software 2026",
+      "decision": "no_op",
+      "reason": "The title and meta title already express the query naturally with punctuation. Repeating the unpunctuated exact match would weaken the copy."
+    },
+    {
+      "suggestion": "Add best to the meta description",
+      "decision": "no_op",
+      "reason": "Calling all 12 tools the best would conflict with the fit-based, non-ranking comparison model. The current description states the category, year, scope, and buyer value without universal-best language."
+    }
+  ]
+}
