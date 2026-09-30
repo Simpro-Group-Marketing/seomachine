@@ -1,39 +1,58 @@
-# Simpro Blog Writing Examples
+# Editorial Pattern Library
 
-**Purpose:** Readable index for Simpro blog voice patterns and full production article examples.
-**Use when:** Calibrating tone, proof density, narrative structure, or content-type patterns before writing.
-**Owns:** Article metadata, reusable voice patterns, and links to preserved full examples.
-**Does not own:** Brand rules, grammar standards, SEO structure, or proof-pack approval policy.
-**Source boundary:** Four production Simpro blog examples captured on 2026-05-12; do not treat dates or performance as refreshed.
-**Refresh cadence:** Review when new exemplar posts are approved or the editorial voice changes.
-**Reference detail:** Full articles live in [writing examples reference](reference/writing-examples/).
+**Category:** editorial_strategy
+**Purpose:** Abstract, brand-neutral article mechanics for structure, pacing, and proof placement.
+**Use when:** Reviewing structural patterns for article flow, comparison organization, thought-leadership pacing, or FAQ sequencing.
+**Owns:** Brand-neutral editorial patterns and mechanics only.
+**Does not own:** Brand voice, tone, terminology, product descriptions, customer proof, approved claims, or example copy.
+**Source boundary:** This file contains no copied brand prose or production article text. Simpro voice, wording, examples, and proof must come from the vault connector.
+**Refresh cadence:** Review when editorial mechanics change.
+**Reference detail:** Replaces prior full-article examples with abstract patterns only.
 
----
+## Source Boundary
 
-## How to Use This File
+This file intentionally contains no copied brand prose and no production article text. Use it for structural patterns only. For Simpro-specific voice, proof density, examples, or wording, retrieve current guidance through the Brand Vault connector.
 
-Use this index to calibrate Simpro blog voice before opening full article text. Load the linked full examples only when you need exact rhythm, proof placement, or section-level patterns.
+## Reusable Article Patterns
 
-## Reusable Voice Patterns
+### Problem-first educational article
 
-- Lead with an operator problem, named customer, or direct commercial tension before introducing product language.
-- Use specific proof: named people, named companies, exact figures, operational before/after detail, and quoted expertise.
-- Keep Simpro product proof natural. Describe features through the business outcome they created, not as a detached feature list.
-- Prefer plain operational language over vendor-heavy abstraction.
-- Balance narrative proof with practical takeaways so articles are useful even when readers are not ready to buy.
+1. Name the operational problem in plain language.
+2. Define the category or concept.
+3. Explain the cost of doing nothing.
+4. Show evaluation criteria.
+5. Add sourced proof only where the workflow has approved evidence.
+6. Close with the next practical decision.
 
-## Proof-Density Patterns
+### Comparison or shortlist article
 
-- Strategic/advice posts use a full protagonist arc plus expert commentary.
-- AI/product posts explain the workflow shift first, then quantify business impact.
-- Comparison posts use scannable vendor sections and clear buying criteria.
-- Definition/pillar posts teach the category, then connect benefits to real operational examples.
+1. State who the comparison is for.
+2. Declare selection criteria.
+3. Keep each vendor section parallel.
+4. Separate factual comparison from editorial judgment.
+5. Use neutral public evidence for third-party facts.
+6. Route any brand-specific positioning through the vault workflow.
 
-## Full Example Index
+### Product or workflow thought leadership
 
-| Example | Type/use | Primary keyword | Published | Full text |
-|---|---|---|---|---|
-| Exit Ready: How to Sell Your Trades Business for 6x EBITDA | Narrative customer/operator proof, exit-readiness advice, expert quote weaving. | how to sell a trades business | April 30, 2026 | [Open full example](reference/writing-examples/exit-ready-how-to-sell-your-trades-business-for-6x-ebitda.md) |
-| Stop Chasing Invoices: How Agentic AI Accelerates Speed to Cash | AI/product thought leadership with business-case framing. | agentic AI accounts receivable | April 29, 2026 | [Open full example](reference/writing-examples/stop-chasing-invoices-how-agentic-ai-accelerates-speed-to-cash.md) |
-| 12 Best Field Service Management Software: 2025 Buyers Guide | Comparison/listicle structure and vendor evaluation pattern. | best field service management software | September 8, 2025 | [Open full example](reference/writing-examples/12-best-field-service-management-software-2025-buyers-guide.md) |
-| What Is Field Service Management? A Complete FSM Guide | Definition/pillar guide structure for FSM education. | what is field service management | April 17, 2025 | [Open full example](reference/writing-examples/what-is-field-service-management-a-complete-fsm-guide.md) |
+1. Start with the workflow shift.
+2. Explain what changed for the buyer or operator.
+3. Separate opinion from empirical fact.
+4. Use concrete examples without inventing customers, metrics, or quotes.
+5. Bind any public claims to approved evidence.
+
+### FAQ-led article
+
+1. Lead each answer with a direct response.
+2. Keep the first visible paragraph concise.
+3. Put limitations after the answer.
+4. Link high-risk factual answers in the same paragraph.
+5. Remove questions that cannot be answered with defensible evidence.
+
+## Editing Mechanics
+
+- Prefer short openings over throat-clearing.
+- Use headings that answer a buyer question.
+- Keep process notes out of public body copy.
+- Avoid placeholder tables unless the final artifact includes complete values.
+- Use examples to clarify a concept, not to imply unapproved proof.

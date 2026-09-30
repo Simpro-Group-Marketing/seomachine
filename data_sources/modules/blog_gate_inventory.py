@@ -14,6 +14,7 @@ class BlogGateDescriptor:
 
 BLOG_GATE_DESCRIPTORS = (
     BlogGateDescriptor("artifact_identity"),
+    BlogGateDescriptor("context_boundary"),
     BlogGateDescriptor("context_binding"),
     BlogGateDescriptor("blog_assembly_bom"),
     BlogGateDescriptor("public_artifact"),

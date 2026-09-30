@@ -292,6 +292,26 @@ def test_unmocked_blog_release_lifecycle_round_trip(
         Path(__file__).resolve().parents[1] / "context" / "commercial-pillar-index.json",
         commercial_index,
     )
+    context_policy = tmp_path / "context" / "context-policy.json"
+    context_policy.write_text(
+        json.dumps(
+            {
+                "schema": "seomachine-context-boundary-policy/v1",
+                "files": {
+                    "context/commercial-pillar-index.json": {
+                        "category": "link_map"
+                    },
+                    "context/context-policy.json": {
+                        "category": "source_governance"
+                    },
+                },
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     paths["plan_fulfillment"] = fulfillment
     paths["commercial_pillar_index"] = commercial_index
     _refresh_normal_stage_receipts(paths)

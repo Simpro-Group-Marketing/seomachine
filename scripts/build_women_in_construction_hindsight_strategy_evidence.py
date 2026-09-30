@@ -164,7 +164,7 @@ def main() -> int:
             "classification": "compiled_internal_strategy_pages",
             "public_use_status": "prohibited",
             "claim_support_allowed": False,
-            "approved_source_node": "wiki/sources/hindsight-simpro-intelligence-snapshot-2026-08-31.md",
+            "approved_source_node": "connector-approved internal strategy snapshot 2026-08-31",
             "snapshot_revisions": sorted(
                 {
                     match.group(1)

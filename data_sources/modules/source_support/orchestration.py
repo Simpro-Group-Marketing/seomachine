@@ -1,5 +1,6 @@
 """Orchestration responsibilities."""
 from collections.abc import Mapping
+import re
 from typing import Any, Callable, Optional
 
 from .claim_matching import _general_claim_type
@@ -288,6 +289,8 @@ def _policy_aligned_candidates(
             continue
         if _requirement_has_candidate(requirement, aligned):
             continue
+        if _requirement_is_question_prompt(requirement.claim) or _requirement_is_low_risk_instruction(requirement.claim):
+            continue
 
         numeric_tokens = _extract_numeric_tokens(
             _claim_text_for_detection(requirement.claim)
@@ -312,6 +315,35 @@ def _policy_aligned_candidates(
         )
 
     return sorted(aligned, key=lambda candidate: (candidate.line, candidate.text))
+
+def _requirement_is_question_prompt(text: str) -> bool:
+    """Return true for nonassertive question prompts imported from policy output."""
+    value = _claim_text_for_detection(text).strip()
+    value = re.sub(r"^\s*(?:[-*+]\s*)?\d+\.\s+", "", value).strip()
+    if value.startswith("|") and value.endswith("|"):
+        cells = [cell.strip() for cell in value.strip("|").split("|")]
+        return bool(cells) and (
+            all(not cell or cell.endswith("?") for cell in cells)
+            or cells[0].endswith("?")
+        )
+    return value.endswith("?")
+
+def _requirement_is_low_risk_instruction(text: str) -> bool:
+    """Keep ordinary editorial instructions from becoming source candidates."""
+    value = _claim_text_for_detection(text).strip()
+    if not re.match(
+        r"^\s*(?:choose|use|compare|focus|keep|put|confirm|test|record|prefer|begin|shortlist)\b",
+        value,
+        re.IGNORECASE,
+    ):
+        return False
+    return not re.search(
+        r"\b(?:law|legal|regulation|regulatory|licen[cs]e|permit|"
+        r"compliance|statute|code|authority|exemption|renewal|expiration|"
+        r"requires?|must|cannot|prohibit(?:s|ed)?|allow(?:s|ed)?)\b",
+        value,
+        re.IGNORECASE,
+    )
 
 def _candidate_is_proof_not_required(candidate: ClaimCandidate) -> bool:
     """Ask the policy engine whether one extracted sentence is fact-free advice."""

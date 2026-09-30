@@ -309,8 +309,7 @@ Use these pages when mentioning a named competitor, writing alternatives content
 
 ## Customer Proof Links
 
-Use customer stories when a post mentions the customer, the same trade, or a measurable outcome from `features.md`.
-Use this table for verified case-study URLs and topic fit. Use `context/features.md` > `Named Customer Proof Points` for exact metrics, and do not infer new claims from a case-study URL alone.
+Use this table only as a link-route inventory for public customer-story URLs and broad topic fit. It does not approve proof, metrics, quotes, customer claims, or story language. For Simpro public proof, use the vault claim search, context pack, receipt, and selector evidence required by the current workflow.
 
 | Customer | URL | Link When Writing About |
 |---|---|---|
@@ -489,5 +488,5 @@ For non-AI Simpro trades/workflow posts, link into the AI blog cluster only when
 - Re-check the sitemap quarterly or after major site migrations.
 - Refresh GSC/GA4 performance data quarterly before changing link priority.
 - Rebuild this map only when a new sitemap pull changes the URL inventory or a new GSC/GA4 pull materially changes page priority.
-- Destination-domain owner: follow the Canonical Domain Rules in `context/brand-voice.md`; this internal-link map keeps classic Simpro product, feature, industry, comparison, pricing, blog, resource, and customer-story destinations on `simprogroup.com` unless a specific URL migration is verified.
+- Destination-domain owner: this internal-link map preserves the verified `simprogroup.com` URL inventory for SEO routing unless a specific URL migration is verified through current sitemap, GSC, GA4, or connector evidence.
 - If any `simpro.ai` content path becomes relevant for internal linking, build a separate verified `simpro.ai` map from that domain's sitemap and analytics data instead of replacing this `simprogroup.com` map.

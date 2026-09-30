@@ -28,7 +28,7 @@ Required validation sidecar evidence: generated vault context binding for every 
 - Public competitor pages may shape SERP/article format, but cannot decide named competitors for Simpro public copy.
 - `Hindsight Boundary`: Hindsight/deal intelligence can inform internal strategy, but cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified through the claim registry. Keep raw deal counts out of public copy.
 - `Named Feature/Add-On Link Check`: first meaningful mentions of Simpro features/add-ons must be checked through connector-discovered product and feature resources before link decisions. Document the selected `resource_id` values, link decision, and reason in the validation sidecar.
-- `Vault Brand Language Alignment`: product, feature, add-on, solution, and industry language must be drafted from connector-discovered vault guidance first. Use semantic search/read/expand for messaging, positioning, feature, solution, and vertical context. When a named feature/add-on appears, include feature-specific `resource_id` evidence; when solution/industry language is used, include solution or vertical `resource_id` evidence. Document connector evidence, language applied, fallback context use, source-verification boundary, and `Status: aligned` in `Vault Brand Language Alignment`. The `vault_brand_language_guard.py` publish gate runs inside `/publish-readiness`; keep this block in the validation sidecar, not public copy. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
+- `Vault Brand Language Alignment`: product, feature, add-on, solution, and industry language must be drafted from connector-discovered vault guidance. Use semantic search/read/expand for messaging, positioning, feature, solution, and vertical context. When a named feature/add-on appears, include feature-specific `resource_id` evidence; when solution/industry language is used, include solution or vertical `resource_id` evidence. Document connector evidence, language applied, source-verification boundary, and `Status: aligned` in `Vault Brand Language Alignment`. The `vault_brand_language_guard.py` publish gate runs inside `/publish-readiness`; keep this block in the validation sidecar, not public copy. Connector unavailability blocks Simpro brand-language work; there is no repo-local fallback.
 
 ## Fred Voccola Authority Selection
 
@@ -124,25 +124,21 @@ This installs:
 claude-code .
 ```
 
-5. **Context Files** (pre-filled for Simpro):
+5. **Context Files** (policy-scoped):
 
-   Most `context/` files are already populated from the Simpro Marketing Portal, Voice Style Guide, battlecards, GSC/GA4 US metrics, Semrush/Ahrefs benchmarks, PEEC AI citation exports, and public Reddit research. See `context/_coverage-report.md` for file-by-file status and remaining gaps.
+   Every file under `context/` is registered in `context/context-policy.json`. These files are limited to SEO/AEO strategy, brand-neutral editorial mechanics, generic CRO, link maps/site architecture/commercial SEO routing, and source/URL governance. Simpro brand language, product information, proof, competitors, E-E-A-T sources, approved claims, ebooks, customer stories, and writing exemplars come from the Brand Vault connector.
 
    | File | Purpose |
    |------|---------|
-   | `brand-voice.md` | FY26 messaging + Voice Style Guide tone |
-   | `style-guide.md` | Editorial rules, terminology, Lightning naming |
-   | `features.md` | Product/value props and add-ons |
-   | `competitor-analysis.md` | 40+ battlecards + SERP/backlink overlays |
+   | `context-policy.json` | Machine-readable category registry and boundary policy |
    | `target-keywords.md` | Topic clusters + GSC/GA4/Semrush metrics |
    | `internal-links-map.md` | Sitemap URLs + performance-prioritized linking |
-   | `writing-examples.md` | Four simprogroup.com blog exemplars |
+   | `writing-examples.md` | Abstract editorial patterns only |
    | `seo-guidelines.md` | Simpro SEO structure requirements |
    | `aeo-geo-blog-strategy.md` | Capsule Method, PAA, schema, E-E-A-T |
    | `ai-citation-targets.md` | AI citation evidence register + PEEC insight |
    | `reddit-strategy.md` | Community targets and engagement rules |
-   | `cro-best-practices.md` | CRO overlay + experiment/KPI source map |
-   | `lightning-positioning.md` | Scoped overlay for Simpro Group Lightning only |
+   | `cro-best-practices.md` | Generic CRO mechanics |
 
    **Upstream reference**: `examples/castos/` still shows the original Castos template pattern from the open-source repo.
 
@@ -175,7 +171,7 @@ claude-code .
 **What it does**:
 - Creates a complete SEO-optimized article sized to the Reader Contract, search intent, and available evidence
 - Applies `context/aeo-geo-blog-strategy.md` (Capsule Method, PAA/FAQ, source mapping, schema notes)
-- Maintains Simpro brand voice from the vault first; `context/brand-voice.md` and `lightning-positioning.md` are fallback mirrors when the vault is unavailable
+- Maintains Simpro brand voice from the vault; connector unavailability blocks Simpro brand-language use
 - Integrates keywords from `context/target-keywords.md`
 - Includes internal and external links per `context/internal-links-map.md`
 - Places each link where it directly supports the sentence and reader task, without a per-paragraph quota
@@ -603,10 +599,10 @@ Legacy and batch scripts use `data_sources/modules/`:
 
 **DataForSEO**:
 - SERP and keyword scripts in `scripts/`
-- Dashboard competitor layer documented in `competitor-analysis.md`
+- SERP competitor observations may be recorded as dated SEO market signals, not positioning or sales plays
 
 **Semrush / Ahrefs / PEEC** (context-enriched, not all wired as Python modules):
-- Semrush MCP and Ahrefs Free metrics embedded in `target-keywords.md` and `competitor-analysis.md`
+- Semrush MCP and Ahrefs Free metrics embedded in SEO/AEO context records
 - PEEC AI citation exports in `ai-citation-targets.md`
 
 ### Advanced SEO Analysis Modules (NEW!)
@@ -672,11 +668,11 @@ Six Python modules for landing page conversion optimization:
 - `paa_provenance_guard.py` - PAA provenance guardrail; use the After Writing command stack before scoring or `/optimize`
 - `source_support_guard.py` - Strict source support guard; use the After Writing command stack before scoring or `/optimize`
 - `customer_proof_selector.py` - Customer proof selector; slash workflows automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10` before selecting proof and record the generated selector-first `Customer Proof Slate`; when the current connector context has no bound customer proof candidates and public copy will omit customer proof, rerun the same full-role slate with `--allow-no-proof` to emit `selection_outcome: no_fit_customer_proof`
-- `customer_proof_index_health.py` - Read-only proof inventory health report; run it before proof-index intake when checking source mix, approvals, overuse, and public-copy gaps
-- `customer_proof_index_intake.py` - Customer proof intake validator/merger; add new candidates through `context/customer-proof-intake-template.csv` and validate before relying on them in selector slates
+- `customer_proof_index_health.py` - Read-only nonconnector proof inventory health report for AroFlo, BigChange, and ClockShark
+- `customer_proof_index_intake.py` - Nonconnector proof intake validator/merger for `config/nonvault-customer-proof-index.json`
 - `customer_proof_diversity_guard.py` - Customer proof diversity guard; use the After Writing command stack and `context/aeo-geo-blog-strategy.md` for full reuse policy
 - `review_story_identity_guard.py` - Review story identity guard; use the After Writing command stack and `context/aeo-geo-blog-strategy.md` for full review story/theme policy
-- `eeat_strength_guard.py` - Commercial-investigation E-E-A-T strength guard; records positive proof signals or warning `eeat_strength_safe_but_weak` when fallback decision `proof_unavailable_safe_to_publish` is used
+- `eeat_strength_guard.py` - Commercial-investigation E-E-A-T strength guard; records positive proof signals or warning `eeat_strength_safe_but_weak` when safe-no-proof decision `proof_unavailable_safe_to_publish` is used
 - `content_scrubber.py` - Read-only diagnostics for invisible Unicode marks, em dashes, and whitespace artifacts
 - `blog_creation_preflight.py` - Pre-BOM blocker report; requires current main-Chrome Semrush UI evidence, a scrub receipt bound to the current article, customer proof selector evidence or valid `no_fit_customer_proof` evidence, commercial-page E-E-A-T strength decision when no positive signal exists, BOM dependency paths, and a named-author, no-author policy, or selected Fred authority expertise path before BOM assembly
 - `ai_copy_linter.py` - Deterministic AI copy detection gate with line-level findings
@@ -700,7 +696,7 @@ Use slash commands for research workflows. Scripts and MCP calls are implementat
 /optimize [draft or rewrite file]
 ```
 
-**Note**: Low-level scripts remain available for maintainers, but user-facing workflows should be run through slash commands. Simpro's primary competitor intel lives in `context/competitor-analysis.md` (40+ battlecards).
+**Note**: Low-level scripts remain available for maintainers, but user-facing workflows should be run through slash commands. Dated competitor SEO/SERP signals live in `context/reference/competitors/seo-market-signals.md`; Simpro competitive positioning and claim language must come from the Brand Vault connector.
 
 ### WordPress Integration
 
@@ -735,11 +731,8 @@ seomachine/
 +-- data_sources/
 |   +-- modules/               # GA4, GSC, analyzers, aeo_geo_rater, content_scrubber, etc.
 |   +-- config/.env.example
-+-- context/                   # Simpro brand + SEO/AEO context (see _coverage-report.md)
-|   +-- brand-voice.md
-|   +-- style-guide.md
-|   +-- features.md
-|   +-- competitor-analysis.md
++-- context/                   # Policy-scoped SEO/AEO/editorial/CRO/link/source context
+|   +-- context-policy.json
 |   +-- target-keywords.md
 |   +-- internal-links-map.md
 |   +-- writing-examples.md
@@ -748,8 +741,9 @@ seomachine/
 |   +-- ai-citation-targets.md
 |   +-- reddit-strategy.md
 |   +-- cro-best-practices.md
-|   +-- lightning-positioning.md   # Scoped Lightning overlay only
-|   +-- _coverage-report.md
++-- config/
+|   +-- customer-proof-usage-ledger.json
+|   +-- nonvault-customer-proof-index.json
 +-- config/competitors.example.json
 +-- wordpress/                 # Yoast REST MU-plugin
 +-- examples/castos/           # Upstream template reference
@@ -768,26 +762,21 @@ seomachine/
 
 ## Context Files (Simpro)
 
-Blog quality depends on the Obsidian vault first. These `context/` files are downstream mirrors/fallbacks for cloned routines without vault access; see `context/_coverage-report.md` for status, sources, and refresh cadence.
+Blog quality depends on the Brand Vault connector for Simpro brand and proof authority. `context/` files are policy-scoped by `context/context-policy.json` and cannot authorize Simpro brand language, product information, proof, competitors, E-E-A-T sources, approved claims, ebooks, customer stories, or writing exemplars.
 
 | File | Status | Use when |
 |------|--------|----------|
-| `brand-voice.md` | Filled | Every blog - FY26 pillars, Voice Style Guide tone, Lightning pointer |
-| `style-guide.md` | Filled | Editorial rules, product names, 24/6 support, regional terms |
-| `features.md` | Filled | Product copy, add-ons, proof points |
-| `writing-examples.md` | Filled | Voice calibration - four simprogroup.com articles |
+| `context-policy.json` | Required | Machine-readable category registry and boundary policy |
+| `writing-examples.md` | Abstract only | Brand-neutral structure and pacing patterns |
 | `seo-guidelines.md` | Filled | On-page SEO structure for Simpro blogs |
 | `aeo-geo-blog-strategy.md` | Filled | AEO/GEO - Capsule Method, PAA, schema, E-E-A-T |
 | `target-keywords.md` | Filled + metrics | Clusters + GSC/GA4/Semrush US data |
 | `internal-links-map.md` | Filled + metrics | Sitemap URLs + performance-prioritized links |
-| `competitor-analysis.md` | Filled | 40+ battlecards + SERP/backlink overlays |
 | `ai-citation-targets.md` | Filled | AI citation register + PEEC insight |
 | `reddit-strategy.md` | Filled | Community targets and engagement rules |
-| `cro-best-practices.md` | Source-aligned | CRO overlay + experiment/KPI/HubSpot map |
-| `lightning-positioning.md` | Scoped overlay | **Only** Lightning/Cooper/JustAsk blog topics |
-| `_coverage-report.md` | Meta | Coverage log and remaining gaps |
+| `cro-best-practices.md` | Generic | Framework-level CRO mechanics only |
 
-**Refreshing context**: Re-pull GSC/GA4 quarterly into keywords and internal links; re-run `/research-ai-citations` before major campaigns; verify Lightning and pricing claims before publish.
+**Refreshing context**: Re-pull GSC/GA4 quarterly into keywords and internal links; re-run `/research-ai-citations` before major campaigns. Retrieve Lightning, pricing, product, proof, voice, and competitor positioning from the vault workflow before publish.
 
 ## Blog Quality Standards
 
@@ -804,7 +793,7 @@ Every Simpro blog post should meet these requirements:
 - [ ] Commercial-investigation posts either select a positive E-E-A-T signal or record `E-E-A-T Strength Decision` with `Decision: proof_unavailable_safe_to_publish`
 - [ ] Review story identity guard passes when review-derived story copy appears: the sidecar includes identity-backed `Review Story Selection`, the selected story has a public review URL, and the public article links that URL in the same paragraph as the paraphrase
 - [ ] Actionable for **trade and field service leaders** (not generic SMB advice)
-- [ ] Simpro voice: authoritative, trades-focused, outcomes-driven from the vault first (`brand-voice.md` is fallback mirror context only)
+- [ ] Simpro voice and tone retrieved from current vault connector evidence
 
 ### SEO
 - [ ] Natural terminology coverage, semantic variations, and keyword-stuffing detection checked per `seo-guidelines.md`
@@ -829,40 +818,40 @@ Every Simpro blog post should meet these requirements:
 
 ### Readability
 - [ ] 8th-10th grade reading level (trades audience)
-- [ ] Short sentences; active voice; no vendor cliches (`style-guide.md` avoid list)
+- [ ] Short sentences; active voice; avoid vendor cliches and unsupported brand language
 - [ ] Subheadings follow topic and reader-question changes; lists remain scannable
 
 ### Structure
 - [ ] Hook -> problem -> promise intro
 - [ ] Intent-appropriate next action matched to the Reader Contract and funnel stage; no CTA added when none is called for
-- [ ] Lightning topics only: also pass `lightning-positioning.md` naming rules
+- [ ] Lightning topics only: retrieve current Lightning naming and claims through the vault connector
 
 ## Best Practices
 
 ### Before Writing a Blog Post
 1. **Research first**: `/research` or `/research-serp` - confirm intent and gaps vs. top SERP
 2. **Bind PAA provenance**: New articles require a structured AnswerSocrates artifact. Rewrites use a dedicated pre-picked brief section when present; otherwise they require AnswerSocrates. Use a CSV only with a bound genuine blocked-state artifact.
-3. **Check context**: run connector health and discovery, search in the task's natural language, read and expand results by `resource_id`, then build and validate the generated context binding; use `brand-voice.md`, `writing-examples.md`, and `aeo-geo-blog-strategy.md` only as fallback mirrors where applicable
-4. **Lightning only if on-topic**: Load `lightning-positioning.md` for Cooper/JustAsk/agent posts
+3. **Check context**: run connector health and discovery, search in the task's natural language, read and expand results by `resource_id`, then build and validate the generated context binding; use repo-local context only for allowed SEO/AEO, editorial, CRO, link, or source-governance inputs
+4. **Lightning only if on-topic**: Retrieve current Lightning resources and approved claims through the vault connector for Cooper/JustAsk/agent posts
 5. **Keywords and links**: Run the live Semrush keyword decision workflow for current primary/secondary keyword selection; use `target-keywords.md` only as seed context and `internal-links-map.md` for cluster and URL targets
 6. **E-E-A-T proof**: Build the E-E-A-T Proof Map before drafting. Use `context/aeo-geo-blog-strategy.md` for review-story, Capterra-theme, exact-quote, rating, and metric boundaries.
 7. **Metric Proof Pack**: For software, comparison, pricing, cost, ROI, KPI, profit, margin, guide, and vs topics, complete metric research before drafting and record approved metrics in the validation sidecar.
-8. **Customer Proof Pack**: Before selecting or drafting proof, resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and add the generated selector-first `Customer Proof Slate` to the validation sidecar. If the selector reports no approved claims bound to the customer proof inventory and the article will use no customer proof, rerun the same full-role slate with `--allow-no-proof`; the valid outcome is `selection_outcome: no_fit_customer_proof`, all four roles set `Selected: [none]`, and a reason stating public copy must omit customer proof. If inputs are missing, resolve them from the brief/context or stop before drafting customer proof. If the selector fails for any other reason, write the blocker into the sidecar and do not invent proof. experience_story consideration is required and E-E-A-T story usage is optional. Use a proof-backed customer/review POV only when it improves the article objective. If no story fits, use `Selected: [none]` with section-specific rejection reasons. Treat any `recent_uses_90d` value above 0 as a proof-diversity warning. Before claiming a proof source is underused, inspect the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the proof ID, public URL, and customer name. If the live repo scan finds public-copy usage missing from the ledger, backfill `context/customer-proof-usage-ledger.json`, rerun proof health and selector checks, and document the backfill in the validation sidecar. If selected proof appears in public copy, add `Selected Customer Proof Mining` so the selected URL is checked for quotes, metrics, POV/story, and workflow themes before final use. If selected proof is recently used or overused, add a selector-backed, source-specific `Reuse reason` in the validation sidecar proving no stronger underused approved proof fits. Use `context/aeo-geo-blog-strategy.md` as the full policy.
+8. **Customer Proof Pack**: Before selecting or drafting proof, resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and add the generated selector-first `Customer Proof Slate` to the validation sidecar. Simpro candidates come only from approved claims bound to the current context pack and receipt; no local proof index is accepted. If complete, non-truncated claim searches prove no eligible approved claim and the article will use no customer proof, rerun the same full-role slate with `--allow-no-proof`. Before claiming a proof source is underused, inspect `config/customer-proof-usage-ledger.json` and run a live repo scan for the claim ID, public URL, and customer name. If selected proof appears in public copy, add `Selected Customer Proof Mining` and a matching ledger entry. Use `context/aeo-geo-blog-strategy.md` as the full policy.
 9. **E-E-A-T Strength Decision**: For commercial-investigation pages, select at least one positive signal when available: selected customer proof, visible approved review-theme/story evidence, selected Fred authority, named author, or approved SME review note. If none exists, record `## E-E-A-T Strength Decision` with `Decision: proof_unavailable_safe_to_publish`, the required public-copy boundary, and `Status: approved`. `no_fit_customer_proof` prevents invented proof; it is not itself a positive signal.
-10. **Proof-index health and intake**: Run `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` before adding proof candidates, then use `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json`.
+10. **Nonconnector proof inventory health and intake**: Run `python data_sources/modules/customer_proof_index_health.py --index config/nonvault-customer-proof-index.json --ledger config/customer-proof-usage-ledger.json` only for AroFlo, BigChange, and ClockShark inventory. Validate nonconnector intake with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index config/nonvault-customer-proof-index.json`. Simpro proof promotion happens in the vault claim workflow.
 
 ### During Writing
 1. **Follow the brief**: Outline from `research/brief-*.md`
 2. **Trades language**: job costing, dispatch, PM, quotes - not generic "solutions" copy
-3. **Named proof**: Customer outcomes from approved case studies and mapped metrics in `features.md`; use public-facing source links in the article body
+3. **Named proof**: Customer outcomes, metrics, quotes, and story language require approved claim evidence bound to the current context pack and receipt plus public-facing source links in the article body
 4. **Metric Proof Pack**: Do not add numbers first and source them later. Add only Approved metric rows from the Search log, and use the source-visible Evidence exactly as the public URL or local proof artifact supports it.
 5. **Metric/stat proof**: Every metric, statistic, or material numeric business claim uses `inline_required`: add a natural same-paragraph or same-row public link plus the required machine-generated Source Map or Customer Proof Pack mapping
 6. **FAQ quality and proof**: When visible FAQs exist, every answer must use a 40-60 word first paragraph and lead with a concrete extractable answer. Fact-driven or high-risk answers place a natural authoritative non-owned public evidence link in that first paragraph; lower-risk answers follow their machine-assigned citation mode.
 7. **Source support proof**: Add strict proof rows with Claim, Approved quote, or Approved metric plus URL, Evidence, and Status: approved for high-risk claims. Evidence must be visible in the cited public source or local proof artifact.
 8. **Source mapping**: Map every general or proof-sensitive claim to a claim-fit source. General claim rows require exact claim/type/relation fields plus a hash-bound `simpro-source-classification/v1` artifact. PDF or unreachable-HTML fallback requires a hash-bound `simpro-source-capture-receipt/v1`; evidence needs determine source/link count
 9. **Down-funnel link**: Add 1 contextual down-funnel internal link to an industry, solution, or feature page. Use `https://www.simprogroup.com/industries` for broad trades topics when no single industry page fits. For single-trade Simpro posts, include the matching industry page even when a valid exact-count brief override exists, unless the brief explicitly prohibits that industry page.
-10. **Context boundary**: Use `context/` files as the internal source of truth for voice, positioning, approved claims, proof candidates, and approved metrics only when the Obsidian vault is unavailable; otherwise treat them as repo-local mirrors/fallbacks. Draft bodies may use public sources and context-backed proof, but must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, internal proof-path instructions, or source/proof meta-commentary. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
-11. **Competitive framing**: Use `Competitive Shortlist Decision` from the validation sidecar and `competitor-analysis.md` only as a fallback mirror; differentiate, do not disparage
+10. **Context boundary**: Use `context/` files only for allowed SEO/AEO, editorial, CRO, link-map, and source-governance inputs. Draft bodies must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, internal proof-path instructions, or source/proof meta-commentary. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
+11. **Competitive framing**: Use `Competitive Shortlist Decision` from the validation sidecar and connector-discovered competitive context; differentiate, do not disparage
 
 ### After Writing
 1. **Agent passes**: SEO Optimizer, Meta Creator, Internal Linker, Keyword Mapper
@@ -896,7 +885,7 @@ PAA provenance guard always runs for blogs. It validates the bound structured An
 
 Source support guard confirms high-risk claims have strict proof rows with source-visible Evidence. Case-study proof paths and Review-site experience evidence may support non-metric E-E-A-T PoV and paraphrased themes only. Exact quotes/testimonials must appear in Customer Proof Pack Approved quotes with customer/brand or reviewer, source type, public URL, Evidence, and approved status. A named customer metric must appear in Customer Proof Pack Approved metrics with customer/brand, public URL, Evidence, and approved status; Source Map alone is insufficient for quotes, testimonials, or named metrics.
 
-Customer proof diversity guard confirms proof selection is not defaulting to recently used or overused case studies. It requires Quote Matrix, Reference, Customer Story, or review-site search evidence when case-study proof is selected, a `Customer Proof Slate`, `Selected Customer Proof Mining`, a `Customer Proof Selection Decision`, and a source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved proof fits the same role when `customer-proof-usage-ledger.json` shows repeated use. Valid `no_fit_customer_proof` selector evidence is allowed only when public copy omits named customer proof, customer metrics, exact quotes, testimonials, named reviewer stories, and review-derived E-E-A-T story copy. Before claiming a source is underused, inspect `recent_uses_90d`, run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/`, and backfill missing public-copy usage in `context/customer-proof-usage-ledger.json`. Use `customer-proof-index.json` plus `customer-proof-usage-ledger.json` through `customer_proof_selector.py` to choose the most relevant approved proof.
+Customer proof diversity guard confirms proof selection is not defaulting to recently used or overused sources. It requires a v2 `Customer Proof Slate`, `Selected Customer Proof Mining`, a `Customer Proof Selection Decision`, and a source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved claim fits the same role when `config/customer-proof-usage-ledger.json` shows repeated use. Valid `no_fit_customer_proof` selector evidence is allowed only when complete, non-truncated claim searches are bound and public copy omits named customer proof, customer metrics, exact quotes, testimonials, named reviewer stories, and review-derived E-E-A-T story copy. Before claiming a source is underused, inspect `recent_uses_90d`, run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/`, and backfill missing public-copy usage in `config/customer-proof-usage-ledger.json`.
 
 E-E-A-T strength guard adds a commercial-investigation quality layer. It passes cleanly with selected customer proof, visible approved review-theme/story evidence, selected Fred authority, a named author, or an approved SME review note. If no positive signal exists, publish readiness passes only when the sidecar records `Decision: proof_unavailable_safe_to_publish`; the gate emits warning `eeat_strength_safe_but_weak`, and BOM records `eeat_strength_policy`. This does not change the AEO/GEO scoring formula.
 
@@ -946,7 +935,7 @@ E-E-A-T strength guard adds a commercial-investigation quality layer. It passes 
 
 ```
 /research Simpro Lightning job costing
-# Commands auto-load lightning-positioning.md when Lightning entities detected
+# Commands must retrieve current Lightning resources and approved claims through the vault connector
 /write Simpro Lightning job costing
 # Verify Cooper/JustAsk naming and time-sensitive claims before publish
 ```
@@ -954,7 +943,7 @@ E-E-A-T strength guard adds a commercial-investigation quality layer. It passes 
 ## Tips & Tricks
 
 ### Maximizing Blog Quality
-- **Read `writing-examples.md`** before each session - match rhythm and proof density
+- **Use abstract editorial patterns only** for structure and pacing; retrieve Simpro voice and proof through the vault connector
 - **Lead with reader payoff**: prefer relevant approved named customer proof over generic examples when it materially supports the objective; if no approved proof fits, use an unnamed explanatory scene or omit the story
 - **Use strong SERP defaults**: match the dominant observed content type, target every applicable SERP feature, and fill recurring reader-critical evidence-supported gaps unless the Reader Contract documents an exception
 - **Capsule answers**: Put the direct answer in the first 50-60 words under each major H2
@@ -970,7 +959,7 @@ E-E-A-T strength guard adds a commercial-investigation quality layer. It passes 
 - **`/performance-review`** and `/priorities` for what to write or rewrite next
 - **`/scrub` + `ai_copy_linter.py`** before editorial handoff
 - **MCP first** for live GSC/GA4 pulls; Python scripts for batch reports
-- **Reuse battlecard plays** from `competitor-analysis.md` in comparison posts
+- **Use dated SERP evidence** for competitor-aware SEO format decisions; use the vault connector for Simpro competitive positioning or claims
 
 ### Avoiding Common Mistakes
 - Avoid generic SaaS voice instead of trades-leader tone.
@@ -993,16 +982,16 @@ E-E-A-T strength guard adds a commercial-investigation quality layer. It passes 
 
 ### Quarterly
 - Re-pull US GSC/GA4 into `target-keywords.md` and `internal-links-map.md`
-- Review `context/_coverage-report.md` and update stale battlecard/SERP data
+- Review dated SEO/AEO evidence and update stale SERP data
 - Re-run `/research-ai-citations` on core FSM prompt families
-- Sync Voice Style Guide / Message House if FY messaging changes
-- Full pass on `competitor-analysis.md` when new battlecards ship
+- Confirm the vault has current voice, messaging, and proof resources for FY messaging changes
+- Full competitor-aware pass when new vault competitive-context resources or public SERP evidence changes
 
 ## Troubleshooting
 
 ### "Blog doesn't sound like Simpro"
-- Re-run connector semantic search and read the current messaging and style results by `resource_id`, then use `brand-voice.md` and `writing-examples.md` only as fallback mirrors; compare to a published simprogroup.com post
-- For Lightning posts, confirm `lightning-positioning.md` is loaded and Cooper/JustAsk rules are followed
+- Re-run connector semantic search and read the current messaging and style results by `resource_id`; connector unavailability blocks Simpro voice edits
+- For Lightning posts, retrieve current Lightning resources and approved claims through the vault connector
 - Run `/scrub`, then `ai_copy_linter.py`, then Editor agent for robotic phrasing
 
 ### "AEO/GEO score below 90"
@@ -1025,13 +1014,13 @@ E-E-A-T strength guard adds a commercial-investigation quality layer. It passes 
 - Expansion: run `/research-serp` or DataForSEO scripts for new clusters
 
 ### "Too similar to ServiceTitan / Jobber listicles"
-- Use battlecard **Quick Competitive Plays** in `competitor-analysis.md`
+- Use dated public SERP evidence for format differentiation and vault-discovered competitive resources for Simpro positioning
 - Lead with Simpro outcomes (multi-trade, job costing, recurring maintenance) not feature tables alone
 
 ## Support & Contributions
 
 ### Getting Help
-- `context/_coverage-report.md` - what is filled vs. still gap
+- `context/context-policy.json` - allowed repo-local context categories and source-boundary rules
 - `CLAUDE.md` - commands, MCP, and Python paths
 - [Claude Code documentation](https://docs.claude.com/claude-code)
 
@@ -1051,7 +1040,7 @@ Upstream project: [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/
 
 ## Examples & Community
 
-**Simpro context**: Start with `context/_coverage-report.md` and the filled files listed in Getting Started.
+**Simpro context**: Start with the Brand Vault connector. Repo-local context is limited by `context/context-policy.json`.
 
 **Upstream example**: `examples/castos/` shows the original Castos template pattern from the open-source repo.
 

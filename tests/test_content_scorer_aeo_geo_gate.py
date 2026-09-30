@@ -539,46 +539,46 @@ A workplace risk assessment gives a field team one practical decision.
         )
         customer_governance = fixture_text("content_evidence:test_content_scorer_aeo_geo_gate-513-9")
 
-        with TemporaryDirectory() as temp_dir:
-            proof_sidecar, proof_sidecar_path = (
-                write_bound_experience_story_evidence(
-                    self,
-                    Path(temp_dir),
-                )
+        article_path = Path(write_paa_fixture(self, content))
+        proof_sidecar, proof_sidecar_path = (
+            write_bound_experience_story_evidence(
+                self,
+                article_path.parent.parent,
             )
-            proof_sidecar += FAQ_PROOF_BLOCK + METRIC_PROOF_BLOCK + customer_governance
-            proof_sidecar_path.write_text(proof_sidecar, encoding="utf-8")
-            with patch.object(
+        )
+        proof_sidecar += FAQ_PROOF_BLOCK + METRIC_PROOF_BLOCK + customer_governance
+        proof_sidecar_path.write_text(proof_sidecar, encoding="utf-8")
+        with patch.object(
                 ContentScorer,
                 "_score_humanity",
                 return_value={"score": 100, "issues": [], "details": {}},
-            ), patch.object(
-                ContentScorer,
-                "_score_specificity",
-                return_value={"score": 100, "issues": [], "details": {}},
-            ), patch.object(
-                ContentScorer,
-                "_score_structure_balance",
-                return_value={"score": 100, "issues": [], "details": {}, "prose_ratio": 0.65},
-            ), patch.object(
-                ContentScorer,
-                "_score_seo",
-                return_value={"score": 100, "issues": [], "details": {}},
-            ), patch.object(
-                ContentScorer,
-                "_score_readability",
-                return_value={"score": 100, "issues": [], "details": {}, "flesch": 68},
-            ), patch(
-                "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
-                new=load_validated_claim_set_for_unit_test,
-            ):
-                result = scorer.score(
-                    content,
-                    {"primary_keyword": "hvac scheduling software"},
-                    source_path=write_paa_fixture(self, content),
-                    paa_expected_run_id="content-scorer-fixture",
-                    proof_sidecar=str(proof_sidecar_path),
-                )
+        ), patch.object(
+            ContentScorer,
+            "_score_specificity",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_structure_balance",
+            return_value={"score": 100, "issues": [], "details": {}, "prose_ratio": 0.65},
+        ), patch.object(
+            ContentScorer,
+            "_score_seo",
+            return_value={"score": 100, "issues": [], "details": {}},
+        ), patch.object(
+            ContentScorer,
+            "_score_readability",
+            return_value={"score": 100, "issues": [], "details": {}, "flesch": 68},
+        ), patch(
+            "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
+            new=load_validated_claim_set_for_unit_test,
+        ):
+            result = scorer.score(
+                content,
+                {"primary_keyword": "hvac scheduling software"},
+                source_path=str(article_path),
+                paa_expected_run_id="content-scorer-fixture",
+                proof_sidecar=str(proof_sidecar_path),
+            )
 
         self.assertTrue(result["passed"])
         self.assertGreaterEqual(result["content_quality_score"], 85)

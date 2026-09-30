@@ -26,12 +26,14 @@ try:
     from .guard_common import Finding, make_finding, should_fail, summarize_findings
     from .proof_link_policy import analyze_proof_links
     from .proof_sidecar import load_sidecar_content
+    from .numeric_claim_source_guard import _claim_text_for_detection
     from .url_validator import UrlValidationSummary, extract_urls, is_effectively_resolved, validate_file_urls
 except ImportError:  # pragma: no cover - supports direct script execution.
     from faq_structure import detect_faq_structure
     from guard_common import Finding, make_finding, should_fail, summarize_findings
     from proof_link_policy import analyze_proof_links
     from proof_sidecar import load_sidecar_content
+    from numeric_claim_source_guard import _claim_text_for_detection
     from url_validator import UrlValidationSummary, extract_urls, is_effectively_resolved, validate_file_urls
 
 
@@ -142,6 +144,8 @@ def _policy_findings(
     for requirement in report.requirements:
         if requirement.owner != "public_research":
             continue
+        if _requirement_is_question_prompt(requirement.claim) or _requirement_is_low_risk_instruction(requirement.claim):
+            continue
         if requirement.mode not in {"inline_required", "section_source_allowed"}:
             continue
 
@@ -233,6 +237,37 @@ def _policy_findings(
             )
         )
     return findings
+
+
+def _requirement_is_question_prompt(text: str) -> bool:
+    """Return true for nonassertive question prompts imported from policy output."""
+    value = _claim_text_for_detection(text).strip()
+    value = re.sub(r"^\s*(?:[-*+]\s*)?\d+\.\s+", "", value).strip()
+    if value.startswith("|") and value.endswith("|"):
+        cells = [cell.strip() for cell in value.strip("|").split("|")]
+        return bool(cells) and (
+            all(not cell or cell.endswith("?") for cell in cells)
+            or cells[0].endswith("?")
+        )
+    return value.endswith("?")
+
+
+def _requirement_is_low_risk_instruction(text: str) -> bool:
+    """Keep ordinary editorial instructions from requiring public-research links."""
+    value = _claim_text_for_detection(text).strip()
+    if not re.match(
+        r"^\s*(?:choose|use|compare|focus|keep|put|confirm|test|record|prefer|begin|shortlist)\b",
+        value,
+        re.IGNORECASE,
+    ):
+        return False
+    return not re.search(
+        r"\b(?:law|legal|regulation|regulatory|licen[cs]e|permit|"
+        r"compliance|statute|code|authority|exemption|renewal|expiration|"
+        r"requires?|must|cannot|prohibit(?:s|ed)?|allow(?:s|ed)?)\b",
+        value,
+        re.IGNORECASE,
+    )
 
 
 def check_file(

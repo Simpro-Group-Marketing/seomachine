@@ -95,7 +95,7 @@ ARCHIVED_BOM_SCHEMAS = frozenset(
     {BOM_SCHEMA_V1, BOM_SCHEMA_V2, BOM_SCHEMA_V3, BOM_SCHEMA_V4}
 )
 EDITORIAL_PLAN_SCHEMA = "simpro-blog-editorial-plan/v2"
-CONNECTOR_CUSTOMER_PROOF_SCHEMA = "simpro-customer-proof-selector-evidence/v1"
+CONNECTOR_CUSTOMER_PROOF_SCHEMA = "simpro-customer-proof-selector-evidence/v2"
 NONVAULT_CUSTOMER_PROOF_SCHEMA = (
     "simpro-nonvault-customer-proof-selector-evidence/v1"
 )

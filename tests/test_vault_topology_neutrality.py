@@ -236,11 +236,25 @@ def _is_allowed_root_configuration(
     )
 
 
+def _is_nonvault_url_path(label: str, text: str, match: re.Match[str]) -> bool:
+    if label not in {"vault wiki route", "vault index route", "vault raw-source route"}:
+        return False
+    line_start = text.rfind("\n", 0, match.start()) + 1
+    line_end = text.find("\n", match.end())
+    if line_end < 0:
+        line_end = len(text)
+    line = text[line_start:line_end]
+    url_match = re.search(r"https?://[^\s\"'`<>]+", line, re.IGNORECASE)
+    return bool(url_match and url_match.start() <= match.start() - line_start < url_match.end())
+
+
 def _topology_violations_in_text(path: Path, text: str) -> list[TextViolation]:
     violations = []
     for label, pattern in BANNED_TOPOLOGY_PATTERNS:
         for match in pattern.finditer(text):
             if _is_allowed_root_configuration(label, path, text, match):
+                continue
+            if _is_nonvault_url_path(label, text, match):
                 continue
             violations.append(
                 TextViolation(

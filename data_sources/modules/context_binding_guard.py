@@ -56,26 +56,16 @@ SIMPRO_ARTICLE_RE = re.compile(
     re.IGNORECASE,
 )
 NON_CONNECTOR_BRANDS = frozenset({"aroflo", "bigchange", "clockshark"})
-REPO_CONTEXT_ALLOWLIST = {
-    "context/seo-guidelines.md": frozenset({"SEO structure", "Schema rules", "Publish gates"}),
-    "context/aeo-geo-blog-strategy.md": frozenset(
-        {"AEO/GEO workflow", "FAQ policy", "Publish gates", "Schema rules"}
-    ),
-    "context/style-guide.md": frozenset({"Editorial mechanics"}),
-    "context/target-keywords.md": frozenset({"Keyword data"}),
-    "context/internal-links-map.md": frozenset({"Internal-link inventory"}),
-    "context/cro-best-practices.md": frozenset({"CRO guidance"}),
-    "context/reddit-strategy.md": frozenset({"Reddit strategy"}),
-    "context/writing-examples.md": frozenset({"Writing examples"}),
-    "context/field-service-management-platform-faq-list.md": frozenset(
-        {"FAQ questions and formatting"}
-    ),
-    "context/ai-citation-targets.md": frozenset({"AI citation targets"}),
-    "context/source-routing-map.md": frozenset({"Workflow routing policy"}),
-    "context/customer-proof-usage-ledger.json": frozenset({"Proof usage tracking"}),
-}
-REPO_CONTEXT_ROLES = frozenset(
-    role for roles in REPO_CONTEXT_ALLOWLIST.values() for role in roles
+CONTEXT_POLICY_PATH = Path(__file__).resolve().parents[2] / "context" / "context-policy.json"
+CONTEXT_POLICY_SCHEMA = "seomachine-context-boundary-policy/v1"
+REPO_CONTEXT_CATEGORIES = frozenset(
+    {
+        "seo_aeo",
+        "editorial_strategy",
+        "cro_best_practice",
+        "link_map",
+        "source_governance",
+    }
 )
 PUBLIC_CLAIM_USE_MODES = frozenset(
     {
@@ -754,6 +744,7 @@ def _artifact_kind_from_path(path: str | Path | None) -> str | None:
 def _validate_repo_context(
     repo_context: Sequence[Mapping[str, str]],
 ) -> list[dict[str, str]]:
+    policy = _load_context_policy()
     normalized: list[dict[str, str]] = []
     for item in repo_context:
         if not isinstance(item, Mapping):
@@ -763,16 +754,41 @@ def _validate_repo_context(
         if not path.startswith("context/") or not role:
             raise ValueError("Repository context bindings require a context/ path and role.")
         canonical_path = next(
-            (allowed for allowed in REPO_CONTEXT_ALLOWLIST if allowed.casefold() == path.casefold()),
+            (allowed for allowed in policy if allowed.casefold() == path.casefold()),
             None,
         )
         if canonical_path is None:
             raise ValueError(
-                "Repository context path is not approved for SEO, AEO, or editorial-mechanics binding."
+                "Repository context path is not approved by context/context-policy.json."
             )
-        if role not in REPO_CONTEXT_ROLES or role not in REPO_CONTEXT_ALLOWLIST[canonical_path]:
-            raise ValueError("Repository context role is not approved for this context path.")
+        category = policy[canonical_path]
+        if role != category:
+            raise ValueError("Repository context role must match the approved context-policy category.")
         normalized.append({"path": canonical_path, "role": role})
+    return normalized
+
+
+def _load_context_policy() -> dict[str, str]:
+    try:
+        payload = _read_json(CONTEXT_POLICY_PATH)
+    except (OSError, json.JSONDecodeError, ValueError) as error:
+        raise ValueError(f"Context policy is unavailable or invalid: {error}") from error
+    if payload.get("schema") != CONTEXT_POLICY_SCHEMA:
+        raise ValueError(f"Context policy must use {CONTEXT_POLICY_SCHEMA}.")
+    files = payload.get("files")
+    if not isinstance(files, Mapping):
+        raise ValueError("Context policy requires a files object.")
+    normalized: dict[str, str] = {}
+    for raw_path, row in files.items():
+        path = str(raw_path).replace("\\", "/").strip().lstrip("./")
+        category = (
+            str(row.get("category") or "").strip()
+            if isinstance(row, Mapping)
+            else str(row or "").strip()
+        )
+        if category not in REPO_CONTEXT_CATEGORIES:
+            raise ValueError(f"Context policy category is invalid for {path}: {category}")
+        normalized[path] = category
     return normalized
 
 

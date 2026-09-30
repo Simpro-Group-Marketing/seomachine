@@ -97,8 +97,8 @@ def build_preflight_report(
         prefix=".source-classification-preflight-",
     ) as temporary:
         temporary_directory = Path(temporary)
-        for candidate, final_path in pending:
-            staged_path = temporary_directory / final_path.name
+        for index, (candidate, final_path) in enumerate(pending):
+            staged_path = temporary_directory / f"classification-{index}.json"
             try:
                 write_source_classification_artifact(
                     staged_path,

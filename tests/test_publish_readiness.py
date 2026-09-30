@@ -96,6 +96,7 @@ CURRENT_GATES = [
     ("public_artifact", "public_artifact_guard.check_content"),
     ("ai_copy_linter", "ai_copy_linter.lint_content"),
     ("public_research_links", "public_research_link_guard.check_content"),
+    ("context_boundary", "readiness.common.context_boundary_guard.check_content"),
     ("industry_cluster_link_policy", "industry_cluster_link_policy.check_content"),
     ("metric_proof_pack", "metric_proof_pack_guard.check_content"),
     ("numeric_claim_source", "numeric_claim_source_guard.check_content"),
@@ -320,8 +321,13 @@ def run_with_patches(
                     )
                 )
                 continue
+            patch_target = (
+                f"data_sources.modules.{target}"
+                if target.startswith("readiness.")
+                else f"data_sources.modules.publish_readiness.{target}"
+            )
             mocks[name] = stack.enter_context(
-                patch(f"data_sources.modules.publish_readiness.{target}", side_effect=gate(name))
+                patch(patch_target, side_effect=gate(name))
             )
         mocks["blog_assembly_bom"] = stack.enter_context(
             patch(
@@ -347,7 +353,7 @@ def test_all_gates_pass_in_required_order(files):
     article, sidecar = files
     result, order, _, _ = run_with_patches(article, sidecar)
     expected_order = [
-        "context_binding", "blog_assembly_bom", "public_artifact", "ai_copy_linter", "url_validator", "public_research_links",
+        "context_binding", "blog_assembly_bom", "public_artifact", "ai_copy_linter", "url_validator", "public_research_links", "context_boundary",
         "industry_cluster_link_policy",
         "metric_proof_pack", "numeric_claim_source",
         "paa_provenance", "editorial_plan", "semrush_keyword_decision", "competitive_shortlist", "hindsight_boundary", "source_support", "source_quality", "customer_proof_diversity",
@@ -357,9 +363,11 @@ def test_all_gates_pass_in_required_order(files):
     ]
     expected_gates = [
         "artifact_identity",
+        "context_boundary",
         "context_binding",
         "blog_assembly_bom",
-        *expected_order[2:],
+        *expected_order[2:6],
+        *expected_order[7:],
         "input_seal",
     ]
     assert result["passed"] is True
@@ -1245,7 +1253,12 @@ def test_assembly_bom_gate_runs_after_context_binding(files, tmp_path):
 
     gate_names = [gate["name"] for gate in result["gates"]]
     assert result["passed"] is True
-    assert gate_names[0:3] == ["artifact_identity", "context_binding", "blog_assembly_bom"]
+    assert gate_names[0:4] == [
+        "artifact_identity",
+        "context_boundary",
+        "context_binding",
+        "blog_assembly_bom",
+    ]
     assert order[0] == "context_binding"
     assert "public_artifact" in order
 
@@ -1307,6 +1320,7 @@ def test_semrush_keyword_decision_blocks_before_downstream_gates(files):
         "ai_copy_linter",
         "url_validator",
         "public_research_links",
+        "context_boundary",
         "industry_cluster_link_policy",
         "metric_proof_pack",
         "numeric_claim_source",

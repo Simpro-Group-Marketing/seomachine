@@ -76,29 +76,24 @@ SEARCH_QUERIES = [
 ]
 
 RESOURCE_PURPOSES = {
-    # Voice, tone, localization, editorial blog voice
-    "res-e3ade596be645307ad4c1f84620ce021": "guidance",  # Voice and Tone
-    "res-d31f057a305f51918055120d95b76c6a": "guidance",  # Tone Voice and Localization Rules
-    "res-b34b392d22b9507089ade3fec47ee9e0": "context",  # COD Editorial Blog Voice - 2026-07-29
-    "res-339d828f9b875c738f530a65ccbc3587": "guidance",  # Simpro Group Brand Usage Guide
-    # Core messaging, message house, product positioning, guardrails, pillars
-    "res-09ebfff123cb5c5496e60c3a759a263d": "context",  # Simpro Core Messaging Repository - 05132026
-    "res-230f144aab93512e840167c4a25e60be": "guidance",  # Message House
-    "res-a5b3b47382b45490bf2bedbf16c0b76e": "guidance",  # Product Positioning
-    "res-69b54745e4715d75a655d5c86ba89c59": "guidance",  # Guardrails and Boundaries
-    "res-ac34fbe2f00a50a69522c0864226ffb8": "context",  # Core Value Pillars
-    # Audience
-    "res-dfc67c5cef87541d856a765f2747a2cb": "guidance",  # ICP and Customer Archetypes
-    "res-09b1f4509ed65855894bd5f481ec81b1": "guidance",  # Simpro Customer Personas
-    # Feature context: scheduling and dispatching, mobile field workflows
-    "res-1825898a11855f89be9bb69c544a6aa3": "context",  # Feature Datasheet Atlas
-    "res-33deaefa546b56358549b9dfe84f72c6": "context",  # Simpro Datasheet (NA).pdf
-    "res-f882ab230eb2563889e300d612c324bc": "context",  # Simpro Trade Services datasheet (US)
-    # Trades and vertical scope
-    "res-cb1c8e417b42532cb65e6e59893cf459": "context",  # Vertical Profile Library (wiki)
-    "res-ae4607729666509bb97813e66e18590b": "context",  # Simpro Group Vertical Profile Library - 06082026
-    # Customer proof routing context only (never public proof by itself)
-    "res-6716e1bab324565aa8a906b05b0aa502": "context",  # Quotes
+    # Resource roles are discovered and validated through the connector.
+    "res-e3ade596be645307ad4c1f84620ce021": "guidance",
+    "res-d31f057a305f51918055120d95b76c6a": "guidance",
+    "res-b34b392d22b9507089ade3fec47ee9e0": "context",
+    "res-339d828f9b875c738f530a65ccbc3587": "guidance",
+    "res-09ebfff123cb5c5496e60c3a759a263d": "context",
+    "res-230f144aab93512e840167c4a25e60be": "guidance",
+    "res-a5b3b47382b45490bf2bedbf16c0b76e": "guidance",
+    "res-69b54745e4715d75a655d5c86ba89c59": "guidance",
+    "res-ac34fbe2f00a50a69522c0864226ffb8": "context",
+    "res-dfc67c5cef87541d856a765f2747a2cb": "guidance",
+    "res-09b1f4509ed65855894bd5f481ec81b1": "guidance",
+    "res-1825898a11855f89be9bb69c544a6aa3": "context",
+    "res-33deaefa546b56358549b9dfe84f72c6": "context",
+    "res-f882ab230eb2563889e300d612c324bc": "context",
+    "res-cb1c8e417b42532cb65e6e59893cf459": "context",
+    "res-ae4607729666509bb97813e66e18590b": "context",
+    "res-6716e1bab324565aa8a906b05b0aa502": "context",
 }
 
 EXPAND_RESOURCE_IDS = [

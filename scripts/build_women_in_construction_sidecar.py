@@ -195,7 +195,7 @@ def main() -> int:
 - Vault connector evidence: vault_status ready; vault_describe inspected; natural-language vault_search, vault_read, and vault_expand completed; vault_claims checked; context_pack_hash={pack_hash}; receipt_hash={receipt_hash}; {rid}; manifest_revision={revisions['manifest_revision']}
 - Product/feature language applied: field service management software described as keeping quotes, schedules, jobs and invoices in one place for the office and the field; scheduling described as balancing crew workloads with capacity, travel and skills in one view; the field service mobile app described as carrying job notes, forms and photos for technicians; technology framed as support for technicians, not surveillance; no named feature or add-on, superiority, availability, or outcome claim.
 - Solution/industry language applied: trade contractors who self-perform field work on construction and service jobs; no general contractor, infrastructure construction, vertical leadership, or business-size claim.
-- Fallback context use: none
+- Local brand fallback: none
 - Claims requiring source verification: none
 - Status: aligned
 

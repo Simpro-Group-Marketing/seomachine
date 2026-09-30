@@ -9,10 +9,10 @@ from contextlib import nullcontext
 from datetime import date
 from typing import List, Optional, Sequence
 
-from .connector_inputs import _selector_input_snapshot
+from .connector_inputs import _load_json, _selector_input_snapshot
 from .contracts import (
-    DEFAULT_INDEX_PATH,
     DEFAULT_LEDGER_PATH,
+    LEGACY_INDEX_ERROR,
     SLATE_ROLES,
     CustomerProofDataError,
     FindingDict,
@@ -33,8 +33,7 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("topic", help="Topic or keyword to rank proof against.")
     parser.add_argument(
         "--index",
-        default=str(DEFAULT_INDEX_PATH),
-        help="Customer proof index JSON path.",
+        help=argparse.SUPPRESS,
     )
     parser.add_argument(
         "--ledger",
@@ -46,6 +45,14 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
     )
     parser.add_argument(
         "--context-receipt", help="simpro-context-receipt/v1 JSON path."
+    )
+    parser.add_argument(
+        "--claim-lookup-evidence",
+        help=(
+            "Optional simpro-customer-proof-claim-lookup/v1 JSON artifact "
+            "from live SimproVaultClient.claims calls when the current "
+            "connector receipt does not emit claim_searches."
+        ),
     )
     parser.add_argument(
         "--article-slug",
@@ -109,6 +116,8 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
         ),
     )
     args = parser.parse_args(argv)
+    if args.index:
+        parser.error(LEGACY_INDEX_ERROR)
     if args.evidence_output and not args.slate:
         parser.error("--evidence-output requires --slate")
     if args.allow_no_proof and not args.evidence_output:
@@ -127,12 +136,17 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
                     "--allow-no-proof requires --roles metric,quote,theme,experience_story"
                 )
             reference_date = date.today()
+            claim_lookup_payload = (
+                _load_json(args.claim_lookup_evidence, "customer proof claim lookup evidence")
+                if args.claim_lookup_evidence and not args.evidence_output
+                else None
+            )
             snapshot_context = (
                 _selector_input_snapshot(
-                    index_path=args.index,
                     ledger_path=args.ledger,
                     context_pack=args.context_pack,
                     context_receipt=args.context_receipt,
+                    claim_lookup_evidence=args.claim_lookup_evidence,
                 )
                 if args.evidence_output
                 else nullcontext(None)
@@ -141,7 +155,6 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
                 role_evidence: List[FindingDict] = []
                 slate = build_customer_proof_slate(
                     args.topic,
-                    index_path=args.index,
                     ledger_path=args.ledger,
                     context_pack=args.context_pack,
                     context_receipt=args.context_receipt,
@@ -155,6 +168,11 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
                     rejected_overrides=rejected_overrides,
                     allow_no_proof=args.allow_no_proof,
                     reference_date=reference_date,
+                    claim_lookup_evidence=(
+                        input_snapshot.claim_lookup
+                        if input_snapshot is not None
+                        else claim_lookup_payload
+                    ),
                     _role_evidence=role_evidence,
                     _input_snapshot=input_snapshot,
                 )
@@ -189,7 +207,6 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
         else:
             results = select_customer_proofs(
                 args.topic,
-                index_path=args.index,
                 ledger_path=args.ledger,
                 context_pack=args.context_pack,
                 context_receipt=args.context_receipt,
@@ -199,6 +216,14 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
                 require_eeat_story=args.require_eeat_story,
                 proof_role=args.proof_role,
                 limit=args.limit,
+                claim_lookup_evidence=(
+                    _load_json(
+                        args.claim_lookup_evidence,
+                        "customer proof claim lookup evidence",
+                    )
+                    if args.claim_lookup_evidence
+                    else None
+                ),
             )
             print(json.dumps({"topic": args.topic, "results": results}, indent=2))
     except CustomerProofDataError as exc:

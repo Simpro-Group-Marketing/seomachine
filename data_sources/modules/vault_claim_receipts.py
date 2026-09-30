@@ -7,7 +7,7 @@ import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Optional
+from typing import Any, Iterable, Mapping, Optional
 
 try:
     from .simpro_vault_client import SimproVaultClient, VaultClientError
@@ -39,6 +39,7 @@ class ApprovedClaim:
     claim_type: str = ""
     authority_resource_id: str = ""
     evidence_anchor: str = ""
+    evidence: Mapping[str, Any] | None = None
 
 
 class ValidatedClaimSet:
@@ -286,6 +287,7 @@ def _approved_claim_from_records(
         claim_type=claim_type,
         authority_resource_id=str(evidence.get("authority_resource_id") or "").strip(),
         evidence_anchor=str(evidence.get("evidence_anchor") or "").strip(),
+        evidence=dict(evidence),
     )
 
 

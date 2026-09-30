@@ -1,9 +1,9 @@
 """
-Customer Proof Index Intake
+Nonconnector Customer Proof Index Intake
 
-Validates compact CSV intake rows before they are merged into
-context/customer-proof-index.json. This keeps the curated proof index usable
-without turning it into a raw Quote Matrix or review-export mirror.
+Validates compact CSV intake rows before they are merged into the isolated
+nonconnector proof inventory. This tool is not a Simpro proof-authority path;
+Simpro proof candidates come from vault-approved claim searches.
 """
 
 from __future__ import annotations
@@ -607,17 +607,17 @@ def _summary(findings: Sequence[Finding]) -> Dict[str, Any]:
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Validate or merge customer proof index intake CSV rows.")
+    parser = argparse.ArgumentParser(description="Validate or merge nonconnector customer proof index intake CSV rows.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     validate = subparsers.add_parser("validate", help="Validate a proof intake CSV without writing files.")
     validate.add_argument("input_csv")
-    validate.add_argument("--index", default="context/customer-proof-index.json")
+    validate.add_argument("--index", default="config/nonvault-customer-proof-index.json")
 
     merge = subparsers.add_parser("merge", help="Validate and merge a proof intake CSV into an index JSON.")
     merge.add_argument("input_csv")
-    merge.add_argument("--index", default="context/customer-proof-index.json")
-    merge.add_argument("--out", default="context/customer-proof-index.json")
+    merge.add_argument("--index", default="config/nonvault-customer-proof-index.json")
+    merge.add_argument("--out", default="config/nonvault-customer-proof-index.json")
     return parser
 
 

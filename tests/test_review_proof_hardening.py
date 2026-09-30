@@ -99,7 +99,7 @@ def _review_row(url: str, **overrides) -> dict:
 
 
 def test_real_mixed_case_aroflo_and_clockshark_capterra_urls_are_eligible():
-    index = json.loads(Path("context/customer-proof-index.json").read_text(encoding="utf-8"))
+    index = json.loads(Path("config/nonvault-customer-proof-index.json").read_text(encoding="utf-8"))
     urls = {
         brand: next(
             row["public_url"] for row in index["proof"]

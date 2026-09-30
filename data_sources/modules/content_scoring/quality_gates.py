@@ -108,6 +108,7 @@ class QualityGatesMixin:
                 content,
                 source_path=source_path,
                 proof_content=proof_sidecar_content,
+                proof_sidecar_path=proof_sidecar_path,
             )
 
         source_support_findings = []

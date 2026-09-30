@@ -154,12 +154,18 @@ def _selector_evidence(path: Path) -> Path:
     return _write_json(
         path,
         {
-            "schema": "simpro-customer-proof-selector-evidence/v1",
+            "schema": "simpro-customer-proof-selector-evidence/v2",
             "inputs": {"roles": ["experience_story"]},
+            "artifacts": {
+                "context_pack": {"path": "research/context-pack.json", "sha256": "1" * 64},
+                "context_receipt": {"path": "research/context-receipt.json", "sha256": "2" * 64},
+                "ledger": {"path": "config/customer-proof-usage-ledger.json", "sha256": "3" * 64},
+            },
             "roles": [
                 {
                     "role": "experience_story",
-                    "candidate_ids": ["review-capterra-qbo-service-jobs-quotes-invoices"],
+                    "candidate_ids": ["claim-review-story-fixture"],
+                    "claim_ids": ["claim-review-story-fixture"],
                 }
             ],
         },
@@ -171,9 +177,14 @@ def _no_fit_selector_evidence(path: Path) -> Path:
     return _write_json(
         path,
         {
-            "schema": "simpro-customer-proof-selector-evidence/v1",
+            "schema": "simpro-customer-proof-selector-evidence/v2",
             "selection_outcome": "no_fit_customer_proof",
             "inputs": {"roles": ["metric", "quote", "theme", "experience_story"], "allow_no_proof": True},
+            "artifacts": {
+                "context_pack": {"path": "research/context-pack.json", "sha256": "1" * 64},
+                "context_receipt": {"path": "research/context-receipt.json", "sha256": "2" * 64},
+                "ledger": {"path": "config/customer-proof-usage-ledger.json", "sha256": "3" * 64},
+            },
             "roles": [
                 {"role": role, "candidate_ids": [], "claim_ids": [], "selected_id": "none", "no_fit_reason": reason}
                 for role in ("metric", "quote", "theme", "experience_story")

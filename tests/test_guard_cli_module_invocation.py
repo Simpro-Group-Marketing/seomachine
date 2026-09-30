@@ -44,6 +44,8 @@ def _documented_invocations():
         for path in sorted(doc_dir.rglob("*")):
             if not path.is_file() or path.suffix not in {".md", ".mdc"}:
                 continue
+            if "worktrees" in path.relative_to(ROOT).parts:
+                continue
             text = path.read_text(encoding="utf-8", errors="replace")
             for lineno, line in enumerate(text.splitlines(), start=1):
                 for match in SCRIPT_FORM_RE.finditer(line):

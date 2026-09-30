@@ -1,0 +1,1018 @@
+{
+    "schema":  "seomachine-nonvault-customer-proof-index/v1",
+    "version":  1,
+    "updated_at":  "2026-09-30",
+    "source_boundary":  "Approved public-source eligibility inventory for nonconnector AroFlo, BigChange, and ClockShark workflows only. This file cannot authorize Simpro content, brand language, product claims, customer proof, reviews, metrics, E-E-A-T, or approved claims.",
+    "proof":  [
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+
+                                          ],
+                      "company_size":  "unknown",
+                      "customer":  "Chesapeake Lawn and Home",
+                      "evidence":  "ClockShark page states: Learn how Chesapeake Lawn and Home eliminated Frustrating Timekeeping and Payroll Issues with the ClockShark app. Page headings include Integrating Payroll and Time Tracking and Easy Time Tracking for Mobile Crews.",
+                      "industry":  [
+                                       "lawn care",
+                                       "landscaping",
+                                       "field service"
+                                   ],
+                      "internal_source_ref":  "ClockShark public success story page",
+                      "last_verified":  "2026-06-26",
+                      "proof_id":  "clockshark-customer-story-chesapeake-lawn-home",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.clockshark.com/testimonials/chesapeake-lawn-and-home",
+                      "region":  [
+                                     "US"
+                                 ],
+                      "restrictions":  [
+                                           "Use only as paraphrased ClockShark customer-story proof. Do not use exact quote wording, monthly savings claims, employee count, ratings, rankings, or named-person quote attribution without separate approved quote or metric rows."
+                                       ],
+                      "review_story":  {
+                                           "business_name":  "Chesapeake Lawn and Home",
+                                           "copy_use":  "E-E-A-T experience story",
+                                           "identity_display":  "Chesapeake Lawn and Home",
+                                           "identity_type":  "business",
+                                           "objective_fit":  [
+                                                                 "landscaping marketing operations",
+                                                                 "crew capacity",
+                                                                 "lead handling"
+                                                             ],
+                                           "platform":  "ClockShark customer story",
+                                           "public_url":  "https://www.clockshark.com/testimonials/chesapeake-lawn-and-home",
+                                           "role_title":  "ClockShark customer story",
+                                           "source_row_ref":  "ClockShark public success story page",
+                                           "story_allowed":  true,
+                                           "verification_status":  "public ClockShark customer story page",
+                                           "workflow_story":  "Chesapeake Lawn and Home uses ClockShark for payroll, QuickBooks integration, and mobile crew timekeeping workflows."
+                                       },
+                      "source_type":  "customer_story",
+                      "themes":  [
+                                     "mobile crew timekeeping",
+                                     "payroll workflow",
+                                     "field crew operations"
+                                 ],
+                      "workflow_fit":  [
+                                           "time tracking",
+                                           "payroll",
+                                           "mobile crews",
+                                           "QuickBooks integration"
+                                       ]
+                  },
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+
+                                          ],
+                      "company_size":  "2-10 employees",
+                      "customer":  "Capterra ClockShark construction estimator review",
+                      "evidence":  "Capterra public review page shows Marvin E., verified user, estimator in construction, 2-10 employees, used ClockShark for 1-2 years; review discusses field team time management and office payment processing accuracy through time tracking and attendance verification.",
+                      "industry":  [
+                                       "construction",
+                                       "field service"
+                                   ],
+                      "internal_source_ref":  "Capterra public ClockShark reviews page, Marvin E. review, checked 2026-06-29",
+                      "last_verified":  "2026-06-29",
+                      "proof_id":  "review-capterra-clockshark-marvin-estimator-construction-payment-records",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.capterra.com/p/155467/ClockShark/reviews/",
+                      "region":  [
+                                     "unknown"
+                                 ],
+                      "restrictions":  [
+                                           "Use only as paraphrased review-story evidence. Do not use exact review wording, ratings, rankings, aggregate review claims, or metric claims."
+                                       ],
+                      "review_story":  {
+                                           "copy_use":  "paraphrased E-E-A-T story with same-paragraph source link",
+                                           "identity_display":  "Marvin E.",
+                                           "identity_type":  "person",
+                                           "objective_fit":  [
+                                                                 "draw documentation",
+                                                                 "field progress evidence",
+                                                                 "payment timing",
+                                                                 "construction office handoff"
+                                                             ],
+                                           "person_name":  "Marvin E.",
+                                           "platform":  "Capterra",
+                                           "public_url":  "https://www.capterra.com/p/155467/ClockShark/reviews/",
+                                           "role_title":  "Estimator",
+                                           "source_row_ref":  "Capterra public ClockShark reviews page, Marvin E. review, checked 2026-06-29",
+                                           "story_allowed":  true,
+                                           "verification_status":  "public Capterra review page",
+                                           "workflow_story":  "Estimator in construction describes ClockShark helping field teams manage time while office teams process payments more accurately through time tracking and attendance verification."
+                                       },
+                      "source_type":  "review_site",
+                      "themes":  [
+                                     "field time records",
+                                     "attendance verification",
+                                     "office payment accuracy",
+                                     "construction crew management"
+                                 ],
+                      "workflow_fit":  [
+                                           "time tracking",
+                                           "attendance verification",
+                                           "field-to-office records",
+                                           "payment processing",
+                                           "construction operations"
+                                       ]
+                  },
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+
+                                          ],
+                      "company_size":  "11-50 employees",
+                      "customer":  "Capterra AroFlo business-owner review",
+                      "evidence":  "Capterra AroFlo review page shows Gill M., verified user, business owner in construction, 11-50 employees, used AroFlo for more than two years. The review describes a maintenance plumbing business using AroFlo for scheduling, inventory control, integrations, and more accurate time-and-material billing.",
+                      "industry":  [
+                                       "construction",
+                                       "plumbing",
+                                       "field service"
+                                   ],
+                      "internal_source_ref":  "Capterra AroFlo reviews page, Gill M. review, checked 2026-06-29 via public Capterra result and live page URL",
+                      "last_verified":  "2026-06-29",
+                      "proof_id":  "review-capterra-aroflo-gill-maintenance-plumbing-billing",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.capterra.com/p/166811/AroFlo/reviews/",
+                      "region":  [
+                                     "unknown"
+                                 ],
+                      "restrictions":  [
+                                           "Use only as paraphrased review-story evidence. Do not use exact review wording, ratings, rankings, aggregate review claims, profit metrics, or named reviewer claims in public copy."
+                                       ],
+                      "review_story":  {
+                                           "copy_use":  "paraphrased E-E-A-T story with same-paragraph public review link",
+                                           "identity_display":  "Gill M.",
+                                           "identity_type":  "person",
+                                           "objective_fit":  [
+                                                                 "plumbing pricing",
+                                                                 "job accuracy",
+                                                                 "margin protection",
+                                                                 "time and material billing"
+                                                             ],
+                                           "person_name":  "Gill M.",
+                                           "platform":  "Capterra",
+                                           "public_url":  "https://www.capterra.com/p/166811/AroFlo/reviews/",
+                                           "role_title":  "Business Owner",
+                                           "source_row_ref":  "Capterra AroFlo reviews page, Gill M. review, checked 2026-06-29",
+                                           "story_allowed":  true,
+                                           "verification_status":  "public Capterra review page",
+                                           "workflow_story":  "Business owner describes a maintenance plumbing business using AroFlo to connect scheduling, inventory control, integrations, and more accurate time-and-material billing."
+                                       },
+                      "source_type":  "review_site",
+                      "themes":  [
+                                     "maintenance plumbing workflow",
+                                     "scheduling and inventory control",
+                                     "time and material billing accuracy",
+                                     "connected operating data"
+                                 ],
+                      "workflow_fit":  [
+                                           "maintenance plumbing",
+                                           "scheduling",
+                                           "inventory control",
+                                           "integrations",
+                                           "time and material billing",
+                                           "job accuracy"
+                                       ]
+                  },
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+
+                                          ],
+                      "customer":  "HTF Transport",
+                      "evidence":  "Public page covers job scheduling, live tracking, financial management, business intelligence, customer updates, route planning, and ETA workflows for HTF Transport.",
+                      "industry":  [
+                                       "transport",
+                                       "specialist lifting"
+                                   ],
+                      "internal_source_ref":  "BigChange public success story",
+                      "last_verified":  "2026-06-29",
+                      "proof_id":  "bigchange-customer-story-htf-transport-job-scheduling",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.bigchange.com/success-stories/htf-lifts-weight-of-business-expansion-with-bigchange",
+                      "region":  [
+                                     "UK"
+                                 ],
+                      "restrictions":  [
+                                           "Do not use exact quotes, named metrics, ratings, rankings, or testimonial language without separate approved evidence in the validation sidecar."
+                                       ],
+                      "review_story":  {
+                                           "copy_use":  "paraphrased customer-story workflow only after proof mining",
+                                           "objective_fit":  [
+                                                                 "job scheduling",
+                                                                 "route planning",
+                                                                 "mobile workforce",
+                                                                 "customer communication"
+                                                             ],
+                                           "story_allowed":  false,
+                                           "verification_status":  "brand-captured public source"
+                                       },
+                      "source_type":  "customer_story",
+                      "themes":  [
+                                     "BigChange public customer story for scheduling and mobile operations"
+                                 ],
+                      "workflow_fit":  [
+                                           "job scheduling",
+                                           "route planning",
+                                           "mobile workforce",
+                                           "customer communication",
+                                           "business intelligence"
+                                       ]
+                  },
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+
+                                          ],
+                      "customer":  "Hodge Clemco",
+                      "evidence":  "Public page covers paperless job management, job sheets, scheduling, customer portal, invoicing, and stock updates for Hodge Clemco.",
+                      "industry":  [
+                                       "surface treatment",
+                                       "engineering services"
+                                   ],
+                      "internal_source_ref":  "BigChange public success story",
+                      "last_verified":  "2026-06-29",
+                      "proof_id":  "bigchange-customer-story-hodge-clemco-paperless-jobs",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.bigchange.com/success-stories/hodge-clemco-rolls-out-paperless-working-with-bigchange",
+                      "region":  [
+                                     "UK"
+                                 ],
+                      "restrictions":  [
+                                           "Do not use exact quotes, named metrics, ratings, rankings, or testimonial language without separate approved evidence in the validation sidecar."
+                                       ],
+                      "review_story":  {
+                                           "copy_use":  "paraphrased customer-story workflow only after proof mining",
+                                           "objective_fit":  [
+                                                                 "paperless jobs",
+                                                                 "scheduling",
+                                                                 "invoicing",
+                                                                 "customer portal"
+                                                             ],
+                                           "story_allowed":  false,
+                                           "verification_status":  "brand-captured public source"
+                                       },
+                      "source_type":  "customer_story",
+                      "themes":  [
+                                     "BigChange public customer story for paperless field-service workflow"
+                                 ],
+                      "workflow_fit":  [
+                                           "paperless job management",
+                                           "job sheets",
+                                           "scheduling",
+                                           "customer portal",
+                                           "invoicing",
+                                           "stock updates"
+                                       ]
+                  },
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+
+                                          ],
+                      "customer":  "Blackhall",
+                      "evidence":  "Public page covers CRM, scheduling, routing, resource management, job finance, invoicing, payment, and real-time tracking for Blackhall.",
+                      "industry":  [
+                                       "plumbing",
+                                       "heating",
+                                       "electrical services"
+                                   ],
+                      "internal_source_ref":  "BigChange public success story",
+                      "last_verified":  "2026-06-29",
+                      "proof_id":  "bigchange-customer-story-blackhall-plumbing-job-lifecycle",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.bigchange.com/success-stories/bigchange-secures-sustainable-future-of-edinburghs-oldest-plumbing-company",
+                      "region":  [
+                                     "UK"
+                                 ],
+                      "restrictions":  [
+                                           "Do not use exact quotes, named metrics, ratings, rankings, or testimonial language without separate approved evidence in the validation sidecar."
+                                       ],
+                      "review_story":  {
+                                           "copy_use":  "paraphrased customer-story workflow only after proof mining",
+                                           "objective_fit":  [
+                                                                 "end-to-end job lifecycle",
+                                                                 "scheduling",
+                                                                 "invoicing",
+                                                                 "payment"
+                                                             ],
+                                           "story_allowed":  false,
+                                           "verification_status":  "brand-captured public source"
+                                       },
+                      "source_type":  "customer_story",
+                      "themes":  [
+                                     "BigChange public customer story for job lifecycle workflow"
+                                 ],
+                      "workflow_fit":  [
+                                           "CRM",
+                                           "scheduling",
+                                           "routing",
+                                           "job finance",
+                                           "invoicing",
+                                           "payment",
+                                           "real-time tracking"
+                                       ]
+                  },
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+
+                                          ],
+                      "customer":  "Precision FM",
+                      "evidence":  "Public page covers schedules, resource skills, routing issues, job histories, a customer portal, invoices, and SLAs for Precision FM.",
+                      "industry":  [
+                                       "facilities management"
+                                   ],
+                      "internal_source_ref":  "BigChange public case study",
+                      "last_verified":  "2026-06-29",
+                      "proof_id":  "bigchange-customer-story-precision-fm-scheduling-sla",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.bigchange.com/case-study/precision-fm-drives-sustainability-with-bigchange-field-service-tech",
+                      "region":  [
+                                     "UK"
+                                 ],
+                      "restrictions":  [
+                                           "Do not use exact quotes, named metrics, ratings, rankings, or testimonial language without separate approved evidence in the validation sidecar."
+                                       ],
+                      "review_story":  {
+                                           "copy_use":  "paraphrased customer-story workflow only after proof mining",
+                                           "objective_fit":  [
+                                                                 "resource scheduling",
+                                                                 "maintenance workflow",
+                                                                 "customer portal",
+                                                                 "invoicing",
+                                                                 "SLA tracking"
+                                                             ],
+                                           "story_allowed":  false,
+                                           "verification_status":  "brand-captured public source"
+                                       },
+                      "source_type":  "customer_story",
+                      "themes":  [
+                                     "BigChange public customer story for facilities management scheduling"
+                                 ],
+                      "workflow_fit":  [
+                                           "resource scheduling",
+                                           "engineer skills",
+                                           "route planning",
+                                           "job history",
+                                           "customer portal",
+                                           "invoicing",
+                                           "SLA tracking"
+                                       ]
+                  },
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+
+                                          ],
+                      "company_size":  "11-50 employees",
+                      "customer":  "Capterra BigChange office-manager review",
+                      "evidence":  "Capterra public BigChange page shows Alexina, office manager in construction, 11-50 employees, used BigChange for 2+ years; review describes moving from sticky notes and manual engineer job sheets to one system covering enquiry, quotes, installs, service jobs, invoicing, payment chasing, stock control, and reporting.",
+                      "industry":  [
+                                       "construction",
+                                       "field service"
+                                   ],
+                      "internal_source_ref":  "Capterra Canada BigChange reviews page, Alexina review, checked 2026-06-29",
+                      "last_verified":  "2026-06-29",
+                      "proof_id":  "review-capterra-bigchange-alexina-office-manager-job-lifecycle",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.capterra.ca/software/149479/jobwatch-powered-by-bigchange",
+                      "region":  [
+                                     "UK"
+                                 ],
+                      "restrictions":  [
+                                           "Use only as paraphrased review-story evidence. Do not use exact review wording, ratings, rankings, aggregate review claims, or metric claims."
+                                       ],
+                      "review_story":  {
+                                           "copy_use":  "paraphrased E-E-A-T story with same-paragraph public review link",
+                                           "identity_display":  "Alexina",
+                                           "identity_type":  "person",
+                                           "objective_fit":  [
+                                                                 "job scheduling",
+                                                                 "job management",
+                                                                 "field-office handoff",
+                                                                 "invoicing",
+                                                                 "payment follow-up"
+                                                             ],
+                                           "person_name":  "Alexina",
+                                           "platform":  "Capterra",
+                                           "public_url":  "https://www.capterra.ca/software/149479/jobwatch-powered-by-bigchange",
+                                           "role_title":  "Office Manager",
+                                           "source_row_ref":  "Capterra Canada BigChange reviews page, Alexina review, checked 2026-06-29",
+                                           "story_allowed":  true,
+                                           "verification_status":  "public Capterra Canada review page",
+                                           "workflow_story":  "Office manager in construction describes BigChange replacing manual notes and engineer job sheets with one workflow for enquiries, quotes, installs, service jobs, invoices, payment follow-up, stock, and reports."
+                                       },
+                      "source_type":  "review_site",
+                      "themes":  [
+                                     "Capterra review story for BigChange end-to-end job workflow"
+                                 ],
+                      "workflow_fit":  [
+                                           "job scheduling",
+                                           "job management",
+                                           "quote-to-job-to-invoice",
+                                           "payment follow-up",
+                                           "stock control",
+                                           "reporting"
+                                       ]
+                  },
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+
+                                          ],
+                      "company_size":  "11-50 employees",
+                      "customer":  "Capterra BigChange company-secretary review",
+                      "evidence":  "Capterra public BigChange page shows Hannah, company secretary in UK construction with 11-50 employees; review describes BigChange bringing CRM, vehicle tracking, job and scheduler management, a fieldworker app, and finance-related workflow into one system.",
+                      "industry":  [
+                                       "construction",
+                                       "field service"
+                                   ],
+                      "internal_source_ref":  "Playwright MCP snapshot research/capterra-bigchange-5star-full-snapshot.md lines 219-252, checked 2026-06-30",
+                      "last_verified":  "2026-06-30",
+                      "proof_id":  "review-capterra-bigchange-hannah-construction-one-system-workflow",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.capterra.ca/software/149479/jobwatch-powered-by-bigchange",
+                      "region":  [
+                                     "UK"
+                                 ],
+                      "restrictions":  [
+                                           "Use only as paraphrased review-story evidence. Do not use exact review wording, ratings, rankings, aggregate review claims, or metric claims."
+                                       ],
+                      "review_story":  {
+                                           "copy_use":  "paraphrased E-E-A-T story with same-paragraph public review link",
+                                           "identity_display":  "Hannah",
+                                           "identity_type":  "person",
+                                           "objective_fit":  [
+                                                                 "live job tracking",
+                                                                 "job scheduling",
+                                                                 "field-office handoff",
+                                                                 "finance workflow",
+                                                                 "one operating view"
+                                                             ],
+                                           "person_name":  "Hannah",
+                                           "platform":  "Capterra",
+                                           "public_url":  "https://www.capterra.ca/software/149479/jobwatch-powered-by-bigchange",
+                                           "role_title":  "Company Secretary",
+                                           "source_row_ref":  "Playwright MCP Capterra BigChange page, Hannah review, checked 2026-06-30",
+                                           "story_allowed":  true,
+                                           "verification_status":  "public Capterra Canada review page verified by Playwright MCP",
+                                           "workflow_story":  "Company secretary in UK construction describes BigChange bringing CRM, vehicle tracking, job and scheduler management, fieldworker app, and finance-related workflow into one system."
+                                       },
+                      "source_type":  "review_site",
+                      "themes":  [
+                                     "BigChange one-system operating workflow",
+                                     "connected job scheduling and finance visibility"
+                                 ],
+                      "workflow_fit":  [
+                                           "CRM",
+                                           "vehicle tracking",
+                                           "job scheduling",
+                                           "job management",
+                                           "fieldworker app",
+                                           "finance workflow"
+                                       ]
+                  },
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+
+                                          ],
+                      "customer":  "Mabry\u0027s Electrical Service",
+                      "evidence":  "The public ClockShark story identifies Mabry\u0027s Electrical Service and describes manual rounding, lost job sheets, known buddy punching, several employee meetings and protocol changes, and the company\u0027s report that buddy punching stopped after it adopted ClockShark.",
+                      "industry":  [
+                                       "electrical",
+                                       "field service"
+                                   ],
+                      "internal_source_ref":  "ClockShark public customer success story checked 2026-08-28",
+                      "last_verified":  "2026-08-28",
+                      "proof_id":  "clockshark-customer-story-mabrys-electrical-service",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.clockshark.com/testimonials/mabry-s-electrical-service-inc",
+                      "region":  [
+                                     "US"
+                                 ],
+                      "restrictions":  [
+                                           "Use only as a paraphrased and attributed customer experience. Do not use exact quotes, named-person attribution, customer metrics, ratings, aggregate claims, guarantees, or typical-results language."
+                                       ],
+                      "review_story":  {
+                                           "business_name":  "Mabry\u0027s Electrical Service",
+                                           "copy_use":  "paraphrased E-E-A-T customer story with same-paragraph public link",
+                                           "identity_display":  "Mabry\u0027s Electrical Service",
+                                           "identity_type":  "business",
+                                           "objective_fit":  [
+                                                                 "employee time theft",
+                                                                 "buddy punching prevention",
+                                                                 "fair timekeeping controls"
+                                                             ],
+                                           "platform":  "ClockShark customer story",
+                                           "public_url":  "https://www.clockshark.com/testimonials/mabry-s-electrical-service-inc",
+                                           "source_row_ref":  "ClockShark public customer success story checked 2026-08-28",
+                                           "story_allowed":  true,
+                                           "verification_status":  "public ClockShark customer story page",
+                                           "workflow_story":  "Mabry\u0027s Electrical Service describes manual rounding, lost job sheets, buddy punching, employee meetings, and the reported change after digital timekeeping."
+                                       },
+                      "source_type":  "customer_story",
+                      "themes":  [
+                                     "buddy punching prevention",
+                                     "lost job sheets",
+                                     "policy and time-record controls"
+                                 ],
+                      "workflow_fit":  [
+                                           "employee time theft",
+                                           "buddy punching",
+                                           "manual timekeeping",
+                                           "payroll",
+                                           "digital time records"
+                                       ]
+                  },
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+
+                                          ],
+                      "customer":  "CC Infrastructure Services (CC-IS)",
+                      "evidence":  "CC Infrastructure Services moved from weekly folders of paper worksheets distributed to regional teams and returned for office processing to electronically transmitted records including worksheets and digital job cards with before-and-after photographs.",
+                      "industry":  [
+                                       "Specialist cleaning"
+                                   ],
+                      "internal_source_ref":  "BigChange public success story",
+                      "last_verified":  "2026-08-28",
+                      "proof_id":  "bigchange-customer-story-cc-is-paperless-job-cards",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.bigchange.com/success-stories/cc-is-cleans-up-with-bigchange-paperless-working",
+                      "region":  [
+                                     "UK"
+                                 ],
+                      "restrictions":  [
+                                           "Do not use exact quotes",
+                                           "Do not use customer metrics",
+                                           "Do not use ratings or stars",
+                                           "Do not use named-person attribution",
+                                           "Do not claim compliance outcomes",
+                                           "Do not claim guaranteed or typical results",
+                                           "Do not make unsupported causal or comparative claims."
+                                       ],
+                      "review_story":  {
+                                           "business_name":  "CC Infrastructure Services (CC-IS)",
+                                           "copy_use":  "Paraphrased customer-story workflow only with same-paragraph public customer-story link.",
+                                           "identity_display":  "CC Infrastructure Services (CC-IS)",
+                                           "identity_type":  "business",
+                                           "objective_fit":  [
+                                                                 "job sheets",
+                                                                 "paperless field records",
+                                                                 "field-office handoff",
+                                                                 "digital job cards",
+                                                                 "before-and-after photographs"
+                                                             ],
+                                           "platform":  "BigChange customer story",
+                                           "public_url":  "https://www.bigchange.com/success-stories/cc-is-cleans-up-with-bigchange-paperless-working",
+                                           "source_row_ref":  "BigChange public success story for CC Infrastructure Services (CC-IS)",
+                                           "story_allowed":  true,
+                                           "verification_status":  "BigChange public customer story verified 2026-08-28",
+                                           "workflow_story":  "Specialist cleaning business describes paper worksheets moving between regional teams and office processing before electronically transmitted records and digital job cards with before-and-after photographs."
+                                       },
+                      "source_type":  "customer_story",
+                      "themes":  [
+                                     "job sheets",
+                                     "paperless field records",
+                                     "field-office handoff",
+                                     "digital job cards",
+                                     "before-and-after photographs"
+                                 ],
+                      "workflow_fit":  [
+                                           "job sheets",
+                                           "paperless field records",
+                                           "field-office handoff",
+                                           "digital job cards",
+                                           "before-and-after photographs"
+                                       ]
+                  },
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+
+                                          ],
+                      "company_size":  "SME",
+                      "customer":  "Trent\u0027s Drains",
+                      "evidence":  "Trent\u0027s Drains public success story describes previous cardboard job sheets, Word quotes, Excel job histories and WhatsApp images; it also describes mountains of job cards that had to be scanned and matched to quotes, purchase orders and photos, plus customisable job cards or templates for different job types and customer reporting.",
+                      "industry":  [
+                                       "Drainage, waste and environmental"
+                                   ],
+                      "internal_source_ref":  "BigChange public success story",
+                      "last_verified":  "2026-08-31",
+                      "proof_id":  "bigchange-customer-story-trents-drains-digital-job-cards",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.bigchange.com/success-stories/trents-drains-remove-job-management-blockages-with-bigchange-software",
+                      "region":  [
+                                     "UK"
+                                 ],
+                      "restrictions":  [
+                                           "Do not use exact quotes",
+                                           "Do not use customer metrics",
+                                           "Do not use ratings or stars",
+                                           "Do not use named-person attribution",
+                                           "Do not claim guaranteed or typical results",
+                                           "Do not make unsupported causal or comparative claims",
+                                           "Do not publish productivity, turnover, vehicle, savings or more-jobs claims."
+                                       ],
+                      "review_story":  {
+                                           "business_name":  "Trent\u0027s Drains",
+                                           "copy_use":  "Paraphrased customer-story workflow only with same-paragraph public customer-story link.",
+                                           "identity_display":  "Trent\u0027s Drains",
+                                           "identity_type":  "business",
+                                           "objective_fit":  [
+                                                                 "job sheet templates",
+                                                                 "digital job cards",
+                                                                 "purchase-order handoff",
+                                                                 "photos",
+                                                                 "customer reporting"
+                                                             ],
+                                           "platform":  "BigChange customer story",
+                                           "public_url":  "https://www.bigchange.com/success-stories/trents-drains-remove-job-management-blockages-with-bigchange-software",
+                                           "role_title":  "BigChange customer story",
+                                           "source_row_ref":  "BigChange public success story for Trent\u0027s Drains",
+                                           "story_allowed":  true,
+                                           "verification_status":  "BigChange public customer story verified 2026-08-31",
+                                           "workflow_story":  "Drainage business describes moving from cardboard job sheets, Word and Excel records and WhatsApp images toward customisable digital job cards or templates that support purchase orders, photos and client reporting."
+                                       },
+                      "source_type":  "customer_story",
+                      "themes":  [
+                                     "job sheet templates",
+                                     "customisable job cards",
+                                     "purchase-order handoff",
+                                     "photo evidence",
+                                     "customer reporting"
+                                 ],
+                      "workflow_fit":  [
+                                           "job sheets",
+                                           "digital job cards",
+                                           "purchase orders",
+                                           "photos",
+                                           "customer reporting",
+                                           "back-office administration"
+                                       ]
+                  },
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+
+                                          ],
+                      "company_size":  "SME",
+                      "customer":  "WarmZilla",
+                      "evidence":  "WarmZilla public success story describes pre and post implementation job sheets being digitally produced and sent to engineers through the app; once completed onsite with date, time and location-stamped photographs and a customer signature, the records are shared with the back-office system for invoicing and customer follow-up.",
+                      "industry":  [
+                                       "Plumbing, heating and HVAC"
+                                   ],
+                      "internal_source_ref":  "BigChange public success story",
+                      "last_verified":  "2026-08-31",
+                      "proof_id":  "bigchange-customer-story-warmzilla-digital-job-sheet-lifecycle",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.bigchange.com/success-stories/warmzilla-puts-bigchange-at-the-heart-of-online-heating-revolution",
+                      "region":  [
+                                     "UK"
+                                 ],
+                      "restrictions":  [
+                                           "Do not use exact quotes",
+                                           "Do not use customer metrics",
+                                           "Do not use ratings or stars",
+                                           "Do not use named-person attribution",
+                                           "Do not claim guaranteed or typical results",
+                                           "Do not make unsupported causal or comparative claims",
+                                           "Do not publish productivity, growth, installer-network or jobs-per-week claims."
+                                       ],
+                      "review_story":  {
+                                           "business_name":  "WarmZilla",
+                                           "copy_use":  "Paraphrased customer-story workflow only with same-paragraph public customer-story link.",
+                                           "identity_display":  "WarmZilla",
+                                           "identity_type":  "business",
+                                           "objective_fit":  [
+                                                                 "digital job sheets",
+                                                                 "field-to-office workflow",
+                                                                 "photo evidence",
+                                                                 "customer signature",
+                                                                 "invoicing handoff"
+                                                             ],
+                                           "platform":  "BigChange customer story",
+                                           "public_url":  "https://www.bigchange.com/success-stories/warmzilla-puts-bigchange-at-the-heart-of-online-heating-revolution",
+                                           "role_title":  "BigChange customer story",
+                                           "source_row_ref":  "BigChange public success story for WarmZilla",
+                                           "story_allowed":  true,
+                                           "verification_status":  "BigChange public customer story verified 2026-08-31",
+                                           "workflow_story":  "Heating and home-services business describes digital job sheets moving from engineer assignment through onsite photographs and customer signature into back-office invoicing and customer follow-up."
+                                       },
+                      "source_type":  "customer_story",
+                      "themes":  [
+                                     "digital job sheets",
+                                     "field-to-office workflow",
+                                     "photo evidence",
+                                     "customer signature",
+                                     "invoicing handoff"
+                                 ],
+                      "workflow_fit":  [
+                                           "job sheets",
+                                           "mobile workforce app",
+                                           "field-office handoff",
+                                           "photographs",
+                                           "customer signature",
+                                           "invoicing",
+                                           "follow-up"
+                                       ]
+                  },
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+
+                                          ],
+                      "company_size":  "SME",
+                      "customer":  "Clearground",
+                      "evidence":  "The public BigChange customer story states that Clearground uses customised dynamic risk assessments and makes their completion on site mandatory so operatives consider the environment and risks before working.",
+                      "industry":  [
+                                       "grounds maintenance",
+                                       "facilities management",
+                                       "field service"
+                                   ],
+                      "internal_source_ref":  "BigChange public Clearground customer story, checked 2026-09-25",
+                      "last_verified":  "2026-09-25",
+                      "proof_id":  "bigchange-customer-story-clearground-dynamic-risk-assessments",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.bigchange.com/success-stories/bigchange-helps-clearground-clean-up-on-workforce-health-and-safety",
+                      "region":  [
+                                     "UK"
+                                 ],
+                      "restrictions":  [
+                                           "Paraphrase the workflow only with a same-paragraph public customer-story link. Do not use exact quotes, named-person attribution, metrics, certification claims, comparative superiority, or measured safety outcomes."
+                                       ],
+                      "review_story":  {
+                                           "business_name":  "Clearground",
+                                           "copy_use":  "Paraphrased customer-story workflow only with same-paragraph public customer-story link.",
+                                           "identity_display":  "Clearground",
+                                           "identity_type":  "business",
+                                           "objective_fit":  [
+                                                                 "workplace risk assessment",
+                                                                 "dynamic risk assessment",
+                                                                 "point-of-work safety",
+                                                                 "field service compliance"
+                                                             ],
+                                           "platform":  "BigChange customer story",
+                                           "public_url":  "https://www.bigchange.com/success-stories/bigchange-helps-clearground-clean-up-on-workforce-health-and-safety",
+                                           "role_title":  "BigChange customer story",
+                                           "source_row_ref":  "BigChange public Clearground customer story, checked 2026-09-25",
+                                           "story_allowed":  true,
+                                           "verification_status":  "BigChange public customer story verified 2026-09-25",
+                                           "workflow_story":  "Facilities-maintenance business uses customised dynamic risk assessments and requires operatives to complete them on site before work."
+                                       },
+                      "source_type":  "customer_story",
+                      "themes":  [
+                                     "mandatory on-site dynamic risk assessments",
+                                     "field-operatives considering site conditions before work"
+                                 ],
+                      "workflow_fit":  [
+                                           "workplace risk assessment",
+                                           "dynamic risk assessment",
+                                           "point-of-work safety",
+                                           "field service compliance"
+                                       ]
+                  },
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+
+                                          ],
+                      "customer":  "Clearground",
+                      "evidence":  "The ability to create customised, dynamic risk assessments and make their completion on-site mandatory goes beyond other systems we looked at.",
+                      "industry":  [
+                                       "waste management",
+                                       "window cleaning",
+                                       "drainage",
+                                       "field service"
+                                   ],
+                      "internal_source_ref":  "BigChange success story page read in Chrome 2026-09-24",
+                      "last_verified":  "2026-09-24",
+                      "proof_id":  "bigchange-clearground-dynamic-risk-assessments",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.bigchange.com/success-stories/bigchange-helps-clearground-clean-up-on-workforce-health-and-safety",
+                      "region":  [
+                                     "UK"
+                                 ],
+                      "restrictions":  [
+                                           "Paraphrased story use only",
+                                           "no exact quote or metric",
+                                           "do not imply COSHH-specific compliance outcomes."
+                                       ],
+                      "review_story":  {
+                                           "story_allowed":  false
+                                       },
+                      "source_type":  "case_study",
+                      "themes":  [
+                                     "mandatory on-site dynamic risk assessments before work"
+                                 ],
+                      "workflow_fit":  [
+                                           "risk assessment",
+                                           "health and safety",
+                                           "mobile workforce"
+                                       ]
+                  },
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+
+                                          ],
+                      "customer":  "Rilmac",
+                      "evidence":  "BigChange ensures that we not only adhere to these regulations in the field we can also prove compliance.",
+                      "industry":  [
+                                       "asbestos services",
+                                       "construction",
+                                       "field service"
+                                   ],
+                      "internal_source_ref":  "BigChange success story page read in Chrome 2026-09-24",
+                      "last_verified":  "2026-09-24",
+                      "proof_id":  "bigchange-rilmac-prove-compliance-hse-inspection",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.bigchange.com/success-stories/bigchange-removes-inefficiency-for-rilmac-asbestos-services-division",
+                      "region":  [
+                                     "UK"
+                                 ],
+                      "restrictions":  [
+                                           "Paraphrased story use only",
+                                           "no exact quote or metric",
+                                           "asbestos regime (not COSHH)",
+                                           "do not imply COSHH-specific compliance."
+                                       ],
+                      "review_story":  {
+                                           "story_allowed":  false
+                                       },
+                      "source_type":  "case_study",
+                      "themes":  [
+                                     "proving field compliance with guided step-by-step workflows"
+                                 ],
+                      "workflow_fit":  [
+                                           "compliance evidence",
+                                           "step-by-step field workflows",
+                                           "health and safety inspection"
+                                       ]
+                  },
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+
+                                          ],
+                      "company_size":  "11-50 employees",
+                      "customer":  "Capterra BigChange HSEQ-manager review",
+                      "evidence":  "you can design to meet your company needs for policies, procedures, health \u0026 safety",
+                      "industry":  [
+                                       "construction",
+                                       "field service"
+                                   ],
+                      "internal_source_ref":  "research/source-captures/coshh-regulations-2026-09-24/capterra-uk-bigchange-clare-hseq-page-6.md",
+                      "last_verified":  "2026-09-24",
+                      "proof_id":  "review-capterra-bigchange-clare-hseq-health-safety-worksheets",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange",
+                      "region":  [
+                                     "UK"
+                                 ],
+                      "restrictions":  [
+                                           "Paraphrased review-story use only. No exact review wording, ratings, rankings, aggregate review claims, or metric claims. Review dated 2021-01-13: frame as workflow experience, not current product status."
+                                       ],
+                      "review_story":  {
+                                           "copy_use":  "paraphrased E-E-A-T story with same-paragraph public review link",
+                                           "identity_display":  "Clare",
+                                           "identity_type":  "person",
+                                           "objective_fit":  [
+                                                                 "health and safety",
+                                                                 "worksheets",
+                                                                 "risk assessment"
+                                                             ],
+                                           "person_name":  "Clare",
+                                           "platform":  "Capterra",
+                                           "public_url":  "https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange",
+                                           "role_title":  "HSEQ Manager",
+                                           "source_row_ref":  "Capterra UK BigChange reviews page 6, Clare review dated 13 January 2021, captured 2026-09-24",
+                                           "story_allowed":  true,
+                                           "verification_status":  "public Capterra UK review page captured in Chrome",
+                                           "workflow_story":  "HSEQ manager in UK construction describes designing company policies, procedures, and health and safety worksheets in house in BigChange without software engineers."
+                                       },
+                      "source_type":  "review_site",
+                      "themes":  [
+                                     "health and safety worksheets built in house"
+                                 ],
+                      "workflow_fit":  [
+                                           "health and safety",
+                                           "worksheets",
+                                           "policies and procedures"
+                                       ]
+                  },
+                  {
+                      "approval_status":  "approved",
+                      "approved_metrics":  [
+
+                                           ],
+                      "approved_quotes":  [
+                                              {
+                                                  "evidence":  "keeping all documents together showing a stream from report to completion of faults and issues which keeps us compliant",
+                                                  "quote":  "keeping all documents together showing a stream from report to completion of faults and issues which keeps us compliant",
+                                                  "status":  "approved",
+                                                  "url":  "https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange"
+                                              }
+                                          ],
+                      "company_size":  "201-500 employees",
+                      "customer":  "Capterra BigChange transport-manager review",
+                      "evidence":  "keeping all documents together showing a stream from report to completion of faults and issues which keeps us compliant",
+                      "industry":  [
+                                       "building materials",
+                                       "field service"
+                                   ],
+                      "internal_source_ref":  "research/source-captures/coshh-regulations-2026-09-24/capterra-uk-bigchange-suzanne-transport-page-2.md",
+                      "last_verified":  "2026-09-24",
+                      "proof_id":  "review-capterra-bigchange-suzanne-transport-compliance-records",
+                      "public_copy_allowed":  true,
+                      "public_url":  "https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange",
+                      "region":  [
+                                     "UK"
+                                 ],
+                      "restrictions":  [
+                                           "Paraphrase or the single approved snippet only, with first name and role and a same-paragraph review link. No ratings, rankings, aggregate review claims, or metric claims. Review dated 2023-06-01: frame as workflow experience."
+                                       ],
+                      "review_story":  {
+                                           "copy_use":  "paraphrased E-E-A-T story or approved snippet with same-paragraph public review link",
+                                           "identity_display":  "Suzanne",
+                                           "identity_type":  "person",
+                                           "objective_fit":  [
+                                                                 "compliance records",
+                                                                 "audit trail",
+                                                                 "document control"
+                                                             ],
+                                           "person_name":  "Suzanne",
+                                           "platform":  "Capterra",
+                                           "public_url":  "https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange",
+                                           "role_title":  "Transport Manager",
+                                           "source_row_ref":  "Capterra UK BigChange reviews page 2, suzanne review dated 1 June 2023, captured 2026-09-24",
+                                           "story_allowed":  true,
+                                           "verification_status":  "public Capterra UK review page captured in Chrome",
+                                           "workflow_story":  "Transport manager in UK building materials describes keeping fleet files and documents together in BigChange from fault report to completion, which keeps the business compliant."
+                                       },
+                      "source_type":  "review_site",
+                      "themes":  [
+                                     "keeping compliance documents together from report to completion"
+                                 ],
+                      "workflow_fit":  [
+                                           "compliance records",
+                                           "fleet documents",
+                                           "fault tracking"
+                                       ]
+                  }
+              ]
+}

@@ -1,6 +1,6 @@
 {
   "schema_version": "commercial-pillar-index/v1",
-  "updated_at": "2026-09-28",
+  "updated_at": "2026-09-30",
   "records": [
     {
       "destination_id": "simpro-us-homepage-field-service-management-software",
@@ -317,6 +317,47 @@
         "res-a5b3b47382b45490bf2bedbf16c0b76e",
         "res-25acc86e5a7703fc121ddb24af07cf98",
         "res-c7a5463165fbd5f1b67fe1a80d3e9039"
+      ],
+      "status": "verified"
+    },
+    {
+      "destination_id": "simpro-us-feature-payments",
+      "brand": "Simpro",
+      "market": "US",
+      "pillar_type": "feature",
+      "canonical_url": "https://www.simprogroup.com/features/payments",
+      "page_title": "Flexible Field Service Payments | Simpro",
+      "title_checked": "2026-09-30",
+      "title_valid_through": "2027-03-29",
+      "main_keyword": "field service management payments",
+      "semrush_database": "us",
+      "semrush_report": "keyword_overview_ui",
+      "semrush_checked": "2026-09-30",
+      "semrush_valid_through": "2026-12-29",
+      "semrush_result_status": "exact",
+      "volume": 50,
+      "keyword_difficulty": 28,
+      "evidence_path": [
+        "research/commercial-pillar-evidence-payments-2026-09-30.md",
+        "research/commercial-pillar-evidence-payments-2026-09-30.md",
+        "research/commercial-pillar-evidence-payments-2026-09-30.md",
+        "research/commercial-pillar-evidence-payments-2026-09-30.md"
+      ],
+      "evidence_locator": [
+        "line:1",
+        "line:2",
+        "line:3",
+        "line:4"
+      ],
+      "evidence_sha256": [
+        "22f33c014e21b1c1982221fd60b811afd423da177a2507445f9dfa782a0c88a2",
+        "9f7cf3af88dd174dff3be81c1589c83dae76d2105f53c78b1d666888bbca60c2",
+        "dd6197144bef24f2b3f32a758dc5abbc32fe18d6e91b2a9c272b2f37fcd0b627",
+        "8b9e64baf90a7d425b1d5c005ef5f43c68d046883803ebe99756dff810686e86"
+      ],
+      "vault_routes": [
+        "res-dedf3161fefe5d7a89e2ef268ef84689",
+        "res-a5b3b47382b45490bf2bedbf16c0b76e"
       ],
       "status": "verified"
     }

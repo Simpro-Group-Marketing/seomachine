@@ -1,9 +1,9 @@
 """
-Customer proof index health report.
+Nonconnector customer proof inventory health report.
 
-This is a read-only planning tool for researchers and writers. It summarizes
-the curated customer proof index so proof gaps can be fixed through the intake
-workflow before a draft depends on weak or overused evidence.
+This read-only planning tool is limited to the isolated AroFlo, BigChange, and
+ClockShark nonconnector proof inventory. Simpro proof health is derived from
+live vault claim searches and receipt-bound selector evidence, not this file.
 """
 
 from __future__ import annotations
@@ -27,10 +27,10 @@ FindingDict = Dict[str, Any]
 
 def analyze_proof_index(
     *,
-    index_path: str | Path = "context/customer-proof-index.json",
-    ledger_path: str | Path = "context/customer-proof-usage-ledger.json",
+    index_path: str | Path = "config/nonvault-customer-proof-index.json",
+    ledger_path: str | Path = "config/customer-proof-usage-ledger.json",
 ) -> FindingDict:
-    """Return a read-only health summary for the customer proof index."""
+    """Return a read-only health summary for the nonconnector proof index."""
     index = _load_json(index_path, {"proof": []})
     ledger = _load_json(ledger_path, {"uses": []})
     proof_rows = [row for row in index.get("proof", []) if isinstance(row, dict)]
@@ -492,9 +492,9 @@ def _format_counts(counts: FindingDict) -> str:
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Report customer proof index health without writing files.")
-    parser.add_argument("--index", default="context/customer-proof-index.json")
-    parser.add_argument("--ledger", default="context/customer-proof-usage-ledger.json")
+    parser = argparse.ArgumentParser(description="Report nonconnector customer proof index health without writing files.")
+    parser.add_argument("--index", default="config/nonvault-customer-proof-index.json")
+    parser.add_argument("--ledger", default="config/customer-proof-usage-ledger.json")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
     return parser
 

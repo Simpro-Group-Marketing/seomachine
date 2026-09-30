@@ -9,7 +9,7 @@ from typing import Any, List, Mapping, Optional
 from ..guard_common import Finding
 from ..proof_sidecar import compose_with_sidecar, load_sidecar_content, resolve_sidecar_path
 from .diversity_common import _case_study_urls, _customer_proof_link_findings, _customer_proof_urls, _has_customer_quote_claim, _load_ledger
-from .diversity_contracts import DEFAULT_INDEX_PATH, DEFAULT_LEDGER_PATH
+from .diversity_contracts import DEFAULT_LEDGER_PATH, DEFAULT_NONVAULT_INDEX_PATH
 from .diversity_mining import _proof_mining_findings, _selector_evidence_findings
 from .diversity_parsing import _extract_customer_proof_pack, _extract_customer_proof_slate, _extract_selected_customer_proof_mining, _extract_selection_decision
 from .diversity_reuse import _reuse_findings, _stronger_underused_candidate_findings
@@ -24,7 +24,7 @@ def check_content(
     proof_sidecar_path: str | Path | None = None,
     source_path: str | Path | None = None,
     ledger_path: str | Path = DEFAULT_LEDGER_PATH,
-    proof_index_path: str | Path = DEFAULT_INDEX_PATH,
+    proof_index_path: str | Path = DEFAULT_NONVAULT_INDEX_PATH,
     ledger_payload: Mapping[str, Any] | None = None,
     proof_index_payload: Mapping[str, Any] | None = None,
     validated_claim_set: object | None = None,
@@ -143,7 +143,7 @@ def check_file(
     fail_on: str = "error",
     proof_sidecar: Optional[str] = None,
     ledger_path: str | Path = DEFAULT_LEDGER_PATH,
-    proof_index_path: str | Path = DEFAULT_INDEX_PATH,
+    proof_index_path: str | Path = DEFAULT_NONVAULT_INDEX_PATH,
     context_pack: str | Path | None = None,
     context_receipt: str | Path | None = None,
 ) -> List[Finding]:

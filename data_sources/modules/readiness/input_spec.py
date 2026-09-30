@@ -14,9 +14,9 @@ from .artifact_io import resolve_input, resolve_workspace_root
 
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _FIXED_WORKSPACE_INPUTS = (
+    ("context_boundary_policy", "context/context-policy.json"),
     ("source_decision_registry", "context/source-classification-decisions.json"),
-    ("customer_proof_index", "context/customer-proof-index.json"),
-    ("customer_proof_usage_ledger", "context/customer-proof-usage-ledger.json"),
+    ("customer_proof_usage_ledger", "config/customer-proof-usage-ledger.json"),
 )
 # Readiness inputs bound from fixed workspace paths. They are never assembly
 # BOM artifacts, so BOM-side inventory checks must tolerate them as extras.

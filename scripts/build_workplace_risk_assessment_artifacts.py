@@ -363,8 +363,8 @@ def build_plan() -> dict[str, object]:
 def build_sidecar() -> str:
     selector = ROOT / "research" / f"nonvault-customer-proof-selector-evidence-{SLUG}-{DATE}.json"
     pillar = ROOT / "context" / "commercial-pillar-index.json"
-    proof_index = ROOT / "context" / "customer-proof-index.json"
-    ledger = ROOT / "context" / "customer-proof-usage-ledger.json"
+    proof_index = ROOT / "config" / "nonvault-customer-proof-index.json"
+    ledger = ROOT / "config" / "customer-proof-usage-ledger.json"
     return f"""# Validation sidecar: workplace risk assessment
 
 Date: {DATE}

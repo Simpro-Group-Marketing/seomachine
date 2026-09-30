@@ -119,30 +119,53 @@ def _analyze_down_funnel_links(
         if not path or not _is_down_funnel_path(path, brand=brand):
             continue
 
-        indexed_keywords = _simpro_indexed_main_keywords(url)
-        if _is_generic_anchor(anchor):
-            analysis["generic"].append((anchor, url))
-        elif indexed_keywords == ():
-            if _is_name_only_feature_or_solution_anchor(anchor, path):
-                analysis["name_only"].append((anchor, url))
-            else:
-                analysis["unverified_destination"].append((anchor, url))
-        elif indexed_keywords is not None:
-            if any(
-                _anchor_contains_phrase(anchor, keyword)
-                for keyword in indexed_keywords
-            ):
-                analysis["valid"].append((anchor, url))
-            else:
-                analysis["indexed_keyword_missing"].append((anchor, url))
-        elif _is_name_only_feature_or_solution_anchor(anchor, path):
-            analysis["name_only"].append((anchor, url))
-        elif _anchor_matches_down_funnel_target(anchor, path):
-            analysis["valid"].append((anchor, url))
-        else:
-            analysis["weak_anchor"].append((anchor, url))
+        bucket = _down_funnel_link_bucket(anchor, url, path)
+        analysis[bucket].append((anchor, url))
 
     return analysis
+
+
+def _down_funnel_link_bucket(anchor: str, url: str, path: str) -> str:
+    indexed_keywords = _simpro_indexed_main_keywords(url)
+    if _is_generic_anchor(anchor):
+        return "generic"
+    if indexed_keywords == ():
+        return _unverified_destination_bucket(anchor, path)
+    if indexed_keywords is not None:
+        return _indexed_destination_bucket(anchor, path, indexed_keywords)
+    if _is_name_only_feature_or_solution_anchor(anchor, path):
+        return "name_only"
+    if _anchor_matches_down_funnel_target(anchor, path):
+        return "valid"
+    return "weak_anchor"
+
+
+def _unverified_destination_bucket(anchor: str, path: str) -> str:
+    if _is_name_only_feature_or_solution_anchor(anchor, path):
+        return "name_only"
+    return "unverified_destination"
+
+
+def _indexed_destination_bucket(
+    anchor: str,
+    path: str,
+    indexed_keywords: Tuple[str, ...],
+) -> str:
+    if _anchor_matches_indexed_keywords(anchor, indexed_keywords):
+        return "valid"
+    if _is_name_only_feature_or_solution_anchor(anchor, path):
+        return "name_only"
+    return "indexed_keyword_missing"
+
+
+def _anchor_matches_indexed_keywords(
+    anchor: str,
+    indexed_keywords: Tuple[str, ...],
+) -> bool:
+    return any(
+        _anchor_contains_phrase(anchor, keyword)
+        for keyword in indexed_keywords
+    )
 
 def _internal_link_path(url: str, *, brand: Optional[str] = None) -> Optional[str]:
     parsed = urlparse(url)

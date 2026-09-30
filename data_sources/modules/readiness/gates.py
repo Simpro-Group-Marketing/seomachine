@@ -205,7 +205,6 @@ def _customer_proof(module: Any, value: ContentGateInputs) -> list[dict[str, Any
         context_pack=value.context_pack_path,
         context_receipt=value.context_receipt_path,
         ledger_payload=_json(value.captured, "customer_proof_usage_ledger"),
-        proof_index_payload=_json(value.captured, "customer_proof_index"),
         validated_claim_set=value.validated_claim_set,
     )
 
@@ -214,7 +213,17 @@ def _review_story(module: Any, value: ContentGateInputs) -> list[dict[str, Any]]
     return module.check_content(
         value.article_content,
         proof_content=value.proof_content,
+        proof_sidecar_path=value.proof_sidecar_path,
         source_path=value.article_path,
+    )
+
+
+def _context_boundary(module: Any, value: ContentGateInputs) -> list[dict[str, Any]]:
+    return module.check_content(
+        value.article_content,
+        proof_content=value.proof_content,
+        source_path=value.article_path,
+        workspace_root=value.captured.workspace_root,
     )
 
 
@@ -306,6 +315,7 @@ def _json_snapshot(inputs: ReadinessInputs, label: str) -> Any:
 
 
 _ADAPTERS: dict[str, Callable[[Any, ContentGateInputs], list[dict[str, Any]]]] = {
+    "context_boundary": _context_boundary,
     "industry_cluster_link_policy": _industry,
     "metric_proof_pack": _metric,
     "numeric_claim_source": _numeric,

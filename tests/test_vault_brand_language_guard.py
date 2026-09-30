@@ -438,10 +438,10 @@ class VaultBrandLanguageGuardTests(unittest.TestCase):
             {finding["rule_id"] for finding in findings},
         )
 
-    def test_fallback_context_requires_vault_unavailable_blocker(self):
+    def test_local_brand_fallback_is_prohibited(self):
         sidecar = VALID_PRODUCT_SIDECAR.replace(
-            "Fallback context use: none",
-            "Fallback context use: context/brand-voice.md and context/style-guide.md",
+            "Local brand fallback: none",
+            "Local brand fallback: repository voice file and repository style file",
         )
 
         findings = check_content(
@@ -452,7 +452,7 @@ class VaultBrandLanguageGuardTests(unittest.TestCase):
 
         self.assertTrue(
             any(
-                f["rule_id"] == "vault_brand_language_fallback_without_blocker"
+                f["rule_id"] == "vault_brand_language_local_fallback_prohibited"
                 for f in findings
             )
         )

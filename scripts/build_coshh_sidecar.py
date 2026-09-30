@@ -237,7 +237,7 @@ Rejected metric rows:
 - Selected proof: review-capterra-bigchange-clare-hseq-health-safety-worksheets
 - Selected proof: review-capterra-bigchange-suzanne-transport-compliance-records
 - Use: Clearground paraphrased theme, Clare paraphrased experience story, Suzanne exact snippet
-- Reuse reason: not applicable. The three rows carry zero prior uses in context/customer-proof-usage-ledger.json, and a live repo scan of drafts, rewrites, research and published found no public-copy use.
+- Reuse reason: not applicable. The three rows carry zero prior uses in config/customer-proof-usage-ledger.json, and a live repo scan of drafts, rewrites, research and published found no public-copy use.
 - Zero-use comparison: no stronger underused approved proof was displaced.
 - Rejected candidate: bigchange-customer-story-hodge-clemco-paperless-jobs | Reason: Paperless job story with no health and safety or risk assessment content for a COSHH article
 - Rejected candidate: bigchange-rilmac-prove-compliance-hse-inspection | Reason: asbestos services work falls under a separate regime from COSHH, so the story risks implying COSHH-specific compliance

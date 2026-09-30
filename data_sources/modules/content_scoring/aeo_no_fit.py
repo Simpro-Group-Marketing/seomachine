@@ -5,11 +5,9 @@ from __future__ import annotations
 from .aeo_customer_evidence import _verified_selector_roles
 from .aeo_text import _normalize_text
 from .aeo_text import _word_count
-from pathlib import Path
 from typing import FrozenSet
 from typing import List
 from typing import Optional
-import json
 import re
 
 def _has_documented_no_fit_experience_boundary(
@@ -125,34 +123,13 @@ def _rejections_are_substantive(
     )
 
 def _customer_proof_ids() -> FrozenSet[str]:
-    """Load approved, public, story-eligible proof IDs; fail closed on error."""
-    index_path = (
-        Path(__file__).resolve().parents[2] / "context" / "customer-proof-index.json"
-    )
-    try:
-        payload = json.loads(index_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
-        return frozenset()
+    """Return repo-local proof IDs.
 
-    proof_rows = payload.get("proof")
-    if not isinstance(proof_rows, list):
-        return frozenset()
-    eligible_ids = set()
-    for row in proof_rows:
-        if not isinstance(row, dict):
-            continue
-        review_story = row.get("review_story")
-        if not isinstance(review_story, dict):
-            continue
-        proof_id = str(row.get("proof_id", "")).strip().lower()
-        if (
-            proof_id
-            and str(row.get("approval_status", "")).strip().lower() == "approved"
-            and row.get("public_copy_allowed") is True
-            and review_story.get("story_allowed") is True
-        ):
-            eligible_ids.add(proof_id)
-    return frozenset(eligible_ids)
+    Connector-bound Simpro workflows no longer have a local customer-proof
+    inventory. Verified selector evidence is the only source for customer proof
+    identity checks, so this legacy helper fails closed unless a test patches it.
+    """
+    return frozenset()
 
 def _has_section_specific_story_rejection_reason(reason: str) -> bool:
     normalized = re.sub(r"\s+", " ", reason.strip().lower())

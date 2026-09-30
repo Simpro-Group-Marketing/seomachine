@@ -17,15 +17,17 @@ from typing import Dict, Iterable, List, Mapping, Optional, Sequence
 
 try:
     from .guard_common import Finding, should_fail, summarize_findings
+    from .customer_proof.evidence import verify_selector_evidence_roles
     from .proof_link_policy import canonicalize_link_identity, is_generic_proof_anchor
-    from .proof_sidecar import compose_with_sidecar, load_sidecar_content
+    from .proof_sidecar import compose_with_sidecar, load_sidecar_content, resolve_sidecar_path
 except ImportError:  # pragma: no cover - supports direct script execution.
     from guard_common import Finding, should_fail, summarize_findings
+    from customer_proof.evidence import verify_selector_evidence_roles
     from proof_link_policy import canonicalize_link_identity, is_generic_proof_anchor
-    from proof_sidecar import compose_with_sidecar, load_sidecar_content
+    from proof_sidecar import compose_with_sidecar, load_sidecar_content, resolve_sidecar_path
 
 
-DEFAULT_INDEX_PATH = Path("context/customer-proof-index.json")
+DEFAULT_NONVAULT_INDEX_PATH = Path("config/nonvault-customer-proof-index.json")
 
 REVIEW_STORY_HEADING_RE = re.compile(
     r"^\s*(?:#{1,6}\s+)?Review Story Selection:?\s*$",
@@ -52,10 +54,23 @@ REVIEW_SITE_URL_RE = re.compile(
     r"apps\.apple\.com|play\.google\.com)[^\s)]*",
     re.IGNORECASE,
 )
+APP_STORE_URL_RE = re.compile(
+    r"https?://[^\s)]*(?:apps\.apple\.com|play\.google\.com)[^\s)]*",
+    re.IGNORECASE,
+)
+NON_APP_REVIEW_SITE_URL_RE = re.compile(
+    r"https?://[^\s)]*(?:g2\.com|capterra\.(?:com|ca|co\.uk)|softwareadvice\.com|getapp\.com|"
+    r"trustradius\.com|gartner(?:digitalmarkets)?\.com|trustpilot\.com)[^\s)]*",
+    re.IGNORECASE,
+)
 REVIEW_LANGUAGE_RE = re.compile(
     r"\b(?:g2|capterra|software advice|softwareadvice|getapp|trustradius|"
     r"gartner|trustpilot|google review|app store|reviewer|reviewers|review-site|"
     r"review site|customer review|review story)\b",
+    re.IGNORECASE,
+)
+REVIEW_STORY_TERMS_RE = re.compile(
+    r"\b(?:review|reviews|reviewer|reviewers|rating|ratings|rated|stars?|story|stories|testimonial|testimonials)\b",
     re.IGNORECASE,
 )
 REVIEW_RATING_RANKING_CLAIM_RE = re.compile(
@@ -73,8 +88,9 @@ def check_content(
     content: str,
     *,
     proof_content: Optional[str] = None,
+    proof_sidecar_path: str | Path | None = None,
     source_path: str | Path | None = None,
-    proof_index_path: str | Path = DEFAULT_INDEX_PATH,
+    proof_index_path: str | Path | None = None,
 ) -> List[Finding]:
     """Return review-story identity and public-link findings."""
     del source_path
@@ -116,7 +132,13 @@ def check_content(
         if _review_story_selection_not_applicable(item):
             continue
         for finding in _review_story_selection_findings(
-            content, public_content, item, proof_content or "", proof_index_path, all_identities=identities
+            content,
+            public_content,
+            item,
+            proof_content or "",
+            proof_sidecar_path=proof_sidecar_path,
+            proof_index_path=proof_index_path,
+            all_identities=identities,
         ):
             if finding not in findings:
                 findings.append(finding)
@@ -158,8 +180,9 @@ def _review_story_selection_findings(
     public_content: str,
     selection: Dict[str, object],
     proof_content: str,
-    proof_index_path: str | Path,
     *,
+    proof_sidecar_path: str | Path | None,
+    proof_index_path: str | Path | None,
     all_identities: Sequence[str] = (),
 ) -> List[Finding]:
     findings: List[Finding] = []
@@ -175,7 +198,10 @@ def _review_story_selection_findings(
             )
         ]
 
-    index_row = _find_index_row(proof_index_path, proof_id)
+    selector_row = _find_selector_review_story(proof_content, proof_sidecar_path, proof_id)
+    index_row = selector_row or (
+        _find_index_row(proof_index_path, proof_id) if proof_index_path else None
+    )
     story = index_row.get("review_story", {}) if isinstance(index_row, dict) else {}
     if not isinstance(story, dict):
         story = {}
@@ -193,10 +219,13 @@ def _review_story_selection_findings(
     if index_row is None:
         findings.append(
             _finding(
-                "review_story_index_missing",
+                "review_story_selector_evidence_missing",
                 int(selection["line"]),
-                f"Selected review story was not found in customer-proof-index.json: {proof_id}",
-                "Add the selected proof_id to context/customer-proof-index.json or choose an indexed story.",
+                f"Selected review story was not found in verified selector evidence: {proof_id}",
+                (
+                    "Add hash-bound customer proof selector evidence for the selected story; "
+                    "for nonconnector workflows, supply config/nonvault-customer-proof-index.json explicitly."
+                ),
                 match=proof_id,
             )
         )
@@ -239,7 +268,7 @@ def _review_story_selection_findings(
                 "review_story_url_mismatch",
                 int(selection["line"]),
                 "Review Story Selection URL does not match the indexed review story URL.",
-                "Update the sidecar URL or customer-proof-index.json so they point to the same public review source.",
+                "Update the sidecar URL or selector evidence so they point to the same public review source.",
                 match=sidecar_url,
             )
         )
@@ -344,16 +373,18 @@ def check_file(
     *,
     fail_on: str = "error",
     proof_sidecar: Optional[str] = None,
-    proof_index_path: str | Path = DEFAULT_INDEX_PATH,
+    proof_index_path: str | Path | None = None,
 ) -> List[Finding]:
     """Check a public article file plus optional validation sidecar."""
     if fail_on not in {"error", "warning", "none"}:
         raise ValueError("fail_on must be one of: error, warning, none")
     file_path = Path(path)
     proof_content = load_sidecar_content(file_path, proof_sidecar)
+    sidecar_path = resolve_sidecar_path(file_path, proof_sidecar)
     return check_content(
         file_path.read_text(encoding="utf-8"),
         proof_content=proof_content,
+        proof_sidecar_path=sidecar_path if sidecar_path.exists() else None,
         source_path=file_path,
         proof_index_path=proof_index_path,
     )
@@ -411,6 +442,46 @@ def _parse_selected_story(value: str) -> Dict[str, str]:
     return selected
 
 
+def _find_selector_review_story(
+    proof_content: str,
+    proof_sidecar_path: str | Path | None,
+    proof_id: str,
+) -> Optional[Dict[str, object]]:
+    sidecar_path = str(proof_sidecar_path) if proof_sidecar_path else None
+    verified_roles = verify_selector_evidence_roles(proof_content, sidecar_path)
+    if not verified_roles:
+        return None
+    role = verified_roles.get("experience_story")
+    if not isinstance(role, Mapping):
+        return None
+    selected = role.get("selected_candidate")
+    if not isinstance(selected, Mapping):
+        return None
+    selected_id = str(
+        selected.get("proof_id") or selected.get("claim_id") or role.get("selected_id") or ""
+    ).strip()
+    if selected_id != proof_id:
+        return None
+    identity = str(selected.get("identity") or "").strip()
+    public_url = str(selected.get("public_url") or "").strip()
+    story_text = str(selected.get("story") or "").strip()
+    if not identity or not public_url.startswith(("http://", "https://")):
+        return None
+    return {
+        "proof_id": proof_id,
+        "public_url": public_url,
+        "approved_quotes": [],
+        "review_story": {
+            "story_allowed": True,
+            "identity_type": "business",
+            "identity_display": identity,
+            "public_url": public_url,
+            "workflow_story": story_text,
+            "verification_status": "verified selector evidence",
+        },
+    }
+
+
 def _find_index_row(path: str | Path, proof_id: str) -> Optional[Dict[str, object]]:
     index_path = Path(path)
     if not index_path.exists():
@@ -431,7 +502,16 @@ def _story_identity(story: Dict[str, object]) -> str:
 
 
 def _has_review_story_signal(content: str) -> bool:
-    return bool(REVIEW_SITE_URL_RE.search(content) or REVIEW_LANGUAGE_RE.search(_plain_text(content)))
+    if NON_APP_REVIEW_SITE_URL_RE.search(content):
+        return True
+    plain = _plain_text(content)
+    has_app_store_reference = bool(
+        APP_STORE_URL_RE.search(content)
+        or re.search(r"\b(?:app store|google play)\b", plain, re.IGNORECASE)
+    )
+    if has_app_store_reference:
+        return bool(REVIEW_STORY_TERMS_RE.search(plain))
+    return bool(REVIEW_LANGUAGE_RE.search(plain))
 
 
 def _review_theme_findings(
@@ -744,14 +824,24 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
         help="Finding severity that should produce a nonzero exit code.",
     )
     parser.add_argument("--proof-sidecar", help="Optional validation sidecar containing Review Story Selection.")
-    parser.add_argument("--proof-index", default=str(DEFAULT_INDEX_PATH), help="Customer proof index JSON path.")
+    parser.add_argument("--proof-index", help=argparse.SUPPRESS)
+    parser.add_argument(
+        "--nonvault-proof-index",
+        default="",
+        help="Optional nonconnector proof index JSON path for AroFlo, BigChange, or ClockShark workflows.",
+    )
     args = parser.parse_args(argv)
+    if args.proof_index:
+        parser.error(
+            "--proof-index is no longer supported for Simpro review-story checks; "
+            "use hash-bound selector evidence, or --nonvault-proof-index for nonconnector workflows."
+        )
 
     findings = check_file(
         args.path,
         fail_on=args.fail_on,
         proof_sidecar=args.proof_sidecar,
-        proof_index_path=args.proof_index,
+        proof_index_path=args.nonvault_proof_index or None,
     )
     payload = {
         "path": args.path,

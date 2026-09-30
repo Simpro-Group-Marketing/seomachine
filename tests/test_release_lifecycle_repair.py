@@ -37,12 +37,12 @@ def test_canonical_spec_includes_fixed_workspace_inputs(tmp_path: Path) -> None:
         tmp_path / "context" / "source-classification-decisions.json",
         '{"schema":"registry"}\n',
     )
-    proof_index = _write(
-        tmp_path / "context" / "customer-proof-index.json",
-        '{"schema":"proof-index"}\n',
+    context_policy = _write(
+        tmp_path / "context" / "context-policy.json",
+        '{"schema":"seomachine-context-boundary-policy/v1","files":{}}\n',
     )
     ledger = _write(
-        tmp_path / "context" / "customer-proof-usage-ledger.json",
+        tmp_path / "config" / "customer-proof-usage-ledger.json",
         '{"schema":"proof-ledger"}\n',
     )
 
@@ -62,18 +62,18 @@ def test_canonical_spec_includes_fixed_workspace_inputs(tmp_path: Path) -> None:
 
     assert spec.labels == (
         "article",
-        "customer_proof_index",
+        "context_boundary_policy",
         "customer_proof_usage_ledger",
         "source_decision_registry",
     )
     assert inputs.hash_inventory() == {
         "article": {"path": "landing-pages/page.md", "sha256": _sha256(article.read_bytes())},
-        "customer_proof_index": {
-            "path": "context/customer-proof-index.json",
-            "sha256": _sha256(proof_index.read_bytes()),
+        "context_boundary_policy": {
+            "path": "context/context-policy.json",
+            "sha256": _sha256(context_policy.read_bytes()),
         },
         "customer_proof_usage_ledger": {
-            "path": "context/customer-proof-usage-ledger.json",
+            "path": "config/customer-proof-usage-ledger.json",
             "sha256": _sha256(ledger.read_bytes()),
         },
         "source_decision_registry": {
@@ -353,6 +353,14 @@ def test_result_pair_rollback_never_deletes_replaced_destination(
 def test_real_landing_release_round_trip_without_orchestration_mocks(
     tmp_path: Path,
 ) -> None:
+    _write(
+        tmp_path / "context" / "context-policy.json",
+        '{"schema":"seomachine-context-boundary-policy/v1","files":{"context/context-policy.json":{"category":"source_governance"}}}\n',
+    )
+    _write(
+        tmp_path / "config" / "customer-proof-usage-ledger.json",
+        '{"version":1,"uses":[]}\n',
+    )
     paragraphs = [
         "Organize incoming work in one clear queue so coordinators review priorities, assign ownership, and keep the next action visible to the team.",
         "Give technicians a concise view of the work requested, the location, the contact details, and the notes they need before travel begins.",

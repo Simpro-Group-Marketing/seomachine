@@ -150,10 +150,10 @@ class AeoGeoRaterNoFitTests(AeoGeoRaterTestCase):
     def test_no_fit_boundary_rejects_selector_evidence_when_an_input_changes(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            sidecar, sidecar_path, index_path = self.write_no_fit_selector_evidence(root)
-            index = json.loads(index_path.read_text(encoding="utf-8"))
-            index["version"] = 2
-            index_path.write_text(json.dumps(index), encoding="utf-8")
+            sidecar, sidecar_path, ledger_path = self.write_no_fit_selector_evidence(root)
+            ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+            ledger["version"] = 2
+            ledger_path.write_text(json.dumps(ledger), encoding="utf-8")
             with patch(
                 "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
                 new=load_validated_claim_set_for_unit_test,

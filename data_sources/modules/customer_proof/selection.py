@@ -4,19 +4,17 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Mapping, Optional, Sequence
 
 from ..proof_usage import count_customer_proof_usage
 from .connector_inputs import (
-    _claim_binding_for_candidate,
-    _has_inventory_bound_claim,
     _load_json,
     _load_receipt_claims,
+    _require_complete_claim_searches,
 )
 from .contracts import (
-    DEFAULT_INDEX_PATH,
     DEFAULT_LEDGER_PATH,
-    NO_BOUND_CUSTOMER_PROOF_MESSAGE,
+    LEGACY_INDEX_ERROR,
     NO_FIT_CUSTOMER_PROOF_OUTCOME,
     NO_FIT_CUSTOMER_PROOF_REASON,
     SLATE_ROLES,
@@ -41,7 +39,7 @@ from .slate import _format_rejected_candidates, _parse_roles, _slate_selector_co
 def select_customer_proofs(
     topic: str,
     *,
-    index_path: str | Path = DEFAULT_INDEX_PATH,
+    index_path: str | Path | None = None,
     ledger_path: str | Path = DEFAULT_LEDGER_PATH,
     context_pack: str | Path | None = None,
     context_receipt: str | Path | None = None,
@@ -52,43 +50,33 @@ def select_customer_proofs(
     proof_role: str = "any",
     limit: int = 8,
     reference_date: Optional[date] = None,
+    claim_lookup_evidence: Optional[Mapping[str, Any]] = None,
     _input_snapshot: Optional[_SelectorInputSnapshot] = None,
 ) -> List[FindingDict]:
-    """Return ranked customer proof candidates for a topic."""
+    """Return ranked vault-approved customer proof claims for a topic."""
+    if index_path is not None:
+        raise CustomerProofDataError(LEGACY_INDEX_ERROR)
     reference = reference_date or date.today()
     if _input_snapshot is None:
-        index = _load_json(index_path, "customer proof index")
         ledger = _load_json(ledger_path, "customer proof ledger")
         receipt_claims = _load_receipt_claims(context_pack, context_receipt)
+        receipt_payload = _load_json(context_receipt, "context receipt")
     else:
-        index = _input_snapshot.index
         ledger = _input_snapshot.ledger
         receipt_claims = _input_snapshot.receipt_claims
+        receipt_payload = _input_snapshot.context_receipt
+        claim_lookup_evidence = _input_snapshot.claim_lookup
+    use_modes = _use_modes_for_role(proof_role)
+    _require_complete_claim_searches(
+        receipt_payload,
+        sorted(use_modes),
+        claim_lookup=claim_lookup_evidence,
+    )
     proof_rows = [
-        candidate
-        for candidate in index.get("proof", [])
-        if isinstance(candidate, dict)
-        and str(candidate.get("proof_id") or "").strip()
-        and str(candidate.get("public_url") or "")
-        .strip()
-        .startswith(("http://", "https://"))
+        _candidate_from_claim(claim)
+        for claim in receipt_claims.approved_claims()
+        if str(getattr(claim, "use_mode", "") or "") in use_modes
     ]
-    if not proof_rows:
-        raise CustomerProofDataError(
-            "Customer proof index has no usable public customer proof inventory rows."
-        )
-    inventory_ids = {str(candidate["proof_id"]).strip() for candidate in proof_rows}
-    approved_claims = receipt_claims.approved_claims()
-    if not _has_inventory_bound_claim(
-        proof_rows,
-        inventory_ids=inventory_ids,
-        approved_claims=approved_claims,
-    ):
-        raise CustomerProofDataError(
-            "Customer proof context receipt has no approved claims bound to the "
-            "customer proof inventory by selector ID or exact public URL; rebuild "
-            "the vault-owned selector bindings and context artifacts."
-        )
     search_text = " ".join(part for part in (topic, title, objective) if part)
     topic_tokens = _tokens(search_text)
 
@@ -98,19 +86,7 @@ def select_customer_proofs(
             continue
         if require_eeat_story and not _is_review_story_eligible(candidate):
             continue
-        use_modes = _use_modes_for_role(proof_role)
-        claim_binding = _claim_binding_for_candidate(
-            candidate,
-            proof_rows=proof_rows,
-            receipt_claims=receipt_claims,
-            approved_claims=approved_claims,
-            use_modes=use_modes,
-        )
-        if claim_binding is None:
-            continue
-        approved_claim = claim_binding.claim
-        binding_source = claim_binding.binding_source
-        if not _matches_proof_role(candidate, proof_role, approved_claim=approved_claim):
+        if not _matches_proof_role(candidate, proof_role):
             continue
         result = dict(candidate)
         result.update(
@@ -126,10 +102,7 @@ def select_customer_proofs(
         result["source_intent_score"] = _source_intent_score(search_text, candidate)
         result["proof_role"] = proof_role
         result["review_story_eligible"] = _is_review_story_eligible(candidate)
-        result["claim_id"] = approved_claim.claim_id
-        result["binding_source"] = binding_source
-        result["approval_source"] = approved_claim.approval_source
-        result["context_receipt_revision"] = approved_claim.receipt_revision
+        result["binding_source"] = "claim_id"
         result["score"] = _score_candidate(result)
         result["overused"] = bool(result.get("overused", False))
         result["selection_reason"] = _selection_reason(result)
@@ -157,7 +130,7 @@ def select_customer_proofs(
 def build_customer_proof_slate(
     topic: str,
     *,
-    index_path: str | Path = DEFAULT_INDEX_PATH,
+    index_path: str | Path | None = None,
     ledger_path: str | Path = DEFAULT_LEDGER_PATH,
     context_pack: str | Path | None = None,
     context_receipt: str | Path | None = None,
@@ -171,10 +144,13 @@ def build_customer_proof_slate(
     rejected_overrides: Optional[Dict[str, Dict[str, str]]] = None,
     allow_no_proof: bool = False,
     reference_date: Optional[date] = None,
+    claim_lookup_evidence: Optional[Mapping[str, Any]] = None,
     _role_evidence: Optional[List[FindingDict]] = None,
     _input_snapshot: Optional[_SelectorInputSnapshot] = None,
 ) -> str:
     """Return a sidecar-ready Customer Proof Slate block."""
+    if index_path is not None:
+        raise CustomerProofDataError(LEGACY_INDEX_ERROR)
     selected = selected_overrides or {}
     rejected = rejected_overrides or {}
     normalized_roles = _parse_roles(
@@ -207,7 +183,6 @@ def build_customer_proof_slate(
         no_fit_reason = ""
         results = select_customer_proofs(
             topic,
-            index_path=index_path,
             ledger_path=ledger_path,
             context_pack=context_pack,
             context_receipt=context_receipt,
@@ -218,6 +193,7 @@ def build_customer_proof_slate(
             proof_role=role,
             limit=limit,
             reference_date=reference_date,
+            claim_lookup_evidence=claim_lookup_evidence,
             _input_snapshot=_input_snapshot,
         )
         if allow_no_proof and not results:
@@ -281,11 +257,226 @@ def build_customer_proof_slate(
 
 
 def _is_no_bound_customer_proof_error(error: CustomerProofDataError) -> bool:
-    return NO_BOUND_CUSTOMER_PROOF_MESSAGE in str(error)
+    return "no approved customer proof claims" in str(error)
+
+
+def _candidate_from_claim(claim: Any) -> FindingDict:
+    evidence = getattr(claim, "evidence", None)
+    evidence_row = dict(evidence) if isinstance(evidence, Mapping) else {}
+    claim_id = str(getattr(claim, "claim_id", "") or "").strip()
+    public_url = str(getattr(claim, "public_url", "") or "").strip()
+    use_mode = str(getattr(claim, "use_mode", "") or "").strip()
+    assertion = str(getattr(claim, "assertion", "") or "").strip()
+    identity = _first_text(
+        evidence_row,
+        (
+            "identity",
+            "identity_display",
+            "customer",
+            "customer_name",
+            "business_name",
+            "person_name",
+            "attribution",
+            "source_title",
+            "title",
+        ),
+    )
+    story = _first_text(
+        evidence_row,
+        (
+            "story",
+            "workflow_story",
+            "experience_story",
+            "paraphrase_evidence",
+            "evidence",
+            "assertion",
+        ),
+    ) or assertion
+    source_type = _source_type_for_claim(evidence_row, public_url, use_mode)
+    topics = _string_values(
+        evidence_row,
+        (
+            "topics",
+            "topic",
+            "entities",
+            "industry",
+            "industries",
+            "region",
+            "source_collection",
+            "proof_type",
+            "claim_type",
+        ),
+    )
+    candidate: FindingDict = {
+        "proof_id": claim_id,
+        "candidate_id": claim_id,
+        "claim_id": claim_id,
+        "selector_id": str(getattr(claim, "selector_id", "") or "").strip(),
+        "customer": identity or _customer_from_url(public_url),
+        "source_type": source_type,
+        "industry": topics,
+        "region": _string_values(evidence_row, ("region", "regions", "market")),
+        "workflow_fit": topics,
+        "themes": _string_values(evidence_row, ("themes", "topics", "entities")),
+        "evidence": assertion,
+        "restrictions": _string_values(evidence_row, ("use_boundaries", "restrictions")),
+        "public_url": public_url,
+        "approval_status": "approved",
+        "public_copy_allowed": bool(public_url.startswith(("http://", "https://"))),
+        "use_mode": use_mode,
+        "claim_type": str(getattr(claim, "claim_type", "") or "").strip(),
+        "authority_resource_id": str(
+            getattr(claim, "authority_resource_id", "") or ""
+        ).strip(),
+        "source_hash": str(getattr(claim, "source_hash", "") or "").strip(),
+        "brand_scope": list(getattr(claim, "brand_scope", ()) or ()),
+        "approval_source": str(getattr(claim, "approval_source", "") or "").strip(),
+        "context_receipt_revision": str(
+            getattr(claim, "receipt_revision", "") or ""
+        ).strip(),
+        "evidence_anchor": str(getattr(claim, "evidence_anchor", "") or "").strip(),
+        "approved_metrics": [],
+        "approved_quotes": [],
+        "review_story": {"story_allowed": False},
+    }
+    if use_mode == "public_metric":
+        candidate["approved_metrics"] = [
+            {
+                "claim": assertion,
+                "status": "approved",
+                "url": public_url,
+                "claim_id": claim_id,
+            }
+        ]
+    if use_mode == "exact_quote":
+        candidate["approved_quotes"] = [
+            {
+                "quote": assertion,
+                "status": "approved",
+                "url": public_url,
+                "claim_id": claim_id,
+            }
+        ]
+    if use_mode == "public_paraphrase" and identity and public_url.startswith(
+        ("http://", "https://")
+    ):
+        candidate["review_story"] = {
+            "story_allowed": True,
+            "identity_type": _identity_type(evidence_row),
+            "identity_display": identity,
+            "business_name": _first_text(evidence_row, ("business_name", "customer")),
+            "person_name": _first_text(evidence_row, ("person_name",)),
+            "public_url": public_url,
+            "workflow_story": story,
+            "verification_status": "vault-approved-claim",
+        }
+    return candidate
+
+
+def _source_type_for_claim(
+    evidence: Mapping[str, Any],
+    public_url: str,
+    use_mode: str,
+) -> str:
+    raw = " ".join(
+        value.casefold()
+        for value in _string_values(
+            evidence,
+            (
+                "source_type",
+                "proof_type",
+                "source_collection",
+                "claim_type",
+                "authority_resource_id",
+            ),
+        )
+    )
+    url = public_url.casefold()
+    if "review" in raw or any(
+        host in url for host in ("g2.com", "capterra.", "softwareadvice.")
+    ):
+        return "review_site"
+    if "quote" in raw or use_mode == "exact_quote":
+        return "quote_matrix"
+    if "reference" in raw:
+        return "reference"
+    if "customer story" in raw or "customer_story" in raw or "/customers/" in url:
+        return "customer_story"
+    if "case" in raw or "/case-studies/" in url or "/resources/case-study-" in url:
+        return "case_study"
+    if use_mode == "public_metric":
+        return "quote_matrix"
+    return "customer_story"
+
+
+def _identity_type(evidence: Mapping[str, Any]) -> str:
+    raw = str(evidence.get("identity_type") or "").strip().casefold()
+    if raw in {"person", "business", "person_and_business"}:
+        return raw
+    if _first_text(evidence, ("person_name",)):
+        return "person"
+    return "business"
+
+
+def _first_text(evidence: Mapping[str, Any], keys: Sequence[str]) -> str:
+    for key in keys:
+        value = evidence.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+        if isinstance(value, Mapping):
+            nested = _first_text(value, ("name", "display", "title", "text"))
+            if nested:
+                return nested
+    metadata = evidence.get("source_metadata")
+    if isinstance(metadata, Mapping):
+        return _first_text(metadata, keys)
+    return ""
+
+
+def _string_values(evidence: Mapping[str, Any], keys: Sequence[str]) -> list[str]:
+    values: list[str] = []
+    for key in keys:
+        values.extend(_flatten_value(evidence.get(key)))
+    metadata = evidence.get("source_metadata")
+    if isinstance(metadata, Mapping):
+        for key in keys:
+            values.extend(_flatten_value(metadata.get(key)))
+    seen: set[str] = set()
+    result: list[str] = []
+    for value in values:
+        normalized = value.strip()
+        if normalized and normalized.casefold() not in seen:
+            seen.add(normalized.casefold())
+            result.append(normalized)
+    return result
+
+
+def _flatten_value(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, Mapping):
+        flattened: list[str] = []
+        for item in value.values():
+            flattened.extend(_flatten_value(item))
+        return flattened
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        flattened = []
+        for item in value:
+            flattened.extend(_flatten_value(item))
+        return flattened
+    return [str(value)]
+
+
+def _customer_from_url(public_url: str) -> str:
+    slug = public_url.rstrip("/").rsplit("/", 1)[-1].replace("-", " ")
+    return slug.strip().title() if slug else ""
 
 
 __all__ = [
-    'select_customer_proofs',
-    'build_customer_proof_slate',
-    '_is_no_bound_customer_proof_error'
+    "select_customer_proofs",
+    "build_customer_proof_slate",
+    "_is_no_bound_customer_proof_error",
+    "_candidate_from_claim",
 ]

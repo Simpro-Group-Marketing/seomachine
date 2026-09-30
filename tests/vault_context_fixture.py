@@ -22,6 +22,8 @@ def _sha256_json(value: Any) -> str:
 def write_connector_context_fixture(
     root: Path,
     evidence_rows: Iterable[Mapping[str, Any]],
+    *,
+    claim_search_modes: Iterable[str] | None = None,
 ) -> tuple[Path, Path]:
     request = {
         "task": "Validate proof selector fixture claims.",
@@ -50,6 +52,9 @@ def write_connector_context_fixture(
     }
     normalized_evidence: list[dict[str, Any]] = []
     decisions: list[dict[str, Any]] = []
+    recorded_claim_search_modes: set[str] = {
+        str(mode).strip() for mode in (claim_search_modes or ()) if str(mode).strip()
+    }
     for source in evidence_rows:
         claim_id = str(source.get("claim_id") or "").strip()
         if not claim_id:
@@ -86,7 +91,12 @@ def write_connector_context_fixture(
         selector_id = str(source.get("selector_id") or "").strip()
         if selector_id:
             evidence["selector_id"] = selector_id
+        for key, value in source.items():
+            if key not in evidence:
+                evidence[key] = value
         normalized_evidence.append(evidence)
+        if use_mode:
+            recorded_claim_search_modes.add(use_mode)
         decisions.append(
             {
                 "claim_id": claim_id,
@@ -131,6 +141,29 @@ def write_connector_context_fixture(
         "resources": [],
         "resource_purposes": {},
         "claim_decisions": decisions,
+        "claim_searches": [
+            {
+                "use_mode": mode,
+                "status": "complete",
+                "truncated": False,
+                "result_count": sum(
+                    1 for row in normalized_evidence if row.get("use_mode") == mode
+                ),
+                "result_ids": [
+                    row["claim_id"]
+                    for row in normalized_evidence
+                    if row.get("use_mode") == mode
+                ],
+                "results_hash": _sha256_json(
+                    [
+                        row["claim_id"]
+                        for row in normalized_evidence
+                        if row.get("use_mode") == mode
+                    ]
+                ),
+            }
+            for mode in sorted(recorded_claim_search_modes)
+        ],
         "search_queries": ["proof selector fixture"],
         "discovery_trace": [],
         "constraints": [],

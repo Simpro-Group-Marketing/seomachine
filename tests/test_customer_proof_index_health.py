@@ -478,8 +478,8 @@ class CustomerProofIndexHealthTests(unittest.TestCase):
 
     def test_default_index_contains_only_public_web_url_rows(self):
         report = analyze_proof_index(
-            index_path="context/customer-proof-index.json",
-            ledger_path="context/customer-proof-usage-ledger.json",
+            index_path="config/nonvault-customer-proof-index.json",
+            ledger_path="config/customer-proof-usage-ledger.json",
         )
 
         self.assertEqual([], report["rows_without_public_web_url"])

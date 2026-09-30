@@ -34,7 +34,7 @@ SEMRUSH_UI_SURFACE_ALIASES = frozenset(
         "authenticated_semrush_ui_in_main_chrome",
     }
 )
-CUSTOMER_PROOF_SELECTOR_SCHEMA = "simpro-customer-proof-selector-evidence/v1"
+CUSTOMER_PROOF_SELECTOR_SCHEMA = "simpro-customer-proof-selector-evidence/v2"
 NONVAULT_CUSTOMER_PROOF_SELECTOR_SCHEMA = (
     "simpro-nonvault-customer-proof-selector-evidence/v1"
 )

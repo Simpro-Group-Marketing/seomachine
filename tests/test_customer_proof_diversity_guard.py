@@ -22,12 +22,102 @@ from tests.nonvault_proof_fixture import (
     write_bigchange_review_proof_inputs,
     write_nonvault_proof_inputs,
 )
-from tests.test_customer_proof_selector import write_context_receipt_fixture
-from tests.vault_context_fixture import load_validated_claim_set_for_unit_test
+from tests.vault_context_fixture import (
+    load_validated_claim_set_for_unit_test,
+    write_connector_context_fixture,
+)
 
 ARTICLE_WITH_CASE_STUDY = fixture_text("content_evidence:test_customer_proof_diversity_guard-20-1")
 ARTICLE_WITH_CLOCKSHARK_CASE_STUDY = fixture_text("content_evidence:test_customer_proof_diversity_guard-25-2")
 CUSTOMER_LINK_URL = "https://www.simprogroup.com/customers/acme-services"
+
+
+def write_context_receipt_fixture(root: Path, index_path: Path) -> tuple[Path, Path]:
+    index = json.loads(index_path.read_text(encoding="utf-8"))
+    evidence_rows = []
+    for row in index.get("proof", []):
+        if not isinstance(row, dict):
+            continue
+        proof_id = str(row.get("proof_id") or "").strip()
+        if not proof_id:
+            continue
+        source_type = str(row.get("source_type") or "").strip()
+        public_url = str(row.get("public_url") or "").strip()
+        base = {
+            "claim_id": proof_id,
+            "brand_scope": ["Simpro"],
+            "source_hash": proof_id,
+            "public_url": public_url,
+            "approval_source": "connector_claim_result",
+            "source_type": source_type,
+            "customer": str(row.get("customer") or ""),
+            "workflow_fit": row.get("workflow_fit") or [],
+            "themes": row.get("themes") or [],
+        }
+        if source_type == "review_site":
+            review_story = row.get("review_story") if isinstance(row.get("review_story"), dict) else {}
+            evidence_rows.append(
+                {
+                    **base,
+                    "assertion": str(
+                        review_story.get("workflow_story")
+                        or " ".join(str(value) for value in row.get("themes") or [])
+                        or proof_id
+                    ),
+                    "use_mode": "public_paraphrase",
+                    "claim_type": "review_theme",
+                    "identity_type": str(review_story.get("identity_type") or "person"),
+                    "identity_display": str(
+                        review_story.get("identity_display")
+                        or row.get("customer")
+                        or proof_id
+                    ),
+                    "person_name": str(review_story.get("person_name") or ""),
+                    "business_name": str(review_story.get("business_name") or ""),
+                    "workflow_story": str(
+                        review_story.get("workflow_story")
+                        or " ".join(str(value) for value in row.get("themes") or [])
+                    ),
+                }
+            )
+            continue
+        approved_quotes = row.get("approved_quotes") if isinstance(row.get("approved_quotes"), list) else []
+        if approved_quotes:
+            quote = approved_quotes[0]
+            assertion = str(quote.get("quote") if isinstance(quote, dict) else quote)
+            evidence_rows.append(
+                {
+                    **base,
+                    "assertion": assertion,
+                    "use_mode": "exact_quote",
+                    "claim_type": "customer_quote",
+                }
+            )
+            continue
+        approved_metrics = row.get("approved_metrics") if isinstance(row.get("approved_metrics"), list) else []
+        if approved_metrics:
+            metric = approved_metrics[0]
+            assertion = str(
+                metric.get("claim") or metric.get("metric") if isinstance(metric, dict) else metric
+            )
+            evidence_rows.append(
+                {
+                    **base,
+                    "assertion": assertion,
+                    "use_mode": "public_metric",
+                    "claim_type": "customer_metric",
+                }
+            )
+            continue
+        evidence_rows.append(
+            {
+                **base,
+                "assertion": " ".join(str(value) for value in row.get("themes") or []) or proof_id,
+                "use_mode": "public_paraphrase",
+                "claim_type": "customer_theme",
+            }
+        )
+    return write_connector_context_fixture(root, evidence_rows)
 
 
 def check_content(*args, **kwargs):
@@ -578,11 +668,18 @@ Customer Proof Selection Decision
             index_path = Path(temp_dir) / "index.json"
             ledger_path.write_text(json.dumps(ledger), encoding="utf-8")
             index_path.write_text(json.dumps(index), encoding="utf-8")
+            pack_path, receipt_path = write_connector_context_fixture(
+                Path(temp_dir),
+                [],
+                claim_search_modes=["public_metric"],
+            )
             findings = check_content(
                 ARTICLE_WITH_CASE_STUDY,
                 proof_content=sidecar,
                 ledger_path=ledger_path,
                 proof_index_path=index_path,
+                context_pack=pack_path,
+                context_receipt=receipt_path,
             )
 
         self.assertEqual(
@@ -658,8 +755,6 @@ Customer Proof Selection Decision
                 selector_main(
                     [
                         "job quoting software",
-                        "--index",
-                        str(index_path),
                         "--ledger",
                         str(ledger_path),
                         "--context-pack",
@@ -1170,7 +1265,7 @@ Customer Proof Selection Decision
             )
         )
 
-    def test_missing_proof_index_fails_when_overused_selection_must_be_compared(self):
+    def test_missing_context_receipt_fails_when_overused_simpro_selection_must_be_compared(self):
         sidecar = fixture_text("content_evidence:test_customer_proof_diversity_guard-1151-10")
         ledger = {
             "version": 1,
@@ -1194,17 +1289,18 @@ Customer Proof Selection Decision
 
         with TemporaryDirectory() as temp_dir:
             ledger_path = Path(temp_dir) / "ledger.json"
-            missing_index_path = Path(temp_dir) / "missing-index.json"
             ledger_path.write_text(json.dumps(ledger), encoding="utf-8")
             findings = check_content(
                 ARTICLE_WITH_CASE_STUDY,
                 proof_content=sidecar,
                 ledger_path=ledger_path,
-                proof_index_path=missing_index_path,
             )
 
         self.assertTrue(
-            any(f["rule_id"] == "customer_proof_index_missing" for f in findings)
+            any(
+                f["rule_id"] == "customer_proof_selector_context_unavailable"
+                for f in findings
+            )
         )
 
     def test_overuse_baseline_triggers_reuse_guard_without_usage_rows(self):
@@ -1483,7 +1579,7 @@ Customer Proof Selection Decision
             root = Path(temp_dir)
             article = root / "drafts" / "job-quoting.md"
             sidecar = root / "research" / "validation-job-quoting.md"
-            ledger = root / "context" / "customer-proof-usage-ledger.json"
+            ledger = root / "config" / "customer-proof-usage-ledger.json"
             article.parent.mkdir(parents=True)
             sidecar.parent.mkdir(parents=True)
             ledger.parent.mkdir(parents=True)

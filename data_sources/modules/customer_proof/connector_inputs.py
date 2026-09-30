@@ -9,16 +9,14 @@ from contextlib import contextmanager
 from functools import lru_cache
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Iterable, Iterator, Mapping, Optional, Sequence
+from typing import Any, Iterator, Mapping, Optional, Sequence
 from urllib.parse import urlsplit, urlunsplit
 
 from ..blog_assembly_contract import validate_governance_output_path
 from ..vault_claim_receipts import VaultClaimReceiptError, load_validated_claim_set
 from .contracts import (
-    CUSTOMER_PROOF_USE_MODES,
     CustomerProofDataError,
     FindingDict,
-    _ApprovedClaimBinding,
     _ArtifactSnapshot,
     _SelectorInputSnapshot,
 )
@@ -141,134 +139,135 @@ def _normalize_public_url(value: Any) -> str:
     )
 
 
-def _inventory_url_map(proof_rows: Iterable[FindingDict]) -> dict[str, list[str]]:
-    url_map: dict[str, list[str]] = {}
-    for candidate in proof_rows:
-        proof_id = str(candidate.get("proof_id") or "").strip()
-        normalized = _normalize_public_url(candidate.get("public_url"))
-        if not proof_id or not normalized:
-            continue
-        url_map.setdefault(normalized, []).append(proof_id)
-    return url_map
-
-
-def _public_url_binding(
-    candidate: FindingDict,
+def _require_complete_claim_searches(
+    context_receipt: Mapping[str, Any],
+    use_modes: Sequence[str],
     *,
-    proof_rows: Iterable[FindingDict],
-    approved_claims: Sequence[Any],
-    use_modes: set[str],
-) -> _ApprovedClaimBinding | None:
-    normalized_url = _normalize_public_url(candidate.get("public_url"))
-    if not normalized_url:
-        return None
-    matches = [
-        claim
-        for claim in approved_claims
-        if not str(getattr(claim, "selector_id", "") or "").strip()
-        and str(getattr(claim, "use_mode", "") or "") in use_modes
-        and _normalize_public_url(getattr(claim, "public_url", "")) == normalized_url
-    ]
-    if not matches:
-        return None
-    inventory_matches = sorted(set(_inventory_url_map(proof_rows).get(normalized_url, [])))
-    if len(inventory_matches) > 1:
+    claim_lookup: Mapping[str, Any] | None = None,
+) -> None:
+    required = sorted({str(mode).strip() for mode in use_modes if str(mode).strip()})
+    if not required:
+        return
+    searches = context_receipt.get("claim_searches")
+    lookup_searches = _claim_lookup_search_rows(claim_lookup)
+    if not isinstance(searches, list) and not lookup_searches:
         raise CustomerProofDataError(
-            "Customer proof public URL binding is ambiguous for "
-            f"{normalized_url}: {', '.join(inventory_matches)}"
+            "Customer proof context receipt lacks claim_searches evidence for "
+            f"use modes: {', '.join(required)}"
         )
-    if len(matches) > 1:
-        claim_ids = ", ".join(sorted(str(claim.claim_id) for claim in matches))
-        raise CustomerProofDataError(
-            "Customer proof approved claim public URL binding is ambiguous for "
-            f"{normalized_url}: {claim_ids}"
-        )
-    return _ApprovedClaimBinding(
-        claim=matches[0],
-        binding_source="public_url_exact_match",
-    )
-
-
-def _claim_binding_for_candidate(
-    candidate: FindingDict,
-    *,
-    proof_rows: Iterable[FindingDict],
-    receipt_claims: Any,
-    approved_claims: Sequence[Any],
-    use_modes: set[str],
-) -> _ApprovedClaimBinding | None:
-    approved_claim = receipt_claims.require_selector_claim(
-        str(candidate.get("proof_id", "")),
-        use_modes=use_modes,
-        public_url=str(candidate.get("public_url", "")),
-    )
-    if approved_claim is not None:
-        return _ApprovedClaimBinding(
-            claim=approved_claim,
-            binding_source="selector_id",
-        )
-    return _public_url_binding(
-        candidate,
-        proof_rows=proof_rows,
-        approved_claims=approved_claims,
-        use_modes=use_modes,
-    )
-
-
-def _has_inventory_bound_claim(
-    proof_rows: Iterable[FindingDict],
-    *,
-    inventory_ids: set[str],
-    approved_claims: Sequence[Any],
-) -> bool:
-    receipt_selector_ids = {
-        str(getattr(claim, "selector_id", "") or "").strip()
-        for claim in approved_claims
-        if str(getattr(claim, "selector_id", "") or "").strip()
-    }
-    if inventory_ids.intersection(receipt_selector_ids):
-        return True
-    url_map = _inventory_url_map(proof_rows)
-    for claim in approved_claims:
-        if str(getattr(claim, "selector_id", "") or "").strip():
-            continue
-        if str(getattr(claim, "use_mode", "") or "") not in CUSTOMER_PROOF_USE_MODES:
-            continue
-        normalized_url = _normalize_public_url(getattr(claim, "public_url", ""))
-        if not normalized_url or normalized_url not in url_map:
-            continue
-        inventory_matches = sorted(set(url_map[normalized_url]))
-        if len(inventory_matches) > 1:
-            raise CustomerProofDataError(
-                "Customer proof public URL binding is ambiguous for "
-                f"{normalized_url}: {', '.join(inventory_matches)}"
+    search_rows = list(searches) if isinstance(searches, list) else []
+    search_rows.extend(lookup_searches)
+    for row in search_rows:
+        if isinstance(row, Mapping):
+            _validate_claim_search_row(
+                ", ".join(sorted(_claim_search_use_modes(row))) or "unspecified",
+                row,
             )
-        return True
-    return False
+    missing = []
+    for mode in required:
+        matches = [
+            row
+            for row in search_rows
+            if isinstance(row, Mapping) and mode in _claim_search_use_modes(row)
+        ]
+        if not matches:
+            missing.append(mode)
+            continue
+    if missing:
+        raise CustomerProofDataError(
+            "Customer proof context receipt lacks task-specific claim search "
+            f"evidence for use modes: {', '.join(missing)}"
+        )
+
+
+def _claim_lookup_search_rows(claim_lookup: Mapping[str, Any] | None) -> list[Mapping[str, Any]]:
+    if not isinstance(claim_lookup, Mapping):
+        return []
+    if claim_lookup.get("schema") != "simpro-customer-proof-claim-lookup/v1":
+        return []
+    if str(claim_lookup.get("source") or "").strip() != "SimproVaultClient.claims":
+        return []
+    rows = claim_lookup.get("lookups")
+    if not isinstance(rows, list):
+        return []
+    normalized: list[Mapping[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, Mapping):
+            continue
+        result_count = row.get("result_count")
+        if isinstance(result_count, bool) or not isinstance(result_count, int) or result_count < 0:
+            continue
+        normalized.append(row)
+    return normalized
+
+
+def _claim_search_use_modes(row: Mapping[str, Any]) -> set[str]:
+    values: list[Any] = []
+    for key in (
+        "use_mode",
+        "requested_use_mode",
+        "requested_use_modes",
+        "use_modes",
+        "intended_public_use_mode",
+    ):
+        raw = row.get(key)
+        if raw is None:
+            continue
+        if isinstance(raw, list):
+            values.extend(raw)
+        else:
+            values.append(raw)
+    return {str(value).strip() for value in values if str(value).strip()}
+
+
+def _validate_claim_search_row(mode: str, row: Mapping[str, Any]) -> None:
+    if row.get("truncated") is True:
+        raise CustomerProofDataError(
+            f"Customer proof claim search for {mode} is truncated; rerun vault claim discovery."
+        )
+    status = str(
+        row.get("status")
+        or row.get("completion_status")
+        or row.get("search_status")
+        or "complete"
+    ).strip().casefold()
+    if status in {"truncated", "incomplete", "partial", "error", "failed", "failure"}:
+        raise CustomerProofDataError(
+            f"Customer proof claim search for {mode} is not complete: {status}"
+        )
+    if row.get("complete") is False:
+        raise CustomerProofDataError(
+            f"Customer proof claim search for {mode} is marked incomplete."
+        )
 
 
 @contextmanager
 def _selector_input_snapshot(
     *,
-    index_path: str | Path,
     ledger_path: str | Path,
     context_pack: str | Path | None,
     context_receipt: str | Path | None,
+    claim_lookup_evidence: str | Path | None = None,
 ) -> Iterator[_SelectorInputSnapshot]:
     artifacts = {
-        "index": _capture_artifact(
-            index_path,
-            "customer proof index",
-            parse_json_object=True,
-        ),
         "ledger": _capture_artifact(
             ledger_path,
             "customer proof ledger",
             parse_json_object=True,
         ),
         "context_pack": _capture_artifact(context_pack, "context pack"),
-        "context_receipt": _capture_artifact(context_receipt, "context receipt"),
+        "context_receipt": _capture_artifact(
+            context_receipt,
+            "context receipt",
+            parse_json_object=True,
+        ),
     }
+    if claim_lookup_evidence:
+        artifacts["claim_lookup"] = _capture_artifact(
+            claim_lookup_evidence,
+            "customer proof claim lookup evidence",
+            parse_json_object=True,
+        )
     changed_input = _selector_artifacts_unchanged(artifacts)
     if changed_input is not None:
         raise CustomerProofDataError(
@@ -282,17 +281,23 @@ def _selector_input_snapshot(
         snapshot_pack.write_bytes(artifacts["context_pack"].content)
         snapshot_receipt.write_bytes(artifacts["context_receipt"].content)
         receipt_claims = _load_receipt_claims(snapshot_pack, snapshot_receipt)
-        index = artifacts["index"].json_object
         ledger = artifacts["ledger"].json_object
-        if index is None or ledger is None:  # pragma: no cover - capture invariant.
+        context_receipt_json = artifacts["context_receipt"].json_object
+        claim_lookup_json = (
+            artifacts["claim_lookup"].json_object
+            if "claim_lookup" in artifacts
+            else None
+        )
+        if ledger is None or context_receipt_json is None:  # pragma: no cover - capture invariant.
             raise CustomerProofDataError("Selector JSON snapshot is unavailable")
         yield _SelectorInputSnapshot(
             artifacts=artifacts,
-            index=index,
             ledger=ledger,
             context_pack_path=snapshot_pack,
             context_receipt_path=snapshot_receipt,
             receipt_claims=receipt_claims,
+            context_receipt=context_receipt_json,
+            claim_lookup=claim_lookup_json,
         )
 
 
@@ -357,10 +362,9 @@ __all__ = [
     '_load_receipt_claims',
     '_load_receipt_claims_cached',
     '_normalize_public_url',
-    '_inventory_url_map',
-    '_public_url_binding',
-    '_claim_binding_for_candidate',
-    '_has_inventory_bound_claim',
+    '_require_complete_claim_searches',
+    '_claim_lookup_search_rows',
+    '_claim_search_use_modes',
     '_selector_input_snapshot',
     '_selector_artifacts_unchanged',
     '_raise_if_selector_inputs_changed',

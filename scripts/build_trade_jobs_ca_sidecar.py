@@ -155,7 +155,7 @@ def main() -> int:
 - Vault connector evidence: vault_status ready; vault_describe inspected; natural-language vault_search, vault_read, and vault_expand completed; vault_claims checked; context_pack_hash={receipt['pack_sha256']}; receipt_hash={receipt['receipt_sha256']}; resource_id=res-09ebfff123cb5c5496e60c3a759a263d; resource_id=res-a5b3b47382b45490bf2bedbf16c0b76e; resource_id=res-230f144aab93512e840167c4a25e60be; resource_id=res-e3ade596be645307ad4c1f84620ce021; resource_id=res-d31f057a305f51918055120d95b76c6a; resource_id=res-f882ab230eb2563889e300d612c324bc; vertical resource_id=res-ae4607729666509bb97813e66e18590b; vertical resource_id=res-f9f9499223a15d6a901806f30fb1a8ba; manifest_revision={revisions['manifest_revision']}
 - Product/feature language applied: one owner-operator sentence describing field service management software that keeps quotes, schedules, crews, materials and invoices organized from the first call to the final invoice; no named feature, add-on, superiority or outcome claim.
 - Solution/industry language applied: an industries link described as software for trades businesses built around electrical, plumbing, HVAC and other contracting work; no vertical leadership or business-size claim.
-- Fallback context use: none
+- Local brand fallback: none
 - Claims requiring source verification: none
 - Status: aligned
 

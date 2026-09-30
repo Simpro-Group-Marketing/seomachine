@@ -1,35 +1,37 @@
 # Customer Proof Rule
 
-## Selector-first execution
+## Connector-bound Simpro workflows
 
-AroFlo, BigChange, and ClockShark owned workflows with no Simpro name or official `simprogroup.com` URL are nonconnector. Do not run the vault-dependent selector for those workflows. Under a separate approved non-vault proof-eligibility contract, run `python data_sources/modules/nonvault_customer_proof_selector.py "[topic]" --brand "[brand]" --title "[title]" --objective "[objective]" --article-slug "[slug]" --evidence-output "research/nonvault-customer-proof-selector-evidence-[topic-slug]-[YYYY-MM-DD].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`. Require `simpro-nonvault-customer-proof-selector-evidence/v1` bound to the approved proof index and usage ledger. V1 allows approved brand-owned customer stories, case studies, and references, plus approved Capterra `review_site` rows on the brand's listed product page; review-derived stories are paraphrased with a same-paragraph review link, and exact snippets are allowed only when stored in that row's `approved_quotes` and live-captured. Ratings, stars, aggregate ratings, rankings, review metrics, and named-person attribution beyond the approved review row remain excluded; avoid the words "reviewer", "rated", and "stars" in public copy, which trigger strict proof.
-
-Before drafting customer proof, the command workflow must resolve `topic`, `title`, and `objective`, automatically run:
+Before drafting customer proof for a connector-bound Simpro blog, rewrite, optimization, or research proof sidecar, resolve `topic`, `title`, and `objective`, then run:
 
 ```powershell
 python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10
 ```
 
-For review-derived public E-E-A-T stories, automatically run:
+For review-derived public E-E-A-T stories, also run the experience-story slate:
 
 ```powershell
 python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles experience_story --require-eeat-story --limit 10
 ```
 
-Write the generated selector-first `Customer Proof Slate` to the validation sidecar before drafting customer proof. "Consult" means reviewing generated selector output, not skipping execution. If inputs are missing, resolve them from the brief/context or stop before drafting customer proof. If the selector fails, write the blocker into the validation sidecar and do not invent proof. experience_story consideration is required and E-E-A-T story usage is optional; if no story fits, use `Selected: [none]` with section-specific rejection reasons. Edit selected/rejected rows only when editorial judgment requires it.
+Simpro candidates come exclusively from approved claim results bound to the current context pack and receipt. The selector requires complete, non-truncated task-specific claim searches for `public_metric`, `exact_quote`, and `public_paraphrase`, uses `claim_id` as the candidate identifier, and fails closed on legacy local `--index` use.
+
+Write the generated selector-first `Customer Proof Slate` to the validation sidecar before drafting customer proof. If inputs are missing or the selector fails, write the blocker into the validation sidecar and do not invent proof.
 
 ## Selection and reuse
 
-Use `context/customer-proof-index.json` for curated proof routes and `context/customer-proof-usage-ledger.json` for reuse. Choose the most relevant approved proof, not the easiest mapped case study. Treat any `recent_uses_90d` value above 0 as a proof-diversity warning. Before claiming a proof source is underused, inspect the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the proof ID, public URL, and customer name. If the live repo scan finds public-copy usage missing from the ledger, backfill `context/customer-proof-usage-ledger.json`, rerun proof health and selector checks, and document the backfill in the validation sidecar. If a recently used or overused source remains the best fit, add a `Customer Proof Selection Decision` and source-specific `Reuse reason` proving no stronger underused approved proof fits the same role.
+Choose the most relevant approved claim, not the easiest searchable case study. Treat any `recent_uses_90d` value above 0 as a proof-diversity warning. Before claiming a proof source is underused, inspect `config/customer-proof-usage-ledger.json` and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the claim ID, public URL, and customer name. If public-copy usage is missing from the ledger, backfill `config/customer-proof-usage-ledger.json`, rerun selector checks, and document the backfill.
+
+When selected proof is recently used or overused, add a `Customer Proof Selection Decision` and source-specific `Reuse reason` proving no stronger underused approved claim fits the same role.
+
+## Nonconnector workflows
+
+AroFlo, BigChange, and ClockShark owned workflows with no Simpro name or official `simprogroup.com` URL are nonconnector. Do not run the vault-dependent selector. When the separate non-vault proof contract applies, run the nonvault selector against `config/nonvault-customer-proof-index.json` and require `simpro-nonvault-customer-proof-selector-evidence/v1`.
+
+Run `python data_sources/modules/nonvault_customer_proof_selector.py "[topic]" --brand "[brand]" --title "[title]" --objective "[objective]" --proof-index config/nonvault-customer-proof-index.json --ledger config/customer-proof-usage-ledger.json --evidence-output "research/nonvault-customer-proof-selector-evidence-[topic-slug].json" --slate` for eligible nonconnector proof workflows. V1 permits approved brand-owned customer stories, case studies, and references, plus approved Capterra `review_site` rows on the brand's listed product page. Review-derived stories are paraphrased with a same-paragraph review link; exact snippets are allowed only when stored in that row's `approved_quotes` and live-captured. It does not permit ratings, stars, aggregate ratings, rankings, review metrics, or named-person attribution beyond the approved review row; avoid the words "reviewer", "rated", and "stars" in public copy.
+
+Run `python data_sources/modules/customer_proof_index_health.py --index config/nonvault-customer-proof-index.json --ledger config/customer-proof-usage-ledger.json` only for nonconnector inventory health. Add new nonconnector proof candidates through an intake CSV and validate them with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index config/nonvault-customer-proof-index.json`.
 
 ## Public-copy use
 
-When selected customer proof appears in public copy, add `Selected Customer Proof Mining` to the validation sidecar. Selector chooses candidates; proof mining reads the selected public URL before the writer decides quote, metric, POV/story, theme, or omit use. Review-derived E-E-A-T stories require `Review Story Selection` in the validation sidecar and same-paragraph public review links. Use a proof-backed customer/review POV only when it improves the article objective. If no actual person or business POV fits, omit the story. Fictional named personas are prohibited; unnamed workflow scenarios are explanatory only and do not count as E-E-A-T. Use `context/aeo-geo-blog-strategy.md` as the canonical policy.
-
-## Proof inventory
-
-Run `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` before adding proof candidates. Add new proof candidates through `context/customer-proof-intake-template.csv` and validate them with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates.
-
-## Publish handoff
-
-Run `/publish-readiness` before handoff. Its complete gate and seal contract is the only publication-readiness authority.
+When selected customer proof appears in public copy, add `Selected Customer Proof Mining` to the validation sidecar and add the final public use to `config/customer-proof-usage-ledger.json`. Review-derived E-E-A-T stories require `Review Story Selection` and same-paragraph public review links. Use `context/aeo-geo-blog-strategy.md` as the canonical policy.
