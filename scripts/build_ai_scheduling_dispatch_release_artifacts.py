@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -14,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from data_sources.modules.blog_assembly_contract import atomic_write_json
+from data_sources.modules.artifact_runtime.git import repository_commit as current_repository_commit
 from data_sources.modules.editorial_plan.orchestration import check_file as check_plan_file
 from data_sources.modules.editorial_plan.plan_fulfillment import (
     PLAN_FULFILLMENT_SCHEMA,
@@ -133,15 +133,7 @@ def sha256_file(path: Path) -> str:
 
 
 def repository_commit() -> str:
-    try:
-        return subprocess.check_output(
-            ["git", "rev-parse", "HEAD"],
-            cwd=ROOT,
-            text=True,
-            stderr=subprocess.DEVNULL,
-        ).strip()
-    except (OSError, subprocess.CalledProcessError):
-        return "working-tree"
+    return current_repository_commit(ROOT, fallback="working-tree")
 
 
 def article_text() -> str:

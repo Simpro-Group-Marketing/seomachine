@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
-import subprocess
 import sys
 
 
@@ -15,6 +14,7 @@ from data_sources.modules.machine_review import (
     build_machine_review,
     write_machine_review,
 )
+from data_sources.modules.artifact_runtime.git import repository_commit as current_repository_commit
 
 
 SLUG = "workplace-risk-assessment"
@@ -32,9 +32,7 @@ def now() -> str:
 
 
 def repository_commit() -> str:
-    return subprocess.check_output(
-        ["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, text=True
-    ).strip()
+    return current_repository_commit(ROOT, short=True)
 
 
 def review(phase: str) -> dict:

@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -23,6 +22,7 @@ from data_sources.modules import (  # noqa: E402
     source_quality_guard,
 )
 from data_sources.modules.blog_assembly_contract import atomic_write_json  # noqa: E402
+from data_sources.modules.artifact_runtime.git import repository_commit  # noqa: E402
 from data_sources.modules.editorial_plan.orchestration import check_file as check_plan_file  # noqa: E402
 from data_sources.modules.editorial_plan.plan_fulfillment import (  # noqa: E402
     PLAN_FULFILLMENT_SCHEMA,
@@ -201,7 +201,7 @@ def main() -> int:
     atomic_write_json(FULFILLMENT, fulfillment)
 
     created_at = now()
-    commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, check=True, capture_output=True, text=True).stdout.strip()
+    commit = repository_commit(ROOT)
     plan_result = plan_findings()
     article_result = article_findings()
     write_machine_review(REVIEW_PLAN, build_review("plan", plan_result, created_at, commit))

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import subprocess
 import sys
 import tempfile
 import time
@@ -14,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from scripts import research_serp_analysis as serp  # noqa: E402
+from data_sources.modules.artifact_runtime.subprocesses import run_bounded_text_process  # noqa: E402
 
 
 KEYWORD = "ai estimating software"
@@ -38,19 +38,15 @@ def run_playwright_cli_serp_capture_ready(
         "@playwright/cli",
         "playwright-cli",
     ]
-    subprocess.run(
+    run_bounded_text_process(
         prefix + ["close"],
-        capture_output=True,
-        text=True,
         timeout=serp.PLAYWRIGHT_CLOSE_TIMEOUT_SECONDS,
-        check=False,
+        errors="replace",
     )
-    opened = subprocess.run(
+    opened = run_bounded_text_process(
         prefix + ["open", "about:blank"],
-        capture_output=True,
-        text=True,
         timeout=serp.PLAYWRIGHT_OPEN_TIMEOUT_SECONDS,
-        check=False,
+        errors="replace",
     )
     if opened.returncode != 0:
         raise RuntimeError((opened.stderr or opened.stdout).strip())
@@ -58,12 +54,10 @@ def run_playwright_cli_serp_capture_ready(
     ready = False
     readiness_error = ""
     for _ in range(5):
-        listed = subprocess.run(
+        listed = run_bounded_text_process(
             prefix + ["tab-list"],
-            capture_output=True,
-            text=True,
             timeout=serp.PLAYWRIGHT_OPEN_TIMEOUT_SECONDS,
-            check=False,
+            errors="replace",
         )
         readiness_error = (listed.stderr or listed.stdout).strip()
         if listed.returncode == 0 and "about:blank" in listed.stdout:
@@ -82,13 +76,11 @@ def run_playwright_cli_serp_capture_ready(
             temp_file.write(code)
             code_path = temp_file.name
         try:
-            completed = subprocess.run(
+            completed = run_bounded_text_process(
                 prefix + ["run-code", "--filename", code_path, "--raw"],
-                capture_output=True,
                 encoding="utf-8",
                 errors="replace",
                 timeout=serp.PLAYWRIGHT_RUN_TIMEOUT_SECONDS,
-                check=False,
             )
             if completed.returncode != 0:
                 raise RuntimeError((completed.stderr or completed.stdout).strip())
@@ -99,12 +91,10 @@ def run_playwright_cli_serp_capture_ready(
             except OSError:
                 pass
     finally:
-        subprocess.run(
+        run_bounded_text_process(
             prefix + ["close"],
-            capture_output=True,
-            text=True,
             timeout=serp.PLAYWRIGHT_CLOSE_TIMEOUT_SECONDS,
-            check=False,
+            errors="replace",
         )
 
 

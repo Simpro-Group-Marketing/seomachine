@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT))
 
 from data_sources.modules.blog_assembly_contract import atomic_write_json
 from data_sources.modules.execution_attestation import attest_mapping
-from data_sources.modules.paa_provenance_guard import build_answersocrates_artifact, write_answersocrates_artifact
+from data_sources.modules.paa_provenance.collection import build_answersocrates_artifact, write_answersocrates_artifact
 
 DATE = "2026-09-28"
 RUN_ID = "3bca06a1-6ab7-4d7b-b8e9-6f01d62a2d4c"

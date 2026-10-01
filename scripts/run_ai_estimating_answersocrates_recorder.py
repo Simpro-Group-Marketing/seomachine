@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import subprocess
 import sys
 from pathlib import Path
 from typing import Sequence
@@ -12,6 +11,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from data_sources.modules.paa_provenance.cli import _record_main  # noqa: E402
+from data_sources.modules.artifact_runtime.subprocesses import (  # noqa: E402
+    BoundedTextProcess,
+    run_bounded_text_process,
+)
 from data_sources.modules.paa_provenance.collection import (  # noqa: E402
     find_npx_executable,
 )
@@ -35,24 +38,20 @@ def persistent_subprocess_runner(
     errors: str = "replace",
     timeout: int | float | None = None,
     max_output_bytes: int | None = None,
-) -> subprocess.CompletedProcess[str]:
+) -> BoundedTextProcess:
     """Run the approved CLI without terminating its browser service between calls."""
-    completed = subprocess.run(
-        list(args),
-        capture_output=True,
-        encoding=encoding,
-        errors=errors,
-        timeout=timeout,
-        check=False,
-    )
+    kwargs = {
+        "cwd": ROOT,
+        "encoding": encoding,
+        "errors": errors,
+        "timeout": float(timeout) if timeout is not None else 60.0,
+    }
     if max_output_bytes is not None:
-        stdout_bytes = completed.stdout.encode(encoding, errors=errors)
-        stderr_bytes = completed.stderr.encode(encoding, errors=errors)
-        if len(stdout_bytes) > max_output_bytes or len(stderr_bytes) > max_output_bytes:
-            raise subprocess.SubprocessError(
-                "AnswerSocrates collector output exceeded the repository bound"
-            )
-    return completed
+        kwargs["max_output_bytes"] = max_output_bytes
+    return run_bounded_text_process(
+        list(args),
+        **kwargs,
+    )
 
 
 def main() -> int:

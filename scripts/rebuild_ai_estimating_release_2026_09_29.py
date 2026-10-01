@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -18,6 +17,7 @@ from data_sources.modules.blog_assembly_contract import (  # noqa: E402
     atomic_write_json,
     file_sha256,
 )
+from data_sources.modules.artifact_runtime.git import repository_commit  # noqa: E402
 from data_sources.modules.blog_assembly_stage_receipt import (  # noqa: E402
     build_stage_receipt,
     receipt_hash,
@@ -93,11 +93,7 @@ def article_text() -> str:
 
 
 def git_commit() -> str:
-    return subprocess.check_output(
-        ["git", "rev-parse", "HEAD"],
-        cwd=ROOT,
-        text=True,
-    ).strip()
+    return repository_commit(ROOT)
 
 
 def now_text() -> str:

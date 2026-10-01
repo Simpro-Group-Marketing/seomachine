@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT))
 
 from data_sources.modules.blog_assembly_contract import atomic_write_json
 from data_sources.modules.execution_attestation import attest_mapping
-from data_sources.modules.paa_provenance_guard import (
+from data_sources.modules.paa_provenance.collection import (
     build_answersocrates_artifact,
     write_answersocrates_artifact,
 )
