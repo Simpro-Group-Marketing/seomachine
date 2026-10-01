@@ -1,6 +1,6 @@
 {
   "schema": "simpro-source-classification-decisions/v1",
-  "revision": "2026-09-28",
+  "revision": "2026-10-01",
   "decisions": [
     {
       "decision_id": "icc-ibc-2024-chapter-17-special-inspections",
@@ -984,6 +984,94 @@
       "source_url": "https://www.capterra.co.uk/software/149479/jobwatch-powered-by-bigchange",
       "hostname": "www.capterra.co.uk",
       "source_class": "review_platform",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-nfpa-nec",
+      "status": "approved",
+      "source_url": "https://www.nfpa.org/product/nfpa-70-national-electrical-code-nec/p0070code/70-nec-spl-2026/7026spl",
+      "hostname": "www.nfpa.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-osha-1910-333",
+      "status": "approved",
+      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.333",
+      "hostname": "www.osha.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-servicetitan-electrical",
+      "status": "approved",
+      "source_url": "https://www.servicetitan.com/industries/electrical-software",
+      "hostname": "www.servicetitan.com",
+      "source_class": "competitor",
+      "publisher_relationship": "competitor"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-housecall-electrical",
+      "status": "approved",
+      "source_url": "https://www.housecallpro.com/industries/electrical-contractor-software/",
+      "hostname": "www.housecallpro.com",
+      "source_class": "competitor",
+      "publisher_relationship": "competitor"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-workyard-electrical",
+      "status": "approved",
+      "source_url": "https://www.workyard.com/industries/electrical-software",
+      "hostname": "www.workyard.com",
+      "source_class": "competitor",
+      "publisher_relationship": "competitor"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-fieldwire-home",
+      "status": "approved",
+      "source_url": "https://www.fieldwire.com/",
+      "hostname": "www.fieldwire.com",
+      "source_class": "competitor",
+      "publisher_relationship": "competitor"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-joist-home",
+      "status": "approved",
+      "source_url": "https://www.joist.com/",
+      "hostname": "www.joist.com",
+      "source_class": "competitor",
+      "publisher_relationship": "competitor"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-uglys-home",
+      "status": "approved",
+      "source_url": "https://www.uglys.net/",
+      "hostname": "www.uglys.net",
+      "source_class": "neutral",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-electrical-calc-elite",
+      "status": "approved",
+      "source_url": "https://www.cyberprodigy.com/electricalcalcelite/",
+      "hostname": "www.cyberprodigy.com",
+      "source_class": "neutral",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-southwire-apps",
+      "status": "approved",
+      "source_url": "https://www.southwire.com/apps",
+      "hostname": "www.southwire.com",
+      "source_class": "neutral",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-everycircuit-home",
+      "status": "approved",
+      "source_url": "https://everycircuit.com/",
+      "hostname": "everycircuit.com",
+      "source_class": "neutral",
       "publisher_relationship": "independent"
     }
   ]
