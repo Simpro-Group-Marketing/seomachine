@@ -1,6 +1,6 @@
 {
   "schema": "simpro-source-classification-decisions/v1",
-  "revision": "2026-10-01",
+  "revision": "2026-10-05",
   "decisions": [
     {
       "decision_id": "icc-ibc-2024-chapter-17-special-inspections",
@@ -1073,6 +1073,14 @@
       "hostname": "everycircuit.com",
       "source_class": "neutral",
       "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "what-is-simpro-2026-10-05-simprogroup-homepage",
+      "status": "approved",
+      "source_url": "https://www.simprogroup.com/",
+      "hostname": "www.simprogroup.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
     }
   ]
 }
