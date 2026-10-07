@@ -47,17 +47,20 @@ VAULT_GATES = {
 }
 # Every dedicated release check, in run order (url_validator precedes its consumers).
 RELEASE_CHECKS = (
-    "pre_bom_report", "public_artifact", "ai_copy_linter", "url_validator",
-    "public_research_links", "context_binding", "editorial_plan", "semrush_keyword_decision",
+    "pre_bom_report", "artifact_identity", "public_artifact", "ai_copy_linter",
+    "url_validator", "public_research_links", "context_binding", "editorial_plan", "semrush_keyword_decision",
     "faq_binding", "blog_strategy", "source_quality", "customer_proof_no_fit", "content_scorer",
 )
 ARTICLE_TEXT_CHECKS = (
-    "public_artifact", "ai_copy_linter", "url_validator", "public_research_links",
-    "customer_proof_no_fit",
+    "artifact_identity", "public_artifact", "ai_copy_linter", "url_validator",
+    "public_research_links", "customer_proof_no_fit",
 )
 PLAN_CHECKS = ("blog_strategy", "source_quality")
 RELEASE_ONLY = {
-    "blog_assembly_bom": "release run only (needs the BOM)",
+    "blog_assembly_bom": (
+        "not covered: plan fulfillment, machine-review pair, stage-receipt chain, "
+        "optimizer outputs; run blog_release --precheck-only"
+    ),
     "input_seal": "release run only (seals the BOM inputs)",
 }
 
@@ -67,6 +70,7 @@ _keyword_rows = sweep_checks.keyword_rows
 _faq_binding_rows = sweep_checks.faq_binding_rows
 _strategy_rows = sweep_checks.strategy_rows
 _source_quality_rows = sweep_checks.source_quality_rows
+_identity_rows = sweep_gates.identity_rows
 _public_artifact_rows = sweep_gates.public_artifact_rows
 _ai_copy_rows = sweep_gates.ai_copy_rows
 _url_validator_rows = sweep_gates.url_validator_rows
@@ -178,7 +182,7 @@ def _runtime_policy(
         "run_id": run_id,
         "customer_proof_selector_evidence": arg(args, "customer_proof_evidence"),
         "fred_authority_evidence": arg(args, "fred_authority_evidence"),
-        "faq_policy_status": "",
+        "faq_policy_status": sweep_checks.plan_faq_policy_status(args),
         "scoring_metadata": {},
         "paa_kwargs": paa_kwargs,
     }
@@ -238,6 +242,7 @@ def _release_checks(
     sidecar = arg(args, "proof_sidecar")
     return {
         "pre_bom_report": lambda: _pre_bom_rows(args, root),
+        "artifact_identity": lambda: _identity_rows(text, arg(args, "assembly_date")),
         "public_artifact": lambda: _public_artifact_rows(text),
         "ai_copy_linter": lambda: _ai_copy_rows(text),
         "url_validator": lambda: _url_validator_rows(state),

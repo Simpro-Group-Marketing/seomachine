@@ -130,6 +130,7 @@ ROW_FUNCTIONS = (
     "_pre_bom_rows", "_plan_rows", "_keyword_rows", "_faq_binding_rows", "_scorer_rows",
     "_strategy_rows", "_source_quality_rows", "_public_artifact_rows", "_ai_copy_rows",
     "_url_validator_rows", "_research_link_rows", "_context_binding_rows", "_no_fit_rows",
+    "_identity_rows",
 )
 
 
@@ -349,3 +350,96 @@ def test_online_scorer_findings_are_errors() -> None:
     rows = precheck_sweep.scorer_findings(_scored(EEAT))
     assert [row["severity"] for row in rows] == ["error", "error"]
     assert not any(row["message"].startswith("unverified offline") for row in rows)
+
+
+def test_identity_check_mirrors_runner_call_and_is_reported(monkeypatch, tmp_path) -> None:
+    _stub_dedicated_checks(monkeypatch)
+    monkeypatch.setattr(precheck_sweep, "ARTICLE_GATES", ())
+    seen = {}
+
+    def fake_identity(text, assembly_date):
+        seen.update(text=text, assembly_date=assembly_date)
+        return [{"rule_id": "blog_identity_title_missing", "severity": "error", "message": "m"}]
+
+    monkeypatch.setattr(precheck_sweep, "_identity_rows", fake_identity)
+    article = tmp_path / "a.md"
+    article.write_text("# Hi\n", encoding="utf-8")
+    args = SimpleNamespace(article=str(article), proof_sidecar="s.md", assembly_date="2026-10-07")
+    report = precheck_sweep.run_release_sweep(
+        args, workspace_root=tmp_path, offline=True, include_slow=False
+    )
+    assert "artifact_identity" in report["checks_run"]
+    assert seen == {"text": "# Hi\n", "assembly_date": "2026-10-07"}
+    assert [(r["check"], r["rule_id"]) for r in report["findings"]] == [
+        ("artifact_identity", "blog_identity_title_missing")
+    ]
+
+
+def test_identity_rows_call_blog_identity_guard_with_assembly_date(monkeypatch) -> None:
+    from data_sources.modules.release_workflow import sweep_gates
+
+    calls = []
+    monkeypatch.setattr(
+        sweep_gates.blog_identity_guard, "check_article",
+        lambda content, *, assembly_date=None: calls.append((content, assembly_date)) or [],
+    )
+    sweep_gates.identity_rows("body", "")
+    sweep_gates.identity_rows("body", "2026-10-07")
+    assert calls == [("body", None), ("body", "2026-10-07")]
+
+
+def test_unreadable_article_skips_identity_check(monkeypatch, tmp_path) -> None:
+    _stub_dedicated_checks(monkeypatch)
+    monkeypatch.setattr(precheck_sweep, "ARTICLE_GATES", ())
+    args = SimpleNamespace(article=str(tmp_path / "missing.md"), proof_sidecar="s.md")
+    report = precheck_sweep.run_release_sweep(
+        args, workspace_root=tmp_path, offline=True, include_slow=False
+    )
+    reasons = {row["check"]: row["reason"] for row in report["skipped"]}
+    assert reasons["artifact_identity"] == "article unreadable"
+
+
+def test_bom_skip_reason_names_what_it_covers_in_one_line(monkeypatch, tmp_path) -> None:
+    _stub_dedicated_checks(monkeypatch)
+    monkeypatch.setattr(precheck_sweep, "ARTICLE_GATES", ())
+    args = SimpleNamespace(article="a.md", proof_sidecar="s.md")
+    report = precheck_sweep.run_release_sweep(
+        args, workspace_root=tmp_path, offline=True, include_slow=False
+    )
+    reason = {row["check"]: row["reason"] for row in report["skipped"]}["blog_assembly_bom"]
+    assert "\n" not in reason
+    for phrase in ("plan fulfillment", "machine-review pair", "stage-receipt chain", "optimizer outputs"):
+        assert phrase in reason
+    assert "blog_release --precheck-only" in reason
+
+
+@pytest.mark.parametrize("plan, expected", [
+    ({"faq_policy": {"status": "required", "rationale": ""}}, "required"),
+    ({"faq_policy": {"status": "not_applicable", "rationale": "r"}}, "not_applicable"),
+    ({"faq_policy": {}}, ""),
+    ({"faq_policy": "required"}, ""),
+    ({}, ""),
+])
+def test_runtime_policy_reads_faq_policy_status_from_plan(tmp_path, plan, expected) -> None:
+    plan_path = tmp_path / "plan.json"
+    plan_path.write_text(json.dumps(plan), encoding="utf-8")
+    policy = precheck_sweep._runtime_policy(
+        _args(editorial_plan=str(plan_path)), article_text=None
+    )
+    assert policy["faq_policy_status"] == expected
+
+
+@pytest.mark.parametrize("plan_name", ["missing.json", None])
+def test_runtime_policy_faq_status_falls_back_when_plan_unavailable(tmp_path, plan_name) -> None:
+    plan = None if plan_name is None else str(tmp_path / plan_name)
+    policy = precheck_sweep._runtime_policy(_args(editorial_plan=plan), article_text=None)
+    assert policy["faq_policy_status"] == ""
+
+
+def test_runtime_policy_faq_status_falls_back_on_invalid_json(tmp_path) -> None:
+    plan_path = tmp_path / "plan.json"
+    plan_path.write_text("{not json", encoding="utf-8")
+    policy = precheck_sweep._runtime_policy(
+        _args(editorial_plan=str(plan_path)), article_text=None
+    )
+    assert policy["faq_policy_status"] == ""

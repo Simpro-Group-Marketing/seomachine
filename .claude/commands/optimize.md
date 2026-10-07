@@ -14,7 +14,7 @@ Python may run guards and write governance artifacts such as scorer output, sele
 
 ## Required workflow
 
-1. Run `/publish-readiness [article]` first unless the user explicitly requested a read-only audit. Run the fast sweep from `/publish-readiness` first.
+1. Run the fast sweep from `/publish-readiness`, then `/publish-readiness [article]`, unless the user explicitly requested a read-only audit.
 2. Read the failed gates, `scorecard`, `aeo_geo.checks`, and `priority_fixes`. If `/publish-readiness` stopped before scoring, record `scorecard: unavailable`, name the exact pre-scoring blocker, and do not claim optimization scores.
 3. Classify each issue as a public-copy gap, validation-sidecar/proof gap, or scorer/parser false negative.
 4. Run the Reader-Facing Copy Firewall as part of optimization diagnosis. If public body copy contains brief rationale, source-fit notes, feature-omission reasoning, command status, or `editorial_process_leakage`, classify it as a public-copy gap and repair it through `/optimize`; never record a no-op optimizer output while this blocker remains.

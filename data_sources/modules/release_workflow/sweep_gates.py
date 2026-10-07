@@ -12,6 +12,7 @@ from typing import Any, Mapping
 try:
     from .. import (
         ai_copy_linter,
+        blog_identity_guard,
         chrome_review_evidence,
         context_binding_guard,
         public_artifact_guard,
@@ -22,6 +23,7 @@ try:
     from ..url_validator import validate_content_urls
 except ImportError:  # pragma: no cover - supports direct script execution.
     import ai_copy_linter
+    import blog_identity_guard
     import chrome_review_evidence
     import context_binding_guard
     import public_artifact_guard
@@ -32,6 +34,13 @@ except ImportError:  # pragma: no cover - supports direct script execution.
 
 AI_PROFILE = "simpro-web"
 Rows = list[Mapping[str, Any]]
+
+
+def identity_rows(article_text: str, assembly_date: Any) -> Rows:
+    """Mirror the ``artifact_identity`` call in ``readiness/runner.py``."""
+    return list(blog_identity_guard.check_article(
+        article_text, assembly_date=assembly_date or None
+    ))
 
 
 def public_artifact_rows(article_text: str) -> Rows:

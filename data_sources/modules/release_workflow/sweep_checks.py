@@ -67,6 +67,16 @@ def _finding(rule_id: str, message: str) -> dict[str, str]:
     return {"rule_id": rule_id, "severity": "error", "message": message}
 
 
+def plan_faq_policy_status(args: Any) -> str:
+    """Read ``faq_policy.status`` from the editorial plan, as the BOM does; "" when absent."""
+    try:
+        plan = _json_object(arg(args, "editorial_plan"))
+    except (OSError, UnicodeError, ValueError):
+        return ""
+    faq_policy = plan.get("faq_policy") if plan else None
+    return str(faq_policy.get("status") or "") if isinstance(faq_policy, Mapping) else ""
+
+
 def pre_bom_rows(args: Any, root: Path) -> Rows:
     """Mirror ``precheck.run_blog_release_precheck``'s pre-BOM call; keep every blocker."""
     stage_receipts = _release_stage_receipts(
