@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any, Mapping
+from typing import Any, Collection, Mapping
 
 
 def verify_artifact(
@@ -158,6 +158,7 @@ def check_machine_review_payload(
     article_sha256: str,
     editorial_plan_sha256: str,
     proof_sidecar_sha256: str,
+    accepted_article_sha256s: Collection[str] = (),
 ) -> list[dict[str, Any]]:
     """Validate a machine review against captured input digests."""
     findings = list(guard["machine_review"].check_machine_review(payload))
@@ -190,7 +191,8 @@ def check_machine_review_payload(
         ),
     )
     for key, expected, rule_id, message in bindings:
-        if payload.get(key) != expected:
+        carried = key == "article_sha256" and payload.get(key) in accepted_article_sha256s
+        if payload.get(key) != expected and not carried:
             findings.append(
                 guard["machine_review"]._finding(
                     rule_id,
@@ -225,6 +227,8 @@ def check_captured_machine_reviews(
     reviews: Mapping[str, Any],
     artifacts: Mapping[str, Any],
     captured: Any,
+    *,
+    accepted_article_sha256s: Collection[str] = (),
 ) -> list[dict[str, Any]]:
     """Validate both machine reviews solely from session-owned snapshots."""
     required = {
@@ -277,6 +281,7 @@ def check_captured_machine_reviews(
             article_sha256=article.sha256,
             editorial_plan_sha256=plan.sha256,
             proof_sidecar_sha256=sidecar.sha256,
+            accepted_article_sha256s=accepted_article_sha256s,
         )
         findings.extend(_wrap_machine_findings(guard, review_findings))
     if set(payloads) == {"plan", "article"}:

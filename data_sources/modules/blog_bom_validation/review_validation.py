@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Collection, Mapping
+
+from ..wording_edit_lineage import verified_bom_lineage
 
 
 def check_machine_reviews(
@@ -36,9 +38,10 @@ def check_machine_reviews(
             "bom_machine_reviews_invalid",
             "BOM v2 through v4 require machine_reviews.plan and machine_reviews.article path/hash bindings.",
         )]
+    accepted = verified_bom_lineage(bom, root, captured=captured)[0]
     if captured is not None:
         return guard["blog_assembly_bom_snapshot"].check_captured_machine_reviews(
-            guard, reviews, artifacts, captured,
+            guard, reviews, artifacts, captured, accepted_article_sha256s=accepted,
         )
     return _check_legacy_reviews(
         guard,
@@ -46,6 +49,7 @@ def check_machine_reviews(
         artifacts,
         root,
         proof_sidecar_path=proof_sidecar_path,
+        accepted_article_sha256s=accepted,
     )
 
 
@@ -56,6 +60,7 @@ def _check_legacy_reviews(
     root: Path,
     *,
     proof_sidecar_path: str | Path | None,
+    accepted_article_sha256s: Collection[str] = (),
 ) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
     plan_row = artifacts.get("editorial_plan")
@@ -108,6 +113,7 @@ def _check_legacy_reviews(
             editorial_plan_path=plan_path,
             article_path=article_path,
             expected_phase=phase,
+            accepted_article_sha256s=accepted_article_sha256s,
         )
         findings.extend(_wrap(guard, review_findings, "machine_review_invalid"))
     if set(review_paths) == {"plan", "article"}:

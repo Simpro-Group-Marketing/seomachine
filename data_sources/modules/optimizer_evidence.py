@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Collection, Mapping, Sequence
 
 try:
     from .blog_assembly_contract import (
@@ -73,8 +73,12 @@ def validate_optimizer_outputs(
     proof_sidecar: str | Path,
     prior_preflight_readiness: str | Path,
     workspace_root: str | Path,
+    accepted_article_sha256s: Collection[str] = (),
 ) -> None:
-    """Require every optimizer output to bind the current release inputs."""
+    """Require every optimizer output to bind the current release inputs.
+
+    The article binding may also be a hash from the trailing wording-edit run.
+    """
     root = Path(workspace_root).resolve()
     current = {
         "article": _current_artifact(article, root=root, label="article"),
@@ -115,9 +119,10 @@ def validate_optimizer_outputs(
             index=index,
         )
         for label, observed in current.items():
+            carried = label == "article" and bindings[label].get("sha256") in accepted_article_sha256s
             _require_fresh_binding(
                 bindings[label],
-                observed,
+                {**observed, "sha256": bindings[label].get("sha256")} if carried else observed,
                 label=label,
                 index=index,
             )

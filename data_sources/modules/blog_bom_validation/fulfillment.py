@@ -12,6 +12,7 @@ from ..blog_assembly_contract import validate_sha256, verify_artifact
 from ..editorial_plan.plan_fulfillment import check_fulfillment
 from ..guard_common import Finding
 from .common import _finding
+from ..wording_edit_lineage import verified_bom_lineage
 
 
 def check_editorial_fulfillment(
@@ -53,6 +54,7 @@ def check_editorial_fulfillment(
             editorial_plan=plan,
             editorial_plan_sha256=plan_hash,
             article_content=article_content,
+            accepted_article_sha256s=verified_bom_lineage(bom, root)[0],
         )
     ]
     if bom.get("editorial_fulfillment") != _editorial_fulfillment(plan, fulfillment):

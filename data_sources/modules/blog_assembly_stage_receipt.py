@@ -21,6 +21,7 @@ try:
     )
     from .execution_attestation import attest_mapping, verify_mapping_attestation
     from .guard_common import Finding, make_finding
+    from .wording_edit_chain import WORDING_EDIT_STAGE, WORDING_EDIT_TOOL, base_stages
 except ImportError:  # pragma: no cover - supports direct script execution.
     from blog_assembly_contract import (
         atomic_write_json,
@@ -31,6 +32,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     )
     from execution_attestation import attest_mapping, verify_mapping_attestation
     from guard_common import Finding, make_finding
+    from wording_edit_chain import WORDING_EDIT_STAGE, WORDING_EDIT_TOOL, base_stages
 
 
 STAGE_RECEIPT_SCHEMA = "simpro-blog-stage-receipt/v1"
@@ -60,7 +62,7 @@ OPTIMIZED_TAIL_STAGE_SEQUENCE = (
     "final_preflight_readiness",
     "final_readiness_attestation",
 )
-STAGES = tuple(dict.fromkeys((*NORMAL_STAGE_SEQUENCE, *OPTIMIZED_STAGE_SEQUENCE)))
+STAGES = tuple(dict.fromkeys((*NORMAL_STAGE_SEQUENCE, *OPTIMIZED_STAGE_SEQUENCE, WORDING_EDIT_STAGE)))
 DETERMINISTIC_TOOLS = {
     "scrub": ("content_scrubber", "1.0.0"),
     "post_optimization_scrub": ("content_scrubber", "1.0.0"),
@@ -69,6 +71,7 @@ DETERMINISTIC_TOOLS = {
     "preflight_readiness": ("publish_readiness", "1.0.0"),
     "final_preflight_readiness": ("publish_readiness", "1.0.0"),
     "final_readiness_attestation": ("publish_readiness", "1.0.0"),
+    WORDING_EDIT_STAGE: WORDING_EDIT_TOOL,
 }
 NON_MUTATING_STAGES = frozenset(
     {
@@ -101,7 +104,7 @@ RECEIPT_FIELDS = frozenset(
     }
 )
 TOOL_FIELDS = frozenset({"name", "version"})
-MUTATING_STAGES = frozenset({"draft", "optimization"})
+MUTATING_STAGES = frozenset({"draft", "optimization", WORDING_EDIT_STAGE})
 NATIVE_EDIT_STATE_SCHEMA = "simpro-blog-native-edit-state/v1"
 CONSUMED_NATIVE_EDIT_STATE_SCHEMA = "simpro-blog-native-edit-state-consumed/v1"
 EMPTY_ARTICLE_SHA256 = hashlib.sha256(b"").hexdigest()
@@ -174,7 +177,7 @@ def begin_native_edit(
     if stage not in MUTATING_STAGES:
         raise StageReceiptError(
             "native_edit_stage_invalid",
-            "native edit stage must be draft or optimization",
+            "native edit stage must be draft, optimization, or wording_edit",
         )
     article = Path(article_path).resolve(strict=False)
     if article.exists() and not article.is_file():
@@ -642,7 +645,7 @@ def check_receipt_chain(
         findings.extend(
             check_stage_receipt(receipt, workspace_root=workspace_root)
         )
-    stages = tuple(str(receipt.get("stage") or "") for receipt in receipts)
+    stages = base_stages(str(receipt.get("stage") or "") for receipt in receipts)
     valid_prefix = any(
         stages == sequence[: len(stages)]
         for sequence in (
@@ -902,7 +905,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     begin.add_argument("--article", required=True)
     begin.add_argument("--state", required=True)
     begin.add_argument("--run-id", required=True)
-    begin.add_argument("--stage", choices=sorted(MUTATING_STAGES), required=True)
+    begin.add_argument("--stage", choices=sorted(MUTATING_STAGES - {WORDING_EDIT_STAGE}), required=True)
     begin.add_argument("--tool-name", required=True)
     begin.add_argument("--tool-version", required=True)
     begin.add_argument("--input", action="append", default=[])

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any, Callable, Collection, Mapping, Sequence
 
 
 @dataclass(frozen=True)
@@ -95,6 +95,7 @@ def validate_payload_findings(
     editorial_plan: Mapping[str, Any] | None,
     vault_root: str | Path | None,
     client: Any,
+    accepted_article_sha256s: Collection[str] = (),
 ) -> list[dict[str, Any]]:
     """Run Context Binding rules without reopening any captured artifact."""
     findings = dependencies.validate_request_article(
@@ -151,6 +152,9 @@ def validate_payload_findings(
     try:
         binding = dependencies.json_block(proof_content, "Context Binding")
         claim_map = dependencies.json_block(proof_content, "Context Claim Use Map")
+        bound = binding.get("article") if isinstance(binding, dict) else None
+        if isinstance(bound, dict) and bound.get("sha256") in accepted_article_sha256s:
+            article_sha256 = str(bound["sha256"])
         expected = build_binding(
             dependencies=dependencies,
             article_name=article_path.name,

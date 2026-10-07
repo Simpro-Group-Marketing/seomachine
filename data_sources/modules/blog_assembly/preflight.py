@@ -14,6 +14,7 @@ from .common import (
     verify_artifact,
 )
 from .contracts import _is_number, _required_mapping
+from ..wording_edit_chain import base_stages
 
 
 def _validate_preflight_metadata(readiness: Mapping[str, Any]) -> None:
@@ -243,7 +244,7 @@ def _resolvable_receipt_evidence_hashes(
         if execution_evidence is not None
         else artifacts.get("execution_evidence")
     )
-    stages = tuple(str(receipt.get("stage") or "") for receipt in receipts)
+    stages = base_stages(str(receipt.get("stage") or "") for receipt in receipts)
     optimized_tail = stages == (
         "post_optimization_scrub",
         "post_optimization_context_binding",

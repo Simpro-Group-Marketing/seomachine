@@ -28,6 +28,8 @@ The sweep does not validate the release invocation, the plan and article machine
 python -m data_sources.modules.blog_release "[article]" --run-id "[uuid]" --proof-sidecar "[sidecar]" --editorial-plan "[plan]" --plan-review "[plan-review]" --article-review "[article-review]" --keyword-decision "[keyword-decision]" --scrub-receipt "[scrub-receipt]" --serp-evidence "[serp-evidence]" --stage-receipt "[receipt]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output-dir "research/releases/[slug]-[date]-[run-id]"
 ```
 
+Pass each wording-edit receipt as another `--stage-receipt` directly after the Context Binding receipt it follows, in chain order. The wrapper re-checks every trailing wording edit from its evidence before it carries the scrub, Context Binding, machine review, plan fulfillment, and optimizer artifacts forward.
+
 The first wrapper run intentionally omits optimizer evidence. After it writes `pre-bom-report.json`, `provisional-bom.json`, and `preflight-readiness.json`, it starts an `/optimize` recovery handoff and returns `0` with phase `optimization_started`. When preflight readiness passes, the wrapper also writes `preflight-readiness-stage-receipt.json` and opens `optimization-state.json` from that predecessor receipt. When preflight readiness blocks before a passed receipt exists, the wrapper writes `optimization-recovery.json` without minting a fake stage receipt; `/optimize` repairs the blocker, then the wrapper runs again for the required initial scorecard. This is not final release approval.
 
 After `/optimize`, rerun the wrapper with the post-optimization scrub receipt, post-optimization stage receipts, the optimizer artifact, and the prior preflight readiness output:

@@ -10,7 +10,7 @@ import re
 import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, List, Mapping, Optional, Sequence
+from typing import Any, Collection, List, Mapping, Optional, Sequence
 
 from bs4 import BeautifulSoup
 
@@ -214,6 +214,7 @@ def _check_file_impl(
     editorial_plan: str | Path | Mapping[str, Any] | None = None,
     vault_root: str | Path | None = None,
     client: Any = None,
+    accepted_article_sha256s: Collection[str] = (),
 ) -> List[Finding]:
     """Compatibility adapter that captures files before payload validation."""
     if fail_on not in {"error", "warning", "none"}:
@@ -253,6 +254,7 @@ def _check_file_impl(
         editorial_plan=_load_editorial_plan(editorial_plan),
         vault_root=vault_root,
         client=client,
+        accepted_article_sha256s=accepted_article_sha256s,
     )
 
 
@@ -274,6 +276,7 @@ def validate_context_payloads(
     editorial_plan: Mapping[str, Any] | None = None,
     vault_root: str | Path | None = None,
     client: Any = None,
+    accepted_article_sha256s: Collection[str] = (),
 ) -> ContextValidationResult:
     """Validate one immutable, hash-bound set of context payloads."""
     required = requires_context(article_content) or any(
@@ -311,6 +314,7 @@ def validate_context_payloads(
                 editorial_plan=editorial_plan,
                 vault_root=vault_root,
                 client=client,
+                accepted_article_sha256s=accepted_article_sha256s,
             )
     return context_binding_snapshot.context_validation_result(
         dependencies=_snapshot_dependencies(),
@@ -344,6 +348,7 @@ def validate_context_artifacts(
     editorial_plan: str | Path | Mapping[str, Any] | None = None,
     vault_root: str | Path | None = None,
     client: Any = None,
+    accepted_article_sha256s: Collection[str] = (),
 ) -> ContextValidationResult:
     """Validate one exact binding and expose its connector-derived summary."""
     article_content = Path(path).read_text(encoding="utf-8")
@@ -360,6 +365,7 @@ def validate_context_artifacts(
         editorial_plan=editorial_plan,
         vault_root=vault_root,
         client=client,
+        accepted_article_sha256s=accepted_article_sha256s,
     )
     pack = None if findings or not required else _read_json(Path(str(context_pack)))
     receipt = None if findings or not required else _read_json(Path(str(context_receipt)))
@@ -383,6 +389,7 @@ def check_file(
     editorial_plan: str | Path | Mapping[str, Any] | None = None,
     vault_root: str | Path | None = None,
     client: Any = None,
+    accepted_article_sha256s: Collection[str] = (),
 ) -> List[Finding]:
     """Compatibility wrapper returning the traditional finding list."""
     return list(
@@ -396,6 +403,7 @@ def check_file(
             editorial_plan=editorial_plan,
             vault_root=vault_root,
             client=client,
+            accepted_article_sha256s=accepted_article_sha256s,
         ).findings
     )
 

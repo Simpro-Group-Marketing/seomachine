@@ -6,7 +6,7 @@ from collections import Counter
 from collections.abc import Mapping
 import hashlib
 import re
-from typing import Any
+from typing import Any, Collection
 
 from .contracts import Finding
 from .contracts import _finding
@@ -31,6 +31,7 @@ def check_fulfillment(
     editorial_plan: Mapping[str, Any],
     editorial_plan_sha256: str,
     article_content: str,
+    accepted_article_sha256s: Collection[str] = (),
 ) -> list[Finding]:
     """Return deterministic blockers without judging semantic writing quality."""
     if not isinstance(value, Mapping):
@@ -53,6 +54,7 @@ def check_fulfillment(
         value,
         editorial_plan_sha256=editorial_plan_sha256,
         article_content=article_content,
+        accepted_article_sha256s=accepted_article_sha256s,
     ))
     findings.extend(_contribution_findings(
         value.get("contributions"),
@@ -67,6 +69,7 @@ def _hash_findings(
     *,
     editorial_plan_sha256: str,
     article_content: str,
+    accepted_article_sha256s: Collection[str] = (),
 ) -> list[Finding]:
     findings: list[Finding] = []
     plan_hash = value.get("editorial_plan_sha256")
@@ -78,7 +81,7 @@ def _hash_findings(
     expected_article_hash = hashlib.sha256(article_content.encode("utf-8")).hexdigest()
     if not isinstance(article_hash, str) or SHA256_RE.fullmatch(article_hash) is None:
         findings.append(_issue("plan_fulfillment_article_hash_invalid", "/article_sha256", "Article SHA-256 is invalid."))
-    elif article_hash != expected_article_hash:
+    elif article_hash != expected_article_hash and article_hash not in accepted_article_sha256s:
         findings.append(_issue("plan_fulfillment_article_hash_mismatch", "/article_sha256", "Fulfillment is stale for the supplied article bytes."))
     return findings
 

@@ -35,6 +35,7 @@ from .editorial import _check_research_provenance, _load_bound_editorial_plan
 from .preflight import _check_preflight
 from .reviews import _check_machine_reviews
 from .workflow import _check_workflow
+from ..wording_edit_lineage import verified_bom_lineage
 
 def missing_bom_finding() -> Finding:
     """Return the stable blocker for a blog without its execution record."""
@@ -181,6 +182,10 @@ def check_bom(
         findings.append(_finding("bom_artifacts_missing", "BOM requires a strict artifacts inventory."))
         return _sorted(findings)
     findings.extend(check_current_artifact_shape(bom, artifacts))
+    findings.extend(
+        _finding("bom_wording_edit_invalid", error)
+        for error in verified_bom_lineage(bom, root, captured=captured)[1]
+    )
 
     article = None
     sidecar_content = ""
@@ -266,6 +271,7 @@ def check_bom(
                 editorial_plan=bound_editorial_plan,
                 vault_root=vault_root,
                 dependencies=dependencies,
+                workspace_root=root,
             )
         )
     connector = bom.get("connector_binding")

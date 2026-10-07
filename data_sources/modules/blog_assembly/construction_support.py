@@ -1,7 +1,7 @@
 """Focused validation phases for provisional BOM construction."""
 from datetime import date
 from pathlib import Path
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any, Callable, Collection, Mapping, Sequence
 
 from .common import (
     NONVAULT_CUSTOMER_PROOF_SCHEMA,
@@ -139,12 +139,14 @@ def validate_plan_fulfillment_inputs(
     editorial_plan_snapshot: Any,
     fulfillment_snapshot: Any,
     article: Any,
+    accepted_article_sha256s: Collection[str] = (),
 ) -> None:
     findings = check_fulfillment(
         fulfillment_snapshot.payload,
         editorial_plan=editorial_plan_snapshot.payload,
         editorial_plan_sha256=editorial_plan_snapshot.sha256,
         article_content=article.raw,
+        accepted_article_sha256s=accepted_article_sha256s,
     )
     if findings:
         raise ValueError(findings_error_text("plan fulfillment is invalid", findings))
@@ -194,6 +196,7 @@ def validate_connector_construction(
     vault_root: str | Path | None,
     context_client: Any,
     context_validator: Callable[..., Any],
+    accepted_article_sha256s: Collection[str] = (),
 ) -> tuple[bool, Any, str | None]:
     required = context_binding_guard.requires_context(article.raw)
     context_paths = (context_request_path, context_pack_path, context_receipt_path)
@@ -218,6 +221,7 @@ def validate_connector_construction(
         editorial_plan=plan,
         vault_root=vault_root,
         client=context_client,
+        accepted_article_sha256s=accepted_article_sha256s,
     )
     if not result.passed:
         raise ValueError(findings_error_text("context binding is invalid", list(result.findings)))

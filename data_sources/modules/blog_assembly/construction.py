@@ -45,6 +45,8 @@ from .policy import (
 )
 from .preflight import _verify_bom_artifacts_unchanged
 from .stage_receipts import _validate_provisional_stage_receipts
+from ..wording_edit import verify_wording_edits
+from ..wording_edit_chain import accepted_article_sha256s
 
 
 def build_blog_assembly_bom_from_files(
@@ -157,6 +159,15 @@ def build_blog_assembly_bom_from_files(
         for index, path in enumerate(stage_receipt_paths)
     ]
     stage_receipts = [snapshot.payload for snapshot in stage_receipt_snapshots]
+    wording_edit_errors = verify_wording_edits(
+        stage_receipt_paths,
+        stage_receipts,
+        final_article=article.raw,
+        sidecar=Path(validation_sidecar_path).read_bytes().decode("utf-8"),
+    )
+    if wording_edit_errors:
+        raise ValueError("wording edit receipts are invalid: " + "; ".join(wording_edit_errors))
+    accepted_articles = accepted_article_sha256s(stage_receipts, article.sha256)
     if plan_review_path is None or article_review_path is None:
         raise ValueError(
             "New BOM assembly requires both plan_review_path and article_review_path; "
@@ -183,6 +194,7 @@ def build_blog_assembly_bom_from_files(
             editorial_plan_snapshot=plan_snapshot,
             fulfillment_snapshot=fulfillment_snapshot,
             article=article,
+            accepted_article_sha256s=accepted_articles,
         )
     machine_reviews = _machine_review_bindings(
         plan_review_path=plan_review_path,
@@ -192,6 +204,7 @@ def build_blog_assembly_bom_from_files(
         proof_sidecar_path=validation_sidecar_path,
         workspace_root=root,
         expected_run_id=expected_review_run_id,
+        accepted_article_sha256s=accepted_articles,
     )
 
     connector_required, context_result, connector_reason = validate_connector_construction(
@@ -206,6 +219,7 @@ def build_blog_assembly_bom_from_files(
         vault_root=vault_root,
         context_client=context_client,
         context_validator=dependencies.validate_context_artifacts,
+        accepted_article_sha256s=accepted_articles,
     )
 
     paa_policy = derive_and_validate_paa(

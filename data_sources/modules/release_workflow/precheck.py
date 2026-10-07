@@ -151,6 +151,7 @@ def run_blog_release_precheck(
                 proof_sidecar=proof_sidecar,
                 prior_preflight_readiness=prior_preflight_readiness,
                 workspace_root=root,
+                stage_receipts=release_stage_receipts,
             )
     except ReleaseInvocationError as error:
         _write_failure_report(

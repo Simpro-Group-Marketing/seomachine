@@ -24,6 +24,7 @@ from .contracts import (
 )
 from .preflight import _resolvable_receipt_evidence_hashes
 from ..readiness.input_spec import FIXED_WORKSPACE_INPUT_LABELS
+from ..wording_edit_chain import base_stages
 
 
 def _validate_receipt_sequence(
@@ -42,7 +43,7 @@ def _validate_receipt_sequence(
         from ..blog_assembly_stage_receipt import check_receipt_chain
     except ImportError:  # pragma: no cover - supports direct script execution.
         from blog_assembly_stage_receipt import check_receipt_chain
-    stages = tuple(str(receipt.get("stage") or "") for receipt in receipts)
+    stages = base_stages(str(receipt.get("stage") or "") for receipt in receipts)
     optimized_tail = stages == (
         "post_optimization_scrub", "post_optimization_context_binding"
     )

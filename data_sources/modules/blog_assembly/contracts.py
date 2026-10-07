@@ -2,7 +2,7 @@
 import json
 from datetime import date
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Collection, Mapping, Sequence
 
 from .common import (
     ARCHIVED_BOM_SCHEMAS,
@@ -42,6 +42,7 @@ def _machine_review_bindings(
     proof_sidecar_path: str | Path,
     workspace_root: Path,
     expected_run_id: str | None = None,
+    accepted_article_sha256s: Collection[str] = (),
 ) -> dict[str, dict[str, str]]:
     if plan_review_path is None and article_review_path is None:
         raise ValueError(
@@ -62,6 +63,7 @@ def _machine_review_bindings(
             editorial_plan_path=editorial_plan_path,
             article_path=article_path,
             expected_phase=phase,
+            accepted_article_sha256s=accepted_article_sha256s,
         )
         if findings:
             raise ValueError(findings_error_text(f"{phase} machine review is invalid", findings))

@@ -7,7 +7,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Collection, Mapping, Sequence
 
 try:
     from .blog_assembly_contract import atomic_write_json, canonical_json_sha256, file_sha256, validate_sha256
@@ -125,6 +125,7 @@ def check_machine_review_file(
     article_path: str | Path | None = None,
     expected_run_id: str | None = None,
     expected_phase: str | None = None,
+    accepted_article_sha256s: Collection[str] = (),
 ) -> list[Finding]:
     """Validate one review artifact and, when supplied, current input bytes."""
     try:
@@ -172,7 +173,7 @@ def check_machine_review_file(
                 "Machine review editorial-plan hash no longer matches the current file.",
             )
         )
-    if article_path is not None:
+    if article_path is not None and payload.get("article_sha256") not in accepted_article_sha256s:
         findings.extend(
             _check_bound_file_hash(
                 payload,

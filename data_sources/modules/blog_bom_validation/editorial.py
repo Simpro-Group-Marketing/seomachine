@@ -34,6 +34,7 @@ from .contracts import (
 )
 from .dependencies import BomValidationDependencies
 from .fulfillment import check_editorial_fulfillment
+from ..wording_edit_chain import base_stages
 
 
 LEGACY_EDITORIAL_PLAN_SCHEMA = "simpro-blog-editorial-plan/v1"
@@ -440,7 +441,7 @@ def _bom_serp_expected_run_id(
         if isinstance(workflow, Mapping)
         else None
     )
-    stages = tuple(
+    stages = base_stages(
         str(receipt.get("stage") or "")
         for receipt in receipts
         if isinstance(receipt, Mapping)

@@ -37,6 +37,7 @@ from .workflow_receipts import (
     _check_optimization_receipt,
     _check_scrub_receipts,
 )
+from ..wording_edit_chain import base_stages
 
 
 def _check_workflow(
@@ -74,7 +75,7 @@ def _check_workflow(
                 "Embedded stage receipts must exactly match bound receipt artifacts.",
             )
         )
-    stages = tuple(str(receipt.get("stage") or "") for receipt in loaded)
+    stages = base_stages(str(receipt.get("stage") or "") for receipt in loaded)
     optimized_tail = stages in {
         OPTIMIZED_TAIL_PROVISIONAL_STAGES,
         OPTIMIZED_TAIL_FINAL_STAGES,

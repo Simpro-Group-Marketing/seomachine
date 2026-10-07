@@ -9,10 +9,14 @@ try:
     from .. import optimizer_evidence
     from ..artifact_runtime.release_invocation import ReleaseInvocationError
     from ..blog_assembly.common import ARCHIVED_BOM_SCHEMAS
+    from ..blog_assembly_contract import file_sha256
+    from ..wording_edit_chain import accepted_article_sha256s_from_paths
 except ImportError:  # pragma: no cover - supports direct script execution.
     import optimizer_evidence
     from artifact_runtime.release_invocation import ReleaseInvocationError
     from blog_assembly.common import ARCHIVED_BOM_SCHEMAS
+    from blog_assembly_contract import file_sha256
+    from wording_edit_chain import accepted_article_sha256s_from_paths
 
 
 def validate_optimizer_outputs(
@@ -23,6 +27,7 @@ def validate_optimizer_outputs(
     proof_sidecar: str | Path,
     prior_preflight_readiness: str | Path | None,
     workspace_root: Path,
+    stage_receipts: Sequence[str | Path] = (),
 ) -> None:
     try:
         optimizer_evidence.validate_optimizer_outputs(
@@ -32,6 +37,9 @@ def validate_optimizer_outputs(
             proof_sidecar=proof_sidecar,
             prior_preflight_readiness=prior_preflight_readiness,
             workspace_root=workspace_root,
+            accepted_article_sha256s=accepted_article_sha256s_from_paths(
+                stage_receipts, file_sha256(article)
+            ),
         )
     except optimizer_evidence.OptimizerEvidenceError as error:
         raise ReleaseInvocationError(str(error)) from error
