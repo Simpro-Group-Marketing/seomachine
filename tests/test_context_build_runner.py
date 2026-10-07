@@ -3,12 +3,14 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
 
-from data_sources.modules.context_build.checkpoints import ContextBuildResumeError
+from data_sources.modules.artifact_runtime.content_store import resolve_context_trace
+from data_sources.modules.context_build.checkpoints import CheckpointStore, ContextBuildResumeError
 from data_sources.modules.context_build.runner import (
     ContextBuildError,
     run_context_build,
@@ -19,7 +21,8 @@ NOW = datetime(2026, 10, 7, 12, 0, tzinfo=timezone.utc)
 
 
 class FakeVaultClient:
-    def __init__(self, *, fail_on_build: int | None = None, valid: bool = True) -> None:
+    def __init__(self, *, fail_on_build: int | None = None, valid: bool = True, revision: str = "m1") -> None:
+        self.revision = revision
         self.calls: list[str] = []
         self.build_count = 0
         self.fail_on_build = fail_on_build
@@ -28,7 +31,7 @@ class FakeVaultClient:
 
     def status(self):
         self.calls.append("status")
-        return {"status": "ready", "revisions": {"manifest_revision": "m1"}}
+        return {"status": "ready", "revisions": {"manifest_revision": self.revision}}
 
     def describe(self):
         self.calls.append("describe")
@@ -202,6 +205,16 @@ def test_claim_lookup_artifact_shape(tmp_path):
     assert lookup["limit"] == 50
 
 
+def test_claim_lookup_artifact_records_effective_default_limit(tmp_path):
+    payload = _payload()
+    del payload["claim_lookups"][0]["limit"]
+    spec = _spec(tmp_path, payload)
+    run_context_build(spec, client=FakeVaultClient(), workspace_root=tmp_path, resume=False, now=NOW)
+
+    artifact = json.loads((tmp_path / spec.claim_lookup_path).read_text(encoding="utf-8"))
+    assert artifact["lookups"][0]["limit"] == 20
+
+
 def test_resume_after_crash_reuses_finished_stages(tmp_path):
     spec = _spec(tmp_path)
     with pytest.raises(RuntimeError, match="killed mid-build"):
@@ -220,6 +233,57 @@ def test_resume_after_crash_reuses_finished_stages(tmp_path):
     assert [_sha(path) for path in files[:4]] == before
 
 
+def test_resume_rebuilds_changed_stage_after_checkpoints_deleted(tmp_path):
+    spec = _spec(tmp_path)
+    run_context_build(spec, client=FakeVaultClient(), workspace_root=tmp_path, resume=False, now=NOW)
+    shutil.rmtree(tmp_path / ".seomachine")
+    changed = _payload()
+    changed["stages"][0]["claim_requests"][0]["claim_id"] = "claim-changed"
+
+    result = run_context_build(_spec(tmp_path, changed), client=FakeVaultClient(), workspace_root=tmp_path,
+                               resume=True, now=NOW)
+
+    assert [stage.action for stage in result.stages] == ["built", "built", "built"]
+    pack = json.loads((tmp_path / "research/context-pack-demo-1.json").read_text(encoding="utf-8"))
+    assert pack["claims"] == ["claim-changed"]
+
+
+def test_resume_rebuilds_stage_whose_checkpoint_digest_differs(tmp_path):
+    spec = _spec(tmp_path)
+    run_context_build(spec, client=FakeVaultClient(), workspace_root=tmp_path, resume=False, now=NOW)
+    store = CheckpointStore(tmp_path, spec, resume=True)
+    saved = store.get("stage:stage1")
+    store.put("stage:stage1", {**saved, "stage_digest": "0" * 64})
+
+    result = run_context_build(spec, client=FakeVaultClient(), workspace_root=tmp_path, resume=True, now=NOW)
+
+    assert [stage.action for stage in result.stages] == ["built", "reused", "reused"]
+
+
+def test_resume_rebuilds_hand_edited_pack(tmp_path):
+    spec = _spec(tmp_path)
+    run_context_build(spec, client=FakeVaultClient(), workspace_root=tmp_path, resume=False, now=NOW)
+    edited = tmp_path / "research/context-pack-demo-2.json"
+    edited.write_text('{"claims": ["tampered"]}\n', encoding="utf-8")
+
+    client = FakeVaultClient()
+    result = run_context_build(spec, client=client, workspace_root=tmp_path, resume=True, now=NOW)
+
+    assert [stage.action for stage in result.stages] == ["reused", "built", "reused"]
+    assert client.build_count == 1
+    assert json.loads(edited.read_text(encoding="utf-8"))["claims"] == ["claim-2"]
+
+
+def test_resume_without_checkpoints_rebuilds_every_stage(tmp_path):
+    spec = _spec(tmp_path)
+    run_context_build(spec, client=FakeVaultClient(), workspace_root=tmp_path, resume=False, now=NOW)
+    shutil.rmtree(tmp_path / ".seomachine")
+
+    result = run_context_build(spec, client=FakeVaultClient(), workspace_root=tmp_path, resume=True, now=NOW)
+
+    assert [stage.action for stage in result.stages] == ["built", "built", "built"]
+
+
 def test_resume_skips_completed_discovery_calls(tmp_path):
     spec = _spec(tmp_path)
     run_context_build(spec, client=FakeVaultClient(), workspace_root=tmp_path, resume=False, now=NOW)
@@ -227,8 +291,35 @@ def test_resume_skips_completed_discovery_calls(tmp_path):
     client = FakeVaultClient()
     run_context_build(spec, client=client, workspace_root=tmp_path, resume=True, now=NOW)
 
+    assert "status" in client.calls
     assert not [call for call in client.calls if call.startswith(("search:", "read:", "expand:", "claims:"))]
-    assert "status" not in client.calls and "describe" not in client.calls
+    assert "describe" not in client.calls
+
+
+def test_resume_reruns_discovery_when_revisions_change(tmp_path):
+    spec = _spec(tmp_path)
+    with pytest.raises(RuntimeError, match="killed mid-build"):
+        run_context_build(spec, client=FakeVaultClient(fail_on_build=3, revision="m1"),
+                          workspace_root=tmp_path, resume=False, now=NOW)
+
+    client = FakeVaultClient(revision="m2")
+    result = run_context_build(spec, client=client, workspace_root=tmp_path, resume=True, now=NOW)
+
+    assert "describe" in client.calls
+    assert any(call.startswith("search:") for call in client.calls)
+    assert any(call.startswith("read:") for call in client.calls)
+    assert any(call.startswith("claims:") for call in client.calls)
+    trace = resolve_context_trace(result.trace_path, workspace_root=tmp_path)
+    assert trace["status"]["revisions"] == {"manifest_revision": "m2"}
+
+
+def test_resume_records_live_revisions_when_unchanged(tmp_path):
+    spec = _spec(tmp_path)
+    run_context_build(spec, client=FakeVaultClient(), workspace_root=tmp_path, resume=False, now=NOW)
+    result = run_context_build(spec, client=FakeVaultClient(), workspace_root=tmp_path, resume=True, now=NOW)
+
+    trace = resolve_context_trace(result.trace_path, workspace_root=tmp_path)
+    assert trace["status"]["revisions"] == {"manifest_revision": "m1"}
 
 
 def test_resume_rebuilds_when_saved_pack_no_longer_validates(tmp_path):

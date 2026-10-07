@@ -12,7 +12,7 @@ from typing import Any, Callable
 try:
     from ..artifact_runtime.content_store import write_context_trace
     from ..artifact_runtime.limits import JSON_MAX_BYTES
-    from ..bounded_io import atomic_write_bytes, parse_json_object, read_bounded
+    from ..bounded_io import atomic_write_bytes, canonical_json_sha256, parse_json_object, read_bounded
     from .checkpoints import CheckpointStore, ContextBuildResumeError
     from .spec import ContextBuildSpec, StageSpec
     from .trace import (
@@ -22,7 +22,7 @@ try:
 except ImportError:  # pragma: no cover - supports direct script execution.
     from artifact_runtime.content_store import write_context_trace
     from artifact_runtime.limits import JSON_MAX_BYTES
-    from bounded_io import atomic_write_bytes, parse_json_object, read_bounded
+    from bounded_io import atomic_write_bytes, canonical_json_sha256, parse_json_object, read_bounded
     from context_build.checkpoints import CheckpointStore, ContextBuildResumeError
     from context_build.spec import ContextBuildSpec, StageSpec
     from context_build.trace import (
@@ -67,6 +67,9 @@ def _write_json(path: Path, value: Any, field: str) -> str:
 
 def _sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+Cache = Callable[[str, Callable[[], Any]], Any]
 
 
 def _cached(store: CheckpointStore, key: str, fetch: Callable[[], Any]) -> Any:
@@ -115,23 +118,31 @@ def _check_rediscovery(
         )
 
 
-def _discover(spec: ContextBuildSpec, client: Any, store: CheckpointStore) -> dict[str, Any]:
-    status = _cached(store, "status", lambda: _ready_status(client))
-    describe = _cached(store, "describe", client.describe)
+def _live_status(client: Any, store: CheckpointStore) -> tuple[dict[str, Any], Cache]:
+    """Always read status live; scope discovery checkpoints to the live revisions.
+
+    Checkpoint keys are prefixed with a hash of the live revisions, so a changed revision (or a
+    missing prior status) leaves earlier discovery and claim checkpoints unreachable.
+    """
+    status = _ready_status(client)
+    namespace = canonical_json_sha256({"revisions": status.get("revisions")})[:16]
+    store.put("status", status)
+    return status, lambda key, fetch: _cached(store, f"{namespace}:{key}", fetch)
+
+
+def _discover(spec: ContextBuildSpec, client: Any, status: dict[str, Any], cache: Cache) -> dict[str, Any]:
+    describe = cache("describe", client.describe)
     searches = {
-        query: _cached(store, f"search:{query}", lambda q=query: client.search(q, limit=SEARCH_LIMIT))
+        query: cache(f"search:{query}", lambda q=query: client.search(q, limit=SEARCH_LIMIT))
         for query in spec.search_queries
     }
     expansions = {
-        rid: _cached(
-            store, f"expand:{rid}",
-            lambda r=rid: client.expand(r, purpose=spec.resource_purposes[r]),
-        )
+        rid: cache(f"expand:{rid}", lambda r=rid: client.expand(r, purpose=spec.resource_purposes[r]))
         for rid in spec.expand_resource_ids
     }
     _check_rediscovery(spec, searches, expansions)
     reads = {
-        rid: _cached(store, f"read:{rid}", lambda r=rid, p=purpose: client.read(r, purpose=p))
+        rid: cache(f"read:{rid}", lambda r=rid, p=purpose: client.read(r, purpose=p))
         for rid, purpose in spec.resource_purposes.items()
     }
     return {"status": status, "describe": describe, "searches": searches,
@@ -141,14 +152,11 @@ def _discover(spec: ContextBuildSpec, client: Any, store: CheckpointStore) -> di
 def _lookup_entry(client: Any, row: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(row.get("brand_scope"), str) or not row["brand_scope"].strip():
         raise ContextBuildError(f"claim lookup {row.get('query')!r} requires a brand_scope")
-    rows = client.claims(
-        row["query"],
-        use_mode=row["use_mode"],
-        brand_scope=row["brand_scope"],
-        limit=row.get("limit", DEFAULT_CLAIM_LIMIT),
-    )
+    limit = row.get("limit", DEFAULT_CLAIM_LIMIT)
+    rows = client.claims(row["query"], use_mode=row["use_mode"], brand_scope=row["brand_scope"], limit=limit)
     return {
         **row,
+        "limit": limit,
         "source": LOOKUP_SOURCE,
         "status": "complete",
         "truncated": False,
@@ -161,13 +169,13 @@ def _lookup_entry(client: Any, row: dict[str, Any]) -> dict[str, Any]:
 
 
 def _claim_lookups(
-    spec: ContextBuildSpec, client: Any, store: CheckpointStore, root: Path, now: datetime
+    spec: ContextBuildSpec, client: Any, cache: Cache, root: Path, now: datetime
 ) -> dict[str, Any]:
-    """Run claim lookups through the store; write the lookup artifact when the spec asks for it."""
+    """Run claim lookups through the checkpoint cache; write the lookup artifact when the spec asks for it."""
 
     def build_artifact() -> dict[str, Any]:
         lookups = [
-            _cached(store, f"claims:{index}", lambda r=row: _lookup_entry(client, r))
+            cache(f"claims:{index}", lambda r=row: _lookup_entry(client, r))
             for index, row in enumerate(spec.claim_lookups)
         ]
         return {
@@ -178,7 +186,7 @@ def _claim_lookups(
             "lookups": lookups,
         }
 
-    artifact = _cached(store, "claim_lookup_artifact", build_artifact)
+    artifact = cache("claim_lookup_artifact", build_artifact)
     if spec.claim_lookup_path:
         artifact_sha = _write_json(root / spec.claim_lookup_path, artifact, "claim lookup artifact")
         return {"artifact": artifact, "path": spec.claim_lookup_path, "sha256": artifact_sha}
@@ -208,9 +216,40 @@ def _build_input(spec: ContextBuildSpec, stage: StageSpec) -> dict[str, Any]:
     }
 
 
+def _stage_digest(spec: ContextBuildSpec, stage: StageSpec) -> str:
+    """Hash everything a stage's pack depends on, independent of vault revisions."""
+    return canonical_json_sha256({
+        "pack_path": stage.pack_path,
+        "receipt_path": stage.receipt_path,
+        "claim_requests": [dict(row) for row in stage.claim_requests],
+        "request": spec.request,
+        "search_queries": list(spec.search_queries),
+        "resource_purposes": dict(spec.resource_purposes),
+        "constraints": list(spec.constraints),
+    })
+
+
+def _stage_checkpoint_matches(
+    spec: ContextBuildSpec, stage: StageSpec, root: Path, store: CheckpointStore
+) -> bool:
+    saved = store.get(f"stage:{stage.stage_id}")
+    if not isinstance(saved, dict) or saved.get("stage_digest") != _stage_digest(spec, stage):
+        return False
+    try:
+        return (
+            _sha256_file(root / stage.pack_path) == saved.get("pack_sha256")
+            and _sha256_file(root / stage.receipt_path) == saved.get("receipt_sha256")
+        )
+    except OSError:
+        return False
+
+
 def _reuse_stage(
-    spec: ContextBuildSpec, stage: StageSpec, client: Any, root: Path
+    spec: ContextBuildSpec, stage: StageSpec, client: Any, root: Path, store: CheckpointStore
 ) -> tuple[StageOutcome, dict[str, Any], dict[str, Any]] | None:
+    """Reuse a saved stage only if it was built for this exact stage, is unmodified, and validates."""
+    if not _stage_checkpoint_matches(spec, stage, root, store):
+        return None
     saved = _saved_stage(root, stage)
     if saved is None:
         return None
@@ -225,10 +264,10 @@ def _reuse_stage(
 
 
 def _run_stage(
-    spec: ContextBuildSpec, stage: StageSpec, client: Any, root: Path, *, resume: bool
+    spec: ContextBuildSpec, stage: StageSpec, client: Any, root: Path, store: CheckpointStore, *, resume: bool
 ) -> tuple[StageOutcome, dict[str, Any], dict[str, Any]]:
     if resume:
-        reused = _reuse_stage(spec, stage, client, root)
+        reused = _reuse_stage(spec, stage, client, root, store)
         if reused is not None:
             return reused
     output = client.build_context(_build_input(spec, stage))
@@ -238,6 +277,10 @@ def _run_stage(
         raise ContextBuildError(f"stage {stage.stage_id} context validation did not return valid: {validation!r}")
     pack_sha = _write_json(root / stage.pack_path, pack, f"{stage.stage_id} pack")
     receipt_sha = _write_json(root / stage.receipt_path, receipt, f"{stage.stage_id} receipt")
+    store.put(
+        f"stage:{stage.stage_id}",
+        {"pack_sha256": pack_sha, "receipt_sha256": receipt_sha, "stage_digest": _stage_digest(spec, stage)},
+    )
     return StageOutcome(stage.stage_id, "built", pack_sha, receipt_sha), receipt, validation
 
 
@@ -293,8 +336,9 @@ def run_context_build(
     stamp = now or datetime.now(timezone.utc)
     store = CheckpointStore(root, spec, resume=resume)
     _write_request(spec, root, resume=resume)
-    discovery = _discover(spec, client, store)
-    lookups = _claim_lookups(spec, client, store, root, stamp)
-    stages = [_run_stage(spec, stage, client, root, resume=resume) for stage in spec.stages]
+    status, cache = _live_status(client, store)
+    discovery = _discover(spec, client, status, cache)
+    lookups = _claim_lookups(spec, client, cache, root, stamp)
+    stages = [_run_stage(spec, stage, client, root, store, resume=resume) for stage in spec.stages]
     trace_path = _write_trace(spec, root, stamp, discovery, lookups, stages)
     return ContextBuildResult(tuple(outcome for outcome, _, _ in stages), trace_path)
