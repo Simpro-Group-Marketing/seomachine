@@ -288,3 +288,64 @@ def test_cli_exit_code_and_optional_output_dir(monkeypatch, tmp_path, passed, co
     written = json.loads((tmp_path / "sweep.json").read_text(encoding="utf-8"))
     assert written["passed"] is passed
     assert captured["args"].output_dir is None
+
+
+def _scored(checks, *, content=95.5, aeo=90, passed=False):
+    return {
+        "passed": passed,
+        "content_quality_score": content,
+        "quality_gates": {
+            "content_quality": {"score": content, "threshold": 85, "passed": content >= 85},
+            "seo_quality": {"score": 100, "threshold": 90, "passed": True},
+            "aeo_geo": {"score": aeo, "threshold": 90, "passed": False, "checks": checks},
+        },
+        "aeo_geo": {"score": aeo, "threshold": 90, "passed": False, "checks": checks},
+    }
+
+
+EEAT = {"eeat_proof": {"passed": False, "issue": "missing required first-hand experience proof"}}
+
+
+def test_offline_unverifiable_eeat_failure_is_a_warning_when_scores_pass() -> None:
+    rows = precheck_sweep.scorer_findings(_scored(EEAT), offline=True)
+    assert {row["rule_id"]: row["severity"] for row in rows} == {
+        "aeo_geo.eeat_proof": "warning", "content_scorer.not_passed": "warning",
+    }
+    assert all(row["message"].startswith("unverified offline (needs vault connector): ") for row in rows)
+
+
+def test_offline_report_passes_with_only_unverifiable_eeat_failure(monkeypatch, tmp_path) -> None:
+    _stub_dedicated_checks(monkeypatch)
+    monkeypatch.setattr(
+        precheck_sweep, "_scorer_rows",
+        lambda args, root, policy, offline=False: precheck_sweep.scorer_findings(
+            _scored(EEAT), offline=offline
+        ),
+    )
+    monkeypatch.setattr(precheck_sweep, "ARTICLE_GATES", ())
+    args = SimpleNamespace(article="a.md", proof_sidecar="s.md")
+    report = precheck_sweep.run_release_sweep(
+        args, workspace_root=tmp_path, offline=True, include_slow=False
+    )
+    assert report["passed"] is True and len(report["findings"]) == 2
+
+
+def test_offline_other_failing_check_keeps_errors() -> None:
+    checks = {**EEAT, "schema": {"passed": False, "issue": "schema notes wrong"}}
+    rows = precheck_sweep.scorer_findings(_scored(checks), offline=True)
+    severities = {row["rule_id"]: row["severity"] for row in rows}
+    assert severities["content_scorer.not_passed"] == "error"
+    assert severities["aeo_geo.schema"] == "error"
+    assert severities["aeo_geo.eeat_proof"] == "warning"
+
+
+def test_offline_below_threshold_score_keeps_not_passed_error() -> None:
+    rows = precheck_sweep.scorer_findings(_scored(EEAT, content=80.0), offline=True)
+    severities = {row["rule_id"]: row["severity"] for row in rows}
+    assert severities["content_scorer.not_passed"] == "error"
+
+
+def test_online_scorer_findings_are_errors() -> None:
+    rows = precheck_sweep.scorer_findings(_scored(EEAT))
+    assert [row["severity"] for row in rows] == ["error", "error"]
+    assert not any(row["message"].startswith("unverified offline") for row in rows)

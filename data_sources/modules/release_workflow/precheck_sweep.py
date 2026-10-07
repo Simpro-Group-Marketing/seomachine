@@ -11,21 +11,21 @@ from typing import Any, Callable, Iterable, Mapping, Sequence
 try:
     from .. import context_binding_guard
     from ..blog_assembly.contracts import _visible_faq_questions
-    from ..readiness.adapters import _scorecard_from_scorer_result
     from ..readiness.common import ARTICLE_GATES
     from ..readiness.gate_policy import skip_article_gate
     from ..readiness.pipeline_tail import _guard_kwargs
     from . import sweep_checks, sweep_gates
+    from .sweep_scoring import scorer_findings
     from .sweep_checks import arg
 except ImportError:  # pragma: no cover - supports direct script execution.
     import context_binding_guard
     from blog_assembly.contracts import _visible_faq_questions
-    from readiness.adapters import _scorecard_from_scorer_result
     from readiness.common import ARTICLE_GATES
     from readiness.gate_policy import skip_article_gate
     from readiness.pipeline_tail import _guard_kwargs
     import release_workflow.sweep_checks as sweep_checks
     import release_workflow.sweep_gates as sweep_gates
+    from release_workflow.sweep_scoring import scorer_findings
     from release_workflow.sweep_checks import arg
 
 SWEEP_SCHEMA = "simpro-blog-release-sweep/v1"
@@ -60,7 +60,6 @@ RELEASE_ONLY = {
     "blog_assembly_bom": "release run only (needs the BOM)",
     "input_seal": "release run only (seals the BOM inputs)",
 }
-SCORE_THRESHOLDS = "content 85, AEO/GEO 90"
 
 _pre_bom_rows = sweep_checks.pre_bom_rows
 _plan_rows = sweep_checks.plan_rows
@@ -120,39 +119,10 @@ def sweep_article_gates(
     return rows
 
 
-def _score_text(scorecard: Mapping[str, Any], key: str) -> str:
-    gate = scorecard.get(key)
-    gate = gate if isinstance(gate, Mapping) else {}
-    score = gate.get("score")
-    return f"{key} {'n/a' if score is None else score}/{gate.get('threshold')}"
-
-
-def scorer_findings(result: Mapping[str, Any]) -> list[dict[str, Any]]:
-    rows: list[dict[str, Any]] = []
-    if result.get("passed") is False:
-        scorecard = _scorecard_from_scorer_result(result, artifact_kind="blog")
-        rows.append({
-            "rule_id": "content_scorer.not_passed", "severity": "error", "line": None,
-            "message": (
-                "Release scorer did not pass ("
-                + ", ".join(_score_text(scorecard, key) for key in (
-                    "content_quality", "seo_quality", "aeo_geo"
-                ))
-                + f"; required: {SCORE_THRESHOLDS})"
-            ),
-        })
-    checks = (result.get("aeo_geo") or {}).get("checks") or {}
-    rows += [
-        {"rule_id": f"aeo_geo.{name}", "severity": "error", "line": None,
-         "message": str(check.get("issue") or check.get("fix") or "check failed")}
-        for name, check in checks.items()
-        if isinstance(check, Mapping) and check.get("passed") is False
-    ]
-    return rows
-
-
-def _scorer_rows(args: Any, root: Path, runtime_policy: Mapping[str, Any]) -> list[dict[str, Any]]:
-    return scorer_findings(sweep_checks.scorer_result(args, root, runtime_policy))
+def _scorer_rows(
+    args: Any, root: Path, runtime_policy: Mapping[str, Any], offline: bool = False
+) -> list[dict[str, Any]]:
+    return scorer_findings(sweep_checks.scorer_result(args, root, runtime_policy), offline=offline)
 
 
 def _read_article(path: Any) -> str | None:
@@ -263,7 +233,7 @@ def _check_skips(
 
 def _release_checks(
     args: Any, root: Path, policy: Mapping[str, Any], text: str | None,
-    state: Any, derived: Any,
+    state: Any, derived: Any, offline: bool = False,
 ) -> dict[str, Callable[[], Any]]:
     sidecar = arg(args, "proof_sidecar")
     return {
@@ -279,7 +249,7 @@ def _release_checks(
         "blog_strategy": lambda: _strategy_rows(args, root, state.peek()),
         "source_quality": lambda: _source_quality_rows(args),
         "customer_proof_no_fit": lambda: _no_fit_rows(text, policy),
-        "content_scorer": lambda: _scorer_rows(args, root, policy),
+        "content_scorer": lambda: _scorer_rows(args, root, policy, offline),
     }
 
 
@@ -310,7 +280,8 @@ def run_release_sweep(
         context_required=context_required,
     )
     checks = _release_checks(
-        args, root, policy, text, sweep_gates.UrlState(text, sidecar, root), derived
+        args, root, policy, text, sweep_gates.UrlState(text, sidecar, root), derived,
+        offline,
     )
     ran = [name for name in RELEASE_CHECKS if name not in check_skip]
     findings: list[dict[str, Any]] = []
