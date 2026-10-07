@@ -27,6 +27,7 @@ Use `context/blog-editorial-strategy.md` for editorial planning, reader value, o
 - Resolve the working topic slug, target reader, search intent, main question, and article objective.
 - Classify Context Binding from the brand metadata and content. Run the vault connector workflow only for Simpro-owned or cross-brand-triggered work.
 - Save context request, context pack, and context receipt under `research/` only when connector-bound. Save an explicit nonconnector binding reason for qualifying AroFlo, BigChange, and ClockShark work.
+- For connector-bound work, write `research/context-build-spec-[slug]-[date].json` from `config/context-build-spec.example.json`, then run `python -m data_sources.modules.context_build research/context-build-spec-[slug]-[date].json`. If the run stops (memory pressure, timeout), rerun with `--resume`; finished packs that still validate are reused and never rewritten. Stage `claim_requests`, claim lookups, and any proof-boundary text must come from the current topic's selector slate and claim lookups, never from the example or another topic.
 - Use repo-local context files only as downstream mirrors or fallback context when the vault is unavailable, and record that blocker in the validation sidecar.
 
 ### 2. Semrush Keyword Decision

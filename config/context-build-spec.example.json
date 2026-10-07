@@ -1,0 +1,92 @@
+{
+  "schema": "simpro-context-build-spec/v1",
+  "slug": "example-topic",
+  "date": "2026-10-07",
+  "request": {
+    "schema": "simpro-context-request/v1",
+    "task": "Replace with the context build task for this article.",
+    "scope": {
+      "brand": "Replace with the brand",
+      "market": "Replace with the market",
+      "region": "Replace with the region",
+      "artifact_type": "blog",
+      "workflow_mode": "new",
+      "topic_slug": "example-topic",
+      "title": "Replace with the article title",
+      "canonical_url": "https://www.example.com/blog/example-topic",
+      "primary_keyword": "Replace with the primary keyword",
+      "commercial_pillar": {
+        "url": "https://www.example.com/replace-with-pillar",
+        "anchor": "Replace with the planned anchor text",
+        "destination_id": "replace-with-destination-id"
+      },
+      "audience": "Replace with the target audience",
+      "objective": "Replace with the article objective",
+      "voice_requirements": [
+        "Replace with a voice requirement for this article"
+      ],
+      "product_language_requirements": [
+        "Replace with a product language requirement for this article"
+      ],
+      "internal_link_ownership": [
+        "Replace with an internal link ownership rule for this article"
+      ],
+      "required_context_topics": [
+        "Replace with a context topic this article needs"
+      ],
+      "intended_public_use_modes": [
+        "guidance",
+        "context"
+      ],
+      "public_proof_boundary": "Replace with the proof boundary taken from this topic's selector slate and claim lookups."
+    },
+    "requested_at": "2026-10-07"
+  },
+  "outputs": {
+    "request": "research/context-request-example-topic.json",
+    "trace": "research/context-refresh-example-topic-2026-10-07.json",
+    "claim_lookup": "research/customer-proof-claim-lookup-example-topic-2026-10-07.json"
+  },
+  "discovery": {
+    "search_queries": [
+      "Replace with a task-specific vault search query"
+    ],
+    "resource_purposes": {
+      "res-replace-me": "guidance"
+    },
+    "expand_resource_ids": [
+      "res-replace-me"
+    ]
+  },
+  "constraints": [
+    "Replace with a constraint for this article."
+  ],
+  "claim_lookups": [
+    {
+      "brand_scope": "Replace with the brand scope",
+      "query": "Replace with a task-specific claim query",
+      "use_mode": "exact_quote",
+      "limit": 50
+    }
+  ],
+  "stages": [
+    {
+      "id": "customer_selector",
+      "pack": "research/context-pack-example-topic-customer-selector-2026-10-07.json",
+      "receipt": "research/context-receipt-example-topic-customer-selector-2026-10-07.json",
+      "claim_requests": []
+    },
+    {
+      "id": "fred_evaluation",
+      "pack": "research/context-pack-example-topic-fred-evaluation-2026-10-07.json",
+      "receipt": "research/context-receipt-example-topic-fred-evaluation-2026-10-07.json",
+      "claim_requests": []
+    },
+    {
+      "id": "public",
+      "pack": "research/context-pack-example-topic.json",
+      "receipt": "research/context-receipt-example-topic.json",
+      "claim_requests": []
+    }
+  ]
+}

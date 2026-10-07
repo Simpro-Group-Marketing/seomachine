@@ -17,6 +17,7 @@ from .contracts import (
     CustomerProofDataError,
     FindingDict,
 )
+from .decision_block import selected_proof_rows, selection_decision_block
 from .selection import build_customer_proof_slate, select_customer_proofs
 from .slate import (
     _parse_rejected_overrides,
@@ -24,6 +25,54 @@ from .slate import (
     _parse_selected_overrides,
     _write_selector_evidence,
 )
+
+
+def _append_decision_block(
+    args: argparse.Namespace,
+    slate: str,
+    role_evidence: List[FindingDict],
+    input_snapshot,
+    reference_date: date,
+) -> str:
+    def _role_candidates(role: str) -> List[FindingDict]:
+        return select_customer_proofs(
+            args.topic,
+            index_path=args.index,
+            ledger_path=args.ledger,
+            context_pack=args.context_pack,
+            context_receipt=args.context_receipt,
+            article_slug=args.article_slug,
+            title=args.title,
+            objective=args.objective,
+            require_eeat_story=args.require_eeat_story and role == "experience_story",
+            proof_role=role,
+            limit=args.limit,
+            reference_date=reference_date,
+            _input_snapshot=input_snapshot,
+        )
+
+    prefix = "- Selector command: "
+    command_line = next(
+        line for line in slate.splitlines() if line.startswith(prefix)
+    )
+    decision = selection_decision_block(
+        selected_proof_rows(role_evidence, _role_candidates),
+        selector_command=command_line.removeprefix(prefix),
+    )
+    return f"{slate}\n\n{decision}"
+
+
+def _validate_flag_dependencies(
+    parser: argparse.ArgumentParser, args: argparse.Namespace
+) -> None:
+    if args.decision_block and not args.slate:
+        parser.error("--decision-block requires --slate")
+    if args.decision_block and not args.evidence_output:
+        parser.error("--decision-block requires --evidence-output")
+    if args.evidence_output and not args.slate:
+        parser.error("--evidence-output requires --slate")
+    if args.allow_no_proof and not args.evidence_output:
+        parser.error("--allow-no-proof requires --evidence-output")
 
 
 def _main(argv: Optional[Sequence[str]] = None) -> int:
@@ -108,11 +157,13 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
             "current connector context has no bound customer proof candidates."
         ),
     )
+    parser.add_argument(
+        "--decision-block",
+        action="store_true",
+        help="Also print a prefilled Customer Proof Selection Decision block (requires --slate and --evidence-output).",
+    )
     args = parser.parse_args(argv)
-    if args.evidence_output and not args.slate:
-        parser.error("--evidence-output requires --slate")
-    if args.allow_no_proof and not args.evidence_output:
-        parser.error("--allow-no-proof requires --evidence-output")
+    _validate_flag_dependencies(parser, args)
 
     try:
         if args.slate:
@@ -185,6 +236,10 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
                         f"- Selector evidence: {evidence_path} | SHA-256: {evidence_hash}",
                     )
                     slate = "\n".join(slate_lines)
+                if args.decision_block:
+                    slate = _append_decision_block(
+                        args, slate, role_evidence, input_snapshot, reference_date
+                    )
             print(slate)
         else:
             results = select_customer_proofs(

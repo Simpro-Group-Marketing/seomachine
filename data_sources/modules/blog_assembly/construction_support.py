@@ -16,17 +16,20 @@ try:
     from ..editorial_plan.orchestration import check_file as check_editorial_plan_file
     from ..editorial_plan.plan_fulfillment import check_fulfillment
     from ..editorial_plan.v2 import EDITORIAL_PLAN_SCHEMA_V2
+    from ..faq_structure import faq_questions_match
     from ..paa_provenance.results import check_file as check_paa_provenance_file
 except ImportError:  # pragma: no cover - direct script execution.
     from editorial_plan.orchestration import check_file as check_editorial_plan_file
     from editorial_plan.plan_fulfillment import check_fulfillment
     from editorial_plan.v2 import EDITORIAL_PLAN_SCHEMA_V2
+    from faq_structure import faq_questions_match
     from paa_provenance.results import check_file as check_paa_provenance_file
 from .contracts import (
     _optional_json_schema,
     _validate_input_path,
     _validate_path_sequence,
     _visible_faq_questions,
+    findings_error_text,
 )
 from .execution_evidence import resolve_execution_evidence
 from .policy import _derive_paa_policy
@@ -116,8 +119,7 @@ def validate_plan_inputs(
         workspace_root=workspace_root,
     )
     if plan_findings:
-        rules = ", ".join(sorted({str(row.get("rule_id") or "") for row in plan_findings}))
-        raise ValueError(f"editorial plan is invalid: {rules}")
+        raise ValueError(findings_error_text("editorial plan is invalid", plan_findings))
     if require_v2:
         plan = _load_json(editorial_plan_path, "editorial plan")
         if plan.get("schema") != EDITORIAL_PLAN_SCHEMA_V2:
@@ -129,8 +131,7 @@ def validate_plan_inputs(
         assembly_date=assembly_date.isoformat(),
     )
     if keyword_findings:
-        rules = ", ".join(sorted({str(row.get("rule_id") or "") for row in keyword_findings}))
-        raise ValueError(f"Semrush keyword decision is invalid: {rules}")
+        raise ValueError(findings_error_text("Semrush keyword decision is invalid", keyword_findings))
 
 
 def validate_plan_fulfillment_inputs(
@@ -146,8 +147,7 @@ def validate_plan_fulfillment_inputs(
         article_content=article.raw,
     )
     if findings:
-        rules = ", ".join(sorted({str(row.get("rule_id") or "") for row in findings}))
-        raise ValueError(f"plan fulfillment is invalid: {rules}")
+        raise ValueError(findings_error_text("plan fulfillment is invalid", findings))
 
 
 def _load_json(path: str | Path, field: str) -> Mapping[str, Any]:
@@ -220,8 +220,7 @@ def validate_connector_construction(
         client=context_client,
     )
     if not result.passed:
-        rules = ", ".join(str(row.get("rule_id")) for row in result.findings)
-        raise ValueError(f"context binding is invalid: {rules}")
+        raise ValueError(findings_error_text("context binding is invalid", list(result.findings)))
     validate_sha256(result.pack_canonical_sha256, field="context.context_pack_hash")
     validate_sha256(result.receipt_canonical_sha256, field="context.receipt_hash")
     if not customer_proof_selector_evidence_path:
@@ -252,8 +251,15 @@ def derive_and_validate_paa(
         user_paa_csv_path=user_paa_csv_path,
         answersocrates_blocker_path=answersocrates_blocker_path,
     )
-    if policy["selected_questions"] != _visible_faq_questions(article.raw):
-        raise ValueError("paa_policy.selected_questions must exactly match visible FAQ headings in order")
+    if not faq_questions_match(
+        policy["selected_questions"],
+        _visible_faq_questions(article.raw),
+        source_kind=str(policy["source_kind"]),
+    ):
+        raise ValueError(
+            "paa_policy.selected_questions must match visible FAQ headings in order "
+            "(case and punctuation are ignored except for brief_paa)"
+        )
     bound = {
         "brief_paa": content_brief_path,
         "user_csv": user_paa_csv_path,
@@ -270,8 +276,7 @@ def derive_and_validate_paa(
         paa_artifact=str(bound) if bound else None,
     )
     if findings:
-        rules = ", ".join(sorted({str(row.get("rule_id")) for row in findings}))
-        raise ValueError(f"PAA provenance is invalid: {rules}")
+        raise ValueError(findings_error_text("PAA provenance is invalid", findings))
     return policy
 
 

@@ -64,20 +64,14 @@ def _machine_review_bindings(
             expected_phase=phase,
         )
         if findings:
-            rule_ids = ", ".join(
-                sorted({str(finding.get("rule_id") or "") for finding in findings})
-            )
-            raise ValueError(f"{phase} machine review is invalid: {rule_ids}")
+            raise ValueError(findings_error_text(f"{phase} machine review is invalid", findings))
     pair_findings = machine_review.check_machine_review_pair(
         plan_review_path,
         article_review_path,
         expected_run_id=expected_run_id,
     )
     if pair_findings:
-        rule_ids = ", ".join(
-            sorted({str(finding.get("rule_id") or "") for finding in pair_findings})
-        )
-        raise ValueError(f"machine review pair is invalid: {rule_ids}")
+        raise ValueError(findings_error_text("machine review pair is invalid", pair_findings))
     return {
         "plan": canonical_artifact(plan_review_path, workspace_root=workspace_root),
         "article": canonical_artifact(article_review_path, workspace_root=workspace_root),
@@ -163,5 +157,16 @@ def _visible_faq_questions(content: str) -> list[str]:
 def _has_video_embed(content: str) -> bool:
     return inspect_video_embeds(content).has_supported_embed
 
+def findings_error_text(
+    prefix: str, findings: Sequence[Mapping[str, Any]], *, limit: int = 5
+) -> str:
+    """Return '<prefix>: <sorted rule ids> | <first messages>' for ValueError text."""
+    rules = ", ".join(sorted({str(row.get("rule_id")) for row in findings}))
+    messages = [str(row.get("message") or row.get("rule_id")) for row in findings[:limit]]
+    extra = len(findings) - limit
+    if extra > 0:
+        messages.append(f"{extra} more")
+    return f"{prefix}: {rules} | " + " ; ".join(messages)
 
-__all__ = ['_has_video_embed', '_is_number', '_is_supported_bom_schema', '_iso_date', '_label_paths', '_machine_review_bindings', '_nonempty', '_optional_json_schema', '_read_json_object', '_required_article_scalar', '_required_enum', '_required_mapping', '_required_string', '_string_list', '_validate_input_path', '_validate_path_sequence', '_visible_faq_questions']
+
+__all__ = ['_has_video_embed', '_is_number', '_is_supported_bom_schema', '_iso_date', '_label_paths', '_machine_review_bindings', '_nonempty', '_optional_json_schema', '_read_json_object', '_required_article_scalar', '_required_enum', '_required_mapping', '_required_string', '_string_list', '_validate_input_path', '_validate_path_sequence', '_visible_faq_questions', 'findings_error_text']

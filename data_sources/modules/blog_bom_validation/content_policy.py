@@ -10,6 +10,7 @@ from typing import Any, Mapping
 from .. import blog_identity_guard, context_binding_guard
 from ..blog_assembly.contracts import _visible_faq_questions
 from ..blog_assembly.policy import _schema_policy
+from ..faq_structure import faq_questions_match
 from ..guard_common import Finding
 from .common import _finding
 from .dependencies import BomValidationDependencies
@@ -181,11 +182,12 @@ def _check_paa_policy(bom: Mapping[str, Any], article: Any) -> list[Finding]:
         except ValueError as exc:
             findings.append(_finding("bom_faq_structure_unsupported", str(exc)))
             return findings
-        if selected != visible:
+        if not faq_questions_match(selected, visible, source_kind=str(source_kind)):
             findings.append(
                 _finding(
                     "bom_paa_questions_mismatch",
-                    "PAA selected_questions must exactly match visible FAQ headings in order.",
+                    "PAA selected_questions must match visible FAQ headings in order "
+                    "(case and punctuation are ignored except for brief_paa)",
                 )
             )
     return findings
