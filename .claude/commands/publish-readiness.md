@@ -10,6 +10,16 @@ Run the complete source-artifact gate stack for a blog draft, rewrite, published
 
 For public copy changes, return the failed gates and priority fixes to `/write`, `/rewrite`, or `/optimize`.
 
+## Fast sweep (run first)
+
+Before the release wrapper, run the sweep with the same arguments to see every blocker in one pass:
+
+```powershell
+python -m data_sources.modules.blog_release_sweep "[article]" [same wrapper arguments] --sweep-output "research/prechecks/[slug]-[date]-sweep.json" [--offline] [--include-slow]
+```
+
+The sweep never writes a release directory and never grants readiness. Fix every reported blocker, rerun the sweep until it passes, then run the wrapper. `customer_proof_diversity` runs only with `--include-slow`; network gates are skipped with `--offline`, which also skips the vault-connector gates. Every skipped gate is listed in the sweep report with its reason.
+
 ## Usage
 
 ```powershell
