@@ -10,6 +10,8 @@ Before drafting customer proof, the command workflow must resolve `topic`, `titl
 python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10
 ```
 
+Add `--decision-block` to print a prefilled `Customer Proof Selection Decision` whose `Selected proof` lines match the slate. Paste it after the slate and append `Reuse reason`, the zero-use comparison, and `Final use in copy` directly under its bullets with no blank line.
+
 For review-derived public E-E-A-T stories, automatically run:
 
 ```powershell
