@@ -61,6 +61,30 @@ def test_invalid_specs_are_rejected(tmp_path: Path, mutate) -> None:
         load_spec(_write(tmp_path, payload))
 
 
+def _second_stage(**overrides):
+    stage = {"id": "second", "pack": "research/context-pack-demo-2.json",
+             "receipt": "research/context-receipt-demo-2.json", "claim_requests": []}
+    stage.update(overrides)
+    return stage
+
+
+@pytest.mark.parametrize("mutate", [
+    lambda p: p["outputs"].update(trace=p["outputs"]["request"]),
+    lambda p: p["outputs"].update(claim_lookup=p["outputs"]["trace"]),
+    lambda p: p["stages"][0].update(pack=p["outputs"]["request"]),
+    lambda p: p["stages"][0].update(receipt=p["stages"][0]["pack"]),
+    lambda p: p["stages"].append(_second_stage(pack=p["stages"][0]["pack"])),
+    lambda p: p["stages"].append(_second_stage(receipt=p["stages"][0]["receipt"])),
+    lambda p: p["stages"].append(_second_stage(pack=p["stages"][0]["pack"].upper().replace("RESEARCH", "research"))),
+])
+def test_duplicate_output_paths_are_rejected(tmp_path: Path, mutate) -> None:
+    payload = _spec_payload()
+    payload["outputs"]["claim_lookup"] = "research/claim-lookup-demo.json"
+    mutate(payload)
+    with pytest.raises(ContextBuildSpecError, match="duplicates the output path"):
+        load_spec(_write(tmp_path, payload))
+
+
 @pytest.mark.parametrize("slug", ["..", "a/../b", "/abs", "ok\n", "Upper"])
 def test_bad_slugs_are_rejected(tmp_path: Path, slug: str) -> None:
     with pytest.raises(ContextBuildSpecError, match="slug"):

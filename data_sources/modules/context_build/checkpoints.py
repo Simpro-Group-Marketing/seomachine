@@ -83,12 +83,19 @@ class CheckpointStore:
             raise ContextBuildResumeError(RESUME_CHANGED_MESSAGE)
 
     def _write_manifest(self) -> None:
-        atomic_write_canonical_json(
+        self._write(
             self._manifest,
             {"schema": MANIFEST_SCHEMA, "spec_digest": self._digest},
-            max_bytes=MANIFEST_MAX_BYTES,
-            field="checkpoint manifest",
+            MANIFEST_MAX_BYTES,
+            "checkpoint manifest",
         )
+
+    @staticmethod
+    def _write(path: Path, payload: dict[str, Any], max_bytes: int, field: str) -> None:
+        try:
+            atomic_write_canonical_json(path, payload, max_bytes=max_bytes, field=field)
+        except OSError as error:
+            raise ContextBuildResumeError(f"could not write {field} at {path}: {error}") from error
 
     def _path(self, key: str) -> Path:
         return self._directory / f"{hashlib.sha256(key.encode('utf-8')).hexdigest()}.json"
@@ -111,9 +118,4 @@ class CheckpointStore:
 
     def put(self, key: str, value: Any) -> None:
         """Atomically save value under key."""
-        atomic_write_canonical_json(
-            self._path(key),
-            {"key": key, "value": value},
-            max_bytes=CHECKPOINT_MAX_BYTES,
-            field=f"checkpoint {key}",
-        )
+        self._write(self._path(key), {"key": key, "value": value}, CHECKPOINT_MAX_BYTES, f"checkpoint {key}")

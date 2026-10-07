@@ -29,8 +29,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         spec = load_spec(args.spec)
         result = run_context_build(spec, client=SimproVaultClient(), workspace_root=Path.cwd(), resume=args.resume)
     except (ContextBuildSpecError, ContextBuildResumeError, ContextBuildError, VaultClientError) as error:
-        print(json.dumps({"ok": False, "error": {"code": type(error).__name__, "message": str(error)},
-                          "recovery_hint": "Fix the spec or rerun with --resume after a crash."}))
+        payload: dict = {"ok": False, "error": {"code": type(error).__name__, "message": str(error)}}
+        hint = "Fix the spec or rerun with --resume after a crash."
+        if hasattr(error, "stages_not_rebuilt"):
+            payload["stages_not_rebuilt"] = list(error.stages_not_rebuilt)
+            hint += " Files for stages_not_rebuilt may be stale from an earlier run."
+        payload["recovery_hint"] = hint
+        print(json.dumps(payload))
         return 1
     print(json.dumps({"ok": True, "result": {"stages": [asdict(s) for s in result.stages],
                                              "trace": result.trace_path.as_posix()}}))

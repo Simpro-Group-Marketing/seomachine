@@ -13,6 +13,7 @@ try:
     from ..artifact_runtime.content_store import write_context_trace
     from ..artifact_runtime.limits import JSON_MAX_BYTES
     from ..bounded_io import atomic_write_bytes, canonical_json_sha256, parse_json_object, read_bounded
+    from ..simpro_vault_client import VaultClientError
     from .checkpoints import CheckpointStore, ContextBuildResumeError
     from .spec import ContextBuildSpec, StageSpec
     from .trace import (
@@ -23,6 +24,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from artifact_runtime.content_store import write_context_trace
     from artifact_runtime.limits import JSON_MAX_BYTES
     from bounded_io import atomic_write_bytes, canonical_json_sha256, parse_json_object, read_bounded
+    from simpro_vault_client import VaultClientError
     from context_build.checkpoints import CheckpointStore, ContextBuildResumeError
     from context_build.spec import ContextBuildSpec, StageSpec
     from context_build.trace import (
@@ -37,7 +39,13 @@ SEARCH_LIMIT = 50
 
 
 class ContextBuildError(RuntimeError):
-    """Raised when the vault state or a build result cannot support a safe context build."""
+    """Raised when the vault state or a build result cannot support a safe context build.
+
+    ``stages_not_rebuilt`` names the stages neither built nor reused in the failed run; their
+    files on disk may be stale from an earlier spec.
+    """
+
+    stages_not_rebuilt: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -61,7 +69,10 @@ def _json_bytes(value: Any) -> bytes:
 
 def _write_json(path: Path, value: Any, field: str) -> str:
     data = _json_bytes(value)
-    atomic_write_bytes(path, (data,), max_bytes=JSON_MAX_BYTES, field=field)
+    try:
+        atomic_write_bytes(path, (data,), max_bytes=JSON_MAX_BYTES, field=field)
+    except OSError as error:
+        raise ContextBuildError(f"could not write {field} to {path.as_posix()}: {error}") from error
     return hashlib.sha256(data).hexdigest()
 
 
@@ -271,7 +282,12 @@ def _run_stage(
         if reused is not None:
             return reused
     output = client.build_context(_build_input(spec, stage))
-    pack, receipt = output["pack"], output["receipt"]
+    try:
+        pack, receipt = output["pack"], output["receipt"]
+    except (KeyError, TypeError) as error:
+        raise ContextBuildError(
+            f"stage {stage.stage_id} build_context result lacks a usable pack and receipt: {error!r}"
+        ) from error
     validation = client.validate_context(spec.request, pack, receipt)
     if not isinstance(validation, dict) or validation.get("valid") is not True:
         raise ContextBuildError(f"stage {stage.stage_id} context validation did not return valid: {validation!r}")
@@ -319,7 +335,10 @@ def _write_trace(
             for outcome, receipt, validation in stages
         },
     }
-    write_context_trace(root / spec.trace_path, payload, workspace_root=root, generated_at=now)
+    try:
+        write_context_trace(root / spec.trace_path, payload, workspace_root=root, generated_at=now)
+    except OSError as error:
+        raise ContextBuildError(f"could not write the context trace to {spec.trace_path}: {error}") from error
     return root / spec.trace_path
 
 
@@ -334,11 +353,18 @@ def run_context_build(
     """Run discovery, claim lookups, and every stage, checkpointing each vault call and each pack."""
     root = Path(workspace_root)
     stamp = now or datetime.now(timezone.utc)
-    store = CheckpointStore(root, spec, resume=resume)
-    _write_request(spec, root, resume=resume)
-    status, cache = _live_status(client, store)
-    discovery = _discover(spec, client, status, cache)
-    lookups = _claim_lookups(spec, client, cache, root, stamp)
-    stages = [_run_stage(spec, stage, client, root, store, resume=resume) for stage in spec.stages]
+    stages: list[tuple[StageOutcome, dict[str, Any], dict[str, Any]]] = []
+    try:
+        store = CheckpointStore(root, spec, resume=resume)
+        _write_request(spec, root, resume=resume)
+        status, cache = _live_status(client, store)
+        discovery = _discover(spec, client, status, cache)
+        lookups = _claim_lookups(spec, client, cache, root, stamp)
+        for stage in spec.stages:
+            stages.append(_run_stage(spec, stage, client, root, store, resume=resume))
+    except (ContextBuildError, ContextBuildResumeError, VaultClientError) as error:
+        done = {outcome.stage_id for outcome, _, _ in stages}
+        error.stages_not_rebuilt = tuple(s.stage_id for s in spec.stages if s.stage_id not in done)
+        raise
     trace_path = _write_trace(spec, root, stamp, discovery, lookups, stages)
     return ContextBuildResult(tuple(outcome for outcome, _, _ in stages), trace_path)

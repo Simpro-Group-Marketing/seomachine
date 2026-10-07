@@ -195,6 +195,23 @@ def _stages(value: Any) -> tuple[StageSpec, ...]:
     return stages
 
 
+def _check_unique_outputs(
+    request_path: str, trace_path: str, claim_lookup_path: str | None, stages: tuple[StageSpec, ...]
+) -> None:
+    """Reject one file claimed by two outputs; the later write would silently overwrite the earlier."""
+    fields = [("outputs.request", request_path), ("outputs.trace", trace_path)]
+    if claim_lookup_path is not None:
+        fields.append(("outputs.claim_lookup", claim_lookup_path))
+    for index, stage in enumerate(stages):
+        fields += [(f"stages[{index}].pack", stage.pack_path), (f"stages[{index}].receipt", stage.receipt_path)]
+    seen: dict[str, str] = {}
+    for field, path in fields:
+        key = path.casefold()
+        if key in seen:
+            raise _fail(field, f"duplicates the output path of {seen[key]}: {path}")
+        seen[key] = field
+
+
 def _parse_spec_file(path: str | Path) -> dict[str, Any]:
     try:
         data = read_bounded(path, max_bytes=SPEC_MAX_BYTES, field="context build spec")
@@ -217,6 +234,8 @@ def load_spec(path: str | Path) -> ContextBuildSpec:
     slug, date = _slug_and_date(raw)
     request_path, trace_path, claim_lookup_path = _outputs(raw)
     queries, purposes, expand = _discovery(raw)
+    stages = _stages(raw["stages"])
+    _check_unique_outputs(request_path, trace_path, claim_lookup_path, stages)
     return ContextBuildSpec(
         slug=slug,
         date=date,
@@ -229,6 +248,6 @@ def load_spec(path: str | Path) -> ContextBuildSpec:
         constraints=_string_list(raw["constraints"], "constraints"),
         claim_lookups=_claim_lookups(raw["claim_lookups"]),
         claim_lookup_path=claim_lookup_path,
-        stages=_stages(raw["stages"]),
+        stages=stages,
         digest=canonical_json_sha256(raw),
     )
