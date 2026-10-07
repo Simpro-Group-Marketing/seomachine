@@ -163,5 +163,16 @@ def _visible_faq_questions(content: str) -> list[str]:
 def _has_video_embed(content: str) -> bool:
     return inspect_video_embeds(content).has_supported_embed
 
+def findings_error_text(
+    prefix: str, findings: Sequence[Mapping[str, Any]], *, limit: int = 5
+) -> str:
+    """Return '<prefix>: <sorted rule ids> | <first messages>' for ValueError text."""
+    rules = ", ".join(sorted({str(row.get("rule_id")) for row in findings}))
+    messages = [str(row.get("message") or row.get("rule_id")) for row in findings[:limit]]
+    extra = len(findings) - limit
+    if extra > 0:
+        messages.append(f"{extra} more")
+    return f"{prefix}: {rules} | " + " ; ".join(messages)
 
-__all__ = ['_has_video_embed', '_is_number', '_is_supported_bom_schema', '_iso_date', '_label_paths', '_machine_review_bindings', '_nonempty', '_optional_json_schema', '_read_json_object', '_required_article_scalar', '_required_enum', '_required_mapping', '_required_string', '_string_list', '_validate_input_path', '_validate_path_sequence', '_visible_faq_questions']
+
+__all__ = ['_has_video_embed', '_is_number', '_is_supported_bom_schema', '_iso_date', '_label_paths', '_machine_review_bindings', '_nonempty', '_optional_json_schema', '_read_json_object', '_required_article_scalar', '_required_enum', '_required_mapping', '_required_string', '_string_list', '_validate_input_path', '_validate_path_sequence', '_visible_faq_questions', 'findings_error_text']

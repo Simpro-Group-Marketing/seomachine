@@ -29,6 +29,7 @@ from .contracts import (
     _validate_input_path,
     _validate_path_sequence,
     _visible_faq_questions,
+    findings_error_text,
 )
 from .execution_evidence import resolve_execution_evidence
 from .policy import _derive_paa_policy
@@ -118,8 +119,7 @@ def validate_plan_inputs(
         workspace_root=workspace_root,
     )
     if plan_findings:
-        rules = ", ".join(sorted({str(row.get("rule_id") or "") for row in plan_findings}))
-        raise ValueError(f"editorial plan is invalid: {rules}")
+        raise ValueError(findings_error_text("editorial plan is invalid", plan_findings))
     if require_v2:
         plan = _load_json(editorial_plan_path, "editorial plan")
         if plan.get("schema") != EDITORIAL_PLAN_SCHEMA_V2:
@@ -279,8 +279,7 @@ def derive_and_validate_paa(
         paa_artifact=str(bound) if bound else None,
     )
     if findings:
-        rules = ", ".join(sorted({str(row.get("rule_id")) for row in findings}))
-        raise ValueError(f"PAA provenance is invalid: {rules}")
+        raise ValueError(findings_error_text("PAA provenance is invalid", findings))
     return policy
 
 

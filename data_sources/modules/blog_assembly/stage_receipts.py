@@ -20,6 +20,7 @@ from .contracts import (
     _is_supported_bom_schema,
     _read_json_object,
     _required_mapping,
+    findings_error_text,
 )
 from .preflight import _resolvable_receipt_evidence_hashes
 from ..readiness.input_spec import FIXED_WORKSPACE_INPUT_LABELS
@@ -63,8 +64,7 @@ def _validate_receipt_sequence(
             workspace_root=workspace_root,
         )
         if findings:
-            rules = ", ".join(sorted({str(row.get("rule_id")) for row in findings}))
-            raise ValueError(f"stage receipt chain is invalid: {rules}")
+            raise ValueError(findings_error_text("stage receipt chain is invalid", findings))
     expected = stages if optimized_tail else (
         OPTIMIZED_PROVISIONAL_STAGES if optimized
         else normal_provisional_stages
