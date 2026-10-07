@@ -26,6 +26,7 @@ from .common import (
 )
 from .findings import _finding
 from .text_matching import _normalize_text, _proof_matches_customer, _text_overlaps
+from ..owned_product_language import is_approved_product_language
 
 
 def _matching_proofs(
@@ -64,7 +65,10 @@ def _validate_general_source(
             "General claim proof must use one exact supported Source class.",
             "Use primary_authority, independent_research, non_competing_expert, or another contract class that fits the claim.", proof,
         )
-    if proof.claim_type != candidate.claim_type:
+    product_language = is_approved_product_language(
+        candidate.text, source_class=proof.source_class, claim_type=proof.claim_type
+    )
+    if proof.claim_type != candidate.claim_type and not product_language:
         return _finding(
             "source_claim_type_mismatch", candidate,
             "Source Map Claim type does not fit the public claim.",
@@ -86,7 +90,7 @@ def _validate_general_source(
     allowed = set(GENERAL_SOURCE_CLASSES)
     if candidate.claim_type == "comparative":
         allowed.add("competitor")
-    if (
+    if product_language or (
         candidate.claim_type in OWNED_PRODUCT_GENERAL_CLAIM_TYPES
         and re.search(r"\bSimpro\b", candidate.text, re.IGNORECASE)
     ):
