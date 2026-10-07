@@ -13,12 +13,25 @@ from __future__ import annotations
 
 import difflib
 import hashlib
+import json
 import re
 from collections import Counter
 from dataclasses import dataclass
-from typing import Any
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Mapping, Sequence
 
 try:
+    from .blog_assembly_contract import atomic_write_json, canonical_json_sha256
+    from .blog_assembly_stage_receipt import (
+        StageReceiptError,
+        begin_native_edit,
+        finish_native_edit,
+        load_stage_receipt,
+        stage_evidence_path,
+        write_stage_evidence,
+    )
+    from .content_scrubber import scrub_content
     from .context_binding_guard import _json_block, _normalize_public_text, normalize_public_body
     from .faq_structure import detect_faq_structure
     from .frontmatter import FRONTMATTER_RE
@@ -33,7 +46,23 @@ try:
     )
     from .public_http.markdown_urls import extract_urls
     from .proof_link_policy import STRUCTURED_QUOTE_RE, _normalize_text, _proof_rows
+    from .wording_edit_chain import (
+        MAX_CUMULATIVE_CHANGED_WORD_RATIO,
+        WORDING_EDIT_ANCHOR_STAGES,
+        WORDING_EDIT_STAGE,
+        WORDING_EDIT_TOOL,
+    )
 except ImportError:  # pragma: no cover - supports direct script execution.
+    from blog_assembly_contract import atomic_write_json, canonical_json_sha256
+    from blog_assembly_stage_receipt import (
+        StageReceiptError,
+        begin_native_edit,
+        finish_native_edit,
+        load_stage_receipt,
+        stage_evidence_path,
+        write_stage_evidence,
+    )
+    from content_scrubber import scrub_content
     from context_binding_guard import _json_block, _normalize_public_text, normalize_public_body
     from faq_structure import detect_faq_structure
     from frontmatter import FRONTMATTER_RE
@@ -48,6 +77,12 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     )
     from public_http.markdown_urls import extract_urls
     from proof_link_policy import STRUCTURED_QUOTE_RE, _normalize_text, _proof_rows
+    from wording_edit_chain import (
+        MAX_CUMULATIVE_CHANGED_WORD_RATIO,
+        WORDING_EDIT_ANCHOR_STAGES,
+        WORDING_EDIT_STAGE,
+        WORDING_EDIT_TOOL,
+    )
 
 
 WORDING_EDIT_REPORT_SCHEMA = "simpro-blog-wording-edit-report/v1"
@@ -180,3 +215,193 @@ def _changed_words(before: list[str], after: list[str]) -> int:
         for tag, i1, i2, j1, j2 in matcher.get_opcodes()
         if tag != "equal"
     )
+
+
+def begin_wording_edit(
+    *,
+    article_path: str | Path,
+    state_path: str | Path,
+    previous_receipt_path: str | Path,
+    workspace_root: str | Path | None = None,
+    started_at: datetime | str | None = None,
+) -> dict[str, Any]:
+    """Open a wording edit chained from context binding or a prior wording edit."""
+    previous = load_stage_receipt(previous_receipt_path, workspace_root=workspace_root)
+    if previous["stage"] not in WORDING_EDIT_ANCHOR_STAGES | {WORDING_EDIT_STAGE}:
+        raise StageReceiptError(
+            "wording_edit_predecessor_invalid",
+            "a wording edit must follow context binding or another wording edit",
+        )
+    before = _read_text(article_path)
+    if _sha256(before) != previous["output_artifact_hashes"].get("article"):
+        raise StageReceiptError(
+            "wording_edit_article_changed",
+            "the article changed after the previous receipt; start from its output",
+        )
+    if previous["stage"] == WORDING_EDIT_STAGE:
+        prior = _evidence_payload(previous_receipt_path)
+        anchor_words, prior_changed = prior["anchor_body_words"], prior["cumulative_changed_words"]
+    else:
+        anchor_words, prior_changed = len(_body_words(before)), 0
+    state = begin_native_edit(
+        article_path=article_path,
+        state_path=state_path,
+        run_id=previous["run_id"],
+        stage=WORDING_EDIT_STAGE,
+        tool_name=WORDING_EDIT_TOOL[0],
+        tool_version=WORDING_EDIT_TOOL[1],
+        previous_receipt_hash=previous["receipt_hash"],
+        started_at=started_at,
+    )
+    atomic_write_json(
+        _snapshot_path(state_path),
+        {
+            "before_text": before,
+            "anchor_body_words": anchor_words,
+            "prior_changed_words": prior_changed,
+        },
+    )
+    return state
+
+
+def finish_wording_edit(
+    *,
+    state_path: str | Path,
+    article_path: str | Path,
+    receipt_path: str | Path,
+    sidecar_path: str | Path | None,
+    workspace_root: str | Path | None = None,
+    completed_at: datetime | str | None = None,
+) -> dict[str, Any]:
+    """Classify the edit and, only if it is wording-only, write its receipt."""
+    snapshot_path = _snapshot_path(state_path)
+    try:
+        snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+        state = json.loads(Path(state_path).read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise StageReceiptError("wording_edit_state_invalid", str(error)) from error
+    before = snapshot.get("before_text")
+    article_in = (state.get("input_artifact_hashes") or {}).get("article")
+    if not isinstance(before, str) or _sha256(before) != article_in:
+        raise StageReceiptError(
+            "wording_edit_state_invalid",
+            "the wording edit snapshot does not match its open state",
+        )
+    after = _read_text(article_path)
+    sidecar = _read_text(sidecar_path) if sidecar_path else ""
+    report = classify_wording_edit(before, after, sidecar=sidecar)
+    anchor_words = int(snapshot["anchor_body_words"])
+    cumulative = int(snapshot["prior_changed_words"]) + report.changed_words
+    problem = _edit_problem(report, after, cumulative, anchor_words)
+    if problem:
+        raise StageReceiptError(*problem)
+    payload = {
+        **report.as_payload(),
+        "before_text": before,
+        "anchor_body_words": anchor_words,
+        "cumulative_changed_words": cumulative,
+    }
+    manifest, _ = write_stage_evidence(
+        receipt_path,
+        evidence_hashes={"wording_edit_report": canonical_json_sha256(payload)},
+        payload=payload,
+    )
+    receipt = finish_native_edit(
+        state_path=state_path,
+        article_path=article_path,
+        receipt_path=receipt_path,
+        evidence_artifacts={"wording_edit_report": manifest},
+        completed_at=completed_at,
+        workspace_root=workspace_root,
+    )
+    snapshot_path.unlink()
+    return receipt
+
+
+def verify_wording_edits(
+    stage_receipt_paths: Sequence[str | Path],
+    receipts: Sequence[Mapping[str, Any]],
+    *,
+    final_article: str,
+    sidecar: str,
+) -> list[str]:
+    """Re-check the trailing wording-edit run from its evidence and the final article."""
+    start = len(receipts)
+    while start and receipts[start - 1].get("stage") == WORDING_EDIT_STAGE:
+        start -= 1
+    if start == len(receipts):
+        return []
+    befores = [
+        _evidence_payload(stage_receipt_paths[index], strict=False).get("before_text")
+        for index in range(start, len(receipts))
+    ]
+    if not all(isinstance(before, str) for before in befores):
+        return ["every trailing wording edit receipt needs its wording edit report evidence"]
+    errors: list[str] = []
+    cumulative = 0
+    for offset, before in enumerate(befores):
+        after = befores[offset + 1] if offset + 1 < len(befores) else final_article
+        receipt = receipts[start + offset]
+        if (
+            _sha256(before) != receipt["input_artifact_hashes"].get("article")
+            or _sha256(after) != receipt["output_artifact_hashes"].get("article")
+        ):
+            errors.append(f"wording edit {offset + 1} evidence does not match its article hashes")
+            continue
+        report = classify_wording_edit(before, after, sidecar=sidecar)
+        cumulative += report.changed_words
+        problem = _edit_problem(report, after, 0, 0)
+        if problem:
+            errors.append(f"wording edit {offset + 1}: {problem[1]}")
+    anchor_words = len(_body_words(befores[0]))
+    if cumulative > MAX_CUMULATIVE_CHANGED_WORD_RATIO * anchor_words:
+        errors.append(_budget_message(cumulative, anchor_words))
+    return errors
+
+
+def _edit_problem(
+    report: WordingEditReport, after: str, cumulative: int, anchor_words: int
+) -> tuple[str, str] | None:
+    if report.violations:
+        return (
+            "wording_edit_not_wording_only",
+            "the edit changes " + ", ".join(report.violations)
+            + "; revert those changes or run the full draft path",
+        )
+    if scrub_content(after) != after:
+        return ("wording_edit_scrub_required", "the edited article needs scrub fixes; apply them first")
+    if cumulative > MAX_CUMULATIVE_CHANGED_WORD_RATIO * anchor_words:
+        return ("wording_edit_budget_exceeded", _budget_message(cumulative, anchor_words))
+    return None
+
+
+def _budget_message(cumulative: int, anchor_words: int) -> str:
+    return (
+        f"wording edits changed {cumulative} of {anchor_words} words since context binding, "
+        f"over the {MAX_CUMULATIVE_CHANGED_WORD_RATIO:.0%} budget; run the full draft path"
+    )
+
+
+def _snapshot_path(state_path: str | Path) -> Path:
+    state = Path(state_path)
+    return state.with_name(f"{state.stem}-before.json")
+
+
+def _read_text(path: str | Path) -> str:
+    try:
+        return Path(path).read_bytes().decode("utf-8")
+    except (OSError, UnicodeError) as error:
+        raise StageReceiptError("wording_edit_input_invalid", str(error)) from error
+
+
+def _evidence_payload(receipt_path: str | Path, *, strict: bool = True) -> dict[str, Any]:
+    try:
+        manifest = json.loads(stage_evidence_path(receipt_path).read_text(encoding="utf-8"))
+        payload = manifest["payload"]
+        if not isinstance(payload, dict):
+            raise ValueError("payload must be an object")
+        return payload
+    except (OSError, UnicodeError, ValueError, KeyError, TypeError) as error:
+        if strict:
+            raise StageReceiptError("wording_edit_evidence_invalid", str(error)) from error
+        return {}
