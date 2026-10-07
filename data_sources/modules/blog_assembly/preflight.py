@@ -268,6 +268,9 @@ def _resolvable_receipt_evidence_hashes(
         artifacts.get("stage_evidence"), workspace_root=workspace_root
     )
     _add_receipt_evidence_hashes(resolvable, receipts, manifests)
+    resolvable |= blog_assembly_capabilities.resolvable_policy_definition_hashes(
+        workspace_root=workspace_root
+    )
     return resolvable
 
 

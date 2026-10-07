@@ -6,6 +6,7 @@ not prove model authorship, execution quality, or external truth.
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any, Mapping, Sequence
@@ -72,6 +73,26 @@ AGENT_PATHS = {
     agent_id: f".claude/agents/{agent_id}.md"
     for agent_id in OPTIMIZE_AGENT_IDS
 }
+
+POLICY_DEFINITION_PATHS = {
+    "humanizer_policy": "config/humanizer-policy.json",
+    "humanizer_upstream": "vendor/blader-humanizer/UPSTREAM.json",
+}
+
+
+def resolvable_policy_definition_hashes(*, workspace_root: str | Path) -> set[str]:
+    """Return current hashes of policy files that native edits cite as evidence.
+
+    These files are resolvable only; they never enter the BOM execution evidence.
+    A stale digest (file edited after the receipt) stays unresolved.
+    """
+    root = Path(workspace_root).resolve()
+    hashes: set[str] = set()
+    for stored_path in POLICY_DEFINITION_PATHS.values():
+        path = root.joinpath(*PurePosixPath(stored_path).parts)
+        if path.is_file():
+            hashes.add(hashlib.sha256(path.read_bytes()).hexdigest())
+    return hashes
 
 
 class CapabilityRegistryError(ValueError):
