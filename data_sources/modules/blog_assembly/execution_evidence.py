@@ -5,6 +5,7 @@ from typing import Any, Mapping, Sequence
 
 from .common import blog_assembly_capabilities, canonical_artifact, verify_artifact
 from .contracts import _read_json_object, _required_mapping
+from ..wording_edit_chain import base_stages
 
 
 NORMAL_CHAIN_REQUIRED = "normal_chain_required"
@@ -133,7 +134,7 @@ def resolve_execution_evidence(
     workspace_root: Path,
 ) -> ExecutionEvidenceResolution:
     """Resolve current evidence or require a normal chain for stale copied rows."""
-    stages = tuple(str(receipt.get("stage") or "") for receipt in stage_receipts)
+    stages = base_stages(str(receipt.get("stage") or "") for receipt in stage_receipts)
     optimized_tail = stages == (
         "post_optimization_scrub",
         "post_optimization_context_binding",

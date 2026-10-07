@@ -51,6 +51,7 @@ try:
         WORDING_EDIT_ANCHOR_STAGES,
         WORDING_EDIT_STAGE,
         WORDING_EDIT_TOOL,
+        trailing_edit_indexes,
     )
 except ImportError:  # pragma: no cover - supports direct script execution.
     from blog_assembly_contract import atomic_write_json, canonical_json_sha256
@@ -82,6 +83,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         WORDING_EDIT_ANCHOR_STAGES,
         WORDING_EDIT_STAGE,
         WORDING_EDIT_TOOL,
+        trailing_edit_indexes,
     )
 
 
@@ -326,14 +328,13 @@ def verify_wording_edits(
     sidecar: str,
 ) -> list[str]:
     """Re-check the trailing wording-edit run from its evidence and the final article."""
-    start = len(receipts)
-    while start and receipts[start - 1].get("stage") == WORDING_EDIT_STAGE:
-        start -= 1
-    if start == len(receipts):
+    edits = trailing_edit_indexes(receipts)
+    if not edits:
         return []
+    start = edits.start
     befores = [
         _evidence_payload(stage_receipt_paths[index], strict=False).get("before_text")
-        for index in range(start, len(receipts))
+        for index in edits
     ]
     if not all(isinstance(before, str) for before in befores):
         return ["every trailing wording edit receipt needs its wording edit report evidence"]

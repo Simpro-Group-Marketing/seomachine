@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from data_sources.modules.blog_assembly_bom_guard import check_bom
 from data_sources.modules.blog_assembly_stage_receipt import StageReceiptError
 from data_sources.modules.wording_edit import begin_wording_edit, finish_wording_edit
 from tests.test_blog_assembly_bom import (  # noqa: F401 - autouse clock fixture
@@ -72,6 +73,13 @@ def test_builder_accepts_a_wording_edit_with_reviews_bound_to_the_anchor(tmp_pat
 
     stages = [row["stage"] for row in bom["workflow"]["stage_receipts"]]
     assert stages == ["draft", "scrub", "context_binding", "wording_edit"]
+    assert check_bom(
+        bom,
+        article_path=paths["article"],
+        validation_sidecar_path=paths["sidecar"],
+        workspace_root=tmp_path,
+        expected_lifecycle_state="provisional",
+    ) == []
     evidence = json.loads(receipt.with_name(f"{receipt.stem}-evidence.json").read_text(encoding="utf-8"))
     assert evidence["payload"]["violations"] == []
 
@@ -130,7 +138,7 @@ def test_builder_rejects_a_wording_edit_whose_evidence_was_altered(tmp_path: Pat
         encoding="utf-8",
     )
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="wording edit receipts are invalid"):
         _build(
             tmp_path,
             {**paths, "stage_receipts": [*paths["stage_receipts"], receipt]},

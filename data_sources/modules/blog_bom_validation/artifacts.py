@@ -22,6 +22,7 @@ from .contracts import (
     POST_PUBLISH_MEASUREMENT_RECEIPT_SCHEMA,
     required_artifact_fields as _required_artifact_fields,
 )
+from ..wording_edit_chain import base_stages
 
 def _check_artifact_inventory(
     bom: Mapping[str, Any],
@@ -179,7 +180,7 @@ def _check_lifecycle_inventory(
         workflow.get("stage_receipts") if isinstance(workflow, Mapping) else None
     )
     stages = (
-        tuple(str(receipt.get("stage") or "") for receipt in embedded_receipts)
+        base_stages(str(receipt.get("stage") or "") for receipt in embedded_receipts)
         if isinstance(embedded_receipts, list)
         else ()
     )

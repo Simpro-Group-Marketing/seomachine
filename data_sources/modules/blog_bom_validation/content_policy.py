@@ -14,6 +14,7 @@ from ..faq_structure import faq_questions_match
 from ..guard_common import Finding
 from .common import _finding
 from .dependencies import BomValidationDependencies
+from ..wording_edit_chain import bom_accepted_article_sha256s
 
 def _check_identity(bom: Mapping[str, Any], article: Any, assembled: date | None) -> list[Finding]:
     identity = bom.get("identity")
@@ -257,6 +258,7 @@ def _check_connector(
             editorial_plan=editorial_plan,
             client=context_client,
             vault_root=vault_root,
+            accepted_article_sha256s=bom_accepted_article_sha256s(bom),
         )
     if context_result is None or not context_result.passed:
         findings.append(_finding("bom_context_validation_missing", "Connector-bound BOM requires one passed structured Context Binding result."))

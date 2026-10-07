@@ -47,6 +47,16 @@ def test_accepted_hashes_cover_the_anchor_and_every_trailing_edit():
     )
 
 
+def test_accepted_hashes_step_over_trailing_readiness_receipts():
+    receipts = [
+        _receipt("context_binding", "a" * 64, "a" * 64),
+        _receipt("wording_edit", "a" * 64, "b" * 64),
+        _receipt("preflight_readiness", "b" * 64, "b" * 64),
+    ]
+
+    assert accepted_article_sha256s(receipts, "b" * 64) == frozenset({"a" * 64, "b" * 64})
+
+
 def test_accepted_hashes_are_only_the_final_article_without_valid_trailing_edits():
     plain = [
         _receipt("draft", "e" * 64, "a" * 64),

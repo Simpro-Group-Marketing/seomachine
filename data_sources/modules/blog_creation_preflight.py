@@ -16,6 +16,7 @@ try:
     from . import semrush_keyword_decision_guard
     from .blog_assembly_contract import atomic_write_json
     from .blog_assembly_stage_receipt import check_stage_receipt_file
+    from .wording_edit_chain import accepted_article_sha256s_from_paths
     from .frontmatter import FrontmatterError, split_frontmatter
 except ImportError:  # pragma: no cover - supports direct script execution.
     import context_binding_guard
@@ -23,6 +24,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import semrush_keyword_decision_guard
     from blog_assembly_contract import atomic_write_json
     from blog_assembly_stage_receipt import check_stage_receipt_file
+    from wording_edit_chain import accepted_article_sha256s_from_paths
     from frontmatter import FrontmatterError, split_frontmatter
 
 
@@ -184,7 +186,7 @@ def build_preflight_report(
         if not receipt_findings:
             blockers.extend(_check_scrub_receipt_stage(scrub_receipt))
         if not receipt_findings:
-            blockers.extend(_check_scrub_receipt_article_binding(scrub_receipt, article))
+            blockers.extend(_check_scrub_receipt_article_binding(scrub_receipt, article, stage_receipts))
 
     nonvault_customer_proof_eligible = False
     if connector_required:
@@ -396,6 +398,7 @@ def _check_optional_bom_dependencies(
 def _check_scrub_receipt_article_binding(
     scrub_receipt: str | Path,
     article: str | Path,
+    stage_receipts: Sequence[str | Path] | None = None,
 ) -> list[dict[str, str]]:
     if not _is_file(article):
         return []
@@ -410,7 +413,8 @@ def _check_scrub_receipt_article_binding(
     outputs = payload.get("output_artifact_hashes")
     if not isinstance(inputs, Mapping) or not isinstance(outputs, Mapping):
         return []
-    if inputs.get("article") == article_hash and outputs.get("article") == article_hash:
+    accepted = accepted_article_sha256s_from_paths(stage_receipts or (), article_hash)
+    if inputs.get("article") == outputs.get("article") and outputs.get("article") in accepted:
         return []
     return [
         _blocker(

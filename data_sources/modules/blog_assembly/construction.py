@@ -194,6 +194,7 @@ def build_blog_assembly_bom_from_files(
             editorial_plan_snapshot=plan_snapshot,
             fulfillment_snapshot=fulfillment_snapshot,
             article=article,
+            accepted_article_sha256s=accepted_articles,
         )
     machine_reviews = _machine_review_bindings(
         plan_review_path=plan_review_path,
@@ -218,6 +219,7 @@ def build_blog_assembly_bom_from_files(
         vault_root=vault_root,
         context_client=context_client,
         context_validator=dependencies.validate_context_artifacts,
+        accepted_article_sha256s=accepted_articles,
     )
 
     paa_policy = derive_and_validate_paa(
