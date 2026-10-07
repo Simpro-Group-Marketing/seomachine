@@ -64,20 +64,14 @@ def _machine_review_bindings(
             expected_phase=phase,
         )
         if findings:
-            rule_ids = ", ".join(
-                sorted({str(finding.get("rule_id") or "") for finding in findings})
-            )
-            raise ValueError(f"{phase} machine review is invalid: {rule_ids}")
+            raise ValueError(findings_error_text(f"{phase} machine review is invalid", findings))
     pair_findings = machine_review.check_machine_review_pair(
         plan_review_path,
         article_review_path,
         expected_run_id=expected_run_id,
     )
     if pair_findings:
-        rule_ids = ", ".join(
-            sorted({str(finding.get("rule_id") or "") for finding in pair_findings})
-        )
-        raise ValueError(f"machine review pair is invalid: {rule_ids}")
+        raise ValueError(findings_error_text("machine review pair is invalid", pair_findings))
     return {
         "plan": canonical_artifact(plan_review_path, workspace_root=workspace_root),
         "article": canonical_artifact(article_review_path, workspace_root=workspace_root),

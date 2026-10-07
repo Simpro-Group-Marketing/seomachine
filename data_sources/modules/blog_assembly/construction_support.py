@@ -131,8 +131,7 @@ def validate_plan_inputs(
         assembly_date=assembly_date.isoformat(),
     )
     if keyword_findings:
-        rules = ", ".join(sorted({str(row.get("rule_id") or "") for row in keyword_findings}))
-        raise ValueError(f"Semrush keyword decision is invalid: {rules}")
+        raise ValueError(findings_error_text("Semrush keyword decision is invalid", keyword_findings))
 
 
 def validate_plan_fulfillment_inputs(
@@ -148,8 +147,7 @@ def validate_plan_fulfillment_inputs(
         article_content=article.raw,
     )
     if findings:
-        rules = ", ".join(sorted({str(row.get("rule_id") or "") for row in findings}))
-        raise ValueError(f"plan fulfillment is invalid: {rules}")
+        raise ValueError(findings_error_text("plan fulfillment is invalid", findings))
 
 
 def _load_json(path: str | Path, field: str) -> Mapping[str, Any]:
@@ -222,8 +220,7 @@ def validate_connector_construction(
         client=context_client,
     )
     if not result.passed:
-        rules = ", ".join(str(row.get("rule_id")) for row in result.findings)
-        raise ValueError(f"context binding is invalid: {rules}")
+        raise ValueError(findings_error_text("context binding is invalid", list(result.findings)))
     validate_sha256(result.pack_canonical_sha256, field="context.context_pack_hash")
     validate_sha256(result.receipt_canonical_sha256, field="context.receipt_hash")
     if not customer_proof_selector_evidence_path:
