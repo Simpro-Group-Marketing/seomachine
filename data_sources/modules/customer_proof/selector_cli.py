@@ -67,6 +67,8 @@ def _validate_flag_dependencies(
 ) -> None:
     if args.decision_block and not args.slate:
         parser.error("--decision-block requires --slate")
+    if args.decision_block and not args.evidence_output:
+        parser.error("--decision-block requires --evidence-output")
     if args.evidence_output and not args.slate:
         parser.error("--evidence-output requires --slate")
     if args.allow_no_proof and not args.evidence_output:
@@ -158,7 +160,7 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument(
         "--decision-block",
         action="store_true",
-        help="Also print a prefilled Customer Proof Selection Decision block (requires --slate).",
+        help="Also print a prefilled Customer Proof Selection Decision block (requires --slate and --evidence-output).",
     )
     args = parser.parse_args(argv)
     _validate_flag_dependencies(parser, args)

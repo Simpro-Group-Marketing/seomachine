@@ -31,13 +31,20 @@ def selected_proof_rows(
             raise CustomerProofDataError(
                 f"Selected {role} proof {selected_id} is missing from verified candidates"
             )
+        claim_id = str(match.get("claim_id") or "").strip()
+        customer = str(match.get("customer") or "").strip()
+        for field, value in (("claim_id", claim_id), ("customer", customer)):
+            if not value:
+                raise CustomerProofDataError(
+                    f"Selected {role} proof {selected_id} has no {field} in verified candidates"
+                )
         rows.append(
             {
                 "role": role,
                 "proof_id": selected_id,
-                "customer": str(match.get("customer") or "unknown"),
+                "customer": customer,
                 "public_url": str(match.get("public_url") or ""),
-                "claim_id": str(match.get("claim_id") or selected_id),
+                "claim_id": claim_id,
             }
         )
     return rows

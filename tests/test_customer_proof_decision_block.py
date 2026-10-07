@@ -15,6 +15,8 @@ from data_sources.modules.customer_proof.diversity_parsing import (
     _selected_proof_ids,
     _slate_selected_ids,
 )
+from data_sources.modules.customer_proof.contracts import CustomerProofDataError
+from data_sources.modules.customer_proof.decision_block import selected_proof_rows
 from data_sources.modules.customer_proof.selector_cli import _main
 from tests.test_customer_proof_selector import (
     write_context_receipt_fixture,
@@ -83,3 +85,24 @@ def test_decision_block_is_opt_in(tmp_path: Path) -> None:
 def test_decision_block_requires_slate(tmp_path: Path) -> None:
     with pytest.raises(SystemExit):
         _main(["topic", "--decision-block"])
+
+
+def test_decision_block_requires_evidence_output(tmp_path: Path, capsys) -> None:
+    with pytest.raises(SystemExit):
+        _main(["topic", "--slate", "--decision-block"])
+    assert "--decision-block requires --evidence-output" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("missing", ["claim_id", "customer"])
+def test_selected_proof_rows_reject_candidates_missing_identity(missing: str) -> None:
+    candidate = {"proof_id": "p1", "customer": "Acme", "claim_id": "claim-1", "public_url": "u"}
+    candidate[missing] = ""
+    with pytest.raises(CustomerProofDataError, match=missing):
+        selected_proof_rows([{"role": "quote", "selected_id": "p1"}], lambda role: [candidate])
+
+
+def test_selected_proof_rows_use_real_claim_id_and_customer() -> None:
+    candidate = {"proof_id": "p1", "customer": "Acme", "claim_id": "claim-1", "public_url": "u"}
+    rows = selected_proof_rows([{"role": "quote", "selected_id": "p1"}], lambda role: [candidate])
+    assert rows == [{"role": "quote", "proof_id": "p1", "customer": "Acme",
+                     "public_url": "u", "claim_id": "claim-1"}]
