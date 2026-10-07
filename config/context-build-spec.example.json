@@ -1,0 +1,347 @@
+{
+  "schema": "simpro-context-build-spec/v1",
+  "slug": "what-is-simpro",
+  "date": "2026-10-05",
+  "request": {
+    "schema": "simpro-context-request/v1",
+    "task": "Build the current connector-bound context for a new Simpro-owned US blog titled What Is Simpro? What Sets It Apart for Trade Businesses.",
+    "scope": {
+      "brand": "Simpro",
+      "market": "US",
+      "region": "US",
+      "artifact_type": "blog",
+      "workflow_mode": "new",
+      "topic_slug": "what-is-simpro",
+      "title": "What Is Simpro? What Sets It Apart for Trade Businesses",
+      "canonical_url": "https://www.simprogroup.com/blog/what-is-simpro",
+      "primary_keyword": "what is simpro",
+      "commercial_pillar": {
+        "url": "https://www.simprogroup.com/",
+        "anchor": "field service management software",
+        "destination_id": "simpro-us-homepage-field-service-management-software"
+      },
+      "audience": "US trade business owners, operations leaders and office managers evaluating field service management software",
+      "objective": "Help US trade business owners and operations leaders understand what Simpro is, how it runs a job from quote to payment, and what customers say sets it apart, so they can judge whether it fits their business.",
+      "voice_requirements": [
+        "current Simpro blog voice and tone",
+        "US spelling and localization (organization, labor, technician, dispatcher)",
+        "practical, direct, trade-aware, reader-first explainer",
+        "no named author",
+        "no first-person authority language",
+        "no em dash"
+      ],
+      "product_language_requirements": [
+        "Simpro as an operating platform for trade and field service businesses, spanning office and field workflows",
+        "quote-to-payment lifecycle language: estimating and quoting, scheduling and dispatch, mobile field execution, invoicing and payments, reporting and job costing",
+        "feature names and descriptions drawn from current US vault feature collateral",
+        "no ERP, generic project-management, industrial asset, infrastructure construction, or accounting-replacement framing",
+        "Simpro Lightning only with receipt-approved claims and the full Simpro Lightning prefix",
+        "feature details require relevant source or approved claim evidence"
+      ],
+      "internal_link_ownership": [
+        "The article links https://www.simprogroup.com/ with the anchor field service management software; the homepage owns the general FSM category term.",
+        "Feature and solution links use function-bearing anchors and must be checked against connector-discovered feature resources."
+      ],
+      "required_context_topics": [
+        "current blog voice and tone",
+        "US trade-business ICP and personas",
+        "core field service management positioning",
+        "quote-to-payment job lifecycle",
+        "named feature language",
+        "implementation and onboarding boundaries",
+        "pricing boundaries",
+        "Simpro Lightning status boundaries",
+        "customer review proof candidates",
+        "Fred Voccola authority candidates"
+      ],
+      "intended_public_use_modes": [
+        "guidance",
+        "context",
+        "exact_quote",
+        "public_paraphrase",
+        "authority_support"
+      ],
+      "public_proof_boundary": "Six approved exact_quote review claims are bound in this public-copy context request: claim-metric-MET-1809, MET-1816, MET-1302, MET-1849 and MET-1271 (G2) and MET-1755 (Capterra), each quoted verbatim with attribution and the direct public review URL in the same paragraph. The registry has 0 approved public_metric claims, so no customer metric may appear. No approved case-study exact_quote claim on a simprogroup.com case-study URL was returned, so case-study quotes and stories are not connector-approved. The only approved public_paraphrase claim is a Simpro Lightning product-context row, not customer proof, and is not used. Before drafting any other proof-sensitive product, feature, pricing, customer, ranking, rating, quote, metric, or availability statement, retrieve approved claims for that exact proposed use.",
+      "retrieval_evidence": {
+        "expansion_artifact": "research/context-refresh-what-is-simpro-2026-10-05.json",
+        "expanded_source_resource_ids": [
+          "res-e3ade596be645307ad4c1f84620ce021",
+          "res-d31f057a305f51918055120d95b76c6a",
+          "res-230f144aab93512e840167c4a25e60be",
+          "res-a5b3b47382b45490bf2bedbf16c0b76e",
+          "res-69b54745e4715d75a655d5c86ba89c59",
+          "res-1825898a11855f89be9bb69c544a6aa3",
+          "res-47015608c0d4556a854fca7544b4a040",
+          "res-dfc67c5cef87541d856a765f2747a2cb"
+        ],
+        "expansion_followed_by_reads": [
+          "res-09b1f4509ed65855894bd5f481ec81b1",
+          "res-0dd3c26cb00d5e63b80c10af80d114e1",
+          "res-15f3055bbe9850d0974573791ce80840",
+          "res-16c113c993565a4c84150d131c034c57",
+          "res-1825898a11855f89be9bb69c544a6aa3",
+          "res-230f144aab93512e840167c4a25e60be",
+          "res-3250ad4272305976ab4e7b5dda27309d",
+          "res-339d828f9b875c738f530a65ccbc3587",
+          "res-47015608c0d4556a854fca7544b4a040",
+          "res-69b54745e4715d75a655d5c86ba89c59",
+          "res-6fcbe410d7e65cd487d6212fd0ab4932",
+          "res-92348f8056165d4ba81a3c91738604e2",
+          "res-a5b3b47382b45490bf2bedbf16c0b76e",
+          "res-ac34fbe2f00a50a69522c0864226ffb8",
+          "res-ad708a5d6b6756d29d81e9cdc7ebca48",
+          "res-b34b392d22b9507089ade3fec47ee9e0",
+          "res-c027b4f595a5549b8c29545379e0adf0",
+          "res-c37f265e6e385a8b9b4eeb65fb856910",
+          "res-c5e0bc9b067157d991bf452e350766ca",
+          "res-d31f057a305f51918055120d95b76c6a",
+          "res-dfc67c5cef87541d856a765f2747a2cb",
+          "res-e3ade596be645307ad4c1f84620ce021"
+        ]
+      }
+    },
+    "requested_at": "2026-10-05"
+  },
+  "outputs": {
+    "request": "research/context-request-what-is-simpro.json",
+    "trace": "research/context-refresh-what-is-simpro-2026-10-05.json",
+    "claim_lookup": "research/customer-proof-claim-lookup-what-is-simpro-2026-10-05.json"
+  },
+  "discovery": {
+    "search_queries": [
+      "COD Editorial Blog Voice",
+      "Message House",
+      "Product Positioning",
+      "Guardrails and Boundaries",
+      "Brand usage guide Simpro name spelling",
+      "ICP customer personas trade business owner operations manager office manager",
+      "Simpro Core Messaging Repository",
+      "Core Value Pillars",
+      "Field Service Management in the Cloud",
+      "Simpro job lifecycle quote schedule mobile invoice reporting",
+      "Simpro field service mobile app feature technicians in the field",
+      "scheduling software dispatch board feature page",
+      "Simpro Trade Services Datasheet",
+      "SIMPRO_2410_Implementation Guide_US_Final",
+      "2026 Simpro Software Pricing",
+      "Simpro Customer Stories",
+      "SoftwareWorld 4-5-Star Simpro Review Snippet Refresh",
+      "Simpro Lightning AI-first platform status",
+      "Lightning Current Commercial and Availability Context",
+      "Fred Voccola authority media"
+    ],
+    "resource_purposes": {
+      "res-e3ade596be645307ad4c1f84620ce021": "guidance",
+      "res-d31f057a305f51918055120d95b76c6a": "guidance",
+      "res-b34b392d22b9507089ade3fec47ee9e0": "context",
+      "res-230f144aab93512e840167c4a25e60be": "guidance",
+      "res-a5b3b47382b45490bf2bedbf16c0b76e": "guidance",
+      "res-92348f8056165d4ba81a3c91738604e2": "context",
+      "res-ac34fbe2f00a50a69522c0864226ffb8": "context",
+      "res-69b54745e4715d75a655d5c86ba89c59": "guidance",
+      "res-339d828f9b875c738f530a65ccbc3587": "guidance",
+      "res-dfc67c5cef87541d856a765f2747a2cb": "guidance",
+      "res-09b1f4509ed65855894bd5f481ec81b1": "guidance",
+      "res-1825898a11855f89be9bb69c544a6aa3": "guidance",
+      "res-0dd3c26cb00d5e63b80c10af80d114e1": "context",
+      "res-c5e0bc9b067157d991bf452e350766ca": "guidance",
+      "res-47015608c0d4556a854fca7544b4a040": "guidance",
+      "res-16c113c993565a4c84150d131c034c57": "guidance",
+      "res-6fcbe410d7e65cd487d6212fd0ab4932": "context",
+      "res-3250ad4272305976ab4e7b5dda27309d": "guidance",
+      "res-c027b4f595a5549b8c29545379e0adf0": "guidance",
+      "res-c37f265e6e385a8b9b4eeb65fb856910": "guidance",
+      "res-ad708a5d6b6756d29d81e9cdc7ebca48": "context",
+      "res-15f3055bbe9850d0974573791ce80840": "guidance"
+    },
+    "expand_resource_ids": [
+      "res-e3ade596be645307ad4c1f84620ce021",
+      "res-d31f057a305f51918055120d95b76c6a",
+      "res-230f144aab93512e840167c4a25e60be",
+      "res-a5b3b47382b45490bf2bedbf16c0b76e",
+      "res-69b54745e4715d75a655d5c86ba89c59",
+      "res-1825898a11855f89be9bb69c544a6aa3",
+      "res-47015608c0d4556a854fca7544b4a040",
+      "res-dfc67c5cef87541d856a765f2747a2cb"
+    ]
+  },
+  "constraints": [
+    "Connector-bound Simpro workflow for a new US commercial-investigation brand explainer blog (workflow_mode new).",
+    "Simpro only: no competitor names and no comparison language in public copy, including the words competitor, alternative, vs, and versus.",
+    "No leader, leading, best, better, #1, ranked, unparalleled, or other superiority or ranking claims in Simpro's voice.",
+    "No customer metrics: the claim registry currently has 0 approved public_metric claims.",
+    "No named author, named reviewer, Person author schema, or first-person authority language.",
+    "No em dash. US spelling and localization (organization, labor, color, technician, dispatcher).",
+    "Frame Simpro as an operating platform for trade and field service businesses that runs work from quote to payment; never as ERP, generic contractor project management, industrial asset management, infrastructure construction software, or an accounting replacement.",
+    "Use Simpro (product brand) for product copy; use Simpro Group only for corporate or portfolio context.",
+    "The commercial pillar is https://www.simprogroup.com/ with the anchor field service management software (destination simpro-us-homepage-field-service-management-software).",
+    "Simpro Lightning may appear only if receipt-approved claims support the exact wording, and always with the full prefix Simpro Lightning; never standalone Lightning.",
+    "Pricing, package terms, implementation package names, and commercial details are internal context only unless a current approved public source supports them.",
+    "Customer review quotes appear in public copy only as receipt-bound approved exact_quote claims with attribution and the direct public review URL in the same paragraph.",
+    "Use Hindsight internal strategy only for angle, section emphasis, and FAQ framing; never as public proof, rankings, metrics, or claims.",
+    "Public proof-sensitive claims require an exact use-mode approved-claim query and source verification."
+  ],
+  "claim_lookups": [
+    {
+      "brand_scope": "Simpro",
+      "query": "Simpro trade business customer metric quote to payment scheduling mobile invoicing",
+      "use_mode": "public_metric",
+      "limit": 50
+    },
+    {
+      "brand_scope": "Simpro",
+      "query": "Simpro one system quoting job management invoicing mobile app technicians implementation support",
+      "use_mode": "exact_quote",
+      "limit": 50
+    },
+    {
+      "brand_scope": "Simpro",
+      "query": "LCUR-0052",
+      "use_mode": "public_paraphrase",
+      "limit": 50
+    }
+  ],
+  "stages": [
+    {
+      "id": "customer_selector",
+      "pack": "research/context-pack-what-is-simpro-customer-selector-2026-10-05.json",
+      "receipt": "research/context-receipt-what-is-simpro-customer-selector-2026-10-05.json",
+      "claim_requests": [
+        {
+          "claim_id": "claim-metric-MET-1809",
+          "query": "Simpro has made everyone accountable from the very beginning, from the lead and quote stage all the way through to collecting the final payment for the job",
+          "use_mode": "exact_quote",
+          "brand_scope": "Simpro"
+        },
+        {
+          "claim_id": "claim-metric-MET-1816",
+          "query": "improved communication between the office and field technicians, streamlined dispatching and scheduling, and given us better visibility into jobs, quotes, inventory, and invoicing",
+          "use_mode": "exact_quote",
+          "brand_scope": "Simpro"
+        },
+        {
+          "claim_id": "claim-metric-MET-1302",
+          "query": "We went from carbonless service call forms and a whiteboard calendar to Simpro",
+          "use_mode": "exact_quote",
+          "brand_scope": "Simpro"
+        },
+        {
+          "claim_id": "claim-metric-MET-1849",
+          "query": "As an owner, it gives me great real-time insight into my business, from work orders to quotes",
+          "use_mode": "exact_quote",
+          "brand_scope": "Simpro"
+        },
+        {
+          "claim_id": "claim-metric-MET-1755",
+          "query": "keeping our quoting, job management, and invoicing tied together in one single source of truth",
+          "use_mode": "exact_quote",
+          "brand_scope": "Simpro"
+        },
+        {
+          "claim_id": "claim-metric-MET-1271",
+          "query": "manage quotes, jobs, invoicing, and business reporting efficiently in one place",
+          "use_mode": "exact_quote",
+          "brand_scope": "Simpro"
+        },
+        {
+          "claim_id": "claim-metric-MET-1179",
+          "query": "Our business runs on SimPRO. We quote jobs with it, we manage stock and inventory with it",
+          "use_mode": "exact_quote",
+          "brand_scope": "Simpro"
+        },
+        {
+          "claim_id": "claim-metric-MET-1033",
+          "query": "covers almost all aspects of running a Plumbing ( or any field service ) Company",
+          "use_mode": "exact_quote",
+          "brand_scope": "Simpro"
+        },
+        {
+          "claim_id": "claim-metric-MET-0299",
+          "query": "powerful all-in-one platform that really helps streamline job management, from quoting through to completion and invoicing",
+          "use_mode": "exact_quote",
+          "brand_scope": "Simpro"
+        }
+      ]
+    },
+    {
+      "id": "fred_evaluation",
+      "pack": "research/context-pack-what-is-simpro-fred-evaluation-2026-10-05.json",
+      "receipt": "research/context-receipt-what-is-simpro-fred-evaluation-2026-10-05.json",
+      "claim_requests": [
+        {
+          "claim_id": "claim-fred-FVMI-0210",
+          "query": "Fred Voccola: His Simpro Group built AI operating platform for trades",
+          "use_mode": "authority_support",
+          "brand_scope": "Simpro"
+        },
+        {
+          "claim_id": "claim-fred-FVMI-0206",
+          "query": "Interview with Fred Voccola, CEO of Simpro",
+          "use_mode": "authority_support",
+          "brand_scope": "Simpro"
+        },
+        {
+          "claim_id": "claim-fred-FVMI-0006",
+          "query": "Fred Voccola Simpro AI in the Commercial Trades",
+          "use_mode": "authority_support",
+          "brand_scope": "Simpro"
+        },
+        {
+          "claim_id": "claim-fred-FVMI-0004",
+          "query": "Even blue-collar work isn't safe from AI, a CEO who makes tech for electricians and plumbers says",
+          "use_mode": "authority_support",
+          "brand_scope": "Simpro"
+        },
+        {
+          "claim_id": "claim-fred-FVMI-0001",
+          "query": "Simpro Group CEO on How AI Is Driving SMB Margin Expansion",
+          "use_mode": "authority_support",
+          "brand_scope": "Simpro"
+        }
+      ]
+    },
+    {
+      "id": "public",
+      "pack": "research/context-pack-what-is-simpro.json",
+      "receipt": "research/context-receipt-what-is-simpro.json",
+      "claim_requests": [
+        {
+          "claim_id": "claim-metric-MET-1809",
+          "query": "Simpro has made everyone accountable from the very beginning, from the lead and quote stage all the way through to collecting the final payment for the job",
+          "use_mode": "exact_quote",
+          "brand_scope": "Simpro"
+        },
+        {
+          "claim_id": "claim-metric-MET-1816",
+          "query": "improved communication between the office and field technicians, streamlined dispatching and scheduling, and given us better visibility into jobs, quotes, inventory, and invoicing",
+          "use_mode": "exact_quote",
+          "brand_scope": "Simpro"
+        },
+        {
+          "claim_id": "claim-metric-MET-1302",
+          "query": "We went from carbonless service call forms and a whiteboard calendar to Simpro",
+          "use_mode": "exact_quote",
+          "brand_scope": "Simpro"
+        },
+        {
+          "claim_id": "claim-metric-MET-1849",
+          "query": "As an owner, it gives me great real-time insight into my business, from work orders to quotes",
+          "use_mode": "exact_quote",
+          "brand_scope": "Simpro"
+        },
+        {
+          "claim_id": "claim-metric-MET-1755",
+          "query": "keeping our quoting, job management, and invoicing tied together in one single source of truth",
+          "use_mode": "exact_quote",
+          "brand_scope": "Simpro"
+        },
+        {
+          "claim_id": "claim-metric-MET-1271",
+          "query": "manage quotes, jobs, invoicing, and business reporting efficiently in one place",
+          "use_mode": "exact_quote",
+          "brand_scope": "Simpro"
+        }
+      ]
+    }
+  ]
+}
