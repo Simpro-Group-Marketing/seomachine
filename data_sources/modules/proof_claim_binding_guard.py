@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 
 try:
     from .guard_common import Finding, make_finding
+    from .owned_product_language import product_language_kind
     from .image_placeholder import (
         is_production_image_placeholder_line,
         is_production_video_placeholder_line,
@@ -33,6 +34,7 @@ try:
     )
 except ImportError:  # pragma: no cover - supports direct script execution.
     from guard_common import Finding, make_finding
+    from owned_product_language import product_language_kind
     from image_placeholder import (
         is_production_image_placeholder_line,
         is_production_video_placeholder_line,
@@ -116,8 +118,14 @@ def validate_proof_claim_bindings(
     evidence_rows: Any,
     decisions: Any,
     claim_map: Any,
+    *,
+    owned_product_claims: Sequence[str] = (),
 ) -> list[Finding]:
-    """Return blockers for public proof passages without typed receipt bindings."""
+    """Return blockers for public proof passages without typed receipt bindings.
+
+    A commercial passage whose trigger sits only inside approved owned product
+    language needs no vault claim: the owned Source Map row is its proof.
+    """
     obligations = find_proof_obligations(article_content)
     if not obligations:
         return []
@@ -130,6 +138,8 @@ def validate_proof_claim_bindings(
     findings: list[Finding] = []
     for obligation in obligations:
         if any(_binding_satisfies(binding, obligation) for binding in bindings):
+            continue
+        if _covered_by_product_language(obligation, owned_product_claims):
             continue
         findings.append(
             make_finding(
@@ -287,6 +297,21 @@ def _rows_by_claim_id(rows: Sequence[Any]) -> dict[str, list[Mapping[str, Any]]]
         if claim_id:
             indexed.setdefault(claim_id, []).append(row)
     return indexed
+
+
+def _covered_by_product_language(
+    obligation: ProofObligation, owned_product_claims: Sequence[str]
+) -> bool:
+    if obligation.kind != "commercial_claim":
+        return False
+    remainder = obligation.passage
+    covered = False
+    for claim in owned_product_claims:
+        normalized = _normalize_text(claim)
+        if normalized and normalized in remainder and product_language_kind(normalized):
+            remainder = remainder.replace(normalized, " ")
+            covered = True
+    return covered and not COMMERCIAL_CLAIM_RE.search(remainder)
 
 
 def _binding_satisfies(binding: ClaimBinding, obligation: ProofObligation) -> bool:

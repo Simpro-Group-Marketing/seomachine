@@ -26,6 +26,7 @@ try:
         STRUCTURED_PRICING_ASSERTION_RE,
         STRUCTURED_QUOTE_RE,
         STRUCTURED_STATUS_RE,
+        _proof_rows,
     )
     from .source_support.common import GENERAL_CLAIM_PATTERNS
 except ImportError:  # pragma: no cover - supports direct script execution.
@@ -37,6 +38,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         STRUCTURED_PRICING_ASSERTION_RE,
         STRUCTURED_QUOTE_RE,
         STRUCTURED_STATUS_RE,
+        _proof_rows,
     )
     from source_support.common import GENERAL_CLAIM_PATTERNS
 
@@ -95,4 +97,16 @@ def is_approved_product_language(
         str(source_class or "").strip().casefold() == "owned_product"
         and str(claim_type or "").strip().casefold() in PRODUCT_LANGUAGE_CLAIM_TYPES
         and product_language_kind(claim) is not None
+    )
+
+
+def approved_product_language_claims(proof_content: str) -> tuple[str, ...]:
+    """Return approved sidecar claims that the shared rule treats as product language."""
+    return tuple(
+        row.claim
+        for row in _proof_rows(proof_content or "")
+        if row.status.casefold() == "approved"
+        and is_approved_product_language(
+            row.claim, source_class=row.source_class, claim_type=row.claim_type
+        )
     )

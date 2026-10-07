@@ -175,7 +175,9 @@ def validate_payload_findings(
         expected=expected,
         article_sha256=article_sha256,
     ))
-    findings.extend(dependencies.validate_claim_map(article_content, pack, receipt, claim_map))
+    findings.extend(dependencies.validate_claim_map(
+        article_content, pack, receipt, claim_map, proof_content=proof_content
+    ))
     return findings
 
 
