@@ -311,7 +311,34 @@ def _policy_aligned_candidates(
             )
         )
 
+    aligned.extend(_product_language_candidates(report, aligned))
     return sorted(aligned, key=lambda candidate: (candidate.line, candidate.text))
+
+def _product_language_candidates(
+    report: ProofLinkReport,
+    aligned: Sequence[ClaimCandidate],
+) -> List[ClaimCandidate]:
+    """Verify every owned row that clears product language from other gates.
+
+    Capability sentences ("Simpro allows ...") match no general claim pattern,
+    so without this their rows would carry sidecar_only and the binding
+    waiver with no classification, binding, or live Evidence check.
+    """
+    return [
+        ClaimCandidate(
+            text=requirement.claim,
+            line=requirement.line,
+            numeric_tokens=[],
+            normalized_tokens=frozenset(),
+            customer_names=frozenset(),
+            has_case_study_link=False,
+            requires_approved_quote=False,
+            claim_type=_general_claim_type(requirement.claim) or "factual",
+        )
+        for requirement in report.requirements
+        if requirement.reason == "approved_product_language"
+        and not _requirement_has_candidate(requirement, aligned)
+    ]
 
 def _candidate_is_proof_not_required(candidate: ClaimCandidate) -> bool:
     """Ask the policy engine whether one extracted sentence is fact-free advice."""

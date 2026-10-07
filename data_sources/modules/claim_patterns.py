@@ -10,6 +10,21 @@ from __future__ import annotations
 import re
 
 
+LEGAL_OR_TIME_SENSITIVE_RE = re.compile(
+    r"(?:\blocal\s+authorit(?:y|ies)\b|\b(?:annual(?:ly)?|availability|code|compliance|deadline|eligible|eligibility|exempt(?:ion|ions|ed)?|flsa|"
+    r"expire[ds]?|fee|fees|insurance|law|legal|licen[cs](?:e|ed|ing|es)|must|"
+    r"homestead|permit(?:ted|s)?|pricing|recordkeeping|regulat(?:e|ed|es|ion|ions|or|ory)|renew(?:al|ed|s)?|required?|"
+    r"rule|rules|safety|statute|tax)\b)",
+    re.IGNORECASE,
+)
+INFERRED_HIGH_RISK_RE = re.compile(
+    r"(?:\blocal\s+authorit(?:y|ies)\b|\b(?:cannot|compliance|deadline|expire[ds]?|exempt(?:ion|ions)?|"
+    r"flsa|insurance|law|legal|must|only\s+under|permit(?:ted)?|prohibit(?:ed|s)?|"
+    r"recordkeeping|"
+    r"regulat(?:e|ed|es|ion|ions|or|ory)|renew(?:al|ed|s)?|required?|rule|"
+    r"homestead|safety|statute|tax)\b)",
+    re.IGNORECASE,
+)
 STRICT_PUBLIC_RISK_RE = re.compile(
     r"\b(?:code|compliance|deadline|expire[ds]?|fee|fees|insurance|law|legal|"
     r"licen[cs](?:e|ed|ing|es)|pricing|regulat(?:e|ed|es|ion|ions|or|ory)|"

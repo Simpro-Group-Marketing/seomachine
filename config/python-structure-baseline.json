@@ -250,7 +250,7 @@
     "data_sources/modules/numeric_claim_source_guard.py": 695,
     "data_sources/modules/opportunity_scorer.py": 515,
     "data_sources/modules/post_publish_measurement_receipt.py": 1583,
-    "data_sources/modules/proof_link_policy.py": 1010,
+    "data_sources/modules/proof_link_policy.py": 1001,
     "data_sources/modules/public_research_link_guard.py": 592,
     "data_sources/modules/readability_scorer.py": 505,
     "data_sources/modules/readiness/artifact_store.py": 515,

@@ -14,21 +14,23 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 try:
     from .claim_patterns import (
-        ANY_PUBLIC_NUMBER_RE, COMPARATIVE_RANKING_RE, MATERIAL_NUMBER_RE, STRICT_PUBLIC_RISK_RE,
+        ANY_PUBLIC_NUMBER_RE, COMPARATIVE_RANKING_RE, INFERRED_HIGH_RISK_RE, LEGAL_OR_TIME_SENSITIVE_RE,
+        MATERIAL_NUMBER_RE, STRICT_PUBLIC_RISK_RE,
         STRUCTURED_PRICING_ASSERTION_RE, STRUCTURED_QUOTE_RE, STRUCTURED_STATUS_RE,
     )
     from .faq_structure import detect_faq_structure
-    from .owned_product_language import is_approved_product_language
+    from .owned_product_language import is_approved_product_language, is_low_risk_owned_language
     from .frontmatter import FrontmatterError, split_frontmatter
     from .image_placeholder import is_production_image_placeholder_line
     from .url_validator import UrlValidationSummary, extract_urls, is_effectively_resolved
 except ImportError:  # pragma: no cover - supports direct script execution.
     from claim_patterns import (
-        ANY_PUBLIC_NUMBER_RE, COMPARATIVE_RANKING_RE, MATERIAL_NUMBER_RE, STRICT_PUBLIC_RISK_RE,
+        ANY_PUBLIC_NUMBER_RE, COMPARATIVE_RANKING_RE, INFERRED_HIGH_RISK_RE, LEGAL_OR_TIME_SENSITIVE_RE,
+        MATERIAL_NUMBER_RE, STRICT_PUBLIC_RISK_RE,
         STRUCTURED_PRICING_ASSERTION_RE, STRUCTURED_QUOTE_RE, STRUCTURED_STATUS_RE,
     )
     from faq_structure import detect_faq_structure
-    from owned_product_language import is_approved_product_language
+    from owned_product_language import is_approved_product_language, is_low_risk_owned_language
     from frontmatter import FrontmatterError, split_frontmatter
     from image_placeholder import is_production_image_placeholder_line
     from url_validator import UrlValidationSummary, extract_urls, is_effectively_resolved
@@ -70,21 +72,6 @@ GROUP_OWNED_DOMAINS = {
     "bigchange": ("bigchange.com",),
     "aroflo": ("aroflo.com",),
 }
-LEGAL_OR_TIME_SENSITIVE_RE = re.compile(
-    r"(?:\blocal\s+authorit(?:y|ies)\b|\b(?:annual(?:ly)?|availability|code|compliance|deadline|eligible|eligibility|exempt(?:ion|ions|ed)?|flsa|"
-    r"expire[ds]?|fee|fees|insurance|law|legal|licen[cs](?:e|ed|ing|es)|must|"
-    r"homestead|permit(?:ted|s)?|pricing|recordkeeping|regulat(?:e|ed|es|ion|ions|or|ory)|renew(?:al|ed|s)?|required?|"
-    r"rule|rules|safety|statute|tax)\b)",
-    re.IGNORECASE,
-)
-INFERRED_HIGH_RISK_RE = re.compile(
-    r"(?:\blocal\s+authorit(?:y|ies)\b|\b(?:cannot|compliance|deadline|expire[ds]?|exempt(?:ion|ions)?|"
-    r"flsa|insurance|law|legal|must|only\s+under|permit(?:ted)?|prohibit(?:ed|s)?|"
-    r"recordkeeping|"
-    r"regulat(?:e|ed|es|ion|ions|or|ory)|renew(?:al|ed|s)?|required?|rule|"
-    r"homestead|safety|statute|tax)\b)",
-    re.IGNORECASE,
-)
 LICENSE_DEFINITION_RE = re.compile(
     r"(?:\b(?:credential|designation|licen[cs]e|registration)\b.{0,100}"
     r"\b(?:is|are|means|allows?|permits?)\b|"
@@ -757,10 +744,14 @@ def _classify_proof_row(
             return "sidecar_only", "public_research", "editorial_recommendation"
         if not STRICT_PUBLIC_RISK_RE.search(proof.claim):
             return "sidecar_only", "public_research", "editorial_recommendation"
-    if is_approved_product_language(
+    approved = is_approved_product_language(
         proof.claim, source_class=proof.source_class, claim_type=proof.claim_type
+    )
+    if proof.source_class == "owned_product" and is_low_risk_owned_language(proof.claim) and (
+        approved or proof.claim_type not in {"definition", "definitional", "process", "causal", "comparative"}
     ):
-        return "sidecar_only", "public_research", "approved_product_language"
+        reason = "approved_product_language" if approved else "low_risk_owned_or_editorial_claim"
+        return "sidecar_only", "public_research", reason
     if high_risk_numeric:
         return "inline_required", "numeric_claim", "material_numeric_claim"
     if proof.claim_type in {"definition", "definitional", "process"}:

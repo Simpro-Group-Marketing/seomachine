@@ -19,8 +19,8 @@ from bs4 import BeautifulSoup
 
 try:
     from .guard_common import Finding, make_finding
-    from .owned_product_language import is_approved_product_language, product_language_kind
-    from .proof_link_policy import _proof_rows
+    from .owned_product_language import has_outcome_language, normalize_claim_text, split_sentences
+    from .proof_link_policy import analyze_proof_links
     from .image_placeholder import (
         is_production_image_placeholder_line,
         is_production_video_placeholder_line,
@@ -35,8 +35,8 @@ try:
     )
 except ImportError:  # pragma: no cover - supports direct script execution.
     from guard_common import Finding, make_finding
-    from owned_product_language import is_approved_product_language, product_language_kind
-    from proof_link_policy import _proof_rows
+    from owned_product_language import has_outcome_language, normalize_claim_text, split_sentences
+    from proof_link_policy import analyze_proof_links
     from image_placeholder import (
         is_production_image_placeholder_line,
         is_production_video_placeholder_line,
@@ -138,7 +138,7 @@ def validate_proof_claim_bindings(
         decisions,
         claim_map,
     )
-    owned_product_claims = _approved_product_language_claims(proof_content)
+    owned_product_claims = _approved_product_language_claims(article_content, proof_content)
     findings: list[Finding] = []
     for obligation in obligations:
         if any(_binding_satisfies(binding, obligation) for binding in bindings):
@@ -303,31 +303,38 @@ def _rows_by_claim_id(rows: Sequence[Any]) -> dict[str, list[Mapping[str, Any]]]
     return indexed
 
 
-def _approved_product_language_claims(proof_content: str) -> tuple[str, ...]:
-    """Return approved sidecar claims that are owned Simpro product language."""
-    return tuple(
-        row.claim
-        for row in _proof_rows(proof_content or "")
-        if row.status.casefold() == "approved"
-        and is_approved_product_language(
-            row.claim, source_class=row.source_class, claim_type=row.claim_type
-        )
+def _approved_product_language_claims(article_content: str, proof_content: str) -> frozenset[str]:
+    """Return the owned product-language claims the policy engine approved.
+
+    These are exactly the rows source support re-verifies (classification,
+    exact binding, and live Evidence), so the waiver never rests on an
+    unchecked sidecar label.
+    """
+    if not proof_content.strip():
+        return frozenset()
+    report = analyze_proof_links(article_content, proof_content)
+    return frozenset(
+        normalize_claim_text(requirement.claim)
+        for requirement in report.requirements
+        if requirement.reason == "approved_product_language"
     )
 
 
 def _covered_by_product_language(
-    obligation: ProofObligation, owned_product_claims: Sequence[str]
+    obligation: ProofObligation, owned_product_claims: frozenset[str]
 ) -> bool:
-    if obligation.kind != "commercial_claim":
+    """Waive only whole approved sentences; any other outcome text keeps the obligation."""
+    if obligation.kind != "commercial_claim" or not owned_product_claims:
         return False
-    remainder = obligation.passage
-    covered = False
-    for claim in owned_product_claims:
-        normalized = _normalize_text(claim)
-        if normalized and normalized in remainder and product_language_kind(normalized):
-            remainder = remainder.replace(normalized, " ")
-            covered = True
-    return covered and not COMMERCIAL_CLAIM_RE.search(remainder)
+    sentences = split_sentences(obligation.passage)
+    uncovered = [
+        sentence for sentence in sentences
+        if normalize_claim_text(sentence) not in owned_product_claims
+    ]
+    return len(uncovered) < len(sentences) and not any(
+        COMMERCIAL_CLAIM_RE.search(sentence) or has_outcome_language(sentence)
+        for sentence in uncovered
+    )
 
 
 def _binding_satisfies(binding: ClaimBinding, obligation: ProofObligation) -> bool:

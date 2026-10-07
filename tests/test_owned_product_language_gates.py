@@ -6,6 +6,8 @@ import json
 import tempfile
 import unittest
 
+import pytest
+
 from data_sources.modules import context_binding_generator
 from data_sources.modules.proof_claim_binding_guard import validate_proof_claim_bindings
 from data_sources.modules.proof_link_policy import analyze_proof_links
@@ -43,7 +45,7 @@ def _article(claims) -> str:
     return "# Scheduling guide\n\n## How scheduling works in Simpro\n\n" + "\n\n".join(claims) + "\n"
 
 
-def _source_support_findings(claims, *, claim_type="product_claim"):
+def _source_support_findings(claims, *, claim_type="product_claim", page_text=None):
     with tempfile.TemporaryDirectory() as tmp:
         classification, classification_hash = write_source_classification(
             tmp, SCHEDULING_URL, "owned_product", "owned"
@@ -57,8 +59,63 @@ def _source_support_findings(claims, *, claim_type="product_claim"):
         return source_support_check(
             f"---\nSource Map:\n{rows}\n---\n\n{_article(claims)}",
             base_path=tmp,
-            fetcher=fetcher_with({SCHEDULING_URL: " ".join(claims)}),
+            fetcher=fetcher_with({SCHEDULING_URL: page_text or " ".join(claims)}),
         )
+
+
+def _binding_kinds(paragraphs, row_claims):
+    body = _article(paragraphs)
+    sidecar = f"## Source Map\n{_owned_rows(row_claims)}\n"
+    findings = validate_proof_claim_bindings(body, [], [], [], proof_content=sidecar)
+    return [finding.get("proof_kind") for finding in findings]
+
+
+def test_source_support_verifies_rows_for_undetected_capability_sentences():
+    claim = "Simpro allows dispatchers to assign jobs from one scheduling board."
+
+    findings = _source_support_findings((claim,), page_text="Unrelated page text.")
+
+    assert findings, "an owned row the binding waiver relies on must be verified"
+
+
+@pytest.mark.parametrize(
+    ("paragraph", "row_claim"),
+    [
+        (
+            "Simpro allows dispatchers to save admin time and grow revenue.",
+            "Simpro allows dispatchers",
+        ),
+        (
+            "Simpro allows dispatchers to assign jobs from one scheduling board. "
+            "It saves office staff time every week.",
+            "Simpro allows dispatchers to assign jobs from one scheduling board.",
+        ),
+        (
+            "Simpro allows dispatchers to assign jobs from one scheduling board. "
+            "Teams get paid sooner and grow revenue every month.",
+            "Simpro allows dispatchers to assign jobs from one scheduling board. "
+            "Teams get paid sooner and grow revenue every month.",
+        ),
+    ],
+)
+def test_binding_waiver_keeps_obligation_for_uncovered_outcome_text(paragraph, row_claim):
+    assert _binding_kinds((paragraph,), (row_claim,)) == ["commercial_claim"]
+
+
+def test_binding_waiver_covers_a_whole_capability_sentence():
+    claim = "Simpro allows dispatchers to assign jobs from one scheduling board."
+
+    assert _binding_kinds((claim,), (claim,)) == []
+
+
+def test_owned_feature_sentence_without_simpro_subject_stays_sidecar_only():
+    claim = "The mobile app shows each technician the day's jobs."
+
+    report = analyze_proof_links(
+        _article((claim,)), f"## Source Map\n{_owned_rows((claim,))}\n", brand="Simpro"
+    )
+
+    assert [requirement.mode for requirement in report.requirements] == ["sidecar_only"]
 
 
 def test_policy_engine_maps_owned_product_claim_rows_to_sidecar_only():
