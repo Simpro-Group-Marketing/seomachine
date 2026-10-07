@@ -755,6 +755,18 @@ def _matching_unit(claim: str, units: tuple[_ArticleUnit, ...]) -> _ArticleUnit 
 def _classify_proof_row(
     proof: _ProofRow,
 ) -> tuple[CitationMode, CitationOwner, str]:
+    # Imported here: owned_product_language reuses this module's risk patterns.
+    try:
+        from .owned_product_language import (
+            is_approved_product_language,
+            product_language_kind,
+        )
+    except ImportError:  # pragma: no cover - supports direct script execution.
+        from owned_product_language import (
+            is_approved_product_language,
+            product_language_kind,
+        )
+
     high_risk_numeric = bool(MATERIAL_NUMBER_RE.search(proof.claim))
     high_risk_public = bool(LEGAL_OR_TIME_SENSITIVE_RE.search(proof.claim))
     use = proof.use.casefold()
@@ -775,6 +787,10 @@ def _classify_proof_row(
             return "sidecar_only", "public_research", "editorial_recommendation"
         if not STRICT_PUBLIC_RISK_RE.search(proof.claim):
             return "sidecar_only", "public_research", "editorial_recommendation"
+    if is_approved_product_language(
+        proof.claim, source_class=proof.source_class, claim_type=proof.claim_type
+    ):
+        return "sidecar_only", "public_research", "approved_product_language"
     if high_risk_numeric:
         return "inline_required", "numeric_claim", "material_numeric_claim"
     if proof.claim_type in {"definition", "definitional", "process"}:
@@ -783,7 +799,10 @@ def _classify_proof_row(
         return "section_source_allowed", "public_research", "lower_risk_background_claim"
     if high_risk_public or proof.claim_type in {"causal", "comparative"}:
         return "inline_required", "public_research", "high_risk_public_claim"
-    if proof.source_class == "owned_product" or proof.claim_type == "recommendation":
+    if (
+        proof.source_class == "owned_product"
+        and product_language_kind(proof.claim) is not None
+    ) or proof.claim_type == "recommendation":
         return "sidecar_only", "public_research", "low_risk_owned_or_editorial_claim"
     return "inline_required", "public_research", "ambiguous_claim_fails_closed"
 

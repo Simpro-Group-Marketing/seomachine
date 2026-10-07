@@ -662,6 +662,76 @@ Dispatchers should review technician availability before assigning urgent work.
     assert requirement.mode == "sidecar_only"
 
 
+def test_owned_product_claim_rows_are_sidecar_only_approved_product_language():
+    article = """# Dispatch guide
+
+## Scheduling in Simpro
+
+Simpro works by linking each quote to the job it becomes.
+
+Simpro's scheduling board shows technician availability for the day.
+
+Simpro allows dispatchers to drag jobs onto the scheduling board.
+"""
+    owned = "Source class: owned_product | Evidence relation: directly_supports | URL: https://www.simprogroup.com/features/scheduling | Evidence: \"scheduling board\" | Status: approved"
+    sidecar = f"""## Source Map
+- Claim: Simpro works by linking each quote to the job it becomes. | Claim type: product_claim | {owned}
+- Claim: Simpro's scheduling board shows technician availability for the day. | Claim type: product_claim | {owned}
+- Claim: Simpro allows dispatchers to drag jobs onto the scheduling board. | Claim type: feature_claim | {owned}
+"""
+
+    report = analyze_proof_links(article, sidecar, brand="Simpro")
+
+    assert len(report.requirements) == 3
+    for requirement in report.requirements:
+        assert (requirement.mode, requirement.reason) == (
+            "sidecar_only",
+            "approved_product_language",
+        ), requirement.claim
+
+
+def test_owned_product_claim_rows_with_outcome_numeric_or_status_wording_stay_inline():
+    article = """# Dispatch guide
+
+## Scheduling in Simpro
+
+Simpro reduces the time dispatchers spend on the phone.
+
+Simpro serves 8,000 customers across four countries.
+
+Simpro scheduling is currently available on every plan.
+"""
+    owned = "Source class: owned_product | Evidence relation: directly_supports | URL: https://www.simprogroup.com/features/scheduling | Evidence: \"scheduling\" | Status: approved"
+    sidecar = f"""## Source Map
+- Claim: Simpro reduces the time dispatchers spend on the phone. | Claim type: product_claim | {owned}
+- Claim: Simpro serves 8,000 customers across four countries. | Claim type: product_claim | {owned}
+- Claim: Simpro scheduling is currently available on every plan. | Claim type: product_claim | {owned}
+"""
+
+    report = analyze_proof_links(article, sidecar, brand="Simpro")
+
+    assert len(report.requirements) == 3
+    assert {requirement.mode for requirement in report.requirements} == {"inline_required"}
+
+
+def test_owned_process_row_without_product_claim_type_keeps_section_source_mode():
+    article = """# Dispatch guide
+
+## Scheduling in Simpro
+
+Simpro works by linking each quote to the job it becomes.
+"""
+    sidecar = """## Source Map
+- Claim: Simpro works by linking each quote to the job it becomes. | Claim type: process | Source class: owned_product | Evidence relation: directly_supports | URL: https://www.simprogroup.com/features/scheduling | Evidence: "quote" | Status: approved
+"""
+
+    report = analyze_proof_links(article, sidecar, brand="Simpro")
+
+    assert [requirement.mode for requirement in report.requirements] == [
+        "section_source_allowed"
+    ]
+
+
 def test_specialist_proof_rows_have_exclusive_guard_owners():
     article = """# Proof guide
 
