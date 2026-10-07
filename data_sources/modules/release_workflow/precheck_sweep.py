@@ -11,45 +11,56 @@ from typing import Any, Callable, Iterable, Mapping, Sequence
 try:
     from .. import context_binding_guard
     from ..blog_assembly.contracts import _visible_faq_questions
+    from ..readiness.adapters import _scorecard_from_scorer_result
     from ..readiness.common import ARTICLE_GATES
     from ..readiness.gate_policy import skip_article_gate
     from ..readiness.pipeline_tail import _guard_kwargs
-    from . import sweep_checks
+    from . import sweep_checks, sweep_gates
     from .sweep_checks import arg
 except ImportError:  # pragma: no cover - supports direct script execution.
     import context_binding_guard
     from blog_assembly.contracts import _visible_faq_questions
+    from readiness.adapters import _scorecard_from_scorer_result
     from readiness.common import ARTICLE_GATES
     from readiness.gate_policy import skip_article_gate
     from readiness.pipeline_tail import _guard_kwargs
     import release_workflow.sweep_checks as sweep_checks
+    import release_workflow.sweep_gates as sweep_gates
     from release_workflow.sweep_checks import arg
 
 SWEEP_SCHEMA = "simpro-blog-release-sweep/v1"
+# ARTICLE_GATES entries the sweep never runs through check_file.
 DEDICATED_GATES = {
     "editorial_plan": "dedicated check",
     "semrush_keyword_decision": "dedicated check",
-    "paa_provenance": "dedicated check (FAQ binding)",
+    "paa_provenance": "dedicated check (faq_binding)",
     "blog_strategy": "dedicated check",
     "source_quality": "dedicated check",
 }
 SLOW_GATES = {"customer_proof_diversity": "slow; pass --include-slow"}
-NETWORK_GATES = {
-    "url_validator": "offline",
-    "source_support": "offline",
-    "public_research_links": "offline",
-}
+NETWORK_GATES = {"source_support": "offline"}
 VAULT_GATES = {
     name: "needs vault connector"
     for name in (
         "named_feature_status", "competitive_shortlist", "fred_authority", "vault_brand_language"
     )
 }
-DEDICATED_CHECKS = (
-    "pre_bom_report", "editorial_plan", "semrush_keyword_decision", "faq_binding",
-    "content_scorer",
+# Every dedicated release check, in run order (url_validator precedes its consumers).
+RELEASE_CHECKS = (
+    "pre_bom_report", "public_artifact", "ai_copy_linter", "url_validator",
+    "public_research_links", "context_binding", "editorial_plan", "semrush_keyword_decision",
+    "faq_binding", "blog_strategy", "source_quality", "customer_proof_no_fit", "content_scorer",
+)
+ARTICLE_TEXT_CHECKS = (
+    "public_artifact", "ai_copy_linter", "url_validator", "public_research_links",
+    "customer_proof_no_fit",
 )
 PLAN_CHECKS = ("blog_strategy", "source_quality")
+RELEASE_ONLY = {
+    "blog_assembly_bom": "release run only (needs the BOM)",
+    "input_seal": "release run only (seals the BOM inputs)",
+}
+SCORE_THRESHOLDS = "content 85, AEO/GEO 90"
 
 _pre_bom_rows = sweep_checks.pre_bom_rows
 _plan_rows = sweep_checks.plan_rows
@@ -57,6 +68,12 @@ _keyword_rows = sweep_checks.keyword_rows
 _faq_binding_rows = sweep_checks.faq_binding_rows
 _strategy_rows = sweep_checks.strategy_rows
 _source_quality_rows = sweep_checks.source_quality_rows
+_public_artifact_rows = sweep_gates.public_artifact_rows
+_ai_copy_rows = sweep_gates.ai_copy_rows
+_url_validator_rows = sweep_gates.url_validator_rows
+_research_link_rows = sweep_gates.research_link_rows
+_context_binding_rows = sweep_gates.context_binding_rows
+_no_fit_rows = sweep_gates.no_fit_rows
 
 
 def _row(check: str, raw: Mapping[str, Any]) -> dict[str, Any]:
@@ -103,14 +120,35 @@ def sweep_article_gates(
     return rows
 
 
+def _score_text(scorecard: Mapping[str, Any], key: str) -> str:
+    gate = scorecard.get(key)
+    gate = gate if isinstance(gate, Mapping) else {}
+    score = gate.get("score")
+    return f"{key} {'n/a' if score is None else score}/{gate.get('threshold')}"
+
+
 def scorer_findings(result: Mapping[str, Any]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    if result.get("passed") is False:
+        scorecard = _scorecard_from_scorer_result(result, artifact_kind="blog")
+        rows.append({
+            "rule_id": "content_scorer.not_passed", "severity": "error", "line": None,
+            "message": (
+                "Release scorer did not pass ("
+                + ", ".join(_score_text(scorecard, key) for key in (
+                    "content_quality", "seo_quality", "aeo_geo"
+                ))
+                + f"; required: {SCORE_THRESHOLDS})"
+            ),
+        })
     checks = (result.get("aeo_geo") or {}).get("checks") or {}
-    return [
+    rows += [
         {"rule_id": f"aeo_geo.{name}", "severity": "error", "line": None,
          "message": str(check.get("issue") or check.get("fix") or "check failed")}
         for name, check in checks.items()
         if isinstance(check, Mapping) and check.get("passed") is False
     ]
+    return rows
 
 
 def _scorer_rows(args: Any, root: Path, runtime_policy: Mapping[str, Any]) -> list[dict[str, Any]]:
@@ -133,18 +171,32 @@ def _has_visible_faq(article_text: str | None) -> bool:
         return True
 
 
-def _runtime_policy(args: Any, *, article_text: str | None) -> dict[str, Any]:
+def _paa_artifact(args: Any, paa_policy: Mapping[str, Any] | None) -> Any:
+    """Choose the PAA artifact by source kind, as ``_bom_runtime_policy`` does."""
+    kind = (paa_policy or {}).get("source_kind")
+    if kind == "brief_paa":
+        return arg(args, "content_brief")
+    if kind == "user_csv":
+        return arg(args, "user_paa_csv")
+    return arg(args, "paa_artifact")
+
+
+def _runtime_policy(
+    args: Any, *, article_text: str | None, paa_policy: Mapping[str, Any] | None = None
+) -> dict[str, Any]:
     """Pre-release stand-in for ``_bom_runtime_policy``; no BOM exists yet."""
     assembly_date = arg(args, "assembly_date")
     run_id = arg(args, "run_id")
     paa_kwargs = {
         "workflow_mode": arg(args, "workflow_mode"),
-        "paa_artifact": arg(args, "paa_artifact"),
+        "paa_artifact": _paa_artifact(args, paa_policy),
         "content_brief": arg(args, "content_brief"),
         "answersocrates_blocker": arg(args, "answersocrates_blocker"),
         "expected_collection_date": assembly_date,
         "expected_run_id": run_id,
     }
+    if paa_policy and paa_policy.get("query"):
+        paa_kwargs["expected_query"] = str(paa_policy["query"])
     return {
         "visible_faq": _has_visible_faq(article_text),
         "editorial_plan": arg(args, "editorial_plan"),
@@ -163,18 +215,17 @@ def _runtime_policy(args: Any, *, article_text: str | None) -> dict[str, Any]:
 
 
 def _context_required(args: Any, article_text: str | None) -> bool:
-    if article_text is not None:
-        return context_binding_guard.requires_context(article_text)
-    return any(arg(args, name) for name in ("context_request", "context_pack", "context_receipt"))
+    paths = any(arg(args, name) for name in ("context_request", "context_pack", "context_receipt"))
+    if article_text is None:
+        return paths
+    return paths or context_binding_guard.requires_context(article_text)
 
 
-def _skip_map(
+def _gate_skips(
     gates: Sequence[tuple[str, str, Any]], *, offline: bool, include_slow: bool,
-    visible_faq: bool, context_required: bool, plan_available: bool,
+    visible_faq: bool, context_required: bool,
 ) -> dict[str, str]:
     skip: dict[str, str] = dict(DEDICATED_GATES)
-    if not plan_available:
-        skip.update({name: "requires --editorial-plan" for name in PLAN_CHECKS})
     for name, _label, module in gates:
         if skip_article_gate(
             name, artifact_kind="blog", visible_faq=visible_faq,
@@ -192,14 +243,56 @@ def _skip_map(
     return skip
 
 
+def _check_skips(
+    *, article_text: str | None, offline: bool, plan_available: bool, context_required: bool,
+) -> dict[str, str]:
+    """Reasons the dedicated release checks do not run."""
+    skip: dict[str, str] = {}
+    if article_text is None:
+        skip.update({name: "article unreadable" for name in ARTICLE_TEXT_CHECKS})
+    if offline:
+        skip.update({name: "offline" for name in ("url_validator", "public_research_links")})
+    if not context_required:
+        skip["context_binding"] = "not applicable (no context artifacts or Simpro signal)"
+    elif offline:
+        skip["context_binding"] = "needs vault connector"
+    if not plan_available:
+        skip.update({name: "requires --editorial-plan" for name in PLAN_CHECKS})
+    return skip
+
+
+def _release_checks(
+    args: Any, root: Path, policy: Mapping[str, Any], text: str | None,
+    state: Any, derived: Any,
+) -> dict[str, Callable[[], Any]]:
+    sidecar = arg(args, "proof_sidecar")
+    return {
+        "pre_bom_report": lambda: _pre_bom_rows(args, root),
+        "public_artifact": lambda: _public_artifact_rows(text),
+        "ai_copy_linter": lambda: _ai_copy_rows(text),
+        "url_validator": lambda: _url_validator_rows(state),
+        "public_research_links": lambda: _research_link_rows(text, sidecar, state),
+        "context_binding": lambda: _context_binding_rows(args, policy),
+        "editorial_plan": lambda: _plan_rows(args, root),
+        "semrush_keyword_decision": lambda: _keyword_rows(args),
+        "faq_binding": lambda: _faq_binding_rows(args, root, derived),
+        "blog_strategy": lambda: _strategy_rows(args, root, state.peek()),
+        "source_quality": lambda: _source_quality_rows(args),
+        "customer_proof_no_fit": lambda: _no_fit_rows(text, policy),
+        "content_scorer": lambda: _scorer_rows(args, root, policy),
+    }
+
+
 def run_release_sweep(
     args: argparse.Namespace, *, workspace_root: Path, offline: bool, include_slow: bool
 ) -> dict[str, Any]:
     started = time.monotonic()
     root = Path(workspace_root)
-    article_text = _read_article(args.article)
-    policy = _runtime_policy(args, article_text=article_text)
+    text = _read_article(args.article)
+    derived = sweep_checks.derive_paa_policy(args)
+    policy = _runtime_policy(args, article_text=text, paa_policy=derived[0])
     sidecar = arg(args, "proof_sidecar")
+    context_required = _context_required(args, text)
 
     def kwargs_for(name: str) -> Mapping[str, Any]:
         return _guard_kwargs(
@@ -212,37 +305,39 @@ def run_release_sweep(
             runtime_policy=policy,
         )
 
-    checks: dict[str, Callable[[], Any]] = {
-        "pre_bom_report": lambda: _pre_bom_rows(args, root),
-        "editorial_plan": lambda: _plan_rows(args, root),
-        "semrush_keyword_decision": lambda: _keyword_rows(args),
-        "faq_binding": lambda: _faq_binding_rows(args, root),
-        "blog_strategy": lambda: _strategy_rows(args, root),
-        "source_quality": lambda: _source_quality_rows(args),
-        "content_scorer": lambda: _scorer_rows(args, root, policy),
-    }
-    plan_available = bool(arg(args, "editorial_plan"))
-    dedicated = [*DEDICATED_CHECKS, *(PLAN_CHECKS if plan_available else ())]
+    check_skip = _check_skips(
+        article_text=text, offline=offline, plan_available=bool(arg(args, "editorial_plan")),
+        context_required=context_required,
+    )
+    checks = _release_checks(
+        args, root, policy, text, sweep_gates.UrlState(text, sidecar, root), derived
+    )
+    ran = [name for name in RELEASE_CHECKS if name not in check_skip]
     findings: list[dict[str, Any]] = []
-    for name in dedicated:
+    for name in ran:
         findings += run_check(name, checks[name])
-    skip = _skip_map(
+    gate_skip = _gate_skips(
         ARTICLE_GATES, offline=offline, include_slow=include_slow,
-        visible_faq=policy["visible_faq"],
-        context_required=_context_required(args, article_text),
-        plan_available=plan_available,
+        visible_faq=policy["visible_faq"], context_required=context_required,
     )
     findings += sweep_article_gates(
-        ARTICLE_GATES, article=str(args.article), kwargs={}, skip=skip, kwargs_for=kwargs_for
+        ARTICLE_GATES, article=str(args.article), kwargs={}, skip=gate_skip, kwargs_for=kwargs_for
     )
     gate_names = [name for name, _label, _module in ARTICLE_GATES]
+    skipped = [
+        {"check": name, "reason": gate_skip[name]}
+        for name in gate_names if name in gate_skip and name not in RELEASE_CHECKS
+    ]
+    skipped += [{"check": name, "reason": check_skip[name]} for name in RELEASE_CHECKS if name in check_skip]
+    skipped += [{"check": name, "reason": reason} for name, reason in RELEASE_ONLY.items()]
     return {
         "schema": SWEEP_SCHEMA,
         "passed": not any(row["severity"] == "error" for row in findings),
         "findings": findings,
-        "skipped": [
-            {"check": name, "reason": skip[name]} for name in gate_names if name in skip
+        "skipped": skipped,
+        "checks_run": [
+            *ran,
+            *(n for n in gate_names if n not in gate_skip and n not in RELEASE_CHECKS),
         ],
-        "checks_run": [*dedicated, *(n for n in gate_names if n not in skip)],
         "elapsed_seconds": round(time.monotonic() - started, 3),
     }

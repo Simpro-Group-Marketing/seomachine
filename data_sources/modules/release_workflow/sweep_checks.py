@@ -118,22 +118,31 @@ def keyword_rows(args: Any) -> Rows:
     )
 
 
-def faq_binding_rows(args: Any, root: Path) -> Rows:
-    """Mirror ``construction_support.derive_and_validate_paa`` without stopping at the first miss."""
-    article_text = Path(args.article).read_text(encoding="utf-8")
-    plan = _json_object(args.editorial_plan) or {}
-    workflow_mode = arg(args, "workflow_mode")
+def derive_paa_policy(args: Any) -> tuple[Mapping[str, Any] | None, str | None]:
+    """Derive the PAA policy once; return ``(policy, None)`` or ``(None, error text)``."""
     try:
         policy = _derive_paa_policy(
-            plan,
-            workflow_mode=workflow_mode,
+            _json_object(arg(args, "editorial_plan")) or {},
+            workflow_mode=arg(args, "workflow_mode"),
             paa_artifact_path=arg(args, "paa_artifact"),
             content_brief_path=arg(args, "content_brief"),
             user_paa_csv_path=arg(args, "user_paa_csv"),
             answersocrates_blocker_path=arg(args, "answersocrates_blocker"),
         )
-    except ValueError as error:
-        return [_finding("paa_policy_invalid", str(error))]
+    except (OSError, UnicodeError, ValueError) as error:
+        return None, str(error)
+    return policy, None
+
+
+def faq_binding_rows(
+    args: Any, root: Path, derived: tuple[Mapping[str, Any] | None, str | None]
+) -> Rows:
+    """Mirror ``construction_support.derive_and_validate_paa`` without stopping at the first miss."""
+    policy, error_text = derived
+    if policy is None:
+        return [_finding("paa_policy_invalid", error_text or "PAA policy is unavailable")]
+    article_text = Path(args.article).read_text(encoding="utf-8")
+    workflow_mode = arg(args, "workflow_mode")
     rows: list[Mapping[str, Any]] = []
     try:
         matches = faq_questions_match(
@@ -168,14 +177,14 @@ def faq_binding_rows(args: Any, root: Path) -> Rows:
     return rows
 
 
-def strategy_rows(args: Any, root: Path) -> Rows:
-    """Mirror the ``blog_strategy`` content gate (URL results are left to url_validator)."""
+def strategy_rows(args: Any, root: Path, url_summary: Any = None) -> Rows:
+    """Mirror the ``blog_strategy`` content gate; ``url_summary`` is None when offline."""
     return check_strategy_content(
         Path(args.article).read_text(encoding="utf-8"),
         editorial_plan=_json_object(args.editorial_plan),
         index=load_index(args.commercial_pillar_index),
         today=_assembly_date(args),
-        url_summary=None,
+        url_summary=url_summary,
         context_request=_json_object(arg(args, "context_request")),
         article_path=Path(args.article),
         artifact_root=root,

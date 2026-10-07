@@ -126,9 +126,15 @@ def test_report_collects_every_check_in_one_pass(monkeypatch, tmp_path) -> None:
     assert report["passed"] is False and report["schema"] == precheck_sweep.SWEEP_SCHEMA
 
 
+ROW_FUNCTIONS = (
+    "_pre_bom_rows", "_plan_rows", "_keyword_rows", "_faq_binding_rows", "_scorer_rows",
+    "_strategy_rows", "_source_quality_rows", "_public_artifact_rows", "_ai_copy_rows",
+    "_url_validator_rows", "_research_link_rows", "_context_binding_rows", "_no_fit_rows",
+)
+
+
 def _stub_dedicated_checks(monkeypatch) -> None:
-    for name in ("_pre_bom_rows", "_plan_rows", "_keyword_rows", "_faq_binding_rows",
-                 "_scorer_rows", "_strategy_rows", "_source_quality_rows"):
+    for name in ROW_FUNCTIONS:
         monkeypatch.setattr(precheck_sweep, name, lambda *a, **k: [])
 
 
@@ -137,7 +143,7 @@ def _marker_gates():
     gates = tuple(
         (name, name, SimpleNamespace(check_file=lambda path, _n=name: ran.append(_n) or []))
         for name in (
-            "url_validator", "customer_proof_diversity", "fred_authority",
+            "source_support", "customer_proof_diversity", "fred_authority",
             "paa_provenance", "editorial_plan", "metric_proof_pack",
         )
     )
@@ -146,9 +152,9 @@ def _marker_gates():
 
 @pytest.mark.parametrize("offline, include_slow, expected_ran, expected_skipped", [
     (True, False, {"metric_proof_pack"},
-     {"url_validator", "customer_proof_diversity", "fred_authority", "paa_provenance", "editorial_plan"}),
-    (False, True, {"url_validator", "customer_proof_diversity", "fred_authority", "metric_proof_pack"},
-     {"paa_provenance", "editorial_plan"}),
+     {"source_support", "customer_proof_diversity", "fred_authority", "paa_provenance"}),
+    (False, True, {"source_support", "customer_proof_diversity", "fred_authority", "metric_proof_pack"},
+     {"paa_provenance"}),
 ])
 def test_skip_maps_cover_offline_slow_vault_and_dedicated(
     monkeypatch, tmp_path, offline, include_slow, expected_ran, expected_skipped
@@ -164,9 +170,99 @@ def test_skip_maps_cover_offline_slow_vault_and_dedicated(
         args, workspace_root=tmp_path, offline=offline, include_slow=include_slow
     )
     assert set(ran) == expected_ran
-    assert {row["check"] for row in report["skipped"]} == expected_skipped
+    assert expected_skipped <= {row["check"] for row in report["skipped"]}
+    assert "editorial_plan" in report["checks_run"]
     assert all(row["reason"] for row in report["skipped"])
     assert report["passed"] is True
+
+
+def test_offline_skips_url_checks_and_vault_context_binding(monkeypatch, tmp_path) -> None:
+    _stub_dedicated_checks(monkeypatch)
+    monkeypatch.setattr(precheck_sweep, "ARTICLE_GATES", ())
+    article = tmp_path / "a.md"
+    article.write_text("# Hi\n", encoding="utf-8")
+    args = SimpleNamespace(article=str(article), proof_sidecar="s.md", editorial_plan="p.json")
+    offline = precheck_sweep.run_release_sweep(
+        args, workspace_root=tmp_path, offline=True, include_slow=False
+    )
+    reasons = {row["check"]: row["reason"] for row in offline["skipped"]}
+    assert reasons["url_validator"] == "offline"
+    assert reasons["public_research_links"] == "offline"
+    assert reasons["context_binding"] == "needs vault connector"
+    online = precheck_sweep.run_release_sweep(
+        args, workspace_root=tmp_path, offline=False, include_slow=False
+    )
+    assert {"url_validator", "public_research_links", "context_binding"} <= set(online["checks_run"])
+
+
+def test_every_gate_and_release_check_is_run_or_skipped_exactly_once(monkeypatch, tmp_path) -> None:
+    _stub_dedicated_checks(monkeypatch)
+    real_gates = precheck_sweep.ARTICLE_GATES
+    stubs = tuple(
+        (name, label, SimpleNamespace(check_file=lambda path: []))
+        for name, label, _module in real_gates
+    )
+    monkeypatch.setattr(precheck_sweep, "ARTICLE_GATES", stubs)
+    article = tmp_path / "a.md"
+    article.write_text("# Hi\n", encoding="utf-8")
+    args = SimpleNamespace(article=str(article), proof_sidecar="s.md", editorial_plan="p.json")
+    for offline in (True, False):
+        report = precheck_sweep.run_release_sweep(
+            args, workspace_root=tmp_path, offline=offline, include_slow=False
+        )
+        ran = report["checks_run"]
+        skipped = [row["check"] for row in report["skipped"]]
+        expected = [name for name, _label, _module in real_gates] + list(precheck_sweep.RELEASE_CHECKS)
+        for name in dict.fromkeys(expected):
+            assert (name in ran) + (name in skipped) == 1, name
+        assert len(ran) == len(set(ran)) and len(skipped) == len(set(skipped))
+        assert set(precheck_sweep.RELEASE_ONLY) <= set(skipped)
+
+
+def test_scorer_not_passed_row_reports_scores_and_thresholds() -> None:
+    result = {
+        "passed": False,
+        "content_quality_score": 80.2,
+        "aeo_geo": {"score": 70, "threshold": 90, "passed": False, "checks": {}},
+    }
+    rows = precheck_sweep.scorer_findings(result)
+    assert [row["rule_id"] for row in rows] == ["content_scorer.not_passed"]
+    assert rows[0]["severity"] == "error"
+    assert "80.2" in rows[0]["message"] and "70/90" in rows[0]["message"]
+    assert "content 85" in rows[0]["message"]
+
+
+def test_scorer_passed_result_adds_no_not_passed_row() -> None:
+    assert precheck_sweep.scorer_findings({"passed": True, "aeo_geo": {"checks": {}}}) == []
+
+
+@pytest.mark.parametrize("kind, expected", [
+    ("brief_paa", "brief.md"), ("user_csv", "paa.csv"), ("answersocrates", "paa.json"),
+])
+def test_runtime_policy_selects_paa_artifact_by_source_kind(kind, expected) -> None:
+    args = _args(content_brief="brief.md", user_paa_csv="paa.csv", paa_artifact="paa.json")
+    policy = precheck_sweep._runtime_policy(
+        args, article_text=None, paa_policy={"source_kind": kind, "query": "q one"}
+    )
+    assert policy["paa_kwargs"]["paa_artifact"] == expected
+    assert policy["paa_kwargs"]["expected_query"] == "q one"
+
+
+def test_no_fit_customer_proof_check_runs_without_include_slow(monkeypatch, tmp_path) -> None:
+    _stub_dedicated_checks(monkeypatch)
+    monkeypatch.setattr(precheck_sweep, "ARTICLE_GATES", ())
+    monkeypatch.setattr(
+        precheck_sweep, "_no_fit_rows",
+        lambda *a, **k: [{"rule_id": "no_fit_rule", "severity": "error", "message": "m"}],
+    )
+    article = tmp_path / "a.md"
+    article.write_text("# Hi\n", encoding="utf-8")
+    args = SimpleNamespace(article=str(article), proof_sidecar="s.md")
+    report = precheck_sweep.run_release_sweep(
+        args, workspace_root=tmp_path, offline=True, include_slow=False
+    )
+    assert [row["rule_id"] for row in report["findings"]] == ["no_fit_rule"]
+    assert "customer_proof_no_fit" in report["checks_run"]
 
 
 @pytest.mark.parametrize("passed, code", [(True, 0), (False, 1)])
