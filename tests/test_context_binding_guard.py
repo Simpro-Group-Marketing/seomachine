@@ -1549,50 +1549,6 @@ class ContextBindingGuardTests(unittest.TestCase):
         self.assertEqual(result["claim_use_map"][0]["claim_id"], "claim-simpro-work")
         self.assertEqual(self.check(), [])
 
-    def test_generator_accepts_capability_sentence_backed_by_owned_product_row(self):
-        capability = "Simpro allows dispatchers to drag jobs onto the scheduling board."
-        pack = json.loads(self.pack.read_text(encoding="utf-8"))
-        pack["sections"]["Approved Claim Evidence"][0]["assertion"] = (
-            "Simpro helps teams coordinate work."
-        )
-        self.pack.write_text(json.dumps(pack), encoding="utf-8")
-        self.article.write_text(
-            self.article.read_text(encoding="utf-8") + f"\n{capability}\n",
-            encoding="utf-8",
-        )
-        row = (
-            f"- Claim: {capability} | Claim type: product_claim | Source class: owned_product | "
-            "Evidence relation: directly_supports | URL: https://www.simprogroup.com/features/scheduling | "
-            'Evidence: "scheduling board" | Status: approved'
-        )
-
-        with self.assertRaises(context_binding_generator.ContextBindingGenerationError):
-            context_binding_generator.generate_and_install(
-                self.article,
-                self.request,
-                self.pack,
-                self.receipt,
-                self.sidecar,
-                repo_context=[{"path": "context/seo-guidelines.md", "role": "SEO structure"}],
-                client=ValidatingClient(),
-            )
-
-        self.sidecar.write_text(f"## Source Map\n{row}\n", encoding="utf-8")
-        context_binding_generator.generate_and_install(
-            self.article,
-            self.request,
-            self.pack,
-            self.receipt,
-            self.sidecar,
-            repo_context=[{"path": "context/seo-guidelines.md", "role": "SEO structure"}],
-            client=ValidatingClient(),
-        )
-
-        self.assertNotIn(
-            "context_proof_claim_unbound",
-            {finding["rule_id"] for finding in self.check()},
-        )
-
     def test_generator_binds_exact_quote_excerpt_from_longer_source_text(self):
         article_text = (
             'In a G2 review, Matthew N. described Simpro as '

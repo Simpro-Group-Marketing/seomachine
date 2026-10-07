@@ -150,6 +150,7 @@ def generate_and_install(
     try:
         article_bytes = resolved["article"].read_bytes()
         article_content = article_bytes.decode("utf-8", errors="strict")
+        sidecar_content = resolved["sidecar"].read_text(encoding="utf-8") if resolved["sidecar"].is_file() else ""
         request_snapshot = load_json_object_snapshot(
             resolved["request"], field="context request"
         )
@@ -207,16 +208,7 @@ def generate_and_install(
             "The shared connector did not validate the request, pack, and receipt.",
         )
     claim_map = _derive_claim_map(article_content, pack, receipt)
-    try:
-        sidecar_content = sidecar.read_text(encoding="utf-8") if sidecar.is_file() else ""
-    except (OSError, UnicodeError) as error:
-        raise ContextBindingGenerationError(
-            "binding_input_invalid",
-            f"Context binding inputs are invalid: {error}",
-        ) from error
-    claim_findings = validate_claim_map(
-        article_content, pack, receipt, claim_map, proof_content=sidecar_content
-    )
+    claim_findings = validate_claim_map(article_content, pack, receipt, claim_map, sidecar_content)
     if claim_findings:
         first = claim_findings[0]
         raise ContextBindingGenerationError(first["rule_id"], first["message"])

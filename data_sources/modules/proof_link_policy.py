@@ -13,12 +13,22 @@ from typing import Literal, Optional
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 try:
+    from .claim_patterns import (
+        ANY_PUBLIC_NUMBER_RE, COMPARATIVE_RANKING_RE, MATERIAL_NUMBER_RE, STRICT_PUBLIC_RISK_RE,
+        STRUCTURED_PRICING_ASSERTION_RE, STRUCTURED_QUOTE_RE, STRUCTURED_STATUS_RE,
+    )
     from .faq_structure import detect_faq_structure
+    from .owned_product_language import is_approved_product_language
     from .frontmatter import FrontmatterError, split_frontmatter
     from .image_placeholder import is_production_image_placeholder_line
     from .url_validator import UrlValidationSummary, extract_urls, is_effectively_resolved
 except ImportError:  # pragma: no cover - supports direct script execution.
+    from claim_patterns import (
+        ANY_PUBLIC_NUMBER_RE, COMPARATIVE_RANKING_RE, MATERIAL_NUMBER_RE, STRICT_PUBLIC_RISK_RE,
+        STRUCTURED_PRICING_ASSERTION_RE, STRUCTURED_QUOTE_RE, STRUCTURED_STATUS_RE,
+    )
     from faq_structure import detect_faq_structure
+    from owned_product_language import is_approved_product_language
     from frontmatter import FrontmatterError, split_frontmatter
     from image_placeholder import is_production_image_placeholder_line
     from url_validator import UrlValidationSummary, extract_urls, is_effectively_resolved
@@ -67,12 +77,6 @@ LEGAL_OR_TIME_SENSITIVE_RE = re.compile(
     r"rule|rules|safety|statute|tax)\b)",
     re.IGNORECASE,
 )
-STRICT_PUBLIC_RISK_RE = re.compile(
-    r"\b(?:code|compliance|deadline|expire[ds]?|fee|fees|insurance|law|legal|"
-    r"licen[cs](?:e|ed|ing|es)|pricing|regulat(?:e|ed|es|ion|ions|or|ory)|"
-    r"renew(?:al|ed|s)?|safety|statute|tax)\b",
-    re.IGNORECASE,
-)
 INFERRED_HIGH_RISK_RE = re.compile(
     r"(?:\blocal\s+authorit(?:y|ies)\b|\b(?:cannot|compliance|deadline|expire[ds]?|exempt(?:ion|ions)?|"
     r"flsa|insurance|law|legal|must|only\s+under|permit(?:ted)?|prohibit(?:ed|s)?|"
@@ -87,11 +91,6 @@ LICENSE_DEFINITION_RE = re.compile(
     r"\b(?:is|are|means)\b.{0,100}\b(?:credential|designation|licen[cs]e|registration)\b)",
     re.IGNORECASE,
 )
-MATERIAL_NUMBER_RE = re.compile(
-    r"(?:[$£€]\s*\d|\b\d[\d,]*(?:\.\d+)?\s*(?:%|hours?|days?|years?|"
-    r"businesses?|customers?|workers?|employees?|licenses?)\b)",
-    re.IGNORECASE,
-)
 FACT_DRIVEN_RE = re.compile(
     r"\b(?:is|are|means|refers to|requires?|regulates?|regulated|must|law|rule|"
     r"fee|costs?|renew(?:al|ed|s)?|expire[ds]?|recognizes?|agency)\b",
@@ -99,10 +98,6 @@ FACT_DRIVEN_RE = re.compile(
 )
 RECOMMENDATION_RE = re.compile(
     r"\b(?:should|recommend(?:ed|s)?|consider|choose|avoid)\b",
-    re.IGNORECASE,
-)
-COMPARATIVE_RANKING_RE = re.compile(
-    r"\b(?:best(?![-\s]+fit\b)|better|leading|top[- ]rated|rank(?:ed|ing|s)?)\b",
     re.IGNORECASE,
 )
 NEGATED_RANKING_DISCLOSURE_RE = re.compile(
@@ -138,8 +133,6 @@ VALIDATE_ACTION_START_RE = re.compile(
     r"Record|Request|Run|Test|Trace|Use)\b",
     re.IGNORECASE,
 )
-ANY_PUBLIC_NUMBER_RE = re.compile(r"(?:[$\u00a3\u20ac]\s*\d|\b\d[\d,]*(?:\.\d+)?(?:\s*%|\b))")
-STRUCTURED_QUOTE_RE = re.compile(r'(?:"[^"]{20,}"|\u201c[^\u201d]{20,}\u201d)')
 STRUCTURED_CAUSAL_RE = re.compile(
     r"\b(?:because|causes?|drives?|leads?\s+to|results?\s+in|improves?|"
     r"reduces?|increases?|decreases?|prevents?|enables?|boosts?|cuts?|streamlines?)\b",
@@ -147,17 +140,6 @@ STRUCTURED_CAUSAL_RE = re.compile(
 )
 DECISION_SCOPED_CAUSAL_RE = re.compile(
     r"\bdrive(?:s)?\s+(?:the|your)\s+shortlist\b",
-    re.IGNORECASE,
-)
-STRUCTURED_STATUS_RE = re.compile(
-    r"\b(?:is|are|was|were|remains?)\s+(?:currently\s+)?"
-    r"(?:available|unavailable|included|excluded|supported|unsupported|free|paid|"
-    r"discontinued|deprecated)\b|\b(?:launched|sunset|retired|deprecated)\b",
-    re.IGNORECASE,
-)
-STRUCTURED_PRICING_ASSERTION_RE = re.compile(
-    r"\bpricing\s+(?:starts?|costs?|is\s+(?:free|paid|available|[$\u00a3\u20ac]|\d))\b|"
-    r"\b(?:costs?|priced)\s+(?:[$\u00a3\u20ac]|\d)|\bper\s+(?:user|seat|technician|month|year|job)\b",
     re.IGNORECASE,
 )
 STRUCTURED_CAPABILITY_RE = re.compile(
@@ -755,18 +737,6 @@ def _matching_unit(claim: str, units: tuple[_ArticleUnit, ...]) -> _ArticleUnit 
 def _classify_proof_row(
     proof: _ProofRow,
 ) -> tuple[CitationMode, CitationOwner, str]:
-    # Imported here: owned_product_language reuses this module's risk patterns.
-    try:
-        from .owned_product_language import (
-            is_approved_product_language,
-            product_language_kind,
-        )
-    except ImportError:  # pragma: no cover - supports direct script execution.
-        from owned_product_language import (
-            is_approved_product_language,
-            product_language_kind,
-        )
-
     high_risk_numeric = bool(MATERIAL_NUMBER_RE.search(proof.claim))
     high_risk_public = bool(LEGAL_OR_TIME_SENSITIVE_RE.search(proof.claim))
     use = proof.use.casefold()
@@ -799,11 +769,6 @@ def _classify_proof_row(
         return "section_source_allowed", "public_research", "lower_risk_background_claim"
     if high_risk_public or proof.claim_type in {"causal", "comparative"}:
         return "inline_required", "public_research", "high_risk_public_claim"
-    if (
-        proof.source_class == "owned_product"
-        and product_language_kind(proof.claim) is not None
-    ) or proof.claim_type == "recommendation":
-        return "sidecar_only", "public_research", "low_risk_owned_or_editorial_claim"
     return "inline_required", "public_research", "ambiguous_claim_fails_closed"
 
 

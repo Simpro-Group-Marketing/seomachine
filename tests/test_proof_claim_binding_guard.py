@@ -21,13 +21,17 @@ def _unbound_kinds(findings):
     ]
 
 
+def _sidecar(claim: str) -> str:
+    return "## Source Map\n" + OWNED_ROW.format(claim=claim) + "\n"
+
+
 def _article(*paragraphs: str) -> str:
     return "# Scheduling guide\n\n" + "\n\n".join(paragraphs) + "\n"
 
 
 def test_capability_passage_with_approved_owned_product_row_has_no_vault_obligation():
     findings = validate_proof_claim_bindings(
-        _article(CAPABILITY), [], [], [], owned_product_claims=[CAPABILITY]
+        _article(CAPABILITY), [], [], [], proof_content=_sidecar(CAPABILITY)
     )
 
     assert _unbound_kinds(findings) == []
@@ -43,7 +47,7 @@ def test_outcome_sentence_in_same_paragraph_keeps_the_vault_obligation():
     paragraph = f"{CAPABILITY} {OUTCOME}"
 
     findings = validate_proof_claim_bindings(
-        _article(paragraph), [], [], [], owned_product_claims=[CAPABILITY]
+        _article(paragraph), [], [], [], proof_content=_sidecar(CAPABILITY)
     )
 
     assert _unbound_kinds(findings) == ["commercial_claim"]

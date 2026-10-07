@@ -18,29 +18,27 @@ from __future__ import annotations
 import re
 
 try:
-    from .proof_link_policy import (
+    from .claim_patterns import (
         ANY_PUBLIC_NUMBER_RE,
         COMPARATIVE_RANKING_RE,
+        GENERAL_CLAIM_PATTERNS,
         MATERIAL_NUMBER_RE,
         STRICT_PUBLIC_RISK_RE,
         STRUCTURED_PRICING_ASSERTION_RE,
         STRUCTURED_QUOTE_RE,
         STRUCTURED_STATUS_RE,
-        _proof_rows,
     )
-    from .source_support.common import GENERAL_CLAIM_PATTERNS
 except ImportError:  # pragma: no cover - supports direct script execution.
-    from proof_link_policy import (
+    from claim_patterns import (
         ANY_PUBLIC_NUMBER_RE,
         COMPARATIVE_RANKING_RE,
+        GENERAL_CLAIM_PATTERNS,
         MATERIAL_NUMBER_RE,
         STRICT_PUBLIC_RISK_RE,
         STRUCTURED_PRICING_ASSERTION_RE,
         STRUCTURED_QUOTE_RE,
         STRUCTURED_STATUS_RE,
-        _proof_rows,
     )
-    from source_support.common import GENERAL_CLAIM_PATTERNS
 
 
 PRODUCT_LANGUAGE_CLAIM_TYPES = frozenset({"product_claim", "feature_claim"})
@@ -99,14 +97,3 @@ def is_approved_product_language(
         and product_language_kind(claim) is not None
     )
 
-
-def approved_product_language_claims(proof_content: str) -> tuple[str, ...]:
-    """Return approved sidecar claims that the shared rule treats as product language."""
-    return tuple(
-        row.claim
-        for row in _proof_rows(proof_content or "")
-        if row.status.casefold() == "approved"
-        and is_approved_product_language(
-            row.claim, source_class=row.source_class, claim_type=row.claim_type
-        )
-    )

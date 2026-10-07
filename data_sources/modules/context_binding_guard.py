@@ -21,7 +21,6 @@ try:
     from .guard_common import Finding, make_finding, should_fail, summarize_findings
     from .proof_sidecar import load_sidecar_content
     from .proof_claim_binding_guard import validate_proof_claim_bindings
-    from .owned_product_language import approved_product_language_claims
     from .simpro_vault_client import SimproVaultClient, VaultClientError
     from . import industry_cluster_link_policy
     from . import context_binding_snapshot
@@ -33,7 +32,6 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from guard_common import Finding, make_finding, should_fail, summarize_findings
     from proof_sidecar import load_sidecar_content
     from proof_claim_binding_guard import validate_proof_claim_bindings
-    from owned_product_language import approved_product_language_claims
     from simpro_vault_client import SimproVaultClient, VaultClientError  # noqa: F401
     import industry_cluster_link_policy  # noqa: F401
     import context_binding_snapshot
@@ -407,7 +405,6 @@ def validate_claim_map(
     pack: Mapping[str, Any],
     receipt: Mapping[str, Any],
     claim_map: Any,
-    *,
     proof_content: str = "",
 ) -> List[Finding]:
     findings: List[Finding] = []
@@ -504,7 +501,7 @@ def validate_claim_map(
             evidence_rows,
             decisions,
             claim_map,
-            owned_product_claims=approved_product_language_claims(proof_content),
+            proof_content=proof_content,
         )
     )
     extra = set(mapped) - {decision.get("claim_id") for decision in decisions if isinstance(decision, dict)}

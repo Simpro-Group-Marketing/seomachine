@@ -19,7 +19,8 @@ from bs4 import BeautifulSoup
 
 try:
     from .guard_common import Finding, make_finding
-    from .owned_product_language import product_language_kind
+    from .owned_product_language import is_approved_product_language, product_language_kind
+    from .proof_link_policy import _proof_rows
     from .image_placeholder import (
         is_production_image_placeholder_line,
         is_production_video_placeholder_line,
@@ -34,7 +35,8 @@ try:
     )
 except ImportError:  # pragma: no cover - supports direct script execution.
     from guard_common import Finding, make_finding
-    from owned_product_language import product_language_kind
+    from owned_product_language import is_approved_product_language, product_language_kind
+    from proof_link_policy import _proof_rows
     from image_placeholder import (
         is_production_image_placeholder_line,
         is_production_video_placeholder_line,
@@ -119,12 +121,13 @@ def validate_proof_claim_bindings(
     decisions: Any,
     claim_map: Any,
     *,
-    owned_product_claims: Sequence[str] = (),
+    proof_content: str = "",
 ) -> list[Finding]:
     """Return blockers for public proof passages without typed receipt bindings.
 
     A commercial passage whose trigger sits only inside approved owned product
-    language needs no vault claim: the owned Source Map row is its proof.
+    language needs no vault claim: the owned Source Map row in the validation
+    sidecar is its proof.
     """
     obligations = find_proof_obligations(article_content)
     if not obligations:
@@ -135,6 +138,7 @@ def validate_proof_claim_bindings(
         decisions,
         claim_map,
     )
+    owned_product_claims = _approved_product_language_claims(proof_content)
     findings: list[Finding] = []
     for obligation in obligations:
         if any(_binding_satisfies(binding, obligation) for binding in bindings):
@@ -297,6 +301,18 @@ def _rows_by_claim_id(rows: Sequence[Any]) -> dict[str, list[Mapping[str, Any]]]
         if claim_id:
             indexed.setdefault(claim_id, []).append(row)
     return indexed
+
+
+def _approved_product_language_claims(proof_content: str) -> tuple[str, ...]:
+    """Return approved sidecar claims that are owned Simpro product language."""
+    return tuple(
+        row.claim
+        for row in _proof_rows(proof_content or "")
+        if row.status.casefold() == "approved"
+        and is_approved_product_language(
+            row.claim, source_class=row.source_class, claim_type=row.claim_type
+        )
+    )
 
 
 def _covered_by_product_language(
