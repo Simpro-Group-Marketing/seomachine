@@ -905,7 +905,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     begin.add_argument("--article", required=True)
     begin.add_argument("--state", required=True)
     begin.add_argument("--run-id", required=True)
-    begin.add_argument("--stage", choices=sorted(MUTATING_STAGES), required=True)
+    begin.add_argument("--stage", choices=sorted(MUTATING_STAGES - {WORDING_EDIT_STAGE}), required=True)
     begin.add_argument("--tool-name", required=True)
     begin.add_argument("--tool-version", required=True)
     begin.add_argument("--input", action="append", default=[])

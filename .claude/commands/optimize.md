@@ -64,6 +64,18 @@ python data_sources/modules/blog_assembly_stage_receipt.py begin-native-edit --a
 python data_sources/modules/blog_assembly_stage_receipt.py finish-native-edit --article "[article]" --state "research/stage-receipts/[topic-slug]/optimization-state.json" --receipt "research/stage-receipts/[topic-slug]/optimization.json" --evidence "humanizer_policy=config/humanizer-policy.json" --evidence "humanizer_upstream=vendor/blader-humanizer/UPSTREAM.json"
 ```
 
+## Wording-only edit receipt
+
+After Context Binding or post-optimization Context Binding, fix wording without a new draft receipt, `/scrub`, Context Binding, or machine review run. A wording-only edit leaves frontmatter, headings, links and anchors, numbers, FAQ questions, quotes, media placeholders, mapped proof claims, and Context Claim Use Map passages unchanged. It needs no scrub fixes, and all edits together change at most 10% of the words bound at Context Binding.
+
+```powershell
+python -m data_sources.modules.wording_edit begin --article "[article]" --state "research/stage-receipts/[topic-slug]/wording-edit-1-state.json" --previous-receipt "[context-binding-or-last-wording-edit-receipt]"
+# Edit the wording in place.
+python -m data_sources.modules.wording_edit finish --article "[article]" --state "research/stage-receipts/[topic-slug]/wording-edit-1-state.json" --receipt "research/stage-receipts/[topic-slug]/wording-edit-1.json" --sidecar "[validation-sidecar]"
+```
+
+`finish` refuses an edit that breaks any of these limits and leaves the edit open: revert the change and finish again, or take the full path. A plan, structure, link, number, FAQ, or proof change always takes the full path. Every readiness gate still runs on the edited article.
+
 ## Scorecard requirements
 
 Optimization is not ready until `/publish-readiness` reports:

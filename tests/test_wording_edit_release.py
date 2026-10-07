@@ -84,6 +84,50 @@ def test_builder_accepts_a_wording_edit_with_reviews_bound_to_the_anchor(tmp_pat
     assert evidence["payload"]["violations"] == []
 
 
+def test_cli_begins_and_finishes_a_wording_edit(tmp_path: Path, capsys):
+    from data_sources.modules import wording_edit
+
+    paths = _fixture(tmp_path)
+    research = tmp_path / "research"
+    common = ["--state", str(research / "cli-state.json"), "--article", str(paths["article"])]
+    assert wording_edit.main([
+        "begin", *common, "--previous-receipt", str(paths["stage_receipts"][-1]),
+        "--workspace-root", str(tmp_path),
+    ]) == 0
+    article = Path(paths["article"])
+    article.write_text(article.read_text(encoding="utf-8").replace(ORIGINAL, REWORDED), encoding="utf-8")
+    receipt = research / "stage-wording-cli.json"
+
+    assert wording_edit.main([
+        "finish", *common, "--receipt", str(receipt), "--sidecar", str(paths["sidecar"]),
+        "--workspace-root", str(tmp_path),
+    ]) == 0
+    assert json.loads(receipt.read_text(encoding="utf-8"))["stage"] == "wording_edit"
+
+    article.write_text(article.read_text(encoding="utf-8").replace(
+        "[Explore field service management software]", "[Compare field service management software]"
+    ), encoding="utf-8")
+    capsys.readouterr()
+    assert wording_edit.main([
+        "begin", "--state", str(research / "cli-state-2.json"), "--article", str(article),
+        "--previous-receipt", str(receipt), "--workspace-root", str(tmp_path),
+    ]) == 2
+    assert "wording_edit_article_changed" in capsys.readouterr().err
+
+
+def test_generic_native_edit_cli_does_not_offer_wording_edit(tmp_path: Path):
+    from data_sources.modules import blog_assembly_stage_receipt
+
+    state = tmp_path / "state.json"
+    with pytest.raises(SystemExit):
+        blog_assembly_stage_receipt.main([
+            "begin-native-edit", "--article", str(tmp_path / "a.md"), "--state", str(state),
+            "--run-id", "r", "--stage", "wording_edit", "--tool-name", "wording_edit",
+            "--tool-version", "1.0.0",
+        ])
+    assert not state.exists()
+
+
 def test_finish_refuses_a_link_change_and_leaves_the_edit_open(tmp_path: Path):
     paths = _fixture(tmp_path)
     with pytest.raises(StageReceiptError) as refused:

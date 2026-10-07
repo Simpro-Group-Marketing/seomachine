@@ -11,10 +11,12 @@ forward instead of rerun.
 
 from __future__ import annotations
 
+import argparse
 import difflib
 import hashlib
 import json
 import re
+import sys
 from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime
@@ -406,3 +408,44 @@ def _evidence_payload(receipt_path: str | Path, *, strict: bool = True) -> dict[
         if strict:
             raise StageReceiptError("wording_edit_evidence_invalid", str(error)) from error
         return {}
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """Open or close one chained wording-only edit receipt."""
+    parser = argparse.ArgumentParser(description="Chain a wording-only edit receipt.")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    begin = subparsers.add_parser("begin", help="snapshot the article before a wording edit")
+    begin.add_argument("--previous-receipt", required=True)
+    finish = subparsers.add_parser("finish", help="classify the edit and write its receipt")
+    finish.add_argument("--receipt", required=True)
+    finish.add_argument("--sidecar", required=True)
+    for command in (begin, finish):
+        command.add_argument("--article", required=True)
+        command.add_argument("--state", required=True)
+        command.add_argument("--workspace-root")
+    args = parser.parse_args(argv)
+    try:
+        if args.command == "begin":
+            begin_wording_edit(
+                article_path=args.article,
+                state_path=args.state,
+                previous_receipt_path=args.previous_receipt,
+                workspace_root=args.workspace_root,
+            )
+        else:
+            receipt = finish_wording_edit(
+                state_path=args.state,
+                article_path=args.article,
+                receipt_path=args.receipt,
+                sidecar_path=args.sidecar,
+                workspace_root=args.workspace_root,
+            )
+            print(json.dumps({"receipt": args.receipt, "receipt_hash": receipt["receipt_hash"]}))
+    except StageReceiptError as error:
+        print(f"{error.code}: {error}", file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
