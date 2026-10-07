@@ -186,7 +186,8 @@ def _check_paa_policy(bom: Mapping[str, Any], article: Any) -> list[Finding]:
             findings.append(
                 _finding(
                     "bom_paa_questions_mismatch",
-                    "PAA selected_questions must exactly match visible FAQ headings in order.",
+                    "PAA selected_questions must match visible FAQ headings in order "
+                    "(case and punctuation are ignored except for brief_paa)",
                 )
             )
     return findings

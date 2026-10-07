@@ -3,7 +3,7 @@ from data_sources.modules.faq_structure import faq_question_match_key, faq_quest
 
 def test_key_ignores_case_spacing_and_apostrophe_style() -> None:
     assert faq_question_match_key("Is simpro a CRM system?") == faq_question_match_key("Is Simpro a CRM  system?")
-    assert faq_question_match_key("What's Simpro?") == faq_question_match_key("What's Simpro?")
+    assert faq_question_match_key("What’s Simpro?") == faq_question_match_key("What's Simpro?")
 
 
 def test_questions_match_in_order_only() -> None:

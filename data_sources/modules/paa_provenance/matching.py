@@ -13,7 +13,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import unicodedata
 from dataclasses import dataclass, replace
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
