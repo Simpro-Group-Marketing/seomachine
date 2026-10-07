@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import json
 from pathlib import Path
 
@@ -58,6 +59,89 @@ def test_invalid_specs_are_rejected(tmp_path: Path, mutate) -> None:
     mutate(payload)
     with pytest.raises(ContextBuildSpecError):
         load_spec(_write(tmp_path, payload))
+
+
+@pytest.mark.parametrize("slug", ["..", "a/../b", "/abs", "ok\n", "Upper"])
+def test_bad_slugs_are_rejected(tmp_path: Path, slug: str) -> None:
+    with pytest.raises(ContextBuildSpecError, match="slug"):
+        load_spec(_write(tmp_path, _spec_payload(slug=slug)))
+
+
+@pytest.mark.parametrize("date", ["../x", "2026-13-01", "2026-10-05\n"])
+def test_bad_dates_are_rejected(tmp_path: Path, date: str) -> None:
+    with pytest.raises(ContextBuildSpecError, match="date"):
+        load_spec(_write(tmp_path, _spec_payload(date=date)))
+
+
+@pytest.mark.parametrize("path", [
+    "research/../drafts/x.json",
+    "research\\context-request-demo.json",
+    "research/sub\\x.json",
+    "research//x.json",
+])
+def test_bad_output_paths_are_rejected(tmp_path: Path, path: str) -> None:
+    payload = _spec_payload()
+    payload["outputs"]["request"] = path
+    with pytest.raises(ContextBuildSpecError, match="outputs.request"):
+        load_spec(_write(tmp_path, payload))
+
+
+def test_resume_without_directory_starts_empty(tmp_path: Path) -> None:
+    spec = load_spec(_write(tmp_path, _spec_payload()))
+    store = CheckpointStore(tmp_path, spec, resume=True)
+    assert store.get("search:q1") is None
+    store.put("search:q1", {"ok": True})
+    assert CheckpointStore(tmp_path, spec, resume=True).get("search:q1") == {"ok": True}
+
+
+def test_resume_with_nonempty_directory_and_no_manifest_is_refused(tmp_path: Path) -> None:
+    spec = load_spec(_write(tmp_path, _spec_payload()))
+    directory = tmp_path / ".seomachine" / "context-build" / spec.slug / spec.date
+    directory.mkdir(parents=True)
+    (directory / "stray.json").write_text("{}", encoding="utf-8")
+    with pytest.raises(ContextBuildResumeError, match="manifest"):
+        CheckpointStore(tmp_path, spec, resume=True)
+
+
+@pytest.mark.parametrize("field,value", [
+    ("slug", "../../escape"),
+    ("slug", "a/../../../escape"),
+    ("date", "../../../escape"),
+])
+def test_directly_built_spec_escaping_root_is_refused(tmp_path: Path, field: str, value: str) -> None:
+    spec = load_spec(_write(tmp_path, _spec_payload()))
+    escaping = dataclasses.replace(spec, **{field: value})
+    victim = tmp_path / "escape"
+    victim.mkdir()
+    (victim / "keep.txt").write_text("keep", encoding="utf-8")
+    for resume in (False, True):
+        with pytest.raises(ContextBuildResumeError, match="outside"):
+            CheckpointStore(tmp_path, escaping, resume=resume)
+    assert (victim / "keep.txt").exists()
+
+
+def test_clear_failure_raises_resume_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    spec = load_spec(_write(tmp_path, _spec_payload()))
+    CheckpointStore(tmp_path, spec, resume=False).put("k", 1)
+
+    def _fail(*_args, **_kwargs):
+        raise PermissionError("locked")
+
+    monkeypatch.setattr("data_sources.modules.context_build.checkpoints.shutil.rmtree", _fail)
+    with pytest.raises(ContextBuildResumeError, match="could not clear"):
+        CheckpointStore(tmp_path, spec, resume=False)
+
+
+def test_clear_that_leaves_directory_raises_resume_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    spec = load_spec(_write(tmp_path, _spec_payload()))
+    CheckpointStore(tmp_path, spec, resume=False).put("k", 1)
+    monkeypatch.setattr(
+        "data_sources.modules.context_build.checkpoints.shutil.rmtree", lambda *_a, **_k: None
+    )
+    with pytest.raises(ContextBuildResumeError, match="remain"):
+        CheckpointStore(tmp_path, spec, resume=False)
 
 
 def test_checkpoint_round_trip_and_fresh_run_clears(tmp_path: Path) -> None:

@@ -25,21 +25,51 @@ class ContextBuildResumeError(ValueError):
     """Raised when saved checkpoints cannot be safely resumed."""
 
 
+def _checkpoint_directory(workspace_root: Path, spec: ContextBuildSpec) -> Path:
+    """Return the checkpoint directory, refusing any path outside the checkpoint root."""
+    root = (workspace_root / CHECKPOINT_ROOT).resolve()
+    directory = (root / spec.slug / spec.date).resolve()
+    try:
+        directory.relative_to(root)
+    except ValueError:
+        raise ContextBuildResumeError(
+            f"checkpoint directory for slug {spec.slug!r} and date {spec.date!r} "
+            f"is outside {CHECKPOINT_ROOT.as_posix()}"
+        ) from None
+    if directory == root:
+        raise ContextBuildResumeError("checkpoint directory must be below the checkpoint root")
+    return directory
+
+
 class CheckpointStore:
     """Per-spec checkpoint directory under .seomachine/context-build/<slug>/<date>/."""
 
     def __init__(self, workspace_root: Path, spec: ContextBuildSpec, *, resume: bool) -> None:
-        self._directory = Path(workspace_root) / CHECKPOINT_ROOT / spec.slug / spec.date
+        self._directory = _checkpoint_directory(Path(workspace_root), spec)
         self._manifest = self._directory / "manifest.json"
         self._digest = spec.digest
         if not resume:
-            shutil.rmtree(self._directory, ignore_errors=True)
+            self._clear()
         if resume and self._manifest.exists():
             self._verify_resume()
         elif resume and self._directory.exists() and any(self._directory.iterdir()):
             raise ContextBuildResumeError("checkpoint manifest is missing; rerun without --resume")
         else:
             self._write_manifest()
+
+    def _clear(self) -> None:
+        try:
+            shutil.rmtree(self._directory)
+        except FileNotFoundError:
+            return
+        except OSError as error:
+            raise ContextBuildResumeError(
+                f"could not clear stale checkpoints at {self._directory}: {error}"
+            ) from error
+        if self._directory.exists():
+            raise ContextBuildResumeError(
+                f"stale checkpoints remain at {self._directory} after clearing; remove them manually"
+            )
 
     def _verify_resume(self) -> None:
         try:
