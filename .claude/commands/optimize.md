@@ -2,7 +2,7 @@
 
 Consume `context/blog-editorial-strategy.md` for editorial decisions and `context/aeo-geo-blog-strategy.md` for AEO and proof governance. `/optimize` may edit public prose through the native command, but it must preserve the frozen `simpro-blog-editorial-plan/v2`. Route plan-level defects back to `/research` or `/analyze-existing` for a new plan hash.
 
-After every article-byte change, regenerate the hash-bound `simpro-blog-plan-fulfillment/v1` artifact and rerun article review. Content Analyzer and Editor assess whether each actual excerpt still accomplishes its planned purpose; Python validates only hashes, IDs, visibility, and target-section placement.
+After every article-byte change, regenerate the hash-bound `simpro-blog-plan-fulfillment/v1` artifact and rerun article review, unless the change is a verified wording-only edit receipt (see Wording-only edit receipt). Content Analyzer and Editor assess whether each actual excerpt still accomplishes its planned purpose; Python validates only hashes, IDs, visibility, and target-section placement.
 
 Use `/optimize [article file]` for findings and targeted edits after an article exists. Optimization is a findings and targeted edit loop, not a separate finalization path.
 
@@ -22,7 +22,7 @@ Python may run guards and write governance artifacts such as scorer output, sele
 6. Preserve the frozen plan's Hindsight-informed reader angle, section emphasis, planned contribution purposes, objections, and commercial framing when `Hindsight Strategy Selection` is `internal_strategy_only`. Do not quote, cite, disclose, paraphrase, metricize, or convert Hindsight or deal-intelligence data into public claims. If optimization needs a new Hindsight-derived angle, route the plan defect back to `/research` or `/analyze-existing`.
 7. Apply only the highest-impact 3 to 5 fixes. Do not invent PAA questions, proof, metrics, rankings, customer stories, quotes, or unsupported product claims to gain points.
 8. Write a `simpro-optimizer-output/v2` artifact for every edit or no-op decision. Its `input_bindings` must contain exact workspace-relative paths and current SHA-256 hashes for `article`, `editorial_plan`, `proof_sidecar`, `scorecard`, and `prior_preflight_readiness`; retain the inspected scorecard, failed gates or blocker, `aeo_geo.checks`, `priority_fixes`, and a concise decision reason. V1 remains historical evidence only and cannot authorize a new release.
-9. Freeze the article bytes and run the required machine reviewers for the affected issue classes. If the article bytes change, rerun the full six-agent article review before release.
+9. Freeze the article bytes and run the required machine reviewers for the affected issue classes. If the article bytes change, rerun the full six-agent article review before release, unless the change is a verified wording-only edit receipt.
 10. Run `/scrub [article]` as read-only diagnostics and make any required copy edits through the command/agent workflow.
 11. Rerun the atomic release wrapper or `/publish-readiness` with the current sidecar, machine reviews, context artifacts, BOM, optimizer output when present, and the current scrub receipt.
 
@@ -75,6 +75,8 @@ python -m data_sources.modules.wording_edit finish --article "[article]" --state
 ```
 
 `finish` refuses an edit that breaks any of these limits and leaves the edit open: revert the change and finish again, or take the full path. A plan, structure, link, number, FAQ, or proof change always takes the full path. Every readiness gate still runs on the edited article.
+
+The carry-forward reaches only the next readiness run after the edits. Edits made before preflight readiness do not survive `/optimize`: the post-optimization scrub and Context Binding bind the edited article, so rerun the machine reviews and plan fulfillment before the final run. To keep a late fix cheap, make it after post-optimization Context Binding.
 
 ## Scorecard requirements
 

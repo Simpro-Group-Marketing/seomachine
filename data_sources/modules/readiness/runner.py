@@ -39,7 +39,7 @@ from .result_validation import (
     validate_passed_readiness_result,
 )
 from .runtime_policy import _bom_runtime_policy, _no_fit_customer_proof_findings
-from ..wording_edit_chain import bom_accepted_article_sha256s
+from ..wording_edit_lineage import verified_bom_lineage
 from .workspace_bindings import (
     _captured_context_payloads,
     _captured_json,
@@ -151,6 +151,7 @@ def _run_context_gate(
     vault_root: str | Path | None,
     session: ValidationSession | None,
     telemetry: ReadinessTelemetry | None,
+    workspace_root: Path,
 ) -> tuple[Any, GateResult]:
     connector_required = context_binding_guard.requires_context(article_content) or any(
         paths[name] is not None
@@ -160,7 +161,9 @@ def _run_context_gate(
     if client is not None and session is not None and session.telemetry is not None:
         session.telemetry.increment("connector_operations")
     inputs = session.inputs if session is not None else None
-    accepted = bom_accepted_article_sha256s(runtime_policy.get("assembly_bom") or {})
+    accepted = verified_bom_lineage(
+        runtime_policy.get("assembly_bom") or {}, workspace_root, captured=inputs
+    )[0]
     if inputs is None:
         result = _timed_call(
             telemetry,
@@ -427,6 +430,7 @@ def _run_publish_readiness(
         vault_root=vault_root,
         session=session,
         telemetry=telemetry,
+        workspace_root=readiness_root,
     )
     gates.append(context_gate)
     if not context_gate["passed"]:

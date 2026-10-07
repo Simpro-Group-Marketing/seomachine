@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Collection, Mapping
 
-from ..wording_edit_chain import bom_accepted_article_sha256s
+from ..wording_edit_lineage import verified_bom_lineage
 
 
 def check_machine_reviews(
@@ -38,7 +38,7 @@ def check_machine_reviews(
             "bom_machine_reviews_invalid",
             "BOM v2 through v4 require machine_reviews.plan and machine_reviews.article path/hash bindings.",
         )]
-    accepted = bom_accepted_article_sha256s(bom)
+    accepted = verified_bom_lineage(bom, root, captured=captured)[0]
     if captured is not None:
         return guard["blog_assembly_bom_snapshot"].check_captured_machine_reviews(
             guard, reviews, artifacts, captured, accepted_article_sha256s=accepted,

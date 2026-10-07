@@ -21,7 +21,7 @@ from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 try:
     from .blog_assembly_contract import atomic_write_json, canonical_json_sha256
@@ -328,16 +328,15 @@ def verify_wording_edits(
     *,
     final_article: str,
     sidecar: str,
+    evidence_loader: Callable[[int], Mapping[str, Any]] | None = None,
 ) -> list[str]:
     """Re-check the trailing wording-edit run from its evidence and the final article."""
     edits = trailing_edit_indexes(receipts)
     if not edits:
         return []
     start = edits.start
-    befores = [
-        _evidence_payload(stage_receipt_paths[index], strict=False).get("before_text")
-        for index in edits
-    ]
+    load = evidence_loader or (lambda index: _evidence_payload(stage_receipt_paths[index], strict=False))
+    befores = [load(index).get("before_text") for index in edits]
     if not all(isinstance(before, str) for before in befores):
         return ["every trailing wording edit receipt needs its wording edit report evidence"]
     errors: list[str] = []

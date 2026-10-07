@@ -14,7 +14,7 @@ from ..faq_structure import faq_questions_match
 from ..guard_common import Finding
 from .common import _finding
 from .dependencies import BomValidationDependencies
-from ..wording_edit_chain import bom_accepted_article_sha256s
+from ..wording_edit_lineage import verified_bom_lineage
 
 def _check_identity(bom: Mapping[str, Any], article: Any, assembled: date | None) -> list[Finding]:
     identity = bom.get("identity")
@@ -207,6 +207,7 @@ def _check_connector(
     editorial_plan: Mapping[str, Any] | None,
     vault_root: str | Path | None,
     dependencies: BomValidationDependencies | None = None,
+    workspace_root: Path | None = None,
 ) -> list[Finding]:
     dependencies = dependencies or BomValidationDependencies()
     required = context_binding_guard.requires_context(article.raw)
@@ -258,7 +259,9 @@ def _check_connector(
             editorial_plan=editorial_plan,
             client=context_client,
             vault_root=vault_root,
-            accepted_article_sha256s=bom_accepted_article_sha256s(bom),
+            accepted_article_sha256s=(
+                verified_bom_lineage(bom, workspace_root)[0] if workspace_root else ()
+            ),
         )
     if context_result is None or not context_result.passed:
         findings.append(_finding("bom_context_validation_missing", "Connector-bound BOM requires one passed structured Context Binding result."))

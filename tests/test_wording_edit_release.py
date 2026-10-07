@@ -84,6 +84,94 @@ def test_builder_accepts_a_wording_edit_with_reviews_bound_to_the_anchor(tmp_pat
     assert evidence["payload"]["violations"] == []
 
 
+def test_guard_rejects_a_wording_edit_receipt_minted_without_verification(
+    tmp_path: Path, monkeypatch
+):
+    from data_sources.modules.blog_assembly import construction
+    from data_sources.modules.blog_assembly_stage_receipt import (
+        begin_native_edit,
+        finish_native_edit,
+        load_stage_receipt,
+    )
+
+    paths = _fixture(tmp_path)
+    plan_review, article_review = _machine_reviews(
+        tmp_path,
+        {"editorial_plan": paths["editorial_plan"], "article": paths["article"], "sidecar": paths["sidecar"]},
+    )
+    previous = load_stage_receipt(paths["stage_receipts"][-1], workspace_root=tmp_path)
+    state = tmp_path / "research" / "generic-state.json"
+    receipt = tmp_path / "research" / "stage-generic-edit.json"
+    begin_native_edit(
+        article_path=paths["article"], state_path=state, run_id=previous["run_id"],
+        stage="wording_edit", tool_name="wording_edit", tool_version="1.0.0",
+        previous_receipt_hash=previous["receipt_hash"], started_at="2026-08-11T14:07:00Z",
+    )
+    article = Path(paths["article"])
+    article.write_text(
+        article.read_text(encoding="utf-8").replace(ORIGINAL, "Dispatchers lose 40% of first visits without it."),
+        encoding="utf-8",
+    )
+    finish_native_edit(
+        state_path=state, article_path=article, receipt_path=receipt,
+        completed_at="2026-08-11T14:08:00Z", workspace_root=tmp_path,
+    )
+    monkeypatch.setattr(construction, "verify_wording_edits", lambda *args, **kwargs: [])
+    bom = _build(
+        tmp_path,
+        {**paths, "stage_receipts": [*paths["stage_receipts"], receipt]},
+        plan_review_path=plan_review,
+        article_review_path=article_review,
+    )
+
+    rules = {
+        finding["rule_id"]
+        for finding in check_bom(
+            bom,
+            article_path=article,
+            validation_sidecar_path=paths["sidecar"],
+            workspace_root=tmp_path,
+            expected_lifecycle_state="provisional",
+        )
+    }
+
+    assert "bom_wording_edit_invalid" in rules
+    assert "machine_review_article_hash_mismatch" in rules
+
+
+def test_sweep_context_binding_carries_only_a_verified_lineage(tmp_path: Path, monkeypatch):
+    import hashlib
+    from types import SimpleNamespace
+
+    from data_sources.modules.release_workflow import sweep_gates
+
+    paths = _fixture(tmp_path)
+    anchor = hashlib.sha256(Path(paths["article"]).read_bytes()).hexdigest()
+    receipt = _edit(tmp_path, paths, ORIGINAL, REWORDED)
+    final = hashlib.sha256(Path(paths["article"]).read_bytes()).hexdigest()
+    seen = []
+
+    def fake_validate(*args, **kwargs):
+        seen.append(frozenset(kwargs["accepted_article_sha256s"]))
+        return SimpleNamespace(findings=())
+
+    monkeypatch.setattr(sweep_gates.context_binding_guard, "validate_context_artifacts", fake_validate)
+    args = SimpleNamespace(
+        article=paths["article"], proof_sidecar=paths["sidecar"],
+        stage_receipts=[*paths["stage_receipts"][1:], receipt], scrub_receipt=paths["stage_receipts"][1],
+    )
+
+    sweep_gates.context_binding_rows(args, {})
+    Path(paths["article"]).write_text(
+        Path(paths["article"]).read_text(encoding="utf-8").replace("check the board", "watch the board"),
+        encoding="utf-8",
+    )
+    sweep_gates.context_binding_rows(args, {})
+
+    assert seen[0] == frozenset({anchor, final})
+    assert seen[1] == frozenset()
+
+
 def test_cli_begins_and_finishes_a_wording_edit(tmp_path: Path, capsys):
     from data_sources.modules import wording_edit
 

@@ -57,6 +57,8 @@ python -m data_sources.modules.wording_edit finish --article "[article]" --state
 
 `finish` refuses an edit that breaks any of these limits and leaves the edit open: revert the change and finish again, or take the full path. A plan, structure, link, number, FAQ, or proof change always takes the full path. Every readiness gate still runs on the edited article.
 
+The carry-forward reaches only the next readiness run after the edits. Edits made before preflight readiness do not survive `/optimize`: the post-optimization scrub and Context Binding bind the edited article, so rerun the machine reviews and plan fulfillment before the final run. To keep a late fix cheap, make it after post-optimization Context Binding.
+
 ## Scorecard requirements
 
 `/publish-readiness` must report separate gates for:

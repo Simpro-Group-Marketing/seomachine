@@ -9,6 +9,7 @@ def test_writing_commands_document_the_wording_edit_receipt():
         assert "## Wording-only edit receipt" in content, name
         assert "python -m data_sources.modules.wording_edit begin" in content, name
         assert "python -m data_sources.modules.wording_edit finish" in content, name
+        assert "do not survive `/optimize`" in content, name
 
 
 def test_publish_readiness_explains_wording_edit_receipt_order():

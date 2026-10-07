@@ -21,6 +21,8 @@ try:
     from ..readiness.adapters import _gate_from_url_summary
     from ..readiness.runtime_policy import _no_fit_customer_proof_findings
     from ..url_validator import validate_content_urls
+    from ..wording_edit_lineage import verified_lineage_from_paths
+    from .precheck import _release_stage_receipts
 except ImportError:  # pragma: no cover - supports direct script execution.
     import ai_copy_linter
     import blog_identity_guard
@@ -31,6 +33,8 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from readiness.adapters import _gate_from_url_summary
     from readiness.runtime_policy import _no_fit_customer_proof_findings
     from url_validator import validate_content_urls
+    from wording_edit_lineage import verified_lineage_from_paths
+    from release_workflow.precheck import _release_stage_receipts
 
 AI_PROFILE = "simpro-web"
 Rows = list[Mapping[str, Any]]
@@ -104,6 +108,14 @@ def context_binding_rows(args: Any, policy: Mapping[str, Any]) -> Rows:
         editorial_plan=policy.get("editorial_plan"),
         vault_root=None,
         client=None,
+        accepted_article_sha256s=verified_lineage_from_paths(
+            _release_stage_receipts(
+                getattr(args, "stage_receipts", None) or (),
+                getattr(args, "scrub_receipt", None) or "",
+            ),
+            article_path=args.article,
+            sidecar_path=getattr(args, "proof_sidecar", None),
+        ),
     )
     return list(result.findings)
 
