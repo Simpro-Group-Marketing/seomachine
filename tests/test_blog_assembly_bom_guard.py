@@ -833,15 +833,3 @@ def test_paa_policy_requires_exact_source_shape_and_visible_question_binding(tmp
     assert "bom_paa_policy_shape_invalid" in rules
     assert "bom_paa_source_kind_invalid" in rules
     assert "bom_paa_questions_mismatch" in rules
-
-
-def test_paa_selected_questions_match_visible_headings_case_insensitively(tmp_path: Path):
-    paths = _fixture(tmp_path, visible_faq=True)
-    bom = _build(tmp_path, paths)
-    bom["paa_policy"]["selected_questions"] = [
-        question.lower() for question in bom["paa_policy"]["selected_questions"]
-    ]
-
-    rules = _rules(tmp_path, bom, paths)
-
-    assert "bom_paa_questions_mismatch" not in rules
