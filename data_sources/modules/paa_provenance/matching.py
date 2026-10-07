@@ -27,7 +27,7 @@ from ..blog_assembly_contract import (
     resolve_artifact,
 )
 from ..execution_attestation import attest_mapping, verify_mapping_attestation
-from ..faq_structure import detect_faq_structure
+from ..faq_structure import detect_faq_structure, faq_question_match_key
 from ..guard_common import Finding, should_fail, summarize_findings
 from ..proof_sidecar import compose_with_sidecar, load_sidecar_content
 
@@ -101,12 +101,7 @@ def _extract_brief_paa_questions(content: str) -> Optional[tuple[str, ...]]:
 
 
 def _normalize_for_match(text: str) -> str:
-    normalized = unicodedata.normalize("NFKC", text).casefold()
-    return " ".join(
-        "".join(
-            (character if character.isalnum() else " " for character in normalized)
-        ).split()
-    )
+    return faq_question_match_key(text)
 
 
 def _parse_iso_date(value: str) -> Optional[date]:

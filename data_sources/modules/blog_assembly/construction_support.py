@@ -16,11 +16,13 @@ try:
     from ..editorial_plan.orchestration import check_file as check_editorial_plan_file
     from ..editorial_plan.plan_fulfillment import check_fulfillment
     from ..editorial_plan.v2 import EDITORIAL_PLAN_SCHEMA_V2
+    from ..faq_structure import faq_questions_match
     from ..paa_provenance.results import check_file as check_paa_provenance_file
 except ImportError:  # pragma: no cover - direct script execution.
     from editorial_plan.orchestration import check_file as check_editorial_plan_file
     from editorial_plan.plan_fulfillment import check_fulfillment
     from editorial_plan.v2 import EDITORIAL_PLAN_SCHEMA_V2
+    from faq_structure import faq_questions_match
     from paa_provenance.results import check_file as check_paa_provenance_file
 from .contracts import (
     _optional_json_schema,
@@ -252,8 +254,15 @@ def derive_and_validate_paa(
         user_paa_csv_path=user_paa_csv_path,
         answersocrates_blocker_path=answersocrates_blocker_path,
     )
-    if policy["selected_questions"] != _visible_faq_questions(article.raw):
-        raise ValueError("paa_policy.selected_questions must exactly match visible FAQ headings in order")
+    if not faq_questions_match(
+        policy["selected_questions"],
+        _visible_faq_questions(article.raw),
+        source_kind=str(policy["source_kind"]),
+    ):
+        raise ValueError(
+            "paa_policy.selected_questions must match visible FAQ headings in order "
+            "(case and punctuation are ignored except for brief_paa)"
+        )
     bound = {
         "brief_paa": content_brief_path,
         "user_csv": user_paa_csv_path,
