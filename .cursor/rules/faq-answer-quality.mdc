@@ -7,6 +7,8 @@ globs:
 alwaysApply: true
 ---
 
+# FAQ Answer Quality Rule
+
 Apply this rule to every FAQ in a blog draft, rewrite, or published Markdown handoff.
 
 - Write the first visible FAQ paragraph as a 40-60 word answer.

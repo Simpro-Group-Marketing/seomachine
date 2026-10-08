@@ -7,6 +7,10 @@ globs:
 alwaysApply: true
 ---
 
+# Blog Schema Rule
+
+Apply this rule to every standard blog draft, rewrite, and published Markdown handoff.
+
 Always use these schema notes:
 
 - BlogPosting
