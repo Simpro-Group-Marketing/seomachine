@@ -8,9 +8,7 @@ capture contract exists for exactly that case and is already accepted by
 `build_answersocrates_artifact`, but the CLI has no way to hand it one:
 `--raw-capture-output` is write-only and the collector always runs.
 
-Without this seam every article needs a bespoke script to mint its capture
-(scripts/build_subcontractors_paa_blocker.py,
-scripts/build_ai_field_service_economics_browser_evidence.py).
+Without this seam every article needs a bespoke script to mint its capture.
 """
 
 import json

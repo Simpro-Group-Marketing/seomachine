@@ -209,12 +209,6 @@
       "main": 14,
       "write_markdown_report": 21
     },
-    "scripts/run_corrected_live_blog_performance.py": {
-      "build_engagement_writing_diagnosis": 20,
-      "content_style_review": 14,
-      "main": 13,
-      "read_gen_ai_export": 11
-    },
     "scripts/seo_baseline_analysis.py": {
       "main": 39
     },
@@ -259,12 +253,9 @@
     "data_sources/modules/trust_signal_analyzer.py": 567,
     "data_sources/modules/vault_brand_language_guard.py": 954,
     "data_sources/modules/wordpress_publisher.py": 1129,
-    "scripts/build_plumbing_recovery_evidence.py": 791,
-    "scripts/live_blog_source_pull.py": 671,
     "scripts/research_competitor_gaps.py": 545,
     "scripts/research_serp_analysis.py": 1669,
     "scripts/research_topic_clusters.py": 565,
-    "scripts/run_corrected_live_blog_performance.py": 2039,
     "tools/humanizer_upstream.py": 626
   },
   "production_roots": [
@@ -336,7 +327,7 @@
     "tests/test_google_analytics_compat.py": 102,
     "tests/test_grav_publisher.py": 974,
     "tests/test_gsc_pagination.py": 383,
-    "tests/test_gsc_script_migrations.py": 154,
+    "tests/test_gsc_script_migrations.py": 65,
     "tests/test_guard_common.py": 76,
     "tests/test_hindsight_boundary_guard.py": 69,
     "tests/test_humanizer_quality_corpus.py": 80,
