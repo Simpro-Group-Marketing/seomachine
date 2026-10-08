@@ -78,8 +78,8 @@ Feature and solution links must use function-bearing anchor text that explains t
 Standard blog posts should contain 3 to 5 internal links:
 
 - **Minimum**: 3 internal links.
-- **Target**: 4 to 5 internal links when each link helps the reader.
-- **Maximum**: 7 internal links.
+- **Target**: up to 5 internal links when each link helps the reader (the scorer's optimal count).
+- **Maximum**: 7 internal links. The SEO scorer waives this maximum only for articles of 3,000 or more visible words.
 
 The required down-funnel link counts as 1 of the 3 to 5 internal links unless a valid brief-bound override narrows the supporting-link count. For Simpro single-trade blogs, the required industry-cluster link counts as both the cluster link and the down-funnel link when its anchor and placement pass the policy, and it remains additive to exact-count brief-selected links unless the bound brief explicitly prohibits the industry page.
 

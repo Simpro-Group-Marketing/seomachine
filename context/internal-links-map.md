@@ -20,7 +20,7 @@ This document catalogs verified Simpro URLs for strategic internal linking in bl
 
 1. Link naturally when the destination helps the reader evaluate, compare, or take the next step.
 2. Prefer deep links over the homepage.
-3. Use three to five internal links in a standard blog post. Three is the minimum, four to five is the normal target, and seven is the maximum unless the article is 3,000+ words or an approved pillar guide.
+3. Use three to five internal links in a standard blog post. Three is the minimum, five is the scorer's optimal count, and seven is the maximum. The SEO scorer waives the maximum only when the article has 3,000 or more visible words; there is no pillar-guide exemption.
 4. Use descriptive anchors. Do not use "click here," "read more," or vague anchors.
 5. For BOFU content, include one demo, pricing, comparison, or customer story link.
 6. For TOFU content, use one product/category link only when the product relevance is explicit.
