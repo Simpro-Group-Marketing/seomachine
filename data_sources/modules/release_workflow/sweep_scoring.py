@@ -43,6 +43,20 @@ def _failed_checks(result: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
     }
 
 
+def _readability_reason(result: Mapping[str, Any], scorecard: Mapping[str, Any]) -> str:
+    """Return the readability scoring error when it alone blocks content quality."""
+    gate = scorecard.get("content_quality")
+    if not isinstance(gate, Mapping) or gate.get("passed") is not False:
+        return ""
+    if not _meets_threshold(scorecard, "content_quality"):
+        return ""
+    dimensions = result.get("dimensions")
+    readability = dimensions.get("readability") if isinstance(dimensions, Mapping) else None
+    details = readability.get("details") if isinstance(readability, Mapping) else None
+    error = details.get("scoring_error") if isinstance(details, Mapping) else None
+    return error if isinstance(error, str) else ""
+
+
 def _not_passed_row(
     result: Mapping[str, Any], failed: Mapping[str, Any], *, offline: bool
 ) -> dict[str, Any]:
@@ -52,6 +66,9 @@ def _not_passed_row(
         + ", ".join(_score_text(scorecard, key) for key in SCORE_KEYS)
         + f"; required: {SCORE_THRESHOLDS})"
     )
+    reason = _readability_reason(result, scorecard)
+    if reason:
+        message += f": {reason}"
     only_unverifiable = bool(failed) and set(failed) <= OFFLINE_UNVERIFIABLE_SCORER_CHECKS
     seo = scorecard.get("seo_quality")
     seo_ok = isinstance(seo, Mapping) and seo.get("passed") is True
