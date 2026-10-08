@@ -91,6 +91,14 @@ OWNED_INTERNAL_DOMAINS = {
     "www.bigchange.com",
 }
 
+OWNED_APEX_DOMAINS = frozenset(d.removeprefix("www.") for d in OWNED_INTERNAL_DOMAINS)
+
+
+def is_owned_host(host: str) -> bool:
+    host = host.lower().removeprefix("www.")
+    return any(host == d or host.endswith("." + d) for d in OWNED_APEX_DOMAINS)
+
+
 BRAND_INTERNAL_DOMAINS = {
     "aroflo": frozenset({"aroflo.com"}),
     "bigchange": frozenset({"bigchange.com"}),
@@ -167,7 +175,9 @@ __all__ = [
     "MARKDOWN_IMAGE_RE",
     "META_TITLE_BRAND_SUFFIX_RE",
     "NON_VISIBLE_HTML_BLOCK_RE",
+    "OWNED_APEX_DOMAINS",
     "OWNED_INTERNAL_DOMAINS",
     "PUBLISHING_THRESHOLD",
     "SEO_TARGET_SCORE",
+    "is_owned_host",
 ]

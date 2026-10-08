@@ -11,9 +11,9 @@ from typing import Any, Mapping, Sequence
 from urllib.parse import urlparse
 
 try:
-    from .guard_common import Finding, make_finding, should_fail, summarize_findings
+    from .guard_common import Finding, make_finding
 except ImportError:  # pragma: no cover - supports direct script execution.
-    from guard_common import Finding, make_finding, should_fail, summarize_findings
+    from guard_common import Finding, make_finding
 
 
 INTRO_PLACEMENT = "intro_first_300_words"
@@ -122,7 +122,7 @@ POLICIES: dict[str, IndustryPolicy] = {
         vault_vertical_query="security software industry page vertical profile Simpro industries security",
     ),
 }
-BRAND_DOMAINS = {"simprogroup.com"}
+SIMPRO_INDUSTRY_HOST_DOMAINS = {"simprogroup.com"}
 VERTICAL_RESOURCE_TERMS = {
     "industry",
     "industries",
@@ -841,7 +841,7 @@ def _normalized_internal_path(url: str) -> str:
     parsed = urlparse(url.strip())
     if parsed.scheme in {"http", "https"}:
         hostname = (parsed.hostname or "").casefold().rstrip(".")
-        if hostname not in BRAND_DOMAINS and not any(hostname.endswith(f".{domain}") for domain in BRAND_DOMAINS):
+        if hostname not in SIMPRO_INDUSTRY_HOST_DOMAINS and not any(hostname.endswith(f".{domain}") for domain in SIMPRO_INDUSTRY_HOST_DOMAINS):
             return ""
         path = parsed.path
     elif parsed.scheme or parsed.netloc:

@@ -18,10 +18,12 @@ from typing import Iterable, List, Optional, Sequence
 from urllib.parse import urlparse
 
 try:
+    from .content_scoring.seo_constants import is_owned_host
     from .guard_common import Finding, should_fail, summarize_findings
     from .proof_link_policy import canonicalize_link_identity, is_generic_proof_anchor
     from .proof_sidecar import compose_with_sidecar, load_sidecar_content
 except ImportError:  # pragma: no cover - supports direct script execution.
+    from content_scoring.seo_constants import is_owned_host
     from guard_common import Finding, should_fail, summarize_findings
     from proof_link_policy import canonicalize_link_identity, is_generic_proof_anchor
     from proof_sidecar import compose_with_sidecar, load_sidecar_content
@@ -148,13 +150,6 @@ NUMBER_WORD_VALUES = {
 INSUFFICIENT_PROOF_RE = re.compile(
     r"\b(?:industry standard|FDD conventions|no anchor)\b",
     re.IGNORECASE,
-)
-OWNED_PROOF_DOMAINS = (
-    "simprogroup.com",
-    "simpro.com",
-    "bigchange.com",
-    "clockshark.com",
-    "aroflo.com",
 )
 
 
@@ -449,10 +444,7 @@ def _extract_public_link_rows(text: str) -> List[tuple[str, str]]:
 
 
 def _is_owned_proof_url(url: str) -> bool:
-    host = urlparse(url).netloc.lower()
-    if host.startswith("www."):
-        host = host[4:]
-    return any(host == domain or host.endswith(f".{domain}") for domain in OWNED_PROOF_DOMAINS)
+    return is_owned_host(urlparse(url).hostname or "")
 
 
 def _has_matching_owned_url_proof(

@@ -22,27 +22,20 @@ from typing import Iterable, List, Optional, Sequence
 from urllib.parse import urlparse
 
 try:
+    from .content_scoring.seo_constants import is_owned_host
     from .faq_structure import detect_faq_structure
     from .guard_common import Finding, make_finding, should_fail, summarize_findings
     from .proof_link_policy import analyze_proof_links
     from .proof_sidecar import load_sidecar_content
     from .url_validator import UrlValidationSummary, extract_urls, is_effectively_resolved, validate_file_urls
 except ImportError:  # pragma: no cover - supports direct script execution.
+    from content_scoring.seo_constants import is_owned_host
     from faq_structure import detect_faq_structure
     from guard_common import Finding, make_finding, should_fail, summarize_findings
     from proof_link_policy import analyze_proof_links
     from proof_sidecar import load_sidecar_content
     from url_validator import UrlValidationSummary, extract_urls, is_effectively_resolved, validate_file_urls
 
-
-OWNED_PUBLIC_DOMAINS = {
-    "simprogroup.com",
-    "www.simprogroup.com",
-    "simpro.ai",
-    "www.simpro.ai",
-    "clockshark.com",
-    "www.clockshark.com",
-}
 
 REPLACEMENT_RULE_MESSAGE = (
     "Replace this source with an equivalent resolved public source or remove the supported claim."
@@ -520,12 +513,7 @@ def _is_non_owned_public_url(url: str) -> bool:
 
 
 def _is_owned_hostname(hostname: str) -> bool:
-    return (
-        hostname in OWNED_PUBLIC_DOMAINS
-        or hostname.endswith(".simprogroup.com")
-        or hostname.endswith(".simpro.ai")
-        or hostname.endswith(".clockshark.com")
-    )
+    return is_owned_host(hostname)
 
 
 def _external_research_not_applicable(proof_content: str) -> bool:
