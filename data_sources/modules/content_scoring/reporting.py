@@ -12,8 +12,11 @@ class ScoringReportingMixin:
         lines.append("=" * 50)
         lines.append("")
 
-        content_quality_passed = result['composite_score'] >= result['threshold']
+        score_meets_threshold = result['composite_score'] >= result['threshold']
         quality_gates = result.get('quality_gates', {})
+        content_quality_passed = quality_gates.get('content_quality', {}).get(
+            'passed', score_meets_threshold
+        )
         hard_gate_results = [
             gate.get('passed', False)
             for name, gate in quality_gates.items()
@@ -21,7 +24,12 @@ class ScoringReportingMixin:
         ]
         if not hard_gate_results and result.get('aeo_geo'):
             hard_gate_results.append(result['aeo_geo'].get('passed', False))
-        content_quality_status = "PASSED" if content_quality_passed else "BELOW THRESHOLD"
+        if content_quality_passed:
+            content_quality_status = "PASSED"
+        elif score_meets_threshold:
+            content_quality_status = "FAILED"
+        else:
+            content_quality_status = "BELOW THRESHOLD"
         hard_gates_status = (
             "UNKNOWN"
             if not hard_gate_results

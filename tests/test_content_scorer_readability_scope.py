@@ -193,7 +193,7 @@ def test_readability_error_payload_scores_zero() -> None:
     assert result["details"]["scoring_error"].startswith("Readability scoring failed")
 
 
-def test_readability_failure_blocks_content_quality_despite_composite_pass() -> None:
+def _score_with_readability_crash() -> tuple:
     from tests.test_content_scorer_minimum_word_gate import (
         _content,
         _passing_dependencies,
@@ -212,11 +212,28 @@ def test_readability_failure_blocks_content_quality_despite_composite_pass() -> 
     ), patch.object(
         ContentScorer, "_score_seo", return_value={**perfect, "passed": True}
     ):
-        result = ContentScorer(dependencies=deps).score(
+        scorer = ContentScorer(dependencies=deps)
+        return scorer, scorer.score(
             _content(200), {"primary_keyword": "field service workflow"}
         )
+
+
+def test_readability_failure_blocks_content_quality_despite_composite_pass() -> None:
+    _, result = _score_with_readability_crash()
 
     assert result["composite_score"] >= result["threshold"]
     assert result["quality_gates"]["content_quality"]["passed"] is False
     assert not result["passed"]
     assert result["priority_fixes"][0]["issue"].startswith("Readability scoring failed")
+
+
+def test_format_report_shows_content_quality_failed_on_readability_failure() -> None:
+    scorer, result = _score_with_readability_crash()
+    assert result["composite_score"] >= result["threshold"]
+
+    report = scorer.format_report(result)
+
+    assert "Content Quality: FAILED" in report
+    assert "Content Quality: PASSED" not in report
+    assert "(PASSED)" not in report
+    assert "Overall: FAILED" in report
