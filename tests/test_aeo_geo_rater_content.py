@@ -137,22 +137,27 @@ class AeoGeoRaterContentTests(AeoGeoRaterTestCase):
         )
 
     def test_non_connector_bom_makes_selector_backed_eeat_not_applicable(self):
-        result = rate_aeo_geo(
-            COMPLIANT_ARTICLE,
-            {"primary_keyword": "hvac scheduling software"},
-            source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
-            proof_sidecar_content=PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK,
-            finalized_bom=finalized_non_connector_bom(),
-            assembly_date=ASSEMBLY_DATE,
-            paa_workflow_mode="new",
-            paa_expected_query=PAA_QUERY,
-            paa_expected_collection_date=ASSEMBLY_DATE,
-        )
+        for schema in (
+            "simpro-blog-assembly-bom/v1",
+            "simpro-blog-assembly-bom/v4",
+        ):
+            with self.subTest(schema=schema):
+                result = rate_aeo_geo(
+                    COMPLIANT_ARTICLE,
+                    {"primary_keyword": "hvac scheduling software"},
+                    source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
+                    proof_sidecar_content=PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK,
+                    finalized_bom=finalized_non_connector_bom(schema=schema),
+                    assembly_date=ASSEMBLY_DATE,
+                    paa_workflow_mode="new",
+                    paa_expected_query=PAA_QUERY,
+                    paa_expected_collection_date=ASSEMBLY_DATE,
+                )
 
-        check = result["checks"]["eeat_proof"]
-        self.assertTrue(check["passed"])
-        self.assertFalse(check["applicable"])
-        self.assertEqual(check["status"], "not_applicable")
+                check = result["checks"]["eeat_proof"]
+                self.assertTrue(check["passed"])
+                self.assertFalse(check["applicable"])
+                self.assertEqual(check["status"], "not_applicable")
 
     def test_direct_answer_skips_standalone_image_placeholder(self):
         content = COMPLIANT_ARTICLE.replace(

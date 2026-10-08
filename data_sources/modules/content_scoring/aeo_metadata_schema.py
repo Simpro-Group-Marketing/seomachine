@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from ..blog_assembly.common import ARCHIVED_BOM_SCHEMAS, NON_CONNECTOR_REASON
 from .aeo_text import _normalize_key
 from collections.abc import Mapping
 from data_sources.modules import blog_assembly_contract
@@ -117,11 +118,7 @@ def _validated_bom_author_policy(
     """
     if not isinstance(finalized_bom, Mapping):
         return ''
-    if finalized_bom.get('schema') not in {
-        'simpro-blog-assembly-bom/v1',
-        'simpro-blog-assembly-bom/v2',
-        'simpro-blog-assembly-bom/v3',
-    }:
+    if finalized_bom.get('schema') not in ARCHIVED_BOM_SCHEMAS:
         return ''
     if finalized_bom.get('lifecycle_state') not in {'provisional', 'final'}:
         return ''
@@ -331,11 +328,7 @@ def _not_applicable_check(check: Dict[str, Any], reason: str) -> Dict[str, Any]:
 def _validated_non_connector_bom(finalized_bom: Optional[Mapping[str, Any]]) -> bool:
     if not isinstance(finalized_bom, Mapping):
         return False
-    if finalized_bom.get("schema") not in {
-        "simpro-blog-assembly-bom/v1",
-        "simpro-blog-assembly-bom/v2",
-        "simpro-blog-assembly-bom/v3",
-    }:
+    if finalized_bom.get("schema") not in ARCHIVED_BOM_SCHEMAS:
         return False
     if finalized_bom.get("lifecycle_state") not in {"provisional", "final"}:
         return False
@@ -343,8 +336,7 @@ def _validated_non_connector_bom(finalized_bom: Optional[Mapping[str, Any]]) -> 
     return bool(
         isinstance(binding, Mapping)
         and binding.get("status") == "not_applicable"
-        and binding.get("reason")
-        == "Final article contains no Simpro brand, URL, or connector-sensitive language."
+        and binding.get("reason") == NON_CONNECTOR_REASON
     )
 
 

@@ -111,8 +111,9 @@ def finalized_no_author_bom():
     }
 
 
-def finalized_non_connector_bom():
+def finalized_non_connector_bom(schema='simpro-blog-assembly-bom/v1'):
     bom = finalized_no_author_bom()
+    bom['schema'] = schema
     bom['connector_binding'] = {
         'status': 'not_applicable',
         'reason': 'Final article contains no Simpro brand, URL, or connector-sensitive language.',
