@@ -32,6 +32,9 @@ def chrome_verified_urls() -> frozenset[str]:
         payload = json.loads(
             URL_VERIFICATION_ALLOWLIST_PATH.read_text(encoding="utf-8")
         )
+        if not isinstance(payload, dict):
+            # A non-object file is as unusable as an unreadable one; do not cache it.
+            return frozenset()
         for entry in payload.get("entries", []):
             if (
                 isinstance(entry, dict)

@@ -42,6 +42,8 @@ class OwnedHostTests(unittest.TestCase):
             "WWW.SimproGroup.com",
             "simpro.ai",
             "docs.clockshark.com",
+            "www.simprogroup.com.",
+            "aroflo.com.",
         ):
             with self.subTest(host=host):
                 self.assertTrue(is_owned_host(host))
@@ -50,6 +52,19 @@ class OwnedHostTests(unittest.TestCase):
         for host in ("notaroflo.com", "aroflo.com.evil.test", "simpro.com", "dol.gov", ""):
             with self.subTest(host=host):
                 self.assertFalse(is_owned_host(host))
+
+
+class OwnedDomainTableDriftTests(unittest.TestCase):
+    def test_group_owned_domains_match_shared_owned_apex_domains(self):
+        from data_sources.modules.content_scoring.seo_constants import OWNED_APEX_DOMAINS
+        from data_sources.modules.proof_link_policy import GROUP_OWNED_DOMAINS
+
+        union = {
+            domain.removeprefix("www.")
+            for domains in GROUP_OWNED_DOMAINS.values()
+            for domain in domains
+        }
+        self.assertEqual(union, set(OWNED_APEX_DOMAINS))
 
 
 class OwnedLinksAreNotExternalResearchTests(unittest.TestCase):

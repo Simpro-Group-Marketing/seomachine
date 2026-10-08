@@ -95,7 +95,7 @@ OWNED_APEX_DOMAINS = frozenset(d.removeprefix("www.") for d in OWNED_INTERNAL_DO
 
 
 def is_owned_host(host: str) -> bool:
-    host = host.lower().removeprefix("www.")
+    host = host.lower().rstrip(".").removeprefix("www.")
     return any(host == d or host.endswith("." + d) for d in OWNED_APEX_DOMAINS)
 
 
