@@ -62,6 +62,8 @@ research/*
 !research/performance/
 research/performance/*
 !research/performance/p1-offline-release-benchmark-v2-final.json
+!research/performance/p2-offline-release-benchmark-v3.json
+!research/performance/p2-test-sharding-benchmark.json
 
 output/*
 !output/.gitkeep
@@ -157,3 +159,9 @@ mcp-gsc/token.json
 # GA4 Credentials (additional explicit entry)
 ga4-credentials.json
 google-analytics-credentials.json
+
+# Per-run env files, worktrees, test temp dirs, and plugin scratch
+.run-*.env
+.claude/worktrees/
+.testtmp-*/
+.superpowers/
