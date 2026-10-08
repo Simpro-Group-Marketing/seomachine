@@ -18,15 +18,9 @@ from urllib.parse import urlparse
 
 import requests
 try:
-    from .url_verification_allowlist import (
-        URL_VERIFICATION_ALLOWLIST_PATH,
-        chrome_verified_urls,
-    )
+    from .url_verification_allowlist import chrome_verified_urls
 except ImportError:  # pragma: no cover - supports direct script execution.
-    from url_verification_allowlist import (
-        URL_VERIFICATION_ALLOWLIST_PATH,
-        chrome_verified_urls,
-    )
+    from url_verification_allowlist import chrome_verified_urls
 
 try:
     from .artifact_runtime.paths import cache_path

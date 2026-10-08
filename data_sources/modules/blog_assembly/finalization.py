@@ -1,8 +1,7 @@
 """Finalization responsibilities."""
 import copy
-from datetime import date
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping
 
 from .common import (
     BOM_SCHEMA_V1,
@@ -10,13 +9,10 @@ from .common import (
     BOM_SCHEMA_V3,
     BOM_SCHEMA_V4,
     atomic_write_json,
-    canonical_article_run_id,
     canonical_artifact,
     canonical_json_sha256,
-    file_sha256,
     load_json_object_snapshot,
     resolve_artifact,
-    validate_sha256,
 )
 from .construction import build_blog_assembly_bom_from_files
 from .contracts import _is_supported_bom_schema, _read_json_object, _required_mapping

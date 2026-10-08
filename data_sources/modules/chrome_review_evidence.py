@@ -12,7 +12,7 @@ import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Mapping, Optional
+from typing import Iterable, Optional
 from urllib.parse import urlparse
 
 try:

@@ -222,7 +222,7 @@
   "maximum_lines": 500,
   "oversized_production_files": {
     "data_sources/modules/above_fold_analyzer.py": 512,
-    "data_sources/modules/blog_assembly_stage_receipt.py": 946,
+    "data_sources/modules/blog_assembly_stage_receipt.py": 929,
     "data_sources/modules/blog_creation_preflight.py": 827,
     "data_sources/modules/commercial_pillar_index.py": 811,
     "data_sources/modules/content_scrubber.py": 592,

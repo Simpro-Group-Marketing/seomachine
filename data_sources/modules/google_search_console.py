@@ -13,7 +13,6 @@ from googleapiclient.discovery import build
 try:
     from .artifact_runtime.limits import GSC_WORKFLOW_MAX_BYTES
     from .gsc.consumers import (
-        date_range as _date_range,
         iter_keyword_positions as _iter_keyword_positions,
         iter_low_ctr_page_rows as _iter_low_ctr_page_rows,
         iter_page_keyword_rows as _iter_page_keyword_rows,
@@ -22,13 +21,11 @@ try:
         iter_trending_query_rows as _iter_trending_query_rows,
         page_performance as _page_performance,
         search_rows as _search_rows,
-        top_n,
     )
     from .gsc.intent import commercial_intent_score, intent_category
 except ImportError:  # pragma: no cover - supports direct module-path execution.
     from artifact_runtime.limits import GSC_WORKFLOW_MAX_BYTES
     from gsc.consumers import (
-        date_range as _date_range,
         iter_keyword_positions as _iter_keyword_positions,
         iter_low_ctr_page_rows as _iter_low_ctr_page_rows,
         iter_page_keyword_rows as _iter_page_keyword_rows,
@@ -37,7 +34,6 @@ except ImportError:  # pragma: no cover - supports direct module-path execution.
         iter_trending_query_rows as _iter_trending_query_rows,
         page_performance as _page_performance,
         search_rows as _search_rows,
-        top_n,
     )
     from gsc.intent import commercial_intent_score, intent_category
 

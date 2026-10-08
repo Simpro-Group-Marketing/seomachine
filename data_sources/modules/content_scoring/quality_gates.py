@@ -3,7 +3,7 @@
 import re
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from data_sources.modules.content_scoring.seo_constants import (
     PUBLISHING_THRESHOLD as SEO_PUBLISHING_THRESHOLD,

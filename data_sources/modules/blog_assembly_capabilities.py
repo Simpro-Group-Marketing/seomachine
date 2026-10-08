@@ -179,8 +179,6 @@ def resolve_execution_evidence(
 ) -> dict[str, dict[str, str]]:
     """Resolve definition rows internally and bind exact agent output artifacts."""
     root = Path(workspace_root).resolve()
-    route_id = infer_route(receipts)
-    optimized = is_optimized(receipts)
     agent_ids = expected_agent_ids(receipts)
     supplied_ids = set(agent_output_paths)
     expected_ids = set(agent_ids)

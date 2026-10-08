@@ -24,7 +24,6 @@ try:
     from .proof_sidecar import load_sidecar_content
     from .url_validator import UrlValidationSummary
     from .blog_strategy_support import (
-        VisibleLink,
         _article_title,
         _contains_normalized_phrase,
         _context_request_findings,
@@ -54,7 +53,6 @@ except ImportError:  # pragma: no cover - direct script execution.
     from proof_sidecar import load_sidecar_content
     from url_validator import UrlValidationSummary
     from blog_strategy_support import (
-        VisibleLink,
         _article_title,
         _contains_normalized_phrase,
         _context_request_findings,

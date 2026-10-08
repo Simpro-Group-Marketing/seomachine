@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import os
 import re
-import shutil
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 
 from ..bounded_io import canonical_json_sha256, parse_json_object, read_bounded
@@ -14,9 +12,7 @@ from .limits import GOVERNANCE_JSON_MAX_BYTES, RETENTION_JOURNAL_MAX_BYTES
 from .retention_planning import (
     RetentionCandidate,
     file_sha256,
-    format_timestamp,
     parse_timestamp,
-    resolve_relative,
 )
 QUARANTINE_SCHEMA = "simpro-artifact-quarantine/v3"
 LEGACY_QUARANTINE_SCHEMA = "simpro-artifact-quarantine/v1"

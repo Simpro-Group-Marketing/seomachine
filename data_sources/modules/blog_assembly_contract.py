@@ -9,7 +9,7 @@ import re
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path, PurePosixPath
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping
 
 try:
     from .bounded_io import canonical_json_bytes as _canonical_json_bytes
@@ -18,13 +18,11 @@ try:
     from .bounded_io import stream_sha256 as _stream_sha256
     from .bounded_io import atomic_write_canonical_json as _atomic_write_canonical_json
     from .blog_gate_inventory import (
-        BLOG_GATE_DESCRIPTORS,
-        BlogGateDescriptor,
-        expected_blog_gate_inventory,
-        order_blog_gate_results,
+        expected_blog_gate_inventory as expected_blog_gate_inventory,
+        order_blog_gate_results as order_blog_gate_results,
     )
-    from .blog_sidecar_bindings import FRED_SELECTION_SECTION_RE
-    from .blog_sidecar_bindings import SELECTOR_EVIDENCE_LINE_RE
+    from .blog_sidecar_bindings import FRED_SELECTION_SECTION_RE as FRED_SELECTION_SECTION_RE
+    from .blog_sidecar_bindings import SELECTOR_EVIDENCE_LINE_RE as SELECTOR_EVIDENCE_LINE_RE
     from .blog_sidecar_bindings import binding_errors as _sidecar_binding_errors
 except ImportError:  # pragma: no cover - supports direct script execution.
     from bounded_io import canonical_json_bytes as _canonical_json_bytes
@@ -33,13 +31,11 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from bounded_io import stream_sha256 as _stream_sha256
     from bounded_io import atomic_write_canonical_json as _atomic_write_canonical_json
     from blog_gate_inventory import (
-        BLOG_GATE_DESCRIPTORS,
-        BlogGateDescriptor,
-        expected_blog_gate_inventory,
-        order_blog_gate_results,
+        expected_blog_gate_inventory as expected_blog_gate_inventory,
+        order_blog_gate_results as order_blog_gate_results,
     )
-    from blog_sidecar_bindings import FRED_SELECTION_SECTION_RE
-    from blog_sidecar_bindings import SELECTOR_EVIDENCE_LINE_RE
+    from blog_sidecar_bindings import FRED_SELECTION_SECTION_RE as FRED_SELECTION_SECTION_RE
+    from blog_sidecar_bindings import SELECTOR_EVIDENCE_LINE_RE as SELECTOR_EVIDENCE_LINE_RE
     from blog_sidecar_bindings import binding_errors as _sidecar_binding_errors
 
 

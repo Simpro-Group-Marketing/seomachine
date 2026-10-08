@@ -47,8 +47,8 @@ try:
         validate_publish_plain_text,
     )
     from .readiness.api import run_publish_readiness
-    from .source_support_guard import require_source_support
-    from .url_validator import validate_file_urls
+    from .source_support_guard import require_source_support as require_source_support
+    from .url_validator import validate_file_urls as validate_file_urls
 except ImportError:
     from artifact_runtime.limits import JSON_MAX_BYTES
     from artifact_runtime.subprocesses import run_bounded_text_process
@@ -67,8 +67,8 @@ except ImportError:
         validate_publish_plain_text,
     )
     from readiness.api import run_publish_readiness
-    from source_support_guard import require_source_support
-    from url_validator import validate_file_urls
+    from source_support_guard import require_source_support as require_source_support
+    from url_validator import validate_file_urls as validate_file_urls
 
 
 GH_TIMEOUT_SECONDS = 30

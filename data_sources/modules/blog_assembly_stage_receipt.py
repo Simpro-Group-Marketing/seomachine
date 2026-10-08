@@ -661,7 +661,6 @@ def check_receipt_chain(
         findings.append(_finding("stage_receipt_run_id_mismatch", "All receipts in a chain must share one run_id."))
     if expected_run_id is not None and run_ids != {expected_run_id}:
         findings.append(_finding("stage_receipt_run_id_mismatch", "Receipt run_id does not match the canonical article run identity."))
-    parsed_assembly_date = _assembly_date(assembly_date)
     observed_now = _now(now)
     if observed_now is None:
         findings.append(
@@ -675,7 +674,7 @@ def check_receipt_chain(
             _, started = _timestamp(receipt.get("started_at"), "started_at")
             _, completed = _timestamp(receipt.get("completed_at"), "completed_at")
         except StageReceiptError:
-            started = completed = None
+            completed = None
         if completed is not None and observed_now is not None and completed > observed_now:
             findings.append(_finding("stage_receipt_timestamp_future", "Receipt completion time cannot be in the future."))
         if resolvable_evidence_hashes is not None:
@@ -712,22 +711,6 @@ def check_receipt_chain(
         if prior_article and current_article != prior_article:
             findings.append(_finding("stage_receipt_article_chain_broken", "Article hashes are not continuous between stages."))
     return _sorted(findings)
-
-
-def _assembly_date(value: str | date | None) -> date | None:
-    if value is None:
-        return None
-    if isinstance(value, datetime):
-        return None
-    if isinstance(value, date):
-        return value
-    if not isinstance(value, str):
-        return None
-    try:
-        parsed = date.fromisoformat(value)
-    except ValueError:
-        return None
-    return parsed if parsed.isoformat() == value else None
 
 
 def _now(value: datetime | None) -> datetime | None:

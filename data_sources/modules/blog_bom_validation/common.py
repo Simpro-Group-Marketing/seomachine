@@ -12,7 +12,6 @@ from ..guard_common import Finding, make_finding
 from .contracts import (
     FORBIDDEN_TOPOLOGY_PATTERNS,
     PATH_SHAPED_RE,
-    REQUIRED_ARTIFACT_FIELDS,
     V4_REQUIRED_ARTIFACT_FIELDS,
 )
 
