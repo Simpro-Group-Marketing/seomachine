@@ -23,7 +23,7 @@ from domain_identity import hostnames_equal  # noqa: E402 - path bootstrap must 
 
 def load_config():
     """Load configuration from config file."""
-    config_path = os.path.join(os.path.dirname(__file__), 'config', 'competitors.json')
+    config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'competitors.json')
     if os.path.exists(config_path):
         with open(config_path) as f:
             return json.load(f)

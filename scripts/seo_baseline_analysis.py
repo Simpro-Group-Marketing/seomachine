@@ -26,7 +26,7 @@ from google_search_console import GoogleSearchConsole  # noqa: E402 - path boots
 
 def load_config():
     """Load keyword configuration from config file."""
-    config_path = os.path.join(os.path.dirname(__file__), 'config', 'competitors.json')
+    config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'competitors.json')
     if os.path.exists(config_path):
         with open(config_path) as f:
             return json.load(f)
