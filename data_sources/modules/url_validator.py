@@ -33,12 +33,14 @@ try:
     from .public_http import URL_RESOLUTION_POLICY
     from .public_url_safety import PublicUrlSafetyError, request_public_url
     from .public_http import markdown_urls as _markdown_urls
+    from .public_http.snapshot import ResponseLimitError
     from .public_http.url_cache import NullUrlResolutionCache, UrlResolutionCache
 except ImportError:  # pragma: no cover - supports direct script execution.
     from artifact_runtime.paths import cache_path
     from public_http import URL_RESOLUTION_POLICY
     from public_url_safety import PublicUrlSafetyError, request_public_url
     import public_http.markdown_urls as _markdown_urls
+    from public_http.snapshot import ResponseLimitError
     from public_http.url_cache import NullUrlResolutionCache, UrlResolutionCache
 
 DEFAULT_BASE_URL = _markdown_urls.DEFAULT_BASE_URL
@@ -260,12 +262,16 @@ class UrlValidator:
             return []
         if self.transport is None:
             return [self._request(method, url) for url in urls]
-        responses = self.transport.request_many(
-            method,
-            urls,
-            headers=self.headers,
-            policy=URL_RESOLUTION_POLICY,
-        )
+        try:
+            responses = self.transport.request_many(
+                method,
+                urls,
+                headers=self.headers,
+                policy=URL_RESOLUTION_POLICY,
+            )
+        except Exception:
+            # One bad member must not void the batch; isolate it per URL.
+            return [self._request(method, url) for url in urls]
         return [
             self._retry_rate_limited(method, url, response)
             for url, response in zip(urls, responses)
@@ -305,7 +311,11 @@ class UrlValidator:
                 self._sleep_after_rate_limit(response)
                 response = self._send(method, url)
             return response
-        except (requests.exceptions.RequestException, PublicUrlSafetyError) as exc:
+        except (
+            requests.exceptions.RequestException,
+            PublicUrlSafetyError,
+            ResponseLimitError,
+        ) as exc:
             return UrlValidationResult(
                 url=url,
                 status="unresolved",

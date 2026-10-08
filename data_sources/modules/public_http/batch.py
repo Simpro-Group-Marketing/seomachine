@@ -10,7 +10,7 @@ from typing import Callable, Deque, Iterable, Iterator, Mapping
 import requests
 
 from .policies import MAX_PER_HOST, MAX_WORKERS, HttpRequestPolicy
-from .snapshot import ResponseSnapshot
+from .snapshot import ResponseLimitError, ResponseSnapshot
 
 
 MIB = 1024 * 1024
@@ -101,7 +101,7 @@ def execute_many(
                     )
                     if not state.pending:
                         if state.buffered:
-                            raise ValueError(
+                            raise ResponseLimitError(
                                 "public HTTP batch exceeds aggregate response byte limit"
                             )
                         continue

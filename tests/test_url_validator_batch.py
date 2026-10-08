@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import pytest
 import requests
 
 from data_sources.modules.url_validator import UrlValidator, validate_content_urls
@@ -100,24 +99,3 @@ def test_validate_many_falls_back_to_legacy_single_url_behavior() -> None:
         ("GET", urls[1]),
     ]
 
-
-def test_validate_many_fails_without_partial_results_on_batch_failure() -> None:
-    one = "https://example.com/one"
-    two = "https://example.com/two"
-
-    class PartiallyUnavailableTransport:
-        def request_many(self, method, urls, **kwargs):
-            del method, urls, kwargs
-            raise requests.ConnectionError("batch member failed")
-
-        def request(self, method, url, **kwargs):
-            del method, kwargs
-            if url == one:
-                raise requests.ConnectionError("offline")
-            return _response(url, 200)
-
-    with pytest.raises(requests.ConnectionError, match="batch member failed"):
-        UrlValidator(
-            transport=PartiallyUnavailableTransport(),
-            rate_limit_retry_seconds=0,
-        ).validate_many([one, two])

@@ -11,6 +11,10 @@ import requests
 from .policies import HttpRequestPolicy
 
 
+class ResponseLimitError(ValueError):
+    """Response rejected by byte or MIME policy."""
+
+
 CACHE_SCHEMA = "simpro-public-http-cache/v2"
 
 
@@ -39,11 +43,11 @@ class ResponseSnapshot:
 
     def validate(self, policy: HttpRequestPolicy) -> None:
         if len(self.body) > policy.max_response_bytes:
-            raise ValueError("public HTTP response exceeds policy byte limit")
+            raise ResponseLimitError("public HTTP response exceeds policy byte limit")
         mime = self.content_type.partition(";")[0].strip().casefold()
         accepted = {value.casefold() for value in policy.accepted_mime_types}
         if "*/*" not in accepted and mime not in accepted:
-            raise ValueError("public HTTP response MIME type is not accepted by policy")
+            raise ResponseLimitError("public HTTP response MIME type is not accepted by policy")
 
     def response(self) -> requests.Response:
         response = requests.Response()
