@@ -173,15 +173,6 @@ class ResearchSerpPlaywrightFallbackTests(unittest.TestCase):
 
     def test_dataforseo_evidence_binds_exact_attested_raw_response(self):
         module = load_research_serp_module()
-        normalized_response = {
-            "organic_results": [{
-                "title": "How to Schedule Field Service Work",
-                "url": "https://example.com/scheduling-guide",
-                "description": "A practical scheduling guide.",
-            }],
-            "features": ["people_also_ask"],
-            "provider_marker": {"request_id": "dfs-exact-123"},
-        }
         raw_response = {
             "tasks": [{
                 "result": [{

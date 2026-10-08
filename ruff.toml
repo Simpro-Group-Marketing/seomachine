@@ -1,0 +1,12 @@
+extend-exclude = [
+    ".claude/worktrees",
+    "mcp-gsc/venv",
+    "mcp-gsc/build",
+    "node_modules",
+    "temp",
+    "tmp",
+    "output",
+]
+
+[lint]
+select = ["F"]
