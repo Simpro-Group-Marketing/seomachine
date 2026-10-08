@@ -104,3 +104,56 @@ def test_current_strategy_and_schema_adapters_record_passing_execution(
 
     assert run_content_gate("blog_strategy", blog_strategy_plan_guard, inputs) == []
     assert run_content_gate("schema_handoff", schema_handoff_guard, inputs) == []
+
+
+def _metric_inputs(tmp_path: Path, transport: object | None) -> ContentGateInputs:
+    return ContentGateInputs(
+        article_content="# Article\n",
+        proof_content="proof",
+        article_path=tmp_path / "drafts" / "article.md",
+        proof_sidecar_path=None,
+        context_pack_path=None,
+        context_receipt_path=None,
+        vault_root=None,
+        runtime_policy={},
+        captured=CapturedInputs(tmp_path, {}),
+        validated_claim_set=None,
+        transport=transport,
+    )
+
+
+class _RecordingMetricModule:
+    def __init__(self) -> None:
+        self.fetcher = "unset"
+        self.fetch_transport = "unset"
+
+    def check_content(self, content, source_path=None, fetcher=None, proof_content=None):
+        self.fetcher = fetcher
+        return []
+
+    def fetch_source_text(self, url, *, transport=None):
+        self.fetch_transport = transport
+        return "text"
+
+
+def test_metric_gate_routes_fetches_through_the_run_transport(tmp_path: Path) -> None:
+    from data_sources.modules.readiness import gates
+
+    transport = object()
+    module = _RecordingMetricModule()
+
+    assert gates._metric(module, _metric_inputs(tmp_path, transport)) == []
+
+    assert callable(module.fetcher)
+    assert module.fetcher("https://example.com/x") == "text"
+    assert module.fetch_transport is transport
+
+
+def test_metric_gate_leaves_fetcher_unset_without_a_transport(tmp_path: Path) -> None:
+    from data_sources.modules.readiness import gates
+
+    module = _RecordingMetricModule()
+
+    assert gates._metric(module, _metric_inputs(tmp_path, None)) == []
+
+    assert module.fetcher is None

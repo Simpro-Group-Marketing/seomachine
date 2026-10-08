@@ -58,6 +58,11 @@ def _metric(module: Any, value: ContentGateInputs) -> list[dict[str, Any]]:
         value.article_content,
         source_path=str(value.article_path),
         proof_content=value.proof_content,
+        fetcher=(
+            lambda url: module.fetch_source_text(url, transport=value.transport)
+        )
+        if value.transport is not None
+        else None,
     )
 
 
