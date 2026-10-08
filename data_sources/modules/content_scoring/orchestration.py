@@ -4,7 +4,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any, Dict, Optional
 
 from .common import ScoringDependencies, default_scoring_dependencies
-from .priorities import build_priority_fixes
+from .priorities import _gate_fix, build_priority_fixes
 
 
 class ScoringOrchestrationMixin:
@@ -98,7 +98,10 @@ class ScoringOrchestrationMixin:
         )
         composite = round(composite, 1)
 
-        content_quality_passed = composite >= self.PASS_THRESHOLD
+        readability_error = readability.get('details', {}).get('scoring_error')
+        content_quality_passed = (
+            composite >= self.PASS_THRESHOLD and not readability_error
+        )
         seo_quality_passed = bool(seo.get('passed', True))
         gate_context = self._run_quality_gates(
             content,
@@ -140,6 +143,17 @@ class ScoringOrchestrationMixin:
             gate_context,
             weights=self.WEIGHTS,
         )
+        if readability_error:
+            priority_fixes = [
+                _gate_fix(
+                    readability_error,
+                    'Fix the readability input or scorer, then rescore.',
+                    'readability',
+                )
+            ] + [
+                fix for fix in priority_fixes if fix['issue'] != readability_error
+            ]
+            priority_fixes = priority_fixes[:5]
         quality_gates = self._build_quality_gates(
             composite,
             content_quality_passed,

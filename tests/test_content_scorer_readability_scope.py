@@ -1,6 +1,8 @@
+import dataclasses
 from unittest.mock import patch
 
 from data_sources.modules.content_scorer import ContentScorer
+from data_sources.modules.content_scoring.common import default_scoring_dependencies
 
 
 PROSE = (
@@ -154,3 +156,67 @@ def test_orchestration_uses_the_narrow_scope_for_readability_only() -> None:
     assert result["dimensions"]["readability"]["details"][
         "excluded_markdown_tables"
     ] == 1
+
+
+class _Boom:
+    def analyze(self, content):
+        raise RuntimeError("tokenizer crashed")
+
+
+class _ErrorKey:
+    def analyze(self, content):
+        return {"error": "No readable content provided"}
+
+
+def _scorer(factory) -> ContentScorer:
+    deps = dataclasses.replace(
+        default_scoring_dependencies(), readability_scorer_factory=factory
+    )
+    return ContentScorer(dependencies=deps)
+
+
+def test_readability_crash_scores_zero_with_visible_issue() -> None:
+    result = _scorer(_Boom)._score_readability("Some prose here.")
+
+    assert result["score"] == 0
+    assert any(
+        issue["issue"].startswith("Readability scoring failed")
+        and issue["severity"] == "high"
+        for issue in result["issues"]
+    )
+
+
+def test_readability_error_payload_scores_zero() -> None:
+    result = _scorer(_ErrorKey)._score_readability("Some prose here.")
+
+    assert result["score"] == 0
+    assert result["details"]["scoring_error"].startswith("Readability scoring failed")
+
+
+def test_readability_failure_blocks_content_quality_despite_composite_pass() -> None:
+    from tests.test_content_scorer_minimum_word_gate import (
+        _content,
+        _passing_dependencies,
+    )
+
+    deps = dataclasses.replace(
+        _passing_dependencies(), readability_scorer_factory=_Boom
+    )
+    perfect = {"score": 100, "issues": [], "details": {}}
+    with patch.object(ContentScorer, "_score_humanity", return_value=perfect), patch.object(
+        ContentScorer, "_score_specificity", return_value=perfect
+    ), patch.object(
+        ContentScorer,
+        "_score_structure_balance",
+        return_value={**perfect, "prose_ratio": 0.65},
+    ), patch.object(
+        ContentScorer, "_score_seo", return_value={**perfect, "passed": True}
+    ):
+        result = ContentScorer(dependencies=deps).score(
+            _content(200), {"primary_keyword": "field service workflow"}
+        )
+
+    assert result["composite_score"] >= result["threshold"]
+    assert result["quality_gates"]["content_quality"]["passed"] is False
+    assert not result["passed"]
+    assert result["priority_fixes"][0]["issue"].startswith("Readability scoring failed")

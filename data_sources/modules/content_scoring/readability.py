@@ -106,15 +106,17 @@ class ReadabilityScoringMixin:
         issues = []
         details = {}
 
-        # Use existing readability scorer
+        # Use existing readability scorer; a failure scores zero and blocks.
         try:
             analysis = self.readability_scorer.analyze(content)
-            flesch = analysis.get('readability_metrics', {}).get('flesch_reading_ease', 50)
-            grade = analysis.get('reading_level', 12)
-        except Exception:
-            # Fallback if module fails
-            flesch = 60
-            grade = 10
+        except Exception as exc:
+            return self._readability_failure(f"Readability scoring failed: {exc}")
+        if analysis.get('error'):
+            return self._readability_failure(
+                f"Readability scoring failed: {analysis['error']}"
+            )
+        flesch = analysis.get('readability_metrics', {}).get('flesch_reading_ease', 50)
+        grade = analysis.get('reading_level', 12)
 
         details['flesch_reading_ease'] = flesch
         details['grade_level'] = grade
@@ -183,6 +185,19 @@ class ReadabilityScoringMixin:
             'issues': issues,
             'details': details
         }
+
+    def _readability_failure(self, message: str) -> Dict[str, Any]:
+        return {
+            'score': 0,
+            'flesch': None,
+            'issues': [{
+                'issue': message,
+                'fix': 'Fix the readability input or scorer, then rescore.',
+                'severity': 'high'
+            }],
+            'details': {'scoring_error': message}
+        }
+
     def _check_paragraph_length(self, content: str) -> Dict[str, Any]:
         """Check for paragraphs that exceed 4 sentences"""
         # Split into paragraphs (double newline or blank line)
