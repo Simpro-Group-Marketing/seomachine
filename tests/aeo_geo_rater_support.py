@@ -1,20 +1,13 @@
 from tests.fixture_text import fixture_text
 
-import hashlib
 import json
-import re
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
-from datetime import date, timedelta
 from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from data_sources.modules.content_scoring.aeo_content import _check_direct_answer
-from data_sources.modules.content_scoring.aeo_eeat import _check_eeat_proof
-from data_sources.modules.content_scoring.aeo_faq_paa import _check_faq_proof, _check_faq_questions
-from data_sources.modules.content_scoring.aeo_no_fit import _has_documented_no_fit_experience_boundary
 from data_sources.modules.content_scoring.aeo_orchestration import rate_aeo_geo
 from data_sources.modules.customer_proof_selector import _main as run_customer_proof_selector
 from tests.research_provenance_fixtures import build_answersocrates_fixture

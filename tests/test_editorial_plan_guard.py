@@ -5,7 +5,6 @@ import json
 import pytest
 
 from data_sources.modules.blog_assembly_contract import canonical_json_sha256
-from data_sources.modules.editorial_plan_guard import build_serp_evidence
 from tests.research_provenance_fixtures import build_serp_fixture
 
 

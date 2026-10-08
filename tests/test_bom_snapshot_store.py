@@ -9,7 +9,7 @@ import pytest
 from data_sources.modules.readiness.inputs import ReadinessInputs
 from data_sources.modules import blog_assembly_contract
 from data_sources.modules.blog_assembly_bom_guard import check_bom
-from tests.test_blog_assembly_bom import _build, _fixture
+from tests.test_blog_assembly_bom import _build
 from tests.test_blog_assembly_bom_v4 import _upgrade_to_v4
 
 def _write(path: Path, content: str, *, root: Path) -> dict[str, str]:

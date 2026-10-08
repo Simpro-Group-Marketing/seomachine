@@ -422,7 +422,6 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
             pack = Path(tmp) / "context-pack.json"
             receipt = Path(tmp) / "context-receipt.json"
             bom = Path(_write_bom(tmp))
-            bom_hash = hashlib.sha256(bom.read_bytes()).hexdigest()
             path.write_text(DRAFT, encoding="utf-8")
             sidecar.write_text("Metric Proof Pack\n", encoding="utf-8")
 

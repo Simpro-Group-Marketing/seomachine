@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import hashlib
 import json
 import subprocess
@@ -16,7 +15,6 @@ from data_sources.modules import blog_assembly_contract
 from data_sources.modules.blog_assembly_bom_guard import check_bom
 from data_sources.modules.blog_assembly_bom import (
     NON_CONNECTOR_REASON,
-    finalize_blog_assembly_bom,
     write_blog_assembly_bom,
 )
 from data_sources.modules.blog_assembly_stage_receipt import (
@@ -161,7 +159,7 @@ def test_final_bom_requires_unchanged_historical_provisional_bom(tmp_path: Path)
     bom_path = tmp_path / "research" / "bom.json"
     write_blog_assembly_bom(bom_path, provisional)
     preflight = _preflight(tmp_path, bom_path, provisional)
-    final = _finalize_fixture_bom(
+    _finalize_fixture_bom(
         bom_path=bom_path,
         preflight_readiness_path=preflight,
         workspace_root=tmp_path,

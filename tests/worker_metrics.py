@@ -8,7 +8,7 @@ import re
 import tempfile
 from pathlib import Path
 
-from data_sources.modules.resource_metrics import process_peak_rss_bytes
+from data_sources.modules.resource_metrics import process_peak_rss_bytes as process_peak_rss_bytes
 
 
 SCHEMA = "simpro-test-worker-metrics/v2"
