@@ -40,7 +40,8 @@ def chrome_verified_urls() -> frozenset[str]:
             ):
                 urls.add(entry["url"].strip())
     except (OSError, ValueError):
-        urls = set()
+        # A read error must not be cached for the life of the process.
+        return frozenset()
     _CHROME_VERIFIED_CACHE = frozenset(urls)
     return _CHROME_VERIFIED_CACHE
 

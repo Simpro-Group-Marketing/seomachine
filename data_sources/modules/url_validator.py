@@ -131,7 +131,7 @@ def _is_chrome_verified_manual_review(result: UrlValidationResult) -> bool:
     read in a real browser, so any of those automated-client failures is
     exempt. Genuinely dead URLs stay blocked because they never earn an entry.
     """
-    if result.passed:
+    if result.passed or result.status_code in {404, 410}:  # gone pages never exempt
         return False
     if result.status == "manual_review" and result.status_code in {401, 403}:
         return result.url.strip() in chrome_verified_urls()
