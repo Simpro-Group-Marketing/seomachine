@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository. It is a pointer file: each rule lives in exactly one canonical home listed under "Where policy lives". Read the canonical doc before acting; do not restate its policy here.
 
 ## Project Overview
 
@@ -24,27 +24,24 @@ Local Python modules still expect service-account paths when used directly:
 
 Do not point `GSC_CREDENTIALS_PATH` at the OAuth client secret. Do not add `ADK_DISABLE_PLUGGABLE_AUTH` for this MCP setup.
 
-## MCP Setup
-
-This repo uses two project-scoped MCP servers:
-- `gsc`
-- `analytics-mcp`
-
-Codex reads `.codex/config.toml`; Claude-compatible clients can read `.mcp.json`. Both should point to this repo root, not to another local repo.
+This repo uses two project-scoped MCP servers, `gsc` and `analytics-mcp`. Codex reads `.codex/config.toml`; Claude-compatible clients can read `.mcp.json`. Both should point to this repo root, not to another local repo.
 
 ## Commands
 
-All commands are defined in `.claude/commands/` and invoked as slash commands. These command docs are the shared workflow contract for Claude Code and Codex execution:
+Commands live in `.claude/commands/` and are invoked as slash commands. Each command doc is the shared workflow contract for Claude Code and Codex execution.
 
 - `/research [topic]` - Keyword/competitor research, generates brief in `research/`
-- `/write [topic]` - Create full article in `drafts/`, auto-triggers optimization agents
+- `/write [topic]` - Create full article in `drafts/` and run the specialist machine reviewers
 - `/rewrite [topic]` - Update existing content with SEO plus AEO/GEO rewrite gates, saves to `rewrites/`
 - `/optimize [file]` - Required post-preflight SEO/AEO repair or recorded no-op pass
+- `/scrub [file]` - Read-only diagnostics for invisible Unicode marks, em dashes, and whitespace artifacts
+- `/publish-readiness [file]` - Complete source-artifact gate stack and the sole release verdict
 - `/analyze-existing [URL or file]` - Content health and AEO/GEO rewrite-readiness audit
 - `/performance-review` - Analytics-driven content priorities
-- `/publish-draft [file]` - Publish to WordPress via REST API
+- `/publish-draft [file]` - Publish to WordPress via REST API (Yoast setup in `wordpress/README.md`)
 - `grav-publish` (skill) - Publish a finished `drafts/`/`rewrites/` article to Grav CMS by committing `blogs/<slug>/article.en.md` to the GitHub `dev` branch via the `gh` Contents API (text only; images deferred). Config: `GRAV_REPO`, `GRAV_BRANCH`, `GRAV_BLOG_PATH`, `GRAV_DEFAULT_LANG` in `.env`.
 - `/cluster [topic]` - Build complete topic cluster strategy with pillar + supporting articles + linking map
+- `/content-calendar` - Month-long content calendar mapped to clusters, keywords, and cadence
 - `/priorities` - Content prioritization matrix
 - `/research-serp`, `/research-gaps`, `/research-trending`, `/research-topics` - Specialized research commands
 - `/research-performance` - No-argument performance queue; `/research-performance [URL-or-path]` writes the target report-and-receipt pair
@@ -52,196 +49,39 @@ All commands are defined in `.claude/commands/` and invoked as slash commands. T
 - `/repurpose [article] --final-readiness [attestation] [--canonical-url URL]` - Prepares an optional manual, evidence-bound distribution handoff from a sealed article; it never posts externally or adds unsupported claims, and it is not an AI-citation mechanism
 - `/landing-write`, `/landing-audit`, `/landing-research`, `/landing-publish`, `/landing-competitor` - Landing page commands
 
-## Architecture
+## Pipeline directories
 
-### Command-Agent Model
-
-**Commands** (`.claude/commands/`) orchestrate workflows. **Agents** (`.claude/agents/`) are specialized roles invoked by commands. After `/write`, these agents auto-run: SEO Optimizer, Meta Creator, Internal Linker, Keyword Mapper.
-
-Key agents: `content-analyzer.md`, `seo-optimizer.md`, `meta-creator.md`, `internal-linker.md`, `keyword-mapper.md`, `editor.md`, `headline-generator.md`, `cro-analyst.md`, `performance.md`, `cluster-strategist.md`.
-
-### Python Analysis Pipeline
-
-Located in `data_sources/modules/`. The Content Analyzer chains:
-1. `search_intent_analyzer.py` - Query intent classification
-2. `keyword_analyzer.py` - Density, distribution, stuffing detection
-3. `content_length_comparator.py` - Benchmarks against top 10 SERP results
-4. `readability_scorer.py` - Flesch Reading Ease, grade level
-5. `seo_quality_rater.py` - Comprehensive 0-100 SEO score
-6. `url_validator.py` - URL validation guardrail for Markdown links and bare URLs
-7. `metric_proof_pack_guard.py` - Metric Proof Pack guardrail requiring a Search log and at least one Approved metric with source-visible Evidence for metric-sensitive topics
-8. `numeric_claim_source_guard.py` - Metric/stat proof guardrail for public numeric business claims
-9. `faq_answer_quality_guard.py` - Blocking answer-first FAQ guardrail for generic deflections, missing answers, and unexplained binary responses
-10. `faq_proof_guard.py` - Risk-tiered FAQ proof guardrail requiring a first-paragraph authoritative non-owned public evidence link for fact-driven or high-risk answers while lower-risk answers follow their machine-assigned citation mode
-11. `paa_provenance_guard.py` - PAA provenance guardrail requiring FAQ questions to match a structured AnswerSocrates artifact or, for rewrites, the dedicated pre-picked brief section; user CSV fallback requires a bound genuine AnswerSocrates blocker, while SERP, Reddit, and YouTube remain supplemental only
-12. `source_support_guard.py` - Strict source support guard requiring approved proof rows with source-visible Evidence snippets
-13. `customer_proof_selector.py` - Customer proof selector automatically run by slash workflows with `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10` to choose the most relevant approved proof
-14. `customer_proof_index_health.py` - Read-only proof inventory health report for source mix, approvals, overuse, and public-copy gaps
-15. `customer_proof_index_intake.py` - Customer proof intake validator/merger for `context/customer-proof-intake-template.csv`
-16. `customer_proof_diversity_guard.py` - Customer proof diversity guard requiring non-case-study proof search evidence, a `Customer Proof Selection Decision`, and source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved proof fits the same role
-17. `review_story_identity_guard.py` - Review story identity guard requiring identity-backed Review Story Selection, a public review URL, and same paragraph article link for review-derived E-E-A-T stories
-18. `eeat_strength_guard.py` - Commercial-investigation E-E-A-T strength guard requiring a positive proof signal or internal `proof_unavailable_safe_to_publish` decision with warning `eeat_strength_safe_but_weak`
-
-### Data Integrations
-
-- `google_analytics.py` - GA4 traffic/engagement data
-- `google_search_console.py` - Rankings and impressions
-- `dataforseo.py` - SERP positions, keyword metrics
-- `data_aggregator.py` - Combines all sources into unified analytics
-- `wordpress_publisher.py` - Publishes to WordPress with Yoast SEO metadata
-
-### Opportunity Scoring
-
-`opportunity_scorer.py` uses 8 weighted factors: Volume (25%), Position (20%), Intent (20%), Competition (15%), Cluster (10%), CTR (5%), Freshness (5%), Trend (5%).
-
-## Research Command Workflows
-
-Use slash commands for research and optimization workflows. Do not hand Python script calls back to the user as required steps; scripts and MCP calls are implementation details for the command runner.
-
-```text
-/research-performance
-/research-performance [blog URL or path]
-/research-gaps
-/research-serp
-/research-topics
-/research-trending
-/analyze-existing [blog URL]
-/rewrite [blog URL]
-/optimize [draft or rewrite file]
-```
-
-## Content Pipeline
-
-
-## Obsidian Vault Source Rule
-
-For every blog, SEO, AEO, competitor, proof, product, audience, partner, or workflow decision, use the Simpro vault connector as the active context source. The only configured content location is the vault root; prompts, guards, selectors, and workflow docs must not prescribe vault hubs, filenames, or internal directories.
-
-Required connector workflow: run vault health first, describe available roles/topics/entities, search in the task's natural language, read and expand results by `resource_id`, query approved claims only when public proof-sensitive language is needed, then build and validate a context pack. Use the one enabled `simpro-context@simpro` installation whose `projectPath` matches this repository, regardless of its reported version. Never use an installation attached to another repository, worktree, or branch checkout. Determine compatibility from `vault_status` and the required operation contracts, not the version label. When vault MCP operations are absent from the active tool catalog, invoke the same current-project connector through `data_sources.modules.simpro_vault_client.SimproVaultClient`; missing MCP exposure does not make the vault unavailable.
-
-Do not use Google Workspace or old marketing-portal URLs as the active read path. Use them only as historical provenance when the vault connector exposes them as source evidence.
-
-The repo-local context files are downstream operational state only and are never an active or fallback source for Simpro work. If both surfaced MCP operations and the current-project `SimproVaultClient` path fail, stop, document the exact vault blocker in the validation sidecar, and do not draft unsupported public claims.
-
-Required validation sidecar evidence: generated vault context binding for every workflow; `Vault Brand Language Alignment` when product, feature, add-on, solution, industry, or related Simpro product URL language appears; `Competitive Shortlist Decision` for competitor-aware posts; `Named Feature/Add-On Link Check` when named Simpro features/add-ons appear. These sections must cite connector `context_pack_hash`, `receipt_hash`, `resource_id`, `claim_id`, use mode, public URL when required, and relevant revisions. Missing required evidence blocks `/publish-readiness`, `/optimize`, and dev-ready handoff.
-
-## Reader-Facing Public Copy Boundary
-
-Public blog body copy must read as an article for the ICP, not as a workflow explanation for the operator. Keep brief instructions, editorial rationale, command results, claim-selection decisions, source-fit reasoning, product-mention omissions, schema notes, and publish-readiness status out of the body. Put that material in YAML frontmatter when it is public metadata, and in the validation sidecar, editorial plan, optimizer output, release BOM, or command receipt when it is workflow evidence.
-
-When image or video work remains, keep the marker reader-visible and standalone. `/write`, `/rewrite`, and `/optimize` must normalize hidden HTML comments, blockquotes, inline labels, and shorthand media notes into these formats: `[IMAGE PLACEHOLDER | source: ... | alt: "..." | render target: ... | resize and compress before upload]` or `[VIDEO PLACEHOLDER | source: ... | title: "..." | placement: ... | embed target: ... | VideoObject: add only after embed]`. Unclear media placeholder warnings are repair instructions for the LLM, not publish blockers.
-
-Never write public body sentences such as "this article uses," "the brief asks," "that is the right editorial lane," "it does not name a specific feature," or similar commentary that explains why the draft was assembled a certain way. Translate the decision into reader-facing guidance, or omit it. The AI copy linter's `editorial_process_leakage` rule is a release blocker for this class of mistake.
-
-## Reviewed Humanizer Governance
-
-The Editor reviews `/write`, `/rewrite`, and `/optimize` snapshots against the pinned Humanizer snapshot recorded in `vendor/blader-humanizer/UPSTREAM.json`, the local decisions in `config/humanizer-policy.json`, and current vault voice context. Humanizer is style advice only. It never edits public copy directly, does not approve claims, and has no runtime network access. Only policy entries explicitly marked for deterministic enforcement may enter the existing AI-copy linter. `/publish-readiness` remains the sole release owner.
-
-Validate the vendored snapshot offline with `python tools/humanizer_upstream.py verify`. Use `check-upstream`, `stage`, and `adopt` for reviewed upgrades. The weekly workflow may open a draft vendor-only PR, but a maintainer must review pattern changes and update the local policy before CI can pass. Never modify `config/humanizer-policy.json` automatically from upstream content.
-
-## Vault-Backed Competitor and Feature Guardrails
-
-- `Competitive Shortlist Decision`: competitor-aware posts must document selected competitors, rejected competitors, connector-discovered competitive-context resources, approved claim IDs where public proof is used, and why the shortlist fits the article objective.
-- Public competitor pages may shape SERP/article format, but cannot decide named competitors for Simpro public copy.
-- `Hindsight Boundary`: Hindsight/deal intelligence can inform the private blog strategy, reader angle, section emphasis, objections, and commercial framing, but cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified through the claim registry. Keep raw deal counts out of public copy.
-- `Named Feature/Add-On Link Check`: first meaningful mentions of Simpro features/add-ons must be checked through connector-discovered product and feature resources before link decisions. Document the selected `resource_id` values, link decision, and reason in the validation sidecar.
-- `Vault Brand Language Alignment`: product, feature, add-on, solution, and industry language must be drafted from connector-discovered vault guidance first. Use semantic search/read/expand for messaging, positioning, feature, solution, and vertical context. When a named feature/add-on appears, include feature-specific `resource_id` evidence; when solution/industry language is used, include solution or vertical `resource_id` evidence. Document connector evidence, language applied, fallback context use, source-verification boundary, and `Status: aligned` in `Vault Brand Language Alignment`. The `vault_brand_language_guard.py` publish gate runs inside `/publish-readiness`; keep this block in the validation sidecar, not public copy. The repo-local `context/brand-voice.md` and `context/style-guide.md` are fallback mirrors only when the vault is unavailable.
-
-`topics/` (ideas) -> `research/` (briefs, machine reviews, release evidence) -> `drafts/` or `rewrites/` (articles) -> `published/` (final)
+`topics/` (ideas) -> `research/` (briefs, machine reviews, validation sidecars, release evidence) -> `drafts/` or `rewrites/` (articles) -> `published/` (final)
 
 Rewrites go to `rewrites/`. Landing pages go to `landing-pages/`. Audits go to `audits/`. Repurposed content goes to `repurposed/`.
 
-Blog rewrites must follow the same AEO/GEO evidence boundaries as new articles: sourced PAA/FAQ provenance, answer-first FAQ quality, risk-tiered citations, source mapping, Metric Proof Pack inputs, E-E-A-T Proof Map inputs, direct-answer structure, schema notes, AI copy lint, URL validation, proof gates, source support, and the 85/100 general quality plus 90/100 AEO/GEO gates before final handoff. After all non-scoring gates pass, a sub-threshold score triggers the automatic AEO/GEO Recovery Loop and may use `/optimize`; it does not end at reporting.
+## Where policy lives
 
-Mandatory workflow: every new or changed blog run must include `/scrub`, an initial `/publish-readiness` scorecard or exact non-scoring blocker, `/optimize`, a post-optimization `/scrub` when article bytes change, and a final `/publish-readiness` handoff. After the first readiness pass, rerun the wrapper with the optimizer output and prior preflight readiness evidence until phase `final_readiness`. `/optimize` is mandatory even when it makes no source-safe copy edit; in that case it writes a no-op optimizer artifact containing the inspected scorecard or exact blocker, AEO/GEO checks, priority fixes, and no-edit reason. Score absence is a workflow blocker unless a pre-scoring gate blocked readiness; preserve and route that exact blocker into recovery.
+Command docs carry per-command steps and the selector, guard, and release commands they run; detailed policy stays in the canonical doc they point to.
 
-The first wrapper run intentionally omits optimizer evidence. It must return exit `0` with phase `optimization_started` and write `optimization-recovery.json` instead of failing because optimizer evidence is absent. If preflight passes, persist the scorecard and stage receipt and open `optimization-state.json`. If a gate blocks scoring, preserve the exact blocker without creating a fake passed receipt, begin the `/optimize` recovery handoff, repair the blocker, and rerun for the required initial scorecard. Only a later run with both `--optimizer-output` and `--prior-preflight-readiness` may produce `final_readiness`; neither a passing preflight score nor `optimization_started` is publish approval.
+| Canonical home | Governs |
+|---|---|
+| `context/aeo-geo-blog-strategy.md` | AEO/GEO and proof policy: Simpro vault source rule and nonconnector branch, author voice, competitor and feature guardrails, native workflow and BOM, the mandatory scrub/readiness/optimize loop, score thresholds, PAA, Metric and Customer Proof Packs, E-E-A-T, Fred authority, citation modes and link counts, reader-facing copy boundary, drafting rules, publish gates, and the recovery loop |
+| `context/blog-editorial-strategy.md` | Editorial plan ownership, Reader Contract, story safety, specificity, headline integrity, continuity, CTA profiles, and Reviewed Humanizer governance |
+| `.claude/commands/publish-readiness.md` | Gate stack, release wrapper phases (`optimization_started`, `final_readiness`), exit codes, and final handoff |
+| `.claude/commands/*.md` | Per-command workflow steps |
+| `.claude/rules/seo-blog-strategy.md` | Editorial plan v2 strategy objects, commercial pillar destination, claim-level source quality, lifecycle, metadata handoff |
+| `.claude/rules/customer-proof.md` | Selector-first customer proof, reuse ledger, nonconnector proof selector |
+| `.claude/rules/faq-answer-quality.md` | FAQ answer shape and FAQ evidence-link requirements |
+| `.claude/rules/blog-schema.md` | `schema_notes` frontmatter and author mapping |
+| `.claude/rules/repository-development.md` | Rules for code, tests, configuration, scripts, and developer docs |
+| `.claude/rules/agent-governance.md` | Changing agent, rule, skill, command, MCP, or steering docs; evidence status |
+| `.claude/agents/*.md` | Advisory specialist reviewer roles used by the commands |
+| `context/commercial-pillar-index.json`, `context/internal-links-map.md`, `context/seo-guidelines.md` | Commercial destinations, internal-link inventory, and SEO structure mechanics |
+| `MEMORY.md` | Durable architecture, proof invariants, and resource limits |
 
-Every FAQ must use a 40-60 word first paragraph and lead with a supported number/range, named recommendation, definition, concrete action, or explained yes/no response. Generic deflections block `faq_answer_quality_guard.py`. Fact-driven or high-risk FAQ answers need a natural authoritative non-owned public evidence link in that first paragraph. Lower-risk answers follow their machine-assigned citation mode and do not receive a visible link solely to meet a quota.
+`.claude/rules/` is the source of truth for rule files. `.agents/rules/` and `.cursor/rules/` are generated mirrors; run `python tools/sync_rule_mirrors.py` after editing a rule.
 
-For standard blog posts with FAQs, schema notes must list `BlogPosting`, `BreadcrumbList`, and `FAQPage`; nested entities must include `Question and Answer inside FAQPage`, `ImageObject for the featured image or logo`, and `Organization as publisher reference only, not a separate full schema block`. For public Markdown blog artifacts, place this as a `schema_notes` field in the top YAML frontmatter block, between the opening and closing --- delimiters. If a named author is present, include `author` in frontmatter and map it to `Person as author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization` as publisher reference only, and record the no-author decision in the blog assembly BOM and validation sidecar. Use `VideoObject` only when a video is embedded.
+## Non-negotiables
 
-Use a validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md` for proof-only infrastructure. Public blog drafts and rewrites must not include an `Editorial Validation Appendix`, `PAA/FAQ Provenance`, `Metric Proof Pack`, `Source Map`, `Customer Proof Pack`, `FAQ Proof Map`, or structured data plan. Preferred publish readiness command: `/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json`.
-
-For commercial-investigation blogs, `no_fit_customer_proof` is only the anti-invention path. It does not count as a positive E-E-A-T signal. If no selected customer proof, visible approved review-theme/story evidence, selected Fred authority, named author, or approved SME review note exists, the sidecar must include `## E-E-A-T Strength Decision` with `Decision: proof_unavailable_safe_to_publish`, the required public-copy boundary, and `Status: approved`. `/publish-readiness` emits warning `eeat_strength_safe_but_weak`, and the BOM records `eeat_strength_policy`. This does not change AEO/GEO scoring.
-
-Before `/optimize` or any publish path, run the command-system gate:
-```bash
-/publish-readiness [file] --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json
-```
-
-The slash command runs the public artifact, AI copy, URL, proof, source support, customer proof, review story, E-E-A-T strength, early artifact, answer withholding, content score, and AEO/GEO gates internally. Use individual guard modules only when debugging a failed gate from `context/aeo-geo-blog-strategy.md`.
-
-Every standard blog draft and rewrite needs a usable artifact — a filled data table, download link, checklist deliverable, or calculator reference — within the first 300 words of body copy, and must supply a concrete number, range, or template when the target query implies one. Placeholder table scaffolds block publish. Policy lives in `context/aeo-geo-blog-strategy.md`.
-
-URL validation confirms destinations resolve; it does not prove the page supports the claim, so Source Map and E-E-A-T proof review still verify claim support.
-
-Metric Proof Pack guard confirms metric-sensitive articles have documented metric research before writing or publish readiness. It requires a Search log and at least one Approved metric with public URL or local proof artifact, source-visible Evidence, Status: approved, and intended Use unless `Metric requirement: not applicable` is documented with a reason.
-
-Every metric, statistic, or material numeric business claim must have a natural same-paragraph or same-row public link plus the machine-generated Source Map or Customer Proof Pack mapping required by the workflow. Treat "industry standard," "FDD conventions," and "no anchor" as insufficient proof for numeric public claims.
-
-Every proof-sensitive claim is machine-mapped under exactly one citation mode. `inline_required` covers legal, regulatory, licensing, compliance, safety, fees, deadlines, pricing, status, material numeric, causal, comparative, benchmark, quote, customer, review, Fred, and fact-driven FAQ claims; it requires a natural public link in the same paragraph or row, and in the first visible paragraph for FAQs. `section_source_allowed` permits one mapped source in the same H2 for lower-risk body definitions, background, or process. `sidecar_only` applies to approved low-risk product or brand language and clearly framed low-risk editorial recommendations. `proof_not_required` is generated only by the policy engine for navigation, explicit opinion, or advice with no externally verifiable factual claim. Unknown or ambiguous high-risk claims fail closed to `inline_required`.
-
-Use natural descriptive anchors. Two distinct authoritative non-owned external sources pass the standard-blog baseline; do not add a quota-only third source, while claim-fit evidence exceptions remain uncapped. Standard blogs use 3 to 5 internal links and never more than 7. URL fragments and `mailto:` or `tel:` links do not count toward either total. Machine reviewers preserve required links and flag redundant destinations or duplicate support. They do not assign release status; `/publish-readiness` remains the sole verdict with no human approval step.
-
-PAA provenance requires every FAQ question to match a saved PAA/FAQ source artifact when an FAQ section is present. Use `PAA/FAQ Provenance` with Source, Artifact, and Selected questions; see `context/aeo-geo-blog-strategy.md` for the full source-label and proof-boundary policy.
-
-The source support guard requires strict proof rows with Claim, URL, Evidence, and Status: approved. The Evidence snippet must be visible in the cited public source or local proof artifact. Case-study proof paths and Review-site experience evidence may support non-metric E-E-A-T PoV and paraphrased themes only. Exact quotes or testimonial wording must appear in Customer Proof Pack Approved quotes with customer/brand or reviewer, source type, public URL, Evidence, and approved status. A named customer metric must appear in Customer Proof Pack Approved metrics with customer/brand, public URL, Evidence, and approved status; Source Map alone is insufficient for quotes, testimonials, or named metrics.
-
-Before selecting customer proof, the command workflow must resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and add the generated selector-first `Customer Proof Slate` to the validation sidecar before drafting. If inputs are missing, resolve them from the brief/context or stop before drafting customer proof. If the selector fails, write the blocker into the sidecar and do not invent proof. Review generated selector output before choosing proof; do not skip execution. Edit selected/rejected rows only when editorial judgment requires it. experience_story consideration is required and E-E-A-T story usage is optional; if no story fits, use `Selected: [none]` with section-specific rejection reasons. Choose the most relevant approved proof, not the easiest mapped case study. Before claiming a proof source is underused, inspect the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the proof ID, public URL, and customer name. If the live repo scan finds public-copy usage missing from the ledger, backfill `context/customer-proof-usage-ledger.json`, rerun proof health and selector checks, and document the backfill in the validation sidecar. If selected proof is recently used or overused, the validation sidecar needs a selector-backed, source-specific `Reuse reason`.
-
-## Fred Voccola Authority Selection
-
-For every new or changed Simpro blog and every rewrite, analysis, optimization, or publish-readiness pass, automatically run:
-
-```powershell
-python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --slate --limit 5
-```
-
-Write the complete `Fred Voccola Authority Selection` block to the validation sidecar. Evaluation is mandatory; public use is optional. The vault connector and claim registry are the sole eligibility source, and the selector fails closed unless current connector revisions, resource hashes, and claim decisions validate. Fred evidence supports Expertise and Authority by default and counts as Experience only when the source explicitly supports first-hand personal or operating experience. It is additive to customer Experience proof, customer stories, and independent evidence.
-
-Exact article quotes require `source_visible_article_text`; exact video/audio quotes require `transcript_and_playback`, a timestamp, and playback verification; paraphrases require `paraphrase_evidence`. Exact quotes and paraphrased observations need a contextual public link in the same paragraph. A playlist-only row supports discovery or an eligible embed, never independent earned-media authority. Use only a selected, public, embeddable YouTube source in a responsive 16:9 `youtube-nocookie.com` handoff with a visible fallback link, descriptive title, lazy loading, no autoplay, and verified metadata. Require `VideoObject` if and only if embedded. No usage ledger or frequency penalty applies in v1. Existing content is evaluated when next rewritten, optimized, or passed through publish readiness.
-
-Treat any `recent_uses_90d` value above 0 as a proof-diversity warning, not only sources marked `overused`. Prefer an approved zero-recent-use source when one fits the same role. If a recently used or overused proof source is still selected, the validation sidecar must explain why no stronger underused approved proof fits.
-
-When selected customer proof appears in public copy, add `Selected Customer Proof Mining` to the validation sidecar. Selector chooses candidates; proof mining reads the selected public URL before the writer decides quote, metric, POV/story, theme, or omit use. Full details live in `context/aeo-geo-blog-strategy.md`.
-
-Use `python data_sources/modules/customer_proof_index_health.py --index context/customer-proof-index.json --ledger context/customer-proof-usage-ledger.json` to check source mix, public-copy gaps, recent use, and overuse before adding proof candidates.
-
-Add new proof candidates through `context/customer-proof-intake-template.csv` and validate with `python data_sources/modules/customer_proof_index_intake.py validate [input.csv] --index context/customer-proof-index.json` before relying on them in selector slates.
-
-For review-derived public E-E-A-T stories, automatically run `customer_proof_selector.py` with `--slate --roles experience_story --require-eeat-story`, then run the review story identity gate from the command stack above. Use `context/aeo-geo-blog-strategy.md` as the canonical policy for Review Story Selection, Review Site Theme Selection, and approved quote/rating boundaries.
-
-Use a proof-backed customer/review POV only when it improves the article objective. If no actual person or business POV fits, omit the story. Fictional named personas are prohibited; unnamed workflow scenarios are explanatory only and do not count as E-E-A-T.
-
-When the vault is unavailable, context files may provide clearly labeled editorial fallback context, but they do not become approval authority. Record the connector-unavailable blocker and omit unsupported public claims. Draft bodies may use independently verified public sources and receipt-bound approved proof, but must not mention repo context, context file paths, Source Maps, PAA artifacts, change summaries, schema notes, internal proof-path instructions, or source/proof meta-commentary. Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
-
-Use one authority link for a contiguous claim cluster when it supports the whole decision unit. Multiple distinct authority links may share a paragraph when separate evidence-triggered claims require them; do not split or remove required proof to satisfy a link-count rule. Let the shared proof-link policy flag redundant citations.
-
-E-E-A-T proof must resolve Experience and Expertise before writing. Discover customer, product, review, competitor, and expert evidence through connector search/read/expand by `resource_id`, and use only approved `vault_claims` records for public proof-sensitive passages. Repo-local proof indexes, link maps, and usage ledgers remain operational selection state and cannot approve a claim or override the connector. Review narratives count as first-hand customer experience when reviewers describe product use, implementation, support, switching, pains, outcomes, or workflows, but generic review-site themes remain VoC research unless a `Review Story Selection` is identity-backed, claim-backed, and link-backed. Capterra theme paragraphs may use `Review Site Theme Selection` only when an approved paraphrase claim and public review URL in the validated receipt support that use. Exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings, category claims, and metrics require a permitted claim use mode, current source verification, and a public-facing source link in the article body.
-
-Blog research, article planning, writing, analysis, and rewrite workflows must include a Metric Proof Pack for metric-sensitive software, comparison, pricing, cost, ROI, KPI, profit, margin, guide, and vs topics. Resolve the Search log, Approved metric rows, public proof URL or local proof artifact, source-visible Evidence, Status: approved, intended Use, rejected candidates, and not-applicable reason before drafting or publishing.
-
-Blog research, article planning, writing, analysis, and rewrite workflows must include a Customer Proof Pack in the validation sidecar. Keep detailed proof policy in `context/aeo-geo-blog-strategy.md`; command docs should carry the selector command, guard command, and source-specific overuse rule only.
-
-Every writer and rewriter output must include at least 1 contextual down-funnel internal link to `https://www.simprogroup.com/industries`, `/industries/...`, `/solutions/...`, or `/features/...` from `context/internal-links-map.md`. Prefer a specific industry page when the intent is clear, the industries hub for broad trades topics, a solution page for category/workflow topics, and a feature page for feature/workflow topics. For single-trade Simpro posts, a valid brief-bound exact-count override does not suppress the matching industry page unless the bound brief explicitly prohibits that industry page. Anchor text must match the destination keyword or an approved anchor example.
-
-Feature and solution links must use function-bearing anchor text that explains the workflow, category, or outcome behind the destination. A feature or solution name alone is not enough; use "accounts receivable follow-up with Fast Cash" instead of "Fast Cash."
-
-## Context Files
-
-`context/` contains downstream mirror/fallback guidelines for content generation when the Obsidian vault is unavailable:
-- `brand-voice.md` - Fallback mirror for tone and messaging pillars when the vault is unavailable
-- `style-guide.md` - Fallback mirror for grammar and formatting standards when the vault is unavailable
-- `seo-guidelines.md` - Keyword and structure rules
-- `aeo-geo-blog-strategy.md` - Blog-specific AEO/GEO workflow for research, articles, analysis, and rewrites: AnswerSocrates PAA rules, Capsule Method, source mapping, E-E-A-T Proof Map, and 85/90/90 quality gates
-- `internal-links-map.md` - Key pages for internal linking
-- `features.md` - Product features
-- `competitor-analysis.md` - Competitive intelligence
-- `cro-best-practices.md` - Conversion optimization guidelines
-- `ai-citation-targets.md` - Directories/platforms where your brand should be cited by AI tools
-- `reddit-strategy.md` - Reddit engagement strategy for AI SEO and community visibility
-
-## WordPress Integration
-
-Publishing uses the WordPress REST API with a custom MU-plugin (`wordpress/seo-machine-yoast-rest.php`) that exposes Yoast SEO fields. Articles are published in WordPress block format (HTML comments in Markdown files).
+- Simpro work uses the current-project Simpro vault connector as its only brand and proof context source; repo-local context files are never an active or fallback source. AroFlo, BigChange, and ClockShark artifacts with no Simpro signal follow the nonconnector branch. If both connector paths (MCP and `SimproVaultClient`) fail, stop and record the blocker in the validation sidecar.
+- Never synthesize proof-sensitive data, customer claims, review claims, metrics, rankings, PAA questions, quotes, or source support.
+- Public body copy reads as an article for the ICP. Workflow rationale, proof selection, and readiness status stay out of the body.
+- `/publish-readiness` is the sole release verdict. Machine reviewers are advisory, and no human approval step exists. Every new or changed blog runs the mandatory scrub, readiness, optimize, and final readiness loop.
+- Proof maps and proof packs live in the validation sidecar `research/validation-[topic-slug]-[YYYY-MM-DD].md`, never in public copy.
+- Do not hand Python script calls back to the user as required steps; slash commands run scripts and MCP calls internally.

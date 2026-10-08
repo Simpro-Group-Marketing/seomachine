@@ -54,10 +54,9 @@ def test_nonconnector_customer_proof_docs_describe_the_capterra_review_extension
     canonical = _read(ROOT / "context" / "aeo-geo-blog-strategy.md")
     claude_rule = _read(ROOT / ".claude" / "rules" / "customer-proof.md")
     agents_rule = _read(ROOT / ".agents" / "rules" / "customer-proof.md")
-    agents_md = _read(ROOT / "AGENTS.md")
     rewrite = _read(COMMAND_DIR / "rewrite.md")
 
-    for content in (canonical, claude_rule, agents_rule, agents_md):
+    for content in (canonical, claude_rule, agents_rule):
         assert "approved Capterra `review_site` rows on the brand's listed product page" in content
         assert "approved_quotes" in content
         assert 'avoid the words "reviewer", "rated", and "stars"' in content
@@ -183,13 +182,12 @@ def test_editor_uses_reviewed_humanizer_as_advisory_style_guidance():
 
 def test_repository_docs_describe_humanizer_as_reviewed_style_governance():
     """A future agent must not mistake vendored advice for proof or runtime code."""
-    for name in ("README.md", "CLAUDE.md", "AGENTS.md"):
-        content = _read(ROOT / name)
-        assert "vendor/blader-humanizer/UPSTREAM.json" in content
-        assert "config/humanizer-policy.json" in content
-        assert "never edits public copy directly" in content
-        assert "no runtime network access" in content
-        assert "python tools/humanizer_upstream.py verify" in content
+    content = _read(ROOT / "context" / "blog-editorial-strategy.md")
+    assert "vendor/blader-humanizer/UPSTREAM.json" in content
+    assert "config/humanizer-policy.json" in content
+    assert "never edits public copy directly" in content
+    assert "no runtime network access" in content
+    assert "python tools/humanizer_upstream.py verify" in content
 
 
 def test_writing_commands_attest_native_edits_without_python_copy_writers():
@@ -326,14 +324,9 @@ def test_blog_workflow_requires_scrub_optimize_and_score_reporting_every_run():
         "blocked readiness"
     )
 
-    for path in (
-        ROOT / "AGENTS.md",
-        ROOT / "CLAUDE.md",
-        ROOT / "context" / "aeo-geo-blog-strategy.md",
-    ):
-        content = _read(path)
-        assert universal_rule in content
-        assert missing_score_rule in content
+    content = _read(ROOT / "context" / "aeo-geo-blog-strategy.md")
+    assert universal_rule in content
+    assert missing_score_rule in content
 
     for name in ("write.md", "rewrite.md"):
         content = _read(COMMAND_DIR / name)
@@ -365,14 +358,7 @@ def test_blog_workflow_requires_scrub_optimize_and_score_reporting_every_run():
     assert "--optimizer-output \"[optimizer-output]\"" in readiness
     assert "--prior-preflight-readiness \"[preflight-readiness]\"" in readiness
     assert "Final handoff must include the final scrub result and separate Content, SEO, and AEO/GEO scores" in readiness
-
-    for path in (ROOT / "AGENTS.md", ROOT / "CLAUDE.md"):
-        content = _read(path)
-        assert "phase `optimization_started`" in content
-        assert "optimization-recovery.json" in content
-        assert "--optimizer-output" in content
-        assert "--prior-preflight-readiness" in content
-        assert "phase `final_readiness`" in content or "produce `final_readiness`" in content
+    assert "phase `final_readiness`" in readiness
 
     strategy = _read(ROOT / "context" / "aeo-geo-blog-strategy.md")
     assert "The first wrapper run must advance missing optimizer evidence into `optimization_started`" in strategy

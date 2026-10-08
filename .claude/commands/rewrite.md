@@ -73,7 +73,7 @@ If scoring does not run because an upstream gate blocks readiness, report `score
 
 ## Link policy
 
-Standard blog rewrites use 3 to 5 internal links and never more than 7. Existing useful links can remain, and the required cluster or down-funnel industry, solution, or feature link counts toward that total unless a valid brief-bound override narrows the supporting-link count. URL fragments and `mailto:` or `tel:` links do not count. Two distinct authoritative non-owned external sources pass; do not add a third source only to meet a quota, while claim-fit evidence exceptions remain uncapped.
+Standard blog rewrites use 3 to 5 internal links and never more than 7 below 3,000 visible words. Existing useful links can remain, and the required cluster or down-funnel industry, solution, or feature link counts toward that total unless a valid brief-bound override narrows the supporting-link count. URL fragments and `mailto:` or `tel:` links do not count. Two distinct authoritative non-owned external sources pass; do not add a third source only to meet a quota, while claim-fit evidence exceptions remain uncapped.
 
 A valid `link_policy_override` in `simpro-blog-editorial-plan/v2` may replace the 3 to 5 target for brief-selected internal body links but can never exceed the hard maximum of 7. It must bind the brief path, SHA-256, exact source sentence, exact count, and `pre_faq_body` scope. For single-trade Simpro posts, the matching industry page remains additive unless the bound brief explicitly prohibits it. External proof and legal citations remain separate and uncapped.
 

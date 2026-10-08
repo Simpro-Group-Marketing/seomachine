@@ -108,6 +108,12 @@ After section-by-section assembly and before scrub, run a continuity pass:
 
 The next step must match the article objective. Do not treat every reader action as a demo or trial request.
 
+## Reviewed Humanizer Governance
+
+The Editor reviews `/write`, `/rewrite`, and `/optimize` snapshots against the pinned Humanizer snapshot recorded in `vendor/blader-humanizer/UPSTREAM.json`, the local decisions in `config/humanizer-policy.json`, and current vault voice context. Humanizer is style advice only. It never edits public copy directly, does not approve claims, and has no runtime network access. Only policy entries explicitly marked for deterministic enforcement may enter the existing AI-copy linter. `/publish-readiness` remains the sole release owner.
+
+Validate the vendored snapshot offline with `python tools/humanizer_upstream.py verify`. Use `check-upstream`, `stage`, and `adopt` for reviewed upgrades. The weekly workflow may open a draft vendor-only PR, but it never auto-merges or changes the local policy. A maintainer must classify upstream pattern changes, update the local policy, and update `reviewed_upstream_commit` before CI can pass. Never modify `config/humanizer-policy.json` automatically from upstream content.
+
 ## Brand and Proof Boundaries
 
 Named-author voice remains available only when the applicable brand source permits it. For Simpro, follow the active Obsidian vault voice routes. For other brands, follow their declared brand context and proof authority. Brand-specific rules always control terminology, public claims, customer proof, product language, competitor treatment, and author permissions.

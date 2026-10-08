@@ -46,7 +46,7 @@ Run only the agents needed for initial diagnosis, then rerun the full six-agent 
 
 ## Link policy
 
-When optimizing links, keep standard blogs at 3 to 5 internal links and never more than 7. Count the required cluster or down-funnel industry, solution, or feature link toward that total unless a valid brief-bound override narrows the supporting-link count. URL fragments and `mailto:` or `tel:` links do not count. Two distinct authoritative non-owned external sources pass; do not recommend a third source only to meet a quota, while claim-fit evidence exceptions remain uncapped.
+When optimizing links, keep standard blogs at 3 to 5 internal links and never more than 7 below 3,000 visible words. Count the required cluster or down-funnel industry, solution, or feature link toward that total unless a valid brief-bound override narrows the supporting-link count. URL fragments and `mailto:` or `tel:` links do not count. Two distinct authoritative non-owned external sources pass; do not recommend a third source only to meet a quota, while claim-fit evidence exceptions remain uncapped.
 
 A valid `link_policy_override` in the bound editorial plan may replace the 3 to 5 target for brief-selected internal body links but can never exceed the hard maximum of 7. It must bind the brief path, SHA-256, exact source sentence, exact count, and `pre_faq_body` scope. For single-trade Simpro posts, the matching industry page remains additive unless the bound brief explicitly prohibits it. External proof and legal citations remain separate and uncapped.
 
