@@ -105,3 +105,26 @@ def build_serp_evidence(
         rules = ', '.join(sorted({str(row['rule_id']) for row in findings}))
         raise ValueError(f'invalid SERP evidence: {rules}')
     return attested
+
+
+__all__ = [
+    'build_serp_evidence',
+    'load_json_text',
+    'load_normalized_serp_raw_capture',
+    '_artifact_workspace_root',
+    '_dataforseo_request_valid',
+    '_decode_playwright_response',
+    '_load_valid_serp_raw_capture',
+    '_normalize_dataforseo_items',
+    '_normalize_dataforseo_response',
+    '_normalize_serp_raw_response',
+    '_playwright_request_valid',
+    '_semrush_request_valid',
+    '_serp_content_type',
+    '_unique_strings',
+    '_validate_capture_identity',
+    '_validate_capture_request',
+    '_validate_normalized_response',
+    '_validate_serp_raw_snapshot',
+    '_validated_capture_payload',
+]

@@ -34,6 +34,11 @@ def test_serp_capture_reuses_the_serp_raw_helper(name):
     assert getattr(serp_capture, name) is getattr(serp_raw, name)
 
 
+@pytest.mark.parametrize("name", SHARED_HELPERS)
+def test_serp_capture_exports_the_shared_helper(name):
+    assert name in serp_capture.__all__
+
+
 def test_serp_capture_defines_only_its_own_functions():
     source = Path(serp_capture.__file__).read_text(encoding="utf-8")
     defined = {
