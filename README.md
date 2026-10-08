@@ -6,7 +6,7 @@ Fork of [TheCraigHewitt/seomachine](https://github.com/TheCraigHewitt/seomachine
 
 ## Production SEO Blog Guardrails
 
-Simpro blog workflows use `blog-strategy-contract/v1` with exactly 1 `Search Intent and Format Decision`, `Commercial Pillar and Anchor Decision`, and `Lifecycle Refresh Record` in the validation sidecar. `context/commercial-pillar-index.json` is the sole executable source for the required commercial solution, industry, or feature destination. Article planning and publish readiness revalidate Brand, Market, destination title, regional Semrush evidence, keyword separation, canonical URL, planned H2, and an anchor containing the indexed main keyword. A blog remains an optional informational hub, never the commercial pillar. Source quality and lifecycle checks are blocking alongside all existing proof, vault, FAQ, PAA, artifact, Fred, and score gates.
+Simpro blog workflows use `simpro-blog-editorial-plan/v2` with exactly 1 `search_strategy`, `commercial_strategy`, and `lifecycle` object in the frozen editorial plan. `context/commercial-pillar-index.json` is the sole executable source for the required commercial solution, industry, or feature destination. Article planning and publish readiness revalidate Brand, Market, destination title, regional Semrush evidence, keyword separation, canonical URL, planned H2, and an anchor containing the indexed main keyword. A blog remains an optional informational hub, never the commercial pillar. Source quality and lifecycle checks are blocking alongside all existing proof, vault, FAQ, PAA, artifact, Fred, and score gates.
 
 Missing author passes when `Last Updated: YYYY-MM-DD` is valid. Schema is a later CMS stage: top YAML frontmatter `schema_notes` is checked as a handoff. It always includes BlogPosting, BreadcrumbList, ImageObject, and Organization publisher reference; FAQPage with Question and Answer only when visible FAQs exist; Person only when a verified author exists; and VideoObject if and only if embedded. Schema notes must never be reported as rendered JSON-LD implementation.
 
@@ -68,7 +68,7 @@ Python remains responsible for governance and workflow assistance: selector evid
 
 `/scrub` is read-only diagnostics. If scrub reports Unicode marks, em dashes, or whitespace issues, the command/agent applies those edits and reruns `/scrub`.
 
-Every new or changed blog requires a passed `simpro-blog-creation-preflight/v1` report, `simpro-blog-assembly-bom/v3` for machine-reviewed runs, plan and article `simpro-blog-machine-review/v1` artifacts, a bound `simpro-semrush-keyword-decision/v1` artifact, and `/publish-readiness`. Readiness is the release owner and validates the article, sidecar, context binding, proof, keyword decision, URL/source support, schema, BOM, input hashes, E-E-A-T strength policy, Hindsight internal-strategy boundary, and scorecard.
+Every new or changed blog requires a passed `simpro-blog-creation-preflight/v1` report, `simpro-blog-assembly-bom/v4` for machine-reviewed runs, plan and article `simpro-blog-machine-review/v1` artifacts, a bound `simpro-semrush-keyword-decision/v1` artifact, and `/publish-readiness`. Readiness is the release owner and validates the article, sidecar, context binding, proof, keyword decision, URL/source support, schema, BOM, input hashes, E-E-A-T strength policy, Hindsight internal-strategy boundary, and scorecard.
 
 The readiness scorecard is independent:
 
@@ -86,7 +86,7 @@ For commercial-investigation blogs, `no_fit_customer_proof` prevents invented cu
 - [Claude Code](https://claude.com/claude-code) installed
 - Anthropic API account
 - Python 3.11 or newer
-- Access to the internal `simpro-context-connector` v2.0.0 release
+- Access to the internal `simpro-context-connector` v2.2.0 release
 
 ### Installation
 
@@ -121,7 +121,7 @@ This installs:
 
 4. Open in Claude Code:
 ```bash
-claude-code .
+claude
 ```
 
 5. **Context Files** (pre-filled for Simpro):
@@ -711,9 +711,9 @@ Publishing uses the WordPress REST API with a custom MU-plugin that exposes Yoas
 2. Add `wordpress/functions-snippet.php` to the theme's `functions.php`
 3. Configure WordPress credentials in `.env`:
    ```
-   WP_URL=https://www.simprogroup.com
-   WP_USERNAME=your_username
-   WP_APP_PASSWORD=your_application_password
+   WORDPRESS_URL=https://www.simprogroup.com
+   WORDPRESS_USERNAME=your_username
+   WORDPRESS_APP_PASSWORD=your_application_password
    ```
 
 See `wordpress/README.md` and `data_sources/README.md` for setup details.
@@ -1008,7 +1008,7 @@ E-E-A-T strength guard adds a commercial-investigation quality layer. It passes 
 ### "AEO/GEO score below 90"
 - Treat the result as a repair trigger, not a reporting endpoint. Review `aeo_geo.checks`, classify each failure as a copy gap, proof/sidecar gap, or scorer or parser false negative, and apply the top 3-5 fixes.
 - Fix a scorer or parser false negative with regression coverage instead of changing accurate copy to satisfy brittle matching.
-- Rerun `/scrub`, AI copy lint, URL validation, and Context Binding. If article bytes changed, rerun article machine review, then start a new atomic `blog_release.py` run so it builds a fresh provisional BOM v3, preflight result, final BOM, and detached final-readiness attestation. Repeat once if needed, then leave the article in place and write a machine-readable blocker under `research/` if the score remains below threshold after 2 iterations.
+- Rerun `/scrub`, AI copy lint, URL validation, and Context Binding. If article bytes changed, rerun article machine review, then start a new atomic `blog_release.py` run so it builds a fresh provisional BOM v4, preflight result, final BOM, and detached final-readiness attestation. Repeat once if needed, then leave the article in place and write a machine-readable blocker under `research/` if the score remains below threshold after 2 iterations.
 
 ### "MCP / GSC / GA4 not connecting"
 - Confirm `.mcp.json` paths match your machine (from `.mcp.json.template`)

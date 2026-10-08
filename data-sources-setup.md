@@ -15,6 +15,20 @@ This guide provides step-by-step instructions for setting up the data source int
 
 ---
 
+## Credential Boundaries
+
+SEO Machine uses two separate credential paths. Do not mix them.
+
+**MCP servers** (`analytics-mcp` and `gsc`, used by slash commands):
+- GA4 MCP reads an ADC authorized-user JSON at `credentials/adc.json`, referenced by `GOOGLE_APPLICATION_CREDENTIALS`.
+- GSC MCP reads an OAuth desktop-app client secret at `credentials/gsc_client_secrets.json`, referenced by `GSC_OAUTH_CLIENT_SECRETS_FILE`.
+
+**Python modules** (`data_sources/modules/`): GA4, Search Console, and DataForSEO read `data_sources/config/.env` (copy `data_sources/config/.env.example`). They use service-account JSON keys through `GA4_CREDENTIALS_PATH` and `GSC_CREDENTIALS_PATH`. The WordPress publisher is the exception: it reads the repo-root `.env`.
+
+Do not point `GSC_CREDENTIALS_PATH` at the OAuth client secret (`gsc_client_secrets.json`), and do not point `GA4_CREDENTIALS_PATH` at `adc.json`. The service-account steps below apply to the Python modules only, not to the MCP servers.
+
+---
+
 ## Google Analytics 4 (GA4) Setup
 
 Google Analytics 4 provides traffic data, user behavior metrics, and page performance insights for your website.
@@ -75,10 +89,11 @@ Google Analytics 4 provides traffic data, user behavior metrics, and page perfor
 
 1. Rename your downloaded JSON key file to `ga4-credentials.json`
 2. Move the file to: `credentials/ga4-credentials.json`
-3. Create a `.env` file in the root directory if it doesn't exist
-4. Add the following line to your `.env` file:
+3. Copy `data_sources/config/.env.example` to `data_sources/config/.env` if it doesn't exist
+4. Add the following lines to `data_sources/config/.env`:
    ```
    GA4_PROPERTY_ID=123456789
+   GA4_CREDENTIALS_PATH=credentials/ga4-credentials.json
    ```
    (Replace with your actual Property ID from Step 5)
 
@@ -141,7 +156,7 @@ Your site URL is the property name in Search Console, typically one of:
 Since you're using the same service account for both GA4 and GSC, the configuration is simple:
 
 1. **Credentials file**: Use the existing `credentials/ga4-credentials.json` (no additional file needed)
-2. **Add to your `.env` file**:
+2. **Add to `data_sources/config/.env`**:
    ```
    GSC_SITE_URL=https://yoursite.com/
    GSC_CREDENTIALS_PATH=credentials/ga4-credentials.json
@@ -152,7 +167,7 @@ Since you're using the same service account for both GA4 and GSC, the configurat
 
 1. Rename the JSON key to `gsc-credentials.json`
 2. Move to: `credentials/gsc-credentials.json`
-3. Add to your `.env` file:
+3. Add to `data_sources/config/.env`:
    ```
    GSC_SITE_URL=https://yoursite.com/
    GSC_CREDENTIALS_PATH=credentials/gsc-credentials.json
@@ -198,7 +213,7 @@ DataForSEO provides keyword research data, search volume, competition metrics, a
 
 ### Step 4: Configure the Integration
 
-Add the following to your `.env` file:
+Add the following to `data_sources/config/.env`:
 ```
 DATAFORSEO_LOGIN=your_username_or_email
 DATAFORSEO_PASSWORD=your_api_password
@@ -240,11 +255,11 @@ WordPress integration enables publishing articles and landing pages directly fro
 
 ### Step 3: Configure the Integration
 
-Add the following to your `.env` file:
+Add the following to the repo-root `.env` file (the WordPress publisher reads this file, not `data_sources/config/.env`):
 ```
-WP_URL=https://yoursite.com
-WP_USERNAME=your_admin_username
-WP_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
+WORDPRESS_URL=https://yoursite.com
+WORDPRESS_USERNAME=your_admin_username
+WORDPRESS_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
 ```
 
 ### Step 4: Optional Theme Integration
@@ -303,7 +318,7 @@ Expected output:
 
 **Error: "Permission denied"**
 - Verify the service account email is added to your GA4 property with Viewer permissions
-- Double-check you're using the correct Property ID in `.env`
+- Double-check you're using the correct Property ID in `data_sources/config/.env`
 
 **Error: "API not enabled"**
 - Make sure you enabled the Google Analytics Data API in Google Cloud Console
@@ -318,7 +333,7 @@ Expected output:
 
 **Error: "User does not have sufficient permissions"**
 - Verify the service account is added to Search Console with Full permissions
-- Make sure you're using the correct site URL format in `.env`
+- Make sure you're using the correct site URL format in `data_sources/config/.env`
 
 **Error: "Site not found"**
 - Check the `GSC_SITE_URL` format matches exactly what's in Search Console
@@ -327,7 +342,7 @@ Expected output:
 ### DataForSEO Issues
 
 **Error: "Authentication failed"**
-- Verify your login/password in `.env` are correct
+- Verify your login/password in `data_sources/config/.env` are correct
 - Make sure you're using the API password, not your account password
 - Check for any extra spaces in the credentials
 
@@ -342,7 +357,7 @@ Expected output:
 ### General Issues
 
 **Environment Variables Not Loading**
-- Make sure your `.env` file is in the root directory
+- Python data modules (GA4, Search Console, DataForSEO) read `data_sources/config/.env`; the WordPress publisher reads the repo-root `.env`
 - Verify there are no syntax errors in the `.env` file
 - Restart your application after modifying `.env`
 
@@ -395,10 +410,13 @@ Store encrypted backups of your credentials in a secure location:
 ### File Structure
 ```
 seomachine/
-├── .env                          # Environment variables
+├── .env                          # Repo-root variables (WordPress publisher, MCP paths)
+├── data_sources/config/.env      # Python module variables (GA4, GSC, DataForSEO)
 ├── credentials/
-│   ├── ga4-credentials.json     # GA4 service account key
-│   └── gsc-credentials.json     # GSC service account key (or reuse GA4)
+│   ├── adc.json                 # GA4 MCP ADC (GOOGLE_APPLICATION_CREDENTIALS)
+│   ├── gsc_client_secrets.json  # GSC MCP OAuth client secret (GSC_OAUTH_CLIENT_SECRETS_FILE)
+│   ├── ga4-credentials.json     # GA4 service account key (Python modules)
+│   └── gsc-credentials.json     # GSC service account key (Python modules, or reuse GA4)
 ├── config/
 │   └── competitors.json         # Competitor configuration
 └── data-sources-setup.md        # This file
@@ -406,21 +424,30 @@ seomachine/
 
 ### Environment Variables
 ```bash
+# data_sources/config/.env (Python modules)
 # Google Analytics 4
 GA4_PROPERTY_ID=123456789
+GA4_CREDENTIALS_PATH=credentials/ga4-credentials.json
 
 # Google Search Console
 GSC_SITE_URL=https://yoursite.com/
+GSC_CREDENTIALS_PATH=credentials/gsc-credentials.json
 COMPANY_NAME=Your Company
 
 # DataForSEO
 DATAFORSEO_LOGIN=your_username
 DATAFORSEO_PASSWORD=your_api_password
 
+# Repo-root .env (MCP servers and WordPress publisher)
+# GA4 MCP
+GOOGLE_APPLICATION_CREDENTIALS=./credentials/adc.json
+# GSC MCP
+GSC_OAUTH_CLIENT_SECRETS_FILE=./credentials/gsc_client_secrets.json
+
 # WordPress (optional, for /publish-draft)
-WP_URL=https://yoursite.com
-WP_USERNAME=your_username
-WP_APP_PASSWORD=your_application_password
+WORDPRESS_URL=https://yoursite.com
+WORDPRESS_USERNAME=your_username
+WORDPRESS_APP_PASSWORD=your_application_password
 ```
 
 ### Useful Links
