@@ -182,6 +182,7 @@ def build_blog_assembly_bom_from_files(
     validate_plan_inputs(
         editorial_plan_path=editorial_plan_path,
         article_path=article_path,
+        validation_sidecar_path=validation_sidecar_path,
         serp_evidence_path=serp_evidence_path,
         keyword_decision_path=keyword_decision_path,
         assembly_date=assembled,

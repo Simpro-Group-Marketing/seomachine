@@ -200,6 +200,39 @@ def check_file(
     return _sorted(findings)
 
 
+def filter_authorized_stale_findings(
+    findings: Sequence[Mapping[str, Any]],
+    *,
+    authorization_text: str,
+    keyword_decision_path: str | Path,
+    assembly_date: str,
+) -> list[Finding]:
+    """Remove only a documented stale-date finding for a correction-only release.
+
+    This does not make a keyword decision current. It lets a release reuse an
+    already-attested prior Semrush decision when the validation sidecar records
+    an explicit correction-only authorization for the exact artifact and dates.
+    """
+    rows = [dict(row) for row in findings]
+    if not any(row.get("rule_id") == "semrush_keyword_decision_stale" for row in rows):
+        return rows
+    payload = _load_mapping(keyword_decision_path)
+    if payload is None:
+        return rows
+    collection_date = str(payload.get("collection_date") or "").strip()
+    if not _stale_reuse_authorized(
+        authorization_text,
+        keyword_decision_path=keyword_decision_path,
+        collection_date=collection_date,
+        assembly_date=assembly_date,
+    ):
+        return rows
+    return [
+        row for row in rows
+        if row.get("rule_id") != "semrush_keyword_decision_stale"
+    ]
+
+
 def check_decision(
     payload: Mapping[str, Any],
     *,
@@ -312,6 +345,42 @@ def check_decision(
         article_content=article_content,
     ))
     return _sorted(findings)
+
+
+def _load_mapping(path: str | Path) -> Mapping[str, Any] | None:
+    try:
+        payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return None
+    return payload if isinstance(payload, Mapping) else None
+
+
+def _stale_reuse_authorized(
+    text: str,
+    *,
+    keyword_decision_path: str | Path,
+    collection_date: str,
+    assembly_date: str,
+) -> bool:
+    if "## Semrush Prior Evidence Reuse Authorization" not in text:
+        return False
+    if "Status: authorized_by_user" not in text:
+        return False
+    if "Authorized stale rule: semrush_keyword_decision_stale" not in text:
+        return False
+    if "Scope: FieldEdge evidence correction only" not in text:
+        return False
+    if f"Collection date: {collection_date}" not in text:
+        return False
+    if f"Assembly date: {assembly_date}" not in text:
+        return False
+    path = Path(keyword_decision_path)
+    candidates = {
+        str(keyword_decision_path).replace("\\", "/"),
+        path.as_posix(),
+        path.name,
+    }
+    return any(candidate and candidate in text for candidate in candidates)
 
 
 def _check_collection_date(value: Any, assembly_date: str | None) -> list[Finding]:

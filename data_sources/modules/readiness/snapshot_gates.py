@@ -87,7 +87,7 @@ def run_keyword_gate(
             "Regenerate the provisional BOM with --keyword-decision.",
         )
     if content_gate_inputs is None:
-        return timed_call(
+        findings = timed_call(
             telemetry,
             "gate.semrush_keyword_decision",
             guard_module.check_file,
@@ -96,7 +96,13 @@ def run_keyword_gate(
             editorial_plan_path=editorial_path,
             assembly_date=runtime_policy.get("assembly_date"),
         )
-    return timed_call(
+        return guard_module.filter_authorized_stale_findings(
+            findings,
+            authorization_text=_authorization_text(runtime_policy, None),
+            keyword_decision_path=keyword_path,
+            assembly_date=str(runtime_policy.get("assembly_date") or ""),
+        )
+    findings = timed_call(
         telemetry,
         "gate.semrush_keyword_decision",
         guard_module.check_decision,
@@ -107,6 +113,36 @@ def run_keyword_gate(
         editorial_plan=_json(content_gate_inputs.captured, "editorial_plan"),
         assembly_date=runtime_policy.get("assembly_date"),
     )
+    return guard_module.filter_authorized_stale_findings(
+        findings,
+        authorization_text=_authorization_text(runtime_policy, content_gate_inputs),
+        keyword_decision_path=keyword_path,
+        assembly_date=str(runtime_policy.get("assembly_date") or ""),
+    )
+
+
+def _authorization_text(
+    runtime_policy: Mapping[str, Any],
+    content_gate_inputs: ContentGateInputs | None,
+) -> str:
+    if content_gate_inputs is not None:
+        try:
+            snapshot = content_gate_inputs.captured.optional_snapshot(
+                "validation_sidecar"
+            )
+            if snapshot is not None:
+                return content_gate_inputs.captured.bytes(
+                    "validation_sidecar"
+                ).decode("utf-8")
+        except (OSError, UnicodeError, ValueError):
+            return ""
+    sidecar = runtime_policy.get("validation_sidecar") or runtime_policy.get("proof_sidecar")
+    if not sidecar:
+        return ""
+    try:
+        return Path(sidecar).read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return ""
 
 
 def _raw_capture_view(captured: Any, snapshot: Any) -> Any:

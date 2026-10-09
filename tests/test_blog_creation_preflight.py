@@ -235,6 +235,36 @@ def test_preflight_blocks_stale_semrush_keyword_decision(tmp_path: Path):
     assert any("Semrush" in command for command in report["next_required_commands"])
 
 
+def test_preflight_accepts_authorized_prior_semrush_reuse_for_correction(tmp_path: Path):
+    paths = _paths(tmp_path)
+    paths["keyword_decision"] = _keyword_decision(
+        tmp_path / "research" / "stale-keyword.json",
+        collection_date="2026-08-19",
+    )
+    Path(paths["proof_sidecar"]).write_text(
+        "\n".join(
+            [
+                "Author policy: named_author",
+                "",
+                "## Semrush Prior Evidence Reuse Authorization",
+                "",
+                "- Status: authorized_by_user",
+                "- Authorized stale rule: semrush_keyword_decision_stale",
+                "- Keyword decision artifact: `stale-keyword.json`",
+                "- Collection date: 2026-08-19",
+                "- Assembly date: 2026-08-20",
+                "- Scope: FieldEdge evidence correction only; no keyword metrics changed.",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    report = build_preflight_report(**paths, assembly_date="2026-08-20")
+
+    assert "semrush_keyword_decision_stale" not in _rule_ids(report)
+
+
 def test_preflight_blocks_semrush_api_fallback_surface(tmp_path: Path):
     paths = _paths(tmp_path)
     paths["keyword_decision"] = _keyword_decision(

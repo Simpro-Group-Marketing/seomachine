@@ -142,18 +142,25 @@ def _check_editorial_plan(
         expected_run_id=workflow_run_id,
         workspace_root=root,
     )
-    plan_findings.extend(
-        semrush_keyword_decision_guard.check_file(
-            keyword_path,
-            article_path=article_path,
-            editorial_plan_path=path,
-            assembly_date=(
-                str(bom.get("assembly_date"))
-                if isinstance(bom.get("assembly_date"), str)
-                else None
-            ),
-        )
+    assembly_date = (
+        str(bom.get("assembly_date"))
+        if isinstance(bom.get("assembly_date"), str)
+        else None
     )
+    keyword_findings = semrush_keyword_decision_guard.check_file(
+        keyword_path,
+        article_path=article_path,
+        editorial_plan_path=path,
+        assembly_date=assembly_date,
+    )
+    if assembly_date is not None:
+        keyword_findings = semrush_keyword_decision_guard.filter_authorized_stale_findings(
+            keyword_findings,
+            authorization_text=_bound_validation_sidecar_text(artifacts, root),
+            keyword_decision_path=keyword_path,
+            assembly_date=assembly_date,
+        )
+    plan_findings.extend(keyword_findings)
     if plan_findings:
         return [
             _finding(
@@ -171,6 +178,22 @@ def _check_editorial_plan(
         assembled,
         workflow_run_id,
     )
+
+
+def _bound_validation_sidecar_text(
+    artifacts: Mapping[str, Any],
+    root: Path,
+) -> str:
+    row = artifacts.get("validation_sidecar")
+    try:
+        path = verify_artifact(
+            row,
+            workspace_root=root,
+            field="artifacts.validation_sidecar",
+        )
+        return path.read_text(encoding="utf-8")
+    except (ValueError, OSError, UnicodeError):
+        return ""
 
 
 def _check_editorial_policy_bindings(
