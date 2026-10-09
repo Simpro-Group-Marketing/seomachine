@@ -285,3 +285,39 @@ def test_preflight_rejects_protected_classification_destinations(
         )
 
     assert not classification_directory.exists()
+
+
+def test_preflight_staging_never_needs_a_longer_path_than_the_artifact(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Windows rejects paths past MAX_PATH, so staging must not outgrow the artifact path."""
+    inventory = _write_inventory(
+        tmp_path,
+        [{"source_url": SOURCE_URL, "decision_id": DECISION_ID}],
+    )
+    decision_path = _commit_approved_decision(tmp_path)
+    staged: list[Path] = []
+    original = source_classification_preflight.write_source_classification_artifact
+
+    def record(path: Path, **kwargs: object) -> dict:
+        staged.append(Path(path))
+        return original(path, **kwargs)
+
+    monkeypatch.setattr(
+        source_classification_preflight,
+        "write_source_classification_artifact",
+        record,
+    )
+
+    report = source_classification_preflight.build_preflight_report(
+        inventory,
+        classification_directory=tmp_path / "research" / "source-classifications",
+        decision_path=decision_path,
+        workspace_root=tmp_path,
+    )
+
+    final_path = tmp_path / report["classification_artifacts"][0]["path"]
+    # atomic_write_bytes names its sibling temp file ".<name>.<8 random chars>.tmp".
+    transient = len(str(staged[0].parent)) + 1 + len(f".{staged[0].name}.") + 8 + len(".tmp")
+    assert transient <= len(str(final_path))
