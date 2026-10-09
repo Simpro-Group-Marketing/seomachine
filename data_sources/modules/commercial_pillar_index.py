@@ -21,8 +21,10 @@ from typing import Any, Iterable, Mapping, Optional, Sequence
 from urllib.parse import urlparse
 
 try:
+    from .commercial_pillar_title_match import line_binds_title, title_keyword_fit
     from .guard_common import Finding, make_finding, summarize_findings
 except ImportError:  # pragma: no cover - direct script execution.
+    from commercial_pillar_title_match import line_binds_title, title_keyword_fit
     from guard_common import Finding, make_finding, summarize_findings
 
 
@@ -370,27 +372,10 @@ def _validate_record(
         findings.append(_finding("commercial_pillar_volume_invalid", row, "Semrush volume must be zero or greater."))
     if not 0 <= record.keyword_difficulty <= 100:
         findings.append(_finding("commercial_pillar_keyword_difficulty_invalid", row, "Keyword difficulty must be between 0 and 100."))
-    requires_vault_routes = (
-        record.brand.casefold() in VAULT_REQUIRED_BRANDS
-        and record.pillar_type in {"homepage", "solution", "industry", "feature"}
-    )
-    if requires_vault_routes and not record.vault_routes:
-        findings.append(
-            _finding(
-                "commercial_pillar_vault_routes_missing",
-                row,
-                "Connector-bound homepage, solution, industry, and feature destinations require vault routes.",
-            )
-        )
-    if record.brand.casefold() not in VAULT_REQUIRED_BRANDS and record.vault_routes:
-        findings.append(
-            _finding(
-                "commercial_pillar_vault_routes_unexpected",
-                row,
-                "Nonconnector commercial destinations must omit vault routes.",
-            )
-        )
-    if record.page_title and record.main_keyword and not _title_keyword_fit(record.page_title, record.main_keyword):
+    vault_route_finding = _vault_route_finding(record, row=row)
+    if vault_route_finding is not None:
+        findings.append(vault_route_finding)
+    if record.page_title and record.main_keyword and not title_keyword_fit(record.page_title, record.main_keyword):
         findings.append(_finding("commercial_pillar_title_keyword_mismatch", row, "Destination main keyword does not fit the recorded page title."))
 
     evidence_count = len(record.evidence_path)
@@ -447,7 +432,7 @@ def _validate_record(
                         "No bound evidence row contains the canonical destination URL.",
                     )
                 )
-            if not any(_line_binds_title(line, record.page_title) for line in bound_lines):
+            if not any(line_binds_title(line, record.page_title) for line in bound_lines):
                 findings.append(
                     _finding(
                         "commercial_pillar_title_evidence_mismatch",
@@ -456,6 +441,19 @@ def _validate_record(
                     )
                 )
     return findings
+
+
+def _vault_route_finding(record: CommercialPillarRecord, *, row: int) -> Optional[Finding]:
+    """Return the vault-route finding for a connector-bound or nonconnector destination."""
+    connector_bound = record.brand.casefold() in VAULT_REQUIRED_BRANDS
+    requires_routes = connector_bound and record.pillar_type in {"homepage", "solution", "industry", "feature"}
+    if requires_routes and not record.vault_routes:
+        message = "Connector-bound homepage, solution, industry, and feature destinations require vault routes."
+        return _finding("commercial_pillar_vault_routes_missing", row, message)
+    if not connector_bound and record.vault_routes:
+        message = "Nonconnector commercial destinations must omit vault routes."
+        return _finding("commercial_pillar_vault_routes_unexpected", row, message)
+    return None
 
 
 def _url_findings(record: CommercialPillarRecord, *, row: int) -> list[Finding]:
@@ -610,13 +608,6 @@ def _line_binds_keyword_metrics(line: str, record: CommercialPillarRecord) -> bo
     return re.search(rf"(?<![a-z0-9]){re.escape(normalized_keyword)}(?![a-z0-9])", normalized_line) is not None and volume_matches and difficulty_matches
 
 
-def _line_binds_title(line: str, page_title: str) -> bool:
-    evidence_text = re.sub(r"^\s*#{1,6}\s+", "", line)
-    evidence_text = re.sub(r"[*_`]", "", evidence_text)
-    normalize = lambda value: re.sub(r"[^a-z0-9]+", " ", value.casefold()).strip()
-    return normalize(evidence_text) == normalize(page_title)
-
-
 def _line_binds_market_report(line: str, record: CommercialPillarRecord) -> bool:
     normalized = line.casefold().replace("`", "")
     report_pattern = rf"(?<![a-z0-9_]){re.escape(record.semrush_report.casefold())}(?![a-z0-9_])"
@@ -672,37 +663,6 @@ def _normalize_evidence_cell(value: str) -> str:
 def _numeric_cell_value(value: str) -> int | None:
     digits = re.sub(r"[^\d]", "", value)
     return int(digits) if digits else None
-
-
-def _title_keyword_fit(page_title: str, keyword: str) -> bool:
-    title_tokens = {_normalize_keyword_token(token) for token in re.findall(r"[a-z0-9]+", page_title.casefold())}
-    keyword_tokens = {_normalize_keyword_token(token) for token in re.findall(r"[a-z0-9]+", keyword.casefold())}
-    generic = {
-        "bigchange",
-        "simpro",
-        "software",
-        "solution",
-        "industry",
-        "feature",
-        "for",
-        "management",
-    }
-    significant_title_tokens = title_tokens - generic
-    significant_keyword_tokens = keyword_tokens - generic
-    return bool(significant_title_tokens) and (
-        significant_title_tokens.issubset(keyword_tokens)
-        or bool(significant_keyword_tokens)
-        and significant_keyword_tokens.issubset(title_tokens)
-    )
-
-
-def _normalize_keyword_token(token: str) -> str:
-    """Normalize only regular English singular/plural variants for title matching."""
-    if len(token) > 4 and token.endswith("ies"):
-        return f"{token[:-3]}y"
-    if len(token) > 3 and token.endswith("s") and not token.endswith(("is", "ss", "us")):
-        return token[:-1]
-    return token
 
 
 def _record_from_mapping(raw: Mapping[str, Any], *, row: int) -> CommercialPillarRecord:

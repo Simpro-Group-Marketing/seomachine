@@ -22,6 +22,7 @@ try:
     from .owned_product_language import is_approved_product_language, is_low_risk_owned_language
     from .frontmatter import FrontmatterError, split_frontmatter
     from .image_placeholder import is_production_image_placeholder_line
+    from .proof_link_editorial_tables import editorial_guidance_table_contract
     from .url_validator import UrlValidationSummary, extract_urls, is_effectively_resolved
 except ImportError:  # pragma: no cover - supports direct script execution.
     from claim_patterns import (
@@ -33,6 +34,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from owned_product_language import is_approved_product_language, is_low_risk_owned_language
     from frontmatter import FrontmatterError, split_frontmatter
     from image_placeholder import is_production_image_placeholder_line
+    from proof_link_editorial_tables import editorial_guidance_table_contract
     from url_validator import UrlValidationSummary, extract_urls, is_effectively_resolved
 
 
@@ -630,7 +632,7 @@ def _article_units(article_content: str) -> list[_ArticleUnit]:
                 and bool(TABLE_SEPARATOR_RE.match(lines[index + 1].strip()))
             )
             if next_is_separator:
-                editorial_table_contract = _editorial_guidance_table_contract(line)
+                editorial_table_contract = editorial_guidance_table_contract(line)
             if not TABLE_SEPARATOR_RE.match(line.strip()) and (
                 not next_is_separator or editorial_table_contract
             ):
@@ -653,14 +655,6 @@ def _article_units(article_content: str) -> list[_ArticleUnit]:
         paragraph.append(line)
     flush(body_start_line + len(lines) - 1)
     return units
-
-
-def _editorial_guidance_table_contract(line: str) -> str:
-    cells = tuple(cell.strip().casefold() for cell in line.strip().strip("|").split("|"))
-    return {
-        ("tool", "best fit", "avoid when", "validate before buying"): "buyer_decision_matrix",
-        ("criterion", "evidence to collect", "pass signal"): "buyer_scorecard",
-    }.get(cells, "")
 
 
 def _proof_rows(proof_content: str) -> list[_ProofRow]:
@@ -894,9 +888,7 @@ def _is_editorial_buyer_guidance(unit: _ArticleUnit, text: str) -> bool:
     if section.startswith("choose a route"):
         route_text = re.sub(r"\bhelps?\s+define\s+the\s+workflow\b", "", plain, flags=re.IGNORECASE)
         return _structured_editorial_guidance_is_safe(route_text)
-    if section.startswith("evaluation methodology") and PURE_ADVICE_START_RE.match(plain):
-        return _structured_editorial_guidance_is_safe(plain)
-    if section.startswith("choose the next step"):
+    if (section.startswith("evaluation methodology") and PURE_ADVICE_START_RE.match(plain)) or section.startswith("choose the next step"):
         return _structured_editorial_guidance_is_safe(plain)
     return GENERIC_BEST_SELECTION_RE.match(plain) is not None
 

@@ -95,6 +95,15 @@
       "observed_text_length": 13362,
       "evidence": "Capterra serves the BigChange product page normally in a real browser. Loaded through the Chrome connector and read back: overall rating 4.5 based on 270 reviews, Starting Price £14.95, About the vendor: Simpro Software, and named reviewer rows including David (Director, UK, 5.0, \"Tomkinson Heating Big Change Review\") and Terry Clark (MD, UK, 2.0, \"If you are an existing company and you take on this product, expect a disappointing Big Change!!\").",
       "reason": "capterra.co.uk returns HTTP 403 to the validator's request client. The page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.britsafe.org/media/ddyfkihf/british-safety-council-certificate-in-risk-assessment.pdf",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-25T13:50:00Z",
+      "page_title": "british-safety-council-certificate-in-risk-assessment.pdf",
+      "observed_text_length": 765,
+      "evidence": "Page 5 of the rendered certificate specification sets learning outcomes covering workplace hazard identification, control measures, the stages of a risk assessment, and circumstances requiring review.",
+      "reason": "The PDF URL returned HTTP 403 to the validator client. The exact PDF loaded in the connected Chrome browser, where page 5 and its assessment-criteria table were visually verified."
     }
   ]
 }
