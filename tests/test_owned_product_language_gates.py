@@ -205,7 +205,7 @@ class OwnedProductLanguageBindingGeneratorTests(unittest.TestCase):
             self.pack,
             self.receipt,
             self.sidecar,
-            repo_context=[{"path": "context/seo-guidelines.md", "role": "SEO structure"}],
+            repo_context=[{"path": "context/seo-guidelines.md", "role": "seo_aeo"}],
             client=binding_fixture.ValidatingClient(),
         )
 

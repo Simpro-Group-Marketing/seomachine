@@ -264,7 +264,7 @@ class AiCopyLinterTests(unittest.TestCase):
     def test_context_file_references_are_error_in_public_copy(self):
         self.assertIn(
             "internal_process_language",
-            finding_ids("Use context/features.md as the source for this customer claim."),
+            finding_ids("Use a repo-local proof sheet as the source for this customer claim."),
         )
 
     def test_editorial_process_leakage_is_error_in_public_body_copy(self):

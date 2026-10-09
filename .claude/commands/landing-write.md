@@ -39,15 +39,15 @@ Use this command to create high-converting landing pages optimized for either or
 - Read and expand the smallest relevant results by `resource_id` for brand voice, audience, product, feature, solution, industry, Lightning, customer proof, and competitor context.
 - Query approved claims for every proof-sensitive public statement, including product status, commercial treatment, metrics, customer outcomes, comparisons, quotes, pricing, and roadmap language. A context resource alone does not approve a public claim.
 - Build the context pack and validate its receipt before drafting. Bind the validation sidecar to the resulting `context_pack_hash`, `receipt_hash`, supporting `resource_id` values, approved `claim_id` values, use modes, public URLs when required, and current revisions.
-- If the connector is unavailable, document the exact blocker in the validation sidecar. Only then may repo-local context files be used as fallback mirrors, and unsupported public claims must be omitted.
+- If the connector is unavailable, document the exact blocker in the validation sidecar and stop Simpro brand/proof use. Repo-local context files cannot substitute for brand language, product claims, proof, or customer evidence.
 
 **Required Context:**
-- **CRO Best Practices**: Retrieve current conversion guidance through connector semantic search and `resource_id` reads; @context/cro-best-practices.md is an unavailable-connector fallback mirror only.
-- **Brand Voice**: Retrieve current tone and messaging through connector semantic search and `resource_id` reads; @context/brand-voice.md is an unavailable-connector fallback mirror only.
-- **Style Guide**: Retrieve current terminology and claim boundaries through connector semantic search and `resource_id` reads; @context/style-guide.md is an unavailable-connector fallback mirror only.
-- **Product and Proof Points**: Retrieve current product and feature context by `resource_id`, then use approved `claim_id` results for capabilities, scale proof, metrics, commercial treatment, or customer outcomes. @context/features.md is an unavailable-connector fallback mirror and cannot approve public proof.
-- **Lightning Context**: If the page is about Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, search, read, and expand current Lightning resources through the connector and query approved claims for public wording. @context/lightning-positioning.md is an unavailable-connector fallback mirror only.
-- **Customer Proof**: Search customer-proof resources, read the selected evidence by `resource_id`, and query approved claims for the intended use mode. Public copy requires the approved public URL; exact quotes require source-visible quote approval. @context/internal-links-map.md and @context/features.md are unavailable-connector fallback mirrors only and cannot make a claim publishable.
+- **CRO Best Practices**: Use @context/cro-best-practices.md only for generic CRO mechanics. Retrieve brand-specific CTA, experiment, form, and trust guidance through the vault connector or approved source workflow.
+- **Brand Voice**: Retrieve current tone and messaging through connector semantic search and `resource_id` reads.
+- **Style and terminology**: Retrieve current terminology and claim boundaries through connector semantic search and `resource_id` reads.
+- **Product and Proof Points**: Retrieve current product and feature context by `resource_id`, then use approved `claim_id` results for capabilities, scale proof, metrics, commercial treatment, or customer outcomes.
+- **Lightning Context**: If the page is about Simpro Lightning, AroFlo Lightning, BigChange Lightning, Simpro Group Lightning, JustAsk, Cooper, FieldReady, JobReady, JobScribe, JobBrief, Price Lock, AI tax, TrueTime, DirectLine, Coming Specialists, or any named roadmap specialist, search, read, and expand current Lightning resources through the connector and query approved claims for public wording.
+- **Customer Proof**: Search customer-proof resources, read the selected evidence by `resource_id`, and query approved claims for the intended use mode. Public copy requires the approved public URL; exact quotes require source-visible quote approval. @context/internal-links-map.md may identify candidate URLs only and cannot make a claim publishable.
 
 **If Research Brief Available:**
 - Review competitor analysis

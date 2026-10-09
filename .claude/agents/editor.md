@@ -397,7 +397,7 @@ Do not insert canned candid openers, rhetorical setup questions, fake objections
 2. **Maintain Accuracy**: No changes to facts, data, or technical details
 3. **Enhance Readability**: Make it easier to read, not harder
 4. **Add Personality**: Inject humanity without being unprofessional
-5. **Stay On Brand**: For Simpro content, retrieve current voice and tone guidance through connector semantic search and `resource_id` reads; use `context/brand-voice.md` only as a fallback mirror when the connector is unavailable
+5. **Stay On Brand**: For Simpro content, retrieve current voice and tone guidance through connector semantic search and `resource_id` reads; if connector evidence is unavailable, stop brand-voice edits.
 6. **Be Specific**: Replace vague with concrete wherever possible
 7. **Respect Structure**: Keep H1/H2/H3 hierarchy intact
 

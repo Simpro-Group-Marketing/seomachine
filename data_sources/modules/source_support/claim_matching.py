@@ -31,6 +31,13 @@ def _general_claim_type(text: str) -> str:
 def _is_general_claim_exempt(sentence: str) -> bool:
     """Apply only language-observable exemptions, never writer-provided labels."""
     text = _claim_text_for_detection(sentence).strip()
+    text = re.sub(r"^\s*(?:[-*+]\s*)?\d+\.\s+", "", text).strip()
+    if text.startswith("|") and text.endswith("|"):
+        cells = [cell.strip() for cell in text.strip("|").split("|")]
+        if cells and all(not cell or cell.endswith("?") for cell in cells):
+            return True
+        if cells and cells[0].endswith("?"):
+            return True
     if text.endswith("?"):
         return True
     if OPINION_SIGNAL_RE.search(text):

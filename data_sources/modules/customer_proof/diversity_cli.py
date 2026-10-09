@@ -8,7 +8,7 @@ from typing import Optional, Sequence
 
 from ..guard_common import should_fail, summarize_findings
 from .diversity import check_file
-from .diversity_contracts import DEFAULT_INDEX_PATH, DEFAULT_LEDGER_PATH
+from .diversity_contracts import DEFAULT_LEDGER_PATH, DEFAULT_NONVAULT_INDEX_PATH
 
 
 def _main(argv: Optional[Sequence[str]] = None) -> int:
@@ -33,8 +33,12 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
     )
     parser.add_argument(
         "--proof-index",
-        default=str(DEFAULT_INDEX_PATH),
-        help="Customer proof index JSON path.",
+        help=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        "--nonvault-proof-index",
+        default=str(DEFAULT_NONVAULT_INDEX_PATH),
+        help="Nonconnector customer proof index JSON path.",
     )
     parser.add_argument(
         "--context-pack",
@@ -45,13 +49,18 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
         help="simpro-context-receipt/v1 JSON path for receipt-backed comparison.",
     )
     args = parser.parse_args(argv)
+    if args.proof_index:
+        parser.error(
+            "--proof-index is no longer supported for Simpro readiness; use "
+            "--nonvault-proof-index only for AroFlo, BigChange, or ClockShark workflows."
+        )
 
     findings = check_file(
         args.path,
         fail_on=args.fail_on,
         proof_sidecar=args.proof_sidecar,
         ledger_path=args.ledger,
-        proof_index_path=args.proof_index,
+        proof_index_path=args.nonvault_proof_index,
         context_pack=args.context_pack,
         context_receipt=args.context_receipt,
     )

@@ -65,7 +65,7 @@ def _legacy_projection(
 ) -> str:
     def text(value: Any) -> str:
         if isinstance(value, list):
-            return " | ".join(str(item) for item in value)
+            return " | ".join(str(item) for item in value) or "none observed"
         return str(value)
 
     search_fields = (

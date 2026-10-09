@@ -104,6 +104,105 @@
       "observed_text_length": 765,
       "evidence": "Page 5 of the rendered certificate specification sets learning outcomes covering workplace hazard identification, control measures, the stages of a risk assessment, and circumstances requiring review.",
       "reason": "The PDF URL returned HTTP 403 to the validator client. The exact PDF loaded in the connected Chrome browser, where page 5 and its assessment-criteria table were visually verified."
+    },
+    {
+      "url": "https://www.bls.gov/cps/cpsaat11.htm",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-25T19:40:00Z",
+      "page_title": "Employed people by detailed occupation, sex, race, and Hispanic or Latino ethnicity : U.S. Bureau of Labor Statistics",
+      "observed_text_length": 39211,
+      "evidence": "Construction and extraction occupations 8,490 4.3 86.6 7.0 1.8 41.7",
+      "reason": "www.bls.gov returns HTTP 403 to the validator's request client. The page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.bls.gov/cps/cpsaat18.htm",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-25T19:42:00Z",
+      "page_title": "Employed people by detailed industry, sex, race, and Hispanic or Latino ethnicity : U.S. Bureau of Labor Statistics",
+      "observed_text_length": 25394,
+      "evidence": "Construction 12,121 11.3 86.8 6.6 2.3 35.4",
+      "reason": "www.bls.gov returns HTTP 403 to the validator's request client. The page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.dol.gov/sites/dolgov/files/ETA/opder/DASP/Trendlines/posts/2024_11/Trendlines_November_2024.html",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-25T19:44:00Z",
+      "page_title": "trendlines_november_2024",
+      "observed_text_length": 4917,
+      "evidence": "women still only made up about 14% of active apprentices in FY2024",
+      "reason": "dol.gov returns HTTP 403 to the validator's request client. The page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.g2.com/products/simpro/reviews/simpro-review-12271635",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-09-28T16:55:43Z",
+      "page_title": "G2",
+      "observed_text_length": 2539,
+      "evidence": "I find Simpro incredibly easy to use with its user-friendly interface, which lowers the barrier for our less tech-savvy employees",
+      "reason": "g2.com returns HTTP 403 to the validator's request client. The review page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.g2.com/products/simpro/reviews/simpro-review-13118004",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-10-02T20:41:45Z",
+      "page_title": "G2",
+      "observed_text_length": 1737,
+      "evidence": "Simpro has made everyone accountable from the very beginning, from the lead and quote stage all the way through to collecting the final payment for the job.",
+      "reason": "g2.com returns HTTP 403 to the validator's request client. The review page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.g2.com/products/simpro/reviews/simpro-review-13176424",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-10-02T20:41:45Z",
+      "page_title": "G2",
+      "observed_text_length": 2355,
+      "evidence": "It has improved communication between the office and field technicians, streamlined dispatching and scheduling, and given us better visibility into jobs, quotes, inventory, and invoicing.",
+      "reason": "g2.com returns HTTP 403 to the validator's request client. The review page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.g2.com/products/simpro/reviews/simpro-review-8771080",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-10-02T20:41:45Z",
+      "page_title": "G2",
+      "observed_text_length": 1219,
+      "evidence": "We went from carbonless service call forms and a whiteboard calendar to Simpro.",
+      "reason": "g2.com returns HTTP 403 to the validator's request client. The review page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.g2.com/products/simpro/reviews/simpro-review-13242709",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-10-02T20:41:45Z",
+      "page_title": "G2",
+      "observed_text_length": 1060,
+      "evidence": "As an owner, it gives me great real-time insight into my business, from work orders to quotes.",
+      "reason": "g2.com returns HTTP 403 to the validator's request client. The review page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.g2.com/products/simpro/reviews/simpro-review-8714287",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-10-02T20:48:22Z",
+      "page_title": "G2",
+      "observed_text_length": 1119,
+      "evidence": "Simpro allows our company to manage quotes, jobs, invoicing, and business reporting efficiently in one place.",
+      "reason": "g2.com returns HTTP 403 to the validator's request client. The review page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.capterra.com/p/10529/Simpro-Enterprise/#Capterra___7174604",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-10-05T20:09:58Z",
+      "page_title": "Simpro Software Pricing, Alternatives & More 2026 | Capterra",
+      "observed_text_length": 50000,
+      "evidence": "It is an absolute powerhouse when it comes to keeping our quoting, job management, and invoicing tied together in one single source of truth.",
+      "reason": "capterra.com returns HTTP 403 to the validator's request client. The page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-10-05T20:09:58Z",
+      "page_title": "Simpro Reviews 2026. Verified Reviews, Pros & Cons | Capterra",
+      "observed_text_length": 50000,
+      "evidence": "Reviews of Simpro",
+      "reason": "capterra.com returns HTTP 403 to the validator's request client. The page loads normally in the Chrome connector."
     }
   ]
 }

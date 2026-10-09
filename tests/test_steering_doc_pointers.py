@@ -54,10 +54,10 @@ def test_readme_points_to_the_canonical_policy_and_steering_files() -> None:
 
 def test_customer_proof_rule_keeps_ledger_and_zero_recent_use_duties() -> None:
     """These duties lived only in the old steering files before they became pointers."""
-    ledger_duty = "add a matching entry to `context/customer-proof-usage-ledger.json` before final handoff"
+    ledger_duty = "add a matching entry to `config/customer-proof-usage-ledger.json` before final handoff"
     for path in (".claude/rules/customer-proof.md", ".agents/rules/customer-proof.md"):
         rule = _read(path)
         assert ledger_duty in rule
         assert "Prefer an approved zero-recent-use source when one fits the same role." in rule
     strategy = _read("context/aeo-geo-blog-strategy.md")
-    assert "matching entry must be added to `context/customer-proof-usage-ledger.json` before final handoff" in strategy
+    assert "matching entry must be added to `config/customer-proof-usage-ledger.json` before final handoff" in strategy

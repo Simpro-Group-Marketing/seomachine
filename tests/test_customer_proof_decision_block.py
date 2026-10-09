@@ -19,8 +19,9 @@ from data_sources.modules.customer_proof.contracts import CustomerProofDataError
 from data_sources.modules.customer_proof.decision_block import selected_proof_rows
 from data_sources.modules.customer_proof.selector_cli import _main
 from tests.test_customer_proof_selector import (
-    write_context_receipt_fixture,
-    write_selector_fixture,
+    proof_claims,
+    write_connector_context_fixture,
+    write_ledger,
 )
 from tests.vault_context_fixture import load_validated_claim_set_for_unit_test
 
@@ -35,19 +36,13 @@ def _validated_claims():
 
 
 def _run(tmp_path: Path, *extra: str) -> tuple[int, str]:
-    index_path, ledger_path = write_selector_fixture(tmp_path)
-    pack, receipt = write_context_receipt_fixture(tmp_path, index_path)
+    ledger_path = write_ledger(tmp_path)
+    pack, receipt = write_connector_context_fixture(tmp_path, proof_claims())
     out = StringIO()
     with redirect_stdout(out):
         code = _main(
             [
-                "best job quoting and invoicing software",
-                "--title",
-                "Best job quoting and invoicing software",
-                "--objective",
-                "help field service buyers evaluate quote-to-cash software",
-                "--index",
-                str(index_path),
+                "quoting invoicing review story",
                 "--ledger",
                 str(ledger_path),
                 "--context-pack",
@@ -72,7 +67,7 @@ def test_decision_block_selected_proof_is_in_slate(tmp_path: Path) -> None:
     selected = _selected_proof_ids(_extract_selection_decision(text))
     slate_ids = _slate_selected_ids(_parse_slate_roles(_extract_customer_proof_slate(text)))
     assert selected and set(selected) <= slate_ids
-    assert "- Selected proof: quote-matrix-bwe-engineering-job-to-invoice | Customer: " in text
+    assert "- Selected proof: claim-bwe-quote | Customer: " in text
     assert "- Selector command: python data_sources/modules/customer_proof_selector.py" in text
 
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import date
 from pathlib import Path
 from typing import Any, Mapping
@@ -17,7 +18,7 @@ from .evidence_common import (
 from .selection import select_customer_proofs
 
 
-CONNECTOR_EVIDENCE_SCHEMA = "simpro-customer-proof-selector-evidence/v1"
+CONNECTOR_EVIDENCE_SCHEMA = "simpro-customer-proof-selector-evidence/v2"
 CONNECTOR_ROLES = {"experience_story", "metric", "quote", "theme"}
 
 
@@ -30,7 +31,14 @@ def verify_connector_selector_evidence(
             return None
         inputs, roles, recorded_roles, artifact_paths, limit, reference_date = prepared
         if evidence.get("selection_outcome") == "no_fit_customer_proof":
-            verified = _verify_no_fit_roles(inputs, roles, recorded_roles)
+            verified = _verify_no_fit_roles(
+                inputs,
+                roles,
+                recorded_roles,
+                artifact_paths,
+                limit,
+                reference_date,
+            )
         else:
             verified = _verify_selected_roles(
                 inputs,
@@ -54,7 +62,12 @@ def _connector_inputs(
     recorded_roles = evidence.get("roles")
     if not isinstance(inputs, dict) or not isinstance(recorded_roles, list):
         return None
-    paths = verified_artifact_paths(evidence, ("index", "ledger", "context_pack", "context_receipt"))
+    paths = verified_artifact_paths(
+        evidence,
+        ("ledger", "context_pack", "context_receipt", "claim_lookup"),
+    )
+    if paths is None:
+        paths = verified_artifact_paths(evidence, ("ledger", "context_pack", "context_receipt"))
     if paths is None or not _connector_input_shape(inputs, recorded_roles):
         return None
     limit = limit_value(inputs)
@@ -85,13 +98,24 @@ def _verify_no_fit_roles(
     inputs: Mapping[str, Any],
     roles: list[str],
     recorded_roles: list[Any],
+    paths: Mapping[str, Path],
+    limit: int,
+    reference_date: date,
 ) -> dict[str, dict[str, Any]] | None:
     if inputs.get("allow_no_proof") is not True or set(roles) != CONNECTOR_ROLES:
         return None
     verified: dict[str, dict[str, Any]] = {}
     rejected = inputs.get("rejected_overrides", {})
     for role, recorded in zip(roles, recorded_roles):
-        row = _verified_no_fit_role(role, recorded, rejected.get(role, {}))
+        row = _verified_no_fit_role(
+            inputs,
+            role,
+            recorded,
+            paths,
+            limit,
+            reference_date,
+            rejected.get(role, {}),
+        )
         if row is None:
             return None
         verified[role] = row
@@ -99,11 +123,31 @@ def _verify_no_fit_roles(
 
 
 def _verified_no_fit_role(
+    inputs: Mapping[str, Any],
     role: str,
     recorded: object,
+    paths: Mapping[str, Path],
+    limit: int,
+    reference_date: date,
     role_rejections: object,
 ) -> dict[str, Any] | None:
     if not isinstance(recorded, dict) or recorded.get("role") != role or not isinstance(role_rejections, dict):
+        return None
+    results = select_customer_proofs(
+        str(inputs["topic"]),
+        ledger_path=paths["ledger"],
+        context_pack=paths["context_pack"],
+        context_receipt=paths["context_receipt"],
+        article_slug=str(inputs["article_slug"]),
+        title=str(inputs["title"]),
+        objective=str(inputs["objective"]),
+        require_eeat_story=role == "experience_story",
+        proof_role=role,
+        limit=limit,
+        reference_date=reference_date,
+        claim_lookup_evidence=_claim_lookup_artifact(paths),
+    )
+    if results:
         return None
     no_fit_reason = str(recorded.get("no_fit_reason") or "")
     valid = (
@@ -154,7 +198,6 @@ def _verify_selected_role(
         return None
     results = select_customer_proofs(
         str(inputs["topic"]),
-        index_path=paths["index"],
         ledger_path=paths["ledger"],
         context_pack=paths["context_pack"],
         context_receipt=paths["context_receipt"],
@@ -165,6 +208,7 @@ def _verify_selected_role(
         proof_role=role,
         limit=limit,
         reference_date=reference_date,
+        claim_lookup_evidence=_claim_lookup_artifact(paths),
     )
     candidate_ids = [str(result["proof_id"]) for result in results if result.get("proof_id")]
     claim_ids = [str(result["claim_id"]) for result in results if result.get("claim_id")]
@@ -211,6 +255,17 @@ def experience_candidate_binding(candidate: Mapping[str, Any]) -> dict[str, str]
         "public_url": public_url,
         "story": story_text,
     }
+
+
+def _claim_lookup_artifact(paths: Mapping[str, Path]) -> Mapping[str, Any] | None:
+    path = paths.get("claim_lookup")
+    if path is None:
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError):
+        return None
+    return payload if isinstance(payload, Mapping) else None
 
 
 __all__ = ["CONNECTOR_EVIDENCE_SCHEMA", "experience_candidate_binding", "verify_connector_selector_evidence"]

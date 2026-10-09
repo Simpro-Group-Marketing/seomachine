@@ -14,7 +14,7 @@ Last updated: 2026-05-22
 
 ## Evidence Boundary
 
-This playbook uses only public Reddit/search-visible evidence, the PEEC and AI citation context already captured in `context/ai-citation-targets.md`, keyword/SERP context from `context/target-keywords.md`, and competitor positioning from `context/competitor-analysis.md`.
+This playbook uses only public Reddit/search-visible evidence, the PEEC and AI citation context already captured in `context/ai-citation-targets.md`, keyword/SERP context from `context/target-keywords.md`, and dated SEO/SERP competitor signals from `context/reference/competitors/seo-market-signals.md`.
 
 No Reddit login, Reddit API token, private subreddit access, authenticated analytics, posting, or commenting was used. Do not infer Reddit sentiment share, conversion impact, vote counts, or comment-volume trends from this file. If a public Reddit page exposes only the title and visible thread body, treat the thread as a qualitative listening source, not a quantitative research sample.
 
@@ -157,7 +157,7 @@ Use Reddit/community evidence to improve content, not to manufacture claims.
 - Add small-shop fit boundaries to ServiceTitan-alternative content so Simpro does not sound like the answer for every solo contractor.
 - Build comparison content around buyer situations: outgrowing QuickBooks, moving beyond Jobber or Housecall Pro, commercial HVAC/project work, and maintenance-heavy operations.
 - Use Reddit language themes as inputs for FAQ wording, but cite only public URLs and avoid presenting Reddit anecdotes as statistically representative.
-- Watch for recurring competitor mentions that match `context/competitor-analysis.md`, especially ServiceTitan, BuildOps, Jobber, Housecall Pro, FieldPulse, Service Fusion, Workiz, FieldEdge, and QuickBooks.
+- Watch for recurring competitor mentions that match `context/reference/competitors/seo-market-signals.md`, especially ServiceTitan, BuildOps, Jobber, Housecall Pro, FieldPulse, Service Fusion, Workiz, FieldEdge, and QuickBooks.
 - Keep AI-citation opportunities in sync with `context/ai-citation-targets.md` if new Reddit URLs appear in ChatGPT, Perplexity, Google AI Overview, or PEEC exports.
 
 ## Refresh Cadence

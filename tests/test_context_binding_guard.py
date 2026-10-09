@@ -1,4 +1,4 @@
-from tests.fixture_text import fixture_text
+﻿from tests.fixture_text import fixture_text
 
 import hashlib
 import io
@@ -133,13 +133,13 @@ class ContextBindingGuardTests(unittest.TestCase):
             self.request,
             self.pack,
             self.receipt,
-            repo_context=[
-                {
-                    "path": "context/seo-guidelines.md",
-                    "role": "SEO structure",
-                }
-            ],
-        )
+                repo_context=[
+                    {
+                        "path": "context/seo-guidelines.md",
+                        "role": "seo_aeo",
+                    }
+                ],
+            )
         public_text = "Simpro helps teams coordinate work."
         claim_map = [
             {
@@ -748,7 +748,7 @@ class ContextBindingGuardTests(unittest.TestCase):
             repo_context=[
                 {
                     "path": "context/seo-guidelines.md",
-                    "role": "SEO structure",
+                    "role": "seo_aeo",
                 }
             ],
         )
@@ -765,7 +765,7 @@ class ContextBindingGuardTests(unittest.TestCase):
                 self.receipt,
                 repo_context=[
                     {
-                        "path": "context/features.md",
+                        "path": "context/seo-guidelines.md",
                         "role": "Simpro product facts",
                     }
                 ],
@@ -773,16 +773,16 @@ class ContextBindingGuardTests(unittest.TestCase):
 
     def test_repository_context_uses_explicit_path_and_role_allowlist(self):
         allowed = [
-            ("context/seo-guidelines.md", "SEO structure"),
-            ("context/aeo-geo-blog-strategy.md", "AEO/GEO workflow"),
-            ("context/style-guide.md", "Editorial mechanics"),
-            ("context/target-keywords.md", "Keyword data"),
-            ("context/internal-links-map.md", "Internal-link inventory"),
-            ("context/cro-best-practices.md", "CRO guidance"),
-            ("context/reddit-strategy.md", "Reddit strategy"),
-            ("context/writing-examples.md", "Writing examples"),
-            ("context/field-service-management-platform-faq-list.md", "FAQ questions and formatting"),
-            ("context/customer-proof-usage-ledger.json", "Proof usage tracking"),
+            ("context/seo-guidelines.md", "seo_aeo"),
+            ("context/aeo-geo-blog-strategy.md", "seo_aeo"),
+            ("context/blog-editorial-strategy.md", "editorial_strategy"),
+            ("context/target-keywords.md", "seo_aeo"),
+            ("context/internal-links-map.md", "link_map"),
+            ("context/cro-best-practices.md", "cro_best_practice"),
+            ("context/reddit-strategy.md", "seo_aeo"),
+            ("context/writing-examples.md", "editorial_strategy"),
+            ("context/field-service-management-platform-faq-list.md", "seo_aeo"),
+            ("context/source-routing-map.md", "source_governance"),
         ]
 
         for path, role in allowed:
@@ -798,13 +798,12 @@ class ContextBindingGuardTests(unittest.TestCase):
 
     def test_repository_context_rejects_non_allowlisted_paths_and_roles(self):
         blocked = [
-            ("context/competitor-analysis.md", "SEO structure"),
-            ("context/reference/features.md", "SEO structure"),
-            ("context/brand-voice.md", "Editorial mechanics"),
-            ("context/lightning-positioning.md", "SEO structure"),
-            ("context/customer-proof-index.json", "Proof usage tracking"),
+            ("context/reference/local-competitive-positioning.md", "seo_aeo"),
+            ("context/reference/product-summary.md", "seo_aeo"),
+            ("context/reference/legacy-positioning.md", "editorial_strategy"),
+            ("context/reference/local-proof-inventory.json", "source_governance"),
             ("context/seo-guidelines.md", "Simpro product facts"),
-            ("context/arbitrary.md", "SEO structure"),
+            ("context/arbitrary.md", "seo_aeo"),
         ]
 
         for path, role in blocked:
@@ -827,7 +826,7 @@ class ContextBindingGuardTests(unittest.TestCase):
         )
         binding["repo_context"] = [
             {
-                "path": "context/features.md",
+                "path": "context/seo-guidelines.md",
                 "role": "Simpro product facts",
             }
         ]
@@ -1538,7 +1537,7 @@ class ContextBindingGuardTests(unittest.TestCase):
             self.pack,
             self.receipt,
             self.sidecar,
-            repo_context=[{"path": "context/seo-guidelines.md", "role": "SEO structure"}],
+            repo_context=[{"path": "context/seo-guidelines.md", "role": "seo_aeo"}],
             client=ValidatingClient(),
         )
 
@@ -1587,7 +1586,7 @@ class ContextBindingGuardTests(unittest.TestCase):
             self.receipt,
             self.sidecar,
             repo_context=[
-                {"path": "context/seo-guidelines.md", "role": "SEO structure"}
+                {"path": "context/seo-guidelines.md", "role": "seo_aeo"}
             ],
             client=ValidatingClient(),
         )
@@ -1669,7 +1668,7 @@ class ContextBindingGuardTests(unittest.TestCase):
             self.receipt,
             self.sidecar,
             repo_context=[
-                {"path": "context/seo-guidelines.md", "role": "SEO structure"}
+                {"path": "context/seo-guidelines.md", "role": "seo_aeo"}
             ],
             client=ValidatingClient(),
             stage_receipt_output=receipt_path,
@@ -2189,7 +2188,7 @@ class ContextBindingGuardTests(unittest.TestCase):
                 self.receipt,
                 self.sidecar,
                 repo_context=[
-                    {"path": "context/seo-guidelines.md", "role": "SEO structure"}
+                    {"path": "context/seo-guidelines.md", "role": "seo_aeo"}
                 ],
                 client=ValidatingClient(),
                 stage_receipt_output=self.root / "context-stage.json",
@@ -2212,7 +2211,7 @@ class ContextBindingGuardTests(unittest.TestCase):
                 self.receipt,
                 self.sidecar,
                 repo_context=[
-                    {"path": "context/seo-guidelines.md", "role": "SEO structure"}
+                    {"path": "context/seo-guidelines.md", "role": "seo_aeo"}
                 ],
                 client=ValidatingClient(),
                 stage_receipt_output=self.root / "context-stage.json",
@@ -2236,7 +2235,7 @@ class ContextBindingGuardTests(unittest.TestCase):
                 self.pack,
                 self.receipt,
                 self.sidecar,
-                repo_context=[{"path": "context/seo-guidelines.md", "role": "SEO structure"}],
+                repo_context=[{"path": "context/seo-guidelines.md", "role": "seo_aeo"}],
                 client=ValidatingClient(),
             )
 
@@ -2259,7 +2258,7 @@ class ContextBindingGuardTests(unittest.TestCase):
                 self.pack,
                 self.receipt,
                 self.sidecar,
-                repo_context=[{"path": "context/seo-guidelines.md", "role": "SEO structure"}],
+                repo_context=[{"path": "context/seo-guidelines.md", "role": "seo_aeo"}],
                 client=ValidatingClient(),
             )
 
@@ -2282,7 +2281,7 @@ class ContextBindingGuardTests(unittest.TestCase):
                 self.pack,
                 self.receipt,
                 self.sidecar,
-                repo_context=[{"path": "context/seo-guidelines.md", "role": "SEO structure"}],
+                repo_context=[{"path": "context/seo-guidelines.md", "role": "seo_aeo"}],
                 client=ValidatingClient(),
             )
 
@@ -2323,7 +2322,7 @@ class ContextBindingGuardTests(unittest.TestCase):
                     self.pack,
                     self.receipt,
                     self.sidecar,
-                    repo_context=[{"path": "context/seo-guidelines.md", "role": "SEO structure"}],
+                    repo_context=[{"path": "context/seo-guidelines.md", "role": "seo_aeo"}],
                     client=ValidatingClient(),
                 )
 
@@ -2344,7 +2343,7 @@ class ContextBindingGuardTests(unittest.TestCase):
                         context_binding_generator.generate_and_install(
                             *arguments,
                             repo_context=[
-                                {"path": "context/seo-guidelines.md", "role": "SEO structure"}
+                                {"path": "context/seo-guidelines.md", "role": "seo_aeo"}
                             ],
                             client=ValidatingClient(),
                         )
@@ -2364,7 +2363,7 @@ class ContextBindingGuardTests(unittest.TestCase):
                 self.pack,
                 self.receipt,
                 aliased_sidecar,
-                repo_context=[{"path": "context/seo-guidelines.md", "role": "SEO structure"}],
+                repo_context=[{"path": "context/seo-guidelines.md", "role": "seo_aeo"}],
                 client=ValidatingClient(),
             )
 
@@ -2386,7 +2385,7 @@ class ContextBindingGuardTests(unittest.TestCase):
                     self.pack,
                     self.receipt,
                     self.sidecar,
-                    repo_context=[{"path": "context/seo-guidelines.md", "role": "SEO structure"}],
+                    repo_context=[{"path": "context/seo-guidelines.md", "role": "seo_aeo"}],
                     client=ValidatingClient(),
                 )
 
@@ -2420,7 +2419,7 @@ class ContextBindingGuardTests(unittest.TestCase):
                     repo_context=[
                         {
                             "path": "context/seo-guidelines.md",
-                            "role": "SEO structure",
+                            "role": "seo_aeo",
                         }
                     ],
                     client=ValidatingClient(),
@@ -2465,7 +2464,7 @@ class ContextBindingGuardTests(unittest.TestCase):
                 repo_context=[
                     {
                         "path": "context/seo-guidelines.md",
-                        "role": "SEO structure",
+                        "role": "seo_aeo",
                     }
                 ],
                 client=ValidatingClient(),
@@ -2499,7 +2498,7 @@ class ContextBindingGuardTests(unittest.TestCase):
                 self.pack,
                 self.receipt,
                 self.sidecar,
-                repo_context=[{"path": "context/seo-guidelines.md", "role": "SEO structure"}],
+                repo_context=[{"path": "context/seo-guidelines.md", "role": "seo_aeo"}],
                 client=ValidatingClient(),
             )
 
@@ -2590,3 +2589,4 @@ class ContextBindingGuardTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

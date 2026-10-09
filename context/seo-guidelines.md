@@ -440,7 +440,7 @@ The Capsule Method is the primary structural pattern for Simpro industry and fea
 ```markdown
 ## [H2 Heading That Poses a Question or Problem]
 
-[50–60 word direct answer that could stand alone as a snippet. Names the concept, states the key benefit, and references Simpro or the trades context. Complete sentences. No fluff.]
+[50–60 word direct answer that could stand alone as a snippet. Names the concept, states the search-intent answer, and keeps any brand/product language sourced from the vault workflow. Complete sentences. No fluff.]
 
 [Detailed supporting content, lists, examples below...]
 ```
@@ -449,7 +449,7 @@ The Capsule Method is the primary structural pattern for Simpro industry and fea
 ```markdown
 ## How Does HVAC Scheduling Software Work?
 
-HVAC scheduling software gives dispatchers a real-time view of technician availability, location, and workload. Managers assign jobs from a drag-and-drop calendar, field techs receive job details on mobile, and customers get automatic SMS updates. Simpro's scheduler handles bulk assignments and eliminates double-bookings without spreadsheets.
+HVAC scheduling software helps teams plan work, assign technicians, update job details, and keep service appointments moving through one scheduling workflow. The capsule should answer the searcher’s question directly; any vendor-specific capability, outcome, or proof must come from the vault workflow before it appears in public copy.
 
 [Detailed section with feature breakdown, screenshots, etc.]
 ```
@@ -460,23 +460,23 @@ HVAC scheduling software gives dispatchers a real-time view of technician availa
 Feature pages live at `/features/[slug]`. Use this section order:
 
 1. **Hero** — H1 with primary keyword + Capsule (50–60 words)
-2. **Proof bar** — 3–4 customer logos or a key stat
+2. **Proof bar placeholder** — include only when vault or approved nonconnector proof evidence authorizes it
 3. **Definition / what it is** — Capsule required
 4. **Key challenges it solves** — 3–4 pain points, each with a Capsule
-5. **How Simpro helps** — feature-by-feature with Capsules
+5. **How the solution helps** — feature-by-feature with Capsules, using vault-sourced product language when brand-specific
 6. **Workflow walkthrough** — step-by-step or numbered process
 7. **Feature-to-problem table** — three columns: Feature | What it solves | Outcome
-8. **Customer proof** — named quote + measurable outcome
-9. **Outcomes table** — Before Simpro / After Simpro comparison
+8. **Proof section placeholder** — named quote or measurable outcome only when the applicable proof workflow authorizes it
+9. **Outcomes table** — Before / after or problem / result comparison only when claim support is available
 10. **Related links** — intent-appropriate links to related features or industries that advance the reader task
-11. **CTA** — primary: Get Demo; secondary: Pricing
+11. **CTA** — intent-appropriate next action from the current brief, link map, or vault-authorized campaign guidance
 12. **FAQ** — up to 6 questions, each Capsule-style (direct answer first)
 
 **Title format**: `[Primary Keyword] [Benefit Modifier] | Simpro` (50–60 chars)
 **Meta format**: 140–160 chars, primary keyword front-loaded
 
 ### Industry Page Structure
-Industry pages live at `/industries/[vertical]-software` (exception: security = `/industries/security`). Same section order as feature pages, with a compliance/regulation section added between customer proof and outcomes table:
+Industry pages live at `/industries/[vertical]-software` (exception: security = `/industries/security`). Same section order as feature pages, with a compliance/regulation section added after the proof placeholder when the topic requires it:
 
 - **Compliance/regulation** — relevant standards or requirements for the trade (electrical licensing, fire compliance, refrigerant handling, etc.)
 
@@ -491,31 +491,31 @@ Use these as primary keyword targets and semantic clusters for vertical-specific
 - **Primary**: `hvac service software`, `hvac field service management`, `hvac job management software`
 - **Secondary**: `hvac scheduling software`, `hvac dispatch software`, `hvac estimating software`, `hvac maintenance software`
 - **Pain points**: paper-shuffling, long admin hours, double handling, schedule conflicts, recurring maintenance tracking
-- **Customer proof**: Lorene Maher, RCR Infrastructure — customer portal, real-time job visibility
+- **Proof note**: select any customer proof through the applicable proof workflow; this keyword file does not store proof.
 
 ### Electrical (`/industries/electrical-software`)
 - **Primary**: `electrical job management software`, `electrical contractor software`, `electrical field service software`
 - **Secondary**: `electrician scheduling software`, `electrical estimating software`, `electrical project management software`
 - **Pain points**: paper scheduling, no real-time staff visibility, manual quoting, materials tracking
-- **Customer proof**: Jacqui Sheriff, O'Brien Electrical Granville — field staff see their day before leaving home
+- **Proof note**: select any customer proof through the applicable proof workflow; this keyword file does not store proof.
 
 ### Plumbing (`/industries/plumbing-software`)
 - **Primary**: `plumbing service software`, `plumbing job management`, `plumbing business software`
 - **Secondary**: `plumbing scheduling software`, `plumbing estimating software`, `plumbing inventory management`
 - **Pain points**: missed/unbilled work, manual estimates, slow invoicing, inventory leakage
-- **Customer proof**: Nikki Schembri, Tequa — "Written off debt is now less than 0.01%"
+- **Proof note**: select any customer proof through the applicable proof workflow; this keyword file does not store proof.
 
 ### Security (`/industries/security`)
 - **Primary**: `security management software`, `security company software`, `security job management`
 - **Secondary**: `security contractor software`, `security scheduling software`, `security compliance software`
 - **Pain points**: compliance documentation burden, job costing accuracy, competing with larger firms on documentation quality
-- **Customer proof**: Darren Thorne, DT Fire Systems — compete with bigger companies through better documentation
+- **Proof note**: select any customer proof through the applicable proof workflow; this keyword file does not store proof.
 
 ### Fire Protection (`/industries/fire-protection-software`)
 - **Primary**: `fire protection software`, `fire protection service management`, `fire protection compliance software`
 - **Secondary**: `fire protection field service software`, `fire protection scheduling`, `fire protection asset management`
 - **Pain points**: compliance tracking (AS 1851 and equivalents), recurring maintenance scheduling, asset testing time
-- **Customer proof**: Todd Rankin, AlarmQuest — "more positive feedback from Simpro than any other software we've used"
+- **Proof note**: select any customer proof through the applicable proof workflow; this keyword file does not store proof.
 
 ### Additional Verticals (no dedicated industry pages — blog content opportunities)
 Solar, Elevator Service, Pest Control, Pool Service, Commercial Kitchen Equipment. Target `[vertical] field service software` as primary keyword pattern.
@@ -741,7 +741,7 @@ Before publishing, verify:
 - [ ] No spelling or grammar errors
 - [ ] Factually accurate
 - [ ] Sources cited
-- [ ] Brand voice maintained
+- [ ] Brand-language evidence comes from the vault workflow when brand-specific language is present
 - [ ] Provides actionable value
 - [ ] Intent-appropriate next action; no CTA added when the Reader Contract does not call for one
 

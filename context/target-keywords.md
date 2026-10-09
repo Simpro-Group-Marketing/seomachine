@@ -563,7 +563,7 @@ These topics are strategically important based on Product Marketing context and 
    - Difficulty: Semrush KD index 2; adjacent `Jobber alternative` KD index 5; Ahrefs Free KD `Easy`
    - Commercial signal: Semrush CPC $34.74; paid competition 0.67.
    - Intent: BOFU
-   - Why Priority: ServiceTitan is a confirmed named competitor in `competitor-analysis.md`.
+   - Why Priority: ServiceTitan appears in dated BOFU comparison search evidence.
    - Action: Build or strengthen alternative/comparison intent only after the FSM and major vertical pages are moving, unless sales needs a dedicated BOFU asset sooner.
 
 ## Performance and Cannibalization Tracking
@@ -642,5 +642,5 @@ These topics are strategically important based on Product Marketing context and 
 - Refresh Semrush MCP `phrase_these` quarterly for the priority set, and expand it again only when new keyword clusters are added.
 - Run a manual live SERP review for every High Priority to Validate topic, including human interpretation of Semrush SERP feature codes and page format.
 - Cannibalization review for topic clusters with several existing pages.
-- Destination-domain owner: follow `context/brand-voice.md` for the canonical `simpro.ai` versus `simprogroup.com` boundary; this keyword file preserves the historical `simprogroup.com` SEO baseline unless verified migration evidence changes that scope.
+- Destination-domain owner: this keyword file preserves the historical `simprogroup.com` SEO baseline unless verified migration evidence from current sitemap, GSC, GA4, or connector output changes that scope.
 - Add `simpro.ai` GSC and GA4 data only for Lightning and AI-for-the-trades analysis, and keep it separate from this historical `simprogroup.com` baseline unless a verified migration changes the classic-domain rule.

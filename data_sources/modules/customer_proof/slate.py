@@ -120,7 +120,7 @@ def _write_selector_evidence(
     artifacts = input_snapshot.artifacts
     selection_outcome = _selector_evidence_outcome(role_evidence)
     evidence = {
-        "schema": "simpro-customer-proof-selector-evidence/v1",
+        "schema": "simpro-customer-proof-selector-evidence/v2",
         "selection_outcome": selection_outcome,
         "inputs": {
             "topic": topic,

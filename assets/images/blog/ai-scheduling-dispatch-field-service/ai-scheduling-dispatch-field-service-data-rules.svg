@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-label="Data inputs for AI scheduling" font-family="Urbanist, Inter, Arial, Helvetica, sans-serif">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0A2240" flood-opacity="0.15"/>
+    </filter>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#D8E1E7" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="675" fill="#EEF3F6"/>
+  <rect width="1200" height="675" fill="url(#grid)" opacity="0.55"/>
+  <rect x="0" y="0" width="1200" height="18" fill="#FFC600"/>
+  <text x="72" y="78" fill="#0A2240" font-size="30" font-weight="800">Simpro</text>
+  <text x="72" y="142" fill="#0A2240" font-size="40" font-weight="800" text-anchor="start"><tspan x="72" dy="0">Data inputs for AI scheduling</tspan></text>
+  <text x="74" y="184" fill="#15314F" font-size="20" font-weight="500" text-anchor="start"><tspan x="74" dy="0">Complete operating records feed safer scheduling decisions</tspan></text>
+
+    <path d="M 245 488 L 245 516 L 600 516 L 600 545" stroke="#8FA4B2" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M 600 488 L 600 545" stroke="#8FA4B2" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M 955 488 L 955 516 L 600 516" stroke="#8FA4B2" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M 245 348 L 245 516" stroke="#8FA4B2" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.7"/>
+    <path d="M 600 348 L 600 545" stroke="#8FA4B2" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.7"/>
+    <path d="M 955 348 L 955 516" stroke="#8FA4B2" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.7"/>
+    <g filter="url(#shadow)">
+      <rect x="300" y="545" width="600" height="92" rx="24" fill="#FFFFFF" stroke="#01B59A" stroke-width="5"/>
+      <text x="600" y="583" fill="#0A2240" font-size="28" font-weight="800" text-anchor="middle"><tspan x="600" dy="0">Scheduling recommendation</tspan></text>
+      <text x="600" y="616" fill="#15314F" font-size="17" font-weight="700" text-anchor="middle"><tspan x="600" dy="0">Only valid options move forward</tspan></text>
+    </g>
+
+      <g filter="url(#shadow)">
+        <rect x="95" y="252" width="300" height="96" rx="22" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+        <circle cx="149" cy="300" r="35" fill="#01B59A"/><text x="149" y="310" fill="#FFFFFF" font-size="25" font-weight="800" text-anchor="middle"><tspan x="149" dy="0">T</tspan></text>
+        <text x="213" y="293" fill="#0A2240" font-size="23" font-weight="800" text-anchor="start"><tspan x="213" dy="0">Techs</tspan></text>
+        <text x="213" y="322" fill="#15314F" font-size="15" font-weight="600" text-anchor="start"><tspan x="213" dy="0">Skills and certs</tspan></text>
+      </g>
+
+      <g filter="url(#shadow)">
+        <rect x="450" y="252" width="300" height="96" rx="22" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+        <circle cx="504" cy="300" r="35" fill="#00A3D9"/><text x="504" y="310" fill="#FFFFFF" font-size="25" font-weight="800" text-anchor="middle"><tspan x="504" dy="0">J</tspan></text>
+        <text x="568" y="293" fill="#0A2240" font-size="23" font-weight="800" text-anchor="start"><tspan x="568" dy="0">Jobs</tspan></text>
+        <text x="568" y="322" fill="#15314F" font-size="15" font-weight="600" text-anchor="start"><tspan x="568" dy="0">Type and priority</tspan></text>
+      </g>
+
+      <g filter="url(#shadow)">
+        <rect x="805" y="252" width="300" height="96" rx="22" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+        <circle cx="859" cy="300" r="35" fill="#E75C0D"/><text x="859" y="310" fill="#FFFFFF" font-size="25" font-weight="800" text-anchor="middle"><tspan x="859" dy="0">S</tspan></text>
+        <text x="923" y="293" fill="#0A2240" font-size="23" font-weight="800" text-anchor="start"><tspan x="923" dy="0">Sites</tspan></text>
+        <text x="923" y="322" fill="#15314F" font-size="15" font-weight="600" text-anchor="start"><tspan x="923" dy="0">Access and windows</tspan></text>
+      </g>
+
+      <g filter="url(#shadow)">
+        <rect x="95" y="390" width="300" height="96" rx="22" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+        <circle cx="149" cy="438" r="35" fill="#00A3D9"/><text x="149" y="448" fill="#FFFFFF" font-size="25" font-weight="800" text-anchor="middle"><tspan x="149" dy="0">C</tspan></text>
+        <text x="213" y="431" fill="#0A2240" font-size="23" font-weight="800" text-anchor="start"><tspan x="213" dy="0">Customers</tspan></text>
+        <text x="213" y="460" fill="#15314F" font-size="15" font-weight="600" text-anchor="start"><tspan x="213" dy="0">Commitments</tspan></text>
+      </g>
+
+      <g filter="url(#shadow)">
+        <rect x="450" y="390" width="300" height="96" rx="22" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+        <circle cx="504" cy="438" r="35" fill="#FFC600"/><text x="504" y="448" fill="#0A2240" font-size="25" font-weight="800" text-anchor="middle"><tspan x="504" dy="0">P</tspan></text>
+        <text x="568" y="431" fill="#0A2240" font-size="23" font-weight="800" text-anchor="start"><tspan x="568" dy="0">Policy</tspan></text>
+        <text x="568" y="460" fill="#15314F" font-size="15" font-weight="600" text-anchor="start"><tspan x="568" dy="0">Rules and promises</tspan></text>
+      </g>
+
+      <g filter="url(#shadow)">
+        <rect x="805" y="390" width="300" height="96" rx="22" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+        <circle cx="859" cy="438" r="35" fill="#0A2240"/><text x="859" y="448" fill="#FFFFFF" font-size="25" font-weight="800" text-anchor="middle"><tspan x="859" dy="0">P</tspan></text>
+        <text x="923" y="431" fill="#0A2240" font-size="23" font-weight="800" text-anchor="start"><tspan x="923" dy="0">Parts</tspan></text>
+        <text x="923" y="460" fill="#15314F" font-size="15" font-weight="600" text-anchor="start"><tspan x="923" dy="0">Availability</tspan></text>
+      </g>
+
+</svg>

@@ -1,5 +1,6 @@
 from tests.fixture_text import fixture_text
 
+import hashlib
 import json
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -130,8 +131,6 @@ def write_bound_experience_story_evidence(
         exit_code = run_customer_proof_selector(
             [
                 "hvac scheduling software for contractors",
-                "--index",
-                str(index_path),
                 "--ledger",
                 str(ledger_path),
                 "--context-pack",
@@ -157,7 +156,14 @@ def write_bound_experience_story_evidence(
             ]
         )
     test_case.assertEqual(exit_code, 0, stderr.getvalue())
-    sidecar = PAA_PROVENANCE_BLOCK + "\n## " + stdout.getvalue() + fixture_text("content_evidence:test_aeo_geo_rater-228-3")
+    selector_hash = hashlib.sha256(evidence_path.read_bytes()).hexdigest()
+    sidecar = (
+        PAA_PROVENANCE_BLOCK
+        + "\n## "
+        + stdout.getvalue()
+        + f"\n- Selector evidence: {evidence_path.name} | SHA-256: {selector_hash}\n"
+        + fixture_text("content_evidence:test_aeo_geo_rater-228-3")
+    )
     sidecar_path = root / "validation-hvac-scheduling.md"
     sidecar_path.write_text(sidecar, encoding="utf-8")
     return sidecar, sidecar_path
@@ -204,8 +210,6 @@ class AeoGeoRaterTestCase(unittest.TestCase):
             exit_code = run_customer_proof_selector(
                 [
                     "job sheets for UK field service teams",
-                    "--index",
-                    str(index_path),
                     "--ledger",
                     str(ledger_path),
                     "--context-pack",
@@ -234,7 +238,7 @@ class AeoGeoRaterTestCase(unittest.TestCase):
         sidecar = fixture_text("content_evidence:test_aeo_geo_rater-384-12") + stdout.getvalue()
         sidecar_path = root / "validation-job-sheets.md"
         sidecar_path.write_text(sidecar, encoding="utf-8")
-        return sidecar, sidecar_path, index_path
+        return sidecar, sidecar_path, ledger_path
 
     def write_bound_experience_story_evidence(
         self,

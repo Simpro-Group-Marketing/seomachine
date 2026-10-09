@@ -27,7 +27,7 @@ When routing to `/rewrite`, `/analyze-existing` creates and freezes the complete
 - Resolve source URL or file path, post slug, topic, title, objective, audience, region, current target keyword, and intended reader task.
 - Classify Context Binding from the brand metadata and content before making product, competitor, proof, or workflow decisions. Run the vault connector workflow only for Simpro-owned or cross-brand-triggered work.
 - Save context request/pack/receipt only for connector-bound work. For qualifying AroFlo, BigChange, and ClockShark work, save the nonconnector decision and omit vault-dependent Fred and customer-proof artifacts.
-- Use repo-local context files only as downstream mirrors or fallback context when the vault is unavailable, and record that blocker in the validation sidecar.
+- Use repo-local context files only for allowed SEO/AEO, editorial, CRO, link-map, or source-governance inputs. If vault evidence is unavailable for Simpro brand or proof work, record the blocker and stop that brand/proof use.
 
 ### 2. Content Analysis
 - Extract article text, headings, metadata, links, schema notes, media references, and publication/update dates.

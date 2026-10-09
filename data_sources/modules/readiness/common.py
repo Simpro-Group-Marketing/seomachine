@@ -24,6 +24,7 @@ try:
         blog_identity_guard,
         blog_strategy_plan_guard,
         chrome_review_evidence,
+        context_boundary_guard,
         context_binding_guard,
         competitive_shortlist_guard,
         early_artifact_guard,
@@ -107,6 +108,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import blog_identity_guard
     import blog_strategy_plan_guard
     import chrome_review_evidence
+    import context_boundary_guard
     import context_binding_guard
     import competitive_shortlist_guard
     import early_artifact_guard
@@ -214,6 +216,11 @@ CUSTOMER_PROOF_QUOTE_CONTEXT_RE = re.compile(
     re.IGNORECASE,
 )
 ARTICLE_GATES = (
+    (
+        "context_boundary",
+        "Context Boundary",
+        context_boundary_guard,
+    ),
     (
         "industry_cluster_link_policy",
         "Industry Cluster Link Policy",

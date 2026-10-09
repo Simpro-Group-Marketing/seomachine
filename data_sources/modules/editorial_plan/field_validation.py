@@ -166,8 +166,11 @@ def _check_keyword_decision(value: Any, meta: Any) -> list[Finding]:
             f'{location}/artifact_schema',
             f'must be {KEYWORD_DECISION_SCHEMA}',
         ))
-    if value.get('source') != 'semrush_connector':
-        findings.append(_invalid_field(f'{location}/source', 'must be semrush_connector'))
+    if value.get('source') not in {'semrush_connector', 'semrush_chrome_ui'}:
+        findings.append(_invalid_field(
+            f'{location}/source',
+            'must be semrush_connector or semrush_chrome_ui',
+        ))
     selected_secondary_findings = _check_string_list(
         value.get('selected_secondary_keywords'),
         f'{location}/selected_secondary_keywords',

@@ -1,0 +1,105 @@
+{
+  "schema": "simpro-blog-image-handoff/v1",
+  "article": "published/ai-scheduling-dispatch-field-service-2026-07-17.md",
+  "slug": "ai-scheduling-dispatch-field-service",
+  "generated_at": "2026-09-29T14:58:47.399Z",
+  "source_article_mutated": false,
+  "vault_basis": {
+    "resource_id": "res-339d828f9b875c738f530a65ccbc3587",
+    "title": "Simpro Group Brand Usage Guide",
+    "content_sha256": "402331bb9e8e808ec9bb3f95e9d8d88e2be4f42e269a59de0a983b896881c92b",
+    "guidance": "Use Simpro product brand for product-led, customer-facing visuals; verify typography, palette, and assets against the current SimproGroup Style Sheet route."
+  },
+  "brand_direction": {
+    "brand": "Simpro",
+    "asset_type": "branded explanatory diagrams",
+    "palette": {
+      "navy": "#0A2240",
+      "yellow": "#FFC600",
+      "green": "#01B59A",
+      "orange": "#E75C0D",
+      "blue": "#00A3D9",
+      "grey": "#BDC6CC",
+      "lightGrey": "#EEF3F6",
+      "white": "#FFFFFF",
+      "ink": "#15314F"
+    },
+    "typography": "Urbanist where available; Inter, Arial, sans-serif fallback",
+    "restrictions": [
+      "No fake Simpro UI",
+      "No unsupported AI feature states",
+      "No customer names",
+      "No outcome metrics",
+      "No rankings",
+      "No competitor logos",
+      "No generic stock-photo dispatch imagery"
+    ]
+  },
+  "assets": [
+    {
+      "key": "hero",
+      "filename": "assets/images/blog/ai-scheduling-dispatch-field-service/ai-scheduling-dispatch-field-service-hero.webp",
+      "source_svg": "assets/images/blog/ai-scheduling-dispatch-field-service/ai-scheduling-dispatch-field-service-hero.svg",
+      "dimensions": "1600 x 900",
+      "format": "WebP",
+      "bytes": 54600,
+      "alt": "AI scheduling and dispatch optimization for field service teams",
+      "alt_length": 63,
+      "placement": "line 41 placeholder",
+      "render_target": "featured image",
+      "compression_status": "compressed with sharp webp quality 86 effort 6",
+      "cms_upload_url": "pending CMS upload"
+    },
+    {
+      "key": "data-rules",
+      "filename": "assets/images/blog/ai-scheduling-dispatch-field-service/ai-scheduling-dispatch-field-service-data-rules.webp",
+      "source_svg": "assets/images/blog/ai-scheduling-dispatch-field-service/ai-scheduling-dispatch-field-service-data-rules.svg",
+      "dimensions": "1200 x 675",
+      "format": "WebP",
+      "bytes": 38352,
+      "alt": "Data inputs used for AI field service scheduling decisions",
+      "alt_length": 58,
+      "placement": "line 79 placeholder",
+      "render_target": "data and business rules section",
+      "compression_status": "compressed with sharp webp quality 86 effort 6",
+      "cms_upload_url": "pending CMS upload"
+    },
+    {
+      "key": "dispatcher-control",
+      "filename": "assets/images/blog/ai-scheduling-dispatch-field-service/ai-scheduling-dispatch-field-service-dispatcher-control.webp",
+      "source_svg": "assets/images/blog/ai-scheduling-dispatch-field-service/ai-scheduling-dispatch-field-service-dispatcher-control.svg",
+      "dimensions": "1200 x 675",
+      "format": "WebP",
+      "bytes": 33874,
+      "alt": "AI scheduling recommendation and dispatcher override workflow",
+      "alt_length": 61,
+      "placement": "line 97 placeholder",
+      "render_target": "dispatcher control section",
+      "compression_status": "compressed with sharp webp quality 86 effort 6",
+      "cms_upload_url": "pending CMS upload"
+    },
+    {
+      "key": "pilot-workflow",
+      "filename": "assets/images/blog/ai-scheduling-dispatch-field-service/ai-scheduling-dispatch-field-service-30-day-pilot.webp",
+      "source_svg": "assets/images/blog/ai-scheduling-dispatch-field-service/ai-scheduling-dispatch-field-service-30-day-pilot.svg",
+      "dimensions": "1200 x 675",
+      "format": "WebP",
+      "bytes": 37208,
+      "alt": "30-day AI scheduling and dispatch pilot for field service teams",
+      "alt_length": 63,
+      "placement": "line 170 placeholder",
+      "render_target": "controlled pilot section",
+      "compression_status": "compressed with sharp webp quality 86 effort 6",
+      "cms_upload_url": "pending CMS upload"
+    }
+  ],
+  "cms_qa_required": [
+    "Replace source placeholders with uploaded CMS image URLs",
+    "Verify desktop and mobile rendering",
+    "Verify thumbnail crop for featured image",
+    "Verify alt text is present and under 125 characters",
+    "Verify featured image is represented by ImageObject in deployed schema",
+    "Verify existing VideoObject remains only with the verified video embed",
+    "Run launch QA for canonical, indexability, links, schema, responsive video, mobile layout, accessibility, and Core Web Vitals"
+  ]
+}

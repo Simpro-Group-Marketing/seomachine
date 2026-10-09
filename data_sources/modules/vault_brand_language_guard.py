@@ -160,17 +160,11 @@ REQUIRED_FIELDS = (
     "vault connector evidence",
     "product/feature language applied",
     "solution/industry language applied",
-    "fallback context use",
+    "local brand fallback",
     "claims requiring source verification",
     "status",
 )
 VALID_SCOPES = {"product/feature", "solution/industry", "mixed"}
-FALLBACK_BLOCKER_TERMS = (
-    "vault unavailable",
-    "vault-unavailable",
-    "vault blocker",
-    "vault unavailable blocker",
-)
 
 
 def check_content(
@@ -193,7 +187,7 @@ def check_content(
                 "Simpro product, feature, add-on, solution, or industry language appears without a Vault Brand Language Alignment block.",
                 (
                     "Add Vault Brand Language Alignment to the validation sidecar with connector evidence, "
-                    "language applied, fallback context use, source-verification boundary, and Status: aligned."
+                    "language applied, Local brand fallback: none, source-verification boundary, and Status: aligned."
                 ),
             )
         ]
@@ -274,19 +268,16 @@ def check_content(
             )
         )
 
-    fallback = fields.get("fallback context use", "").strip().lower()
-    if (
-        fallback
-        and fallback != "none"
-        and not any(term in fallback for term in FALLBACK_BLOCKER_TERMS)
-    ):
+    fallback_value = fields.get("local brand fallback") or ""
+    fallback = str(fallback_value).strip().lower()
+    if fallback and fallback != "none":
         findings.append(
             _finding(
-                "vault_brand_language_fallback_without_blocker",
+                "vault_brand_language_local_fallback_prohibited",
                 block["line"],
-                "Repo-local fallback context was used without documenting a vault-unavailable blocker.",
-                "Use the vault first, or document the vault-unavailable blocker alongside the fallback context used.",
-                match=fields.get("fallback context use", ""),
+                "Repo-local fallback context is not allowed for Simpro brand language.",
+                "Regenerate vault evidence or stop the Simpro brand-language use until the connector is available.",
+                match=str(fallback_value),
             )
         )
 

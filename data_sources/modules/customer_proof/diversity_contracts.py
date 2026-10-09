@@ -5,9 +5,9 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-DEFAULT_LEDGER_PATH = Path("context/customer-proof-usage-ledger.json")
+DEFAULT_LEDGER_PATH = Path("config/customer-proof-usage-ledger.json")
 
-DEFAULT_INDEX_PATH = Path("context/customer-proof-index.json")
+DEFAULT_NONVAULT_INDEX_PATH = Path("config/nonvault-customer-proof-index.json")
 
 CASE_STUDY_URL_RE = re.compile(
     r"https?://[^\s),|]+(?:/case-studies/[^\s),|]+|/resources/case-study-[^\s),|]+)",

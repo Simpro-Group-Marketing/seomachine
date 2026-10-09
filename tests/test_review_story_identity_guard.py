@@ -1,12 +1,21 @@
 import json
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
+from data_sources.modules.customer_proof.evidence_common import file_sha256
+from data_sources.modules.customer_proof_selector import _main as selector_main
 from data_sources.modules.review_story_identity_guard import (
     check_content,
     check_file,
     should_fail,
+)
+from tests.vault_context_fixture import (
+    load_validated_claim_set_for_unit_test,
+    write_connector_context_fixture,
 )
 
 
@@ -18,7 +27,7 @@ BIGCHANGE_CAPTERRA_URL = (
 
 
 def write_index(root: Path) -> Path:
-    index_path = root / "context" / "customer-proof-index.json"
+    index_path = root / "config" / "nonvault-customer-proof-index.json"
     index_path.parent.mkdir(parents=True, exist_ok=True)
     index_path.write_text(
         json.dumps(
@@ -93,8 +102,83 @@ def write_index(root: Path) -> Path:
     return index_path
 
 
+def simpro_review_story_claims() -> list[dict[str, object]]:
+    return [
+        {
+            "claim_id": "review-capterra-megan-qbo-quotes",
+            "assertion": "Owner describes service jobs, recurring jobs, quotes, invoices, and QBO integration.",
+            "use_mode": "public_paraphrase",
+            "claim_type": "review_theme",
+            "brand_scope": ["Simpro"],
+            "source_hash": "review-capterra-megan-qbo-quotes",
+            "public_url": CAPTERRA_URL,
+            "approval_source": "connector_claim_result",
+            "source_type": "review_site",
+            "identity_type": "person",
+            "identity_display": "Megan B",
+            "person_name": "Megan B",
+            "platform": "Capterra",
+            "source_row_ref": "Capterra row 50",
+            "workflow_story": "Owner describes service jobs, recurring jobs, quotes, invoices, and QBO integration.",
+            "workflow_fit": ["service jobs", "quoting", "invoicing", "QBO"],
+            "themes": ["quotes", "invoices", "QuickBooks Online integration"],
+        }
+    ]
+
+
+def write_simpro_selector_sidecar(root: Path, proof_content: str) -> tuple[str, Path]:
+    research_dir = root / "research"
+    research_dir.mkdir(parents=True, exist_ok=True)
+    ledger_path = root / "config" / "customer-proof-usage-ledger.json"
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    ledger_path.write_text(json.dumps({"version": 1, "uses": []}), encoding="utf-8")
+    pack_path, receipt_path = write_connector_context_fixture(
+        root,
+        simpro_review_story_claims(),
+        claim_search_modes=["public_paraphrase"],
+    )
+    evidence_path = research_dir / "customer-proof-selector-evidence.json"
+    stdout = StringIO()
+    stderr = StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
+        exit_code = selector_main(
+            [
+                "quote-to-cash review story",
+                "--title",
+                "Best job quoting and invoicing software",
+                "--objective",
+                "help trade businesses choose quote-to-cash software",
+                "--ledger",
+                str(ledger_path),
+                "--context-pack",
+                str(pack_path),
+                "--context-receipt",
+                str(receipt_path),
+                "--slate",
+                "--roles",
+                "experience_story",
+                "--require-eeat-story",
+                "--evidence-output",
+                str(evidence_path),
+            ]
+        )
+    if exit_code != 0:
+        raise AssertionError(stderr.getvalue() or stdout.getvalue())
+    full_content = (
+        proof_content.rstrip()
+        + "\n- Selector evidence: "
+        + evidence_path.name
+        + " | SHA-256: "
+        + file_sha256(evidence_path)
+        + "\n"
+    )
+    sidecar_path = research_dir / "validation.md"
+    sidecar_path.write_text(full_content, encoding="utf-8")
+    return full_content, sidecar_path
+
+
 def write_bigchange_index(root: Path) -> Path:
-    index_path = root / "context" / "customer-proof-index.json"
+    index_path = root / "config" / "nonvault-customer-proof-index.json"
     index_path.parent.mkdir(parents=True, exist_ok=True)
     index_path.write_text(
         json.dumps(
@@ -140,7 +224,7 @@ def write_two_reviewer_index(
 ) -> Path:
     """Two Capterra reviewers sharing one product-page URL: Clare (paraphrase-only,
     no approved_quotes) and Suzanne (a bound approved quote)."""
-    index_path = root / "context" / "customer-proof-index.json"
+    index_path = root / "config" / "nonvault-customer-proof-index.json"
     index_path.parent.mkdir(parents=True, exist_ok=True)
     index_path.write_text(
         json.dumps(
@@ -238,6 +322,14 @@ def theme_sidecar(url: str = CAPTERRA_URL, status: str = "approved for paraphras
 
 
 class ReviewStoryIdentityGuardTests(unittest.TestCase):
+    def setUp(self) -> None:
+        validation_patch = patch(
+            "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set",
+            new=load_validated_claim_set_for_unit_test,
+        )
+        validation_patch.start()
+        self.addCleanup(validation_patch.stop)
+
     def test_not_applicable_review_story_record_passes_without_review_copy(self):
         content = (
             "# Article\n\n"
@@ -272,13 +364,16 @@ class ReviewStoryIdentityGuardTests(unittest.TestCase):
 
     def test_review_paraphrase_without_same_paragraph_link_fails(self):
         with TemporaryDirectory() as temp_dir:
-            index_path = write_index(Path(temp_dir))
+            proof_content, proof_sidecar_path = write_simpro_selector_sidecar(
+                Path(temp_dir),
+                sidecar("review-capterra-megan-qbo-quotes", "Megan B", "Capterra", CAPTERRA_URL),
+            )
             content = "# Article\n\nMegan B describes a service business using Simpro for service jobs, recurring jobs, quotes, invoices, and QBO integration."
 
             findings = check_content(
                 content,
-                proof_content=sidecar("review-capterra-megan-qbo-quotes", "Megan B", "Capterra", CAPTERRA_URL),
-                proof_index_path=index_path,
+                proof_content=proof_content,
+                proof_sidecar_path=proof_sidecar_path,
             )
 
         self.assertTrue(any(finding["rule_id"] == "review_story_link_missing" for finding in findings))
@@ -286,33 +381,39 @@ class ReviewStoryIdentityGuardTests(unittest.TestCase):
 
     def test_review_paraphrase_with_public_source_link_passes(self):
         with TemporaryDirectory() as temp_dir:
-            index_path = write_index(Path(temp_dir))
+            proof_content, proof_sidecar_path = write_simpro_selector_sidecar(
+                Path(temp_dir),
+                sidecar("review-capterra-megan-qbo-quotes", "Megan B", "Capterra", CAPTERRA_URL),
+            )
             content = f"# Article\n\n[Megan B's Capterra review]({CAPTERRA_URL}) describes a service business using Simpro for service jobs, recurring jobs, quotes, invoices, and QBO integration."
 
             findings = check_content(
                 content,
-                proof_content=sidecar("review-capterra-megan-qbo-quotes", "Megan B", "Capterra", CAPTERRA_URL),
-                proof_index_path=index_path,
+                proof_content=proof_content,
+                proof_sidecar_path=proof_sidecar_path,
             )
 
         self.assertEqual(findings, [])
 
     def test_review_story_rejects_generic_or_bare_same_paragraph_urls(self):
         with TemporaryDirectory() as temp_dir:
-            index_path = write_index(Path(temp_dir))
+            proof_content, proof_sidecar_path = write_simpro_selector_sidecar(
+                Path(temp_dir),
+                sidecar(
+                    "review-capterra-megan-qbo-quotes",
+                    "Megan B",
+                    "Capterra",
+                    CAPTERRA_URL,
+                ),
+            )
             generic = f"# Article\n\nMegan B describes a service business using Simpro for quotes and invoices in this [source]({CAPTERRA_URL})."
             bare = f"# Article\n\nMegan B describes a service business using Simpro for quotes and invoices. {CAPTERRA_URL}"
 
             for content in (generic, bare):
                 findings = check_content(
                     content,
-                    proof_content=sidecar(
-                        "review-capterra-megan-qbo-quotes",
-                        "Megan B",
-                        "Capterra",
-                        CAPTERRA_URL,
-                    ),
-                    proof_index_path=index_path,
+                    proof_content=proof_content,
+                    proof_sidecar_path=proof_sidecar_path,
                 )
                 self.assertIn(
                     "review_story_link_missing",
@@ -321,114 +422,102 @@ class ReviewStoryIdentityGuardTests(unittest.TestCase):
 
     def test_review_story_uses_canonical_url_identity(self):
         with TemporaryDirectory() as temp_dir:
-            index_path = write_index(Path(temp_dir))
-            visible_url = CAPTERRA_URL.rstrip("/") + "?utm_source=article#reviews"
-            content = f"# Article\n\n[Megan B's Capterra review]({visible_url}) describes a service business using Simpro for quotes and invoices."
-
-            findings = check_content(
-                content,
-                proof_content=sidecar(
+            proof_content, proof_sidecar_path = write_simpro_selector_sidecar(
+                Path(temp_dir),
+                sidecar(
                     "review-capterra-megan-qbo-quotes",
                     "Megan B",
                     "Capterra",
                     CAPTERRA_URL,
                 ),
-                proof_index_path=index_path,
+            )
+            visible_url = CAPTERRA_URL.rstrip("/") + "?utm_source=article#reviews"
+            content = f"# Article\n\n[Megan B's Capterra review]({visible_url}) describes a service business using Simpro for quotes and invoices."
+
+            findings = check_content(
+                content,
+                proof_content=proof_content,
+                proof_sidecar_path=proof_sidecar_path,
             )
 
         self.assertEqual(findings, [])
 
     def test_internal_only_google_review_story_fails_until_public_url_exists(self):
         with TemporaryDirectory() as temp_dir:
-            index_path = write_index(Path(temp_dir))
+            proof_content, proof_sidecar_path = write_simpro_selector_sidecar(
+                Path(temp_dir),
+                sidecar("review-google-kingson-electrical-quote-to-invoice", "Kingson Electrical", "Google Review", ""),
+            )
             content = "# Article\n\nKingson Electrical describes quote-to-invoice visibility in a Google review."
 
             findings = check_content(
                 content,
-                proof_content=sidecar("review-google-kingson-electrical-quote-to-invoice", "Kingson Electrical", "Google Review", ""),
-                proof_index_path=index_path,
+                proof_content=proof_content,
+                proof_sidecar_path=proof_sidecar_path,
             )
 
         self.assertTrue(any(finding["rule_id"] == "review_story_public_url_missing" for finding in findings))
 
     def test_role_only_review_story_fails_identity_requirement(self):
         with TemporaryDirectory() as temp_dir:
-            index_path = write_index(Path(temp_dir))
+            proof_content, proof_sidecar_path = write_simpro_selector_sidecar(
+                Path(temp_dir),
+                sidecar("review-g2-small-electrical-quote-conversion-job-invoice", "", "G2", G2_URL),
+            )
             content = f"# Article\n\n[A G2 administrator review]({G2_URL}) describes quote conversion into jobs and invoices."
 
             findings = check_content(
                 content,
-                proof_content=sidecar("review-g2-small-electrical-quote-conversion-job-invoice", "", "G2", G2_URL),
-                proof_index_path=index_path,
+                proof_content=proof_content,
+                proof_sidecar_path=proof_sidecar_path,
             )
 
         self.assertTrue(any(finding["rule_id"] == "review_story_identity_missing" for finding in findings))
 
     def test_exact_review_quote_fails_without_approved_quote(self):
         with TemporaryDirectory() as temp_dir:
-            index_path = write_index(Path(temp_dir))
+            proof_content, proof_sidecar_path = write_simpro_selector_sidecar(
+                Path(temp_dir),
+                sidecar("review-capterra-megan-qbo-quotes", "Megan B", "Capterra", CAPTERRA_URL),
+            )
             content = f'# Article\n\n[Megan B said on Capterra]({CAPTERRA_URL}), "Quotes are easy and invoicing takes no time at all."'
 
             findings = check_content(
                 content,
-                proof_content=sidecar("review-capterra-megan-qbo-quotes", "Megan B", "Capterra", CAPTERRA_URL),
-                proof_index_path=index_path,
+                proof_content=proof_content,
+                proof_sidecar_path=proof_sidecar_path,
             )
 
         self.assertTrue(any(finding["rule_id"] == "review_quote_requires_approved_quote" for finding in findings))
 
     def test_generic_review_theme_cannot_stand_in_for_review_story_selection(self):
-        with TemporaryDirectory() as temp_dir:
-            index_path = write_index(Path(temp_dir))
-            content = f"# Article\n\n[G2 reviews]({G2_URL}) mention quote-to-invoice workflows for trade businesses."
-            proof_content = f"""Customer Proof Pack
+        content = f"# Article\n\n[G2 reviews]({G2_URL}) mention quote-to-invoice workflows for trade businesses."
+        proof_content = f"""Customer Proof Pack
 - Review-site experience evidence: G2, {G2_URL}, date checked 2026-06-12, product: Simpro, experience pattern: quote-to-invoice workflow, evidence summary: reviewers discuss quote-to-invoice workflows, exact quote/rating approval status: not approved.
 """
 
-            findings = check_content(
-                content,
-                proof_content=proof_content,
-                proof_index_path=index_path,
-            )
+        findings = check_content(content, proof_content=proof_content)
 
         self.assertTrue(any(finding["rule_id"] == "review_story_selection_missing" for finding in findings))
 
     def test_capterra_theme_with_same_paragraph_review_site_link_passes(self):
-        with TemporaryDirectory() as temp_dir:
-            index_path = write_index(Path(temp_dir))
-            content = f"# Article\n\n[Capterra reviews]({CAPTERRA_URL}) include owner perspectives on using Simpro for service jobs, recurring jobs, quotes, invoices, and QuickBooks Online integration."
+        content = f"# Article\n\n[Capterra reviews]({CAPTERRA_URL}) include owner perspectives on using Simpro for service jobs, recurring jobs, quotes, invoices, and QuickBooks Online integration."
 
-            findings = check_content(
-                content,
-                proof_content=theme_sidecar(),
-                proof_index_path=index_path,
-            )
+        findings = check_content(content, proof_content=theme_sidecar())
 
         self.assertEqual(findings, [])
 
     def test_capterra_theme_without_same_paragraph_review_site_link_fails(self):
-        with TemporaryDirectory() as temp_dir:
-            index_path = write_index(Path(temp_dir))
-            content = "# Article\n\nCapterra reviews include owner perspectives on using Simpro for service jobs, recurring jobs, quotes, invoices, and QuickBooks Online integration."
+        content = "# Article\n\nCapterra reviews include owner perspectives on using Simpro for service jobs, recurring jobs, quotes, invoices, and QuickBooks Online integration."
 
-            findings = check_content(
-                content,
-                proof_content=theme_sidecar(),
-                proof_index_path=index_path,
-            )
+        findings = check_content(content, proof_content=theme_sidecar())
 
         self.assertTrue(any(finding["rule_id"] == "review_theme_link_missing" for finding in findings))
 
     def test_capterra_theme_with_rating_claim_fails_without_approved_proof(self):
-        with TemporaryDirectory() as temp_dir:
-            index_path = write_index(Path(temp_dir))
-            content = f"# Article\n\n[Capterra reviews]({CAPTERRA_URL}) show high ratings for Simpro quote and invoice workflows."
+        content = f"# Article\n\n[Capterra reviews]({CAPTERRA_URL}) show high ratings for Simpro quote and invoice workflows."
 
-            findings = check_content(
-                content,
-                proof_content=theme_sidecar(),
-                proof_index_path=index_path,
-            )
+        findings = check_content(content, proof_content=theme_sidecar())
 
         self.assertTrue(any(finding["rule_id"] == "review_rating_claim_requires_approved_proof" for finding in findings))
 
@@ -638,24 +727,21 @@ class ReviewStoryIdentityGuardTests(unittest.TestCase):
             )
         )
 
-    def test_check_file_accepts_sidecar_and_index_paths(self):
+    def test_check_file_accepts_sidecar_and_selector_evidence(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            index_path = write_index(root)
             article = root / "drafts" / "article.md"
-            validation = root / "research" / "validation-article.md"
             article.parent.mkdir(parents=True)
-            validation.parent.mkdir(parents=True)
             article.write_text(
                 f"# Article\n\n[Megan B's Capterra review]({CAPTERRA_URL}) describes a service business using Simpro for service jobs, recurring jobs, quotes, invoices, and QBO integration.",
                 encoding="utf-8",
             )
-            validation.write_text(
+            _, validation = write_simpro_selector_sidecar(
+                root,
                 sidecar("review-capterra-megan-qbo-quotes", "Megan B", "Capterra", CAPTERRA_URL),
-                encoding="utf-8",
             )
 
-            findings = check_file(article, proof_sidecar=str(validation), proof_index_path=index_path)
+            findings = check_file(article, proof_sidecar=str(validation))
 
         self.assertEqual(findings, [])
 

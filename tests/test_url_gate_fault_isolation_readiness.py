@@ -42,7 +42,10 @@ def test_every_url_request_failing_blocks_at_the_url_gate(files):  # noqa: F811
                 ))
                 continue
             stack.enter_context(patch(
-                f"data_sources.modules.publish_readiness.{target}", return_value=[]
+                f"data_sources.modules.{target}"
+                if target.startswith("readiness.")
+                else f"data_sources.modules.publish_readiness.{target}",
+                return_value=[],
             ))
         stack.enter_context(patch(
             "data_sources.modules.publish_readiness.blog_assembly_bom_guard.check_bom",

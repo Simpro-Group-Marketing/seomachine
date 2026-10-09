@@ -1,40 +1,33 @@
 # Quick Start Guide
 
-Get SEO Machine running in **10 minutes** ⚡
+Get SEO Machine running with the current Simpro vault-only source boundary.
 
-## Step 1: Install Dependencies (2 min)
+## Step 1: Install Dependencies
 
 ```bash
-# Install Python dependencies for analysis modules
 pip install -r data_sources/requirements.txt
 ```
 
-## Step 2: Configure Context Files (5 min)
+## Step 2: Confirm Source Boundaries
 
-Fill out these **3 essential files** with your company info:
+Every file under `context/` must be registered in `context/context-policy.json` and belong to one of the allowed local categories:
 
-### 1. Brand Voice (`context/brand-voice.md`)
-- Define 3-5 voice pillars
-- Add tone guidelines
-- Include do's and don'ts
+- SEO/AEO strategy and evidence
+- Brand-neutral editorial mechanics
+- Generic CRO best practices
+- Link maps, site architecture, and commercial SEO routing
+- Source and URL governance
 
-💡 **Tip**: Check `examples/castos/brand-voice.md` for a complete example
+Simpro brand voice, messaging, product language, proof, customer stories, reviews, ebooks, E-E-A-T sources, competitors, approved claims, and writing exemplars come from the Brand Vault connector, not local context files.
 
-### 2. Features (`context/features.md`)
-- List your product/service features
-- Add value propositions
-- Include key differentiators
+Useful local setup files:
 
-### 3. Writing Examples (`context/writing-examples.md`)
-- Copy/paste 3-5 of your best blog posts
-- Include full content (not just excerpts)
-- Note what makes each example great
+- `context/internal-links-map.md` - link-routing data only
+- `context/target-keywords.md` - keyword and market records only
+- `context/aeo-geo-blog-strategy.md` - SEO/AEO workflow and proof-gate mechanics
+- `context/cro-best-practices.md` - generic CRO framework guidance
 
-**Optional but recommended**:
-- `internal-links-map.md` - Map your key pages
-- `target-keywords.md` - Add keyword research
-
-## Step 3: Create Your First Article (3 min)
+## Step 3: Create Your First Article
 
 ```bash
 # Open in Claude Code
@@ -43,70 +36,44 @@ claude-code .
 # Research a topic
 /research [your topic]
 
-# Review the research brief in /research/ directory
+# Review the research brief in /research/
 
 # Write the article
 /write [your topic]
 
-# Check /drafts/ for your article + optimization reports
+# Check /drafts/ for the article and validation artifacts
 ```
 
-## That's It! 🎉
+## To Publish
 
-You now have:
-- A comprehensive, SEO-optimized article sized to the brief, SERP intent, and reader utility
-- ✅ Meta elements (title, description, keywords)
-- ✅ SEO optimization report
-- ✅ Internal linking suggestions
-- ✅ Keyword analysis
+1. Review the article and validation sidecar.
+2. Run `/scrub`, `/publish-readiness`, `/optimize`, a post-edit `/scrub`, and final `/publish-readiness`.
+3. Confirm final readiness evidence before CMS handoff.
 
-## Next Steps
+## To Improve Quality
 
-**To publish:**
-1. Review the article in `/drafts/`
-2. Make any final edits
-3. Copy to your CMS
-4. Publish and watch it rank!
-
-**To improve quality:**
-- Add more writing examples to `context/writing-examples.md`
-- Refine your brand voice in `context/brand-voice.md`
-- Map more internal links in `context/internal-links-map.md`
+- Refresh SEO/AEO and link-routing records when evidence changes.
+- Retrieve current brand, proof, product, and writing-exemplar guidance from the Brand Vault connector.
+- Map more internal links in `context/internal-links-map.md`.
 
 ## Common Commands
 
 ```bash
-# Core workflow
-/research [topic]           # Research before writing
-/write [topic]              # Create new article
-/rewrite [topic]            # Update old content
-/optimize [file]            # Final SEO polish
-/scrub [file]               # Diagnose copy artifacts and proof-sensitive style issues
-/publish-draft [file]       # Publish to WordPress
-
-# Analysis
-/analyze-existing [URL]     # Analyze existing post
-/performance-review         # Analytics-driven priorities
-/priorities                 # Content prioritization matrix
-
-# Research
-/research-serp [keyword]    # SERP analysis
-/research-gaps              # Competitor content gaps
-/research-trending          # Trending topics
-/research-topics            # Topic clusters
-
-# Landing pages
-/landing-write [topic]      # Create landing page
-/landing-audit [file]       # Audit for CRO issues
-/landing-research [topic]   # Research positioning
+/research [topic]
+/write [topic]
+/rewrite [topic]
+/analyze-existing [URL]
+/optimize [file]
+/scrub [file]
+/publish-readiness [file]
+/research-serp [keyword]
+/performance-review
+/priorities
 ```
 
-## Need Help?
+## Health Checks
 
-- Full Documentation: See README.md
-- Real Example: Check `examples/castos/` directory
-- Issues: https://github.com/TheCraigHewitt/seomachine/issues
-
----
-
-**Pro Tip**: The quality of your output depends on the quality of your context files. Spend time filling them out thoroughly!
+```bash
+python -m data_sources.modules.context_boundary_guard --workspace-root . --fail-on error
+python tools/humanizer_upstream.py verify
+```

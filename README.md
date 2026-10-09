@@ -69,7 +69,7 @@ Project-scoped MCP servers feed live data into research and performance workflow
 | `gsc` | Search Console queries, pages, performance overview | `credentials/gsc_client_secrets.json` + OAuth token (`mcp-gsc/`) |
 | `analytics-mcp` | GA4 reports and account summaries | `credentials/adc.json` via `GOOGLE_APPLICATION_CREDENTIALS` |
 
-Python module integrations and analysis modules are documented in `data_sources/README.md`. File status for `context/` is tracked in `context/_coverage-report.md`; Simpro brand and proof context comes from the vault connector, as `context/aeo-geo-blog-strategy.md` defines.
+Python module integrations and analysis modules are documented in `data_sources/README.md`. Allowed `context/` files and their categories are registered in `context/context-policy.json`; Simpro brand and proof context comes from the vault connector, as `context/aeo-geo-blog-strategy.md` defines.
 
 ### WordPress Integration
 

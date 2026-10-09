@@ -1,30 +1,40 @@
-# Simpro Source Routing Map
+# Source Routing Map
 
-**Purpose:** Decide which content inputs must come from the Simpro vault connector and which inputs may come from repo-local `context/` files.
-**Use when:** Planning, writing, rewriting, optimizing, or validating Simpro blog, SEO, AEO, competitor, proof, product, audience, partner, or workflow decisions.
-**Owns:** Source-routing decisions between the Simpro vault connector, public sources, and repo-local context.
-**Does not own:** Public proof approval, metric support, PAA provenance, URL resolution, brand-language wording, or publish scoring.
-**Source boundary:** This is a routing contract. It does not make any claim publishable unless the relevant approved claim, public source, or connector receipt also approves it.
-**Refresh cadence:** Review when the connector contract, claim registry, or publish-readiness gates change.
-**Reference detail:** No separate reference file; routing guidance remains here.
+**Category:** source_governance
+**Purpose:** Define which work may use repo-local `context/` inputs and which work must use the Simpro Brand Vault connector.
+**Use when:** Deciding source authority for Simpro brand work, SEO/AEO inputs, editorial mechanics, CRO mechanics, link routing, proof, or claims.
+**Owns:** Source routing boundaries for repo-local context versus vault connector evidence.
+**Does not own:** Brand language, product descriptions, proof, approved claims, customer stories, competitor positioning, or article copy.
+**Source boundary:** This governance map limits local files to allowed operational categories. It does not create local authority for any Simpro brand or proof content.
+**Refresh cadence:** Review when connector contracts, context categories, or publish-readiness gates change.
+**Reference detail:** Machine-readable policy lives in `context/context-policy.json`.
+
+## Boundary
+
+The Simpro Brand Vault connector is the exclusive source for Simpro brand-related information, including voice, tone, audience, ICP, messaging, terminology, product and feature language, solution and industry language, competitor positioning, proof, reviews, metrics, ebooks, customer stories, E-E-A-T sources, approved claims, and writing exemplars.
+
+Repo-local `context/` files may support only these functions:
+
+- SEO/AEO strategy and evidence
+- Brand-neutral editorial strategy and article mechanics
+- Generic CRO best practices
+- Link maps, site architecture, and commercial SEO routing
+- Source and URL governance for those functions
+
+Local files may identify Simpro URLs, keywords, markets, measurement dimensions, internal-link destinations, or commercial SEO anchors. They do not authorize wording that describes Simpro, its products, its proof, or its customers.
 
 ## Routing Matrix
 
-| Data type | Primary source | Repo `context/` role |
+| Work type | Active source | Repo-local role |
 |---|---|---|
-| Brand voice, audience, ICP, message pillars, tone | Simpro vault connector context resources | `brand-voice.md` and `style-guide.md` are fallback mirrors only, except style mechanics |
-| Product, feature, add-on, solution, industry, Lightning language | Simpro vault connector context resources and approved claims when public proof is used | `features.md`, `lightning-positioning.md`, and FSM FAQ files are fallback or seed inputs only |
-| Competitor shortlist, Hindsight boundary, battlecard claims | Simpro vault connector context resources and approved claims when public proof is used | `competitor-analysis.md` and battlecard imports are point-in-time fallback or SEO context only |
-| Customer proof, quotes, metrics, review stories, approval status | Simpro vault connector claim registry plus public proof URLs | `customer-proof-index.json`, ledger, and intake CSV are operational selector inputs and cannot override the vault |
-| SEO mechanics, AEO/GEO workflow, schema notes, publish gates | Repo `context/` | `aeo-geo-blog-strategy.md`, `seo-guidelines.md`, and guard modules are the active workflow policy |
-| Internal links, keyword snapshots, AI citation targets, CRO, Reddit, writing examples | Repo `context/` | Dated strategic evidence or calibration only; refresh before treating as current performance truth |
-| Public factual/statistical claims | Current public primary source | Sidecar maps proof; neither vault nor repo context alone is enough for public copy unless mapped to public evidence |
+| Brand voice, tone, ICP, audience, messaging, terminology | Brand Vault connector | No local fallback |
+| Product, feature, add-on, solution, industry, and Lightning language | Brand Vault connector resources plus approved claims when proof-sensitive | URL and link-route discovery only |
+| Competitor positioning or comparative product claims | Brand Vault connector plus approved claim/public-source mapping | Dated SEO/SERP evidence only |
+| Customer proof, quotes, metrics, reviews, ebooks, customer stories, E-E-A-T, approved claims | Brand Vault connector claim search, context pack, and receipt | Operational usage ledger only, stored outside `context/` |
+| SEO/AEO strategy, keywords, intent, FAQ/PAA inventory, citation targeting | Repo-local `context/` plus dated external evidence | Active workflow input |
+| Internal links, site architecture, commercial pillar routing | Repo-local `context/` | May choose destination and anchor; cannot supply product description |
+| Generic CRO mechanics | Repo-local `context/` | Framework guidance only; no brand-specific test/result claims |
 
-## Enforcement Notes
+## Failure Behavior
 
-- This matrix is policy guidance, not a second sidecar schema. No separate routing sidecar block is required.
-- Enforcement comes from Context Binding plus claim-specific gates. Context Binding validates the request, context pack, receipt, and sidecar binding; claim-specific gates validate public proof, product language, named-feature status, customer evidence, and other governed uses.
-- Repo context may own workflow policy, dated SEO evidence, internal-link routing, writing examples, style mechanics, and operational proof selector inputs.
-- Repo context cannot override current connector guidance for brand, audience, ICP, product, feature, add-on, solution, industry, Lightning, competitor, Hindsight, customer proof, review-story, quote, metric, or approval-status data.
-- Public factual/statistical claims require current public primary sources and a proof map. The vault and repo context can route the work, but neither one alone proves the public claim.
-- If surfaced vault MCP operations are unavailable, retry through the one enabled connector whose `projectPath` matches this repository via `SimproVaultClient`, regardless of its reported version. Determine compatibility from `vault_status` and the required operation contracts. Do not select installations attached to another repository, worktree, or branch checkout. If that path also fails, document the exact blocker in the validation sidecar and generated context binding, then stop the Simpro workflow. Repo-local brand, product, feature, proof, and competitor files are not fallback sources.
+For Simpro-owned or Simpro-signal artifacts, connector unavailability is a blocker. The workflow must not read deleted local brand/proof mirrors or treat any repo-local file as a fallback authority.

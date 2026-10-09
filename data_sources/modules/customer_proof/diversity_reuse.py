@@ -8,7 +8,6 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence
 
-from .. import customer_proof_snapshot
 from ..guard_common import Finding
 from ..proof_usage import count_customer_proof_usage
 from .contracts import CustomerProofDataError
@@ -57,7 +56,7 @@ def _reuse_findings(
                     f"Customer proof source has been used {usage['recent_uses_90d']} times in the last 90 days: {url}",
                     (
                         "Add a source-specific Reuse reason naming the proof ID, customer, or URL, "
-                        "or choose a stronger underused proof source from customer-proof-index.json."
+                        "or choose a stronger underused proof source from the verified vault claim slate."
                     ),
                     match=url,
                 )
@@ -92,34 +91,15 @@ def _stronger_underused_candidate_findings(
     validated_claim_set: object | None,
     reference: date,
 ) -> List[Finding]:
-    index_status = customer_proof_snapshot.load_index_for_comparison(
-        proof_index_path,
-        proof_index_payload,
-    )
-    if index_status["error"]:
-        return [
-            _finding(
-                str(index_status["rule_id"]),
-                pack["line"],
-                str(index_status["message"]),
-                str(index_status["suggestion"]),
-            )
-        ]
-
-    index = index_status["index"]
-    if not isinstance(index, dict) or not index.get("proof"):
-        return []
-
     selector_query = _selector_query(decision)
     proof_role = _selector_proof_role(decision)
-    selector_snapshot = customer_proof_snapshot.selector_inputs(
-        index,
-        ledger,
-        validated_claim_set,
-    )
     try:
         nonconnector_brand = _nonconnector_brand_for_sources(overused_sources)
-        if selector_snapshot is None and nonconnector_brand:
+        if nonconnector_brand:
+            index = _nonconnector_index_for_comparison(
+                proof_index_path,
+                proof_index_payload,
+            )
             nonconnector_role = (
                 proof_role
                 if proof_role in {"metric", "quote", "theme", "experience_story"}
@@ -136,21 +116,17 @@ def _stronger_underused_candidate_findings(
                 reference_date=reference,
             )
         else:
-            if proof_index_payload is not None and selector_snapshot is None:
-                raise CustomerProofDataError(
-                    "validated customer proof claim set is unavailable"
-                )
+            del validated_claim_set
             ranked = select_customer_proofs(
                 selector_query,
-                index_path=proof_index_path,
                 ledger_path=ledger_path,
                 context_pack=context_pack,
                 context_receipt=context_receipt,
                 proof_role=proof_role,
                 limit=25,
                 reference_date=reference,
-                _input_snapshot=selector_snapshot,
             )
+            index = {}
     except CustomerProofDataError as exc:
         return [
             _finding(
@@ -193,6 +169,33 @@ def _stronger_underused_candidate_findings(
                 )
             )
     return findings
+
+
+def _nonconnector_index_for_comparison(
+    path: str | Path,
+    payload: Mapping[str, Any] | None,
+) -> Dict[str, Any]:
+    if payload is not None:
+        value = dict(payload)
+    else:
+        index_path = Path(path)
+        if not index_path.exists():
+            raise CustomerProofDataError(
+                f"Nonconnector proof index is required for nonconnector reuse comparison: {index_path}"
+            )
+        try:
+            import json
+
+            value = json.loads(index_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as error:
+            raise CustomerProofDataError(
+                f"Nonconnector proof index is not valid JSON: {index_path}: {error}"
+            ) from error
+    if not isinstance(value, dict) or not isinstance(value.get("proof", []), list):
+        raise CustomerProofDataError(
+            "Nonconnector proof index must be an object with a proof list."
+        )
+    return value
 
 
 def _nonconnector_brand_for_sources(

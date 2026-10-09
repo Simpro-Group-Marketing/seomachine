@@ -6,10 +6,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Mapping
 
-DEFAULT_INDEX_PATH = Path("context/customer-proof-index.json")
+LEGACY_INDEX_ERROR = (
+    "Local customer proof indexes are not supported for connector-bound Simpro "
+    "proof selection. Build candidates from the vault context pack and receipt."
+)
 
-DEFAULT_LEDGER_PATH = Path("context/customer-proof-usage-ledger.json")
-
+DEFAULT_LEDGER_PATH = Path("config/customer-proof-usage-ledger.json")
 FindingDict = Dict[str, Any]
 
 SLATE_ROLES = {"experience_story", "metric", "quote", "theme"}
@@ -22,23 +24,14 @@ CUSTOMER_PROOF_CANDIDATES_AVAILABLE_OUTCOME = "customer_proof_candidates_availab
 
 NO_FIT_CUSTOMER_PROOF_REASON = (
     "No customer proof selected because the selector evaluated the current "
-    "connector-bound proof inventory and found no article-relevant approved "
-    "customer proof for this role; public copy must omit customer proof, named "
-    "customer claims, review stories, exact quotes, testimonials, and customer "
-    "metrics for the unsupported role."
-)
-
-NO_BOUND_CUSTOMER_PROOF_MESSAGE = (
-    "no approved claims bound to the customer proof inventory"
+    "vault-approved claim evidence and found no article-relevant approved "
+    "customer proof for this role after complete, non-truncated claim searches; "
+    "public copy must omit customer proof, named customer claims, review stories, "
+    "exact quotes, testimonials, and customer metrics for the unsupported role."
 )
 
 class CustomerProofDataError(RuntimeError):
     """Raised when receipt-backed customer proof cannot be verified."""
-
-@dataclass(frozen=True)
-class _ApprovedClaimBinding:
-    claim: Any
-    binding_source: str
 
 @dataclass(frozen=True)
 class _ArtifactSnapshot:
@@ -54,11 +47,12 @@ class _ArtifactSnapshot:
 @dataclass(frozen=True)
 class _SelectorInputSnapshot:
     artifacts: Mapping[str, _ArtifactSnapshot]
-    index: FindingDict
     ledger: FindingDict
     context_pack_path: Path
     context_receipt_path: Path
     receipt_claims: Any
+    context_receipt: FindingDict
+    claim_lookup: FindingDict | None = None
 
 SOURCE_TYPE_WEIGHT = {
     "quote_matrix": 18,

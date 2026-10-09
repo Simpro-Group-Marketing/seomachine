@@ -1,0 +1,83 @@
+{
+  "schema": "seomachine-context-boundary-policy/v1",
+  "allowed_categories": [
+    "seo_aeo",
+    "editorial_strategy",
+    "cro_best_practice",
+    "link_map",
+    "source_governance"
+  ],
+  "boundary": {
+    "brand_authority": "Simpro brand, product, proof, competitor positioning, ebooks, customer stories, reviews, E-E-A-T sources, approved claims, and writing exemplars must come from the Brand Vault connector.",
+    "local_context_role": "Repo-local context may support SEO/AEO, brand-neutral editorial mechanics, generic CRO, link maps, site architecture, commercial SEO routing, and source/URL governance only.",
+    "connector_failure": "Connector unavailability blocks Simpro brand-related work; there is no local fallback."
+  },
+  "files": {
+    "context/aeo-geo-blog-strategy.md": {
+      "category": "seo_aeo"
+    },
+    "context/ai-citation-targets.md": {
+      "category": "seo_aeo"
+    },
+    "context/blog-editorial-strategy.md": {
+      "category": "editorial_strategy"
+    },
+    "context/commercial-pillar-index.json": {
+      "category": "link_map"
+    },
+    "context/commercial-pillar-intake-simpro-uk-homepage-field-service-management-software-2026-09-18.csv": {
+      "category": "link_map"
+    },
+    "context/commercial-pillar-intake-template.csv": {
+      "category": "link_map"
+    },
+    "context/context-policy.json": {
+      "category": "source_governance"
+    },
+    "context/cro-best-practices.md": {
+      "category": "cro_best_practice"
+    },
+    "context/field-service-management-platform-faq-list.md": {
+      "category": "seo_aeo"
+    },
+    "context/internal-links-map.md": {
+      "category": "link_map"
+    },
+    "context/reddit-strategy.md": {
+      "category": "seo_aeo"
+    },
+    "context/reference/ai-citations/2026-05-21-peec-url-export.md": {
+      "category": "seo_aeo"
+    },
+    "context/reference/ai-citations/2026-05-21-prompt-runs.md": {
+      "category": "seo_aeo"
+    },
+    "context/reference/ai-citations/directory-register.md": {
+      "category": "seo_aeo"
+    },
+    "context/reference/competitors/seo-market-signals.md": {
+      "category": "seo_aeo"
+    },
+    "context/seo-guidelines.md": {
+      "category": "seo_aeo"
+    },
+    "context/site-architecture-map.json": {
+      "category": "link_map"
+    },
+    "context/source-classification-decisions.json": {
+      "category": "source_governance"
+    },
+    "context/source-routing-map.md": {
+      "category": "source_governance"
+    },
+    "context/target-keywords.md": {
+      "category": "seo_aeo"
+    },
+    "context/url-verification-allowlist.json": {
+      "category": "source_governance"
+    },
+    "context/writing-examples.md": {
+      "category": "editorial_strategy"
+    }
+  }
+}

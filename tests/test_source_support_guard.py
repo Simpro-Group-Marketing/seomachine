@@ -1241,7 +1241,7 @@ Well-run HVAC operators should target [15% to 20% EBITDA margins]({EBITDA_URL}) 
         findings = check_content(content, fetcher=fetcher_with({}))
 
         self.assertEqual(len(findings), 1)
-        self.assertEqual(findings[0]["rule_id"], "missing_strict_proof")
+        self.assertEqual(findings[0]["rule_id"], "source_url_not_public")
 
     def test_pdf_source_without_local_text_artifact_fails(self):
         content = f"""---

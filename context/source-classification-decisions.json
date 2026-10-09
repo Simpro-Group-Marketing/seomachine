@@ -1,6 +1,6 @@
 {
   "schema": "simpro-source-classification-decisions/v1",
-  "revision": "2026-09-25",
+  "revision": "2026-10-05",
   "decisions": [
     {
       "decision_id": "icc-ibc-2024-chapter-17-special-inspections",
@@ -849,6 +849,238 @@
       "hostname": "www.britsafe.org",
       "source_class": "non_competing_expert",
       "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "wic-2026-09-26-bls-cps-aat11-2025",
+      "hostname": "www.bls.gov",
+      "publisher_relationship": "independent",
+      "source_class": "primary_authority",
+      "source_url": "https://www.bls.gov/cps/cpsaat11.htm",
+      "status": "approved"
+    },
+    {
+      "decision_id": "wic-2026-09-26-bls-cps-aat18-2025",
+      "hostname": "www.bls.gov",
+      "publisher_relationship": "independent",
+      "source_class": "primary_authority",
+      "source_url": "https://www.bls.gov/cps/cpsaat18.htm",
+      "status": "approved"
+    },
+    {
+      "decision_id": "wic-2026-09-26-dol-trendlines-2024-11-women-apprenticeship",
+      "hostname": "www.dol.gov",
+      "publisher_relationship": "independent",
+      "source_class": "primary_authority",
+      "source_url": "https://www.dol.gov/sites/dolgov/files/ETA/opder/DASP/Trendlines/posts/2024_11/Trendlines_November_2024.html",
+      "status": "approved"
+    },
+    {
+      "decision_id": "wic-2026-09-26-nahb-eye-on-housing-women-share-2025",
+      "hostname": "eyeonhousing.org",
+      "publisher_relationship": "independent",
+      "source_class": "non_competing_expert",
+      "source_url": "https://eyeonhousing.org/2026/09/womens-share-of-construction-workforce-reaches-20-year-high-in-2025/",
+      "status": "approved"
+    },
+    {
+      "decision_id": "wic-2026-09-26-abc-2026-workforce-shortage-release",
+      "hostname": "www.abc.org",
+      "publisher_relationship": "independent",
+      "source_class": "non_competing_expert",
+      "source_url": "https://www.abc.org/News-Media/News-Releases/abc-construction-industry-must-attract-349000-workers-in-2026-despite-macroeconomic-headwinds",
+      "status": "approved"
+    },
+    {
+      "decision_id": "wic-2026-09-26-iwpr-women-in-construction-qf-2025",
+      "hostname": "iwpr.org",
+      "publisher_relationship": "independent",
+      "source_class": "non_competing_expert",
+      "source_url": "https://iwpr.org/wp-content/uploads/2025/08/Women-in-Construction-QF_2025.pdf",
+      "status": "approved"
+    },
+    {
+      "decision_id": "wic-2026-09-26-osha-29cfr-1926-95-ppe",
+      "hostname": "www.osha.gov",
+      "publisher_relationship": "independent",
+      "source_class": "primary_authority",
+      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.95",
+      "status": "approved"
+    },
+    {
+      "decision_id": "wic-2026-09-26-osha-fr-2024-12-12-ppe-fit-final-rule",
+      "hostname": "www.osha.gov",
+      "publisher_relationship": "independent",
+      "source_class": "primary_authority",
+      "source_url": "https://www.osha.gov/laws-regs/federalregister/2024-12-12",
+      "status": "approved"
+    },
+    {
+      "decision_id": "wic-2026-09-26-osha-29cfr-1926-51-sanitation",
+      "hostname": "www.osha.gov",
+      "publisher_relationship": "independent",
+      "source_class": "primary_authority",
+      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.51",
+      "status": "approved"
+    },
+    {
+      "decision_id": "wic-2026-09-26-nawic-wic-week",
+      "hostname": "nawic.org",
+      "publisher_relationship": "independent",
+      "source_class": "non_competing_expert",
+      "source_url": "https://nawic.org/wic-week/",
+      "status": "approved"
+    },
+    {
+      "decision_id": "electrical-software-2026-09-28-knowify-electrical",
+      "hostname": "knowify.com",
+      "publisher_relationship": "competitor",
+      "source_class": "competitor",
+      "source_url": "https://knowify.com/electrical-contractors/",
+      "status": "approved"
+    },
+    {
+      "decision_id": "electrical-software-2026-09-28-knowify-pricing",
+      "hostname": "knowify.com",
+      "publisher_relationship": "competitor",
+      "source_class": "competitor",
+      "source_url": "https://knowify.com/pricing/",
+      "status": "approved"
+    },
+    {
+      "decision_id": "electrical-software-2026-09-28-knowify-quickbooks",
+      "hostname": "knowify.com",
+      "publisher_relationship": "competitor",
+      "source_class": "competitor",
+      "source_url": "https://knowify.com/integrations/quickbooks/",
+      "status": "approved"
+    },
+    {
+      "decision_id": "ai-estimating-2026-09-28-nist-ai-rmf",
+      "hostname": "www.nist.gov",
+      "publisher_relationship": "independent",
+      "source_class": "primary_authority",
+      "source_url": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "status": "approved"
+    },
+    {
+      "decision_id": "ai-estimating-2026-09-28-gao-cost-estimating-guide",
+      "hostname": "www.gao.gov",
+      "publisher_relationship": "independent",
+      "source_class": "primary_authority",
+      "source_url": "https://www.gao.gov/products/gao-20-195g",
+      "status": "approved"
+    },
+    {
+      "decision_id": "ai-estimating-2026-09-28-bls-ppi-methodology",
+      "hostname": "www.bls.gov",
+      "publisher_relationship": "independent",
+      "source_class": "primary_authority",
+      "source_url": "https://www.bls.gov/ppi/methodology-reports/methodology.htm",
+      "status": "approved"
+    },
+    {
+      "decision_id": "ai-estimating-2026-09-28-openai-chatgpt-data-analysis",
+      "hostname": "help.openai.com",
+      "publisher_relationship": "independent",
+      "source_class": "non_competing_expert",
+      "source_url": "https://help.openai.com/en/articles/8437071-data-analysis-with-chatgpt",
+      "status": "approved"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-nfpa-nec",
+      "status": "approved",
+      "source_url": "https://www.nfpa.org/product/nfpa-70-national-electrical-code-nec/p0070code/70-nec-spl-2026/7026spl",
+      "hostname": "www.nfpa.org",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-osha-1910-333",
+      "status": "approved",
+      "source_url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.333",
+      "hostname": "www.osha.gov",
+      "source_class": "primary_authority",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-servicetitan-electrical",
+      "status": "approved",
+      "source_url": "https://www.servicetitan.com/industries/electrical-software",
+      "hostname": "www.servicetitan.com",
+      "source_class": "competitor",
+      "publisher_relationship": "competitor"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-housecall-electrical",
+      "status": "approved",
+      "source_url": "https://www.housecallpro.com/industries/electrical-contractor-software/",
+      "hostname": "www.housecallpro.com",
+      "source_class": "competitor",
+      "publisher_relationship": "competitor"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-workyard-electrical",
+      "status": "approved",
+      "source_url": "https://www.workyard.com/industries/electrical-software",
+      "hostname": "www.workyard.com",
+      "source_class": "competitor",
+      "publisher_relationship": "competitor"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-fieldwire-home",
+      "status": "approved",
+      "source_url": "https://www.fieldwire.com/",
+      "hostname": "www.fieldwire.com",
+      "source_class": "competitor",
+      "publisher_relationship": "competitor"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-joist-home",
+      "status": "approved",
+      "source_url": "https://www.joist.com/",
+      "hostname": "www.joist.com",
+      "source_class": "competitor",
+      "publisher_relationship": "competitor"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-uglys-home",
+      "status": "approved",
+      "source_url": "https://www.uglys.net/",
+      "hostname": "www.uglys.net",
+      "source_class": "neutral",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-electrical-calc-elite",
+      "status": "approved",
+      "source_url": "https://www.cyberprodigy.com/electricalcalcelite/",
+      "hostname": "www.cyberprodigy.com",
+      "source_class": "neutral",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-southwire-apps",
+      "status": "approved",
+      "source_url": "https://www.southwire.com/apps",
+      "hostname": "www.southwire.com",
+      "source_class": "neutral",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "best-apps-electricians-2026-10-01-everycircuit-home",
+      "status": "approved",
+      "source_url": "https://everycircuit.com/",
+      "hostname": "everycircuit.com",
+      "source_class": "neutral",
+      "publisher_relationship": "independent"
+    },
+    {
+      "decision_id": "what-is-simpro-2026-10-05-simprogroup-homepage",
+      "status": "approved",
+      "source_url": "https://www.simprogroup.com/",
+      "hostname": "www.simprogroup.com",
+      "source_class": "owned_product",
+      "publisher_relationship": "owned"
     }
   ]
 }
