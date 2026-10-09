@@ -140,6 +140,69 @@
       "observed_text_length": 2539,
       "evidence": "I find Simpro incredibly easy to use with its user-friendly interface, which lowers the barrier for our less tech-savvy employees",
       "reason": "g2.com returns HTTP 403 to the validator's request client. The review page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.g2.com/products/simpro/reviews/simpro-review-13118004",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-10-02T20:41:45Z",
+      "page_title": "G2",
+      "observed_text_length": 1737,
+      "evidence": "Simpro has made everyone accountable from the very beginning, from the lead and quote stage all the way through to collecting the final payment for the job.",
+      "reason": "g2.com returns HTTP 403 to the validator's request client. The review page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.g2.com/products/simpro/reviews/simpro-review-13176424",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-10-02T20:41:45Z",
+      "page_title": "G2",
+      "observed_text_length": 2355,
+      "evidence": "It has improved communication between the office and field technicians, streamlined dispatching and scheduling, and given us better visibility into jobs, quotes, inventory, and invoicing.",
+      "reason": "g2.com returns HTTP 403 to the validator's request client. The review page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.g2.com/products/simpro/reviews/simpro-review-8771080",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-10-02T20:41:45Z",
+      "page_title": "G2",
+      "observed_text_length": 1219,
+      "evidence": "We went from carbonless service call forms and a whiteboard calendar to Simpro.",
+      "reason": "g2.com returns HTTP 403 to the validator's request client. The review page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.g2.com/products/simpro/reviews/simpro-review-13242709",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-10-02T20:41:45Z",
+      "page_title": "G2",
+      "observed_text_length": 1060,
+      "evidence": "As an owner, it gives me great real-time insight into my business, from work orders to quotes.",
+      "reason": "g2.com returns HTTP 403 to the validator's request client. The review page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.g2.com/products/simpro/reviews/simpro-review-8714287",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-10-02T20:48:22Z",
+      "page_title": "G2",
+      "observed_text_length": 1119,
+      "evidence": "Simpro allows our company to manage quotes, jobs, invoicing, and business reporting efficiently in one place.",
+      "reason": "g2.com returns HTTP 403 to the validator's request client. The review page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.capterra.com/p/10529/Simpro-Enterprise/#Capterra___7174604",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-10-05T20:09:58Z",
+      "page_title": "Simpro Software Pricing, Alternatives & More 2026 | Capterra",
+      "observed_text_length": 50000,
+      "evidence": "It is an absolute powerhouse when it comes to keeping our quoting, job management, and invoicing tied together in one single source of truth.",
+      "reason": "capterra.com returns HTTP 403 to the validator's request client. The page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-10-05T20:09:58Z",
+      "page_title": "Simpro Reviews 2026. Verified Reviews, Pros & Cons | Capterra",
+      "observed_text_length": 50000,
+      "evidence": "Reviews of Simpro",
+      "reason": "capterra.com returns HTTP 403 to the validator's request client. The page loads normally in the Chrome connector."
     }
   ]
 }
