@@ -59,6 +59,15 @@ topics/*
 
 research/*
 !research/.gitkeep
+# Hash-bound evidence cited by context/commercial-pillar-index.json
+!research/commercial-pillar-evidence-electrical-software-2026-09-28.md
+!research/commercial-pillar-evidence-estimating-software-2026-09-28.md
+!research/commercial-pillar-evidence-payments-2026-09-30.md
+!research/commercial-pillar-evidence-scheduling-software-2026-09-28.md
+!research/semrush-commercial-pillar-bigchange-uk-risk-assessment-software-2026-09-25.md
+!research/semrush-commercial-pillar-homepage-field-service-management-software-2026-09-08.md
+!research/semrush-commercial-pillar-plumbing-software-2026-09-08.md
+!research/semrush-commercial-pillar-simpro-uk-homepage-field-service-management-software-2026-09-18.md
 !research/performance/
 research/performance/*
 !research/performance/p1-offline-release-benchmark-v2-final.json
