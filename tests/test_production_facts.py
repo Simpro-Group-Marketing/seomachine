@@ -1,3 +1,4 @@
+import pytest
 import requests
 from data_sources.modules.production.facts import verify_quotes
 
@@ -88,3 +89,23 @@ def test_one_failing_url_does_not_poison_the_others():
     assert result[(good, QUOTE)].status == "verified"
     assert result[(bad, QUOTE)].status == "unreachable"
     assert transport.calls == [[good, bad], [good], [bad]]
+
+@pytest.mark.parametrize(
+    "quote, page_text",
+    [
+        ("500 jobs", "1,500 jobs"),
+        ("5% in total", "12.5% in total"),
+        ("000 jobs", "24,000 jobs"),
+        ("2m", "$1.2m"),
+    ],
+)
+def test_number_fragment_is_not_a_partial_match(quote, page_text):
+    page = f"<html><body><p>{page_text}</p></body></html>"
+    result = verify_quotes([(URL, quote)], transport=FakeTransport({URL: _response(URL, 200, page)}))
+    assert result[(URL, quote)].status == "quote_missing"
+
+@pytest.mark.parametrize("quote", ["1,500 jobs", "12.5% in total"])
+def test_whole_number_quote_is_verified(quote):
+    page = f"<html><body><p>Teams log {quote} each year.</p></body></html>"
+    result = verify_quotes([(URL, quote)], transport=FakeTransport({URL: _response(URL, 200, page)}))
+    assert result[(URL, quote)].status == "verified"

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Any, Dict, Sequence, Tuple
 
@@ -11,6 +12,8 @@ from data_sources.modules.source_support.retrieval import fetch_source_text_many
 from data_sources.modules.source_support.text_matching import _normalize_text
 
 _GONE_STATUSES = frozenset({404, 410})
+_THOUSANDS_COMMA = re.compile(r"(?<=\d),(?=\d)")
+_DECIMAL_POINT = re.compile(r"(?<=\d)\.(?=\d)")
 
 
 @dataclass(frozen=True)
@@ -58,12 +61,18 @@ def _check(url: str, quote: str, outcome: Any) -> FactCheck:
 
 
 def _match_quote(url: str, quote: str, page_text: str) -> FactCheck:
-    needle = _normalize_text(quote)
+    needle = _normalize_text(_keep_numbers_whole(quote))
     if not needle:
         return FactCheck(url, "quote_missing", "quote has no verifiable text")
-    if f" {needle} " in f" {_normalize_text(page_text)} ":
+    if f" {needle} " in f" {_normalize_text(_keep_numbers_whole(page_text))} ":
         return FactCheck(url, "verified", "quote found on page")
     return FactCheck(url, "quote_missing", "quote not found on page")
+
+
+def _keep_numbers_whole(text: str) -> str:
+    """Join digit groups so "1,500" and "12.5" stay single tokens for boundary matching."""
+    text = _THOUSANDS_COMMA.sub("", text)
+    return _DECIMAL_POINT.sub("p", text)
 
 
 __all__ = ["FactCheck", "verify_quotes"]
