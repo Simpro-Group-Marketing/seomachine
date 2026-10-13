@@ -1,4 +1,9 @@
-"""Production BOM and BOM-spec schemas with structural validators."""
+"""Production BOM and BOM-spec schemas with structural validators.
+
+A BOM fact's ``quote`` is the verified text: it was found on the live page at build
+time. The ``claim`` is Claude's wording, admitted only because the quote supports it
+(see ``claim_support``). Downstream gates rely on the quote, not on the claim.
+"""
 
 from __future__ import annotations
 
@@ -12,6 +17,18 @@ SPEC_SCHEMA = "simpro-production-bom-spec/v1"
 PRIORITIES = frozenset({"must", "should"})
 LINK_KINDS = frozenset({"commercial_pillar", "internal", "external"})
 
+SCHEMA_NOTES = frozenset(
+    {
+        "BlogPosting",
+        "BreadcrumbList",
+        "ImageObject",
+        "Organization as publisher reference",
+        "FAQPage",
+        "Question and Answer inside FAQPage",
+        "Person as author",
+        "VideoObject",
+    }
+)
 _SPEC_TEXT_FIELDS = ("brand", "market", "title", "objective", "audience")
 _SPEC_OPTIONAL = frozenset({"not_applicable_context_reason"})
 _SPEC_REQUIRED = frozenset(
@@ -38,22 +55,18 @@ class SpecFileError(Exception):
     """Raised when the BOM spec file cannot be read as a JSON object."""
 
 
+class BuildEnvironmentError(Exception):
+    """Raised when the build cannot run: a required index, vault, or file is unusable.
+
+    This is an operational failure, not a refusal of the spec's content.
+    """
+
+
 def load_bom(path: str | Path) -> dict[str, Any]:
     """Read a BOM file as a JSON object."""
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise ValueError(f"BOM {path} is not a JSON object")
-    return payload
-
-
-def load_spec(path: str | Path) -> dict[str, Any]:
-    """Read a BOM spec file; unreadable or non-object content raises SpecFileError."""
-    try:
-        payload = json.loads(Path(path).read_text(encoding="utf-8"))
-    except (OSError, ValueError) as error:
-        raise SpecFileError(f"BOM spec {path} cannot be read: {error}") from error
-    if not isinstance(payload, dict):
-        raise SpecFileError(f"BOM spec {path} is not a JSON object")
     return payload
 
 
@@ -135,12 +148,23 @@ def _spec_scalar_errors(spec: Mapping[str, Any]) -> list[str]:
             errors.append(f"spec {key} must be non-empty text")
     if "not_applicable_context_reason" in spec and not _is_text(spec["not_applicable_context_reason"]):
         errors.append("spec not_applicable_context_reason must be non-empty text")
-    notes = spec.get("schema_notes")
-    if "schema_notes" in spec and not (isinstance(notes, list) and all(_is_text(note) for note in notes)):
-        errors.append("spec schema_notes must be a list of non-empty text")
+    errors += _schema_notes_errors(spec)
     if "cta" in spec:
         errors += _item_errors("cta", 0, spec["cta"], frozenset({"text", "url"}), frozenset())
     return errors
+
+
+def _schema_notes_errors(spec: Mapping[str, Any]) -> list[str]:
+    if "schema_notes" not in spec:
+        return []
+    notes = spec["schema_notes"]
+    if not isinstance(notes, list) or not all(isinstance(note, str) for note in notes):
+        return ["spec schema_notes must be a list of text"]
+    return [
+        f"spec schema_notes entry is not an allowed note: {note!r}; allowed: {sorted(SCHEMA_NOTES)}"
+        for note in notes
+        if note not in SCHEMA_NOTES
+    ]
 
 
 def validate_spec(spec: Any) -> list[str]:

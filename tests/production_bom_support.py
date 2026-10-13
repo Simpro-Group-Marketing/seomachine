@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -11,16 +12,23 @@ import requests
 from data_sources.modules.production.layout import Layout
 from data_sources.modules.vault_claim_receipts import ApprovedClaim, ValidatedClaimSet
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+TODAY = "2026-10-13"
 ARTICLE = "drafts/field-service-software-2026-10-13.md"
 FACT_URL = "https://example.org/report"
-FACT_QUOTE = "more than 24,000 trade businesses"
-FACT_PAGE = "<html><body><p>Simpro supports more than 24,000 trade businesses.</p></body></html>"
+FACT_QUOTE = "Trusted by more than 24,000 trade businesses worldwide"
+FACT_CLAIM = "More than 24,000 trade businesses worldwide trust it"
+FACT_PAGE = (
+    "<html><body><p>Trusted by more than 24,000 trade businesses worldwide.</p>"
+    "<p>Crews log time from any phone on every job site.</p></body></html>"
+)
 PILLAR_URL = "https://www.simprogroup.com/"
 PILLAR_ID = "simpro-us-homepage-field-service-management-software"
 PILLAR_KEYWORD = "field service management software"
 PAA_QUESTION = "What is field service software?"
 CLAIM_ID = "claim-metric-1"
 NONVAULT_ID = "clockshark-customer-story-chesapeake"
+STORY_ID = "clockshark-story-row"
 
 
 def write_json(path: Path, payload: Any) -> None:
@@ -96,7 +104,7 @@ def connector_spec() -> dict[str, Any]:
         "audience": "Trade business owners",
         "sections": [{"heading": "What it is", "purpose": "Define the term", "priority": "must"}],
         "facts": [
-            {"id": "f1", "claim": "More than 24,000 trade businesses use it",
+            {"id": "f1", "claim": FACT_CLAIM,
              "url": FACT_URL, "quote": FACT_QUOTE, "priority": "must"}
         ],
         "proof": [{"id": "p1", "claim_id": CLAIM_ID, "kind": "metric", "priority": "should"}],
@@ -120,7 +128,7 @@ def nonconnector_spec() -> dict[str, Any]:
          "kind": "internal", "priority": "should"}
     ]
     spec["cta"] = {"text": "Try it", "url": "https://clockshark.com/demo"}
-    spec["proof"] = [{"id": "p1", "claim_id": NONVAULT_ID, "kind": "story", "priority": "should"}]
+    spec["proof"] = [{"id": "p1", "claim_id": NONVAULT_ID, "kind": "theme", "priority": "should"}]
     spec["not_applicable_context_reason"] = "ClockShark workflow with no brand-vault signal"
     return spec
 
@@ -130,6 +138,8 @@ def nonvault_row(proof_id: str = NONVAULT_ID, **overrides: Any) -> dict[str, Any
         "proof_id": proof_id,
         "approval_status": "approved",
         "public_copy_allowed": True,
+        "source_type": "customer_story",
+        "region": ["US"],
         "customer": "Chesapeake Lawn and Home",
         "public_url": "https://www.clockshark.com/testimonials/chesapeake",
         "evidence": "ClockShark page states: payroll and time tracking for mobile crews.",
@@ -144,14 +154,41 @@ def nonvault_row(proof_id: str = NONVAULT_ID, **overrides: Any) -> dict[str, Any
     return row
 
 
+def nonvault_rows() -> list[dict[str, Any]]:
+    return [
+        nonvault_row(),
+        nonvault_row("clockshark-pending", approval_status="pending"),
+        nonvault_row("clockshark-nopublic", public_copy_allowed=False),
+        nonvault_row("bigchange-story", public_url="https://www.bigchange.com/customers/x"),
+        nonvault_row("clockshark-uk", region=["UK"]),
+        nonvault_row("clockshark-global", region=["Global"]),
+        nonvault_row("clockshark-noregion", region=[]),
+        nonvault_row("clockshark-plain", approved_quotes=[], approved_metrics=[]),
+        nonvault_row(STORY_ID, review_story={"story_allowed": True, "workflow_story": "x"}),
+    ]
+
+
 def pillar_record(**overrides: Any) -> dict[str, Any]:
-    record = {
-        "destination_id": PILLAR_ID, "brand": "Simpro", "market": "US",
-        "pillar_type": "homepage", "canonical_url": PILLAR_URL,
-        "main_keyword": PILLAR_KEYWORD, "status": "verified",
-    }
+    """Return the real, validated commercial pillar record for the homepage destination."""
+    payload = json.loads(
+        (REPO_ROOT / "context" / "commercial-pillar-index.json").read_text(encoding="utf-8-sig")
+    )
+    record = next(item for item in payload["records"] if item["destination_id"] == PILLAR_ID)
+    record = copy.deepcopy(record)
     record.update(overrides)
     return record
+
+
+def write_pillar_index(root: Path, record: dict[str, Any] | None = None) -> None:
+    """Write a one-record index plus the real evidence files its hashes bind to."""
+    record = record or pillar_record()
+    for relative in set(record["evidence_path"]):
+        target = root / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(REPO_ROOT / relative, target)
+    write_json(root / "context" / "commercial-pillar-index.json", {
+        "schema_version": "commercial-pillar-index/v1", "updated_at": "2026-10-01",
+        "records": [record]})
 
 
 def make_workspace(root: Path, *, spec: dict[str, Any] | None = None,
@@ -176,11 +213,8 @@ def make_workspace(root: Path, *, spec: dict[str, Any] | None = None,
     if context:
         write_json(layout.context_pack, {"pack": True})
         write_json(layout.context_receipt, {"receipt": True})
-    write_json(root / "context" / "commercial-pillar-index.json", {
-        "schema_version": "commercial-pillar-index/v1", "updated_at": "2026-10-01",
-        "records": [pillar_record()]})
+    write_pillar_index(root)
     write_json(root / "config" / "nonvault-customer-proof-index.json", {
         "schema": "seomachine-nonvault-customer-proof-index/v1", "version": 1,
-        "proof": [nonvault_row(), nonvault_row("clockshark-pending", approval_status="pending"),
-                  nonvault_row("clockshark-nopublic", public_copy_allowed=False)]})
+        "proof": nonvault_rows()})
     return layout

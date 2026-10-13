@@ -14,6 +14,7 @@ from data_sources.modules.vault_claim_receipts import ValidatedClaimSet
 from tests.production_bom_support import (
     ARTICLE,
     CLAIM_ID,
+    FACT_CLAIM,
     FACT_PAGE,
     FACT_QUOTE,
     FACT_URL,
@@ -28,10 +29,17 @@ from tests.production_bom_support import (
     good_transport,
     make_workspace,
     nonconnector_spec,
+    TODAY,
     pillar_record,
     response,
     write_json,
+    write_pillar_index,
 )
+
+
+@pytest.fixture(autouse=True)
+def _pinned_clock(monkeypatch):
+    monkeypatch.setenv("SEOMACHINE_TEST_CURRENT_UTC_DATE", TODAY)
 
 
 def _build(layout, *, transport=None, loader=None):
@@ -104,19 +112,20 @@ def test_keyword_and_serp_blocks_copy_from_artifacts(tmp_path):
 
 def test_facts_carry_one_verification_timestamp(tmp_path):
     spec = connector_spec()
-    spec["facts"].append({"id": "f2", "claim": "Simpro supports trade businesses",
-                          "url": FACT_URL, "quote": "supports more than 24,000", "priority": "should"})
+    spec["facts"].append({"id": "f2", "claim": "Crews can log time from any phone",
+                          "url": FACT_URL, "quote": "Crews log time from any phone", "priority": "should"})
     layout = make_workspace(tmp_path, spec=spec)
     transport = good_transport()
     bom = _build(layout, transport=transport)
     assert transport.calls == [[FACT_URL]]
     first, second = bom["facts"]
     assert first["id"] == "f1" and first["quote"] == FACT_QUOTE and first["url"] == FACT_URL
-    assert first["claim"] == "More than 24,000 trade businesses use it"
+    assert first["claim"] == FACT_CLAIM
     assert first["priority"] == "must"
     assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", first["verified_at"])
     assert first["verified_at"] == second["verified_at"]
     assert first["check_detail"] == "quote found on page"
+    assert first["support"] == "quote_overlap"
 
 
 def test_proof_text_comes_from_the_approved_claim(tmp_path):
@@ -149,7 +158,7 @@ def test_sections_paa_links_and_pillar(tmp_path):
 def test_paa_match_ignores_case_and_whitespace(tmp_path):
     layout = make_workspace(tmp_path)
     _mutate(layout, lambda s: s["paa_questions"][0].update(question="  WHAT is   field service SOFTWARE? "))
-    assert _build(layout)["paa"]["questions"][0]["question"].startswith("  WHAT")
+    assert _build(layout)["paa"]["questions"][0]["question"] == PAA_QUESTION
 
 
 def test_no_paa_questions_needs_no_paa_artifact(tmp_path):
@@ -318,9 +327,7 @@ def test_unknown_destination_id_aborts(tmp_path):
 
 def test_destination_for_another_market_aborts(tmp_path):
     layout = make_workspace(tmp_path)
-    index = layout.root / "context" / "commercial-pillar-index.json"
-    write_json(index, {"schema_version": "commercial-pillar-index/v1", "updated_at": "2026-10-01",
-                       "records": [pillar_record(market="AU")]})
+    write_pillar_index(layout.root, pillar_record(market="AU"))
     _refused(layout, "market")
 
 
