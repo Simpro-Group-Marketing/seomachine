@@ -31,8 +31,6 @@ jobs:
   compatibility:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    env:
-      SIMPRO_CONNECTOR_TOKEN: ${{ secrets.SIMPRO_CONNECTOR_TOKEN }}
     steps:
       - name: Check out review branch
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -40,16 +38,21 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: '3.12'
-      - name: Require private connector access
+      - name: Install runtime and development dependencies (private connector)
+        env:
+          SIMPRO_CONNECTOR_TOKEN: ${{ secrets.SIMPRO_CONNECTOR_TOKEN }}
         shell: bash
         run: |
           if [ -z "$SIMPRO_CONNECTOR_TOKEN" ]; then
             echo "missing SIMPRO_CONNECTOR_TOKEN"
             exit 1
           fi
-          git config --global url."https://x-access-token:${SIMPRO_CONNECTOR_TOKEN}@github.com/".insteadOf "https://github.com/"
-      - name: Install runtime and development dependencies
-        run: python -m pip install -r data_sources/requirements.txt -r requirements-dev.txt
+          rewrite="url.https://x-access-token:${SIMPRO_CONNECTOR_TOKEN}@github.com/"
+          git config --global "${rewrite}.insteadOf" "https://github.com/"
+          status=0
+          python -m pip install -r data_sources/requirements.txt -r requirements-dev.txt || status=$?
+          git config --global --remove-section "$rewrite"
+          exit $status
       - name: Require reviewed snapshot and complete policy
         run: python tools/humanizer_upstream.py verify
       - name: Run Humanizer compatibility tests

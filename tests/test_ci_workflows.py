@@ -42,6 +42,20 @@ def test_full_suite_workflow_fails_loudly_without_connector_token():
     assert "${{ secrets.SIMPRO_CONNECTOR_TOKEN }}@" not in content
 
 
+def test_connector_token_is_scoped_to_the_install_step_and_not_persisted():
+    """The private token must not reach later steps' env or stay in global gitconfig."""
+    for name, job in (("tests.yml", "suite"), ("humanizer-upstream.yml", "compatibility")):
+        body = _job(_read(name), job)
+        steps = re.split(r"^      - name: ", body, flags=re.M)
+        job_env = steps[0]
+        token_steps = [step for step in steps[1:] if "secrets.SIMPRO_CONNECTOR_TOKEN" in step]
+
+        assert "SIMPRO_CONNECTOR_TOKEN" not in job_env, name
+        assert len(token_steps) == 1, name
+        assert "pip install -r data_sources/requirements.txt" in token_steps[0], name
+        assert "git config --global --remove-section" in token_steps[0], name
+
+
 def test_contract_and_humanizer_jobs_install_runtime_dependencies():
     """check_memory_contract imports requests; pytest jobs need their runtime deps."""
     p2 = _read("p2-runtime-quality.yml")

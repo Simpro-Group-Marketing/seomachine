@@ -341,12 +341,11 @@ def test_scan_scope_covers_nested_runtime_prompt_plugin_and_config_surfaces():
     assert _is_runtime_or_instruction(Path("config/nested/plugin.json"))
 
 
-def test_repository_scan_includes_active_ignored_connector_configuration():
-    scan_paths = set(_repository_scan_paths())
-
-    assert {path for path in ROOT_RUNTIME_FILES if (ROOT / path).is_file()} <= scan_paths
-    for template in (".claude/settings.local.template.json", ".codex/config.template.toml", ".mcp.json.template"):
-        assert Path(template) in scan_paths
+def test_repository_scan_includes_active_ignored_connector_configuration(monkeypatch):
+    templates = {Path(".claude/settings.local.template.json"), Path(".codex/config.template.toml"), Path(".mcp.json.template")}
+    assert templates <= set(_repository_scan_paths())
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 0, stdout=b""))
+    assert {path for path in ROOT_RUNTIME_FILES if (ROOT / path).is_file()} <= set(_repository_scan_paths())
 
 
 def test_known_generated_protocol_filenames_are_topology_violations():
