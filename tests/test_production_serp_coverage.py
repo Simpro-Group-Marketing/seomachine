@@ -250,3 +250,43 @@ def test_cli_bad_paa_artifact_exits_2(tmp_path, monkeypatch, paa_body):
     layout.paa_artifact.write_text(paa_body, encoding="utf-8")
     _patch_transport(monkeypatch, FakeTransport({}))
     assert sc.main([str(layout.article), "--workspace-root", str(tmp_path)]) == 2
+
+
+def test_article_and_section_headers_keep_their_headings():
+    html = (
+        "<body><header><h2>Site Head</h2></header>"
+        "<article><header><h1>T</h1><h2>Intro: What is FSM?</h2></header>"
+        "<section><header><h2>Features</h2></header></section>"
+        "<footer><h2>Article Foot</h2></footer></article>"
+        "<footer><h2>Site Foot</h2></footer></body>"
+    )
+    assert sc.extract_outline(html) == [
+        (2, "Intro: What is FSM?"), (2, "Features"), (2, "Article Foot"),
+    ]
+
+
+def test_nested_chrome_inside_removed_header_is_safe():
+    html = "<body><header><nav><h2>Menu</h2></nav><h2>Head</h2></header><h2>Body</h2></body>"
+    assert sc.extract_outline(html) == [(2, "Body")]
+
+
+def test_evidence_urls_dedupe_fragment_tracking_and_trailing_slash():
+    results = [
+        {"position": 1, "url": "https://a.com/x"},
+        {"position": 2, "url": "https://a.com/x#frag"},
+        {"position": 3, "url": "https://a.com/x?utm_source=z&gclid=1&fbclid=2"},
+        {"position": 4, "url": "https://a.com/x/"},
+        {"position": 5, "url": "https://a.com/x?page=2"},
+        {"position": 6, "url": "https://b.com/"},
+    ]
+    assert sc.evidence_urls({"results": results}) == [
+        "https://a.com/x", "https://a.com/x?page=2", "https://b.com/",
+    ]
+
+
+def test_normalize_heading_keeps_decimal_numbers_and_apostrophes():
+    assert sc.normalize_heading("1.5 Overview") == "1 5 overview"
+    assert sc.normalize_heading("What's new?") == "whats new"
+    assert sc.normalize_heading("What\u2019s new?") == "whats new"
+    assert sc.normalize_heading("3) Costs") == "costs"
+    assert sc.normalize_heading("1. What Is FSM Software?") == "what is fsm software"

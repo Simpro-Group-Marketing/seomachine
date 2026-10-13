@@ -16,6 +16,7 @@ from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from bs4 import BeautifulSoup
 
@@ -30,18 +31,32 @@ QUESTION_COVERAGE_THRESHOLD = 0.6
 _STOPWORDS = frozenset(
     "a an the is are what how why do does to of for in on and or can i you your".split()
 )
-_CHROME_TAGS = ("nav", "header", "footer", "aside", "script", "style", "noscript")
-_LIST_NUMBER = re.compile(r"^\s*\d+\s*[.)]\s*")
+_ALWAYS_CHROME = ("nav", "aside", "script", "style", "noscript")
+_PAGE_CHROME = ("header", "footer")
+_CONTENT_ANCESTORS = ["article", "main", "section"]
+_LIST_NUMBER = re.compile(r"^\s*\d+\s*[.)]\s+")
+_APOSTROPHES = re.compile("['’]")
+_TRACKING_PARAMS = frozenset({"gclid", "fbclid"})
 _NON_WORD = re.compile(r"[^\w\s]")
 
 Outline = list[tuple[int, str]]
 
 
+def _strip_chrome(soup: BeautifulSoup) -> None:
+    """Drop page chrome; header and footer inside article, main or section are content."""
+    doomed = soup(list(_ALWAYS_CHROME))
+    doomed += [
+        tag for tag in soup(list(_PAGE_CHROME)) if tag.find_parent(_CONTENT_ANCESTORS) is None
+    ]
+    for tag in doomed:
+        if not tag.decomposed:
+            tag.decompose()
+
+
 def extract_outline(html: str) -> Outline:
     """Return (level, text) for each H2/H3 outside page chrome, in document order."""
     soup = BeautifulSoup(html, "lxml")
-    for tag in soup(list(_CHROME_TAGS)):
-        tag.decompose()
+    _strip_chrome(soup)
     outline: Outline = []
     for heading in soup.find_all(["h2", "h3"]):
         text = " ".join(heading.get_text(" ").split())
@@ -52,7 +67,7 @@ def extract_outline(html: str) -> Outline:
 
 def normalize_heading(text: str) -> str:
     """Lowercase, drop a leading list number and punctuation, collapse whitespace."""
-    without_number = _LIST_NUMBER.sub("", text.lower())
+    without_number = _APOSTROPHES.sub("", _LIST_NUMBER.sub("", text.lower()))
     return " ".join(_NON_WORD.sub(" ", without_number).split())
 
 
@@ -170,6 +185,19 @@ def fetch_outlines(urls: Sequence[str], *, transport: Any) -> tuple[dict[str, Ou
     return outlines, unreachable
 
 
+def _url_key(url: str) -> str:
+    """Identify a page ignoring fragment, tracking parameters and a trailing slash."""
+    parts = urlsplit(url)
+    query = [
+        pair
+        for pair in parse_qsl(parts.query, keep_blank_values=True)
+        if not pair[0].lower().startswith("utm_") and pair[0].lower() not in _TRACKING_PARAMS
+    ]
+    return urlunsplit(
+        (parts.scheme.lower(), parts.netloc.lower(), parts.path.rstrip("/"), urlencode(query), "")
+    )
+
+
 def evidence_urls(evidence: Mapping[str, Any]) -> list[str]:
     """Return up to ten result URLs in position order, skipping empty ones."""
     results = evidence.get("results")
@@ -180,7 +208,11 @@ def evidence_urls(evidence: Mapping[str, Any]) -> list[str]:
     ]
     rows.sort(key=lambda row: row["position"])
     urls = [str(row.get("url") or "").strip() for row in rows]
-    return [url for url in urls if url][:MAX_RESULTS]
+    unique: dict[str, str] = {}
+    for url in urls:
+        if url:
+            unique.setdefault(_url_key(url), url)
+    return list(unique.values())[:MAX_RESULTS]
 
 
 def _read_json_object(path: Path, label: str) -> tuple[dict[str, Any], bytes]:
