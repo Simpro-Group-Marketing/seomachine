@@ -5,20 +5,28 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+from datetime import date
 
 import pytest
 from data_sources.modules.production import scoring
+from data_sources.modules.production.layout import Layout
 from data_sources.modules.production.proof_view import render_proof_view
 from data_sources.modules.public_http import PublicHttpTransport
 from tests.production_scoring_support import (
+    COMPETITOR_URL,
+    ICC_URL,
     OWNED_URL,
     Q1,
     Q2,
     RUN_ID,
     TODAY,
+    cite_in_faq,
+    commit_source_registry,
     make_scoring_workspace,
     scorer_result,
+    sha256,
     without_question,
+    write_paa_capture,
 )
 
 EXTERNAL_URL = "https://example.org/dispatch-study"
@@ -226,3 +234,118 @@ def test_scoring_metadata_and_paa_expectations_come_from_the_bom(workspace):
         "expected_collection_date": TODAY, "expected_run_id": RUN_ID,
     }
     assert json.loads(json.dumps(metadata)) == metadata
+
+
+# ---- fix round 1 -----------------------------------------------------------------------------
+
+REMEDY = "re-run the customer proof selector and rebuild the production BOM"
+CONNECTOR_SCHEMA = "simpro-customer-proof-selector-evidence/v2"
+
+
+def _connector_evidence(article, bom, reference_date):
+    """Swap in connector selector evidence bound to the current ledger, dated reference_date."""
+    root = article.parents[1]
+    layout = Layout.for_article(article, root)
+    ledger = root / "config" / "customer-proof-usage-ledger.json"
+    payload = {"schema": CONNECTOR_SCHEMA, "selection_outcome": "customer_proof_candidates_available",
+               "inputs": {"reference_date": reference_date},
+               "artifacts": {"ledger": {"path": str(ledger), "sha256": sha256(ledger)}}, "roles": []}
+    layout.customer_proof_evidence.write_text(json.dumps(payload), encoding="utf-8")
+    changed = copy.deepcopy(bom)
+    changed["customer_proof"] = {
+        "evidence": {"path": f"research/{layout.customer_proof_evidence.name}",
+                     "sha256": sha256(layout.customer_proof_evidence)},
+        "schema": CONNECTOR_SCHEMA, "selection_outcome": "customer_proof_candidates_available", "roles": [],
+    }
+    return changed
+
+
+def test_paa_artifact_dated_away_from_the_article_fails_paa_provenance(workspace):
+    article, bom = workspace
+    path = write_paa_capture(Layout.for_article(article, article.parents[1]), collection_date="2026-07-01")
+    bom = copy.deepcopy(bom)
+    bom["paa"]["artifact"]["sha256"] = sha256(path)
+    bom["paa"]["collection_date"] = "2026-07-01"
+    result = scoring.score_article(article, bom, workers=1)
+    assert "paa_provenance" in _failed_aeo_checks(result)
+    assert "paa_answersocrates_date_mismatch" in result["gates"]["aeo_geo"]["failed_rules"]
+
+
+def test_stale_connector_selector_evidence_is_refused_with_the_remedy(workspace):
+    article, bom = workspace
+    bom = _connector_evidence(article, bom, "2026-08-10")
+    with pytest.raises(scoring.ScoringPreflightError, match=REMEDY):
+        scoring.score_article(article, bom, workers=1, today=lambda: date(2026, 8, 11))
+
+
+def test_changed_usage_ledger_is_refused_with_the_remedy(workspace):
+    article, bom = workspace
+    ledger = article.parents[1] / "config" / "customer-proof-usage-ledger.json"
+    ledger.write_text(ledger.read_text(encoding="utf-8") + " ", encoding="utf-8")
+    with pytest.raises(scoring.ScoringPreflightError, match=REMEDY):
+        scoring.score_article(article, bom, workers=1)
+    assert issubclass(scoring.ScoringPreflightError, ValueError)
+
+
+def test_fresh_selector_evidence_passes_the_preflight(workspace):
+    article, bom = workspace
+    root = article.parents[1]
+    ledger = root / "config" / "customer-proof-usage-ledger.json"
+    scoring.preflight_evidence(bom, root, today=lambda: date(2020, 1, 1), ledger_path=ledger)
+    connector = _connector_evidence(article, bom, "2026-08-11")
+    scoring.preflight_evidence(connector, root, today=lambda: date(2026, 8, 11), ledger_path=ledger)
+
+
+def test_evidence_edited_after_the_build_is_refused(workspace):
+    article, bom = workspace
+    path = article.parents[1] / bom["customer_proof"]["evidence"]["path"]
+    path.write_text(path.read_text(encoding="utf-8") + " ", encoding="utf-8")
+    with pytest.raises(ValueError, match="changed since the BOM was built"):
+        scoring.score_article(article, bom, workers=1)
+
+
+def test_seo_critical_issue_fails_even_when_the_scorer_says_passed():
+    result = scoring.score_gates(scorer_result(seo=95, critical=["Missing H1"], seo_passed=True))
+    assert result["gates"]["seo_quality"]["passed"] is False and result["passed"] is False
+
+
+def test_story_selection_missing_from_bom_proof_renders_no_mining(workspace):
+    _article, bom = workspace
+    bom = copy.deepcopy(bom)
+    bom["proof"] = []
+    story = next(r for r in bom["customer_proof"]["roles"] if r["role"] == "experience_story")
+    assert story["selected_id"] != "none"
+    assert "Selected Customer Proof Mining" not in render_proof_view(bom)
+
+
+def test_registry_independent_authority_renders_neutral_and_passes_faq_proof(workspace):
+    article, bom = workspace
+    root = article.parents[1]
+    commit_source_registry(root)
+    bom = cite_in_faq(article, bom, ICC_URL, "ICC special inspections code chapter")
+    view = render_proof_view(bom, article=article.read_text(encoding="utf-8"), root=root)
+    assert f"- FAQ: {Q2} | URL: {ICC_URL} | Source class: neutral | Competitor check: passed" in view
+    assert "faq_proof" not in _failed_aeo_checks(scoring.score_article(article, bom, workers=1))
+
+
+def test_registry_competitor_row_is_still_rejected(workspace):
+    article, bom = workspace
+    root = article.parents[1]
+    commit_source_registry(root)
+    bom = cite_in_faq(article, bom, COMPETITOR_URL, "Knowify electrical contractor guide")
+    view = render_proof_view(bom, article=article.read_text(encoding="utf-8"), root=root)
+    assert f"| URL: {COMPETITOR_URL} | Source class: competitor | Competitor check: failed" in view
+    result = scoring.score_article(article, bom, workers=1)
+    assert "faq_answer_competitor_owned_source" in result["gates"]["aeo_geo"]["failed_rules"]
+
+
+@pytest.mark.parametrize(
+    ("source_class", "relationship", "expected"),
+    [("primary_authority", "independent", "neutral"), ("independent_research", "independent", "neutral"),
+     ("owned_product", "owned", "owned_product"), ("competitor", "competitor", "competitor"),
+     ("primary_authority", "competitor", "primary_authority"), ("review_platform", "review_platform", "review_platform")],
+)
+def test_faq_source_class_maps_only_independent_authorities_to_neutral(source_class, relationship, expected):
+    from data_sources.modules.production.proof_view import faq_source_class
+
+    assert faq_source_class(source_class, relationship) == expected

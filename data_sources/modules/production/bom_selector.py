@@ -9,6 +9,7 @@ from typing import Any
 
 from data_sources.modules.customer_proof.connector_evidence import CONNECTOR_EVIDENCE_SCHEMA
 from data_sources.modules.customer_proof.nonconnector_contracts import SCHEMA as NONVAULT_EVIDENCE_SCHEMA
+from data_sources.modules.customer_proof.nonconnector_evidence import verify_nonconnector_selector_evidence
 from data_sources.modules.production.bom_artifacts import read_bound
 from data_sources.modules.production.layout import Layout
 
@@ -66,6 +67,10 @@ def bind_selector_evidence(
     errors = _role_errors(payload.get("roles"), label)
     if errors:
         raise ValueError("\n".join(errors))
+    if nonconnector and verify_nonconnector_selector_evidence(payload) is None:
+        raise ValueError(
+            f"{label} failed verification: the nonvault selector does not reproduce it from its bound index and ledger"
+        )
     roles = payload["roles"]
     errors = _unselected_errors(proof, roles)
     if errors:

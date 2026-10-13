@@ -18,10 +18,8 @@ from data_sources.modules.source_support.persistence import (
     _select_approved_decision,
 )
 
-COMPETITOR_CLASS = "competitor"
 
-
-def _registry_class(url: str, hostname: str, root: Path) -> str | None:
+def _registry_decision(url: str, hostname: str, root: Path) -> tuple[str, str] | None:
     try:
         _snapshot, registry, _revision = _load_decision_registry(root / SOURCE_DECISIONS_PATH, workspace_root=root)
     except (OSError, ValueError):
@@ -33,22 +31,18 @@ def _registry_class(url: str, hostname: str, root: Path) -> str | None:
     if len(matches) != 1:
         return None
     try:
-        source_class, _relationship = _select_approved_decision(
+        return _select_approved_decision(
             registry["decisions"], decision_id=str(matches[0].get("decision_id")), source_url=url, hostname=hostname
         )
     except ValueError:
         return None
-    return source_class
 
 
 def classify_source(url: str, brand: str, root: Path | None) -> tuple[str, str] | None:
-    """Return (source class, competitor check), or None when existing rules cannot classify the URL."""
+    """Return (source class, publisher relationship), or None when existing rules cannot classify the URL."""
     hostname = (urlsplit(url).hostname or "").lower().rstrip(".")
     if not hostname:
         return None
     if _domain_relationship(hostname, brand) == "internal":
-        return "owned_product", "passed"
-    source_class = _registry_class(url, hostname, root) if root is not None else None
-    if source_class is None:
-        return None
-    return source_class, "failed" if source_class == COMPETITOR_CLASS else "passed"
+        return "owned_product", "owned"
+    return _registry_decision(url, hostname, root) if root is not None else None

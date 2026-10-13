@@ -19,6 +19,7 @@ from data_sources.modules.proof_link_policy import canonicalize_link_identity
 # The production PAA lane records AnswerSocrates captures (paa_provenance_guard record);
 # the rater rejects any bound artifact that is not a structured AnswerSocrates record.
 PAA_SOURCE_KIND = "answersocrates"
+INDEPENDENT_AUTHORITY_CLASSES = frozenset({"primary_authority", "independent_research"})
 FAQ_SOURCE_POLICY = (
     "## FAQ Source Policy\n"
     "- Allowed source classes: neutral, non_competing_expert, owned_product.\n"
@@ -131,15 +132,30 @@ def _bom_support(bom: Mapping[str, Any]) -> dict[str, str]:
     return support
 
 
+def faq_source_class(source_class: str, relationship: str) -> str:
+    """Map a registry source class onto the FAQ source-class vocabulary.
+
+    ``source_support.common.SOURCE_CLASS_RELATIONSHIPS`` gives ``primary_authority`` and
+    ``independent_research`` the same "independent" publisher relationship as ``neutral``;
+    a row with that relationship and either class is a neutral FAQ source. Every other
+    class, and any owned, competitor, or unknown relationship, passes through unchanged,
+    so the FAQ proof guard still judges it.
+    """
+    if relationship == "independent" and source_class in INDEPENDENT_AUTHORITY_CLASSES:
+        return "neutral"
+    return source_class
+
+
 def _faq_row(question: str, url: str, support: Mapping[str, str], brand: str, root: Path | None) -> str:
     text = support.get(canonicalize_link_identity(url))
     classified = classify_source(url, brand, root) if text else None
     if classified is None:
         return ""
-    source_class, competitor_check = classified
+    source_class, relationship = classified
+    competitor = "competitor" in (source_class, relationship)
     return (
-        f"- FAQ: {_cell(question)} | URL: {_cell(url)} | Source class: {source_class}"
-        f" | Competitor check: {competitor_check} | Support: {_cell(text)}"
+        f"- FAQ: {_cell(question)} | URL: {_cell(url)} | Source class: {faq_source_class(source_class, relationship)}"
+        f" | Competitor check: {'failed' if competitor else 'passed'} | Support: {_cell(text)}"
     )
 
 

@@ -5,10 +5,13 @@ from __future__ import annotations
 import copy
 import json
 import shutil
+from datetime import date
 from pathlib import Path
 from typing import Any
 
 import requests
+from data_sources.modules.customer_proof.nonconnector_contracts import NonVaultProofDataError
+from data_sources.modules.customer_proof.nonconnector_persistence import write_nonvault_selector_evidence
 from data_sources.modules.production.bom_build import is_nonconnector
 from data_sources.modules.production.layout import Layout, load_or_create_run_id
 from data_sources.modules.vault_claim_receipts import ApprovedClaim, ValidatedClaimSet
@@ -205,8 +208,20 @@ def selector_evidence(spec: dict[str, Any], *, nonconnector: bool) -> dict[str, 
             "artifacts": {}, "roles": roles}
 
 
-def evidence_path(layout: Layout, spec: dict[str, Any]) -> Path:
-    return layout.nonvault_customer_proof_evidence if is_nonconnector(spec) else layout.customer_proof_evidence
+def write_nonvault_evidence(layout: Layout, spec: dict[str, Any]) -> None:
+    """Run the real nonvault selector, selecting the spec's proof ids where the slate allows it."""
+    index = layout.root / "config" / "nonvault-customer-proof-index.json"
+    ledger = layout.root / "config" / "customer-proof-usage-ledger.json"
+    write_json(ledger, {"version": 1, "uses": []})
+    selected = {item["kind"]: item["claim_id"] for item in spec["proof"] if item.get("kind") in SLATE_ROLES}
+    kwargs = dict(topic=spec["title"], brand=spec["brand"], title=spec["title"], objective=spec["objective"],
+                  article_slug=layout.slug, roles=list(SLATE_ROLES), require_eeat_story=True, limit=10,
+                  reference_date=date.fromisoformat(TODAY), rejected_overrides={}, index_path=index,
+                  ledger_path=ledger)
+    try:
+        write_nonvault_selector_evidence(layout.nonvault_customer_proof_evidence, selected_overrides=selected, **kwargs)
+    except NonVaultProofDataError:
+        write_nonvault_selector_evidence(layout.nonvault_customer_proof_evidence, selected_overrides={}, **kwargs)
 
 
 def paa_artifact(run_id: str, *, collection_date: str = TODAY) -> dict[str, Any]:
@@ -233,7 +248,6 @@ def make_workspace(root: Path, *, spec: dict[str, Any] | None = None,
         "uncovered_questions": ["Is it worth it?"], "unreachable": []})
     if paa:
         write_json(layout.paa_artifact, paa_artifact(load_or_create_run_id(layout)))
-    write_json(evidence_path(layout, spec), selector_evidence(spec, nonconnector=is_nonconnector(spec)))
     if context:
         write_json(layout.context_pack, {"pack": True})
         write_json(layout.context_receipt, {"receipt": True})
@@ -241,4 +255,8 @@ def make_workspace(root: Path, *, spec: dict[str, Any] | None = None,
     write_json(root / "config" / "nonvault-customer-proof-index.json", {
         "schema": "seomachine-nonvault-customer-proof-index/v1", "version": 1,
         "proof": nonvault_rows()})
+    if is_nonconnector(spec):
+        write_nonvault_evidence(layout, spec)
+    else:
+        write_json(layout.customer_proof_evidence, selector_evidence(spec, nonconnector=False))
     return layout

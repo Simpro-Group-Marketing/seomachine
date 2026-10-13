@@ -132,3 +132,26 @@ def test_paa_artifact_before_any_production_run_refuses(tmp_path):
     layout = make_workspace(tmp_path)
     layout.run_state.unlink()
     _refused(layout, "does not match the production run id")
+
+
+def test_paa_artifact_dated_before_the_article_refuses(tmp_path):
+    layout = make_workspace(tmp_path)
+    write_json(layout.paa_artifact, paa_artifact(stored_run_id(layout), collection_date="2026-07-01"))
+    _refused(layout, "collection_date 2026-07-01 does not match the article date 2026-10-13")
+
+
+def test_proof_id_only_among_candidates_but_not_selected_refuses(tmp_path):
+    layout = make_workspace(tmp_path)
+    evidence = json.loads(layout.customer_proof_evidence.read_text(encoding="utf-8"))
+    metric = next(role for role in evidence["roles"] if role["role"] == "metric")
+    metric["selected_id"] = "none"
+    assert CLAIM_ID in metric["candidate_ids"]
+    write_json(layout.customer_proof_evidence, evidence)
+    _refused(layout, rf"p1.*{CLAIM_ID}.*not a selected candidate")
+
+
+def test_forged_nonvault_selector_evidence_refuses(tmp_path):
+    spec = nonconnector_spec()
+    layout = make_workspace(tmp_path, spec=spec, context=False)
+    write_json(layout.nonvault_customer_proof_evidence, selector_evidence(spec, nonconnector=True))
+    _refused(layout, "failed verification")

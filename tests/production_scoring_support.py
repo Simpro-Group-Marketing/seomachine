@@ -8,7 +8,10 @@ from a real AnswerSocrates fixture artifact and real nonvault selector evidence.
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
+import shutil
+import subprocess
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -30,6 +33,11 @@ STORY_ID = "bigchange-review-capterra-owner-job-scheduling"
 OWNED_URL = "https://www.bigchange.com/field-service-management-software/"
 Q1 = "How often should a dispatcher review the field service schedule?"
 Q2 = "What should a technician handoff include?"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+REGISTRY = "context/source-classification-decisions.json"
+ICC_URL = "https://codes.iccsafe.org/content/IBC2024V2.0/chapter-17-special-inspections-and-tests"
+COMPETITOR_URL = "https://knowify.com/electrical-contractors/"
+OWNED_LINK = f"[BigChange field service management software]({OWNED_URL})"
 ROLES = ["metric", "quote", "theme", "experience_story"]
 SCHEMA_NOTES = [
     "BlogPosting",
@@ -108,11 +116,7 @@ def make_scoring_workspace(root: Path) -> tuple[Path, dict[str, Any]]:
     layout = Layout.for_article(ARTICLE, root)
     layout.article.parent.mkdir(parents=True, exist_ok=True)
     layout.article.write_text(article_text(), encoding="utf-8", newline="\n")
-    layout.paa_artifact.parent.mkdir(parents=True, exist_ok=True)
-    capture = build_answersocrates_fixture(
-        root, query=QUERY, collection_date=TODAY, questions=[Q1, Q2, "What is dispatch?"], run_id=RUN_ID
-    )
-    layout.paa_artifact.write_text(json.dumps(capture, indent=2) + "\n", encoding="utf-8", newline="\n")
+    write_paa_capture(layout)
     load_or_create_run_id(layout, run_id=RUN_ID)
     _write_evidence(layout)
     proof = [_proof_item()]
@@ -130,6 +134,38 @@ def make_scoring_workspace(root: Path) -> tuple[Path, dict[str, Any]]:
     return layout.article, bom
 
 
+def write_paa_capture(layout: Layout, *, collection_date: str = TODAY) -> Path:
+    layout.paa_artifact.parent.mkdir(parents=True, exist_ok=True)
+    capture = build_answersocrates_fixture(
+        layout.root, query=QUERY, collection_date=collection_date, questions=[Q1, Q2, "What is dispatch?"],
+        run_id=RUN_ID,
+    )
+    layout.paa_artifact.write_text(json.dumps(capture, indent=2) + "\n", encoding="utf-8", newline="\n")
+    return layout.paa_artifact
+
+
+def sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def commit_source_registry(root: Path) -> None:
+    """Copy the committed source decision registry into a git repo at root, as the rater requires."""
+    (root / "context").mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(REPO_ROOT / REGISTRY, root / REGISTRY)
+    for args in (("init", "-q"), ("config", "user.email", "tests@example.com"), ("config", "user.name", "Tests"),
+                 ("add", REGISTRY), ("commit", "-qm", "registry")):
+        subprocess.run(["git", "-C", str(root), *args], check=True)
+
+
+def cite_in_faq(article: Path, bom: dict[str, Any], url: str, anchor: str) -> dict[str, Any]:
+    """Point the Q2 FAQ link and the BOM fact it cites at another URL."""
+    article.write_text(article.read_text(encoding="utf-8").replace(OWNED_LINK, f"[{anchor}]({url})"),
+                       encoding="utf-8", newline="\n")
+    changed = copy.deepcopy(bom)
+    changed["facts"][0]["url"] = url
+    return changed
+
+
 def without_question(bom: dict[str, Any], question: str) -> dict[str, Any]:
     changed = copy.deepcopy(bom)
     changed["paa"]["questions"] = [q for q in changed["paa"]["questions"] if q["question"] != question]
@@ -137,14 +173,15 @@ def without_question(bom: dict[str, Any], question: str) -> dict[str, Any]:
 
 
 def scorer_result(*, content: float = 95, seo: float = 95, critical: list[str] | None = None,
-                  aeo: float = 95, aeo_passed: bool = True) -> dict[str, Any]:
+                  aeo: float = 95, aeo_passed: bool = True, seo_passed: bool | None = None) -> dict[str, Any]:
     """A scorer result shaped like ContentScorer.score output, for gate-logic tests."""
     return {
         "priority_fixes": [{"dimension": "seo", "issue": "x"}],
         "aeo_geo": {"score": aeo, "threshold": 90, "passed": aeo_passed, "checks": {}},
         "quality_gates": {
             "content_quality": {"score": content, "threshold": 85, "passed": content >= 85},
-            "seo_quality": {"score": seo, "threshold": 90, "passed": seo >= 90 and not critical,
+            "seo_quality": {"score": seo, "threshold": 90,
+                            "passed": (seo >= 90 and not critical) if seo_passed is None else seo_passed,
                             "critical_issues": list(critical or []), "critical_issue_count": len(critical or [])},
             "aeo_geo": {"score": aeo, "threshold": 90, "passed": aeo_passed},
         },
@@ -152,6 +189,7 @@ def scorer_result(*, content: float = 95, seo: float = 95, critical: list[str] |
 
 
 __all__ = [
-    "OWNED_URL", "Q1", "Q2", "RUN_ID", "TODAY", "article_text", "make_scoring_workspace", "scorer_result",
-    "without_question",
+    "COMPETITOR_URL", "ICC_URL", "OWNED_URL", "Q1", "Q2", "RUN_ID", "TODAY", "article_text", "cite_in_faq",
+    "commit_source_registry", "make_scoring_workspace", "scorer_result", "sha256", "without_question",
+    "write_paa_capture",
 ]

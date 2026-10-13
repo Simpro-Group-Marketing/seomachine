@@ -100,7 +100,7 @@ def resolve_paa(spec: Mapping[str, Any], layout: Layout) -> dict[str, Any]:
 
 
 def _paa_identity(artifact: Mapping[str, Any], layout: Layout) -> tuple[str, str, list[str]]:
-    """Read the PAA capture's date and run id; the run id must be this production run's."""
+    """Read the PAA capture's date and run id; both must be this article's date and production run."""
     name = layout.paa_artifact.name
     errors = []
     collection_date = artifact.get("collection_date")
@@ -108,6 +108,10 @@ def _paa_identity(artifact: Mapping[str, Any], layout: Layout) -> tuple[str, str
         datetime.date.fromisoformat(collection_date if isinstance(collection_date, str) else "")
     except ValueError:
         errors.append(f"PAA artifact {name} collection_date must be YYYY-MM-DD, found: {collection_date!r}")
+    if isinstance(collection_date, str) and collection_date != layout.date:
+        errors.append(
+            f"PAA artifact {name} collection_date {collection_date} does not match the article date {layout.date}"
+        )
     receipt = artifact.get("run_receipt")
     run_id = receipt.get("run_id") if isinstance(receipt, Mapping) else None
     if not (isinstance(run_id, str) and run_id):
