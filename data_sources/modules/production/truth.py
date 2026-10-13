@@ -20,14 +20,16 @@ from data_sources.modules.production.truth_cites import (
     linked_urls,
     paragraph_number_findings,
 )
-from data_sources.modules.production.truth_faq import answer_ranges, faq_findings, section_range
+from data_sources.modules.production.truth_faq import answer_ranges, faq_findings, section_ranges
 from data_sources.modules.production.truth_index import BomIndex, canonical
-from data_sources.modules.production.truth_numbers import number_gate
+from data_sources.modules.production.truth_numbers import ListicleScope, number_gate
 from data_sources.modules.production.truth_quotes import quoted_passage_findings
 from data_sources.modules.production.truth_text import (
     Finding,
     body_lines,
     h3_count,
+    heading_lines,
+    link_anchors,
     meta_lines,
     paragraph_units,
     public_copy_lines,
@@ -104,16 +106,19 @@ def check_truth(article: str, bom: Mapping[str, Any], *, transport: Any) -> list
     raw = body_lines(article)
     links = extract_urls("\n".join(raw))  # comments, code, and frontmatter are blanked: hidden links do not count
     structure = detect_faq_structure(article)
-    listicle = h3_count(raw, section_range(raw))
+    meta = meta_lines(article)
+    scope = ListicleScope(
+        h3_count(raw, section_ranges(raw)), frozenset({n for n, _ in meta} | heading_lines(raw)), link_anchors(raw)
+    )
     findings = citation_findings(report.requirements, report.links, links, index)
     findings += customer_story_findings(links, index)
     linked_facts, _ = index.rows_for(linked_urls(links, 1, len(raw) + 1))
     fact_findings, unreachable = _fact_findings(linked_facts, transport)
     findings += fact_findings
     units = paragraph_units(article, answer_ranges(structure))
-    findings += paragraph_number_findings(units, links, index, meta_lines(article), listicle)
+    findings += paragraph_number_findings(units, links, index, meta, scope)
     lines = public_copy_lines(article)
-    findings += number_gate(lines, index.all_numbers(), listicle)
+    findings += number_gate(lines, index.all_numbers(), scope)
     findings += quoted_passage_findings(lines, index.quote_sources(), index.customers)
     findings += faq_findings(structure, raw, lines, index)
     findings += _link_findings(article, index, transport, unreachable)

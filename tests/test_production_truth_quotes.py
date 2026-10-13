@@ -112,3 +112,62 @@ def test_curly_apostrophes_match_straight_ones_in_the_source():
     curly = "it\u2019s the best tool we\u2019ve used on the job"
     assert quoted(article(f"> {curly}\n\n"), value) == []
     assert quoted(article(f'The owner said "{curly}" often.\n\n'), value) == []
+
+
+STORY_QUOTE = "Simpro changed how we run every single job"
+
+
+def test_customer_story_callouts_cannot_launder_a_fabricated_quote():
+    text = article(f'> **Customer story**\n> "{STORY_QUOTE}," says Dan Reyes.\n\n')
+    assert quoted(text)
+    assert quoted(article(f"> **Dan Reyes, Foster Plumbing:** {STORY_QUOTE}\n\n"))
+    assert quoted(article(f'**Dan Reyes:** "{STORY_QUOTE}"\n\n'))
+
+
+def test_fixed_label_callouts_with_plain_text_pass():
+    text = article("> **Key takeaways**\n> - Crews log time from any phone.\n> - Book the demo early.\n\n")
+    assert [f for f in check_truth_for(text) if f.check == "quoted_passage"] == []
+    for label in ("Tip", "Note", "Summary", "Scope note", "Example", "Important", "Quick answer", "TL;DR", "Key takeaway"):
+        assert quoted(article(f"> **{label}:** book the demo before the busy season starts\n\n")) == [], label
+
+
+@pytest.mark.parametrize("lead", ["Dan explains", "Dan recalled", "Dan wrote", "Dan noted", "Dan adds", "She put it this way:",
+                                  "Dan described it", "In his words,", "Dan summed it up:"])
+def test_wider_attribution_cues_block_a_fabricated_two_word_quote(lead):
+    assert quoted(article(f'{lead} "Simpro saved us" last year.\n\n')), lead
+
+
+def test_dash_attribution_on_the_next_line_counts_as_a_cue():
+    text = article(f'"{STORY_QUOTE}"\n\u2014 Dan Reyes, Foster Plumbing\n\n')
+    assert quoted(text)
+    assert quoted(article(f'"{STORY_QUOTE}"\n\u2013 Dan Reyes, Foster Plumbing\n\n'))
+
+
+def test_a_colon_before_a_quote_is_not_a_cue_so_example_json_only_warns():
+    findings = check_truth_for(article(f'The label reads: "{STORY_QUOTE}" on screen.\n\n'))
+    assert [f.severity for f in findings if f.check == "quoted_passage"] == ["warn"]
+
+
+def test_placeholder_callout_exempts_its_whole_blockquote_run():
+    text = article('> **Image placeholder:** "A crew at work" 1200x630\n>\n>![8 Lawn Care Tips](https://x.example/a.png)\n\n')
+    findings = check_truth_for(text)
+    assert [f for f in findings if f.severity == "block" and f.check in ("quoted_passage", "number_gate")] == []
+
+
+def test_image_only_lines_inside_a_verbatim_blockquote_are_skipped():
+    text = article(f"> {CUSTOMER_QUOTE}\n>![8 Lawn Care Tips](https://x.example/a.png)\n\n")
+    assert quoted(text) == []
+
+
+def test_cms_module_placeholder_with_numbers_is_exempt():
+    line = '[CMS MODULE PLACEHOLDER | source: modules/cta-47 | alt: "Save 83% in 1200 jobs"]'
+    findings = check_truth_for(article(f"{line}\n\n"))
+    assert [f for f in findings if f.severity == "block" and f.check in ("quoted_passage", "number_gate")] == []
+
+
+def test_placeholder_callout_continuation_text_is_exempt_too():
+    text = article('> **Image placeholder:** hero\n> Alt: "A crew of 25 at a busy job site today"\n\nNext paragraph.\n\n')
+    findings = check_truth_for(text)
+    assert [f for f in findings if f.severity == "block" and f.check in ("quoted_passage", "number_gate")] == []
+    after = article('> **Image placeholder:** hero\n\n> "A fabricated line of praise here" 25\n\n')
+    assert quoted(after)

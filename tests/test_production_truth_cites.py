@@ -139,3 +139,8 @@ def test_links_hidden_in_comments_or_code_are_not_citations():
     assert len(blocks(run(article(code)), "claim_numbers")) == 1
     fenced = f"Simpro cuts fuel costs by 30%.\n\n```\n[x]({PROOF_URL})\n```\n\n"
     assert len(blocks(run(article(fenced)), "claim_numbers")) == 1
+
+
+def test_links_inside_double_backtick_spans_are_not_citations():
+    text = article(f"Simpro cuts fuel costs by 30%. ``[x]({PROOF_URL})``\n\n")
+    assert len(blocks(run(text), "claim_numbers")) == 1

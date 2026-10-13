@@ -41,3 +41,23 @@ def test_question_lines_after_the_faq_section_ends_are_not_in_the_faq_block():
 
 def test_answers_that_end_without_a_question_mark_are_fine():
     assert faq_blocks(article(faq_section=VALID + "Plain extra answer text for the crew.\n")) == []
+
+
+@pytest.mark.parametrize("line", [
+    f"{INVENTED}?)", f"{INVENTED}? \U0001F914", f'{INVENTED}?"', f"{INVENTED}?]", f"{INVENTED}\uff1f",
+    f"{INVENTED}?\u201d", f"**{INVENTED}?**.", f"- {INVENTED}? (really)?",
+])
+def test_question_lines_with_trailing_decoration_still_count(line):
+    found = faq_blocks(article(faq_section=f"{VALID}{line}\n\nYes it is.\n"))
+    assert found, line
+
+
+@pytest.mark.parametrize("heading", ["### FAQ", "#### FAQ", "### FAQs", "### Frequently asked questions"])
+def test_a_lower_level_faq_heading_opens_a_faq_block(heading):
+    body = f"{heading}\n\n- {INVENTED}?\n\n"
+    assert faq_blocks(article(body))
+
+
+def test_a_lower_level_faq_block_ends_at_the_next_heading_of_the_same_or_higher_level():
+    body = f"### FAQ\n\nPlain answer.\n\n### Pricing\n\n**{INVENTED}?**\n\nText.\n\n"
+    assert faq_blocks(article(body)) == []

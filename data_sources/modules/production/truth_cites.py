@@ -14,7 +14,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from data_sources.modules.production.truth_index import BomIndex, canonical
-from data_sources.modules.production.truth_numbers import material_numbers
+from data_sources.modules.production.truth_numbers import ListicleScope, material_numbers
 from data_sources.modules.production.truth_text import Finding, Unit
 from data_sources.modules.proof_link_policy import CitationRequirement
 
@@ -93,16 +93,16 @@ def _heading_urls(units: Sequence[Unit], position: int, links: Sequence[Any]) ->
 
 
 def _unsupported(
-    lines: Sequence[str], urls: frozenset[str], index: BomIndex, listicle: int
+    lines: Sequence[str], urls: frozenset[str], index: BomIndex, scope: ListicleScope | None, first_line: int
 ) -> dict[str, str]:
-    needed = material_numbers(lines, index.year, listicle)
+    needed = material_numbers(lines, index.year, scope, first_line)
     supplied = index.numbers_for(urls)
     return {number: written for number, written in needed.items() if number not in supplied}
 
 
 def paragraph_number_findings(
     units: Sequence[Unit], links: Sequence[Any], index: BomIndex, meta: Sequence[tuple[int, str]] = (),
-    listicle: int = 0,
+    scope: ListicleScope | None = None,
 ) -> list[Finding]:
     """Block material numbers that no BOM source linked where the number sits supplies.
 
@@ -112,12 +112,12 @@ def paragraph_number_findings(
     findings = []
     for position, unit in enumerate(units):
         urls = _heading_urls(units, position, links) if unit.heading else linked_urls(links, unit.line, unit.end_line)
-        missing = _unsupported(unit.text, urls, index, listicle)
+        missing = _unsupported(unit.text, urls, index, scope, unit.line)
         if missing:
             findings.append(Finding("claim_numbers", "block", _missing_message(missing, index), unit.line))
     everywhere = linked_urls(links, 1, 10**9)
     for number, text in meta:
-        missing = _unsupported([text], everywhere, index, listicle)
+        missing = _unsupported([text], everywhere, index, scope, number)
         if missing:
             findings.append(Finding("claim_numbers", "block", _missing_message(missing, index), number))
     return findings

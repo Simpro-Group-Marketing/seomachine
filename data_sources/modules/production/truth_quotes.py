@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from collections.abc import Iterable, Iterator, Sequence
 
-from data_sources.modules.production.truth_text import Finding
+from data_sources.modules.production.truth_text import IMAGE_LINE_MARK, Finding
 
 _DOUBLE = re.compile(r'"([^"]+)"')
 _SINGLE = re.compile(r"(?<!\w)[‘‚'](.+?)[’‘'](?!\w)")
@@ -17,10 +17,23 @@ _NORMAL_STYLES = str.maketrans({
 _INTRA_WORD_APOSTROPHE = re.compile(r"(?<=\w)['‘’](?=\w)")
 _PROTECTED = "\u0001"
 _ATTRIBUTION = re.compile(r"\s*(?:[—–]|(?<=\s)-(?=\s)).*$", re.DOTALL)
-_CALLOUT = re.compile('^\\*\\*[^*"“”]{1,60}\\*\\*')
+_LABELS = (
+    r"(?:key\s+takeaways?|tip|note|summary|scope\s+note|example|important|quick\s+answer|tl;dr"
+    r"|(?:hero\s+)?(?:image|video)\s+placeholder)"
+)
+_CALLOUT = re.compile(r"^\*\*" + _LABELS + r"\s*:?\*\*", re.IGNORECASE)
+# A bold "Name:" label that is not a known callout label attributes what follows to that name.
+_NAME_LABEL = re.compile(
+    r"\*\*(?!" + _LABELS + r"\s*:?\*\*)[^*\"“”\n]{1,60}(?::\*\*|\*\*:)", re.IGNORECASE
+)
 _ELLIPSIS = re.compile(r"…|\.\.\.")
-_CUE = re.compile(r"\b(?:said|says|told|according\s+to)\b|[—–]", re.IGNORECASE)
-_SENTENCE_END = re.compile(r"[.!?](?:[\"'”’])?\s|\n")
+_CUE = re.compile(
+    r"\b(?:said|says|told|according\s+to|wrote|writes|notes?|noted|explain(?:s|ed)?|recall(?:s|ed)?"
+    r"|add(?:s|ed)|puts?\s+it|describ(?:es|ed)|summed\s+(?:it\s+)?up|in\s+(?:his|her|their)\s+words)\b"
+    r"|[—–]",
+    re.IGNORECASE,
+)
+_SENTENCE_END = re.compile(r"[.!?](?:[\"'”’])?\s|\n(?![-—–])")
 _EDGE_PUNCTUATION = " \t.,;:!?…-()[]'\""
 MIN_QUOTE_WORDS = 4
 MIN_ATTRIBUTED_WORDS = 2
@@ -69,7 +82,7 @@ def _found(passage: str, corpus: Sequence[str]) -> bool:
 
 
 def _blockquote_findings(start: int, run: list[str], corpus: Sequence[str]) -> list[Finding]:
-    texts = [strip_attribution(line.lstrip(">").strip()) for line in run]
+    texts = [strip_attribution(line.lstrip(">").strip()) for line in run if IMAGE_LINE_MARK not in line]
     kept = [(offset, text) for offset, text in enumerate(texts) if text.strip()]
     if not kept or _found(" ".join(text for _, text in kept), corpus):
         return []
@@ -95,7 +108,11 @@ def _has_cue(text: str, start: int, end: int, customers: Sequence[str]) -> bool:
     after = _SENTENCE_END.search(text, end)
     sentence = text[(before[-1] if before else 0) : (after.start() if after else len(text))]
     lowered = sentence.casefold()
-    return _CUE.search(sentence) is not None or any(name.casefold() in lowered for name in customers)
+    return (
+        _CUE.search(sentence) is not None
+        or _NAME_LABEL.search(sentence) is not None
+        or any(name.casefold() in lowered for name in customers)
+    )
 
 
 def _inline_findings(
@@ -122,6 +139,14 @@ def _is_callout(run: Sequence[str]) -> bool:
     return _CALLOUT.match(run[0].lstrip(">").strip()) is not None
 
 
+def _callout_findings(
+    start: int, run: list[str], corpus: Sequence[str], customers: Sequence[str]
+) -> list[Finding]:
+    """A fixed-label callout is not a quotation, but any quoted phrase inside it is still checked."""
+    lines = [line.lstrip(">").strip() for line in run if IMAGE_LINE_MARK not in line]
+    return _inline_findings(start, lines, corpus, customers)
+
+
 def quoted_passage_findings(
     lines: Sequence[str], sources: Iterable[str], customers: Sequence[str] = ()
 ) -> list[Finding]:
@@ -130,7 +155,8 @@ def quoted_passage_findings(
     findings: list[Finding] = []
     for start, is_blockquote, run in _groups(lines):
         if is_blockquote:
-            findings += [] if _is_callout(run) else _blockquote_findings(start, run, corpus)
+            findings += _callout_findings(start, run, corpus, customers) if _is_callout(run) else _blockquote_findings(
+                start, run, corpus)
         else:
             findings += _inline_findings(start, run, corpus, customers)
     return findings

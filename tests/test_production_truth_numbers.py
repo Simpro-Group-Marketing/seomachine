@@ -92,22 +92,57 @@ def test_genuine_labels_identifiers_and_phones_still_pass(phrase):
     assert either(article(f"Crews report {phrase} work.\n\n")) == [], phrase
 
 
-def listicle(count, title="12 Ways to Cut Costs", body_noun="tools"):
+def listicle(count, title="12 Ways to Cut Costs", body="Compare the options below.\n\n"):
     sections = "".join(f"### Option {chr(65 + n)}\n\nShort text here.\n\n" for n in range(count))
-    return article(f"Compare 12 {body_noun} below.\n\n{sections}", title=title)
+    return article(f"{body}{sections}", title=title)
 
 
-def test_listicle_count_equal_to_the_h3_count_is_exempt_from_gate_and_paragraph_rule():
+def test_listicle_count_equal_to_the_h3_count_is_exempt_in_title_headings_and_anchors():
     assert either(listicle(12)) == []
     assert either(article("## 15 best apps\n\n" + "".join(f"### App {chr(65 + n)}\n\nText.\n\n" for n in range(15)))) == []
+    anchor = listicle(12, body="See [12 tools](https://www.simprogroup.com/demo) below.\n\n")
+    assert either(anchor) == []
+    meta = listicle(12, title="Guide")
+    assert either(meta.replace('description: "', 'description: "Compare 12 tools. ')) == []
+
+
+def test_listicle_window_covers_long_noun_phrases_and_hyphenated_forms():
+    assert either(listicle(12, title="Compare 12 field service management software tools")) == []
+    assert either(listicle(12, title="A 12-tool comparison")) == []
 
 
 def test_listicle_count_not_equal_to_the_h3_count_blocks():
     assert either(listicle(9))
 
 
+def test_listicle_exemption_does_not_reach_body_sentences():
+    assert either(listicle(12, body="Crews saved 12 hours every week.\n\n"))
+    assert either(listicle(12, body="Compare 12 tools below.\n\n"))
+
+
 def test_listicle_exemption_needs_a_plural_noun_and_no_attached_unit():
-    plain = article("Compare 12 of them below.\n\n" + "".join(f"### O{chr(65 + n)}\n\nT.\n\n" for n in range(12)))
-    assert either(plain)
-    percent = article("Compare 12% tools below.\n\n" + "".join(f"### O{chr(65 + n)}\n\nT.\n\n" for n in range(12)))
-    assert either(percent)
+    assert either(listicle(12, title="Compare 12 of them"))
+    assert either(listicle(12, title="Compare 12% tools"))
+    assert either(listicle(12, title="Compare $12 tools"))
+
+
+@pytest.mark.parametrize("phrase", ["Step 5k", "Step 5m", "Step 5bn", "#5 million", "arrive 14:45k", "401(k)%", "Part 5 thousand"])
+def test_label_time_and_401k_exemptions_refuse_an_attached_magnitude(phrase):
+    assert either(article(f"Crews report {phrase} work.\n\n")), phrase
+
+
+@pytest.mark.parametrize("phrase", ["USD40 a month", "NZD12m", "AUD1,200", "A$40", "GBP 40", "EUR45", "CAD99k"])
+def test_currency_codes_glued_to_numbers_are_material(phrase):
+    assert material(article(f"Plans cost {phrase} for crews.\n\n")), phrase
+
+
+@pytest.mark.parametrize("phrase", ["Call 1 800 555 0199", "Phone: 555 1234", "Contact us on 0412 345 678", "(02) 9000 1234",
+                                    "Dial +61 2 9876 5432", "1800 123 456", "0800 123 456"])
+def test_phone_shapes_pass_only_with_a_phone_prefix_or_cue(phrase):
+    assert either(article(f"{phrase} today.\n\n")) == [], phrase
+
+
+@pytest.mark.parametrize("phrase", ["100 200 300 crews", "120 240 480 volt", "2024 2025 2026", "10 000 crews",
+                                    "500 600 700 jobs"])
+def test_number_runs_are_not_phone_numbers(phrase):
+    assert either(article(f"Teams ran {phrase} daily.\n\n")), phrase

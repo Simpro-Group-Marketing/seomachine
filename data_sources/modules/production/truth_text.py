@@ -50,6 +50,11 @@ _BLOCK_SCALARS = frozenset({">", "|", ">-", "|-", ">+", "|+"})
 _PLACEHOLDER_START = re.compile(r"^\s*\[(?:IMAGE|VIDEO|CMS\s+MODULE)\s+PLACEHOLDER\b", re.IGNORECASE)
 _PLACEHOLDER_CALLOUT = re.compile(r"^\s*>\s*\*\*(?:Hero\s+)?(?:Image|Video)\s+placeholder:\*\*", re.IGNORECASE)
 _H3 = re.compile(r"^\s{0,3}###\s+\S")
+_CODE_SPAN = re.compile(r"(?<!`)(`+)(?!`).+?(?<!`)\1(?!`)")
+_IMAGE_ONLY = re.compile(r"^\s*>\s*!\[[^\]]*\]\([^)]*\)\s*$")
+_ANCHOR = re.compile(r"(?<!!)\[([^\]]+)\]\([^)]*\)")
+# Marks a blockquote line that holds only an image, so its alt text is not read as a quotation.
+IMAGE_LINE_MARK = "⁣"
 
 
 def _blank(match: re.Match[str]) -> str:
@@ -112,6 +117,7 @@ def _clean_line(line: str) -> str:
         return ""
     quote_prefix = ">" if line.lstrip().startswith(">") else ""
     if quote_prefix:
+        quote_prefix += IMAGE_LINE_MARK if _IMAGE_ONLY.match(line) else ""
         line = line.lstrip().lstrip(">")
     else:
         line = _LIST_MARKER.sub("", _HEADING.sub("", line, count=1), count=1)
@@ -126,8 +132,25 @@ def _views(article: str) -> tuple[list[str], list[str]]:
     front, body = _split_frontmatter(article.splitlines())
     text = _COMMENT.sub(_blank, _FENCE.sub(_blank, "\n".join(body)))
     text = _BLOCKQUOTE_ELEMENT.sub(_quote_lines, text)
-    rows = [("" if _is_placeholder(line) else line) for line in text.split("\n")] if body else []
+    rows = _drop_placeholders([_CODE_SPAN.sub(_blank_spaces, line) for line in text.split("\n")]) if body else []
     return front, rows
+
+
+def _blank_spaces(match: re.Match[str]) -> str:
+    return " " * len(match.group(0))
+
+
+def _drop_placeholders(rows: list[str]) -> list[str]:
+    """Blank placeholder markers; a placeholder callout also takes the blockquote run it starts."""
+    kept: list[str] = []
+    in_callout = False
+    for line in rows:
+        if _PLACEHOLDER_CALLOUT.match(line):
+            in_callout = True
+        elif not (in_callout and line.lstrip().startswith(">")):
+            in_callout = False
+        kept.append("" if in_callout or _is_placeholder(line) else line)
+    return kept
 
 
 def body_lines(article: str) -> list[str]:
@@ -199,7 +222,19 @@ def meta_lines(article: str) -> list[tuple[int, str]]:
     return [(number, text) for number, text in enumerate(_frontmatter_lines(front), start=1) if text.strip()]
 
 
-def h3_count(raw: Sequence[str], skip: tuple[int, int] | None = None) -> int:
-    """Count ### headings in the body, leaving out those inside the ``skip`` line range."""
-    first, last = skip or (0, -1)
-    return sum(1 for number, line in enumerate(raw, start=1) if _H3.match(line) and not first <= number <= last)
+def h3_count(raw: Sequence[str], skip: Sequence[tuple[int, int]] = ()) -> int:
+    """Count ### headings in the body, leaving out those inside the ``skip`` line ranges."""
+    return sum(
+        1 for number, line in enumerate(raw, start=1)
+        if _H3.match(line) and not any(first <= number <= last for first, last in skip)
+    )
+
+
+def heading_lines(raw: Sequence[str]) -> frozenset[int]:
+    return frozenset(number for number, line in enumerate(raw, start=1) if _HEADING.match(line))
+
+
+def link_anchors(raw: Sequence[str]) -> dict[int, tuple[str, ...]]:
+    """Anchor text of the markdown links on each body line."""
+    anchors = {number: tuple(_ANCHOR.findall(line)) for number, line in enumerate(raw, start=1)}
+    return {number: found for number, found in anchors.items() if found}
