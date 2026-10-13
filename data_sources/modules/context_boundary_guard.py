@@ -7,7 +7,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Optional, Sequence
+from typing import Mapping, Optional, Sequence
 
 try:
     from .guard_common import Finding, make_finding, should_fail, summarize_findings
