@@ -57,13 +57,14 @@ def with_facts(extra: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def article(body: str = "", *, faq: str | None = None, title: str = "Field Service Software Guide 2026",
-            extra_front: str = "") -> str:
+            extra_front: str = "", description: str = "How trade owners choose field service software.",
+            faq_section: str | None = None) -> str:
     answer = faq if faq is not None else (
         f"Field service software schedules jobs and dispatches crews. [More than 24,000 trade "
         f"businesses worldwide]({FACT_URL}) use it, and teams get started in 3 steps."
     )
     return (
-        f'---\ntitle: "{title}"\ndescription: "How trade owners choose field service software."\n'
+        f'---\ntitle: "{title}"\ndescription: "{description}"\n'
         f"last_updated: 2026-10-13\n{extra_front}---\n\n"
         "# Field Service Software Guide\n\n"
         "## What it is\n\n"
@@ -73,7 +74,7 @@ def article(body: str = "", *, faq: str | None = None, title: str = "Field Servi
         f"[field service management software]({PILLAR_URL}) in action or [book a demo]({DEMO_URL}).\n\n"
         f"{body}"
         "## Frequently asked questions\n\n"
-        f"### {PAA_QUESTION}\n\n{answer}\n"
+        + (faq_section if faq_section is not None else f"### {PAA_QUESTION}\n\n{answer}\n")
     )
 
 
@@ -92,6 +93,7 @@ def transport(**overrides: Any) -> FakeTransport:
         FACT_URL: response(FACT_URL, 200, FACT_PAGE),
         PILLAR_URL: response(PILLAR_URL, 200),
         DEMO_URL: response(DEMO_URL, 200),
+        PROOF_URL: response(PROOF_URL, 200),
     }
     replies.update(overrides)
     return IsolatingTransport(replies)

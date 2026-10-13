@@ -44,18 +44,19 @@ def test_numeric_claim_citing_url_outside_bom_blocks_with_line_and_claim():
     assert found[0].line == 15
 
 
-def test_numeric_claim_with_no_link_blocks_as_outside_bom():
-    found = blocks(run(article("Reports show 24,000 businesses use it every day.\n\n")), "citation_source")
-    assert len(found) == 1
-    assert "claim cites a source outside the production BOM" in found[0].message
+def test_numeric_claim_with_no_link_blocks_on_the_number_and_only_warns_on_the_keyword_rule():
+    findings = run(article("Reports show 24,000 businesses use it every day.\n\n"))
+    assert blocks(findings, "citation_source") == []
+    assert len(blocks(findings, "claim_numbers")) == 1
+    assert warns(findings, "citation_source")
 
 
-def test_url_only_in_bom_links_does_not_satisfy_a_claim():
+def test_url_only_in_bom_links_is_not_an_unverified_source_but_does_not_support_the_number():
     value = bom()
     value["links"].append({"url": OTHER, "anchor": "study", "kind": "external", "priority": "should"})
-    text = article(CLAIM.format(url=OTHER))
-    found = blocks(run(text, value, transport(**{OTHER: response(OTHER, 200)})), "citation_source")
-    assert len(found) == 1
+    findings = run(article(CLAIM.format(url=OTHER)), value, transport(**{OTHER: response(OTHER, 200)}))
+    assert blocks(findings, "citation_source") == []
+    assert len(blocks(findings, "claim_numbers")) == 1
 
 
 def test_claim_citing_a_bom_proof_url_is_an_accepted_source():
@@ -83,7 +84,8 @@ def test_cited_fact_on_a_gone_page_blocks(status):
 @pytest.mark.parametrize("reply", [response(FACT_URL, 403), requests.Timeout("slow")])
 def test_unreachable_fact_page_warns_with_verified_at_and_never_blocks(reply):
     findings = run(article(), tr=transport(**{FACT_URL: reply}))
-    assert blocks(findings, "fact_quote") == []
+    assert blocks(findings) == []
+    assert warns(findings, "link_resolution")
     found = warns(findings, "fact_quote")
     assert len(found) == 1
     assert "f1" in found[0].message and FACT_URL in found[0].message and VERIFIED_AT in found[0].message
@@ -180,3 +182,15 @@ def test_check_names_are_the_documented_set():
         "citation_source", "fact_quote", "claim_numbers", "number_gate", "quoted_passage",
         "faq_question", "link_resolution", "link_off_bom", "lint"}
     assert {f.severity for f in findings} <= {"block", "warn"}
+
+
+def test_missing_verified_at_is_reported_as_unknown():
+    value = bom()
+    del value["facts"][0]["verified_at"]
+    found = warns(run(article(), value, transport(**{FACT_URL: response(FACT_URL, 403)})), "fact_quote")
+    assert len(found) == 1 and "verification date unknown" in found[0].message
+
+
+def test_gone_fact_page_still_blocks_both_the_fact_and_the_link():
+    findings = run(article(), tr=transport(**{FACT_URL: response(FACT_URL, 404)}))
+    assert blocks(findings, "fact_quote") and blocks(findings, "link_resolution")

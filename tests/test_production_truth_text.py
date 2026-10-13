@@ -114,3 +114,28 @@ def test_every_faq_question_blocks_when_the_bom_has_no_paa():
     value = bom()
     value["paa"] = {"artifact": None, "questions": []}
     assert blocks(check_truth_for(article(), value), "faq_question")
+
+
+ANSWER = "Field service software schedules jobs and dispatches crews for trade businesses.\n"
+
+
+@pytest.mark.parametrize("section", [
+    f"**{PAA_QUESTION}**\n\n{ANSWER}",
+    f"Q: {PAA_QUESTION}\n\n{ANSWER}",
+    f"<details><summary>{PAA_QUESTION}</summary>{ANSWER}</details>\n",
+])
+def test_alternate_faq_formats_block_with_the_heading_instruction(section):
+    found = blocks(check_truth_for(article(faq_section=section)), "faq_question")
+    assert found and any("use ### question headings under the FAQ section" in f.message for f in found)
+
+
+@pytest.mark.parametrize("heading", [f"### Q: {PAA_QUESTION}", f"### 1. {PAA_QUESTION}", f"### Question 2: {PAA_QUESTION}"])
+def test_question_prefixes_do_not_hide_a_bom_question(heading):
+    assert blocks(check_truth_for(article(faq_section=f"{heading}\n\n{ANSWER}")), "faq_question") == []
+
+
+def test_curly_apostrophe_matches_the_straight_bom_question():
+    value = bom()
+    value["paa"]["questions"] = [{"question": "What's field service software?", "priority": "should"}]
+    text = article(faq_section=f"### What\u2019s field service software?\n\n{ANSWER}")
+    assert blocks(check_truth_for(text, value), "faq_question") == []
