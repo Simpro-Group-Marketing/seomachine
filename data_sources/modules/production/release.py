@@ -5,7 +5,8 @@ Usage: python -m data_sources.modules.production.release <article> [--workspace-
 Steps: refresh the customer-proof selector evidence from the inputs recorded in it; rebuild the
 production BOM (live fact checks and the selector-first check run again); run the truth and
 coverage checks in a thread pool while the scorer runs; write one release record. Publishers
-trust only that record (see ``record.verify_publishable``).
+trust only that record (see ``record.verify_publishable``). Release never writes the
+customer-proof usage ledger; publishing records proof use.
 
 Workers: ``--workers N`` overrides ``SEOMACHINE_RELEASE_WORKERS``, which defaults to 2.
 With 1 worker everything runs sequentially in this process, with no pools.
@@ -43,8 +44,9 @@ ENV_WORKERS = "SEOMACHINE_RELEASE_WORKERS"
 DEFAULT_WORKERS = 2
 _SCORE_LINES = (("content", "content_quality"), ("seo", "seo_quality"), ("aeo_geo", "aeo_geo"))
 
+BOM_BUILD_COMMAND = "python -m data_sources.modules.production.bom_build"
+
 Refresher = Callable[[Layout, Mapping[str, Any]], Any]
-LedgerWriter = Callable[[Layout, Mapping[str, Any], Mapping[str, Any]], Any]
 
 
 class ReleaseStop(Exception):
@@ -82,15 +84,29 @@ def needs_refresh(bom: Mapping[str, Any]) -> bool:
     return bool(bom.get("proof")) or isinstance(evidence, Mapping)
 
 
+def _missing_bom_message(layout: Layout) -> str:
+    """Say why the BOM is missing and which command builds it."""
+    command = f"`{BOM_BUILD_COMMAND} {layout.article.relative_to(layout.root).as_posix()}`"
+    refused = layout.bom.with_name(layout.bom.name + ".refused")
+    if refused.exists():
+        return (
+            f"production BOM was refused at the last build ({refused}); "
+            f"fix the BOM spec or research inputs, then run {command}"
+        )
+    return f"production BOM not found; expected {layout.bom}; build it with {command}"
+
+
 def _prepare(article: Path, root: Path) -> tuple[Layout, str, bytes, dict[str, Any]]:
     """Resolve the layout and run id, require the inputs, and hash the article once."""
     try:
         layout = Layout.for_article(article, root)
     except LayoutError as error:
         raise ReleaseStop(2, [str(error)]) from error
-    for label, path in (("article", layout.article), ("BOM spec", layout.bom_spec), ("production BOM", layout.bom)):
+    for label, path in (("article", layout.article), ("BOM spec", layout.bom_spec)):
         if not path.is_file():
             raise ReleaseStop(2, [f"{label} not found; expected {path}"])
+    if not layout.bom.is_file():
+        raise ReleaseStop(2, [_missing_bom_message(layout)])
     try:
         article_bytes = layout.article.read_bytes()
         run_id = load_or_create_run_id(layout)
@@ -172,7 +188,7 @@ def _summary(record: Mapping[str, Any], path: Path) -> None:
 
 
 def _release(
-    article: Path, root: Path, *, workers: int, transport: Any, refresher: Refresher, ledger_writer: LedgerWriter | None
+    article: Path, root: Path, *, workers: int, transport: Any, refresher: Refresher
 ) -> int:
     layout, run_id, article_bytes, old_bom = _prepare(article, root)
     start_sha = hashlib.sha256(article_bytes).hexdigest()
@@ -188,8 +204,6 @@ def _release(
         findings=findings, scores=scores, bom=bom, workers=workers,
     )
     record = json.loads(path.read_text(encoding="utf-8"))
-    if record["passed"] and ledger_writer is not None:
-        ledger_writer(layout, bom, record)
     _summary(record, path)
     return 0 if record["passed"] else 1
 
@@ -201,13 +215,12 @@ def run_release(
     workers: int,
     transport: Any = None,
     refresher: Refresher | None = None,
-    ledger_writer: LedgerWriter | None = None,
 ) -> int:
     """Run one release and return its exit code; no exception or traceback escapes."""
     try:
         return _release(
             Path(article), Path(root), workers=parse_workers(workers), transport=transport,
-            refresher=refresher or refresh_selector_evidence, ledger_writer=ledger_writer,
+            refresher=refresher or refresh_selector_evidence,
         )
     except ReleaseStop as stop:
         _report(stop.lines)

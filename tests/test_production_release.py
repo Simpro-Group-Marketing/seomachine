@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import inspect
 import json
 import threading
 from datetime import date
@@ -337,21 +338,15 @@ def test_article_edited_mid_run_exits_two_and_records_nothing(layout, checks, ca
 # ---- ledger ----------------------------------------------------------------------------
 
 
-def test_ledger_writer_runs_only_after_a_passing_record(layout, checks):
-    seen = []
-
-    def writer(_layout, bom, record):
-        seen.append((record["passed"], len(_release_dirs(_layout)), bom["proof"][0]["claim_id"]))
-
-    assert _run(layout, ledger_writer=writer) == 0
-    assert seen == [(True, 1, NONVAULT_ID)]
-
-
-def test_ledger_writer_is_not_called_on_exit_one(layout, checks):
-    seen = []
+def test_release_never_writes_the_usage_ledger_pass_or_fail(layout, checks):
+    assert "ledger_writer" not in inspect.signature(release.run_release).parameters
+    ledger = layout.root / "config" / "customer-proof-usage-ledger.json"
+    before = ledger.read_bytes()
+    refresh = selector_refresh.refresh_selector_evidence
+    assert _run(layout, refresher=refresh) == 0
     checks.truth_findings = [Finding("fact_quote", "block", "gone", None)]
-    assert _run(layout, ledger_writer=lambda *args: seen.append(args)) == 1
-    assert seen == []
+    assert _run(layout, refresher=refresh) == 1
+    assert ledger.read_bytes() == before and len(_release_dirs(layout)) == 2
 
 
 # ---- missing inputs ------------------------------------------------------------------------
@@ -364,10 +359,22 @@ def test_missing_bom_spec_exits_two_with_the_expected_path(layout, checks, capsy
     assert layout.bom.exists() and _release_dirs(layout) == []
 
 
-def test_missing_bom_exits_two_with_the_expected_path(layout, checks, capsys):
+def test_missing_bom_exits_two_with_the_expected_path_and_the_build_command(layout, checks, capsys):
     layout.bom.unlink()
     assert _run(layout) == 2
-    assert str(layout.bom) in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert str(layout.bom) in err and "refused" not in err
+    assert f"python -m data_sources.modules.production.bom_build {ARTICLE}" in err
+
+
+def test_bom_refused_at_the_last_build_gets_an_actionable_message(layout, checks, capsys):
+    refused = layout.bom.with_name(layout.bom.name + ".refused")
+    layout.bom.replace(refused)
+    assert _run(layout) == 2
+    err = capsys.readouterr().err
+    assert f"production BOM was refused at the last build ({refused})" in err
+    assert "fix the BOM spec or research inputs" in err
+    assert f"python -m data_sources.modules.production.bom_build {ARTICLE}" in err
 
 
 def test_missing_article_exits_two(layout, checks, capsys):
@@ -468,11 +475,7 @@ def test_end_to_end_release_with_real_scoring_on_the_nonconnector_fixture(tmp_pa
         return rebuilt
 
     monkeypatch.setattr(release, "build_bom", build)
-    ledger_rows = []
-    code = release.run_release(
-        article, tmp_path, workers=2, transport=AnyPage(),
-        ledger_writer=lambda _layout, _bom, record: ledger_rows.append(record["passed"]),
-    )
+    code = release.run_release(article, tmp_path, workers=2, transport=AnyPage())
     record = latest_record(layout)
     assert code == 0, record
     assert record["scores"]["passed"] is True and record["blocks"] == 0
@@ -481,4 +484,3 @@ def test_end_to_end_release_with_real_scoring_on_the_nonconnector_fixture(tmp_pa
     assert evidence["inputs"]["reference_date"] == date.today().isoformat()
     assert record["evidence"]["customer_proof.evidence"]["sha256"] == file_sha256(layout.nonvault_customer_proof_evidence)
     assert verify_publishable(article, tmp_path)["passed"] is True
-    assert ledger_rows == [True]
