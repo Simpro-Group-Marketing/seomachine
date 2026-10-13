@@ -1,0 +1,15 @@
+# Template for .codex/config.toml (gitignored). Copy to .codex/config.toml and
+# replace each ${VAR} with a local value. Never commit real credentials.
+[mcp_servers.analytics-mcp]
+command = "analytics-mcp"
+
+[mcp_servers.analytics-mcp.env]
+GOOGLE_APPLICATION_CREDENTIALS = "${GOOGLE_APPLICATION_CREDENTIALS}"
+
+[mcp_servers.gsc]
+args = ["./mcp-gsc/gsc_server.py"]
+command = "./mcp-gsc/venv/Scripts/python.exe"
+
+[mcp_servers.gsc.env]
+GSC_DATA_STATE = "all"
+GSC_OAUTH_CLIENT_SECRETS_FILE = "${GSC_OAUTH_CLIENT_SECRETS_FILE}"

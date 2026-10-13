@@ -153,7 +153,8 @@ venv/
 # Local agent/tool state
 .cache/
 .seomachine/
-.codex/
+.codex/*
+!.codex/config.template.toml
 .worktrees/
 .playwright-cli/
 .playwright-mcp/
