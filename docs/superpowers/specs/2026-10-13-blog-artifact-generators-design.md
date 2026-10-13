@@ -1,7 +1,7 @@
 # Blog Artifact Generators and Release Contract v5 Design
 
 Date: 2026-10-13
-Status: approved in brainstorming; awaiting written-spec review
+Status: Superseded by 2026-10-13-production-bom-truth-layer-design.md
 Parent plan: `~/.claude/plans/plan-fixes-use-superpowers-glittery-journal.md`, Phase 5 sub-project 5B
 
 ## Problem
