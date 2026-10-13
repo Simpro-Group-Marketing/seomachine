@@ -8,6 +8,7 @@ time. The ``claim`` is Claude's wording, admitted only because the quote support
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,8 @@ from typing import Any
 BOM_SCHEMA = "simpro-production-bom/v1"
 SPEC_SCHEMA = "simpro-production-bom-spec/v1"
 PRIORITIES = frozenset({"must", "should"})
+FACT_SUPPORT = "quote_overlap"
+_SHA256 = re.compile(r"[0-9a-f]{64}")
 LINK_KINDS = frozenset({"commercial_pillar", "internal", "external"})
 
 SCHEMA_NOTES = frozenset(
@@ -196,6 +199,21 @@ def _fact_errors(bom: Mapping[str, Any]) -> list[str]:
         errors += [
             f"facts[{index}] is missing {field}" for field in ("verified_at", "url", "quote") if not _is_text(fact.get(field))
         ]
+        if fact.get("support") != FACT_SUPPORT:
+            errors.append(f"facts[{index}] support must be {FACT_SUPPORT}, found: {fact.get('support')!r}")
+    return errors
+
+
+def _spec_binding_errors(identity: Mapping[str, Any]) -> list[str]:
+    binding = identity.get("spec")
+    if not isinstance(binding, Mapping):
+        return ["identity spec must be a {path, sha256} binding"]
+    errors = []
+    if not _is_text(binding.get("path")):
+        errors.append("identity spec path must be non-empty text")
+    digest = binding.get("sha256")
+    if not (isinstance(digest, str) and _SHA256.fullmatch(digest)):
+        errors.append("identity spec sha256 must be 64 lowercase hex characters")
     return errors
 
 
@@ -207,6 +225,7 @@ def _shape_errors(bom: Mapping[str, Any]) -> list[str]:
     identity = bom.get("identity")
     if isinstance(identity, Mapping):
         errors += [f"identity is missing {key}" for key in _IDENTITY_REQUIRED if key not in identity]
+        errors += _spec_binding_errors(identity)
     elif "identity" in bom:
         errors.append("identity must be an object")
     for key in ("sections", "facts", "proof", "links"):

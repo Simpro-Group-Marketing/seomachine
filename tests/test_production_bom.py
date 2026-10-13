@@ -14,11 +14,13 @@ def _bom() -> dict:
         "identity": {"slug": "s", "date": "2026-10-13", "run_id": "r", "brand": "Simpro",
                      "market": "US", "workflow_mode": "new", "article_path": "drafts/s-2026-10-13.md",
                      "title": "T", "objective": "O", "audience": "A",
-                     "cta": {"text": "x", "url": "https://x.example"}, "schema_notes": ["BlogPosting"]},
+                     "cta": {"text": "x", "url": "https://x.example"}, "schema_notes": ["BlogPosting"],
+                     "spec": {"path": "research/production-bom-spec-s-2026-10-13.json", "sha256": "a" * 64}},
         "keyword": {}, "serp": {},
         "sections": [{"heading": "h", "purpose": "p", "priority": "must"}],
         "facts": [{"id": "f1", "claim": "c", "url": "https://x.example", "quote": "q",
-                   "priority": "must", "verified_at": "2026-10-13T00:00:00Z", "check_detail": "ok"}],
+                   "priority": "must", "verified_at": "2026-10-13T00:00:00Z", "check_detail": "ok",
+                   "support": "quote_overlap"}],
         "proof": [{"id": "p1", "claim_id": "c1", "kind": "metric", "priority": "should", "text": "t"}],
         "paa": {"artifact": None, "questions": [{"question": "Q?", "priority": "should"}]},
         "links": [{"url": "https://x.example", "anchor": "a", "kind": "internal", "priority": "should"}],
@@ -115,3 +117,22 @@ def test_spec_duplicate_ids_and_bad_link_kind():
 
 def test_spec_non_object_is_rejected():
     assert bom_module.validate_spec("x") != []
+
+
+def test_identity_spec_binding_is_required_and_checked():
+    bom = _bom()
+    del bom["identity"]["spec"]
+    assert any("identity spec" in e for e in bom_module.validate_bom(bom))
+    for bad in ({"path": "x"}, {"path": "x", "sha256": "A" * 64}, {"path": "x", "sha256": "a" * 63},
+                {"path": "", "sha256": "a" * 64}, "nope"):
+        bom = _bom()
+        bom["identity"]["spec"] = bad
+        assert any("identity spec" in e for e in bom_module.validate_bom(bom)), bad
+
+
+def test_fact_support_must_be_quote_overlap():
+    bom = _bom()
+    bom["facts"][0]["support"] = "typed"
+    assert any("support" in e for e in bom_module.validate_bom(bom))
+    del bom["facts"][0]["support"]
+    assert any("support" in e for e in bom_module.validate_bom(bom))

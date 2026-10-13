@@ -341,6 +341,21 @@ def test_numbers_from_facts_proof_and_year_are_allowed(tmp_path):
     assert _build(layout)["identity"]["title"] == "Field Service Software in 2026"
 
 
+@pytest.mark.parametrize("heading", ["Step 1: Plan the route", "24/7 dispatch", "Tip 3 and Phase 2", "Rule #4 of dispatch", "STEP 10: Review"])
+def test_list_numbering_and_24_7_are_not_claims(tmp_path, heading):
+    layout = make_workspace(tmp_path)
+    _mutate(layout, lambda s: s["sections"][0].update(heading=heading))
+    assert _build(layout)["sections"][0]["heading"] == heading
+
+
+def test_other_numbers_next_to_exempt_words_are_still_refused(tmp_path):
+    layout = make_workspace(tmp_path)
+    _mutate(layout, lambda s: s["sections"][0].update(heading="Save 15 hours"))
+    _refused(layout, "heading")
+    _mutate(layout, lambda s: s["sections"][0].update(heading="Step 1 saves 15 hours"))
+    _refused(layout, "heading")
+
+
 def test_section_purpose_numbers_are_exempt(tmp_path):
     layout = make_workspace(tmp_path)
     _mutate(layout, lambda s: s["sections"][0].update(purpose="Cover the top 5 buyer questions"))

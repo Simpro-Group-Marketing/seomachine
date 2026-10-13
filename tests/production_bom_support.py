@@ -12,7 +12,7 @@ import requests
 from data_sources.modules.production.layout import Layout
 from data_sources.modules.vault_claim_receipts import ApprovedClaim, ValidatedClaimSet
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+FROZEN = Path(__file__).resolve().parent / "fixtures" / "production_bom"
 TODAY = "2026-10-13"
 ARTICLE = "drafts/field-service-software-2026-10-13.md"
 FACT_URL = "https://example.org/report"
@@ -169,23 +169,19 @@ def nonvault_rows() -> list[dict[str, Any]]:
 
 
 def pillar_record(**overrides: Any) -> dict[str, Any]:
-    """Return the real, validated commercial pillar record for the homepage destination."""
-    payload = json.loads(
-        (REPO_ROOT / "context" / "commercial-pillar-index.json").read_text(encoding="utf-8-sig")
-    )
-    record = next(item for item in payload["records"] if item["destination_id"] == PILLAR_ID)
-    record = copy.deepcopy(record)
+    """Return the frozen commercial pillar record (a snapshot that passes index validation)."""
+    record = json.loads((FROZEN / "pillar-record.json").read_text(encoding="utf-8"))
     record.update(overrides)
     return record
 
 
 def write_pillar_index(root: Path, record: dict[str, Any] | None = None) -> None:
-    """Write a one-record index plus the real evidence files its hashes bind to."""
+    """Write a one-record index plus the frozen evidence files its hashes bind to."""
     record = record or pillar_record()
     for relative in set(record["evidence_path"]):
         target = root / relative
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(REPO_ROOT / relative, target)
+        shutil.copyfile(FROZEN / Path(relative).name, target)
     write_json(root / "context" / "commercial-pillar-index.json", {
         "schema_version": "commercial-pillar-index/v1", "updated_at": "2026-10-01",
         "records": [record]})

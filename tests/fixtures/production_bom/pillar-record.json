@@ -1,0 +1,38 @@
+{
+  "destination_id": "simpro-us-homepage-field-service-management-software",
+  "brand": "Simpro",
+  "market": "US",
+  "pillar_type": "homepage",
+  "canonical_url": "https://www.simprogroup.com/",
+  "page_title": "Field Service Management Software | Simpro AI-First Platform",
+  "title_checked": "2026-09-08",
+  "title_valid_through": "2026-12-07",
+  "main_keyword": "field service management software",
+  "semrush_database": "us",
+  "semrush_report": "phrase_these",
+  "semrush_checked": "2026-09-08",
+  "semrush_valid_through": "2026-12-07",
+  "semrush_result_status": "exact",
+  "volume": 9900,
+  "keyword_difficulty": 48,
+  "evidence_path": [
+    "research/semrush-commercial-pillar-homepage-field-service-management-software-2026-09-08.md",
+    "research/semrush-commercial-pillar-homepage-field-service-management-software-2026-09-08.md",
+    "research/semrush-commercial-pillar-homepage-field-service-management-software-2026-09-08.md"
+  ],
+  "evidence_locator": [
+    "lines:3-4",
+    "line:5",
+    "line:6"
+  ],
+  "evidence_sha256": [
+    "3d69a47c94f1a90cbe73ee0719604513d020fc78c0375878457e563c8a901054",
+    "be6e8ae5164d9bf8009477b1d3912a870bdc938d40a172a122540d2f484b3fd1",
+    "8e93f1d9bb1fa889b1c660788bc8dd5ad2e075f380ce4b773d24829ca92badd2"
+  ],
+  "vault_routes": [
+    "wiki/messaging/Simpro Core Messaging Repository.md",
+    "wiki/product/Product Positioning.md"
+  ],
+  "status": "verified"
+}

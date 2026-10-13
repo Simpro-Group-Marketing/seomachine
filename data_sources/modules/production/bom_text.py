@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Mapping, Sequence
 from typing import Any
 
@@ -17,6 +18,10 @@ def _flatten(value: Any) -> str:
     if isinstance(value, (list, tuple)):
         return " ".join(_flatten(item) for item in value)
     return "" if value is None else json.dumps(value)
+
+
+# List numbering ("Step 1", "#4") and the literal "24/7" are labels, not claims.
+_LABEL_NUMBERS = re.compile(r"\b(?:step|part|phase|stage|tip|form)\s*\d+|#\s*\d+|(?<![\d/])24/7(?![\d/])", re.IGNORECASE)
 
 
 def supported_numbers(
@@ -46,7 +51,7 @@ def free_text_number_errors(
     allowed = supported_numbers(facts, proof, year)
     errors = []
     for name, text in _public_fields(spec):
-        unsupported = extract_numbers(text) - allowed
+        unsupported = extract_numbers(_LABEL_NUMBERS.sub(" ", text)) - allowed
         if unsupported:
             errors.append(
                 f"{name} carries numbers no verified fact or approved proof supports: "
