@@ -80,6 +80,10 @@ class Layout:
         return self._research(f"semrush-keyword-decision-{self.slug}-{self.date}.json")
 
     @property
+    def keyword_shortlist(self) -> Path:
+        return self._research(f"keyword-shortlist-{self.slug}-{self.date}.json")
+
+    @property
     def paa_artifact(self) -> Path:
         return self._research(f"paa-evidence-{self.slug}-{self.date}.json")
 

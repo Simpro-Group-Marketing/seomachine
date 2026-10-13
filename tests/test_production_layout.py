@@ -14,6 +14,10 @@ def test_layout_derives_slug_date_mode_and_paths(tmp_path):
     assert layout.bom == tmp_path / "research/production-bom-what-is-simpro-2026-10-05.json"
     assert layout.context_pack == tmp_path / "research/context-pack-what-is-simpro.json"
 
+def test_keyword_shortlist_path(tmp_path):
+    layout = Layout.for_article(_article(tmp_path, "drafts/a-b-2026-01-02.md"), tmp_path)
+    assert layout.keyword_shortlist == tmp_path / "research/keyword-shortlist-a-b-2026-01-02.json"
+
 def test_rewrite_folder_sets_rewrite_mode(tmp_path):
     assert Layout.for_article(_article(tmp_path, "rewrites/a-b-2026-01-02.md"), tmp_path).workflow_mode == "rewrite"
 
