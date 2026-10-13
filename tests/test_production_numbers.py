@@ -26,10 +26,13 @@ def test_leading_dot_decimal_keeps_fraction():
     assert extract_numbers("$.50") == frozenset({"0.5"})
     assert numbers_supported("$.5", "5") == (False, frozenset({"0.5"}))
 
-def test_space_separated_bn_and_mm_suffixes():
+def test_space_separated_bn_suffix():
     assert extract_numbers("$2 bn") == frozenset({"2000000000"})
-    assert extract_numbers("$5mm") == frozenset({"5000000"})
     assert numbers_supported("$2 bn revenue", "2 jobs") == (False, frozenset({"2000000000"}))
+
+def test_mm_is_millimetres_not_million():
+    assert extract_numbers("20 mm pipe") == frozenset({"20"})
+    assert extract_numbers("20mm conduit") == frozenset({"20"})
 
 def test_space_separated_m_and_k_are_not_suffixes():
     assert extract_numbers("5 m away") == frozenset({"5"})

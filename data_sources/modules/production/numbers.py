@@ -9,7 +9,7 @@ _ISO_DATE = re.compile(r"(?<!\d)\d{4}-\d{2}-\d{2}(?!\d)")
 _NUMBER = re.compile(
     r"(?<![A-Za-z0-9_])(?<!\d\.)"
     r"(?P<number>\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?|\.\d+)(?!\d)"
-    r"(?:(?:\s+(?P<word>thousand|million|billion)|\s*(?P<spaced>bn|mm)|(?P<short>k|m))(?![A-Za-z]))?",
+    r"(?:(?:\s+(?P<word>thousand|million|billion)|\s*(?P<spaced>bn)|(?P<short>k|m))(?![A-Za-z]))?",
     re.IGNORECASE,
 )
 _MULTIPLIERS = {
@@ -17,7 +17,6 @@ _MULTIPLIERS = {
     "k": 1_000,
     "million": 1_000_000,
     "m": 1_000_000,
-    "mm": 1_000_000,
     "billion": 1_000_000_000,
     "bn": 1_000_000_000,
 }
