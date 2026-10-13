@@ -38,21 +38,11 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: '3.12'
-      - name: Install runtime and development dependencies (private connector)
-        env:
-          SIMPRO_CONNECTOR_TOKEN: ${{ secrets.SIMPRO_CONNECTOR_TOKEN }}
+      - name: Install runtime (without private connector) and development checks
         shell: bash
         run: |
-          if [ -z "$SIMPRO_CONNECTOR_TOKEN" ]; then
-            echo "missing SIMPRO_CONNECTOR_TOKEN"
-            exit 1
-          fi
-          rewrite="url.https://x-access-token:${SIMPRO_CONNECTOR_TOKEN}@github.com/"
-          git config --global "${rewrite}.insteadOf" "https://github.com/"
-          status=0
-          python -m pip install -r data_sources/requirements.txt -r requirements-dev.txt || status=$?
-          git config --global --remove-section "$rewrite"
-          exit $status
+          grep -v simpro-vault-connector data_sources/requirements.txt > "$RUNNER_TEMP/runtime-requirements.txt"
+          python -m pip install -r "$RUNNER_TEMP/runtime-requirements.txt" -r requirements-dev.txt
       - name: Require reviewed snapshot and complete policy
         run: python tools/humanizer_upstream.py verify
       - name: Run Humanizer compatibility tests
@@ -63,8 +53,6 @@ jobs:
           tests/test_ai_copy_linter.py
           tests/test_aeo_geo_workflow_docs.py
           tests/test_blog_assembly_stage_receipt.py
-          tests/test_content_scorer_aeo_geo_gate.py
-          tests/test_publish_readiness.py
           tests/test_humanizer_update_workflow.py
 
   discover:

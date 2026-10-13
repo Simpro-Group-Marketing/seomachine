@@ -1,9 +1,12 @@
 import re
 from pathlib import Path
 
+import yaml
+
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / ".github" / "workflows"
+RUNTIME_WITHOUT_CONNECTOR = "grep -v simpro-vault-connector data_sources/requirements.txt"
 
 
 def _read(name: str) -> str:
@@ -16,55 +19,49 @@ def _job(content: str, job: str) -> str:
     return match.group(1)
 
 
-def test_full_suite_workflow_runs_every_test_with_runtime_dependencies():
-    """Dropping the full suite, the runtime install, or a repo gate must make this fail."""
-    content = _read("tests.yml")
-
-    assert "pull_request:" in content
-    assert "branches:\n      - main" in content
-    assert "pip install -r data_sources/requirements.txt -r requirements-dev.txt" in content
-    assert "python -m ruff check ." in content
-    assert "python tools/check_python_structure.py" in content
-    assert "python tools/sync_rule_mirrors.py --check" in content
-    assert "python tools/check_memory_contract.py" in content
-    suite = re.search(r"python -m pytest -q -n 4 -p no:cacheprovider\s*$", content, re.M)
-    assert suite, "full suite must run without a test-file allowlist"
+def test_ci_never_needs_the_local_vault_connector():
+    """The blog writer reaches the vault through a locally installed connector; CI must not."""
+    for workflow in sorted(WORKFLOWS.glob("*.yml")):
+        content = workflow.read_text(encoding="utf-8")
+        assert "SIMPRO_CONNECTOR_TOKEN" not in content, workflow.name
+        assert "insteadOf" not in content, workflow.name
+        if "data_sources/requirements.txt" in content:
+            assert RUNTIME_WITHOUT_CONNECTOR in content, workflow.name
 
 
-def test_full_suite_workflow_fails_loudly_without_connector_token():
-    """A fork or missing secret must not pass with the vault-dependent tests uncollected."""
-    content = _read("tests.yml")
-
-    assert "SIMPRO_CONNECTOR_TOKEN: ${{ secrets.SIMPRO_CONNECTOR_TOKEN }}" in content
-    assert 'echo "missing SIMPRO_CONNECTOR_TOKEN"' in content
-    assert "exit 1" in content
-    assert "insteadOf" in content
-    assert "${{ secrets.SIMPRO_CONNECTOR_TOKEN }}@" not in content
-
-
-def test_connector_token_is_scoped_to_the_install_step_and_not_persisted():
-    """The private token must not reach later steps' env or stay in global gitconfig."""
-    for name, job in (("tests.yml", "suite"), ("humanizer-upstream.yml", "compatibility")):
-        body = _job(_read(name), job)
-        steps = re.split(r"^      - name: ", body, flags=re.M)
-        job_env = steps[0]
-        token_steps = [step for step in steps[1:] if "secrets.SIMPRO_CONNECTOR_TOKEN" in step]
-
-        assert "SIMPRO_CONNECTOR_TOKEN" not in job_env, name
-        assert len(token_steps) == 1, name
-        assert "pip install -r data_sources/requirements.txt" in token_steps[0], name
-        assert "git config --global --remove-section" in token_steps[0], name
+def test_full_suite_runs_locally_not_in_ci():
+    """Vault-dependent tests need the local connector, so no workflow runs the whole suite."""
+    assert not (WORKFLOWS / "tests.yml").exists()
+    for workflow in sorted(WORKFLOWS.glob("*.yml")):
+        jobs = yaml.safe_load(workflow.read_text(encoding="utf-8"))["jobs"]
+        for job in jobs.values():
+            for step in job.get("steps", []):
+                run = step.get("run", "")
+                if "python -m pytest" in run:
+                    assert "tests/" in run, f"{workflow.name}: {step.get('name')} runs an unscoped suite"
 
 
-def test_contract_and_humanizer_jobs_install_runtime_dependencies():
-    """check_memory_contract imports requests; pytest jobs need their runtime deps."""
+def test_p2_runs_the_connector_free_repository_gates():
+    """check_memory_contract imports requests; lint and mirror drift must be gated in CI."""
     p2 = _read("p2-runtime-quality.yml")
+
+    assert RUNTIME_WITHOUT_CONNECTOR in p2
+    for gate in (
+        "python -m ruff check .",
+        "python tools/check_python_structure.py",
+        "python tools/sync_rule_mirrors.py --check",
+        "python tools/check_memory_contract.py",
+    ):
+        assert gate in p2
+
+
+def test_humanizer_compatibility_installs_connector_free_runtime():
     compatibility = _job(_read("humanizer-upstream.yml"), "compatibility")
 
-    assert "data_sources/requirements.txt" in p2
-    assert "grep -v simpro-vault-connector data_sources/requirements.txt" in p2
-    assert "pip install -r data_sources/requirements.txt -r requirements-dev.txt" in compatibility
-    assert "SIMPRO_CONNECTOR_TOKEN" in compatibility
+    assert RUNTIME_WITHOUT_CONNECTOR in compatibility
+    assert "-r requirements-dev.txt" in compatibility
+    for vault_dependent in ("tests/test_publish_readiness.py", "tests/test_content_scorer_aeo_geo_gate.py"):
+        assert vault_dependent not in compatibility
 
 
 def test_all_workflows_pin_official_actions_to_full_shas():

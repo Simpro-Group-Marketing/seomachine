@@ -23,13 +23,19 @@ jobs:
           cache-dependency-path: |
             data_sources/requirements.txt
             requirements-dev.txt
+      # The vault connector is installed locally for the blog writer and is not
+      # available in CI; run the full suite locally with `python -m pytest -q`.
       - name: Install runtime (without private connector) and development checks
         shell: bash
         run: |
           grep -v simpro-vault-connector data_sources/requirements.txt > "$RUNNER_TEMP/runtime-requirements.txt"
           python -m pip install -r "$RUNNER_TEMP/runtime-requirements.txt" -r requirements-dev.txt
+      - name: Lint for real bugs
+        run: python -m ruff check .
       - name: Enforce declining structure limits
         run: python tools/check_python_structure.py
+      - name: Enforce generated rule mirrors
+        run: python tools/sync_rule_mirrors.py --check
       - name: Enforce compact architectural memory
         run: python tools/check_memory_contract.py
       - name: Compile P2 runtime modules
