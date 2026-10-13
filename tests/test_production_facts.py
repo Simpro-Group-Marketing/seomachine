@@ -65,3 +65,26 @@ def test_mixed_urls_share_one_request_and_keep_their_own_status():
     assert transport.calls == [[gone_url, URL]]
     assert result[(gone_url, QUOTE)].status == "gone"
     assert result[(URL, QUOTE)].status == "verified"
+
+def test_empty_or_unnormalizable_quote_is_never_verified():
+    for quote in ("", "   ", "...", "—", "日本語"):
+        result = verify_quotes([(URL, quote)], transport=FakeTransport({URL: _response(URL, 200, PAGE)}))
+        assert result[(URL, quote)].status == "quote_missing", repr(quote)
+
+def test_number_prefix_is_not_a_partial_match():
+    page = "<html><body><p>Simpro supports 124,000 trade businesses.</p></body></html>"
+    result = verify_quotes([(URL, "24,000 trade businesses")], transport=FakeTransport({URL: _response(URL, 200, page)}))
+    assert result[(URL, "24,000 trade businesses")].status == "quote_missing"
+
+def test_percent_prefix_is_not_a_partial_match():
+    page = "<html><body><p>Teams save 15% of jobs.</p></body></html>"
+    result = verify_quotes([(URL, "5% of jobs")], transport=FakeTransport({URL: _response(URL, 200, page)}))
+    assert result[(URL, "5% of jobs")].status == "quote_missing"
+
+def test_one_failing_url_does_not_poison_the_others():
+    good, bad = "https://example.org/good", "https://example.org/bad"
+    transport = FakeTransport({good: _response(good, 200, PAGE), bad: requests.Timeout("slow")})
+    result = verify_quotes([(good, QUOTE), (bad, QUOTE)], transport=transport)
+    assert result[(good, QUOTE)].status == "verified"
+    assert result[(bad, QUOTE)].status == "unreachable"
+    assert transport.calls == [[good, bad], [good], [bad]]
