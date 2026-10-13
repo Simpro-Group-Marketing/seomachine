@@ -1,4 +1,5 @@
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -38,42 +39,54 @@ def test_context_policy_registers_every_current_context_file_with_allowed_catego
         assert category in ALLOWED_CATEGORIES
 
 
-def test_rg_invariant_has_no_active_references_to_deleted_context_mirrors() -> None:
-    pattern = (
-        r"context/(brand-voice\.md|features\.md|lightning-positioning\.md|"
-        r"style-guide\.md|customer-proof-index\.json|"
-        r"customer-proof-usage-ledger\.json|customer-proof-intake[^\s`'\"),]*|"
-        r"competitor-analysis\.md|reference/competitors/battlecards|"
-        r"reference/writing-examples)"
-    )
-    active_paths = [
-        "AGENTS.md",
-        "CLAUDE.md",
-        "README.md",
-        "QUICK-START.md",
-        "NEXT-STEPS.md",
-        "context",
-        ".claude/agents",
-        ".claude/commands",
-        ".claude/skills",
-        ".agents",
-        "scripts",
-    ]
-    existing_paths = [path for path in active_paths if (ROOT / path).exists()]
-    result = subprocess.run(
-        [
-            "rg",
-            "-n",
-            "--glob",
-            "!.claude/worktrees/**",
-            pattern,
-            *existing_paths,
-        ],
+DELETED_CONTEXT_MIRROR_RE = re.compile(
+    r"context/(brand-voice\.md|features\.md|lightning-positioning\.md|"
+    r"style-guide\.md|customer-proof-index\.json|"
+    r"customer-proof-usage-ledger\.json|customer-proof-intake[^\s`'\"),]*|"
+    r"competitor-analysis\.md|reference/competitors/battlecards|"
+    r"reference/writing-examples)"
+)
+ACTIVE_PATHS = (
+    "AGENTS.md",
+    "CLAUDE.md",
+    "README.md",
+    "QUICK-START.md",
+    "NEXT-STEPS.md",
+    "context/",
+    ".claude/agents/",
+    ".claude/commands/",
+    ".claude/skills/",
+    ".agents/",
+    ".cursor/",
+    "scripts/",
+)
+
+
+def _active_files() -> list[str]:
+    listed = subprocess.run(
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
         cwd=ROOT,
-        text=True,
         capture_output=True,
-        check=False,
+        check=True,
+    ).stdout.decode("utf-8")
+    return sorted(
+        path
+        for path in {entry for entry in listed.split("\x00") if entry}
+        if path.startswith(ACTIVE_PATHS)
+        and not path.startswith(".claude/worktrees/")
+        and (ROOT / path).is_file()
     )
 
-    assert result.returncode == 1, result.stdout
-    assert result.stdout == ""
+
+def _deleted_mirror_references() -> list[str]:
+    violations = []
+    for path in _active_files():
+        text = (ROOT / path).read_text(encoding="utf-8", errors="replace")
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            if DELETED_CONTEXT_MIRROR_RE.search(line):
+                violations.append(f"{path}:{lineno}: {line.strip()}")
+    return violations
+
+
+def test_active_docs_have_no_references_to_deleted_context_mirrors() -> None:
+    assert _deleted_mirror_references() == []
