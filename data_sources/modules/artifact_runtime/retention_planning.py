@@ -92,7 +92,12 @@ def referenced_objects(root: Path) -> set[Path]:
     if not research.is_dir():
         return referenced
     research_root = research.resolve(strict=True)
+    object_dir = root.joinpath(*OBJECT_PREFIX.parts)
     for pointer in sorted(research.rglob("*.json")):
+        if pointer.is_relative_to(object_dir):
+            # Managed objects are not pointers; plan_retention's object scan
+            # validates them, including symlinks that escape the namespace.
+            continue
         try:
             resolved = pointer.resolve(strict=True)
             resolved.relative_to(research_root)
