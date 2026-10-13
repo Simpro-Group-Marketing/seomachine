@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from data_sources.modules.artifact_detection import extract_frontmatter
 from data_sources.modules.faq_structure import detect_faq_structure
 from data_sources.modules.frontmatter import FrontmatterError
-from data_sources.modules.production.serp_coverage import _tokens, normalize_heading
+from data_sources.modules.production.serp_coverage import normalize_heading
 from data_sources.modules.production.truth_index import canonical, question_key
 from data_sources.modules.production.truth_quotes import normalize_passage
 from data_sources.modules.production.truth_text import (
@@ -25,6 +25,8 @@ LEAD_WORDS = 100
 _HEADING = re.compile(r"^\s{0,3}(#{1,6})\s+")
 _EMPHASIS = re.compile(r"[*_~`]")
 _NON_WORD = re.compile(r"[^\w\s]")
+_DEFINITION = re.compile(r"^\s*\[([^\^\]][^\]]*)\]:\s*<?(\S+?)>?(?:\s+.*)?$")
+_REFERENCE = re.compile(r"(?<!!)\[([^\]\^]+)\](?:\[([^\]]*)\])?(?![(:])")
 
 
 @dataclass(frozen=True)
@@ -40,15 +42,33 @@ def anchor_key(text: str) -> str:
     return " ".join(_NON_WORD.sub(" ", plain).split())
 
 
-def content_tokens(text: str) -> frozenset[str]:
-    """Heading tokens with the shared stopwords removed."""
-    return _tokens(text)
+def _plain(text: str) -> str:
+    """Drop HTML entities, underscore emphasis, and code ticks before heading normalization."""
+    return html.unescape(text).replace("_", " ").replace("`", "")
 
 
 def contains_phrase(text: str, phrase: str) -> bool:
     """True when ``phrase`` appears in ``text`` as a contiguous run of normalized tokens."""
-    words, wanted = normalize_heading(text).split(), normalize_heading(phrase).split()
+    words, wanted = normalize_heading(_plain(text)).split(), normalize_heading(_plain(phrase)).split()
     return bool(wanted) and any(words[i : i + len(wanted)] == wanted for i in range(len(words) - len(wanted) + 1))
+
+
+def inline_references(raw: list[str]) -> list[str]:
+    """Rewrite used reference-style links as inline links and blank every reference definition.
+
+    A definition nothing refers to therefore cites nothing; footnote definitions are left alone.
+    """
+    targets = {}
+    for line in raw:
+        match = _DEFINITION.match(line)
+        if match:
+            targets.setdefault(match.group(1).casefold(), match.group(2))
+
+    def inline(match: re.Match[str]) -> str:
+        url = targets.get((match.group(2) or match.group(1)).casefold())
+        return f"[{match.group(1)}]({url})" if url else match.group(0)
+
+    return ["" if _DEFINITION.match(line) else _REFERENCE.sub(inline, line) for line in raw]
 
 
 @dataclass(frozen=True)
@@ -58,7 +78,7 @@ class ArticleView:
     links: tuple[ExtractedUrl, ...]
     headings: tuple[Heading, ...]
     units: tuple[Unit, ...]
-    title: str
+    title: str | None  # None when the frontmatter cannot be parsed
     faq_keys: frozenset[str]
 
     @classmethod
@@ -73,10 +93,10 @@ class ArticleView:
         try:
             title = extract_frontmatter(article).get("title", "")
         except FrontmatterError:
-            title = ""
+            title = None
         entries = detect_faq_structure(article).entries
         return cls(
-            tuple(raw), tuple(public), tuple(extract_urls("\n".join(raw))), tuple(headings),
+            tuple(raw), tuple(public), tuple(extract_urls("\n".join(inline_references(raw)))), tuple(headings),
             tuple(paragraph_units(article)), title, frozenset(question_key(entry.question) for entry in entries),
         )
 

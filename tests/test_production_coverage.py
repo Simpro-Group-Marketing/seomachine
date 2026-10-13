@@ -6,6 +6,7 @@ import copy
 from typing import Any
 
 from data_sources.modules.production.coverage import check_coverage
+from data_sources.modules.production.serp_coverage import heading_tokens
 from tests.production_bom_support import FACT_URL, PAA_QUESTION, PILLAR_URL
 from tests.production_truth_support import CUSTOMER_QUOTE, PROOF_URL, article, blocks, bom, warns
 
@@ -292,3 +293,89 @@ def test_coverage_does_not_mutate_the_bom():
     before = copy.deepcopy(value)
     cov(compliant(), value)
     assert value == before
+
+
+def sections(heading: str) -> dict[str, Any]:
+    return empty_bom(sections=[{"heading": heading, "purpose": "x", "priority": "must"}])
+
+
+def with_h2(heading: str) -> str:
+    return article(f"## {heading}\n\nx.\n\n")
+
+
+def test_heading_tokens_fold_plurals_and_drop_stopwords():
+    assert heading_tokens("The FSM Software Costs and Integrations") == heading_tokens("fsm software cost integration")
+
+
+def test_plural_bom_heading_matches_a_singular_article_heading_and_back():
+    assert cov(with_h2("FSM software cost"), sections("FSM software costs")) == []
+    assert cov(with_h2("FSM Software Costs"), sections("FSM software cost")) == []
+    assert cov(with_h2("Integrations"), sections("Integration")) == []
+    assert cov(with_h2("Integration"), sections("Integrations")) == []
+    assert cov(with_h2("Policies"), sections("Policy")) == []
+
+
+def test_plural_folding_does_not_make_different_words_match():
+    assert len(blocks(cov(with_h2("FSM software costume"), sections("FSM software cost")))) == 1
+
+
+def test_all_stopword_bom_heading_never_matches_an_arbitrary_heading():
+    found = blocks(cov(with_h2("Anything else"), sections("How to")), "coverage_section")
+    assert len(found) == 1 and "How to" in found[0].message
+    assert blocks(cov(with_h2("How to"), sections("How to")), "coverage_section") == []
+
+
+def test_blank_or_missing_primary_keyword_blocks_instead_of_skipping():
+    for keyword in ({}, {"primary": ""}, {"primary": "   "}, None, "x"):
+        value = empty_bom()
+        value["keyword"] = keyword
+        found = blocks(cov(plain(), value), "coverage_keyword")
+        assert len(found) == 1 and "BOM keyword.primary missing" in found[0].message, keyword
+    value = empty_bom()
+    del value["keyword"]
+    assert len(blocks(cov(plain(), value), "coverage_keyword")) == 1
+
+
+def test_underscore_emphasis_and_entities_in_the_keyword_places_pass():
+    assert blocks(cov(plain(lead="Start with _field service software_ today."), empty_bom()), "coverage_keyword") == []
+    assert blocks(cov(plain(h1="__Field Service Software__"), empty_bom()), "coverage_keyword") == []
+    value = empty_bom(keyword={"primary": "field &amp; service software"})
+    text = plain(title="Field & Service Software", h1="Field &amp; Service Software", lead="Field &amp; service software wins.")
+    assert blocks(cov(text, value), "coverage_keyword") == []
+
+
+def test_keyword_stays_strict_about_plurals_and_word_boundaries():
+    found = blocks(cov(plain(lead="Our field service softwares help."), empty_bom()), "coverage_keyword")
+    assert len(found) == 1 and "first 100 words" in found[0].message
+    assert len(blocks(cov(plain(title="Field Service Softwares"), empty_bom()), "coverage_keyword")) == 1
+
+
+def test_fact_url_with_a_trailing_slash_or_tracking_parameter_still_matches():
+    for variant in (FACT_URL + "/", FACT_URL + "?utm_source=x", FACT_URL + "/?utm_source=x"):
+        assert blocks(cov(article().replace(FACT_URL, variant)), "coverage_fact") == [], variant
+
+
+def test_unreferenced_reference_definition_does_not_count_as_a_citation():
+    text = plain(lead=f"A claim with no link.\n\n[unused]: {FACT_URL}")
+    assert len(blocks(cov(text, empty_bom(facts=full_bom()["facts"])), "coverage_fact")) == 1
+
+
+def test_referenced_definition_counts_and_keeps_its_anchor():
+    text = plain(lead=f"See [field service tools][ref] and [site] for more.\n\n[ref]: {FACT_URL}\n[site]: {PILLAR_URL}")
+    link = {"url": PILLAR_URL, "anchor": "site", "kind": "commercial_pillar", "priority": "must"}
+    value = empty_bom(facts=full_bom()["facts"], links=[link])
+    assert blocks(cov(text, value), "coverage_fact") == [] and blocks(cov(text, value), "coverage_pillar") == []
+    value["links"] = [{**link, "anchor": "other"}]
+    assert len(blocks(cov(text, value), "coverage_pillar")) == 1
+
+
+def test_footnote_definition_still_counts_as_a_citation():
+    text = plain(lead=f"A claim.[^1]\n\n[^1]: Source {FACT_URL}")
+    assert blocks(cov(text, empty_bom(facts=full_bom()["facts"])), "coverage_fact") == []
+
+
+def test_unreadable_frontmatter_is_reported_as_such_not_as_a_missing_keyword():
+    text = '---\ntitle: "unterminated\n---\n\n# Field Service Software Guide\n\nField service software runs.\n'
+    found = blocks(cov(text, empty_bom()), "coverage_keyword")
+    assert len(found) == 1 and "title unreadable (frontmatter error)" in found[0].message
+    assert "missing from the title" not in found[0].message

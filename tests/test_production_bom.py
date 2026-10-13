@@ -16,7 +16,7 @@ def _bom() -> dict:
                      "title": "T", "objective": "O", "audience": "A",
                      "cta": {"text": "x", "url": "https://x.example"}, "schema_notes": ["BlogPosting"],
                      "spec": {"path": "research/production-bom-spec-s-2026-10-13.json", "sha256": "a" * 64}},
-        "keyword": {}, "serp": {},
+        "keyword": {"primary": "field service software"}, "serp": {},
         "sections": [{"heading": "h", "purpose": "p", "priority": "must"}],
         "facts": [{"id": "f1", "claim": "c", "url": "https://x.example", "quote": "q",
                    "priority": "must", "verified_at": "2026-10-13T00:00:00Z", "check_detail": "ok",
@@ -136,3 +136,10 @@ def test_fact_support_must_be_quote_overlap():
     assert any("support" in e for e in bom_module.validate_bom(bom))
     del bom["facts"][0]["support"]
     assert any("support" in e for e in bom_module.validate_bom(bom))
+
+
+def test_keyword_primary_must_be_non_empty_text():
+    for keyword in ({}, {"primary": ""}, {"primary": "  "}, {"primary": 5}, "x", None):
+        bom = _bom()
+        bom["keyword"] = keyword
+        assert any("keyword primary" in e for e in bom_module.validate_bom(bom)), keyword

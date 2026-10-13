@@ -16,17 +16,16 @@ from data_sources.modules.production.coverage_view import (
     ArticleView,
     anchor_key,
     contains_phrase,
-    content_tokens,
 )
-from data_sources.modules.production.serp_coverage import normalize_heading
+from data_sources.modules.production.serp_coverage import heading_tokens, normalize_heading
 from data_sources.modules.production.truth_index import canonical, question_key
 from data_sources.modules.production.truth_text import Finding
 
 
 def _section_present(heading: str, present: Sequence[str]) -> bool:
-    wanted, tokens = normalize_heading(heading), content_tokens(heading)
+    wanted, tokens = normalize_heading(heading), heading_tokens(heading)
     return any(
-        normalize_heading(found) == wanted or (bool(tokens) and tokens <= content_tokens(found)) for found in present
+        normalize_heading(found) == wanted or (bool(tokens) and tokens <= heading_tokens(found)) for found in present
     )
 
 
@@ -95,17 +94,27 @@ def _link_findings(view: ArticleView, bom: Mapping[str, Any]) -> list[Finding]:
     return findings
 
 
-def _keyword_findings(view: ArticleView, bom: Mapping[str, Any]) -> list[Finding]:
+def _primary_keyword(bom: Mapping[str, Any]) -> str:
     keyword = bom.get("keyword")
-    primary = str(keyword.get("primary") or "").strip() if isinstance(keyword, Mapping) else ""
+    primary = keyword.get("primary") if isinstance(keyword, Mapping) else None
+    return primary.strip() if isinstance(primary, str) else ""
+
+
+def _keyword_findings(view: ArticleView, bom: Mapping[str, Any]) -> list[Finding]:
+    primary = _primary_keyword(bom)
     if not primary:
-        return []
+        return [Finding("coverage_keyword", "block", "BOM keyword.primary missing: the primary keyword cannot be checked", None)]
     places: list[tuple[str, bool]] = [
-        ("title", contains_phrase(view.title, primary)),
         ("H1", any(contains_phrase(text, primary) for text in view.h1_headings())),
         ("first 100 words", contains_phrase(view.lead_text(), primary)),
     ]
-    return [
+    if view.title is None:
+        findings = [Finding("coverage_keyword", "block", "title unreadable (frontmatter error): primary keyword "
+                            f"{primary!r} cannot be checked in the title", None)]
+    else:
+        places.insert(0, ("title", contains_phrase(view.title, primary)))
+        findings = []
+    return findings + [
         Finding("coverage_keyword", "block", f"primary keyword {primary!r} is missing from the {place}", None)
         for place, found in places
         if not found

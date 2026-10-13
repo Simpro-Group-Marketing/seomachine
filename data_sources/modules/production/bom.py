@@ -231,7 +231,14 @@ def _shape_errors(bom: Mapping[str, Any]) -> list[str]:
     for key in ("sections", "facts", "proof", "links"):
         if key in bom and not isinstance(bom[key], list):
             errors.append(f"{key} must be a list")
-    return errors
+    return errors + _keyword_errors(bom)
+
+
+def _keyword_errors(bom: Mapping[str, Any]) -> list[str]:
+    keyword = bom.get("keyword")
+    if "keyword" in bom and not (isinstance(keyword, Mapping) and _is_text(keyword.get("primary"))):
+        return ["keyword primary must be non-empty text"]
+    return []
 
 
 def validate_bom(bom: Any) -> list[str]:

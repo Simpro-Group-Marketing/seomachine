@@ -13,8 +13,8 @@ def line_binds_title(line: str, page_title: str) -> bool:
 
 
 def title_keyword_fit(page_title: str, keyword: str) -> bool:
-    title_tokens = {_normalize_keyword_token(token) for token in re.findall(r"[a-z0-9]+", page_title.casefold())}
-    keyword_tokens = {_normalize_keyword_token(token) for token in re.findall(r"[a-z0-9]+", keyword.casefold())}
+    title_tokens = {fold_plural(token) for token in re.findall(r"[a-z0-9]+", page_title.casefold())}
+    keyword_tokens = {fold_plural(token) for token in re.findall(r"[a-z0-9]+", keyword.casefold())}
     generic = {
         "bigchange",
         "simpro",
@@ -34,10 +34,13 @@ def title_keyword_fit(page_title: str, keyword: str) -> bool:
     )
 
 
-def _normalize_keyword_token(token: str) -> str:
+def fold_plural(token: str) -> str:
     """Normalize only regular English singular/plural variants for title matching."""
     if len(token) > 4 and token.endswith("ies"):
         return f"{token[:-3]}y"
     if len(token) > 3 and token.endswith("s") and not token.endswith(("is", "ss", "us")):
         return token[:-1]
     return token
+
+
+_normalize_keyword_token = fold_plural

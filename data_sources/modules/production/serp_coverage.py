@@ -21,6 +21,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from bs4 import BeautifulSoup
 
 from data_sources.modules.blog_assembly_contract import atomic_write_json
+from data_sources.modules.commercial_pillar_title_match import fold_plural
 from data_sources.modules.production.layout import Layout, LayoutError
 from data_sources.modules.public_http import SOURCE_VISIBLE_TEXT_POLICY, PublicHttpTransport
 from data_sources.modules.source_support.common import DEFAULT_USER_AGENT
@@ -71,8 +72,12 @@ def normalize_heading(text: str) -> str:
     return " ".join(_NON_WORD.sub(" ", without_number).split())
 
 
-def _tokens(text: str) -> frozenset[str]:
-    return frozenset(normalize_heading(text).split()) - _STOPWORDS
+def heading_tokens(text: str) -> frozenset[str]:
+    """Normalized heading tokens with stopwords removed and regular plurals folded."""
+    return frozenset(fold_plural(token) for token in normalize_heading(text).split() if token not in _STOPWORDS)
+
+
+_tokens = heading_tokens
 
 
 def _topic_counts(outlines: Mapping[str, Outline]) -> tuple[Counter[str], dict[str, Counter[str]]]:
