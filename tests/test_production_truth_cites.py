@@ -1,5 +1,7 @@
 from types import SimpleNamespace
 
+import pytest
+
 from data_sources.modules.production import truth
 from data_sources.modules.proof_link_policy import CitationRequirement
 from tests.production_bom_support import FACT_URL, response
@@ -84,3 +86,56 @@ def test_customer_proof_requirement_passes_with_the_proof_url_linked(monkeypatch
     _customer_report(monkeypatch)
     assert blocks(run(article(f"Acme loves [it]({PROOF_URL}).\n\n")), "citation_source") == []
 
+
+
+@pytest.mark.parametrize("url", [
+    "https://www.simprogroup.com/case-studies/foster",
+    "https://www.simprogroup.com/customers/foster",
+    "https://www.simprogroup.com/customer-stories/foster",
+    "https://www.simprogroup.com/testimonials/foster",
+    "https://www.simprogroup.com/success-stories/foster",
+    "https://www.g2.com/products/simpro/reviews",
+    "https://www.capterra.com/p/1234/simpro/",
+    "https://www.trustpilot.com/review/simprogroup.com",
+    "https://www.getapp.com/x/simpro",
+    "https://www.softwareadvice.com/x/simpro",
+])
+def test_customer_story_link_without_a_bom_proof_blocks_without_any_monkeypatch(url):
+    text = article(f"A [Foster Plumbing case study]({url}) shows the contractor scaled.\n\n")
+    found = blocks(run(text, tr=transport(**{url: response(url, 200)})), "citation_source")
+    assert len(found) == 1 and url.rstrip("/") in found[0].message and found[0].line == 15
+
+
+def test_customer_story_link_that_is_a_bom_proof_passes():
+    text = article(f"A [Acme case study]({PROOF_URL}) shows the contractor scaled.\n\n")
+    assert blocks(run(text), "citation_source") == []
+
+
+def test_heading_number_needs_a_linked_source_in_the_heading_or_the_next_unit():
+    assert len(blocks(run(article("## Simpro cuts fuel costs 30%\n\n")), "claim_numbers")) == 1
+    linked = article(f"## Simpro cuts fuel costs 30%\n\nAcme's [story]({PROOF_URL}) covers it.\n\n")
+    assert blocks(run(linked)) == []
+    in_heading = article(f"## Simpro cuts fuel costs 30% ([story]({PROOF_URL}))\n\nMore detail follows.\n\n")
+    assert blocks(run(in_heading)) == []
+
+
+def test_heading_next_unit_skips_following_headings_and_ignores_later_paragraphs():
+    later = article(f"## Simpro cuts fuel costs 30%\n\nNothing linked here.\n\nAcme's [story]({PROOF_URL}) covers it.\n\n")
+    assert len(blocks(run(later), "claim_numbers")) == 1
+
+
+def test_title_and_meta_numbers_need_a_supporting_source_linked_in_the_body():
+    assert len(blocks(run(article(title="Cut fuel costs 30% with Simpro")), "claim_numbers")) == 1
+    assert len(blocks(run(article(description="Cut fuel costs 30% today")), "claim_numbers")) == 1
+    assert len(blocks(run(article(extra_front='meta_title: "Cut costs 30%"\n')), "claim_numbers")) == 1
+    body = f"Acme's [story]({PROOF_URL}) covers it.\n\n"
+    assert blocks(run(article(body, title="Cut fuel costs 30% with Simpro"))) == []
+
+
+def test_links_hidden_in_comments_or_code_are_not_citations():
+    hidden = f"Simpro cuts fuel costs by 30%. <!-- [x]({PROOF_URL}) -->\n\n"
+    assert len(blocks(run(article(hidden)), "claim_numbers")) == 1
+    code = f"Simpro cuts fuel costs by 30%. `[x]({PROOF_URL})`\n\n"
+    assert len(blocks(run(article(code)), "claim_numbers")) == 1
+    fenced = f"Simpro cuts fuel costs by 30%.\n\n```\n[x]({PROOF_URL})\n```\n\n"
+    assert len(blocks(run(article(fenced)), "claim_numbers")) == 1

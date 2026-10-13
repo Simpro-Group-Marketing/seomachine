@@ -8,25 +8,35 @@ the URL validator once for every article link.
 
 from __future__ import annotations
 
-import re
 from collections.abc import Mapping, Sequence
 from typing import Any
 
 from data_sources.modules.ai_copy_lint.core import lint_content
-from data_sources.modules.faq_structure import FaqStructure, detect_faq_structure
+from data_sources.modules.faq_structure import detect_faq_structure
 from data_sources.modules.production.facts import verify_quotes
-from data_sources.modules.production.truth_cites import citation_findings, linked_urls, paragraph_number_findings
-from data_sources.modules.production.truth_index import BomIndex, canonical, question_key
+from data_sources.modules.production.truth_cites import (
+    citation_findings,
+    customer_story_findings,
+    linked_urls,
+    paragraph_number_findings,
+)
+from data_sources.modules.production.truth_faq import answer_ranges, faq_findings, section_range
+from data_sources.modules.production.truth_index import BomIndex, canonical
 from data_sources.modules.production.truth_numbers import number_gate
 from data_sources.modules.production.truth_quotes import quoted_passage_findings
-from data_sources.modules.production.truth_text import Finding, body_lines, paragraph_units, public_copy_lines
+from data_sources.modules.production.truth_text import (
+    Finding,
+    body_lines,
+    h3_count,
+    meta_lines,
+    paragraph_units,
+    public_copy_lines,
+)
 from data_sources.modules.proof_link_policy import analyze_proof_links
 from data_sources.modules.public_http.markdown_urls import extract_urls
 from data_sources.modules.url_validator import UrlValidator, validate_content_urls
 
 _LEAKAGE_RULE = "editorial_process_leakage"
-_PLAIN_QUESTION = re.compile(r"^\s*(?:\*\*)?\s*(?:Q|Question)\s*\d*\s*[:.)]", re.IGNORECASE)
-_FAQ_FORMAT_MESSAGE = "use ### question headings under the FAQ section"
 
 
 def _fact_findings(
@@ -60,22 +70,6 @@ def _fact_findings(
     return findings, frozenset(unreachable)
 
 
-def _faq_ranges(structure: FaqStructure) -> list[tuple[int, int]]:
-    return [(entry.answer_line, entry.answer_line + entry.answer.count("\n")) for entry in structure.entries]
-
-
-def _faq_findings(structure: FaqStructure, rows: Sequence[str], index: BomIndex) -> list[Finding]:
-    lines = set(structure.unsupported_lines)
-    lines |= {number for number, row in enumerate(rows, start=1) if _PLAIN_QUESTION.match(row)}
-    findings = [Finding("faq_question", "block", _FAQ_FORMAT_MESSAGE, number) for number in sorted(lines)]
-    findings += [
-        Finding("faq_question", "block", f"FAQ question is not a BOM PAA question: {entry.question}", entry.line)
-        for entry in structure.entries
-        if question_key(entry.question) not in index.questions
-    ]
-    return findings
-
-
 def _link_findings(article: str, index: BomIndex, transport: Any, soft: frozenset[str]) -> list[Finding]:
     """Validate links once. A fact page that was merely unreachable is a warning, not a block."""
     summary = validate_content_urls(article, validator=UrlValidator(transport=transport))
@@ -107,17 +101,21 @@ def check_truth(article: str, bom: Mapping[str, Any], *, transport: Any) -> list
     """Check a finished article against its production BOM and return every finding."""
     index = BomIndex.build(bom)
     report = analyze_proof_links(article, "", brand=bom["identity"]["brand"])
-    links = extract_urls(article)
+    raw = body_lines(article)
+    links = extract_urls("\n".join(raw))  # comments, code, and frontmatter are blanked: hidden links do not count
     structure = detect_faq_structure(article)
+    listicle = h3_count(raw, section_range(raw))
     findings = citation_findings(report.requirements, report.links, links, index)
-    linked_facts, _ = index.rows_for(linked_urls(links, 1, len(article.splitlines()) + 1))
+    findings += customer_story_findings(links, index)
+    linked_facts, _ = index.rows_for(linked_urls(links, 1, len(raw) + 1))
     fact_findings, unreachable = _fact_findings(linked_facts, transport)
     findings += fact_findings
-    findings += paragraph_number_findings(paragraph_units(article, _faq_ranges(structure)), links, index)
+    units = paragraph_units(article, answer_ranges(structure))
+    findings += paragraph_number_findings(units, links, index, meta_lines(article), listicle)
     lines = public_copy_lines(article)
-    findings += number_gate(lines, index.all_numbers())
+    findings += number_gate(lines, index.all_numbers(), listicle)
     findings += quoted_passage_findings(lines, index.quote_sources(), index.customers)
-    findings += _faq_findings(structure, body_lines(article), index)
+    findings += faq_findings(structure, raw, lines, index)
     findings += _link_findings(article, index, transport, unreachable)
     return findings + _lint_findings(article)
 

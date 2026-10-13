@@ -17,6 +17,7 @@ _NORMAL_STYLES = str.maketrans({
 _INTRA_WORD_APOSTROPHE = re.compile(r"(?<=\w)['‘’](?=\w)")
 _PROTECTED = "\u0001"
 _ATTRIBUTION = re.compile(r"\s*(?:[—–]|(?<=\s)-(?=\s)).*$", re.DOTALL)
+_CALLOUT = re.compile('^\\*\\*[^*"“”]{1,60}\\*\\*')
 _ELLIPSIS = re.compile(r"…|\.\.\.")
 _CUE = re.compile(r"\b(?:said|says|told|according\s+to)\b|[—–]", re.IGNORECASE)
 _SENTENCE_END = re.compile(r"[.!?](?:[\"'”’])?\s|\n")
@@ -100,19 +101,25 @@ def _has_cue(text: str, start: int, end: int, customers: Sequence[str]) -> bool:
 def _inline_findings(
     start: int, run: list[str], corpus: Sequence[str], customers: Sequence[str]
 ) -> list[Finding]:
+    """Block unverifiable quotes that carry an attribution cue; an unattributed phrase only warns."""
     text = "\n".join(run)
     findings = []
     for offset, passage in _quoted_spans(text):
         end = offset + len(passage) + 2
-        floor = MIN_ATTRIBUTED_WORDS if _has_cue(text, offset, end, customers) else MIN_QUOTE_WORDS
-        if _word_count(passage) >= floor and not _found(passage, corpus):
+        cued = _has_cue(text, offset, end, customers)
+        if _word_count(passage) >= (MIN_ATTRIBUTED_WORDS if cued else MIN_QUOTE_WORDS) and not _found(passage, corpus):
             findings.append(Finding(
-                "quoted_passage", "block",
+                "quoted_passage", "block" if cued else "warn",
                 "quoted passage is not verbatim in a single BOM proof text, approved quote, or fact quote: "
                 f"{passage.strip()!r}",
                 start + text.count("\n", 0, offset),
             ))
     return findings
+
+
+def _is_callout(run: Sequence[str]) -> bool:
+    """A blockquote opened by a bold label such as "**Key takeaways**" is a callout, not a quotation."""
+    return _CALLOUT.match(run[0].lstrip(">").strip()) is not None
 
 
 def quoted_passage_findings(
@@ -123,7 +130,7 @@ def quoted_passage_findings(
     findings: list[Finding] = []
     for start, is_blockquote, run in _groups(lines):
         if is_blockquote:
-            findings += _blockquote_findings(start, run, corpus)
+            findings += [] if _is_callout(run) else _blockquote_findings(start, run, corpus)
         else:
             findings += _inline_findings(start, run, corpus, customers)
     return findings

@@ -47,7 +47,9 @@ _LIST_MARKER = re.compile(r"^\s*(?:\d+[.)]|[-*+])\s+")
 _FRONT_KEY = re.compile(r"^([A-Za-z_][\w-]*):\s*(.*)$")
 _PUBLIC_FRONT_KEYS = frozenset({"title", "description", "meta_title", "meta_description"})
 _BLOCK_SCALARS = frozenset({">", "|", ">-", "|-", ">+", "|+"})
-_PLACEHOLDER_START = re.compile(r"^\s*\[(?:IMAGE|VIDEO)\s+PLACEHOLDER\b", re.IGNORECASE)
+_PLACEHOLDER_START = re.compile(r"^\s*\[(?:IMAGE|VIDEO|CMS\s+MODULE)\s+PLACEHOLDER\b", re.IGNORECASE)
+_PLACEHOLDER_CALLOUT = re.compile(r"^\s*>\s*\*\*(?:Hero\s+)?(?:Image|Video)\s+placeholder:\*\*", re.IGNORECASE)
+_H3 = re.compile(r"^\s{0,3}###\s+\S")
 
 
 def _blank(match: re.Match[str]) -> str:
@@ -62,6 +64,7 @@ def _quote_lines(match: re.Match[str]) -> str:
 def _is_placeholder(line: str) -> bool:
     return (
         _PLACEHOLDER_START.match(line) is not None
+        or _PLACEHOLDER_CALLOUT.match(line) is not None
         or is_production_image_placeholder_line(line)
         or is_production_video_placeholder_line(line)
     )
@@ -188,3 +191,15 @@ def paragraph_units(article: str, answer_ranges: Sequence[tuple[int, int]] = ())
         Unit(first, last, heading, tuple(public[first - 1 : last]))
         for first, last, heading in sorted(ranges)
     ]
+
+
+def meta_lines(article: str) -> list[tuple[int, str]]:
+    """Return (line number, text) for each public frontmatter value (title, description, meta_*)."""
+    front, _ = _views(article)
+    return [(number, text) for number, text in enumerate(_frontmatter_lines(front), start=1) if text.strip()]
+
+
+def h3_count(raw: Sequence[str], skip: tuple[int, int] | None = None) -> int:
+    """Count ### headings in the body, leaving out those inside the ``skip`` line range."""
+    first, last = skip or (0, -1)
+    return sum(1 for number, line in enumerate(raw, start=1) if _H3.match(line) and not first <= number <= last)

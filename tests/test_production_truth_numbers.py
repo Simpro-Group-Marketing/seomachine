@@ -71,3 +71,43 @@ def test_material_numbers_cover_percent_currency_multiplier_and_big_integers():
         assert material(article(f"Teams see {phrase} daily.\n\n")), phrase
     for phrase in ("4 crews", "a 2026 plan", "step 3", "2.5 seats"):
         assert material(article(f"Teams see {phrase} daily.\n\n")) == [], phrase
+
+
+def either(text):
+    findings = check_truth_for(text)
+    return [f for f in findings if f.severity == "block" and f.check in ("number_gate", "claim_numbers")]
+
+
+@pytest.mark.parametrize("phrase", [
+    "Level 47x faster", "Windows 50 percent", "Part 30%", "Step 45% faster", "v47%", "ISO 47x", "NFPA 70E 50k",
+    "Class 61 times", "the 61st%", "10 20 30 40 50", "25 50 75 100", "$ 1200 3400 5600", "$1200 3400 5600",
+    "Tier 9 million", "Version 62 billion", "1300 139 467%", "0412-345-678 times",
+])
+def test_exemptions_never_swallow_an_attached_percent_multiplier_or_currency(phrase):
+    assert either(article(f"Crews report {phrase} work.\n\n")), phrase
+
+
+@pytest.mark.parametrize("phrase", ["ISO 9001", "Step 1", "1300 139 467", "R-410A", "v2.1", "9:30 am", "the 21st job"])
+def test_genuine_labels_identifiers_and_phones_still_pass(phrase):
+    assert either(article(f"Crews report {phrase} work.\n\n")) == [], phrase
+
+
+def listicle(count, title="12 Ways to Cut Costs", body_noun="tools"):
+    sections = "".join(f"### Option {chr(65 + n)}\n\nShort text here.\n\n" for n in range(count))
+    return article(f"Compare 12 {body_noun} below.\n\n{sections}", title=title)
+
+
+def test_listicle_count_equal_to_the_h3_count_is_exempt_from_gate_and_paragraph_rule():
+    assert either(listicle(12)) == []
+    assert either(article("## 15 best apps\n\n" + "".join(f"### App {chr(65 + n)}\n\nText.\n\n" for n in range(15)))) == []
+
+
+def test_listicle_count_not_equal_to_the_h3_count_blocks():
+    assert either(listicle(9))
+
+
+def test_listicle_exemption_needs_a_plural_noun_and_no_attached_unit():
+    plain = article("Compare 12 of them below.\n\n" + "".join(f"### O{chr(65 + n)}\n\nT.\n\n" for n in range(12)))
+    assert either(plain)
+    percent = article("Compare 12% tools below.\n\n" + "".join(f"### O{chr(65 + n)}\n\nT.\n\n" for n in range(12)))
+    assert either(percent)

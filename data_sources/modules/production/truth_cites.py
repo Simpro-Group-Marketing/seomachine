@@ -8,8 +8,10 @@ URL, or customer proof with no BOM proof link, blocks.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable, Sequence
 from typing import Any
+from urllib.parse import urlsplit
 
 from data_sources.modules.production.truth_index import BomIndex, canonical
 from data_sources.modules.production.truth_numbers import material_numbers
@@ -19,6 +21,15 @@ from data_sources.modules.proof_link_policy import CitationRequirement
 CITING_MODES = frozenset({"inline_required", "section_source_allowed"})
 _PROOF_OWNERS = frozenset({"customer_proof", "review_story"})
 _OUTSIDE = "claim cites a source outside the production BOM"
+_STORY_PATH = re.compile(r"/(?:case-stud|customers/|customer-stor|testimonial|success-stor)", re.IGNORECASE)
+_REVIEW_HOST = re.compile(
+    r"(?:^|\.)(?:g2\.com|(?:capterra|trustpilot|getapp|softwareadvice)\.[a-z.]+)$", re.IGNORECASE
+)
+
+
+def _is_customer_story(url: str) -> bool:
+    parts = urlsplit(url)
+    return _STORY_PATH.search(parts.path) is not None or _REVIEW_HOST.search(parts.hostname or "") is not None
 
 
 def linked_urls(links: Iterable[Any], first: int, last: int) -> frozenset[str]:
@@ -73,17 +84,55 @@ def _missing_message(missing: dict[str, str], index: BomIndex) -> str:
     return "numbers not supported by the BOM sources linked in this paragraph: " + "; ".join(parts)
 
 
-def paragraph_number_findings(units: Sequence[Unit], links: Sequence[Any], index: BomIndex) -> list[Finding]:
-    """Block material numbers that no BOM source linked inside the same paragraph supplies."""
+def _heading_urls(units: Sequence[Unit], position: int, links: Sequence[Any]) -> frozenset[str]:
+    """URLs linked in a heading plus those linked in the next content unit below it."""
+    unit = units[position]
+    urls = linked_urls(links, unit.line, unit.end_line)
+    following = next((later for later in units[position + 1 :] if not later.heading), None)
+    return urls | (linked_urls(links, following.line, following.end_line) if following else frozenset())
+
+
+def _unsupported(
+    lines: Sequence[str], urls: frozenset[str], index: BomIndex, listicle: int
+) -> dict[str, str]:
+    needed = material_numbers(lines, index.year, listicle)
+    supplied = index.numbers_for(urls)
+    return {number: written for number, written in needed.items() if number not in supplied}
+
+
+def paragraph_number_findings(
+    units: Sequence[Unit], links: Sequence[Any], index: BomIndex, meta: Sequence[tuple[int, str]] = (),
+    listicle: int = 0,
+) -> list[Finding]:
+    """Block material numbers that no BOM source linked where the number sits supplies.
+
+    Paragraphs, list items, table rows, and FAQ answers use their own links; a heading also
+    uses the next content unit's links; the title and meta fields use any link in the body.
+    """
     findings = []
-    for unit in units:
-        if unit.heading:
-            continue
-        needed = material_numbers(unit.text, index.year)
-        if not needed:
-            continue
-        supplied = index.numbers_for(linked_urls(links, unit.line, unit.end_line))
-        missing = {number: written for number, written in needed.items() if number not in supplied}
+    for position, unit in enumerate(units):
+        urls = _heading_urls(units, position, links) if unit.heading else linked_urls(links, unit.line, unit.end_line)
+        missing = _unsupported(unit.text, urls, index, listicle)
         if missing:
             findings.append(Finding("claim_numbers", "block", _missing_message(missing, index), unit.line))
+    everywhere = linked_urls(links, 1, 10**9)
+    for number, text in meta:
+        missing = _unsupported([text], everywhere, index, listicle)
+        if missing:
+            findings.append(Finding("claim_numbers", "block", _missing_message(missing, index), number))
+    return findings
+
+
+def customer_story_findings(links: Sequence[Any], index: BomIndex) -> list[Finding]:
+    """Block a customer-story or review-site link that is not a BOM proof or fact URL."""
+    findings, seen = [], set()
+    for link in links:
+        url = canonical(link.url)
+        if url in index.source_urls or (url, link.line) in seen or not _is_customer_story(url):
+            continue
+        seen.add((url, link.line))
+        findings.append(Finding(
+            "citation_source", "block",
+            f"{_OUTSIDE}: customer story or review link is not a BOM proof or fact URL: {url}", link.line,
+        ))
     return findings
