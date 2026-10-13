@@ -13,12 +13,18 @@ from data_sources.modules.production.keyword_record import record_keyword_decisi
 
 PRIMARY = "field service scheduling"
 SECONDARY = "dispatch capacity"
-TRANSCRIPT = (
-    "Semrush phrase_these, database us\n"
-    "Keyword | Volume | KD | CPC | Density | Results\n"
-    "Field   Service Scheduling | 720 | 32 | 18.5 | 0.12 | 1,000,000\n"
-    "dispatch capacity | 90 | 24 | 8.2 | 0.04 | 250,000\n"
-)
+PRIMARY_BLOCK = "Field   Service Scheduling\n720\n32\n18.5\n0.12\n1,000,000\n\n"
+SECONDARY_BLOCK = "dispatch capacity\n90\n24\n8.2\n0.04\n250,000\n\n"
+SERP_BLOCK = "example.com\nhttps://example.com/field-service-scheduling\n"
+FILLER = "filler " * 200
+
+
+def _transcript(gap: str = "", extra: str = "") -> str:
+    header = "Semrush phrase_these, database us\nKeyword Volume KD CPC Density Results\n"
+    return header + PRIMARY_BLOCK + gap + SECONDARY_BLOCK + SERP_BLOCK + extra
+
+
+TRANSCRIPT = _transcript()
 
 
 @pytest.fixture(autouse=True)
@@ -202,3 +208,100 @@ def test_cli_exits_two_on_missing_input_file(tmp_path):
 
 def test_cli_exits_two_on_bad_arguments(tmp_path):
     assert keyword_record.main(["--decision", str(tmp_path / "in.json")]) == 2
+
+
+@pytest.mark.parametrize(
+    "value",
+    [None, True, False, "n/a", "", "high", "720", [], "seven hundred twenty", -720,
+     float("nan"), float("inf")],
+)
+def test_non_numeric_or_invalid_metric_values_raise(tmp_path, value):
+    decision = _decision()
+    decision["candidate_metrics"][0]["volume"] = value
+    with pytest.raises(ValueError, match=r"field service scheduling.*volume"):
+        _record(tmp_path, decision)
+
+
+def test_extra_candidate_key_raises(tmp_path):
+    decision = _decision()
+    decision["candidate_metrics"][0]["traffic"] = 987654
+    with pytest.raises(ValueError, match=r"field service scheduling.*traffic"):
+        _record(tmp_path, decision)
+
+
+def test_partial_keyword_does_not_match(tmp_path):
+    decision = _decision()
+    decision["candidate_metrics"][1]["keyword"] = "dispatch capac"
+    with pytest.raises(ValueError, match="dispatch capac"):
+        _record(tmp_path, decision)
+
+
+def test_metric_only_in_a_distant_block_raises(tmp_path):
+    decision = _decision()
+    decision["candidate_metrics"][0]["keyword_difficulty"] = 24
+    with pytest.raises(ValueError, match=r"field service scheduling.*keyword_difficulty"):
+        _record(tmp_path, decision, _transcript(gap=FILLER))
+
+
+def test_swapped_metrics_between_distant_blocks_raise(tmp_path):
+    decision = _decision()
+    first, second = decision["candidate_metrics"]
+    for field in ("volume", "keyword_difficulty", "cpc", "competitive_density", "results"):
+        first[field], second[field] = second[field], first[field]
+    with pytest.raises(ValueError, match="field service scheduling"):
+        _record(tmp_path, decision, _transcript(gap=FILLER))
+
+
+def test_distant_blocks_with_correct_metrics_pass(tmp_path):
+    assert _record(tmp_path, _decision(), _transcript(gap=FILLER))["decision"]
+
+
+def test_abbreviated_volume_within_window_still_matches(tmp_path):
+    decision = _decision()
+    decision["candidate_metrics"][0]["volume"] = 1300
+    transcript = _transcript(gap=FILLER).replace("720", "1.3K")
+    assert _record(tmp_path, decision, transcript)["decision"]
+
+
+def test_serp_url_absent_from_transcript_raises(tmp_path):
+    decision = _decision()
+    decision["serp_finalists"][0]["results"][0]["url"] = "https://other.example/page"
+    with pytest.raises(ValueError, match="url"):
+        _record(tmp_path, decision)
+
+
+def test_serp_domain_absent_from_transcript_raises(tmp_path):
+    decision = _decision()
+    decision["serp_finalists"][0]["results"][0]["domain"] = "other.example"
+    with pytest.raises(ValueError, match="domain"):
+        _record(tmp_path, decision)
+
+
+@pytest.mark.parametrize("section", ["question_candidates", "related_candidates"])
+def test_nested_candidate_keyword_absent_from_transcript_raises(tmp_path, section):
+    decision = _decision()
+    decision[section] = [{"keyword": "invented keyword phrase", "volume": 40}]
+    with pytest.raises(ValueError, match="invented keyword phrase"):
+        _record(tmp_path, decision)
+
+
+def test_nested_candidate_keyword_present_in_transcript_passes(tmp_path):
+    decision = _decision()
+    decision["question_candidates"] = [{"keyword": "how to schedule field work", "volume": 40}]
+    transcript = _transcript(extra="how to schedule field work 40\nn")
+    assert _record(tmp_path, decision, transcript)["decision"]
+
+
+@pytest.mark.parametrize(
+    "collision",
+    [("--shortlist-output", "decision.json"), ("--output", "in.json"),
+     ("--shortlist-output", "transcript.txt")],
+)
+def test_cli_exits_two_when_paths_collide(tmp_path, collision):
+    args = _cli_inputs(tmp_path, _decision())
+    flag, name = collision
+    args[args.index(flag) + 1] = str(tmp_path / "research" / name if name == "decision.json" else tmp_path / name)
+    before = (tmp_path / "in.json").read_bytes()
+    assert keyword_record.main(args) == 2
+    assert (tmp_path / "in.json").read_bytes() == before
+    assert not (tmp_path / "research" / "decision.json").exists()
