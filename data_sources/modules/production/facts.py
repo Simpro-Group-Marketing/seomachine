@@ -12,7 +12,7 @@ from data_sources.modules.source_support.retrieval import fetch_source_text_many
 from data_sources.modules.source_support.text_matching import _normalize_text
 
 _GONE_STATUSES = frozenset({404, 410})
-_THOUSANDS_COMMA = re.compile(r"(?<=\d),(?=\d)")
+_THOUSANDS_COMMA = re.compile(r"(?<=\d),(?=\d{3}(?!\d))")
 _DECIMAL_POINT = re.compile(r"(?<=\d)\.(?=\d)")
 
 

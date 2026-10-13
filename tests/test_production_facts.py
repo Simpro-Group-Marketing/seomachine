@@ -109,3 +109,15 @@ def test_whole_number_quote_is_verified(quote):
     page = f"<html><body><p>Teams log {quote} each year.</p></body></html>"
     result = verify_quotes([(URL, quote)], transport=FakeTransport({URL: _response(URL, 200, page)}))
     assert result[(URL, quote)].status == "verified"
+
+@pytest.mark.parametrize(
+    "quote, page_text",
+    [
+        ("15", "1,5 jobs"),
+        ("12", "values 1,2 and 3"),
+    ],
+)
+def test_european_decimal_comma_is_not_a_thousands_separator(quote, page_text):
+    page = f"<html><body><p>{page_text}</p></body></html>"
+    result = verify_quotes([(URL, quote)], transport=FakeTransport({URL: _response(URL, 200, page)}))
+    assert result[(URL, quote)].status == "quote_missing"
