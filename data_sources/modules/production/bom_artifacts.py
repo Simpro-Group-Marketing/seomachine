@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import datetime
 import hashlib
 import json
 from collections.abc import Mapping, Sequence
@@ -11,7 +12,7 @@ from typing import Any
 
 from data_sources.modules.blog_assembly_contract import canonical_artifact
 from data_sources.modules.production.bom import SpecFileError
-from data_sources.modules.production.layout import Layout
+from data_sources.modules.production.layout import Layout, stored_run_id
 
 _SHORTLIST_KEYS = ("primary", "secondary", "candidates", "decision_rule")
 _COVERAGE_KEYS = ("query", "topics", "uncovered_questions")
@@ -90,10 +91,33 @@ def resolve_paa(spec: Mapping[str, Any], layout: Layout) -> dict[str, Any]:
     asked = [squash(item["question"]) for item in questions]
     errors = [f"duplicate PAA question: {item['question']}" for item in questions if asked.count(squash(item["question"])) > 1]
     errors += [f"PAA question is not in the bound PAA artifact: {item['question']}" for item in questions if squash(item["question"]) not in known]
+    collection_date, run_id, identity_errors = _paa_identity(artifact, layout)
+    errors += identity_errors
     if errors:
         raise ValueError("\n".join(dict.fromkeys(errors)))
     admitted = [{"question": known[squash(item["question"])], "priority": item["priority"]} for item in questions]
-    return {"artifact": binding, "questions": admitted}
+    return {"artifact": binding, "questions": admitted, "collection_date": collection_date, "run_id": run_id}
+
+
+def _paa_identity(artifact: Mapping[str, Any], layout: Layout) -> tuple[str, str, list[str]]:
+    """Read the PAA capture's date and run id; the run id must be this production run's."""
+    name = layout.paa_artifact.name
+    errors = []
+    collection_date = artifact.get("collection_date")
+    try:
+        datetime.date.fromisoformat(collection_date if isinstance(collection_date, str) else "")
+    except ValueError:
+        errors.append(f"PAA artifact {name} collection_date must be YYYY-MM-DD, found: {collection_date!r}")
+    receipt = artifact.get("run_receipt")
+    run_id = receipt.get("run_id") if isinstance(receipt, Mapping) else None
+    if not (isinstance(run_id, str) and run_id):
+        return str(collection_date), "", [*errors, f"PAA artifact {name} has no run_receipt.run_id"]
+    production_run = stored_run_id(layout)
+    if run_id != production_run:
+        errors.append(
+            f"PAA artifact run id {run_id} does not match the production run id {production_run or '(none recorded)'}"
+        )
+    return str(collection_date), run_id, errors
 
 
 def bind_context(layout: Layout) -> dict[str, Any]:

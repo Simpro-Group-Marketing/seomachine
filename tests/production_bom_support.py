@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import Any
 
 import requests
-from data_sources.modules.production.layout import Layout
+from data_sources.modules.production.bom_build import is_nonconnector
+from data_sources.modules.production.layout import Layout, load_or_create_run_id
 from data_sources.modules.vault_claim_receipts import ApprovedClaim, ValidatedClaimSet
 
 FROZEN = Path(__file__).resolve().parent / "fixtures" / "production_bom"
@@ -29,6 +30,9 @@ PAA_QUESTION = "What is field service software?"
 CLAIM_ID = "claim-metric-1"
 NONVAULT_ID = "clockshark-customer-story-chesapeake"
 STORY_ID = "clockshark-story-row"
+CONNECTOR_EVIDENCE_SCHEMA = "simpro-customer-proof-selector-evidence/v2"
+NONVAULT_EVIDENCE_SCHEMA = "simpro-nonvault-customer-proof-selector-evidence/v1"
+SLATE_ROLES = ("metric", "quote", "theme", "experience_story")
 
 
 def write_json(path: Path, payload: Any) -> None:
@@ -187,6 +191,29 @@ def write_pillar_index(root: Path, record: dict[str, Any] | None = None) -> None
         "records": [record]})
 
 
+def selector_evidence(spec: dict[str, Any], *, nonconnector: bool) -> dict[str, Any]:
+    """Selector evidence whose selected ids are exactly the spec's proof claim ids, by kind."""
+    roles = []
+    for role in SLATE_ROLES:
+        ids = [item["claim_id"] for item in spec["proof"] if item.get("kind") == role]
+        roles.append({"role": role, "candidate_ids": ids, "claim_ids": [] if nonconnector else ids,
+                      "selected_id": ids[0] if ids else "none", "selected_candidate": None,
+                      "rejected_overrides": {}})
+    return {"schema": NONVAULT_EVIDENCE_SCHEMA if nonconnector else CONNECTOR_EVIDENCE_SCHEMA,
+            "selection_outcome": "customer_proof_candidates_available",
+            "inputs": {"article_slug": "field-service-software", "rejected_overrides": {}},
+            "artifacts": {}, "roles": roles}
+
+
+def evidence_path(layout: Layout, spec: dict[str, Any]) -> Path:
+    return layout.nonvault_customer_proof_evidence if is_nonconnector(spec) else layout.customer_proof_evidence
+
+
+def paa_artifact(run_id: str, *, collection_date: str = TODAY) -> dict[str, Any]:
+    return {"eligible_questions": [PAA_QUESTION, "Other?"], "collection_date": collection_date,
+            "run_receipt": {"run_id": run_id}}
+
+
 def make_workspace(root: Path, *, spec: dict[str, Any] | None = None,
                    paa: bool = True, context: bool = True) -> Layout:
     """Write every artifact a build needs and return the layout."""
@@ -205,7 +232,8 @@ def make_workspace(root: Path, *, spec: dict[str, Any] | None = None,
                                 "suggested": "must"}],
         "uncovered_questions": ["Is it worth it?"], "unreachable": []})
     if paa:
-        write_json(layout.paa_artifact, {"eligible_questions": [PAA_QUESTION, "Other?"]})
+        write_json(layout.paa_artifact, paa_artifact(load_or_create_run_id(layout)))
+    write_json(evidence_path(layout, spec), selector_evidence(spec, nonconnector=is_nonconnector(spec)))
     if context:
         write_json(layout.context_pack, {"pack": True})
         write_json(layout.context_receipt, {"receipt": True})

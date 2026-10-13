@@ -208,7 +208,8 @@ def test_duplicate_fact_ids_abort(tmp_path):
 
 
 def test_aborted_build_does_not_mint_run_state(tmp_path):
-    layout = make_workspace(tmp_path)
+    layout = make_workspace(tmp_path, paa=False)
+    _mutate(layout, lambda s: s.update(paa_questions=[]))
     transport = FakeTransport({FACT_URL: response(FACT_URL, 200, "<p>none</p>")})
     _refused(layout, "f1", transport=transport)
     assert not layout.run_state.exists()

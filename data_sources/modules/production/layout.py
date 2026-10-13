@@ -96,6 +96,14 @@ class Layout:
         return self._research(f"context-receipt-{self.slug}.json")
 
     @property
+    def customer_proof_evidence(self) -> Path:
+        return self._research(f"customer-proof-selector-evidence-{self.slug}.json")
+
+    @property
+    def nonvault_customer_proof_evidence(self) -> Path:
+        return self._research(f"nonvault-customer-proof-selector-evidence-{self.slug}.json")
+
+    @property
     def run_state(self) -> Path:
         return self.root / "research" / "runs" / f"{self.slug}-{self.date}.json"
 
@@ -122,6 +130,11 @@ def load_or_create_run_id(layout: Layout, *, run_id: str | None = None) -> str:
     minted = str(uuid.uuid4())
     _write_run_state(layout, minted)
     return minted
+
+
+def stored_run_id(layout: Layout) -> str | None:
+    """Return the persisted run id without minting one; None when no run state exists."""
+    return _read_stored_run_id(layout.run_state)
 
 
 def _read_stored_run_id(path: Path) -> str | None:

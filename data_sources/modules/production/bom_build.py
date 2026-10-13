@@ -41,6 +41,7 @@ from data_sources.modules.production.bom_proof import (
     resolve_connector_proof,
     resolve_nonconnector_proof,
 )
+from data_sources.modules.production.bom_selector import bind_selector_evidence, evidence_path
 from data_sources.modules.production.bom_text import free_text_number_errors
 from data_sources.modules.production.claim_support import SUPPORT_RULE, claim_support_errors
 from data_sources.modules.production.facts import verify_quotes
@@ -83,6 +84,7 @@ def _required_artifacts(layout: Layout, spec: Mapping[str, Any], nonconnector: b
         "keyword_shortlist": layout.keyword_shortlist,
         "serp_evidence": layout.serp_evidence,
         "serp_coverage": layout.serp_coverage,
+        "customer_proof_evidence": evidence_path(layout, nonconnector),
     }
     if spec["paa_questions"]:
         required["paa_artifact"] = layout.paa_artifact
@@ -174,6 +176,7 @@ def _local_phase(
         "paa": lambda: resolve_paa(spec, layout),
         "links": lambda: resolve_links(spec, layout.root, nonconnector),
         "blocks": lambda: keyword_and_serp(layout),
+        "customer_proof": lambda: bind_selector_evidence(layout, spec["proof"], nonconnector),
     }
     results: dict[str, Any] = {}
     errors = _fact_errors(spec["facts"])
@@ -220,6 +223,7 @@ def build_bom(
         "paa": local["paa"],
         "links": local["links"],
         "context": local["context"],
+        "customer_proof": local["customer_proof"],
     }
     problems = validate_bom(bom)
     if problems:
