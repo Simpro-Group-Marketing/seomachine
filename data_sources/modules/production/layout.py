@@ -121,14 +121,19 @@ def load_or_create_run_id(layout: Layout, *, run_id: str | None = None) -> str:
 
 
 def _read_stored_run_id(path: Path) -> str | None:
+    """Return the stored run id, None when no run state exists, or raise on an invalid file."""
     if not path.exists():
         return None
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return None
-    value = payload.get("run_id") if isinstance(payload, dict) else None
-    return value if isinstance(value, str) and value else None
+    except (OSError, json.JSONDecodeError) as exc:
+        raise LayoutError(f"run state {path} is unreadable: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise LayoutError(f"run state {path} is not a JSON object")
+    value = payload.get("run_id")
+    if not isinstance(value, str) or not value:
+        raise LayoutError(f"run state {path} has no non-empty string run_id")
+    return value
 
 
 def _write_run_state(layout: Layout, run_id: str) -> None:
