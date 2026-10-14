@@ -7,6 +7,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from decimal import Decimal
 
+from data_sources.modules.production.number_words import SpelledNumber, spelled_numbers
 from data_sources.modules.production.numbers import extract_numbers
 from data_sources.modules.production.truth_text import Finding
 
@@ -144,6 +145,25 @@ def _classify(match: re.Match[str], text: str, ratios: frozenset[int], listicle:
     return False, attached or ratio or large
 
 
+def _spelled_exempt(spelled: SpelledNumber, text: str, listicle: int) -> bool:
+    """The digit rule for words: bare 0 to 10 is exempt, and so is a list size before a plural noun."""
+    if spelled.attached:
+        return False
+    value = Decimal(spelled.values[0])
+    if value <= _SMALL_INTEGER:
+        return True
+    return value == listicle and _PLURAL_AFTER.match(text, spelled.end) is not None
+
+
+def _spelled_tokens(text: str, line: str, year: str, scope: ListicleScope | None, line_no: int) -> list[NumberToken]:
+    tokens = []
+    for spelled in spelled_numbers(text):
+        listicle = scope.count_at(line_no, line, spelled.start) if scope else 0
+        if not _spelled_exempt(spelled, text, listicle):
+            tokens += [NumberToken(spelled.text, value, value != year) for value in spelled.values]
+    return tokens
+
+
 def number_tokens(
     line: str, year: str = "", scope: ListicleScope | None = None, line_no: int = 0
 ) -> list[NumberToken]:
@@ -151,6 +171,7 @@ def number_tokens(
 
     ``scope`` carries the article's H3 count: an equal number of 11 or more followed by a plural
     noun ("12 Ways") is a list size, not a claim, but only in a title, meta field, heading, or anchor.
+    Spelled-out numbers ("seventy percent", "half of", "nine out of ten") follow the same rule.
     """
     text = _scrub(line)
     ratios = _ratio_starts(text)
@@ -162,7 +183,7 @@ def number_tokens(
             continue
         for canonical in extract_numbers(match.group(0)):
             tokens.append(NumberToken(match.group(0).strip(), canonical, material and canonical != year))
-    return tokens
+    return tokens + _spelled_tokens(text, line, year, scope, line_no)
 
 
 def number_gate(lines: Sequence[str], allowed: frozenset[str], scope: ListicleScope | None = None) -> list[Finding]:

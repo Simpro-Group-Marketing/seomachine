@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from decimal import Decimal
 
+from data_sources.modules.production.number_words import spelled_numbers
+
 _ISO_DATE = re.compile(r"(?<!\d)\d{4}-\d{2}-\d{2}(?!\d)")
 _NUMBER = re.compile(
     r"(?<![A-Za-z0-9_])(?<!\d\.)"
@@ -35,12 +37,10 @@ def _suffix(match: re.Match[str]) -> str | None:
 
 
 def extract_numbers(text: str) -> frozenset[str]:
-    """Return canonical decimal strings for every number in ``text``."""
+    """Return canonical decimal strings for every number in ``text``, digits or spelled out."""
     scrubbed = _ISO_DATE.sub(" ", text)
-    return frozenset(
-        _canonical(match.group("number"), _suffix(match))
-        for match in _NUMBER.finditer(scrubbed)
-    )
+    digits = {_canonical(match.group("number"), _suffix(match)) for match in _NUMBER.finditer(scrubbed)}
+    return frozenset(digits.union(*(spelled.values for spelled in spelled_numbers(scrubbed))))
 
 
 def numbers_supported(claim: str, quote: str) -> tuple[bool, frozenset[str]]:
