@@ -78,7 +78,7 @@ For `sealed_preview` and `handoff_prepared`, save the selected and rejected chan
 
 `repurposed/[slug]-repurposed-[YYYY-MM-DD].md`
 
-The repurposed handoff is advisory distribution work, not an assembly BOM artifact, not a `/publish-readiness` input or gate, and not a release requirement.
+The repurposed handoff is advisory distribution work, not a production BOM input, not a `/publish-readiness` input or gate, and not a release requirement.
 
 The output must begin with the article path, final-readiness attestation path, attested article hash, current article hash, state, canonical URL status, and a statement that no external posting occurred. Include selected-channel packets, rejected channels with reasons, and a final manual-review checklist. In `sealed_preview`, every derivative remains clearly labeled non-postable. Do not create an output file for `blocked`.
 

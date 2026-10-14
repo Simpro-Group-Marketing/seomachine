@@ -9,11 +9,11 @@ Analyze article content and recommend specific internal links on the owning bran
 
 Return advisory findings only. Do not edit public copy or assign release status. Final release status comes only from `/publish-readiness`.
 
-Consume `context/blog-editorial-strategy.md` and `context/aeo-geo-blog-strategy.md`. Treat the v2 plan's commercial destination, exact approved anchor, planned H2, and link policy as immutable inputs. Diagnose article execution separately from plan defects, and route plan changes to `/research` or `/analyze-existing` for a new hash.
+Consume `context/blog-editorial-strategy.md` and `context/aeo-geo-blog-strategy.md`. `/write`, `/rewrite`, and `/optimize` use this agent as an advisory reviewer, directly or as a checklist inside the parallel `seo-optimizer` review, against a frozen article snapshot and its production BOM, `research/production-bom-[slug]-[YYYY-MM-DD].json`. Read both, return advisory findings, and never edit the article, the BOM, or its spec. Treat the BOM links, including the commercial pillar link with its canonical URL and exact planned anchor, as fixed inputs, and recommend new destinations only as BOM additions. Diagnose article execution separately from BOM defects. Route a BOM defect (a missing or wrong fact, proof item, PAA question, section, or link) to `/research`, or to the BOM build step of `/rewrite`; route prose defects to `/write`, `/rewrite`, or `/optimize`.
 
 ## Reader-Facing Copy Boundary
 
-Flag `editorial_process_leakage` when anchor text or surrounding link copy explains why a link, source, proof point, product mention, or omission was selected for the draft. Recommend audience-facing anchor context, or move the workflow rationale to the validation sidecar, editorial plan, optimizer output, release BOM, or command receipt.
+Flag `editorial_process_leakage` when anchor text or surrounding link copy explains why a link, source, proof point, product mention, or omission was selected for the draft. Recommend audience-facing anchor context, or move the workflow rationale to frontmatter or the research brief.
 
 ## Expertise Areas
 - Information architecture and site structure
@@ -142,13 +142,13 @@ The claim map uses the fixed modes `inline_required`, `section_source_allowed`, 
 - Caution: Don't overuse; can look unnatural
 
 **Partial Match** (most common):
-- "field service software for trade industries" -> industries hub only when the sidecar documents that no specific verified destination fits
+- "field service software for trade industries" -> industries hub only when the research brief documents that no specific verified destination fits
 - "choosing field service management software" -> FSM solution page
 - Best for: Blog posts and guides
 
 **Branded**:
 - "Simpro Payments" -> payments feature page
-- "Simpro industries" -> industries hub only when the sidecar documents that no specific verified destination fits
+- "Simpro industries" -> industries hub only when the research brief documents that no specific verified destination fits
 - Best for: Product features
 
 **Naked URLs** (rarely):

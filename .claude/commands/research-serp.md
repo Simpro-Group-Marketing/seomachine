@@ -12,7 +12,7 @@ Analyzes an intent-representative verified result set until dominant patterns an
 - Average, median, range, and individual competitor word counts as context only
 - SERP features present (featured snippet, PAA, video, etc.)
 - AEO/GEO variable candidates for blog writing
-- Supplemental visible PAA observations that may refine the AnswerSocrates query or editorial plan but never become provenance
+- Supplemental visible PAA observations that may refine the AnswerSocrates query or research brief but never become provenance
 - Observed freshness signals
 - Competitive difficulty
 - Search intent
@@ -47,9 +47,9 @@ This will:
 9. Create report: `research/serp-analysis-[keyword].md`
 10. When organic results were actually collected, create the immutable `simpro-serp-evidence/v1` artifact at `research/serp-evidence-[keyword-slug]-[YYYY-MM-DD].json`
 
-The strict evidence JSON contains the exact query and RFC 3339 UTC collection time, collector name/version and run ID, non-empty observed result positions/URLs/titles/types, concrete content-type and SERP-feature observations, must-have sections, competitor gaps, and a canonical evidence hash. A blocked or empty run must not mint verified evidence. Metadata-only `status: verified` files and editorial decisions that are not traceable to the bound observations fail readiness.
+The strict evidence JSON contains the exact query and RFC 3339 UTC collection time, collector name/version and run ID, non-empty observed result positions/URLs/titles/types, concrete content-type and SERP-feature observations, must-have sections, competitor gaps, and a canonical evidence hash. A blocked or empty run must not mint verified evidence. Metadata-only `status: verified` files do not qualify as evidence, and editorial decisions in the research brief must trace to the bound observations.
 
-The tool-emitted `simpro-serp-evidence/v1` artifact carries an `execution_attestation`, a keyed local execution-integrity attestation. The nested `simpro-answersocrates-run-receipt/v1` in a tool-emitted PAA artifact uses the same control. A handwritten or merely rehashed replacement does not qualify. This local control does not provide a remote/provider signature and does not prove that external observations are true; the workflow still validates query, collection date, source metadata, visible result observations, and eligible PAA questions. For a rewrite, the dedicated pre-picked PAA brief section remains the path/hash-bound precedence exception.
+The tool-emitted `simpro-serp-evidence/v1` artifact carries an `execution_attestation`, a keyed local execution-integrity attestation. The nested `simpro-answersocrates-run-receipt/v1` in a tool-emitted PAA artifact uses the same control. A handwritten or merely rehashed replacement does not qualify. This local control does not provide a remote/provider signature and does not prove that external observations are true; the workflow still validates query, collection date, source metadata, visible result observations, and eligible PAA questions.
 
 ## Required Fallback Order
 
@@ -112,11 +112,11 @@ The report includes:
 
 ### AEO/GEO Inputs
 - Candidate `main_question` for direct-answer-first drafting
-- Supplemental PAA observations with intent labels; these cannot replace AnswerSocrates or dedicated rewrite-brief provenance
+- Supplemental PAA observations with intent labels; these cannot replace the AnswerSocrates capture
 - Capsule Method opportunities by H2/definition/comparison section
 - Source mapping needs for credible external claims
 
-PAA provenance remains a separate gate. Every new article requires a structured AnswerSocrates artifact, even when `FAQ policy: required | not_applicable` resolves to `not_applicable` with a non-empty rationale. For a rewrite, PAA in a dedicated brief section takes precedence: bind the brief path/hash, do not rerun AnswerSocrates, and use those exact questions as visible FAQ headings. A rewrite without that section requires AnswerSocrates. A user CSV is permitted only with an AnswerSocrates artifact documenting a genuine blocked state caused by login, CAPTCHA, quota, or unavailability. SERP, Reddit, and YouTube are supplemental research and cannot satisfy PAA provenance.
+PAA provenance remains a separate lane. Every new article and rewrite requires a structured AnswerSocrates artifact recorded under the production run id, even when `FAQ policy: required | not_applicable` resolves to `not_applicable` with a non-empty rationale. The production BOM admits FAQ questions only from that capture: there is no pre-picked brief precedence for rewrites, and a user CSV cannot supply FAQ questions. When AnswerSocrates records a genuine blocked state (login, CAPTCHA, quota, or unavailability), retry the capture or ship without a visible FAQ. SERP, Reddit, and YouTube are supplemental research and cannot satisfy PAA provenance.
 
 ### Content Brief
 - Article context (caller-supplied word target or unresolved status, observed type, tone)

@@ -6,13 +6,13 @@ You are a specialist content analyst for long-form blog content. Resolve the bra
 
 Return advisory findings against the caller-supplied article snapshot. Do not edit public copy, assign release status, or replace the native writing commands.
 
-Consume `context/blog-editorial-strategy.md` for the frozen editorial contract and `context/aeo-geo-blog-strategy.md` for AEO and proof governance. For v2 work, inspect the immutable editorial plan and current plan-fulfillment artifact. Assess whether every `actual_excerpt` accomplishes its planned purpose in its target section without requiring the writer to reuse planned wording. Route plan-level defects to `/research` or `/analyze-existing` for a new plan hash; route prose defects to the active native writing command.
+Consume `context/blog-editorial-strategy.md` for the editorial contract and `context/aeo-geo-blog-strategy.md` for AEO and proof governance. `/write`, `/rewrite`, and `/optimize` dispatch this agent as a parallel advisory reviewer against a frozen article snapshot and its production BOM, `research/production-bom-[slug]-[YYYY-MM-DD].json`. Read both, return advisory findings, and never edit the article, the BOM, or its spec. Assess whether every BOM section accomplishes its planned purpose in the article without requiring the writer to reuse planned wording. Route a BOM defect (a missing or wrong fact, proof item, PAA question, section, or link) to `/research`, or to the BOM build step of `/rewrite`; route prose defects to `/write`, `/rewrite`, or `/optimize`.
 
 ## Reader-Facing Copy Boundary
 
 Flag `editorial_process_leakage` whenever public body copy explains the workflow instead of satisfying the Reader Contract. This includes brief instructions, editorial rationale, source-fit reasoning, claim-selection decisions, feature-omission rationale, command results, schema notes, and publish-readiness status.
 
-Route the fix to `/write`, `/rewrite`, or `/optimize`. Recommend moving workflow rationale to frontmatter, the validation sidecar, the editorial plan, the optimizer output, the release BOM, or a command receipt, or translating it into reader-facing guidance with existing proof support.
+Route the fix to `/write`, `/rewrite`, or `/optimize`. Recommend moving workflow rationale to frontmatter or the research brief, or translating it into reader-facing guidance with existing proof support.
 
 Use Python only for measurement and workflow assistance. The available analysis modules in `data_sources/modules/` are:
 
@@ -66,7 +66,7 @@ Do not invoke a module with invented inputs. Label missing or stale evidence exp
 - Report the deterministic SEO score and its component checks.
 - Inspect headings, metadata, link context, answer-first structure, early artifact, FAQ answers, and schema notes where applicable.
 - Treat content quality below 85, SEO quality below 90, any critical SEO issue, or AEO/GEO below 90 as recovery work for the owning command, not as a release verdict.
-- Distinguish copy gaps, proof gaps, missing workflow artifacts, and scorer false negatives.
+- Distinguish copy gaps, BOM gaps, and scorer false negatives.
 
 ## Output Contract
 

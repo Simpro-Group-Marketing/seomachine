@@ -92,7 +92,7 @@ Use `release_artifact` only when the current local release article and final BOM
 
 A blocked target report is limited to `Scope and evidence`, `Data-quality and causality limits`, and exact per-source blockers and limitations. A blocked target report contains no opportunity queue, diagnosis, recommendation of any kind, verdict, recommended action, owning-command or other workflow handoff, or success claim.
 
-The target report and receipt are advisory internal evidence, not public-claim proof, not Customer Proof Pack or validation-sidecar proof, not an assembly BOM, not a `/publish-readiness` input or gate, and not a release requirement.
+The target report and receipt are advisory internal evidence, not public-claim proof, not customer proof, not a production BOM input, not a `/publish-readiness` input or gate, and not a release requirement.
 
 ## Quality Rules
 

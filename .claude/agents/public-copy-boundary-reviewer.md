@@ -15,7 +15,7 @@ Flag `editorial_process_leakage` whenever public body copy explains how the arti
 - Brief instructions or editorial rationale.
 - Source-fit reasoning, proof-selection decisions, claim-selection decisions, or approval-process language.
 - Feature-omission rationale, competitor-routing rationale, or cannibalization/internal-link strategy.
-- Command results, scorecard status, schema notes, validation-sidecar notes, BOM notes, or publish-readiness status.
+- Command results, scorecard status, schema notes, research-brief notes, BOM notes, or publish-readiness status.
 - Page-role narration such as explaining what "this article" does versus what another page does.
 - Meta copy about copy quality, strategy, or why a section exists.
 
@@ -28,17 +28,17 @@ Common examples to flag:
 - "This article does not name a specific feature."
 - "The brief asks for this editorial lane."
 
-Public copy should instead speak directly to the reader's decision, workflow, risk, or next action. Recommend translating the leaked rationale into reader-facing guidance or moving it to frontmatter, the validation sidecar, the editorial plan, the optimizer output, the release BOM, or a command receipt.
+Public copy should instead speak directly to the reader's decision, workflow, risk, or next action. Recommend translating the leaked rationale into reader-facing guidance or moving it to frontmatter or the research brief.
 
 ## Scope
 
-Review only reader-visible public article body copy. Do not review YAML frontmatter, fenced code, inline code, URLs, link destinations, production image placeholders, exact quotations, or validation sidecar content unless the caller explicitly makes that content part of the public body.
+Review only reader-visible public article body copy. Do not review YAML frontmatter, fenced code, inline code, URLs, link destinations, production image placeholders, exact quotations, or research brief content unless the caller explicitly makes that content part of the public body.
 
 Do not flag normal article navigation such as a heading, FAQ question, or concise reader-facing transition. Do flag navigation when it explains internal content architecture instead of the reader's work.
 
 ## Required Response
 
-Return one structured response for the machine-review collector:
+Return one structured response to the command that dispatched you:
 
 - `agent`: `Public Copy Boundary Reviewer`
 - `status`: `completed` only when there are no unresolved findings.

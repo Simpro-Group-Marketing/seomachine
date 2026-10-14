@@ -9,7 +9,7 @@ alwaysApply: true
 
 # Customer Proof Rule
 
-Apply this selector-first rule to connector-bound blog drafts, rewrites, and research proof sidecars.
+Apply this selector-first rule to connector-bound blog drafts, rewrites, and the production BOM's proof items.
 
 ## Connector-bound Simpro workflows
 
@@ -19,7 +19,7 @@ Before selecting customer proof, resolve `topic`, `title`, and `objective`, then
 python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug].json" --context-receipt "research/context-receipt-[topic-slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10
 ```
 
-Add `--decision-block` to print a prefilled `Customer Proof Selection Decision` whose `Selected proof` lines match the slate. Paste it after the slate and append `Reuse reason`, the zero-use comparison, and `Final use in copy` directly under its bullets with no blank line.
+Add `--decision-block` to print a prefilled `Customer Proof Selection Decision` whose `Selected proof` lines match the slate. It is a private research note: keep it with the research brief, and append `Reuse reason`, the zero-use comparison, and `Final use in copy` directly under its bullets with no blank line.
 
 For review-derived public E-E-A-T stories, also run:
 
@@ -29,11 +29,11 @@ python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title
 
 Simpro candidates come exclusively from approved claim results bound to the current context pack and receipt. The selector requires complete, non-truncated task-specific claim searches for `public_metric`, `exact_quote`, and `public_paraphrase`, uses `claim_id` as the candidate identifier, and fails closed on legacy local `--index` use.
 
-Write the generated selector-first `Customer Proof Slate` to the validation sidecar before drafting customer proof. If inputs are missing or the selector fails, write the blocker into the validation sidecar and do not invent proof.
+The selector evidence file is the record of the slate. The production BOM build binds it by path and sha256 and admits a proof item only when its `claim_id` is an approved claim in the validated context receipt and a selected candidate in that evidence. The release refreshes the evidence so it is same-day before rebuilding the BOM. If inputs are missing or the selector fails, record the blocker in the research brief and do not invent proof.
 
 ## Selection and reuse
 
-Choose the most relevant approved claim, not the easiest searchable case study. Treat any `recent_uses_90d` value above 0 as a proof-diversity warning. Prefer an approved zero-recent-use source when one fits the same role. Before claiming a proof source is underused, inspect `config/customer-proof-usage-ledger.json` and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the claim ID, public URL, and customer name. If public-copy usage is missing from the ledger, backfill `config/customer-proof-usage-ledger.json`, rerun selector checks, and document the backfill.
+Choose the most relevant approved claim, not the easiest searchable case study. Treat any `recent_uses_90d` value above 0 as a proof-diversity warning. Prefer an approved zero-recent-use source when one fits the same role. Before claiming a proof source is underused, inspect `config/customer-proof-usage-ledger.json` and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the claim ID, public URL, and customer name. If public-copy usage is missing from the ledger, backfill `config/customer-proof-usage-ledger.json`, rerun selector checks, and document the backfill in the research brief.
 
 When selected proof is recently used or overused, add a `Customer Proof Selection Decision` and source-specific `Reuse reason` proving no stronger underused approved claim fits the same role.
 
@@ -47,4 +47,4 @@ Run `python data_sources/modules/customer_proof_index_health.py --index config/n
 
 ## Public-copy use
 
-When selected customer proof appears in public copy, add `Selected Customer Proof Mining` to the validation sidecar and add a matching entry to `config/customer-proof-usage-ledger.json` before final handoff. Review-derived E-E-A-T stories require `Review Story Selection` and same-paragraph public review links. Use `context/aeo-geo-blog-strategy.md` as the canonical policy.
+Selected customer proof reaches public copy only as a production BOM proof item. The release renders the `Selected Customer Proof Mining` view from the BOM for the scorer, blocks a customer or review claim that links no BOM proof URL, and blocks a customer or review quote that does not match a BOM proof item verbatim. When selected customer proof appears in public copy, add a matching entry to `config/customer-proof-usage-ledger.json` before final handoff; the release never writes the ledger. Review-derived E-E-A-T stories require same-paragraph public review links. Use `context/aeo-geo-blog-strategy.md` as the canonical policy.

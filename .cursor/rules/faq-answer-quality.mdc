@@ -11,11 +11,23 @@ alwaysApply: true
 
 Apply this rule to every FAQ in a blog draft, rewrite, or published Markdown handoff.
 
+## Drafting rules
+
+- Ask only questions that are production BOM PAA questions, in their exact wording, as `###` headings under the FAQ section.
 - Write the first visible FAQ paragraph as a 40-60 word answer.
 - Lead with an extractable answer: a supported number or range, named recommendation, definition, concrete action, or explained yes/no response.
 - Do not open with a generic deflection such as `There is no`, `It depends`, `Pricing depends`, `Costs vary`, `We do not know`, `It is unclear`, or `No source ranks`.
 - Put limitations and suitability caveats after the direct answer.
-- Fact-driven or high-risk FAQ claims use `inline_required`: add a natural descriptive anchor to an authoritative public source in the first visible answer paragraph. `faq_proof_guard.py` accepts a mapped `neutral`, `non_competing_expert`, or `owned_product` source and prohibits competitor-owned sources; when the answer states compliance, legal, regulatory, statistical, or research-backed claims, `public_research_link_guard.py` also requires a resolved non-owned public link in that answer. Lower-risk answers follow their machine-assigned `section_source_allowed`, `sidecar_only`, or `proof_not_required` mode without quota-only links. A Source Map or FAQ Proof Map cannot replace the reader-facing link when `inline_required` applies.
+- Fact-driven or high-risk FAQ claims use `inline_required`: add a natural descriptive anchor to an authoritative public source in the first visible answer paragraph, and that source must be a BOM fact or proof URL. Prefer a neutral or non-competing expert source; never use a competitor-owned source. When the answer states compliance, legal, regulatory, statistical, or research-backed claims, link a non-owned public source. Lower-risk answers follow their machine-assigned `section_source_allowed`, `sidecar_only`, or `proof_not_required` mode without quota-only links.
 - Replace or remove a question when no defensible, evidence-backed answer is available.
 
-Run `python data_sources/modules/faq_answer_quality_guard.py [file] --fail-on error` and `python -m data_sources.modules.faq_proof_guard [file] --fail-on error`. Both gates run inside `/publish-readiness`. Canonical policy lives in `context/aeo-geo-blog-strategy.md`.
+## What the release enforces
+
+`/publish-readiness` runs `python -m data_sources.modules.production.release`, which checks FAQs this way:
+
+- Truth blocks any visible FAQ question that is not a BOM PAA question, and any question in the FAQ section that is not a `###` question heading.
+- Truth blocks a claim that cites a source outside the BOM, and a material number that no BOM fact or proof item linked in the same paragraph supports.
+- Coverage blocks when a `must` BOM PAA question is missing from the FAQ.
+- The AEO/GEO scorer runs its FAQ checks only when a visible FAQ exists: answer length (first paragraph 40-60 words), answer quality (no generic deflection opener), FAQ proof (each answer meets its citation mode against the FAQ Proof Map the release renders from the BOM, and competitor-owned FAQ sources are prohibited), and FAQ policy (a visible FAQ exists exactly when the BOM selects PAA questions). A failed FAQ check fails the AEO/GEO gate.
+
+The release does not run the standalone non-owned research-link check, so the non-owned source requirement for compliance, legal, regulatory, statistical, or research-backed FAQ claims is a drafting rule. Canonical policy lives in `context/aeo-geo-blog-strategy.md`.

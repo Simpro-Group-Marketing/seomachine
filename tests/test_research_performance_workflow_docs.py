@@ -115,7 +115,7 @@ def test_performance_agent_keeps_blocked_targets_out_of_observed_opportunity_con
     assert "A blocked target report is limited to `Scope and evidence`" in output_contract
     assert "exact per-source blockers and limitations" in output_contract
     assert "A blocked target report contains no opportunity queue, diagnosis, recommendation of any kind, verdict, recommended action, owning-command or other workflow handoff, or success claim" in output_contract
-    assert "not Customer Proof Pack or validation-sidecar proof" in output_contract
+    assert "not customer proof" in output_contract
     assert "not external analytics truth or causal correlation" in output_contract
     assert "machine-checks the exact report headings against receipt status" in output_contract
     assert "blocked source identity, property, blocker code, and blocker detail verbatim" in output_contract
@@ -186,12 +186,12 @@ def test_receipt_contract_is_advisory_not_public_proof_or_release_governance() -
     for text in (command_target, agent_output, policy):
         assert "advisory" in text
         assert "public-claim proof" in text
-        assert "not an assembly BOM" in text
         assert "not a `/publish-readiness` input or gate" in text
         assert "not a release requirement" in text
 
-    for text in (command_target, policy):
-        assert "not Customer Proof Pack or validation-sidecar proof" in text
+    for text in (command_target, agent_output):
+        assert "not a production BOM input" in text
+        assert "assembly BOM" not in text
 
 
 def test_summaries_identify_the_target_report_and_receipt_pair() -> None:

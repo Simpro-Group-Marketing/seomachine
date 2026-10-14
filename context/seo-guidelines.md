@@ -273,7 +273,7 @@ Every proof-sensitive claim must be machine-mapped to exactly one citation mode:
 - `sidecar_only`: approved low-risk product or brand language and clearly framed low-risk editorial recommendations may remain mapped in the validation sidecar.
 - `proof_not_required`: navigation, explicit opinion, or advice with no externally verifiable factual claim requires no proof. Only the policy engine may generate this mode.
 
-Unknown or ambiguous high-risk claims fail closed to `inline_required`. Machine reviewers preserve required links and flag duplicate support, repeated destinations, and quota-only sources. `/publish-readiness` remains the sole release verdict.
+Unknown or ambiguous high-risk claims fail closed to `inline_required`. Advisory reviewers preserve required links and flag duplicate support, repeated destinations, and quota-only sources. `/publish-readiness` remains the sole release verdict.
 
 ### What to Link Externally
 - **Statistics and data sources**: Always cite where numbers come from
@@ -535,7 +535,7 @@ Record a checked schema handoff for the later CMS stage. Do not report schema no
 
 `FAQPage` and `Question and Answer inside FAQPage` are required only when visible FAQs exist. `Person as author` is required only when a named author exists. Require `VideoObject` if and only if a verified video embed exists.
 
-If a named author is present, include `author` in frontmatter and map it to `Person as author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization as publisher reference only`, and record `author_policy.status: no_author` in the BOM and `Author policy: no_author` in the validation sidecar. Legacy BOMs may retain `not_provided`. Without a named author, first-person singular author judgment outside quotes is prohibited.
+If a named author is present, include `author` in frontmatter and map it to `Person as author`. If no named author is available, omit `author`, omit `Person as author`, keep `Organization as publisher reference only`, and record the no-author decision in the research brief and in the production BOM spec's `schema_notes` choice by leaving out `Person as author`. Without a named author, first-person singular author judgment outside quotes is prohibited.
 
 ### Feature Pages
 - `SoftwareApplication` or `Product`
@@ -634,15 +634,15 @@ Each H2/H3 section should focus on one clear idea so humans and machines can und
 
 Evaluate video only when the SERP, reader task, available assets, or section evidence makes video useful. Embedding a video is optional and must be source-fit.
 
-Embed a public, embeddable video only when it materially supports a specific section and the sidecar/BOM records the decision. Require `VideoObject` only when a video is embedded.
+Embed a public, embeddable video only when it materially supports a specific section and the research brief records the decision. Require `VideoObject` only when a video is embedded.
 
 ### FAQ Sections as Prompt Targets
 
-Use an FAQ section only when the editorial plan records `FAQ policy: required`. When the policy is `not_applicable`, record a non-empty rationale and omit FAQ-specific schema and gates.
+Use an FAQ section only when the research brief records `FAQ policy: required` and the production BOM selects PAA questions. When the policy is `not_applicable`, record a non-empty rationale and omit FAQ-specific schema and gates.
 
 - Write FAQ questions in natural prompt language (how real people ask, not SEO-speak)
 - Answer each question directly in the first sentence, then expand
-- Include only the useful complete questions bound to the structured AnswerSocrates artifact or, for a rewrite, its dedicated pre-picked brief section; do not target a fixed count
+- Include only the useful complete questions the production BOM admitted from the run's structured AnswerSocrates artifact, for new articles and rewrites alike; do not target a fixed count
 - Reddit, YouTube comments, and search suggestions may inform intent but cannot satisfy PAA provenance
 
 ### Content Repurposing for AI Citation Surface

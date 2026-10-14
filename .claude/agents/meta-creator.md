@@ -9,7 +9,7 @@ Generate multiple compelling meta title and description options for the Reader C
 
 Return advisory findings only. Do not edit public copy or assign release status. Final release status comes only from `/publish-readiness`.
 
-Consume `context/blog-editorial-strategy.md` and `context/aeo-geo-blog-strategy.md`. In a v2 workflow, planned `title_options`, `meta_title`, `meta_description`, keywords, and `url_slug` are frozen. Diagnose mismatches without replacing those values; a plan-level metadata defect returns to `/research` or `/analyze-existing` for a new plan hash.
+Consume `context/blog-editorial-strategy.md` and `context/aeo-geo-blog-strategy.md`. `/write`, `/rewrite`, and `/optimize` use this agent as an advisory reviewer, directly or as a checklist inside the parallel `seo-optimizer` review, against a frozen article snapshot and its production BOM, `research/production-bom-[slug]-[YYYY-MM-DD].json`. Read both, return advisory findings, and never edit the article, the BOM, or its spec. The BOM title, primary keyword, and article slug are fixed, and the research brief holds the meta title and description drafts. Options must keep the primary keyword in the title; a wrong title or keyword is a BOM defect. Route a BOM defect (a missing or wrong fact, proof item, PAA question, section, or link) to `/research`, or to the BOM build step of `/rewrite`; route prose defects to `/write`, `/rewrite`, or `/optimize`.
 
 ## Reader-Facing Copy Boundary
 

@@ -91,8 +91,8 @@ Use slash commands; scripts and MCP calls are implementation details the command
 
 | Command | Purpose |
 |---------|---------|
-| `/research [topic]` | Keyword and competitor research, research brief, and frozen editorial plan in `research/` |
-| `/write [topic]` | Native draft in `drafts/` with specialist machine reviews |
+| `/research [topic]` | Keyword and competitor research, research brief, and production BOM in `research/` |
+| `/write [topic]` | Native draft in `drafts/` from the production BOM, with parallel advisory reviewers |
 | `/rewrite [topic]` | Native rewrite in `rewrites/` with SEO plus AEO/GEO rewrite gates |
 | `/analyze-existing [URL or file]` | Content health and AEO/GEO rewrite-readiness audit |
 | `/optimize [file]` | Required post-preflight SEO/AEO repair or recorded no-op pass |

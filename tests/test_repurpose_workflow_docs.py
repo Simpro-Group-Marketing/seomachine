@@ -30,7 +30,7 @@ def test_repurpose_requires_a_sealed_article_and_final_readiness_attestation():
         "repurposed/[slug]-repurposed-[YYYY-MM-DD].md",
     ):
         assert required in content
-    assert "not an assembly BOM artifact" in content
+    assert "not a production BOM input" in content
     assert "not a `/publish-readiness` input or gate" in content
     assert "not a release requirement" in content
 

@@ -36,7 +36,9 @@ def test_all_native_commands_and_reviewers_consume_both_strategy_sources() -> No
 
 def test_planning_and_writing_ownership_is_explicit() -> None:
     assert "creates and freezes" in text(".claude/commands/research.md")
-    assert "creates and freezes" in text(".claude/commands/analyze-existing.md")
+    analysis = text(".claude/commands/analyze-existing.md")
+    assert "produces the rewrite findings" in analysis
+    assert "creates and freezes" not in analysis
     for path in (
         ".claude/commands/write.md",
         ".claude/commands/rewrite.md",
@@ -53,7 +55,7 @@ def test_semantic_fulfillment_review_stays_with_content_reviewers() -> None:
         ".claude/agents/editor.md",
     ):
         content = text(path)
-        assert "actual_excerpt" in content
+        assert "production BOM" in content
         assert "planned purpose" in content
 
 
