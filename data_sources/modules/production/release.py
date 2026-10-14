@@ -10,9 +10,9 @@ earlier verification, or is verified from its Chrome capture (``page_capture``),
 citing the capture date; an edited capture refuses); run the truth and coverage checks in a thread
 pool while the scorer runs; write one release record. Every run that fails after the refresh also writes a
 failing record, so an older pass never stays the latest. ``record.verify_publishable`` (the
-``record verify`` CLI) trusts only the latest record; the WordPress and Grav publishers are not
-wired to the record. Release never writes the customer-proof usage ledger: per the customer-proof
-rule, the ledger entry is added before final handoff.
+``record verify`` CLI) trusts only the latest record, and the WordPress and Grav publishers call it
+before every blog publish. Release never writes the customer-proof usage ledger: the publishers
+record proof use after a successful live publish.
 
 Workers: ``--workers N`` overrides ``SEOMACHINE_RELEASE_WORKERS``, which defaults to 2.
 With 1 worker everything runs sequentially in this process, with no pools.
