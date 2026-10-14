@@ -1,23 +1,30 @@
-"""Release record: the one file a release writes and the publishers trust.
+"""Release record: the one file a release writes, and the check that an article is publishable.
 
 Each release run writes ``release-record.json`` into the next unused release directory for the
-article's run id. Publishers call ``verify_publishable``: only the latest record counts, so a
-newer failing release supersedes an older pass, and the article and BOM bytes must still be the
-ones that release checked.
+article's run id. ``verify_publishable`` trusts only the latest record, so a newer failing release
+supersedes an older pass, and the article and BOM bytes must still be the ones that release checked.
+The commands (/write, /rewrite, /repurpose) run it through this CLI; the WordPress and Grav
+publishers are not wired to the record.
+
+Usage: python -m data_sources.modules.production.record verify <article> [--workspace-root DIR]
+Prints the latest record path and its passed state. Exit codes: 0 publishable; 1 refused (the
+reason is printed); 2 argument or layout error.
 """
 
 from __future__ import annotations
 
+import argparse
 import dataclasses
 import datetime
 import hashlib
 import json
-from collections.abc import Iterable, Mapping
+import sys
+from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
 from data_sources.modules.blog_assembly_contract import atomic_write_json
-from data_sources.modules.production.layout import Layout, stored_run_id
+from data_sources.modules.production.layout import Layout, LayoutError, stored_run_id
 
 RECORD_SCHEMA = "simpro-release-record/v1"
 RECORD_NAME = "release-record.json"
@@ -189,6 +196,42 @@ def verify_publishable(article_path: Path, root: Path) -> dict[str, Any]:
     return payload
 
 
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="record", description="Check that an article's latest release passed.")
+    parser.add_argument("action", choices=("verify",))
+    parser.add_argument("article", type=Path)
+    parser.add_argument("--workspace-root", type=Path, default=None)
+    return parser
+
+
+def _verify(article: Path, root: Path) -> int:
+    layout = Layout.for_article(article, root)
+    path = latest_record_path(layout)
+    print(f"record: {path if path else 'none'}")
+    try:
+        latest = latest_record(layout)
+        if latest is not None:
+            print(f"passed: {'true' if latest.get('passed') is True else 'false'}")
+        verify_publishable(article, root)
+    except ValueError as error:
+        print(f"refused: {error}")
+        return 1
+    print("publishable")
+    return 0
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    try:
+        args = _parser().parse_args(argv)
+    except SystemExit as exit_request:
+        return int(exit_request.code or 0)
+    try:
+        return _verify(args.article, (args.workspace_root or Path.cwd()).resolve())
+    except LayoutError as error:
+        print(f"record: {error}", file=sys.stderr)
+        return 2
+
+
 __all__ = [
     "RECORD_NAME",
     "RECORD_SCHEMA",
@@ -196,7 +239,12 @@ __all__ = [
     "file_sha256",
     "latest_record",
     "latest_record_path",
+    "main",
     "record_passed",
     "verify_publishable",
     "write_record",
 ]
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

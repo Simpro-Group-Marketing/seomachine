@@ -35,7 +35,7 @@ Consume the production BOM `research/production-bom-[slug]-[YYYY-MM-DD].json` th
 8. Run `/scrub [article]` for diagnostics only. Make any needed edits through `/write` and rerun `/scrub`.
 9. Run `/publish-readiness [article]`, which runs `python -m data_sources.modules.production.release [article]`. On exit `1`, revise from the record's blocking findings, rerun `/scrub` if the bytes changed, and run the release again. On exit `1` with `bom_refused` findings, or exit `2` whose message names a `.refused` BOM from an earlier refused build, the BOM is the problem: go back to `/research`, which fixes the spec or the research inputs and rebuilds. On any other exit `2`, fix the operational cause named in the message and run it again.
 10. Run `/optimize [article]` for every new blog after the first release record. It works from the record's blocking findings and `priority_fixes`; when the release passed and no source-safe fix exists, it makes no edits and the passing record stands.
-11. Do not hand off as ready until the latest release record passed for the current article bytes and reports separate Content, SEO, and AEO/GEO scores. After 2 unsuccessful repair loops, leave the article in place and report the latest record's blocking findings.
+11. Do not hand off as ready until the latest release record passed for the current article bytes and reports separate Content, SEO, and AEO/GEO scores. The command runs `python -m data_sources.modules.production.record verify <article>`; it must exit 0. After 2 unsuccessful repair loops, leave the article in place and report the latest record's blocking findings.
 
 ## Score requirements
 

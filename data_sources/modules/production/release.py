@@ -8,9 +8,10 @@ pinned proof the selector no longer offers refuses the BOM); rebuild the product
 checks and the selector-first check run again; a fact whose page is merely unreachable keeps its
 earlier verification, and truth warns); run the truth and coverage checks in a thread pool while
 the scorer runs; write one release record. Every run that fails after the refresh also writes a
-failing record, so an older pass never stays the latest. Publishers trust only the latest record
-(see ``record.verify_publishable``). Release never writes the customer-proof usage ledger;
-publishing records proof use.
+failing record, so an older pass never stays the latest. ``record.verify_publishable`` (the
+``record verify`` CLI) trusts only the latest record; the WordPress and Grav publishers are not
+wired to the record. Release never writes the customer-proof usage ledger: per the customer-proof
+rule, the ledger entry is added before final handoff.
 
 Workers: ``--workers N`` overrides ``SEOMACHINE_RELEASE_WORKERS``, which defaults to 2.
 With 1 worker everything runs sequentially in this process, with no pools.

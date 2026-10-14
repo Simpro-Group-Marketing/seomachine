@@ -8,7 +8,7 @@ from unittest import mock
 import pytest
 
 from data_sources.modules import paa_provenance_guard
-from data_sources.modules.production import bom_build, keyword_record, layout, release, serp_coverage
+from data_sources.modules.production import bom_build, keyword_record, layout, record, release, serp_coverage
 
 ROOT = Path(__file__).resolve().parents[1]
 COMMAND_DIR = ROOT / ".claude" / "commands"
@@ -18,6 +18,7 @@ FLAG_RE = re.compile(r"(?<![\w-])--[a-z][a-z0-9-]*")
 ENTRIES = {
     "layout": lambda: layout.main([]),
     "release": lambda: release.main([]),
+    "record": lambda: record.main([]),
     "bom_build": lambda: bom_build.main([]),
     "serp_coverage": lambda: serp_coverage.main([]),
     "keyword_record": lambda: keyword_record.main([]),

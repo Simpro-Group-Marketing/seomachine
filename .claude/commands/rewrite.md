@@ -27,7 +27,7 @@ Consume the `/analyze-existing` findings and the production BOM for the rewrite 
 11. Run `/scrub [article]` as read-only diagnostics. Apply any required edits through `/rewrite` and rerun `/scrub`.
 12. Run `/publish-readiness [article]`, which runs `python -m data_sources.modules.production.release [article]`. On exit `1`, revise from the record's blocking findings, rerun `/scrub` if the bytes changed, and run the release again. On exit `1` with `bom_refused` findings, or exit `2` whose message names a `.refused` BOM from an earlier refused build, the BOM is the problem: go back to the BOM build step (step 3), which fixes the spec or the research inputs and rebuilds. On any other exit `2`, fix the operational cause named in the message and run it again.
 13. Run `/optimize [article]` for every rewrite after the first release record. When the release passed and no source-safe fix exists, it makes no edits and the passing record stands.
-14. Stop unless the latest release record passed for the current article bytes and reports separate Content, SEO, and AEO/GEO scores. After 2 unsuccessful repair loops, leave the article in place and report the latest record's blocking findings.
+14. Stop unless the latest release record passed for the current article bytes and reports separate Content, SEO, and AEO/GEO scores. The command runs `python -m data_sources.modules.production.record verify <article>`; it must exit 0. After 2 unsuccessful repair loops, leave the article in place and report the latest record's blocking findings.
 
 ## Score requirements
 

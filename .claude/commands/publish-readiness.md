@@ -32,7 +32,7 @@ python -m data_sources.modules.production.release "[article]" [--workers N] [--w
 
 ## Phases
 
-1. **Refresh selector evidence.** When the spec names proof or this article's selector evidence exists, the release re-runs the selector that wrote it, with the inputs recorded in the evidence, so the evidence is same-day. A connector article refreshes the vault-bound selector evidence; a nonconnector AroFlo, BigChange, or ClockShark article refreshes `simpro-nonvault-customer-proof-selector-evidence/v1` and never runs the vault-dependent customer-proof selector. A refresh failure, such as a vault outage, is exit `2`.
+1. **Refresh selector evidence.** When the spec names proof or this article's selector evidence exists, the release re-runs the selector that wrote it, with the inputs recorded in the evidence, so the evidence is same-day. The BOM's current selections are pinned, so a moved usage ledger cannot re-choose the proof; a pinned proof the selector no longer offers (it lost approval or eligibility) refuses the BOM (exit `1`, check `bom_refused`). A connector article refreshes the vault-bound selector evidence; a nonconnector AroFlo, BigChange, or ClockShark article refreshes `simpro-nonvault-customer-proof-selector-evidence/v1` and never runs the vault-dependent customer-proof selector. A refresh failure, such as a vault outage, is exit `2`.
 2. **Rebuild the BOM.** The builder re-verifies every fact quote on its live page and re-checks every proof item against approved claims and the selector evidence. A fact whose page is merely unreachable keeps its earlier verification only when the previous BOM is the file the pipeline wrote; truth then warns. A lost quote, a gone page, or unapproved proof refuses the rebuild (exit `1`, check `bom_refused`). An operational rebuild failure, such as an unusable commercial pillar index or vault, stops with exit `2` (check `bom_build_failed`). Both move the BOM aside as `.refused`, so it cannot be released until `/research` builds it again.
 3. **Check and score concurrently.** Truth and coverage run in a thread pool while the scorer runs:
    - **Truth (blocking):** links resolve; every claim that needs a citation cites a BOM fact URL whose quote is still on the page; numbers in a claim appear in its fact's quote; customer and review quotes match a BOM proof item verbatim; every FAQ question is a BOM PAA question; and the AI copy linter's `editorial_process_leakage` rule finds nothing. Other lint findings and off-BOM links are warnings.
@@ -55,7 +55,7 @@ The record's `scores.gates` holds one independent pass/fail gate per score:
 ## Exit codes
 
 - `0`: passed. The latest record has `passed: true`.
-- `1`: blocked. The BOM rebuild was refused, a truth or coverage finding blocks, or a score gate failed.
+- `1`: blocked. The BOM rebuild was refused, a truth or coverage finding blocks, or a score gate failed. A release-time 403 or 429 on a proof or pillar URL (Capterra often refuses automated clients) blocks as `link_resolution`; resolve it by loading the page through the Chrome connector and adding that exact URL to `context/url-verification-allowlist.json` (an entry with `verified_via: chrome_connector`, the page title, and an on-page snippet), which the URL validator reads, then release again. Never allowlist a 404 or 410.
 - `2`: operational or argument error: missing BOM or spec, bad article path, selector refresh failure, stale evidence at scoring, the article edited during the run, or an unexpected error.
 
 ## Release record
