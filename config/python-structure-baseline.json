@@ -245,7 +245,7 @@
     "data_sources/modules/readability_scorer.py": 505,
     "data_sources/modules/readiness/artifact_store.py": 515,
     "data_sources/modules/review_story_identity_guard.py": 857,
-    "data_sources/modules/semrush_keyword_decision_guard.py": 665,
+    "data_sources/modules/semrush_keyword_decision_guard.py": 667,
     "data_sources/modules/source_support/orchestration.py": 511,
     "data_sources/modules/trust_signal_analyzer.py": 567,
     "data_sources/modules/vault_brand_language_guard.py": 945,

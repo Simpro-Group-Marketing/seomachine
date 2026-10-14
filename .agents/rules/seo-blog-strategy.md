@@ -21,7 +21,7 @@ Editorial guidance that no gate checks, recorded in the research brief:
 - Link the exact canonical URL: no tracking parameters, fragments, or redirects, and never a bare URL or a generic anchor such as "click here". Coverage compares link identities after `canonicalize_link_identity` drops tracking parameters and fragments, so no gate catches a tracked or fragment variant of the canonical URL.
 - The article primary keyword must differ from the destination main keyword. Exact collisions are a planning defect. Containment needs SERP evidence showing different intent and content type.
 - Place the pillar link in the H2 the brief plans for it.
-- The Semrush database and its freshness, the canonical domain, and the destination's title evidence must agree with the article brand and market. Current US evidence supports US decisions only. Do not infer missing feature keywords or regional metrics.
+- The Semrush database and its freshness, the canonical domain, and the destination's title evidence must agree with the article brand and market. Each market's evidence (US, UK, AU) supports that market only. Do not infer missing feature keywords or regional metrics.
 - `update_existing` and `consolidate` cannibalization decisions prevent a new article.
 
 ## Research Brief

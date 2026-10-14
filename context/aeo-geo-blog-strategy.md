@@ -202,7 +202,7 @@ Every new or changed SEO/AEO blog requires a machine-readable `simpro-semrush-ke
 
 Default Semrush databases by brand and market:
 
-- Simpro: `us`
+- Simpro: `us` for the US market; `au` for the AU market
 - ClockShark: `us`
 - BigChange: `uk`
 - AroFlo: `au` primary; add `nz` as a secondary check only when the brief is explicitly NZ or ANZ

@@ -1,0 +1,42 @@
+{
+  "destination_id": "simpro-au-homepage-field-service-management-software",
+  "brand": "Simpro",
+  "market": "AU",
+  "pillar_type": "homepage",
+  "canonical_url": "https://www.simprogroup.com/",
+  "page_title": "Field Service Management Software | Simpro AI-First Platform",
+  "title_checked": "2026-10-14",
+  "title_valid_through": "2027-01-12",
+  "main_keyword": "field service management software",
+  "semrush_database": "au",
+  "semrush_report": "keyword_overview_ui",
+  "semrush_checked": "2026-10-14",
+  "semrush_valid_through": "2027-01-12",
+  "semrush_result_status": "exact",
+  "volume": 1000,
+  "keyword_difficulty": 18,
+  "evidence_path": [
+    "research/commercial-pillar-evidence-au-field-service-management-software-2026-10-14.md",
+    "research/commercial-pillar-evidence-au-field-service-management-software-2026-10-14.md",
+    "research/commercial-pillar-evidence-au-field-service-management-software-2026-10-14.md",
+    "research/commercial-pillar-evidence-au-field-service-management-software-2026-10-14.md"
+  ],
+  "evidence_locator": [
+    "line:1",
+    "line:2",
+    "line:3",
+    "line:4"
+  ],
+  "evidence_sha256": [
+    "384b0711107a723801dd9f9d34dc0a0d67f069ba70bb6ae3d481e97bcbf43580",
+    "cf3c884229706385bfb821e6ea4ce2eda6d62c20d7889713c556046b810d1ad1",
+    "e8d63860aca2ec2804cdf4a64dc12e4d296b6646f512d2aa666210108c7a3c73",
+    "a5dcc5b787bd02f6722fb87c5bf4f884f2a52ac7ff7b993a41154f5173097162"
+  ],
+  "vault_routes": [
+    "wiki/messaging/Simpro Core Messaging Repository.md",
+    "wiki/product/Product Positioning.md",
+    "wiki/messaging/Tone Voice and Localization Rules.md"
+  ],
+  "status": "verified"
+}
