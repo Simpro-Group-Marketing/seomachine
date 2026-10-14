@@ -33,7 +33,7 @@ RETIRED = (
     "schema_handoff_guard",
     "inside `/publish-readiness`",
     "pre-picked brief section",
-    "takes precedence",
+    "pre-picked brief section takes precedence",
     "fail readiness",
     "Vault Context Read Path",
     "Source Routing Decision",
@@ -70,6 +70,10 @@ def test_rules_state_what_the_release_enforces() -> None:
     assert "simpro-production-bom-spec/v1" in strategy
     assert "primary keyword must differ from the destination main keyword" in strategy
     assert "editorial guidance; no gate checks them" in strategy
+    assert "`canonicalize_link_identity`" in strategy and "image link never counts" in strategy
+    assert "always runs its FAQ policy check" in _read(".claude/rules/faq-answer-quality.md")
+    for path in (".claude/commands/research-performance.md", ".claude/agents/performance.md"):
+        assert "archived pre-production final BOM" in _read(path)
     faq = _read(".claude/rules/faq-answer-quality.md")
     assert "What the release enforces" in faq
     assert "not a BOM PAA question" in faq

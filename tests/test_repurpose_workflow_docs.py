@@ -16,13 +16,13 @@ def _section(content: str, heading: str) -> str:
     return remainder.partition("\n## ")[0]
 
 
-def test_repurpose_requires_a_sealed_article_and_final_readiness_attestation():
+def test_repurpose_requires_a_sealed_article_and_a_passing_release_record():
     """Generating a derivative from an unsealed or mismatched source is blocked."""
     content = _read(COMMAND_DIR / "repurpose.md")
 
     for required in (
-        "/repurpose [article] --final-readiness [attestation] [--canonical-url URL]",
-        "existing final-readiness validation",
+        "/repurpose [article] [--canonical-url URL]",
+        "latest release record",
         "exact article hash",
         "sealed_preview",
         "handoff_prepared",
@@ -35,19 +35,20 @@ def test_repurpose_requires_a_sealed_article_and_final_readiness_attestation():
     assert "not a release requirement" in content
 
 
-def test_repurpose_uses_the_final_readiness_validator_and_exact_bound_input():
-    """A lookalike attestation must not be accepted in place of final readiness."""
+def test_repurpose_seals_on_the_release_record_and_exact_bound_input():
+    """Only a passing release record for the exact current bytes may seal the source."""
     content = _read(COMMAND_DIR / "repurpose.md")
 
     for required in (
-        "data_sources.modules.publish_readiness.validate_passed_readiness_result",
-        "phase `final`",
+        "data_sources.modules.production.record.verify_publishable(article, root)",
         "`passed: true`",
-        "`input_hashes.article.sha256`",
+        "article, production BOM, BOM spec, and evidence sha256 hashes",
         "exact-byte hash",
-        "`file` path",
+        "release record path, the record's article hash, current article hash",
     ):
         assert required in content
+    for retired in ("--final-readiness", "validate_passed_readiness_result", "attestation"):
+        assert retired not in content
 
 
 def test_repurpose_uses_json_attestation_and_limits_sealed_preview_to_review():
@@ -77,13 +78,10 @@ def test_repurpose_uses_json_attestation_and_limits_sealed_preview_to_review():
         assert required in handoff_states
 
 
-def test_repurpose_example_requires_a_json_final_readiness_attestation():
+def test_repurpose_example_names_a_released_article_path():
     content = _read(COMMAND_DIR / "repurpose.md")
 
-    assert (
-        "--final-readiness research/final-readiness-field-service-guide-2026-08-21.json"
-        in content
-    )
+    assert "`/repurpose drafts/field-service-guide-2026-08-21.md --canonical-url" in content
 
 
 def test_repurpose_handoff_is_manual_and_evidence_bound_per_selected_channel():
@@ -161,10 +159,10 @@ def test_citation_research_and_repository_index_describe_the_safe_handoff():
     assert "manual, evidence-bound handoff" in research
     assert "does not predict citation outcomes" in research
     assert "Repurposing is optional distribution work, not an AI-citation mechanism" in research
-    assert "/repurpose [article] --final-readiness [attestation] [--canonical-url URL]" in claude
+    assert "/repurpose [article] [--canonical-url URL]" in claude
     assert "manual, evidence-bound distribution handoff" in claude
     assert "not an AI-citation mechanism" in claude
-    assert "/repurpose [article] --final-readiness [attestation] [--canonical-url URL]" in readme
+    assert "/repurpose [article] [--canonical-url URL]" in readme
     assert "optional manual distribution work, not an AI-citation mechanism" in readme
     assert "does not predict citation outcomes" in readme
     for forbidden in (

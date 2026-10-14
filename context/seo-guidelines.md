@@ -270,7 +270,7 @@ Every proof-sensitive claim must be machine-mapped to exactly one citation mode:
 
 - `inline_required`: legal, regulatory, licensing, compliance, safety, fees, deadlines, pricing, status, material numeric, causal, comparative, benchmark, quote, customer, review, Fred, and fact-driven FAQ claims require a natural link in the same paragraph or table row. FAQ links belong in the first visible answer paragraph.
 - `section_source_allowed`: lower-risk body definitions, background, and process explanations may use one mapped source in the same H2 section.
-- `sidecar_only`: approved low-risk product or brand language and clearly framed low-risk editorial recommendations may remain mapped in the validation sidecar.
+- `sidecar_only`: approved low-risk product or brand language and clearly framed low-risk editorial recommendations may stay unlinked in public copy, with their mapping noted in the research brief.
 - `proof_not_required`: navigation, explicit opinion, or advice with no externally verifiable factual claim requires no proof. Only the policy engine may generate this mode.
 
 Unknown or ambiguous high-risk claims fail closed to `inline_required`. Advisory reviewers preserve required links and flag duplicate support, repeated destinations, and quota-only sources. `/publish-readiness` remains the sole release verdict.

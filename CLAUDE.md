@@ -46,7 +46,7 @@ Commands live in `.claude/commands/` and are invoked as slash commands. Each com
 - `/research-serp`, `/research-gaps`, `/research-trending`, `/research-topics` - Specialized research commands
 - `/research-performance` - No-argument performance queue; `/research-performance [URL-or-path]` writes the target report-and-receipt pair
 - `/research-ai-citations [topic]` - Evidence-bound AI citation research: generates prompts, clusters them, and records observed sources without citation predictions
-- `/repurpose [article] --final-readiness [attestation] [--canonical-url URL]` - Prepares an optional manual, evidence-bound distribution handoff from a sealed article; it never posts externally or adds unsupported claims, and it is not an AI-citation mechanism
+- `/repurpose [article] [--canonical-url URL]` - Prepares an optional manual, evidence-bound distribution handoff from a sealed article; it never posts externally or adds unsupported claims, and it is not an AI-citation mechanism
 - `/landing-write`, `/landing-audit`, `/landing-research`, `/landing-publish`, `/landing-competitor` - Landing page commands
 
 ## Pipeline directories

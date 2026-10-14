@@ -19,6 +19,8 @@ Apply this rule to every FAQ in a blog draft, rewrite, or published Markdown han
 - Truth blocks any visible FAQ question that is not a BOM PAA question, and any question in the FAQ section that is not a `###` question heading.
 - Truth blocks a claim that cites a source outside the BOM, and a material number that no BOM fact or proof item linked in the same paragraph supports.
 - Coverage blocks when a `must` BOM PAA question is missing from the FAQ.
-- The AEO/GEO scorer runs its FAQ checks only when a visible FAQ exists: answer length (first paragraph 40-60 words), answer quality (no generic deflection opener), FAQ proof (each answer meets its citation mode against the FAQ Proof Map the release renders from the BOM, and competitor-owned FAQ sources are prohibited), and FAQ policy (a visible FAQ exists exactly when the BOM selects PAA questions). A failed FAQ check fails the AEO/GEO gate.
+- The AEO/GEO scorer always runs its FAQ policy check: it fails when the BOM selects PAA questions and the article has no visible FAQ, or when the article shows a FAQ the BOM selected no questions for.
+- When a visible FAQ exists, the scorer also runs its question, answer length (first paragraph 40-60 words), answer quality (no generic deflection opener), and FAQ proof checks (each answer meets its citation mode against the FAQ Proof Map the release renders from the BOM, and competitor-owned FAQ sources are prohibited). Without a visible FAQ those four checks are not applicable.
+- A failed FAQ check fails the AEO/GEO gate.
 
 The release does not run the standalone non-owned research-link check, so the non-owned source requirement for compliance, legal, regulatory, statistical, or research-backed FAQ claims is a drafting rule. Canonical policy lives in `context/aeo-geo-blog-strategy.md`.

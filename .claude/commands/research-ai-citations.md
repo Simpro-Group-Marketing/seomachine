@@ -173,7 +173,7 @@ Save to: `research/ai-citations-[topic-slug]-[YYYY-MM-DD].md`
 ## Integration with Other Commands
 
 - **Before `/write`**: Run `/research-ai-citations` first to understand which prompts the article should target and which sources to reference
-- **Optional after final readiness**: Use `/repurpose [article] --final-readiness [attestation] [--canonical-url URL]` only for a manual, evidence-bound handoff. Repurposing is optional distribution work, not an AI-citation mechanism. Research observations do not authorize posting or add proof, and the handoff does not predict citation outcomes.
+- **Optional after a passing release**: Use `/repurpose [article] [--canonical-url URL]` only for a manual, evidence-bound handoff. Repurposing is optional distribution work, not an AI-citation mechanism. Research observations do not authorize posting or add proof, and the handoff does not predict citation outcomes.
 - **Quarterly**: Re-run for core topic clusters to track changes in AI citation patterns
 
 ## Required Context Files

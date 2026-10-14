@@ -48,7 +48,7 @@ Workflow contracts live in `.claude/commands/` and are shared by Claude Code and
 - `/research-serp`, `/research-gaps`, `/research-trending`, `/research-topics` - Specialized research commands
 - `/research-performance` - No-argument performance queue; `/research-performance [URL-or-path]` writes the target report-and-receipt pair
 - `/research-ai-citations [topic]` - Evidence-bound AI citation research without citation predictions
-- `/repurpose [article] --final-readiness [attestation] [--canonical-url URL]` - Optional manual, evidence-bound distribution handoff; it is not an AI-citation mechanism
+- `/repurpose [article] [--canonical-url URL]` - Optional manual, evidence-bound distribution handoff; it is not an AI-citation mechanism
 - `/landing-write`, `/landing-audit`, `/landing-research`, `/landing-publish`, `/landing-competitor` - Landing page commands
 
 ## Pipeline directories

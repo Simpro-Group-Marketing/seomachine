@@ -4,24 +4,24 @@ Prepare a manual, evidence-bound distribution handoff from a sealed article. Thi
 
 ## Usage
 
-`/repurpose [article] --final-readiness [attestation] [--canonical-url URL]`
+`/repurpose [article] [--canonical-url URL]`
 
 Example:
 
-`/repurpose published/field-service-guide.md --final-readiness research/final-readiness-field-service-guide-2026-08-21.json --canonical-url https://example.com/field-service-guide`
+`/repurpose drafts/field-service-guide-2026-08-21.md --canonical-url https://example.com/field-service-guide`
 
-`[article]` is the exact Markdown artifact to repurpose. `[attestation]` is its existing final-readiness validation artifact. `--canonical-url` is optional; do not infer or invent it.
+`[article]` is the exact released Markdown artifact to repurpose, `drafts/[slug]-[YYYY-MM-DD].md` or `rewrites/[slug]-[YYYY-MM-DD].md`; its seal is the latest release record that `/publish-readiness` wrote for it. `--canonical-url` is optional; do not infer or invent it.
 
 ## Source-sealing requirement
 
-Before any derivative generation, read the complete article and load the existing final-readiness validation through `data_sources.modules.publish_readiness.validate_passed_readiness_result`. Require phase `final` and `passed: true`. Require the attestation's `input_hashes.article.sha256` to match the supplied article's current exact-byte hash, and require its recorded `file` path to match the supplied article path. Calculate the current article SHA-256 hash from the supplied article bytes; do not normalize, reformat, or substitute the article before matching.
+Before any derivative generation, read the complete article and check its seal through `data_sources.modules.production.record.verify_publishable(article, root)`. It returns the latest release record only when that record exists for the current run of this article, has `passed: true`, records this article path, and its recorded article, production BOM, BOM spec, and evidence sha256 hashes still match the files on disk. Calculate the current article's exact-byte hash (SHA-256) from the supplied article bytes; do not normalize, reformat, or substitute the article before matching.
 
-If the validation is missing, does not attest a passing final-readiness result, has no article hash, or its hash differs from the current article, set the state to `blocked`. Do not generate derivatives, draft public-platform copy, or suggest posting actions. Report the failed check and the corrective action: rerun final readiness against the current article before returning to `/repurpose`.
+If `verify_publishable` raises any error (no release record, a record from another run, a release that did not pass, or a changed article, BOM, spec, or evidence file), or the article path is not a `drafts/` or `rewrites/` release path, set the state to `blocked`. Do not generate derivatives, draft public-platform copy, or suggest posting actions. Report the failed check and the corrective action: run `/publish-readiness` against the current article until its release passes before returning to `/repurpose`.
 
 ## Handoff states
 
 - `blocked`: source-sealing validation failed. Output only the blocker and corrective action.
-- `sealed_preview`: final-readiness validation and exact article hash match succeeded. Inspect the sealed article, identify eligible distribution opportunities, and select channels rather than force them. A clearly labeled pre-publication derivative preview is permitted for selected channels, but it is not a publish-ready handoff or posting instruction. Canonical link: absent/unverified. Every derivative must be clearly labeled non-postable and remain manual-review-only.
+- `sealed_preview`: the release-record seal check and exact article hash match succeeded. Inspect the sealed article, identify eligible distribution opportunities, and select channels rather than force them. A clearly labeled pre-publication derivative preview is permitted for selected channels, but it is not a publish-ready handoff or posting instruction. Canonical link: absent/unverified. Every derivative must be clearly labeled non-postable and remain manual-review-only.
 - `handoff_prepared`: the selected channels each have a complete manual review packet, a live check verifies the canonical identity, and every selected channel has verified owner, account identity, and disclosure. Derivative candidates may be prepared only from the sealed article and only for the selected channels. They remain manual-review artifacts, not posted content.
 
 A supplied URL alone is not verification. Record the canonical identity live check and every owner, account identity, and disclosure check with check/time/evidence in the channel packet. If any required check cannot be verified, fall back to `sealed_preview`.
@@ -80,7 +80,7 @@ For `sealed_preview` and `handoff_prepared`, save the selected and rejected chan
 
 The repurposed handoff is advisory distribution work, not a production BOM input, not a `/publish-readiness` input or gate, and not a release requirement.
 
-The output must begin with the article path, final-readiness attestation path, attested article hash, current article hash, state, canonical URL status, and a statement that no external posting occurred. Include selected-channel packets, rejected channels with reasons, and a final manual-review checklist. In `sealed_preview`, every derivative remains clearly labeled non-postable. Do not create an output file for `blocked`.
+The output must begin with the article path, release record path, the record's article hash, current article hash, state, canonical URL status, and a statement that no external posting occurred. Include selected-channel packets, rejected channels with reasons, and a final manual-review checklist. In `sealed_preview`, every derivative remains clearly labeled non-postable. Do not create an output file for `blocked`.
 
 ## Related workflow
 

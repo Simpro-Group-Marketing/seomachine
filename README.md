@@ -10,7 +10,7 @@ This README covers setup and the command index. Every workflow rule has one cano
 
 - [CLAUDE.md](CLAUDE.md) and [AGENTS.md](AGENTS.md) - steering files for Claude Code and Codex, with the full pointer table and non-negotiables
 - [context/aeo-geo-blog-strategy.md](context/aeo-geo-blog-strategy.md) - AEO/GEO, proof, vault, citation, link, FAQ, PAA, E-E-A-T, Fred authority, publish-gate, and recovery-loop policy
-- [context/blog-editorial-strategy.md](context/blog-editorial-strategy.md) - Reader Contract, editorial plan ownership, story safety, CTA profiles, and Reviewed Humanizer governance
+- [context/blog-editorial-strategy.md](context/blog-editorial-strategy.md) - Reader Contract, the production BOM as the editorial plan of record, story safety, CTA profiles, and Reviewed Humanizer governance
 - [.claude/rules/](.claude/rules/) - rule-sized contracts (SEO blog strategy, customer proof, FAQ answer quality, blog schema, repository development, agent governance), mirrored to `.agents/rules/` and `.cursor/rules/` by `python tools/sync_rule_mirrors.py`
 - [.claude/commands/](.claude/commands/) - per-command workflow steps; [.claude/agents/](.claude/agents/) - advisory specialist reviewers
 
@@ -25,7 +25,7 @@ Blog writing is native-first. `/write`, `/rewrite`, and `/optimize` create or ed
 - SEO quality should target 95/100 when honest, source-safe optimization can improve the artifact.
 - AEO/GEO must be 90/100 or higher.
 
-The mandatory scrub, readiness, optimize, and final readiness loop, plus every gate, is defined in `context/aeo-geo-blog-strategy.md` and `.claude/commands/publish-readiness.md`.
+The mandatory scrub, release, optimize, and final release loop, plus every gate, is defined in `context/aeo-geo-blog-strategy.md` and `.claude/commands/publish-readiness.md`.
 
 ## Getting Started
 
@@ -97,7 +97,7 @@ Use slash commands; scripts and MCP calls are implementation details the command
 | `/analyze-existing [URL or file]` | Content health and AEO/GEO rewrite-readiness audit |
 | `/optimize [file]` | Required post-preflight SEO/AEO repair or recorded no-op pass |
 | `/scrub [file]` | Read-only diagnostics for invisible Unicode marks, em dashes, and whitespace artifacts |
-| `/publish-readiness [file]` | Complete source-artifact gate stack and the sole release verdict |
+| `/publish-readiness [file]` | One-pass release (truth, coverage, and the three scores) that writes the release record; the sole release verdict |
 | `/publish-draft [file]` | Publish an article to WordPress via REST API with Yoast SEO metadata after readiness passes |
 | `/performance-review [days]` | Analytics-driven content-work queue |
 | `/priorities` | Content prioritization matrix |
@@ -109,7 +109,7 @@ Use slash commands; scripts and MCP calls are implementation details the command
 | `/research-topics` | Topic cluster research |
 | `/research-performance` | No-argument performance queue; `/research-performance [URL-or-path]` writes the target report-and-receipt pair |
 | `/research-ai-citations [topic]` | Evidence-bound AI citation audit; it does not predict citation outcomes. Repurposing is optional manual distribution work, not an AI-citation mechanism |
-| `/repurpose [article] --final-readiness [attestation] [--canonical-url URL]` | Optional manual, evidence-bound distribution handoff from a sealed article; never posts externally or adds unsupported claims |
+| `/repurpose [article] [--canonical-url URL]` | Optional manual, evidence-bound distribution handoff from a sealed article; never posts externally or adds unsupported claims |
 | `/landing-write [topic]` | Create a conversion-optimized landing page |
 | `/landing-audit [file]` | Audit a landing page for CRO issues |
 | `/landing-research [topic]` | Research competitors and positioning for a landing page |
