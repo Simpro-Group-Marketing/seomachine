@@ -12,7 +12,7 @@ from data_sources.modules.wordpress_publisher import (
     WordPressPartialPublishError,
     WordPressPublisher,
 )
-from data_sources.modules.url_validator import UrlValidationSummary
+from tests.publisher_release_support import GATE, passing_record
 
 
 DRAFT = fixture_text("publisher_contracts:test_wordpress_publisher-15-1")
@@ -56,6 +56,10 @@ def failing_readiness(gate_name: str = DEFAULT_FAILING_GATE_NAME):
 
 
 class WordPressPublisherPreflightTests(unittest.TestCase):
+    def setUp(self):
+        self.addCleanup(patch.stopall)
+        self.record_use = patch(f"{GATE}.record_release_use", return_value=[]).start()
+
     def test_page_template_preserves_safe_relative_identifier_case(self):
         publisher = WordPressPublisher(
             url="https://wordpress.example",
@@ -108,8 +112,8 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
             path.write_text(unsafe, encoding="utf-8")
             with (
                 patch(
-                    "data_sources.modules.wordpress_publisher.run_publish_readiness",
-                    return_value=passing_readiness(),
+                    f"{GATE}.verify_publishable",
+                    side_effect=passing_record,
                 ) as readiness,
                 patch.object(publisher, "create_draft") as create_draft,
             ):
@@ -131,8 +135,8 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
             path.write_text(unsafe, encoding="utf-8")
             with (
                 patch(
-                    "data_sources.modules.wordpress_publisher.run_publish_readiness",
-                    return_value=passing_readiness(),
+                    f"{GATE}.verify_publishable",
+                    side_effect=passing_record,
                 ),
                 patch.object(publisher, "create_draft") as create_draft,
             ):
@@ -179,8 +183,8 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
                 )
                 with (
                     patch(
-                        "data_sources.modules.wordpress_publisher.run_publish_readiness",
-                        return_value=passing_readiness(),
+                        f"{GATE}.verify_publishable",
+                        side_effect=passing_record,
                     ) as readiness,
                     patch.object(
                         publisher,
@@ -270,7 +274,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
             path.write_text(DRAFT, encoding="utf-8")
             with (
                 patch(
-                    "data_sources.modules.wordpress_publisher.run_publish_readiness"
+                    f"{GATE}.verify_publishable"
                 ) as readiness,
                 patch.object(publisher.session, "post") as post,
             ):
@@ -290,7 +294,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
             path = Path(tmp) / "draft.md"
             path.write_text(DRAFT, encoding="utf-8")
             with patch(
-                "data_sources.modules.wordpress_publisher.run_publish_readiness"
+                f"{GATE}.verify_publishable"
             ) as readiness:
                 with self.assertRaisesRegex(ValueError, "posts or pages"):
                     publisher.publish_draft(str(path), post_type="compare")
@@ -319,8 +323,8 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
             path.write_text(DRAFT, encoding="utf-8")
             with (
                 patch(
-                    "data_sources.modules.wordpress_publisher.run_publish_readiness",
-                    return_value=passing_readiness(),
+                    f"{GATE}.verify_publishable",
+                    side_effect=passing_record,
                 ),
                 patch.object(publisher, "parse_draft_file", return_value=parsed),
                 patch.object(
@@ -367,7 +371,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
                 patch.object(publisher, "create_draft") as create_draft,
             ):
                 with self.assertRaises(ValueError) as raised:
-                    publisher.publish_draft(str(path))
+                    publisher.publish_draft(str(path), post_type="page")
 
         create_draft.assert_not_called()
         self.assertIn("url_validator", str(raised.exception))
@@ -403,7 +407,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
                 patch.object(publisher, "create_draft") as create_draft,
             ):
                 with self.assertRaises(ValueError) as raised:
-                    publisher.publish_draft(str(path))
+                    publisher.publish_draft(str(path), post_type="page")
 
         create_draft.assert_not_called()
         self.assertIn("Source support validation failed", str(raised.exception))
@@ -435,6 +439,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
                 with self.assertRaises(ValueError) as raised:
                     publisher.publish_draft(
                         str(path),
+                        post_type="page",
                         proof_sidecar=str(sidecar),
                         context_request=str(request),
                         context_pack=str(pack),
@@ -445,6 +450,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
 
         readiness.assert_called_once_with(
             str(path),
+            artifact_kind="landing_page",
             proof_sidecar=str(sidecar),
             context_request=str(request),
             context_pack=str(pack),
@@ -480,12 +486,6 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
             vault_root.mkdir()
 
             with patch(
-                "data_sources.modules.wordpress_publisher.validate_file_urls",
-                return_value=UrlValidationSummary([]),
-            ), patch(
-                "data_sources.modules.wordpress_publisher.require_source_support",
-                return_value=[],
-            ), patch(
                 "data_sources.modules.wordpress_publisher.run_publish_readiness",
                 return_value=passing_readiness(),
             ) as readiness, patch.object(
@@ -495,6 +495,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
             ), patch.object(publisher, "set_yoast_meta", return_value={}):
                 publisher.publish_draft(
                     str(path),
+                    post_type="page",
                     proof_sidecar=str(sidecar),
                     context_request=str(request),
                     context_pack=str(pack),
@@ -504,6 +505,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
 
         readiness.assert_called_once_with(
             str(path),
+            artifact_kind="landing_page",
             proof_sidecar=str(sidecar),
             context_request=str(request),
             context_pack=str(pack),
@@ -523,12 +525,6 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
             path.write_text(DRAFT, encoding="utf-8")
 
             with patch(
-                "data_sources.modules.wordpress_publisher.validate_file_urls",
-                return_value=UrlValidationSummary([]),
-            ), patch(
-                "data_sources.modules.wordpress_publisher.require_source_support",
-                return_value=[],
-            ), patch(
                 "data_sources.modules.wordpress_publisher.run_publish_readiness",
                 return_value=passing_readiness(),
             ) as readiness, patch.object(
@@ -558,7 +554,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
 
             def readiness(*args, **kwargs):
                 calls.append("readiness")
-                return passing_readiness()
+                return passing_record(*args)
 
             def create_draft(*args, **kwargs):
                 calls.append("create_draft")
@@ -566,7 +562,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
 
             with (
                 patch(
-                    "data_sources.modules.wordpress_publisher.run_publish_readiness",
+                    f"{GATE}.verify_publishable",
                     side_effect=readiness,
                 ),
                 patch.object(publisher, "create_draft", side_effect=create_draft),
@@ -609,12 +605,14 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
             ):
                 result = publisher.publish_draft(
                     str(path),
+                    post_type="page",
                     proof_sidecar=str(sidecar),
                     assembly_bom=str(bom),
                 )
 
         readiness.assert_called_once_with(
             str(path),
+            artifact_kind="landing_page",
             proof_sidecar=str(sidecar),
             context_request=None,
             context_pack=None,
@@ -639,15 +637,16 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
             path.write_text(DRAFT, encoding="utf-8")
 
             def mutate_then_pass(*args, **kwargs):
+                record = passing_record(*args)
                 path.write_text(
                     "# Changed after readiness started\n\nChanged body.\n",
                     encoding="utf-8",
                 )
-                return passing_readiness()
+                return record
 
             with (
                 patch(
-                    "data_sources.modules.wordpress_publisher.run_publish_readiness",
+                    f"{GATE}.verify_publishable",
                     side_effect=mutate_then_pass,
                 ),
                 patch.object(
@@ -692,6 +691,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "publish inputs changed"):
                     publisher.publish_draft(
                         str(path),
+                        post_type="page",
                         proof_sidecar=str(sidecar),
                     )
 
@@ -724,6 +724,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
                 with self.assertRaises(WordPressPartialPublishError) as raised:
                     publisher.publish_draft(
                         str(path),
+                        post_type="page",
                         context_receipt=str(receipt),
                     )
 
@@ -743,8 +744,8 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
             path.write_text(DRAFT, encoding="utf-8")
             with (
                 patch(
-                    "data_sources.modules.wordpress_publisher.run_publish_readiness",
-                    return_value=passing_readiness(),
+                    f"{GATE}.verify_publishable",
+                    side_effect=passing_record,
                 ),
                 patch.object(
                     publisher,

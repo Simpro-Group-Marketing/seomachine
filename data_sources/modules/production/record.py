@@ -3,8 +3,10 @@
 Each release run writes ``release-record.json`` into the next unused release directory for the
 article's run id. ``verify_publishable`` trusts only the latest record, so a newer failing release
 supersedes an older pass, and the article and BOM bytes must still be the ones that release checked.
-The commands (/write, /rewrite, /repurpose) run it through this CLI; the WordPress and Grav
-publishers are not wired to the record.
+The commands (/write, /rewrite, /repurpose) run it through this CLI. The WordPress (blog posts)
+and Grav publishers call ``verify_publishable`` before any write, and after a successful live
+publish they record the article's linked BOM proof in the customer-proof usage ledger
+(``production.usage_ledger``).
 
 Usage: python -m data_sources.modules.production.record verify <article> [--workspace-root DIR]
 Prints the latest record path and its passed state. Exit codes: 0 publishable; 1 refused (the

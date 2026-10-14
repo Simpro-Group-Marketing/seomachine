@@ -1,25 +1,27 @@
 # Publish Draft to WordPress
 
-## Context Binding Regeneration (MANDATORY)
+Publishes a released blog article from this project to WordPress as a Draft, with all SEO metadata auto-populated.
 
-After the final content mutation, regenerate the machine-owned binding before `/publish-readiness` and before any WordPress API call:
+## Precondition: a passing release record
+
+A blog post publishes only when its latest release record passed for the exact article bytes on disk. `/publish-readiness` writes that record. Before any WordPress API call, the command runs:
 
 ```bash
-python data_sources/modules/context_binding_generator.py "$FILE_PATH" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT"
+python -m data_sources.modules.production.record verify "$FILE_PATH"
 ```
 
-If the article changes after this command, stop and regenerate the binding again.
+Exit `0` means publishable. Exit `1` prints the refusal reason: no record, a failing release, or an article, BOM, spec, or evidence file changed since the passing release. Fix it through `/write`, `/rewrite`, or `/optimize`, then rerun `/publish-readiness`. Exit `2` is a layout error: the article must sit directly in `drafts/` or `rewrites/` as `<slug>-YYYY-MM-DD.md`. The publisher enforces the same check internally and rechecks the article hash before every WordPress write.
 
-Publishes a draft article from this project to WordPress as a Draft, with all SEO metadata auto-populated.
+The retired readiness flags (`--proof-sidecar`, `--context-request`, `--context-pack`, `--context-receipt`, `--assembly-bom`, `--vault-root`) are refused for blog posts with exit `2`. Landing pages use `/landing-publish`, which keeps its own readiness gate and flags.
 
 ## Usage
-`/publish-draft [filename] [--type post|page] [--proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md] [--assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json]`
+`/publish-draft [filename] [--type post|page]`
 
 ### Examples
 
 **Create a blog post (default):**
 ```
-/publish-draft drafts/content-marketing-guide-[YYYY-MM-DD].md --proof-sidecar research/validation-content-marketing-guide-[YYYY-MM-DD].md --assembly-bom research/blog-assembly-bom-content-marketing-guide-[YYYY-MM-DD].json
+/publish-draft drafts/content-marketing-guide-[YYYY-MM-DD].md
 ```
 
 **Create a page:**
@@ -27,19 +29,15 @@ Publishes a draft article from this project to WordPress as a Draft, with all SE
 /publish-draft drafts/pricing-comparison.md --type page
 ```
 
-**Create a custom post type:**
-```
-/publish-draft drafts/product-comparison.md --type compare
-```
-
 ### Post Types
-- `post` - Standard blog post (default) - supports categories and tags
-- `page` - WordPress page - no categories/tags
-- Custom types (e.g., `compare`) - must be registered in WordPress with REST API support
+- `post` - Standard blog post (default) - supports categories and tags; requires a passing release record
+- `page` - WordPress page - no categories/tags; runs the landing-page readiness gate (see `/landing-publish`)
+
+Any other type, including custom post types, is rejected before any WordPress request.
 
 ## What This Command Does
 
-1. **Runs publish readiness preflight** - Executes `/publish-readiness [file] --proof-sidecar [sidecar] --context-request [request] --context-pack [pack] --context-receipt [receipt] --assembly-bom [bom]` before any WordPress API call
+1. **Checks the release record** - Runs `python -m data_sources.modules.production.record verify "$FILE_PATH"` before any WordPress API call
 2. **Parses the draft file** - Extracts all metadata from frontmatter
 3. **Converts Markdown to HTML** - Formats content for WordPress
 4. **Creates WordPress draft** - Posts via REST API with status "draft"
@@ -48,7 +46,8 @@ Publishes a draft article from this project to WordPress as a Draft, with all SE
    - Meta Description
    - Focus Keyphrase (from Target Keyword)
 6. **Assigns taxonomy** - Categories and Tags if specified
-7. **Returns edit URL** - Direct link to edit the post in WordPress
+7. **Records proof use** - After the draft and its Yoast fields are written, adds one `config/customer-proof-usage-ledger.json` entry for each production BOM proof item the article links
+8. **Returns edit URL** - Direct link to edit the post in WordPress
 
 ## Metadata Mapping
 
@@ -89,22 +88,22 @@ When you run this command:
 - Parse metadata and content
 - Display extracted fields for confirmation
 
-### Step 2: Run Publish Readiness
-Run the full command-system gate before any WordPress request:
+### Step 2: Check the Release Record
+Run the record check before any WordPress request:
 ```bash
-/publish-readiness "$FILE_PATH" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT" --assembly-bom "$ASSEMBLY_BOM"
+python -m data_sources.modules.production.record verify "$FILE_PATH"
 ```
 
-The WordPress publisher also enforces this preflight internally. If readiness fails, fix the highest-severity blocker and rerun; do not create a WordPress draft.
+If it refuses, report the printed reason and do not create a WordPress draft.
 
 ### Step 3: Publish to WordPress
 Run the WordPress publisher:
 ```bash
 cd /path/to/seomachine
-python -m data_sources.modules.wordpress_publisher "$FILE_PATH" --type "$POST_TYPE" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT" --assembly-bom "$ASSEMBLY_BOM"
+python -m data_sources.modules.wordpress_publisher "$FILE_PATH"
 ```
 
-Where `$POST_TYPE` is `post`, `page`, or a custom post type.
+A ledger failure after the draft exists is reported as a partial publish with the draft's edit URL; review that draft instead of retrying.
 
 ### Step 4: Confirm Success
 Display the WordPress edit URL so the user can review and publish.
@@ -138,5 +137,5 @@ The category will be created automatically if it doesn't exist.
 - Posts are always created as **drafts** (never published automatically)
 - The H1 heading from the article becomes the WordPress post title
 - Images/media are not uploaded - only text content is transferred
-- You can run this command multiple times on the same file (creates new drafts each time)
-- `/publish-readiness` must pass before WordPress network calls begin
+- Rerunning on the same unchanged file returns the matching existing draft (found by its publication key) instead of creating a duplicate; the ledger records each proof use once per article and day
+- A passing release record for the exact article bytes must exist before WordPress network calls begin

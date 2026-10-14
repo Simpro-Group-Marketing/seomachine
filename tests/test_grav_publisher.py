@@ -18,47 +18,13 @@ from data_sources.modules.grav_publisher import (
     GravPublisher,
     main,
 )
-from data_sources.modules.url_validator import UrlValidationSummary
+from tests.publisher_release_support import GATE, passing_record
 
 
 DRAFT_WITH_SLUG = fixture_text("publisher_contracts:test_grav_publisher-21-1")
-DEFAULT_FAILING_GATE_NAME = "metric_proof_pack"
 
 
 CANONICAL_DRAFT = fixture_text("publisher_contracts:test_grav_publisher-41-2")
-
-
-def passing_readiness():
-    return {
-        "passed": True,
-        "gates": [],
-        "score": 91,
-        "aeo_geo": {"score": 94},
-        "priority_fixes": [],
-    }
-
-
-def _write_bom(tmpdir: str) -> str:
-    path = Path(tmpdir) / "blog-assembly-bom.json"
-    path.write_text('{"schema":"simpro-blog-assembly-bom/v1"}', encoding="utf-8")
-    return str(path)
-
-
-def failing_readiness(gate_name: str = DEFAULT_FAILING_GATE_NAME):
-    return {
-        "passed": False,
-        "gates": [
-            {
-                "name": gate_name,
-                "label": gate_name.replace("_", " ").title(),
-                "passed": False,
-                "blockers": ["line 1: metric_proof_pack_missing"],
-            }
-        ],
-        "score": 80,
-        "aeo_geo": {"score": 88},
-        "priority_fixes": [{"issue": "Metric Proof Pack blockers detected"}],
-    }
 
 
 def _write(tmpdir: str, name: str, content: str) -> str:
@@ -198,6 +164,8 @@ class FrontmatterTests(unittest.TestCase):
 
 class PublishPreflightTests(unittest.TestCase):
     def setUp(self):
+        self.addCleanup(patch.stopall)
+        self.record_use = patch(f"{GATE}.record_release_use", return_value=[]).start()
         self.pub = GravPublisher(
             repo="owner/repo", branch="dev", blog_path="blogs", lang="en"
         )
@@ -240,176 +208,6 @@ class PublishPreflightTests(unittest.TestCase):
 
                 write_text.assert_not_called()
 
-    def test_publish_stops_before_push_when_url_gate_fails(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = _write(tmp, "post.md", DRAFT_WITH_SLUG)
-            with (
-                patch(
-                    "data_sources.modules.grav_publisher.run_publish_readiness",
-                    return_value={
-                        "passed": False,
-                        "gates": [
-                            {
-                                "name": "url_validator",
-                                "label": "URL Validator",
-                                "passed": False,
-                                "blockers": ["https://example.com/dead: HTTP 404"],
-                            }
-                        ],
-                        "priority_fixes": [],
-                    },
-                ),
-                patch.object(self.pub, "push_article") as push_article,
-            ):
-                with self.assertRaises(GravPublishError) as raised:
-                    self.pub.publish(path, dry_run=False)
-
-        push_article.assert_not_called()
-        self.assertIn("url_validator", str(raised.exception))
-        self.assertIn("https://example.com/dead", str(raised.exception))
-
-    def test_publish_stops_before_push_when_source_support_gate_fails(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = _write(tmp, "post.md", DRAFT_WITH_SLUG)
-            with (
-                patch(
-                    "data_sources.modules.grav_publisher.run_publish_readiness",
-                    return_value={
-                        "passed": False,
-                        "gates": [
-                            {
-                                "name": "source_support",
-                                "label": "Source Support",
-                                "passed": False,
-                                "blockers": ["Source support validation failed"],
-                            }
-                        ],
-                        "priority_fixes": [],
-                    },
-                ),
-                patch.object(self.pub, "push_article") as push_article,
-            ):
-                with self.assertRaises(GravPublishError) as raised:
-                    self.pub.publish(path, dry_run=False)
-
-        push_article.assert_not_called()
-        self.assertIn("Source support validation failed", str(raised.exception))
-
-    def test_publish_stops_before_push_when_publish_readiness_fails(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = _write(tmp, "post.md", DRAFT_WITH_SLUG)
-            sidecar = _write(tmp, "validation-post.md", "Metric Proof Pack\n")
-            request = _write(tmp, "context-request.json", "{}")
-            pack = _write(tmp, "context-pack.json", "{}")
-            receipt = _write(tmp, "context-receipt.json", "{}")
-            bom = _write_bom(tmp)
-            with (
-                patch(
-                    "data_sources.modules.grav_publisher.run_publish_readiness",
-                    return_value=failing_readiness(),
-                ) as readiness,
-                patch.object(self.pub, "push_article") as push_article,
-            ):
-                with self.assertRaises(GravPublishError) as raised:
-                    self.pub.publish(
-                        path,
-                        dry_run=False,
-                        proof_sidecar=sidecar,
-                        context_request=request,
-                        context_pack=pack,
-                        context_receipt=receipt,
-                        assembly_bom=bom,
-                        vault_root=Path(tmp),
-                    )
-
-        readiness.assert_called_once_with(
-            path,
-            proof_sidecar=sidecar,
-            context_request=request,
-            context_pack=pack,
-            context_receipt=receipt,
-            assembly_bom=bom,
-            vault_root=Path(tmp),
-        )
-        push_article.assert_not_called()
-        self.assertIn(
-            "Publish readiness failed before Grav publish", str(raised.exception)
-        )
-        self.assertIn("metric_proof_pack", str(raised.exception))
-
-    def test_dry_run_stops_before_preview_write_when_publish_readiness_fails(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = _write(tmp, "post.md", DRAFT_WITH_SLUG)
-            sidecar = _write(tmp, "validation-post.md", "Metric Proof Pack\n")
-            preview_path = (
-                Path(__file__).resolve().parents[1]
-                / ".grav-preview"
-                / "modern-customer-payments"
-                / "article.en.md"
-            )
-            if preview_path.exists():
-                preview_path.unlink()
-            with patch(
-                "data_sources.modules.grav_publisher.validate_file_urls",
-                return_value=UrlValidationSummary([]),
-            ), patch(
-                "data_sources.modules.grav_publisher.require_source_support",
-                return_value=[],
-            ), patch(
-                "data_sources.modules.grav_publisher.run_publish_readiness",
-                return_value=failing_readiness(),
-            ) as readiness:
-                with self.assertRaises(GravPublishError):
-                    self.pub.publish(path, dry_run=True, proof_sidecar=sidecar)
-
-        readiness.assert_called_once_with(path, proof_sidecar=sidecar)
-        self.assertFalse(preview_path.exists())
-
-    def test_publish_forwards_context_artifacts_to_publish_readiness(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            path = _write(tmp, "post.md", DRAFT_WITH_SLUG)
-            sidecar = _write(tmp, "validation-post.md", "Metric Proof Pack\n")
-            request = root / "request.json"
-            pack = root / "pack.json"
-            receipt = root / "receipt.json"
-            vault_root = root / "vault"
-            for artifact in (request, pack, receipt):
-                artifact.write_text("{}", encoding="utf-8")
-            vault_root.mkdir()
-            with patch(
-                "data_sources.modules.grav_publisher.validate_file_urls",
-                return_value=UrlValidationSummary([]),
-            ), patch(
-                "data_sources.modules.grav_publisher.require_source_support",
-                return_value=[],
-            ), patch(
-                "data_sources.modules.grav_publisher.run_publish_readiness",
-                return_value=passing_readiness(),
-            ) as readiness, patch.object(
-                self.pub,
-                "push_article",
-                return_value={"action": "created", "commit_url": "https://github.example/commit"},
-            ):
-                self.pub.publish(
-                    path,
-                    dry_run=False,
-                    proof_sidecar=sidecar,
-                    context_request=str(request),
-                    context_pack=str(pack),
-                    context_receipt=str(receipt),
-                    vault_root=str(vault_root),
-                )
-
-        readiness.assert_called_once_with(
-            path,
-            proof_sidecar=sidecar,
-            context_request=str(request),
-            context_pack=str(pack),
-            context_receipt=str(receipt),
-            vault_root=str(vault_root),
-        )
-
     def test_publish_runs_readiness_before_grav_push(self):
         calls = []
 
@@ -418,7 +216,7 @@ class PublishPreflightTests(unittest.TestCase):
 
             def readiness(*args, **kwargs):
                 calls.append("readiness")
-                return passing_readiness()
+                return passing_record(*args)
 
             def push_article(*args, **kwargs):
                 calls.append("push_article")
@@ -429,7 +227,7 @@ class PublishPreflightTests(unittest.TestCase):
 
             with (
                 patch(
-                    "data_sources.modules.grav_publisher.run_publish_readiness",
+                    f"{GATE}.verify_publishable",
                     side_effect=readiness,
                 ),
                 patch.object(self.pub, "push_article", side_effect=push_article),
@@ -439,58 +237,21 @@ class PublishPreflightTests(unittest.TestCase):
         self.assertEqual(calls, ["readiness", "push_article"])
         self.assertFalse(result["dry_run"])
 
-    def test_publish_forwards_bom_and_reports_bom_hash(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = _write(tmp, "post.md", DRAFT_WITH_SLUG)
-            sidecar = _write(tmp, "validation.md", "Metric Proof Pack\n")
-            bom = _write_bom(tmp)
-            bom_hash = hashlib.sha256(Path(bom).read_bytes()).hexdigest()
-
-            with (
-                patch(
-                    "data_sources.modules.grav_publisher.run_publish_readiness",
-                    return_value=passing_readiness(),
-                ) as readiness,
-                patch.object(
-                    self.pub,
-                    "push_article",
-                    return_value={
-                        "action": "created",
-                        "commit_url": "https://github.example/commit",
-                    },
-                ),
-            ):
-                result = self.pub.publish(
-                    path,
-                    dry_run=False,
-                    proof_sidecar=sidecar,
-                    assembly_bom=bom,
-                )
-
-        readiness.assert_called_once_with(
-            path,
-            proof_sidecar=sidecar,
-            assembly_bom=bom,
-        )
-        self.assertEqual(
-            result["publish_input_sha256"]["assembly_bom"],
-            bom_hash,
-        )
-
     def test_publish_rejects_article_changed_during_readiness(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(_write(tmp, "post.md", DRAFT_WITH_SLUG))
 
             def mutate_then_pass(*args, **kwargs):
+                record = passing_record(*args)
                 path.write_text(
                     "# Changed after readiness started\n\nChanged body.\n",
                     encoding="utf-8",
                 )
-                return passing_readiness()
+                return record
 
             with (
                 patch(
-                    "data_sources.modules.grav_publisher.run_publish_readiness",
+                    f"{GATE}.verify_publishable",
                     side_effect=mutate_then_pass,
                 ),
                 patch.object(self.pub, "push_article") as push_article,
@@ -502,64 +263,6 @@ class PublishPreflightTests(unittest.TestCase):
 
         push_article.assert_not_called()
 
-    def test_publish_rejects_sidecar_changed_after_readiness_before_push(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = _write(tmp, "post.md", DRAFT_WITH_SLUG)
-            sidecar = Path(_write(tmp, "validation.md", "sealed input"))
-
-            original_build = self.pub.build_article
-
-            def build_and_mutate(draft):
-                sidecar.write_text("changed after readiness", encoding="utf-8")
-                return original_build(draft)
-
-            with (
-                patch(
-                    "data_sources.modules.grav_publisher.run_publish_readiness",
-                    return_value=passing_readiness(),
-                ),
-                patch.object(self.pub, "build_article", side_effect=build_and_mutate),
-                patch.object(self.pub, "push_article") as push_article,
-            ):
-                with self.assertRaisesRegex(GravPublishError, "publish inputs changed"):
-                    self.pub.publish(
-                        path,
-                        dry_run=False,
-                        proof_sidecar=str(sidecar),
-                    )
-
-        push_article.assert_not_called()
-
-    def test_publish_reports_partial_when_receipt_changes_during_push(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = _write(tmp, "post.md", DRAFT_WITH_SLUG)
-            receipt = Path(_write(tmp, "receipt.json", '{"receipt":"sealed"}'))
-
-            def push_and_mutate(*args, **kwargs):
-                receipt.write_text('{"receipt":"changed"}', encoding="utf-8")
-                return {
-                    "action": "created",
-                    "commit_url": "https://github.example/commit/91",
-                    "content_url": "https://github.example/content/91",
-                }
-
-            with (
-                patch(
-                    "data_sources.modules.grav_publisher.run_publish_readiness",
-                    return_value=passing_readiness(),
-                ),
-                patch.object(self.pub, "push_article", side_effect=push_and_mutate),
-            ):
-                with self.assertRaises(GravPublishError) as raised:
-                    self.pub.publish(
-                        path,
-                        dry_run=False,
-                        context_receipt=str(receipt),
-                    )
-
-        self.assertIn("publish inputs changed", str(raised.exception))
-        self.assertIn("https://github.example/commit/91", str(raised.exception))
-
     def test_unset_repo_fails_closed_for_live_request_but_explicit_dry_run_works(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = _write(tmp, "post.md", DRAFT_WITH_SLUG)
@@ -569,16 +272,14 @@ class PublishPreflightTests(unittest.TestCase):
             publisher.preview_root = preview_root
 
             with (
-                patch(
-                    "data_sources.modules.grav_publisher.run_publish_readiness"
-                ) as readiness,
+                patch(f"{GATE}.verify_publishable", side_effect=passing_record) as readiness,
                 patch("pathlib.Path.write_text", return_value=1),
             ):
                 with self.assertRaisesRegex(GravPublishError, "GRAV_REPO"):
                     publisher.publish(path, dry_run=False)
                 explicit = publisher.publish(path, dry_run=True)
 
-        readiness.assert_not_called()
+        readiness.assert_called_once()
         self.assertTrue(explicit["dry_run"])
         self.assertNotIn("preview_path", explicit)
         self.assertFalse(preview_root.exists())
@@ -590,6 +291,7 @@ class PublishPreflightTests(unittest.TestCase):
             with (
                 patch.object(sys, "argv", ["grav_publisher.py", path, "--dry-run"]),
                 patch.object(sys, "stdout", output),
+                patch(f"{GATE}.verify_publishable", side_effect=passing_record),
             ):
                 main()
 
@@ -621,9 +323,7 @@ class PublishPreflightTests(unittest.TestCase):
             publisher = GravPublisher(repo="owner/repo")
 
             with (
-                patch(
-                    "data_sources.modules.grav_publisher.run_publish_readiness"
-                ) as readiness,
+                patch(f"{GATE}.verify_publishable") as readiness,
                 patch.object(publisher, "push_article") as push_article,
             ):
                 with self.assertRaisesRegex(GravPublishError, "URL scheme"):

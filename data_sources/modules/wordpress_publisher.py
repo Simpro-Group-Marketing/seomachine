@@ -30,9 +30,8 @@ try:
         validate_publish_content,
         validate_publish_plain_text,
     )
+    from .production import publish_gate
     from .readiness.api import run_publish_readiness
-    from .source_support_guard import require_source_support as require_source_support
-    from .url_validator import validate_file_urls as validate_file_urls
 except ImportError:
     from artifact_runtime.limits import JSON_MAX_BYTES
     from bounded_io import bounded_json_bytes
@@ -50,9 +49,8 @@ except ImportError:
         validate_publish_content,
         validate_publish_plain_text,
     )
+    from production import publish_gate
     from readiness.api import run_publish_readiness
-    from source_support_guard import require_source_support as require_source_support
-    from url_validator import validate_file_urls as validate_file_urls
 
 
 WORDPRESS_REQUEST_TIMEOUT = (5, 30)
@@ -646,6 +644,7 @@ class WordPressPublisher:
         vault_root: Optional[str | Path] = None,
         noindex: bool = False,
         template: str = '',
+        workspace_root: Optional[str | Path] = None,
     ) -> Dict:
         """
         Publish a draft file to WordPress as a post or page
@@ -653,12 +652,9 @@ class WordPressPublisher:
         Args:
             file_path: Path to the markdown draft file
             post_type: Content type: 'post', 'posts', 'page', or 'pages'.
-            proof_sidecar: Optional validation sidecar for proof-aware readiness gates.
-            context_request: Connector context request JSON path.
-            context_pack: Connector context pack JSON path.
-            context_receipt: Connector validation receipt JSON path.
-            assembly_bom: Blog assembly BOM JSON path.
-            vault_root: Optional configured vault-root override.
+            proof_sidecar, context_request, context_pack, context_receipt, assembly_bom,
+            vault_root: Landing-page readiness inputs; blog posts ignore them.
+            workspace_root: Repo root holding a blog post's passing release record (default: this repo).
 
         Returns:
             Dict with post_id, edit_url, view_url, and status information
@@ -681,28 +677,18 @@ class WordPressPublisher:
             )
         except PublishContentSafetyError as exc:
             raise ValueError(str(exc)) from exc
-        readiness_input_paths = {
-            "proof_sidecar": proof_sidecar,
-            "context_request": context_request,
-            "context_pack": context_pack,
-            "context_receipt": context_receipt,
-            "assembly_bom": assembly_bom,
-        }
+        landing_page = api_endpoint == "pages"
+        readiness_input_paths = dict(
+            proof_sidecar=proof_sidecar, context_request=context_request, context_pack=context_pack,
+            context_receipt=context_receipt, assembly_bom=assembly_bom,
+        ) if landing_page else {}
         before_readiness_inputs = capture_file_snapshots(readiness_input_paths)
-
-        _require_publish_readiness(
-            file_path,
-            proof_sidecar,
-            "WordPress publish",
-            artifact_kind="landing_page" if api_endpoint == "pages" else None,
-            context_request=context_request,
-            context_pack=context_pack,
-            context_receipt=context_receipt,
-            assembly_bom=assembly_bom,
-            vault_root=vault_root,
+        release_root, release = _require_publish_gate(
+            file_path, landing_page, readiness_input_paths, vault_root, workspace_root
         )
         sealed_snapshot = read_publishable_markdown(file_path)
         ensure_same_snapshot(before_readiness, sealed_snapshot)
+        publish_gate.ensure_released_bytes(release, sealed_snapshot.sha256, file_path)
         sealed_readiness_inputs = capture_file_snapshots(readiness_input_paths)
         ensure_same_file_snapshots(before_readiness_inputs, sealed_readiness_inputs)
 
@@ -802,6 +788,7 @@ class WordPressPublisher:
                     "Yoast metadata update",
                     exc,
                 ) from exc
+        _record_blog_proof_use(file_path, release_root, post_id, edit_url)
 
         return {
             'post_id': post_id,
@@ -985,6 +972,28 @@ def _response_total_pages(response: requests.Response) -> Optional[int]:
     return total_pages
 
 
+def _require_publish_gate(
+    file_path: str, landing_page: bool, readiness_inputs: Dict,
+    vault_root: Optional[str | Path], workspace_root: Optional[str | Path],
+) -> tuple:
+    """Landing pages run the readiness gate; blog posts need a passing release record."""
+    if landing_page:
+        _require_publish_readiness(file_path, context="WordPress publish", vault_root=vault_root, **readiness_inputs)
+        return None, None
+    release_root = publish_gate.release_root(workspace_root)
+    return release_root, publish_gate.require_release(file_path, release_root, "WordPress publish")
+
+
+def _record_blog_proof_use(file_path: str, release_root: Optional[Path], post_id: int, edit_url: str) -> None:
+    """After a blog draft is fully created, record its linked BOM proof in the usage ledger."""
+    if release_root is None:
+        return
+    try:
+        publish_gate.record_release_use(file_path, release_root)
+    except (OSError, ValueError) as exc:
+        raise WordPressPartialPublishError(post_id, edit_url, "proof-use ledger update", exc) from exc
+
+
 def _require_publish_readiness(
     file_path: str,
     proof_sidecar: Optional[str],
@@ -995,32 +1004,20 @@ def _require_publish_readiness(
     context_receipt: Optional[str] = None,
     assembly_bom: Optional[str] = None,
     vault_root: Optional[str | Path] = None,
-    artifact_kind: Optional[str] = None,
 ) -> Dict:
-    readiness_kwargs = {"proof_sidecar": proof_sidecar}
+    """Landing pages only: the publish-readiness gate (blog posts use the release record)."""
+    readiness_kwargs = {"proof_sidecar": proof_sidecar, "artifact_kind": "landing_page"}
+    context_inputs = {
+        "context_request": context_request,
+        "context_pack": context_pack,
+        "context_receipt": context_receipt,
+        "vault_root": vault_root,
+    }
     if assembly_bom is not None:
-        readiness_kwargs.update({
-            "context_request": context_request,
-            "context_pack": context_pack,
-            "context_receipt": context_receipt,
-            "assembly_bom": assembly_bom,
-            "vault_root": vault_root,
-        })
+        readiness_kwargs.update(context_inputs, assembly_bom=assembly_bom)
     else:
-        for label, value in (
-            ("context_request", context_request),
-            ("context_pack", context_pack),
-            ("context_receipt", context_receipt),
-            ("vault_root", vault_root),
-        ):
-            if value is not None:
-                readiness_kwargs[label] = value
-    if artifact_kind is not None:
-        readiness_kwargs["artifact_kind"] = artifact_kind
-    result = run_publish_readiness(
-        file_path,
-        **readiness_kwargs,
-    )
+        readiness_kwargs.update({label: value for label, value in context_inputs.items() if value is not None})
+    result = run_publish_readiness(file_path, **readiness_kwargs)
     if result.get("passed"):
         return result
     raise ValueError(
@@ -1065,10 +1062,7 @@ def main():
         default='post',
         help='Content type: post, page, or custom post type (default: post)'
     )
-    parser.add_argument(
-        '--proof-sidecar',
-        help='Optional validation sidecar for publish-readiness proof gates',
-    )
+    parser.add_argument('--proof-sidecar', help='Optional validation sidecar for publish-readiness proof gates')
     parser.add_argument('--context-request', help='Connector context request JSON path')
     parser.add_argument('--context-pack', help='Connector context pack JSON path')
     parser.add_argument('--context-receipt', help='Connector validation receipt JSON path')
@@ -1077,6 +1071,9 @@ def main():
     parser.add_argument('--noindex', action='store_true', help='Request Yoast noindex metadata')
     parser.add_argument('--template', default='', help='WordPress page template slug')
     args = parser.parse_args()
+    retired = publish_gate.retired_blog_flags(args) if args.type.strip().lower() not in ('page', 'pages') else []
+    if retired:
+        parser.error(f"{retired[0]} is retired for blog posts; a passing release record is the publish gate")
 
     try:
         publisher = WordPressPublisher()

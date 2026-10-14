@@ -20,7 +20,8 @@ later iteration.
 
 This skill only relocates already-approved body content. Do not inject, rewrite, or strip
 anything beyond the frontmatter block and the leading H1 (which Grav renders from frontmatter).
-The article body must pass `/publish-readiness` before any Grav push.
+The article must have a passing release record (written by `/publish-readiness`) for its exact
+bytes before any Grav dry run or push.
 Honor the content boundaries in `CLAUDE.md` — the article body must already be publish-ready.
 
 ## How it works
@@ -34,6 +35,8 @@ The logic lives in `data_sources/modules/grav_publisher.py`. It:
    `metadata.description/keywords`, `author`, `published: true`) plus the body with the
    frontmatter and leading H1 removed.
 4. Commits `blogs/<slug>/article.en.md` to the `dev` branch (creates or updates).
+5. After a successful push, records one `config/customer-proof-usage-ledger.json` entry for each
+   production BOM proof item the article links. Dry runs, refusals, and failures never write it.
 
 ## Configuration
 
@@ -46,18 +49,22 @@ Read from the repo-root `.env`:
 | `GRAV_BLOG_PATH` | Blog folder path inside the repo | `blogs` |
 | `GRAV_DEFAULT_LANG` | Language code for the article file | `en` |
 
-If `GRAV_REPO` is unset, the publisher automatically runs in dry-run mode (no push).
+If `GRAV_REPO` is unset, a live publish fails closed with an error; only an explicit `--dry-run` works without it.
 
 ## Workflow
 
 1. Resolve the input file the user named in `drafts/` or `rewrites/`.
-2. Run the full publish-readiness preflight before any Grav push:
+2. Check the release record before any Grav dry run or push:
 
    ```bash
-   /publish-readiness <path-to-draft-or-rewrite> --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json
+   python -m data_sources.modules.production.record verify <path-to-draft-or-rewrite>
    ```
 
-   The Grav publisher also enforces this preflight internally before committing to GitHub. If readiness fails, fix the highest-severity blocker and rerun; do not push.
+   Exit `0` means publishable. Exit `1` prints the refusal reason (no record, a failing release,
+   or the article, BOM, spec, or evidence changed since the passing release); fix it and rerun
+   `/publish-readiness`, and do not push. Exit `2` means the article is not directly in `drafts/`
+   or `rewrites/` as `<slug>-YYYY-MM-DD.md`. The Grav publisher enforces the same check internally,
+   for dry runs too, and rechecks the article hash before and after the push.
 
 3. **Always preview first** with a dry run, and show the user the generated `article.en.md`:
 
@@ -65,13 +72,17 @@ If `GRAV_REPO` is unset, the publisher automatically runs in dry-run mode (no pu
    python -m data_sources.modules.grav_publisher <path-to-draft-or-rewrite> --dry-run
    ```
 
-   The preview is also written to `.grav-preview/<slug>/article.en.md` at the repo root.
+   The dry run builds the article in memory and prints it; it writes no local file and makes no
+   network call.
 
 4. After the user confirms the frontmatter and slug look right (and `GRAV_REPO` is set), push:
 
    ```bash
-   python -m data_sources.modules.grav_publisher <path-to-draft-or-rewrite> --proof-sidecar research/validation-[topic-slug]-[YYYY-MM-DD].md --context-request research/context-request-[topic-slug].json --context-pack research/context-pack-[topic-slug].json --context-receipt research/context-receipt-[topic-slug].json --assembly-bom research/blog-assembly-bom-[topic-slug]-[YYYY-MM-DD].json
+   python -m data_sources.modules.grav_publisher <path-to-draft-or-rewrite>
    ```
+
+   The retired readiness flags (`--proof-sidecar`, `--context-request`, `--context-pack`,
+   `--context-receipt`, `--assembly-bom`, `--vault-root`) are rejected with exit `2`.
 
 5. Report the slug, the `blogs/<slug>/article.en.md` path, and the returned commit URL.
 

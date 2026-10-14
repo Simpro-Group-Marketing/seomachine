@@ -63,7 +63,6 @@
       "check_content": 25
     },
     "data_sources/modules/grav_publisher.py": {
-      "publish": 12,
       "push_article": 13
     },
     "data_sources/modules/hindsight_boundary_guard.py": {
@@ -231,7 +230,7 @@
     "data_sources/modules/dataforseo.py": 678,
     "data_sources/modules/eeat_strength_guard.py": 718,
     "data_sources/modules/fred_authority_guard.py": 1016,
-    "data_sources/modules/grav_publisher.py": 912,
+    "data_sources/modules/grav_publisher.py": 799,
     "data_sources/modules/industry_cluster_link_policy.py": 1073,
     "data_sources/modules/keyword_analyzer.py": 800,
     "data_sources/modules/landing_page_scorer.py": 782,
@@ -249,7 +248,7 @@
     "data_sources/modules/source_support/orchestration.py": 511,
     "data_sources/modules/trust_signal_analyzer.py": 567,
     "data_sources/modules/vault_brand_language_guard.py": 945,
-    "data_sources/modules/wordpress_publisher.py": 1129,
+    "data_sources/modules/wordpress_publisher.py": 1126,
     "scripts/research_competitor_gaps.py": 545,
     "scripts/research_serp_analysis.py": 1669,
     "scripts/research_topic_clusters.py": 565,

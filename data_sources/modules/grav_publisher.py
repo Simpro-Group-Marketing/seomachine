@@ -35,8 +35,6 @@ try:
     from .bounded_io import bounded_json_bytes
     from .publishable_markdown import (
         PublishableMarkdown,
-        capture_file_snapshots,
-        ensure_same_file_snapshots,
         ensure_same_snapshot,
         metadata_path_tail,
         read_publishable_markdown,
@@ -46,17 +44,13 @@ try:
         validate_publish_content,
         validate_publish_plain_text,
     )
-    from .readiness.api import run_publish_readiness
-    from .source_support_guard import require_source_support as require_source_support
-    from .url_validator import validate_file_urls as validate_file_urls
+    from .production import publish_gate
 except ImportError:
     from artifact_runtime.limits import JSON_MAX_BYTES
     from artifact_runtime.subprocesses import run_bounded_text_process
     from bounded_io import bounded_json_bytes
     from publishable_markdown import (
         PublishableMarkdown,
-        capture_file_snapshots,
-        ensure_same_file_snapshots,
         ensure_same_snapshot,
         metadata_path_tail,
         read_publishable_markdown,
@@ -66,9 +60,7 @@ except ImportError:
         validate_publish_content,
         validate_publish_plain_text,
     )
-    from readiness.api import run_publish_readiness
-    from source_support_guard import require_source_support as require_source_support
-    from url_validator import validate_file_urls as validate_file_urls
+    from production import publish_gate
 
 
 GH_TIMEOUT_SECONDS = 30
@@ -586,18 +578,15 @@ class GravPublisher:
         file_path: str,
         dry_run: bool = False,
         lang: Optional[str] = None,
-        proof_sidecar: Optional[str] = None,
-        context_request: Optional[str] = None,
-        context_pack: Optional[str] = None,
-        context_receipt: Optional[str] = None,
-        assembly_bom: Optional[str] = None,
-        vault_root: Optional[str | Path] = None,
+        workspace_root: Optional[str | Path] = None,
     ) -> Dict:
         """
         Publish a draft/rewrite file to the Grav repo.
 
+        The article must have a passing release record for its exact bytes, for a dry run too.
         When ``dry_run`` is True, the generated article is returned in memory and
         no network call is made. A live request without GRAV_REPO fails closed.
+        After a successful push, the linked BOM proof is recorded in the usage ledger.
         """
         if lang:
             self.lang = _validate_language_tag(lang)
@@ -606,7 +595,6 @@ class GravPublisher:
                 "GRAV_REPO is not set. Configure it for live publish or explicitly use dry-run mode."
             )
 
-        effective_dry_run = bool(dry_run)
         before_readiness = read_publishable_markdown(file_path)
         preflight_draft = GravPublisher.parse_draft_file(
             self,
@@ -618,67 +606,22 @@ class GravPublisher:
             validate_publish_content(before_readiness.body)
         except PublishContentSafetyError as exc:
             raise GravPublishError(str(exc)) from exc
-        readiness_input_paths = {
-            "proof_sidecar": proof_sidecar,
-            "context_request": context_request,
-            "context_pack": context_pack,
-            "context_receipt": context_receipt,
-            "assembly_bom": assembly_bom,
-        }
-        before_readiness_inputs = (
-            capture_file_snapshots(readiness_input_paths)
-            if not effective_dry_run
-            else {}
-        )
-        readiness_required = (
-            not effective_dry_run
-            or any(
-                value is not None
-                for value in (
-                    proof_sidecar,
-                    context_request,
-                    context_pack,
-                    context_receipt,
-                    assembly_bom,
-                    vault_root,
-                )
+        release_root = publish_gate.release_root(workspace_root)
+        try:
+            release = publish_gate.require_release(
+                file_path, release_root, "Grav dry run" if dry_run else "Grav publish"
             )
-        )
-        if readiness_required:
-            _require_publish_readiness(
-                file_path,
-                proof_sidecar,
-                "Grav dry run" if effective_dry_run else "Grav publish",
-                context_request=context_request,
-                context_pack=context_pack,
-                context_receipt=context_receipt,
-                assembly_bom=assembly_bom,
-                vault_root=vault_root,
-            )
-        if not effective_dry_run:
             sealed_snapshot = read_publishable_markdown(file_path)
-            try:
-                ensure_same_snapshot(before_readiness, sealed_snapshot)
-                sealed_readiness_inputs = capture_file_snapshots(readiness_input_paths)
-                ensure_same_file_snapshots(
-                    before_readiness_inputs,
-                    sealed_readiness_inputs,
-                )
-            except ValueError as exc:
-                raise GravPublishError(str(exc)) from exc
-        else:
-            sealed_snapshot = before_readiness
-            sealed_readiness_inputs = {}
+            ensure_same_snapshot(before_readiness, sealed_snapshot)
+            publish_gate.ensure_released_bytes(release, sealed_snapshot.sha256, file_path)
+        except ValueError as exc:
+            raise GravPublishError(str(exc)) from exc
 
         def ensure_current_inputs() -> None:
             try:
                 ensure_same_snapshot(
                     sealed_snapshot,
                     read_publishable_markdown(file_path),
-                )
-                ensure_same_file_snapshots(
-                    sealed_readiness_inputs,
-                    capture_file_snapshots(readiness_input_paths),
                 )
             except ValueError as exc:
                 raise GravPublishError(str(exc)) from exc
@@ -703,13 +646,9 @@ class GravPublisher:
             "article": article,
             "source_sha256": sealed_snapshot.sha256,
             "article_sha256": hashlib.sha256(article.encode("utf-8")).hexdigest(),
-            "publish_input_sha256": {
-                label: snapshot.sha256
-                for label, snapshot in sealed_readiness_inputs.items()
-            },
         }
 
-        if effective_dry_run:
+        if dry_run:
             result.update(
                 {
                     "dry_run": True,
@@ -729,7 +668,19 @@ class GravPublisher:
         except GravPublishError as exc:
             raise GravPartialPublishError(push, exc) from exc
         result.update({"dry_run": False, **push})
+        _record_proof_use(file_path, release_root, push)
         return result
+
+
+def _record_proof_use(file_path: str, release_root: Path, push: Dict) -> None:
+    """After a successful push, record the article's linked BOM proof in the usage ledger."""
+    try:
+        publish_gate.record_release_use(file_path, release_root)
+    except (OSError, ValueError) as exc:
+        location = push.get("commit_url") or push.get("repo_path") or "the Grav repo"
+        raise GravPublishError(
+            f"Grav article was pushed ({location}), but recording proof use in the usage ledger failed: {exc}"
+        ) from exc
 
 
 def _validate_grav_public_fields(draft: Dict) -> None:
@@ -780,53 +731,6 @@ def _validate_blog_path(value: str) -> str:
     return "/".join(segments)
 
 
-def _require_publish_readiness(
-    file_path: str,
-    proof_sidecar: Optional[str],
-    context: str,
-    *,
-    context_request: Optional[str] = None,
-    context_pack: Optional[str] = None,
-    context_receipt: Optional[str] = None,
-    assembly_bom: Optional[str] = None,
-    vault_root: Optional[str | Path] = None,
-) -> Dict:
-    readiness_kwargs = {}
-    for label, value in (
-        ("proof_sidecar", proof_sidecar),
-        ("context_request", context_request),
-        ("context_pack", context_pack),
-        ("context_receipt", context_receipt),
-        ("assembly_bom", assembly_bom),
-        ("vault_root", vault_root),
-    ):
-        if value is not None:
-            readiness_kwargs[label] = value
-    result = run_publish_readiness(file_path, **readiness_kwargs)
-    if result.get("passed"):
-        return result
-    raise GravPublishError(
-        f"Publish readiness failed before {context}:\n"
-        f"{_format_readiness_blockers(result)}"
-    )
-
-
-def _format_readiness_blockers(result: Dict) -> str:
-    lines = []
-    for gate in result.get("gates", []):
-        if gate.get("passed"):
-            continue
-        name = gate.get("name", "unknown_gate")
-        label = gate.get("label", name)
-        lines.append(f"- {name} ({label})")
-        for blocker in gate.get("blockers", [])[:3]:
-            lines.append(f"  - {blocker}")
-    if not lines:
-        for fix in result.get("priority_fixes", [])[:3]:
-            lines.append(f"- {fix.get('issue', 'readiness blocker')}")
-    return "\n".join(lines) if lines else "- readiness failed"
-
-
 def main():
     """CLI entry point."""
     import sys
@@ -855,17 +759,6 @@ def main():
     parser.add_argument(
         "--lang", default=None, help="Language code for article file (default: en)"
     )
-    parser.add_argument(
-        "--proof-sidecar",
-        help="Optional validation sidecar for publish-readiness proof gates",
-    )
-    parser.add_argument("--context-request", help="Connector context request JSON path")
-    parser.add_argument("--context-pack", help="Connector context pack JSON path")
-    parser.add_argument(
-        "--context-receipt", help="Connector validation receipt JSON path"
-    )
-    parser.add_argument("--assembly-bom", help="Blog assembly BOM JSON path")
-    parser.add_argument("--vault-root", help="Configured Simpro vault root override")
     args = parser.parse_args()
 
     try:
@@ -874,12 +767,6 @@ def main():
             args.file_path,
             dry_run=args.dry_run,
             lang=args.lang,
-            proof_sidecar=args.proof_sidecar,
-            context_request=args.context_request,
-            context_pack=args.context_pack,
-            context_receipt=args.context_receipt,
-            assembly_bom=args.assembly_bom,
-            vault_root=args.vault_root,
         )
 
         print(f"\n[OK] Parsed draft: {result['title']}")

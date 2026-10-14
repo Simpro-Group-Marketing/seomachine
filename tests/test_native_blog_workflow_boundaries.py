@@ -51,12 +51,12 @@ def test_receipt_backed_scrub_writes_governance_only_not_article(tmp_path):
     assert raised.value.code == "scrub_changes_required"
     assert not receipt_path.exists()
 
-def test_grav_dry_run_does_not_persist_local_blog_markdown_preview(tmp_path):
+def test_grav_dry_run_does_not_persist_local_blog_markdown_preview(tmp_path, monkeypatch):
     article = tmp_path / "post.md"
     article.write_text(BLOG_MARKDOWN, encoding="utf-8")
     publisher = GravPublisher(repo="owner/repo", blog_path="blogs", lang="en")
     publisher.preview_root = tmp_path / "preview"
-
+    monkeypatch.setattr("data_sources.modules.production.publish_gate.require_release", lambda *args: None)
     result = publisher.publish(str(article), dry_run=True)
 
     assert result["dry_run"] is True

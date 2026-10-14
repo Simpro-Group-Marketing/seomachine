@@ -117,20 +117,16 @@ class StrictFrontmatterContractTests(unittest.TestCase):
             grav.preview_root = preview_root
             with (
                 patch(
-                    "data_sources.modules.wordpress_publisher.run_publish_readiness"
-                ) as wordpress_readiness,
+                    "data_sources.modules.production.publish_gate.verify_publishable"
+                ) as release_gate,
                 patch.object(wordpress, "create_draft") as create_draft,
-                patch(
-                    "data_sources.modules.grav_publisher.run_publish_readiness"
-                ) as grav_readiness,
             ):
                 with self.assertRaises(FrontmatterError):
                     wordpress.publish_draft(str(path))
                 with self.assertRaises(FrontmatterError):
                     grav.publish(str(path), dry_run=True)
 
-        wordpress_readiness.assert_not_called()
-        grav_readiness.assert_not_called()
+        release_gate.assert_not_called()
         create_draft.assert_not_called()
         self.assertFalse(preview_root.exists())
     def test_invalid_utf8_is_rejected_by_publishable_reader(self):
