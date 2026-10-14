@@ -65,14 +65,13 @@ def test_publish_use_appends_one_entry_per_linked_bom_proof_item(tmp_path, monke
     assert verify_publishable(layout.article, layout.root)["passed"] is True
 
 
-def test_publish_use_dedupes_on_proof_artifact_and_date(tmp_path, monkeypatch):
+def test_publish_use_dedupes_on_proof_and_artifact(tmp_path, monkeypatch):
     layout = _released(tmp_path, monkeypatch)
     record_publish_use(layout.article, layout.root, published_path=ARTICLE)
     before = _ledger_path(layout).read_bytes()
     assert record_publish_use(layout.article, layout.root, published_path=ARTICLE) == []
     assert _ledger_path(layout).read_bytes() == before
-    later = record_publish_use(layout.article, layout.root, published_path=ARTICLE, date="2026-10-20")
-    assert [entry["date_used"] for entry in later] == ["2026-10-20"]
+    assert record_publish_use(layout.article, layout.root, published_path=ARTICLE, date="2026-10-20") == []
 
 
 def test_unlinked_proof_item_writes_nothing(tmp_path, monkeypatch):

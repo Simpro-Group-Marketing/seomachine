@@ -2,8 +2,8 @@
 
 ``record_publish_use`` trusts only the passing release record (``record.verify_publishable``),
 reads that release's BOM, and appends one ``uses[]`` entry for each BOM proof item whose URL the
-article body links. Entries are deduped on proof id, artifact path, and date, and the
-read-modify-write holds an exclusive ``<ledger>.lock`` file (holding the holder's pid and
+article body links. Entries are deduped on proof id and artifact path (one use per article,
+whatever the day or publisher), and the read-modify-write holds an exclusive ``<ledger>.lock`` file (holding the holder's pid and
 ``created_at``) so concurrent publishes cannot lose an entry. A lock older than
 ``LOCK_STALE_SECONDS`` or whose holder process has exited is broken; a fresh lock held by a live
 process is never broken. The release itself
@@ -205,8 +205,9 @@ def _ledger_lock(path: Path) -> Iterator[None]:
         lock.unlink(missing_ok=True)
 
 
-def _key(entry: Mapping[str, Any]) -> tuple[str, str, str]:
-    return (str(entry.get("proof_id")), str(entry.get("artifact_path")), str(entry.get("date_used")))
+def _key(entry: Mapping[str, Any]) -> tuple[str, str]:
+    """One use per proof per article: a republish or a second publisher on a later day adds nothing."""
+    return (str(entry.get("proof_id")), str(entry.get("artifact_path")))
 
 
 def record_publish_use(

@@ -2,7 +2,7 @@
 
 ## Context Binding Regeneration (MANDATORY)
 
-After the final content mutation, regenerate the machine-owned binding before `/publish-readiness` and before any WordPress API call:
+After the final content mutation, regenerate the machine-owned binding before the publisher's landing-page readiness gate and before any WordPress API call:
 
 ```bash
 python data_sources/modules/context_binding_generator.py "$FILE_PATH" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT"
@@ -74,9 +74,9 @@ Check file exists and contains required fields:
 
 ### Step 2: Publish Readiness
 
-Run the same fail-closed gate stack used by blog publishing:
+The WordPress publisher's internal page gate does the readiness check: `/publish-draft "$FILE_PATH" --type page` runs the old landing-page readiness gate before any WordPress API call, so there is no separate readiness command. `/publish-readiness` is the blog release and refuses these flags; do not run it for a landing page. Pass the current connector context artifacts to the publisher:
 ```bash
-/publish-readiness "$FILE_PATH" --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT"
+/publish-draft "$FILE_PATH" --type page --proof-sidecar "$PROOF_SIDECAR" --context-request "$CONTEXT_REQUEST" --context-pack "$CONTEXT_PACK" --context-receipt "$CONTEXT_RECEIPT"
 ```
 
 Context Binding must pass before downstream proof, URL, quality, or handoff gates. A landing-page score alone never authorizes a WordPress API call.

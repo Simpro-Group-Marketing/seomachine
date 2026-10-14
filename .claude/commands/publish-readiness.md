@@ -77,7 +77,7 @@ Only the latest release record counts: it must have passed, and the article, BOM
 
 ## Usage ledger
 
-Release never writes `config/customer-proof-usage-ledger.json`; record the customer-proof use in `config/customer-proof-usage-ledger.json` before final handoff, as `.claude/rules/customer-proof.md` requires.
+Release never writes `config/customer-proof-usage-ledger.json`; record the customer-proof use in `config/customer-proof-usage-ledger.json` before final handoff, as `.claude/rules/customer-proof.md` requires; the WordPress and Grav publishers record it after a successful live publish, so add it by hand only when publishing outside them.
 
 ## Output
 
